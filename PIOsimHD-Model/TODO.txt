@@ -1,0 +1,22 @@
+* XML-Schema für güliges XML erzeugen (sollte eigentlich nicht nötig sein), Fehlererkennung im XML gehört auslagern
+* Cleanup des SourceCodes: Order: static vor Klassen (Funktionen und Variablen), Variablen vor Funktionen,
+    public vor paket vor private (Variablen | funktionen), zwischen den einzelnen Blöcken sollten Leerzeilen stehen.
+    Kommentare klarerweise. 
+    gülties bsp:
+    public static int no = 4;
+    
+    public static void funct(){
+    }
+    
+    public int count = 5;
+    public String name = "hans";
+    
+    int test = 3;
+    
+    private int cnt = 4;
+    
+    public void func(){
+    }
+
+ e344. Implementing a Least-Recently-Used (LRU) Cache
+  http://exampledepot.com/egs/java.util/coll_Cache.html?l=rel

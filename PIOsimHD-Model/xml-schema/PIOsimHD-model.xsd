@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!-- http://help.eclipse.org/help32/index.jsp?topic=/org.eclipse.wst.xmleditor.doc.user/topics/cxmlcat.html
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified"
+	xmlns:sim="http://www.uni-heidelberg.de/PIOsimHD" targetNamespace="http://www.uni-heidelberg.de/PIOsimHD">
+	<annotation>
+		<documentation xml:lang="EN">
+			Schema for PIOsimHD model
+    </documentation>
+	</annotation>
+
+	<element name="Project" type="sim:ProjectTyp" />
+
+	<complexType name="ProjectTyp">
+		<sequence>
+			<element name="Templates" type="sim:TemplateType" />
+			<element name="ApplicationList" type="sim:ApplicationListTyp" />
+			<element name="GlobalSettings" type="sim:GlobalSettingsTyp" />
+			<element name="ComponentList" type="sim:ComponentListType" />
+		</sequence>
+	</complexType>
+
+	<complexType name="BasicTemplateType">
+		<sequence>
+		</sequence>
+		<attribute name="name" type="string" />
+	</complexType>
+
+	<complexType name="TemplateType">
+		<sequence minOccurs="0" maxOccurs="unbounded">
+			<choice>
+				<element name="Connection" type="anyType" />
+				<element name="NIC" type="anyType" />
+				<element name="Port" type="anyType" />
+				<element name="Switch" type="anyType" />
+				<element name="Client" type="anyType" />
+				<element name="IOSubsystem" type="anyType" />
+				<element name="Server" type="anyType" />
+				<element name="Node" type="anyType" />
+			</choice>
+		</sequence>
+	</complexType>
+
+	<complexType name="BasicObjectType">
+		<attribute name="name" type="string" use="optional" />
+		<attribute name="id" type="integer" use="optional" />
+		<attribute name="template" type="string" use="optional" />
+	</complexType>
+
+	<complexType name="ConnectionType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<all>
+					<element name="Latency" type="sim:Time" />
+					<element name="Bandwidth" type="sim:Value" />
+				</all>
+				<attribute name="to" type="string" />
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<complexType name="NodeType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<sequence minOccurs="1" maxOccurs="unbounded">
+					<choice>
+						<element name="InternalDataTransferSpeed" type="sim:Value" />
+						<element name="MemorySize" type="sim:Value" />
+						<element name="CacheSize" type="sim:Value" />
+						<element name="InstructionsPerSecond" type="sim:Value" />
+						<element name="CPUs" type="integer" />
+						<element name="ClientProcess" type="sim:ClientType" />
+						<element name="NIC" type="sim:NICType" minOccurs="1" maxOccurs="unbounded" />
+						<element name="Server" type="sim:ServerType" minOccurs="0" maxOccurs="1" />
+					</choice>
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<complexType name="ApplicationType">
+		<attribute name="rank" type="integer" />
+		<attribute name="application" type="string" />
+	</complexType>
+
+	<complexType name="ClientType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<!-- 
+		<sequence>
+		<element name="Application" type="sim:ApplicationType"/>	
+		</sequence>
+		 -->
+				<attribute name="rank" type="integer" />
+				<attribute name="application" type="string" />
+			</extension>
+		</complexContent>
+	</complexType>
+
+
+	<complexType name="IOSubsystemType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<sequence>
+					<element name="AvgAccessTime" type="sim:Time" />
+					<element name="MaxThroughput" type="sim:Value" />
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<complexType name="ServerType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<sequence>
+					<element name="IOSubsystem" type="sim:IOSubsystemType" />
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<complexType name="PortType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<sequence>
+					<element name="Connection" type="sim:ConnectionType" />
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<complexType name="NICType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<sequence>
+					<element name="Connection" type="sim:ConnectionType" />
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+
+
+	<complexType name="SwitchType">
+		<complexContent>
+			<extension base="sim:BasicObjectType">
+				<sequence>
+					<element name="TotalBandwidth" type="sim:Value" />
+					<element name="Port" type="sim:PortType" minOccurs="1" maxOccurs="unbounded" />
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<complexType name="NodeListType">
+		<sequence>
+			<element name="Node" type="sim:NodeType" minOccurs="1" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<complexType name="SwitchListType">
+		<sequence>
+			<element name="Switch" type="sim:SwitchType" minOccurs="1" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<complexType name="ComponentListType">
+		<sequence>
+			<element name="NodeList" type="sim:NodeListType" />
+			<element name="SwitchList" type="sim:SwitchListType" />
+		</sequence>
+	</complexType>
+
+	<complexType name="ApplicationListTyp">
+		<sequence>
+			<element name="Application" type="sim:ApplicationTyp" minOccurs="0" />
+		</sequence>
+	</complexType>
+
+	<complexType name="ApplicationTyp">
+		<attribute name="alias" type="string" />
+		<attribute name="file" type="string" />
+	</complexType>
+
+	<complexType name="ClientMethodTyp">
+		<attribute name="name" type="string" />
+	</complexType>
+
+	<complexType name="GlobalSettingsTyp">
+		<sequence>
+			<element name="TransferGranularity" type="sim:Value" />
+			<element name="IOGranularity" type="sim:Value" />
+			<element name="MaxEagerSendSize" type="sim:Value" />
+			<element name="ClientMethod" type="sim:ClientMethodTyp" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<simpleType name="Value">
+		<restriction base="string">
+			<pattern value="[0-9]*[KMG]?" />
+		</restriction>
+	</simpleType>
+
+	<simpleType name="Time">
+		<restriction base="string">
+			<pattern value="[0-9]*([.][0-9]+)?[mun]?s" />
+		</restriction>
+	</simpleType>
+
+</schema>

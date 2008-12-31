@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- http://help.eclipse.org/help32/index.jsp?topic=/org.eclipse.wst.xmleditor.doc.user/topics/cxmlcat.html
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+		elementFormDefault="qualified" attributeFormDefault="unqualified"
+		xmlns:sim="http://www.uni-heidelberg.de/PIOsimHD-Application" 
+		targetNamespace="http://www.uni-heidelberg.de/PIOsimHD-Application">
+		
+<annotation>
+    <documentation xml:lang="EN">
+		Schema for PIOsimHD Applications
+    </documentation>
+</annotation>  
+
+<element name="Application" type="sim:Application"/>
+
+<complexType name="Application">
+    <sequence>
+    	<element name="Description" type="string"/>
+    	<element name="FileList" type="sim:FileList" minOccurs="0"/>
+    	<element name="CommunicatorList" type="sim:CommunicatorList"/>
+    	<element name="ProcessList" type="sim:ProcessList"/>
+    </sequence>
+    <attribute name="name" type="string"/>
+    <attribute name="processCount" type="integer"/>    
+</complexType>
+
+<complexType name="ProcessList">
+	<sequence>
+		<element name="Rank" type="sim:ProgramRank" minOccurs="1" maxOccurs="unbounded"/>
+	</sequence>
+</complexType>
+
+<complexType name="ProgramRank">
+	<sequence>
+		<element name="Program" type="anyType"/>
+	</sequence>
+	<attribute name="number" type="integer"/>
+</complexType>
+
+<complexType name="CommunicatorList">
+	<sequence>
+		<element name="Communicator" type="sim:Communicator" minOccurs="0" maxOccurs="unbounded"/>
+	</sequence>
+</complexType>
+
+<complexType name="Communicator">
+	<sequence>
+		<element name="ParticipantList" type="sim:ParticipantList" minOccurs="0" maxOccurs="1"/>
+	</sequence>
+	<attribute name="name" type="string"/>
+</complexType>
+
+<complexType name="ParticipantList">
+	<sequence>
+		<element name="Rank" type="sim:Rank" minOccurs="1" maxOccurs="unbounded"/>
+	</sequence>
+</complexType>
+
+<complexType name="Rank">
+	<attribute name="number" type="integer"/>
+</complexType>
+
+<complexType name="FileList">
+	<sequence>
+		<element name="File" type="sim:File" minOccurs="0" maxOccurs="unbounded"/>
+	</sequence>
+</complexType>
+
+<complexType name="File">
+	<sequence>
+		<element name="InitialSize" type="sim:Value"/>
+		<!--<element name="DataFilesPerServer" type="integer"/>   --> 
+		<element name="Distribution" type="anyType"/>
+	</sequence>
+	
+	<attribute name="name" type="string"/>
+	<attribute name="id" type="integer"/>
+</complexType>
+
+
+
+<simpleType name="Value">
+	<restriction base="string">
+     <pattern value="[0-9]*[KMG]?"/>
+   </restriction>
+</simpleType>
+</schema>

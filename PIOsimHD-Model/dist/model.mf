@@ -1,0 +1,6 @@
+Name: de/hd/pvs/piosim/model/
+Sealed: true
+Implementation-Title: de.hd.pvs.piosim.model
+Implementation-Version: build1
+Implementation-Vendor: Julian M.Kunkel
+

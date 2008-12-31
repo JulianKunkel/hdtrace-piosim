@@ -1,0 +1,46 @@
+Directory structure of the model and simulator: 
+
+/mpiwrapper/
+	Contains a C-PMPI Wrapper which is tested with MPICH2. (Experimental, yet unfinished)
+	For each Program process it generates a single XML file and combines them into a large application.xml.	 
+/xml-schema/
+	Contains Schema Files for applications and for models. These should be referenced by all XML files.
+/lib/
+	Contains all required .jar files including their licenses
+/images/
+	Contains images for the GUI.
+/src/
+	Contains the Java SourceCode for the Model.
+
+The SourceCode in the package de.hd.pvs.piosim is organized in the following packages:
+tests/
+	Contains Junit4.X tests.
+model/
+	Contains the Model
+simulator/
+	Contains the Simulator (Part of a different project)
+gui/
+	Contains the GUI for editing models.
+	
+The model package is organized as follows:
+./
+	Contains important model classes to read/write XML data and to verify the model.
+annotations/
+	Contains a set of Annotations which can be placed on fields or Methods.
+	These Annotations are used during runtime to automatically read/write XML and to verify the 
+	model. Due to the fact that these tasks do not occur frequently performance is not significant. 
+components/
+	Contains all logical objects of a cluster which have attributes and could be simulated.
+	A computer (== Node) or a Network Interface Card for instance.
+	All components form the model. 
+interfaces/
+	Contains global interfaces.
+inputOutput/
+	Contains helper classes for I/O related tasks. This includes distribution's. A distribution
+	computes how data is distributed among existing I/O servers.   
+program/
+	A Client (== process) runs a particular program and collaborates in an application to achieve 
+	a task. A process consists of a fixed sequence of complex operations (== commands) like a barrier.
+	All code dedicated to a program and application can be found in this package. 	
+util/
+   	Contains several helper classes.
