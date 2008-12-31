@@ -1,0 +1,247 @@
+%	Copyright (C) 2008, 2009 Julian M. Kunkel
+%
+%	This file is part of PIOsimHD.
+%
+%	PIOsimHD is free software: you can redistribute it and/or modify
+%	it under the terms of the GNU General Public License as published by
+%	the Free Software Foundation, either version 3 of the License, or
+%	(at your option) any later version.
+%
+%	PIOsimHD is distributed in the hope that it will be useful,
+%	but WITHOUT ANY WARRANTY; without even the implied warranty of
+%	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%	GNU General Public License for more details.
+%
+%	You should have received a copy of the GNU General Public License
+%	along with PIOsimHD.  If not, see <http:%www.gnu.org/licenses/>.
+
+
+\documentclass[
+     11pt,         % font size
+     a4paper,      % paper format
+     BCOR10mm,     % binding correction
+     DIV14,        % stripe size for margin calculation
+     liststotoc,   % table listing in toc
+     bibtotoc,     % bibliography in toc
+     idxtotoc,     % index in toc
+     parskip       % paragraph skip instad of paragraph indent
+     ]{scrreprt}   %report
+\usepackage{times}
+
+\usepackage[numbers]{natbib}
+
+\font\klingon=klinz
+
+\citeindextrue
+
+%%%%%%%
+\usepackage[left=2.1cm,top=1.8cm,right=2.1cm,bottom=2.4cm]{geometry}
+\usepackage{courier}
+
+\usepackage[USenglish]{babel}
+% Input encoding
+\usepackage[utf8]{inputenc} 
+% Font encoding
+\usepackage[T1]{fontenc}
+% Index-generation
+%\usepackage{makeidx}
+% Einbinden von URLs:
+\usepackage{url}
+% Special \LaTex symbols (e.g. \BibTeX):
+\usepackage{doc}
+% Include Graphic-files:
+\usepackage{graphicx}
+\usepackage{amsmath}
+% Include doc++ generated tex-files:
+%\usepackage{docxx}
+% Include PDF links
+\usepackage[pdftex, bookmarks=true]{hyperref}
+\usepackage{enumitem}
+\usepackage{fancybox}
+\usepackage{rotating}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% OTHER SETTINGS:
+%\usepackage[pdftex,colorlinks,linkcolor=blue]{hyperref}
+\newcommand{\myTitle}[0]{
+Simulation of Parallel I/O and MPI Communication with a Discrete Event Simulator
+}
+
+\newcommand{\cmd}[1]{\texttt{#1()}}
+
+\newcommand{\fatRot}[1]{
+  \begin{turn}{-90}
+   \textbf{#1}
+  \end{turn}
+ }
+
+\usepackage{color}
+\usepackage{listings} \lstset{numbers=left, numberstyle=\tiny, numbersep=5pt} \lstset{language=C} 
+\lstset{frame=shadowbox, numbers=none,  rulesepcolor=\color{black}}
+
+% Pagestyle:
+\pagestyle{headings}
+
+% Choose language
+\newcommand{\setlang}[1]{\selectlanguage{#1}\nonfrenchspacing}
+
+\newcommand{\includescalepngs}[1]{
+\includegraphics[scale=0.5]{../bilder/#1}
+}
+
+\newcommand{\client}{ \begin{enumerate}[label=C\arabic{*}, ref=C(\arabic{*})]  }
+
+
+\hypersetup{
+	pdftitle = {\myTitle},
+	pdfsubject = {Technical Report},
+	pdfauthor = {Julian Martin Kunkel},
+	pdfkeywords = {Parallel File Systems, High Performance Computing, MPI, Simulation}
+}
+
+\begin{document}
+\begin{titlepage}
+
+\vspace*{1cm}
+\begin{center}
+\textbf{
+\Large Ruprecht-Karls-Universität Heidelberg\\
+\smallskip
+\Large Institut für Informatik\\
+\smallskip
+\Large Arbeitsgruppe Parallele und Verteilte Systeme\\
+\smallskip
+}
+
+\vspace{3cm}
+
+\textbf{\large Technical Report} 
+
+\vspace{0.5\baselineskip}
+{\huge
+\myTitle
+}
+\end{center}
+
+\vfill
+
+{\large
+\begin{tabular}[l]{ll}
+Julian Martin Kunkel\\
+January 2009
+\end{tabular}
+}
+
+\end{titlepage}
+
+\tableofcontents
+
+\chapter{Introduction}
+\section{Clusters}
+* Cluster, Nodes, Bottleneck
+
+\section{Message Passing Interface}
+** Communication
+
+\section{Parallel file systems}
+** Optimizations, ROMIO
+
+
+\section{Goals}
+\begin{itemize}
+\item Fast prototyping of new algorithms, for I/O optimization and MPI-
+\item Reveal bottlenecks.
+\item Teaching, better understanding of observed system behavior
+\item Test applications on different cluster hardware i.e. GRIDs
+\item Simple but extendible models which can be selected on demand.
+   Explicit abstraction from the real world complexity (for instance TCP Sliding Windows algorithm).
+   However, similar results (runtime) to real world experiments should be possible
+\item Usage of common tools to analyze simulation results.
+\item Real OpenSource Software
+\end{itemize}
+
+\section{State of the Art}
+\subsection{Simulators}
+** Paraver / Dimemas
+** Starfish
+** The Network Simulator
+** GTNets
+** NCTUns 4.0
+
+%* Performance optimization
+%** ROMIO: Two-Phase-I/O, 
+
+\subsection{Models}
+Realistic Communication Model for Parallel Computing on Cluster.
+http://i.cs.hku.hk/~clwang/papers/model-iwcc99.ps
+
+
+
+\chapter{Model}
+
+* Exchangable component behavior
+  Interfaces are not completely specified and can be modified as required.
+
+\section{Elementary Components}
+\subsection{Node}
+\subsection{Network Interface Card (NIC)}
+\subsection{Client Process}
+\subsection{Server Process}
+\subsection{Server Cache Layer}
+\subsection{I/O Subsystem}
+\subsection{Switch}
+\subsection{Port}
+\subsection{Connection}
+
+\section{Application}
+\subsection{Program}
+\subsection{Command}
+
+\section{Logical Files}
+
+
+
+\chapter{PIOsimHD Package}
+\section{Source Code}
+* Split into Model, GUI, Simulation
+\section{Provided Binaries/Scripts}
+\section{Example Usage}
+
+
+\chapter{Design}
+
+\section{Design Principles}
+* Reflection
+* Annotations
+* Basic Model Classes contain Data
+* Generation of Model, on run-time the simulator instanciates classes depending on the user configuration implementing such a model. The model is fixed during simulation.
+
+\section{Model Generation}
+
+\section{XML Generation}
+
+\section{Run a Simulation}
+\subsecton{Event processing}
+* Future events
+* Event handling inside the components
+
+\subsection{Debugging}
+
+\subsection{Simulation speed}
+* 100.000 events/second
+* Simulation Speed, remove assertions 15 seconds vs. 3.5 seconds (debug/assertions) and 1.8 seconds with disabled debugging.
+
+\subsection{Tracing}
+Jumpshot
+
+
+\appendix
+
+\listoffigures
+\listoftables
+
+\bibliographystyle{plainnat}
+\bibliography{Bibliography}
+
+
+\end{document}
