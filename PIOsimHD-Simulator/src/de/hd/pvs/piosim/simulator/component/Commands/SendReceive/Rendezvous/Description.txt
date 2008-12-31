@@ -1,0 +1,4 @@
+implements Send, Receive and SendRecv with 
+ * a rendezvous and Eager-Protocol. Depending on the GlobalSettings and the
+ * message size the appropriate method is chosen.
+ * description of protocol see: http://hpc.sissa.it/1st/index.html

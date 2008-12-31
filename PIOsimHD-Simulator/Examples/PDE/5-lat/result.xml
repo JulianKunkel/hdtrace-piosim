@@ -1,0 +1,3306 @@
+<?xml version="1.0" encoding="UTF-8"?><Application name="result" processCount="5">
+ <Description>     </Description> 
+<FileList> </FileList>
+<CommunicatorList> <Communicator name="WORLD"/>  </CommunicatorList> 
+<ProcessList>
+<Rank number="0"><Program>
+<Compute cycles="5975"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="999"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1005"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1008"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1010"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1012"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1003"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1010"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1005"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="995"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1002"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="994"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1002"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1010"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1004"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1013"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1005"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1008"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1004"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1009"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1004"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1008"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1012"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1011"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1007"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1007"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="1070"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="20628"/>
+<Compute cycles="20637"/>
+<!-- <time run="0.288444"/> --></Program></Rank>
+
+<Rank number="1"><Program>
+<Compute cycles="6019"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="999"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="999"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1080"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1015"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="996"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="999"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1002"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1000"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1008"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1007"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1005"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1006"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="996"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1013"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1002"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1055"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1001"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1004"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="989"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1001"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="552"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="520"/>
+<Compute cycles="524"/>
+<!-- <time run="0.284114"/> --></Program></Rank>
+
+<Rank number="2"><Program>
+<Compute cycles="5998"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="963"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="961"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="960"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="959"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="980"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="961"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="959"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="980"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="994"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1001"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="979"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="974"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="974"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="1" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="302"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="506"/>
+<Compute cycles="509"/>
+<!-- <time run="0.288116"/> --></Program></Rank>
+
+<Rank number="3"><Program>
+<Compute cycles="6193"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="981"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="981"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1002"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="975"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1003"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1013"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="981"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1013"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1089"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="981"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1053"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="980"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="978"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1003"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="979"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="974"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="995"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="991"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1003"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1014"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="976"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1019"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1011"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="975"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1002"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1656"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1001"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="1008"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="998"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="2" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="4" tag="0" comm="WORLD"/>
+<Receive fromRank="4" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="311"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="496"/>
+<Compute cycles="501"/>
+<!-- <time run="0.280363"/> --></Program></Rank>
+
+<Rank number="4"><Program>
+<Compute cycles="6669"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="962"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="974"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="963"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="980"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="963"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="962"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="990"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="995"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="974"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="972"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="962"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="963"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="963"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="981"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="975"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="974"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="962"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="963"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="978"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="981"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="976"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="992"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="962"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="975"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="986"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="968"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="988"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="982"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="970"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="963"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="984"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="975"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="994"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="987"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="983"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="964"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="978"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="996"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="978"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="971"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="978"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="977"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="979"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="985"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="975"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="965"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="967"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="966"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="993"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="969"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Compute cycles="978"/>
+<Receive fromRank="3" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="3" tag="0" comm="WORLD"/>
+<Allreduce size="8" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="304"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Send size="3272" toRank="0" tag="0" comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="530"/>
+<Compute cycles="535"/>
+<!-- <time run="0.268247"/> --></Program></Rank>
+
+</ProcessList></Application>

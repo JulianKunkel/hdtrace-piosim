@@ -1,0 +1,64 @@
+HPROF zum PRofiling:
+http://java.sun.com/developer/technicalArticles/Programming/HPROF.html
+http://www.roseindia.net/software-tutorials/detail/3300
+
+
+* Regressionstests Erstellen / verwendung von Junit, berechnete Ergebnisse ausgeben und mit sollwerten vergleichen.
+* Ausgabe Interface erstellen.
+
+Weitere Texte:
+Asserts:
+http://java.sun.com/j2se/1.4.2/docs/guide/lang/assert.html#compiling
+
+User transfers a list of NetworkJobs to the NIC, 
+each NetworkJob contains a source and a target and the type (recv, send)
+Foreach NetworkJob of Write the NIC submits a Message to the upload queue. A Message automatically gets partioned in the upload.
+Once a Message is sent the NIC generates the next Message until all Data is sent.
+
+Execution of one command creates one command description.  
+
+
+Flow geschichten:
+-> WRITE TO SERVER
+-> Ein Server beginnt nur dann Daten zu empfangen, wenn er hinreichend viel Platz hat (Problem, langsame Verbingung blockiert alles)
+- Schreiben auf server, falls nicht genug RAM => blockFurtherEventsWithCrit, 
+  continueProcessingOf falls wieder RAM frei. Jedes MSG-part wird empfangen...
+ - READ FROM SERVER
+ - Lesen von Server, zunächst können alle gecachten Daten direkt gelesen werden => single network JOB.
+   Verzögerung bei weiterem Lesen wird von Cache Schicht bestimmt
+ 
+
+
+I/O Scheduling:
+ - Server scheduled requests
+ - write kann blockiert werden (vom Cache Layer)
+ - read kann blockiert werden (Cache layer liefert einfach die Daten noch nicht).
+ 
+ Cache Layer:
+ - 
+ 
+ IOSubsystem:
+ - besteht aus einer/mehreren Platten, alle Platten sollen unabhängig voneinander maximal ausgenutzt werden
+ - eine Job-Queue pro Platte...
+ Platte: 
+ - simple Algorithmen zur Ermittlung von Latency / Throughput
+ 
+Frage: Welches Wissen muss auf welcher I/O Schicht vorhanden sein um maximalen Durchsatz zu erzielen?
+- IOSubsystem braucht nichts mehr über den Request zu wissen. 
+
+Mehrstufiges Scheduling (aber suboptimal): Server scheduled grundsätzlich Write/Lese Requests
+    IOSubsystem scheduled einzelne IOAnfragen und kann Writes throtteln
+ 
+Frage: In wieweit kann der Simulator genutzt werden um das USB-Stick / F-S verhalten zu simulieren?
+- komplexe fs simulation?
+ => DiskSim ? 
+ 
+ 
+Komponenten:
+- Server
+-- enthält mindestens eine NIC (im Moment genau eine)
+-- enthält genau ein Cache Layer (Caching Strategie HighLevel, Scheduled Requests)
+--- genau ein IO-Subsystem
+---- Mindestens ein IO-Subsystem* + dazugehöriges RAID-level + Block CachingStrategie 
+     (alle Eingebauten werden nach dem festen RAID-level behandelt)
+---- Eine Platte ist ein I/O Subsystem (simples) 

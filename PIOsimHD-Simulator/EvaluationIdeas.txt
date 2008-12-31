@@ -1,0 +1,11 @@
+Client Server I/O path:
+	TODO use a new data structure to pick the best write operation depending on all pending requests
+	   when it is really used. 
+	TODO evaluate this new strategy with the default strategy when 
+	  clients send all pending requests in normal order.
+Buffering of EagerProtokoll between two clients
+   How does it work in MPICH?
+   - Reserve a fixed amount in a client for each other client 
+     (i.e. each client knows how much is free on a communication partner)
+   - vs. consider an fixed amount RAM on the client as free cache (i.e. shared between clients)  
+   - vs. estimate/know free cache on the communication partner.

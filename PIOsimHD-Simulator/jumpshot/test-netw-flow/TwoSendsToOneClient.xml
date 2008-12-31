@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Application name="read-writer" processCount="2">       
+       <Description>Simuliert ein Program welches aus einer Datei liest und dann den selben Inhalt überschreibt</Description>        
+       <FileList>
+           <File name="TESTFILE">
+               <InitialSize> 100M </InitialSize>
+               <DataFilesPerServer>1</DataFilesPerServer>
+               <Distribution name="SimpleStripe">
+               		<Chunk-Size>10</Chunk-Size>
+               </Distribution>
+           </File>
+       </FileList>
+       <CommunicatorList>
+           <Communicator name="WORLD"/>
+           <Communicator name="TEST">
+               <ParticipantList>
+                   <Rank number="1"/>
+               </ParticipantList>
+           </Communicator>           
+       </CommunicatorList>    
+       <ProcessList>
+           <Rank number="0">
+               <Program>
+                   <RECEIVE from-rank="2" tag="0"/>
+                   <WAIT>
+                   <FOR aid="0"/>
+                   </WAIT>
+                </Program>
+           </Rank>            
+           <Rank number="1">
+               <Program>
+               </Program>
+           </Rank>      
+           <Rank number="2">
+               <Program>
+                <SEND size="1M" to-rank="0" tag="0"/>
+               </Program>
+           </Rank>           
+       </ProcessList>
+ </Application>
+ 

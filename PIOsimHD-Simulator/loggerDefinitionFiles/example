@@ -1,0 +1,8 @@
+# The canonical class names which shall be debugged
+ClassNamesToTrace
+#de.hd.pvs.piosim.simulator.component.ClientProcess.GClientProcess
+
+# The component IDs which shall be debugged.
+ComponentIDsToTrace
+#77
+#78

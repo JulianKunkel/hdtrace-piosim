@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?><Application name="result" processCount="1">
+ <Description>     </Description> 
+<FileList> </FileList>
+<CommunicatorList> <Communicator name="WORLD"/>  </CommunicatorList> 
+<ProcessList>
+<Rank number="0"><Program>
+<Compute cycles="527306"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="46724931"/>
+<Barrier comm="WORLD"/>
+<Barrier comm="WORLD"/>
+<Compute cycles="50266"/>
+<Compute cycles="50293"/>
+<!-- <time run="47.302645"/> --></Program></Rank>
+
+</ProcessList></Application>

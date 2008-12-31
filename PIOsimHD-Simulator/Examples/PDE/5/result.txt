@@ -1,0 +1,54 @@
+[TRACER][0] opening file ../PDE/trace-partdiff-par-0.xml for XML output
+
+[TRACER][1] opening file ../PDE/trace-partdiff-par-1.xml for XML output
+
+[TRACER][2] opening file ../PDE/trace-partdiff-par-2.xml for XML output
+
+[TRACER][3] opening file ../PDE/trace-partdiff-par-3.xml for XML output
+
+[TRACER][4] opening file ../PDE/trace-partdiff-par-4.xml for XML output
+
+
+============================================================
+Program for calculation of partial differential equations.  
+============================================================
+(c) Dr. Thomas Ludwig, TU M"unchen.
+    Thomas A. Zochler, TU M"unchen.
+    Andreas C. Schmidt, TU M"unchen.
+============================================================
+### [0] Finished calculation ###
+### [2] Finished calculation ###
+### [1] Finished calculation ###
+### [3] Finished calculation ###
+### [4] Finished calculation ###
+
+
+Ergebnis:
+
+Berechnungszeit:    11 Sekunden
+Berechnungsmethode: Jacobi
+Interlines:         500
+Stoerfunktion:      f(x,y)=0
+Terminierung:       Anzahl der Iterationen
+Anzahl Iterationen: 100
+Norm des Fehlers:   3.584496e-03
+Matrix:
+ 1.0000 0.8750 0.7500 0.6250 0.5000 0.3750 0.2500 0.1250 0.0000
+ 0.8750 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.1250
+ 0.7500 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.2500
+ 0.6250 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.3750
+ 0.5000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.5000
+ 0.3750 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.6250
+ 0.2500 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.7500
+ 0.1250 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.8750
+ 0.0000 0.1250 0.2500 0.3750 0.5000 0.6250 0.7500 0.8750 1.0000
+[TRACER][2] Runtime 11.535913s
+[TRACER][1] Runtime 11.540061s
+[TRACER][3] Runtime 11.554656s
+[TRACER][4] Runtime 11.554387s
+[TRACER][0] Runtime 11.563651s
+[TRACER][2] flushing log length: 69606
+[TRACER][1] flushing log length: 69660
+[TRACER][4] flushing log length: 59606
+[TRACER][3] flushing log length: 69606
+[TRACER][0] flushing log length: 163806

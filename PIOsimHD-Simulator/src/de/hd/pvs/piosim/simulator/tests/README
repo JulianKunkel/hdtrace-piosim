@@ -1,0 +1,6 @@
+In this directory a set of automatic tests are run to verify the correctness of the simulator.
+See:
+ http://www.junit.org/ and
+ http://junit.sourceforge.net/doc/cookbook/cookbook.htm
+ Eclipse + Junit:
+ http://www.mm.informatik.tu-darmstadt.de/courses/helpdesk/junit4.html
