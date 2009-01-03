@@ -24,9 +24,8 @@ package de.hd.pvs.piosim.model.program.commands.superclasses;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.sun.istack.internal.NotNull;
-
 import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 
