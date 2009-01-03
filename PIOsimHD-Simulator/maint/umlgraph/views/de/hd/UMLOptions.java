@@ -88,7 +88,41 @@ class ModelComponentDetails {}
  * @opt !hide  
  */
 class SimulatorComponentDetails {}
-/*
+
+/**
+ * @view
+ * @opt attributes
+ * @opt operations
+ * @opt postfixpackage
+ * @opt types
+ * @opt visibility
+ 
+ * @match class .*
+ * @opt nodefillcolor LightGray
+ * @opt hide
+ * 
+ * @match class de.hd.pvs.piosim.simulator.program.*
+ * @opt nodefillcolor LemonChiffon
+ * @opt !hide  
+ */
+class SimulatorCommandsDetails {}
+
+/**
+ * @view
+ * @opt qualify
+ * @opt postfixpackage
+  
+ * @match class .*
+ * @opt nodefillcolor LightGray
+ * @opt hide
+ * 
+ * @match class de.hd.pvs.piosim.simulator.program.*
+ * @opt nodefillcolor LemonChiffon
+ * @opt !hide  
+ */
+class SimulatorCommandsOverview {}
+
+/**
  * @view
  
  * @match class .*
@@ -103,9 +137,9 @@ class SimulatorComponentDetails {}
  */
 class Overview {}
 
-/*
+/**
  * @view
- * @opt attributes
+ * @opt visibility
  * @opt operations
  
  * @match class .*
