@@ -35,7 +35,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses( {
 // >>>>>>>>>START>>>>>>>>>>
-de.hd.pvs.piosim.model.tests.integrationstests.ModelLoadTest1.class, })
+de.hd.pvs.piosim.model.tests.integrationstests.ModelLoadTest1.class })
 public class RunAllTests {
 	public static Test suite() {
 		return new JUnit4TestAdapter(RunAllTests.class);

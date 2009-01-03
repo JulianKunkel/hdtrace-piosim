@@ -20,7 +20,7 @@ package de.hd.pvs.piosim.simulator.event;
 
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.model.util.Epoch;
-import de.hd.pvs.piosim.simulator.component.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 
 /**
  * Describes the reason for events to allow tracing of the caused actions.

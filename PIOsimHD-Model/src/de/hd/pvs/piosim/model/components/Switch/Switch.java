@@ -31,6 +31,8 @@ import de.hd.pvs.piosim.model.components.superclasses.NetworkComponent;
  * Ports.
  * 
  * @author Julian M. Kunkel
+ * 
+ * @has 1 - 0..n de.hd.pvs.piosim.model.components.Port.Port 
  */
 abstract public class Switch extends BasicComponent {
   /**

@@ -29,6 +29,8 @@ import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
  * 
  * @author Julian M. Kunkel
  *
+ * @has 1 - 1 de.hd.pvs.piosim.model.components.IOSubsystem.IOSubsystem
+ * @has 1 - 1 de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer
  */
 public class Server extends NodeHostedComponent {	
 	/**

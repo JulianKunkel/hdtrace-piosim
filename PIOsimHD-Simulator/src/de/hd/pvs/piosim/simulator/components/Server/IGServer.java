@@ -16,29 +16,21 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * 
- */
-package de.hd.pvs.piosim.simulator.interfaces;
+package de.hd.pvs.piosim.simulator.components.Server;
 
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
-import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
+import de.hd.pvs.piosim.simulator.components.IGComponent;
+import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 
-/**
- * Interface between NIC and the using component.
- * 
- * @author Julian M. Kunkel
- */
-public interface INICToUser {
+
+public interface IGServer<Type extends SPassiveComponent> 
+extends IGComponent<Type>, 
+ISNodeHostedComponent<Type>
+{
 	/**
-	 * Start the transfer of a set of jobs (i.e. multiple Send/Receive operations)
-	 * @param jobs All NetworkJobs to work on
-	 * @param callback Will be called once the jobs all completed
+	 * If an receive got stalled by the IGServerCacheLayer implementation, the implementation
+	 * should call this function to schedule a blocked one if it desires to. 
 	 */
-	public void initiateTransfer(NetworkJobs jobs);
-
-	/**
-	 * return the NIC glue object
-	 */
-	public GNIC getGNIC();
+	public void startupBlockedIOReceiveIfPossible(Epoch startTime);
 }

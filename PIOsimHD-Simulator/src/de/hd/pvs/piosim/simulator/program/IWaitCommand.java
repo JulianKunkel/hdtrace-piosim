@@ -16,29 +16,23 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * 
- */
-package de.hd.pvs.piosim.simulator.interfaces;
+package de.hd.pvs.piosim.simulator.program;
 
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
-import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.model.program.commands.Wait;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 
 /**
- * Interface between NIC and the using component.
+ * All implementations for WAIT commands must implement this interface.
  * 
  * @author Julian M. Kunkel
+ *
  */
-public interface INICToUser {
+public interface IWaitCommand {
 	/**
-	 * Start the transfer of a set of jobs (i.e. multiple Send/Receive operations)
-	 * @param jobs All NetworkJobs to work on
-	 * @param callback Will be called once the jobs all completed
+	 * Signal that a pending AIO operation finished.
+	 * 
+	 * @param which one finished
 	 */
-	public void initiateTransfer(NetworkJobs jobs);
+	public void pendingAIOfinished(Wait cmd, GClientProcess client, Integer which);
 
-	/**
-	 * return the NIC glue object
-	 */
-	public GNIC getGNIC();
 }

@@ -19,26 +19,27 @@
 /**
  * 
  */
-package de.hd.pvs.piosim.simulator.interfaces;
+package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
-import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 
 /**
- * Interface between NIC and the using component.
+ * Very simple class indicating that data is transferred.
  * 
  * @author Julian M. Kunkel
+ *
  */
-public interface INICToUser {
-	/**
-	 * Start the transfer of a set of jobs (i.e. multiple Send/Receive operations)
-	 * @param jobs All NetworkJobs to work on
-	 * @param callback Will be called once the jobs all completed
-	 */
-	public void initiateTransfer(NetworkJobs jobs);
-
-	/**
-	 * return the NIC glue object
-	 */
-	public GNIC getGNIC();
+public class NetworkMessageRendezvousSendData implements INetworkMessage {
+	
+	final private long size;
+	
+	public NetworkMessageRendezvousSendData(long size) {
+		this.size = size;
+	}
+	
+	@Override
+	public long getSize() {
+		return size;
+	}
+	
 }

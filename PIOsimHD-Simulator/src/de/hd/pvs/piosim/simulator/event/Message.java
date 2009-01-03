@@ -18,7 +18,7 @@
 
 package de.hd.pvs.piosim.simulator.event;
 
-import de.hd.pvs.piosim.simulator.component.NIC.GNIC;
+import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
 
 /**

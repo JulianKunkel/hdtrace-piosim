@@ -37,6 +37,11 @@ import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
  * A node has one or several CPUs working at a given speed.  
  * 
  * @author Julian M. Kunkel
+ * 
+ * @opt shape node
+ * @has 1 - 0..1 de.hd.pvs.piosim.model.components.Server.Server
+ * @has 1 - 0..n de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess
+ * @has 1 - 1..n NIC
  */
 public class Node  extends BasicComponent{	
 	/** Number of CPUs in this node */

@@ -16,29 +16,24 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * 
- */
-package de.hd.pvs.piosim.simulator.interfaces;
+package de.hd.pvs.piosim.simulator.program.Compute;
 
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
+import de.hd.pvs.piosim.model.program.commands.Compute;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
-/**
- * Interface between NIC and the using component.
- * 
- * @author Julian M. Kunkel
- */
-public interface INICToUser {
-	/**
-	 * Start the transfer of a set of jobs (i.e. multiple Send/Receive operations)
-	 * @param jobs All NetworkJobs to work on
-	 * @param callback Will be called once the jobs all completed
-	 */
-	public void initiateTransfer(NetworkJobs jobs);
+public class Time 
+extends CommandImplementation<Compute>
+{
+	@Override
+	public long getInstructionCount(Compute cmd, int step) {
+		return cmd.getCycles();
+	}
 
-	/**
-	 * return the NIC glue object
-	 */
-	public GNIC getGNIC();
+	@Override
+	public CommandStepResults process(Compute cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
+		return null;
+	}
 }

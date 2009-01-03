@@ -45,7 +45,7 @@ import de.hd.pvs.piosim.model.program.ProgramBuilder;
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.RunParameters;
 import de.hd.pvs.piosim.simulator.Simulator;
-import de.hd.pvs.piosim.simulator.component.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 public class ClusterTest {
 	final long KBYTE = 1024;
 	final long MBYTE = 1024*KBYTE;

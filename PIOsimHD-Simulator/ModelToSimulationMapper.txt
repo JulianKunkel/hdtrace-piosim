@@ -1,29 +1,29 @@
 # This file describes the existing model component of a given type i.e. "Node" the available Model implementations and mapping to the simulation implementation.
 +ClientProcess
-de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess = de.hd.pvs.piosim.simulator.component.ClientProcess.GClientProcess
+de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess = de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess
 
 +IOSubsystem
-de.hd.pvs.piosim.model.components.IOSubsystem.SimpleFlash = de.hd.pvs.piosim.simulator.component.IOSubsystem.GSimpleFlash
-de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk = de.hd.pvs.piosim.simulator.component.IOSubsystem.GSimpleDisk
-de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel = de.hd.pvs.piosim.simulator.component.IOSubsystem.GRefinedDiskModel
+de.hd.pvs.piosim.model.components.IOSubsystem.SimpleFlash = de.hd.pvs.piosim.simulator.components.IOSubsystem.GSimpleFlash
+de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk = de.hd.pvs.piosim.simulator.components.IOSubsystem.GSimpleDisk
+de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel = de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel
 
 +Port
-de.hd.pvs.piosim.model.components.Port.Port = de.hd.pvs.piosim.simulator.component.Port.GPort
+de.hd.pvs.piosim.model.components.Port.Port = de.hd.pvs.piosim.simulator.components.Port.GPort
 
 +NIC
-de.hd.pvs.piosim.model.components.NIC.NIC = de.hd.pvs.piosim.simulator.component.NIC.SimpleNIC
+de.hd.pvs.piosim.model.components.NIC.NIC = de.hd.pvs.piosim.simulator.components.NIC.SimpleNIC
 
 +Node
-de.hd.pvs.piosim.model.components.Node.Node = de.hd.pvs.piosim.simulator.component.Node.GNode
+de.hd.pvs.piosim.model.components.Node.Node = de.hd.pvs.piosim.simulator.components.Node.GNode
 
 +Server
-de.hd.pvs.piosim.model.components.Server.Server = de.hd.pvs.piosim.simulator.component.Server.GSimpleServer
+de.hd.pvs.piosim.model.components.Server.Server = de.hd.pvs.piosim.simulator.components.Server.GSimpleServer
 
 +ServerCacheLayer
-de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache = de.hd.pvs.piosim.simulator.component.ServerCacheLayer.GNoCache
-de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache = de.hd.pvs.piosim.simulator.component.ServerCacheLayer.GSimpleWriteBehind
-de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache = de.hd.pvs.piosim.simulator.component.ServerCacheLayer.GAggregationCache
+de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GNoCache
+de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GSimpleWriteBehind
+de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GAggregationCache
 
 +Switch
-de.hd.pvs.piosim.model.components.Switch.SimpleSwitch = de.hd.pvs.piosim.simulator.component.Switch.GSwitch
+de.hd.pvs.piosim.model.components.Switch.SimpleSwitch = de.hd.pvs.piosim.simulator.components.Switch.GSwitch
  

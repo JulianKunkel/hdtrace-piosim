@@ -29,6 +29,8 @@ import de.hd.pvs.piosim.model.components.Connection.Connection;
  * A Superclass for network components which have exactly one connection (like a NIC or a Port). 
  * 
  * @author Julian M. Kunkel
+ * 
+ * @has 1 - 1 de.hd.pvs.piosim.model.components.Connection.Connection
  */
 abstract public class OneConnectionComponent<ParentType extends BasicComponent>
 extends NetworkComponent<ParentType>

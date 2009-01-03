@@ -47,10 +47,10 @@ import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper.ModelObjectM
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.component.ApplicationMap;
-import de.hd.pvs.piosim.simulator.component.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.component.Node.GNode;
-import de.hd.pvs.piosim.simulator.component.Switch.GSwitch;
+import de.hd.pvs.piosim.simulator.components.ApplicationMap;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.Node.GNode;
+import de.hd.pvs.piosim.simulator.components.Switch.GSwitch;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
 import de.hd.pvs.piosim.simulator.output.STraceWriter;

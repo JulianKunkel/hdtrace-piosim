@@ -19,26 +19,26 @@
 /**
  * 
  */
-package de.hd.pvs.piosim.simulator.interfaces;
+package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
-import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+
+
+
 
 /**
- * Interface between NIC and the using component.
+ * Implements a simple write back strategy. Does not do any read-ahead.
  * 
  * @author Julian M. Kunkel
  */
-public interface INICToUser {
-	/**
-	 * Start the transfer of a set of jobs (i.e. multiple Send/Receive operations)
-	 * @param jobs All NetworkJobs to work on
-	 * @param callback Will be called once the jobs all completed
-	 */
-	public void initiateTransfer(NetworkJobs jobs);
 
-	/**
-	 * return the NIC glue object
-	 */
-	public GNIC getGNIC();
+public class GSimpleWriteBehind
+extends GNoCache
+{
+	@Override
+	public boolean canIPutDataIntoCache(SingleNetworkJob clientJob, long amount) {				
+		return serverProcess.getAttachedNode().isEnoughFreeMemory(amount);
+	}
+
 }
+
