@@ -59,7 +59,9 @@
 \usepackage{enumitem}
 \usepackage{fancybox}
 \usepackage{rotating}
+\usepackage{subfigure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % OTHER SETTINGS:
 %\usepackage[pdftex,colorlinks,linkcolor=blue]{hyperref}
@@ -76,8 +78,11 @@ Simulation of Parallel I/O and MPI Communication with a Discrete Event Simulator
  }
 
 \usepackage{color}
-\usepackage{listings} \lstset{numbers=left, numberstyle=\tiny, numbersep=5pt} \lstset{language=C} 
+\usepackage{listings} \lstset{numbers=left, numberstyle=\tiny, numbersep=5pt}
+\lstset{language=Java} 
 \lstset{frame=shadowbox, numbers=none,  rulesepcolor=\color{black}}
+%\lstset{basicstyle=\ttfamily\scriptsize}
+\lstset{ showspaces=false}
 
 % Pagestyle:
 \pagestyle{headings}
@@ -179,16 +184,16 @@ http://i.cs.hku.hk/~clwang/papers/model-iwcc99.ps
 
 \chapter{Model}
 
-\begin{figure}%[!htbp]
+\begin{figure}[!htbp]
   \centering
-\includegraphics[scale=0.75]{Images/cluster-model.pdf}
+\includegraphics[scale=0.5]{Images/cluster-model.pdf}
     \caption{Example cluster component model}
     \label{fig:cluster-model}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[!htbp]
   \centering
-\includegraphics[scale=0.75]{Images/cluster-relation.pdf}
+\includegraphics[scale=0.5]{Images/cluster-components.png}
     \caption{UML diagram showing the relations between cluster components}
     \label{fig:cluster-relation}
 \end{figure}
@@ -236,43 +241,80 @@ jumpshot
 * Generation of Model, on run-time the simulator instanciates classes depending on the user configuration implementing such a model. The model is fixed during simulation.
 
 \section{Model Generation}
-* builder classes assist to build a (normal) model on the fly.
-
-CommandToSimulationMapper.txt
-\begin{verbatim}
-# define the command groups and the contained implementations and the simulator implementations
-# each row is either a set of commands which are implemented or the actual set of implementation classes for these commands.
-+de.hd.pvs.piosim.model.program.commands.Compute
-de.hd.pvs.piosim.simulator.component.Commands.Global.Dummy
-de.hd.pvs.piosim.simulator.component.Commands.Compute.Time
-
-#define a group:
-+de.hd.pvs.piosim.model.program.commands.Send,de.hd.pvs.piosim.model.program.commands.Receive,de.hd.pvs.piosim.model.program.commands.Sendrecv # so it defines a group of commands at once which belong together.
-de.hd.pvs.piosim.simulator.component.Commands.Global.Dummy,de.hd.pvs.piosim.simulator.component.Commands.Global.Dummy,de.hd.pvs.piosim.simulator.component.Commands.Global.Dummy
-de.hd.pvs.piosim.simulator.component.Commands.SendReceive.Rendezvous.RendezvousSend,de.hd.pvs.piosim.simulator.component.Commands.SendReceive.Rendezvous.RendezvousRcv,de.hd.pvs.piosim.simulator.component.Commands.SendReceive.Rendezvous.RendezvousSendrecv
-
-...
-\end{verbatim}
-
-ModelToSimulationMapper.txt
-\begin{verbatim}
-# This file describes the existing model component of a given type i.e. "Node" the available Model implementations and mapping to the simulation implementation.
-+ClientProcess
-de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess = de.hd.pvs.piosim.simulator.component.ClientProcess.GClientProcess
-
-+IOSubsystem
-de.hd.pvs.piosim.model.components.IOSubsystem.SimpleFlash = de.hd.pvs.piosim.simulator.component.IOSubsystem.GSimpleFlash
-de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk = de.hd.pvs.piosim.simulator.component.IOSubsystem.GSimpleDisk
-de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel = de.hd.pvs.piosim.simulator.component.IOSubsystem.GRefinedDiskModel
-
-...
-\end{verbatim}
+* A model can be stored explicitly in XML or implicit in Java code.
+Builder classes assist to build a (normal) model on the fly.
+See the code example in \ref{lst:exampleClusterBuild}. 
+A GUI is planned to easy generation of a cluster model for teaching.
 
 
 \section{XML Generation}
 * serialization of annotated attributes
 
+
+\section{Choosing Component and Command Implementations}
+The component and command implementations can be chosen dynamically.
+
+Command mapping is stored explicitly in the XML file.
+Available commands and the mapping from a particular modeled command to available
+implementations is encoded in a simple text file.
+An excerpt of the mapping is given in listing \ref{lst:commandMapping}.
+For each command the implementation used during a simulation must be specified and is used across
+all client processes. Imagine to combine a dummy MPI\_Barrier implementation which
+does not send any message with another implementation sending messages for synchronization.
+Obviously this will not work. Due to the reason that it does not make sense to pick different
+implementations for a command on different processes only one implementation can be chosen for
+a particular command.
+If the implementation is not specified in the model XML file by default the last implementation 
+in the text file is chosen
+
+\begin{lstlisting}[numbers=none,caption=CommandToSimulationMapper.txt,label=lst:commandMapping,language=Perl,basicstyle=\ttfamily\scriptsize]
+# define the command groups and the contained implementations and the simulator
+# implementations each row is either a set of commands which are implemented or
+# the actual set of implementation classes for these commands.
+# In the following ... abbreviates de.hd.... prefix, just for visualization!
+
++de.hd.pvs.piosim.model.program.commands.Compute
+de.hd.pvs.piosim.simulator.component.Commands.Global.Dummy
+de.hd.pvs.piosim.simulator.component.Commands.Compute.Time
+
+#define a group of commands which belong together:
++de.hd.pvs.piosim.model.program.commands.Send,...commands.Receive,...commands.Sendrecv
+de.hd.pvs.piosim.simulator.component.Commands.Global.Dummy...Dummy,...Dummy
+...SendReceive.Rendezvous.RendezvousSend,....RendezvousRcv,...RendezvousSendrecv
+
+...
+\end{lstlisting}
+
+In the cluster model each particular component can have its own model class.
+For instance one I/O server can use a different disk model from a second server. (In this example
+assume a RAID disk and a flash drive).
+For each model class one simulation class can be choosen in a text file. The implementation class
+uses the data provided in the model class to simulate the behavior.
+An excerpt of the mapping is given in listing \ref{lst:modelMapping}.
+
+\begin{lstlisting}[numbers=none,caption=ModelToSimulationMapper.txt,label=lst:modelMapping,language=Perl,basicstyle=\ttfamily\scriptsize]
+# This file describes the existing model component of a given type e.g. "Node"
+# the available Model implementations and mapping to the simulation implementation.
+# Syntax <Model Implementation> = <Simulation Implementation>
+
++ClientProcess
+de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess =
+  de.hd.pvs.piosim.simulator.component.ClientProcess.GClientProcess
+
++IOSubsystem
+de.hd.pvs.piosim.model.components.IOSubsystem.SimpleFlash =
+  de.hd.pvs.piosim.simulator.component.IOSubsystem.GSimpleFlash
+de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk =
+  de.hd.pvs.piosim.simulator.component.IOSubsystem.GSimpleDisk
+de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel =
+  de.hd.pvs.piosim.simulator.component.IOSubsystem.GRefinedDiskModel
+
+...
+\end{lstlisting}
+
+
 \section{Run a Simulation}
+
 \subsection{Event processing}
 * Future events are handled inside the simulator in a priority queue sorted on the time the activities start
 * Event handling inside the components
@@ -281,7 +323,9 @@ de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel = de.hd.pvs.piosi
 * start java with enabled assertions (\texttt{"`-ea"'} flag)
 * the ConsoleLogger class or Component Logger class prints debugging output on the console
 depending on the class (similar to \texttt{log4j}) and depending on the IDs of BasicComponents.
-\begin{verbatim}
+
+\begin{lstlisting}[numbers=none,caption=Example debugging configuration file,label=
+lst:debugConfigFile,language=Perl]
 # The file is grouped in two sections:
 ClassNamesToTrace
 # The canonical class names which shall be debugged:
@@ -291,7 +335,56 @@ ComponentIDsToTrace
 # The component IDs which shall be debugged:
 77
 78
-\end{verbatim}
+\end{lstlisting}
+
+\subsection{Correctness}
+Jacobi partial differential equation solver, iterations refine solution, Tracefiles from parallel runs, 100 iterations, master process collects matrix data at the end sequentially from all other processes.
+Transfer granularity of 100\,KByte. Provided in the Images folder or rerun the (provided) trace files with the simulator. 
+46187 events
+
+
+\begin{figure}[!htbp]
+  \centering
+  \subfigure[Legend]{
+\includegraphics[scale=0.5]{Images/jumpshot-legend.png}
+  }
+\subfigure[Single iteration (with added states to define implementation)]{
+\includegraphics[scale=0.5]{Images/jumpshot-screenshot-1.png}
+}
+
+ \caption{Jumpshot screenshots for four clients}
+   \label{fig:jumpshot_legend}
+\end{figure}
+
+
+\begin{figure}[!htbp]
+  \centering
+\includegraphics[scale=0.4]{Images/jumpshot-screenshot-2.png}
+    \caption{Jumpshot screenshot of the final data collection and component markers}
+    \label{fig:jumpshot_screenshot_2}
+\end{figure}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{l||l|l|l}
+Process count [\#] & Real time [s] & Simulated time [s] & Simulated / Real [s] \\
+\hline
+\hline
+1 & 47.30 & 47.35 & 1.001 \\
+2 & 24.79 & 24.93 & 1.006 \\
+3 & 17.3 & 17.54 & 1.014 \\
+4 & 13.54 & 13.75 & 1.016 \\
+5 & 11.56 & 11.82 & 1.022 \\
+6 & 10.09 & 10.33 & 1.024 \\
+7 & 9.16 & 9.44 & 1.030 \\
+8 & 8.39 & 8.73 & 1.041 \\
+9 & 8.00 & 8.26 & 1.033
+\end{tabular}
+\end{center}
+\caption{Comparison of simulation results with measured run time (rounded)}
+\label{tbl:pde_results}
+\end{table}
+
 
 \subsection{Simulation speed}
 * 100.000 events/second
@@ -306,16 +399,130 @@ Jumpshot
 \subsection{JavaDoc}
 
 \subsection{UML diagrams}
-Done automatically via UMLGraph \footnote{\URL{http://www.umlgraph.org/}}, JavaDoc annotations
+Done automatically via UMLGraph \footnote{\url{http://www.umlgraph.org/}}, JavaDoc annotations
 allow to tune behavior.
 
-\appendix
+
+\bibliographystyle{plainnat}
+\bibliography{Bibliography}
+
+
+\begin{appendix}
+\chapter{Appendix}
+
+\begin{lstlisting}[numbers=none,caption=Example code to build a disjoint client and server cluster model,label=lst:exampleClusterBuild,basicstyle=\ttfamily\scriptsize]
+public ModelBuilder createDisjointClusterModel(int clients, int servers) throws Exception {
+
+        int nodeCount = clients + servers;
+
+        ModelBuilder mb = new ModelBuilder();
+
+        // set global settings disjoint from default configuration:
+        mb.getGlobalSettings().setTransferGranularity(100 * KBYTE);
+
+        // build templates
+        Connection conn = new Connection();
+        conn.setName("1GBit Ethernet");
+        conn.setLatency(new Epoch(0.0002));
+        conn.setBandwidth(100 * MBYTE);
+        mb.addTemplate(conn);
+
+        Node node = new Node();
+        node.setName("PVS-Node");
+        node.setCPUs(1);
+        node.setInstructionsPerSecond(1000000);
+        node.setInternalDataTransferSpeed(1000 * MBYTE);
+        node.setMemorySize(1000*1024*1024);
+
+        NIC nic = new NIC();
+        nic.setConnection(conn);
+
+        mb.addNIC(node, nic);
+        mb.addTemplate(node);
+
+        RefinedDiskModel iosub = new RefinedDiskModel();
+        iosub.setAverageSeekTime(new Epoch(0.005));
+        iosub.setTrackToTrackSeekTime(new Epoch(0.001));
+        iosub.setRPM(7200);
+        iosub.setPositionDifferenceConsideredToBeClose(MBYTE * 5);
+        iosub.setSequentialTransferRate(((int) 50 * MBYTE));
+        iosub.setName("IBM");
+
+        mb.addTemplate(iosub);
+
+        SimpleSwitch sw = new SimpleSwitch();
+        sw.setName("PVS-Switch");
+        sw.setTotalBandwidth(380 * MBYTE);
+
+        Port  port = new Port();
+        port.setConnection(conn);
+        for(int i=0; i <= nodeCount; i++)
+                mb.addPort(sw, port);
+
+        mb.addTemplate(sw);
+
+        ///// NOW BUILD OBJECTS BASED ON PREVIOUS SETUP...
+
+        SimpleSwitch testSW = mb.cloneFromTemplate(sw);
+        ArrayList<Node> nodes = new ArrayList<Node>();
+
+        mb.addSwitch(testSW);
+
+        for (int i=0; i < nodeCount; i++){
+                Node node2 = mb.cloneFromTemplate(node);
+                nodes.add(node2);
+
+                mb.addNode(node2);
+
+                mb.setConnection(node2.getNICs().get(0), testSW.getPorts().get(i));
+        }
+
+        // example showing howto link two switches together:
+        SimpleSwitch testSW2 = mb.cloneFromTemplate(sw);
+        mb.addSwitch(testSW2);
+        mb.setConnection(testSW.getPorts().get(nodeCount), testSW2.getPorts().get(nodeCount));
+
+        for(int i=0; i < clients; i++ ){
+                ClientProcess c = new ClientProcess();
+                c.setName("Client" + i);
+                mb.addClient(nodes.get(i), c);
+                c.setRank(i);
+                c.setApplication("Jacobi");
+        }
+
+        Server serverTemplate = new Server();
+        serverTemplate.setName("Server");
+        serverTemplate.setIOsubsystem(iosub);
+
+        NoCache cacheImpl = new AggregationCache(); //NoCache()
+        cacheImpl.setMaxNumberOfConcurrentIOOps(1);
+        serverTemplate.setCacheImplementation(cacheImpl);
+
+        mb.addTemplate(serverTemplate);
+
+        for(int i=0; i < servers; i++ ){
+                Server s = mb.cloneFromTemplate(serverTemplate);
+                // disjoint client and server processes
+                mb.addServer(nodes.get(i + clients), s);
+        }
+
+        //// Example howto change settings on all components using a particular template
+        //conn.setName("10_GBit Ethernet");
+        //conn.setLatency(new Epoch(0.00001));
+        //conn.setBandwidth(1000 * MBYTE);
+        //mb.modifyTemplateAndDerivedObjects("1GBit Ethernet", conn);
+
+        return mb;
+}
+\end{lstlisting}
 
 \listoffigures
 \listoftables
 
-\bibliographystyle{plainnat}
-\bibliography{Bibliography}
+\end{appendix}
+
+
+\appendix
 
 
 \end{document}
