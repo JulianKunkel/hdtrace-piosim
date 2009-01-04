@@ -163,121 +163,110 @@ public class JacobiTest {
 		
 		return sim.getVirtualTime().getDouble();
 	}
-	
+
+
 	public ModelBuilder createDisjointClusterModel(int clients, int servers) throws Exception {
 
 		int nodeCount = clients + servers;
-		
+
 		ModelBuilder mb = new ModelBuilder();
-					
+
+		// set global settings disjoint from default configuration:
+		mb.getGlobalSettings().setTransferGranularity(100 * KBYTE);
+
+		// build templates
 		Connection conn = new Connection();
 		conn.setName("1GBit Ethernet");
 		conn.setLatency(new Epoch(0.0002));
 		conn.setBandwidth(100 * MBYTE);
-		
-		mb.getModel().getGlobalSettings().setTransferGranularity(100 * KBYTE);
-		//mb.getModel().getGlobalSettings().setMaxEagerSendSize(10);
-		
 		mb.addTemplate(conn);
-				
+
 		Node node = new Node();
 		node.setName("PVS-Node");
-		//maschine.setCacheSize(1024*1024*1024);
 		node.setCPUs(1);
 		node.setInstructionsPerSecond(1000000);
 		node.setInternalDataTransferSpeed(1000 * MBYTE);
 		node.setMemorySize(1000*1024*1024);
-		
-		//SimpleDisk iosub = new SimpleDisk();
-		
+
+		NIC nic = new NIC();
+		nic.setConnection(conn);
+
+		mb.addNIC(node, nic);
+		mb.addTemplate(node);
+
 		RefinedDiskModel iosub = new RefinedDiskModel();
 		iosub.setAverageSeekTime(new Epoch(0.005));
 		iosub.setTrackToTrackSeekTime(new Epoch(0.001));
 		iosub.setRPM(7200);
 		iosub.setPositionDifferenceConsideredToBeClose(MBYTE * 5);
 		iosub.setSequentialTransferRate(((int) 50 * MBYTE));
-				
 		iosub.setName("IBM");
-		//iosub.setAvgAccessTime(new Epoch(0.002));
-		//iosub.setMaxThroughput(50 * MBYTE);
-				
+
 		mb.addTemplate(iosub);
-		
-		NIC nic = new NIC();
-		//nic.setAttachedMaschine(maschine);
-		nic.setConnection(conn);
-		
-		mb.addNIC(node, nic);
-		
-		mb.addTemplate(node);
-		
+
 		SimpleSwitch sw = new SimpleSwitch();
 		sw.setName("PVS-Switch");
 		sw.setTotalBandwidth(380 * MBYTE);
-		
+
 		Port  port = new Port();
-		//port.setParentSwitch(sw);
 		port.setConnection(conn);
 		for(int i=0; i <= nodeCount; i++)
 			mb.addPort(sw, port);
-			
+
 		mb.addTemplate(sw);
-		
-		//System.out.println(sw);
+
 		///// NOW BUILD OBJECTS BASED ON PREVIOUS SETUP...
-		
-		SimpleSwitch testSW = mb.cloneFromTemplate(sw);		
+
+		SimpleSwitch testSW = mb.cloneFromTemplate(sw);
 		ArrayList<Node> nodes = new ArrayList<Node>();
 
 		mb.addSwitch(testSW);
-				
+
 		for (int i=0; i < nodeCount; i++){
 			Node node2 = mb.cloneFromTemplate(node);
 			nodes.add(node2);
-			
+
 			mb.addNode(node2);
-			
+
 			mb.setConnection(node2.getNICs().get(0), testSW.getPorts().get(i));
 		}
-		
-		SimpleSwitch testSW2 = mb.cloneFromTemplate(sw);
-		mb.addSwitch(testSW2);
-		mb.setConnection(testSW.getPorts().get(nodeCount), testSW2.getPorts().get(nodeCount));
-		
-		//conn.setName("10_GBit Ethernet");
-		//conn.setLatency(new Epoch(0.00001));
-		//conn.setBandwidth(1000 * MBYTE);
-		
-		//mb.modifyTemplateAndDerivedObjects("1GBit Ethernet", conn);
-		
-		
-		for(int i=0; i < clients; i++ ){
-			ClientProcess c = new ClientProcess();
-			c.setName("Client" + i);
-			mb.addClient(nodes.get(i), c);
-			c.setRank(i);
-			c.setApplication("Jacobi");
-		}
-		
-		Server serverTemplate = new Server();
-		serverTemplate.setName("Server");
-		serverTemplate.setIOsubsystem(iosub);
-		
-		NoCache cacheImpl = new AggregationCache(); //NoCache()
-		cacheImpl.setMaxNumberOfConcurrentIOOps(1);		
-		serverTemplate.setCacheImplementation(cacheImpl);
-		
-		
-		mb.addTemplate(serverTemplate);
-		
-		
-		for(int i=0; i < servers; i++ ){
-			Server s = mb.cloneFromTemplate(serverTemplate);
-			// disjoint client and server processes
-			mb.addServer(nodes.get(i + clients), s);
-		}				
-		
-		return mb;
+
+		// example showing howto link two switches together:
+			SimpleSwitch testSW2 = mb.cloneFromTemplate(sw);
+			mb.addSwitch(testSW2);
+			mb.setConnection(testSW.getPorts().get(nodeCount), testSW2.getPorts().get(nodeCount));
+
+			for(int i=0; i < clients; i++ ){
+				ClientProcess c = new ClientProcess();
+				c.setName("Client" + i);
+				mb.addClient(nodes.get(i), c);
+				c.setRank(i);
+				c.setApplication("Jacobi");
+			}
+
+			Server serverTemplate = new Server();
+			serverTemplate.setName("Server");
+			serverTemplate.setIOsubsystem(iosub);
+
+			NoCache cacheImpl = new AggregationCache(); //NoCache()
+			cacheImpl.setMaxNumberOfConcurrentIOOps(1);
+			serverTemplate.setCacheImplementation(cacheImpl);
+
+			mb.addTemplate(serverTemplate);
+
+			for(int i=0; i < servers; i++ ){
+				Server s = mb.cloneFromTemplate(serverTemplate);
+				// disjoint client and server processes
+				mb.addServer(nodes.get(i + clients), s);
+			}
+
+			//// Example howto change settings on all components using a particular template
+			//conn.setName("10_GBit Ethernet");
+			//conn.setLatency(new Epoch(0.00001));
+			//conn.setBandwidth(1000 * MBYTE);
+			//mb.modifyTemplateAndDerivedObjects("1GBit Ethernet", conn);
+
+			return mb;
 	}
 	
 	public static void main(String[] args) throws Exception{
