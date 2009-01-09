@@ -112,8 +112,7 @@ for f in funcs:
     if fkt in noTimerEndFuncs:
       print "  w_" + noTimerEndFuncs[fkt] + ";\n"      
 
-    if fkt in startFuncs:
-      if fkt != "Finalize":
+    if fkt in startFuncs or fkt in endFuncs and fkt != "Finalize":
         print "  w_createNewtimeStamp();\n"
       
     print "  return ret;"

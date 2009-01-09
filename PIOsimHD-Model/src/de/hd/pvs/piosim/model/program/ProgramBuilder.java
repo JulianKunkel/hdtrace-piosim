@@ -29,6 +29,7 @@ import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.model.program.commands.Receive;
+import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
@@ -116,6 +117,13 @@ public class ProgramBuilder {
 	public void addAllreduce(Communicator comm, long size){
 		Allreduce reduce = new Allreduce();
 		reduce.setSize(size);
+		appBuilder.addCommand(comm, reduce);
+	}
+	
+	public void addReduce(Communicator comm, int root, long size){
+		Reduce reduce = new Reduce();
+		reduce.setSize(size);
+		reduce.setRootRank(root);
 		appBuilder.addCommand(comm, reduce);
 	}
 	

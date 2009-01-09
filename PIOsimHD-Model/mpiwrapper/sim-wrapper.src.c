@@ -281,9 +281,12 @@ void w_File_open(MPI_Comm comm, char * name, int flags, MPI_Info info, MPI_File 
 		MPI_Offset size;
 		PMPI_File_get_size(* fh, & size);
   		info("File_open name=\"%s\" comm=\"%s\" flags=%d InitialSize=%lld id=%d\n", name,  getCommName(comm), flags, (long long int) size, (int) *id);
+	}else{
+	   g_free(dup);
 	}
+  }else{
+       g_free(dup);
   }
-
   // broadcast ID in case the ID changed on the clients
   if (rank == 0){
 	id = (gint*) g_hash_table_lookup(filesStringMap, name);
