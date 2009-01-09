@@ -164,4 +164,14 @@ public class GlobalSettings {
 		clientFunctionImplementation.put(method, impl);
 	}
 	
+	
+	/**
+	 * Set the implementation for a specific function group.
+	 * 
+	 * @param method
+	 * @param impl Valid implementation.
+	 */
+	public void setClientFunctionImplementation(String method, String impl) throws IllegalArgumentException{
+		clientFunctionImplementation.put(DynamicCommandClassMapper.getCommandImplementationGroup(method), impl);
+	}
 }

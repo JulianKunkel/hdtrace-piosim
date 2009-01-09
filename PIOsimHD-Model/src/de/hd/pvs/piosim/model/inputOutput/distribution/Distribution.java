@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.interfaces.IXMLReader;
@@ -57,11 +58,10 @@ abstract public class Distribution implements IXMLReader {
 	 * @throws Exception
 	 */
 	static public Distribution readDistributionFromXML(Element xmlelem)
-			throws Exception {
-		String name = xmlelem.getAttribute("name");
-		name = "de.hd.pvs.piosim.model.program.distribution."
-				+ name.substring(0, 1).toUpperCase() + name.substring(1);
-
+			throws Exception {		
+		
+		String name = xmlelem.getAttribute("class");
+		
 		try {
 			Class<Distribution> cls = (Class<Distribution>) Class.forName(name);
 			if (cls == null) {
@@ -70,11 +70,31 @@ abstract public class Distribution implements IXMLReader {
 			}
 			Constructor<Distribution> ct = cls.getConstructor();
 			Distribution dist = ct.newInstance();
+			
 			dist.readXML(xmlelem);
-			return dist;
+			
+			return dist;			
 		} catch (Exception e) {
-			throw new Exception("Invalid Distribution: " + name + " "
-					+ e.getMessage());
+			throw new Exception("Invalid Distribution: " + name,  e);
+		}
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see de.hd.pvs.piosim.model.interfaces.IXMLReader#readXML(org.w3c.dom.Element)
+	 */
+	public void readXML(Element xml) throws Exception {
+		AttributeAnnotationHandler.readSimpleAttributes(xml, this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see de.hd.pvs.piosim.model.interfaces.IXMLReader#writeXML(java.lang.StringBuffer)
+	 */
+	public void writeXML(StringBuffer sb){
+		try {
+		AttributeAnnotationHandler.writeSimpleAttributeXML(this, sb, null);
+		}catch (Exception e) {
+			throw new IllegalArgumentException(e);
 		}
 	}
 }

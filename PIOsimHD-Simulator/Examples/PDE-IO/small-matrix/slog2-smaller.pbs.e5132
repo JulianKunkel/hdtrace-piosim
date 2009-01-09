@@ -1,0 +1,158 @@
+Running pioviz.setup ...
+Copying files to node01 ...
+Copying files to node02 ...
+Copying files to node03 ...
+Copying files to node04 ...
+Copying files to node05 ...
+Copying files to node06 ...
+Copying files to node07 ...
+Copying files to node08 ...
+Creating PVFS2 using mpiexec ...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[S 01/08 12:58] PVFS2 Server version 2.6.2 starting...
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+[D 01/08 12:58] PVFS2 Server: storage space created. Exiting.
+Starting PVFS2 using mpiexec ...
+Writing logfile....
+Finished writing logfile ./partdiff-par.clog2.
+++ source /home/heas0809/pioviz.preplogs
++++ set -e
++++ '[' '!' -e /home/kunkel/HEAS-0809/Jacobi/MPI-IO/partdiff-par.clog2 ']'
++++ OUTPUTDIR=/home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT
++++ mkdir -p /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT
++++ cd /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT
++++ mv /home/kunkel/HEAS-0809/Jacobi/MPI-IO/partdiff-par.clog2 client.clog2
++++ pvfs2-set-eventmask -m /pvfs2 -a none -o 0xFFFF
++++ sleep 5
++++ for node in '${NODES}'
++++ ssh node01 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node02 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node03 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node04 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node05 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node06 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node07 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node08 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
+cp: cannot stat `/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2': No such file or directory
++++ echo -n ''
++++ for node in '${NODES}'
++++ ssh node09 cp /tmp/pvfs2-kunkel/pvfs2-pioviz.clog2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/server-5132.master.pvscluster.clog2
++++ '[' '!' -e server-5132.master.pvscluster.clog2 ']'
++++ clog2TOslog2 server-5132.master.pvscluster.clog2
+Warning accessing jumpshot-color.property not possible: jumpshot-color.property (No such file or directory)
++++ clog2TOslog2 client.clog2
++++ MergeSlog2 -at client.slog2 server-5132.master.pvscluster.slog2 -o merged-5132.master.pvscluster.slog2
+WARNING ID 302 has 2 different categories:  1:MPE_Comm_finalize 2:Job (end)
+ => mapping Job (end) to 1
++++ ProcessToGradient -o merged-gradient-5132.master.pvscluster.slog2 -g 'PC:.*' -m zero merged-5132.master.pvscluster.slog2
+
+ gradient categories = PC:.*
++++ EventToState -o merged-gradient-events-5132.master.pvscluster.slog2 -j 'start=BMI (start);end=BMI (end);final=BMI;join=op;join=jid' -j 'start=Job (start);end=Job (end);final=Job;join=op;join=jid' -j 'start=Trove write (start);end=Trove write (end);final=Trove write;join=op;join=jid' -j 'start=Trove read (start);end=Trove read (end);final=Trove read;join=op;join=jid' -j 'start=SM-State(start);end=SM-State(end);final=SM-State;join=rank;join=cid;join=smp' merged-gradient-5132.master.pvscluster.slog2
+WARNING: The following category names couldn't be found in the input slog2 file:
+   * "Trove read (start)"
+   * "Trove read (end)"
++++ Slog2ToCompositeSlog2 -o merged-gradient-events-composite-5132.master.pvscluster.slog2 -idorder merged-gradient-events-5132.master.pvscluster.slog2
++++ Slog2ToCompositeSlog2 -o merged-gradient-events-composite-pc-5132.master.pvscluster.slog2 -pcorder merged-gradient-events-composite-5132.master.pvscluster.slog2
++++ CompositeSlog2ToLineIDMap -o merged-gradient-events-composite-map-5132.master.pvscluster.slog2 merged-gradient-events-composite-pc-5132.master.pvscluster.slog2
++++ Slog2ToArrowSlog2 -o merged-gradient-events-composite-map-arrows-5132.master.pvscluster.slog2 merged-gradient-events-composite-map-5132.master.pvscluster.slog2
+Drawable.Order: WARNING! Equal Drawables?
+Primitive[ infobox[ TimeBBox(4.5544514656066895,4.554917693138123) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=7,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.5544515, 23) (4.554918, 71) ] bsize=40
+Primitive[ infobox[ TimeBBox(4.5544514656066895,4.554917693138123) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=7,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.5544515, 23) (4.554918, 32) ] bsize=40
+Drawable.Order: WARNING! Equal Drawables?
+Primitive[ infobox[ TimeBBox(4.554380893707275,4.555298686027527) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=6,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.554381, 19) (4.555299, 67) ] bsize=40
+Primitive[ infobox[ TimeBBox(4.554380893707275,4.555298686027527) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=6,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.554381, 19) (4.555299, 39) ] bsize=40
+Drawable.Order: WARNING! Equal Drawables?
+Primitive[ infobox[ TimeBBox(4.5544514656066895,4.554917693138123) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=7,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.5544515, 23) (4.554918, 71) ] bsize=40
+Primitive[ infobox[ TimeBBox(4.5544514656066895,4.554917693138123) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=7,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.5544515, 23) (4.554918, 32) ] bsize=40
+Drawable.Order: WARNING! Equal Drawables?
+Primitive[ infobox[ TimeBBox(4.554380893707275,4.555298686027527) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=6,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.554381, 19) (4.555299, 67) ] bsize=40
+Primitive[ infobox[ TimeBBox(4.554380893707275,4.555298686027527) Category=Category[ index=701, name=CallID: Trove write Arrows, topo=Arrow, color=(205,133,0,255,true), isUsed=true, width=1, info_fmt=< rank=%d,cid=%d >, vis=true, search=true, ratios=0.0,0.0, count=0 ]: rank=6,cid=74!Can't decode infobuffer byte[] because of missing InfoValue[]. Can't decode infobuffer byte[] because of missing InfoValue[].!] (4.554381, 19) (4.555299, 39) ] bsize=40
++++ echo 'Conversion completed'
+++ OUTPUTDIR=/home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT
+++ mkdir -p /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT
++++ pvfs2-ls /pvfs2/
+++ for I in '`pvfs2-ls /pvfs2/`'
+++ '[' lost+found = lost+found ']'
+++ continue
+++ for I in '`pvfs2-ls /pvfs2/`'
+++ '[' checkpoint.1 = lost+found ']'
+++ pvfs2-cp /pvfs2/checkpoint.1 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/checkpoint.1
+++ for I in '`pvfs2-ls /pvfs2/`'
+++ '[' checkpoint.2 = lost+found ']'
+++ pvfs2-cp /pvfs2/checkpoint.2 /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/checkpoint.2
+++ for I in '`pvfs2-ls /pvfs2/`'
+++ '[' visualization.dat = lost+found ']'
+++ pvfs2-cp /pvfs2/visualization.dat /home/kunkel/HEAS-0809/Jacobi/MPI-IO/5132.master.pvscluster_OUT/visualization.dat
+++ source /home/heas0809/pioviz.cleanup
++++ echo 'Running pioviz.cleanup ...'
+Running pioviz.cleanup ...
++++ source /home/heas0809/config.rc
++++++ id -un
+++++ CONFDIR=/tmp/pvfs2-kunkel
+++++ CONFFILE=/tmp/pvfs2-kunkel/pvfs2.rc
+++++ PVFS2_STORAGE=/tmp/pvfs2-kunkel/pvfs2-pioviz
+++++ PVFS2PORT=22233
+++++ MPE_LOGFILE=/tmp/pvfs2-kunkel/pvfs2-pioviz.clog2
++++ '[' -z 'node01
+node02
+node03
+node04
+node05
+node06
+node07
+node08
+node09' ']'
++++ /sbin/start-stop-daemon --stop --pidfile /tmp/pvfs2-kunkel/pvfs2-pioviz.pid
++++ for node in '${NODES}'
++++ ssh node01 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node02 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node03 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node04 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node05 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node06 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node07 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node08 rm -rf /tmp/pvfs2-kunkel
++++ for node in '${NODES}'
++++ ssh node09 rm -rf /tmp/pvfs2-kunkel

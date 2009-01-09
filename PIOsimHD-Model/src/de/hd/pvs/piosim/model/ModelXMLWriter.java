@@ -25,8 +25,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.Connection.Connection;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
@@ -34,8 +32,6 @@ import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandType;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLWriter;
-import de.hd.pvs.piosim.model.util.Epoch;
-import de.hd.pvs.piosim.model.util.Numbers;
 
 /**
  * This class serializes a components or a complete Model to XML.
@@ -149,7 +145,7 @@ public class ModelXMLWriter {
 		
 		StringBuffer attributes = new StringBuffer();
 		
-		createSimpleAttributeXML(component, attributes, sb);	
+		AttributeAnnotationHandler.writeSimpleAttributeXML(component, attributes, sb);	
 		
 		sb.append(">\n");	
 		
@@ -221,7 +217,7 @@ public class ModelXMLWriter {
 	 * @throws Exception
 	 */
 	private void createGlobalSettingsXML(GlobalSettings settings, StringBuffer buff) throws Exception{
-		createSimpleAttributeXML(settings, buff, null);
+		AttributeAnnotationHandler.writeSimpleAttributeXML(settings, buff, null);
 		for(CommandType cm: DynamicCommandClassMapper.getAvailableCommands()){			
 			if(settings.getClientFunctionImplementation(cm) != null){
 				buff.append("<ClientMethod name=\"" + cm.toString() + "\">" + 
@@ -230,71 +226,6 @@ public class ModelXMLWriter {
 		}
 	}
 
-	/**
-	 * Create attributes and tags for the object based on the <code>Attribute</code> annotations.
-	 * 
-	 * @param obj The object which should be serialized to XML.
-	 * @param tags StringBuffer for the Tags
-	 * @param attributes StringBuffer for the attributes.
-	 * @throws Exception
-	 */
-	private void createSimpleAttributeXML(Object obj, StringBuffer tags, StringBuffer attributes) throws Exception{
-		Class<?> classIterate = obj.getClass();	
-		// Walk through the whole inheritance tree.
-		
-		while(classIterate != Object.class) {
-			Field [] fields = classIterate.getDeclaredFields();		
-			for (Field field : fields) {
-				if( ! field.isAnnotationPresent(Attribute.class))
-					continue;
-
-				Attribute annotation = field.getAnnotation(Attribute.class);
-
-				String name = annotation.xmlName().length() > 0 ? annotation.xmlName() : field.getName();
-
-				Class<?> type = field.getType();
-				Object value = null;
-
-				field.setAccessible(true);
-				value = field.get(obj);				
-				field.setAccessible(false);		
-
-				String stringValue = "";
-
-				if (type == int.class) {
-					stringValue = Numbers.getNiceString(((Integer) value).longValue());
-				}else if (type == long.class) {
-					stringValue = Numbers.getNiceString((Long) value);
-				}else if (type == Epoch.class){
-					stringValue = value.toString();
-				}else if (type == String.class){
-					// do nothing
-					stringValue = (String) value;
-				}else if (type.isEnum()) {
-					if(value == null) {
-						throw new IllegalArgumentException("Enum " + type + " is null, invalid! ");
-					}
-					stringValue = value.toString();					
-				}else {
-					System.out.println("ModelXMLWriter not configured: " + type.getCanonicalName());
-					System.exit(1);
-				}
-
-
-				if (annotation.type() == AttributeXMLType.ATTRIBUTE){
-					if (stringValue != null)
-						attributes.append(" " + name + "=\"" + stringValue + "\"");
-				}else{ // TAG
-					name = name.substring(0, 1).toUpperCase() + name.substring(1);
-
-					tags.append("<" + name + ">" + stringValue);					
-					tags.append("</" + name + ">\n");
-				}
-			}
-
-			classIterate = classIterate.getSuperclass();
-		}
-	}
 
 	/**
 	 * Create the nested XML for all the contained child components.

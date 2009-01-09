@@ -54,7 +54,11 @@ public class ApplicationXMLReader {
 	 * @throws Exception
 	 */
 	public Application parseApplication(String filename) throws Exception{
+		try {
 		return parseApplication(new File(filename));
+		}catch (Exception e) {
+			throw new IllegalArgumentException( "Invalid application " + filename, e);
+		}
 	}
 
 	/**

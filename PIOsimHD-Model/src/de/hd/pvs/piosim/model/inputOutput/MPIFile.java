@@ -23,6 +23,11 @@ package de.hd.pvs.piosim.model.inputOutput;
 
 import org.w3c.dom.Element;
 
+import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
+import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
+import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
+import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.interfaces.IXMLReader;
 import de.hd.pvs.piosim.model.util.XMLutil;
@@ -35,12 +40,23 @@ import de.hd.pvs.piosim.model.util.XMLutil;
  * 
  */
 public class MPIFile implements IXMLReader{
+	
+	@Attribute(type=AttributeXMLType.ATTRIBUTE)
+	@NotNull
 	private String name = "";
+	
+	@Attribute(xmlName="InitialSize")
+	@NotNegative
 	private long size = 0l;
+	
+	@NotNull
 	private Distribution distribution = null;
 	/**
 	 * unique ID set from outside this class.
 	 */
+	
+	@Attribute(type=AttributeXMLType.ATTRIBUTE)
+	@NotNegative
 	private int id;
 	
 	/**
@@ -72,11 +88,10 @@ public class MPIFile implements IXMLReader{
 	}
 
 	public void readXML(Element xmlnode) throws Exception {
-		name = XMLutil.getAttributeText(xmlnode, "name");
-		size = XMLutil.getLongValue(xmlnode, "InitialSize", 0);
+		AttributeAnnotationHandler.readSimpleAttributes(xmlnode, this);
+		
 		distribution = Distribution.readDistributionFromXML(XMLutil
-				.getFirstElementByTag(xmlnode, "Distribution"));
-		id = (int) XMLutil.getLongValueAttribute(xmlnode, "id", -1);
+				.getFirstElementByTag(xmlnode, "Distribution"));		
 	}
 	
 	public void writeXML(StringBuffer sb) {

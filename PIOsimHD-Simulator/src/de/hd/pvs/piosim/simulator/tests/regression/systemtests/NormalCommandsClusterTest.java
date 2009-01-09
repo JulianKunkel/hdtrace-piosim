@@ -42,6 +42,29 @@ public class NormalCommandsClusterTest extends ClusterTest{
 			System.out.println(i + " " + times[i]);
 		}
 	}
+	
+
+	@Test public void reduceTest() throws Exception{
+		testMsg();
+		int cnt = 10;
+		
+		double [] times = new double[cnt+1]; 
+		
+		for(int i=1; i <= cnt; i++){
+			setup(i, 0);
+		
+			pb.addAllreduce(world, 0, 100);
+			runSimulationAllExpectedToFinish();
+			times[i] = sim.getVirtualTime().getDouble();
+		}
+		
+		System.out.println("Barrier timing:");
+		
+		for(int i=1; i <= cnt; i++){
+			System.out.println(i + " " + times[i]);
+		}
+	}
+
 
 	@Test public void allreduceTest() throws Exception{
 		testMsg();

@@ -19,20 +19,10 @@
 package de.hd.pvs.piosim.model;
 
 
-import java.lang.reflect.Field;
-
-import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.Application;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.model.util.Epoch;
 
 /**
  * This class implements some simple methods to check the consistency of a model.
@@ -87,7 +77,7 @@ public class ModelVerifier {
 	 * @throws Exception
 	 */
 	public void checkConsistency(BasicComponent comp, boolean isTemplate) throws Exception{
-		checkAttributeConsistency(comp, isTemplate);		
+		AttributeAnnotationHandler.checkAttributeConsistency(comp, isTemplate);		
 	}
 	
   /**
@@ -103,7 +93,7 @@ public class ModelVerifier {
 			Program program = app.getClientProgram(p);
 			for(Command cmd: program.getCommands()){
 				try{
-					checkAttributeConsistency(cmd, false);
+				AttributeAnnotationHandler.checkAttributeConsistency(cmd, false);
 				}catch(Exception e){
 					System.err.print(cmd + " " + e.getMessage());
 					err = true;
@@ -115,120 +105,6 @@ public class ModelVerifier {
 			}		
 		}
 	}
-	
-	/**
-	 * Check the consistency of a component, are all attributes in valid ranges?
-	 * 
-	 * @param obj
-	 * @throws Exception
-	 */
-	private void checkAttributeConsistency(Object obj, boolean isTemplate) throws Exception{		
-		Class<?> classIterate = obj.getClass();	
-		
-		// all errors are written to this StringBuffer.
-		StringBuffer errorMessage = new StringBuffer();
-		
-		while(classIterate != Object.class) {
-			Field [] fields = classIterate.getDeclaredFields();		
-			for (Field field : fields) {
-				
-				if (! isTemplate) {
-					if (field.isAnnotationPresent(ChildComponents.class)) {
-						// this field should contain a reference to the parent component.
-						Object value = null;
-						
-						field.setAccessible(true);
-						value = field.get(obj);				
-						field.setAccessible(false);		
-						
-						if(value == null) {
-							appendError("null", obj, field.getName(), errorMessage);
-						}
-						continue;
-					}
-				}
-				
-				if( ! field.isAnnotationPresent(Attribute.class))
-					continue;
-				
-				//Attribute annotation = field.getAnnotation(Attribute.class);
-				
-				String name = field.getName();
-				
-				Class<?> type = field.getType();
-				Object value = null;
-				
-				field.setAccessible(true);
-				value = field.get(obj);				
-				field.setAccessible(false);		
-				
-				if( field.isAnnotationPresent(NotNull.class) && value == null){
-					appendError("null", obj, name, errorMessage);
-				}
-				
-				
-				if (type == int.class || (type == long.class)) {
-					long val;
-					if (type == long.class) {
-						val = (Long) value;
-					}else{
-						val =  ((Integer) value);
-					}
-					
-					if(field.isAnnotationPresent(NotNegative.class) && val < 0){
-						appendError("negative", obj, name, errorMessage);
-					}
-					if(field.isAnnotationPresent(NotNegativeOrZero.class) && val <= 0){
-						appendError("negative or zero", obj, name, errorMessage);
-					}
-				}else if (type == Epoch.class){
-					Epoch val = (Epoch) value;
-					
-					
-					if(field.isAnnotationPresent(NotNegativeOrZero.class) && val.getDouble() < 0){
-						appendError("negative",obj, name, errorMessage);
-					}
-				}else if (type == String.class){
-					// do nothing.
-				}else if (type.isEnum()) {
-					// check if not null.
-					if( value == null ){
-						appendError("null", obj, name, errorMessage);
-					}
-				}else if (type == Communicator.class){
-					// TODO
-				}else if (type == MPIFile.class){
-					// TODO
-				}else {
-					throw new IllegalArgumentException("ModelVerifier does not know how to handle type (not configured): " + type.getCanonicalName());
-				}
-				
-			}
-			
-			classIterate = classIterate.getSuperclass();
-		}		
-		
-		if(errorMessage.length() > 0){
-			String objname = "";
-			if(BasicComponent.class.isAssignableFrom(obj.getClass()) ){
-				objname = ((BasicComponent) obj).getIdentifier().toString() + " ";
-			}
-			objname += "of type " + obj.getClass().getSimpleName();
-			
-			throw new IllegalArgumentException("Object " + objname + " contains errors:\n" + errorMessage.toString());
-		}
-	}
-	
-	/**
-	 * Append error message to the StringBuffer
-	 * 
-	 * @param error
-	 * @param obj
-	 * @param field
-	 */
-	private void appendError(String error, Object obj, String field, StringBuffer stringbuffer){
-		stringbuffer.append(" value in field \"" + field + "\" is " +  error + "\n");
-	}
-	
+
 	
 }

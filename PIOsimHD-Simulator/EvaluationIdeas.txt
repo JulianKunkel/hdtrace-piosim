@@ -9,3 +9,12 @@ Buffering of EagerProtokoll between two clients
      (i.e. each client knows how much is free on a communication partner)
    - vs. consider an fixed amount RAM on the client as free cache (i.e. shared between clients)  
    - vs. estimate/know free cache on the communication partner.
+
+Disk-directed I/O (David Kotz/Dartmouth):
+- propagiert collective, noncontig I/O innerhalb einer Anwendung.
+- Daten die tatsächlich transferiert werden hängen von Spezifikation der einzelnen Platten ab => hardware nah. 
+
+Server-directed collective I/O: http://dais.cs.uiuc.edu/panda/software/2.1/sdio.html
+- requires: collective I/O requests on the clients
+- master server computes plan for a given file
+- a server reads/writes data (of a single file) sequentially in subchunks of a given size, only one block (subchunk) on disk is read/written at any time.  

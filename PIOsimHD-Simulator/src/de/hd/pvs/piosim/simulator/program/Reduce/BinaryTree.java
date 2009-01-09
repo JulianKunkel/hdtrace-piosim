@@ -37,6 +37,11 @@ extends CommandImplementation<Reduce>
 
 	@Override
 	public CommandStepResults process(Reduce cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
+		if (cmd.getCommunicator().getSize() == 1){
+			// finished ...
+			return null;
+		}
+		
 		int lastRank = cmd.getCommunicator().getSize()-1;
 		int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(lastRank);
 		
@@ -55,10 +60,12 @@ extends CommandImplementation<Reduce>
 		current_iteration = step;
 		
 		boolean isPartnerAvail = false;
-		boolean myBit = false;
+		boolean recvBit = false;
+
+		
 		while(current_iteration < iterations){
 			mask = 1 << current_iteration;
-			myBit = (clientRankInComm & mask) > 0;
+			recvBit = (clientRankInComm & mask) > 0;
 			isPartnerAvail = (clientRankInComm | mask) <= lastRank;
 			if (isPartnerAvail)
 				break;
@@ -66,48 +73,43 @@ extends CommandImplementation<Reduce>
 		}
 		
 		if(current_iteration == iterations){
-			current_iteration = 0;
-			mask = 1 << (iterations -1);
+			return null; // no more work to do
 		}
 		
 		int partner = -1;
 		if( isPartnerAvail ){
-			if( myBit ){
+			if( recvBit ){
 				//determine lower one
 				partner = clientRankInComm & ~(mask);
+				assert(partner >= 0);
 			}else{
 				//determine higher one
 				partner = clientRankInComm | (mask);
+				assert(partner >= 0);
 			}
 		}
 		//System.out.println(Simulator.getSimulator().getCurrentTime() + " step: " + step + " rankInComm: " + clientRankInComm  + " " + myBit + " " + isPartnerAvail + " partner: " + partner);
-		assert(partner >= 0);
+
+		System.out.println("Crapper " + recvBit + " " + " " + ((iterations - current_iteration)));
 		
 		ISNodeHostedComponent target = getTargetfromRank(client,  cmd.getCommunicator().getWorldRank(partner) );
-		// receives data
-		System.out.println("Crapper " + myBit + " " + target.getIdentifier() + " " + ((iterations - current_iteration)));
-		if(myBit){
-			int nextIter;
-			if(current_iteration + 1== iterations){
-				nextIter = CommandImplementation.STEP_COMPLETED;
-			}else{
-				nextIter = current_iteration + 1;
-			}
-			
-			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, nextIter);
+		
+		if(recvBit){
+			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, (iterations - current_iteration));
 			netAddSend(jobs, target, new NetworkSimpleMessage(cmd.getSize() + 20),  
-					30001, Communicator.INTERNAL_MPI);
+					30000, Communicator.INTERNAL_MPI);
+			netAddReceive(jobs, target, 30000, Communicator.INTERNAL_MPI);
 			
 			return jobs;
 		}else{
 			int nextIter;
 			if(current_iteration + 1== iterations){
-				nextIter = CommandImplementation.STEP_COMPLETED;
+				nextIter = STEP_COMPLETED;
 			}else{
 				nextIter = current_iteration + 1;
 			}
 			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, nextIter);
-			netAddReceive(jobs, target, 30001, Communicator.INTERNAL_MPI);
+			netAddReceive(jobs, target, 30000, Communicator.INTERNAL_MPI);
 			return jobs;
 		}
 	}

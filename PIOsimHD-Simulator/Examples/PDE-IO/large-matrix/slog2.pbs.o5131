@@ -1,0 +1,253 @@
+/home/kunkel/HEAS-0809/Jacobi/MPI-IO
+node09
+node09
+node09
+node08
+node08
+node08
+node07
+node07
+node07
+node06
+node06
+node06
+node05
+node05
+node05
+node04
+node04
+node04
+node03
+node03
+node03
+node02
+node02
+node02
+node01
+node01
+node01
+Anzahl Prozesse:    9
+Berechnungszeit:    83 Sekunden
+Berechnungsmethode: Jacobi
+Interlines:         1000
+Stoerfunktion:      f(x,y)=0
+Terminierung:       Anzahl der Iterationen
+Working Directory:  pvfs2://pvfs2/
+I/O collective:     0
+Iter/Checkpoint:    100 
+Iter/Visualization: 100 
+Anzahl Iterationen: 500
+Norm des Fehlers:   7.177275e-04
+Matrix
+ 1.0000 0.8750 0.7500 0.6250 0.5000 0.3750 0.2500 0.1250 0.0000
+ 0.8750 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.1250
+ 0.7500 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.2500
+ 0.6250 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.3750
+ 0.5000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.5000
+ 0.3750 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.6250
+ 0.2500 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.7500
+ 0.1250 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.8750
+ 0.0000 0.1250 0.2500 0.3750 0.5000 0.6250 0.7500 0.8750 1.0000
+Enabling the Default clock synchronization...
+Success
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//lib
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 7
+MaxBufferByteSize = 65501
+Categories  is FBinfo(1986 @ 4920349)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(372 @ 4922335)
+TreeRoot    is FBinfo(10234 @ 4910115)
+TreeDir     is FBinfo(4832 @ 4922707)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+
+
+Number of Drawables = 84567
+Number of Unmatched Events = 0
+Total ByteSize of the logfile = 5455384
+timeElapsed between 1 & 2 = 45 msec
+timeElapsed between 2 & 3 = 4099 msec
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//lib
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 4
+MaxBufferByteSize = 65536
+Categories  is FBinfo(1082 @ 673399)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(372 @ 674481)
+TreeRoot    is FBinfo(8010 @ 665389)
+TreeDir     is FBinfo(718 @ 674853)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+
+
+Number of Drawables = 16385
+Number of Unmatched Events = 0
+Total ByteSize of the logfile = 1341952
+timeElapsed between 1 & 2 = 41 msec
+timeElapsed between 2 & 3 = 1579 msec
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//bin/../lib
+Reading client log client.slog2
+Reading server log server-5131.master.pvscluster.slog2
+Modify line id maps
+Determine categories to delete
+Processed Server Drawables x 10000:
+1
+2
+3
+4
+5
+6
+7
+8
+Autoadjust PVFS2 slog2 files time offset: 0.2577937841415405
+Checking mergability of the files
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 7
+MaxBufferByteSize = 65536
+Categories  is FBinfo(3013 @ 5760007)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(1072 @ 5763020)
+TreeRoot    is FBinfo(18140 @ 5741867)
+TreeDir     is FBinfo(5376 @ 5764092)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+
+
+Time elapsed  = 2910 msec
+Number of Drawables = 100949
+Discarded drawables due to regex match 0
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//bin/../lib
+1. Determing maximum/minimum values
+2. Add new infoKey to categories
+3. Manipulate primitive drawables
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 7
+MaxBufferByteSize = 65536
+Categories  is FBinfo(3183 @ 5571510)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(1072 @ 5574693)
+TreeRoot    is FBinfo(24936 @ 5546574)
+TreeDir     is FBinfo(5138 @ 5575765)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//bin/../lib
+Discarded pending start primitives: 1189
+Total drawables:64762 Merged events:33807
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 6
+MaxBufferByteSize = 65536
+Categories  is FBinfo(2771 @ 3905592)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(1072 @ 3908363)
+TreeRoot    is FBinfo(26346 @ 3879246)
+TreeDir     is FBinfo(3268 @ 3909435)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//bin/../lib
+Generating Composites using CallID value
+
+==== Before Adding Composites ====
+Number of inspected Drawables     = 64762
+
+===== After Adding Composites ====
+Number of new Composite Drawables =   529
+Number of remaining Drawables     = 40701
+
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 6
+MaxBufferByteSize = 202335
+Categories  is FBinfo(2904 @ 3829164)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(1072 @ 3832068)
+TreeRoot    is FBinfo(107607 @ 3721557)
+TreeDir     is FBinfo(2384 @ 3833140)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+timeElapsed between 1 & 2      = 1156 msec
+timeElapsed between 2 & 3      = 8785 msec
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//bin/../lib
+Generating Composites using performance counter categories: "^PC:.+"
+
+==== Before Adding Composites ====
+Number of inspected Drawables     = 41230
+
+===== After Adding Composites ====
+Number of new Composite Drawables =   153
+Number of remaining Drawables     = 27919
+
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 5
+MaxBufferByteSize = 675144
+Categories  is FBinfo(2944 @ 3609138)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(1072 @ 3612082)
+TreeRoot    is FBinfo(675144 @ 2933994)
+TreeDir     is FBinfo(1874 @ 3613154)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+timeElapsed between 1 & 2      = 1045 msec
+timeElapsed between 2 & 3      = 7942 msec
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//bin/../lib
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 5
+MaxBufferByteSize = 734704
+Categories  is FBinfo(2944 @ 4010554)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(11656 @ 4013498)
+TreeRoot    is FBinfo(734704 @ 3275850)
+TreeDir     is FBinfo(1874 @ 4025154)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+timeElapsed between 1 & 2      = 966 msec
+timeElapsed between 2 & 3      = 1986 msec
+GUI_LIBDIR is set. GUI_LIBDIR = /home/heas0809/pioviz-bin-0.9.2//bin/../lib
+	 SLOG-2 Header:
+version = SLOG 2.0.6
+NumOfChildrenPerNode = 2
+TreeLeafByteSize = 65536
+MaxTreeDepth = 5
+MaxBufferByteSize = 771724
+Categories  is FBinfo(3091 @ 4218515)
+MethodDefs  is FBinfo(0 @ 0)
+LineIDMaps  is FBinfo(11656 @ 4221606)
+TreeRoot    is FBinfo(771724 @ 3446791)
+TreeDir     is FBinfo(1874 @ 4233262)
+Annotations is FBinfo(0 @ 0)
+Postamble   is FBinfo(0 @ 0)
+
+timeElapsed between 1 & 2      = 1102 msec
+timeElapsed between 2 & 3      = 2621 msec
+Conversion completed

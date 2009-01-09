@@ -59,6 +59,8 @@ extends CommandImplementation<Filewrite>
 			/* create an I/O request for each of these servers */
 			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, RECV_ACK);
 
+			assert(targetIOServers.keySet().size() > 0);
+			
 			for(Server server: targetIOServers.keySet()){
 				IGServer sserver = (IGServer) client.getSimulator().getSimulatedComponent(server); 
 

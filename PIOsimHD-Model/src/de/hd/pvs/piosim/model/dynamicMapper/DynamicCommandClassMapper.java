@@ -209,8 +209,12 @@ public class DynamicCommandClassMapper extends DynamicMapper {
 	
 	
 	private CommandType parseCommandImplementationGroup(String commandName) {
-		// todo add checks
-		return new CommandType(commandName);		
+		CommandType tmp = new CommandType(commandName);
+		if(! mapCommandImpl.containsKey(tmp)) {
+			throw new IllegalArgumentException("No implementation for type " + commandName + " available");
+		}
+		
+		return tmp;
 	}
 	
 	/**

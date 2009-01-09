@@ -207,12 +207,11 @@ void w_Send(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
   int t_size;
   MPI_Type_size(type, & t_size);
 
-  // size="5000" to-rank="1" tag="1"
-  log("<Send size=\"%lld\" to-rank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
+  log("<Send size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
 }
 
 void w_Receive(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
-  log("<Receive from-rank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", rank, tag, getCommName(comm) )
+  log("<Receive fromRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", rank, tag, getCommName(comm) )
 }
 
 void w_Barrier(MPI_Comm comm){
@@ -221,7 +220,7 @@ void w_Barrier(MPI_Comm comm){
 
 // v2 , v3 , v4, v5, v9, v10, v11
 void w_Sendrecv(int count, MPI_Datatype type, int rank, int tag, int source, int recvtag, MPI_Comm comm){
-  log("<Sendrecv size=\"%lld\" to-rank=\"%d\" to-tag=\"%d\" from-rank=\"%d\" from-tag=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type) , rank, tag, source, recvtag, getCommName(comm) )
+  log("<Sendrecv size=\"%lld\" toRank=\"%d\" to-tag=\"%d\" fromRank=\"%d\" fromTag=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type) , rank, tag, source, recvtag, getCommName(comm) )
 }
 
 
@@ -230,11 +229,11 @@ void w_Allreduce(int count, MPI_Datatype type, MPI_Comm comm){
 }
 
 void w_Reduce(int count, MPI_Datatype type, int root, MPI_Comm comm){
-  log("<Reduce size=\"%lld\" root=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type), root, getCommName(comm) )
+  log("<Reduce size=\"%lld\" rootRank=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type), root, getCommName(comm) )
 }
 
 void w_Bcast(int count, MPI_Datatype type, int root, MPI_Comm comm){
-  log("<Bcast size=\"%lld\" root=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type), root, getCommName(comm) )
+  log("<Bcast size=\"%lld\" rootRank=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type), root, getCommName(comm) )
 }
 
 

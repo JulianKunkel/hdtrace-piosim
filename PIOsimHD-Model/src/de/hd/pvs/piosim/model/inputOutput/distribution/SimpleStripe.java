@@ -21,12 +21,11 @@ package de.hd.pvs.piosim.model.inputOutput.distribution;
 import java.util.HashMap;
 import java.util.List;
 
-import org.w3c.dom.Element;
-
+import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
-import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
  * Very simple round-robin data striping.
@@ -35,6 +34,9 @@ import de.hd.pvs.piosim.model.util.XMLutil;
  * @author Julian M. Kunkel
  */
 public class SimpleStripe extends Distribution {
+	
+	@Attribute
+	@NotNegativeOrZero
 	/**
 	 * The strip size.
 	 * The amount of contiguous data which is accessed on one server. 
@@ -82,6 +84,7 @@ public class SimpleStripe extends Distribution {
 	@Override
 	public HashMap<Server, ListIO> distributeIOOperation(ListIO iolist,
 			List<Server> serverList) {
+		assert(chunkSize > 0);
 		
 		final int serverCount = serverList.size();
 		
@@ -171,18 +174,6 @@ public class SimpleStripe extends Distribution {
 		}
 		
 		return out;
-	}
-	
-	public void readXML(Element xmlElem) throws Exception {
-		chunkSize = XMLutil.getLongValue(xmlElem, "Chunk-Size", "64K");
-		if (chunkSize < 1) {
-			throw new IllegalArgumentException("Chunksize of " + chunkSize
-					+ " is invalid");
-		}
-	}
-
-	public void writeXML(StringBuffer x) {
-		x.append("<Chunk-Size> " + chunkSize + " </Chunk-Size>");
 	}
 
 }

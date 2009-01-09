@@ -31,10 +31,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.OneConnectionComponent;
@@ -44,8 +41,6 @@ import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandTyp
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
-import de.hd.pvs.piosim.model.util.Epoch;
-import de.hd.pvs.piosim.model.util.Numbers;
 import de.hd.pvs.piosim.model.util.XMLutil;
 
 
@@ -162,7 +157,7 @@ public class ModelXMLReader {
 			throw new IllegalArgumentException("Constructor for the implementation " + implementation + " invalid");
 		}
 		
-		readSimpleAttributes(xml, component);
+		AttributeAnnotationHandler.readSimpleAttributes(xml, component);
 		
 		readChildComponents(xml, component, isCloneOfTemplate);
 		
@@ -201,7 +196,7 @@ public class ModelXMLReader {
 	 */
 	private void readGlobalSettings(Model model, Element xml) throws Exception {
 		GlobalSettings global = model.globalSettings;
-		readSimpleAttributes(xml, global);
+		AttributeAnnotationHandler.readSimpleAttributes(xml, global);
 		
 		ArrayList<Element> clientMeth = XMLutil.getElementsByTag(xml, "ClientMethod");
 		if(clientMeth != null){
@@ -392,81 +387,11 @@ public class ModelXMLReader {
 	 * @param dummy
 	 */
 	private void readComponentDetailsFromXML(Element xml, BasicComponent dummy) throws Exception{		
-		readSimpleAttributes(xml, dummy.getIdentifier());
+		AttributeAnnotationHandler.readSimpleAttributes(xml, dummy.getIdentifier());
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////
 	
-	
-	/**
-	 * This method reads the attributes from the XML based on the <code>Attribute</code> annotation,
-	 * it can be used to read primitive data types and a few derived data types.
-	 * Therefore it walks through the object inheritance hierarchy.
-	 * 
-	 * @param xml
-	 * @param component
-	 */
-	private void readSimpleAttributes(Element xml, Object object) throws Exception{
-		Class<?> classIterate = object.getClass();	
-		
-		while(classIterate != Object.class) {
-			Field [] fields = classIterate.getDeclaredFields();
-			
-			for (Field field : fields) {
-				if( ! field.isAnnotationPresent(Attribute.class))
-					continue;
-				
-				Attribute annotation = field.getAnnotation(Attribute.class);
-				
-				// the name of the attribute or tag can be set explicitly in Attribute.
-				String name = annotation.xmlName().length() > 0 ? annotation.xmlName() : field.getName();
-				
-				Node node;
-				String stringAttribute = null;
-				
-				if (annotation.type() == AttributeXMLType.ATTRIBUTE){
-					node = xml.getAttributes().getNamedItem(name);
-					if (node == null)
-						continue;
-					
-					stringAttribute = node.getNodeValue();
-				}else{ // TAG
-					node = XMLutil.getFirstElementByTag(xml, name);
-					if (node == null)
-						continue;
-					
-					stringAttribute = node.getTextContent();					
-				}
-				
-				Class<?> type = field.getType();
-				Object value = null;
-				
-				if (type == int.class || type == Integer.class) {
-					value= (int) Numbers.getLongValue(stringAttribute);
-				}else if (type == long.class || type == Long.class) {
-					value =  Numbers.getLongValue(stringAttribute) ;
-				}else if (type == Epoch.class){
-					value = new Epoch(Numbers.getDoubleValue(stringAttribute));
-				}else if (type == String.class){
-					// do nothing
-					value = stringAttribute;
-				}else if (type.isEnum()) {
-					Class<? extends Enum> eType = (Class<? extends Enum>) type;
-					value = Enum.valueOf(eType, stringAttribute);					
-				}else {
-					System.err.println("ModelXMLReader not configured: " + type.getCanonicalName() + " for field " + field.getName() + " type " + object.getClass());
-					System.exit(1);
-				}
-				field.setAccessible(true);
-				field.set(object, value);				
-				field.setAccessible(false);
-				
-				ConsoleLogger.getInstance().debug(this, "Setting " + field.getName() + " " + value);
-			}
-			
-			classIterate = classIterate.getSuperclass();
-		}
-	}
 	
 	/**
 	 * Read all child components of a component from the XML based on the <code>ChildComponents</code>

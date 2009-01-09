@@ -47,7 +47,7 @@ public class Sendrecv  extends CommunicatorCommand{
 
 	@Override
 	public String toString() {
-		return "Sendrecv <to-tag,to,size> " +  toTag + "," +toRank + "," + size;
+		return "Sendrecv <to,to-tag,size,from,from-tag> " +  toRank + "," +toTag + "," + size + "," + fromRank + "," + fromTag;
 	}
 	
 	public int getToRank() {
