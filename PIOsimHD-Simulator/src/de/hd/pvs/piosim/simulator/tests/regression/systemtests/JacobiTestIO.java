@@ -99,59 +99,5 @@ public class JacobiTestIO extends ClusterTest{
 			System.out.println(i + " sim: " + runTimes[i-1] + " real: " + realRunTimes[i-1] +  " % " + 
 					runTimes[i-1] / realRunTimes[i-1]);
 		}
-		
-//   27.12.2008:
-//		1 sim: 47.352798999 real: 47.302645 % 1.0010602789548027
-//		2 sim: 24.92842302 real: 24.787603 % 1.0056810664589069
-//		3 sim: 17.537108536 real: 17.296363 % 1.0139188531138021
-//		4 sim: 13.745648113 real: 13.53573 % 1.0155084441696163
-//		5 sim: 11.818808236 real: 11.563651 % 1.0220654563165215
-//		6 sim: 10.332705942 real: 10.094314 % 1.0236164579385978
-//		7 sim: 9.438248883 real: 9.160997 % 1.0302643787570283
-//		8 sim: 8.729002096 real: 8.388671 % 1.0405703234755541
-//		9 sim: 8.262118268 real: 7.999543 % 1.0328237835586358
-
-//    Real values:		
-//		Examples/PDE/1/result.txt:[TRACER][0] Runtime 47.302645s
-//		Examples/PDE/2/result.txt:[TRACER][0] Runtime 24.787603s
-//		Examples/PDE/3/result.txt:[TRACER][0] Runtime 17.296363s
-//		Examples/PDE/4/result.txt:[TRACER][0] Runtime 13.535730s
-//		Examples/PDE/5/result.txt:[TRACER][0] Runtime 11.563651s
-//		Examples/PDE/6/result.txt:[TRACER][0] Runtime 10.094314s
-//		Examples/PDE/7/result.txt:[TRACER][0] Runtime 9.160997s
-//		Examples/PDE/8/result.txt:[TRACER][0] Runtime 8.388671s
-//		Examples/PDE/9/result.txt:[TRACER][0] Runtime 7.999543s
-
-//		
-//		Tests für 9 clients:
-//			100 k transfer size:
-//
-//				RootComputes Allreduce:    0.254553231s
-//				Sync Allreduce:                   0.244217933s
-//				Dummy Allreduce:               0.116453979s
-//
-//			Normales Allreduce
-//			Eager size 0: 
-//				 RootComputes Allreduce:    0.689321108s
-//
-//			mit 1 k transfer size
-//				0.298921546s
-//
-//			mit 100 Byte transfer size: 571627 events
-//			     realtime: 118.779s
-//				 virtual time: 0.293911152s
-//
-//			Mit 0.025 ms latency (connection + port)
-//			 0.204429901s
-//
-//			Mit 0.0 ms latency
-//			 0.154329901s
-//
-//			Mit 0.1 ms latency => 0.1 ms latency = 0.2 sekunden
-//			0.354849891s
-//
-//			461 recvs bei Rank 0
-//			100 allreduces = 0.01 sekunden => 0.06 sekunden gesamt
-		//System.out.println(Simulator.getInstance().getModel());
 	}
 }

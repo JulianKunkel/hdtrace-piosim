@@ -1,7 +1,6 @@
 <Rank number="5"><Program>
 <Compute cycles="14155"/>
 <!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//visualization.dat" flags="5" fh="0x81c1e38"/> -->
-<Compute cycles="16051621"/>
 <Bcast size="4" rootRank="0" comm="WORLD"/>
 <Sendrecv size="64072" toRank="6" toTag="111" fromRank="4" fromTag="111" comm="WORLD"/>
 <Sendrecv size="64072" toRank="4" toTag="111" fromRank="6" fromTag="111" comm="WORLD"/>

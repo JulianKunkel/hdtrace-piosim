@@ -1,7 +1,6 @@
 <Rank number="0"><Program>
 <Compute cycles="17024"/>
 <!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//visualization.dat" flags="5" fh="0x81c1e38"/> -->
-<Compute cycles="16031313"/>
 <FileWrite file="10000"> <Data offset="0" size="4"/> </FileWrite>
 <FileWrite file="10000"> <Data offset="4" size="4"/> </FileWrite>
 <FileWrite file="10000"> <Data offset="8" size="33"/> </FileWrite>

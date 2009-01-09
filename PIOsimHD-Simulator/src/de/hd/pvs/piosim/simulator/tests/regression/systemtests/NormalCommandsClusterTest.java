@@ -49,16 +49,16 @@ public class NormalCommandsClusterTest extends ClusterTest{
 		int cnt = 10;
 		
 		double [] times = new double[cnt+1]; 
-		
+				
 		for(int i=1; i <= cnt; i++){
 			setup(i, 0);
 		
-			pb.addAllreduce(world, 0, 100);
+			pb.addReduce(world, 0, 100);
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();
 		}
 		
-		System.out.println("Barrier timing:");
+		System.out.println("Reduce timing:");
 		
 		for(int i=1; i <= cnt; i++){
 			System.out.println(i + " " + times[i]);
@@ -85,5 +85,10 @@ public class NormalCommandsClusterTest extends ClusterTest{
 		for(int i=1; i <= cnt; i++){
 			System.out.println(i + " " + times[i]);
 		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		NormalCommandsClusterTest t = new NormalCommandsClusterTest();
+		t.reduceTest();
 	}
 }

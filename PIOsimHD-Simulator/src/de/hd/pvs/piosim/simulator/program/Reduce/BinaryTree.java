@@ -34,7 +34,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class BinaryTree 
 extends CommandImplementation<Reduce>
 {
-
+	
 	@Override
 	public CommandStepResults process(Reduce cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1){
@@ -59,15 +59,12 @@ extends CommandImplementation<Reduce>
 		
 		current_iteration = step;
 		
-		boolean isPartnerAvail = false;
-		boolean recvBit = false;
-
+		boolean send = false;
 		
 		while(current_iteration < iterations){
 			mask = 1 << current_iteration;
-			recvBit = (clientRankInComm & mask) > 0;
-			isPartnerAvail = (clientRankInComm | mask) <= lastRank;
-			if (isPartnerAvail)
+			send = (clientRankInComm & mask) > 0;
+			if ((clientRankInComm | mask) <= lastRank)
 				break;
 			current_iteration++;
 		}
@@ -77,28 +74,28 @@ extends CommandImplementation<Reduce>
 		}
 		
 		int partner = -1;
-		if( isPartnerAvail ){
-			if( recvBit ){
-				//determine lower one
-				partner = clientRankInComm & ~(mask);
-				assert(partner >= 0);
-			}else{
-				//determine higher one
-				partner = clientRankInComm | (mask);
-				assert(partner >= 0);
-			}
+		if( send ){			
+			//determine lower one
+			partner = clientRankInComm & ~(mask);
+			assert(partner >= 0);			
+		}else{			
+			//determine higher one
+			partner = clientRankInComm | (mask);
+			assert(partner >= 0);
 		}
-		//System.out.println(Simulator.getSimulator().getCurrentTime() + " step: " + step + " rankInComm: " + clientRankInComm  + " " + myBit + " " + isPartnerAvail + " partner: " + partner);
-
-		System.out.println("Crapper " + recvBit + " " + " " + ((iterations - current_iteration)));
+		
+		
+		
 		
 		ISNodeHostedComponent target = getTargetfromRank(client,  cmd.getCommunicator().getWorldRank(partner) );
 		
-		if(recvBit){
-			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, (iterations - current_iteration));
+		//System.out.println(client.getName() + " Send: " + send + " " + " " + current_iteration + " partners with "  + partner);
+		
+		
+		if(send){
+			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, STEP_COMPLETED);
 			netAddSend(jobs, target, new NetworkSimpleMessage(cmd.getSize() + 20),  
 					30000, Communicator.INTERNAL_MPI);
-			netAddReceive(jobs, target, 30000, Communicator.INTERNAL_MPI);
 			
 			return jobs;
 		}else{
@@ -108,6 +105,7 @@ extends CommandImplementation<Reduce>
 			}else{
 				nextIter = current_iteration + 1;
 			}
+			
 			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, nextIter);
 			netAddReceive(jobs, target, 30000, Communicator.INTERNAL_MPI);
 			return jobs;

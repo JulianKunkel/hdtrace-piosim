@@ -79,7 +79,7 @@ public class STraceWriter {
 	 * @return
 	 */
 	private long getTime(){
-		return (long)(sim.getVirtualTime().getDouble() * 1000 * 1000  * 1000); //wrong SCALING !!  * 1000
+		return (long)(sim.getVirtualTime().getDouble() * 1000 * 1000 ); //wrong SCALING !! 3 x  * 1000
 	}
 	
 	/**
