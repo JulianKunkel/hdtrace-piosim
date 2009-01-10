@@ -16,36 +16,40 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * 
- */
-package de.hd.pvs.piosim.model.program.commands.superclasses;
+package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
+import de.hd.pvs.piosim.model.program.commands.superclasses.ICommunicatorCommand;
 
 /**
- * A Communicator Command is a Command several clients issue together in a collective fashion, 
- * e.g. Barrier
+ * Simulates a file open (i.e. might truncate the file).
  * 
  * @author Julian M. Kunkel
+ *
  */
-abstract public class CommunicatorCommand 
-extends Command 
+public class Fileopen 
+extends FileCommand
 implements ICommunicatorCommand
 {
-
+	@Attribute
+	/**
+	 * If the file must be truncated on open
+	 */
+	boolean truncate;
+	
 	@NotNull
-	@Attribute(xmlName="comm")
-	protected Communicator communicator;
+	@Attribute
+	protected Communicator comm;
 
 	/**
 	 * Get the Communicator the Command should work on
 	 * @return
 	 */
 	public Communicator getCommunicator(){
-		return communicator;
+		return comm;
 	}
 	
 	/**
@@ -53,7 +57,14 @@ implements ICommunicatorCommand
 	 * @param communicator
 	 */
 	public void setCommunicator(Communicator communicator) {
-		this.communicator = communicator;
+		this.comm = communicator;
 	}
-
+	
+	public boolean isTruncateOnOpen() {
+		return truncate;
+	}
+	
+	public void setTruncateOnOpen(boolean truncate) {
+		this.truncate = truncate;
+	}
 }

@@ -27,6 +27,7 @@ import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.model.program.commands.Barrier;
 import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.model.program.commands.Compute;
+import de.hd.pvs.piosim.model.program.commands.Fileopen;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.model.program.commands.Receive;
@@ -63,6 +64,15 @@ public class ProgramBuilder {
 		Compute com = new Compute();
 		com.setCycles(cycles);
 		appBuilder.addCommand(rank, com);
+	}
+	
+	public void addFileOpen(MPIFile file, Communicator communicator, boolean shallTruncate) {
+		Fileopen com = new Fileopen();
+		com.setFile(file);
+		com.setCommunicator(communicator);
+		com.setTruncateOnOpen(shallTruncate);
+		
+		appBuilder.addCommand(communicator, com);
 	}
 	
 	public void addReadSequential(int rank, MPIFile file, long offset, long seqSize) {

@@ -23,8 +23,8 @@ import java.util.HashMap;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
+import de.hd.pvs.piosim.model.program.commands.superclasses.ICommunicatorCommand;
 
 /**
  * Simple facade class which makes the building of an application easier
@@ -101,7 +101,7 @@ public class ApplicationBuilder {
 		command.setProgram(program);
 	}	
 	
-	public void addCommand(Communicator comm, CommunicatorCommand cmd){
+	public void addCommand(Communicator comm, ICommunicatorCommand cmd){
 		if(! app.getCommunicators().values().contains(comm)){
 			throw new IllegalArgumentException("Communicator " + comm + " not contained in application");
 		}
@@ -110,7 +110,7 @@ public class ApplicationBuilder {
 		
 		// add communicator for all participating programs.
 		for(Integer i: app.getCommunicator(comm.getName()).getParticipantsWorldRank()){			
-			addCommand(i, cmd);
+			addCommand(i, (Command) cmd);
 		}
 	}
 	

@@ -1,6 +1,6 @@
 <Rank number="1"><Program>
 <Compute cycles="16694"/>
-<!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//visualization.dat" flags="5" fh="0x81c1e38"/> -->
+<FileOpen file="10000" truncate="true" comm="WORLD"/>
 <Bcast size="4" rootRank="0" comm="WORLD"/>
 <Sendrecv size="64072" toRank="2" toTag="111" fromRank="0" fromTag="111" comm="WORLD"/>
 <Sendrecv size="64072" toRank="0" toTag="111" fromRank="2" fromTag="111" comm="WORLD"/>
@@ -302,7 +302,7 @@
 <Sendrecv size="64072" toRank="2" toTag="111" fromRank="0" fromTag="111" comm="WORLD"/>
 <Sendrecv size="64072" toRank="0" toTag="111" fromRank="2" fromTag="111" comm="WORLD"/>
 <Compute cycles="132065"/>
-<!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//checkpoint.1" flags="5" fh="0xbfc4290c"/> -->
+<FileOpen file="10001" truncate="true" comm="WORLD"/>
 <Compute cycles="146985"/>
 <FileWrite file="10001"> <Data offset="57024080" size="57024080"/> </FileWrite>
 <FileWrite file="10000"> <Data offset="7165" size="7120"/> </FileWrite>
@@ -606,7 +606,7 @@
 <Sendrecv size="64072" toRank="2" toTag="111" fromRank="0" fromTag="111" comm="WORLD"/>
 <Sendrecv size="64072" toRank="0" toTag="111" fromRank="2" fromTag="111" comm="WORLD"/>
 <Compute cycles="131314"/>
-<!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//checkpoint.2" flags="5" fh="0xbfc4290c"/> -->
+<FileOpen file="10002" truncate="true" comm="WORLD"/>
 <Compute cycles="1355659"/>
 <FileWrite file="10002"> <Data offset="57024080" size="57024080"/> </FileWrite>
 <FileWrite file="10000"> <Data offset="71241" size="7120"/> </FileWrite>
@@ -910,7 +910,7 @@
 <Sendrecv size="64072" toRank="2" toTag="111" fromRank="0" fromTag="111" comm="WORLD"/>
 <Sendrecv size="64072" toRank="0" toTag="111" fromRank="2" fromTag="111" comm="WORLD"/>
 <Compute cycles="132069"/>
-<!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//checkpoint.1" flags="5" fh="0xbfc4290c"/> -->
+<FileOpen file="10001" truncate="true" comm="WORLD"/>
 <Compute cycles="137367"/>
 <FileWrite file="10001"> <Data offset="57024080" size="57024080"/> </FileWrite>
 <Compute cycles="164"/>
@@ -1215,7 +1215,7 @@
 <Sendrecv size="64072" toRank="2" toTag="111" fromRank="0" fromTag="111" comm="WORLD"/>
 <Sendrecv size="64072" toRank="0" toTag="111" fromRank="2" fromTag="111" comm="WORLD"/>
 <Compute cycles="131779"/>
-<!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//checkpoint.2" flags="5" fh="0xbfc4290c"/> -->
+<FileOpen file="10002" truncate="true" comm="WORLD"/>
 <Compute cycles="137525"/>
 <FileWrite file="10002"> <Data offset="57024080" size="57024080"/> </FileWrite>
 <FileWrite file="10000"> <Data offset="199393" size="7120"/> </FileWrite>
@@ -1519,7 +1519,7 @@
 <Sendrecv size="64072" toRank="2" toTag="111" fromRank="0" fromTag="111" comm="WORLD"/>
 <Sendrecv size="64072" toRank="0" toTag="111" fromRank="2" fromTag="111" comm="WORLD"/>
 <Compute cycles="132923"/>
-<!-- <FileOpen comm="WORLD" name="pvfs2://pvfs2//checkpoint.1" flags="5" fh="0xbfc4290c"/> -->
+<FileOpen file="10001" truncate="true" comm="WORLD"/>
 <Compute cycles="136598"/>
 <FileWrite file="10001"> <Data offset="57024080" size="57024080"/> </FileWrite>
 <FileWrite file="10000"> <Data offset="263469" size="7120"/> </FileWrite>

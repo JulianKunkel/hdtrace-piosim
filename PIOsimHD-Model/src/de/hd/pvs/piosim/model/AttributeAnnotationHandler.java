@@ -92,6 +92,8 @@ public class AttributeAnnotationHandler {
 				
 				if (type == int.class || type == Integer.class) {
 					value= (int) Numbers.getLongValue(stringAttribute);
+				}else if (type == boolean.class ) {
+					value = Boolean.getBoolean(stringAttribute);					
 				}else if (type == long.class || type == Long.class) {
 					value =  Numbers.getLongValue(stringAttribute) ;
 				}else if (type == Epoch.class){
@@ -151,6 +153,8 @@ public class AttributeAnnotationHandler {
 					stringValue = Numbers.getNiceString(((Integer) value).longValue());
 				}else if (type == long.class) {
 					stringValue = Numbers.getNiceString((Long) value);
+				}else if (type == boolean.class ) {
+					stringValue = value.toString();					
 				}else if (type == Epoch.class){
 					stringValue = value.toString();
 				}else if (type == String.class){
@@ -266,7 +270,9 @@ public class AttributeAnnotationHandler {
 				}else if (type == Communicator.class){
 					// TODO
 				}else if (type == MPIFile.class){
-					// TODO
+					// TODO					
+				}else if (type == boolean.class){
+					// TODO											
 				}else {
 					throw new IllegalArgumentException("ModelVerifier does not know how to handle type (not configured): " + type.getCanonicalName());
 				}

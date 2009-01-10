@@ -18,9 +18,9 @@
 
 package de.hd.pvs.piosim.model.program.commands;
 
-import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 
 
-public class Fileread  extends FileCommand{
+public class Fileread  extends FileIOCommand{
 
 }

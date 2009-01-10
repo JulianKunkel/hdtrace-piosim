@@ -21,39 +21,45 @@
  */
 package de.hd.pvs.piosim.model.program.commands.superclasses;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
+import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 
 /**
- * A Communicator Command is a Command several clients issue together in a collective fashion, 
- * e.g. Barrier
+ * Superclass for all file I/O related operations. 
  * 
  * @author Julian M. Kunkel
  */
-abstract public class CommunicatorCommand 
-extends Command 
-implements ICommunicatorCommand
-{
+abstract public class FileIOCommand extends FileCommand{
 
-	@NotNull
-	@Attribute(xmlName="comm")
-	protected Communicator communicator;
-
-	/**
-	 * Get the Communicator the Command should work on
-	 * @return
-	 */
-	public Communicator getCommunicator(){
-		return communicator;
-	}
+	@NotNull	
+	protected ListIO io; 	
 	
 	/**
-	 * Set the Communicator the Command should work on
-	 * @param communicator
+	 * @return the file the command should operate on.
 	 */
-	public void setCommunicator(Communicator communicator) {
-		this.communicator = communicator;
+	public MPIFile getFile() {
+		return file;
+	}
+	
+	@Override
+	public void readXML(Element xml) throws Exception {
+		NodeList list = ((Element) xml).getElementsByTagName("Data");   
+		io = new ListIO(list);
 	}
 
+	/**
+	 * Return the ListIO
+	 * @return
+	 */
+	public ListIO getIOList() {
+		return io;
+	}
+	
+	public void setListIO(ListIO io) {
+		this.io = io;
+	}	
 }

@@ -16,44 +16,21 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * 
- */
 package de.hd.pvs.piosim.model.program.commands.superclasses;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.program.Communicator;
 
-/**
- * A Communicator Command is a Command several clients issue together in a collective fashion, 
- * e.g. Barrier
- * 
- * @author Julian M. Kunkel
- */
-abstract public class CommunicatorCommand 
-extends Command 
-implements ICommunicatorCommand
-{
-
-	@NotNull
-	@Attribute(xmlName="comm")
-	protected Communicator communicator;
+public interface ICommunicatorCommand {
 
 	/**
 	 * Get the Communicator the Command should work on
 	 * @return
 	 */
-	public Communicator getCommunicator(){
-		return communicator;
-	}
+	public Communicator getCommunicator();
 	
 	/**
 	 * Set the Communicator the Command should work on
 	 * @param communicator
 	 */
-	public void setCommunicator(Communicator communicator) {
-		this.communicator = communicator;
-	}
-
+	public void setCommunicator(Communicator communicator);
 }

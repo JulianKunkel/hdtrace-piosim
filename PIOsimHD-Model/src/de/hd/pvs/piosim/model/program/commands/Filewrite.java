@@ -18,8 +18,8 @@
 
 package de.hd.pvs.piosim.model.program.commands;
 
-import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 
 
-public class Filewrite  extends FileCommand{
+public class Filewrite  extends FileIOCommand{
 }

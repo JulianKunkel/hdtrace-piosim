@@ -258,6 +258,8 @@ public class ApplicationXMLReader {
 					value =  Numbers.getLongValue(stringAttribute) ;
 				}else if(type == String.class){
 					value = stringAttribute;
+				}else if (type == boolean.class ) {
+					value = Boolean.getBoolean(stringAttribute);													
 				}else if (type == MPIFile.class) {
 					value = getFile(stringAttribute, app);
 				}else if (type == Communicator.class) {

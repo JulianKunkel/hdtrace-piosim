@@ -21,12 +21,8 @@
  */
 package de.hd.pvs.piosim.model.program.commands.superclasses;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 
 /**
@@ -39,10 +35,7 @@ abstract public class FileCommand extends Command{
 	@NotNull
 	@Attribute()
 	protected MPIFile file;
-	
-	@NotNull	
-	protected ListIO io; 	
-	
+		
 	/**
 	 * @return the file the command should operate on.
 	 */
@@ -50,25 +43,7 @@ abstract public class FileCommand extends Command{
 		return file;
 	}
 	
-	@Override
-	public void readXML(Element xml) throws Exception {
-		NodeList list = ((Element) xml).getElementsByTagName("Data");   
-		io = new ListIO(list);
-	}
-
-	/**
-	 * Return the ListIO
-	 * @return
-	 */
-	public ListIO getIOList() {
-		return io;
-	}
-	
 	public void setFile(MPIFile file) {
 		this.file = file;
 	}
-	
-	public void setListIO(ListIO io) {
-		this.io = io;
-	}	
 }
