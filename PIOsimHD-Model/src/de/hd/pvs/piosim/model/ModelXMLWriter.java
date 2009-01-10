@@ -41,7 +41,8 @@ import de.hd.pvs.piosim.model.program.ApplicationXMLWriter;
  * @author Julian M. Kunkel
  */
 public class ModelXMLWriter {
-
+	AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
+	
 	/**
 	 * Write XML of the model and all programs to a specified directory into XML files.
 	 * According to the Attributes a application's file name is choosen.
@@ -145,7 +146,7 @@ public class ModelXMLWriter {
 		
 		StringBuffer attributes = new StringBuffer();
 		
-		AttributeAnnotationHandler.writeSimpleAttributeXML(component, attributes, sb);	
+		commonAttributeHandler.writeSimpleAttributeXML(component, attributes, sb);	
 		
 		sb.append(">\n");	
 		
@@ -217,7 +218,7 @@ public class ModelXMLWriter {
 	 * @throws Exception
 	 */
 	private void createGlobalSettingsXML(GlobalSettings settings, StringBuffer buff) throws Exception{
-		AttributeAnnotationHandler.writeSimpleAttributeXML(settings, buff, null);
+		commonAttributeHandler.writeSimpleAttributeXML(settings, buff, null);
 		for(CommandType cm: DynamicCommandClassMapper.getAvailableCommands()){			
 			if(settings.getClientFunctionImplementation(cm) != null){
 				buff.append("<ClientMethod name=\"" + cm.toString() + "\">" + 

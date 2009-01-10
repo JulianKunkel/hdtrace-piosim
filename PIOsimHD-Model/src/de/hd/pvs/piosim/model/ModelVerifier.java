@@ -19,8 +19,12 @@
 package de.hd.pvs.piosim.model;
 
 
+import java.lang.reflect.Field;
+
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.Application;
+import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
@@ -34,6 +38,27 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
  *
  */
 public class ModelVerifier {
+	
+	AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler(){
+		// extend the attribute handler for common types
+		
+		@Override
+		public void verifyConsistency(Field field, Object value,
+				StringBuffer errorMessageBuffer) throws IllegalArgumentException 
+		{
+			
+			if(field.getType() == Communicator.class){
+				return;
+			}
+			
+			if(field.getType() == MPIFile.class){
+				return;
+			}
+			
+			super.verifyConsistency(field, value, errorMessageBuffer);
+		}
+	};
+	
 	
 	/**
 	 * Automatically verifies if this model is valid.
@@ -77,7 +102,7 @@ public class ModelVerifier {
 	 * @throws Exception
 	 */
 	public void checkConsistency(BasicComponent comp, boolean isTemplate) throws Exception{
-		AttributeAnnotationHandler.checkAttributeConsistency(comp, isTemplate);		
+		commonAttributeHandler.checkAttributeConsistency(comp, isTemplate);		
 	}
 	
   /**
@@ -93,7 +118,7 @@ public class ModelVerifier {
 			Program program = app.getClientProgram(p);
 			for(Command cmd: program.getCommands()){
 				try{
-				AttributeAnnotationHandler.checkAttributeConsistency(cmd, false);
+					commonAttributeHandler.checkAttributeConsistency(cmd, false);
 				}catch(Exception e){
 					System.err.print(cmd + " " + e.getMessage());
 					err = true;

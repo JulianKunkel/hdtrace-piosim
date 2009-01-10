@@ -19,23 +19,21 @@
 package de.hd.pvs.piosim.model.program;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
+import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.model.util.Numbers;
 import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
@@ -45,6 +43,25 @@ import de.hd.pvs.piosim.model.util.XMLutil;
  */
 
 public class ApplicationXMLReader {
+	
+	class MyAttributeAnnotationHandler extends AttributeAnnotationHandler{
+		final Application app ; 
+		public MyAttributeAnnotationHandler(Application app) {
+			this.app = app;
+			setDefaultXMLType(AttributeXMLType.ATTRIBUTE);
+		}		
+		
+		// extend reader.
+		public Object parseXMLString(java.lang.Class<?> type, String what) throws IllegalArgumentException {
+			if (type == MPIFile.class) {
+				return getFile(what, app);
+			}else if (type == Communicator.class) {
+				return getCommunicator(what, app);
+			}
+			return super.parseXMLString(type, what);
+		};
+	}
+
 
 	/**
 	 * Parse an application of the file.
@@ -55,7 +72,7 @@ public class ApplicationXMLReader {
 	 */
 	public Application parseApplication(String filename) throws Exception{
 		try {
-		return parseApplication(new File(filename));
+			return parseApplication(new File(filename));
 		}catch (Exception e) {
 			throw new IllegalArgumentException( "Invalid application " + filename, e);
 		}
@@ -73,11 +90,12 @@ public class ApplicationXMLReader {
 		if (! XMLFile.canRead()) {
 			throw new IllegalArgumentException("Application not readable: " + XMLFile.getAbsolutePath());
 		}
+		AttributeAnnotationHandler commonHandler = new AttributeAnnotationHandler();
 
 		Application app = new Application();
 
 		app.setFilename(XMLFile.getAbsolutePath());
-		
+
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		Document document = builder.parse(XMLFile);
@@ -100,7 +118,11 @@ public class ApplicationXMLReader {
 		elements = XMLutil.getElementsByTag(elements.get(0), "File");
 		for (int i = 0; i < elements.size(); i++) {
 			MPIFile f = new MPIFile();
-			f.readXML(elements.get(i));
+
+			commonHandler.readSimpleAttributes(elements.get(i), f);
+			f.setDistribution(Distribution.readDistributionFromXML(XMLutil.getFirstElementByTag(elements.get(i), 
+				"Distribution")));
+			 
 			app.getFiles().put(f.getId(), f);
 		}
 
@@ -145,7 +167,7 @@ public class ApplicationXMLReader {
 			for (int i = 0; i < app.getProcessCount(); i++) {
 				// for each program open the corresponding file				
 				String filename = fileprefix + "-" + i + filesuffix;
-				
+
 				// todo use SAX for parsing.
 				Document appXML = builder.parse(filename);
 				programs[i] = readProgramXMLDOM(i, appXML.getDocumentElement(), app);
@@ -173,7 +195,7 @@ public class ApplicationXMLReader {
 	 * @throws Exception
 	 */
 	public Program readProgramXMLDOM(int expectedRank, Element processXML, Application app) throws Exception {
-		
+
 		String number_str = processXML.getAttribute("number");
 		int rank = Integer.parseInt(number_str);
 		if (rank != expectedRank) {
@@ -183,7 +205,7 @@ public class ApplicationXMLReader {
 
 		Program program = new Program(app, rank);		
 
-		
+
 		CommandFactory factory = new CommandFactory();
 
 		ArrayList<Element> elements = XMLutil.getChildElements(XMLutil.getFirstElementByTag(processXML, "Program"));
@@ -202,7 +224,7 @@ public class ApplicationXMLReader {
 
 			program.getCommands().add(cmd);
 		}
-		
+
 		return program;
 	}
 
@@ -218,76 +240,11 @@ public class ApplicationXMLReader {
 	private void readCommandXML(Element commandXMLElement, Command cmd, Application app) throws Exception {
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
-
-		Class<?> classIterate = cmd.getClass();	
-
-		//contains all read attributes, needed to figure out which atttibutes are unnecessary (and wrong).
-		HashSet<String> readAttributes = new HashSet<String>();  
-		NamedNodeMap attributes = commandXMLElement.getAttributes();
-
+		
 		// now try to fill all command fields as specified by the Annotations.
-		while(classIterate != Command.class) {
-			Field [] fields = classIterate.getDeclaredFields();		
-			for (Field field : fields) {
-				if( ! field.isAnnotationPresent(Attribute.class))
-					continue;
-
-				Attribute annotation = field.getAnnotation(Attribute.class);
-
-				String name = annotation.xmlName().length() > 0 ? annotation.xmlName() : field.getName();
-
-				Node node = attributes.getNamedItem(name);
-				readAttributes.add(name);
-
-				String stringAttribute = null;
-				if (node == null) {
-					// choose default as given by the Commmand
-					continue;
-				}else {
-					stringAttribute = node.getNodeValue();
-				}
-
-
-				Class<?> type = field.getType();
-				Object value = null;
-
-				// parse the content depending on the object type:
-				if (type == int.class) {
-					value= (int) Numbers.getLongValue(stringAttribute);
-				}else if (type == long.class) {
-					value =  Numbers.getLongValue(stringAttribute) ;
-				}else if(type == String.class){
-					value = stringAttribute;
-				}else if (type == boolean.class ) {
-					value = Boolean.getBoolean(stringAttribute);													
-				}else if (type == MPIFile.class) {
-					value = getFile(stringAttribute, app);
-				}else if (type == Communicator.class) {
-					value = getCommunicator(stringAttribute, app);
-				}else if (type.isEnum()) {
-					Class<? extends Enum> eType = (Class<? extends Enum>) type;
-					value = Enum.valueOf(eType, stringAttribute);
-				}else {
-					System.out.println("ApplicationXMLReader - not configured: " + type.getCanonicalName());
-					System.exit(1);
-				}
-				field.setAccessible(true);
-				field.set(cmd, value);				
-				field.setAccessible(false);
-			}
-
-			classIterate = classIterate.getSuperclass();
-		}
-
-		// determine unread attributes:
-		for(int i=0 ; i < attributes.getLength(); i++){
-			String aName = attributes.item(i).getNodeName();
-			if (! readAttributes.contains( aName)){
-				throw new IllegalArgumentException("Wrong XML, attribute not needed in command: " + aName + " command " 
-						+ cmd.getClass().getCanonicalName());
-			}
-		}
-
+		AttributeAnnotationHandler myCommonAttributeHandler = new MyAttributeAnnotationHandler(app);
+		
+		myCommonAttributeHandler.readSimpleAttributes(commandXMLElement, cmd);
 	}
 
 

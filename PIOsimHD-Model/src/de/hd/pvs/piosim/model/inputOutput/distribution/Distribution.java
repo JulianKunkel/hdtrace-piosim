@@ -84,15 +84,19 @@ abstract public class Distribution implements IXMLReader {
 	 * @see de.hd.pvs.piosim.model.interfaces.IXMLReader#readXML(org.w3c.dom.Element)
 	 */
 	public void readXML(Element xml) throws Exception {
-		AttributeAnnotationHandler.readSimpleAttributes(xml, this);
+		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();		
+		
+		commonAttributeHandler.readSimpleAttributes(xml, this);
 	}
 	
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.model.interfaces.IXMLReader#writeXML(java.lang.StringBuffer)
 	 */
 	public void writeXML(StringBuffer sb){
+		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();		
+		
 		try {
-		AttributeAnnotationHandler.writeSimpleAttributeXML(this, sb, null);
+			commonAttributeHandler.writeSimpleAttributeXML(this, sb, null);
 		}catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}

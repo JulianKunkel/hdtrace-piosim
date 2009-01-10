@@ -21,16 +21,11 @@
  */
 package de.hd.pvs.piosim.model.inputOutput;
 
-import org.w3c.dom.Element;
-
-import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
-import de.hd.pvs.piosim.model.interfaces.IXMLReader;
-import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
  * This class contains informations about an MPI_file.
@@ -39,7 +34,7 @@ import de.hd.pvs.piosim.model.util.XMLutil;
  * @author Julian M. Kunkel
  * 
  */
-public class MPIFile implements IXMLReader{
+public class MPIFile{
 	
 	@Attribute(type=AttributeXMLType.ATTRIBUTE)
 	@NotNull
@@ -87,16 +82,6 @@ public class MPIFile implements IXMLReader{
 		return distribution;
 	}
 
-	public void readXML(Element xmlnode) throws Exception {
-		AttributeAnnotationHandler.readSimpleAttributes(xmlnode, this);
-		
-		distribution = Distribution.readDistributionFromXML(XMLutil
-				.getFirstElementByTag(xmlnode, "Distribution"));		
-	}
-	
-	public void writeXML(StringBuffer sb) {
-		// TODO Auto-generated method stub		
-	}
 
 	/**
 	 * Set the current file size (can be updated during runtime).

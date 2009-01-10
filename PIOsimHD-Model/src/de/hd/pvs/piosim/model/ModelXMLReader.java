@@ -54,6 +54,8 @@ import de.hd.pvs.piosim.model.util.XMLutil;
  *
  */
 public class ModelXMLReader {	
+	AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
+	
 	/**
 	 * The function contains all routines to read the XML description files and
 	 * transforms them into valid Java Classes representing the data.
@@ -157,7 +159,7 @@ public class ModelXMLReader {
 			throw new IllegalArgumentException("Constructor for the implementation " + implementation + " invalid");
 		}
 		
-		AttributeAnnotationHandler.readSimpleAttributes(xml, component);
+		commonAttributeHandler.readSimpleAttributes(xml, component);
 		
 		readChildComponents(xml, component, isCloneOfTemplate);
 		
@@ -196,7 +198,7 @@ public class ModelXMLReader {
 	 */
 	private void readGlobalSettings(Model model, Element xml) throws Exception {
 		GlobalSettings global = model.globalSettings;
-		AttributeAnnotationHandler.readSimpleAttributes(xml, global);
+		commonAttributeHandler.readSimpleAttributes(xml, global);
 		
 		ArrayList<Element> clientMeth = XMLutil.getElementsByTag(xml, "ClientMethod");
 		if(clientMeth != null){
@@ -387,7 +389,7 @@ public class ModelXMLReader {
 	 * @param dummy
 	 */
 	private void readComponentDetailsFromXML(Element xml, BasicComponent dummy) throws Exception{		
-		AttributeAnnotationHandler.readSimpleAttributes(xml, dummy.getIdentifier());
+		commonAttributeHandler.readSimpleAttributes(xml, dummy.getIdentifier());
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////

@@ -33,19 +33,68 @@ import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.model.util.Numbers;
 import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
  * This class provides methods to read/write and verify common attributes.
+ * This class can be extended to allow to specify methods for verification, 
+ * XML read/write routines which are
+ * not covered by the <code>AttributeAnnotationHandler</code>  
  * 
  * @author Julian M. Kunkel
  *
  */
 public class AttributeAnnotationHandler {
+	
+	/**
+	 * The default XML Type
+	 */
+	protected AttributeXMLType defaultXMLType = AttributeXMLType.TAG;
+	
+	/**
+	 * Set the XML Type which is normally used for the attributes.
+	 * @param defaultXMLType
+	 */
+	public void setDefaultXMLType(AttributeXMLType defaultXMLType) {
+		this.defaultXMLType = defaultXMLType;
+	}
+	
+	/**
+	 * Generate a valid object from the string. 
+	 * @param type
+	 * @param what
+	 * @return
+	 */
+	public Object parseXMLString(Class<?> type, String what) throws IllegalArgumentException{
+		System.out.println("AttributeAnnotationHandler not configured for type: " + type.getCanonicalName() + "\n");
+		System.exit(1);
+		return null;
+	}
+	
+	/**
+	 * Write a object to a string.
+	 * @param type
+	 * @param obj
+	 * @return
+	 */
+	public String toXMLString(Class<?> type, Object value) throws IllegalArgumentException{
+		System.out.println("AttributeAnnotationHandler not configured for type: " + type.getCanonicalName() + "\n");
+		System.exit(1);
+		return null;
+	}
+	
+	/**
+	 * Verify the consistency of a given field with a given value. 
+	 * @param field
+	 * @param value
+	 * @param errorMessageBuffer
+	 */
+	public void verifyConsistency(Field field, Object value, StringBuffer errorMessageBuffer) throws IllegalArgumentException{
+		System.out.println("AttributeAnnotationHandler not configured for type: " + field.getType().getCanonicalName()  + "\n");
+		System.exit(1);
+	}
 
 	/**
 	 * This method reads the attributes from the XML based on the <code>Attribute</code> annotation,
@@ -55,41 +104,43 @@ public class AttributeAnnotationHandler {
 	 * @param xml
 	 * @param component
 	 */
-	public static void readSimpleAttributes(Element xml, Object object) throws Exception{
+	final public void readSimpleAttributes(Element xml, Object object) throws Exception{
 		Class<?> classIterate = object.getClass();	
-		
+
 		while(classIterate != Object.class) {
 			Field [] fields = classIterate.getDeclaredFields();
-			
+
 			for (Field field : fields) {
 				if( ! field.isAnnotationPresent(Attribute.class))
 					continue;
-				
+
 				Attribute annotation = field.getAnnotation(Attribute.class);
-				
+
 				// the name of the attribute or tag can be set explicitly in Attribute.
 				String name = annotation.xmlName().length() > 0 ? annotation.xmlName() : field.getName();
-				
+
 				Node node;
 				String stringAttribute = null;
+
+				AttributeXMLType xmlTyp = annotation.type() == AttributeXMLType.DEFAULT ? defaultXMLType : annotation.type(); 
 				
-				if (annotation.type() == AttributeXMLType.ATTRIBUTE){
+				if (xmlTyp == AttributeXMLType.ATTRIBUTE){
 					node = xml.getAttributes().getNamedItem(name);
 					if (node == null)
 						continue;
-					
+
 					stringAttribute = node.getNodeValue();
-				}else{ // TAG
+				}else if (xmlTyp == AttributeXMLType.TAG){ // TAG
 					node = XMLutil.getFirstElementByTag(xml, name);
 					if (node == null)
 						continue;
-					
+
 					stringAttribute = node.getTextContent();					
 				}
-				
+
 				Class<?> type = field.getType();
 				Object value = null;
-				
+
 				if (type == int.class || type == Integer.class) {
 					value= (int) Numbers.getLongValue(stringAttribute);
 				}else if (type == boolean.class ) {
@@ -105,18 +156,17 @@ public class AttributeAnnotationHandler {
 					Class<? extends Enum> eType = (Class<? extends Enum>) type;
 					value = Enum.valueOf(eType, stringAttribute);					
 				}else {
-					System.err.println("ModelXMLReader not configured: " + type.getCanonicalName() + " for field " + field.getName() + " type " + object.getClass());
-					System.exit(1);
+					value = parseXMLString(type, stringAttribute);
 				}
 				field.setAccessible(true);
 				field.set(object, value);				
 				field.setAccessible(false);
 			}
-			
+
 			classIterate = classIterate.getSuperclass();
 		}
 	}
-	
+
 
 	/**
 	 * Create attributes and tags for the object based on the <code>Attribute</code> annotations.
@@ -126,10 +176,10 @@ public class AttributeAnnotationHandler {
 	 * @param attributes StringBuffer for the attributes. Null if no attributes should be read.
 	 * @throws Exception
 	 */
-	public static void writeSimpleAttributeXML(Object obj, StringBuffer tags, StringBuffer attributes) throws Exception{
+	final public void writeSimpleAttributeXML(Object obj, StringBuffer tags, StringBuffer attributes) throws Exception{
 		Class<?> classIterate = obj.getClass();	
 		// Walk through the whole inheritance tree.
-		
+
 		while(classIterate != Object.class) {
 			Field [] fields = classIterate.getDeclaredFields();		
 			for (Field field : fields) {
@@ -166,15 +216,15 @@ public class AttributeAnnotationHandler {
 					}
 					stringValue = value.toString();					
 				}else {
-					System.out.println("ModelXMLWriter not configured: " + type.getCanonicalName());
-					System.exit(1);
+					stringValue = toXMLString(type, value); 
 				}
 
-
-				if (annotation.type() == AttributeXMLType.ATTRIBUTE){
+				AttributeXMLType xmlTyp = annotation.type() == AttributeXMLType.DEFAULT ? defaultXMLType : annotation.type(); 
+				
+				if (xmlTyp == AttributeXMLType.ATTRIBUTE){
 					if (stringValue != null && attributes != null)
 						attributes.append(" " + name + "=\"" + stringValue + "\"");
-				}else{ // TAG
+				}else if(xmlTyp == AttributeXMLType.TAG){
 					name = name.substring(0, 1).toUpperCase() + name.substring(1);
 
 					tags.append("<" + name + ">" + stringValue);					
@@ -185,8 +235,8 @@ public class AttributeAnnotationHandler {
 			classIterate = classIterate.getSuperclass();
 		}
 	}
-	
-	
+
+
 
 	/**
 	 * Check the consistency of a component, are all attributes in valid ranges?
@@ -194,51 +244,51 @@ public class AttributeAnnotationHandler {
 	 * @param obj
 	 * @throws Exception
 	 */
-	static public void checkAttributeConsistency(Object obj, boolean isTemplate) throws Exception{		
+	final public void checkAttributeConsistency(Object obj, boolean isTemplate) throws Exception{		
 		Class<?> classIterate = obj.getClass();	
-		
+
 		// all errors are written to this StringBuffer.
 		StringBuffer errorMessage = new StringBuffer();
-		
+
 		while(classIterate != Object.class) {
 			Field [] fields = classIterate.getDeclaredFields();		
 			for (Field field : fields) {
-				
+
 				if (! isTemplate) {
 					if (field.isAnnotationPresent(ChildComponents.class)) {
 						// this field should contain a reference to the parent component.
 						Object value = null;
-						
+
 						field.setAccessible(true);
 						value = field.get(obj);				
 						field.setAccessible(false);		
-						
+
 						if(value == null) {
 							appendVerificationError("null", obj, field.getName(), errorMessage);
 						}
 						continue;
 					}
 				}
-				
+
 				if( ! field.isAnnotationPresent(Attribute.class))
 					continue;
-				
+
 				//Attribute annotation = field.getAnnotation(Attribute.class);
-				
+
 				String name = field.getName();
-				
+
 				Class<?> type = field.getType();
 				Object value = null;
-				
+
 				field.setAccessible(true);
 				value = field.get(obj);				
 				field.setAccessible(false);		
-				
+
 				if( field.isAnnotationPresent(NotNull.class) && value == null){
 					appendVerificationError("null", obj, name, errorMessage);
 				}
-				
-				
+
+
 				if (type == int.class || (type == long.class)) {
 					long val;
 					if (type == long.class) {
@@ -246,7 +296,7 @@ public class AttributeAnnotationHandler {
 					}else{
 						val =  ((Integer) value);
 					}
-					
+
 					if(field.isAnnotationPresent(NotNegative.class) && val < 0){
 						appendVerificationError("negative", obj, name, errorMessage);
 					}
@@ -255,8 +305,8 @@ public class AttributeAnnotationHandler {
 					}
 				}else if (type == Epoch.class){
 					Epoch val = (Epoch) value;
-					
-					
+
+
 					if(field.isAnnotationPresent(NotNegativeOrZero.class) && val.getDouble() < 0){
 						appendVerificationError("negative",obj, name, errorMessage);
 					}
@@ -267,33 +317,29 @@ public class AttributeAnnotationHandler {
 					if( value == null ){
 						appendVerificationError("null", obj, name, errorMessage);
 					}
-				}else if (type == Communicator.class){
-					// TODO
-				}else if (type == MPIFile.class){
-					// TODO					
 				}else if (type == boolean.class){
 					// TODO											
 				}else {
-					throw new IllegalArgumentException("ModelVerifier does not know how to handle type (not configured): " + type.getCanonicalName());
+					verifyConsistency(field, value, errorMessage);
 				}
-				
+
 			}
-			
+
 			classIterate = classIterate.getSuperclass();
 		}		
-		
+
 		if(errorMessage.length() > 0){
 			String objname = "";
 			if(BasicComponent.class.isAssignableFrom(obj.getClass()) ){
 				objname = ((BasicComponent) obj).getIdentifier().toString() + " ";
 			}
 			objname += "of type " + obj.getClass().getSimpleName();
-			
+
 			throw new IllegalArgumentException("Object " + objname + " contains errors:\n" + errorMessage.toString());
 		}
 	}
-	
-	
+
+
 	/**
 	 * Append error message to the StringBuffer
 	 * 
@@ -301,9 +347,9 @@ public class AttributeAnnotationHandler {
 	 * @param obj
 	 * @param field
 	 */
-	static private void appendVerificationError(String error, Object obj, String field, StringBuffer stringbuffer){
+	protected void appendVerificationError(String error, Object obj, String field, StringBuffer stringbuffer){
 		stringbuffer.append(" value in field \"" + field + "\" is " +  error + "\n");
 	}
-	
-	
+
+
 }
