@@ -9,7 +9,7 @@ fi
 
 for FILE in `find -name "*.java"`; do
 
-if grep "This file is part of PIOsimHD" $FILE ; then
+if grep "This file is part of PIOsimHD" $FILE >/dev/null; then
 	continue; // license already added
 fi
 

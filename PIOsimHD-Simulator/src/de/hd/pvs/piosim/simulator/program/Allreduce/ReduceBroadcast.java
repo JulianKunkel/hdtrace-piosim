@@ -1,3 +1,21 @@
+
+//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	
+//	This file is part of PIOsimHD.
+//	
+//	PIOsimHD is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+//	
+//	PIOsimHD is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
+
 package de.hd.pvs.piosim.simulator.program.Allreduce;
 
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
@@ -8,6 +26,13 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
+/**
+ * Use existing reduce and broadcast algorithms to distribute data.
+ * It uses the specified (global) simulator implementations.
+ * 
+ * @author Julian M. Kunkel
+ *
+ */
 public class ReduceBroadcast 
 extends CommandImplementation<Allreduce>
 {
@@ -15,6 +40,11 @@ extends CommandImplementation<Allreduce>
 	public void process(Allreduce cmd, CommandProcessing OUTresults,
 			GClientProcess client, int step, NetworkJobs compNetJobs) 
 	{
+		if (cmd.getCommunicator().getSize() == 1){
+			// finished ...
+			return;
+		}
+		
 		final int BROADCAST = 2;
 		
 		if (step == CommandProcessing.STEP_START){
@@ -24,7 +54,7 @@ extends CommandImplementation<Allreduce>
 			red.setSize(cmd.getSize());
 			red.setRootRank(0);
 			
-			OUTresults.invokeChildOperation(red, BROADCAST);
+			OUTresults.invokeChildOperation(red, BROADCAST, null);
 		}else if(step == BROADCAST){
 			Bcast bc = new Bcast();
 			bc.setCommunicator(cmd.getCommunicator());
@@ -32,7 +62,7 @@ extends CommandImplementation<Allreduce>
 			bc.setRootRank(0);
 			
 			// broadcast from root.
-			OUTresults.invokeChildOperation(bc, CommandProcessing.STEP_COMPLETED);
+			OUTresults.invokeChildOperation(bc, CommandProcessing.STEP_COMPLETED, null);
 		}
 	}
 }

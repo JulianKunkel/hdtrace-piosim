@@ -25,6 +25,7 @@ import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
+import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
  * Class encapsulates the results for by any command invocation.
@@ -75,6 +76,11 @@ public class CommandProcessing{
 	final Command invokingCommand;
 	
 	/**
+	 * if this field is set the invoking client must obey to use the implementation.
+	 */
+	private Class<? extends CommandImplementation> enforcedProcessingMethod = null; 
+	
+	/**
 	 * The next step of the command which shall be invoked.
 	 */
 	int         nextStep ;
@@ -116,7 +122,9 @@ public class CommandProcessing{
 	 * 
 	 * @param childOperation
 	 */
-	public void invokeChildOperation(final Command nestedCmd, int nextStep){
+	public void invokeChildOperation(final Command nestedCmd, int nextStep, Class<? extends CommandImplementation>
+		enforceProcessingMethod){
+		
 		setNextStep(nextStep);
 		
 		assert(nestedCmd.getAsynchronousID() == null);
@@ -127,10 +135,20 @@ public class CommandProcessing{
 				nestedCmd, getInvokingComponent(), 
 				getInvokingComponent().getSimulator().getVirtualTime());
 		
+		childOp.enforcedProcessingMethod = enforceProcessingMethod;
+		
 		childOp.setNextStep(STEP_START);
 		childOp.parentOperation = this; 
 		
 		nestedOperation = childOp;
+	}
+	
+	/**
+	 * Return the class or null if not set
+	 * @return
+	 */
+	public Class<? extends CommandImplementation> getEnforcedProcessingMethod() {
+		return enforcedProcessingMethod;
 	}
 	
 	/**

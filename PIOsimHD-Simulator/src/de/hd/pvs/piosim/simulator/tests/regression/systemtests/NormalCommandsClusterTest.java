@@ -132,9 +132,11 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	
 	public static void main(String[] args) throws Exception {
 		NormalCommandsClusterTest t = new NormalCommandsClusterTest();
-		//t.allreduceTest();
+		t.minClient = 10;
+		
+		t.allreduceTest();
 		//t.bcastTest();
-		t.reduceTest();
+		//t.reduceTest();
 		
 	}
 }
