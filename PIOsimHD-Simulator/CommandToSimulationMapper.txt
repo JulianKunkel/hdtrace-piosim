@@ -17,6 +17,7 @@ de.hd.pvs.piosim.simulator.program.Global.Dummy
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Allreduce.RootComputes
 de.hd.pvs.piosim.simulator.program.Allreduce.BinaryTree
+de.hd.pvs.piosim.simulator.program.Allreduce.ReduceBroadcast
 
 +de.hd.pvs.piosim.model.program.commands.Barrier
 de.hd.pvs.piosim.simulator.program.Global.Dummy
@@ -30,6 +31,7 @@ de.hd.pvs.piosim.simulator.program.Reduce.BinaryTree
 +de.hd.pvs.piosim.model.program.commands.Bcast
 de.hd.pvs.piosim.simulator.program.Global.Dummy
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
+de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree
 
 +de.hd.pvs.piosim.model.program.commands.Fileread
 de.hd.pvs.piosim.simulator.program.Global.Dummy
