@@ -25,6 +25,7 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.model.program.commands.Barrier;
+import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
@@ -133,6 +134,13 @@ public class ProgramBuilder {
 		Allreduce reduce = new Allreduce();
 		reduce.setSize(size);
 		appBuilder.addCommand(comm, reduce);
+	}
+	
+	public void addBroadcast(Communicator comm, int root, long size){
+		Bcast bcast = new Bcast();
+		bcast.setSize(size);
+		bcast.setRootRank(root);
+		appBuilder.addCommand(comm, bcast);
 	}
 	
 	public void addReduce(Communicator comm, int root, long size){
