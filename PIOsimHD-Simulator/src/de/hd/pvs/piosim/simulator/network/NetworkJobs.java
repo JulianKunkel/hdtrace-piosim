@@ -24,7 +24,7 @@ package de.hd.pvs.piosim.simulator.network;
 import java.util.ArrayList;
 
 import de.hd.pvs.piosim.model.util.Epoch;
-import de.hd.pvs.piosim.simulator.event.CommandDescription;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
 
 
 /**
@@ -39,7 +39,7 @@ public class NetworkJobs {
 	/** 
 	 * describes the environment/state on which the request got submitted.  
 	 */
-	final private CommandDescription initialRequestDescription;
+	final private CommandStepResults initialRequestDescription;
 	
 	/**
 	 * When did this set of messages started.
@@ -65,9 +65,9 @@ public class NetworkJobs {
 	 * @param jobDescription
 	 * @param startTime
 	 */
-	public NetworkJobs(CommandDescription jobDescription, Epoch startTime) {
-		this.initialRequestDescription = jobDescription;
-		this.startTime = startTime;
+	public NetworkJobs(CommandStepResults commandDescription) {
+		this.initialRequestDescription = commandDescription;
+		this.startTime = commandDescription.getStartTime();
 	}
 	
 	final public ArrayList<SingleNetworkJob> getNetworkJobs(){
@@ -77,7 +77,7 @@ public class NetworkJobs {
 	/**
 	 * @return the initialRequestDescription
 	 */
-	public CommandDescription getInitialRequestDescription() {
+	public CommandStepResults getInitialRequestDescription() {
 		return initialRequestDescription;
 	}
 	
@@ -129,6 +129,10 @@ public class NetworkJobs {
 		responses.add(receivedMessage);
 		
 		pendingJobs--;
+	}
+	
+	public int getSize(){
+		return jobs.size();
 	}
 		
 }

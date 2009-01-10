@@ -177,7 +177,7 @@ implements IGServer<SPassiveComponent<Server>>
 	public void recvMsgPartCB(GNIC gnic, MessagePart part, Epoch endTime) {
 		SingleNetworkJob job = part.getNetworkJob();
 
-		debug("received MSG Part " + part.getSize() + " cmd: " + job.getParentNetworkJobs().getInitialRequestDescription().getCommand());
+		debug("received MSG Part " + part.getSize() + " cmd: " + job.getParentNetworkJobs().getInitialRequestDescription());
 
 		//this function is called right now only for writes
 		boolean doesFit = cacheLayer.canIPutDataIntoCache(job, part.getSize());

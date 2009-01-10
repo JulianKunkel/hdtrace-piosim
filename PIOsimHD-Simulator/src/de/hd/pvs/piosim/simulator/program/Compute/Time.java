@@ -33,7 +33,7 @@ extends CommandImplementation<Compute>
 	}
 
 	@Override
-	public CommandStepResults process(Compute cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
-		return null;
+	public void process(Compute cmd, CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+		return;
 	}
 }

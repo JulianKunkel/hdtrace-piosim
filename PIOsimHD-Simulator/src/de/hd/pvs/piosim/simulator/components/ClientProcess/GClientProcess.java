@@ -146,7 +146,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				throw new IllegalArgumentException("Error removing " + cmd + " from queue on client: " + this.getIdentifier());
 			}
 
-			assert(nextStep != CommandImplementation.STEP_START);
+			assert(nextStep != CommandStepResults.STEP_START);
 
 			processCommand(cmd, getSimulator().getVirtualTime(), true, nextStep, null);
 		}
@@ -212,10 +212,10 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 			 */
 
-			assert(pendingOp.getNextStep() != CommandImplementation.STEP_START);
+			assert(pendingOp.getNextStep() != CommandStepResults.STEP_START);
 
 			processCommand(pendingOp.getInvokingCommand(), endTime, true, pendingOp.getNextStep(), 
-					pendingOp.getJobs());
+					pendingOp.getNetworkJobs());
 		}
 
 		/** 
@@ -407,10 +407,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		 * @param compJobs
 		 */
 		private void processCommand(Command cmd, Epoch time, boolean shallCompute, int nextStep, NetworkJobs compJobs){
-			//System.out.println("ProcessingCommnad " + cmd + " " + time + " " + shallCompute + " " + nextStep);
-
-
-			if(nextStep == CommandImplementation.STEP_COMPLETED){
+			if(nextStep == CommandStepResults.STEP_COMPLETED){
 				commandCompleted(cmd, time);
 				return;
 			} // END STEP_COMPLETED
@@ -423,7 +420,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 			try{			
 				if(shallCompute){					
-					if(nextStep == CommandImplementation.STEP_START){
+					if(nextStep == CommandStepResults.STEP_START){
 						traceCommand(cmd, true);
 					}
 
@@ -457,29 +454,34 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				/* now run the appropriate command to generate new events */
 				debug("processing step: " + nextStep + " cmd: " + cmd);
 
-				CommandStepResults newJob = cme.process(cmd, this, nextStep, compJobs);
+				CommandStepResults newJob = new CommandStepResults(cmd, this, time); 
+					
+				cme.process(cmd, newJob, this, nextStep, compJobs);
 
-				if (newJob == null){ /* blocking operation completed */							
+				//System.out.println(this + " " + nextStep + " starting " + newJob.nextStep + " " + newJob.getNetworkJobs().getSize());
+					
+				if (newJob.isCommandComplete()){ /* all blocking operation completed */							
 					commandCompleted(cmd, time);				
 				}else{				
-					newJob.setInvokingCommand(cmd);
-
 					if(newJob.isBlockingEnforced()){
 						/* just block, the job SHOULD wake up itself... ! */
 
 						//System.out.println("blocking on " +  cmd + " " + this.getIdentifier());
 
 						blockedCommands.add(newJob.getInvokingCommand());
-						return;
 					}
 
-					assert(newJob.getJobs() != null);
-					assert(newJob.getJobs().getNetworkJobs() != null);
+					assert(newJob.getNetworkJobs() != null);
+					assert(newJob.getNetworkJobs().getNetworkJobs() != null);
 
-					pendingNetworkOperations.put(newJob.getJobs(), newJob);
+					if(newJob.getNetworkJobs().getSize() > 0){
+						pendingNetworkOperations.put(newJob.getNetworkJobs(), newJob);
 
-					for(SingleNetworkJob j: newJob.getJobs().getNetworkJobs()){
-						getAttachedNode().submitNewNetworkJob(j);
+						for(SingleNetworkJob j: newJob.getNetworkJobs().getNetworkJobs()){
+							assert(j.getTargetComponent() != null);
+							
+							getAttachedNode().submitNewNetworkJob(j);
+						}
 					}
 				}
 
@@ -501,7 +503,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				if (cmd == null) 
 					return;
 
-				processCommand(cmd, time, true, CommandImplementation.STEP_START, null);
+				processCommand(cmd, time, true, CommandStepResults.STEP_START, null);
 
 
 				if( cmd.getAsynchronousID() == null) // command blocks

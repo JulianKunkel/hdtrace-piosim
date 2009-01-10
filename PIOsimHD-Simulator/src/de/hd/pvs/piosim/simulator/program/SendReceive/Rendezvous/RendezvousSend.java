@@ -24,7 +24,6 @@ package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -36,51 +35,47 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousSend extends CommandImplementation<Send>
 {
-	public CommandStepResults process(Send cmd, GClientProcess client, int step,  NetworkJobs compNetJobs) {
+	public void process(Send cmd,  CommandStepResults OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
 		final int RECV_ACK = 2;
-		/* second step ?, receive whole data */
-
-		ISNodeHostedComponent target = getTargetfromRank(client, cmd.getToRank());
+		/* second step ?, receive whole data */		
 
 		switch(step){
-		case(STEP_START):{
+		case(CommandStepResults.STEP_START):{
 
 			if(cmd.getSize() <= client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize()){
-				//eager send:
-				CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, STEP_COMPLETED);
+				//eager send completes immediately
 
 				/* data to transfer depends on actual command size, but is defined in send */
-				client.debug("eager send to " +  target.getIdentifier() );
+				client.debug("eager send to " +  cmd.getToRank() );
 
-				netAddSend(jobs, target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getTag(), cmd.getCommunicator());
+				OUTresults.addNetSend(cmd.getToRank(), 
+						new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getTag(), cmd.getCommunicator());
 
-				return jobs;
+				return;
 			}else{
 				//rendezvous protocol
-				/* determine application */		
-				CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, RECV_ACK);
-
+				/* determine application */
+				OUTresults.setNextStep(RECV_ACK);
+								
 				/* data to transfer depends on actual command size, but is defined in send */
-
-				netAddSend(jobs, target, new NetworkSimpleMessage(100), cmd.getTag(), cmd.getCommunicator());
+				OUTresults.addNetSend(cmd.getToRank(), 
+						new NetworkSimpleMessage(100), cmd.getTag(), cmd.getCommunicator());
 
 				/* wait for incoming msg (send ready) */
-				netAddReceive(jobs, target, cmd.getTag(), cmd.getCommunicator());			
-				return jobs;
+				OUTresults.addNetReceive(cmd.getToRank(),  cmd.getTag(), cmd.getCommunicator());			
+				return;
 			}
 		}case(RECV_ACK):{
-			CommandStepResults jobs = prepareStepResultsForJobs(compNetJobs, STEP_COMPLETED);
-
 			/* data to transfer depends on actual command size, but is defined in send */
 
-			client.debug("SEND got ACK from " +  target.getIdentifier() );
+			client.debug("SEND got ACK from " +  cmd.getToRank() );
+			OUTresults.addNetSend(cmd.getToRank(), 
+					new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getTag(), cmd.getCommunicator());
 
-			netAddSend(jobs, target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getTag(), cmd.getCommunicator());
-
-			return jobs;
+			return;
 		}
 		}
 
-		return null;
+		return;
 	}
 }

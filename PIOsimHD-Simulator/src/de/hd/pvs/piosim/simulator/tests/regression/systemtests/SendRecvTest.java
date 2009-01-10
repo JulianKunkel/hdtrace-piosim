@@ -77,7 +77,38 @@ public class SendRecvTest extends ClusterTest{
 		pb.addSend(world, 3, 0, KBYTE, 0);		
 		runSimulationAllExpectedToFinish();
 	}
-
+	
+	@Test public void sendRecvTestTwoClients() throws Exception{
+		testMsg();
+		
+		pb.addSendRecv(world, 0, 1, 1, MBYTE, 0, 1);
+		
+		pb.addSendRecv(world, 1, 0, 0, KBYTE, 1, 0);
+				
+		runSimulationAllExpectedToFinish();
+	}
+	
+	@Test public void sendRecvTestTwoClientsEager() throws Exception{
+		testMsg();
+		mb.getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+		pb.addSendRecv(world, 0, 1, 1, KBYTE, 0, 1);
+		
+		pb.addSendRecv(world, 1, 0, 0, KBYTE, 1, 0);
+				
+		runSimulationAllExpectedToFinish();
+	}
+	
+	
+	@Test public void sendRecvTestThreeClients() throws Exception{
+		testMsg();
+		pb.addSendRecv(world, 0, 1, 2, MBYTE, 0, 0);
+		
+		pb.addSendRecv(world, 1, 2, 0, KBYTE, 0, 0);
+		
+		pb.addSendRecv(world, 2, 0, 1, KBYTE, 0, 0);			
+		runSimulationAllExpectedToFinish();
+	}
+	
 //	 TODO support AnyTAG ? Needed?
 //	@Test public void anySourceTagTest() throws Exception{
 //		testMsg();
@@ -114,6 +145,6 @@ public class SendRecvTest extends ClusterTest{
 	public static void main(String[] args) throws Exception{
 		SendRecvTest t = new SendRecvTest();
 		t.setUp();
-		t.anyReceiveTest();
+		t.sendRecvTestTwoClientsEager();
 	}
 }

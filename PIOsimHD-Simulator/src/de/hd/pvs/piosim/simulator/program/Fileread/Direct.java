@@ -40,9 +40,9 @@ public class Direct
 extends CommandImplementation<Fileread>
 {
 	@Override
-	public CommandStepResults process(Fileread cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Fileread cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		switch(step){
-		case(STEP_START):{
+		case(CommandStepResults.STEP_START):{
 			/* determine I/O targets */
 			Model m = client.getSimulator().getModel();
 
@@ -75,8 +75,6 @@ extends CommandImplementation<Fileread>
 						cmd.getIOList(),m.getServers()  );
 
 			/* create an I/O request for each of these servers */
-			CommandStepResults stepResult = prepareStepResultsForJobs(client, cmd, STEP_COMPLETED);
-
 			for(Server server: targetIOServers.keySet()){
 				IGServer sserver = (IGServer) client.getSimulator().getSimulatedComponent(server); 
 
@@ -86,21 +84,16 @@ extends CommandImplementation<Fileread>
 				ListIO iolist = targetIOServers.get(server);
 
 				/* initial job request */
-				netAddSend(stepResult, targetNIC, new RequestRead(iolist, cmd.getFile()),  RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
+				OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()),  RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
 
-				/* wait for incoming data (read data) */
-				netAddReceive(stepResult, targetNIC, RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
-
-
+				OUTresults.addNetReceive(targetNIC,  RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);				
 
 			}
-
-
-			return stepResult;
+			return;
 		}
 		}
 
-		return null;
+		return;
 	}
 
 }

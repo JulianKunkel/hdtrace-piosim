@@ -44,7 +44,7 @@ public class Blocking
 	HashSet<Integer> pendingAIOs = new HashSet<Integer>();
 	
 	@Override
-	public CommandStepResults process(Wait cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {			
+	public void process(Wait cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {			
 		// two possibilities, either all pending AIO ops are already finished or not
 		HashMap<Integer, Command> stillPendingOps = client.getPendingNonBlockingOps();
 		
@@ -55,10 +55,9 @@ public class Blocking
 		}
 		
 		if(pendingAIOs.size() != 0){
-			return prepareStepResultsForBlocking();
-		}else{
-			return null;
+			OUTresults.setBlocking();
 		}
+		
 	}
 	
 	/**
@@ -71,6 +70,6 @@ public class Blocking
 		pendingAIOs.remove(which);
 		
 		if(pendingAIOs.size() == 0)		
-			client.activateBlockedCommand(cmd, STEP_COMPLETED);
+			client.activateBlockedCommand(cmd, CommandStepResults.STEP_COMPLETED);
 	}
 }

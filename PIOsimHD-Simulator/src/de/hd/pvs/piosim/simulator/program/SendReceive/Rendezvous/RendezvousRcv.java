@@ -24,7 +24,6 @@ package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 import de.hd.pvs.piosim.model.program.commands.Receive;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
@@ -37,35 +36,30 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousRcv extends CommandImplementation<Receive>
 {
-	public CommandStepResults process(Receive cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {		
+	public void process(Receive cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {		
 
 		final int ACK_RECVD = 1;
 		final int LAST = 2;
 
 		/* second step ?, receive whole data */
 		switch(step){
-		case(STEP_START):{				
+		case(CommandStepResults.STEP_START):{				
 			/* determine application */
-			CommandStepResults jobs = prepareStepResultsForJobs(client,cmd, ACK_RECVD);
+			OUTresults.setNextStep(ACK_RECVD);
 
-			ISNodeHostedComponent src = null;
-			/* MATCH any Source */
 			if (cmd.getFromRank() >= 0){
-				src = getTargetfromRank(client,cmd.getFromRank());
-				assert(src != null);
+				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getTag(), cmd.getCommunicator());
+			}else{
+				OUTresults.addNetReceive(null,cmd.getTag(), cmd.getCommunicator());
 			}
 
-			/* wait for incoming msg (send ready) */
-			netAddReceive(jobs, src, cmd.getTag(), cmd.getCommunicator());
-
-			return jobs;
+			return;
 		}case(LAST):{
-			CommandStepResults jobs = prepareStepResultsForJobs(compNetJobs, STEP_COMPLETED);
-
-			netAddReceive(jobs, compNetJobs.getNetworkJobs().get(0).getTargetComponent(), 
+			
+			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getTargetComponent(), 
 					compNetJobs.getNetworkJobs().get(0).getTag(), cmd.getCommunicator());
-
-			return jobs;
+			
+			return;
 		}case(ACK_RECVD):{
 			SingleNetworkJob response = compNetJobs.getResponses().get(0);
 
@@ -74,16 +68,16 @@ public class RendezvousRcv extends CommandImplementation<Receive>
 			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
 				client.debugFollowUpLine("Eager");
 				// eager protocoll
-				return null;
+				return;
 			}else{
 				//rendezvous protocol
 				/* identify the sender from the source */
-				CommandStepResults jobs = prepareStepResultsForJobs(compNetJobs, LAST);
+				OUTresults.setNextStep(LAST);
 
 				/* Acknowledge sender to startup transfer */
-				netAddSend(jobs, response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
 
-				return jobs;
+				return;
 			}
 		}
 		default:

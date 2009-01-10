@@ -22,7 +22,6 @@ import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -31,51 +30,42 @@ public class RootComputes
 	extends CommandImplementation<Allreduce>
 {
 	@Override
-	public CommandStepResults process(Allreduce cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Allreduce cmd, CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 
 		final int RECV_DATA = 2;
 		//trivial implementierung, alle schicken zu rank 0, dieser schickt an alle.
 
 		int [] commParts =  cmd.getCommunicator().getParticipantsWorldRank();
-
-		if ( client.getModelComponent().getRank() != 0){
-			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, STEP_COMPLETED);	
-			ISNodeHostedComponent target = getTargetfromRank(client,  commParts[0] );
-
-			netAddSend(jobs, target, new NetworkSimpleMessage(cmd.getSize() + 20),  
+		
+		int rankZero = commParts[0];
+		
+		if ( client.getModelComponent().getRank() != rankZero){				
+			OUTresults.addNetSend(rankZero, new NetworkSimpleMessage(cmd.getSize() + 20),  
 					30000, Communicator.INTERNAL_MPI);
+			/* wait for incoming data (read data) */			
+			OUTresults.addNetReceive(rankZero, 30001, Communicator.INTERNAL_MPI);
 
-			/* wait for incoming data (read data) */
-			netAddReceive(jobs, target, 30001, Communicator.INTERNAL_MPI);
-
-			return jobs;
+			return;
 		}else{// rank 0
-
-			CommandStepResults jobs;
-			if (step == 0){
+			if (step == CommandStepResults.STEP_START){
 				// receive data from all jobs:
-				jobs = prepareStepResultsForJobs(client, cmd, RECV_DATA);
+				OUTresults.setNextStep(RECV_DATA);
 
 				for(int i=1; i < commParts.length; i++){
 					int rank = commParts[i];
 
-					ISNodeHostedComponent target = getTargetfromRank(client,  rank );
-					netAddReceive(jobs, target, 30000, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(rank, 30000, Communicator.INTERNAL_MPI);
 				}
 
 			}else{ // send data back:
-				jobs = prepareStepResultsForJobs(compNetJobs, STEP_COMPLETED);
-
 				for(int i=1; i < commParts.length; i++){
 					int rank = commParts[i];
-
-					ISNodeHostedComponent target = getTargetfromRank(client,  rank );
-					netAddSend(jobs, target, new NetworkSimpleMessage(cmd.getSize() + 20),  
+					OUTresults.addNetSend(rank, new NetworkSimpleMessage(cmd.getSize() + 20),  
 							30001, Communicator.INTERNAL_MPI);
 				}				
 			}
 
-			return jobs;
+			return;
 		}
 	}
 

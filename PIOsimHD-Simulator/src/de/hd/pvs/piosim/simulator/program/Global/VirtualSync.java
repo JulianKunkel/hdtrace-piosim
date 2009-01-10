@@ -91,7 +91,7 @@ extends CommandImplementation<CommunicatorCommand>
 
 			/* we finish, therefore reactivate all other clients! */
 			for(GClientProcess c: waitingClients.keySet()){
-				c.activateBlockedCommand(waitingClients.get(c), STEP_COMPLETED);
+				c.activateBlockedCommand(waitingClients.get(c), CommandStepResults.STEP_COMPLETED);
 			}
 
 			/* remove Barrier */
@@ -109,16 +109,17 @@ extends CommandImplementation<CommunicatorCommand>
 	}
 	
 	@Override
-	public CommandStepResults process(CommunicatorCommand cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(CommunicatorCommand cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		boolean ret = synchronizeClientsWithoutCommunication(client, cmd);
 
 		if (ret == true){
 			/* just block up */
 			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
-
-			return prepareStepResultsForBlocking();
+			OUTresults.setBlocking();
+			
+			return;
 		}
 
-		return null;
+		return;
 	}
 }

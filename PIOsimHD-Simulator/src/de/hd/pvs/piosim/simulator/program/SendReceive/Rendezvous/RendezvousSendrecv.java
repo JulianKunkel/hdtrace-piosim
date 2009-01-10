@@ -24,7 +24,6 @@ package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 import de.hd.pvs.piosim.model.program.commands.Sendrecv;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
@@ -37,79 +36,68 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 {
-	public CommandStepResults process(Sendrecv cmd, GClientProcess client, int step,  NetworkJobs compNetJobs) {
+	public void process(Sendrecv cmd,  CommandStepResults OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
 		final int EAGER_ACK = 2;
 		final int RENDEZVOUS_ACK = 3;
 		final int START_RENDEZVOUS_RECV = 4;
 		/* second step ?, receive whole data */
 
-		ISNodeHostedComponent target = getTargetfromRank(client, cmd.getToRank());
+		int target = cmd.getToRank();
 
 		switch(step){
-		case(STEP_START):{
-
-			CommandStepResults jobs;
+		case(CommandStepResults.STEP_START):{
 
 			if(cmd.getSize() <= client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize()){
 				//eager send:
-				jobs = prepareStepResultsForJobs(client, cmd, EAGER_ACK);
-
+				OUTresults.setNextStep(EAGER_ACK);
+				
 				/* data to transfer depends on actual command size, but is defined in send */
-				client.debug("eager send to " +  target.getIdentifier() );
+				client.debug("eager send to " +  target );
 
-				netAddSend(jobs, target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getToTag(), cmd.getCommunicator());
+				OUTresults.addNetSend(target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getToTag(), cmd.getCommunicator());
 			}else{
 				//rendezvous protocol
-				/* determine application */		
-				jobs = prepareStepResultsForJobs(client, cmd, RENDEZVOUS_ACK);
-
+				/* determine application */
+				OUTresults.setNextStep(RENDEZVOUS_ACK);
+				
 				/* data to transfer depends on actual command size, but is defined in send */
-
-				netAddSend(jobs, target, new NetworkSimpleMessage(100), cmd.getToTag(), cmd.getCommunicator());
+				OUTresults.addNetSend(target, new NetworkSimpleMessage(100), cmd.getToTag(), cmd.getCommunicator());
 
 				/* wait for incoming msg (send ready) */
-				netAddReceive(jobs, target, cmd.getToTag(), cmd.getCommunicator());			
+				OUTresults.addNetReceive(target, cmd.getToTag(), cmd.getCommunicator());			
 			}
-
-			// receive from source:
-			ISNodeHostedComponent src = null;
+			
+			// receiving part:
 			/* MATCH any Source */
 			if (cmd.getFromRank() >= 0){
-				src = getTargetfromRank(client,cmd.getFromRank());
-				assert(src != null);
+				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator());
+			}else{
+				OUTresults.addNetReceive(null, cmd.getFromTag(), cmd.getCommunicator());
 			}
-
-			/* wait for incoming msg (send ready) */
-			netAddReceive(jobs, src, cmd.getFromTag(), cmd.getCommunicator());
-
-			return jobs;
+			return;
 		}case(RENDEZVOUS_ACK):{
-			CommandStepResults jobs;
-
 			// receiver path
 			SingleNetworkJob response = compNetJobs.getResponses().get(0);
 
 			client.debug("Receive got ACK from " +  response.getSourceComponent().getIdentifier() );
 
 			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
-				jobs = prepareStepResultsForJobs(compNetJobs, STEP_COMPLETED);
 				client.debugFollowUpLine("Eager");
 				// eager protocoll
 			}else{
-				jobs = prepareStepResultsForJobs(compNetJobs, START_RENDEZVOUS_RECV);
+				OUTresults.setNextStep(START_RENDEZVOUS_RECV);				
 				//rendezvous protocol
 				/* identify the sender from the source */
 				/* Acknowledge sender to startup transfer */
-				netAddSend(jobs, response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
 			}			
 
 			/* data to transfer depends on actual command size, but is defined in send */
 
-			client.debug("SEND got ACK from " +  target.getIdentifier() );
+			client.debug("SEND got ACK from " +  target );
 
-			netAddSend(jobs, target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getToTag(), cmd.getCommunicator());
-
-			return jobs;
+			OUTresults.addNetSend( target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getToTag(), cmd.getCommunicator());
+			return;
 		}case(EAGER_ACK):{
 			SingleNetworkJob response = compNetJobs.getResponses().get(0);
 
@@ -118,28 +106,23 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
 				client.debugFollowUpLine("Eager");
 				// eager protocol
-				return null;
 			}else{
 				//rendezvous protocol
 				/* identify the sender from the source */
-				CommandStepResults jobs = prepareStepResultsForJobs(compNetJobs, START_RENDEZVOUS_RECV);
-
+				OUTresults.setNextStep(START_RENDEZVOUS_RECV);
+				
 				/* Acknowledge sender to startup transfer */
-				netAddSend(jobs, response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
-
-				return jobs;
+				OUTresults.addNetSend( response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
 			}
+			return;
 		}case(START_RENDEZVOUS_RECV):{
-			CommandStepResults jobs = prepareStepResultsForJobs(compNetJobs, STEP_COMPLETED);
-
-			netAddReceive(jobs, compNetJobs.getNetworkJobs().get(0).getTargetComponent(), 
+			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getTargetComponent(), 
 					compNetJobs.getNetworkJobs().get(0).getTag(), cmd.getCommunicator());
-
-			return jobs;			
+			return;
 		}
 		}
 
-		return null;
+		return;
 	}
 }
 

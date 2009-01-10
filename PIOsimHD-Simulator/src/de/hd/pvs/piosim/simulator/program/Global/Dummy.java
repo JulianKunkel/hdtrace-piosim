@@ -28,8 +28,8 @@ public class Dummy
 extends CommandImplementation<Command>
 {
 	@Override
-	public CommandStepResults process(Command cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
-		return null;		
+	public void process(Command cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+		return;		
 	}
 
 }

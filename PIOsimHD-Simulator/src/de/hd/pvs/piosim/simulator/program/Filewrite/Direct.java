@@ -41,12 +41,12 @@ public class Direct
 extends CommandImplementation<Filewrite>
 {
 	@Override
-	public CommandStepResults process(Filewrite cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Filewrite cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		final int RECV_ACK = 2;
 		final int UPDATE_SIZE = 3;
 
 		switch(step){
-		case(STEP_START):{
+		case(CommandStepResults.STEP_START):{
 			/* determine I/O targets */
 			assert(client.getSimulator() != null);
 
@@ -56,8 +56,8 @@ extends CommandImplementation<Filewrite>
 				cmd.getFile().getDistribution().distributeIOOperation(
 						cmd.getIOList(),m.getServers()  );
 
-			/* create an I/O request for each of these servers */
-			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, RECV_ACK);
+			/* create an I/O request for each of these servers */			
+			OUTresults.setNextStep(RECV_ACK);
 
 			assert(targetIOServers.keySet().size() > 0);
 			
@@ -70,30 +70,30 @@ extends CommandImplementation<Filewrite>
 				ListIO iolist = targetIOServers.get(server);
 
 				/* initial job request */
-				netAddSend(jobs, targetNIC,  new RequestWrite(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
-			}
+				OUTresults.addNetSend(targetNIC,  
+						new RequestWrite(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);			}
 
-			return jobs;
+			return;
 		}
 		case(RECV_ACK):{
 			/* determine I/O targets */
 
 			/* create an I/O request for each of these servers */
-			CommandStepResults jobs = prepareStepResultsForJobs(compNetJobs, UPDATE_SIZE);
+			OUTresults.setNextStep(UPDATE_SIZE);
 
 			for( SingleNetworkJob job : compNetJobs.getNetworkJobs() ){
 				RequestWrite writeRequest = (RequestWrite) job.getJobData();
 				ListIO iolist = writeRequest.getListIO();
 
 				/* STEP_START I/O job directly */
-				netAddSend(jobs, job.getTargetComponent(), new NetworkIOData( writeRequest ), RequestIO.IO_DATA_TAG, 
+				OUTresults.addNetSend(job.getTargetComponent(), new NetworkIOData( writeRequest ), RequestIO.IO_DATA_TAG, 
 						Communicator.IOSERVERS, true);
 
 				/* wait for incoming msg (write completion notification) */
-				netAddReceive(jobs, job.getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);
+				OUTresults.addNetReceive(job.getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);				
 			}
 
-			return jobs;
+			return;
 		}
 		case(UPDATE_SIZE):{
 			/* update the file size if necessary */
@@ -108,10 +108,10 @@ extends CommandImplementation<Filewrite>
 				client.debug("File \"" + cmd.getFile().getName() + "\" enlarged to \"" + lastWrittenByte + "\" Bytes");
 			}
 
-			return null;
+			return;
 		}
 		}
 
-		return null;
+		return;
 	}	
 }

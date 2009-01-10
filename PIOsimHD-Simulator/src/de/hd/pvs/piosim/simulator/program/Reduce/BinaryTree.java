@@ -22,7 +22,6 @@ import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -36,10 +35,10 @@ extends CommandImplementation<Reduce>
 {
 	
 	@Override
-	public CommandStepResults process(Reduce cmd, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Reduce cmd, CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
-			return null;
+			return;
 		}
 		
 		int lastRank = cmd.getCommunicator().getSize()-1;
@@ -70,7 +69,7 @@ extends CommandImplementation<Reduce>
 		}
 		
 		if(current_iteration == iterations){
-			return null; // no more work to do
+			return; // no more work to do
 		}
 		
 		int partner = -1;
@@ -87,28 +86,27 @@ extends CommandImplementation<Reduce>
 		
 		
 		
-		ISNodeHostedComponent target = getTargetfromRank(client,  cmd.getCommunicator().getWorldRank(partner) );
+		int targetRank = cmd.getCommunicator().getWorldRank(partner);
 		
 		//System.out.println(client.getName() + " Send: " + send + " " + " " + current_iteration + " partners with "  + partner);
 		
 		
 		if(send){
-			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, STEP_COMPLETED);
-			netAddSend(jobs, target, new NetworkSimpleMessage(cmd.getSize() + 20),  
+			OUTresults.setNextStep(CommandStepResults.STEP_COMPLETED);
+			OUTresults.addNetSend(targetRank, new NetworkSimpleMessage(cmd.getSize() + 20),  
 					30000, Communicator.INTERNAL_MPI);
 			
-			return jobs;
+			return;
 		}else{
 			int nextIter;
 			if(current_iteration + 1== iterations){
-				nextIter = STEP_COMPLETED;
+				nextIter = CommandStepResults.STEP_COMPLETED;
 			}else{
 				nextIter = current_iteration + 1;
 			}
-			
-			CommandStepResults jobs = prepareStepResultsForJobs(client, cmd, nextIter);
-			netAddReceive(jobs, target, 30000, Communicator.INTERNAL_MPI);
-			return jobs;
+			OUTresults.setNextStep(nextIter);
+			OUTresults.addNetReceive(targetRank, 30000, Communicator.INTERNAL_MPI);
+			return;
 		}
 	}
 	
