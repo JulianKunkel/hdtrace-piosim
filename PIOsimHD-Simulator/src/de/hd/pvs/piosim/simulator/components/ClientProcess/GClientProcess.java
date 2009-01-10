@@ -249,26 +249,25 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 			}
 		}
 
-		private void traceCommand(Command cmd, boolean start){
-
+		private void traceCommand(Command cmd, CommandImplementation cme, boolean start){
+			String string = cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName();
+			
 			if(start == false) {
 				if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class){
-					getSimulator().getTraceWriter().end(TraceType.CLIENT, this, cmd.getClass().getSimpleName());
+					getSimulator().getTraceWriter().end(TraceType.CLIENT, this, string);
 				}else{
-					getSimulator().getTraceWriter().event(TraceType.CLIENT, this, cmd.getClass().getSimpleName() + " end", 0);
+					getSimulator().getTraceWriter().event(TraceType.CLIENT, this, string + " end", 0);
 				}
 			}else {
 				if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class){
-					getSimulator().getTraceWriter().start(TraceType.CLIENT, this, cmd.getClass().getSimpleName());
+					getSimulator().getTraceWriter().start(TraceType.CLIENT, this, string);
 				}else{
-					getSimulator().getTraceWriter().event(TraceType.CLIENT, this, cmd.getClass().getSimpleName() + " start", 0);
+					getSimulator().getTraceWriter().event(TraceType.CLIENT, this, string + " start", 0);
 				}
 			}
-
-
 		}
 
-		private void commandCompleted(CommandProcessing step,  Epoch time){
+		private void commandCompleted(CommandProcessing step, CommandImplementation cme, Epoch time){
 			Command cmd = step.getInvokingCommand();
 			assert(cmd != null);
 			//if(cmd.getClass() != Compute.class)
@@ -284,7 +283,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 			//TODO statistic.totalTimeSpend =  new Time(time.subtract(commandStartTime), statistic.totalTimeSpend); 
 			statistic.calls++;
 			
-			traceCommand(cmd, false);
+			traceCommand(cmd, cme, false);
 			// check if it is a nested operation
 			if ( step.isNestedOperation() ){
 				// if yes remove last operation from stack trace.				
@@ -299,8 +298,8 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				if(blockedCommand == null){
 					checkSetFinishState();
 				}else if(blockedCommand.getInvokingCommand().getClass() == Wait.class){ // check if we are blocked with a WAIT command right now
-					CommandImplementation<Wait> cme = commandMap.get(blockedCommand.getClass());				
-					((IWaitCommand) cme).pendingAIOfinished((Wait) blockedCommand.getInvokingCommand(), 
+					CommandImplementation<Wait> wcme = commandMap.get(blockedCommand.getClass());				
+					((IWaitCommand) wcme).pendingAIOfinished((Wait) blockedCommand.getInvokingCommand(), 
 							step, this, cmd.getAsynchronousID());
 				}
 
@@ -377,21 +376,23 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 			Command cmd = cmdStep.getInvokingCommand();
 			final int nextStep = cmdStep.nextStep; 
 			
-			if(nextStep == CommandProcessing.STEP_COMPLETED){
-				commandCompleted(cmdStep, curTime);
-				return;
-			} // END STEP_COMPLETED
 
 			CommandImplementation cme = commandMap.get(cmd.getClass());
 
 			if(cme == null)
 				cme = instanciateCommandImplemtation(cmd);
 
+			
+			if(nextStep == CommandProcessing.STEP_COMPLETED){
+				commandCompleted(cmdStep, cme, curTime);
+				return;
+			} // END STEP_COMPLETED
+
 
 			try{			
 				if(shallCompute){					
 					if(nextStep == CommandProcessing.STEP_START){
-						traceCommand(cmd, true);
+						traceCommand(cmd, cme, true);
 					}
 
 					if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
@@ -434,7 +435,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				//System.out.println(this + " " + nextStep + " starting " + newJob.nextStep + " " + newJob.getNetworkJobs().getSize());
 					
 				if (newJob.isCommandComplete()){ /* all blocking operation completed */							
-					commandCompleted(cmdStep, curTime);				
+					commandCompleted(cmdStep, cme, curTime);				
 				}else{				
 					if(newJob.getNestedOperation() != null){
 						// start nested operation.
