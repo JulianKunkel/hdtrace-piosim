@@ -65,11 +65,12 @@ public class Blocking
 	 * 
 	 * @param which one finished
 	 */
-	public void pendingAIOfinished(Wait cmd, GClientProcess client, Integer which){
+	@Override
+	public void pendingAIOfinished(Wait cmd, CommandStepResults prevStep, GClientProcess client, Integer which){
 		assert(pendingAIOs.contains(which));
 		pendingAIOs.remove(which);
 		
 		if(pendingAIOs.size() == 0)		
-			client.activateBlockedCommand(cmd, CommandStepResults.STEP_COMPLETED);
+			client.activateBlockedCommand(prevStep);
 	}
 }

@@ -68,21 +68,24 @@ extends CommandImplementation<CommunicatorCommand>
 	/**
 	 *  virtual barrier, performed without communication 
 	 */
-	private static HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommunicatorCommand>> sync_blocked_clients = 
-		new HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess,CommunicatorCommand>>();
+	private static HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandStepResults>> sync_blocked_clients = 
+		new HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandStepResults>>();
 	
 	/**
 	 * 
 	 * @param cmd
 	 * @return true if blocked (i.e. sync with further)
 	 */
-	private boolean synchronizeClientsWithoutCommunication(GClientProcess client, CommunicatorCommand cmd){
+	private boolean synchronizeClientsWithoutCommunication(CommandStepResults cmdResults){
+		GClientProcess client = cmdResults.getInvokingComponent();
+		
+		CommunicatorCommand cmd = (CommunicatorCommand) cmdResults.getInvokingCommand();
 		CommunicatorCommandWrapper cmdWrapper = new CommunicatorCommandWrapper(cmd); 
 		
-		HashMap<GClientProcess, CommunicatorCommand> waitingClients = sync_blocked_clients.get(cmdWrapper);
+		HashMap<GClientProcess, CommandStepResults> waitingClients = sync_blocked_clients.get(cmdWrapper);
 		if (waitingClients == null){
 			/* first client waiting */
-			waitingClients = new HashMap<GClientProcess, CommunicatorCommand>();
+			waitingClients = new HashMap<GClientProcess, CommandStepResults>();
 			sync_blocked_clients.put(cmdWrapper, waitingClients);
 		}
 
@@ -91,14 +94,14 @@ extends CommandImplementation<CommunicatorCommand>
 
 			/* we finish, therefore reactivate all other clients! */
 			for(GClientProcess c: waitingClients.keySet()){
-				c.activateBlockedCommand(waitingClients.get(c), CommandStepResults.STEP_COMPLETED);
+				c.activateBlockedCommand(waitingClients.get(c));
 			}
 
 			/* remove Barrier */
 			sync_blocked_clients.remove(cmdWrapper);
 
 		}else{
-			waitingClients.put(client, cmd);
+			waitingClients.put(client, cmdResults);
 
 			/* just block up */
 			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
@@ -110,7 +113,7 @@ extends CommandImplementation<CommunicatorCommand>
 	
 	@Override
 	public void process(CommunicatorCommand cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
-		boolean ret = synchronizeClientsWithoutCommunication(client, cmd);
+		boolean ret = synchronizeClientsWithoutCommunication(OUTresults);
 
 		if (ret == true){
 			/* just block up */

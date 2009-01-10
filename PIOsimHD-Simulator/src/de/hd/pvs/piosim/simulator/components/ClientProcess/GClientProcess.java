@@ -67,26 +67,6 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 
 	/**
-	 * Data structure mapping a bunch of network job to the command and the next step to 
-	 * perform when the network operations finish.  
-	 * 
-	 * @author Julian M. Kunkel
-	 */
-	final private static class StructMapComputeJob{
-		final Command     cmd;
-		final int         nextStep;
-		final NetworkJobs oldJobs;
-
-		public StructMapComputeJob(Command cmd, NetworkJobs oldJobs, int nextStep) {
-			this.cmd =  cmd;
-			this.oldJobs = oldJobs;
-			this.nextStep = nextStep;
-		}
-	}
-
-
-
-	/**
 	 * Maps the commands to the command's implementation. For all clients the 
 	 * same implementation must be picked.  
 	 */
@@ -102,12 +82,12 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		/**
 		 * Commands which are blocked.
 		 */
-		private HashSet<Command> blockedCommands = new HashSet<Command>(); 
+		private HashSet<CommandStepResults> blockedCommands = new HashSet<CommandStepResults>(); 
 
 		/**
 		 * The currently processing blocking command.  
 		 */
-		private Command blockingCommand = null;
+		private CommandStepResults blockingCommand = null;
 
 		/**
 		 * the client program.
@@ -125,7 +105,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		/** instruction counter, which command is the next one */
 		private int nextCommandNumber = 0;
 
-		private HashMap<ComputeJob, StructMapComputeJob>  pendingComputeJobs = new HashMap<ComputeJob, StructMapComputeJob>(); 
+		private HashMap<ComputeJob, CommandStepResults>  pendingComputeJobs = new HashMap<ComputeJob, CommandStepResults>(); 
 
 		/**
 		 * if the client waits for a remote network operation this operation is stored here
@@ -141,27 +121,25 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		 * use this method to enforce the completion of the currently blocked job
 		 * @param cmd
 		 */
-		public void activateBlockedCommand(Command cmd, int nextStep){
-			if (! blockedCommands.remove(cmd)){
-				throw new IllegalArgumentException("Error removing " + cmd + " from queue on client: " + this.getIdentifier());
+		public void activateBlockedCommand(CommandStepResults cmdStep){
+			if (! blockedCommands.remove(cmdStep)){
+				throw new IllegalArgumentException("Error removing " + cmdStep + " from queue on client: " + this.getIdentifier());
 			}
 
-			assert(nextStep != CommandStepResults.STEP_START);
+			assert(cmdStep.nextStep != CommandStepResults.STEP_START);
 
-			processCommand(cmd, getSimulator().getVirtualTime(), true, nextStep, null);
+			processCommandStep(cmdStep, getSimulator().getVirtualTime(), true);
 		}
 
 		@Override
 		public void computeJobCompletedCV(ComputeJob job) {
 			debug("reactivating client " + job);
 
-			StructMapComputeJob cmd = pendingComputeJobs.remove(job);
+			CommandStepResults cmd = pendingComputeJobs.remove(job);
 
 			assert(cmd != null);
 
-			//assert(cmd.nextStep != CommandImplementation.STEP_START); this can actually happen, before the first step is started it computes.
-
-			processCommand(cmd.cmd, getSimulator().getVirtualTime(), false, cmd.nextStep, cmd.oldJobs);
+			processCommandStep(cmd, getSimulator().getVirtualTime(), false);
 		}
 
 		@Override
@@ -192,30 +170,9 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 			CommandStepResults pendingOp = pendingNetworkOperations.remove(jobs);
 			assert(pendingOp != null);
 
-
-			/* If too many eager operations queue up this might lead to a stack overflow, therefore we add a virtual instruction
-			 * count. The error sequence otherwise looks like:
-			 *    at de.hd.pvs.piosim.simulator.component.glue.GClient.processCommand(GClient.java:405)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.processNextCommands(GClient.java:256)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.commandCompleted(GClient.java:329)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.processCommand(GClient.java:387)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.jobsCompletedCB(GClient.java:240)
-	        at de.hd.pvs.piosim.simulator.component.glue.GNIC.completeReceive(GNIC.java:328)
-	        at de.hd.pvs.piosim.simulator.component.glue.GNIC.submitNewNetworkJob(GNIC.java:395)
-	        at de.hd.pvs.piosim.simulator.component.glue.GNODE.submitNewNetworkJob(GNODE.java:104)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.processCommand(GClient.java:405)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.processNextCommands(GClient.java:256)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.commandCompleted(GClient.java:329)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.processCommand(GClient.java:387)
-	        at de.hd.pvs.piosim.simulator.component.glue.GClient.jobsCompletedCB(GClient.java:240)
-	        at de.hd.pvs.piosim.simulator.component.glue.GNIC.completeReceive(GNIC.java:328)
-
-			 */
-
 			assert(pendingOp.getNextStep() != CommandStepResults.STEP_START);
 
-			processCommand(pendingOp.getInvokingCommand(), endTime, true, pendingOp.getNextStep(), 
-					pendingOp.getNetworkJobs());
+			processCommandStep(pendingOp, endTime, true);
 		}
 
 		/** 
@@ -311,7 +268,8 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 		}
 
-		private void commandCompleted(Command cmd, Epoch time){
+		private void commandCompleted(CommandStepResults step,  Epoch time){
+			Command cmd = step.getInvokingCommand();
 			//if(cmd.getClass() != Compute.class)
 			//	getSimulator().getTraceWriter().end(this, cmd.getClass().getSimpleName() + " s " + nextStep);
 
@@ -333,17 +291,15 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 				if(blockingCommand == null){
 					checkSetFinishState();
-				}else if(blockingCommand.getClass() == Wait.class){ // check if we are blocked with a WAIT command right now
-					// TODO extract interface for WAIT
+				}else if(blockingCommand.getInvokingCommand().getClass() == Wait.class){ // check if we are blocked with a WAIT command right now
 					CommandImplementation<Wait> cme = commandMap.get(blockingCommand.getClass());				
-					((IWaitCommand) cme).pendingAIOfinished((Wait) blockingCommand, this, cmd.getAsynchronousID());
+					((IWaitCommand) cme).pendingAIOfinished((Wait) blockingCommand.getInvokingCommand(), 
+							step, this, cmd.getAsynchronousID());
 				}
 
-			}else{
+			}else{				
 				processNextCommands();
 			}
-
-
 		}
 
 		/**
@@ -401,14 +357,20 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		 * to continue with the given step.
 		 * 
 		 * @param cmd
-		 * @param time
+		 * @param curTime
 		 * @param shallCompute
 		 * @param nextStep
 		 * @param compJobs
 		 */
-		private void processCommand(Command cmd, Epoch time, boolean shallCompute, int nextStep, NetworkJobs compJobs){
+		private void processCommandStep(CommandStepResults cmdStep, 
+				Epoch curTime, 
+				boolean shallCompute)
+		{
+			Command cmd = cmdStep.getInvokingCommand();
+			final int nextStep = cmdStep.nextStep; 
+			
 			if(nextStep == CommandStepResults.STEP_COMPLETED){
-				commandCompleted(cmd, time);
+				commandCompleted(cmdStep, curTime);
 				return;
 			} // END STEP_COMPLETED
 
@@ -444,7 +406,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 					ComputeJob job =  new ComputeJob(instr, this);
 					getAttachedNode().addComputeJob(job);
 
-					pendingComputeJobs.put(job, new StructMapComputeJob(cmd, compJobs, nextStep));
+					pendingComputeJobs.put(job, cmdStep);
 
 					return ; /* we shall not run the command directly, instead wait for a time */		
 				}else if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
@@ -454,21 +416,21 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				/* now run the appropriate command to generate new events */
 				debug("processing step: " + nextStep + " cmd: " + cmd);
 
-				CommandStepResults newJob = new CommandStepResults(cmd, this, time); 
+				CommandStepResults newJob = new CommandStepResults(cmd, this, curTime); 
 					
-				cme.process(cmd, newJob, this, nextStep, compJobs);
+				cme.process(cmd, newJob, this, nextStep, cmdStep.getNetworkJobs());
 
 				//System.out.println(this + " " + nextStep + " starting " + newJob.nextStep + " " + newJob.getNetworkJobs().getSize());
 					
 				if (newJob.isCommandComplete()){ /* all blocking operation completed */							
-					commandCompleted(cmd, time);				
+					commandCompleted(cmdStep, curTime);				
 				}else{				
 					if(newJob.isBlockingEnforced()){
 						/* just block, the job SHOULD wake up itself... ! */
 
 						//System.out.println("blocking on " +  cmd + " " + this.getIdentifier());
 
-						blockedCommands.add(newJob.getInvokingCommand());
+						blockedCommands.add(newJob);
 					}
 
 					assert(newJob.getNetworkJobs() != null);
@@ -496,14 +458,16 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		 */
 		private void processNextCommands(){
 			Epoch time = getSimulator().getVirtualTime();
-			Command cmd;
-
+			
+			CommandStepResults newJob; 
 			do{
-				cmd = getNextCommand();
+				Command cmd = getNextCommand();
 				if (cmd == null) 
 					return;
 
-				processCommand(cmd, time, true, CommandStepResults.STEP_START, null);
+				newJob = new CommandStepResults(cmd, this, time);
+				newJob.setNextStep(CommandStepResults.STEP_START);
+				processCommandStep(newJob, time, true);
 
 
 				if( cmd.getAsynchronousID() == null) // command blocks
@@ -516,7 +480,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				}
 			}while(true);
 
-			blockingCommand = cmd;
+			blockingCommand = newJob;
 		}
 		
 		@Override

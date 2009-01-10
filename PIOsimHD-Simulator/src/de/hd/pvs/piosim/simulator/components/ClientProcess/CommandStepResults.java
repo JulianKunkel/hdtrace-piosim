@@ -28,6 +28,8 @@ import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 
 /**
  * Class encapsulates the results for by any command invocation.
+ * CommandStepResults can be stacked to encapsulate nested operations, a Allreduce can be combined
+ * as a sequence of a reduce and a broadcast operation.
  *  
  * @author Julian M. Kunkel
  */
@@ -40,6 +42,17 @@ public class CommandStepResults{
 	
 	/** signals completion of the command */
 	public static final int STEP_COMPLETED = 9999999;
+	
+	/**
+	 * By default no parent operation is set, i.e. the operations are not stacked.
+	 */
+	private CommandStepResults parentOperation = null;
+	
+	/**
+	 * By default no nested operation is set i.e. the operations are not stacked and independent.
+	 */
+	private CommandStepResults nestedOperation = null;
+	
 	
 	/**
 	 * Which client process started the command.
@@ -85,6 +98,23 @@ public class CommandStepResults{
 		this.invokingComponent = invokingComponent;
 		this.startTime = startTime;
 		this.networkJobs = new NetworkJobs(this);
+	}
+	
+	/**
+	 * This method allows the command to create a nested operation.
+	 * 
+	 * @param childOperation
+	 */
+	public void invokeChildOperation(Command nestedCmd, int nextStep){
+		setNextStep(nextStep);
+		
+		CommandStepResults childOp = new CommandStepResults(
+				nestedCmd, getInvokingComponent(), 
+				getInvokingComponent().getSimulator().getVirtualTime());
+		
+		childOp.parentOperation = this; 
+		
+		nestedOperation = childOp;		
 	}
 	
 	/**
@@ -205,6 +235,18 @@ public class CommandStepResults{
 						getInvokingComponent(), to, tag, comm, 
 						getNetworkJobs(), false, shouldPartialRecv));		
 	}
+	
+	final public boolean isNestedOperation(){
+		return parentOperation != null;
+	}
+	
+	public CommandStepResults getNestedOperation() {
+		return nestedOperation;
+	}
+
+	public CommandStepResults getParentOperation() {
+		return parentOperation;
+	}	
 
 	/**
 	 * Add a network send to be performed by the command. 
@@ -237,4 +279,5 @@ public class CommandStepResults{
 		return getInvokingComponent().getSimulator().getApplicationMap().
 			getClient( getInvokingComponent().getModelComponent().getApplication(),  rank);
 	}
+	
 }
