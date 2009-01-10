@@ -19,7 +19,7 @@
 package de.hd.pvs.piosim.simulator.program.Global;
 
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -28,7 +28,7 @@ public class Dummy
 extends CommandImplementation<Command>
 {
 	@Override
-	public void process(Command cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		return;		
 	}
 

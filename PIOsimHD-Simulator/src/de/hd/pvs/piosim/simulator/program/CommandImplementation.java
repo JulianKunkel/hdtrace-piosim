@@ -19,7 +19,7 @@
 package de.hd.pvs.piosim.simulator.program;
 
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 
@@ -43,7 +43,7 @@ abstract public class CommandImplementation<CommandType extends Command>
 	 *  
 	 * @return A description what to do next. This description is null if the command finished.
 	 */
-	abstract public void process(CommandType cmd, CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs);
+	abstract public void process(CommandType cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs);
 	
 	/**
 	 * How many instructions are needed to compute the particular step of the command.

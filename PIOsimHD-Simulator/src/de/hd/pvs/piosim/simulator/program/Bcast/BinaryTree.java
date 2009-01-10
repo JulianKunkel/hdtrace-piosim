@@ -1,41 +1,21 @@
-
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
-//	This file is part of PIOsimHD.
-//	
-//	PIOsimHD is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	PIOsimHD is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-
-package de.hd.pvs.piosim.simulator.program.Reduce;
+package de.hd.pvs.piosim.simulator.program.Bcast;
 
 import de.hd.pvs.piosim.model.program.Communicator;
-import de.hd.pvs.piosim.model.program.commands.Reduce;
+import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
-/**
- * Complex Binary Tree Algorithm, Root collects
- * @author Julian M. Kunkel
- */
 public class BinaryTree 
-extends CommandImplementation<Reduce>
+extends CommandImplementation<Bcast>
 {
-	
+
 	@Override
-	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Bcast cmd, CommandProcessing OUTresults,
+			GClientProcess client, int step, NetworkJobs compNetJobs) 
+	{
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
 			return;
@@ -58,11 +38,11 @@ extends CommandImplementation<Reduce>
 		
 		current_iteration = step;
 		
-		boolean send = false;
+		boolean recv = false;
 		
 		while(current_iteration < iterations){
 			mask = 1 << current_iteration;
-			send = (clientRankInComm & mask) > 0;
+			recv = (clientRankInComm & mask) > 0;
 			if ((clientRankInComm | mask) <= lastRank)
 				break;
 			current_iteration++;
@@ -73,7 +53,7 @@ extends CommandImplementation<Reduce>
 		}
 		
 		int partner = -1;
-		if( send ){			
+		if( recv ){			
 			//determine lower one
 			partner = clientRankInComm & ~(mask);
 			assert(partner >= 0);			
@@ -83,17 +63,11 @@ extends CommandImplementation<Reduce>
 			assert(partner >= 0);
 		}
 		
-		
-		
-		
 		int targetRank = cmd.getCommunicator().getWorldRank(partner);
 		
-		//System.out.println(client.getName() + " Send: " + send + " " + " " + current_iteration + " partners with "  + partner);
-		
-		
-		if(send){
+		if(recv){
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
-			OUTresults.addNetSend(targetRank, new NetworkSimpleMessage(cmd.getSize() + 20),  
+			OUTresults.addNetReceive(targetRank,   
 					30000, Communicator.INTERNAL_MPI);
 			
 			return;
@@ -105,7 +79,8 @@ extends CommandImplementation<Reduce>
 				nextIter = current_iteration + 1;
 			}
 			OUTresults.setNextStep(nextIter);
-			OUTresults.addNetReceive(targetRank, 30000, Communicator.INTERNAL_MPI);
+			OUTresults.addNetSend(targetRank,
+					new NetworkSimpleMessage(cmd.getSize() + 20), 30000, Communicator.INTERNAL_MPI);
 			return;
 		}
 	}

@@ -66,6 +66,29 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 
+	@Test public void bcastTest() throws Exception{
+		testMsg();
+		int cnt = 10;
+		
+		double [] times = new double[cnt+1]; 
+				
+		for(int i=1; i <= cnt; i++){
+			setup(i, 0);
+		
+			pb.addBroadcast(world, 0, KBYTE);
+			runSimulationAllExpectedToFinish();
+			times[i] = sim.getVirtualTime().getDouble();
+		}
+		
+		System.out.println("Broadcast timing:");
+		
+		for(int i=1; i <= cnt; i++){
+			System.out.println(i + " " + times[i]);
+		}
+	}
+
+
+
 	@Test public void allreduceTest() throws Exception{
 		testMsg();
 		int cnt = 10;
@@ -89,6 +112,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	
 	public static void main(String[] args) throws Exception {
 		NormalCommandsClusterTest t = new NormalCommandsClusterTest();
+		//t.allreduceTest();
 		t.reduceTest();
 	}
 }

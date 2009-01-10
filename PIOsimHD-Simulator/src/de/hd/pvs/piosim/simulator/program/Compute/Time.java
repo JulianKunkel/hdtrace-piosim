@@ -19,7 +19,7 @@
 package de.hd.pvs.piosim.simulator.program.Compute;
 
 import de.hd.pvs.piosim.model.program.commands.Compute;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -33,7 +33,7 @@ extends CommandImplementation<Compute>
 	}
 
 	@Override
-	public void process(Compute cmd, CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Compute cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		return;
 	}
 }

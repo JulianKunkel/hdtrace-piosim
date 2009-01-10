@@ -22,7 +22,7 @@
 package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
 import de.hd.pvs.piosim.model.program.commands.Send;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
@@ -35,12 +35,12 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousSend extends CommandImplementation<Send>
 {
-	public void process(Send cmd,  CommandStepResults OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
+	public void process(Send cmd,  CommandProcessing OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
 		final int RECV_ACK = 2;
 		/* second step ?, receive whole data */		
 
 		switch(step){
-		case(CommandStepResults.STEP_START):{
+		case(CommandProcessing.STEP_START):{
 
 			if(cmd.getSize() <= client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize()){
 				//eager send completes immediately

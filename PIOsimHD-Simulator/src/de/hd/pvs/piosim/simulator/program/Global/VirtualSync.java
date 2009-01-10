@@ -21,7 +21,7 @@ package de.hd.pvs.piosim.simulator.program.Global;
 import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -68,24 +68,24 @@ extends CommandImplementation<CommunicatorCommand>
 	/**
 	 *  virtual barrier, performed without communication 
 	 */
-	private static HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandStepResults>> sync_blocked_clients = 
-		new HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandStepResults>>();
+	private static HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandProcessing>> sync_blocked_clients = 
+		new HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandProcessing>>();
 	
 	/**
 	 * 
 	 * @param cmd
 	 * @return true if blocked (i.e. sync with further)
 	 */
-	private boolean synchronizeClientsWithoutCommunication(CommandStepResults cmdResults){
+	private boolean synchronizeClientsWithoutCommunication(CommandProcessing cmdResults){
 		GClientProcess client = cmdResults.getInvokingComponent();
 		
 		CommunicatorCommand cmd = (CommunicatorCommand) cmdResults.getInvokingCommand();
 		CommunicatorCommandWrapper cmdWrapper = new CommunicatorCommandWrapper(cmd); 
 		
-		HashMap<GClientProcess, CommandStepResults> waitingClients = sync_blocked_clients.get(cmdWrapper);
+		HashMap<GClientProcess, CommandProcessing> waitingClients = sync_blocked_clients.get(cmdWrapper);
 		if (waitingClients == null){
 			/* first client waiting */
-			waitingClients = new HashMap<GClientProcess, CommandStepResults>();
+			waitingClients = new HashMap<GClientProcess, CommandProcessing>();
 			sync_blocked_clients.put(cmdWrapper, waitingClients);
 		}
 
@@ -112,7 +112,7 @@ extends CommandImplementation<CommunicatorCommand>
 	}
 	
 	@Override
-	public void process(CommunicatorCommand cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(CommunicatorCommand cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		boolean ret = synchronizeClientsWithoutCommunication(OUTresults);
 
 		if (ret == true){

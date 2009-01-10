@@ -27,7 +27,7 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
@@ -40,9 +40,9 @@ public class Direct
 extends CommandImplementation<Fileread>
 {
 	@Override
-	public void process(Fileread cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Fileread cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		switch(step){
-		case(CommandStepResults.STEP_START):{
+		case(CommandProcessing.STEP_START):{
 			/* determine I/O targets */
 			Model m = client.getSimulator().getModel();
 

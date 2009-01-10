@@ -26,7 +26,7 @@ import java.util.HashSet;
 
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -44,7 +44,7 @@ public class Blocking
 	HashSet<Integer> pendingAIOs = new HashSet<Integer>();
 	
 	@Override
-	public void process(Wait cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {			
+	public void process(Wait cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {			
 		// two possibilities, either all pending AIO ops are already finished or not
 		HashMap<Integer, Command> stillPendingOps = client.getPendingNonBlockingOps();
 		
@@ -66,7 +66,7 @@ public class Blocking
 	 * @param which one finished
 	 */
 	@Override
-	public void pendingAIOfinished(Wait cmd, CommandStepResults prevStep, GClientProcess client, Integer which){
+	public void pendingAIOfinished(Wait cmd, CommandProcessing prevStep, GClientProcess client, Integer which){
 		assert(pendingAIOs.contains(which));
 		pendingAIOs.remove(which);
 		

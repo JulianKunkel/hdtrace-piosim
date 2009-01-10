@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
  *  
  * @author Julian M. Kunkel
  */
-public class CommandStepResults{
+public class CommandProcessing{
 
 	// global values for processing:
 	
@@ -46,12 +46,12 @@ public class CommandStepResults{
 	/**
 	 * By default no parent operation is set, i.e. the operations are not stacked.
 	 */
-	private CommandStepResults parentOperation = null;
+	private CommandProcessing parentOperation = null;
 	
 	/**
 	 * By default no nested operation is set i.e. the operations are not stacked and independent.
 	 */
-	private CommandStepResults nestedOperation = null;
+	private CommandProcessing nestedOperation = null;
 	
 	
 	/**
@@ -67,7 +67,7 @@ public class CommandStepResults{
 	/**
 	 * The network jobs which should be processed.
 	 */
-	final NetworkJobs networkJobs;		
+	NetworkJobs networkJobs;		
 	
 	/**
 	 * The command which got invoked.
@@ -77,19 +77,19 @@ public class CommandStepResults{
 	/**
 	 * The next step of the command which shall be invoked.
 	 */
-	int         nextStep = STEP_COMPLETED;
+	int         nextStep ;
 	
 	/**
 	 * True if the job must be blocked. Must be controlled within the Command.
 	 */
-	boolean     blockingForced = false;
+	boolean     blockingForced ;
 	
 	/**
 	 * Create a new result of a command
 	 * @param networkJobs 
 	 * @param nextStep The next step in the command which should be invoked
 	 */
-	public CommandStepResults(
+	public CommandProcessing(
 			Command invokingCommand, 			
 			GClientProcess invokingComponent, 
 			Epoch startTime) 
@@ -97,24 +97,40 @@ public class CommandStepResults{
 		this.invokingCommand = invokingCommand;
 		this.invokingComponent = invokingComponent;
 		this.startTime = startTime;
+		resetState();
+	}
+	
+	/**
+	 * Remove all the processing from the old states.
+	 */
+	public void resetState(){
 		this.networkJobs = new NetworkJobs(this);
+		this.blockingForced = false;
+		nextStep = STEP_COMPLETED;
+		this.nestedOperation = null;
 	}
 	
 	/**
 	 * This method allows the command to create a nested operation.
+	 * The command shall not be modified afterwards.
 	 * 
 	 * @param childOperation
 	 */
-	public void invokeChildOperation(Command nestedCmd, int nextStep){
+	public void invokeChildOperation(final Command nestedCmd, int nextStep){
 		setNextStep(nextStep);
 		
-		CommandStepResults childOp = new CommandStepResults(
+		assert(nestedCmd.getAsynchronousID() == null);
+		
+		nestedCmd.setProgram(getInvokingCommand().getProgram());
+		
+		CommandProcessing childOp = new CommandProcessing(
 				nestedCmd, getInvokingComponent(), 
 				getInvokingComponent().getSimulator().getVirtualTime());
 		
+		childOp.setNextStep(STEP_START);
 		childOp.parentOperation = this; 
 		
-		nestedOperation = childOp;		
+		nestedOperation = childOp;
 	}
 	
 	/**
@@ -176,12 +192,12 @@ public class CommandStepResults{
 	}	
 	
 	public boolean isCommandComplete(){
-		return ! (blockingForced || networkJobs.getNetworkJobs().size() > 0);
+		return (! blockingForced) && networkJobs.getNetworkJobs().size() == 0 && nestedOperation == null;
 	}
 	
 	@Override
 	public String toString() {		
-		return "CommandStepResult " + getInvokingCommand() + " nextStep: " + nextStep + " blockingForced:" + blockingForced;
+		return super.toString() + "<" + getInvokingCommand() + " nextStep: " + nextStep + " blockingForced:" + blockingForced + " nst: " + isNestedOperation() +  ">";
 	}
 		
 	/**
@@ -240,11 +256,11 @@ public class CommandStepResults{
 		return parentOperation != null;
 	}
 	
-	public CommandStepResults getNestedOperation() {
+	public CommandProcessing getNestedOperation() {
 		return nestedOperation;
 	}
 
-	public CommandStepResults getParentOperation() {
+	public CommandProcessing getParentOperation() {
 		return parentOperation;
 	}	
 

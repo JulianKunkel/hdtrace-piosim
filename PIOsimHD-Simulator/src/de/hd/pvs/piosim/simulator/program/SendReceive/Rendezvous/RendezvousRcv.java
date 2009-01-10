@@ -22,7 +22,7 @@
 package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
 import de.hd.pvs.piosim.model.program.commands.Receive;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
@@ -36,14 +36,14 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousRcv extends CommandImplementation<Receive>
 {
-	public void process(Receive cmd,  CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {		
+	public void process(Receive cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {		
 
 		final int ACK_RECVD = 1;
 		final int LAST = 2;
 
 		/* second step ?, receive whole data */
 		switch(step){
-		case(CommandStepResults.STEP_START):{				
+		case(CommandProcessing.STEP_START):{				
 			/* determine application */
 			OUTresults.setNextStep(ACK_RECVD);
 

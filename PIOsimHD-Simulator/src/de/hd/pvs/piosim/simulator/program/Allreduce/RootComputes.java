@@ -20,7 +20,7 @@ package de.hd.pvs.piosim.simulator.program.Allreduce;
 
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
@@ -30,7 +30,7 @@ public class RootComputes
 	extends CommandImplementation<Allreduce>
 {
 	@Override
-	public void process(Allreduce cmd, CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Allreduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 
 		final int RECV_DATA = 2;
 		//trivial implementierung, alle schicken zu rank 0, dieser schickt an alle.
@@ -47,7 +47,7 @@ public class RootComputes
 
 			return;
 		}else{// rank 0
-			if (step == CommandStepResults.STEP_START){
+			if (step == CommandProcessing.STEP_START){
 				// receive data from all jobs:
 				OUTresults.setNextStep(RECV_DATA);
 

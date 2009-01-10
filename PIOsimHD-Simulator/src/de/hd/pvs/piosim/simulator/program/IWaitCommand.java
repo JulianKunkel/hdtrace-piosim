@@ -19,7 +19,7 @@
 package de.hd.pvs.piosim.simulator.program;
 
 import de.hd.pvs.piosim.model.program.commands.Wait;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 
 /**
@@ -34,6 +34,6 @@ public interface IWaitCommand {
 	 * 
 	 * @param which one finished
 	 */
-	public void pendingAIOfinished(Wait cmd, CommandStepResults prevStep, GClientProcess client, Integer which);
+	public void pendingAIOfinished(Wait cmd, CommandProcessing prevStep, GClientProcess client, Integer which);
 
 }

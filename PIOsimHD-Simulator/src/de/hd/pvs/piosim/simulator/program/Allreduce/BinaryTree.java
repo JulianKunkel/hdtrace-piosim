@@ -20,7 +20,7 @@ package de.hd.pvs.piosim.simulator.program.Allreduce;
 
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
@@ -35,7 +35,7 @@ public class BinaryTree
 {
 	
 	@Override
-	public void process( Allreduce cmd, CommandStepResults OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process( Allreduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...

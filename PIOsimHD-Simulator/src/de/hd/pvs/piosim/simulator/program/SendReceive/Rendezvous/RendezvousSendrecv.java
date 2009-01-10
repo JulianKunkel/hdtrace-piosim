@@ -22,7 +22,7 @@
 package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
 import de.hd.pvs.piosim.model.program.commands.Sendrecv;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandStepResults;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
@@ -36,7 +36,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 {
-	public void process(Sendrecv cmd,  CommandStepResults OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
+	public void process(Sendrecv cmd,  CommandProcessing OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
 		final int EAGER_ACK = 2;
 		final int RENDEZVOUS_ACK = 3;
 		final int START_RENDEZVOUS_RECV = 4;
@@ -45,7 +45,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 		int target = cmd.getToRank();
 
 		switch(step){
-		case(CommandStepResults.STEP_START):{
+		case(CommandProcessing.STEP_START):{
 
 			if(cmd.getSize() <= client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize()){
 				//eager send:
