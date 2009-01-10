@@ -22,13 +22,22 @@ import org.junit.Test;
 
 public class NormalCommandsClusterTest extends ClusterTest{
 
+	public int maxClient = 10;
+	public int minClient = 1;
+	
+	double [] times = new double[maxClient+1];
+	
+	private void printTiming(String header, double[] times){
+		System.out.println(header + " timing:");
+		
+		for(int i=minClient; i <= maxClient; i++){
+			System.out.println(i + " " + times[i]);
+		}		
+	}
+	
 	@Test public void barrierTest() throws Exception{
-		testMsg();
-		int cnt = 10;
-		
-		double [] times = new double[cnt+1]; 
-		
-		for(int i=1; i <= cnt; i++){
+		testMsg();		
+		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 		
 			pb.addBarrier(world);
@@ -36,21 +45,13 @@ public class NormalCommandsClusterTest extends ClusterTest{
 			times[i] = sim.getVirtualTime().getDouble();
 		}
 		
-		System.out.println("Barrier timing:");
-		
-		for(int i=1; i <= cnt; i++){
-			System.out.println(i + " " + times[i]);
-		}
+		printTiming("Barrier", times);
 	}
 	
 
 	@Test public void reduceTest() throws Exception{
 		testMsg();
-		int cnt = 10;
-		
-		double [] times = new double[cnt+1]; 
-				
-		for(int i=1; i <= cnt; i++){
+		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 		
 			pb.addReduce(world, 0, 100);
@@ -58,21 +59,14 @@ public class NormalCommandsClusterTest extends ClusterTest{
 			times[i] = sim.getVirtualTime().getDouble();
 		}
 		
-		System.out.println("Reduce timing:");
-		
-		for(int i=1; i <= cnt; i++){
-			System.out.println(i + " " + times[i]);
-		}
+		printTiming("Reduce", times);
 	}
 
 
 	@Test public void bcastTest() throws Exception{
 		testMsg();
-		int cnt = 10;
 		
-		double [] times = new double[cnt+1]; 
-				
-		for(int i=1; i <= cnt; i++){
+		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 		
 			pb.addBroadcast(world, 0, KBYTE);
@@ -80,22 +74,15 @@ public class NormalCommandsClusterTest extends ClusterTest{
 			times[i] = sim.getVirtualTime().getDouble();
 		}
 		
-		System.out.println("Broadcast timing:");
-		
-		for(int i=1; i <= cnt; i++){
-			System.out.println(i + " " + times[i]);
-		}
+		printTiming("Broadcast", times);
 	}
 
 
 
 	@Test public void allreduceTest() throws Exception{
 		testMsg();
-		int cnt = 10;
-		
-		double [] times = new double[cnt+1]; 
-		
-		for(int i=1; i <= cnt; i++){
+			
+		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 		
 			pb.addAllreduce(world, MBYTE);
@@ -103,16 +90,51 @@ public class NormalCommandsClusterTest extends ClusterTest{
 			times[i] = sim.getVirtualTime().getDouble();
 		}
 		
-		System.out.println("Allreduce timing:");
-		
-		for(int i=1; i <= cnt; i++){
-			System.out.println(i + " " + times[i]);
+		printTiming("Allreduce", times);
+	}
+	
+	public void testBinary(){
+
+		final int commSize = 12;
+		for (int i=0 ; i < commSize; i++){
+			
+			// real loop
+			final int clientRankInComm = i;
+			final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
+			final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
+			final int phaseStart = iterations - trailingZeros;
+			
+			//int numberOfOnes = 0;		
+			//for(int bit=0; bit < iterations; bit++){
+			//numberOfOnes += (clientRankInComm & 1<<bit) > 0 ? 1 : 0;
+			//}
+			
+			
+			if(clientRankInComm != 0){				
+				// recv first, then send.
+				System.out.println(clientRankInComm + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " + 
+						(clientRankInComm ^ 1<<trailingZeros));
+				
+				
+				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
+					int target = (1<<iter | clientRankInComm);
+					if (target >= commSize) continue;
+					System.out.println(clientRankInComm +" from " + target );				
+				}
+			}else{
+				// send all				
+				for (int iter = iterations-1 ; iter >= 0 ; iter--){
+					System.out.println(clientRankInComm +" from " + (1<<iter | clientRankInComm) );				
+				}
+			}
 		}
 	}
 	
 	public static void main(String[] args) throws Exception {
 		NormalCommandsClusterTest t = new NormalCommandsClusterTest();
 		//t.allreduceTest();
+		//t.bcastTest();
 		t.reduceTest();
+		
 	}
 }

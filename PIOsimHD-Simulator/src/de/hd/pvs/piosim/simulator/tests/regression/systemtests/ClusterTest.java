@@ -24,6 +24,7 @@ import junit.framework.Assert;
 
 import org.junit.After;
 
+import de.hd.pvs.piosim.model.GlobalSettings;
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelSortIDbySubcomponents;
@@ -259,6 +260,15 @@ public class ClusterTest {
 		pB.addReadSequential(2, file, 0, 100 * MBYTE);
 		
 		return aB.getApplication();
+	}
+	
+	/** 
+	 * One might change the method to invoke...
+	 * 
+	 * @return
+	 */
+	public GlobalSettings getGlobalSettings(){
+		return model.getGlobalSettings();
 	}
 	
 	public static void main(String[] args) throws Exception{
