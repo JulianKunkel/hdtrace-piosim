@@ -1,5 +1,11 @@
+#!/bin/bash
+
 # This file creates a slog2 tracefile from the simulation result and 
 # visualizes it with jumpshot.
+
+source `dirname $0`/../path.rc || exit 1
+
+cd $SIMF
 
 rm -rf tmp
 mkdir tmp 2>&1
@@ -14,7 +20,7 @@ rm result.slog2
 #) >  run-trace.edf.swapped
 #./jumpshot/bin/tau2slog2 -tcc run-trace.trc run-trace.edf.swapped -o result.slog2 2>&1 || exit 1
 
-./jumpshot/bin/tau2slog2 -tcc run-trace.trc run-trace.edf -o result.slog2 2>&1 || exit 1
+$MAINTF/jumpshot/bin/tau2slog2 -tcc run-trace.trc run-trace.edf -o result.slog2 2>&1 || exit 1
 mv run-trace* tmp/
 
 
@@ -27,5 +33,5 @@ fi
 
 mv result.slog2 "$FILE"
 
-./jumpshot/bin/jumpshot "$FILE"
+$MAINTF/jumpshot/bin/jumpshot "$FILE"
 

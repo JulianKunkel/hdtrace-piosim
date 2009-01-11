@@ -1,0 +1,21 @@
+# compute absolute paths to the simulator.
+
+PFAD="$PWD"
+while [ "$PFAD" != "/" ] ; do
+  if [[ -e  "$PFAD/PIOsimHD-Simulator" ]] ; then
+  	break;
+  fi
+
+  PFAD=$(dirname "$PFAD")
+done
+
+
+SIMF="$PFAD/PIOsimHD-Simulator"
+MAINTF="$PFAD/PIOsimHD-Maint"
+DOCF="$PFAD/PIOsimHD-Doc"
+MODELF="$PFAD/PIOsimHD-Model"
+
+if [[ ! -e  "$SIMF" ]] ; then
+	echo "$SIMF" does not exist
+    exit 1
+fi

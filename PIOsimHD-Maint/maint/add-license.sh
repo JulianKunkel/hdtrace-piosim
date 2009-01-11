@@ -7,6 +7,11 @@ if [ -e  /dev/shm/tmp ] ; then
 	exit 1
 fi
 
+source `dirname $0`/../path.rc || exit 1
+
+for FOLDER in $SIMF $MODELF ; do
+cd $FOLDER/src
+
 for FILE in `find -name "*.java"`; do
 
 if grep "This file is part of PIOsimHD" $FILE >/dev/null; then
@@ -40,4 +45,6 @@ echo "processed: $FILE"
 
 done
 
+done
+  
  rm /dev/shm/tmp

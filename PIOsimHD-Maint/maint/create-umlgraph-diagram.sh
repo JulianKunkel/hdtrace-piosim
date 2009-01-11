@@ -1,10 +1,12 @@
 #!/bin/bash
 
 # see http://www.umlgraph.org/doc/index.html
+source `dirname $0`/../path.rc || exit 1
 
-cd `dirname $0`
+cd `dirname $0`/../
+mkdir diagrams
 
-javadoc javadoc  -doclet org.umlgraph.doclet.UmlGraph -private -docletpath ./umlgraph/UmlGraph.jar  -sourcepath ../../PIOsimHD-Simulator/src/:../../PIOsimHD-Model/src/:umlgraph/views/ -views -subpackages  de.hd
+javadoc javadoc  -doclet org.umlgraph.doclet.UmlGraph -private -docletpath $MAINTF/maint/umlgraph/UmlGraph.jar  -sourcepath $SIMF/src/:$MODELF/src/:umlgraph/views/ -views -subpackages  de.hd
 
 for DOT in `ls *.dot | cut -d "." -f 1`
 do
