@@ -10,7 +10,10 @@ fi
 
 TARGET=$MAINTF/PIOsimHD-Source
 
-mkdir -p $TARGET || rm -rf $TARGET/*
+mkdir $TARGET || rm -rf $TARGET/*
+
+echo "Copy basic files"
+cp -a $MAINTF/dist/roottxt/* $TARGET/
 
 echo "Copy javadoc"
 

@@ -11,7 +11,7 @@ TARGET=$MAINTF/PIOsimHD-Bin
 SIMF_LIBFILES="CommandToSimulationMapper.txt  ModelToSimulationMapper.txt"
 
 ROOTFILES_LIB=
-ROOTFILES_DIST="README.txt TODO.txt COPYING Changelog" 
+ROOTFILES_DIST="" 
 
 function JAR(){
 	TGT="$1.jar"
@@ -26,12 +26,13 @@ echo "preparing folders"
 mkdir -p $TARGET/lib
 mkdir -p $TARGET/bin 
 
-cp -r "$MAINTF"/dist/bin/* $TARGET/bin
+cp -a "$MAINTF"/dist/bin/* $TARGET/bin
 cp -r $MODELF/lib/* $TARGET/lib
 cp -r $SIMF/lib/* $TARGET/lib
 cp -r "$MAINTF"/jumpshot/lib/* $TARGET/lib/
 
-chmod 755 $TARGET/bin/*
+echo "Copy basic files"
+cp -a $MAINTF/dist/roottxt/* $TARGET/
 
 for F in $SIMF_LIBFILES ; do
 	cp $SIMF/$F $TARGET/lib/
