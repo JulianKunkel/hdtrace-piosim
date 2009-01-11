@@ -62,7 +62,7 @@ public class BinaryTree
 			
 			// broadcast from root.
 			OUTresults.invokeChildOperation(bc, CommandProcessing.STEP_COMPLETED, 
-					de.hd.pvs.piosim.simulator.program.Reduce.BinaryTree.class);
+					de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree.class);
 					//Dummy.class);
 		}
 		
