@@ -18,9 +18,17 @@ cp -a javadoc $TARGET/$(basename $DOCF) || exit 1
 
 echo "Copy everything in SVN"
 for I in $MODELF $SIMF $DOCF $MAINTF  ; do
+ 	mkdir $TARGET/$(basename $I)/
+
 	for OBJ in $(svn ls $I) ; do
 	cp -a $I/$OBJ $TARGET/$(basename $I)/ || exit 1
     done 
+done
+
+echo "Removing SVN entries"
+for I in `find $TARGET|grep "/.svn$"`; do
+        rm -rf $I
+	echo $I
 done
 
 echo "Packing archive"

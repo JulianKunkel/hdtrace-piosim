@@ -54,7 +54,7 @@ JAR piosimhd-simulator simulator.mf  $SIMF # "-C ../ lib"
 cp -a "../javadoc" $TARGET/
 
 echo "Removing SVN entries"
-for I in `find $TARGET|grep "/.svn/ "`; do
+for I in `find $TARGET|grep "/.svn$"`; do
 	rm -rf $I
 done
 
