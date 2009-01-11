@@ -6,7 +6,8 @@ source `dirname $0`/../path.rc || exit 1
 
 cd `dirname $0`
 
-TARGET=$MAINTF/PIOsimHD-Bin
+VERSION=$(head -n 1 $MAINTF/dist/roottxt/VERSION)
+TARGET=$MAINTF/PIOsimHD-Bin-$VERSION
 
 SIMF_LIBFILES="CommandToSimulationMapper.txt  ModelToSimulationMapper.txt"
 

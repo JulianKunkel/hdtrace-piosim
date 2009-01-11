@@ -8,7 +8,8 @@ if [[ ! -d "javadoc" ]] ; then
 	exit 1
 fi
 
-TARGET=$MAINTF/PIOsimHD-Source
+VERSION=$(head -n 1 $MAINTF/dist/roottxt/VERSION)
+TARGET=$MAINTF/PIOsimHD-Source-$VERSION
 
 mkdir $TARGET || rm -rf $TARGET/*
 
