@@ -26,6 +26,11 @@ import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
+/**
+ * Binary Tree Algorithm, Root starts to propagate data. A node sends data to child nodes only when data transfer to the node is complete.
+ *  
+ * @author Julian M. Kunkel
+ */
 public class BinaryTree 
 extends CommandImplementation<Bcast>
 {
@@ -34,73 +39,86 @@ extends CommandImplementation<Bcast>
 	public void process(Bcast cmd, CommandProcessing OUTresults,
 			GClientProcess client, int step, NetworkJobs compNetJobs) 
 	{
-		final int RECEIVED = 2;
-		
+
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
 			return;
 		}
 
-		final int commSize = cmd.getCommunicator().getSize();
-		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		final int myRank = cmd.getCommunicator().getCommRank(client.getModelComponent().getRank());
-		final int rootRank = cmd.getRootRank();
-		
-		int clientRankInComm = myRank;
-		
-		//exchange rank 0 with cmd.root to receive data on the correct node
-		if(clientRankInComm == cmd.getRootRank()) {
-			clientRankInComm = 0;
-		}else if(clientRankInComm == 0) {
-			clientRankInComm = rootRank;
-		}
-		
-		final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
-		final int phaseStart = iterations - trailingZeros;
-		
-	
-		
-		if(clientRankInComm != 0){				
-			// recv first, then send.
+		final int RENDEVOUZ = 10;
 
-			if (step == CommandProcessing.STEP_START){
-				OUTresults.setNextStep(RECEIVED);
-				
-				
-				int recvFrom = (clientRankInComm ^ 1<<trailingZeros);
-				
-				if(recvFrom == 0){
-					recvFrom = rootRank;
-				}else if(recvFrom == rootRank){
-					recvFrom = 0;
-				}
-				
-				
-				OUTresults.addNetReceive(recvFrom,   
-						30000, Communicator.INTERNAL_MPI);
-				
-			}else if(step == RECEIVED){
-				// send
-				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
-				
-				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
-					int targetRank = (1<<iter | clientRankInComm);
-					if (targetRank >= commSize) continue;
-					//System.out.println(clientRankInComm +" to " + (1<<iter | clientRankInComm) );
-					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0),
-							new NetworkSimpleMessage(cmd.getSize() + 20), 30000, Communicator.INTERNAL_MPI);
-				}
+		if (step == CommandProcessing.STEP_START){
+			long eagerSize = client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize();
+			if (cmd.getSize() <= eagerSize){
+				// run the eager protocoll:
+				OUTresults.invokeChildOperation(cmd, CommandProcessing.STEP_COMPLETED, 
+						de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimple.class);
+				return;
 			}
-		}else{
-			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+
+			// not eager
+			OUTresults.setNextStep(RENDEVOUZ);
+
+			//wait for receives from all "to receive data"			
+			final int myRank = cmd.getCommunicator().getCommRank(client.getModelComponent().getRank());
+			final int rootRank = cmd.getRootRank();
+
+			int clientRankInComm = myRank;
+
+			//exchange rank 0 with cmd.root to receive data on the correct node
+			if(clientRankInComm == cmd.getRootRank()) {
+				clientRankInComm = 0;
+			}else if(clientRankInComm == 0) {
+				clientRankInComm = rootRank;
+			}
+
+			final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
+
+			final int commSize = cmd.getCommunicator().getSize();
+			final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
+			final int phaseStart = iterations - trailingZeros;
 			
-			// send to all receivers				
-			for (int iter = iterations-1 ; iter >= 0 ; iter--){				
-				final int targetRank =  1<<iter; 
-				//System.out.println(clientRankInComm +" to " + ((targetRank != rootRank) ? targetRank : 0) );
-				OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0,
-						new NetworkSimpleMessage(cmd.getSize() + 20), 30000, Communicator.INTERNAL_MPI);
+			if(clientRankInComm != 0){				
+				int sendTo = (clientRankInComm ^ 1<<trailingZeros);
+
+				if(sendTo == 0){
+					sendTo = rootRank;
+				}else if(sendTo == rootRank){
+					sendTo = 0;
+				}
+
+
+				//System.out.println(myRank + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " +  sendTo);
+
+				// receive confirmation from all descending clients i send data to. 
+
+				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
+					final int targetRank = (1<<iter | clientRankInComm);
+					if (targetRank >= commSize) 
+						continue;
+					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 
+							30002, Communicator.INTERNAL_MPI);
+				}
+
+
+				// send confirmation to receive data to parent node.
+
+				OUTresults.addNetSend(sendTo,
+						new NetworkSimpleMessage(20), // just 20 Bytes or something.
+						30002, Communicator.INTERNAL_MPI);			
+			}else{
+				// receive from all descending nodes that they accept data.				
+				for (int iter = iterations-1 ; iter >= 0 ; iter--){
+					final int targetRank =  1<<iter; 
+					//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
+					OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0, 30002, Communicator.INTERNAL_MPI);
+				}
 			}
+
+
+		}else if(step == RENDEVOUZ){	
+			OUTresults.invokeChildOperation(cmd, CommandProcessing.STEP_COMPLETED, 
+					de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimple.class);
 		}
 	}
 

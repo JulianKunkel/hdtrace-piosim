@@ -54,7 +54,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 		
-			pb.addReduce(world, ( i - 2 >= 0 ? i -2 : 0 ), 100);
+			pb.addReduce(world, ( i - 2 >= 0 ? i -2 : 0 ), 10 * MBYTE);
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();
 		}
@@ -69,7 +69,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 		
-			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), KBYTE);
+			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 10 * MBYTE);
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();
 		}
@@ -149,7 +149,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 		//t.allreduceTest();
 		t.bcastTest();
 		//t.reduceTest();
-		t.testBinary(4, 1);
+		//t.testBinary(4, 1);
 		
 	}
 }

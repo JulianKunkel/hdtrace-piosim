@@ -29,11 +29,13 @@ de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 +de.hd.pvs.piosim.model.program.commands.Reduce
 de.hd.pvs.piosim.simulator.program.Global.Dummy
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
+de.hd.pvs.piosim.simulator.program.Reduce.BinaryTreeSimple
 de.hd.pvs.piosim.simulator.program.Reduce.BinaryTree
 
 +de.hd.pvs.piosim.model.program.commands.Bcast
 de.hd.pvs.piosim.simulator.program.Global.Dummy
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
+de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimple
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree
 
 +de.hd.pvs.piosim.model.program.commands.Fileread
