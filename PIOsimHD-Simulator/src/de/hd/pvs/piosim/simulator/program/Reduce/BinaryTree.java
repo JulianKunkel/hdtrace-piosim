@@ -27,7 +27,10 @@ import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
- * Complex Binary Tree Algorithm, Root collects
+ * Complex Binary Tree Algorithm, Root collects.
+ * In the algorithm, first the sender waits for acceptance of data. The receiver sends an request for data.
+ * This is necessary because the correct number of bytes to be transfered must be given only to the root command.
+ * 
  * @author Julian M. Kunkel
  */
 public class BinaryTree 
@@ -45,18 +48,20 @@ extends CommandImplementation<Reduce>
 
 		final int commSize = cmd.getCommunicator().getSize();
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		int clientRankInComm = cmd.getCommunicator().getCommRank(client.getModelComponent().getRank());
+		final int myRank = cmd.getCommunicator().getCommRank(client.getModelComponent().getRank());
+		final int rootRank = cmd.getRootRank();
+
+		int clientRankInComm = myRank;
 
 		//exchange rank 0 with cmd.root to receive data on the correct node
 		if(clientRankInComm == cmd.getRootRank()) {
 			clientRankInComm = 0;
 		}else if(clientRankInComm == 0) {
-			clientRankInComm = cmd.getRootRank();
+			clientRankInComm = rootRank;
 		}
 
 		final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
 		final int phaseStart = iterations - trailingZeros;
-
 
 		if(clientRankInComm != 0){				
 			// recv first, then send.
@@ -65,10 +70,11 @@ extends CommandImplementation<Reduce>
 				OUTresults.setNextStep(RECEIVED);
 
 				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
-					int target = (1<<iter | clientRankInComm);
-					if (target >= commSize) continue;
-					//System.out.println(clientRankInComm +" from " + (1<<iter | clientRankInComm) );
-					OUTresults.addNetReceive(target,30001, Communicator.INTERNAL_MPI);
+					final int targetRank = (1<<iter | clientRankInComm);
+					if (targetRank >= commSize) 
+						continue;
+					//System.out.println(clientRankInComm +" from " + ((targetRank != rootRank) ? targetRank : 0) );
+					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI);
 				}
 
 				if(OUTresults.getNetworkJobs().getSize() != 0 ) 
@@ -76,21 +82,32 @@ extends CommandImplementation<Reduce>
 			}
 
 			// step == RECEIVE or we don't have to receive anything
-			//System.out.println(clientRankInComm + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " +  (clientRankInComm ^ 1<<trailingZeros));
 
-			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);				
+			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);		
+			
+			int sendTo = (clientRankInComm ^ 1<<trailingZeros);
+			
+			if(sendTo == 0){
+				sendTo = rootRank;
+			}else if(sendTo == rootRank){
+				sendTo = 0;
+			}
+			
 
-			OUTresults.addNetSend((clientRankInComm ^ 1<<trailingZeros), 
+			//System.out.println(myRank + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " +  sendTo);
+
+			OUTresults.addNetSend(sendTo, 
 					new NetworkSimpleMessage(cmd.getSize() + 20),  
 					30001, Communicator.INTERNAL_MPI);				
 
 		}else{
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
-			// send to all receivers				
-			for (int iter = iterations-1 ; iter >= 0 ; iter--){				
-				//System.out.println(clientRankInComm +" from " + (1<<iter | clientRankInComm) );
-				OUTresults.addNetReceive((1<<iter | clientRankInComm), 30001, Communicator.INTERNAL_MPI);
+			// send to all receivers that we accept data.				
+			for (int iter = iterations-1 ; iter >= 0 ; iter--){
+				final int targetRank =  1<<iter; 
+				//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
+				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, Communicator.INTERNAL_MPI);
 			}
 		}
 	}

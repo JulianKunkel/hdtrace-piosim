@@ -43,13 +43,16 @@ extends CommandImplementation<Bcast>
 
 		final int commSize = cmd.getCommunicator().getSize();
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		int clientRankInComm = cmd.getCommunicator().getCommRank(client.getModelComponent().getRank());
-
+		final int myRank = cmd.getCommunicator().getCommRank(client.getModelComponent().getRank());
+		final int rootRank = cmd.getRootRank();
+		
+		int clientRankInComm = myRank;
+		
 		//exchange rank 0 with cmd.root to receive data on the correct node
 		if(clientRankInComm == cmd.getRootRank()) {
 			clientRankInComm = 0;
 		}else if(clientRankInComm == 0) {
-			clientRankInComm = cmd.getRootRank();
+			clientRankInComm = rootRank;
 		}
 		
 		final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
@@ -59,13 +62,21 @@ extends CommandImplementation<Bcast>
 		
 		if(clientRankInComm != 0){				
 			// recv first, then send.
-			//System.out.println(clientRankInComm + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " rcv from: " + 
-			//		(clientRankInComm ^ 1<<trailingZeros));
-			
+
 			if (step == CommandProcessing.STEP_START){
 				OUTresults.setNextStep(RECEIVED);
 				
-				OUTresults.addNetReceive((clientRankInComm ^ 1<<trailingZeros),   
+				
+				int recvFrom = (clientRankInComm ^ 1<<trailingZeros);
+				
+				if(recvFrom == 0){
+					recvFrom = rootRank;
+				}else if(recvFrom == rootRank){
+					recvFrom = 0;
+				}
+				
+				
+				OUTresults.addNetReceive(recvFrom,   
 						30000, Communicator.INTERNAL_MPI);
 				
 			}else if(step == RECEIVED){
@@ -73,10 +84,10 @@ extends CommandImplementation<Bcast>
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				
 				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
-					int target = (1<<iter | clientRankInComm);
-					if (target >= commSize) continue;
+					int targetRank = (1<<iter | clientRankInComm);
+					if (targetRank >= commSize) continue;
 					//System.out.println(clientRankInComm +" to " + (1<<iter | clientRankInComm) );
-					OUTresults.addNetSend(target,
+					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0),
 							new NetworkSimpleMessage(cmd.getSize() + 20), 30000, Communicator.INTERNAL_MPI);
 				}
 			}
@@ -85,8 +96,9 @@ extends CommandImplementation<Bcast>
 			
 			// send to all receivers				
 			for (int iter = iterations-1 ; iter >= 0 ; iter--){				
-				//System.out.println(clientRankInComm +" to " + (1<<iter | clientRankInComm) );
-				OUTresults.addNetSend((1<<iter | clientRankInComm),
+				final int targetRank =  1<<iter; 
+				//System.out.println(clientRankInComm +" to " + ((targetRank != rootRank) ? targetRank : 0) );
+				OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0,
 						new NetworkSimpleMessage(cmd.getSize() + 20), 30000, Communicator.INTERNAL_MPI);
 			}
 		}
