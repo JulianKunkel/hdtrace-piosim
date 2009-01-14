@@ -457,12 +457,24 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 			
 			CommandProcessing newJob = cmdStep;
 			newJob.resetState();
-			
+
 			cme.process(cmd, newJob, this, nextStep, oldJobs);
+
+			// now iterate until a state can be found which does some work.
+			while(! newJob.isCommandWaitingForResponse() && newJob.getNextStep() != CommandProcessing.STEP_COMPLETED){
+				int nextPStep = newJob.getNextStep();
+				newJob.resetState();
+				
+				cme.process(cmd, newJob, this, nextPStep, null);
+				
+				if (newJob.nextStep == nextPStep){
+					throw new IllegalArgumentException("(likely) endless iteration detected in command " + cmd);
+				}
+			}
 
 			//System.out.println(this + " " + nextStep + " starting " + newJob.nextStep + " " + newJob.getNetworkJobs().getSize());
 				
-			if (newJob.isCommandComplete()){ /* all blocking operation completed */							
+			if (! newJob.isCommandWaitingForResponse()){ /* all blocking operation completed */							
 				commandCompleted(cmdStep, cme, curTime);				
 			}else{				
 				if(newJob.getNestedOperation() != null){
@@ -481,7 +493,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 					blockedCommands.add(newJob);
 				}
-
+				
 				assert(newJob.getNetworkJobs() != null);
 				assert(newJob.getNetworkJobs().getNetworkJobs() != null);
 

@@ -39,7 +39,7 @@ public class CommandProcessing{
 	// global values for processing:
 	
 	/** first step of all computations, set upon starting the command */
-	public static final int STEP_START = 0;
+	public static final int STEP_START = 0; // MUST BE ZERO !
 	
 	/** signals completion of the command */
 	public static final int STEP_COMPLETED = 9999999;
@@ -210,7 +210,11 @@ public class CommandProcessing{
 	}	
 	
 	public boolean isCommandComplete(){
-		return (! blockingForced) && networkJobs.getNetworkJobs().size() == 0 && nestedOperation == null;
+		return ! isCommandWaitingForResponse() && nextStep == CommandProcessing.STEP_COMPLETED;
+	}
+	
+	public boolean isCommandWaitingForResponse(){
+		return blockingForced || networkJobs.getNetworkJobs().size() != 0 || nestedOperation != null;
 	}
 	
 	@Override

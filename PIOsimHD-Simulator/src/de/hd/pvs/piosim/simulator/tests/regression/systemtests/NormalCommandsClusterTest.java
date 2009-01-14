@@ -144,7 +144,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	
 	public static void main(String[] args) throws Exception {
 		NormalCommandsClusterTest t = new NormalCommandsClusterTest();
-		t.minClient = 2;
+		//t.minClient = 1;
+		//t.maxClient = 10;
 		
 		//t.allreduceTest();
 		t.bcastTest();
