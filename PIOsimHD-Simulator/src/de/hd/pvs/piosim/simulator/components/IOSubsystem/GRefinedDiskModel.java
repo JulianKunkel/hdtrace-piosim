@@ -133,7 +133,7 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 	@Override
 	protected void addNewEvent(Event<IOJobRefined> job) {		
 		pendingIOs++;
-		
+				
 		IOJobRefined io = job.getEventData();
 		
 		// if the same file is accessed with a larger offset add it to the jobs currently to process
@@ -208,12 +208,15 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 	protected void jobStarted(Event<IOJobRefined> event, Epoch startTime) {		
 		IOJobRefined job = event.getEventData();
 		IOSubsytemHelper.traceIOStart(this, job, job.getEfficiency().toString());
+		//System.out.println("jobStarted "  + startTime + " " + event.getEventData());
 	}
 
 	@Override
 	protected void jobCompleted(Event<IOJobRefined> event, Epoch endTime) {
 		IOJobRefined job = event.getEventData();
 
+		//System.out.println("jobCompleted " + endTime + " " + event.getEventData());
+		
 		IOSubsytemHelper.traceIOEnd(this, job, job.getEfficiency().toString());
 
 		totalOperations++;
@@ -223,7 +226,7 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 	}
 
 	@Override
-	public void startNewIO(IOJob job) {
+	public void startNewIO(IOJob job) {		
 		Epoch time = getSimulator().getVirtualTime();
 		addNewEvent(new Event<IOJobRefined>(this, this, time, new IOJobRefined(job)));
 		
@@ -235,6 +238,7 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 		System.out.println("GRefinedDiskModel " + getIdentifier() + " <#ops, noSeekAccesses, fastAccesses, slowAccesses, dataAccessed> = <" + 
 				totalOperations + ", " + noSeekAccesses + ", " + fastAccesses + ", " +  
 				(totalOperations - noSeekAccesses - fastAccesses) + ", " + totalAmountOfData + ">");
+		assert(pendingIOs == 0);
 	}
 
 }

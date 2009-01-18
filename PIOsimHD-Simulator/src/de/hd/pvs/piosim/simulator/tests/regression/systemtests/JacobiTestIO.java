@@ -80,7 +80,8 @@ public class JacobiTestIO extends ClusterTest{
 		JacobiTestIO t = new JacobiTestIO();
 
 		t.shouldSortModel = true;
-		t.runJacobiLow("Examples/PDE-IO/large-tracer/trace-partdiff-par.xml");		
+		//t.runJacobiLow("Examples/PDE-IO/large-tracer/trace-partdiff-par.xml");
+		t.runJacobiLow("Examples/PDE-IO/small-tracer/trace-partdiff-par.xml");		
 		System.exit(1);
 		
 		int cnt = 10;

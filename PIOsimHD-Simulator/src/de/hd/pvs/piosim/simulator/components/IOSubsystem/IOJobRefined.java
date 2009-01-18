@@ -51,4 +51,9 @@ public class IOJobRefined extends IOJob{
 	public IOJob getOldJob() {
 		return oldJob;
 	}
+	
+	@Override
+	public String toString() {		
+		return super.toString() + " " + efficiency;
+	}
 }
