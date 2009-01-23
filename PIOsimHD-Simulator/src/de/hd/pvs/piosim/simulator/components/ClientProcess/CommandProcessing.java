@@ -219,7 +219,7 @@ public class CommandProcessing{
 	
 	@Override
 	public String toString() {		
-		return super.toString() + "<" + getInvokingCommand() + " nextStep: " + nextStep + " blockingForced:" + blockingForced + " nst: " + isNestedOperation() +  ">";
+		return "<" + getInvokingCommand() + " nextStep: " + nextStep + " blockingForced:" + blockingForced + " nst: " + isNestedOperation() + " nwOps: " +  getNetworkJobs().getSize() + ">";
 	}
 		
 	/**
@@ -317,5 +317,6 @@ public class CommandProcessing{
 		return getInvokingComponent().getSimulator().getApplicationMap().
 			getClient( getInvokingComponent().getModelComponent().getApplication(),  rank);
 	}
+	
 	
 }

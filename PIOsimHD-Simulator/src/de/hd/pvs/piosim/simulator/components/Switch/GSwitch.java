@@ -113,22 +113,20 @@ public class GSwitch  extends SNetworkComponent<SimpleSwitch>{
 					NIC nic = (NIC) p.getConnectedComponent();
 					GNode targetNode = (GNode) getSimulator().getSimulatedComponent( nic.getParentComponent() );
 					addRoutingEntry(targetNode, gPort);
+				}else if(Port.class.isInstance(p.getConnectedComponent()) ){
+					// set parent switch:
+					gPort.setConnectedComponent((GSwitch) getSimulator().getSimulatedComponent(p.getConnectedComponent().getParentComponent()));
 				}
 				
 				debugFollowUpLine(gPort.getIdentifier() + " connect to " + sConnectedComp.getModelComponent().getIdentifier());
 			}
 			
-			if ( Port.class.isInstance(p.getConnectedComponent() ) ){
+			if ( GSwitch.class.isInstance(gPort.getConnectedComponent() ) ){
 				/* now if the connected class is a switch => populate routing table between them */
 				boolean ret;
-				GPort tgtPort = (GPort)  getSimulator().getSimulatedComponent(p.getConnectedComponent().getIdentifier());
+				GSwitch gswitch = (GSwitch) gPort.getConnectedComponent();
 				
-				assert(tgtPort != null);
-				assert(tgtPort.getModelComponent().getParentComponent() != null);
-				
-				GSwitch gswitch = (GSwitch) getSimulator().getSimulatedComponent(tgtPort.getModelComponent().getParentComponent());
-				
-				ret = populateRoutingTableInternally(this, gswitch, tgtPort);
+				ret = populateRoutingTableInternally(this, gswitch, gPort);
 			
 				if (ret ) 
 					changes = true;
@@ -170,6 +168,7 @@ public class GSwitch  extends SNetworkComponent<SimpleSwitch>{
 	private GPort getRoutingEntry(GNode target) {
 		GPort port =routingTables.get(target);
 		assert(port != null);
+		
 		return port;
 	}
 	
@@ -179,8 +178,8 @@ public class GSwitch  extends SNetworkComponent<SimpleSwitch>{
 	public void printRoutingTable() {
 		for(GNode comp: routingTables.keySet()){
 			try{
-				System.out.println(" " + routingTables.get(comp).getIdentifier() + " to " + comp + " " + 
-						routingTables.get(comp).getConnectedComponent() ); 
+				System.out.println(" " + routingTables.get(comp).getIdentifier() + " to " + comp.getIdentifier() + " via " + 
+						routingTables.get(comp).getConnectedComponent().getIdentifier() ); 
 			}catch(Exception e){
 				e.printStackTrace();
 			}

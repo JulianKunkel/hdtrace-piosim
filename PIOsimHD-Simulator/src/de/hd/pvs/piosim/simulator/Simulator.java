@@ -170,7 +170,14 @@ public final class Simulator{
 				}
 			}
 		}
-		System.out.println("Topology depth (diameter of the cluster): " + topDepth);
+		System.out.println("Topology depth (diameter of the model): " + topDepth);
+		
+		if(parameters.isDebugEverything()){
+			for(Switch com: model.getSwitches()){
+				System.out.println("Routing table for " + com.getIdentifier());
+				((GSwitch) getSimulatedComponent(com)).printRoutingTable();
+			}
+		}
 		
 		/* register all components for the STraceWriter */
 		for(SPassiveComponent bc: existingSimulationObjects.values()){

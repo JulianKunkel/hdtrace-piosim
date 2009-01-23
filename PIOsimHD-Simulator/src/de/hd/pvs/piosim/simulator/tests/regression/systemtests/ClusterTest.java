@@ -58,6 +58,8 @@ public class ClusterTest {
 	protected Model model;
 	protected Simulator sim;
 	protected Communicator world;
+
+	RunParameters parameters = new RunParameters();
 	
 	@After public void tearDown(){
 		System.out.println();
@@ -69,6 +71,8 @@ public class ClusterTest {
 	}
 
 	protected void setup(int clients, int servers) throws Exception{
+		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
+		
 		mb = createDisjointClusterModel(clients, servers);		
 		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", clients);
 		app = aB.getApplication();
@@ -197,9 +201,7 @@ public class ClusterTest {
 		
 		//ModelXMLWriter xmlW = new ModelXMLWriter();
 		//xmlW.writeXMLFromProject(model, "/tmp/", "test.xml");		
-		// TESTING
-		RunParameters parameters = new RunParameters();
-		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");		
+		// TESTING		
 		
 		//parameters.setTraceInternals(false);		
 		
