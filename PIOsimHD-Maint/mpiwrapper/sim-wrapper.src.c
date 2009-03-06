@@ -431,6 +431,13 @@ static GHashTable * filesStringMap = NULL; // maps filename to actual ID
 // each client chooses an ID which is 10000 x (RANK+1) + nextFileID
 static int nextFileID = 0;
 
+
+void * getFileHandleName(MPI_File * fh)
+{
+	return (void*)fh;
+}
+
+
 /**
  * TODO: Right now we assume MPI_File is of type int, this function is called 
  * AFTER the File got opened by MPI => fh is valid
@@ -441,8 +448,8 @@ void w_File_open(MPI_Comm comm, char * name, int flags, MPI_Info info, MPI_File 
 	filesStringMap = g_hash_table_new (g_str_hash, g_str_equal);
   }
 
-  log("<!-- <FileOpen comm=\"%s\" name=\"%s\" flags=\"%d\" fh=\"%p\" ret='%d'/> -->\n", 
-	  getCommName(comm), name, flags, fh, ret);
+  log("<FileOpen comm=\"%s\" name=\"%s\" flags=\"%d\" fh=\"%p\" ret='%d'/>\n", 
+	  getCommName(comm), name, flags, getFileHandleName(fh), ret);
 
   if(ret)
 	  logError(ret);
@@ -494,6 +501,19 @@ void w_File_open(MPI_Comm comm, char * name, int flags, MPI_Info info, MPI_File 
   // TODO fix id memleak
   g_hash_table_replace (files, (gint *) fh, id);
 }
+
+void w_File_close(MPI_File *file_handle)
+{
+	log("<File_close fh='%p' />\n",
+		getFileHandleName(file_handle));
+}
+
+void w_File_delete(char * filename)
+{
+	log("<File_delete name='%s' />\n", 
+		filename);
+}
+
 
 
 void w_File_write_at(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type){

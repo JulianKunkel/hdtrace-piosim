@@ -63,6 +63,9 @@ startFuncs = {
 "Scan" : "Scan(v3, v4, v5, v6)",
 "Exscan" : "Exscan(v3, v4, v5, v6)",
 "Abort" : "Abort(v1, v2)", 
+
+"File_close" : "File_close(v1)",
+"File_delete" : "File_delete(v1)",
 }
 
 endFuncs   = {

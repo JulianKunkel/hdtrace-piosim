@@ -1,10 +1,10 @@
 * Aufgaben
-** TODO Noch unklar
-** TODO Testen
+** DONE Tests zum laufen kriegen
    Offizieller mpich-test compiliert größtenteils 
    Was nicht compiliert: Programme, die selbst wrapper bereitstellen...
 *** DONE mpich-test
     -> offizieller mpich-test 
+*** DONE mpi2test
 *** TODO sind auch überall die xml-tags geschlossen?
 *** TODO auf jeden Fall nicht nur mit COMM_WORLD testen
 *** TODO ist auch überall long long double bei den Größenangaben
@@ -16,16 +16,6 @@
 *** 
 	=> stattdessen speed-multiplier vom Original? (Float value?)
  	=> Duration = mikrosekunden = 10^-6 Sekunden
-** TODO Durations
-   - [ ] durations
-***
-		Gegenwärtige Zeit + duration (bei states) wird in die Tags hineingeneriert. 
-		 Primär für den Simulator uninteressant, aber fürs Tracing von MPI-I/O ops 
-		nötig.
-		 Redundant zu Compute Operationen! Evtl. wird später bei Compute noch weitere 
-		Information z.b. counter eingefügt.
-		 Duration erst bekannt nachdem die Operation
-		 ausgeführt wurde.								
 ** TODO Operationen tracen
    - [ ] 		
 		Welche Operationen sollen getraced werden? (mpi_funcs.h, mpiio_funcs.h)
@@ -99,8 +89,8 @@
      - überprüfen, was MPI_File in den einzelnen Implementationen ist
      - return-value speichern?
 **** TODO		
-		int MPI_File_close(MPI_File *);
-		int MPI_File_delete(char *, MPI_Info);
+     int MPI_File_close(MPI_File *);
+     int MPI_File_delete(char *, MPI_Info);
 		
 		int MPI_File_set_size(MPI_File, MPI_Offset);
 		
@@ -149,6 +139,16 @@
 	SImulator, aber für allgemeinen Tracer)..
 
 	
+** TODO Durations
+   - [ ] durations in MPI-I/O ops
+***
+		Gegenwärtige Zeit + duration (bei states) wird in die Tags hineingeneriert. 
+		 Primär für den Simulator uninteressant, aber fürs Tracing von MPI-I/O ops 
+		nötig.
+		 Redundant zu Compute Operationen! Evtl. wird später bei Compute noch weitere 
+		Information z.b. counter eingefügt.
+		 Duration erst bekannt nachdem die Operation
+		 ausgeführt wurde.								
 ** TODO Optionale Features
    - [ ] Compute Tags sollten optional entfernbar sein, z.b. Umgebungsvariable einlesen 
 		am Anfang (MPI_init)... ;-)
@@ -254,6 +254,7 @@
 		 => Tags auch für MPI_Waitall oder Waitsome verwendbar.        
 		 
 ** TODO Makros in Funktionen umwandeln?
+** TODO Testen
 * INFO
 ** Threads 
    - [ ] Wie für threads etc?
