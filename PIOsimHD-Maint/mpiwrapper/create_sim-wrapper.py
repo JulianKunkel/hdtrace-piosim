@@ -35,41 +35,22 @@ import re
 funcs = open('interesting_funcs.h').read().splitlines()
 
 startFuncs = { 
-"Allreduce" : "Allreduce(v3, v4,v6)",
-"Barrier" : "Barrier(v1)",
-"Bcast" : "Bcast(v2,v3,v4,v5)",
-"Bsend" : "Bsend(v2,v3,v4,v5,v6)", 
-"File_read" : "File_read(v1,v3,v4)",
-"File_read_at" : "File_read_at(v1,v2, v4,v5)",
-"File_write" : "File_write(v1,v3,v4)",
-"File_write_at" : "File_write_at(v1,v2, v4,v5)",
 "Finalize" : "priorFinalize()",
-"Recv" : "Receive(v2,v3,v4,v5,v6)", 
-"Reduce" : "Reduce(v3,v4,v6,v7)",
 "Send" : "Send(v2,v3,v4,v5,v6)", 
-"Ssend" : "Ssend(v2,v3,v4,v5,v6)", 
+"Recv" : "Receive(v2,v3,v4,v5,v6)", 
 "Sendrecv" : "Sendrecv(v2 , v3 , v4, v5, v9, v10, v11)",
-"Isend" : "Isend(v2,v3,v4,v5,v6)", 
-"Sendrecv_replace" : "Sendrecv_replace(v2, v3, v4, v5, v6, v7, v8)",
-"Gather" : "Gather(v2, v3, v5, v6, v7, v8)",
-"Gatherv" : "Gatherv(v2, v3, v5, v6, v7, v8, v9)",
-"Scatter" : "Scatter(v2, v3, v5, v6, v7, v8)",
-"Scatterv" : "Scatterv(v2, v4, v6, v7, v8, v9)", 
-"Allgather" : "Allgather(v2, v3, v5, v6, v7)",
-"Allgatherv" : "Allgatherv(v2, v3, v5, v7, v8)",
-"Alltoall" : "Alltoall(v2, v3, v5, v6, v7)",
-"Alltoallv" : "Alltoallv(v2, v4, v6, v8, v9)", 
-"Reduce_scatter" : "Reduce_scatter(v3, v4, v5, v6)",
-"Scan" : "Scan(v3, v4, v5, v6)",
-"Exscan" : "Exscan(v3, v4, v5, v6)",
-"Abort" : "Abort(v1, v2)", 
-
-"File_close" : "File_close(v1)",
-"File_delete" : "File_delete(v1)",
+"Barrier" : "Barrier(v1)",
+"Allreduce" : "Allreduce(v3, v4,v6)",
+"Reduce" : "Reduce(v3,v4,v6,v7)",
+"Bcast" : "Bcast(v2,v3,v4,v5)",
+"File_write" : "File_write(v1,v3,v4)",
+"File_read" : "File_read(v1,v3,v4)",
+"File_write_at" : "File_write_at(v1,v2, v4,v5)",
+"File_read_at" : "File_read_at(v1,v2, v4,v5)",
 }
 
 endFuncs   = {
-"File_open" : "File_open(v1,v2,v3,v4,v5,ret)",
+"File_open" : "File_open(v1,v2,v3,v4,v5)",
 }
 
 noTimerEndFuncs   = { 

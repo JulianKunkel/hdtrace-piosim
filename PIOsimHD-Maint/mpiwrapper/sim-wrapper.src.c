@@ -63,8 +63,6 @@
   write(wrapper_info_fd, wbuff, len); \
 }
 
-
-
 static int wrapper_fd;
 static int wrapper_info_fd;
 
@@ -73,7 +71,6 @@ static double startTime; //only relevant at rank 0
 
 #define LENGTH 1000
 static char wbuff[LENGTH];
-static char cnbuff[LENGTH]; 
 
 #define BUFF_SIZE 1 * 1024 * 1024
 static char * flush_buff;
@@ -83,12 +80,6 @@ extern int w_tracing;
 extern int w_my_rank;
 static int mpi_finalized = 0;
 
-// Minimum compute-time to be logged (microseconds)
-#define MIN_COMPUTE_TIME 100.0 
-
-// The character(s) used to indent the xml output
-#define TAB_STRING "\t"
-
 static void flush_log(){
   tprintf("flushing log length: %lld", flush_buff_pos)
   write(wrapper_fd, flush_buff, flush_buff_pos );
@@ -97,16 +88,14 @@ static void flush_log(){
 
 
 static char * getCommName(MPI_Comm comm){
-	// NOTE: the result becomes invalid after a consecutive
-    // call to getCommName(...)
   int len = LENGTH;
   int cmp = 0;
   MPI_Comm_compare(comm, MPI_COMM_WORLD, & cmp);
   if (cmp == MPI_IDENT){
     return "WORLD";
   }
-  MPI_Comm_get_name(comm, cnbuff, & len);
-  return cnbuff;
+  MPI_Comm_get_name(comm, wbuff, & len);
+  return wbuff;
 }
 
 inline static long long getTypeSize(int count, MPI_Datatype type){
@@ -119,9 +108,9 @@ inline static long long getTypeSize(int count, MPI_Datatype type){
 
 static void w_timeStamp(){
   double curTime = MPI_Wtime();
-  double computeTime = (curTime - lastTime) * 1000.0 * 1000.0; // microseconds
-  if(computeTime > MIN_COMPUTE_TIME){
-    log("<Compute duration=\"%g\" unit=\"microseconds\" />\n", computeTime);
+  long long int computeCycles = (curTime - lastTime) * 1000.0 * 1000.0; // microseconds
+  if(computeCycles > 100){
+    log("<Compute cycles=\"%lld\"/>\n", computeCycles);
   }
 }
 
@@ -221,28 +210,6 @@ void w_Send(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
   log("<Send size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
 }
 
-void w_Bsend(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
-  int t_size;
-  MPI_Type_size(type, & t_size);
-
-  log("<Bsend size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
-}
-
-void w_Ssend(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
-  int t_size;
-  MPI_Type_size(type, & t_size);
-
-  log("<Ssend size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
-}
-
-void w_Isend(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
-  int t_size;
-  MPI_Type_size(type, & t_size);
-
-  log("<Isend size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
-}
-
-
 void w_Receive(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
   log("<Receive fromRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", rank, tag, getCommName(comm) )
 }
@@ -252,173 +219,21 @@ void w_Barrier(MPI_Comm comm){
 }
 
 // v2 , v3 , v4, v5, v9, v10, v11
-void w_Sendrecv(int count, MPI_Datatype type, int rank, int tag, int source, 
-				int recvtag, MPI_Comm comm)
-{
-  log("<Sendrecv size=\"%lld\" toRank=\"%d\" to-tag=\"%d\" fromRank=\"%d\" fromTag=\"%d\" comm=\"%s\"/>\n", 
-	  getTypeSize(count, type) , rank, tag, source, recvtag, getCommName(comm) )
+void w_Sendrecv(int count, MPI_Datatype type, int rank, int tag, int source, int recvtag, MPI_Comm comm){
+  log("<Sendrecv size=\"%lld\" toRank=\"%d\" to-tag=\"%d\" fromRank=\"%d\" fromTag=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type) , rank, tag, source, recvtag, getCommName(comm) )
 }
 
-void w_Sendrecv_replace(int count, MPI_Datatype type, int dest, int sendtag, 
-						int source, int recvtag, MPI_Comm comm)
-{
-	log("<Sendrecv_replace size='%lld' dest='%d' sendTag='%d' source='%d' recvTag='%d' "
-		"comm='%s' />\n", getTypeSize(count, type), dest, sendtag, source, recvtag, 
-		getCommName(comm))
-}
 
 void w_Allreduce(int count, MPI_Datatype type, MPI_Comm comm){
   log("<Allreduce size=\"%lld\" comm=\"%s\"/>\n", getTypeSize(count, type), getCommName(comm) )
 }
 
 void w_Reduce(int count, MPI_Datatype type, int root, MPI_Comm comm){
-  log("<Reduce size=\"%lld\" rootRank=\"%d\" comm=\"%s\"/>\n", 
-	  getTypeSize(count, type), root, getCommName(comm) )
+  log("<Reduce size=\"%lld\" rootRank=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type), root, getCommName(comm) )
 }
 
 void w_Bcast(int count, MPI_Datatype type, int root, MPI_Comm comm){
-  log("<Bcast size=\"%lld\" rootRank=\"%d\" comm=\"%s\"/>\n", 
-	  getTypeSize(count, type), root, getCommName(comm) )
-}
-
-
-void w_Gather(int sendcnt, MPI_Datatype sendtype, int recvcnt, MPI_Datatype recvtype, 
-			  int root, MPI_Comm comm)
-{
-	log("<Gather size='%lld' recvSize='%lld' root='%d' comm='%s' />\n", 
-		getTypeSize(sendcnt, sendtype), getTypeSize(recvcnt, recvtype), root, 
-		getCommName(comm))
-}
-
-void w_Gatherv(int sendcnt, MPI_Datatype sendtype, int *recvcnts, int *displs, 
-			   MPI_Datatype recvtype, int root, MPI_Comm comm)
-{
-	log("<Gatherv size='%lld' root='%d' comm='%s' />\n",
-		getTypeSize(sendcnt, sendtype), root, getCommName(comm))
-		// TODO: also save recvcnts ? 
-}
-
-void w_Scatter(int sendcnt, MPI_Datatype sendtype, int recvcnt, 
-			   MPI_Datatype recvtype, int root, MPI_Comm comm)
-{
-	log("<Scatter size='%lld' recvSize='%lld' root='%d' comm='%s' />\n", 
-		getTypeSize(sendcnt, sendtype), getTypeSize(recvcnt, recvtype), root, 
-		getCommName(comm))
-}
-
-void w_Scatterv(int *sendcnts, MPI_Datatype sendtype, int recvcnt, 
-			   MPI_Datatype recvtype, int root, MPI_Comm comm)
-{
-	log("<Scatterv recvSize='%lld' root='%d' comm='%s' />\n", 
-		getTypeSize(recvcnt, recvtype), root, 
-		getCommName(comm))
-	/*
-	int commsize, 
-		sendcnt = 0, 
-		i;
-	MPI_Comm_size(comm, commsize);
-	for(i = 0; i< commsize; ++i)
-		sendcnt += sendcnts[i];
-
-	log("<Scatterv size='%lld' recvSize='%lld' root='%d' comm='%s' />\n", 
-		getTypeSize(sendcnt, sendtype), getTypeSize(recvcnt, recvtype), root, 
-		getCommName(comm))
-	*/
-}
-
-void w_Allgather(int sendcount, MPI_Datatype sendtype,
-				 int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
-{
-	log("<Allgather size='%lld' recvSize='%lld' comm='%s' />\n",
-		getTypeSize(sendcount, sendtype), getTypeSize(recvcount, recvtype), getCommName(comm))
-}
-
-void w_Allgatherv(int sendcount, MPI_Datatype sendtype, 
-				  int *recvcounts, MPI_Datatype recvtype, MPI_Comm comm)
-{
-	log("<Allgatherv size='%lld' comm='%s' />\n", 
-		getTypeSize(sendcount, sendtype), getCommName(comm))
-}
-
-void w_Alltoall(int sendcount, MPI_Datatype sendtype, 
-				int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
-{
-	log("Alltoall size='%lld' comm='%s' />\n",
-		getTypeSize(sendcount, sendtype), getCommName(comm))
-}
-
-void w_Alltoallv(int *sendcnts, MPI_Datatype sendtype, int *recvcnts,
-				 MPI_Datatype recvtype,	 MPI_Comm comm)
-{
-	int size, i;
-	MPI_Comm_size(comm, &size);
-	log("<Alltoall comm='%s'>\n", getCommName(comm));
-	for(i = 0; i < size; ++i)
-		log(TAB_STRING "<Send rank='%d' size='%lld' />\n", 	// TODO: call this something other than "Send"
-			i, getTypeSize(sendcnts[i], sendtype));
-
-
-	log("</Alltoall>\n")
-}
-
-void w_Reduce_scatter(int *recvcnts, MPI_Datatype datatype,	MPI_Op op, MPI_Comm comm)
-{
-	int size, i;
-	MPI_Comm_size(comm, &size);
-	// TODO: log the MPI_Op structure? 
-	log("<Reduce_scatter>\n");
-	for(i = 0; i < size; ++i)
-		log(TAB_STRING "<Recv rank='%d' size='%lld' />\n", 
-			i, getTypeSize(recvcnts[i], datatype));
-	// NOTE: The recvcnts[] array must be equal on all nodes, so this 
-    // logs redundant information
-	log("</Reduce_scatter>\n");
-}
-
-void w_Scan(int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-{
-	log("<Scan size='%lld' comm='%s'/>\n", 
-		getTypeSize(count, datatype), getCommName(comm));
-}
-
-void w_Exscan(int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-{
-	log("<Excan size='%lld' comm='%s'/>\n", 
-		getTypeSize(count, datatype), getCommName(comm));
-}
-
-void w_Abort(MPI_Comm comm, int errorcode)
-{
-	log("<Abort comm='%s' errorcode='%d'/>\n", 
-		getCommName(comm), errorcode);
-
-	elog("</Program></Rank>\n");
-  
-	flush_log();
-	close(wrapper_fd);
-	close(wrapper_info_fd);
-}
-
-int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
-{
-	int ret;
-	tsprintf("Init_thread");
-	if( required != MPI_THREAD_SINGLE )
-	{
-		tsprintf("Init_thread: multithreading required while using the non-threadsafe mpiwrapper");
-		return -1; // TODO: is -1 the correct return value?
-	}
-	ret = PMPI_Init_thread(argc, argv, required, provided);
-	return ret;
-}
-
-void logError(int ret)
-{
-	static char errorstring[LENGTH];
-	int len;
-	MPI_Error_string(ret, errorstring, &len);
-	log("<Error code='%d' string='%s' />\n",
-		ret, errorstring);
+  log("<Bcast size=\"%lld\" rootRank=\"%d\" comm=\"%s\"/>\n", getTypeSize(count, type), root, getCommName(comm) )
 }
 
 
@@ -431,28 +246,16 @@ static GHashTable * filesStringMap = NULL; // maps filename to actual ID
 // each client chooses an ID which is 10000 x (RANK+1) + nextFileID
 static int nextFileID = 0;
 
-
-void * getFileHandleName(MPI_File * fh)
-{
-	return (void*)fh;
-}
-
-
 /**
- * TODO: Right now we assume MPI_File is of type int, this function is called 
- * AFTER the File got opened by MPI => fh is valid
+ * TODO: Right now we assume MPI_File is of type int, this function is called AFTER the File got opened by MPI => fh is valid
  */
-void w_File_open(MPI_Comm comm, char * name, int flags, MPI_Info info, MPI_File * fh, int ret){
+void w_File_open(MPI_Comm comm, char * name, int flags, MPI_Info info, MPI_File * fh){
   if(files == NULL){
 	files = g_hash_table_new (g_int_hash, g_int_equal);
 	filesStringMap = g_hash_table_new (g_str_hash, g_str_equal);
   }
 
-  log("<FileOpen comm=\"%s\" name=\"%s\" flags=\"%d\" fh=\"%p\" ret='%d'/>\n", 
-	  getCommName(comm), name, flags, getFileHandleName(fh), ret);
-
-  if(ret)
-	  logError(ret);
+  log("<!-- <FileOpen comm=\"%s\" name=\"%s\" flags=\"%d\" fh=\"%p\"/> -->\n", getCommName(comm), name, flags, fh)
 
   // TODO fix memleak
   gchar * dup = g_strdup(name);
@@ -477,8 +280,7 @@ void w_File_open(MPI_Comm comm, char * name, int flags, MPI_Info info, MPI_File 
 
 		MPI_Offset size;
 		PMPI_File_get_size(* fh, & size);
-  		info("File_open name=\"%s\" comm=\"%s\" flags=%d InitialSize=%lld id=%d\n", 
-			 name,  getCommName(comm), flags, (long long int) size, (int) *id);
+  		info("File_open name=\"%s\" comm=\"%s\" flags=%d InitialSize=%lld id=%d\n", name,  getCommName(comm), flags, (long long int) size, (int) *id);
 	}else{
 	   g_free(dup);
 	}
@@ -501,19 +303,6 @@ void w_File_open(MPI_Comm comm, char * name, int flags, MPI_Info info, MPI_File 
   // TODO fix id memleak
   g_hash_table_replace (files, (gint *) fh, id);
 }
-
-void w_File_close(MPI_File *file_handle)
-{
-	log("<File_close fh='%p' />\n",
-		getFileHandleName(file_handle));
-}
-
-void w_File_delete(char * filename)
-{
-	log("<File_delete name='%s' />\n", 
-		filename);
-}
-
 
 
 void w_File_write_at(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type){
