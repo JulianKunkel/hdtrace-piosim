@@ -1,0 +1,24 @@
+<Rank number="0"><Program>
+<Compute cycles="1853"/>
+<FileOpen file="10000" truncate="true" comm="WORLD"/>
+<Compute cycles="15996910"/>
+<FileWrite file="10000"> <Data offset="0" size="4"/> </FileWrite>
+
+<Nested>
+<FileWrite file="10000"> <Data offset="4" size="4"/> </FileWrite>
+</Nested>
+<FileWrite file="10000"> <Data offset="8" size="32"/> </FileWrite>
+
+<Bcast size="4" root="0" comm="WORLD"/>
+<Sendrecv size="6472" toRank="1" toTag="111" fromRank="1" fromTag="111" comm="WORLD"/>
+<Compute cycles="2160"/>
+
+<Statistics time="1000">
+<Energy>
+<Power value="67.6"/>
+<Current value="100"/>
+</Energy>
+</Statistics>
+
+</Program>
+</Rank>
