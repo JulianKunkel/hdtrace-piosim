@@ -7,10 +7,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import de.hd.pvs.traceConverter.Output.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 import edu.uoregon.tau.trace.TraceFactory;
 import edu.uoregon.tau.trace.TraceWriter;
-import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 
 public class TauConverter extends TraceOutputConverter {
 

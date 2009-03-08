@@ -1,24 +1,38 @@
-<Rank number="0"><Program>
-<Compute cycles="1853"/>
-<FileOpen file="10000" truncate="true" comm="WORLD"/>
-<Compute cycles="15996910"/>
-<FileWrite file="10000"> <Data offset="0" size="4"/> </FileWrite>
+<?xml version="1.0" encoding="UTF-8"?>
+<Application name="result" processCount="2">
+ <Description>     </Description>
+<FileList>
+<File name="pvfs2://pvfs2//visualization.dat" id="10000">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+<File name="pvfs2://pvfs2//checkpoint.1" id="10001">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+<File name="pvfs2://pvfs2//checkpoint.2" id="10002">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
 
-<Nested>
-<FileWrite file="10000"> <Data offset="4" size="4"/> </FileWrite>
-</Nested>
-<FileWrite file="10000"> <Data offset="8" size="32"/> </FileWrite>
+</FileList>
+<CommunicatorList> <Communicator name="WORLD"/>  </CommunicatorList>
+<!-- echtes mapping reinschreiben, virtuelle ranks garnicht zeigen! -->
 
-<Bcast size="4" root="0" comm="WORLD"/>
-<Sendrecv size="6472" toRank="1" toTag="111" fromRank="1" fromTag="111" comm="WORLD"/>
-<Compute cycles="2160"/>
+<ExternalStatistics>
+			<Energy> <!-- implizit stored in a file stat_Energy -->
+				<Power type="float" />
+				<Current type="float" />
+			</Energy>
+			<Kernel> <!-- implizit stored in a file stat_Kernel -->
+			<Load type="float" />
+			</Kernel>
+</ExternalStatistics>
 
-<Statistics time="1000">
-<Energy>
-<Power value="67.6"/>
-<Current value="100"/>
-</Energy>
-</Statistics>
-
-</Program>
-</Rank>
+</Application>

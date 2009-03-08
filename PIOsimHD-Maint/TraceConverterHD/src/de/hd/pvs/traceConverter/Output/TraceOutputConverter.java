@@ -3,8 +3,7 @@ package de.hd.pvs.traceConverter.Output;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import de.hd.pvs.traceConverter.Input.ExternalStatisticsDescription;
-import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
+import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 
 /**
  * An implementation of the TraceOutputConverter decides how to 
@@ -31,7 +30,7 @@ abstract public class TraceOutputConverter {
 			String resultFile, 
 			int ranks, 
 			int [] vThreadsPerRank, 
-			ArrayList<ExternalStatisticsDescription> extStat
+			ArrayList<ExternalStatisticsGroup> extStat
 			);
 	
 	/**
