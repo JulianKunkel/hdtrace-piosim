@@ -1,5 +1,6 @@
 package de.hd.pvs.traceConverter;
 
+import de.hd.pvs.traceConverter.Input.InputData;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 
 public class HDTraceConverter {
@@ -8,7 +9,7 @@ public class HDTraceConverter {
 	 * Start the conversion of the input trace to the given output trace.
 	 * @param param
 	 */
-	public void process(RunParameters param) {
+	public void process(RunParameters param) throws Exception{
 		// try to instantiate the appropriate output converter:
 		TraceOutputConverter converter = instantiateOutputWriter(
 				"de.hd.pvs.traceConverter.Output." + 
@@ -22,6 +23,12 @@ public class HDTraceConverter {
 
 		// Test with just one trace file:
 		SaxTraceFileTokenizer tokenizer = new SaxTraceFileTokenizer(param.getInputTraceFile());	
+		
+		InputData data = tokenizer.getNextInputData();
+		while(data != null){
+			System.out.println("Data");
+			data = tokenizer.getNextInputData();
+		}
 	}
 	
 	/** 
