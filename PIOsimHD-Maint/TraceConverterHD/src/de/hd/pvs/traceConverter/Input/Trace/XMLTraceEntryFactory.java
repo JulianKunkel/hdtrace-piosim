@@ -39,6 +39,10 @@ public class XMLTraceEntryFactory {
 					traceObj.addXMLTraceChild(childTraceEntry);
 				}
 			}
+			
+			if(newNestedData != null){
+				throw new IllegalArgumentException("Nested data, but no parent to attach to: " + newNestedData + " inside data " + data );
+			}
 		}
 		
 		return traceObject;
