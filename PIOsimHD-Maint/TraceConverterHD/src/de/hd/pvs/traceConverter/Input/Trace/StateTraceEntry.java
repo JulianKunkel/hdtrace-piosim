@@ -8,14 +8,22 @@ import de.hd.pvs.piosim.model.util.Epoch;
 
 public class StateTraceEntry extends EventTraceEntry{
 
-	Epoch duration = null;
+	final Epoch duration;
 
 	LinkedList<XMLTraceEntry> nestedTraceChildren = null;
 	
 	
 	public StateTraceEntry(String name, final HashMap<String, String> attributes,
 			XMLTraceEntry parentXMLData) {
-		super(name, attributes, parentXMLData);		
+		super(name, attributes, parentXMLData);
+		
+		// parse common time value
+		String value = attributes.remove("duration");
+		if(value != null){
+			duration = Epoch.parseTime(value);
+		}else{
+			throw new IllegalArgumentException("Trace invalid, no time given");
+		}
 	}
 	
 	public void addXMLTraceChild(XMLTraceEntry child){
@@ -25,11 +33,7 @@ public class StateTraceEntry extends EventTraceEntry{
 		
 		nestedTraceChildren.add(child);
 	}
-	
-	void setDuration(Epoch duration) {
-		this.duration = duration;
-	}
-	
+		
 	@Override
 	public TYPE getType() {		
 		return TYPE.STATE;

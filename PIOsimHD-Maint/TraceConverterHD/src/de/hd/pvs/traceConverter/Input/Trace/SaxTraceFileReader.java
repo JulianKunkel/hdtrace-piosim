@@ -39,7 +39,7 @@ public class SaxTraceFileReader{
 	 * is the trace file read completely
 	 */
 	boolean finished = false;
-	
+
 	/**
 	 * Thread controlling the SAX Parser, Producer & Consumer Design Pattern
 	 *
@@ -117,19 +117,25 @@ public class SaxTraceFileReader{
 		} 
 	}
 
-	
+
 	final class TraceHandler extends DefaultHandler {
 
 		/**
 		 * State/Statistics which are currently build
 		 */
 		private XMLTag currentData;
-		
+
+		/**
+		 * Top level nested data:
+		 */
+		private XMLTag nestedData;
+
+
 		/**
 		 * Current depths of the tag nesting.
 		 */
 		private int nesting_depth = 0; 
-
+		
 		/**
 		 * set on true when the Program tag is set
 		 */
@@ -138,11 +144,11 @@ public class SaxTraceFileReader{
 		/**
 		 * Is called by the SaxThread, converts read XML data into a valid XML TraceEntry. 
 		 */
-		private void addElements(XMLTag data){
+		private void addElements(XMLTag data, XMLTag nestedData){
 			XMLTraceEntry newTraceEntry;
 			try{
-				newTraceEntry = XMLTraceEntryFactory.manufactureXMLTraceObject(data, null);
-			}catch(IllegalArgumentException e){
+				newTraceEntry = XMLTraceEntryFactory.manufactureXMLTraceObject(data, null, nestedData);
+			}catch(IllegalArgumentException e){			
 				throw new IllegalArgumentException("Invalid XML object: " + data, e);
 			}
 
@@ -164,8 +170,7 @@ public class SaxTraceFileReader{
 		 * Is called for all tag open elements.
 		 */
 		public void startElement(String namespaceURI, String localName,
-				String qName, Attributes atts) throws SAXException
-				{
+				String qName, Attributes atts) throws SAXException{
 			nesting_depth++;
 
 			if (qName.equals("Program") && nesting_depth == 2){
@@ -185,7 +190,7 @@ public class SaxTraceFileReader{
 			// check if there are nested XMLTrace stats
 			XMLTag parent = currentData;
 			currentData = new XMLTag(qName, attributes, parent);
-				}
+		}
 
 		/**
 		 * Is called for all tag close elements.
@@ -202,8 +207,11 @@ public class SaxTraceFileReader{
 			if(! startProcessing)
 				return;
 
-			if(! currentData.isChild()){
-				addElements(currentData);
+			if(qName.equals("Nested")){
+				nestedData = currentData;				
+			}else if(! currentData.isChild()){
+				addElements(currentData, nestedData);
+				nestedData = null;
 			}
 			currentData = currentData.getParentTag();
 		}
@@ -261,7 +269,7 @@ public class SaxTraceFileReader{
 		}
 		return null;
 	}
-	
+
 	public boolean isFinished() {
 		return finished;
 	}

@@ -10,13 +10,13 @@ import java.util.LinkedList;
  *
  */
 public class XMLTag {
-	LinkedList<XMLTag> nestedXMLTags;
+	private LinkedList<XMLTag> nestedXMLTags;
 
-	final HashMap<String, String> attributes;	
-	final String					  name;
-	String                  containedText = null;
+	private final HashMap<String, String> attributes;	
+	private final String					  name;
+	private String                  containedText = null;
 	
-	final XMLTag 	parentTag;
+	private XMLTag 	parentTag;
 	
 	public XMLTag(final String name, final HashMap<String, String> attributes,
 			XMLTag parentXMLTag) {
@@ -35,6 +35,11 @@ public class XMLTag {
 		}
 		
 		nestedXMLTags.add(tag);
+	}
+	
+	public void setXMLParentTag(XMLTag parent){
+		parent.addXMLChildTag(this);
+		this.parentTag = parent;
 	}
 	
 	public LinkedList<XMLTag> getNestedXMLTags() {

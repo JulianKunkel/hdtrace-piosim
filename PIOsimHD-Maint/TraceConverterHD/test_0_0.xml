@@ -6,22 +6,28 @@
 		<Compute time="3" duration="1" />
 		<FileWrite time="4" duration="1" file="10000">
 			<Data offset="0" size="4"></Data>
+			<Data offset="20" size="4000"></Data>
 		</FileWrite>
-		<FileWrite time="5" file="10000">
-			<Data offset="8" size="32" />
+
+		<Nested>
+			<Event name="test" time="5.2" />
 			<Nested>
-				<Event name="test" time="5.2" />
-				<FileWrite time="6" file="10000">
-					<Data offset="4" size="4" />
-					<Nested>
-						<Bcast time="6.1" duration="1.1"  size="4" root="0" comm="WORLD"/>
-					</Nested>
-				</FileWrite>				
+				<Bcast time="6.1" duration="1.1" size="4" root="0" comm="WORLD" />
 			</Nested>
+			<FileWrite time="6" duration="1.0" file="10000">
+				<Data offset="4" size="4" />
+			</FileWrite>
+		</Nested>
+		<FileWrite time="5" duration="2.0" file="10000">
+			<Data offset="8" size="32" />
 		</FileWrite>
-		<Event name="test2" time="6.2" />
-		<Event name="test3" time="6.3" />
-		<Event name="test3" time="6.4" />
+
+
+		<Nested>
+			<Event name="test2" time="6.2" />
+			<Event name="test3" time="6.3" />
+			<Event name="test3" time="6.4" />
+		</Nested>
 		<Bcast time="7" duration="1" size="4" root="0" comm="WORLD" />
 	</Program>
 </Rank>
