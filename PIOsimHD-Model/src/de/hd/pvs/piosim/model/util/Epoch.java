@@ -156,7 +156,7 @@ public class Epoch implements Comparable<Epoch> {
 				break;
 		}	
 		
-		if (lastZeros > 0){
+		if (lastZeros >= 0){
 			return seconds
 				+ "." //%+10.4f %9d
 				+ out.substring(0, lastZeros + 1) + "s";
