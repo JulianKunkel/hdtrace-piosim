@@ -3,39 +3,25 @@ package de.hd.pvs.traceConverter.Output.Tau;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 
-import de.hd.pvs.traceConverter.Output.ProcessIdentifier;
+import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
+import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 import edu.uoregon.tau.trace.TraceFactory;
 import edu.uoregon.tau.trace.TraceWriter;
 
 public class TauConverter extends TraceOutputConverter {
-
 	/**
 	 * The tau trace writer.
 	 */
 	private TraceWriter tauWriter;
-	
-	/**
-	 * The next jobID which can be used, should be unique. TODO fix for long runs. 
-	 */
-	private static long jobID = 0; 
-	
-	/**
-	 * Inside the trace file each class gets its own group.  
-	 */
-	private static int nextCompID = 0;
-	private HashMap<Class<?>, Integer> tauCompGroupMap = new HashMap<Class<?>, Integer>();
-	
-	/**
-	 * Category map. Virtual distinguishes between different types of events.
-	 */
-	private static int nextCatID = 0;
-	private HashMap<String, Integer> tauCategoryMap = new HashMap<String,Integer>();
-	
+
 	/**
 	 * for internal debugging, shows how many arrows (and jobs) started but not yet ended 
 	 */
@@ -43,240 +29,102 @@ public class TauConverter extends TraceOutputConverter {
 	static int pendingStarts = 0;
 	
 	/**
-	 * Register a component identifier inside the trace, then the component can be used later for tracing.
-	 * 
-	 * @param cid
+	 * Category map. Virtual distinguishes between different types of events.
 	 */
-	private void preregister(int rank, int vthread, String name){
-		tauWriter.defThread(rank, vthread, name);
-	}
-	
-	/**
-	 * Start a job with a given description.
-	 */
-	
-	public void StateStart(ProcessIdentifier id, String stateName) {
-		pendingStarts++;
-		
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer nodeID = cid.getID();	
-		assert(nodeID != null);
-		
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-		if (categoryID == null){
-			categoryID = ++nextCatID;
-			
-			Integer compGroupID = tauCompGroupMap.get(comp.getClass());
-			if (compGroupID == null){
-				++nextCompID;
-				
-				tauWriter.defStateGroup(comp.getClass().getSimpleName(), nextCompID);
-				
-				compGroupID = nextCompID;
-				tauCompGroupMap.put(comp.getClass(), compGroupID);
-			}
-			
-			tauWriter.defState(categoryID, eventDesc, compGroupID);
-			tauCategoryMap.put(eventDesc, categoryID);
-		}
-		
-		tauWriter.enterState(getTime(),	nodeID, 0, categoryID);
-		
-		assert(logStartOfEvent(comp, eventDesc));
-		
-		jobID++;
-	}
-	
-	/**
-	 * Start an arrow from the source to the target. An appropriate arrowEnd must been called.
-	 * 
-	 * @param src
-	 * @param tgt
-	 * @param messageSize
-	 * @param messageTag
-	 * @param messageComm
-	 */
-	public void arrowStart(TraceType type, SPassiveComponent src, SPassiveComponent tgt, 
-			long messageSize, int messageTag, int messageComm){
-	
-		assert(tgt != null);
-		
-		//endtime == now
-		Integer nodeIDStart = src.getIdentifier().getID();
-		Integer nodeIDEnd = tgt.getIdentifier().getID();
-		
-		//System.out.println("S:" + src.getIdentifier() + "-" + tgt.getIdentifier() + " " + getTime() + " " + nodeIDStart + ", " + nodeIDEnd + " :" + messageTag + " " + messageComm);
-		
-		// Warning do not use values which are bigger than half of integer, otherwise the signed Trace Writer will remove them!!!
-		assert(messageComm <= 100000 && messageComm >= 0);
-		assert(messageTag >= 0);
-		assert(messageSize <= 44576804/2);
-		assert(nodeIDStart != null);
-		assert(nodeIDEnd != null);
-		
-		tauWriter.sendMessage(getTime(), nodeIDStart, 0, nodeIDEnd, 
-				0, (int) messageSize, messageTag, messageComm);
-		
-		pendingArrows++;
-	}
-	
-	/**
-	 * End an arrow which got started earlier.
-	 * 
-	 * @param type
-	 * @param src
-	 * @param tgt
-	 * @param messageSize
-	 * @param messageTag
-	 * @param messageComm
-	 */
-	public void arrowEnd(TraceType type, SPassiveComponent src, SPassiveComponent tgt, 
-			long messageSize, int messageTag, int messageComm){
+	private static int nextCatID = 0;
+	private HashMap<String, Integer> tauCategoryMap = new HashMap<String,Integer>();
 
-		//endtime == now
-		Integer nodeIDStart = src.getIdentifier().getID();
-		Integer nodeIDEnd = tgt.getIdentifier().getID();
-		
-		assert(nodeIDStart != null);
-		assert(nodeIDEnd != null);
-		
-		//System.out.println("E:"+ src.getIdentifier() + "-" + tgt.getIdentifier() + " "  + getTime() + " " + nodeIDStart + ", " + nodeIDEnd + " :" + messageTag + " " + messageComm);
-		
-		tauWriter.recvMessage(getTime(), nodeIDStart, 0, nodeIDEnd, 
-				0, (int)  messageSize, messageTag, messageComm);
-		
-		pendingArrows--;
-	}
 	
-	/**
-	 * End a job which got started with start.
-	 * 
-	 * @param type
-	 * @param comp
-	 * @param eventDesc
-	 */
-	public void end(TraceType type, SPassiveComponent comp, String eventDesc){
-		
-		pendingStarts--;
-		
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer nodeID = cid.getID();
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-
-		assert(nodeID != null);
-		assert(categoryID != null);
-		
-		assert(logEndOfEvent(comp, eventDesc));
-
-		tauWriter.leaveState(getTime(), nodeID, 0, categoryID);		
-		
-		addUsedComponent(comp);
-	}
+	private static final int DEFAULT_GROUP_ID = 10;
 	
-	private void addUsedComponent(SPassiveComponent comp){
-		usedCIDs.add(comp.getIdentifier());
-	}
-	
-	/**
-	 * for internal use !
-	 * @param type
-	 * @param comp
-	 * @param eventDesc
-	 * @param endTime
-	 */
-	private void end(TraceType type, SPassiveComponent comp, String eventDesc, long endTime){
-		
-		pendingStarts--;
-		
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer nodeID = cid.getID();
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-
-		assert(nodeID != null);
-		assert(categoryID != null);
-		
-		assert(logEndOfEvent(comp, eventDesc));
-
-		tauWriter.leaveState(endTime, nodeID, 0, categoryID);		
-	}
-	
-	/**
-	 * Start a single event.
-	 * @param type
-	 * @param comp
-	 * @param eventDesc
-	 * @param userEventValue
-	 */
-	public void event(TraceType type, SPassiveComponent comp, String eventDesc, long userEventValue){
-
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer threadID = cid.getID();
-		
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-		if (categoryID == null){
-			categoryID = ++nextCatID;
-			
-			Integer compGroupID = tauCompGroupMap.get(comp.getClass());
-			if (compGroupID == null){
-				++nextCompID;
-				
-				tauWriter.defStateGroup(comp.getClass().getSimpleName(), nextCompID);
-				
-				compGroupID = nextCompID;
-				tauCompGroupMap.put(comp.getClass(), compGroupID);
-			}
-			
-			tauWriter.defUserEvent(categoryID, eventDesc, compGroupID);
-			tauCategoryMap.put(eventDesc, categoryID);
-		}
-		
-		tauWriter.eventTrigger(getTime(),	threadID, 0, categoryID, userEventValue);
-		
-		addUsedComponent(comp);
-		
-		jobID++;		
-	}
-	
-	/**
-	 * Instantiate the trace writer with the given filename (Prefix).
-	 */
-	public STraceWriter(String filename, Simulator sim) {	
-		this.filenamePrefix = filename;
-		this.sim = sim;
-		try{ 
-			FileWriter fstream = new FileWriter(filename + ".xml");
-			xmlstatistics = new BufferedWriter(fstream);
-		}catch (IOException e){//Catch exception if any
-			System.err.println("Could not create Tracefile " + filename + " - " + e.getMessage());
-			System.exit(1);
-		}
-		
-		try    {
+	@Override
+	public void initializeTrace(Properties commandLineArguments, String resultFile) 
+	{
+		try{
 			this.tauWriter = TraceFactory.OpenFileForOutput(
-					filename + ".trc",
-					filename + ".edf");
+					resultFile + ".trc",
+					resultFile + ".edf");
 		} catch    (Exception e)    {
-			e.printStackTrace();
-			System.exit(1);
+			throw new IllegalArgumentException(e);
 		}
+		
+		// right now just define one group
+		tauWriter.defStateGroup("Normal", DEFAULT_GROUP_ID);
+		tauWriter.defStateGroup("TAU", 0);
 	}
-	
-	/**
-	 * finish the tracing.
-	 */
+
+	@Override
 	public void finalizeTrace() {
-		// finalize logfile
 
 		tauWriter.closeTrace();
-				
+
 		if (pendingArrows != 0)
 			System.err.println("StraceWriter: pending (unfinished arrows) " + pendingArrows);
 		if (pendingStarts != 0) {
 			System.err.println("StraceWriter: pending (unfinished start states) " + pendingStarts);
 		}
 	}
+
+	@Override
+	public void addTimeline(int rank, int timelineThread, String name) {
+		tauWriter.defThread(rank, timelineThread, name);
+	}
+
+	@Override
+	public void addStatistic(int rank, int thread, String name) {
+		// do nothing, maybe later put the statistic on a own rank.
+	}
+
+	@Override
+	public void Event(ProcessIdentifier id, Epoch time, String eventName) {
+		Integer categoryID = tauCategoryMap.get(eventName);
+		if (categoryID == null){
+			categoryID = ++nextCatID;
+			
+			tauWriter.defUserEvent(categoryID, eventName, DEFAULT_GROUP_ID);
+			tauCategoryMap.put(eventName, categoryID);
+		}
+		
+		System.out.println("E " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
+		
+		tauWriter.eventTrigger(getTimeMikro(time),	 id.getRank(), id.getVthread(), categoryID, 0);
+	}
+
+
+	@Override
+	public void StateEnd(ProcessIdentifier id, Epoch time, String stateName) {		
+		pendingStarts--;
+		
+		Integer categoryID = tauCategoryMap.get(stateName);
+		
+		System.out.println("> " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
+		tauWriter.leaveState(getTimeMikro(time), id.getRank(), id.getVthread(), categoryID);	
+	}
+
+	@Override
+	public void StateStart(ProcessIdentifier id, Epoch time, String stateName) {		
+		pendingStarts++;
+		
+		Integer categoryID = tauCategoryMap.get(stateName);
+		if (categoryID == null){
+			categoryID = ++nextCatID;
+			
+			tauWriter.defState(categoryID, stateName, DEFAULT_GROUP_ID);
+			tauCategoryMap.put(stateName, categoryID);
+		}
+		
+		System.out.println("< " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());		
+		tauWriter.enterState(getTimeMikro(time), id.getRank(), id.getVthread(), categoryID);		
+	}
+
+	@Override
+	public void Statistics(ProcessIdentifier id, Epoch time, String group) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private long getTimeMikro(Epoch time){
+		return time.getSeconds() * 1000 * 1000 + time.getNanoSeconds() / 1000;
+	}
+	
 }

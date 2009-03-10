@@ -5,6 +5,7 @@ import java.util.PriorityQueue;
 
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
+import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticProcessor;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticsReader;
@@ -29,7 +30,7 @@ public class HDTraceConverter {
 				"de.hd.pvs.traceConverter.Output." + 
 				param.getOutputFormat() + "." +
 				param.getOutputFormat() + "Converter");
-
+		
 		// scan for all the XML files which must be opened during conversion:
 		// general description
 		ApplicationTraceReader traceReader = new ApplicationTraceReader(param.getInputTraceFile());
@@ -37,13 +38,19 @@ public class HDTraceConverter {
 		// pending events and files to process
 		PriorityQueue<AbstractTraceProcessor> pendingReaders = new PriorityQueue<AbstractTraceProcessor>();
 		
+		// init trace converter to make it ready:
+		outputConverter.initializeTrace(param.getOutputFileSpecificOptions(), param.getOutputFilePrefix());
+
 		// start parsing of the trace files:
 		// trace files: rank + thread id are defined in the file name
 		ExistingTraceFiles files = traceReader.getTraceFiles();		
 		for(int rank=0 ; rank < files.getSize(); rank++){
 			for(int thread : files.getExistingThreads(rank)){
 				AbstractTraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(files.getFilenameXML(rank, thread)));
+				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
 				processor.setOutputConverter(outputConverter);
+				processor.setProcessIdentifier(pid);
+				
 				pendingReaders.add(processor);
 				
 				// external statistics
@@ -59,13 +66,15 @@ public class HDTraceConverter {
 					
 					processor = new StatisticProcessor(new StatisticsReader(files.getFilenameStatistics(rank, thread, statFile), 
 							statGroup)); 
+					
 					processor.setOutputConverter(outputConverter);
+					processor.setProcessIdentifier(pid);
 					
 					pendingReaders.add(processor);					
 				}
 			}			
 		}
-		
+				
 		Epoch now = Epoch.ZERO;
 		Epoch old = Epoch.ZERO;
 		
@@ -85,6 +94,8 @@ public class HDTraceConverter {
 				pendingReaders.add(reader);
 			}
 		}
+		
+		outputConverter.finalizeTrace();
 	}
 
 	/** 

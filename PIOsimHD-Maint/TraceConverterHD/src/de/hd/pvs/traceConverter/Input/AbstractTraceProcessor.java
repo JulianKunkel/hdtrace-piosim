@@ -18,6 +18,8 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	 */
 	private TraceOutputConverter outputConverter;
 	
+	private ProcessIdentifier  processIdentifier;
+	
 	/**
 	 * Are there more events to process
 	 * @return
@@ -37,16 +39,40 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	abstract public Epoch peekEarliestTime();
 	
 	/**
+	 * Called once all information is set on this TraceProcessor
+	 */
+	abstract public void initalize();
+	
+	/**
 	 * Set the implementation of the {@link TraceOutputConverter} i.e. the file format and spec.
 	 * @param outputConverter
 	 */
-	public void setOutputConverter(TraceOutputConverter outputConverter) {
+	final public void setOutputConverter(TraceOutputConverter outputConverter) {
 		this.outputConverter = outputConverter;
+	}
+	
+	final public TraceOutputConverter getOutputConverter() {
+		return outputConverter;
+	}
+	
+	/**
+	 * Set all information about the running process needed.
+	 * @param pid
+	 */
+	public void setProcessIdentifier(ProcessIdentifier pid){
+		this.processIdentifier = pid;
 	}
 	
 	@Override
 	public int compareTo(AbstractTraceProcessor o) {	
 		return this.peekEarliestTime().compareTo(o.peekEarliestTime());
 	}
-	
+
+	/**
+	 * Return the process ID of this trace processor
+	 * @return
+	 */
+	public ProcessIdentifier getPID() {
+		return processIdentifier;
+	}
 }

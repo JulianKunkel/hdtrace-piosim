@@ -10,7 +10,7 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
  */
 public class StatisticsReader{
 	public StatisticsReader(String filename, ExternalStatisticsGroup group) throws Exception {
-		
+		//DataInputStream
 	}
 	
 }

@@ -26,6 +26,12 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		readNextTraceEntryIfNecessary();
 	}
 	
+	@Override
+	public void initalize() {
+		// register me on the trace converter, right now use just one timeline for our events.
+		getOutputConverter().addNormalTimeline(getPID());
+	}
+	
 	private void readNextTraceEntryIfNecessary(){		
 		//if(currentTraceEntry != null)
 			//System.out.println(currentTraceEntry);
@@ -74,11 +80,15 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		//System.out.println(eventTime.getFullDigitString() + " " + stateStart + " processing " + currentTraceEntry.getName() + " t " + currentTraceEntry.getTime());
 		
 		if(currentTraceEntry.getType() == TYPE.EVENT){
+			getOutputConverter().Event(getPID(), now, currentTraceEntry.getName());
+			
 			readNextTraceEntryIfNecessary();
 		}else if(currentTraceEntry.getType() == TYPE.STATE){			
 			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
 			
-			if(stateStart){				
+			if(stateStart){
+				getOutputConverter().StateStart(getPID(), now, currentTraceEntry.getName());
+				
 				if(state.hasNestedTrace()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
 					eventTime = currentTraceEntry.getTime();					
@@ -88,6 +98,8 @@ public class TraceProcessor extends AbstractTraceProcessor{
 					eventTime = state.getTime().add(state.getDuration());
 				}
 			}else{
+				getOutputConverter().StateEnd(getPID(), now, currentTraceEntry.getName());
+				
 				stateStart = true;
 				readNextTraceEntryIfNecessary();
 			}

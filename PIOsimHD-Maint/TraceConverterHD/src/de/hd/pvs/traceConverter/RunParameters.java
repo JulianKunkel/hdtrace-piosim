@@ -42,6 +42,11 @@ public class RunParameters {
 	Properties outputFileSpecificOptions = new Properties();
 	
 	/**
+	 * Prefix of all files which will be created by the TraceConverter
+	 */
+	String outputFilePrefix = "converted";
+	
+	/**
 	 * If true then all debug messages are printed.
 	 */
 	boolean debugEverything = false;
@@ -89,5 +94,13 @@ public class RunParameters {
 	 */
 	public void setInputTraceFile(String traceFile) {
 		this.inputTraceFile = traceFile;
+	}
+	
+	public void setOutputFilePrefix(String outputFilePrefix) {
+		this.outputFilePrefix = outputFilePrefix;
+	}
+	
+	public String getOutputFilePrefix() {
+		return outputFilePrefix;
 	}
 }

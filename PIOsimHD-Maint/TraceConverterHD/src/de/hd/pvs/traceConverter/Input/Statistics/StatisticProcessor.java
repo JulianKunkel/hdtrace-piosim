@@ -18,6 +18,12 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	}
 	
 	@Override
+	public void initalize() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
 	public Epoch peekEarliestTime() {
 		// TODO Auto-generated method stub
 		return Epoch.ZERO;
