@@ -3,6 +3,7 @@ package de.hd.pvs.traceConverter.Input.Trace;
 
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
+import de.hd.pvs.traceConverter.Input.Trace.XMLTraceEntry.TYPE;
 
 /**
  * Reads data from a XML trace and triggers the appropriate Start/Stop Event/State calls. 
@@ -13,29 +14,94 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 public class TraceProcessor extends AbstractTraceProcessor{
 	final SaxTraceFileReader reader;
 	
-	private XMLTraceEntry nextTraceEntry = null;
+	private XMLTraceEntry currentTraceEntry = null;	
+	/**
+	 * If the currentTraceEntry is a State, does it start now, or end?
+	 */
+	private boolean stateStart = true;
+	private Epoch   eventTime;
 	
 	public TraceProcessor(final SaxTraceFileReader reader) {
 		this.reader = reader;
+		readNextTraceEntryIfNecessary();
+	}
+	
+	private void readNextTraceEntryIfNecessary(){		
+		//if(currentTraceEntry != null)
+			//System.out.println(currentTraceEntry);
 		
-		nextTraceEntry = reader.getNextInputData();
+		// if it is a child, pick the next object:
+		if(currentTraceEntry != null && currentTraceEntry.isTraceChild()){
+			//System.out.println("Parent: " + currentTraceEntry.getName());
+			
+			if(currentTraceEntry.getType() == TYPE.STATE){
+				StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
+				if(state.hasNestedTrace()){
+					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
+					eventTime = currentTraceEntry.getTime();		
+
+					stateStart = true;
+					return;
+				}
+			}			
+			
+			currentTraceEntry = currentTraceEntry.getParentTraceData();
+			// are there further children?
+			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
+			
+			if(state.hasNestedTrace()){
+				currentTraceEntry = state.getNestedTraceChildren().pollFirst();
+				eventTime = currentTraceEntry.getTime();		
+				
+				stateStart = true;
+			}else{
+				// finish State now
+				stateStart = false;
+				eventTime = state.getTime().add(state.getDuration());			
+			}
+			
+			return;
+		}
+		
+		currentTraceEntry = reader.getNextInputData();
+		if(currentTraceEntry == null)
+			return;
+		eventTime = currentTraceEntry.getTime();		
 	}
 		
 	@Override
-	public void processEarliestEvent() {
-		System.out.println("processing " + nextTraceEntry.getName() + " t " + nextTraceEntry.getTime());
+	public void processEarliestEvent(Epoch now) {		
+		//System.out.println(eventTime.getFullDigitString() + " " + stateStart + " processing " + currentTraceEntry.getName() + " t " + currentTraceEntry.getTime());
 		
-		nextTraceEntry = reader.getNextInputData();
+		if(currentTraceEntry.getType() == TYPE.EVENT){
+			readNextTraceEntryIfNecessary();
+		}else if(currentTraceEntry.getType() == TYPE.STATE){			
+			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
+			
+			if(stateStart){				
+				if(state.hasNestedTrace()){
+					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
+					eventTime = currentTraceEntry.getTime();					
+					stateStart = true;
+				}else{
+					stateStart = false;				
+					eventTime = state.getTime().add(state.getDuration());
+				}
+			}else{
+				stateStart = true;
+				readNextTraceEntryIfNecessary();
+			}
+		}		
 	}
 	
 	@Override
 	public Epoch peekEarliestTime() {		
-		return nextTraceEntry.getTime();
+		return eventTime;
 	}
 	
 	@Override
 	public boolean isFinished() {
-		return nextTraceEntry == null;
+		return currentTraceEntry == null;
 	}
 	
 }

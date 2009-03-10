@@ -4,13 +4,9 @@ import java.util.HashMap;
 
 public class EventTraceEntry extends XMLTraceEntry{
 
-	private final XMLTraceEntry parentXMLData; 
-	
 	public EventTraceEntry(String name, final HashMap<String, String> attributes,
 			XMLTraceEntry parentXMLData) {
-		super(name, attributes);
-		
-		this.parentXMLData = parentXMLData;
+		super(name, attributes, parentXMLData);		
 	}
 	
 	@Override
@@ -18,13 +14,5 @@ public class EventTraceEntry extends XMLTraceEntry{
 		return TYPE.EVENT;
 	}
 	
-
-	public XMLTraceEntry getParentTraceData() {
-		return parentXMLData;
-	}
-	
-	public boolean isTraceChild(){
-		return parentXMLData != null;
-	}
 	
 }

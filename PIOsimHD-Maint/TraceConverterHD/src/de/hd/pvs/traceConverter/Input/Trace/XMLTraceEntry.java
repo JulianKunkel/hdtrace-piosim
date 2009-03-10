@@ -35,9 +35,21 @@ public abstract class XMLTraceEntry {
 
 	abstract public TYPE getType();
 
-	public XMLTraceEntry(final String name, final HashMap<String, String> attributes) {
+
+	private final XMLTraceEntry parentXMLData; 
+	
+	public XMLTraceEntry getParentTraceData() {
+		return parentXMLData;
+	}
+	
+	public boolean isTraceChild(){
+		return parentXMLData != null;
+	}
+	
+	public XMLTraceEntry(final String name, final HashMap<String, String> attributes, XMLTraceEntry parentXMLData) {
 		this.attributes = attributes;
 		this.name = name;
+		this.parentXMLData  = parentXMLData;
 
 
 		// parse common time value

@@ -27,7 +27,7 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	/**
 	 * Return the next "trace event" to process.
 	 */
-	abstract public void processEarliestEvent();
+	abstract public void processEarliestEvent(Epoch now);
 	
 	/**
 	 * Return the next event in the trace source.

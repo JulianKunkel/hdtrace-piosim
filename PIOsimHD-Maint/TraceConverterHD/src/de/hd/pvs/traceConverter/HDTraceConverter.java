@@ -3,6 +3,7 @@ package de.hd.pvs.traceConverter;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
+import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticProcessor;
@@ -65,11 +66,20 @@ public class HDTraceConverter {
 			}			
 		}
 		
+		Epoch now = Epoch.ZERO;
+		Epoch old = Epoch.ZERO;
+		
 		// now start to take the first trace event out of the queue and process:
 		while(! pendingReaders.isEmpty()){
 			AbstractTraceProcessor reader = pendingReaders.poll();
 			
-			reader.processEarliestEvent();
+			now = reader.peekEarliestTime();
+			
+			if(now.compareTo(old) < 0){
+				throw new IllegalArgumentException("Wrong order, negative time " + now + " old " + old);
+			}
+			
+			reader.processEarliestEvent(now);
 			
 			if(! reader.isFinished()){
 				pendingReaders.add(reader);

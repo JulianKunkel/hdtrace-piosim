@@ -44,7 +44,7 @@ public class StateTraceEntry extends EventTraceEntry{
 	}
 	
 	public boolean hasNestedTrace(){
-		return nestedTraceChildren != null;
+		return nestedTraceChildren != null && ! nestedTraceChildren.isEmpty();
 	}
 	
 	public LinkedList<XMLTraceEntry> getNestedTraceChildren() {

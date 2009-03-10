@@ -13,7 +13,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	}
 
 	@Override
-	public void processEarliestEvent() {
+	public void processEarliestEvent(Epoch now) {
 		
 	}
 	

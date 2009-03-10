@@ -23,7 +23,11 @@ public class XMLTraceEntryFactory {
 	 * @return
 	 */
 	public static XMLTraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, XMLTag nestedData){		
-		XMLTraceEntry traceObject = manufactureXMLTraceObject(data, null);
+		//System.out.println(data.getName() + " ");
+		//if(parent != null)
+		//	System.out.println(" p: " + parent.getName());
+		
+		XMLTraceEntry traceObject = manufactureXMLTraceObject(data, parent);
 		
 		if(nestedData != null){
 			// type must be state:
@@ -55,7 +59,7 @@ public class XMLTraceEntryFactory {
 
 		if(type == TYPE.STATE ){
 			final HashMap<String, String>  attributes = data.getAttributes();
-			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes, null);
+			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes, parent);
 			traceObj.setNestedXMLTags(data.getNestedXMLTags());
 
 			return traceObj;
