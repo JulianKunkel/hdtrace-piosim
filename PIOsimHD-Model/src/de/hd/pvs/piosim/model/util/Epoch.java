@@ -59,7 +59,7 @@ public class Epoch implements Comparable<Epoch> {
 	 * @param nanoseconds
 	 */
 	public Epoch(long nanoseconds){
-		this((int) nanoseconds / MULTIPLIER, (int) nanoseconds % MULTIPLIER);
+		this((int) (nanoseconds / MULTIPLIER), (int) (nanoseconds % MULTIPLIER));
 	}
 	
 	/**
