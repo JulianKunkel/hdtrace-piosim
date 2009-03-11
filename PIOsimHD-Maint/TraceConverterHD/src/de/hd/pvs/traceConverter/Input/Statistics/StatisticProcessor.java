@@ -2,6 +2,7 @@ package de.hd.pvs.traceConverter.Input.Statistics;
 
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
+import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
 import de.hd.pvs.traceConverter.Input.Trace.SaxTraceFileReader;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 
@@ -33,7 +34,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			//time++;
 			
 			getOutputConverter().Statistics(getPID(), now, reader.getGroup().getName(), stat, reader.getGroup().getType(stat), val );
-			//getOutputConverter().Statistics(getPID(), new Epoch(time), reader.getGroup().getName(), stat, reader.getGroup().getType(stat), val );
+			//getOutputConverter().Statistics(getPID(), new Epoch(time), reader.getGroup().getName(), stat, StatisticType.DOUBLE, new Double(time) );
 		}
 
 		try{
