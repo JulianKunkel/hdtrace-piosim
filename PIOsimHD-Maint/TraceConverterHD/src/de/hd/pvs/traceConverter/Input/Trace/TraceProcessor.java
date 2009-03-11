@@ -85,9 +85,11 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			readNextTraceEntryIfNecessary();
 		}else if(currentTraceEntry.getType() == TYPE.STATE){			
 			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
+			final String name = currentTraceEntry.getName();
 			
 			if(stateStart){
-				getOutputConverter().StateStart(getPID(), now, currentTraceEntry.getName());
+				if(! name.equals("Compute"))
+					getOutputConverter().StateStart(getPID(), now, name);
 				
 				if(state.hasNestedTrace()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
@@ -98,7 +100,8 @@ public class TraceProcessor extends AbstractTraceProcessor{
 					eventTime = state.getTime().add(state.getDuration());
 				}
 			}else{
-				getOutputConverter().StateEnd(getPID(), now, currentTraceEntry.getName());
+				if(! name.equals("Compute"))
+					getOutputConverter().StateEnd(getPID(), now, name);
 				
 				stateStart = true;
 				readNextTraceEntryIfNecessary();

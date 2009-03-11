@@ -16,6 +16,7 @@ import org.w3c.dom.Element;
 
 import de.hd.pvs.piosim.model.util.XMLutil;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
+import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
 
 public class ApplicationTraceReader {
 	ExistingTraceFiles traceFiles;
@@ -29,7 +30,7 @@ public class ApplicationTraceReader {
 		
 		ArrayList<Element> children = XMLutil.getChildElements(root);
 		for(Element child: children){
-			stat.addStatistic(child.getNodeName(), child.getAttribute("type"));
+			stat.addStatistic(child.getNodeName(), StatisticType.valueOf( child.getAttribute("type").toUpperCase() ));
 		}
 		
 		return stat;

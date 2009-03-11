@@ -7,6 +7,7 @@ import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.HDTraceConverter;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
+import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
 
 /**
  * An implementation of the TraceOutputConverter decides how to 
@@ -53,7 +54,14 @@ abstract public class TraceOutputConverter {
 	 */
 	abstract public void addTimeline(int rank, int timeline, String name);
 	
-	abstract public void addStatistic(int rank, int timeline, String name);
+	/**
+	 * Announce the existence of a new statistic with a given name and datatype
+	 * 
+	 * @param rank
+	 * @param timeline
+	 * @param name
+	 */
+	abstract public void addStatistic(int rank, int timeline, String name, StatisticType type);
 
 	/**
 	 * Add the normal timeline.
@@ -73,6 +81,6 @@ abstract public class TraceOutputConverter {
 	abstract public void Event(ProcessIdentifier id,Epoch time, String eventName);
 	
 	// handle statistics
-	abstract public void Statistics(ProcessIdentifier id, Epoch time, String name);
+	abstract public void Statistics(ProcessIdentifier id, Epoch time, String group, String name, StatisticType type, Object value);
 	
 }

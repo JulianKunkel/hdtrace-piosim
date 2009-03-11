@@ -93,6 +93,8 @@ public class HDTraceConverter {
 			if(! reader.isFinished()){
 				pendingReaders.add(reader);
 			}
+			
+			old = now;
 		}
 		
 		outputConverter.finalizeTrace();

@@ -5,12 +5,26 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class ExternalStatisticsGroup{
+	
+	/**
+	 * Data types a statistic value might have.
+	 * @author julian
+	 *
+	 */
+	public static enum StatisticType{
+		FLOAT,
+		INT,
+		LONG,
+		DOUBLE,
+		STRING
+	}
+	
 	String name;
 	
 	// maps contained statistics to type
-	final HashMap<String, String> statisticTypeMap = new HashMap<String, String>();
+	final HashMap<String, StatisticType> statisticTypeMap = new HashMap<String, StatisticType>();
 	
-	public void addStatistic(String name, String type){
+	public void addStatistic(String name, StatisticType type){
 		statisticTypeMap.put(name, type);
 	}
 	
@@ -18,7 +32,7 @@ public class ExternalStatisticsGroup{
 		return statisticTypeMap.keySet();
 	}
 	
-	public String getType(String statistic){
+	public StatisticType getType(String statistic){
 		return statisticTypeMap.get(statistic);
 	}
 	
