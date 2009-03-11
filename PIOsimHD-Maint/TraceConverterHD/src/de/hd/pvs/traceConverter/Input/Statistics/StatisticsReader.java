@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
+import com.sun.xml.internal.ws.util.ByteArrayBuffer;
+
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
@@ -23,15 +26,26 @@ public class StatisticsReader{
 		this.group = group;
 		this.file = new DataInputStream(new FileInputStream(filename));
 	}
-
-
+	
 	public StatisticEntry getNextStatisticEntry() throws Exception{
 		if(isFinished()){
 			return null;
 		}
-
+		final Epoch timeStamp;
+			
 		// read timestamp:
-		final Epoch timeStamp = new Epoch(file.readInt(), file.readInt());	
+		switch(group.getTimestampDatatype()){
+			case INT:
+				long tstamp = file.readInt() *  (long) group.getTimeResolutionMultiplier();				
+				
+				timeStamp = new Epoch(tstamp);								
+				break;
+			case EPOCH:
+				timeStamp = new Epoch(file.readInt(), file.readInt());
+				break;				
+			default:
+				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
+		}
 
 		final HashMap<String, Object> nameResultMap = new HashMap<String, Object>();		
 		for(StatisticDescription statDesc: group.getStatisticsOrdered()){
@@ -42,16 +56,19 @@ public class StatisticsReader{
 			Object value;
 			switch(type){
 			case LONG:
-				value = new Long(file.readLong());
+				value = new Long(file.readLong()) * statDesc.getMultiplier();
 				break;
 			case INT:
-				value = new Integer(file.readInt());
+				value = new Integer(file.readInt())* statDesc.getMultiplier();
 				break;
 			case DOUBLE:
-				value = new Double(file.readDouble());
+				value = new Double(file.readDouble())* statDesc.getMultiplier();
+								
 				break;
 			case FLOAT:
-				value = new Float(file.readFloat());
+				value = new Float(file.readFloat())* statDesc.getMultiplier();				
+				//System.out.println( timeStamp + " " + statName + " " + value);
+				
 				break;
 			case STRING:
 				final int length = file.readInt();

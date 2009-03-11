@@ -17,8 +17,19 @@ public class ExternalStatisticsGroup{
 		INT,
 		LONG,
 		DOUBLE,
-		STRING
+		STRING,
+		EPOCH
 	}
+	
+	/**
+	 * Describes the format of the Timestamp.
+	 */
+	StatisticType timestampDatatype = StatisticType.EPOCH;
+	
+	/**
+	 * Multiplies the read value with this value.
+	 */
+	int timeResolutionMultiplier = 1;
 	
 	String groupName;
 	
@@ -29,10 +40,8 @@ public class ExternalStatisticsGroup{
 	/**
 	 * Add a statistic description, the order defines the order in which it is stored in the binary file.
 	 */
-	public void addStatistic(String name, StatisticType type){
-		StatisticDescription desc = new StatisticDescription(name, type);
-		
-		statisticTypeMap.put(name, desc);
+	public void addStatistic(StatisticDescription desc){		
+		statisticTypeMap.put(desc.getName(), desc);
 		statisticOrder.add(desc);
 	}
 	
@@ -54,5 +63,21 @@ public class ExternalStatisticsGroup{
 	
 	public String getName() {
 		return groupName;
+	}
+	
+	public void setTimeResolutionMultiplier(int timeResulutionMultiplier) {
+		this.timeResolutionMultiplier = timeResulutionMultiplier;
+	}
+	
+	public void setTimestampDatatype(StatisticType timestampDatatype) {
+		this.timestampDatatype = timestampDatatype;
+	}
+	
+	public int getTimeResolutionMultiplier() {
+		return timeResolutionMultiplier;
+	}
+	
+	public StatisticType getTimestampDatatype() {
+		return timestampDatatype;
 	}
 }

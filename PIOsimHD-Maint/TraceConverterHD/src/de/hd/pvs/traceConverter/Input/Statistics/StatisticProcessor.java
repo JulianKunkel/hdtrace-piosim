@@ -30,7 +30,6 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 		for(String stat: lastRead.getNameResultMap().keySet()){
 			Object val = lastRead.getNameResultMap().get(stat);
 			
-			//System.out.println(now + " " + stat + " " + lastRead.getNameResultMap().get(stat));
 			//time++;
 			
 			getOutputConverter().Statistics(getPID(), now, reader.getGroup().getName(), stat, reader.getGroup().getType(stat), val );

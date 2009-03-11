@@ -18,15 +18,7 @@ import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.Statist
  *
  */
 abstract public class TraceOutputConverter {
-	
-	/**
-	 * Special values a rank / thread ID might get.
-	 * 
-	 * @author julian
-	 *
-	 */
-	public final int NewRankThread = -1;
-	
+		
 	/**
 	 * Initialize the resulting trace output, called by the  {@link HDTraceConverter}
 	 * 
@@ -48,11 +40,12 @@ abstract public class TraceOutputConverter {
 	/**
 	 * Announce the existence of a rank/timeline(thread) line for events. Called by the TraceProcessor
 	 * 
-	 * @param rank process
-	 * @param timeline aka vthread.
-	 * @param name The name of the new timeline
+	 * @param suggestedRank process
+	 * @param suggestedTimeline aka vthread.
+	 * 
+	 * @param name The id of the new timeline
 	 */
-	abstract public void addTimeline(int rank, int timeline, String name);
+	abstract public int addTimeline(int rank, int thread, String name);
 	
 	/**
 	 * Announce the existence of a new statistic with a given name and datatype
@@ -60,9 +53,11 @@ abstract public class TraceOutputConverter {
 	 * @param rank
 	 * @param timeline
 	 * @param name
+	 * 
+	 * @return the timeline which can be used for this object
 	 */
-	abstract public void addStatistic(int rank, int timeline, String name, StatisticType type);
-
+	abstract public int addStatistic(int rank, int thread, String name, StatisticType type);
+	
 	/**
 	 * Add the normal timeline.
 	 * @param pid

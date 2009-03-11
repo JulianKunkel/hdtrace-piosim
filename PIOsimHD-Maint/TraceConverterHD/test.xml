@@ -26,12 +26,13 @@
 <!-- echtes mapping reinschreiben, virtuelle ranks garnicht zeigen! -->
 
 <ExternalStatistics>
-			<Energy> <!-- implizit stored in a file stat_Energy -->
-				<Power type="float" />
-				<Current type="float" />
+			<Energy timeResulution="Milliseconds" timestampDatatype="INT"> <!-- implizit stored in a file stat_Energy -->
+				<Voltage type="float" multiplier="1000" unit="V"/>
+				<Current type="float" multiplier="1000" unit="A"/>				
+				<Power type="float" multiplier="1000" unit="W"/>				
 			</Energy>
-			<Kernel> <!-- implizit stored in a file stat_Kernel -->
-			<Load type="float" />
+			<Kernel timestampDatatype="EPOCH"> <!-- implizit stored in a file stat_Kernel -->
+				<Load type="float" multiplier="1000"/>
 			</Kernel>
 </ExternalStatistics>
 

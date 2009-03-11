@@ -68,15 +68,17 @@ public class TauConverter extends TraceOutputConverter {
 	}
 
 	@Override
-	public void addTimeline(int rank, int timelineThread, String name) {
-		tauWriter.defThread(rank, timelineThread, name);
+	public int addTimeline(int rank, int thread, String name) {
+		tauWriter.defThread(rank, thread, name);
+		return thread;
 	}
 
 
 	@Override
-	public void addStatistic(int rank, int timeline, String name,
+	public int addStatistic(int rank, int thread, String name,
 			StatisticType type) {
 		// do nothing, maybe later put the statistic on a own rank.
+		return thread;
 	}
 
 	@Override
@@ -156,7 +158,7 @@ public class TauConverter extends TraceOutputConverter {
 			tauCategoryMap.put(eventName, categoryID);
 		}
 
-		//System.out.println("Stat " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
+		//System.out.println("Stat " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread() + " : " + convertedValue);
 
 		tauWriter.eventTrigger(getTimeMikro(time),	 id.getRank(), id.getVthread(), categoryID, convertedValue);
 	}

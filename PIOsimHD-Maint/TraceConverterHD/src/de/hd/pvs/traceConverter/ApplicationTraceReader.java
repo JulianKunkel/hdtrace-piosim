@@ -16,6 +16,7 @@ import org.w3c.dom.Element;
 
 import de.hd.pvs.piosim.model.util.XMLutil;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
+import de.hd.pvs.traceConverter.Input.Statistics.StatisticDescription;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
 
 public class ApplicationTraceReader {
@@ -28,9 +29,32 @@ public class ApplicationTraceReader {
 		stat.setName(root.getNodeName());
 		//System.out.println("Statistics: " + root.getNodeName());
 		
+		String tR = root.getAttribute("timeResulution");
+		String tT = root.getAttribute("timestampDatatype");
+		if(tT != null  && ! tT.isEmpty()){
+			ExternalStatisticsGroup.StatisticType type = ExternalStatisticsGroup.StatisticType.valueOf(tT);
+			stat.setTimestampDatatype(type);
+		}
+		if (tR != null && ! tR.isEmpty()){
+			if(tR.equals("Milliseconds")){
+				stat.setTimeResolutionMultiplier(1000);
+			}else{
+				throw new IllegalArgumentException("Invalid timestampResulution " + tR + "  in statistic group: " + stat.getName());
+			}
+		}
+		
 		ArrayList<Element> children = XMLutil.getChildElements(root);
 		for(Element child: children){
-			stat.addStatistic(child.getNodeName(), StatisticType.valueOf( child.getAttribute("type").toUpperCase() ));
+			int multiplier = 1;
+			if(child.getAttribute("multiplier").length() > 0){
+				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
+			}
+			StatisticDescription desc = new StatisticDescription(child.getNodeName(), 
+					StatisticType.valueOf( child.getAttribute("type").toUpperCase() ),
+					child.getAttribute("unit"),
+					multiplier);
+			
+			stat.addStatistic(desc);
 		}
 		
 		return stat;
