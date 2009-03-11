@@ -34,9 +34,11 @@ public class StatisticsReader{
 		final Epoch timeStamp = new Epoch(file.readInt(), file.readInt());	
 
 		final HashMap<String, Object> nameResultMap = new HashMap<String, Object>();		
-		for(String stat: group.getStatistics()){
+		for(StatisticDescription statDesc: group.getStatisticsOrdered()){
+			final String statName = statDesc.getName();
+			
 			// read data depending on type:
-			final StatisticType type = group.getType(stat);
+			final StatisticType type = statDesc.getType();
 			Object value;
 			switch(type){
 			case LONG:
@@ -61,10 +63,10 @@ public class StatisticsReader{
 				value = new String(buff);
 				break;
 			default:
-				throw new IllegalArgumentException("Unknown type: " + type +" in value " + stat);
+				throw new IllegalArgumentException("Unknown type: " + type +" in value " + statName);
 			}
 
-			nameResultMap.put(stat, value);
+			nameResultMap.put(statName, value);
 		}
 
 		return new StatisticEntry(nameResultMap, timeStamp);

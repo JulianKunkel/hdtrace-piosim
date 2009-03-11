@@ -3,6 +3,7 @@ package de.hd.pvs.traceConverter.Input.Statistics;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 public class ExternalStatisticsGroup{
 	
@@ -19,13 +20,20 @@ public class ExternalStatisticsGroup{
 		STRING
 	}
 	
-	String name;
+	String groupName;
 	
 	// maps contained statistics to type
-	final HashMap<String, StatisticType> statisticTypeMap = new HashMap<String, StatisticType>();
+	final HashMap<String, StatisticDescription> statisticTypeMap = new HashMap<String, StatisticDescription>();
+	final LinkedList<StatisticDescription>      statisticOrder = new LinkedList<StatisticDescription>();
 	
+	/**
+	 * Add a statistic description, the order defines the order in which it is stored in the binary file.
+	 */
 	public void addStatistic(String name, StatisticType type){
-		statisticTypeMap.put(name, type);
+		StatisticDescription desc = new StatisticDescription(name, type);
+		
+		statisticTypeMap.put(name, desc);
+		statisticOrder.add(desc);
 	}
 	
 	public Collection<String> getStatistics() {
@@ -33,14 +41,18 @@ public class ExternalStatisticsGroup{
 	}
 	
 	public StatisticType getType(String statistic){
-		return statisticTypeMap.get(statistic);
+		return statisticTypeMap.get(statistic).type;
+	}
+	
+	public LinkedList<StatisticDescription> getStatisticsOrdered() {
+		return statisticOrder;
 	}
 	
 	public void setName(String name) {
-		this.name = name;
+		this.groupName = name;
 	}
 	
 	public String getName() {
-		return name;
+		return groupName;
 	}
 }
