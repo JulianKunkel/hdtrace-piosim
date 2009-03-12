@@ -36,8 +36,10 @@ public class ApplicationTraceReader {
 			stat.setTimestampDatatype(type);
 		}
 		if (tR != null && ! tR.isEmpty()){
-			if(tR.equals("Milliseconds")){
+			if(tR.equals("Mikroseconds")){
 				stat.setTimeResolutionMultiplier(1000);
+			}else if(tR.equals("Milliseconds")){
+				stat.setTimeResolutionMultiplier(1000 * 1000);
 			}else{
 				throw new IllegalArgumentException("Invalid timestampResulution " + tR + "  in statistic group: " + stat.getName());
 			}

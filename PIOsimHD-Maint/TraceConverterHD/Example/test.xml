@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Application name="result" processCount="2">
+<Application name="result" processCount="3">
  <Description>     </Description>
 <FileList>
 <File name="pvfs2://pvfs2//visualization.dat" id="10000">
