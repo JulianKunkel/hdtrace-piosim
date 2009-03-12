@@ -24,7 +24,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 	private static class StatisticWritten{
 		Object lastValue;		
-		
+
 		int    numberOfValues = 0;		
 		Number sum = new Integer(0); //Maybe numerical problems for large number of values? TODO
 
@@ -59,17 +59,17 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			Object val = lastRead.getNameResultMap().get(stat);
 
 			//System.out.println(now + " "  + getPID() + " " + now + " stat " + stat + " val: " + val);
-			
+
 			if(getRunParameters().isUpdateStatisticsOnlyIfTheyChangeTooMuch()){
 				// check if the statistic changed enough from the last written stamp.
-				
+
 				StatisticWritten lastWritten = lastUpdatedStatistic.get(stat); 
 				if(lastWritten != null){
 					if(Number.class.isAssignableFrom(val.getClass())){
 						// check new and old value:
 						Number lastNumber = (Number) lastWritten.lastValue;
 						Number newNumber = (Number) val;
-						
+
 						Class<Number> cls = (Class<Number>) newNumber.getClass();
 
 						lastWritten.numberOfValues++;
@@ -83,7 +83,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 						}else if(cls.equals(Long.class)){
 							lastWritten.sum = new Long(lastNumber.longValue() + lastWritten.sum.longValue());
 						}
-						
+
 						if( isFinished == false && ((lastNumber.doubleValue() == 0.0 && newNumber.doubleValue() == 0.0) || 
 								Math.abs(1.0 - newNumber.doubleValue() / lastNumber.doubleValue()) < 
 								getRunParameters().getStatisticModificationUntilUpdate() ) ){
@@ -91,26 +91,28 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 							// do not write the current value
 							continue;
 						}
-						
+
 						// write the average instead of the complete value:
-						
+
 						final double averageValue =  (lastWritten.sum.doubleValue() / lastWritten.numberOfValues); 
-						
-						if(cls.equals(Float.class)){
-							val = new Float(averageValue);
-						}else if(cls.equals(Double.class)){
-							val = new Double(averageValue);
-						}else if(cls.equals(Integer.class)){
-							val = new Integer((int)  averageValue);
-						}else if(cls.equals(Long.class)){
-							val = new Long((long) averageValue);
-						}else{
-							throw new IllegalArgumentException("Type not supported " + cls);
+
+						if(getRunParameters().isComputeAverageFromStatistics()){
+							if(cls.equals(Float.class)){
+								val = new Float(averageValue);
+							}else if(cls.equals(Double.class)){
+								val = new Double(averageValue);
+							}else if(cls.equals(Integer.class)){
+								val = new Integer((int)  averageValue);
+							}else if(cls.equals(Long.class)){
+								val = new Long((long) averageValue);
+							}else{
+								throw new IllegalArgumentException("Type not supported " + cls);
+							}
 						}
-												
-						SimpleConsoleLogger.Debug(now + " "  + getPID() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);
-						
-						lastUpdatedStatistic.put(stat, new StatisticWritten(val));						
+
+						SimpleConsoleLogger.Debug(now + " "  + getPID() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
+
+						lastUpdatedStatistic.put(stat, new StatisticWritten(val));
 						getOutputConverter().Statistics(getPID(), now, group.getName(), stat, group.getType(stat), val );
 						continue;
 
@@ -121,7 +123,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 				// put in the first value:
 				lastUpdatedStatistic.put(stat, new StatisticWritten(val));
 			}		
-			
+
 			// write the value as it is:						
 			getOutputConverter().Statistics(getPID(), now, group.getName(), stat, group.getType(stat), val );
 

@@ -44,7 +44,7 @@ public class RunParameters {
 	/**
 	 * Prefix of all files which will be created by the TraceConverter
 	 */
-	String outputFilePrefix = "converted";
+	String outputFilePrefix = "/tmp/converted";
 	
 	/**
 	 * If set true then the statistics are only written to the output converter when they change 
