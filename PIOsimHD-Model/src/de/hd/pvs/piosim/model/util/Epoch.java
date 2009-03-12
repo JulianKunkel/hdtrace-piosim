@@ -150,7 +150,11 @@ public class Epoch implements Comparable<Epoch> {
 				subSeconds *=10;
 			}
 			
-			return new Epoch(seconds / multiplier, (seconds % multiplier) * (MULTIPLIER / multiplier)  + subSeconds / multiplier);
+			if(time.startsWith("-")){			
+				return new Epoch(seconds / multiplier, (seconds % multiplier) * (MULTIPLIER / multiplier) - subSeconds / multiplier);
+			}else{
+				return new Epoch(seconds / multiplier, (seconds % multiplier) * (MULTIPLIER / multiplier)  + subSeconds / multiplier);
+			}
 		}else{
 			final int seconds = Integer.parseInt(time);
 
