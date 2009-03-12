@@ -37,7 +37,7 @@ public class Epoch implements Comparable<Epoch> {
 	 * Used to convert the internal values to double and vice versa. 
 	 */
 	final static private int MULTIPLIER = 1000000000;
-	
+
 	/**
 	 * Null time, sometimes used.
 	 */
@@ -61,7 +61,7 @@ public class Epoch implements Comparable<Epoch> {
 	public Epoch(long nanoseconds){
 		this((int) (nanoseconds / MULTIPLIER), (int) (nanoseconds % MULTIPLIER));
 	}
-	
+
 	/**
 	 * Create a valid epoch. 
 	 * 
@@ -79,6 +79,8 @@ public class Epoch implements Comparable<Epoch> {
 	public Epoch add(Epoch t) {
 		if (t.nanoSeconds + this.nanoSeconds >= MULTIPLIER) {
 			return new Epoch( t.seconds + this.seconds + 1,  this.nanoSeconds + t.nanoSeconds - MULTIPLIER);
+		}else if(t.nanoSeconds + this.nanoSeconds < 0){
+			return new Epoch( t.seconds + this.seconds - 1,  this.nanoSeconds + t.nanoSeconds + MULTIPLIER);
 		}else{
 			return new Epoch( t.seconds + this.seconds, t.nanoSeconds + this.nanoSeconds);
 		}
@@ -90,16 +92,18 @@ public class Epoch implements Comparable<Epoch> {
 	public Epoch add(double offset) {
 		int nanoSecs = (int)((offset - (int) offset) * MULTIPLIER);
 		int secs = (int) offset;
-		
+
 		if (this.nanoSeconds + nanoSecs >= MULTIPLIER) {
 			return new Epoch(this.seconds + secs + 1, this.nanoSeconds + nanoSecs - MULTIPLIER);
+		}else if(nanoSecs + this.nanoSeconds < 0){
+			return new Epoch( secs + this.seconds - 1,  this.nanoSeconds + nanoSecs + MULTIPLIER);
 		}else{
 			return new Epoch(this.seconds + secs, this.nanoSeconds + nanoSecs);
 		}
 	}
-	
+
 	/**
-	 * Subtract from this Epoch another Epoch
+	 * Subtract from this Epoch another Epoch, does not allow to subtract two negative values!
 	 * @param sub
 	 * @return
 	 */
@@ -113,7 +117,7 @@ public class Epoch implements Comparable<Epoch> {
 			nanosec = this.nanoSeconds - sub.nanoSeconds;
 			seconds = this.seconds - sub.seconds;
 		}
-		
+
 		return new Epoch(seconds, nanosec);
 	}
 
@@ -123,31 +127,68 @@ public class Epoch implements Comparable<Epoch> {
 	 * @return
 	 */
 	static public Epoch parseTime(String time) {
-		/* sec.subsec */
-		double d = Numbers.getDoubleValue(time);
-		int seconds = (int) d;
-		int nanoSeconds = (int) ((d - seconds) * MULTIPLIER);
-		
-		return new Epoch(seconds, nanoSeconds);
+		int multiplier = 1;
+
+		// split extension
+		if(time.endsWith("ms")){
+			time = time.substring(0, time.length()-2);
+			multiplier = 1000;
+		}
+		if(time.endsWith("s")){
+			time = time.substring(0, time.length()-1);
+		}		
+
+		if(time.contains(".")){
+			final int pos = time.indexOf('.');
+			final String secondsS = time.substring(0, pos);
+			final String subSecondsS = time.substring(pos + 1);
+
+			final int seconds = Integer.parseInt(secondsS);
+			int subSeconds = Integer.parseInt(subSecondsS);
+
+			for (int i= (9 - subSecondsS.length()); i > 0; i-- ){
+				subSeconds *=10;
+			}
+			
+			return new Epoch(seconds / multiplier, (seconds % multiplier) * (MULTIPLIER / multiplier)  + subSeconds / multiplier);
+		}else{
+			final int seconds = Integer.parseInt(time);
+
+			return new Epoch(seconds / multiplier, (seconds % multiplier) * (MULTIPLIER / multiplier));						
+		}
 	}
-	
+
 	/**
 	 * Return a string with all digits.
 	 * @return
 	 */
 	public String getFullDigitString(){
-		Formatter timeFormatter = new Formatter();
-		return seconds + "." + timeFormatter.format("%09d", nanoSeconds).toString() + "s";
+		Formatter timeFormatter = new Formatter();		
+		
+		if(seconds == 0 && nanoSeconds < 0){
+			return seconds + "." + timeFormatter.format("%09d", -nanoSeconds).toString() + "s";
+		}else{
+			return seconds + "." + timeFormatter.format("%09d", nanoSeconds).toString() + "s";
+		}		
 	}
-	
+
 	/**
 	 * Convert Epoch to String but remove trailing zeros.
 	 */
 	@Override
 	public String toString() {
+		String prefix = "";
+		
 		Formatter timeFormatter = new Formatter();
 		/* This function is rather inefficient but rarely called ... */
-		String out = timeFormatter.format("%09d", nanoSeconds).toString();
+		String out;
+		
+		if(seconds == 0 && nanoSeconds < 0){
+			prefix = "-";
+			out = timeFormatter.format("%09d", -nanoSeconds).toString();
+		}else{
+			out = timeFormatter.format("%09d", nanoSeconds).toString();
+		}
 		
 		/* strip the last zeros */
 		int lastZeros;
@@ -157,9 +198,9 @@ public class Epoch implements Comparable<Epoch> {
 		}	
 		
 		if (lastZeros >= 0){
-			return seconds
-				+ "." //%+10.4f %9d
-				+ out.substring(0, lastZeros + 1) + "s";
+			return prefix + seconds
+			+ "." //%+10.4f %9d
+			+ out.substring(0, lastZeros + 1) + "s";
 		}else{
 			return seconds + "s";
 		}
@@ -188,7 +229,7 @@ public class Epoch implements Comparable<Epoch> {
 		// unlikely to produce much collisions:
 		return seconds + nanoSeconds;
 	}
-	
+
 	/**
 	 * two Epochs are really Equal if the time spot is equal.
 	 */
@@ -196,7 +237,7 @@ public class Epoch implements Comparable<Epoch> {
 	public boolean equals(Object obj) {
 		return compareTo((Epoch) obj) == 0; 
 	}
-	
+
 	/**
 	 * Return only the seconds of this Epoch. 
 	 * @return
@@ -204,7 +245,7 @@ public class Epoch implements Comparable<Epoch> {
 	public int getSeconds() {
 		return seconds;
 	}
-	
+
 	/**
 	 * return only the nanoseconds of this Epoch
 	 * @return
@@ -212,7 +253,7 @@ public class Epoch implements Comparable<Epoch> {
 	public int getNanoSeconds() {
 		return nanoSeconds;
 	}
-	
+
 	/**
 	 * Return the Epoch time in Nanoseconds.
 	 * @return
@@ -228,7 +269,7 @@ public class Epoch implements Comparable<Epoch> {
 	public double getDouble(){
 		return this.seconds + ((double) this.nanoSeconds) / MULTIPLIER;
 	}	
-	
+
 	/**
 	 * This method returns the smallest possible time which is really bigger than this time.
 	 * @return
