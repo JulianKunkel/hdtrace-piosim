@@ -7,7 +7,7 @@ source `dirname $0`/../path.rc || exit 1
 cd `dirname $0`
 
 VERSION=$(head -n 1 $MAINTF/dist/roottxt/VERSION)
-TARGET=$MAINTF/PIOsimHD-Bin-$VERSION
+TARGET=/tmp/PIOsimHD-Bin-$VERSION
 
 SIMF_LIBFILES="CommandToSimulationMapper.txt  ModelToSimulationMapper.txt"
 
@@ -24,13 +24,25 @@ function JAR(){
 
 echo "preparing folders"
 
+if [ -e "$TARGET" ] ; then
+	echo "$TARGET" already exists, remove first!
+	exit 1
+fi
+
 mkdir -p $TARGET/lib
 mkdir -p $TARGET/bin 
+
+### copy common projects into dist:
+for PROJECT in jumpshot ProcessToGradient ; do
+	echo " processing separate project: $PROJECT"
+	cp -r "$MAINTF"/$PROJECT/lib/* $TARGET/lib/
+	cp -r "$MAINTF"/$PROJECT/bin/* $TARGET/bin/
+done
+####
 
 cp -a "$MAINTF"/dist/bin/* $TARGET/bin
 cp -r $MODELF/lib/* $TARGET/lib
 cp -r $SIMF/lib/* $TARGET/lib
-cp -r "$MAINTF"/jumpshot/lib/* $TARGET/lib/
 
 echo "Copy basic files"
 cp -a $MAINTF/dist/roottxt/* $TARGET/
@@ -65,7 +77,7 @@ for I in `find $TARGET|grep "/.svn$"`; do
 done
 
 echo "Packing archive"
-cd ../
+cd $(dirname $TARGET)
 tar -czf "$TARGET.tgz" $(basename $TARGET) || exit 1
 
-echo "Complete"
+echo "Complete in $TARGET"
