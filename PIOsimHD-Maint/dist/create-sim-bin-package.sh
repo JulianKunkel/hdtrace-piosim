@@ -53,6 +53,10 @@ JAR piosimhd-model     model.mf       $MODELF  #"-C ../ images"
 echo "Creating simulator package" 
 JAR piosimhd-simulator simulator.mf  $SIMF # "-C ../ lib"
 
+echo "Creating trace converter package"
+JAR trace-converter trace-converter.mf  $TRACECONVERTERF # "-C ../ lib"
+
+
 cp -a "../javadoc" $TARGET/
 
 echo "Removing SVN entries"

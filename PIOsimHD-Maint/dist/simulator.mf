@@ -4,5 +4,5 @@ Class-Path: piosimhd-model.jar log4j-1.2.15.jar TAU_tf.jar
 Name: de/hd/pvs/piosim/model/
 Implementation-Title: de.hd.pvs.piosim.simulator
 Implementation-Version: build1
-Implementation-Vendor: Julian M.Kunkel
+Implementation-Vendor: Julian M .Kunkel
 Sealed: true 

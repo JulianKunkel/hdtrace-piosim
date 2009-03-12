@@ -13,23 +13,24 @@ import java.util.HashSet;
  *
  */
 public class ExistingTraceFiles {
-	File filePrefix;
+	File filePrefixPath;
 	
 	// maps process rank, thread id and identifier 
 	final HashMap<Integer, HashMap<Integer, ArrayList<String>>> map;
 	
-	public ExistingTraceFiles(String filePrefix, 
+	public ExistingTraceFiles(String filePrefixPath, 
 			HashMap<Integer, HashMap<Integer, ArrayList<String>>> files) {		
-		this.filePrefix = new File(filePrefix);
+		this.filePrefixPath = new File(filePrefixPath);
+		
 		this.map = files;
 	}
 		
 	public String getFilenameXML(int rank, int thread){
-		return filePrefix.toString() + rank +"_" + thread +".xml";
+		return filePrefixPath.toString() + rank +"_" + thread +".xml";
 	}
 	
 	public String getFilenameStatistics(int rank, int thread, String stat){		
-		return filePrefix.toString() + rank +"_" + thread + "_stat_" + stat + ".dat";
+		return filePrefixPath.toString() + rank +"_" + thread + "_stat_" + stat + ".dat";
 	}	
 	
 	public ArrayList<String> getStatisticsFiles(int rank, int thread){

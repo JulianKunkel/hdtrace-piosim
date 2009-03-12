@@ -33,18 +33,31 @@ public class CommandLineInterface {
 				.println("Syntax: \n"
 						+ "  [options] -i <trace.xml> [-- [Format specific options] ] \n"
 						+ "Options are a subset of: \n"
-						+ " -F <outputFormat>  \n"
+						+ " -o <outputFilePrefix> (default: \"" + runParameters.outputFilePrefix + "\")\n"
+						+ " -F <outputFormat> (default:" + runParameters.getOutputFormat() +  ")\n"
 						+ "    supported are TEXT, TAU \n"
-						+ " -D enable all debugging information \n"					
+						+ " -D enable all debugging information (default: false) \n"					
 						+ " -l <floatValue> update Statistics only if they vary more than value %\n"
-						+ " -a Compute average statistics for omited values (otherwise latest value), -l will be activated \n"
-						+ "    with " +	runParameters.getStatisticModificationUntilUpdate() + "%, change with -l \n"
+						+ " -a Compute average statistics for omited values (otherwise latest value), (-l will be activated \n"
+						+ "    with current value: " +	runParameters.getStatisticModificationUntilUpdate() + "%, change with -l \n"
 						+ " -h show help\n"
 						+ "\nBoolean values can be set 0 or 1\n");
 
 		System.exit(1);
 	}
-		
+	
+	/**
+	 * Print the arguments on the console
+	 * @param args
+	 */
+	private void printArguments(String [] args){
+		StringBuffer buf = new StringBuffer();
+		for(String arg: args){
+			buf.append(arg + " ");
+		}
+		System.out.println("Started with arguments: " + buf.toString());
+	}
+	
 	/**
 	 * Run the simulation as given by the arguments.
 	 * 
@@ -54,6 +67,8 @@ public class CommandLineInterface {
 	public void run(String[] args) throws Exception {
 		int i = 0;
 
+		printArguments(args);
+		
 		// create runtime parameters based on the arguments.
 		RunParameters runParameters = new RunParameters();
 		
@@ -85,6 +100,9 @@ public class CommandLineInterface {
 			case('l'):
 				runParameters.setUpdateStatisticsOnlyIfTheyChangeTooMuch(true);
 				runParameters.setStatisticModificationUntilUpdate(Float.parseFloat(stringArgument));
+				break;
+			case('o'):
+				runParameters.setOutputFilePrefix(stringArgument);
 				break;
 			case('i'):
 				runParameters.setInputTraceFile( stringArgument );

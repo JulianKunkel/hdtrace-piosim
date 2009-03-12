@@ -129,7 +129,7 @@ public class ApplicationTraceReader {
 			}
 		}
 		
-		traceFiles = new ExistingTraceFiles(prefix, map);
+		traceFiles = new ExistingTraceFiles(parent.getAbsolutePath() + "/" + prefix, map);
 	}
 	
 	public ExistingTraceFiles getTraceFiles() {

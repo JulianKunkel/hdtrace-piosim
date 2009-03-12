@@ -4,7 +4,7 @@ JVM=/usr/bin/java
 JVMFLAGS="-Xmx950m -Xss100m"
 
 # Set PATH to the jar needed by the print program
-GUI_LIBDIR=$(dirname $0)/lib
+GUI_LIBDIR=$(dirname $0)/../lib
 GUI_HOME=${GUI_LIBDIR}/
 MAIN_LIB=${GUI_LIBDIR}/ProcessToGradient.jar
 

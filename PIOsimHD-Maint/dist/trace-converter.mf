@@ -1,0 +1,9 @@
+Main-Class: de.hd.pvs.traceConverter.CommandLineInterface
+Class-Path: piosimhd-model.jar TAU_tf.jar
+
+Name: de/hd/pvs/traceConverter
+Sealed: false
+Implementation-Title: de.hd.pvs.traceConverter
+Implementation-Version: build1
+Implementation-Vendor: Julian M. Kunkel
+

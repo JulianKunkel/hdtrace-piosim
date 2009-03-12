@@ -26,7 +26,7 @@ else
 	JVM="$(which java)"
 fi
 
-JVMFLAGS="-Xmx200m -Xss50m"
+JVMFLAGS="-Xmx700m -Xss450m"
 
 GUI_LIBDIR=.
 GUI_HOME=${GUI_LIBDIR}/..
@@ -38,7 +38,7 @@ for I in "$@" ; do
         if [[ ! ${I##-*} == "" && ! ${I##/*} == "" ]] ; then
                 ARGS="$ARGS $CUR/$I"
         else
-                ARGS="$ARGS ../$I"
+                ARGS="$ARGS $I"
         fi;
 done
 
@@ -53,10 +53,10 @@ else
 fi
 
 if [ -z "`echo $JVMFLAGS | grep '\-Xms'`" ] ; then
-    JVMFLAGS="-Xms32m $JVMFLAGS"
+    JVMFLAGS="-Xms520m $JVMFLAGS"
 fi
 if [ -z "`echo $JVMFLAGS | grep '\-Xmx'`" ] ; then
-    JVMFLAGS="-Xmx256m $JVMFLAGS"
+    JVMFLAGS="-Xmx700m $JVMFLAGS"
 fi
 
 echo ${JVM} ${JVMFLAGS} -jar ${MAIN_LIB} $ARGS

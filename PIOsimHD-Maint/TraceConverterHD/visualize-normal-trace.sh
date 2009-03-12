@@ -11,7 +11,7 @@ FILE="$1"
 
 mv result.slog2 "$FILE" || exit 1
 
-./ProcessToGradient -g ".*:.*" "$FILE" || exit 1
+../ProcessToGradient/bin/ProcessToGradient -g ".*:.*" "$FILE" || exit 1
 
 $MAINTF/jumpshot/bin/jumpshot "$FILE.slog2" || exit 1
 

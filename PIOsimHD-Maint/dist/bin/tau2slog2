@@ -11,5 +11,5 @@ TAU_CLASSPATH=$TARGET/TAU_tf.jar:${TARGET}/traceTOslog2.jar:${TARGET}/tau2slog2.
 MAIN_CLASS=edu/uoregon/tau/Tau2Slog2
 
 
-echo java -Xmx500m -Xms32m -cp ${TAU_CLASSPATH} ${MAIN_CLASS} $@
-java -Xmx500m -Xms32m -cp ${TAU_CLASSPATH} ${MAIN_CLASS} $@
+echo java -Xmx500m -Xms32m -cp ${TAU_CLASSPATH} ${MAIN_CLASS} "$@"
+java -Xmx500m -Xms32m -cp ${TAU_CLASSPATH} ${MAIN_CLASS} "$@"
