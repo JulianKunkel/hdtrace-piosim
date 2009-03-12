@@ -64,8 +64,11 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 				// check if the statistic changed enough from the last written stamp.
 
 				StatisticWritten lastWritten = lastUpdatedStatistic.get(stat); 
+
 				if(lastWritten != null){
-					if(Number.class.isAssignableFrom(val.getClass())){
+					if(val.equals(lastWritten.lastValue)){
+						continue;						
+					}else if(Number.class.isAssignableFrom(val.getClass())){
 						// check new and old value:
 						Number lastNumber = (Number) lastWritten.lastValue;
 						Number newNumber = (Number) val;
@@ -75,13 +78,13 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 						lastWritten.numberOfValues++;
 
 						if(cls.equals(Float.class)){
-							lastWritten.sum = new Double(lastNumber.doubleValue() + lastWritten.sum.doubleValue());
+							lastWritten.sum = new Double(newNumber.doubleValue() + lastWritten.sum.doubleValue());
 						}else if(cls.equals(Double.class)){
-							lastWritten.sum = new Double(lastNumber.doubleValue() + lastWritten.sum.doubleValue());
+							lastWritten.sum = new Double(newNumber.doubleValue() + lastWritten.sum.doubleValue());
 						}else if(cls.equals(Integer.class)){
-							lastWritten.sum = new Long(lastNumber.longValue() + lastWritten.sum.longValue());
+							lastWritten.sum = new Long(newNumber.longValue() + lastWritten.sum.longValue());
 						}else if(cls.equals(Long.class)){
-							lastWritten.sum = new Long(lastNumber.longValue() + lastWritten.sum.longValue());
+							lastWritten.sum = new Long(newNumber.longValue() + lastWritten.sum.longValue());
 						}
 
 						if( isFinished == false && ((lastNumber.doubleValue() == 0.0 && newNumber.doubleValue() == 0.0) || 
@@ -112,12 +115,11 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 						SimpleConsoleLogger.Debug(now + " "  + getPID() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
 
+						// put in current average value as a new "old value"
 						lastUpdatedStatistic.put(stat, new StatisticWritten(val));
 						getOutputConverter().Statistics(getPID(), now, group.getName(), stat, group.getType(stat), val );
 						continue;
 
-					}else if(val.equals(lastWritten.lastValue)){
-						continue;						
 					}
 				}
 				// put in the first value:
