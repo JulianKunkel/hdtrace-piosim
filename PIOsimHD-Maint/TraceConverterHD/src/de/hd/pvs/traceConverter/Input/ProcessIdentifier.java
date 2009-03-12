@@ -19,4 +19,9 @@ public class ProcessIdentifier {
 	public int getVthread() {
 		return vthread;
 	}
+	
+	@Override
+	public String toString() {
+		return ("<" + rank + "," +vthread + ">");
+	}
 }

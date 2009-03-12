@@ -46,17 +46,22 @@ public class HDTraceConverter {
 		ExistingTraceFiles files = traceReader.getTraceFiles();		
 		for(int rank=0 ; rank < files.getSize(); rank++){
 			for(int thread : files.getExistingThreads(rank)){
+								
+				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);				
 				AbstractTraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(files.getFilenameXML(rank, thread)));
-				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
+				
 				processor.setOutputConverter(outputConverter);
 				processor.setProcessIdentifier(pid);
+				processor.setRunParameters(param);
+				
+				processor.initalize();
 				
 				pendingReaders.add(processor);
 				
 				// external statistics
 				ArrayList<String> statFileList = files.getStatisticsFiles(rank, thread);
 				for(String statFile: statFileList){
-					System.out.println("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + statFile);
+					SimpleConsoleLogger.Debug("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + statFile);
 					
 					ExternalStatisticsGroup statGroup = traceReader.getExternalStatisticsDescription(statFile);
 					if(statGroup == null){
@@ -69,6 +74,9 @@ public class HDTraceConverter {
 					
 					processor.setOutputConverter(outputConverter);
 					processor.setProcessIdentifier(pid);
+					processor.setRunParameters(param);
+					
+					processor.initalize();
 					
 					pendingReaders.add(processor);					
 				}
@@ -78,8 +86,13 @@ public class HDTraceConverter {
 		Epoch now = Epoch.ZERO;
 		Epoch old = Epoch.ZERO;
 		
+		
+		long eventCount = 0;
+		
 		// now start to take the first trace event out of the queue and process:
 		while(! pendingReaders.isEmpty()){
+			eventCount++;
+			
 			AbstractTraceProcessor reader = pendingReaders.poll();
 			
 			now = reader.peekEarliestTime();
@@ -95,9 +108,22 @@ public class HDTraceConverter {
 			}
 			
 			old = now;
+			
+			// print some status on the command line to show that we are still working
+			if(eventCount % 10000 == 0){
+				System.out.print("-");;
+				if(eventCount % 1000000 == 0){
+					System.out.println();
+				}
+			}			
+			
 		}
 		
+		System.out.println();
+		
 		outputConverter.finalizeTrace();
+		
+		System.out.println("Completed -> processed " + eventCount + " events");
 	}
 
 	/** 

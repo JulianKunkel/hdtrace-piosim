@@ -47,19 +47,26 @@ public class RunParameters {
 	String outputFilePrefix = "converted";
 	
 	/**
-	 * If true then all debug messages are printed.
+	 * If set true then the statistics are only written to the output converter when they change 
+	 * more than statisticModificationUntilUpdate
 	 */
-	boolean debugEverything = false;
+	boolean updateStatisticsOnlyIfTheyChangeTooMuch = false; 
+	
+	/**
+	 * if true AND updateStatisticsOnlyIfTheyChangeTooMuch, then the average of the value
+	 * is written, otherwise the current (last) value gets written if the statistics fluctuated too much.
+	 */
+	boolean computeAverageFromStatistics = false;
+	
+	/**
+	 * Used if updateStatisticsOnlyIfTheyChangeTooMuch is true. Then the statistics are only written 
+	 * to the output converter when they change 
+	 * more than statisticModificationUntilUpdate
+	 */
+	float statisticModificationUntilUpdate = 0.01f;	
+
 	
 	
-	public void setDebugEverything(boolean debugEverything) {
-		this.debugEverything = debugEverything;
-	}
-
-	public boolean isDebugEverything() {
-		return debugEverything;
-	}
-
 	public Properties getOutputFileSpecificOptions() {
 		return outputFileSpecificOptions;
 	}
@@ -102,5 +109,32 @@ public class RunParameters {
 	
 	public String getOutputFilePrefix() {
 		return outputFilePrefix;
+	}
+	
+	public void setStatisticModificationUntilUpdate(
+			float statisticModificationUntilUpdate) {
+		this.statisticModificationUntilUpdate = statisticModificationUntilUpdate;
+	}
+	
+	public void setUpdateStatisticsOnlyIfTheyChangeTooMuch(
+			boolean updateStatisticsOnlyIfTheyChangeTooMuch) {
+		this.updateStatisticsOnlyIfTheyChangeTooMuch = updateStatisticsOnlyIfTheyChangeTooMuch;
+	}
+	
+	public boolean isUpdateStatisticsOnlyIfTheyChangeTooMuch() {
+		return updateStatisticsOnlyIfTheyChangeTooMuch;
+	}
+	
+	public float getStatisticModificationUntilUpdate() {
+		return statisticModificationUntilUpdate;
+	}
+	
+	public boolean isComputeAverageFromStatistics() {
+		return computeAverageFromStatistics;
+	}
+	
+	public void setComputeAverageFromStatistics(
+			boolean computeAverageFromStatistics) {
+		this.computeAverageFromStatistics = computeAverageFromStatistics;
 	}
 }

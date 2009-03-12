@@ -1,6 +1,7 @@
 package de.hd.pvs.traceConverter.Input;
 
 import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 
 /**
@@ -19,6 +20,8 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	private TraceOutputConverter outputConverter;
 	
 	private ProcessIdentifier  processIdentifier;
+	
+	private RunParameters      runParameters;
 	
 	/**
 	 * Are there more events to process
@@ -74,5 +77,13 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	 */
 	public ProcessIdentifier getPID() {
 		return processIdentifier;
+	}
+	
+	public RunParameters getRunParameters() {
+		return runParameters;
+	}
+	
+	public void setRunParameters(RunParameters runParameters) {
+		this.runParameters = runParameters;
 	}
 }

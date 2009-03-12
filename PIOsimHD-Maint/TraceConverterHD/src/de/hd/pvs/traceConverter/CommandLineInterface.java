@@ -28,21 +28,23 @@ package de.hd.pvs.traceConverter;
  */
 public class CommandLineInterface {
 
-	private void printHelpText() {
+	private void printHelpText(RunParameters runParameters) {
 		System.out
 				.println("Syntax: \n"
 						+ "  [options] -i <trace.xml> [-- [Format specific options] ] \n"
 						+ "Options are a subset of: \n"
-						+ "  -F <outputFormat>  \n"
-						+ "     supported are None and TAU \n"
-						+ "  -d <debugOptions> debuging configuration file, requires enabled assertions! \n"
-						+ "  -D enable all debugging information, requires enabled assertions! \n"						
+						+ " -F <outputFormat>  \n"
+						+ "    supported are TEXT, TAU \n"
+						+ " -D enable all debugging information \n"					
+						+ " -l <floatValue> update Statistics only if they vary more than value %\n"
+						+ " -a Compute average statistics for omited values (otherwise latest value), -l will be activated \n"
+						+ "    with " +	runParameters.getStatisticModificationUntilUpdate() + "%, change with -l \n"
 						+ " -h show help\n"
 						+ "\nBoolean values can be set 0 or 1\n");
 
 		System.exit(1);
 	}
-
+		
 	/**
 	 * Run the simulation as given by the arguments.
 	 * 
@@ -75,22 +77,37 @@ public class CommandLineInterface {
 				continue;
 			}
 
-			if (param.equals("-i")) {
+			switch(param.charAt(1)){
+			case('a'):
+				runParameters.setUpdateStatisticsOnlyIfTheyChangeTooMuch(true);
+				runParameters.setComputeAverageFromStatistics(true);
+				break;
+			case('l'):
+				runParameters.setUpdateStatisticsOnlyIfTheyChangeTooMuch(true);
+				runParameters.setStatisticModificationUntilUpdate(Float.parseFloat(stringArgument));
+				break;
+			case('i'):
 				runParameters.setInputTraceFile( stringArgument );
-			} else if (param.equals("-F")) {
+				break;
+			case('D'):
+				SimpleConsoleLogger.setDebugEverything(true);
+				break;
+			case('F'):	
 				runParameters.setOutputFormat(stringArgument);
-			} else if (param.equals("--")) {
+				break;
+			case('-'):
 				startOutputSpecificOptions = true;
-			} else if (param.equals("-h")) {
-				printHelpText();
-			} else {
+				break;
+			case('h'):
+				printHelpText(runParameters);
+			default:
 				System.err.println("Unknown parameter \"" + param + "\"");
-				printHelpText();
+				printHelpText(runParameters);
 			}
 		}
 
 		if (runParameters.getInputTraceFile().length() < 3) {
-			printHelpText();
+			printHelpText(runParameters);
 		}
 
 		HDTraceConverter converter = new HDTraceConverter();
