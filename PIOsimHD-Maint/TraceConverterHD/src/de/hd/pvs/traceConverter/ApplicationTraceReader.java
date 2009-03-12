@@ -14,6 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.model.util.XMLutil;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticDescription;
@@ -29,12 +30,13 @@ public class ApplicationTraceReader {
 		stat.setName(root.getNodeName());
 		//System.out.println("Statistics: " + root.getNodeName());
 		
-		String tR = root.getAttribute("timeResulution");
-		String tT = root.getAttribute("timestampDatatype");
+		final String tT = root.getAttribute("timestampDatatype");		
 		if(tT != null  && ! tT.isEmpty()){
 			ExternalStatisticsGroup.StatisticType type = ExternalStatisticsGroup.StatisticType.valueOf(tT);
 			stat.setTimestampDatatype(type);
 		}
+		
+		final String tR = root.getAttribute("timeResulution");		
 		if (tR != null && ! tR.isEmpty()){
 			if(tR.equals("Mikroseconds")){
 				stat.setTimeResolutionMultiplier(1000);
@@ -43,6 +45,11 @@ public class ApplicationTraceReader {
 			}else{
 				throw new IllegalArgumentException("Invalid timestampResulution " + tR + "  in statistic group: " + stat.getName());
 			}
+		}
+		
+		final String toffset = root.getAttribute("timeOffset");
+		if (toffset != null && ! toffset.isEmpty()){
+			stat.setTimeOffset(Epoch.parseTime(toffset));
 		}
 		
 		ArrayList<Element> children = XMLutil.getChildElements(root);

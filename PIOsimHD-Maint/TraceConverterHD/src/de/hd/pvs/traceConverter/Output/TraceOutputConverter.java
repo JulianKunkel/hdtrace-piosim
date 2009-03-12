@@ -8,6 +8,8 @@ import de.hd.pvs.traceConverter.HDTraceConverter;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
+import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
+import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
 
 /**
  * An implementation of the TraceOutputConverter decides how to 
@@ -45,18 +47,7 @@ abstract public class TraceOutputConverter {
 	 * 
 	 * @param name The id of the new timeline
 	 */
-	abstract public int addTimeline(int rank, int thread, String name);
-	
-	/**
-	 * Announce the existence of a new statistic with a given name and datatype
-	 * 
-	 * @param rank
-	 * @param timeline
-	 * @param name
-	 * 
-	 * @return the timeline which can be used for this object
-	 */
-	abstract public int addStatistic(int rank, int thread, String name, StatisticType type);
+	abstract public void addTimeline(int rank, int thread, String name);
 	
 	/**
 	 * Add the normal timeline.
@@ -69,11 +60,11 @@ abstract public class TraceOutputConverter {
 
 	
 	// handle states == default case
-	abstract public void StateStart(ProcessIdentifier id, Epoch time, String stateName);
-	abstract public void StateEnd(ProcessIdentifier id, Epoch time, String stateName);
+	abstract public void StateStart(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry);
+	abstract public void StateEnd(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry);
 
 	// handle events
-	abstract public void Event(ProcessIdentifier id,Epoch time, String eventName);
+	abstract public void Event(ProcessIdentifier id,Epoch time, EventTraceEntry traceEntry);
 	
 	// handle statistics
 	abstract public void Statistics(ProcessIdentifier id, Epoch time, String group, String name, StatisticType type, Object value);

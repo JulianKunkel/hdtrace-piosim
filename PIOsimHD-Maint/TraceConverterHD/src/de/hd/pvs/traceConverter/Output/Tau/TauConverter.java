@@ -13,6 +13,8 @@ import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
+import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
+import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 import edu.uoregon.tau.trace.TraceFactory;
 import edu.uoregon.tau.trace.TraceWriter;
@@ -68,21 +70,14 @@ public class TauConverter extends TraceOutputConverter {
 	}
 
 	@Override
-	public int addTimeline(int rank, int thread, String name) {
+	public void addTimeline(int rank, int thread, String name) {
 		tauWriter.defThread(rank, thread, name);
-		return thread;
-	}
-
-
-	@Override
-	public int addStatistic(int rank, int thread, String name,
-			StatisticType type) {
-		// do nothing, maybe later put the statistic on a own rank.
-		return thread;
 	}
 
 	@Override
-	public void Event(ProcessIdentifier id, Epoch time, String eventName) {
+	public void Event(ProcessIdentifier id, Epoch time,
+			EventTraceEntry traceEntry) {	
+		final String eventName = traceEntry.getName(); 
 		Integer categoryID = tauCategoryMap.get(eventName);
 		if (categoryID == null){
 			categoryID = ++nextCatID;
@@ -98,17 +93,18 @@ public class TauConverter extends TraceOutputConverter {
 
 
 	@Override
-	public void StateEnd(ProcessIdentifier id, Epoch time, String stateName) {		
+	public void StateEnd(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry) {		
 		pendingStarts--;
 
-		Integer categoryID = tauCategoryMap.get(stateName);
+		Integer categoryID = tauCategoryMap.get(traceEntry.getName());
 
 		//System.out.println("> " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
 		tauWriter.leaveState(getTimeMikro(time), id.getRank(), id.getVthread(), categoryID);	
 	}
 
 	@Override
-	public void StateStart(ProcessIdentifier id, Epoch time, String stateName) {		
+	public void StateStart(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry) {
+		final String stateName = traceEntry.getName();
 		pendingStarts++;
 
 		Integer categoryID = tauCategoryMap.get(stateName);

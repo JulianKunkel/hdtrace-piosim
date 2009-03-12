@@ -35,7 +35,7 @@ public class CommandLineInterface {
 						+ "Options are a subset of: \n"
 						+ " -o <outputFilePrefix> (default: \"" + runParameters.outputFilePrefix + "\")\n"
 						+ " -F <outputFormat> (default:" + runParameters.getOutputFormat() +  ")\n"
-						+ "    supported are TEXT, TAU \n"
+						+ "    supported are Text, Tau \n"
 						+ " -D enable all debugging information (default: false) \n"					
 						+ " -l <floatValue> update Statistics only if they vary more than value %\n"
 						+ " -a Compute average statistics for omited values (otherwise latest value), (-l will be activated \n"

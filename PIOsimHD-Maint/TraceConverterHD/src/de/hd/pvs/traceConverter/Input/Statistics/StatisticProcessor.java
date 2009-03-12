@@ -19,6 +19,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	private final StatisticsReader reader;
 	private boolean isFinished;
 	private StatisticEntry lastRead;
+	private Epoch nextTimeStamp;
 
 	private ExternalStatisticsGroup group;
 
@@ -38,21 +39,21 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	 */
 	HashMap<String, StatisticWritten> lastUpdatedStatistic = new HashMap<String, StatisticWritten>();
 
-
+	private void getNextStatistic() throws Exception{
+		if(! isFinished){
+			lastRead = reader.getNextStatisticEntry();
+			if(! reader.isFinished()){
+				nextTimeStamp = lastRead.getTimeStamp().add(group.getTimeOffset());
+			}
+		}
+	}
+	
 	public StatisticProcessor(StatisticsReader reader) throws Exception{
 		this.reader = reader;
-		isFinished = reader.isFinished();
-		if(! isFinished){		
-			lastRead = reader.getNextStatisticEntry();
-		}
-
 	}
 
 	@Override
 	public void processEarliestEvent(Epoch now) {
-		//process last entry:
-		assert(now.equals(lastRead.getTimeStamp()));
-
 		isFinished = reader.isFinished();
 
 		for(String stat: lastRead.getNameResultMap().keySet()){
@@ -132,8 +133,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 		}
 
 		try{
-			if(! isFinished)
-				lastRead = reader.getNextStatisticEntry();			
+			getNextStatistic();
 		}catch(Exception e){
 			throw new IllegalArgumentException("Error in stat group " + group.getName() + " rank, thread " + 
 					getPID().getRank() + "," +getPID().getRank() , e);
@@ -145,15 +145,19 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 		this.group = reader.getGroup();
 
 		assert(group != null);
-
-		for(String stat: group.getStatistics()){
-			getOutputConverter().addStatistic(getPID().getRank(), getPID().getVthread(), stat, group.getType(stat));
+		
+		isFinished = reader.isFinished();
+		try{
+			getNextStatistic();
+		}catch(Exception e){
+			throw new IllegalArgumentException("Error in stat group " + group.getName() + " rank, thread " + 
+					getPID().getRank() + "," +getPID().getRank() , e);
 		}
 	}
 
 	@Override
 	public Epoch peekEarliestTime() {
-		return lastRead.getTimeStamp();
+		return nextTimeStamp;
 	}	
 
 	@Override

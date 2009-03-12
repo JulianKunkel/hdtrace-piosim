@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import de.hd.pvs.piosim.model.util.Epoch;
+
 public class ExternalStatisticsGroup{
 	
 	/**
@@ -31,6 +33,14 @@ public class ExternalStatisticsGroup{
 	 */
 	int timeResolutionMultiplier = 1;
 	
+	/**
+	 * Offset applied to all timestamps
+	 */
+	Epoch timeOffset = Epoch.ZERO;
+	
+	/**
+	 * Name of this statistic group
+	 */
 	String groupName;
 	
 	// maps contained statistics to type
@@ -73,11 +83,19 @@ public class ExternalStatisticsGroup{
 		this.timestampDatatype = timestampDatatype;
 	}
 	
+	public void setTimeOffset(Epoch timeOffset) {
+		this.timeOffset = timeOffset;
+	}
+	
 	public int getTimeResolutionMultiplier() {
 		return timeResolutionMultiplier;
 	}
 	
 	public StatisticType getTimestampDatatype() {
 		return timestampDatatype;
+	}
+	
+	public Epoch getTimeOffset() {
+		return timeOffset;
 	}
 }

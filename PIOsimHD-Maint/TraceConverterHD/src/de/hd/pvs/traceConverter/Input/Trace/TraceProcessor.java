@@ -80,7 +80,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		//System.out.println(eventTime.getFullDigitString() + " " + stateStart + " processing " + currentTraceEntry.getName() + " t " + currentTraceEntry.getTime());
 		
 		if(currentTraceEntry.getType() == TYPE.EVENT){
-			getOutputConverter().Event(getPID(), now, currentTraceEntry.getName());
+			getOutputConverter().Event(getPID(), now, (EventTraceEntry) currentTraceEntry);
 			
 			readNextTraceEntryIfNecessary();
 		}else if(currentTraceEntry.getType() == TYPE.STATE){			
@@ -89,7 +89,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			
 			if(stateStart){
 				if(! name.equals("Compute"))
-					getOutputConverter().StateStart(getPID(), now, name);
+					getOutputConverter().StateStart(getPID(), now, state);
 				
 				if(state.hasNestedTrace()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
@@ -101,7 +101,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 				}
 			}else{
 				if(! name.equals("Compute"))
-					getOutputConverter().StateEnd(getPID(), now, name);
+					getOutputConverter().StateEnd(getPID(), now, state);
 				
 				stateStart = true;
 				readNextTraceEntryIfNecessary();
