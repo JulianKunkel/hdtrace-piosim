@@ -2,7 +2,6 @@ package de.hd.pvs.traceConverter.Input.Statistics;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 
 import de.hd.pvs.piosim.model.util.Epoch;
@@ -75,8 +74,8 @@ public class ExternalStatisticsGroup{
 		return groupName;
 	}
 	
-	public void setTimeResolutionMultiplier(int timeResulutionMultiplier) {
-		this.timeResolutionMultiplier = timeResulutionMultiplier;
+	public void setTimeResolutionMultiplier(int timeResolutionMultiplier) {
+		this.timeResolutionMultiplier = timeResolutionMultiplier;
 	}
 	
 	public void setTimestampDatatype(StatisticType timestampDatatype) {

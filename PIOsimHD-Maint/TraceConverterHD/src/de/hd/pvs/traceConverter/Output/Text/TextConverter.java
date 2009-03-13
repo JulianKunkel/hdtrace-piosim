@@ -4,7 +4,7 @@ import java.util.Properties;
 
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
+import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
 import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
 import de.hd.pvs.traceConverter.Input.Trace.XMLTag;
@@ -46,11 +46,11 @@ public class TextConverter extends TraceOutputConverter {
 			}
 		}
 	}
-
+	
 	@Override
-	public void Statistics(ProcessIdentifier id, Epoch time, String group,
-			String name, StatisticType type, Object value) {
-		System.out.println(time.getFullDigitString() + " S " + id + " " + group + " " + name + " " + value);
+	public void Statistics(ProcessIdentifier id, Epoch time, String name,
+			ExternalStatisticsGroup group, Object value) {
+		System.out.println(time.getFullDigitString() + " S " + id + " " + group.getName() + " " + name + " " + value);
 	}
 
 	@Override

@@ -1,13 +1,11 @@
 package de.hd.pvs.traceConverter.Output;
 
-import java.util.ArrayList;
 import java.util.Properties;
 
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.HDTraceConverter;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
 import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
 import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
 
@@ -67,6 +65,6 @@ abstract public class TraceOutputConverter {
 	abstract public void Event(ProcessIdentifier id,Epoch time, EventTraceEntry traceEntry);
 	
 	// handle statistics
-	abstract public void Statistics(ProcessIdentifier id, Epoch time, String group, String name, StatisticType type, Object value);
+	abstract public void Statistics(ProcessIdentifier id, Epoch time, String statistic, ExternalStatisticsGroup group, Object value);
 	
 }

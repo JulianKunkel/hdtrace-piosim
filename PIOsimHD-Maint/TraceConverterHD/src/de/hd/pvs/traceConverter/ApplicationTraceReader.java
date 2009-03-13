@@ -1,9 +1,6 @@
 package de.hd.pvs.traceConverter;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.management.ThreadMXBean;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -95,7 +92,7 @@ public class ApplicationTraceReader {
 		
 		// scan for the trace files
 		String prefix = projectFile.getName().toString();
-		prefix = prefix.substring(0, prefix.lastIndexOf('.')) + "_";		
+		prefix = prefix.substring(0, prefix.lastIndexOf('.'));		
 		HashMap<Integer, HashMap<Integer, ArrayList<String>>> map = new HashMap<Integer, HashMap<Integer,ArrayList<String>>>();
 		
 		for (int i=0 ; i < processCount; i++){
@@ -109,8 +106,8 @@ public class ApplicationTraceReader {
 		}
 		// scan for files with the prefix
 		for (String file: parent.list()){
-			if(file.startsWith(prefix)){
-				String remainder = file.substring(prefix.length(), file.lastIndexOf('.'));				
+			if(file.startsWith(prefix + "_")){
+				String remainder = file.substring(prefix.length() + 1, file.lastIndexOf('.'));				
 				String[] splits = remainder.split("_");				
 				if(splits.length == 2 || (splits.length == 4 && splits[2].equals("stat"))){
 					// rank, thread id

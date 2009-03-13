@@ -5,10 +5,6 @@ import java.util.HashMap;
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.SimpleConsoleLogger;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
-import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
-import de.hd.pvs.traceConverter.Input.Trace.SaxTraceFileReader;
-import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 
 /**
  * Processes one group of statistics for exactly one ProcessIdentifier.
@@ -118,7 +114,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 						// put in current average value as a new "old value"
 						lastUpdatedStatistic.put(stat, new StatisticWritten(val));
-						getOutputConverter().Statistics(getPID(), now, group.getName(), stat, group.getType(stat), val );
+						getOutputConverter().Statistics(getPID(), now, stat, group, val );
 						continue;
 
 					}
@@ -128,7 +124,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			}		
 
 			// write the value as it is:						
-			getOutputConverter().Statistics(getPID(), now, group.getName(), stat, group.getType(stat), val );
+			getOutputConverter().Statistics(getPID(), now, stat, group, val );
 
 		}
 

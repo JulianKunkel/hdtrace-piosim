@@ -1,10 +1,8 @@
 package de.hd.pvs.traceConverter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * Stores all trace file names
@@ -13,24 +11,24 @@ import java.util.HashSet;
  *
  */
 public class ExistingTraceFiles {
-	File filePrefixPath;
+	String filePrefixPath;
 	
 	// maps process rank, thread id and identifier 
 	final HashMap<Integer, HashMap<Integer, ArrayList<String>>> map;
 	
 	public ExistingTraceFiles(String filePrefixPath, 
 			HashMap<Integer, HashMap<Integer, ArrayList<String>>> files) {		
-		this.filePrefixPath = new File(filePrefixPath);
+		this.filePrefixPath = filePrefixPath;
 		
 		this.map = files;
 	}
 		
 	public String getFilenameXML(int rank, int thread){
-		return filePrefixPath.toString() + rank +"_" + thread +".xml";
+		return FileNames.getFilenameXML(filePrefixPath, rank, thread);
 	}
 	
 	public String getFilenameStatistics(int rank, int thread, String stat){		
-		return filePrefixPath.toString() + rank +"_" + thread + "_stat_" + stat + ".dat";
+		return FileNames.getFilenameStatistics(filePrefixPath, rank, thread, stat);
 	}	
 	
 	public ArrayList<String> getStatisticsFiles(int rank, int thread){

@@ -1,12 +1,6 @@
 package de.hd.pvs.traceConverter.Output.Tau;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Properties;
 
 import de.hd.pvs.piosim.model.util.Epoch;
@@ -120,9 +114,10 @@ public class TauConverter extends TraceOutputConverter {
 	}
 
 	@Override
-	public void Statistics(ProcessIdentifier id, Epoch time, String group,
-			String name, StatisticType type, Object value) {
+	public void Statistics(ProcessIdentifier id, Epoch time, String name,
+			ExternalStatisticsGroup group, Object value) {
 		long convertedValue;
+		final StatisticType type = group.getType(name);
 		
 		switch(type){
 		case LONG:
@@ -144,7 +139,7 @@ public class TauConverter extends TraceOutputConverter {
 			throw new IllegalArgumentException("Unknown type: " + type +" in value " + value);
 		}
 		
-		final String eventName = group + ":" + name;
+		final String eventName = group.getName() + ":" + name;
 		
 		Integer categoryID = tauCategoryMap.get(eventName);
 		if (categoryID == null){
