@@ -9,7 +9,7 @@ fi
 
 source `dirname $0`/../path.rc || exit 1
 
-for FOLDER in $SIMF $MODELF ; do
+for FOLDER in $SIMF $MODELF $MAINTF/TraceConverterHD ; do
 cd $FOLDER/src
 
 for FILE in `find -name "*.java"`; do
@@ -47,4 +47,4 @@ done
 
 done
   
- rm /dev/shm/tmp
+rm /dev/shm/tmp 2>/dev/null || echo "No file processed!"
