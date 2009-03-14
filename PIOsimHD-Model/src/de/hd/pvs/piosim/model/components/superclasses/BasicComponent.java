@@ -35,7 +35,7 @@ import de.hd.pvs.piosim.model.annotations.ChildComponents;
  * @author Julian M. Kunkel
  */
 public abstract class BasicComponent<ParentType extends BasicComponent> 
-implements Comparable<BasicComponent>{
+implements Comparable{
 	/**
 	 * The identifier of the component.
 	 */
@@ -64,10 +64,10 @@ implements Comparable<BasicComponent>{
 	/**
 	 * Components are only defined by the ComponentIdentifier.
 	 */
-	public int compareTo(BasicComponent c) {
-		return this.identifier.compareTo(c.identifier);
+	public int compareTo(Object o) {
+		return this.identifier.compareTo(((BasicComponent<?>) o).identifier);
 	}
-
+	
 	public ComponentIdentifier getIdentifier() {
 		return identifier;
 	}

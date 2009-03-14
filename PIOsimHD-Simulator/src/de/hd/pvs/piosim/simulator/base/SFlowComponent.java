@@ -24,8 +24,8 @@ package de.hd.pvs.piosim.simulator.base;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.FlowEvent;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;

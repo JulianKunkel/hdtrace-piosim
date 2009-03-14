@@ -21,11 +21,11 @@ package de.hd.pvs.piosim.simulator.components.Node;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;

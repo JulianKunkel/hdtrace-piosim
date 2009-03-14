@@ -18,8 +18,8 @@
 
 package de.hd.pvs.piosim.simulator.base;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.EventData;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;

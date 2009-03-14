@@ -24,6 +24,7 @@ import junit.framework.Assert;
 
 import org.junit.After;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.GlobalSettings;
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelBuilder;
@@ -43,7 +44,6 @@ import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.ProgramBuilder;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.RunParameters;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;

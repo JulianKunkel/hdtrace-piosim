@@ -29,12 +29,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import de.hd.pvs.TraceFormat.xml.XMLutil;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
  * This class is used to create an Application object from an XML description.

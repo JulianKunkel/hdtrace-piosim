@@ -25,13 +25,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.FakeBasicComponent;
 import de.hd.pvs.piosim.model.components.Connection.Connection;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.program.Communicator;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SFlowComponent;
 import de.hd.pvs.piosim.simulator.base.SNetworkComponent;

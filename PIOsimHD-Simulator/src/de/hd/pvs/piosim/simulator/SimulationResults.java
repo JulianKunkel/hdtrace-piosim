@@ -18,7 +18,7 @@
 
 package de.hd.pvs.piosim.simulator;
 
-import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class SimulationResults {
 

@@ -26,6 +26,9 @@ import java.lang.reflect.Field;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.util.Numbers;
+import de.hd.pvs.TraceFormat.xml.XMLutil;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
@@ -33,9 +36,6 @@ import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.util.Epoch;
-import de.hd.pvs.piosim.model.util.Numbers;
-import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
  * This class provides methods to read/write and verify common attributes.

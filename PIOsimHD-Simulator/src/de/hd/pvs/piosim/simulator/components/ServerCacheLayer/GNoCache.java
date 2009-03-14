@@ -25,9 +25,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IGIOSubsystem;

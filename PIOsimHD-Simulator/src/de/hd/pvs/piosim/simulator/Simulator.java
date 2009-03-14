@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelVerifier;
 import de.hd.pvs.piosim.model.ModelXMLReader;
@@ -45,7 +46,6 @@ import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper.ModelObjectMap;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.ApplicationMap;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;

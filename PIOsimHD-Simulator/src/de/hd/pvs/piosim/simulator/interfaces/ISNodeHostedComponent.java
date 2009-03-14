@@ -18,8 +18,8 @@
 
 package de.hd.pvs.piosim.simulator.interfaces;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;

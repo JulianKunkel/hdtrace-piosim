@@ -21,11 +21,11 @@
  */
 package de.hd.pvs.piosim.model.components.Connection;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.components.superclasses.NetworkComponent;
-import de.hd.pvs.piosim.model.util.Epoch;
 
 
 
@@ -41,7 +41,6 @@ public class Connection  extends NetworkComponent {
 	 */
 	private NetworkComponent connectedComp;
 	
-
 	@Attribute
 	@NotNegativeOrZero
 

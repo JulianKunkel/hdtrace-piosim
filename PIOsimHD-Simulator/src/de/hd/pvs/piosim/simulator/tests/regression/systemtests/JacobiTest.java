@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelSortIDbySubcomponents;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
@@ -40,7 +41,6 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.RunParameters;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;

@@ -25,9 +25,9 @@ import java.util.ArrayList;
 
 import org.w3c.dom.Element;
 
+import de.hd.pvs.TraceFormat.xml.XMLutil;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
  * Realizes an MPI_Wait for a set of non-blocking IDs.

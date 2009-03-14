@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 import org.w3c.dom.NodeList;
 
-import de.hd.pvs.piosim.model.util.Numbers;
+import de.hd.pvs.TraceFormat.util.Numbers;
 
 /**
  * Simple List of <Offset, Access-Size> tuples to allow non-contiguous I/O.

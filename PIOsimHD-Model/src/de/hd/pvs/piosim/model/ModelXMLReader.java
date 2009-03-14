@@ -32,6 +32,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import de.hd.pvs.TraceFormat.xml.XMLutil;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.OneConnectionComponent;
@@ -41,7 +42,6 @@ import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandTyp
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
-import de.hd.pvs.piosim.model.util.XMLutil;
 
 
 /**

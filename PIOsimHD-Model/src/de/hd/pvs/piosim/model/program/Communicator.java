@@ -24,8 +24,8 @@ import java.util.HashMap;
 
 import org.w3c.dom.Element;
 
+import de.hd.pvs.TraceFormat.xml.XMLutil;
 import de.hd.pvs.piosim.model.interfaces.IXMLReader;
-import de.hd.pvs.piosim.model.util.XMLutil;
 
 /**
  * Implements an MPI communicator. Contains a set of client world ranks which should be used 

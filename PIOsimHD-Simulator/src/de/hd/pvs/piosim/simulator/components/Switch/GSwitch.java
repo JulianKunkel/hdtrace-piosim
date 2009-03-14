@@ -21,10 +21,10 @@ package de.hd.pvs.piosim.simulator.components.Switch;
 import java.util.Collection;
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SFlowComponent;
 import de.hd.pvs.piosim.simulator.base.SNetworkComponent;

@@ -18,8 +18,8 @@
 
 package de.hd.pvs.piosim.simulator.components.IOSubsystem;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.IOSubsystem.SimpleFlash;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.base.SSequentialBlockingComponent;
 import de.hd.pvs.piosim.simulator.event.Event;

@@ -18,7 +18,7 @@
 
 package de.hd.pvs.piosim.simulator.components.Server;
 
-import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IGComponent;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;

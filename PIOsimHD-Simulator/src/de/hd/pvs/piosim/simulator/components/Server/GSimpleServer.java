@@ -21,9 +21,9 @@ package de.hd.pvs.piosim.simulator.components.Server;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.program.Communicator;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.GNIC;

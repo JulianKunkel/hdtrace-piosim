@@ -24,6 +24,7 @@ package de.hd.pvs.piosim.simulator.components.ClientProcess;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandType;
@@ -31,7 +32,6 @@ import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.GNIC;

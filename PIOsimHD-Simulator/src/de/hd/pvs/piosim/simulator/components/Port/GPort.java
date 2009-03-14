@@ -18,8 +18,8 @@
 
 package de.hd.pvs.piosim.simulator.components.Port;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.Port.Port;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SFlowComponent;
 import de.hd.pvs.piosim.simulator.base.SNetworkComponent;
 import de.hd.pvs.piosim.simulator.event.MessagePart;

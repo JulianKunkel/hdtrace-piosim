@@ -23,9 +23,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SSchedulableBlockingComponent;
 import de.hd.pvs.piosim.simulator.base.SSequentialBlockingComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IOJobRefined.IOEfficiency;

@@ -18,10 +18,10 @@
 
 package de.hd.pvs.piosim.model.components.IOSubsystem;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.util.Epoch;
 
 /**
  * RefinedDiskModel takes more parameters into account: http://www.storagereview.com/guide2000/ref/hdd/index.html
