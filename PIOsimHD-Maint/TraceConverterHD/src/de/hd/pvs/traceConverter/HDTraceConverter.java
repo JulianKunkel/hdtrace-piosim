@@ -21,8 +21,9 @@ package de.hd.pvs.traceConverter;
 import java.io.File;
 import java.util.PriorityQueue;
 
-import de.hd.pvs.TraceFormat.ApplicationTraceReader;
-import de.hd.pvs.TraceFormat.ExistingTraceFiles;
+import de.hd.pvs.TraceFormat.ProjectDescription;
+import de.hd.pvs.TraceFormat.ProjectDescriptionXMLReader;
+import de.hd.pvs.TraceFormat.TraceFileNames;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -50,7 +51,8 @@ public class HDTraceConverter {
 
 		// scan for all the XML files which must be opened during conversion:
 		// general description
-		ApplicationTraceReader traceReader = new ApplicationTraceReader(param.getInputTraceFile());
+		ProjectDescriptionXMLReader pReader = new ProjectDescriptionXMLReader();
+		ProjectDescription projectDescription = pReader.readProjectDescription(param.getInputTraceFile());
 
 		// pending events and files to process
 		PriorityQueue<AbstractTraceProcessor> pendingReaders = new PriorityQueue<AbstractTraceProcessor>();
@@ -59,13 +61,12 @@ public class HDTraceConverter {
 		outputConverter.initializeTrace(param, param.getOutputFilePrefix());
 
 		// start parsing of the trace files:
-		// trace files: rank + thread id are defined in the file name
-		ExistingTraceFiles files = traceReader.getTraceFiles();		
-		for(int rank=0 ; rank < files.getSize(); rank++){
-			for(int thread : files.getExistingThreads(rank)){
+		// trace files: rank + thread id are defined in the file name		
+		for(int rank=0 ; rank < projectDescription.getProcessCount(); rank++){
+			for(int thread = 0; thread < projectDescription.getProcessThreadCount(rank); thread++ ){
 
 				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
-				final String traceFile = files.getFilenameXML(rank, thread);
+				final String traceFile = TraceFileNames.getFilenameXML(projectDescription.getFilesPrefix(), rank, thread);
 				try{
 					TraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(traceFile));
 
@@ -86,8 +87,8 @@ public class HDTraceConverter {
 				}
 
 				// external statistics
-				for(final String group: traceReader.getExternalStatisticGroups()){
-					final String statFileName = files.getFilenameStatistics(rank, thread, group);
+				for(final String group: projectDescription.getExternalStatisticGroups()){
+					final String statFileName = TraceFileNames.getFilenameStatistics(projectDescription.getFilesPrefix(), rank, thread, group);
 					
 					if (! (new File(statFileName)).canRead() ){
 						continue;
@@ -95,7 +96,7 @@ public class HDTraceConverter {
 					
 					SimpleConsoleLogger.Debug("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + group);
 
-					ExternalStatisticsGroup statGroup = traceReader.getExternalStatisticsDescription(group);
+					ExternalStatisticsGroup statGroup = projectDescription.getExternalStatisticsDescription(group);
 					if(statGroup == null){
 						throw new IllegalArgumentException("Statistic group " + statGroup + 
 								" invalid, <rank,thread>=" + rank + "," + thread);

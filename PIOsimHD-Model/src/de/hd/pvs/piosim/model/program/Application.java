@@ -23,6 +23,7 @@ package de.hd.pvs.piosim.model.program;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.ProjectDescription;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 
 /**
@@ -32,37 +33,13 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
  * @author Julian M. Kunkel
  * 
  */
-public class Application{
-	private String applicationName = "";
-
-	private String alias = "";
-	
-	private String description = "";	
-
-	private String filename = "";
-
-
-	/**
-	 * If true then each client process has its own XML file. (allows optimized reading with SAX).
-	 */
-	private boolean isSplitIntoSeveralFiles = true;
+public class Application extends ProjectDescription{
 	
 	private HashMap<String, Communicator> communicators = new HashMap<String, Communicator>();
 
 	private Program [] rankProgramMap = null;
 
 	private HashMap<Integer, MPIFile>  files = new HashMap<Integer, MPIFile>();
-
-	private int processCount = 0;	
-
-
-	public String getName() {
-		return applicationName;
-	}
-
-	public int getProcessCount() {
-		return processCount;
-	}
 
 	public Program getClientProgram(int rank) {
 		if(rank >= rankProgramMap.length) 
@@ -71,44 +48,10 @@ public class Application{
 		return rankProgramMap[rank];
 	}
 
-	public String getApplicationName() {
-		return applicationName;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
 	public Communicator getCommunicator(String name) {
 		return communicators.get(name);
 	}
 
-	/**
-	 * @return a single file
-	 */
-	public MPIFile getFile(int fileid) {
-		return files.get(fileid);
-	}	
-
-	public String getFilename() {
-		return filename;
-	}
-
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-
-	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName;
-	}
-
-	public String getAlias() {
-		return alias;
-	}
-
-	public void setAlias(String alias) {
-		this.alias = alias;
-	}
 
 	public HashMap<String, Communicator> getCommunicators() {
 		return communicators;
@@ -122,13 +65,17 @@ public class Application{
 		return rankProgramMap;
 	}
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+	/**
+	 * @return a single file
+	 */
+	public MPIFile getFile(int fileid) {
+		return files.get(fileid);
+	}	
 
+	@Override
 	public void setProcessCount(int processCount) {
-		this.processCount = processCount;
-
+		super.setProcessCount(processCount);
+	
 		// create a new world communicator
 		Communicator comm = new Communicator("WORLD");		
 		/* world communicator put all ranks into */
@@ -152,13 +99,5 @@ public class Application{
 
 	public void setFiles(HashMap<Integer, MPIFile> files) {
 		this.files = files;
-	}
-	
-	public boolean isSplitIntoSeveralFiles() {
-		return isSplitIntoSeveralFiles;
-	}
-	
-	public void setSplitIntoSeveralFiles(boolean isSplitIntoSeveralFiles) {
-		this.isSplitIntoSeveralFiles = isSplitIntoSeveralFiles;
 	}
 }

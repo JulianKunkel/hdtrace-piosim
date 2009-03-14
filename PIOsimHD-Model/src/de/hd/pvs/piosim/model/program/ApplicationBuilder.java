@@ -40,7 +40,7 @@ public class ApplicationBuilder {
 		app.setApplicationName(applicationName);
 		app.setDescription(desc);
 		// shall be set from outside.
-		app.setFilename(applicationName + ".xml");
+		app.setProjectFilename(applicationName + ".xml");
 		
 		setRankSize(size);
 	}

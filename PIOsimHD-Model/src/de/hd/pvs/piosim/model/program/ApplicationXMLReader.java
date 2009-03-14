@@ -1,20 +1,20 @@
 
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
-//	This file is part of PIOsimHD.
-//	
-//	PIOsimHD is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	PIOsimHD is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
+//Copyright (C) 2008, 2009 Julian M. Kunkel
+
+//This file is part of PIOsimHD.
+
+//PIOsimHD is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//PIOsimHD is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 package de.hd.pvs.piosim.model.program;
 
@@ -29,6 +29,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import de.hd.pvs.TraceFormat.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.xml.XMLutil;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
@@ -42,15 +43,15 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
  * @author Julian M. Kunkel
  */
 
-public class ApplicationXMLReader {
-	
+public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
+
 	class MyAttributeAnnotationHandler extends AttributeAnnotationHandler{
 		final Application app ; 
 		public MyAttributeAnnotationHandler(Application app) {
 			this.app = app;
 			setDefaultXMLType(AttributeXMLType.ATTRIBUTE);
 		}		
-		
+
 		// extend reader.
 		public Object parseXMLString(java.lang.Class<?> type, String what) throws IllegalArgumentException {
 			if (type == MPIFile.class) {
@@ -86,7 +87,8 @@ public class ApplicationXMLReader {
 	 * @throws Exception
 	 */
 	public Application parseApplication(File XMLFile) throws Exception {
-
+		super.readProjectDescription(XMLFile.getAbsolutePath());
+		
 		if (! XMLFile.canRead()) {
 			throw new IllegalArgumentException("Application not readable: " + XMLFile.getAbsolutePath());
 		}
@@ -94,7 +96,7 @@ public class ApplicationXMLReader {
 
 		Application app = new Application();
 
-		app.setFilename(XMLFile.getAbsolutePath());
+		app.setProjectFilename(XMLFile.getAbsolutePath());
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
@@ -102,13 +104,6 @@ public class ApplicationXMLReader {
 
 		ArrayList<Element> elements;
 		Element applicationNode = document.getDocumentElement();
-
-		// read standart descriptions:
-
-		app.setApplicationName( XMLutil.getAttributeText(applicationNode, "name"));
-
-		app.setDescription(XMLutil.getPlainText(applicationNode, "Description"));
-
 
 		/* read file list */
 		elements = XMLutil.getElementsByTag(applicationNode, "FileList");
@@ -121,8 +116,8 @@ public class ApplicationXMLReader {
 
 			commonHandler.readSimpleAttributes(elements.get(i), f);
 			f.setDistribution(Distribution.readDistributionFromXML(XMLutil.getFirstElementByTag(elements.get(i), 
-				"Distribution")));
-			 
+			"Distribution")));
+
 			app.getFiles().put(f.getId(), f);
 		}
 
@@ -142,46 +137,13 @@ public class ApplicationXMLReader {
 			app.getCommunicators().put(c.getName(), c);
 		}
 
-		String val = XMLutil.getAttributeText(applicationNode, "processCount");
-		try {
-			app.setProcessCount(Integer.parseInt(val));
-		} catch (NumberFormatException e) {
-			throw new InvalidParameterException(
-			"Invalid XML, processCount missing");
-		}
-
-		Element element = XMLutil.getFirstElementByTag(applicationNode, "ProcessList");
-		if (element == null) {
-			// assume the XML is split into several files, one per rank.
-			app.setSplitIntoSeveralFiles(true);
-		}else{
-			app.setSplitIntoSeveralFiles(false);
-		}
-
 		// now read Programs:
 		Program [] programs = new Program[app.getProcessCount()];
+			// todo use SAX for parsing.
+			Document appXML = builder.parse(filename);
+			programs[i] = readProgramXMLDOM(i, appXML.getDocumentElement(), app);
 
-		if(app.isSplitIntoSeveralFiles()){
-			String fileprefix = app.getFilename().substring(0,  app.getFilename().lastIndexOf('.'));
-			String filesuffix = app.getFilename().substring(fileprefix.length());			
-			for (int i = 0; i < app.getProcessCount(); i++) {
-				// for each program open the corresponding file				
-				String filename = fileprefix + "-" + i + filesuffix;
-
-				// todo use SAX for parsing.
-				Document appXML = builder.parse(filename);
-				programs[i] = readProgramXMLDOM(i, appXML.getDocumentElement(), app);
-			}
-		}else{
-			elements = XMLutil.getElementsByTag(element, "Rank");
-
-			/** for loop enforces correct enumeration of ranks */
-			for (int i = 0; i < app.getProcessCount(); i++) {
-				Element process = elements.get(i);
-				programs[i] = readProgramXMLDOM(i, process, app);						
-			}
-		}
-
+			
 		app.setRankProgramMap(programs);
 
 		return app;
@@ -240,10 +202,10 @@ public class ApplicationXMLReader {
 	private void readCommandXML(Element commandXMLElement, Command cmd, Application app) throws Exception {
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
-		
+
 		// now try to fill all command fields as specified by the Annotations.
 		AttributeAnnotationHandler myCommonAttributeHandler = new MyAttributeAnnotationHandler(app);
-		
+
 		myCommonAttributeHandler.readSimpleAttributes(commandXMLElement, cmd);
 	}
 

@@ -61,7 +61,7 @@ public class ModelXMLWriter {
 
 		for (String appAlias: model.getApplicationNameMap().keySet()){
 			Application app = model.getApplicationNameMap().get(appAlias);
-			writer.writeXMLFromApplication(app, dirname + "/" + app.getFilename());
+			writer.writeXMLFromApplication(app, dirname + "/" + app.getProjectFilename());
 		}
 
 	}
@@ -207,7 +207,7 @@ public class ModelXMLWriter {
 		
 		for(String alias: mapping.keySet()){
 			Application app = mapping.get(alias);
-			buff.append("<Application alias=\"" + alias + "\" file=\"" + app.getFilename() + "\"/>\n");
+			buff.append("<Application alias=\"" + alias + "\" file=\"" + app.getProjectFilename() + "\"/>\n");
 		}
 	}
 			
