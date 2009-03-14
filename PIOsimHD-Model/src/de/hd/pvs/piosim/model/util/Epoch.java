@@ -181,6 +181,14 @@ public class Epoch implements Comparable<Epoch> {
 	 */
 	@Override
 	public String toString() {
+		return toNormalizedString() + "s";
+	}
+
+	/**
+	 * Normalize to second and do not print unit.
+	 * @return
+	 */
+	public String toNormalizedString(){
 		String prefix = "";
 		
 		Formatter timeFormatter = new Formatter();
@@ -204,12 +212,12 @@ public class Epoch implements Comparable<Epoch> {
 		if (lastZeros >= 0){
 			return prefix + seconds
 			+ "." //%+10.4f %9d
-			+ out.substring(0, lastZeros + 1) + "s";
+			+ out.substring(0, lastZeros + 1);
 		}else{
-			return seconds + "s";
-		}
+			return "" + seconds;
+		}		
 	}
-
+	
 	/**
 	 * Compare two Epochs, the earlier Epoch is "smaller".
 	 */
