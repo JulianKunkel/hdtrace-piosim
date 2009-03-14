@@ -92,9 +92,6 @@ public class ApplicationTraceReader {
 		Document document = builder.parse(projectFile);
 		Element applicationNode = document.getDocumentElement();
 
-		// read standard descriptions:
-
-		String appName = XMLutil.getAttributeText(applicationNode, "name");
 		int processCount = XMLutil.getIntValueAttribute(applicationNode, "processCount", 0);
 		
 		
@@ -107,53 +104,8 @@ public class ApplicationTraceReader {
 				statisticGroupDescriptions.put(out.getName(), out);
 			}
 		}
-		
-		// scan for the trace files
-		String prefix = projectFile.getName().toString();
-		prefix = prefix.substring(0, prefix.lastIndexOf('.'));		
-		HashMap<Integer, HashMap<Integer, ArrayList<String>>> map = new HashMap<Integer, HashMap<Integer,ArrayList<String>>>();
-		
-		for (int i=0 ; i < processCount; i++){
-			HashMap<Integer, ArrayList<String>> threadFileMap = new HashMap<Integer, ArrayList<String>>();
-			map.put(i, threadFileMap);				
-		}
-		
-		File parent = projectFile.getParentFile();
-		if(parent == null){
-			parent = new File(".");
-		}
-		// scan for files with the prefix
-		for (String file: parent.list()){
-			if(file.startsWith(prefix + "_")){
-				String remainder = file.substring(prefix.length() + 1, file.lastIndexOf('.'));				
-				String[] splits = remainder.split("_");				
-				if(splits.length == 2 || (splits.length == 4 && splits[2].equals("stat"))){
-					// rank, thread id
-					int rank = Integer.parseInt(splits[0]);
-					int thread = Integer.parseInt(splits[1]);
-					
-					HashMap<Integer, ArrayList<String>> threadFileMap =  map.get(rank);
-					
-					ArrayList<String> files = threadFileMap.get(thread);
-					if(files == null){
-						files = new ArrayList<String>();
-						threadFileMap.put(thread, files);
-					}
-					
-					if(splits.length == 4){
-						// statistics
-						String statFilename = splits[3];
-						files.add(statFilename);
-					}
-				}else{
-					// discarding file
-					System.out.println("Ignoring file " + file);
-				}
-				
-			}
-		}
-		
-		traceFiles = new ExistingTraceFiles(parent.getAbsolutePath() + "/" + prefix, map);
+	
+		traceFiles = new ExistingTraceFiles(projectFileName, processCount);
 	}
 	
 	public ExistingTraceFiles getTraceFiles() {

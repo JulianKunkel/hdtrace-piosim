@@ -18,7 +18,7 @@
 
 package de.hd.pvs.traceConverter;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.PriorityQueue;
 
 import de.hd.pvs.piosim.model.util.Epoch;
@@ -72,7 +72,7 @@ public class HDTraceConverter {
 					processor.setRunParameters(param);
 
 					processor.initalize();
-
+					
 					if(processor.peekEarliestTime() != null){
 						pendingReaders.add(processor);
 					}else{
@@ -84,9 +84,12 @@ public class HDTraceConverter {
 				}
 
 				// external statistics
-				ArrayList<String> statFileList = files.getStatisticsFiles(rank, thread);
-				for(final String group: statFileList){
+				for(final String group: traceReader.getExternalStatisticGroups()){
 					final String statFileName = files.getFilenameStatistics(rank, thread, group);
+					
+					if (! (new File(statFileName)).canRead() ){
+						continue;
+					}
 					
 					SimpleConsoleLogger.Debug("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + group);
 

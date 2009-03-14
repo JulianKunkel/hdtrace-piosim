@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.util.Epoch;
-import de.hd.pvs.traceConverter.FileNames;
+import de.hd.pvs.traceConverter.TraceFileNames;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
@@ -56,7 +56,7 @@ public class HDTraceConverter extends TraceOutputConverter {
 
 	@Override
 	public void addTimeline(ProcessIdentifier pid) {
-		final String file = FileNames.getFilenameXML(filePrefixPath, pid
+		final String file = TraceFileNames.getFilenameXML(filePrefixPath, pid
 				.getRank(), pid.getThread());
 		try {
 			traceWriterMap.put(pid, new TraceWriter(file));
@@ -128,7 +128,7 @@ public class HDTraceConverter extends TraceOutputConverter {
 			// by default, write into epoch:
 			newGroupDef.setTimestampDatatype(StatisticType.EPOCH);
 
-			final String file = FileNames.getFilenameStatistics(filePrefixPath,
+			final String file = TraceFileNames.getFilenameStatistics(filePrefixPath,
 					id.getRank(), id.getThread(), group.getName());
 			try {
 				// generate a new output writer
