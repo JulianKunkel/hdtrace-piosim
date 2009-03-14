@@ -15,7 +15,7 @@ import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.piosim.model.util.XMLutil;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticDescription;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
+import de.hd.pvs.traceConverter.Input.Statistics.StatisticType;
 
 public class ApplicationTraceReader {
 	ExistingTraceFiles traceFiles;
@@ -29,7 +29,7 @@ public class ApplicationTraceReader {
 		
 		final String tT = root.getAttribute("timestampDatatype");		
 		if(tT != null  && ! tT.isEmpty()){
-			ExternalStatisticsGroup.StatisticType type = ExternalStatisticsGroup.StatisticType.valueOf(tT);
+			StatisticType type = StatisticType.valueOf(tT);
 			stat.setTimestampDatatype(type);
 		}
 		

@@ -3,7 +3,6 @@
  */
 package de.hd.pvs.traceConverter.Input.Statistics;
 
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
 
 public class StatisticDescription{
 	final StatisticType type;

@@ -6,7 +6,7 @@ import java.util.Properties;
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
+import de.hd.pvs.traceConverter.Input.Statistics.StatisticType;
 import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
 import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;

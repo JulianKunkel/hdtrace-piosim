@@ -52,8 +52,9 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	public void processEarliestEvent(Epoch now) {
 		isFinished = reader.isFinished();
 
-		for(String stat: lastRead.getNameResultMap().keySet()){
-			Object val = lastRead.getNameResultMap().get(stat);
+		for(int pos = 0; pos < group.getSize() ; pos ++){
+			Object val = lastRead.getValues()[pos];
+			final String stat = group.getStatisticsOrdered().get(pos).getName();
 
 			//System.out.println(now + " "  + getPID() + " " + now + " stat " + stat + " val: " + val);
 

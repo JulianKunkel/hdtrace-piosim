@@ -1,5 +1,6 @@
 package de.hd.pvs.traceConverter.Output.HDTrace;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -7,7 +8,7 @@ import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.FileNames;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup.StatisticType;
+import de.hd.pvs.traceConverter.Input.Statistics.StatisticType;
 import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
 import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
@@ -21,9 +22,10 @@ import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 public class HDTraceConverter  extends TraceOutputConverter{
 	
 	private String filePrefixPath;
+
 	
 	// map a single statistic group to a output writer
-	HashMap<ExternalStatisticsGroup, StatisticWriter> statGroupWriterMap = new HashMap<ExternalStatisticsGroup, StatisticWriter>(); 
+	HashMap<ExternalStatisticsGroup, HashMap<ProcessIdentifier, StatisticWriter>> statGroupWriterMap = new HashMap<ExternalStatisticsGroup, HashMap<ProcessIdentifier,StatisticWriter>>(); 
 	
 	@Override
 	public void addTimeline(int rank, int thread, String name) {
@@ -61,12 +63,18 @@ public class HDTraceConverter  extends TraceOutputConverter{
 	public void Statistics(ProcessIdentifier id, Epoch time, String statistic,
 		ExternalStatisticsGroup group, Object value) {
 		
-		StatisticWriter outWriter = statGroupWriterMap.get(group.getName());
+		HashMap<ProcessIdentifier, StatisticWriter>  pidMap = statGroupWriterMap.get(group);
+		if(pidMap == null){
+			pidMap = new HashMap<ProcessIdentifier, StatisticWriter>();
+			statGroupWriterMap.put(group, pidMap);
+		}
+		
+		StatisticWriter outWriter = pidMap.get(id); 
 		ExternalStatisticsGroup newGroupDef;
 		
 		// create a new group to write the definition, if it does not yet exist.
 		if(outWriter == null){
-			newGroupDef = 	new ExternalStatisticsGroup();
+			newGroupDef = 	new ExternalStatisticsGroup(group.getStatisticsOrdered(), group.getStatisticTypeMap());
 			newGroupDef.setName(group.getName());
 			//newGroup.setTimeOffset(timeOffset) 0.0 by default
 			newGroupDef.setTimeResolutionMultiplier(1);
@@ -81,21 +89,24 @@ public class HDTraceConverter  extends TraceOutputConverter{
 				throw new IllegalArgumentException("Statistic file could not be created: " + file);
 			}
 			
-			statGroupWriterMap.put(group, outWriter);
+			pidMap.put(id, outWriter);
 		}
 		
-		// check if the statistic is already existing:
-		if(ou)
-		
-		outWriter.writeStatisticEntry(time, statistic, value);		
+		try{
+			outWriter.writeStatisticEntry(time, statistic, value);
+		}catch(IOException e){
+			throw new IllegalArgumentException("Error during write in statistic file", e);
+		}
 	}
 	
 
 	
 	@Override
 	public void finalizeTrace() {
-		for(StatisticWriter writer: statGroupWriterMap.values()){
-			writer.finalize();
+		for(HashMap<ProcessIdentifier, StatisticWriter> pidMap: statGroupWriterMap.values()){
+			for(StatisticWriter writer: pidMap.values()){
+				writer.finalize();
+			}
 		}
 	}
 

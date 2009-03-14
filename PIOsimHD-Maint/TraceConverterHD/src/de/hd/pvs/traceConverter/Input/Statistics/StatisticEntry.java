@@ -1,7 +1,5 @@
 package de.hd.pvs.traceConverter.Input.Statistics;
 
-import java.util.HashMap;
-
 import de.hd.pvs.piosim.model.util.Epoch;
 
 /**
@@ -15,17 +13,17 @@ public class StatisticEntry {
 	/**
 	 * Maps the statistic name to the measured value.
 	 */
-	private final HashMap<String, Object> nameResultMap;
+	private final Object [] values;
 	
 	private final Epoch timeStamp; 
 		
-	public StatisticEntry(HashMap<String, Object> nameResultMap, Epoch timeStamp) {
-		this.nameResultMap = nameResultMap;
+	public StatisticEntry(Object [] values, Epoch timeStamp) {
+		this.values = values;
 		this.timeStamp = timeStamp;
 	}
 	
-	public HashMap<String, Object> getNameResultMap() {
-		return nameResultMap;
+	public Object[] getValues() {
+		return values;
 	}
 	
 	public Epoch getTimeStamp() {
