@@ -20,13 +20,13 @@ package de.hd.pvs.traceConverter.Output.Text;
 
 import java.util.Properties;
 
-import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
-import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
-import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
-import de.hd.pvs.traceConverter.Input.Trace.XMLTag;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 
 public class TextConverter extends TraceOutputConverter {

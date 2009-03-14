@@ -19,9 +19,12 @@
 package de.hd.pvs.traceConverter.Input.Trace;
 
 
-import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.XMLTraceEntry.TYPE;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
-import de.hd.pvs.traceConverter.Input.Trace.XMLTraceEntry.TYPE;
 
 /**
  * Reads data from a XML trace and triggers the appropriate Start/Stop Event/State calls. 

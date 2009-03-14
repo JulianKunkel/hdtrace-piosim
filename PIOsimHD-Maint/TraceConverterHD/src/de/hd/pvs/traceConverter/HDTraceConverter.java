@@ -21,12 +21,14 @@ package de.hd.pvs.traceConverter;
 import java.io.File;
 import java.util.PriorityQueue;
 
-import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.TraceFormat.ApplicationTraceReader;
+import de.hd.pvs.TraceFormat.ExistingTraceFiles;
+import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticProcessor;
-import de.hd.pvs.traceConverter.Input.Statistics.StatisticsReader;
 import de.hd.pvs.traceConverter.Input.Trace.SaxTraceFileReader;
 import de.hd.pvs.traceConverter.Input.Trace.TraceProcessor;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;

@@ -30,6 +30,10 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
+import de.hd.pvs.TraceFormat.xml.XMLTraceEntryFactory;
+
 
 /**
  * Reads the XML file on demand with a Sax XML Parser.

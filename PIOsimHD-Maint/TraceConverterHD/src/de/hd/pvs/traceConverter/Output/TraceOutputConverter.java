@@ -18,13 +18,13 @@
 
 package de.hd.pvs.traceConverter.Output;
 
-import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.HDTraceConverter;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
-import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
-import de.hd.pvs.traceConverter.Input.Trace.StateTraceEntry;
 
 /**
  * An implementation of the TraceOutputConverter decides how to 

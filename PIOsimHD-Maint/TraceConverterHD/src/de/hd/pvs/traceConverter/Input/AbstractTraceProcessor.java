@@ -18,7 +18,7 @@
 
 package de.hd.pvs.traceConverter.Input;
 
-import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 

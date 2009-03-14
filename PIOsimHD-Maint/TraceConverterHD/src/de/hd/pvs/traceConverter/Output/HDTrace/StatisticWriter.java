@@ -23,10 +23,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
-import de.hd.pvs.piosim.model.util.Epoch;
-import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
-import de.hd.pvs.traceConverter.Input.Statistics.StatisticDescription;
-import de.hd.pvs.traceConverter.Input.Statistics.StatisticType;
+import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticType;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
  * Write a single statistic file 
