@@ -2,9 +2,7 @@ package de.hd.pvs.traceConverter.Input.Trace;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.xml.parsers.SAXParser;
@@ -13,10 +11,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
-
-import sun.awt.X11.Depth;
 
 
 /**
@@ -173,7 +167,7 @@ public class SaxTraceFileReader{
 				String qName, Attributes atts) throws SAXException{
 			nesting_depth++;
 
-			if (qName.equals("Program") && nesting_depth == 2){
+			if (qName.equals("Program") && nesting_depth == 1){
 				startProcessing = true;
 				return;
 			}
@@ -199,7 +193,7 @@ public class SaxTraceFileReader{
 		{
 			nesting_depth--;
 
-			if (qName.equals("Program") && nesting_depth == 1){
+			if (qName.equals("Program") && nesting_depth == 0){
 				startProcessing = false;
 				return;
 			}

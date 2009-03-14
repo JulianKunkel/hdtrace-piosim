@@ -45,9 +45,9 @@ public class HDTraceConverter {
 			for(int thread : files.getExistingThreads(rank)){
 
 				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
-				final String file = files.getFilenameXML(rank, thread);
+				final String traceFile = files.getFilenameXML(rank, thread);
 				try{
-					TraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(file));
+					TraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(traceFile));
 
 					processor.setOutputConverter(outputConverter);
 					processor.setProcessIdentifier(pid);
@@ -55,23 +55,30 @@ public class HDTraceConverter {
 
 					processor.initalize();
 
-					pendingReaders.add(processor);
+					if(processor.peekEarliestTime() != null){
+						pendingReaders.add(processor);
+					}else{
+						System.out.println("Warning: trace file " + traceFile + " does not contain a single trace entry");
+					}
+					
 				}catch(Exception e){
-					SimpleConsoleLogger.Debug("Error in trace file " + file + " " + e.getMessage());
+					SimpleConsoleLogger.Debug("Error in trace file " + traceFile + " " + e.getMessage());
 				}
 
 				// external statistics
 				ArrayList<String> statFileList = files.getStatisticsFiles(rank, thread);
-				for(String statFile: statFileList){
-					SimpleConsoleLogger.Debug("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + statFile);
+				for(final String group: statFileList){
+					final String statFileName = files.getFilenameStatistics(rank, thread, group);
+					
+					SimpleConsoleLogger.Debug("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + group);
 
-					ExternalStatisticsGroup statGroup = traceReader.getExternalStatisticsDescription(statFile);
+					ExternalStatisticsGroup statGroup = traceReader.getExternalStatisticsDescription(group);
 					if(statGroup == null){
 						throw new IllegalArgumentException("Statistic group " + statGroup + 
 								" invalid, <rank,thread>=" + rank + "," + thread);
 					}
 
-					StatisticProcessor  processor = new StatisticProcessor(new StatisticsReader(files.getFilenameStatistics(rank, thread, statFile), 
+					StatisticProcessor  processor = new StatisticProcessor(new StatisticsReader(statFileName, 
 							statGroup)); 
 
 					processor.setOutputConverter(outputConverter);
@@ -80,7 +87,11 @@ public class HDTraceConverter {
 
 					processor.initalize();
 
-					pendingReaders.add(processor);					
+					if(processor.peekEarliestTime() != null){
+						pendingReaders.add(processor);
+					}else{
+						System.out.println("Warning: statistic file " + statFileName + " does not contain a single statistic, remove the file!");
+					}						
 				}
 			}			
 		}
