@@ -1,9 +1,8 @@
 package de.hd.pvs.traceConverter.Output;
 
-import java.util.Properties;
-
 import de.hd.pvs.piosim.model.util.Epoch;
 import de.hd.pvs.traceConverter.HDTraceConverter;
+import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
@@ -27,7 +26,7 @@ abstract public class TraceOutputConverter {
 	 * @param extStat
 	 */
 	abstract public void initializeTrace(
-			Properties commandLineArguments,
+			RunParameters parameters,
 			String resultFile
 			);
 
@@ -38,22 +37,16 @@ abstract public class TraceOutputConverter {
 	
 	
 	/**
-	 * Announce the existence of a rank/timeline(thread) line for events. Called by the TraceProcessor
-	 * 
-	 * @param suggestedRank process
-	 * @param suggestedTimeline aka vthread.
-	 * 
-	 * @param name The id of the new timeline
+	 * Announce the existence of a rank/thread line for events. Called by the TraceProcessor
 	 */
-	abstract public void addTimeline(int rank, int thread, String name);
+	abstract public void addTimeline(ProcessIdentifier pid);
 	
 	/**
 	 * Add the normal timeline.
 	 * @param pid
 	 */
 	final public void addNormalTimeline(ProcessIdentifier pid){
-		addTimeline(pid.getRank(), pid.getVthread(),
-				pid.getRank() + "-" + pid.getVthread() );
+		addTimeline(pid);
 	}
 
 	

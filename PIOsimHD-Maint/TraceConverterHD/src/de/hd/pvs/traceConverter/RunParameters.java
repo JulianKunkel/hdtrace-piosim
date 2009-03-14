@@ -66,6 +66,18 @@ public class RunParameters {
 	float statisticModificationUntilUpdate = 0.01f;	
 
 	
+	/**
+	 * Determines whether compute events are processed or ignored.
+	 */
+	boolean processAlsoComputeEvents = false;
+	
+	public void setProcessAlsoComputeEvents(boolean processAlsoComputeEvents) {
+		this.processAlsoComputeEvents = processAlsoComputeEvents;
+	}
+	
+	public boolean isProcessAlsoComputeEvents() {
+		return processAlsoComputeEvents;
+	}
 	
 	public Properties getOutputFileSpecificOptions() {
 		return outputFileSpecificOptions;

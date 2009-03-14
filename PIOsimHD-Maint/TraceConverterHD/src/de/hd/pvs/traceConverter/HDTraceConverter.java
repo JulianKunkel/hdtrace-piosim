@@ -36,7 +36,7 @@ public class HDTraceConverter {
 		PriorityQueue<AbstractTraceProcessor> pendingReaders = new PriorityQueue<AbstractTraceProcessor>();
 
 		// init trace converter to make it ready:
-		outputConverter.initializeTrace(param.getOutputFileSpecificOptions(), param.getOutputFilePrefix());
+		outputConverter.initializeTrace(param, param.getOutputFilePrefix());
 
 		// start parsing of the trace files:
 		// trace files: rank + thread id are defined in the file name

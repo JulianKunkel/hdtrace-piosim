@@ -1,9 +1,9 @@
 package de.hd.pvs.traceConverter.Output.Tau;
 
 import java.util.HashMap;
-import java.util.Properties;
 
 import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticType;
@@ -36,7 +36,7 @@ public class TauConverter extends TraceOutputConverter {
 	private static final int STATISTICS_GROUP_ID = 11;
 
 	@Override
-	public void initializeTrace(Properties commandLineArguments, String resultFile) 
+	public void initializeTrace(RunParameters parameters, String resultFile) 
 	{
 		try{
 			this.tauWriter = TraceFactory.OpenFileForOutput(
@@ -64,8 +64,8 @@ public class TauConverter extends TraceOutputConverter {
 	}
 
 	@Override
-	public void addTimeline(int rank, int thread, String name) {
-		tauWriter.defThread(rank, thread, name);
+	public void addTimeline(ProcessIdentifier pid) {
+		tauWriter.defThread(pid.getRank(), pid.getThread(), pid.getRank() + "_" + pid.getThread());
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class TauConverter extends TraceOutputConverter {
 
 		//System.out.println("E " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
 
-		tauWriter.eventTrigger(getTimeMikro(time),	 id.getRank(), id.getVthread(), categoryID, 0);
+		tauWriter.eventTrigger(getTimeMikro(time),	 id.getRank(), id.getThread(), categoryID, 0);
 	}
 
 
@@ -93,7 +93,7 @@ public class TauConverter extends TraceOutputConverter {
 		Integer categoryID = tauCategoryMap.get(traceEntry.getName());
 
 		//System.out.println("> " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
-		tauWriter.leaveState(getTimeMikro(time), id.getRank(), id.getVthread(), categoryID);	
+		tauWriter.leaveState(getTimeMikro(time), id.getRank(), id.getThread(), categoryID);	
 	}
 
 	@Override
@@ -110,7 +110,7 @@ public class TauConverter extends TraceOutputConverter {
 		}
 
 		//System.out.println("< " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());		
-		tauWriter.enterState(getTimeMikro(time), id.getRank(), id.getVthread(), categoryID);		
+		tauWriter.enterState(getTimeMikro(time), id.getRank(), id.getThread(), categoryID);		
 	}
 
 	@Override
@@ -151,7 +151,7 @@ public class TauConverter extends TraceOutputConverter {
 
 		//System.out.println("Stat " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread() + " : " + convertedValue);
 
-		tauWriter.eventTrigger(getTimeMikro(time),	 id.getRank(), id.getVthread(), categoryID, convertedValue);
+		tauWriter.eventTrigger(getTimeMikro(time),	 id.getRank(), id.getThread(), categoryID, convertedValue);
 	}
 
 

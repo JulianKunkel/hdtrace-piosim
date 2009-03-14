@@ -3,6 +3,7 @@ package de.hd.pvs.traceConverter.Output.Text;
 import java.util.Properties;
 
 import de.hd.pvs.piosim.model.util.Epoch;
+import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Trace.EventTraceEntry;
@@ -54,8 +55,7 @@ public class TextConverter extends TraceOutputConverter {
 	}
 
 	@Override
-	public void addTimeline(int rank, int thread, String name) {
-		
+	public void addTimeline(ProcessIdentifier pid) {
 	}
 	
 	@Override
@@ -64,9 +64,11 @@ public class TextConverter extends TraceOutputConverter {
 	}
 
 	@Override
-	public void initializeTrace(Properties commandLineArguments,
+	public void initializeTrace(RunParameters parameters,
 			String resultFile) 
 	{
+		Properties commandLineArguments = parameters.getOutputFileSpecificOptions();
+		
 		if(commandLineArguments.get("-h") != null || commandLineArguments.get("-?") != null){
 			System.err.println("TextConverter Arguments: ");
 			System.err.println(" -v Print content of events/states on start");

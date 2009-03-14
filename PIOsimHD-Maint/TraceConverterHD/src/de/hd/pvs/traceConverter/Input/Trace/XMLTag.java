@@ -97,7 +97,7 @@ public class XMLTag {
 		if(containedText != null)
 			buff.append(containedText);
 		
-		return "<" + name + buff.toString() + "</" + name + ">\n";
+		return "<" + name + buff.toString() + "</" + name + ">";
 	}
 	
 }

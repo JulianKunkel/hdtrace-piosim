@@ -10,6 +10,12 @@ import de.hd.pvs.traceConverter.Input.Statistics.ExternalStatisticsGroup;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticDescription;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticType;
 
+/**
+ * Write a single statistic file 
+ * 
+ * @author julian
+ *
+ */
 public class StatisticWriter {
 	private final DataOutputStream file;	
 	private final ExternalStatisticsGroup group;

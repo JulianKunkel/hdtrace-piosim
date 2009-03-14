@@ -88,7 +88,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			final String name = currentTraceEntry.getName();
 			
 			if(stateStart){
-				if(! name.equals("Compute"))
+				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
 					getOutputConverter().StateStart(getPID(), now, state);
 				
 				if(state.hasNestedTrace()){
@@ -100,7 +100,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 					eventTime = state.getTime().add(state.getDuration());
 				}
 			}else{
-				if(! name.equals("Compute"))
+				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
 					getOutputConverter().StateEnd(getPID(), now, state);
 				
 				stateStart = true;

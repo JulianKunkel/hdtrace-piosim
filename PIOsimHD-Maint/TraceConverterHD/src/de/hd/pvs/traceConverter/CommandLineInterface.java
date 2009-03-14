@@ -40,6 +40,7 @@ public class CommandLineInterface {
 						+ " -l <floatValue> update Statistics only if they vary more than value %\n"
 						+ " -a Compute average statistics for omited values (otherwise latest value), (-l will be activated \n"
 						+ "    with current value: " +	runParameters.getStatisticModificationUntilUpdate() + "%, change with -l \n"
+						+ " -C Process also trace-events for compute \n"
 						+ " -h show help\n"
 						+ "\nBoolean values can be set 0 or 1\n");
 
@@ -93,6 +94,9 @@ public class CommandLineInterface {
 			}
 
 			switch(param.charAt(1)){
+			case('C'):
+				runParameters.setProcessAlsoComputeEvents(true);
+				break;
 			case('a'):
 				runParameters.setUpdateStatisticsOnlyIfTheyChangeTooMuch(true);
 				runParameters.setComputeAverageFromStatistics(true);
