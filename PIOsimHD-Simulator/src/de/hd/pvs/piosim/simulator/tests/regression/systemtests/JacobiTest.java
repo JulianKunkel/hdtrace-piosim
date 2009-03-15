@@ -140,7 +140,7 @@ public class JacobiTest {
 		ModelBuilder mb = createDisjointClusterModel(10, 0);	
 		
 		ApplicationXMLReader axml = new ApplicationXMLReader();
-		Application app = axml.parseApplication("Examples/PDE/" + which + "/result.xml");
+		Application app = axml.parseApplication("Examples/PDE/" + which + "/result.xml", false);
 		mb.setApplication("Jacobi", app);
 		
 		RunParameters params = new RunParameters();

@@ -57,6 +57,11 @@ public class ModelXMLReader {
 	AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
 	
 	/**
+	 * Should all commands be read on demand or at beginning (i.e. for further modification?)
+	 */
+	private boolean readCompleteProgramIntoMemory = false;
+	
+	/**
 	 * The function contains all routines to read the XML description files and
 	 * transforms them into valid Java Classes representing the data.
 	 */
@@ -334,7 +339,7 @@ public class ModelXMLReader {
 	private void loadSingleApp(Model model, String filename, String alias) throws Exception{
 		ApplicationXMLReader appXMLReader = new ApplicationXMLReader();
 		
-		Application newApp = appXMLReader.parseApplication(filename);
+		Application newApp = appXMLReader.parseApplication(filename, readCompleteProgramIntoMemory);
 		
 		newApp.setAlias(alias);
 		
@@ -447,5 +452,16 @@ public class ModelXMLReader {
 			
 			classIterate = classIterate.getSuperclass();
 		}
+	}
+
+	/**
+	 * Should all commands be read on demand or at beginning (i.e. for further modification?)
+	 */
+	public void setReadCompleteProgramIntoMemory(boolean readCompleteProgramIntoMemory) {
+		this.readCompleteProgramIntoMemory = readCompleteProgramIntoMemory;
+	}
+	
+	public boolean isReadCompleteProgramIntoMemory() {
+		return readCompleteProgramIntoMemory;
 	}
 }

@@ -48,7 +48,7 @@ public class JacobiTestIO extends ClusterTest{
 		ModelBuilder mb = createDisjointClusterModel(10, 5);	
 		
 		ApplicationXMLReader axml = new ApplicationXMLReader();
-		Application app = axml.parseApplication(which);
+		Application app = axml.parseApplication(which, false);
 		mb.setApplication("Jacobi", app);
 		
 		RunParameters params = new RunParameters();

@@ -26,6 +26,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.Program;
+import de.hd.pvs.piosim.model.program.ProgramInMemory;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 /**
@@ -38,28 +39,28 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
  *
  */
 public class ModelVerifier {
-	
+
 	AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler(){
 		// extend the attribute handler for common types
-		
+
 		@Override
 		public void verifyConsistency(Field field, Object value,
 				StringBuffer errorMessageBuffer) throws IllegalArgumentException 
-		{
-			
+				{
+
 			if(field.getType() == Communicator.class){
 				return;
 			}
-			
+
 			if(field.getType() == MPIFile.class){
 				return;
 			}
-			
+
 			super.verifyConsistency(field, value, errorMessageBuffer);
-		}
+				}
 	};
-	
-	
+
+
 	/**
 	 * Automatically verifies if this model is valid.
 	 * In case one or multiple invalid states are present only one exception is thrown.
@@ -67,7 +68,7 @@ public class ModelVerifier {
 	 */
 	public void checkConsistency(Model model) throws Exception{
 		boolean err = false;
-		
+
 		// for each BasicComponent check if it is valid:
 		for (BasicComponent c: model.getCidCMap().values()){
 			try { 
@@ -78,8 +79,7 @@ public class ModelVerifier {
 				err = true;
 			}			
 		}
-		
-		// TODO application checks on demand?
+
 		for(Application app: model.getApplicationNameMap().values()) {
 			try { 
 				checkConsistency(app);  
@@ -89,12 +89,12 @@ public class ModelVerifier {
 				err = true;
 			}			
 		}
-		
+
 		if (err){
 			throw new IllegalArgumentException("Model contains errors!");
 		}
 	}
-	
+
 	/**
 	 * Check the consistency of a component, are all attributes in valid ranges?
 	 * 
@@ -104,24 +104,31 @@ public class ModelVerifier {
 	public void checkConsistency(BasicComponent comp, boolean isTemplate) throws Exception{
 		commonAttributeHandler.checkAttributeConsistency(comp, isTemplate);		
 	}
-	
-  /**
-   * Check the correctness of an application
-   * 
-   * @param app
-   * @throws Exception
-   */
+
+	/**
+	 * Check the correctness of an application, the commands are only checked if the
+	 * program is already loaded into memory.
+	 * 
+	 * @param app
+	 * @throws Exception
+	 */
 	public void checkConsistency(Application app) throws Exception{		
-		for (int p= 0; p < app.getProcessCount();  p++){
+		for (int p= 0; p < app.getRankCount();  p++){
 			boolean err = false;
-			
-			Program program = app.getClientProgram(p);
-			for(Command cmd: program.getCommands()){
-				try{
-					commonAttributeHandler.checkAttributeConsistency(cmd, false);
-				}catch(Exception e){
-					System.err.print(cmd + " " + e.getMessage());
-					err = true;
+			final int threadCnt =  app.getProcessThreadCount(p);
+
+			for(int thread = 0 ; thread < threadCnt; thread++){
+				Program program = app.getClientProgram(p, thread);
+				assert(program != null);			
+				if(ProgramInMemory.class.isAssignableFrom(program.getClass())){
+					for(Command cmd: ((ProgramInMemory) program).getCommands()){
+						try{
+							checkConsistency(cmd);
+						}catch(Exception e){
+							System.err.print(cmd + " " + e.getMessage());
+							err = true;
+						}
+					}
 				}
 			}
 
@@ -131,5 +138,14 @@ public class ModelVerifier {
 		}
 	}
 
-	
+	/**
+	 * Check the consistency of a single command
+	 * @param cmd
+	 * @throws Exception
+	 */
+	public void checkConsistency(Command cmd) throws Exception{
+		commonAttributeHandler.checkAttributeConsistency(cmd, false);
+	}
+
+
 }

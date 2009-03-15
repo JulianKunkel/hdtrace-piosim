@@ -26,11 +26,11 @@ import de.hd.pvs.TraceFormat.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.TraceFileNames;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
+import de.hd.pvs.TraceFormat.trace.SaxTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticProcessor;
-import de.hd.pvs.traceConverter.Input.Trace.SaxTraceFileReader;
 import de.hd.pvs.traceConverter.Input.Trace.TraceProcessor;
 import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
 
@@ -52,7 +52,8 @@ public class HDTraceConverter {
 		// scan for all the XML files which must be opened during conversion:
 		// general description
 		ProjectDescriptionXMLReader pReader = new ProjectDescriptionXMLReader();
-		ProjectDescription projectDescription = pReader.readProjectDescription(param.getInputTraceFile());
+		ProjectDescription projectDescription = new ProjectDescription();
+		pReader.readProjectDescription(projectDescription, param.getInputTraceFile());
 
 		// pending events and files to process
 		PriorityQueue<AbstractTraceProcessor> pendingReaders = new PriorityQueue<AbstractTraceProcessor>();
@@ -62,13 +63,16 @@ public class HDTraceConverter {
 
 		// start parsing of the trace files:
 		// trace files: rank + thread id are defined in the file name		
-		for(int rank=0 ; rank < projectDescription.getProcessCount(); rank++){
+		for(int rank=0 ; rank < projectDescription.getRankCount(); rank++){
 			for(int thread = 0; thread < projectDescription.getProcessThreadCount(rank); thread++ ){
 
 				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
-				final String traceFile = TraceFileNames.getFilenameXML(projectDescription.getFilesPrefix(), rank, thread);
+				final String traceFile = TraceFileNames.getFilenameXML(projectDescription.getAbsoluteFilesPrefix(), rank, thread);
+
+				SimpleConsoleLogger.Debug("Checking trace: " + traceFile);
+				
 				try{
-					TraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(traceFile));
+					TraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(traceFile, param.isReadNestedTrace()));
 
 					processor.setOutputConverter(outputConverter);
 					processor.setProcessIdentifier(pid);
@@ -88,9 +92,11 @@ public class HDTraceConverter {
 
 				// external statistics
 				for(final String group: projectDescription.getExternalStatisticGroups()){
-					final String statFileName = TraceFileNames.getFilenameStatistics(projectDescription.getFilesPrefix(), rank, thread, group);
-					
+					final String statFileName = TraceFileNames.getFilenameStatistics(projectDescription.getAbsoluteFilesPrefix(), 
+							rank, thread, group);
+
 					if (! (new File(statFileName)).canRead() ){
+						SimpleConsoleLogger.Debug("Statistic file does not exist " + statFileName);
 						continue;
 					}
 					

@@ -36,28 +36,53 @@ public class ApplicationBuilder {
 	
 	private static int lastUsedFileID = 0;
 	
-	public ApplicationBuilder(String applicationName, String desc, int size) {
+	private void build(String applicationName, String desc, int processes, int [] threadsPerProcess) {
 		app.setApplicationName(applicationName);
 		app.setDescription(desc);
 		// shall be set from outside.
 		app.setProjectFilename(applicationName + ".xml");
 		
-		setRankSize(size);
+		setProcessNumber(processes, threadsPerProcess);		
 	}
 	
-	private void setRankSize(int num){
+	public ApplicationBuilder(String applicationName, String desc, int processes, int [] threadsPerProcess) {
+		build(applicationName, desc, processes, threadsPerProcess);
+	}
+	
+	/**
+	 * Build an application with an equal number of threads per process
+	 * 
+	 * @param applicationName
+	 * @param desc
+	 * @param processes
+	 * @param threadForAllProcesses
+	 */
+	public ApplicationBuilder(String applicationName, String desc, int processes, int threadForAllProcesses) {
+		int [] threadsPerProcess =  new int[processes];
+		for (int i=0; i  < processes; i++)
+			threadsPerProcess[i] = threadForAllProcesses;
+		build(applicationName, desc, processes, threadsPerProcess);
+	}
+	
+	
+	private void setProcessNumber(int num, int [] threadsPerProcess){
 		 if (num <= 0){
 			 throw new IllegalArgumentException("Size of the program must be > 0");
 		 }
 		
-		 Program [] map = new Program[num];
+		 Program [][] map = new Program[num] [];
 		 
-		 for(int i=0; i < num; i++){
-			 Program p = new Program(app,i);
-			 map[i] = p;
+		 for(int p=0; p < num; p++){
+			 map[p] = new Program[threadsPerProcess[p]];
+			 
+			 for(int t=0; t < threadsPerProcess[p]; t++){
+				 	Program prog = new ProgramInMemory();
+			 		prog.setApplication(app, p, t);
+			 		map[p][t] = prog;
+			 }
 		 }
 		 
-		 app.setRankProgramMap(map);
+		 app.setProcessThreadProgramMap(map);
 		 app.setProcessCount(num);
 	}
 	
@@ -89,15 +114,14 @@ public class ApplicationBuilder {
 		return file;
 	}
 	
-	// for all depending programs add the command directly.
-	
+	// for all depending programs add the command directly.	
 	public void addCommand(int rank, Command command){
-		if( rank >= app.getProcessCount() ){
-			throw new IllegalArgumentException("Invalid rank: " + rank + " application size is " + app.getProcessCount());
+		if( rank >= app.getRankCount() ){
+			throw new IllegalArgumentException("Invalid rank: " + rank + " application size is " + app.getRankCount());
 		}
 		
-		Program program = app.getClientProgram(rank);
-		program.getCommands().add(command);
+		Program program = app.getClientProgram(rank, 0);
+		((ProgramInMemory) program).getCommands().add(command);
 		command.setProgram(program);
 	}	
 	

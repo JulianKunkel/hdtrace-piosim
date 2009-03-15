@@ -65,6 +65,10 @@ public class RunParameters {
 	 */
 	float statisticModificationUntilUpdate = 0.01f;	
 
+	/**
+	 * Are nested elements inside a trace file processed / read?
+	 */
+	boolean readNestedTraceEntries = true;
 	
 	/**
 	 * Determines whether compute events are processed or ignored.
@@ -148,5 +152,13 @@ public class RunParameters {
 	public void setComputeAverageFromStatistics(
 			boolean computeAverageFromStatistics) {
 		this.computeAverageFromStatistics = computeAverageFromStatistics;
+	}
+	
+	public void setReadNestedTrace(boolean readNestedTraceEntries) {
+		this.readNestedTraceEntries = readNestedTraceEntries;
+	}
+	
+	public boolean isReadNestedTrace() {
+		return readNestedTraceEntries;
 	}
 }

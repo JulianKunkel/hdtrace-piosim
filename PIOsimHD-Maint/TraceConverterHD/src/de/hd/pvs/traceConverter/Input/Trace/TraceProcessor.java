@@ -20,6 +20,7 @@ package de.hd.pvs.traceConverter.Input.Trace;
 
 
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.SaxTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry.TYPE;

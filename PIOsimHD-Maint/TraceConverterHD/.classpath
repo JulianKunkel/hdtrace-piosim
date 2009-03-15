@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/PIOsimHD-Model"/>
 	<classpathentry kind="lib" path="/PIOsimHD-Model/lib/TAU_tf.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/HDTraceFormat"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

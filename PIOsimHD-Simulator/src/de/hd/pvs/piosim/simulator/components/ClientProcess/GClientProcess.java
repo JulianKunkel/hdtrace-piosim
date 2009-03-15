@@ -250,7 +250,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	 */
 	private void checkSetFinishState(){
 		if( pendingComputeJobs.size() == 0 && pendingNetworkOperations.size() == 0 && 
-				clientProgram.getSize() == nextCommandNumber){
+				clientProgram.isFinished()){
 			finished = true;
 
 			info("finished");
@@ -322,12 +322,12 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	 * Sets the command or null if the client finished processing
 	 */
 	private Command getNextCommand(){		
-		if(clientProgram.getSize() == nextCommandNumber){
+		if(clientProgram.isFinished()){
 			checkSetFinishState();
 			return null;
 		}
 
-		return clientProgram.getCommands().get(nextCommandNumber++);
+		return clientProgram.getNextCommand();
 	}
 
 	/**

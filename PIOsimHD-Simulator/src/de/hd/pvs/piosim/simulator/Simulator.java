@@ -469,6 +469,7 @@ public final class Simulator{
 	{
 		System.out.println("Loading model: " + filename);
 	  ModelXMLReader xmlreader = new ModelXMLReader();
+	  xmlreader.setReadCompleteProgramIntoMemory(true);
 	  
 		Model model = xmlreader.parseProjectXML(filename ,extraApplicationFileMapping);
 		if (parameters == null){

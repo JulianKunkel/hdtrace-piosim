@@ -21,9 +21,8 @@
  */
 package de.hd.pvs.piosim.model.program;
 
-import java.util.ArrayList;
-
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+
 
 /**
  * Contains the sequential program trace for a single client process.
@@ -32,12 +31,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
  * @author Julian M. Kunkel
  * 
  */
-public class Program {
-	
-	/**
-	 * Sequence of commands to run.
-	 */
-	private final ArrayList<Command> commands = new ArrayList<Command>();
+abstract public class Program {
 	
 	/**
 	 * The parent Application.
@@ -48,54 +42,54 @@ public class Program {
 	 * The rank of this program inside an application.
 	 */
 	private int rank;
-
-
-	@Override
-	public String toString() {
-		StringBuilder b = new StringBuilder();
-		for (Command c : commands) {
-			b.append(c + "\n");
-		}
-		return b.toString();
-	}
+	
+	/**
+	 * The thread number within the rank.
+	 */
+	private int thread;
+	
+	/**
+	 * Is the program processed completely
+	 */
+	abstract public boolean isFinished();
+	
+	/**
+	 * Read the next command.
+	 * @return
+	 */
+	abstract public Command getNextCommand();
+	
+	/**
+	 * Allow to read all commands again => rewind to the first command
+	 */
+	abstract public void restartWithFirstCommand();
 
 	/**
 	 * Return the parent application.
 	 * @return
 	 */
-	public Application getApplication() {
+	final public Application getApplication() {
 		return parentApplication;
 	}
 
 	/**
 	 * Create a new Program.
 	 */
-	public Program(Application parentApplication, int rank) {
+	public void setApplication(Application parentApplication, int rank, int thread) {
 		this.parentApplication = parentApplication;
 		this.rank = rank;
-	}
-	
-	/**
-	 * Return the number of commands in this program
-	 * @return
-	 */
-	public int getSize() {
-		return commands.size();
-	}
-	
-	/**
-	 * Return the list of commands to run.
-	 * @return
-	 */
-	public ArrayList<Command> getCommands() {
-		return commands;
+		this.thread = thread;
 	}
 	
 	/**
 	 * @return the program rank in the application
 	 */
-	public int getRank() {
+	final public int getRank() {
 		return rank;
+	}
+	
+	final public int getThread() {
+		return thread;
 	}
 	
 }

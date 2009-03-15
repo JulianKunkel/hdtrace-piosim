@@ -170,11 +170,11 @@ public class ProgramBuilder {
 	/**
 	 * Set the last non AIO command as asynchronous == non-blocking.
 	 * 
-	 * @param rank
+	 * @param process
 	 * @return the asynchronous ID
 	 */
-	public int setLastCommandAsynchronous(int rank){
-		Program program = appBuilder.getApplication().getClientProgram(rank);
+	public int setLastCommandAsynchronous(int process, int thread){
+		ProgramInMemory program = (ProgramInMemory) appBuilder.getApplication().getClientProgram(process, thread);
 		
 		if(program.getSize() == 0){
 			throw new IllegalArgumentException("The program is empty yet");
@@ -185,20 +185,20 @@ public class ProgramBuilder {
 		int asynchronousID = 1;
 		// create a unique AIO ID for this command.
 		
-		if (lastUnusedAsynchronousIDForClient.containsKey(rank)){
-			asynchronousID = lastUnusedAsynchronousIDForClient.get(rank);
+		if (lastUnusedAsynchronousIDForClient.containsKey(process)){
+			asynchronousID = lastUnusedAsynchronousIDForClient.get(process);
 		}
 		
 		lastCmd.setAsynchronousID(asynchronousID);
 		
-		lastUnusedAsynchronousIDForClient.put(rank, asynchronousID + 1 );
+		lastUnusedAsynchronousIDForClient.put(process, asynchronousID + 1 );
 		
 		// add the asynchronous operation to the pending operations (for verification). 
 		
-		ArrayList<Integer> pendingIds =  pendingAsynchronousIDsForClient.get(rank);
+		ArrayList<Integer> pendingIds =  pendingAsynchronousIDsForClient.get(process);
 		if (pendingIds == null){
 			pendingIds = new ArrayList<Integer>();
-			pendingAsynchronousIDsForClient.put(rank, pendingIds);
+			pendingAsynchronousIDsForClient.put(process, pendingIds);
 		}
 		
 		pendingIds.add(asynchronousID);

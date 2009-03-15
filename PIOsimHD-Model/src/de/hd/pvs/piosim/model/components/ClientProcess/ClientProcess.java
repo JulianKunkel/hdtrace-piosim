@@ -19,7 +19,6 @@
 package de.hd.pvs.piosim.model.components.ClientProcess;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
@@ -37,6 +36,10 @@ public final class ClientProcess extends NodeHostedComponent {
 	@NotNegative
 	int rank = -1;
 	
+	@Attribute(type=AttributeXMLType.ATTRIBUTE)
+	@NotNegative
+	int thread = 0;
+	
 	/**
 	 * The application the client process belongs to
 	 */
@@ -44,13 +47,20 @@ public final class ClientProcess extends NodeHostedComponent {
 	@NotNull
 	String application;
   
-  @AttributeGetters
   public int getRank() {
     return rank;
   }
   
   public void setRank(int rank) {
 		this.rank = rank;
+	}
+  
+  public int getThread() {
+		return thread;
+	}
+  
+  public void setThread(int thread) {
+		this.thread = thread;
 	}
   
   public void setApplication(String application) {

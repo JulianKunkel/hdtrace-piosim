@@ -162,7 +162,7 @@ public class ForwarderTest extends ClusterTest{
 	
 	protected void setup(int clientHalve, int serverHalve) throws Exception{
 		mb = createDisjointGridModel(clientHalve, serverHalve);		
-		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", clientHalve*2);
+		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", clientHalve*2, 1);
 		app = aB.getApplication();
 
 		pb = new ProgramBuilder(aB);
@@ -203,8 +203,8 @@ public class ForwarderTest extends ClusterTest{
 	public static void main(String[] args) throws Exception{
 		ForwarderTest t = new ForwarderTest();
 		
-		//t.writeTest();
-		t.broadcastTest();
+		t.writeTest();
+		//t.broadcastTest();
 		
 		//System.out.println(t.mb.getModel());
 	}

@@ -38,7 +38,7 @@ public class ProjectDescription {
 	
 	private String description = "";	
 
-	private int processCount = 0;	
+	private int rankCount = 0;	
 
 	// maps process rank and existing thread ids  
 	final ArrayList<Integer> processThreadCount = new ArrayList<Integer>();  
@@ -63,8 +63,8 @@ public class ProjectDescription {
 		return applicationName;
 	}
 
-	public int getProcessCount() {
-		return processCount;
+	public int getRankCount() {
+		return rankCount;
 	}
 
 	public String getApplicationName() {
@@ -127,7 +127,7 @@ public class ProjectDescription {
 
 	public void setProcessCount(int processCount) {
 		// remove old values if too many present:
-		for (int i=this.processCount ; i < processThreadCount.size(); i++){
+		for (int i=this.rankCount ; i < processThreadCount.size(); i++){
 			processThreadCount.remove(i);				
 		}
 		
@@ -137,7 +137,7 @@ public class ProjectDescription {
 			processThreadCount.add(0);
 		}
 		
-		this.processCount = processCount;
+		this.rankCount = processCount;
 	}
 	
 	/**

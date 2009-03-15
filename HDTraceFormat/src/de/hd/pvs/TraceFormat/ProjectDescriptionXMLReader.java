@@ -1,6 +1,7 @@
 package de.hd.pvs.TraceFormat;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
@@ -24,43 +25,54 @@ import de.hd.pvs.TraceFormat.xml.XMLutil;
 
 public class ProjectDescriptionXMLReader {
 
-	public ProjectDescription readProjectDescription(String projectFilename) throws Exception{
-		ProjectDescription desc = new ProjectDescription();
+	/**
+	 * Contains the DOM, read during readProjectDescription
+	 */
+	protected Document DOMdocument;
 	
+	/**
+	 * Protected DOM Builder
+	 */
+	protected DocumentBuilder DOMbuilder;
+	
+	public void readProjectDescription(ProjectDescription descriptionInOut, String projectFilename) throws Exception{
 		File XMLFile = new File(projectFilename);
 		if (! XMLFile.canRead()) {
-			throw new IllegalArgumentException("Application not readable: " + XMLFile.getAbsolutePath());
+			throw new IllegalArgumentException("Project file not readable: " + XMLFile.getAbsolutePath());
 		}
-		desc.setProjectFilename(XMLFile.getAbsolutePath());
+		descriptionInOut.setProjectFilename(XMLFile.getAbsolutePath());
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document document = builder.parse(XMLFile);
+		DOMbuilder = factory.newDocumentBuilder();
+		DOMdocument = DOMbuilder.parse(XMLFile);
 
-		Element applicationNode = document.getDocumentElement();
+		Element applicationNode = DOMdocument.getDocumentElement();
 
 		// read standard descriptions:
-		desc.setApplicationName( XMLutil.getAttributeText(applicationNode, "name"));
+		descriptionInOut.setApplicationName( XMLutil.getAttributeText(applicationNode, "name"));
 
-		desc.setDescription(XMLutil.getPlainText(applicationNode, "Description"));
+		descriptionInOut.setDescription(XMLutil.getPlainText(applicationNode, "Description"));
 		
 		try {
 			String val = XMLutil.getAttributeText(applicationNode, "processCount");
-			desc.setProcessCount(Integer.parseInt(val));
+			descriptionInOut.setProcessCount(Integer.parseInt(val));
 		} catch (NumberFormatException e) {
 			throw new InvalidParameterException(
 			"Invalid XML, \"processCount\" missing in project description");
 		}
 
 		// now add available thread count per process, by checking for existing files:
-		for(int i=0; i < desc.getProcessCount(); i++){
+		for(int i=0; i < descriptionInOut.getRankCount(); i++){
 			int t = 0;
 			while(true){
-				File threadFile = new File(TraceFileNames.getFilenameXML(desc.getAbsoluteFilesPrefix(), i, t));
+				File threadFile = new File(TraceFileNames.getFilenameXML(descriptionInOut.getAbsoluteFilesPrefix(), i, t));
 				if(! threadFile.exists()) break;
 				t++;
 			}
-			desc.setProcessThreadCount(i, t);
+			if(t == 0){
+				throw new IOException("No thread found for rank " + i + " project " + projectFilename);
+			}
+			descriptionInOut.setProcessThreadCount(i, t);
 		}
 		
 		// parse the descriptions of the external statistics:
@@ -69,11 +81,9 @@ public class ProjectDescriptionXMLReader {
 			ArrayList<Element> children = XMLutil.getChildElements(element);
 			for(Element stat: children){
 				ExternalStatisticsGroup out = parseStatisticGroupInXML(stat);
-				desc.addExternalStatisticsGroup(out);
+				descriptionInOut.addExternalStatisticsGroup(out);
 			}
 		}
-		
-		return desc;
 	}
 		
 	private ExternalStatisticsGroup parseStatisticGroupInXML(Element root){

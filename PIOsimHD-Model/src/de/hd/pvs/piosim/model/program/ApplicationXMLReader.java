@@ -19,17 +19,16 @@
 package de.hd.pvs.piosim.model.program;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import de.hd.pvs.TraceFormat.ProjectDescriptionXMLReader;
+import de.hd.pvs.TraceFormat.TraceFileNames;
 import de.hd.pvs.TraceFormat.xml.XMLutil;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
@@ -63,22 +62,6 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		};
 	}
 
-
-	/**
-	 * Parse an application of the file.
-	 * 
-	 * @param filename
-	 * @return
-	 * @throws Exception
-	 */
-	public Application parseApplication(String filename) throws Exception{
-		try {
-			return parseApplication(new File(filename));
-		}catch (Exception e) {
-			throw new IllegalArgumentException( "Invalid application " + filename, e);
-		}
-	}
-
 	/**
 	 * Parse an application of the file.
 	 * 
@@ -86,24 +69,16 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	public Application parseApplication(File XMLFile) throws Exception {
-		super.readProjectDescription(XMLFile.getAbsolutePath());
-		
-		if (! XMLFile.canRead()) {
-			throw new IllegalArgumentException("Application not readable: " + XMLFile.getAbsolutePath());
-		}
-		AttributeAnnotationHandler commonHandler = new AttributeAnnotationHandler();
-
+	public Application parseApplication(String filename, boolean readCompleteProgram) throws Exception {
+		File  xmlFile = new File(filename);
 		Application app = new Application();
 
-		app.setProjectFilename(XMLFile.getAbsolutePath());
+		super.readProjectDescription(app, xmlFile.getAbsolutePath());
 
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document document = builder.parse(XMLFile);
+		AttributeAnnotationHandler commonHandler = new AttributeAnnotationHandler();
 
 		ArrayList<Element> elements;
-		Element applicationNode = document.getDocumentElement();
+		Element applicationNode = DOMdocument.getDocumentElement();
 
 		/* read file list */
 		elements = XMLutil.getElementsByTag(applicationNode, "FileList");
@@ -138,13 +113,35 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		}
 
 		// now read Programs:
-		Program [] programs = new Program[app.getProcessCount()];
-			// todo use SAX for parsing.
-			Document appXML = builder.parse(filename);
-			programs[i] = readProgramXMLDOM(i, appXML.getDocumentElement(), app);
+		Program [][] programs = new Program[app.getRankCount()] [];
 
-			
-		app.setRankProgramMap(programs);
+		for (int rank = 0; rank < app.getRankCount(); rank++) {
+			final int threadCnt =  app.getProcessThreadCount(rank);
+
+			programs[rank] = new Program[threadCnt]; 
+
+			for(int thread = 0 ; thread < threadCnt; thread++){
+
+				// for each program open the corresponding file				
+				final String file = TraceFileNames.getFilenameXML(app.getAbsoluteFilesPrefix(),
+						rank, thread);
+
+				if(!  (new File(file)).canRead() ){
+					throw new IOException("File " + file + " is not readable!");
+				}
+
+				if(readCompleteProgram){
+					// use DOM reader
+					Document appXML = DOMbuilder.parse(file);
+					programs[rank][thread] = readProgramXMLDOM(rank, thread, appXML.getDocumentElement(), app);
+				}else{ // use SAX Reader to read the file
+					programs[rank][thread] = new ProgramReadXMLOnDemand(file);
+					programs[rank][thread].setApplication(app, rank, thread);
+				}
+			}
+		}
+
+		app.setProcessThreadProgramMap(programs);
 
 		return app;
 	}
@@ -156,23 +153,16 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 	 * @param program
 	 * @throws Exception
 	 */
-	public Program readProgramXMLDOM(int expectedRank, Element processXML, Application app) throws Exception {
+	public Program readProgramXMLDOM(int rank, int thread, Element processXML, Application app) throws Exception {
 
-		String number_str = processXML.getAttribute("number");
-		int rank = Integer.parseInt(number_str);
-		if (rank != expectedRank) {
-			throw new IllegalArgumentException(
-					"Invalid XML, Wrong rank numbering in application " + app.getAlias() + " program rank:" + rank);
-		}
+		final ProgramInMemory program = new ProgramInMemory();
+		program.setApplication(app, rank, thread);
 
-		Program program = new Program(app, rank);		
+		final CommandFactory factory = new CommandFactory();
 
+		ArrayList<Element> elements = XMLutil.getChildElements(processXML);
 
-		CommandFactory factory = new CommandFactory();
-
-		ArrayList<Element> elements = XMLutil.getChildElements(XMLutil.getFirstElementByTag(processXML, "Program"));
 		for (Element xmlcmd: elements) {
-
 			Command cmd = factory.createCommand(xmlcmd.getNodeName().toLowerCase());		
 			// read default parameters for all programs from XML:
 			Node aid = xmlcmd.getAttributes().getNamedItem("aid");
@@ -208,7 +198,6 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		myCommonAttributeHandler.readSimpleAttributes(commandXMLElement, cmd);
 	}
-
 
 	/**
 	 * Helper function, returns the communicator as specified in the string.

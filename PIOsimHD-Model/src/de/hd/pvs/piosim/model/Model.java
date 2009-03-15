@@ -127,7 +127,8 @@ public class Model{
 	 * @return
 	 */
 	public Program getProgram(ClientProcess client){
-		return applicationNameMap.get(client.getApplication()).getClientProgram(client.getRank());
+		return applicationNameMap.get(client.getApplication()).getClientProgram(
+				client.getRank(), client.getThread());
 	}
 
 	/**

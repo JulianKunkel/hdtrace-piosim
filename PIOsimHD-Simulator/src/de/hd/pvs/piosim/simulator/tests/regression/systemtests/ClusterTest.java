@@ -74,7 +74,7 @@ public class ClusterTest {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
 		
 		mb = createDisjointClusterModel(clients, servers);		
-		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", clients);
+		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", clients, 1);
 		app = aB.getApplication();
 
 		pb = new ProgramBuilder(aB);
@@ -219,9 +219,9 @@ public class ClusterTest {
 	
 
 	public Application createSetSimpleApplication() throws Exception{
-	// Start to create program:
+		// Start to create program:
 		
-		ApplicationBuilder aB = new ApplicationBuilder("Jacobi", "Example Jacobi", 4);
+		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", 4, 1);
 		ProgramBuilder pB = new ProgramBuilder(aB);
 		Communicator world = aB.getWorldCommunicator();
 		
@@ -275,7 +275,7 @@ public class ClusterTest {
 	
 	public static void main(String[] args) throws Exception{
 		ClusterTest t = new ClusterTest();
-		t.setup(5, 3);
+		t.setup(4, 3);
 		t.app = t.createSetSimpleApplication();
 		t.runSimulationAllExpectedToFinish();
 	}

@@ -37,15 +37,14 @@ public class Application extends ProjectDescription{
 	
 	private HashMap<String, Communicator> communicators = new HashMap<String, Communicator>();
 
-	private Program [] rankProgramMap = null;
+	private Program [][] processThreadProgramMap = null;
 
 	private HashMap<Integer, MPIFile>  files = new HashMap<Integer, MPIFile>();
 
-	public Program getClientProgram(int rank) {
-		if(rank >= rankProgramMap.length) 
+	public Program getClientProgram(int process, int thread) {		
+		if(process >= processThreadProgramMap.length || thread >= processThreadProgramMap[process].length)
 			return null;
-		
-		return rankProgramMap[rank];
+		return processThreadProgramMap[process][thread];
 	}
 
 	public Communicator getCommunicator(String name) {
@@ -61,8 +60,8 @@ public class Application extends ProjectDescription{
 		return files;
 	}
 
-	public Program[] getRankProgramMap() {
-		return rankProgramMap;
+	public Program[][] getRankProgramMap() {
+		return processThreadProgramMap;
 	}
 
 	/**
@@ -89,8 +88,8 @@ public class Application extends ProjectDescription{
 		communicators.put("WORLD", comm);
 	}
 
-	public void setRankProgramMap(Program[] rankProgramMap) {
-		this.rankProgramMap = rankProgramMap;
+	public void setProcessThreadProgramMap(Program[][] map) {
+		this.processThreadProgramMap = map;
 	}
 
 	public void setCommunicators(HashMap<String, Communicator> communicators) {
