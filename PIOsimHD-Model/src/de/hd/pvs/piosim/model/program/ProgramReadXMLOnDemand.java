@@ -38,6 +38,10 @@ public class ProgramReadXMLOnDemand extends Program{
 		
 		try{
 			Command cmd = cmdReader.readCommandXML(nextCmdEntry, this);
+			
+			// check if this command is valid:
+			modelVerifier.checkConsistency(cmd);
+			
 			nextCmdEntry = traceFileReader.getNextInputData();			
 			return cmd;
 		}catch(Exception e){
