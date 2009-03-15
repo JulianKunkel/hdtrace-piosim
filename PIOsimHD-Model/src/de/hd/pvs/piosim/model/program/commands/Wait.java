@@ -22,10 +22,9 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
-import org.w3c.dom.Element;
-
-import de.hd.pvs.TraceFormat.xml.XMLutil;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
@@ -39,11 +38,10 @@ public class Wait extends Command {
 	@NotNull
 	protected ArrayList<Integer> waitfor = new ArrayList<Integer>();
 	
-	public void readCommandXML(Element xml) throws Exception {		
-		ArrayList<Element> elems;
-		elems = XMLutil.getElementsByTag(xml, "FOR");
-		for (Element e : elems) {
-			waitfor.add(Integer.parseInt(  e.getAttributes().getNamedItem("aid").getNodeValue() ));
+	public void readCommandXML(XMLTag xml) throws Exception {				
+		final LinkedList<XMLTag> elems = xml.getNestedXMLTagsWithName("FOR");
+		for (XMLTag e : elems) {
+			waitfor.add(Integer.parseInt(  e.getAttribute("aid") ));
 		}
 	}
 	

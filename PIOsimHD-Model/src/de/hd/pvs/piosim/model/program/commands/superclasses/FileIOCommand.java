@@ -21,9 +21,7 @@
  */
 package de.hd.pvs.piosim.model.program.commands.superclasses;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
@@ -46,9 +44,8 @@ abstract public class FileIOCommand extends FileCommand{
 	}
 	
 	@Override
-	public void readXML(Element xml) throws Exception {
-		NodeList list = ((Element) xml).getElementsByTagName("Data");   
-		io = new ListIO(list);
+	public void readXML(XMLTag xml) throws Exception {  
+		io = new ListIO(xml.getNestedXMLTagsWithName("Data"));
 	}
 
 	/**

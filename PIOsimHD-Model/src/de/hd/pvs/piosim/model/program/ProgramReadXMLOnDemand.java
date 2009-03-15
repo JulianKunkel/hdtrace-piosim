@@ -1,6 +1,7 @@
 package de.hd.pvs.piosim.model.program;
 
 import de.hd.pvs.TraceFormat.trace.SaxTraceFileReader;
+import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.piosim.model.ModelVerifier;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
@@ -17,32 +18,43 @@ public class ProgramReadXMLOnDemand extends Program{
 	 */
 	final static ModelVerifier modelVerifier = new ModelVerifier();
 	
+	final CommandXMLReader cmdReader;
+
 	private SaxTraceFileReader traceFileReader;
 	private final String filename;
 	
-	public ProgramReadXMLOnDemand(String filename) throws Exception{
-		 this.filename = filename;
-		 restartWithFirstCommand();
-	}
+	private XMLTraceEntry nextCmdEntry;
 	
+	public ProgramReadXMLOnDemand(String filename, Application app) throws Exception{
+		this.filename = filename;
+		restartWithFirstCommand();
+		this.cmdReader = new CommandXMLReader(app);
+	}
+
 	@Override
 	public Command getNextCommand() {
-		if(isFinished())
+		if (nextCmdEntry == null)
 			return null;
-		//traceFileReader.getNextInputData();
-		return null;
 		
+		try{
+			Command cmd = cmdReader.readCommandXML(nextCmdEntry, this);
+			nextCmdEntry = traceFileReader.getNextInputData();			
+			return cmd;
+		}catch(Exception e){
+			throw new IllegalStateException(e);
+		}		
 	}
-	
+
 	@Override
 	public boolean isFinished() {
-		return traceFileReader.isFinished();
+		return nextCmdEntry == null;
 	}
-	
+
 	@Override
 	public void restartWithFirstCommand() {
 		try{
-			traceFileReader = new  SaxTraceFileReader(filename, false);
+			traceFileReader = new SaxTraceFileReader(filename, false);
+			nextCmdEntry = traceFileReader.getNextInputData();
 		}catch(Exception e){
 			throw new IllegalArgumentException(e);
 		}

@@ -22,17 +22,12 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import de.hd.pvs.TraceFormat.xml.XMLutil;
+import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.OneConnectionComponent;
@@ -79,16 +74,11 @@ public class ModelXMLReader {
 	 * @throws Exception
 	 */
 	public Model parseProjectXML(String filename, HashMap<String, String> fixedFileAppMapping) throws Exception{
-		File file = new File(filename);
-		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document document = builder.parse(file);
-		Element projectNode = document.getDocumentElement();
-		projectNode.normalize();		
-		
-		
-		return readProjectXML(projectNode, file.getParent(), fixedFileAppMapping);		
+
+		XMLReaderToRAM file = new XMLReaderToRAM();
+		XMLTag rootTag = file.readXML(filename);
+
+		return readProjectXML(rootTag, (new File(filename)).getParent(), fixedFileAppMapping);		
 	}
 	
 	/**
@@ -102,11 +92,11 @@ public class ModelXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	public Model readProjectXML(Element projectNode, String applicationDirName, HashMap<String, String> fixedFileAppMapping) throws Exception {
+	public Model readProjectXML(XMLTag projectNode, String applicationDirName, HashMap<String, String> fixedFileAppMapping) throws Exception {
 		Model model = new Model();
 		
-		loadApplications(model, XMLutil.getFirstElementByTag(
-				projectNode, "ApplicationList"), applicationDirName);
+		loadApplications(model, projectNode.getFirstNestedXMLTagWithName("ApplicationList"), 
+				applicationDirName);
 		
 		// load fixed file mapping:
 		if(fixedFileAppMapping != null) {
@@ -117,17 +107,16 @@ public class ModelXMLReader {
 			}
 		}
 		
-		readTemplates(model, XMLutil.getFirstElementByTag(projectNode,	"Templates"));
+		readTemplates(model, projectNode.getFirstNestedXMLTagWithName("Templates"));
 		
-		readGlobalSettings(model, XMLutil.getFirstElementByTag(projectNode, "GlobalSettings"));
+		readGlobalSettings(model, projectNode.getFirstNestedXMLTagWithName("GlobalSettings"));
 		
 		ConsoleLogger.getInstance().debug(this, "Creating Components");
-		createAllComponents(model, XMLutil.getFirstElementByTag(projectNode, "ComponentList"));
+		createAllComponents(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
 		
 		ConsoleLogger.getInstance().debug(this, "Connecting Components");
 		try {
-			connectComponents(model, XMLutil.getFirstElementByTag(projectNode,
-			"ComponentList"));
+			connectComponents(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
 		} catch (Exception e) {
 			e.printStackTrace();
 			
@@ -146,11 +135,11 @@ public class ModelXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	public BasicComponent createComponentFromXML(Element xml, boolean isCloneOfTemplate) throws Exception{
-		String implementation = XMLutil.getAttributeText(xml, "implementation");
+	public BasicComponent createComponentFromXML(XMLTag xml, boolean isCloneOfTemplate) throws Exception{
+		String implementation = xml.getAttribute("implementation");
 		
 		ConsoleLogger.getInstance().debug(this, "will create: " + implementation);
-		
+				
 		// use reflection to instantiate the object 
 		Constructor<BasicComponent> ct = ((Class<BasicComponent>) Class.forName(implementation)).getConstructor();
 		
@@ -174,7 +163,7 @@ public class ModelXMLReader {
 		while(classIterate != Object.class) {
 			try{				
 				Method m = this.getClass().getDeclaredMethod("readComponentDetailsFromXML", 
-						new Class[]{Element.class, classIterate});				
+						new Class[]{XMLTag.class, classIterate});				
 				m.invoke(this, new Object[]{xml, component});
 			}catch(NoSuchMethodException e){
 			}
@@ -201,16 +190,16 @@ public class ModelXMLReader {
 	 * @param xml Root node containing the GlobalSetting XML.
 	 * @throws Exception
 	 */
-	private void readGlobalSettings(Model model, Element xml) throws Exception {
+	private void readGlobalSettings(Model model, XMLTag xml) throws Exception {
 		GlobalSettings global = model.globalSettings;
 		commonAttributeHandler.readSimpleAttributes(xml, global);
 		
-		ArrayList<Element> clientMeth = XMLutil.getElementsByTag(xml, "ClientMethod");
+		LinkedList<XMLTag> clientMeth = xml.getNestedXMLTagsWithName("ClientMethod");
 		if(clientMeth != null){
-			for(Element n: clientMeth){
-				String smethod = XMLutil.getAttributeText(n, "name");
+			for(XMLTag n: clientMeth){
+				String smethod = n.getAttribute("name");
 				CommandType method =  DynamicCommandClassMapper.getCommandImplementationGroup(smethod);
-				global.setClientFunctionImplementation(method, n.getTextContent());
+				global.setClientFunctionImplementation(method, n.getContainedText());
 			}
 		}
 	}
@@ -223,35 +212,33 @@ public class ModelXMLReader {
 	 * @param componentList
 	 * @throws Exception
 	 */
-	private void connectComponents(Model model, Element componentList) throws Exception {
-		/* connect components */
-		ArrayList<Element> list;
+	private void connectComponents(Model model, XMLTag componentList) throws Exception {
+		/* connect components */		
 		for (String type : DynamicModelClassMapper.getAvailableModelTypes()) {
-			Element element = XMLutil.getFirstElementByTag(componentList,
-					type + "List");
+			XMLTag element = componentList.getFirstNestedXMLTagWithName(type + "List");
 			
-			list = XMLutil.getChildElements(element);
+			final LinkedList<XMLTag> list = element.getNestedXMLTags();
 			
-			for (Element sub : list) {
+			for (XMLTag sub : list) {
 				
-				ArrayList<Element> subList = XMLutil.getChildElements(sub);
+				LinkedList<XMLTag> subList = sub.getNestedXMLTags();
 					
-				for (Element e : subList) {
-					ArrayList<Element> connectedTo = XMLutil.getChildElements(e);
+				for (XMLTag e : subList) {
+					LinkedList<XMLTag> connectedTo = e.getNestedXMLTags();
 					
-					for (Element el : connectedTo) {					
-						Element pConnection = XMLutil.getFirstElementByTag(el, "connection");
+					for (XMLTag el : connectedTo) {					
+						XMLTag pConnection = el.getFirstNestedXMLTagWithName("connection");
 						
 						if(pConnection == null)
 							continue;
 						
 						int componentID = Integer.parseInt( el.getAttribute("id") );
 						
-						Element econnection = XMLutil.getFirstElementByTag(pConnection, "CONNECTION");						
+						XMLTag econnection = pConnection.getFirstNestedXMLTagWithName("CONNECTION");						
 
 						assert(econnection != null);
 												
-						if (!econnection.hasAttribute("to")) {
+						if (econnection.getAttribute("to") == null) {
 							System.out.println("No connected-to attribute found in component with id: "	+ componentID  + " parent " + sub.getAttribute("id"));
 							continue;
 						}
@@ -304,23 +291,23 @@ public class ModelXMLReader {
 	 * @param dirname
 	 * @throws Exception
 	 */
-	private void loadApplications(Model model, Element element, String dirname)
+	private void loadApplications(Model model, XMLTag element, String dirname)
 	throws Exception {
-		ArrayList<Element> list = XMLutil.getElementsByTag(element, "Application");
-		for (Element e : list) {
+		LinkedList<XMLTag> list = element.getNestedXMLTagsWithName("Application");
+		for (XMLTag e : list) {
+			final String alias = e.getAttribute("alias");
 			
-			if (!e.hasAttribute("alias")) {
+			final String file = e.getAttribute("file");
+			
+			if (alias == null) {
 				throw new IllegalArgumentException(
 				"No name attribute found in application");
 			}
-			if (!e.hasAttribute("file")) {
+			if (file == null) {
 				throw new IllegalArgumentException(
 				"No file attribute found in application");
 			}
 			
-			String alias = e.getAttribute("alias");
-			
-			String file = e.getAttribute("file");
 			
 			ConsoleLogger.getInstance().debug(this, "Parsing application: " + alias + " " + dirname + "/" + file );
 			
@@ -353,11 +340,11 @@ public class ModelXMLReader {
 	 * @param templateRoot The root of the Model XML.
 	 * @throws Exception
 	 */
-	private void readTemplates(Model model, Element templateRoot)
+	private void readTemplates(Model model, XMLTag templateRoot)
 	throws Exception {
-		ArrayList<Element> elements = XMLutil.getChildElements(templateRoot);
+		LinkedList<XMLTag> elements = templateRoot.getNestedXMLTags();
 		
-		for(Element e: elements){				
+		for(XMLTag e: elements){				
 			BasicComponent component = createComponentFromXML(e, false);
 			model.templateManager.addTemplate(component);				
 		}
@@ -370,12 +357,12 @@ public class ModelXMLReader {
 	 * @param xml
 	 * @throws Exception
 	 */
-	private void createAllComponents(Model model, Element xml) throws Exception {
+	private void createAllComponents(Model model, XMLTag xml) throws Exception {
 		for (String type : DynamicModelClassMapper.getAvailableModelTypes()) {		
 			// the elements are contained in the tag XXList 
-			Element element = XMLutil.getFirstElementByTag(xml, type + "List");
-			ArrayList<Element> list = XMLutil.getChildElements(element);
-			for (Element e : list) {
+			XMLTag element = xml.getFirstNestedXMLTagWithName(type + "List");
+			LinkedList<XMLTag>  list = element.getNestedXMLTags();
+			for (XMLTag e : list) {
 				BasicComponent newComponent = createComponentFromXML(e, false);
 				model.addComponent(newComponent);		
 			}
@@ -393,7 +380,7 @@ public class ModelXMLReader {
 	 * @param xml
 	 * @param dummy
 	 */
-	private void readComponentDetailsFromXML(Element xml, BasicComponent dummy) throws Exception{		
+	private void readComponentDetailsFromXML(XMLTag xml, BasicComponent dummy) throws Exception{		
 		commonAttributeHandler.readSimpleAttributes(xml, dummy.getIdentifier());
 	}
 	
@@ -409,7 +396,7 @@ public class ModelXMLReader {
 	 * @param isCloneOfTemplate Is this object a clone of a template
 	 * @throws Exception
 	 */
-	private void readChildComponents(Element xml, BasicComponent comp, boolean isCloneOfTemplate) throws Exception{
+	private void readChildComponents(XMLTag xml, BasicComponent comp, boolean isCloneOfTemplate) throws Exception{
 		// Walk through the object hierarchy
 		Class<?> classIterate = comp.getClass();	
 		
@@ -419,10 +406,8 @@ public class ModelXMLReader {
 				if( ! field.isAnnotationPresent(ChildComponents.class))
 					continue;
 				
-				ChildComponents annotation = field.getAnnotation(ChildComponents.class);
-				
-				Element parentNode = XMLutil.getFirstElementByTag(xml, field.getName().toUpperCase());
-				
+				final XMLTag parentNode = xml.getFirstNestedXMLTagWithName(field.getName().toUpperCase());
+
 				if(parentNode == null) {
 					// not set!
 					continue;
@@ -430,19 +415,20 @@ public class ModelXMLReader {
 				
 				field.setAccessible(true);
 				
-				ArrayList<Element> elements = XMLutil.getChildElements(parentNode);
-				
-				// create child components
-				for(Element e: elements){
-					BasicComponent newComponent = createComponentFromXML(e, isCloneOfTemplate);
-					
-					// now set the child's parent components if needed:
-					newComponent.setParentComponent(comp);
-					
-					if(Collection.class.isAssignableFrom(field.getType()) ){
-						((Collection<BasicComponent>) field.get(comp)).add(newComponent);
-					}else{						
-						field.set(comp, newComponent);
+				LinkedList<XMLTag>  elements = parentNode.getNestedXMLTags();
+				if(elements != null){
+					// create child components
+					for(XMLTag e: elements){
+						BasicComponent newComponent = createComponentFromXML(e, isCloneOfTemplate);
+
+						// now set the child's parent components if needed:
+						newComponent.setParentComponent(comp);
+
+						if(Collection.class.isAssignableFrom(field.getType()) ){
+							((Collection<BasicComponent>) field.get(comp)).add(newComponent);
+						}else{						
+							field.set(comp, newComponent);
+						}
 					}
 				}
 				

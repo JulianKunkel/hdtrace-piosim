@@ -21,8 +21,7 @@
  */
 package de.hd.pvs.piosim.model.program.commands.superclasses;
 
-import org.w3c.dom.Element;
-
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.interfaces.IXMLReader;
 import de.hd.pvs.piosim.model.program.Program;
 
@@ -79,7 +78,7 @@ abstract public class Command implements IXMLReader{
 	 * Subclasses should override it to read command depending XML which is not handled in the 
 	 * ApplicationXMLReader.
 	 */
-	public void readXML(Element xml) throws Exception{
+	public void readXML(XMLTag xml) throws Exception{
 		
 	}
 

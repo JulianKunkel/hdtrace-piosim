@@ -19,12 +19,11 @@
 package de.hd.pvs.piosim.model.program;
 
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 
-import org.w3c.dom.Element;
-
-import de.hd.pvs.TraceFormat.xml.XMLutil;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.interfaces.IXMLReader;
 
 /**
@@ -161,21 +160,23 @@ public class Communicator implements IXMLReader{
 		this.name = name;
 	}
 	
-	public void readXML(Element xml) throws Exception {
-		name = XMLutil.getAttributeText(xml, "name").toUpperCase(); 
+	public void readXML(XMLTag xml) throws Exception {
+		name =xml.getAttribute("name").toUpperCase(); 
 			
 		// World communicator could be specified but does not need to.
 		if (name.compareTo("WORLD") == 0){
 			return;
 		}
-		Element element;
-		element = XMLutil.getFirstElementByTag(xml, "ParticipantList");
-		ArrayList<Element> elements = XMLutil.getElementsByTag(element, "Rank");
+		XMLTag element;
+		element = xml.getFirstNestedXMLTagWithName("ParticipantList");
+		final LinkedList<XMLTag>  elements = element.getNestedXMLTagsWithName("Rank");
 		
 		participants = new int [ elements.size() ];
 		
+		Iterator<XMLTag> it = elements.iterator();
+		
 		for(int i=0; i < elements.size(); i++){
-			String rank = XMLutil.getAttributeText(elements.get(i), "number");
+			final String rank = it.next().getAttribute("number");
 			if (rank == null){
 				throw new InvalidParameterException("Invalid XML, no rank specified !");
 			}

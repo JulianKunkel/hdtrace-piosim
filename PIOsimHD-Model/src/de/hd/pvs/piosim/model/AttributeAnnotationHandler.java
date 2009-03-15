@@ -23,12 +23,9 @@ package de.hd.pvs.piosim.model;
 
 import java.lang.reflect.Field;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.util.Numbers;
-import de.hd.pvs.TraceFormat.xml.XMLutil;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
@@ -104,7 +101,7 @@ public class AttributeAnnotationHandler {
 	 * @param xml
 	 * @param component
 	 */
-	final public void readSimpleAttributes(Element xml, Object object) throws Exception{
+	final public void readSimpleAttributes(XMLTag xml, Object object) throws Exception{
 		Class<?> classIterate = object.getClass();	
 
 		while(classIterate != Object.class) {
@@ -117,25 +114,21 @@ public class AttributeAnnotationHandler {
 				Attribute annotation = field.getAnnotation(Attribute.class);
 
 				// the name of the attribute or tag can be set explicitly in Attribute.
-				String name = annotation.xmlName().length() > 0 ? annotation.xmlName() : field.getName();
-
-				Node node;
+				final String name = annotation.xmlName().length() > 0 ? annotation.xmlName() : field.getName();
 				String stringAttribute = null;
 
-				AttributeXMLType xmlTyp = annotation.type() == AttributeXMLType.DEFAULT ? defaultXMLType : annotation.type(); 
-				
+				final AttributeXMLType xmlTyp = annotation.type() == AttributeXMLType.DEFAULT ? defaultXMLType : annotation.type(); 
+								
 				if (xmlTyp == AttributeXMLType.ATTRIBUTE){
-					node = xml.getAttributes().getNamedItem(name);
-					if (node == null)
+					stringAttribute = xml.getAttribute(name);
+					if (stringAttribute == null)
 						continue;
-
-					stringAttribute = node.getNodeValue();
 				}else if (xmlTyp == AttributeXMLType.TAG){ // TAG
-					node = XMLutil.getFirstElementByTag(xml, name);
+					XMLTag node = xml.getFirstNestedXMLTagWithName(name);
 					if (node == null)
 						continue;
 
-					stringAttribute = node.getTextContent();					
+					stringAttribute = node.getContainedText();					
 				}
 
 				Class<?> type = field.getType();

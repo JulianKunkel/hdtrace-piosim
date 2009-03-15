@@ -18,7 +18,7 @@
 
 package de.hd.pvs.piosim.model.interfaces;
 
-import org.w3c.dom.Element;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
  * This class defines the basic interface for serialization and deserialization of objects.
@@ -27,7 +27,7 @@ import org.w3c.dom.Element;
  */
 
 public interface IXMLReader {
-	public void readXML(Element xml) throws Exception;
+	public void readXML(XMLTag xml) throws Exception;
 
 	public void writeXML(StringBuffer sb);
 }

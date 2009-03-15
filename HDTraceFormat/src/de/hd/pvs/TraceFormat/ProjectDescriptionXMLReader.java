@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -15,6 +16,8 @@ import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.TraceFormat.xml.XMLutil;
 
 /**
@@ -25,15 +28,7 @@ import de.hd.pvs.TraceFormat.xml.XMLutil;
 
 public class ProjectDescriptionXMLReader {
 
-	/**
-	 * Contains the DOM, read during readProjectDescription
-	 */
-	protected Document DOMdocument;
-	
-	/**
-	 * Protected DOM Builder
-	 */
-	protected DocumentBuilder DOMbuilder;
+	protected XMLTag rootTag;
 	
 	public void readProjectDescription(ProjectDescription descriptionInOut, String projectFilename) throws Exception{
 		File XMLFile = new File(projectFilename);
@@ -42,19 +37,16 @@ public class ProjectDescriptionXMLReader {
 		}
 		descriptionInOut.setProjectFilename(XMLFile.getAbsolutePath());
 		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DOMbuilder = factory.newDocumentBuilder();
-		DOMdocument = DOMbuilder.parse(XMLFile);
-
-		Element applicationNode = DOMdocument.getDocumentElement();
-
+		XMLReaderToRAM reader = new XMLReaderToRAM();
+		rootTag = reader.readXML(projectFilename);
+		
 		// read standard descriptions:
-		descriptionInOut.setApplicationName( XMLutil.getAttributeText(applicationNode, "name"));
+		descriptionInOut.setApplicationName( rootTag.getAttribute("name"));
 
-		descriptionInOut.setDescription(XMLutil.getPlainText(applicationNode, "Description"));
+		descriptionInOut.setDescription( rootTag.getFirstNestedXMLTagWithName("Description").getContainedText());
 		
 		try {
-			String val = XMLutil.getAttributeText(applicationNode, "processCount");
+			String val = rootTag.getAttribute("processCount");
 			descriptionInOut.setProcessCount(Integer.parseInt(val));
 		} catch (NumberFormatException e) {
 			throw new InvalidParameterException(
@@ -76,19 +68,19 @@ public class ProjectDescriptionXMLReader {
 		}
 		
 		// parse the descriptions of the external statistics:
-		Element element = XMLutil.getFirstElementByTag(applicationNode, "ExternalStatistics");
+		XMLTag element = rootTag.getFirstNestedXMLTagWithName("ExternalStatistics");
 		if(element != null){
-			ArrayList<Element> children = XMLutil.getChildElements(element);
-			for(Element stat: children){
+			final LinkedList<XMLTag> children = element.getNestedXMLTags(); 
+			for(XMLTag stat: children){
 				ExternalStatisticsGroup out = parseStatisticGroupInXML(stat);
 				descriptionInOut.addExternalStatisticsGroup(out);
 			}
 		}
 	}
 		
-	private ExternalStatisticsGroup parseStatisticGroupInXML(Element root){
+	private ExternalStatisticsGroup parseStatisticGroupInXML(XMLTag root){
 		ExternalStatisticsGroup stat = new ExternalStatisticsGroup();
-		stat.setName(root.getNodeName());
+		stat.setName(root.getName());
 		//System.out.println("Statistics: " + root.getNodeName());
 		
 		final String tT = root.getAttribute("timestampDatatype");		
@@ -113,13 +105,13 @@ public class ProjectDescriptionXMLReader {
 			stat.setTimeOffset(Epoch.parseTime(toffset));
 		}
 		
-		ArrayList<Element> children = XMLutil.getChildElements(root);
-		for(Element child: children){
+		final LinkedList<XMLTag> children = root.getNestedXMLTags(); 
+		for(XMLTag child: children){
 			int multiplier = 1;
 			if(child.getAttribute("multiplier").length() > 0){
 				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
 			}
-			StatisticDescription desc = new StatisticDescription(child.getNodeName(), 
+			StatisticDescription desc = new StatisticDescription(child.getName(), 
 					StatisticType.valueOf( child.getAttribute("type").toUpperCase() ),
 					child.getAttribute("unit"),
 					multiplier);

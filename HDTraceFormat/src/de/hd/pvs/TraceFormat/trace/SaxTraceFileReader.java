@@ -58,7 +58,7 @@ public class SaxTraceFileReader{
 	/**
 	 * is the trace file read completely
 	 */
-	boolean finished = false;
+	boolean finishedReading = false;
 
 	/**
 	 * Thread controlling the SAX Parser, Producer & Consumer Design Pattern
@@ -99,7 +99,7 @@ public class SaxTraceFileReader{
 		 * Called once when the parsing is finished
 		 */
 		synchronized private void finalizeParsing(){
-			finished = true;
+			finishedReading = true;
 			//System.out.println("Parsing thread finished");
 			notifyAll();
 		}
@@ -127,7 +127,7 @@ public class SaxTraceFileReader{
 		 * @throws InterruptedException
 		 */
 		synchronized public XMLTraceEntry poll () throws InterruptedException {			
-			while (readData.size() == 0 && finished == false)
+			while (readData.size() == 0 && finishedReading == false)
 				wait();
 
 			//System.out.println("Poll now");
@@ -293,9 +293,5 @@ public class SaxTraceFileReader{
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	public boolean isFinished() {
-		return finished;
 	}
 }

@@ -18,16 +18,11 @@
 
 package de.hd.pvs.piosim.model;
 
-import java.io.ByteArrayInputStream;
 import java.util.Collection;
 import java.util.HashMap;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 
 
@@ -38,6 +33,9 @@ import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
  * @author Julian M. Kunkel
  */
 public class TemplateManager {
+	
+	private final XMLReaderToRAM reader = new XMLReaderToRAM();
+	private final ModelXMLReader mreader = new ModelXMLReader();
 	
 	/* String == Template-Name */
 	private HashMap<String, BasicComponent> templates = new HashMap<String,BasicComponent>();
@@ -76,7 +74,7 @@ public class TemplateManager {
 		
 		try{
 		ModelXMLReader mreader = new ModelXMLReader();
-		BasicComponent clonedTemplate = mreader.createComponentFromXML(getXML(template), false);
+		BasicComponent clonedTemplate = mreader.createComponentFromXML(getXMLRepresentation(template), false);
 		
 		templates.put(name, clonedTemplate);
 		}catch(Exception e){
@@ -90,7 +88,7 @@ public class TemplateManager {
 	 * @return Root element node.
 	 * @throws Exception
 	 */
-	private Element getXML(BasicComponent component) throws Exception{
+	private XMLTag getXMLRepresentation(BasicComponent component) throws Exception{
 		ModelXMLWriter mwriter = new ModelXMLWriter();
 			
 		StringBuffer sb = new StringBuffer();
@@ -98,10 +96,7 @@ public class TemplateManager {
 		
 		//System.out.println("XML: " + sb);
 		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document document = builder.parse(  new ByteArrayInputStream(sb.toString().getBytes() ));
-		return document.getDocumentElement();
+		return reader.convertXMLToXMLTag(sb.toString());
 	}
 	
 	/**
@@ -115,12 +110,10 @@ public class TemplateManager {
 	public <T extends BasicComponent> T cloneFromTemplate(T component) throws Exception{
 		if(templates.get(component.getName()) == null){
 			throw new IllegalArgumentException("Template is not registered!");
-		}				
+		}					
 		
-		ModelXMLReader mreader = new ModelXMLReader();
+		T clone = (T) mreader.createComponentFromXML(getXMLRepresentation(component), true);
 				
-		T clone = (T) mreader.createComponentFromXML(getXML(component), true);
-		
 		return clone;
 	}
 	

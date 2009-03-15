@@ -32,7 +32,7 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
  * @author Julian M. Kunkel
  *
  */
-public abstract class XMLTraceEntry {
+public abstract class XMLTraceEntry extends XMLTag {
 	public static enum TYPE{
 		STATE,
 		EVENT
@@ -43,17 +43,7 @@ public abstract class XMLTraceEntry {
 	 */
 	final Epoch time;
 
-	final HashMap<String, String> attributes;
-
-	/** 
-	 * DOM like for children.
-	 */
-	LinkedList<XMLTag> nestedXMLTags = null;
-
-	private final String name;
-
 	abstract public TYPE getType();
-
 
 	private final XMLTraceEntry parentXMLData; 
 	
@@ -66,10 +56,8 @@ public abstract class XMLTraceEntry {
 	}
 	
 	public XMLTraceEntry(final String name, final HashMap<String, String> attributes, XMLTraceEntry parentXMLData) {
-		this.attributes = attributes;
-		this.name = name;
+		super(name, attributes, parentXMLData);		
 		this.parentXMLData  = parentXMLData;
-
 
 		// parse common time value
 		String value = attributes.remove("time");
@@ -81,46 +69,9 @@ public abstract class XMLTraceEntry {
 
 	}
 
-	public void setNestedXMLTags(LinkedList<XMLTag> nestedXMLTags) {
-		this.nestedXMLTags = nestedXMLTags;
-	}
-	
-	public LinkedList<XMLTag> getNestedXMLTags() {
-		return nestedXMLTags;
-	}
-
 
 	public Epoch getTime() {
 		return time;
 	}
 
-	public HashMap<String, String> getAttributes() {
-		return attributes;
-	}
-
-	public String getAttribute(String attribute){
-		return attributes.get(attribute);
-	}
-
-	public String getName() {
-		return name;
-	}
-	
-
-	@Override
-	public String toString() {
-		StringBuffer buff = new StringBuffer();
-		for(String key: attributes.keySet()){
-			buff.append(" " + key + "=\"" + attributes.get(key) + "\"");
-		}		
-
-		if(nestedXMLTags != null){
-			// print nestedXMLTags
-			for(XMLTag child: nestedXMLTags){
-				buff.append(child);
-			}
-		}
-		
-		return getTime() + " " + getName() + buff.toString() + "/" + getName() + "\n";
-	}
 }

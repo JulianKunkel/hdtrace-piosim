@@ -73,17 +73,7 @@ public class StateTraceEntry extends EventTraceEntry{
 	@Override
 	public String toString() {
 		StringBuffer buff = new StringBuffer();
-		for(String key: attributes.keySet()){
-			buff.append(" " + key + "=\"" + attributes.get(key) + "\"");
-		}		
 
-		if(nestedXMLTags != null){
-			// print nestedXMLTags
-			for(XMLTag child: nestedXMLTags){
-				buff.append(" " + child);
-			}
-		}
-		
 		if(nestedTraceChildren != null){
 			// print nestedXMLTags
 			for(XMLTraceEntry child: nestedTraceChildren){
@@ -91,6 +81,6 @@ public class StateTraceEntry extends EventTraceEntry{
 			}
 		}
 
-		return getTime() + " " + getName() + buff.toString() + " /" + getName() + "\n";
+		return getTime() + " " + super.toString() + " " + buff.toString() + "\n";
 	}
 }

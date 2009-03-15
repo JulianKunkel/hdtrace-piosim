@@ -20,20 +20,15 @@ package de.hd.pvs.piosim.model.tests.integrationstests;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import junit.framework.TestSuite;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
+import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelVerifier;
 import de.hd.pvs.piosim.model.ModelXMLReader;
@@ -85,17 +80,14 @@ public class ModelLoadTest1  extends TestSuite {
 		String newModelstr = fancyPrint(model);
 		
 		/* generate XML input out of output */
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document document = builder.parse(  new ByteArrayInputStream(newModelstr.getBytes() ));
-		Element projectNode = document.getDocumentElement();
-		projectNode.normalize();
-
-		String dirname = file.getParent();
+		final String dirname = file.getParent();
+		
+		final XMLReaderToRAM reader = new XMLReaderToRAM();
 		
 		System.out.println("\n\nRereading model");
 		
-		Model newModel = xmlReader.readProjectXML(projectNode, dirname, null);
+		Model newModel = xmlReader.readProjectXML(reader.convertXMLToXMLTag(newModelstr), 
+				dirname, null);
 
 		
 		StringBuffer newModelsb = new StringBuffer();
@@ -112,11 +104,7 @@ public class ModelLoadTest1  extends TestSuite {
 		
 		System.out.println("Rereading model and compare results");
 		/* generate XML input out of output */
-		document = builder.parse(  new ByteArrayInputStream(newModel2Str.getBytes() ));
-		projectNode = document.getDocumentElement();
-		projectNode.normalize();
-		
-		Model newModel2 = xmlReader.readProjectXML(projectNode, dirname, null);
+		Model newModel2 = xmlReader.readProjectXML(reader.convertXMLToXMLTag(newModel2Str), dirname, null);
 		
 		assertTrue(newModel2Str.compareTo(newModelstr) == 0);
 		

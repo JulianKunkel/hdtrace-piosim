@@ -25,8 +25,7 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.List;
 
-import org.w3c.dom.Element;
-
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
@@ -57,10 +56,10 @@ abstract public class Distribution implements IXMLReader {
 	 * @return
 	 * @throws Exception
 	 */
-	static public Distribution readDistributionFromXML(Element xmlelem)
+	static public Distribution readDistributionFromXML(XMLTag xmlelem)
 			throws Exception {		
 		
-		String name = xmlelem.getAttribute("class");
+		final String name = xmlelem.getAttribute("class");
 		
 		try {
 			Class<Distribution> cls = (Class<Distribution>) Class.forName(name);
@@ -79,13 +78,8 @@ abstract public class Distribution implements IXMLReader {
 		}
 	}
 	
-	
-	/* (non-Javadoc)
-	 * @see de.hd.pvs.piosim.model.interfaces.IXMLReader#readXML(org.w3c.dom.Element)
-	 */
-	public void readXML(Element xml) throws Exception {
-		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();		
-		
+	public void readXML(de.hd.pvs.TraceFormat.xml.XMLTag xml) throws Exception {
+		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();				
 		commonAttributeHandler.readSimpleAttributes(xml, this);
 	}
 	

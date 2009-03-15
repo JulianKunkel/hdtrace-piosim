@@ -19,10 +19,10 @@
 package de.hd.pvs.piosim.model.inputOutput;
 
 import java.util.ArrayList;
-
-import org.w3c.dom.NodeList;
+import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Numbers;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
  * Simple List of <Offset, Access-Size> tuples to allow non-contiguous I/O.
@@ -73,10 +73,10 @@ public class ListIO{
 	 * @param objects
 	 * @throws Exception
 	 */
-	public ListIO(NodeList objects) throws Exception{		
-		for(int i=0; i < objects.getLength(); i++){
-			String offset = objects.item(i).getAttributes().getNamedItem("offset").getNodeValue();
-			String size   = objects.item(i).getAttributes().getNamedItem("size").getNodeValue();
+	public ListIO(LinkedList<XMLTag> dataNodes) throws Exception{		
+		for(XMLTag data: dataNodes){
+			final String offset = data.getAttribute("offset");
+			final String size   = data.getAttribute("size");
 			if( offset == null || size == null){
 				throw new IllegalArgumentException ("Wrong XML, invalid List I/O");
 			}

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Application name="result" processCount="4">
- <Description>     </Description>
+<Application name="result" processCount="3">
+ <Description>normal description </Description>
 <FileList>
 <File name="pvfs2://pvfs2//visualization.dat" id="10000">
   <InitialSize>0</InitialSize>

@@ -64,6 +64,35 @@ public class XMLTag {
 		return nestedXMLTags;
 	}
 	
+	public LinkedList<XMLTag> getNestedXMLTagsWithName(String name){
+		LinkedList<XMLTag> list = new LinkedList<XMLTag>();
+		
+		if (nestedXMLTags != null ){
+			for(XMLTag tag: nestedXMLTags){
+				if( tag.getName().equalsIgnoreCase(name) ){
+					list.add(tag);
+				}
+			}
+			return list;
+		}
+		return list;		
+	}
+	
+	public XMLTag getFirstNestedXMLTagWithName(String name){
+		if (nestedXMLTags != null ){
+			for(XMLTag tag: nestedXMLTags){
+				if( tag.getName().equalsIgnoreCase(name) ){
+					return tag;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public void setNestedXMLTags(LinkedList<XMLTag> nestedXMLTags) {
+		this.nestedXMLTags = nestedXMLTags;
+	}
+	
 	public void setContainedText(String containedText) {
 		this.containedText = containedText;
 	}

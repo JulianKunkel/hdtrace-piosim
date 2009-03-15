@@ -32,124 +32,7 @@ import de.hd.pvs.TraceFormat.util.Numbers;
  * 
  * @author Julian M. Kunkel
  */
-public class XMLutil {
-	
-	/**
-	 * Return a list of all Tag nodes which match with the given tag. 
-	 * @param element
-	 * @param tag
-	 * @return
-	 */
-	static public ArrayList<Element> getElementsByTag(Element element, String tag) {
-		ArrayList<Element> list = getChildElements(element);
-		
-		// remove all elements which do not match.
-		for (int i =  list.size() -1; i >= 0 ; i--) {
-			Element node = list.get(i);
-			if ( node.getNodeName().compareToIgnoreCase(tag) != 0) {
-				list.remove(i);
-			}
-		}
-		
-		return list;
-	}
-	
-	/**
-	 * Return a list of child nodes.
-	 * 
-	 * @param element
-	 * @return
-	 */
-	static public ArrayList<Element> getChildElements(Element element) {
-		ArrayList<Element> list = new ArrayList<Element>();
-		if (element == null){
-			return list; 
-		}
-		NodeList children = element.getChildNodes();
-		
-		for (int i = 0; i < children.getLength(); i++) {
-			Node node = children.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				list.add((Element) node);
-			}
-		}
-		
-		return list;
-	}
-	
-	/**
-	 * Return at most one node which matches with the specified tag. 
-	 * @param element or null if there is no such element.
-	 * @param tag
-	 * @return
-	 * @throws Exception
-	 */
-	static public Element getFirstElementByTag(Element element, String tag)
-	throws Exception {
-		ArrayList<Element> list = XMLutil.getElementsByTag(element, tag);
-		if (list.size() == 0)
-			return null;
-		return list.get(0);
-	}
-	
-	/**
-	 * Return the plain text contained in a Tag.
-   * Strips whitespace around the text.
-	 * @param element
-	 * @param tag
-	 * @return an empty String if there is no such Element. 
-	 * @throws Exception
-	 */
-	static public String getPlainText(Element element, String tag)
-	throws Exception {
-		return getPlainText(element, tag, "");
-	}
-	
-	/**
-	 * Return the plain text contained in a Tag or the default String if there is no such Tag.
-	 * Strips whitespace around the text.
-	 *  
-	 * @param element
-	 * @param tag
-	 * @return
-	 * @throws Exception
-	 */
-	static public String getPlainText(Element element, String tag, String defaultString)
-	throws Exception {
-		Node node = XMLutil.getFirstElementByTag(element, tag);
-		if (node == null)
-			return defaultString;
-		return node.getTextContent().trim();
-	}
-	
-	/**
-	 * Parse an Epoch in a Subnode (Tag) as specified. Use the defaultTime if there is no such Tag
-	 * in the Node.  
-	 * 
-	 * @param element The Node in which the nested Tag should occur.
-	 * @param tag
-	 * @param defaultTime
-	 * @return
-	 * @throws Exception
-	 */
-	static public Epoch getTime(Element element, String tag, Epoch defaultTime) throws Exception{
-		return Epoch.parseTime(XMLutil.getPlainText(element, tag, defaultTime.toString()));
-	}
-	
-	/**
-	 * Return the attribute Text of the attribute with the attributeName.
-	 * @param element
-	 * @param attributeName
-	 * @return
-	 * @throws Exception
-	 */
-	static public String getAttributeText(Element element, String attributeName)
-	throws Exception {
-		Node node = element.getAttributes().getNamedItem(attributeName);
-		if (node == null) 
-			return null;
-		return node.getNodeValue();
-	}
+public class XMLutil {	
 	
 	/**
 	 * Parse the long value of the Element's subtag or use the default value.
@@ -160,11 +43,11 @@ public class XMLutil {
 	 * @return
 	 * @throws Exception
 	 */
-	static public long getLongValue(Element element, String tag, long defaults)
+	static public long getLongValue(XMLTag element, String tag, long defaults)
 	throws Exception {
 		String text;
 		try {
-			text = XMLutil.getPlainText(element, tag);
+			text = element.getFirstNestedXMLTagWithName(tag).getContainedText();
 			if (text == null || text.length() == 0) {
 				return defaults;
 			}
@@ -183,11 +66,11 @@ public class XMLutil {
 	 * @return
 	 * @throws Exception
 	 */
-	static public long getLongValueAttribute(Element element, String attributeName, long defaults)
+	static public long getLongValueAttribute(XMLTag element, String attributeName, long defaults)
 	throws Exception {
 		String text;
 		try {
-			text = element.getAttributes().getNamedItem(attributeName).getNodeValue();
+			text = element.getAttribute(attributeName);
 			if (text == null || text.length() == 0) {
 				return defaults;
 			}
@@ -206,11 +89,11 @@ public class XMLutil {
 	 * @return
 	 * @throws Exception
 	 */
-	static public int getIntValueAttribute(Element element, String attributeName, int defaults)
+	static public int getIntValueAttribute(XMLTag element, String attributeName, int defaults)
 	throws Exception {
 		String text = "null";
 		try {
-			text = element.getAttributes().getNamedItem(attributeName).getNodeValue();
+			text = element.getAttribute(attributeName);
 			if (text == null || text.length() == 0) {
 				return defaults;
 			}
@@ -229,7 +112,7 @@ public class XMLutil {
 	 * @return
 	 * @throws Exception
 	 */
-	static public long getLongValue(Element element, String tag, String defaults)
+	static public long getLongValue(XMLTag element, String tag, String defaults)
 	throws Exception {
 		return getLongValue(element, tag, Numbers.getLongValue(defaults));
 	}
@@ -242,11 +125,11 @@ public class XMLutil {
 	 * @return
 	 * @throws Exception
 	 */
-	static public double getDoubleValue(Element element, String tag,
+	static public double getDoubleValue(XMLTag element, String tag,
 			double defaults) throws Exception {
 		String text;
 		try {
-			text = XMLutil.getPlainText(element, tag);
+			text = element.getFirstNestedXMLTagWithName(tag).getContainedText();
 			if (text == null || text.length() == 0) {
 				return defaults;
 			}

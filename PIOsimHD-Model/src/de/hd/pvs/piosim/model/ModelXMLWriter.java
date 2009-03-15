@@ -255,7 +255,7 @@ public class ModelXMLWriter {
 				if(value == null)
 					continue;
 
-				buff.append("<" + field.getName()  +  ">\n");
+				buff.append("<" + field.getName().toUpperCase()  +  ">\n");
 				
 				// if it is a collection serialize all contained elements
 				if(Collection.class.isAssignableFrom(value.getClass()) ){
@@ -267,7 +267,7 @@ public class ModelXMLWriter {
 					createXMLFromComponent((BasicComponent) value, buff);
 				}
 				
-				buff.append("</" + field.getName()  +  ">\n");
+				buff.append("</" + field.getName().toUpperCase()  +  ">\n");
 				
 			}
 			
