@@ -1,0 +1,6 @@
+Name: de/hd/pvs/TraceFormat
+Sealed: true
+Implementation-Title: de.hd.pvs.TraceFormat
+Implementation-Version: build1
+Implementation-Vendor: Julian M. Kunkel
+

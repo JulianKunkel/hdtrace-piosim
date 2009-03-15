@@ -1,3 +1,5 @@
+Class-Path: HDTraceFormat.jar
+
 Name: de/hd/pvs/piosim/model/
 Sealed: true
 Implementation-Title: de.hd.pvs.piosim.model

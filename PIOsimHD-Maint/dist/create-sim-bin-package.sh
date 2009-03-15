@@ -59,6 +59,9 @@ for F in $ROOTFILES_DIST ; do
 	cp $MODELF/$F $TARGET/
 done
 
+echo "Creating trace format package"
+JAR HDTraceFormat    trace.mf       $TRACEF  #"-C ../ images"
+
 echo "Creating model package"
 JAR piosimhd-model     model.mf       $MODELF  #"-C ../ images"
 

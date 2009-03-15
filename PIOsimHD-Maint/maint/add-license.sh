@@ -1,5 +1,12 @@
 #!/bin/bash
 
+FOLDER="$1"
+
+if [ "$FOLDER" == "" ] ; then
+	echo "Syntax $0 <SRC FOLDER>"
+	exit 1
+fi
+
 # this script adds a license to all java files
 
 if [ -e  /dev/shm/tmp ] ; then
@@ -9,8 +16,7 @@ fi
 
 source `dirname $0`/../path.rc || exit 1
 
-for FOLDER in $SIMF $MODELF $MAINTF/TraceConverterHD ; do
-cd $FOLDER/src
+cd $FOLDER
 
 for FILE in `find -name "*.java"`; do
 
@@ -42,8 +48,6 @@ cat $FILE
 sed  "s/julian/Julian M. Kunkel/" /dev/shm/tmp > $FILE
 
 echo "processed: $FILE"
-
-done
 
 done
   
