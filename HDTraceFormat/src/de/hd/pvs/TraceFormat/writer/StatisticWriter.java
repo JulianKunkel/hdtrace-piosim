@@ -16,7 +16,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.traceConverter.Output.HDTrace;
+package de.hd.pvs.TraceFormat.writer;
 
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
@@ -55,9 +55,21 @@ public class StatisticWriter {
 		// write timestamp, if necessary
 		if(nextExpectedStatisticIter == null || ! nextExpectedStatisticIter.hasNext()){
 			nextExpectedStatisticIter = group.getStatisticsOrdered().iterator();
+			final Epoch realTime = time.subtract(group.getTimeOffset());
+			
 			// write timestamp:
-			file.writeInt(time.getSeconds());
-			file.writeInt(time.getNanoSeconds());
+			switch(group.getTimestampDatatype()){
+				case INT:
+					int realVal = (int) (realTime.getDoubleInNS() / group.getTimeResolutionMultiplier());
+					file.writeInt( realVal );						
+					break;
+				case EPOCH:
+					file.writeInt(realTime.getSeconds());
+					file.writeInt(realTime.getNanoSeconds());
+					break;				
+				default:
+					throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
+			}
 		}
 		
 		final StatisticDescription expectedStat = nextExpectedStatisticIter.next();
@@ -71,16 +83,16 @@ public class StatisticWriter {
 		final StatisticType type = expectedStat.getType();
 		switch(type){
 		case LONG:
-			file.writeLong((Long) value);
+			file.writeLong((Long) value / expectedStat.getMultiplier());
 			break;
 		case INT:
-			file.writeInt((Integer) value);
+			file.writeInt((Integer) value/ expectedStat.getMultiplier());
 			break;
 		case DOUBLE:
-			file.writeDouble((Double) value);
+			file.writeDouble((Double) value/ expectedStat.getMultiplier());
 			break;
 		case FLOAT:
-			file.writeFloat((Float) value);			
+			file.writeFloat((Float) value/ expectedStat.getMultiplier());			
 			break;
 		case STRING:
 			final String str = (String) value;

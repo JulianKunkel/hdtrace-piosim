@@ -27,9 +27,9 @@
 
 <ExternalStatistics>
 			<Energy timeResulution="Milliseconds" timestampDatatype="INT" timeOffset="-5.02ms"> <!-- implizit stored in a file stat_Energy -->
-				<Voltage type="float" multiplier="1000" unit="V"/>
-				<Current type="float" multiplier="1000" unit="A"/>				
-				<Power type="float" multiplier="1000" unit="W"/>				
+				<Voltage type="float" multiplier="1000" unit="mV"/>
+				<Current type="float" multiplier="1000" unit="mA"/>				
+				<Power type="float" multiplier="1000" unit="mW"/>				
 			</Energy>
 			<Kernel timestampDatatype="EPOCH" timeOffset="30.001s"> <!-- implizit stored in a file stat_Kernel -->
 				<Load type="float" multiplier="1000"/>

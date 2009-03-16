@@ -21,14 +21,7 @@ package de.hd.pvs.TraceFormat;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
 import java.util.LinkedList;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
@@ -36,7 +29,6 @@ import de.hd.pvs.TraceFormat.statistics.StatisticType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
-import de.hd.pvs.TraceFormat.xml.XMLutil;
 
 /**
  * This class is used to create a primitive project description from an XML file.
@@ -48,7 +40,7 @@ public class ProjectDescriptionXMLReader {
 
 	protected XMLTag rootTag;
 	
-	public void readProjectDescription(ProjectDescription descriptionInOut, String projectFilename) throws Exception{
+	public void readProjectDescription(ProjectDescription descriptionInOut, String projectFilename) throws IOException{
 		File XMLFile = new File(projectFilename);
 		if (! XMLFile.canRead()) {
 			throw new IllegalArgumentException("Project file not readable: " + XMLFile.getAbsolutePath());
@@ -61,7 +53,10 @@ public class ProjectDescriptionXMLReader {
 		// read standard descriptions:
 		descriptionInOut.setApplicationName( rootTag.getAttribute("name"));
 
-		descriptionInOut.setDescription( rootTag.getFirstNestedXMLTagWithName("Description").getContainedText());
+		final XMLTag desc = rootTag.getAndRemoveFirstNestedXMLTagWithName("Description");
+		if(desc != null){
+			descriptionInOut.setDescription( desc.getContainedText());
+		}
 		
 		try {
 			String val = rootTag.getAttribute("processCount");
@@ -72,7 +67,7 @@ public class ProjectDescriptionXMLReader {
 		}
 
 		// now add available thread count per process, by checking for existing files:
-		for(int i=0; i < descriptionInOut.getRankCount(); i++){
+		for(int i=0; i < descriptionInOut.getProcessCount(); i++){
 			int t = 0;
 			while(true){
 				File threadFile = new File(TraceFileNames.getFilenameXML(descriptionInOut.getAbsoluteFilesPrefix(), i, t));
@@ -86,7 +81,7 @@ public class ProjectDescriptionXMLReader {
 		}
 		
 		// parse the descriptions of the external statistics:
-		XMLTag element = rootTag.getFirstNestedXMLTagWithName("ExternalStatistics");
+		XMLTag element = rootTag.getAndRemoveFirstNestedXMLTagWithName("ExternalStatistics");
 		if(element != null){
 			final LinkedList<XMLTag> children = element.getNestedXMLTags(); 
 			for(XMLTag stat: children){
@@ -109,13 +104,7 @@ public class ProjectDescriptionXMLReader {
 		
 		final String tR = root.getAttribute("timeResulution");		
 		if (tR != null && ! tR.isEmpty()){
-			if(tR.equals("Mikroseconds")){
-				stat.setTimeResolutionMultiplier(1000);
-			}else if(tR.equals("Milliseconds")){
-				stat.setTimeResolutionMultiplier(1000 * 1000);
-			}else{
-				throw new IllegalArgumentException("Invalid timestampResulution " + tR + "  in statistic group: " + stat.getName());
-			}
+			stat.setTimeResolutionMultiplier(tR);
 		}
 		
 		final String toffset = root.getAttribute("timeOffset");
@@ -139,4 +128,8 @@ public class ProjectDescriptionXMLReader {
 		
 		return stat;
 	}	
+	
+	public LinkedList<XMLTag> getUnparsedChildTags() {
+		return rootTag.getNestedXMLTags();
+	}
 }

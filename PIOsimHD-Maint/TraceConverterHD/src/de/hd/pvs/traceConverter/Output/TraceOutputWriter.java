@@ -18,6 +18,8 @@
 
 package de.hd.pvs.traceConverter.Output;
 
+import java.io.IOException;
+
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -27,14 +29,14 @@ import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 
 /**
- * An implementation of the TraceOutputConverter decides how to 
+ * An implementation of the TraceOutputWriter decides how to 
  * use the data provided inside the XML trace.
  * The methods of the Converter are called to preserve increasing time in the trace.
  * 
  * @author Julian M. Kunkel
  *
  */
-abstract public class TraceOutputConverter {
+abstract public class TraceOutputWriter {
 		
 	/**
 	 * Initialize the resulting trace output, called by the  {@link HDTraceConverter}
@@ -51,7 +53,7 @@ abstract public class TraceOutputConverter {
 	/**
 	 * Called by the {@link HDTraceConverter} once all input is processed.
 	 */
-	abstract public void finalizeTrace();
+	abstract public void finalizeTrace() throws IOException;
 	
 	
 	/**

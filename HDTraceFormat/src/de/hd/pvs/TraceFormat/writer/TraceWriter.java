@@ -16,7 +16,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.traceConverter.Output.HDTrace;
+package de.hd.pvs.TraceFormat.writer;
 
 import java.io.FileWriter;
 import java.io.IOException;

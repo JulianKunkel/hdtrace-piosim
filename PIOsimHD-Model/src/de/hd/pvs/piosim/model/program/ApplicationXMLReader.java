@@ -92,11 +92,11 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		}
 
 		// now read Programs:
-		Program [][] programs = new Program[app.getRankCount()] [];
+		Program [][] programs = new Program[app.getProcessCount()] [];
 
 		final XMLReaderToRAM reader = new XMLReaderToRAM();
 		
-		for (int rank = 0; rank < app.getRankCount(); rank++) {
+		for (int rank = 0; rank < app.getProcessCount(); rank++) {
 			final int threadCnt =  app.getProcessThreadCount(rank);
 
 			programs[rank] = new Program[threadCnt]; 

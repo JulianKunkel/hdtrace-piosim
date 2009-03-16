@@ -20,11 +20,11 @@ package de.hd.pvs.traceConverter.Input;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.RunParameters;
-import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
+import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
 
 /**
  * An {@link AbstractTraceProcessor} fetches data from a trace source i.e. a particular file and
- * manufactures trace events from the trace file for a {@link TraceOutputConverter}.
+ * manufactures trace events from the trace file for a {@link TraceOutputWriter}.
  * 
  * Trace events processed by a {@link AbstractTraceProcessor} must be returned with an increasing start time.
  * 
@@ -33,9 +33,9 @@ import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
  */
 abstract public class AbstractTraceProcessor implements Comparable<AbstractTraceProcessor> {
 	/**
-	 * The implementation of the {@link TraceOutputConverter} i.e. the file format and spec.
+	 * The implementation of the {@link TraceOutputWriter} i.e. the file format and spec.
 	 */
-	private TraceOutputConverter outputConverter;
+	private TraceOutputWriter outputConverter;
 	
 	private ProcessIdentifier  processIdentifier;
 	
@@ -65,14 +65,14 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	abstract public void initalize();
 	
 	/**
-	 * Set the implementation of the {@link TraceOutputConverter} i.e. the file format and spec.
+	 * Set the implementation of the {@link TraceOutputWriter} i.e. the file format and spec.
 	 * @param outputConverter
 	 */
-	final public void setOutputConverter(TraceOutputConverter outputConverter) {
+	final public void setOutputConverter(TraceOutputWriter outputConverter) {
 		this.outputConverter = outputConverter;
 	}
 	
-	final public TraceOutputConverter getOutputConverter() {
+	final public TraceOutputWriter getOutputConverter() {
 		return outputConverter;
 	}
 	

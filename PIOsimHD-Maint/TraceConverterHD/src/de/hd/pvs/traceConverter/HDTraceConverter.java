@@ -32,7 +32,8 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticProcessor;
 import de.hd.pvs.traceConverter.Input.Trace.TraceProcessor;
-import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
+import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
+import de.hd.pvs.traceConverter.Output.HDTrace.HDTraceWriter;
 
 public class HDTraceConverter {
 
@@ -44,10 +45,10 @@ public class HDTraceConverter {
 	 */
 	public void process(RunParameters param) throws Exception{
 		// try to instantiate the appropriate output converter:
-		TraceOutputConverter outputConverter = instantiateOutputWriter(
+		TraceOutputWriter outputConverter = instantiateOutputWriter(
 				"de.hd.pvs.traceConverter.Output." + 
 				param.getOutputFormat() + "." +
-				param.getOutputFormat() + "Converter");
+				param.getOutputFormat() + "Writer");
 
 		// scan for all the XML files which must be opened during conversion:
 		// general description
@@ -63,7 +64,7 @@ public class HDTraceConverter {
 
 		// start parsing of the trace files:
 		// trace files: rank + thread id are defined in the file name		
-		for(int rank=0 ; rank < projectDescription.getRankCount(); rank++){
+		for(int rank=0 ; rank < projectDescription.getProcessCount(); rank++){
 			for(int thread = 0; thread < projectDescription.getProcessThreadCount(rank); thread++ ){
 
 				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
@@ -102,7 +103,7 @@ public class HDTraceConverter {
 					
 					SimpleConsoleLogger.Debug("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + group);
 
-					ExternalStatisticsGroup statGroup = projectDescription.getExternalStatisticsDescription(group);
+					ExternalStatisticsGroup statGroup = projectDescription.getExternalStatisticsGroup(group);
 					if(statGroup == null){
 						throw new IllegalArgumentException("Statistic group " + statGroup + 
 								" invalid, <rank,thread>=" + rank + "," + thread);
@@ -125,6 +126,14 @@ public class HDTraceConverter {
 				}
 			}			
 		}
+		
+		
+		// if it is the HDTrace writer, then write the project description:
+		if(outputConverter.getClass().equals(HDTraceWriter.class)){
+			((HDTraceWriter) outputConverter).initalizeProjectDescriptionWithOldValues(projectDescription, 
+					pReader.getUnparsedChildTags());
+		}
+
 
 		Epoch now = Epoch.ZERO;
 		Epoch old = Epoch.ZERO;
@@ -173,14 +182,14 @@ public class HDTraceConverter {
 	 * Simple factory method to instantiate the selected TraceOutput implementation
 	 * via reflection 
 	 */
-	private TraceOutputConverter instantiateOutputWriter(String which){
-		Class<TraceOutputConverter> cls;
+	private TraceOutputWriter instantiateOutputWriter(String which){
+		Class<TraceOutputWriter> cls;
 		try{
-			cls = (Class<TraceOutputConverter>) Class.forName(which);
+			cls = (Class<TraceOutputWriter>) Class.forName(which);
 		}catch(ClassNotFoundException e){
 			throw new IllegalArgumentException("Output converter for " + which + " not found!");
 		}
-		TraceOutputConverter converter;
+		TraceOutputWriter converter;
 		try{
 			converter = cls.newInstance();
 		}catch(Exception e){

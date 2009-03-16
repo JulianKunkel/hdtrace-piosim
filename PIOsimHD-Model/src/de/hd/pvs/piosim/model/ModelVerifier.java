@@ -113,7 +113,7 @@ public class ModelVerifier {
 	 * @throws Exception
 	 */
 	public void checkConsistency(Application app) throws Exception{		
-		for (int p= 0; p < app.getRankCount();  p++){
+		for (int p= 0; p < app.getProcessCount();  p++){
 			boolean err = false;
 			final int threadCnt =  app.getProcessThreadCount(p);
 

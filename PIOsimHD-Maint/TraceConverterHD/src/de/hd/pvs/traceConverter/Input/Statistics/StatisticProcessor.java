@@ -60,7 +60,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 		if(! isFinished){
 			lastRead = reader.getNextStatisticEntry();
 			if(! reader.isFinished()){
-				nextTimeStamp = lastRead.getTimeStamp().add(group.getTimeOffset());
+				nextTimeStamp = lastRead.getTimeStamp();
 			}
 		}
 	}
@@ -76,8 +76,6 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 		for(int pos = 0; pos < group.getSize() ; pos ++){
 			Object val = lastRead.getValues()[pos];
 			final String stat = group.getStatisticsOrdered().get(pos).getName();
-
-			//System.out.println(now + " "  + getPID() + " " + now + " stat " + stat + " val: " + val);
 
 			if(getRunParameters().isUpdateStatisticsOnlyIfTheyChangeTooMuch()){
 				// check if the statistic changed enough from the last written stamp.
@@ -154,7 +152,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			getNextStatistic();
 		}catch(Exception e){
 			throw new IllegalArgumentException("Error in stat group " + group.getName() + " rank, thread " + 
-					getPID().getRank() + "," +getPID().getRank() , e);
+					getPID().getProcessNumber() + "," +getPID().getProcessNumber() , e);
 		}
 	}
 
@@ -169,7 +167,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			getNextStatistic();
 		}catch(Exception e){
 			throw new IllegalArgumentException("Error in stat group " + group.getName() + " rank, thread " + 
-					getPID().getRank() + "," +getPID().getRank() , e);
+					getPID().getProcessNumber() + "," +getPID().getProcessNumber() , e);
 		}
 	}
 

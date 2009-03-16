@@ -43,7 +43,7 @@ public class StatisticsReader{
 		if(isFinished()){
 			return null;
 		}
-		final Epoch timeStamp;
+		Epoch timeStamp;
 		
 		Object [] values = new Object[group.getSize()];
 			
@@ -60,6 +60,7 @@ public class StatisticsReader{
 			default:
 				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
 		}
+		timeStamp = timeStamp.add(group.getTimeOffset());
 
 		int pos = 0;
 		for(StatisticDescription statDesc: group.getStatisticsOrdered()){

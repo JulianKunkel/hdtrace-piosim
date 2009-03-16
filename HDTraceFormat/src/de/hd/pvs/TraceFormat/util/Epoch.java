@@ -270,12 +270,20 @@ public class Epoch implements Comparable<Epoch> {
 	 * Return the Epoch time in Nanoseconds.
 	 * @return
 	 */
-	public long getLongTimeAsNS(){
-		return seconds * MULTIPLIER + nanoSeconds; 
+	public long getLongInNS(){
+		return (long) seconds * MULTIPLIER + nanoSeconds; 
+	}
+	
+	/**
+	 * Return the Epoch time in Nanoseconds as double.
+	 * @return
+	 */
+	public double getDoubleInNS(){
+		return (double) seconds * MULTIPLIER + nanoSeconds; 
 	}
 
 	/**
-	 * Return the Epoch time as double. 
+	 * Return the Epoch time as double in seconds. 
 	 * @return
 	 */
 	public double getDouble(){

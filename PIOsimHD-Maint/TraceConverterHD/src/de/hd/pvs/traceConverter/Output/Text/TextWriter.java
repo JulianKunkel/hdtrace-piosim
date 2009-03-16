@@ -27,9 +27,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
-import de.hd.pvs.traceConverter.Output.TraceOutputConverter;
+import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
 
-public class TextConverter extends TraceOutputConverter {
+public class TextWriter extends TraceOutputWriter {
 	
 	/**
 	 * Print detailed information about states and events during state start / event.
@@ -69,7 +69,11 @@ public class TextConverter extends TraceOutputConverter {
 	@Override
 	public void Statistics(ProcessIdentifier id, Epoch time, String name,
 			ExternalStatisticsGroup group, Object value) {
-		System.out.println(time.getFullDigitString() + " S " + id + " " + group.getName() + " " + name + " " + value);
+		String unit = "";
+		if(group.getStatistic(name).getUnit() != null){
+			unit = " " + group.getStatistic(name).getUnit(); 
+		}
+		System.out.println(time.getFullDigitString() + " S " + id + " " + group.getName() + " " + name + " " + value + unit);
 	}
 
 	@Override

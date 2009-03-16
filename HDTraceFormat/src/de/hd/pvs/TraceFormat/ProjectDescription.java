@@ -38,7 +38,7 @@ public class ProjectDescription {
 	
 	private String description = "";	
 
-	private int rankCount = 0;	
+	private int processCount = 0;	
 
 	// maps process rank and existing thread ids  
 	final ArrayList<Integer> processThreadCount = new ArrayList<Integer>();  
@@ -46,7 +46,7 @@ public class ProjectDescription {
 	// available statistics
 	final HashMap<String, ExternalStatisticsGroup> statisticGroupDescriptions = new HashMap<String, ExternalStatisticsGroup>();
 	
-	void addExternalStatisticsGroup(ExternalStatisticsGroup group){
+	public void addExternalStatisticsGroup(ExternalStatisticsGroup group){
 		statisticGroupDescriptions.put(group.getName(), group);
 	}
 	
@@ -54,7 +54,7 @@ public class ProjectDescription {
 		return statisticGroupDescriptions.keySet();
 	}
 	
-	public ExternalStatisticsGroup getExternalStatisticsDescription(String groupName){
+	public ExternalStatisticsGroup getExternalStatisticsGroup(String groupName){
 		return statisticGroupDescriptions.get(groupName);
 	}
 	
@@ -63,8 +63,8 @@ public class ProjectDescription {
 		return applicationName;
 	}
 
-	public int getRankCount() {
-		return rankCount;
+	public int getProcessCount() {
+		return processCount;
 	}
 
 	public String getApplicationName() {
@@ -127,7 +127,7 @@ public class ProjectDescription {
 
 	public void setProcessCount(int processCount) {
 		// remove old values if too many present:
-		for (int i=this.rankCount ; i < processThreadCount.size(); i++){
+		for (int i=this.processCount ; i < processThreadCount.size(); i++){
 			processThreadCount.remove(i);				
 		}
 		
@@ -137,7 +137,7 @@ public class ProjectDescription {
 			processThreadCount.add(0);
 		}
 		
-		this.rankCount = processCount;
+		this.processCount = processCount;
 	}
 	
 	/**

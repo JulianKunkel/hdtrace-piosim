@@ -36,6 +36,9 @@ public class ExternalStatisticsGroup{
 	 */
 	int timeResolutionMultiplier = 1;
 
+	
+	String timeResolutionMultiplierName = null;
+	
 	/**
 	 * Offset applied to all timestamps
 	 */
@@ -100,8 +103,18 @@ public class ExternalStatisticsGroup{
 	public int getSize(){
 		return statisticOrder.size();
 	}
-	public void setTimeResolutionMultiplier(int timeResolutionMultiplier) {
-		this.timeResolutionMultiplier = timeResolutionMultiplier;
+	
+	public void setTimeResolutionMultiplier(String name) {
+		if(name.equals("Mikroseconds")){
+			timeResolutionMultiplier = 1000;
+		}else if(name.equals("Milliseconds")){
+			timeResolutionMultiplier = 1000 * 1000;
+		}else if(name == null){
+			timeResolutionMultiplier = 1;
+		}else{
+			throw new IllegalArgumentException("Invalid timestampResulution " + name );
+		}
+		this.timeResolutionMultiplierName = name;
 	}
 
 	public void setTimestampDatatype(StatisticType timestampDatatype) {
@@ -114,6 +127,10 @@ public class ExternalStatisticsGroup{
 
 	public int getTimeResolutionMultiplier() {
 		return timeResolutionMultiplier;
+	}
+	
+	public String getTimeResolutionMultiplierName() {
+		return timeResolutionMultiplierName;
 	}
 
 	public StatisticType getTimestampDatatype() {

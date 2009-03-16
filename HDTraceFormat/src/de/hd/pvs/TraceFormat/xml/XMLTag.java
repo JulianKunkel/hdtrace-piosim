@@ -19,6 +19,7 @@
 package de.hd.pvs.TraceFormat.xml;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
@@ -82,6 +83,26 @@ public class XMLTag {
 		if (nestedXMLTags != null ){
 			for(XMLTag tag: nestedXMLTags){
 				if( tag.getName().equalsIgnoreCase(name) ){
+					return tag;
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Removes the first child node with the given name, if it exists 
+	 * @param name
+	 * @return childNode which matches the name
+	 */
+	public XMLTag getAndRemoveFirstNestedXMLTagWithName(String name){
+		if (nestedXMLTags != null ){
+			final Iterator<XMLTag> it = nestedXMLTags.iterator();
+
+			while(it.hasNext()){
+				final XMLTag tag = it.next(); 
+				if( tag.getName().equalsIgnoreCase(name) ){
+					it.remove();
 					return tag;
 				}
 			}

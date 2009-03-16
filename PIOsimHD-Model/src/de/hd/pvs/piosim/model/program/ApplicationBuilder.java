@@ -116,8 +116,8 @@ public class ApplicationBuilder {
 	
 	// for all depending programs add the command directly.	
 	public void addCommand(int rank, Command command){
-		if( rank >= app.getRankCount() ){
-			throw new IllegalArgumentException("Invalid rank: " + rank + " application size is " + app.getRankCount());
+		if( rank >= app.getProcessCount() ){
+			throw new IllegalArgumentException("Invalid rank: " + rank + " application size is " + app.getProcessCount());
 		}
 		
 		Program program = app.getClientProgram(rank, 0);
