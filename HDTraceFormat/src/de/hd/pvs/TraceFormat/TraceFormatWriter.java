@@ -25,11 +25,11 @@ import java.util.LinkedList;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticWriter;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceWriter;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.TraceFormat.writer.StatisticWriter;
-import de.hd.pvs.TraceFormat.writer.TraceWriter;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**

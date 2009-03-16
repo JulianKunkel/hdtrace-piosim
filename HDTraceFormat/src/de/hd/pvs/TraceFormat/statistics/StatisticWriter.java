@@ -16,16 +16,13 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.TraceFormat.writer;
+package de.hd.pvs.TraceFormat.statistics;
 
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
