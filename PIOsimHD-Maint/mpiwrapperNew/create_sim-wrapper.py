@@ -42,14 +42,16 @@ startFuncs = {
 "File_read" : "File_read(v1,v3,v4)",
 "File_read_at" : "File_read_at(v1,v2, v4,v5)",
 "File_write" : "File_write(v1,v3,v4)",
+"File_write_all" : "File_write_all(v1,v3,v4)",
 "File_write_at" : "File_write_at(v1,v2, v4,v5)",
+"File_write_at_all" : "File_write_at_all(v1,v2, v4,v5)",
 "Finalize" : "priorFinalize()",
 "Recv" : "Receive(v2,v3,v4,v5,v6)", 
 "Reduce" : "Reduce(v3,v4,v6,v7)",
 "Send" : "Send(v2,v3,v4,v5,v6)", 
 "Ssend" : "Ssend(v2,v3,v4,v5,v6)", 
 "Sendrecv" : "Sendrecv(v2 , v3 , v4, v5, v9, v10, v11)",
-"Isend" : "Isend(v2,v3,v4,v5,v6)", 
+#"Isend" : "Isend(v2,v3,v4,v5,v6)", 
 "Sendrecv_replace" : "Sendrecv_replace(v2, v3, v4, v5, v6, v7, v8)",
 "Gather" : "Gather(v2, v3, v5, v6, v7, v8)",
 "Gatherv" : "Gatherv(v2, v3, v5, v6, v7, v8, v9)",
@@ -66,10 +68,57 @@ startFuncs = {
 
 "File_close" : "File_close(v1)",
 "File_delete" : "File_delete(v1)",
+"File_set_size" : "File_set_size(v1, v2)",
+"File_preallocate" : "File_preallocate(v1, v2)",
+"File_set_info" : "File_set_info(v1, v2)",
+"File_read_at_all" : "File_read_at_all(v1, v2, v4, v5)",
+
+"File_set_atomicity" : "File_set_atomicity(v1, v2)",
+"File_read_shared" : "File_read_shared(v1, v3, v4)", 
+"File_write_shared" : "File_write_shared(v1, v3, v4)", 
+
+"File_read_ordered" : "File_read_ordered(v1, v3, v4)",
+"File_write_ordered" : "File_write_ordered(v1, v3, v4)",
+"File_seek_shared" : "File_seek_shared(v1, v2, v3)", 
+
+"Isend" : "Isend(v2, v3, v4, v5, v6, v7)", 
+"Waitall" : "Waitall(v1, v2)",
+"Wait" : "Wait(v1)",
+"Waitany" : "Waitany(v1, v2)",
+"Waitsome" : "Waitsome(v1, v2)",
+"Iprobe" : "Iprobe(v1, v2, v3)",
+"Irecv" : "Irecv(v2, v3, v4, v5, v6, v7)",
+"Ibsend" : "Ibsend(v2, v3, v4, v5, v6, v7)", 
+"Issend" : "Issend(v2, v3, v4, v5, v6, v7)", 
+"Irsend" : "Irsend(v2, v3, v4, v5, v6, v7)", 
+
+"File_iread" : "File_iread(v1, v3, v4, v5)",
+"File_iread_at" : "File_iread_at(v1, v2, v4, v5, v6)", 
+"File_iwrite" : "File_iwrite(v1, v3, v4, v5)", 
+"File_iwrite_at" : "File_iwrite_at(v1, v2, v4, v5, v6)", 
+
+"File_read_at_all_begin" : "File_read_all_begin(v1, v2, v4, v5)",
+"File_read_at_all_end" : "end_split(v1)",
+
+"File_read_all_begin" : "File_read_all_begin(v1, v3, v4)",
+"File_read_all_end" : "end_split(v1)",
+
+"File_write_at_all_begin" : "File_write_at_all_begin(v1, v2, v4, v5)", 
+"File_write_at_all_end" : "end_split(v1)",
+
+"File_write_all_begin" : "File_write_all_begin(v1, v3, v4)",
+"File_write_all_end" : "end_split(v1)",
+
+"File_read_ordered_begin" : "File_read_ordered_begin(v1, v3, v4)", 
+"File_read_ordered_end" : "end_split(v1)",
+
+"File_write_ordered_begin" : "File_write_ordered_begin(v1, v3, v4)", 
+"File_write_ordered_end" : "end_split(v1)",
 }
 
 endFuncs   = {
 "File_open" : "File_open(v1,v2,v3,v4,v5,ret)",
+"File_get_size" : "File_get_size(v1, v2)", 
 }
 
 noTimerEndFuncs   = { 
@@ -123,6 +172,8 @@ for f in funcs:
       print ""
     else:
       print "  tsprintf(\"" + fkt + "\")"
+      print '  if(trace_all_functions) {'
+      print '  log("<' + fkt + " time='%f' />\\n\", MPI_Wtime() - startTime); }"
     
     print "  ret = PMPI_" + fkt + "(" + callString.rstrip(", ") + ");"
     

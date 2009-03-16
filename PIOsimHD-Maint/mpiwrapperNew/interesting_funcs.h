@@ -63,6 +63,7 @@ int MPI_File_open(MPI_Comm, char *, int, MPI_Info, MPI_File *);
 int MPI_File_close(MPI_File *);
 int MPI_File_delete(char *, MPI_Info);
 int MPI_File_set_size(MPI_File, MPI_Offset);
+int MPI_File_get_size(MPI_File, MPI_Offset *);
 int MPI_File_preallocate(MPI_File, MPI_Offset);
 int MPI_File_read(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
 int MPI_File_read_all(MPI_File, void *, int, MPI_Datatype, MPI_Status *);

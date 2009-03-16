@@ -43,3 +43,4 @@ runtests:
 
 clean:
 	rm -rf mpi2test mpich-test
+

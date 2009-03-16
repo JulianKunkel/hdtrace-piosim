@@ -83,6 +83,9 @@ extern int w_tracing;
 extern int w_my_rank;
 static int mpi_finalized = 0;
 
+// Traces all functions, even those without a custom logging routine
+static int trace_all_functions = 1;
+
 // Minimum compute-time to be logged (microseconds)
 #define MIN_COMPUTE_TIME 100.0 
 
@@ -121,7 +124,7 @@ static void w_timeStamp(){
   double curTime = MPI_Wtime();
   double computeTime = (curTime - lastTime) * 1000.0 * 1000.0; // microseconds
   if(computeTime > MIN_COMPUTE_TIME){
-    log("<Compute duration=\"%g\" unit=\"microseconds\" />\n", computeTime);
+    log("<Compute duration=\"%g\" />\n", computeTime);
   }
 }
 
@@ -204,14 +207,16 @@ void w_priorFinalize(){
   double delta_time = MPI_Wtime() - startTime;
   tprintf("Runtime %fs", delta_time)
   elog("<!-- <time run=\"%f\"/> -->",delta_time);    
-}
 
-void w_Finalize(){
   elog("</Program></Rank>\n")
   
   flush_log();
   close(wrapper_fd);
   close(wrapper_info_fd);
+}
+
+void w_Finalize(){
+
 }
 
 void w_Send(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
@@ -235,13 +240,14 @@ void w_Ssend(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
   log("<Ssend size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
 }
 
+/*
 void w_Isend(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
   int t_size;
   MPI_Type_size(type, & t_size);
 
   log("<Isend size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", (count * (long long) t_size ), rank, tag, getCommName(comm) )
 }
-
+*/
 
 void w_Receive(int count, MPI_Datatype type, int rank, int tag, MPI_Comm comm){
   log("<Receive fromRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", rank, tag, getCommName(comm) )
@@ -414,7 +420,7 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 
 void logError(int ret)
 {
-	static char errorstring[LENGTH];
+	static char errorstring[LENGTH]; 
 	int len;
 	MPI_Error_string(ret, errorstring, &len);
 	log("<Error code='%d' string='%s' />\n",
@@ -436,6 +442,7 @@ void * getFileHandleName(MPI_File * fh)
 {
 	return (void*)fh;
 }
+
 
 
 /**
@@ -515,17 +522,23 @@ void w_File_delete(char * filename)
 }
 
 
-
-void w_File_write_at(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type){
-  gint * file =  g_hash_table_lookup(files, (gint *) &fh);
-
-  log("<FileWrite file=\"%d\"> <Data offset=\"%lld\" size=\"%lld\"/> </FileWrite>\n", (int) *file, (long long int) offset, getTypeSize(count, type))  
+int getFileId(MPI_File fh)
+{
+	gint * file = g_hash_table_lookup(files, (gint *) &fh);
+	return (int)file;
 }
 
-void w_File_read_at(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type){
-  gint * file =  g_hash_table_lookup(files, (gint *) &fh);
 
-  log("<FileRead file=\"%d\"> <Data offset=\"%lld\" size=\"%lld\"/> </FileWrite>\n", (int) *file, (long long int) offset, getTypeSize(count, type))  
+void w_File_write_at(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type)
+{
+  log("<FileWrite file=\"%d\"> <Data offset=\"%lld\" size=\"%lld\"/> </FileWrite>\n", 
+	  getFileId(fh), (long long int) offset, getTypeSize(count, type));
+}
+
+void w_File_read_at(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type)
+{
+  log("<FileRead file=\"%d\"> <Data offset=\"%lld\" size=\"%lld\"/> </FileRead>\n", 
+	  getFileId(fh), (long long int) offset, getTypeSize(count, type)); 
 }
 
 
@@ -550,4 +563,338 @@ void w_File_read(MPI_File fh, int count, MPI_Datatype type){
 
   w_File_read_at(fh, real_offset, count, type);
 }
+
+void w_File_set_size(MPI_File fh, MPI_Offset size)
+{
+	log("<File_set_size file='%d' size='%lld' />\n", 
+		getFileId(fh), (long long int) size);
+}
+
+void w_File_preallocate(MPI_File fh, MPI_Offset size)
+{
+	log("<File_preallocate file='%d' size='%lld' />\n",
+		getFileId(fh), (long long int) size);
+}
+
+void w_File_get_size(MPI_File fh, MPI_Offset *size)
+{
+	log("<File_get_size file='%d' size='%lld' />\n",
+		getFileId(fh), (long long int) *size);
+}
+
+void w_File_set_info(MPI_File fh, MPI_Info info)
+{
+	int nkeys, i;
+	static char key[LENGTH];
+	log("<File_set_info>\n");
+	
+	PMPI_Info_get_nkeys(info, &nkeys);
+	for(i = 0; i < nkeys; ++i)
+	{
+		MPI_Info_get_nthkey(info, i, key);
+		log( TAB_STRING "<key value='%s' />\n", 
+			key);
+	}
+
+	log("</File_set_info>\n");
+}
+
+
+int getFileNumber(MPI_File fh)
+{
+	gint * file =  g_hash_table_lookup(files, (gint *) &fh);
+	return (int) *file;
+}
+
+void w_File_read_at_all(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type)
+{
+	log("<FileReadAll file=\"%d\">\n", getFileNumber(fh));
+	log(TAB_STRING "<Data offset=\"%lld\" size=\"%lld\"/>\n", 
+		(long long int) offset, getTypeSize(count, type));
+	log("</FileReadAll>\n");
+}
+
+void w_File_read_all(MPI_File fh, int count, MPI_Datatype type)
+{
+  MPI_Offset view_offset;
+  // view dependent offset:  
+  PMPI_File_get_position(fh, & view_offset);
+  // real offset:
+  MPI_Offset real_offset;
+  PMPI_File_get_byte_offset(fh, view_offset, & real_offset);
+
+  w_File_read_at_all(fh, real_offset, count, type);
+}
+
+
+void w_File_write_at_all(MPI_File fh, MPI_Offset offset, int count, MPI_Datatype type)
+{
+  log("<FileWriteAll file=\"%d\"> <Data offset=\"%lld\" size=\"%lld\"/> </FileWriteAll>\n", 
+	  getFileNumber(fh), (long long int) offset, getTypeSize(count, type))  
+}
+
+void w_File_write_all(MPI_File fh, int count, MPI_Datatype type){
+  MPI_Offset view_offset;
+  // view dependent offset:  
+  PMPI_File_get_position(fh, & view_offset);
+  // real offset:
+  MPI_Offset real_offset;
+  PMPI_File_get_byte_offset(fh, view_offset, & real_offset);
+
+  w_File_write_at_all(fh, real_offset, count, type);
+}
+
+
+void w_File_set_atomicity(MPI_File fh, int flag)
+{
+	log("<File_set_atomicity file='%d' flag='%d' />\n",
+		getFileNumber(fh), flag);
+}
+
+void w_File_sync(MPI_File fh)
+{
+	log("<File_sync file='%d' />\n",
+		getFileNumber(fh));
+}
+
+void w_File_read_shared(MPI_File fh, int count, MPI_Datatype type)
+{
+	log("<File_read_shared file='%d' size='%lld' />\n",
+		getFileNumber(fh), getTypeSize(count, type));
+}
+
+void w_File_write_shared(MPI_File fh, int count, MPI_Datatype type)
+{
+	log("<File_write_shared file='%d' size='%lld' />\n",
+		getFileNumber(fh), getTypeSize(count, type));
+}
+
+void w_File_read_ordered(MPI_File fh, int count, MPI_Datatype type)
+{
+	log("<File_read_ordered file='%d' size='%lld' />\n", 
+		getFileNumber(fh), getTypeSize(count, type));
+}
+
+void w_File_write_ordered(MPI_File fh, int count, MPI_Datatype type)
+{
+	log("<File_write_ordered file='%d' size='%lld' />\n", 
+		getFileNumber(fh), getTypeSize(count, type));
+}
+
+void w_File_seek_shared(MPI_File fh, MPI_Offset offset, int whence)
+{
+	const char * mode;
+	switch(whence)
+	{
+	case MPI_SEEK_SET:
+		mode = "Set";
+		break;
+	case MPI_SEEK_CUR:
+		mode = "Cur";
+		break;
+	case MPI_SEEK_END:
+		mode = "End";
+		break;
+	default:
+		mode = "";
+	}
+	log("<File_seek_shared file='%d' offset='%lld' whence='%s' />\n",
+		getFileNumber(fh), (long long int) offset, mode);
+}
+
+
+// static GHashTable * requestNumberMap = NULL;
+
+int getRequestNumber(MPI_Request request)
+{
+	return (int)request;
+}
+
+
+
+/*** nonblocking operations *************************************************/
+
+/* we need to generate an id for each operation, so we can log what we are 
+waiting for
+*/
+void w_Isend(int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm, MPI_Request * request)
+{
+	// 
+	//   log("<Isend size=\"%lld\" toRank=\"%d\" tag=\"%d\" comm=\"%s\"/>\n", 
+	// (count * (long long) t_size ), rank, tag, getCommName(comm) )
+	log("<Isend size='%lld' toRank='%d' tag='%d' comm='%s' request='%d'/>\n",
+		getTypeSize(count, type), dest, tag, getCommName(comm), getRequestNumber(*request));
+}
+
+void w_Waitany(int count, MPI_Request array_of_requests[])
+{
+	int i;
+	log("<Waitany>\n");
+	for(i = 0; i < count; ++i )
+	{
+		log(TAB_STRING "<For request='%d'>\n", 
+			getRequestNumber(array_of_requests[i]));
+	}
+	log("</Waitany>\n");
+}
+
+void w_Waitsome(int count, MPI_Request array_of_requests[])
+{
+	int i;
+	log("<Waitsome>\n");
+	for(i = 0; i < count; ++i )
+	{
+		log(TAB_STRING "<For request='%d'>\n", 
+			getRequestNumber(array_of_requests[i]));
+	}
+	log("</Waitsome>\n");
+}
+
+
+void w_Waitall(int count, MPI_Request array_of_requests[])
+{
+	int i;
+	log("<Wait>\n");
+	for(i = 0; i < count; ++i )
+	{
+		log(TAB_STRING "<For request='%d'>\n", 
+			getRequestNumber(array_of_requests[i]));
+	}
+	log("</Wait>\n");
+}
+
+void w_Wait(MPI_Request *request)
+{
+	w_Waitall(1, request);
+}
+
+
+void w_Iprobe(  int source, int tag, MPI_Comm comm)
+{
+	log("<Iprobe source='%d' tag='%d' comm='%s' />\n",
+		source, tag, getCommName(comm));
+}
+
+void w_Irecv(int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Request *request)
+{
+	log("<Irecv size='%lld' source='%d' tag='%d' comm='%s' request='%d' />\n",
+		getTypeSize(count, datatype), source, tag, getCommName(comm), getRequestNumber(*request));
+}
+
+void w_Ibsend(int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request)
+{
+	log("<Ibsend size='%lld' dest='%d' tag='%d' comm='%s' request='%d' />\n",
+		getTypeSize(count, datatype), dest, tag, getCommName(comm), getRequestNumber(*request));
+}
+
+void w_Issend(int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request)
+{
+	log("<Issend size='%lld' dest='%d' tag='%d' comm='%s' request='%d' />\n",
+		getTypeSize(count, datatype), dest, tag, getCommName(comm), getRequestNumber(*request));
+}
+
+void w_Irsend(int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request)
+{
+	log("<Irsend size='%lld' dest='%d' tag='%d' comm='%s' request='%d' />\n",
+		getTypeSize(count, datatype), dest, tag, getCommName(comm), getRequestNumber(*request));
+}
+
+
+void w_File_iread_at(MPI_File fh, MPI_Offset offset, int count,
+					 MPI_Datatype datatype, MPI_Request *request)
+{
+
+	log("<Iread file='%d' request='%d'/>\n",
+		getFileId(fh), getRequestNumber(*request));
+	log(TAB_STRING "<Data offset='%lld' size='%lld'  />\n",
+		(long long int)offset, getTypeSize(count, datatype));
+	log("</Iread>\n")
+}
+
+void w_File_iread(MPI_File fh, int count, MPI_Datatype datatype, MPI_Request *request)
+{
+	MPI_Offset view_offset;
+	// view dependent offset:  
+	PMPI_File_get_position(fh, & view_offset);
+	// real offset:
+	MPI_Offset real_offset;
+	PMPI_File_get_byte_offset(fh, view_offset, & real_offset);
+
+	w_File_iread_at(fh, real_offset, count, datatype, request);
+}
+
+void w_File_iwrite_at(MPI_File fh, MPI_Offset offset, int count, 
+					  MPI_Datatype datatype, MPI_Request *request)
+{
+	log("<Iwrite file='%d' request='%d'/>\n",
+		getFileId(fh), getRequestNumber(*request));
+	log(TAB_STRING "<Data offset='%lld' size='%lld'  />\n",
+		(long long int)offset, getTypeSize(count, datatype));
+	log("</Iwrite>\n")
+}
+
+void w_File_iwrite(MPI_File fh, int count, MPI_Datatype datatype, MPI_Request *request)
+{
+
+	MPI_Offset view_offset;
+	// view dependent offset:  
+	PMPI_File_get_position(fh, & view_offset);
+	// real offset:
+	MPI_Offset real_offset;
+	PMPI_File_get_byte_offset(fh, view_offset, & real_offset);
+
+	w_File_iwrite_at(fh, real_offset, count, datatype, request);
+}
+
+
+void w_File_read_at_all_begin(MPI_File mpi_fh, MPI_Offset offset, int count, 
+							  MPI_Datatype datatype)
+{
+	log("<SplitBegin>\n");
+	w_File_read_at_all(mpi_fh, offset, count, datatype);
+	log("</SplitBegin>\n");
+}
+
+void w_end_split(MPI_File fh)
+{
+	log("<SplitEnd file='%d' />\n", getFileNumber(fh));
+}
+
+void w_File_read_all_begin(MPI_File mpi_fh, int count, MPI_Datatype datatype)
+{
+	log("<SplitBegin>\n");
+	w_File_read_all(mpi_fh, count, datatype);
+	log("</SplitBegin>\n");
+}
+
+void w_File_write_at_all_begin(MPI_File mpi_fh, MPI_Offset offset, int count, MPI_Datatype datatype)
+{
+	log("<SplitBegin>\n");
+	w_File_write_at_all(mpi_fh, offset, count, datatype);
+	log("</SplitBegin>\n");
+}
+
+void w_File_write_all_begin(MPI_File fh, int count, MPI_Datatype type)
+{
+	log("<SplitBegin>\n");
+	w_File_write_all(fh, count, type);
+	log("</SplitBegin>\n");
+}
+
+void w_File_read_ordered_begin(MPI_File fh, int count, MPI_Datatype type)
+{
+	log("<SplitBegin>\n");
+	w_File_read_ordered(fh, count, type);
+	log("</SplitBegin>\n");
+}
+
+void w_File_write_ordered_begin(MPI_File fh, int count, MPI_Datatype type)
+{
+	log("<SplitBegin>\n");
+	w_File_write_ordered(fh, count, type);
+	log("</SplitBegin>\n");
+}
+
+
+
 
