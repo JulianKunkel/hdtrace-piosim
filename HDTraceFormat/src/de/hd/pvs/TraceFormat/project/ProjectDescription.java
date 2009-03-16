@@ -16,7 +16,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.TraceFormat;
+package de.hd.pvs.TraceFormat.project;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,7 +70,31 @@ public class ProjectDescription {
 	public String getApplicationName() {
 		return applicationName;
 	}
+	
+	public String getAbsoluteFilenameOfProject(){
+		return getAbsoluteFilesPrefix() + ".xml";
+	}
+	
+	public String getAbsoluteFilenameOfTrace(int rank, int thread){
+		return getAbsoluteFilesPrefix() + "_" + rank +"_" + thread +".xml";
+	}
+	
+	public String getAbsoluteFilenameOfStatistics(int rank, int thread, String statGroup){		
+		return getAbsoluteFilesPrefix() + "_" + rank +"_" + thread + "_stat_" + statGroup + ".dat";
+	}
 
+	public String getFilesPrefix() {
+		return filePrefix;
+	}
+	
+	private String getAbsoluteFilesPrefix() {
+		return parentDir + "/" + filePrefix;
+	}
+	
+	public String getParentDir() {
+		return parentDir;
+	}
+	
 	public String getDescription() {
 		return description;
 	}
@@ -95,18 +119,6 @@ public class ProjectDescription {
 		this.parentDir = parent.getAbsolutePath();
 		this.projectFilename = projectFile.getName();
 		this.filePrefix = prefix;
-	}
-
-	public String getFilesPrefix() {
-		return filePrefix;
-	}
-	
-	public String getAbsoluteFilesPrefix() {
-		return parentDir + "/" + filePrefix;
-	}
-	
-	public String getParentDir() {
-		return parentDir;
 	}
 	
 	public void setApplicationName(String applicationName) {

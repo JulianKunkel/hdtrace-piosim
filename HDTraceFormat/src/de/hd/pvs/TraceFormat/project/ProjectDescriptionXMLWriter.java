@@ -16,7 +16,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.TraceFormat;
+package de.hd.pvs.TraceFormat.project;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -81,7 +81,7 @@ public class ProjectDescriptionXMLWriter {
 		}
 		
 		buff.append("</Application>\n");
-		writeToFile(desc.getAbsoluteFilesPrefix() + ".xml", buff);
+		writeToFile(desc.getProjectFilename(), buff);
 	}
 	
 	/**

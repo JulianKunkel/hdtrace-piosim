@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.project.ProjectDescription;
+import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -59,7 +61,7 @@ public class TraceFormatWriter {
 	}
 
 	public void addTimeline(int process, int thread) {
-		final String file = TraceFileNames.getFilenameXML(outProject.getAbsoluteFilesPrefix(), process, thread);
+		final String file = outProject.getAbsoluteFilenameOfTrace(process, thread);
 		try {
 			HashMap<Integer, PerThreadFiles> threadMap = traceWriterMap.get(process);
 			if(threadMap == null){
@@ -133,8 +135,7 @@ public class TraceFormatWriter {
 		StatisticWriter outWriter = stats.get(group);
 
 		if (outWriter == null) {			
-			final String file = TraceFileNames.getFilenameStatistics(outProject.getAbsoluteFilesPrefix(),
-				process, thread, group.getName());
+			final String file = outProject.getAbsoluteFilenameOfStatistics(process, thread, group.getName());
 			try {
 				// generate a new output writer
 				outWriter = new StatisticWriter(file, group);

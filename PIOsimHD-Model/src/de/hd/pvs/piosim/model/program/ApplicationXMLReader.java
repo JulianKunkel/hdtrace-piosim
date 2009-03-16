@@ -23,8 +23,7 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.TraceFileNames;
+import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
@@ -104,8 +103,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 			for(int thread = 0 ; thread < threadCnt; thread++){
 
 				// for each program open the corresponding file				
-				final String file = TraceFileNames.getFilenameXML(app.getAbsoluteFilesPrefix(),
-						rank, thread);
+				final String file = app.getAbsoluteFilenameOfTrace(rank, thread);
 
 				if(!  (new File(file)).canRead() ){
 					throw new IOException("File " + file + " is not readable!");

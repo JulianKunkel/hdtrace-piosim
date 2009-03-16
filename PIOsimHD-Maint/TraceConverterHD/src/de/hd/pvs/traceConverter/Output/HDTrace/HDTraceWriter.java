@@ -21,8 +21,8 @@ package de.hd.pvs.traceConverter.Output.HDTrace;
 import java.io.IOException;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.ProjectDescription;
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
+import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;

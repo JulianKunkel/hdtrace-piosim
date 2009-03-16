@@ -23,7 +23,7 @@ package de.hd.pvs.piosim.model.program;
 
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.ProjectDescription;
+import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 
 /**

@@ -21,9 +21,8 @@ package de.hd.pvs.traceConverter;
 import java.io.File;
 import java.util.PriorityQueue;
 
-import de.hd.pvs.TraceFormat.ProjectDescription;
-import de.hd.pvs.TraceFormat.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.TraceFileNames;
+import de.hd.pvs.TraceFormat.project.ProjectDescription;
+import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.trace.SaxTraceFileReader;
@@ -68,7 +67,7 @@ public class HDTraceConverter {
 			for(int thread = 0; thread < projectDescription.getProcessThreadCount(rank); thread++ ){
 
 				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
-				final String traceFile = TraceFileNames.getFilenameXML(projectDescription.getAbsoluteFilesPrefix(), rank, thread);
+				final String traceFile = projectDescription.getAbsoluteFilenameOfTrace(rank, thread);
 
 				SimpleConsoleLogger.Debug("Checking trace: " + traceFile);
 				
@@ -93,8 +92,7 @@ public class HDTraceConverter {
 
 				// external statistics
 				for(final String group: projectDescription.getExternalStatisticGroups()){
-					final String statFileName = TraceFileNames.getFilenameStatistics(projectDescription.getAbsoluteFilesPrefix(), 
-							rank, thread, group);
+					final String statFileName = projectDescription.getAbsoluteFilenameOfStatistics(rank, thread, group);
 
 					if (! (new File(statFileName)).canRead() ){
 						SimpleConsoleLogger.Debug("Statistic file does not exist " + statFileName);

@@ -16,7 +16,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.TraceFormat;
+package de.hd.pvs.TraceFormat.project;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class ProjectDescriptionXMLReader {
 		for(int i=0; i < descriptionInOut.getProcessCount(); i++){
 			int t = 0;
 			while(true){
-				File threadFile = new File(TraceFileNames.getFilenameXML(descriptionInOut.getAbsoluteFilesPrefix(), i, t));
+				File threadFile = new File(descriptionInOut.getAbsoluteFilenameOfTrace(i, t));
 				if(! threadFile.exists()) break;
 				t++;
 			}
