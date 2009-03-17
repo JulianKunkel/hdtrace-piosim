@@ -48,7 +48,7 @@ abstract public class TraceOutputWriter {
 	abstract public void initializeTrace(
 			RunParameters parameters,
 			String resultFile
-			);
+		 	) throws IOException;
 
 	/**
 	 * Called by the {@link HDTraceConverter} once all input is processed.

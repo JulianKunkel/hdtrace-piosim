@@ -81,8 +81,7 @@ public class StatisticsReader{
 								
 				break;
 			case FLOAT:
-				value = new Float(file.readFloat())* statDesc.getMultiplier();				
-				//System.out.println( timeStamp + " " + statName + " " + value);
+				value = new Float(file.readFloat())* statDesc.getMultiplier();			
 				
 				break;
 			case STRING:

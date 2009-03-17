@@ -89,7 +89,9 @@ public class StatisticWriter {
 			file.writeDouble((Double) value/ expectedStat.getMultiplier());
 			break;
 		case FLOAT:
-			file.writeFloat((Float) value/ expectedStat.getMultiplier());			
+			file.writeFloat((Float) value/ expectedStat.getMultiplier());
+			//System.out.println("VAL " + (Float) value/ expectedStat.getMultiplier());
+						
 			break;
 		case STRING:
 			final String str = (String) value;
