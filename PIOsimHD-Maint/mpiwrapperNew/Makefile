@@ -1,22 +1,24 @@
-CFLAGS  += $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS`
+CFLAGS  += -Wall -ggdb  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS`
 LDFLAGS += $(shell pkg-config --libs glib-2.0)
 
 
-all: sim-wrapper.c sim-wrapper.a
+all: libHDTrace.a  libHDTraceMPIWrapper.a
 
-sim-wrapper.a: sim-wrapper.o sim-wrapper-core.o $(LDFLAGS)
-	ar rcs sim-wrapper.a sim-wrapper.o sim-wrapper-core.o 
+HDTraceWriter.o: HDTraceWriter.c HDTraceWriter.h
+
+libHDTrace.a: HDTraceWriter.o
+	ar rcs libHDTrace.a HDTraceWriter.o
+
+libHDTraceMPIWrapper.a: HDTraceMPIWrapper.o $(LDFLAGS)
+	ar rcs libHDTraceMPIWrapper.a HDTraceMPIWrapper.o 
 	
-sim-wrapper-core.o: sim-wrapper-core.c
-	gcc -Wall -ggdb -c sim-wrapper-core.c -Iinclude/ -o sim-wrapper-core.o   $(CFLAGS)
+HDTraceMPIWrapper.src.o: HDTraceMPIWrapper.src.c
 
-sim-wrapper.o: sim-wrapper.c
-	gcc -Wall -ggdb -c sim-wrapper.c -Iinclude/ -o sim-wrapper.o  $(CFLAGS)
-
-sim-wrapper.c: sim-wrapper.src.c ./create_sim-wrapper.py
-	cat sim-wrapper.src.c > sim-wrapper.c
-	./create_sim-wrapper.py >> sim-wrapper.c
+HDTraceMPIWrapper.c: HDTraceMPIWrapper.src.c ./create_sim-wrapper.py
+	cat HDTraceMPIWrapper.src.c > HDTraceMPIWrapper.c
+	./create_sim-wrapper.py >> HDTraceMPIWrapper.c
 
 clean:
-	rm *~ *.o sim-wrapper.c sim-wrapper.a
+	rm *~ *.o *.a HDTraceMPIWrapper.c
+
 ### libglib2.0-0

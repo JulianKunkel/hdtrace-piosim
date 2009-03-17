@@ -24,10 +24,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
- 
+
 #include <stdio.h>
 
-#include "sim-wrapper.h"
+#include "HDTraceWriter.h"
 
 int w_tracing = 1;
 int w_my_rank;
