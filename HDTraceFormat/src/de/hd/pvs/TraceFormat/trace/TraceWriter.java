@@ -56,7 +56,7 @@ public class TraceWriter {
 		}
 	}
 
-	private void writeAttributes(EventTraceEntry traceEntry) throws IOException{
+	private void writeAttributes(XMLTraceEntry traceEntry) throws IOException{
 		writeAttributes(traceEntry.getAttributes()); 
 	}
 
@@ -116,19 +116,19 @@ public class TraceWriter {
 				file.write("</Nested>\n");			
 			}
 			traceEntry = stackedEntries.pollFirst();
-			writeState(finEntry, traceEntry.getTime(),  time.subtract(traceEntry.getTime()));			
+			writeState(finEntry, traceEntry.getTime(),  time);			
 		}else{
 			StateTraceEntry traceEntry;
 			// last start == end tag => not nested 
 			traceEntry = lastOpenedStateTraceEntry;
 			lastOpenedStateTraceEntry = null;			
-			writeState(traceEntry, traceEntry.getTime(), time.subtract(traceEntry.getTime()));
+			writeState(traceEntry, traceEntry.getTime(), time);
 		}
 	}
 	
-	private void writeState(StateTraceEntry traceEntry, Epoch time, Epoch duration) throws IOException{
-		file.write("<" + traceEntry.getName() + " time=\"" + time.toNormalizedString() + "\" duration=\"" 
-				+ duration.toNormalizedString() + "\"");
+	private void writeState(StateTraceEntry traceEntry, Epoch time, Epoch endTime) throws IOException{
+		file.write("<" + traceEntry.getName() + " time=\"" + time.toNormalizedString() + "\" end=\"" 
+				+ endTime.toNormalizedString() + "\"");
 			writeAttributes(traceEntry);			
 
 			if(traceEntry.getNestedXMLTags() != null && traceEntry.getNestedXMLTags().size() != 0 ){

@@ -85,7 +85,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			}else{
 				// finish State now
 				stateStart = false;
-				eventTime = state.getTime().add(state.getDuration());			
+				eventTime = state.getEndTime();			
 			}
 			
 			return;
@@ -119,7 +119,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 					stateStart = true;
 				}else{
 					stateStart = false;				
-					eventTime = state.getTime().add(state.getDuration());
+					eventTime = state.getEndTime();
 				}
 			}else{
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))

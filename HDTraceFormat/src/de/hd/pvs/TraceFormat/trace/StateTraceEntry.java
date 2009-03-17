@@ -22,12 +22,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 
-public class StateTraceEntry extends EventTraceEntry{
+public class StateTraceEntry extends XMLTraceEntry{
 
-	final Epoch duration;
+	final Epoch endTime;
 
 	LinkedList<XMLTraceEntry> nestedTraceChildren = null;
 	
@@ -37,9 +36,9 @@ public class StateTraceEntry extends EventTraceEntry{
 		super(name, attributes, parentXMLData);
 		
 		// parse common time value
-		String value = attributes.remove("duration");
+		String value = attributes.remove("end");
 		if(value != null){
-			duration = Epoch.parseTime(value);
+			endTime = Epoch.parseTime(value);
 		}else{
 			throw new IllegalArgumentException("Trace invalid, no time given");
 		}
@@ -58,8 +57,12 @@ public class StateTraceEntry extends EventTraceEntry{
 		return TYPE.STATE;
 	}
 	
-	public Epoch getDuration() {
-		return duration;
+	public Epoch getTimeDuration() {
+		return getTime().subtract(endTime);
+	}
+	
+	public Epoch getEndTime() {
+		return endTime;
 	}
 	
 	public boolean hasNestedTrace(){
@@ -70,8 +73,7 @@ public class StateTraceEntry extends EventTraceEntry{
 		return nestedTraceChildren;
 	}
 
-	@Override
-	public String toString() {
+	public String toStringWithChildren() {
 		StringBuffer buff = new StringBuffer();
 
 		if(nestedTraceChildren != null){

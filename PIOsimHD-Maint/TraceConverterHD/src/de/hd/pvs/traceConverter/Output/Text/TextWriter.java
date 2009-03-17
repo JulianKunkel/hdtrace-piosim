@@ -61,7 +61,7 @@ public class TextWriter extends TraceOutputWriter {
 
 		if(printDetails && traceEntry.getNestedXMLTags() != null){
 			for(XMLTag nested: traceEntry.getNestedXMLTags()){
-				System.out.print(nested);
+				System.out.print("\tD: " + nested);
 			}
 		}
 	}

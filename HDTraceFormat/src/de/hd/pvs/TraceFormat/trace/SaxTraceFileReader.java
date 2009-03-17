@@ -160,7 +160,7 @@ public class SaxTraceFileReader{
 		 * set on true when the Program tag is set
 		 */
 		boolean startProcessing = false;
-
+		
 		/**
 		 * Is called by the SaxThread, converts read XML data into a valid XML TraceEntry. 
 		 */

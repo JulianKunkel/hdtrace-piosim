@@ -1,9 +1,9 @@
 	<Program>
-		<Compute time="1" duration="1" />
-		<FileOpen time="2" duration="1" file="10000" truncate="true"
+		<Compute time="1" end="2" />
+		<FileOpen time="2" end="3" file="10000" truncate="true"
 			comm="WORLD" />
-		<Compute time="3" duration="1" />
-		<FileWrite time="4" duration="1" file="10000">
+		<Compute time="3" end="4" />
+		<FileWrite time="4" end="5" file="10000">
 			<Data offset="0" size="4"></Data>
 			<Data offset="20" size="4000"></Data>
 		</FileWrite>
@@ -11,11 +11,11 @@
 		<Nested>
 			<Event name="test" time="5.2" />
 			<Nested>
-				<Bcast time="6.1" duration="0.7" size="4" root="0" comm="WORLD" />
+				<Bcast time="6.1" end="6.8" size="4" root="0" comm="WORLD" />
 			</Nested>
-			<Send time="6" duration="0.9"/>
+			<Send time="6" end="6.9"/>
 		</Nested>
-		<FileWrite time="5" duration="2.0" file="10000">
+		<FileWrite time="5" end="7.0" file="10000">
 			<Data offset="8" size="32" />
 		</FileWrite>
 
@@ -25,5 +25,5 @@
 			<Event name="test3" time="7.3" />
 			<Event name="test4" time="7.4" />
 		</Nested>
-		<Bcast time="7" duration="1" size="4" root="0" comm="WORLD" />
+		<Bcast time="7" end="8.5" size="4" root="0" comm="WORLD" />
 	</Program>

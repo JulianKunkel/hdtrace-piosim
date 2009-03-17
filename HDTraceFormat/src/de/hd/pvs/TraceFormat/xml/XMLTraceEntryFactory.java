@@ -19,13 +19,11 @@
 package de.hd.pvs.TraceFormat.xml;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry.TYPE;
-import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class XMLTraceEntryFactory {
 	private static XMLTraceEntry.TYPE getType(String name){
@@ -44,11 +42,7 @@ public class XMLTraceEntryFactory {
 	 * @return
 	 */
 	public static XMLTraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, XMLTag nestedData){		
-		//System.out.println(data.getName() + " ");
-		//if(parent != null)
-		//	System.out.println(" p: " + parent.getName());
-		
-		XMLTraceEntry traceObject = manufactureXMLTraceObject(data, parent);
+		final XMLTraceEntry traceObject = manufactureXMLTraceObject(data, parent);
 		
 		if(nestedData != null){
 			// type must be state:
@@ -58,7 +52,7 @@ public class XMLTraceEntryFactory {
 			for(XMLTag child: nestedData.getNestedXMLTags()){
 				if(child.getName().equals("Nested")){
 					newNestedData = child;
-				}else{
+				}else{					
 					XMLTraceEntry childTraceEntry = manufactureXMLTraceObject(child, traceObj, newNestedData);
 					newNestedData = null;
 					traceObj.addXMLTraceChild(childTraceEntry);
@@ -82,7 +76,7 @@ public class XMLTraceEntryFactory {
 			final HashMap<String, String>  attributes = data.getAttributes();
 			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes, parent);
 			traceObj.setNestedXMLTags(data.getNestedXMLTags());
-
+			
 			return traceObj;
 		}else if (type == TYPE.EVENT){
 			// strip of the real name

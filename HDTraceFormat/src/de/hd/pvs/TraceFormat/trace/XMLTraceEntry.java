@@ -19,10 +19,6 @@
 package de.hd.pvs.TraceFormat.trace;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-
-import org.w3c.dom.Element;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -56,7 +52,7 @@ public abstract class XMLTraceEntry extends XMLTag {
 	}
 	
 	public XMLTraceEntry(final String name, final HashMap<String, String> attributes, XMLTraceEntry parentXMLData) {
-		super(name, attributes, parentXMLData);		
+		super(name, attributes, null);		
 		this.parentXMLData  = parentXMLData;
 
 		// parse common time value

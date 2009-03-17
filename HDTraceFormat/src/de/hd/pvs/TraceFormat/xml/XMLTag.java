@@ -79,6 +79,25 @@ public class XMLTag {
 		return list;		
 	}
 	
+	public LinkedList<XMLTag> getAndRemoveNestedXMLTagsWithName(String name){
+		LinkedList<XMLTag> list = new LinkedList<XMLTag>();
+		
+		if (nestedXMLTags != null ){
+			final Iterator<XMLTag> it = nestedXMLTags.iterator();
+
+			while(it.hasNext()){
+				final XMLTag tag = it.next(); 
+				if( tag.getName().equalsIgnoreCase(name) ){
+					it.remove();
+					list.add(tag);
+				}
+			}
+			return list;
+		}
+		return list;		
+	}
+	
+	
 	public XMLTag getFirstNestedXMLTagWithName(String name){
 		if (nestedXMLTags != null ){
 			for(XMLTag tag: nestedXMLTags){
@@ -147,7 +166,7 @@ public class XMLTag {
 	}
 	
 	@Override
-	public String toString() {
+	final public String toString() {
 		StringBuffer buff = new StringBuffer();
 		for(String key: attributes.keySet()){
 			buff.append(" " + key + "=\"" + attributes.get(key) + "\"");
