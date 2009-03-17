@@ -14,7 +14,7 @@ SIMF="$PFAD/PIOsimHD-Simulator"
 MAINTF="$PFAD/PIOsimHD-Maint"
 DOCF="$PFAD/PIOsimHD-Doc"
 MODELF="$PFAD/PIOsimHD-Model"
-TRACECONVERTERF="$MAINTF/TraceConverterHD"
+TRACECONVERTERF="$PFAD/HDTraceConverter"
 TRACEF="$PFAD/HDTraceFormat"
 
 if [[ ! -e  "$SIMF" ]] ; then
