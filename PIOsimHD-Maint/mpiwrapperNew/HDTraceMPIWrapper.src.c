@@ -747,7 +747,7 @@ void w_File_seek_shared(MPI_File fh, MPI_Offset offset, int whence)
 
 int getRequestNumber(MPI_Request request)
 {
-	return (int)request;
+	return (void*) request;
 }
 
 

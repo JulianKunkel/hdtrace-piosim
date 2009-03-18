@@ -25,14 +25,16 @@
  * SUCH DAMAGE.
  */
 
-void SimStartTracing();
-void SimStopTracing();
+void hdStartTracing();
+void hdStopTracing();
 
 
 //ideas for a trace API:
 
 struct TraceFile{
-	int fd; // file descriptor
+	int trace_fd; // file descriptor
+	int info_fd;
+	char * buffer;
 };
 
 typedef struct TraceFile * TraceFileP;
@@ -46,6 +48,8 @@ struct StatisticFileGroup{
 };
 
 typedef struct StatisticFileGroup * StatisticFileGroupP;
+
+void hdTraceInit(char * filePrefix); // /tmp/test => /tmp/test.xml /tmp/test_<rank>_<thread>.xml .info
 
 /**
  * create a new trace file and registers it.
@@ -64,18 +68,34 @@ TraceFileP hdTraceCreate(int rank);
  */
 void hdTraceFinalize(TraceFileP file);
 
-void hdLogEventStart    (TraceFileP file, char * eventName );
-// Variable list of arguments: http://publications.gbdirect.co.uk/c_book/chapter9/stdarg.html
-void hdLogEventEnd      (TraceFileP file, char* sprinhdStringForFurtherValues, ...);
-
 /**
  * Can be called after LogStateStart or LogEventStart to write attributes to the state/event.
  */
 void hdLogAttributes    (TraceFileP file, char* sprinhdAttributes, ...);
+//"comm=\"%s\" name=\"%s\" flags=\"%d\" fh=\"%p\" ret='%d'",
+//	  getCommName(comm), name, flags, getFileHandleName(fh), ret);
 
 void hdLogStateStart    (TraceFileP file, char * stateName);
 void hdLogStateEnd      (TraceFileP file, char* sprinhdStringForFurtherValues, ...);
+//oder void hdLogStateEnd      (TraceFileP file, char* buff);
 
+
+
+MPI_Write
+
+	hdLogStateStart()
+		Prüfe ob nested Tag geschrieben / nötig für gegenwärtige Tiefe
+	PMPI_Send
+	hdLogAttributes
+	GENERATE_WRITE_NESTED_TAGS in Buffer
+	hdLogStateEnd(buffer)
+		Prüfe ob END nested Tag nötig
+		Eigentliche Daten speichern
+
+void hdLogEventStart    (TraceFileP file, char * eventName );
+// Variable list of arguments: http://publications.gbdirect.co.uk/c_book/chapter9/stdarg.html
+void hdLogEventEnd      (TraceFileP file, char* sprinhdStringForFurtherValues, ...);
+//void hdLogEventEnd      (TraceFileP file, char* buff); falls so dann mergen mit hdLogEventStart.
 
 
 enum hdStatisticType { INT, FLOAT, DOUBLE, LONG, STRING};

@@ -22,7 +22,7 @@
 </File>
 
 </FileList>
-<CommunicatorList> <Communicator name="WORLD"/>  </CommunicatorList>
+<CommunicatorList> <Communicator name="WORLD" id="1"/>  </CommunicatorList>
 <!-- echtes mapping reinschreiben, virtuelle ranks garnicht zeigen! -->
 
 <ExternalStatistics>
