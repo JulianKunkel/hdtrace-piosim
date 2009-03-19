@@ -1,16 +1,13 @@
 * Fragen
-*** TODO int MPI_File_open(MPI_Comm, char *, int, MPI_Info, MPI_File *);
-     - überprüfen, was MPI_File in den einzelnen Implementationen ist
-     - return-value speichern?
-     - wie soll die verbindung filehandle <-> file-id (wrapper) <-> 
-*** TODO int MPI_File_close(MPI_File *); 
-     - Dateinamen aus der hash-table entfernen?
-*** TODO int MPI_File_seek_shared(MPI_File, MPI_Offset, int);
+*** DONE int MPI_File_open(MPI_Comm, char *, int, MPI_Info, MPI_File *);
+     - return-value speichern? nein
+*** DONE int MPI_File_close(MPI_File *); 
+     - Dateinamen aus der hash-table entfernen? nein
+*** DONE int MPI_File_seek_shared(MPI_File, MPI_Offset, int);
      -- hier wieder die absolute position rausfinden (wie bei file_write...) ?
-     -> problem: was ist, wenn anderer client in der zwischenzeit seekt?
-
-*** TODO bei Waitsome(...) etc. auch ergebnisse speichern?
-*** TODO Was machen wir mit nonblocking operations?
+     -> problem: was ist, wenn anderer client in der zwischenzeit seekt? 
+     Nur parameter loggen. NICHT alten Wert.
+*** DONE Was machen wir mit nonblocking operations?
 		 Möglichkeit: eigenes tracking => MPI_IXX calls müssen HashVal setzen (nach 
 		request), prüfung bei MPI_Test, MPI_Wait(X) etc.
 		 Sehr aufwendig! Replikation zu MPI Interna. Für Simulator aber nötig!                                                      
@@ -27,24 +24,61 @@
 		 
 		 ------
 		 
-		 z.Z. wird MPI_Request nach int gecastet.
-*** INFO über MPI_Request
-     OpenMPI: /ompi-trunk/ompi/request/request.h:ompi_request_t
-*** TODO Wie genau ist das mit den Requests? MPI_REQUEST_NULL irgendwo speichern?
+		 z.Z. wird MPI_Request nach int gecastet. 
+		 -> nach void* casten
 
-*** TODO MPI_File_write_at -- wird hier der byte offset, oder der view-abhängige
-     Offset angegeben?
+*** DONE MPI_File_write_at -- wird hier der byte offset, oder der view-abhängige
+     Offset angegeben? Get_contents, get_envelope
      Genau so File_iwrite_at
+
 *** TODO Split-collective-Aufrufe
     Jetzt wird geloggt:
     ----------------------------------
-    <SplitBegin>
+    <SplitBegin>           <Read_all aid="X">
+			    </Read_all>
     <Read file='97'>
-    </SplitBegin>
+    </SplitBegin>	 <Wait>
+			<For aid="X>
+    <Wait>       	</Wait>
+    
+    <Read aid="Y">
+    </Read>
+    
+    <Test>
+      <For aid="Y"/>
+    </Test>
+    
+    <Wait>
+	<For aid="Y"/>
+    </Wait>
     ...
     <SplitEnd file='97' />
     ----------------------------------
     ist das in Ordnung? 
+*** TODO Rufen die PMPI_* - Funktionen wieder MPI_* auf? 
+    bzw., was wäre eine Funktion, die definitiv nested-Aufrufe beinhaltet?
+    mpich2-1.0.5p4.mod/src/mpi/romio/mpi-io/mpioprof.h
+    Sollte klappen.    
+    
+*** DONE Für welche Funktionen muss time+duration gespeichert werden?
+    Jetzt: für alle, die keine w_* - Funktion besitzen.
+    Sollen die anderen auch geloggt werden?
+    duration == endZeit => für alle Zustände!
+
+*** TODO File_Info rausschreiben 	
+		Es wäre cool wenn man bei MPI-IO operationen noch die MPI_File_Info optional 
+		rausschreiben könnte, machbar mit:
+		int MPI_Info_get_nkeys(MPI_Info, int *); 
+		int MPI_Info_get_nthkey(MPI_Info, int, char *);
+
+		Frage: wie soll das aussehen? so in etwa?
+		<File_open ...>
+		<File_info>
+		    <key value="..." />
+		</File_info
+		</File_open>
+
+		MPI_File_set_info, File_open, File_close
 * Aufgaben
 ** DONE Tests zum laufen kriegen
    Offizieller mpich-test compiliert größtenteils 
@@ -57,13 +91,28 @@
 *** TODO ist auch überall long long double bei den Größenangaben
 *** TODO mpich2-test auch verwenden?
 *** TODO Automatische Überprüfung der Ergebnisse?
+** TODO HDTraceWriter implementieren
+*** 
+    Funktionsablauf, Beispiel:
+    --------------------------------------------------------------------------------
+    MPI_Write
+	hdLogStateStart()
+		Prüfe ob nested Tag geschrieben / nötig für gegenwärtige Tiefe
+	PMPI_Send
+	hdLogAttributes
+	GENERATE_WRITE_NESTED_TAGS in Buffer
+	hdLogStateEnd(buffer)
+		Prüfe ob END nested Tag nötig
+		Eigentliche Daten speichern
+    --------------------------------------------------------------------------------
 ** DONE Was machen mit 'cycles'
    - [X] Ersetzte cycles, bzw. entfernen?
    <Compute duration="T" unit="[T]" />
 *** 
 	=> stattdessen speed-multiplier vom Original? (Float value?)
  	=> Duration = mikrosekunden = 10^-6 Sekunden
-** DONE Operationen tracen
+** TODO Das absolutes-seek-file-offst-Problem
+** TODO Operationen tracen
 		Welche Operationen sollen getraced werden? (mpi_funcs.h, mpiio_funcs.h)
 		 Primär alle die kommunizieren oder I/O betreiben, allerdings gibt es einige 
 		wo selten eingesetzt werden und es daher nicht sinnvoll ist das gleich zu 
@@ -184,11 +233,11 @@
 	--> wird durch
 	    static int trace_all_functions 
 	    geregelt
-	
+
 *** DONE Später
 **** DONE     int MPI_Comm_get_name(MPI_Comm, char *, int *); // Nutzen um den Comm namen zu 
 		ermitteln
-** TODO Durations
+** DONE Durations
    - [ ] durations in MPI-I/O ops
 ***
 		Gegenwärtige Zeit + duration (bei states) wird in die Tags hineingeneriert. 
@@ -198,33 +247,31 @@
 		Information z.b. counter eingefügt.
 		 Duration erst bekannt nachdem die Operation
 		 ausgeführt wurde.				
-*** TODO
+*** DONE
 		Noch was zum timestamp: nach ein wenig überlegen, denke ich der sollte mit 
 		gettimeofday bestimmt worden sein, d.h. nicht die MPI_time ...
 		dann wird natürlich seconds.nanoseconds geschrieben. 
+
 		
-		-> seconds.milliseconds...
-				
-** TODO Optionales Logging
-   - [ ] Compute Tags sollten optional entfernbar sein, z.b. Umgebungsvariable einlesen 
+** DONE Optionales Logging
+   - [X] Compute Tags sollten optional entfernbar sein, z.b. Umgebungsvariable einlesen 
 		am Anfang (MPI_init)... ;-)
-   - [ ] Ebenso sollte die nested operation aktivierbar sein (std: nicht aktiv).
+   - [X] Ebenso sollte die nested operation aktivierbar sein (std: nicht aktiv).
 **** TODO int MPI_File_set_info(MPI_File, MPI_Info); // optional machen ;-)
      schon geloggt, aber noch nicht optional
-*** TODO File_Info rausschreiben 	
+*** DONE File_Info rausschreiben 	
 		Es wäre cool wenn man bei MPI-IO operationen noch die MPI_File_Info optional 
 		rausschreiben könnte, machbar mit:
 		int MPI_Info_get_nkeys(MPI_Info, int *); 
 		int MPI_Info_get_nthkey(MPI_Info, int, char *);
    - [ ] File_Info rausschreiben 
 
-** TODO MPI_Pcontrol(...) benutzen?
-   - [ ] 
+** DONE MPI_Pcontrol(...) benutzen?
 ***
 		int MPI_Pcontrol(const int, ...); // cool controliert profiling: 
 		http://mpi.dein.onet/mpi_functions/MPI_Pcontrol.html, vielleicht nutzen 
 		anstelle Trace an aus fkt.
-		    *  level==0 Profiling is disabled.
+		    * level==0 Profiling is disabled.
 		    * level==1 Profiling is enabled at a normal default level of detail.
 		    * level==2 Profile buffers are flushed. (This may be a no-op in some 
 		profilers).
@@ -252,9 +299,27 @@
 		rauschreiben, so dass dieses später ins allgemeine XML konvertiert werden 
 		kann.
 
-** TODO Nested Operations
+In Project beschreibung:
+<CommunicatorList> 
+<Communicator name="WORLD">  
+<Rank id="0" cid="1"/>
+<Rank id="1" cid="1"/>
+<Rank id="2" cid="2"/>
+<Rank id="3" cid="1"/>
+</Communicator> 
+<Communicator name="TEST">
+<Rank id="1" cid="1"/>
+<Rank id="3" cid="22"/>
+<Communicator>
+</CommunicatorList>
+
+Per HashMap Communicator ID speichern
+
+------------------------------------------------------------------------------
+	
+** DONE? Nested Operations
    - [ ] Nested Operations
-**** Rufen die PMPI_* - Funktionen wieder MPI_* auf? :Frage:
+
 ***		 
 		 Nach bisherigem Schema nicht möglich.
 		 Primär für den Simulator uninteresant (da die oberste Operation simuliert 
@@ -293,7 +358,10 @@
 		code limitiert sein).             
 
 
+
+** TODO "Fix Memleak" klären (MPI_Finalize, hashmaps löschen)
 ** TODO Makros in Funktionen umwandeln?
+** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
 ** TODO Testen
 *** TODO mpi2test/pt2pt/sendrecv3 stürzt ab?
 *** TODO Abbruch bei multithreaded-anwendungen
@@ -310,3 +378,6 @@
 ***
 		Einfach neue Event-Tags generieren z.b.
         <PC type="WRITE" time="1000">1000</PC>
+	
+** INFO über MPI_Request
+     OpenMPI: /ompi-trunk/ompi/request/request.h:ompi_request_t

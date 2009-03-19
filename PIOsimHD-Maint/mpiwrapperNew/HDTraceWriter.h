@@ -25,20 +25,39 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/time.h>
+
 void hdStartTracing();
 void hdStopTracing();
 
+#define HD_LOG_BUF_SIZE (1024 * 1024)
+#define HD_LOG_TAB_STRING "\t"
+#define HD_LOG_COMMAND_BUF_SIZE 1024 * 16
+#define HD_TMP_BUF_SIZE 1024 * 16
+#define HD_LOG_MAX_DEPTH 10
 
 //ideas for a trace API:
 
-struct TraceFile{
+
+struct TraceFile
+{
 	int trace_fd; // file descriptor
 	int info_fd;
-	char * buffer;
+	char buffer[HD_LOG_BUF_SIZE];
+	char elements[HD_LOG_MAX_DEPTH][HD_LOG_COMMAND_BUF_SIZE];
+	size_t elements_pos[HD_LOG_MAX_DEPTH];
+	char attributes[HD_LOG_MAX_DEPTH][HD_LOG_COMMAND_BUF_SIZE];
+	size_t attributes_pos[HD_LOG_MAX_DEPTH];
+
+	struct timeval start_time[HD_LOG_MAX_DEPTH];
+	
+	size_t buffer_pos;
+	int thread;
+	int function_depth; // keeps track of the depth of nested function calls
+	int nested_counter; // current depth of <Nested> tags in logfile
 };
 
 typedef struct TraceFile * TraceFileP;
-
 
 /**
  * Defines information about a single statistic file group.
@@ -49,7 +68,9 @@ struct StatisticFileGroup{
 
 typedef struct StatisticFileGroup * StatisticFileGroupP;
 
-void hdTraceInit(char * filePrefix); // /tmp/test => /tmp/test.xml /tmp/test_<rank>_<thread>.xml .info
+void hdTraceInit(const char * filePrefix); 
+
+// /tmp/test => /tmp/test.xml /tmp/test_<rank>_<thread>.xml .info
 
 /**
  * create a new trace file and registers it.
@@ -58,39 +79,35 @@ void hdTraceInit(char * filePrefix); // /tmp/test => /tmp/test.xml /tmp/test_<ra
  *
  * This function is thread safe.
  *
- * @returns a TraceFile which must be used for further input
+ * @returns a TraceFile which must be used for further input or NULL on error
  */
-TraceFileP hdTraceCreate(int rank);
-
+TraceFileP hdTraceCreate(int rank, int thread);
 /**
  * Closes an open trace file.
  * Must be called at the end of the program.
  */
 void hdTraceFinalize(TraceFileP file);
 
+
+
+/**
+ * Can be called after LogStateStart or LogEventStart to write elements to the state/event.
+ * Affects the last State for which hdLogStateEnd has not been called
+ */
+void hdLogElement    (TraceFileP file, const char * name, const char* valueFormat, ...);
+
 /**
  * Can be called after LogStateStart or LogEventStart to write attributes to the state/event.
+ * Affects the last State for which hdLogStateEnd has not been called
  */
-void hdLogAttributes    (TraceFileP file, char* sprinhdAttributes, ...);
+void hdLogAttributes (TraceFileP file, const char* valueFormat, ...);
 //"comm=\"%s\" name=\"%s\" flags=\"%d\" fh=\"%p\" ret='%d'",
 //	  getCommName(comm), name, flags, getFileHandleName(fh), ret);
 
-void hdLogStateStart    (TraceFileP file, char * stateName);
-void hdLogStateEnd      (TraceFileP file, char* sprinhdStringForFurtherValues, ...);
+void hdLogStateStart    (TraceFileP file);
+void hdLogStateEnd      (TraceFileP file, const char * stateName, const char* sprinhdStringForFurtherValues, ...);
 //oder void hdLogStateEnd      (TraceFileP file, char* buff);
 
-
-
-MPI_Write
-
-	hdLogStateStart()
-		Prüfe ob nested Tag geschrieben / nötig für gegenwärtige Tiefe
-	PMPI_Send
-	hdLogAttributes
-	GENERATE_WRITE_NESTED_TAGS in Buffer
-	hdLogStateEnd(buffer)
-		Prüfe ob END nested Tag nötig
-		Eigentliche Daten speichern
 
 void hdLogEventStart    (TraceFileP file, char * eventName );
 // Variable list of arguments: http://publications.gbdirect.co.uk/c_book/chapter9/stdarg.html
