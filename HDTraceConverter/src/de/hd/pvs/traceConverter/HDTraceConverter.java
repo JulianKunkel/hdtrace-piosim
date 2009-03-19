@@ -25,7 +25,7 @@ import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.trace.SaxTraceFileReader;
+import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
@@ -72,7 +72,7 @@ public class HDTraceConverter {
 				SimpleConsoleLogger.Debug("Checking trace: " + traceFile);
 				
 				try{
-					TraceProcessor processor = new TraceProcessor(new SaxTraceFileReader(traceFile, param.isReadNestedTrace()));
+					TraceProcessor processor = new TraceProcessor(new StAXTraceFileReader(traceFile, param.isReadNestedTrace()));
 
 					processor.setOutputConverter(outputConverter);
 					processor.setProcessIdentifier(pid);
@@ -87,7 +87,7 @@ public class HDTraceConverter {
 					}
 					
 				}catch(Exception e){
-					SimpleConsoleLogger.Debug("Error in trace file " + traceFile + " " + e.getMessage());
+					System.err.println("Error in trace file " + traceFile + " " + e.getMessage());
 				}
 
 				// external statistics

@@ -18,6 +18,8 @@
 
 package de.hd.pvs.traceConverter.Input;
 
+import java.io.IOException;
+
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -63,6 +65,13 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	 * Called once all information is set on this TraceProcessor
 	 */
 	abstract public void initalize();
+	
+	/**
+	 * Get the current position in the file
+	 * @return
+	 * @throws IOException
+	 */
+	abstract public long getFilePosition() throws IOException;
 	
 	/**
 	 * Set the implementation of the {@link TraceOutputWriter} i.e. the file format and spec.

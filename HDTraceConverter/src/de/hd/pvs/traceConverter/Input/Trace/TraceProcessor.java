@@ -19,8 +19,10 @@
 package de.hd.pvs.traceConverter.Input.Trace;
 
 
+import java.io.IOException;
+
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.SaxTraceFileReader;
+import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry.TYPE;
@@ -34,16 +36,23 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
  *
  */
 public class TraceProcessor extends AbstractTraceProcessor{
-	final SaxTraceFileReader reader;
+	final StAXTraceFileReader reader;
 	
 	private XMLTraceEntry currentTraceEntry = null;	
+	private long          currentTraceEntryOffset = 0;
+	
 	/**
 	 * If the currentTraceEntry is a State, does it start now, or end?
 	 */
 	private boolean stateStart = true;
 	private Epoch   eventTime;
 	
-	public TraceProcessor(final SaxTraceFileReader reader) {
+	@Override
+	public long getFilePosition() throws IOException {	
+		return currentTraceEntryOffset;
+	}
+	
+	public TraceProcessor(final StAXTraceFileReader reader) {
 		this.reader = reader;
 		readNextTraceEntryIfNecessary();
 	}
@@ -91,9 +100,12 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			return;
 		}
 		
+		currentTraceEntryOffset = reader.getFilePosition();
+		
 		currentTraceEntry = reader.getNextInputData();
 		if(currentTraceEntry == null)
 			return;
+				
 		eventTime = currentTraceEntry.getTime();		
 	}
 		

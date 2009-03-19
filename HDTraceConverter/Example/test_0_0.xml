@@ -26,4 +26,7 @@
 			<Event name="test4" time="7.4" />
 		</Nested>
 		<Bcast time="7" end="8.5" size="4" root="0" comm="1" />
+		<SINGLE time="8.7" end="8.9">
+			<FOR>test</FOR>
+		</SINGLE>
 	</Program>

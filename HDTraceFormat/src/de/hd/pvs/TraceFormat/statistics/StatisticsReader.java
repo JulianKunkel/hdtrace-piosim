@@ -18,9 +18,8 @@
 
 package de.hd.pvs.TraceFormat.statistics;
 
-import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -31,12 +30,12 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  *
  */
 public class StatisticsReader{
-	final DataInputStream file;	
+	final RandomAccessFile file;	
 	final ExternalStatisticsGroup group;
 
 	public StatisticsReader(String filename, ExternalStatisticsGroup group) throws Exception {
 		this.group = group;
-		this.file = new DataInputStream(new FileInputStream(filename));
+		this.file = new RandomAccessFile(filename, "r");
 	}
 	
 	public StatisticEntry getNextStatisticEntry() throws Exception{
@@ -105,13 +104,13 @@ public class StatisticsReader{
 
 	public boolean isFinished(){
 		try{
-			return file.available() <= 0;
+			return file.getFilePointer() == file.length();
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}
 	}
 
-	public void finalize(){
+	public void close(){
 		try{
 			file.close();
 		}catch(IOException e){
@@ -123,4 +122,7 @@ public class StatisticsReader{
 		return group;
 	}
 
+	public long getFilePosition() throws IOException{
+		return file.getFilePointer();
+	}
 }

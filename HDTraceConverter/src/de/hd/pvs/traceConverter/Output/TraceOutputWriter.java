@@ -78,6 +78,5 @@ abstract public class TraceOutputWriter {
 	abstract public void Event(ProcessIdentifier id,Epoch time, EventTraceEntry traceEntry);
 	
 	// handle statistics
-	abstract public void Statistics(ProcessIdentifier id, Epoch time, String statistic, ExternalStatisticsGroup group, Object value);
-	
+	abstract public void Statistics(ProcessIdentifier id, Epoch time, String statistic, ExternalStatisticsGroup group, Object value);	
 }

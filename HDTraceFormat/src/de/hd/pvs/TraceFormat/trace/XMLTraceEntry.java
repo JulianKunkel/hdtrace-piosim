@@ -38,7 +38,7 @@ public abstract class XMLTraceEntry extends XMLTag {
 	 * when did the event/state etc. occur
 	 */
 	final Epoch time;
-
+	
 	abstract public TYPE getType();
 
 	private final XMLTraceEntry parentXMLData; 
@@ -49,7 +49,7 @@ public abstract class XMLTraceEntry extends XMLTag {
 	
 	public boolean isTraceChild(){
 		return parentXMLData != null;
-	}
+	}	
 	
 	public XMLTraceEntry(final String name, final HashMap<String, String> attributes, XMLTraceEntry parentXMLData) {
 		super(name, attributes, null);		

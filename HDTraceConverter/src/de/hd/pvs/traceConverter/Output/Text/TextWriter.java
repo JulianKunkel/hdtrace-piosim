@@ -63,7 +63,7 @@ public class TextWriter extends TraceOutputWriter {
 
 	@Override
 	public void StateEnd(ProcessIdentifier id, Epoch time,
-			StateTraceEntry traceEntry) {		
+			StateTraceEntry traceEntry) {
 		try {
 			writer.append(time.getFullDigitString() + " E " + id + " " + traceEntry.getName() + "\n");
 		} catch (IOException e) {			
@@ -109,14 +109,13 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void finalizeTrace() {
-
+	public void finalizeTrace() throws IOException{
+		writer.close();
 	}
 
 	@Override
 	public void initializeTrace(RunParameters parameters,
-			String resultFile) throws IOException 
-			{
+			String resultFile) throws IOException {
 		writer = new BufferedWriter(new FileWriter(resultFile));
 
 		Properties commandLineArguments = parameters.getOutputFileSpecificOptions();
@@ -130,6 +129,6 @@ public class TextWriter extends TraceOutputWriter {
 		if(commandLineArguments.get("-v") != null){
 			printDetails = true;
 		}
-			}
+	}
 
 }

@@ -18,6 +18,7 @@
 
 package de.hd.pvs.traceConverter.Input.Statistics;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
@@ -34,8 +35,12 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
  */
 public class StatisticProcessor  extends AbstractTraceProcessor{
 	private final StatisticsReader reader;
+	
 	private boolean isFinished;
+	
 	private StatisticEntry lastRead;
+	private long           currentOffset = 0;
+	
 	private Epoch nextTimeStamp;
 
 	private ExternalStatisticsGroup group;
@@ -58,11 +63,17 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 	private void getNextStatistic() throws Exception{
 		if(! isFinished){
+			currentOffset = reader.getFilePosition();
 			lastRead = reader.getNextStatisticEntry();
 			if(! reader.isFinished()){
 				nextTimeStamp = lastRead.getTimeStamp();
 			}
 		}
+	}
+	
+	@Override
+	public long getFilePosition() throws IOException {
+		return currentOffset;
 	}
 	
 	public StatisticProcessor(StatisticsReader reader) throws Exception{

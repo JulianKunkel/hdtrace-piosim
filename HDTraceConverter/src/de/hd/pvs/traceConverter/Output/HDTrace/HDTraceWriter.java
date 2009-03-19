@@ -38,8 +38,7 @@ import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
  * @author Julian M. Kunkel
  * 
  */
-public class HDTraceWriter extends TraceOutputWriter {
-	
+public class HDTraceWriter extends TraceOutputWriter {	
 	TraceFormatWriter writer = new TraceFormatWriter();
 	
 	public void initalizeProjectDescriptionWithOldValues(ProjectDescription oldDescription, LinkedList<XMLTag> unparsedTagsToWrite){
