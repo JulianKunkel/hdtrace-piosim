@@ -45,7 +45,7 @@ echo "
 "
 cat $FILE
 ) > /dev/shm/tmp
-sed  "s/julian/Julian M. Kunkel/" /dev/shm/tmp > $FILE
+sed  "s/author.*julian/author Julian M. Kunkel/" /dev/shm/tmp > $FILE
 
 echo "processed: $FILE"
 

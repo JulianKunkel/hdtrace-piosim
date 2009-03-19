@@ -117,7 +117,7 @@ public class IndexCreator {
 	public static void main(String[] args) throws Exception{
 		IndexCreator creator = new IndexCreator();
 		
-		creator.createIndexForTraceFile("/home/Julian M. Kunkel/workspace/PIOsimHD/HDTraceConverter/Example/test_0_0.xml");
-		creator.createIndexForStatisticFile("/home/Julian M. Kunkel/workspace/PIOsimHD/HDTraceConverter/Example/test.xml", "Energy", 0, 0);
+		creator.createIndexForTraceFile("/home/julian/workspace/PIOsimHD/HDTraceConverter/Example/test_0_0.xml");
+		creator.createIndexForStatisticFile("/home/julian/workspace/PIOsimHD/HDTraceConverter/Example/test.xml", "Energy", 0, 0);
 	}
 }

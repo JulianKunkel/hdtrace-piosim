@@ -81,7 +81,7 @@ public class IndexWriter {
 		tmp.finalize();	
 		
 		
-		IndexReader reader = new IndexReader("/home/Julian M. Kunkel/workspace/PIOsimHD/HDTraceConverter/Example/test_0_0_stat_Energy.idx");
+		IndexReader reader = new IndexReader("/home/julian/workspace/PIOsimHD/HDTraceConverter/Example/test_0_0_stat_Energy.idx");
 		
 		for(int i=0; i < 100; i++){
 			IndexData data =  reader.getFirstInfoWithTime(new Epoch(i*10, 0));
