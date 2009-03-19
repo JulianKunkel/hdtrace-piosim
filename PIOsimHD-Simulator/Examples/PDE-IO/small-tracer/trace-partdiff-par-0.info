@@ -1,4 +1,0 @@
-File_open name="pvfs2://pvfs2//visualization.dat" comm="WORLD" flags=5 InitialSize=0 id=10000
-File_open name="pvfs2://pvfs2//checkpoint.1" comm="WORLD" flags=5 InitialSize=0 id=10001
-File_open name="pvfs2://pvfs2//checkpoint.2" comm="WORLD" flags=5 InitialSize=0 id=10002
-

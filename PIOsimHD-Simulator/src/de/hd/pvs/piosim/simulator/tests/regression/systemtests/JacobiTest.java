@@ -271,10 +271,10 @@ public class JacobiTest {
 	
 	public static void main(String[] args) throws Exception{
 		JacobiTest t = new JacobiTest();
-
+		
 		t.shouldSortModel = true;
-		//t.Test0S_2C_Jacobi();		
-		//System.exit(1);
+		t.Test0S_1C_Jacobi();		
+		System.exit(1);
 		
 		int cnt = 10;
 		

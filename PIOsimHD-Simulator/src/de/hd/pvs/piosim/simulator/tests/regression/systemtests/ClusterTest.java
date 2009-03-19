@@ -81,6 +81,8 @@ public class ClusterTest {
 		
 		world = aB.getWorldCommunicator();
 		
+		assert(world != null);
+		
 		model = mb.getModel();		
 	}
 		
@@ -220,7 +222,8 @@ public class ClusterTest {
 
 	public Application createSetSimpleApplication() throws Exception{
 		// Start to create program:
-		
+	
+		setup(4, 1);
 		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", 4, 1);
 		ProgramBuilder pB = new ProgramBuilder(aB);
 		Communicator world = aB.getWorldCommunicator();
@@ -259,6 +262,7 @@ public class ClusterTest {
 		 */
 		
 		pB.addBarrier(world);		
+		
 		pB.addReadSequential(2, file, 0, 100 * MBYTE);
 		
 		return aB.getApplication();
@@ -275,7 +279,6 @@ public class ClusterTest {
 	
 	public static void main(String[] args) throws Exception{
 		ClusterTest t = new ClusterTest();
-		t.setup(4, 3);
 		t.app = t.createSetSimpleApplication();
 		t.runSimulationAllExpectedToFinish();
 	}

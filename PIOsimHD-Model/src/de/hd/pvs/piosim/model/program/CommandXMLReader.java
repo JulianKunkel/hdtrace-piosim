@@ -25,9 +25,9 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 public class CommandXMLReader {
-	final private Application app;
+	final private Program program;
 	final private AttributeAnnotationHandler myCommonAttributeHandler;
-	
+
 	final static CommandFactory factory = new CommandFactory();
 
 
@@ -47,8 +47,8 @@ public class CommandXMLReader {
 		};
 	}
 
-	public CommandXMLReader(Application app) {
-		this.app = app;
+	public CommandXMLReader(Program program) {
+		this.program = program;
 		this.myCommonAttributeHandler = new MyAttributeAnnotationHandler();
 	}
 
@@ -63,13 +63,13 @@ public class CommandXMLReader {
 	 */
 	public Command readCommandXML(XMLTag commandXMLElement, Program program) throws Exception {
 		Command cmd = factory.createCommand(commandXMLElement.getName().toLowerCase());
-		
+
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
 
 		// now try to fill all command fields as specified by the Annotations.
 		myCommonAttributeHandler.readSimpleAttributes(commandXMLElement, cmd);
-		
+
 		// read default parameters for all programs from XML:
 		String aid = commandXMLElement.getAttribute("aid");
 		if (aid != null){
@@ -86,19 +86,14 @@ public class CommandXMLReader {
 	 * @return
 	 */
 	private Communicator getCommunicator(String which){
-		Communicator communicator;		
-		if(which != null){
-			communicator = app.getCommunicator(which.toUpperCase());
-			if (communicator == null){
-				throw new IllegalArgumentException("Invalid Communicator with name " + which);
-			}
+		Integer number = Integer.parseInt(which);
 
-		}else{
-			communicator = app.getCommunicator("WORLD");
-			if (communicator == null){
-				throw new IllegalArgumentException("Invalid Communicator with name " + "WORLD");
-			}
+		Communicator communicator;		
+		communicator = program.getCommunicator(number);
+		if (communicator == null){
+			throw new IllegalArgumentException("Invalid Communicator with cid: " + which);
 		}
+
 		return communicator;
 	}
 
@@ -112,7 +107,7 @@ public class CommandXMLReader {
 		if (which == null){
 			throw new IllegalArgumentException("No file given for command! But a file parameter is necessary!");
 		}
-		return app.getFile(Integer.parseInt(which));		
+		return program.getApplication().getFile(Integer.parseInt(which));		
 	}
 
 }

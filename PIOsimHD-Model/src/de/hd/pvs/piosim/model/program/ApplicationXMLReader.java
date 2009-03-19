@@ -84,9 +84,6 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		for (int i = 0; i < elements.size(); i++) {
 			Communicator c = new Communicator();
 			c.readXML(elements.get(i));
-			if(c.getName().equals("WORLD")) {
-				continue;
-			}
 			app.getCommunicators().put(c.getName(), c);
 		}
 
@@ -114,9 +111,12 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 					final XMLTag tag = reader.readXML(file);
 					programs[rank][thread] = readProgramXMLDOM(rank, thread, tag, app);
 				}else{ // use SAX Reader to read the file
-					programs[rank][thread] = new ProgramReadXMLOnDemand(file, app);
-					programs[rank][thread].setApplication(app, rank, thread);
+					programs[rank][thread] = new ProgramReadXMLOnDemand();					
 				}
+				
+				programs[rank][thread].setApplication(app, rank, thread);
+				programs[rank][thread].setFilename(file);
+				programs[rank][thread].restartWithFirstCommand();
 			}
 		}
 
@@ -139,7 +139,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		LinkedList<XMLTag> elements = processXML.getNestedXMLTags();
 		
-		CommandXMLReader cmdReader = new CommandXMLReader(app);
+		CommandXMLReader cmdReader = new CommandXMLReader(program);
 
 		for (XMLTag xmlcmd: elements) {		
 			// now read the particular command from the XML:

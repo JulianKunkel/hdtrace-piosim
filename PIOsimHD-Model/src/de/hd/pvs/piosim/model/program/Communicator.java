@@ -19,6 +19,7 @@
 package de.hd.pvs.piosim.model.program;
 
 import java.security.InvalidParameterException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -29,11 +30,13 @@ import de.hd.pvs.piosim.model.interfaces.IXMLReader;
 /**
  * Implements an MPI communicator. Contains a set of client world ranks which should be used 
  * for collective operations and a mapping to the communicator rank.
+ * Each rank maintains its own set of communicator ids, which define the Communicator.
  * 
  * @author Julian M. Kunkel
  *
  */
 public class Communicator implements IXMLReader{
+		
 	/**
 	 * Predefined Communicator for communication with the I/O servers.
 	 */
@@ -59,15 +62,10 @@ public class Communicator implements IXMLReader{
 	private String name;
 	
 	/**
-	 * The world participants in this communicator. 
+	 * The world participants in this communicator with their corresponding communicator ID.
 	 */
-	private int [] participants = new int [0];
+	private HashMap<Integer, Integer> participiants = new HashMap<Integer, Integer>(); 
 	
-	/**
-	 * This HashMap contains the mapping from World Rank to Communicator Rank.
-	 */
-	private HashMap<Integer, Integer> worldCommRank = new HashMap<Integer, Integer>(); 
-	    
 	/**
 	 * Return the name of the communicator
 	 * @return
@@ -75,74 +73,15 @@ public class Communicator implements IXMLReader{
 	public String getName() {
 		return name;
 	}
-
-	/**
-	 * return the world rank of the communicator rank.
-	 * 
-	 * @param posInComm
-	 * @return
-	 */
-	public int getWorldRank(int posInComm){
-		if (posInComm >= participants.length || posInComm < 0){
-			throw new IllegalArgumentException("Invalid rank in communicator: " + posInComm);
-		}
-		return participants[posInComm];
-	}
 	
 	/**
 	 * Add a single worldRank to this communicator.
-	 * This is rather inefficient.
-	 * @see setWorldRanks
-	 * 
 	 * @param rank 
-	 * @return Rank within the communicator
+	 * @param internal cid
 	 */
-	public int addWorldRank(int worldRank){
-		int size = participants.length;
-
-		int [] rankMapping = new int [participants.length+1];
-		
-		for (int i=0; i < size; i++){
-			rankMapping[i] = participants[i];
-		}
-		
-		rankMapping[size] = worldRank;
-		
-		this.setWorldRanks(rankMapping);
-		
-		return size;
-	}
-	
-	/**
-	 * Set the world ranks participating in this communicator.
-	 * @param rankMapping
-	 */
-	public void setWorldRanks(int [] rankMapping){
-		if (rankMapping == null){
-			throw new IllegalArgumentException("Rank mapping may not be null");
-		}
-
-		HashMap<Integer, Integer> worldCommRank = new HashMap<Integer, Integer>();
-		
-		for (int i=0; i < rankMapping.length; i++){
-			if ( worldCommRank.put(rankMapping[i], i) != null){
-				throw new IllegalArgumentException("World rank " + rankMapping[i] + " occurs several times");
-			}
-		}		
-		
-		/* clone the mapping to ensure that it gets not modified afterwards */
-		this.participants = rankMapping.clone();
-		this.worldCommRank = worldCommRank;
-	}
-	
-	/**
-	 * Return the communicator rank.
-	 * @param worldRank
-	 * @return
-	 */
-	public int getCommRank(int worldRank){
-		return worldCommRank.get(worldRank);
-	}
+	public void addRank(int worldRank, int cid){
+		participiants.put(worldRank, cid);
+	}		
 	
 	public Communicator() {
 		//Create a unique ID
@@ -162,34 +101,32 @@ public class Communicator implements IXMLReader{
 	
 	public void readXML(XMLTag xml) throws Exception {
 		name =xml.getAttribute("name").toUpperCase(); 
-			
-		// World communicator could be specified but does not need to.
-		if (name.compareTo("WORLD") == 0){
-			return;
-		}
-		XMLTag element;
-		element = xml.getFirstNestedXMLTagWithName("ParticipantList");
-		final LinkedList<XMLTag>  elements = element.getNestedXMLTagsWithName("Rank");
-		
-		participants = new int [ elements.size() ];
+
+		final LinkedList<XMLTag>  elements = xml.getNestedXMLTagsWithName("Rank");
 		
 		Iterator<XMLTag> it = elements.iterator();
 		
 		for(int i=0; i < elements.size(); i++){
-			final String rank = it.next().getAttribute("number");
+			XMLTag tag = it.next();
+			
+			final String rank = tag.getAttribute("number");
 			if (rank == null){
-				throw new InvalidParameterException("Invalid XML, no rank specified !");
+				throw new InvalidParameterException("Invalid XML, no rank number specified !");
 			}
+			final String cid = tag.getAttribute("cid");
+			if (rank == null){
+				throw new InvalidParameterException("Invalid XML, no communicator ID specified !");
+			}			
+			
 			try{
-				int val = Integer.parseInt(rank);
-				participants[i] = val;
+				final int ranki = Integer.parseInt(rank);
+				final int cidi = Integer.parseInt(cid);
+				addRank(ranki, cidi);
+				
 			}catch(NumberFormatException e){
-				throw new InvalidParameterException("Invalid XML, no integer rank specified");
+				throw new InvalidParameterException("Invalid XML, no integer rank or cid specified");
 			}	
 		}
-		
-		// finally, set the ranks:
-		setWorldRanks(participants);
 	}
 	
 	public void writeXML(StringBuffer sb) {
@@ -207,7 +144,7 @@ public class Communicator implements IXMLReader{
 	 * @return
 	 */
 	public int getSize(){
-		return participants.length;
+		return participiants.size();
 	}
 	
 	/* (non-Javadoc)
@@ -224,15 +161,17 @@ public class Communicator implements IXMLReader{
 	 */
 	public int getIdentity() {
 		return comm_unique_ID;
+	}	
+	
+	public Collection<Integer> getParticipatingtRanks() {
+		return participiants.keySet();
 	}
 	
 	/**
-	 * Return the mapping from communicator ranks to world ranks.
-	 * Note: The array should NEVER be modified outside this class.
-	 *  
+	 * Returns a map which maps the rank to the CID.
 	 * @return
 	 */
-	public int [] getParticipantsWorldRank() {
-		return participants;
+	public HashMap<Integer, Integer> getParticipiants() {
+		return participiants;
 	}
 }

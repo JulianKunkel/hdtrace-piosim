@@ -21,6 +21,8 @@
  */
 package de.hd.pvs.piosim.model.program;
 
+import java.util.HashMap;
+
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 
@@ -32,37 +34,44 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
  * 
  */
 abstract public class Program {
-	
+
 	/**
 	 * The parent Application.
 	 */
 	private Application parentApplication = null;
-	
+
 	/**
 	 * The rank of this program inside an application.
 	 */
 	private int rank;
-	
+
 	/**
 	 * The thread number within the rank.
 	 */
 	private int thread;
-	
+
+	/**
+	 * Map the CID to the corresponding communicator.
+	 */
+	private HashMap<Integer, Communicator> communicatorMap = new HashMap<Integer, Communicator>();
+
 	/**
 	 * Is the program processed completely
 	 */
 	abstract public boolean isFinished();
-	
+
 	/**
 	 * Read the next command.
 	 * @return
 	 */
 	abstract public Command getNextCommand();
-	
+
 	/**
 	 * Allow to read all commands again => rewind to the first command
 	 */
 	abstract public void restartWithFirstCommand();
+
+	abstract public void setFilename(String filename);
 
 	/**
 	 * Return the parent application.
@@ -80,16 +89,39 @@ abstract public class Program {
 		this.rank = rank;
 		this.thread = thread;
 	}
-	
+
 	/**
 	 * @return the program rank in the application
 	 */
 	final public int getRank() {
 		return rank;
 	}
-	
+
 	final public int getThread() {
 		return thread;
 	}
+
 	
+	/**
+	 * Get the communicator for a given communicator ID
+	 * @param cid
+	 * @return
+	 */
+	public Communicator getCommunicator(int cid) {
+		final Communicator comm = communicatorMap.get(cid);
+		if(comm != null){
+			return comm;
+		}
+		// try to lookup communicator in application.
+		for(Communicator pCom: parentApplication.getCommunicators().values()){
+			Integer scid = pCom.getParticipiants().get(getRank());
+			if(scid != null && scid == cid){
+				communicatorMap.put(cid, pCom);
+				return pCom;
+			}
+		}
+
+		throw new IllegalArgumentException("Communicator with cid: " + cid + " not registered for rank " + getRank());		
+	}
+
 }

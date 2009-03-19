@@ -37,7 +37,7 @@ implements ICommunicatorCommand
 {
 
 	@NotNull
-	@Attribute(xmlName="comm")
+	@Attribute(xmlName="cid")
 	protected Communicator communicator;
 
 	/**

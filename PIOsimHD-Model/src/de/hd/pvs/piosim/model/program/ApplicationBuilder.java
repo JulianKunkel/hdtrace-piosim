@@ -18,7 +18,9 @@
 
 package de.hd.pvs.piosim.model.program;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
@@ -35,6 +37,8 @@ public class ApplicationBuilder {
 	private Application app = new Application();
 	
 	private static int lastUsedFileID = 0;
+	
+	private static int lastUsedCommID = 0;
 	
 	private void build(String applicationName, String desc, int processes, int [] threadsPerProcess) {
 		app.setApplicationName(applicationName);
@@ -70,7 +74,9 @@ public class ApplicationBuilder {
 			 throw new IllegalArgumentException("Size of the program must be > 0");
 		 }
 		
-		 Program [][] map = new Program[num] [];
+		 final Program [][] map = new Program[num] [];
+		 
+		 final ArrayList<Integer> ranks = new ArrayList<Integer>();
 		 
 		 for(int p=0; p < num; p++){
 			 map[p] = new Program[threadsPerProcess[p]];
@@ -80,15 +86,24 @@ public class ApplicationBuilder {
 			 		prog.setApplication(app, p, t);
 			 		map[p][t] = prog;
 			 }
+			 
+			 ranks.add(p);
 		 }
+		 
+		 createCommunicator("WORLD", ranks);
 		 
 		 app.setProcessThreadProgramMap(map);
 		 app.setProcessCount(num);
 	}
 	
-	public Communicator createCommunicator(String name, int [] ranks){
-		Communicator comm = new Communicator(name);
-		comm.setWorldRanks(ranks);
+	public Communicator createCommunicator(String name, List<Integer> ranks){
+		final Communicator comm = new Communicator(name);
+		
+		for(int rank: ranks){
+			comm.addRank(rank, lastUsedCommID);
+		}
+		
+		lastUsedCommID++;
 		
 		HashMap<String, Communicator> appComms = app.getCommunicators();
 		
@@ -103,7 +118,7 @@ public class ApplicationBuilder {
 	}
 	
 	public MPIFile createFile(String name, long initialSize, Distribution distribution){
-		MPIFile file = new MPIFile();
+		final MPIFile file = new MPIFile();
 		file.setSize(initialSize);
 		file.setID(++lastUsedFileID);
 		file.setName(name);
@@ -133,7 +148,7 @@ public class ApplicationBuilder {
 		cmd.setCommunicator(comm);
 		
 		// add communicator for all participating programs.
-		for(Integer i: app.getCommunicator(comm.getName()).getParticipantsWorldRank()){			
+		for(Integer i: app.getCommunicator(comm.getName()).getParticipatingtRanks()){			
 			addCommand(i, (Command) cmd);
 		}
 	}

@@ -33,9 +33,9 @@ public class RootComputes
 	public void process(Allreduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 
 		final int RECV_DATA = 2;
-		//trivial implementierung, alle schicken zu rank 0, dieser schickt an alle.
+		//trivial implementation, all send to "rank 0" in this communicator which then sends result back. 
 
-		int [] commParts =  cmd.getCommunicator().getParticipantsWorldRank();
+		final Integer[] commParts =  cmd.getCommunicator().getParticipatingtRanks().toArray(new Integer[0]);
 		
 		int rankZero = commParts[0];
 		

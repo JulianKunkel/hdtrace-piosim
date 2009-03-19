@@ -71,23 +71,6 @@ public class Application extends ProjectDescription{
 		return files.get(fileid);
 	}	
 
-	@Override
-	public void setProcessCount(int processCount) {
-		super.setProcessCount(processCount);
-	
-		// create a new world communicator
-		Communicator comm = new Communicator("WORLD");		
-		/* world communicator put all ranks into */
-		int [] ranks = new int[processCount];
-		
-		for(int i=0; i < processCount; i++){
-			ranks[i] = i;
-		}
-		comm.setWorldRanks(ranks);
-
-		communicators.put("WORLD", comm);
-	}
-
 	public void setProcessThreadProgramMap(Program[][] map) {
 		this.processThreadProgramMap = map;
 	}

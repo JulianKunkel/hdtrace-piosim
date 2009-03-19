@@ -60,7 +60,7 @@ extends CommandImplementation<Bcast>
 			OUTresults.setNextStep(RENDEVOUZ);
 
 			//wait for receives from all "to receive data"			
-			final int myRank = cmd.getCommunicator().getCommRank(client.getModelComponent().getRank());
+			final int myRank = client.getModelComponent().getRank();
 			final int rootRank = cmd.getRootRank();
 
 			int clientRankInComm = myRank;

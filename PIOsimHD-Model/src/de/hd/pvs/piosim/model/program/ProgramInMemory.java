@@ -74,11 +74,16 @@ public class ProgramInMemory extends Program {
 	
 	@Override
 	public boolean isFinished() {		
-		return currentCommandPosition + 1 == commands.size();
+		return currentCommandPosition == commands.size();
 	}
 	
 	@Override
 	public void restartWithFirstCommand() {
 		currentCommandPosition = 0;
+	}
+	
+	@Override
+	public void setFilename(String filename) {
+		//TODO does nothing
 	}
 }

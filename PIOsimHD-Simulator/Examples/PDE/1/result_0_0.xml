@@ -1,11 +1,11 @@
 <Program>
-<Compute time="0" duration="0" cycles="527306"/>
-<Barrier time="0" duration="0" comm="WORLD"/>
-<Compute time="0" duration="0" cycles="46724931"/>
-<Barrier time="0" duration="0" comm="WORLD"/>
-<Barrier time="0" duration="0" comm="WORLD"/>
-<Compute time="0" duration="0" cycles="50266"/>
-<Compute time="0" duration="0" cycles="50293"/>
+<Compute time="0" end="0" cycles="527306"/>
+<Barrier time="0" end="0" cid="1"/>
+<Compute time="0" end="0" cycles="46724931"/>
+<Barrier time="0" end="0" cid="1"/>
+<Barrier time="0" end="0" cid="1"/>
+<Compute time="0" end="0" cycles="50266"/>
+<Compute time="0" end="0" cycles="50293"/>
 <!-- <time run="47.302645"/> -->
 </Program>
 

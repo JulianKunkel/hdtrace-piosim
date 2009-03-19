@@ -36,19 +36,22 @@ public class ProgramReadXMLOnDemand extends Program{
 	 */
 	final static ModelVerifier modelVerifier = new ModelVerifier();
 	
-	final CommandXMLReader cmdReader;
+	final private CommandXMLReader cmdReader;
 
 	private SaxTraceFileReader traceFileReader;
-	private final String filename;
+	private String filename;
 	
 	private XMLTraceEntry nextCmdEntry;
 	
-	public ProgramReadXMLOnDemand(String filename, Application app) throws Exception{
-		this.filename = filename;
-		restartWithFirstCommand();
-		this.cmdReader = new CommandXMLReader(app);
+	public ProgramReadXMLOnDemand() {
+		this.cmdReader = new CommandXMLReader(this);
 	}
-
+	
+	@Override
+	public void setFilename(String filename) {
+		this.filename = filename;
+	}
+	
 	@Override
 	public Command getNextCommand() {
 		if (nextCmdEntry == null)
