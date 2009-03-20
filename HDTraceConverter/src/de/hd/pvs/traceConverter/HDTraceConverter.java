@@ -1,29 +1,29 @@
 
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
-//	This file is part of PIOsimHD.
-//	
-//	PIOsimHD is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	PIOsimHD is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
+//Copyright (C) 2008, 2009 Julian M. Kunkel
+
+//This file is part of PIOsimHD.
+
+//PIOsimHD is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//PIOsimHD is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 package de.hd.pvs.traceConverter;
 
-import java.io.File;
 import java.util.PriorityQueue;
 
+import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.project.RanksPerProjectTraceContainer;
+import de.hd.pvs.TraceFormat.project.ThreadsPerRankTraceContainer;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -49,87 +49,58 @@ public class HDTraceConverter {
 				param.getOutputFormat() + "." +
 				param.getOutputFormat() + "Writer");
 
-		// scan for all the XML files which must be opened during conversion:
-		// general description
-		ProjectDescriptionXMLReader pReader = new ProjectDescriptionXMLReader();
-		ProjectDescription projectDescription = new ProjectDescription();
-		pReader.readProjectDescription(projectDescription, param.getInputTraceFile());
-
 		// pending events and files to process
 		PriorityQueue<AbstractTraceProcessor> pendingReaders = new PriorityQueue<AbstractTraceProcessor>();
 
 		// init trace converter to make it ready:
 		outputConverter.initializeTrace(param, param.getOutputFilePrefix());
 
-		// start parsing of the trace files:
-		// trace files: rank + thread id are defined in the file name		
-		for(int rank=0 ; rank < projectDescription.getProcessCount(); rank++){
-			for(int thread = 0; thread < projectDescription.getProcessThreadCount(rank); thread++ ){
+		final TraceFormatFileOpener traceReader = new TraceFormatFileOpener(param.getInputTraceFile(), param.isReadNestedTrace());
 
-				ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
-				final String traceFile = projectDescription.getAbsoluteFilenameOfTrace(rank, thread);
+		final ProjectDescription projectDescription = traceReader.getProjectDescription();
 
-				SimpleConsoleLogger.Debug("Checking trace: " + traceFile);
-				
-				try{
-					TraceProcessor processor = new TraceProcessor(new StAXTraceFileReader(traceFile, param.isReadNestedTrace()));
-
-					processor.setOutputConverter(outputConverter);
-					processor.setProcessIdentifier(pid);
-					processor.setRunParameters(param);
-
-					processor.initalize();
-					
-					if(processor.peekEarliestTime() != null){
-						pendingReaders.add(processor);
-					}else{
-						System.out.println("Warning: trace file " + traceFile + " does not contain a single trace entry");
-					}
-					
-				}catch(Exception e){
-					System.err.println("Error in trace file " + traceFile + " " + e.getMessage());
-				}
-
-				// external statistics
-				for(final String group: projectDescription.getExternalStatisticGroups()){
-					final String statFileName = projectDescription.getAbsoluteFilenameOfStatistics(rank, thread, group);
-
-					if (! (new File(statFileName)).canRead() ){
-						SimpleConsoleLogger.Debug("Statistic file does not exist " + statFileName);
-						continue;
-					}
-					
-					SimpleConsoleLogger.Debug("Found statistic file for <rank,thread>=" + rank + "," + thread + " group " + group);
-
-					ExternalStatisticsGroup statGroup = projectDescription.getExternalStatisticsGroup(group);
-					if(statGroup == null){
-						throw new IllegalArgumentException("Statistic group " + statGroup + 
-								" invalid, <rank,thread>=" + rank + "," + thread);
-					}
-
-					StatisticProcessor  processor = new StatisticProcessor(new StatisticsReader(statFileName, 
-							statGroup)); 
-
-					processor.setOutputConverter(outputConverter);
-					processor.setProcessIdentifier(pid);
-					processor.setRunParameters(param);
-
-					processor.initalize();
-
-					if(processor.peekEarliestTime() != null){
-						pendingReaders.add(processor);
-					}else{
-						System.out.println("Warning: statistic file " + statFileName + " does not contain a single statistic, remove the file!");
-					}						
-				}
-			}			
-		}
-		
-		
 		// if it is the HDTrace writer, then write the project description:
 		if(outputConverter.getClass().equals(HDTraceWriter.class)){
 			((HDTraceWriter) outputConverter).initalizeProjectDescriptionWithOldValues(projectDescription, 
-					pReader.getUnparsedChildTags());
+					traceReader.getProjectDescriptionXMLReader().getUnparsedChildTags());
+		}
+
+		for(int rank=0; rank < traceReader.getSize(); rank ++){
+			final RanksPerProjectTraceContainer filesThisRank =  traceReader.getTraceFilesPerRank().get(rank);
+
+			for(int thread=0; thread < filesThisRank.getSize(); thread ++){
+				final ThreadsPerRankTraceContainer fileCont = filesThisRank.getFilesPerThread().get(thread);
+				final ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
+
+				StAXTraceFileReader reader = fileCont.getTraceReader();
+				if( reader != null){
+					TraceProcessor processor = new TraceProcessor(reader);
+					processor.setOutputConverter(outputConverter);
+					processor.setProcessIdentifier(pid);
+					processor.setRunParameters(param);
+
+					processor.initalize();
+
+					if(processor.peekEarliestTime() != null){
+						pendingReaders.add(processor);
+					}
+				}else{
+					System.err.println("No trace file for rank,thread: " + rank +"," + thread);
+				}
+				
+				for(StatisticsReader sReader: fileCont.getStatisticReaders().values()){
+					StatisticProcessor processor = new StatisticProcessor(sReader);
+					processor.setOutputConverter(outputConverter);
+					processor.setProcessIdentifier(pid);
+					processor.setRunParameters(param);
+
+					processor.initalize();
+
+					if(processor.peekEarliestTime() != null){
+						pendingReaders.add(processor);
+					}
+				}
+			}
 		}
 
 

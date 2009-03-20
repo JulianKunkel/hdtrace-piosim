@@ -47,7 +47,7 @@ public class ProjectDescriptionXMLReader {
 		}
 		descriptionInOut.setProjectFilename(XMLFile.getAbsolutePath());
 		
-		XMLReaderToRAM reader = new XMLReaderToRAM();
+		final XMLReaderToRAM reader = new XMLReaderToRAM();
 		rootTag = reader.readXML(projectFilename);
 		
 		// read standard descriptions:

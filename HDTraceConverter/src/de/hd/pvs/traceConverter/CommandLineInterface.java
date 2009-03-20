@@ -20,6 +20,8 @@
  */
 package de.hd.pvs.traceConverter;
 
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
+
 /**
  * Simple command line interface to control the simulator. Reads command line
  * arguments and starts the simulation.

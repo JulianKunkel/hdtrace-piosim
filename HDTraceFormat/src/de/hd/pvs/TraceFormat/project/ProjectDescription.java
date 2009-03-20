@@ -101,12 +101,12 @@ public class ProjectDescription {
 
 
 	public String getProjectFilename() {
-		return parentDir + "/" + projectFilename;
+		return projectFilename;
 	}
 
 	public void setProjectFilename(String projectFileName) {
 		File projectFile = new File(projectFileName);
-
+		
 		// scan for the trace files
 		String prefix = projectFile.getName().toString();
 		prefix = prefix.substring(0, prefix.lastIndexOf('.'));		
@@ -118,7 +118,7 @@ public class ProjectDescription {
 
 		this.parentDir = parent.getAbsolutePath();
 		this.projectFilename = projectFile.getName();
-		this.filePrefix = prefix;
+		this.filePrefix = prefix;		
 	}
 	
 	public void setApplicationName(String applicationName) {

@@ -21,11 +21,11 @@ package de.hd.pvs.traceConverter.Input.Statistics;
 import java.io.IOException;
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.traceConverter.SimpleConsoleLogger;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 
 /**

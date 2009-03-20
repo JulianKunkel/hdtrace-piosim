@@ -81,7 +81,7 @@ public class ProjectDescriptionXMLWriter {
 		}
 		
 		buff.append("</Application>\n");
-		writeToFile(desc.getProjectFilename(), buff);
+		writeToFile(desc.getAbsoluteFilenameOfProject(), buff);
 	}
 	
 	/**
