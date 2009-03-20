@@ -18,7 +18,7 @@
 
 package de.hd.pvs.piosim.model.program;
 
-import de.hd.pvs.TraceFormat.trace.SaxTraceFileReader;
+import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.piosim.model.ModelVerifier;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
@@ -38,7 +38,7 @@ public class ProgramReadXMLOnDemand extends Program{
 	
 	final private CommandXMLReader cmdReader;
 
-	private SaxTraceFileReader traceFileReader;
+	private StAXTraceFileReader traceFileReader;
 	private String filename;
 	
 	private XMLTraceEntry nextCmdEntry;
@@ -78,7 +78,7 @@ public class ProgramReadXMLOnDemand extends Program{
 	@Override
 	public void restartWithFirstCommand() {
 		try{
-			traceFileReader = new SaxTraceFileReader(filename, false);
+			traceFileReader = new StAXTraceFileReader(filename, false);
 			nextCmdEntry = traceFileReader.getNextInputData();
 		}catch(Exception e){
 			throw new IllegalArgumentException(e);

@@ -40,12 +40,14 @@ public class IndexReader {
 	final long rootOffset;
 
 	final long entries;
+	
+	final private static int RECORD_LENGTH = 4+4+4; // three ints.
 
 	public static class IndexData{
 		final Epoch nextTime;
-		final long  position;
+		final int  position;
 
-		public IndexData(Epoch nextTime, long position) {
+		public IndexData(Epoch nextTime, int position) {
 			this.nextTime = nextTime;
 			this.position = position;
 		}
@@ -60,7 +62,7 @@ public class IndexReader {
 		/**
 		 * @return the position inside the file which is the smallest time before the searched event or -1 if there is no event before.
 		 */
-		public long getPosition() {
+		public int getPosition() {
 			return position;
 		}
 	}
@@ -74,7 +76,7 @@ public class IndexReader {
 		}
 		rootOffset = file.getFilePointer();		
 
-		entries = (file.length() - 4) / 16;
+		entries = (file.length() - 4) / RECORD_LENGTH;
 	}
 
 	public void close() throws IOException{
@@ -86,7 +88,7 @@ public class IndexReader {
 	 * Return a valid position which is the closest time before the event/statistic. 
 	 * returns null if there is no such a position in the file. 
 	 */
-	IndexData getFirstInfoWithTime(final Epoch time) throws IOException{		
+	public IndexData getFirstInfoWithTime(final Epoch time) throws IOException{		
 		long minEntry = 0;
 		long maxEntry = entries;
 		
@@ -96,7 +98,7 @@ public class IndexReader {
 			
 			//System.out.println(curEntry + " " +  minEntry + " " + maxEntry);
 			
-			file.seek(curEntry* 16 + 4);
+			file.seek(curEntry* RECORD_LENGTH + 4);
 
 			// read epoch:
 			final int seconds = file.readInt();
@@ -109,13 +111,13 @@ public class IndexReader {
 				}
 				
 				// seek to the position before:
-				file.seek((curEntry-1)* 16 + 4 + 8);
+				file.seek((curEntry-1)* RECORD_LENGTH + 4 + 8);
 				
-				return new IndexData(new Epoch(seconds, nanoSeconds), file.readLong());
+				return new IndexData(new Epoch(seconds, nanoSeconds), file.readInt());
 			}
 			
 			if(seconds == time.getSeconds() && nanoSeconds == time.getNanoSeconds()){
-				return new IndexData(time, file.readLong());
+				return new IndexData(time, file.readInt());
 			}if(seconds > time.getSeconds() || (seconds == time.getSeconds() && nanoSeconds > time.getNanoSeconds())){
 				// time read is later than the one we search for:
 				maxEntry = curEntry ;

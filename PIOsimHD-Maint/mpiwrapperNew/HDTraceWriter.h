@@ -141,6 +141,14 @@ void hdStatisticsWriteString (StatisticFileGroupP group, char * str);
  */
 void hdStatisticGroupFinalize(StatisticFileGroupP group);
 
+/*
+hi, denke im Grunde haben wir drei typen von Stat files, pro Prozess, pro Thread (geht ja schon), und pro Host.
+das pro Prozess wär ins Namenschema leicht zu mappen => es fehlt einfach die Thread ID :)
+pro Host ist ja schwieriger, denke mal da heißts dann <Projekt>_<Hostname>_stat_Energy.dat
+welche maschinen auf welchem Host gestartet wurden kann man ins Projekt file aufnehmen
+=> im MPI_init wird einfach der Hostname rausgeschrieben und der Rank...
+wäre so lösbar.
+*/
 
 
 

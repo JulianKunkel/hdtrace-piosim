@@ -22,7 +22,6 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import de.hd.pvs.TraceFormat.index.IndexReader.IndexData;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -55,7 +54,7 @@ public class IndexWriter {
 			
 		file.writeInt(time.getSeconds());
 		file.writeInt(time.getNanoSeconds());
-		file.writeLong(offset);
+		file.writeInt((int) offset); // should suffice right now.
 		
 		lastEpoch = time;
 	}
@@ -63,32 +62,5 @@ public class IndexWriter {
 
 	public void finalize() throws IOException{
 		file.close();
-	}
-
-	
-	/**
-	 * Test index creation.
-	 * @param args
-	 * @throws IOException
-	 */
-	public static void main(String[] args) throws IOException {
-		IndexWriter tmp = new IndexWriter("/tmp/idx");
-		
-		for (int i=0; i < 10000; i++){
-			tmp.writeNextEntry(new Epoch(i*10, 0), (i*10));
-		}
-		
-		tmp.finalize();	
-		
-		
-		IndexReader reader = new IndexReader("/home/julian/workspace/PIOsimHD/HDTraceConverter/Example/test_0_0_stat_Energy.idx");
-		
-		for(int i=0; i < 100; i++){
-			IndexData data =  reader.getFirstInfoWithTime(new Epoch(i*10, 0));
-			if(data != null)
-				System.out.println(data.getNextTime() + " " + data.getPosition());
-		}
-		
-		reader.close();
 	}
 }
