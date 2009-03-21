@@ -1,0 +1,32 @@
+	<Program>
+		<Compute time="1" end="2" />
+		<FileOpen time="2" end="3" file="10000" truncate="true"
+			comm="WORLD" />
+		<Compute time="3" end="4" />
+		<FileWrite time="4" end="5" file="10000">
+			<Data offset="0" size="4"></Data>
+			<Data offset="20" size="4000"></Data>
+		</FileWrite>
+
+		<Nested>
+			<Event name="test" time="5.2" />
+			<Nested>
+				<Bcast time="6.1" end="6.8" size="4" root="0" cid="1" />
+			</Nested>
+			<Send time="6" end="6.9"/>
+		</Nested>
+		<FileWrite time="5" end="7.0" file="10000">
+			<Data offset="8" size="32" />
+		</FileWrite>
+
+		<Event name="test2" time="7.2" />
+
+		<Nested>
+			<Event name="test4" time="7.4" />
+		</Nested>
+		<Bcast time="7" end="8.5" size="4" root="0" comm="1" />
+		<SINGLE time="8.7" end="8.9">
+			<FOR>test</FOR>
+		</SINGLE>
+		<Event name="Julians Event" time="27.3" />
+	</Program>
