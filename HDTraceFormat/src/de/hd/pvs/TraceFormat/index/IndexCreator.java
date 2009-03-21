@@ -48,12 +48,12 @@ public class IndexCreator {
 
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		
-		XMLTraceEntry entry = reader.getNextInputData();
+		XMLTraceEntry entry = reader.readNextInputEntry();
 		while(entry != null){
 			
-			writer.writeNextEntry(entry.getTime(), reader.getFilePosition());
+			writer.writeNextEntry(entry.getTimeStamp(), reader.getFilePosition());
 			
-			entry = reader.getNextInputData();
+			entry = reader.readNextInputEntry();
 		}
 		
 		reader.close();
@@ -101,12 +101,12 @@ public class IndexCreator {
 	
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		
-		StatisticEntry entry = reader.getNextStatisticEntry();
+		StatisticEntry entry = reader.readNextInputEntry();
 		while(entry != null){
 			
 			writer.writeNextEntry(entry.getTimeStamp(), reader.getFilePosition());
 			
-			entry = reader.getNextStatisticEntry();
+			entry = reader.readNextInputEntry();
 		}
 		
 		reader.close();

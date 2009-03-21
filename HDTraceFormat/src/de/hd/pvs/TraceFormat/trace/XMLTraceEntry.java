@@ -66,7 +66,7 @@ public abstract class XMLTraceEntry extends XMLTag {
 	}
 
 
-	public Epoch getTime() {
+	public Epoch getTimeStamp() {
 		return time;
 	}
 

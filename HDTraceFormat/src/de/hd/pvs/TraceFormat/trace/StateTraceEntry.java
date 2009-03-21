@@ -57,15 +57,15 @@ public class StateTraceEntry extends XMLTraceEntry{
 		return TYPE.STATE;
 	}
 	
-	public Epoch getTimeDuration() {
-		return getTime().subtract(endTime);
+	public Epoch getDurationTime() {
+		return getTimeStamp().subtract(endTime);
 	}
 	
 	public Epoch getEndTime() {
 		return endTime;
 	}
 	
-	public boolean hasNestedTrace(){
+	public boolean hasNestedTraceChildren(){
 		return nestedTraceChildren != null && ! nestedTraceChildren.isEmpty();
 	}
 	
@@ -83,6 +83,6 @@ public class StateTraceEntry extends XMLTraceEntry{
 			}
 		}
 
-		return getTime() + " " + super.toString() + " " + buff.toString() + "\n";
+		return getTimeStamp() + " " + super.toString() + " " + buff.toString() + "\n";
 	}
 }

@@ -73,9 +73,9 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			
 			if(currentTraceEntry.getType() == TYPE.STATE){
 				StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
-				if(state.hasNestedTrace()){
+				if(state.hasNestedTraceChildren()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-					eventTime = currentTraceEntry.getTime();		
+					eventTime = currentTraceEntry.getTimeStamp();		
 
 					stateStart = true;
 					return;
@@ -86,9 +86,9 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			// are there further children?
 			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
 			
-			if(state.hasNestedTrace()){
+			if(state.hasNestedTraceChildren()){
 				currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-				eventTime = currentTraceEntry.getTime();		
+				eventTime = currentTraceEntry.getTimeStamp();		
 				
 				stateStart = true;
 			}else{
@@ -102,11 +102,11 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		
 		currentTraceEntryOffset = reader.getFilePosition();
 		
-		currentTraceEntry = reader.getNextInputData();
+		currentTraceEntry = reader.readNextInputEntry();
 		if(currentTraceEntry == null)
 			return;
 				
-		eventTime = currentTraceEntry.getTime();		
+		eventTime = currentTraceEntry.getTimeStamp();		
 	}
 		
 	@Override
@@ -125,9 +125,9 @@ public class TraceProcessor extends AbstractTraceProcessor{
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
 					getOutputConverter().StateStart(getPID(), now, state);
 				
-				if(state.hasNestedTrace()){
+				if(state.hasNestedTraceChildren()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-					eventTime = currentTraceEntry.getTime();					
+					eventTime = currentTraceEntry.getTimeStamp();					
 					stateStart = true;
 				}else{
 					stateStart = false;				

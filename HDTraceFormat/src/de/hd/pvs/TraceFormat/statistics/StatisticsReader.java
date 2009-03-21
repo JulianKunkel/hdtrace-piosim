@@ -38,7 +38,7 @@ public class StatisticsReader{
 		this.file = new RandomAccessFile(filename, "r");
 	}
 	
-	public StatisticEntry getNextStatisticEntry() throws Exception{
+	public StatisticEntry readNextInputEntry() throws Exception{
 		if(isFinished()){
 			return null;
 		}

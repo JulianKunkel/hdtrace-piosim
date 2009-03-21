@@ -1,10 +1,10 @@
-package de.hd.pvs.TraceFormat.project;
+package de.hd.pvs.TraceFormat.topology;
 
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 
-public class RanksPerProjectTraceContainer {
+public class RanksPerHostnameTraceContainer{
 	final int rank;
 	
 	final HashMap<Integer, ThreadsPerRankTraceContainer> filesPerThread = new HashMap<Integer, ThreadsPerRankTraceContainer>();
@@ -20,7 +20,7 @@ public class RanksPerProjectTraceContainer {
 		statisticReaders.put(group, reader);
 	}
 	
-	public RanksPerProjectTraceContainer(int rank) {
+	public RanksPerHostnameTraceContainer(int rank) {
 		this.rank = rank;
 	}
 	
@@ -28,7 +28,15 @@ public class RanksPerProjectTraceContainer {
 		return filesPerThread;
 	}
 	
+	public HashMap<String, StatisticsReader> getStatisticReaders() {
+		return statisticReaders;
+	}
+	
 	public int getSize(){
 		return filesPerThread.size();
+	}
+	
+	public int getRank() {
+		return rank;
 	}
 }

@@ -22,9 +22,10 @@ import java.util.PriorityQueue;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.project.RanksPerProjectTraceContainer;
-import de.hd.pvs.TraceFormat.project.ThreadsPerRankTraceContainer;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
+import de.hd.pvs.TraceFormat.topology.HostnamePerProjectContainer;
+import de.hd.pvs.TraceFormat.topology.RanksPerHostnameTraceContainer;
+import de.hd.pvs.TraceFormat.topology.ThreadsPerRankTraceContainer;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
@@ -55,7 +56,7 @@ public class HDTraceConverter {
 		// init trace converter to make it ready:
 		outputConverter.initializeTrace(param, param.getOutputFilePrefix());
 
-		final TraceFormatFileOpener traceReader = new TraceFormatFileOpener(param.getInputTraceFile(), param.isReadNestedTrace());
+		final TraceFormatFileOpener traceReader = new TraceFormatFileOpener(param.getInputTraceFile(), param.isReadNestedTrace(), StatisticsReader.class, StAXTraceFileReader.class);
 
 		final ProjectDescription projectDescription = traceReader.getProjectDescription();
 
@@ -65,39 +66,42 @@ public class HDTraceConverter {
 					traceReader.getProjectDescriptionXMLReader().getUnparsedChildTags());
 		}
 
-		for(int rank=0; rank < traceReader.getSize(); rank ++){
-			final RanksPerProjectTraceContainer filesThisRank =  traceReader.getTraceFilesPerRank().get(rank);
+		for(String hostname: traceReader.getHostnameProcessMap().keySet()){
+			HostnamePerProjectContainer rankMap = traceReader.getHostnameProcessMap().get(hostname);
+			for(Integer rank: rankMap.getTraceFilesPerRank().keySet()){
+				final RanksPerHostnameTraceContainer filesThisRank =  rankMap.getTraceFilesPerRank().get(rank);
 
-			for(int thread=0; thread < filesThisRank.getSize(); thread ++){
-				final ThreadsPerRankTraceContainer fileCont = filesThisRank.getFilesPerThread().get(thread);
-				final ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
+				for(Integer thread: filesThisRank.getFilesPerThread().keySet()){
+					final ThreadsPerRankTraceContainer fileCont = filesThisRank.getFilesPerThread().get(thread);
+					final ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
 
-				StAXTraceFileReader reader = fileCont.getTraceReader();
-				if( reader != null){
-					TraceProcessor processor = new TraceProcessor(reader);
-					processor.setOutputConverter(outputConverter);
-					processor.setProcessIdentifier(pid);
-					processor.setRunParameters(param);
+					StAXTraceFileReader reader = fileCont.getTraceFileReader();
+					if( reader != null){
+						TraceProcessor processor = new TraceProcessor(reader);
+						processor.setOutputConverter(outputConverter);
+						processor.setProcessIdentifier(pid);
+						processor.setRunParameters(param);
 
-					processor.initalize();
+						processor.initalize();
 
-					if(processor.peekEarliestTime() != null){
-						pendingReaders.add(processor);
+						if(processor.peekEarliestTime() != null){
+							pendingReaders.add(processor);
+						}
+					}else{
+						System.err.println("No trace file for rank,thread: " + rank +"," + thread);
 					}
-				}else{
-					System.err.println("No trace file for rank,thread: " + rank +"," + thread);
-				}
-				
-				for(StatisticsReader sReader: fileCont.getStatisticReaders().values()){
-					StatisticProcessor processor = new StatisticProcessor(sReader);
-					processor.setOutputConverter(outputConverter);
-					processor.setProcessIdentifier(pid);
-					processor.setRunParameters(param);
 
-					processor.initalize();
+					for(StatisticsReader sReader: fileCont.getStatisticReaders().values()){
+						StatisticProcessor processor = new StatisticProcessor(sReader);
+						processor.setOutputConverter(outputConverter);
+						processor.setProcessIdentifier(pid);
+						processor.setRunParameters(param);
 
-					if(processor.peekEarliestTime() != null){
-						pendingReaders.add(processor);
+						processor.initalize();
+
+						if(processor.peekEarliestTime() != null){
+							pendingReaders.add(processor);
+						}
 					}
 				}
 			}

@@ -1,11 +1,11 @@
-package de.hd.pvs.TraceFormat.project;
+package de.hd.pvs.TraceFormat.topology;
 
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 
-public class ThreadsPerRankTraceContainer {
+public class ThreadsPerRankTraceContainer{
 	final int thread;
 
 	final StAXTraceFileReader traceReader;
@@ -19,7 +19,7 @@ public class ThreadsPerRankTraceContainer {
 		this.traceReader = traceReader;
 	}
 	
-	public StAXTraceFileReader getTraceReader() {
+	public StAXTraceFileReader getTraceFileReader() {
 		return traceReader;
 	}
 	
@@ -31,4 +31,7 @@ public class ThreadsPerRankTraceContainer {
 		statisticReaders.put(group, reader);
 	}
 	
+	public int getThread() {
+		return thread;
+	}
 }

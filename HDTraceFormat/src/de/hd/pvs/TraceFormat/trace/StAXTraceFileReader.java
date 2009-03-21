@@ -75,7 +75,7 @@ public class StAXTraceFileReader{
 	 * 
 	 * @return
 	 */
-	public XMLTraceEntry getNextInputData(){
+	public XMLTraceEntry readNextInputEntry(){
 		try{
 
 			/**

@@ -64,7 +64,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	private void getNextStatistic() throws Exception{
 		if(! isFinished){
 			currentOffset = reader.getFilePosition();
-			lastRead = reader.getNextStatisticEntry();
+			lastRead = reader.readNextInputEntry();
 			if(! reader.isFinished()){
 				nextTimeStamp = lastRead.getTimeStamp();
 			}

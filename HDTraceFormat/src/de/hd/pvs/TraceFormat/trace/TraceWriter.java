@@ -116,13 +116,13 @@ public class TraceWriter {
 				file.write("</Nested>\n");			
 			}
 			traceEntry = stackedEntries.pollFirst();
-			writeState(finEntry, traceEntry.getTime(),  time);			
+			writeState(finEntry, traceEntry.getTimeStamp(),  time);			
 		}else{
 			StateTraceEntry traceEntry;
 			// last start == end tag => not nested 
 			traceEntry = lastOpenedStateTraceEntry;
 			lastOpenedStateTraceEntry = null;			
-			writeState(traceEntry, traceEntry.getTime(), time);
+			writeState(traceEntry, traceEntry.getTimeStamp(), time);
 		}
 	}
 	
