@@ -65,10 +65,6 @@ public class TimelineToolBar extends JToolBar
     public  JButton                 delete_btn;
     public  JButton                 restore_timelines_btn;
 
-    // private JButton                 redo_btn;
-    // private JButton                 undo_btn;
-    // private JButton                 remove_btn;
-
     private JButton                 up_btn;
     private JButton                 down_btn;
 
@@ -84,7 +80,6 @@ public class TimelineToolBar extends JToolBar
     private JButton                 zoomHome_btn;
     private JButton                 zoomIn_btn;
     private JButton                 zoomRedo_btn;
-    // private JButton                 zoomSet_btn;
 
     private JButton                 searchBack_btn;
     private JButton                 searchInit_btn;
@@ -304,8 +299,8 @@ public class TimelineToolBar extends JToolBar
         forward_btn.addActionListener(
                     new ActionVportForward( time_scrollbar ) );
         super.add( forward_btn );
-
-        super.addSeparator( mini_separator_size );
+        
+        super.addSeparator( );
 
         // icon_URL = getURL( Const.IMG_PATH + "Undo24.gif" );
         icon_URL = getURL( Const.IMG_PATH + "WinUndo.gif" );
@@ -321,8 +316,22 @@ public class TimelineToolBar extends JToolBar
                      new ActionZoomUndo( this, time_model ) );
         super.add( zoomUndo_btn );
 
+        // icon_URL = getURL( Const.IMG_PATH + "Redo24.gif" );
+        icon_URL = getURL( Const.IMG_PATH + "WinRedo.gif" );
+        if ( icon_URL != null )
+            zoomRedo_btn = new JButton( new ImageIcon( icon_URL ) );
+        else
+            zoomRedo_btn = new JButton( "ZoomRedo" );
+        zoomRedo_btn.setMargin( btn_insets );
+        zoomRedo_btn.setToolTipText( "Redo the previous zoom operation" );
+        zoomRedo_btn.setMnemonic( KeyEvent.VK_R );
+        // zoomRedo_btn.setPreferredSize( btn_dim );
+        zoomRedo_btn.addActionListener(
+                     new ActionZoomRedo( this, time_model ) );
+        super.add( zoomRedo_btn );
+        
         super.addSeparator( mini_separator_size );
-
+        
         icon_URL = getURL( Const.IMG_PATH + "ZoomOut24.gif" );
         if ( icon_URL != null )
             zoomOut_btn = new JButton( new ImageIcon( icon_URL ) );
@@ -363,23 +372,7 @@ public class TimelineToolBar extends JToolBar
                    new ActionZoomIn( this, time_model ) );
         super.add( zoomIn_btn );
 
-        super.addSeparator( mini_separator_size );
-
-        // icon_URL = getURL( Const.IMG_PATH + "Redo24.gif" );
-        icon_URL = getURL( Const.IMG_PATH + "WinRedo.gif" );
-        if ( icon_URL != null )
-            zoomRedo_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomRedo_btn = new JButton( "ZoomRedo" );
-        zoomRedo_btn.setMargin( btn_insets );
-        zoomRedo_btn.setToolTipText( "Redo the previous zoom operation" );
-        zoomRedo_btn.setMnemonic( KeyEvent.VK_R );
-        // zoomRedo_btn.setPreferredSize( btn_dim );
-        zoomRedo_btn.addActionListener(
-                     new ActionZoomRedo( this, time_model ) );
-        super.add( zoomRedo_btn );
-
-        super.addSeparator( mini_separator_size );
+        super.addSeparator( );
 
         /*
         icon_URL = getURL( Const.IMG_PATH + "ZoomSet24.gif" );
@@ -507,10 +500,10 @@ public class TimelineToolBar extends JToolBar
     //  Interface for ToolBarStatus
     public void resetZoomButtons()
     {
-        int zoomlevel = time_model.getZoomLevel();
-        zoomIn_btn.setEnabled( zoomlevel < Const.MAX_ZOOM_LEVEL );
-        zoomHome_btn.setEnabled( zoomlevel != Const.MIN_ZOOM_LEVEL );
-        zoomOut_btn.setEnabled( zoomlevel > Const.MIN_ZOOM_LEVEL );
+        double zoomlevel = time_model.getZoomFaktor();
+        zoomIn_btn.setEnabled( zoomlevel < Const.MAX_ZOOM_FAKTOR );
+        zoomHome_btn.setEnabled( zoomlevel != Const.MIN_ZOOM_FAKTOR );
+        zoomOut_btn.setEnabled( zoomlevel > Const.MIN_ZOOM_FAKTOR );
 
         zoomUndo_btn.setEnabled( ! time_model.isZoomUndoStackEmpty() );
         zoomRedo_btn.setEnabled( ! time_model.isZoomRedoStackEmpty() );

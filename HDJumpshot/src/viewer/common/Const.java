@@ -19,8 +19,8 @@ public class Const
     public  static final Font    FONT      = new Font( "SansSerif",
                                                        Font.PLAIN, FONT_SIZE );
 
-    public  static final int     MIN_ZOOM_LEVEL         = 0;
-    public  static final int     MAX_ZOOM_LEVEL         = 30;
+    public  static final int     MIN_ZOOM_FAKTOR         = 1;
+    public  static final int     MAX_ZOOM_FAKTOR         = 10000000;
 
     public  static final String  RULER_TIME_FORMAT      = "#,##0.00######";
     public  static final String  PANEL_TIME_FORMAT      = "#,##0.00########";

@@ -37,6 +37,8 @@ import viewer.zoomable.ModelTimePanel;
 import viewer.zoomable.RowAdjustments;
 import viewer.zoomable.RulerTime;
 import viewer.zoomable.ScrollbarTime;
+import viewer.zoomable.TimeEvent;
+import viewer.zoomable.TimeListener;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimePanel;
 import viewer.zoomable.ViewportTimeYaxis;
@@ -72,6 +74,7 @@ public class StatlinePanel extends JPanel
     private CanvasTimeline  		cnvas_timeline;
     private ViewportTimeYaxis       stat_canvas_vport;
     private ViewportTimePanel       stat_canvas_panel;
+    
 
     private ActionTimelineRestore restore;
     private ViewportTimeYaxis  canvas_viewport;

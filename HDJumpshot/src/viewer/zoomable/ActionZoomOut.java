@@ -21,13 +21,11 @@ public class ActionZoomOut implements ActionListener
 {
     private ToolBarStatus      toolbar;
     private ModelTime          model;
-    private int                zoomlevel;
 
     public ActionZoomOut( ToolBarStatus in_toolbar, ModelTime in_model )
     {
         toolbar    = in_toolbar;
         model      = in_model;
-        zoomlevel  = 0;
     }
 
     public void actionPerformed( ActionEvent event )
@@ -35,19 +33,15 @@ public class ActionZoomOut implements ActionListener
         Window  window;
         String  msg;
 
-        zoomlevel = model.getZoomLevel();
-        if ( zoomlevel < Const.MIN_ZOOM_LEVEL ) {
+        double zoomlevel = model.getZoomFaktor();
+        if ( zoomlevel < Const.MIN_ZOOM_FAKTOR ) {
             window = SwingUtilities.windowForComponent( (JToolBar) toolbar );
             msg    = "The Current ZoomLevel(" + zoomlevel + ") is below "
-                   + "the Minimum ZoomLevel(" + Const.MIN_ZOOM_LEVEL + ")!";
+                   + "the Minimum ZoomLevel(" + Const.MIN_ZOOM_FAKTOR + ")!";
             Dialogs.warn( window, msg );
         }
         else
             model.zoomOut();
-
-        // Set toolbar buttons to reflect status
-        if ( toolbar != null )
-            toolbar.resetZoomButtons();
 
         if ( Debug.isActive() )
             Debug.println( "Action for Zoom Out button. ZoomLevel = "

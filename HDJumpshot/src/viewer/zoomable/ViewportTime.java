@@ -618,7 +618,6 @@ public class ViewportTime extends JViewport
                     vport_click = mouse_evt.getPoint();
                     focus_time  = coord_xform.convertPixelToTime(
                                               vport_click.x );
-                    time_model.setTimeZoomFocus( focus_time );
                     if ( Parameters.LEFTCLICK_INSTANT_ZOOM ) {
                         // Left clicking with Shift to Zoom Out,
                         // Left clinking to Zoom In.
@@ -631,8 +630,6 @@ public class ViewportTime extends JViewport
                             super.setCursor( CustomCursor.ZoomPlus );
                         }
                         super.requestFocus();
-                        if ( toolbar != null )
-                            toolbar.resetZoomButtons();
                     }
                     else
                         this.repaint();
@@ -768,13 +765,10 @@ public class ViewportTime extends JViewport
                             focus_time = ( zoom_timebox.getEarliestTime()
                                          + zoom_timebox.getLatestTime()
                                          ) / 2.0d;
-                            time_model.setTimeZoomFocus( focus_time );
                         }
                         zoom_timebox = null;
                         this.repaint();
                         super.setCursor( CustomCursor.ZoomPlus );
-                        if ( toolbar != null )
-                            toolbar.resetZoomButtons();
                     }
                 }
                 else {  // Hand Mode

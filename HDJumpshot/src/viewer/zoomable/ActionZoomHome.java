@@ -21,34 +21,16 @@ public class ActionZoomHome implements ActionListener
 {
     private ToolBarStatus      toolbar;
     private ModelTime          model;
-    private int                zoomlevel;
 
     public ActionZoomHome( ToolBarStatus in_toolbar, ModelTime in_model )
     {
         toolbar    = in_toolbar;
         model      = in_model;
-        zoomlevel  = 0;
     }
 
     public void actionPerformed( ActionEvent event )
     {
-        Window  window;
-        String  msg;
-
-        zoomlevel = model.getZoomLevel();
-        if ( zoomlevel < Const.MIN_ZOOM_LEVEL ) {
-            window  = SwingUtilities.windowForComponent( (JToolBar) toolbar );
-            msg     = "The Current ZoomLevel(" + zoomlevel + ") is below "
-                    + "the Minimum ZoomLevel(" + Const.MIN_ZOOM_LEVEL + ") "
-                    + "already!";
-            Dialogs.warn( window, msg );
-        }
-        else
-            model.zoomHome();
-
-        // Set toolbar buttons to reflect status
-        if ( toolbar != null )
-            toolbar.resetZoomButtons();
+        model.zoomHome();
 
         if ( Debug.isActive() )
             Debug.println( "Action for Zoom Home button" );

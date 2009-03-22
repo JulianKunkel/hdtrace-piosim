@@ -20,6 +20,7 @@ import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import viewer.common.Dialogs;
 import viewer.common.TopControl;
 import viewer.common.TopWindow;
+import viewer.zoomable.Debug;
 
 public class Jumpshot extends JFrame
                         implements TopControl
@@ -80,6 +81,7 @@ public class Jumpshot extends JFrame
         parseCmdLineArgs( args );
 
         SimpleConsoleLogger.setDebugEverything(true);
+        Debug.setActive(true);
         
         viewer.zoomable.Debug.initTextArea();
         // viewer.zoomable.Profile.initTextArea();

@@ -42,10 +42,6 @@ public class ActionZoomUndo implements ActionListener
         else
             model.zoomUndo();
 
-        // Set toolbar buttons to reflect status
-        if ( toolbar != null )
-            toolbar.resetZoomButtons();
-
         if ( Debug.isActive() )
             Debug.println( "Action for Zoom Undo button." );
     }

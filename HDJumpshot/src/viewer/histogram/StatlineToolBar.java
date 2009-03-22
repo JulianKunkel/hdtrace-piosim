@@ -372,10 +372,10 @@ public class StatlineToolBar extends JToolBar
     //  Interface for ToolBarStatus
     public void resetZoomButtons()
     {
-        int zoomlevel = time_model.getZoomLevel();
-        zoomIn_btn.setEnabled( zoomlevel < Const.MAX_ZOOM_LEVEL );
-        zoomHome_btn.setEnabled( zoomlevel != Const.MIN_ZOOM_LEVEL );
-        zoomOut_btn.setEnabled( zoomlevel > Const.MIN_ZOOM_LEVEL );
+        double zoomlevel = time_model.getZoomFaktor();
+        zoomIn_btn.setEnabled( zoomlevel < Const.MAX_ZOOM_FAKTOR );
+        zoomHome_btn.setEnabled( zoomlevel != Const.MIN_ZOOM_FAKTOR );
+        zoomOut_btn.setEnabled( zoomlevel > Const.MIN_ZOOM_FAKTOR );
 
         zoomUndo_btn.setEnabled( ! time_model.isZoomUndoStackEmpty() );
         zoomRedo_btn.setEnabled( ! time_model.isZoomRedoStackEmpty() );

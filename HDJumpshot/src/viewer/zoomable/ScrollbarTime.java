@@ -50,10 +50,4 @@ public class ScrollbarTime extends JScrollBar
         return min_size;
     }
 
-    public void init()
-    {
-        // int id = AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED;
-        // int type = AdjustmentEvent.TRACK;
-        // super.fireAdjustmentValueChanged( id, type, super.getValue() );
-    }
 }

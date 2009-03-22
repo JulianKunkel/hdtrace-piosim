@@ -21,13 +21,11 @@ public class ActionZoomIn implements ActionListener
 {
     private ToolBarStatus      toolbar;
     private ModelTime          model;
-    private int                zoomlevel;
 
     public ActionZoomIn( ToolBarStatus in_toolbar, ModelTime in_model )
     {
         toolbar    = in_toolbar;
         model      = in_model;
-        zoomlevel  = 0;
     }
 
     public void actionPerformed( ActionEvent event )
@@ -35,19 +33,15 @@ public class ActionZoomIn implements ActionListener
         Window  window;
         String  msg;
 
-        zoomlevel = model.getZoomLevel();
-        if ( zoomlevel >= Const.MAX_ZOOM_LEVEL ) {
+        double zoomlevel = model.getZoomFaktor();
+        if ( zoomlevel >= Const.MAX_ZOOM_FAKTOR ) {
             window  = SwingUtilities.windowForComponent( (JToolBar) toolbar );
             msg     = "The Current ZoomLevel(" + zoomlevel + ") exceeds "
-                    + "the Maximum ZoomLevel(" + Const.MAX_ZOOM_LEVEL + ")!";
+                    + "the Maximum ZoomLevel(" + Const.MAX_ZOOM_FAKTOR + ")!";
             Dialogs.error( window, msg );
         }
         else
             model.zoomIn();
-
-        // Set toolbar buttons to reflect status
-        if ( toolbar != null )
-            toolbar.resetZoomButtons();
 
         if ( Debug.isActive() )
             Debug.println( "Action for Zoom In button. ZoomLevel = "

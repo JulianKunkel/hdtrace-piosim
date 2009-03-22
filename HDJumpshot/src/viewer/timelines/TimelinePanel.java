@@ -41,6 +41,8 @@ import viewer.zoomable.ModelTimePanel;
 import viewer.zoomable.RowAdjustments;
 import viewer.zoomable.RulerTime;
 import viewer.zoomable.ScrollbarTime;
+import viewer.zoomable.TimeEvent;
+import viewer.zoomable.TimeListener;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimePanel;
 import viewer.zoomable.ViewportTimeYaxis;
@@ -88,6 +90,16 @@ public class TimelinePanel extends JPanel
 
 	private RowAdjustments          row_adjs;
 
+	/** 
+	 * This listener is invoked if the zoomlevel changes
+	 */
+  private TimeListener           timeUpdateListener = new TimeListener(){
+  	@Override
+  	public void timeChanged(TimeEvent evt) {
+  		// set zoom in/out button status.
+      toolbar.resetZoomButtons();
+  	}
+  };
 
 	private class IOOptionsListener extends JComboBox implements ActionListener
 	{
@@ -142,10 +154,7 @@ public class TimelinePanel extends JPanel
 		time_model    = new ModelTime( root_window,
 				reader.getGlobalMinTime(),
 				reader.getGlobalMaxTime());
-		
-		// TODO what does it really do?
-		time_model.setTimeZoomFactor( 1.0 );
-		
+				
 		SimpleConsoleLogger.Debug( "tZoomFtr = " + time_model.getTimeZoomFactor() );
 
 		this.setLayout( new BorderLayout() );
@@ -174,6 +183,8 @@ public class TimelinePanel extends JPanel
                    viewport is what user sees.
 		 */
 		time_model.addTimeListener( time_ruler_vport );
+		
+		time_model.addTimeListener( timeUpdateListener);
 		/*
                    Since there is NOT a specific ViewportTime/ViewTimePanel
                    for RulerTime, so we need to set PreferredSize of RulerTime
@@ -208,8 +219,6 @@ public class TimelinePanel extends JPanel
 		/* The View's Time Display Panel */
 		time_display_panel = new ModelTimePanel( time_model );
 		time_model.setParamDisplay( time_display_panel );
-		time_display_panel.addViewportTime( time_ruler_vport );
-		time_display_panel.addViewportTime( time_canvas_vport );
 		JPanel canvas_lmouse;
 		canvas_lmouse = time_canvas_vport.createLeftMouseModePanel(
 				BoxLayout.X_AXIS );

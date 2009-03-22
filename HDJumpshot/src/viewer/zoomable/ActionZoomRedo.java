@@ -42,10 +42,6 @@ public class ActionZoomRedo implements ActionListener
         else
             model.zoomRedo();
 
-        // Set toolbar buttons to reflect status
-        if ( toolbar != null )
-            toolbar.resetZoomButtons();
-
         if ( Debug.isActive() )
             Debug.println( "Action for Zoom Redo button." );
     }

@@ -44,613 +44,479 @@ import de.hd.pvs.TraceFormat.util.Epoch;
       getViewPixelsPerUnitTime()
       updatePixelCoords()
    are accessed by RulerTime class.
-*/
+ */
 public class ModelTime extends DefaultBoundedRangeModel
-                       implements AdjustmentListener
+implements AdjustmentListener
 {
-    // private int    MAX_SCROLLBAR_PIXELS = Integer.MAX_VALUE;
-    /*
-        If DefaultBoundedRangeModel is used,
-        MAX_SCROLLBAR_PIXELS < Integer.MAX_VALUE / 2;
-        otherwise there will be overflow of DefaultBoundedRangeModel
-        when moving 1 block increment of scrollbar when zoom_level = 1
-    */
-    private int    MAX_SCROLLBAR_PIXELS = 1073741824;  // = 2^(30)
+	private int    MAX_SCROLLBAR_PIXELS = 1073741824;  // = 2^(30)
 
-    // user coordinates of the time axis of the viewport
-    private double tGlobal_min;
-    private double tGlobal_max;
-    private double tGlobal_extent;
-    private double tView_init;
-    private double tView_extent;
+	private static double NORMAL_ZOOMFACTOR = 2 ;
+	
+	// user coordinates of the time axis of the viewport
+	private double tGlobal_min;
+	private double tGlobal_max;
+	
+	// current position:
+	private double tView_init;
+	private double tView_extent;
 
-    // previous value of tView_init;
-    private double old_tView_init;
+	
+	// pixel coordinates of the time axis of the viewport
+	// are buried inside the superclass DefaultBoundedRangeModel
 
-    // the zoom focus in user coodinates along the time axis of the viewport
-    private double tZoom_focus;
-    // the zoom focus in graphics pixel coodinates
-    private int    iZoom_focus;
+	// screen properties
+	private int iViewWidth;// No. of View pixel per unit time
 
-    // pixel coordinates of the time axis of the viewport
-    // are buried inside the superclass DefaultBoundedRangeModel
 
-    // screen properties
-    private int    iView_width = -1;
-    private double iViewPerTime;         // No. of View pixel per unit time
-    private double iScrollbarPerTime;    // No. of ScrollBar pixel per unit time
-    private double tZoomScale  = 1.0d;
-    private double tZoomFactor;
-    private double logZoomFactor;;
+	// special purpose ChangeListeners, TimeListeners, to avoid conflict with
+	// the EventListenerList, listenerList, in DefaultBoundedRangeModel
+	private ModelTimePanel     params_display;
+	private EventListenerList  time_listener_list;
+	// internal global variable for use in fireTimeChanged()
+	private TimeEvent          time_chg_evt;
 
-    // special purpose ChangeListeners, TimeListeners, to avoid conflict with
-    // the EventListenerList, listenerList, in DefaultBoundedRangeModel
-    private ModelTimePanel     params_display;
-    private EventListenerList  time_listener_list;
-    // internal global variable for use in fireTimeChanged()
-    private TimeEvent          time_chg_evt;
+	private Window             root_window;
+	private JScrollBar         scrollbar;
 
-    private Window             root_window;
-    private JScrollBar         scrollbar;
+	private Stack<TimeBoundingBox> zoom_undo_stack;
+	private Stack<TimeBoundingBox> zoom_redo_stack;
 
-    private Stack              zoom_undo_stack;
-    private Stack              zoom_redo_stack;
+	public ModelTime( final Window  top_window,
+			Epoch  init_global_time,
+			Epoch  final_global_time )
+	{
+		params_display     = null;
+		time_chg_evt       = null;
+		time_listener_list = new EventListenerList();
+		zoom_undo_stack    = new Stack<TimeBoundingBox>();
+		zoom_redo_stack    = new Stack<TimeBoundingBox>();
 
-    public ModelTime( final Window  top_window,
-                            Epoch  init_global_time,
-                            Epoch  final_global_time )
-    {
-        params_display     = null;
-        time_chg_evt       = null;
-        time_listener_list = new EventListenerList();
-        zoom_undo_stack    = new Stack();
-        zoom_redo_stack    = new Stack();
+		root_window        = top_window;
+		setTimeGlobalMinimum( init_global_time );
+		setTimeGlobalMaximum( final_global_time );
+	}
 
-        root_window        = top_window;
-        setTimeGlobalMinimum( init_global_time );
-        setTimeGlobalMaximum( final_global_time );
-        setTimeZoomFocus();
-        tZoomFactor        = 2.0d;
-        logZoomFactor      = Math.log( tZoomFactor );
-    }
-
-    /*
+	/*
         None of the setTimeXXXXXX() functions updates the __Pixel__ coordinates
-    */
-    private void setTimeGlobalMinimum( Epoch init_global_time )
-    {
-        tGlobal_min    = init_global_time.getDouble();
-        old_tView_init = tGlobal_min;
-        tView_init     = tGlobal_min;
-    }
+	 */
+	 private void setTimeGlobalMinimum( Epoch init_global_time )
+	 {
+		 tGlobal_min    = init_global_time.getDouble();
+		 tView_init     = tGlobal_min;
+	 }
 
-    private void setTimeGlobalMaximum( Epoch final_global_time )
-    {
-        tGlobal_max    = final_global_time.getDouble();
-        tGlobal_extent = tGlobal_max - tGlobal_min;
-        tView_extent   = tGlobal_extent;
-        iScrollbarPerTime = (double) MAX_SCROLLBAR_PIXELS / tGlobal_extent;
-    }
+	 private void setTimeGlobalMaximum( Epoch final_global_time )
+	 {
+		 tGlobal_max    = final_global_time.getDouble();
+		 tView_extent   = getGlobalExtend();
+	 }
+	 
+	 private double getScollbarPixelPerTime(double extend){
+		 return (double) MAX_SCROLLBAR_PIXELS / extend;
+	 }
 
-    // tGlobal_min & tGlobal_max cannot be changed by setTimeViewPosition()
-    private void setTimeViewPosition( double cur_view_init )
-    {
-        old_tView_init = tView_init;
-        if ( cur_view_init < tGlobal_min )
-            tView_init     = tGlobal_min;
-        else {
-            if ( cur_view_init > tGlobal_max - tView_extent )
-                tView_init     = tGlobal_max - tView_extent;
-            else
-                tView_init     = cur_view_init;
-        }
-    }
+	 private double getGlobalExtend(){
+		 return tGlobal_max - tGlobal_min;
+	 }
+	 
+	 // tGlobal_min & tGlobal_max cannot be changed by setTimeViewPosition()
+	 private void setTimeViewPosition( double cur_view_init )
+	 {
+		 if ( cur_view_init < tGlobal_min )
+			 tView_init     = tGlobal_min;
+		 else {
+			 if ( cur_view_init > tGlobal_max - tView_extent )
+				 tView_init     = tGlobal_max - tView_extent;
+			 else
+				 tView_init     = cur_view_init;
+		 }
+	 }
 
-    // tGlobal_min & tGlobal_max cannot be changed by setTimeViewExtent()
-    private void setTimeViewExtent( double cur_view_extent )
-    {
-        if ( cur_view_extent < tGlobal_extent ) {
-            tView_extent   = cur_view_extent;
-            if ( tView_init  > tGlobal_max - tView_extent ) {
-                old_tView_init  = tView_init;
-                tView_init      = tGlobal_max - tView_extent;
-            }
-        }
-        else {
-            tView_extent   = tGlobal_extent;
-            old_tView_init = tView_init;
-            tView_init     = tGlobal_min;
-        }
-    }
+	 // tGlobal_min & tGlobal_max cannot be changed by setTimeViewExtent()
+	 private void setTimeViewExtent( double cur_view_extent )
+	 {
+		 if ( cur_view_extent < getGlobalExtend() ) {
+			 tView_extent   = cur_view_extent;
+			 if ( tView_init  > tGlobal_max - tView_extent ) {
+				 tView_init      = tGlobal_max - tView_extent;
+			 }
+		 }
+		 else {
+			 tView_extent   = getGlobalExtend();
+			 tView_init     = tGlobal_min;
+		 }
+	 }
 
-    public double getTimeGlobalMinimum()
-    {
-        return tGlobal_min;
-    }
+	 public double getTimeGlobalMinimum()
+	 {
+		 return tGlobal_min;
+	 }
 
-    public double getTimeGlobalMaximum()
-    {
-        return tGlobal_max;
-    }
+	 public double getTimeGlobalMaximum()
+	 {
+		 return tGlobal_max;
+	 }
 
-    public double getTimeViewPosition()
-    {
-        return tView_init;
-    }
+	 
+	 public double getTimeViewPosition()
+	 {
+		 return tView_init;
+	 }
 
-    public double getTimeViewExtent()
-    {
-        return tView_extent;
-    }
+	 public double getTimeViewExtent()
+	 {
+		 return tView_extent;
+	 }
 
-    /*
+	 /*
        Set the Number of Pixels in the Viewport window.
        if iView_width is NOT set, pixel coordinates cannot be updated.
-    */
-    public void setViewPixelsPerUnitTime( int width )
-    {
-        iView_width  = width;
-        iViewPerTime = iView_width / tView_extent;
-    }
+	  */
+	 public void setViewPixelsPerUnitTime( int width )
+	 {
+		 iViewWidth = width;
+	 }
 
-    public double getViewPixelsPerUnitTime()
-    {
-        return iViewPerTime;
-    }
 
-    public double computeTimeViewExtent( double time_per_pixel )
-    {
-        return iView_width * time_per_pixel;
-    }
+	public double getViewPixelsPerUnitTime(){
+		return iViewWidth / tView_extent;
+	}
 
-    /*
-       +1 : moving to the future, i.e. right
-       -1 : moving to the past  , i.e. left
-    */
-    public int getViewportMovingDir()
-    {
-        double tView_init_changed = tView_init - old_tView_init;
-        if ( tView_init_changed > 0.0 )
-            return 1;
-        else if ( tView_init_changed < 0.0 )
-            return -1;
-        else
-            return 0;
-    }
+	 public double computeTimeViewExtent( double time_per_pixel )
+	 {
+		 return iViewWidth * time_per_pixel;
+	 }
 
-    public void setScrollBar( JScrollBar sb )
-    {
-        scrollbar = sb;
-    }
+	 public void setScrollBar( JScrollBar sb )
+	 {
+		 scrollbar = sb;
+	 }
 
-    public void removeScrollBar()
-    {
-        scrollbar = null;
-    }
+	 public void removeScrollBar()
+	 {
+		 scrollbar = null;
+	 }
 
-    public void setParamDisplay( ModelTimePanel tl )
-    {
-        params_display = tl;
-    }
+	 public void setParamDisplay( ModelTimePanel tl )
+	 {
+		 params_display = tl;
+	 }
 
-    public void removeParamDisplay( ModelTimePanel tl )
-    {
-        params_display = null;
-    }
+	 public void removeParamDisplay( ModelTimePanel tl )
+	 {
+		 params_display = null;
+	 }
 
-    private void updateParamDisplay()
-    {
-        if ( params_display != null ) {
-            if ( time_chg_evt == null )
-                time_chg_evt = new TimeEvent( this );
-            params_display.timeChanged( time_chg_evt );
-            params_display.zoomLevelChanged();
-        }
-    }
+	 public void addTimeListener( TimeListener tl )
+	 {
+		 time_listener_list.add( TimeListener.class, tl );
+	 }
 
-    public void addTimeListener( TimeListener tl )
-    {
-        time_listener_list.add( TimeListener.class, tl );
-    }
+	 public void removeTimeListener( TimeListener tl )
+	 {
+		 time_listener_list.remove( TimeListener.class, tl );
+	 }
 
-    public void removeTimeListener( TimeListener tl )
-    {
-        time_listener_list.remove( TimeListener.class, tl );
-    }
+	 // Notify __ALL__ listeners that have registered interest for
+	 // notification on this event type.  The event instance 
+	 // is lazily created using the parameters passed into 
+	 // the fire method.
+	 protected void fireTimeChanged()
+	 {
+		 // Guaranteed to return a non-null array
+		 Object[] listeners = time_listener_list.getListenerList();
+		 // Process the listeners last to first, notifying
+		 // those that are interested in this event
+		 for ( int i = listeners.length-2; i>=0; i-=2 ) {
+			 if ( listeners[i] == TimeListener.class ) {
+				 // Lazily create the event:
+				 if ( time_chg_evt == null )
+					 time_chg_evt = new TimeEvent( this );
+				 ( (TimeListener) listeners[i+1] ).timeChanged( time_chg_evt );
+			 }
+		 }
+	 }
 
-    // Notify __ALL__ listeners that have registered interest for
-    // notification on this event type.  The event instance 
-    // is lazily created using the parameters passed into 
-    // the fire method.
-    protected void fireTimeChanged()
-    {
-        // Guaranteed to return a non-null array
-        Object[] listeners = time_listener_list.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for ( int i = listeners.length-2; i>=0; i-=2 ) {
-            if ( listeners[i] == TimeListener.class ) {
-                // Lazily create the event:
-                if ( time_chg_evt == null )
-                    time_chg_evt = new TimeEvent( this );
-                ( (TimeListener) listeners[i+1] ).timeChanged( time_chg_evt );
-            }
-        }
-    }
-
-    /*
+	 /*
        time2pixel() and pixel2time() are local to this object.
        They have nothing to do the ones in ScrollableObject
        (i.e. RulerTime/CanvasXXXXline).  In general, no one but
        this object and possibly ScrollbarTime needs to access
        the following time2pixel() and pixel2time() because the
        ratio to flip between pixel and time is related to scrollbar.
-    */
-    private int time2pixel( double time_coord )
-    {
-        return (int) Math.round( ( time_coord - tGlobal_min )
-                               * iScrollbarPerTime );
-    }
+	  */
+	 private int time2pixel( double time_coord )
+	 {
+		 return (int) Math.round( ( time_coord - tGlobal_min )
+				 * getViewPixelsPerUnitTime() );
+	 }
 
-    private double pixel2time( int pixel_coord )
-    {
-        return (double) pixel_coord / iScrollbarPerTime
-                      + tGlobal_min;
-    }
+	 private double pixel2time( int pixel_coord )
+	 {
+		 return (double) pixel_coord / getViewPixelsPerUnitTime() + tGlobal_min;
+	 }
 
-    private int timeRange2pixelRange( double time_range )
-    {
-        return (int) Math.round( time_range * iScrollbarPerTime );
-    }
+	 private int timeRange2pixelRange( double time_range )
+	 {
+		 return (int) Math.round( time_range * getViewPixelsPerUnitTime() );
+	 }
 
-    private double pixelRange2timeRange( int pixel_range )
-    {
-        return (double) pixel_range / iScrollbarPerTime;
-    }
+	 private double pixelRange2timeRange( int pixel_range )
+	 {
+		 return (double) pixel_range / getViewPixelsPerUnitTime();
+	 }
 
-    public void updatePixelCoords()
-    {
-        // super.setRangeProperties() calls super.fireStateChanged();
-        super.setRangeProperties( time2pixel( tView_init ),
-                                  timeRange2pixelRange( tView_extent ),
-                                  time2pixel( tGlobal_min ),
-                                  time2pixel( tGlobal_max ),
-                                  super.getValueIsAdjusting() );
-        // fireTimeChanged();
-    }
+	 public void updatePixelCoords()
+	 {
+		 // super.setRangeProperties() calls super.fireStateChanged();
+		 super.setRangeProperties( time2pixel( tView_init ),
+				 timeRange2pixelRange( tView_extent ),
+				 time2pixel( tGlobal_min ),
+				 time2pixel( tGlobal_max ),
+				 super.getValueIsAdjusting() );
+		 // fireTimeChanged();
+	 }
 
-    public void updateTimeCoords()
-    {
-        if ( iScrollbarPerTime > 0 ) {
-            tGlobal_min    = pixel2time( super.getMinimum() );
-            tGlobal_max    = pixel2time( super.getMaximum() );
-            tGlobal_extent = tGlobal_max - tGlobal_min;
-            old_tView_init = tView_init;
-            tView_init     = pixel2time( super.getValue() );
-            tView_extent   = pixelRange2timeRange( super.getExtent() );
-            updateParamDisplay();
-        }
-    }
+	 public void updateTimeCoords()
+	 {
+			 tView_init     = pixel2time( super.getValue() );
+			 tView_extent   = pixelRange2timeRange( super.getExtent() );
+			 
+			 fireTimeChanged();
+	 }
 
-    /*
-        set/get Zoom Factor
-    */
-    public void setTimeZoomFactor( double inTimeZoomFactor )
-    {
-        tZoomFactor    = inTimeZoomFactor;
-        logZoomFactor  = Math.log( tZoomFactor );
-    }
+	 public double getTimeZoomFactor()
+	 {
+		 return NORMAL_ZOOMFACTOR;
+	 }
 
-    public double getTimeZoomFactor()
-    {
-        return tZoomFactor;
-    }
+	 public double getTimeZoomFocus()
+	 {
+		 return tView_extent * 0.5 + tView_init;
+	 }
 
-    /*
-        set/get Zoom Focus
-    */
-    public void setTimeZoomFocus()
-    {
-        tZoom_focus = tView_init + tView_extent / 2.0;    
-    }
-
-    public void setTimeZoomFocus( double inTimeZoomFocus )
-    {
-        tZoom_focus = inTimeZoomFocus;
-        updateParamDisplay();
-    }
-
-    public double getTimeZoomFocus()
-    {
-        return tZoom_focus;
-    }
-
-    /*
+	 /*
         Zoom Level
-    */
-    public int getZoomLevel()
-    {
-        return (int) Math.round( Math.log( tZoomScale ) / logZoomFactor );
-    }
+	  */
+	 public double getZoomFaktor()
+	 {
+		 return getGlobalExtend() / tView_extent;
+	 }
 
-    private void setScrollBarIncrements()
-    {
-        /*
+	 private void setScrollBarIncrements()
+	 {
+		 /*
             This needs to be called after updatePixelCoords()
-        */
-        int sb_block_incre, sb_unit_incre;
-        if ( scrollbar != null ) {
-            sb_block_incre = super.getExtent();
-            if ( sb_block_incre <= 0 ) {
-                Dialogs.error( root_window,
-                               "You have reached the Zoom limit! "
-                             + "Time ScrollBar has 0 BLOCK Increment. "
-                             + "Zoom out or risk crashing the viewer." );
-                sb_block_incre = 0;
-            }
-            scrollbar.setBlockIncrement( sb_block_incre );
-            sb_unit_incre  =  timeRange2pixelRange( tView_extent
-                                       * Parameters.TIME_SCROLL_UNIT_RATIO );
-            if ( sb_unit_incre <= 0 ) {
-                Dialogs.error( root_window,
-                               "You have reached the Zoom limit! "
-                             + "Time ScrollBar has 0 UNIT Increment. "
-                             + "Zoom out or risk crashing the viewer." );
-                sb_unit_incre = 0;
-            }
-            scrollbar.setUnitIncrement( sb_unit_incre );
-        }
-    }
+		  */
+		 int sb_block_incre, sb_unit_incre;
+		 if ( scrollbar != null ) {
+			 sb_block_incre = super.getExtent();
+			 if ( sb_block_incre <= 0 ) {
+				 Dialogs.error( root_window,
+						 "You have reached the Zoom limit! "
+						 + "Time ScrollBar has 0 BLOCK Increment. "
+						 + "Zoom out or risk crashing the viewer." );
+				 return;
+			 }
+			 scrollbar.setBlockIncrement( sb_block_incre );
+			 sb_unit_incre  =  timeRange2pixelRange( tView_extent
+					 * Parameters.TIME_SCROLL_UNIT_RATIO );
+			 if ( sb_unit_incre <= 0 ) {
+				 Dialogs.error( root_window,
+						 "You have reached the Zoom limit! "
+						 + "Time ScrollBar has 0 UNIT Increment. "
+						 + "Zoom out or risk crashing the viewer." );
+				 sb_unit_incre = 0;
+				 return;
+			 }
+			 
+			 scrollbar.setUnitIncrement( sb_unit_incre );
+		 }
+	 }
 
-    // tView_change is  the time measured in second.
-    public void scroll( double tView_change )
-    {
-        this.setTimeViewPosition( tView_init + tView_change );
-        this.updatePixelCoords();
-        // this.setScrollBarIncrements();
-    }
+	 // tView_change is  the time measured in second.
+	 public void scroll( double tView_change )
+	 {
+		 this.setTimeViewPosition( tView_init + tView_change );
+		 this.updatePixelCoords();
+		 // this.setScrollBarIncrements();
+	 }
 
-    // iView_change is measured in image or viewport pixel coordinates in pixel.
-    // NOT measured in scrollbar's model, ie DefaultBoundRangeModel, coodinates
-    public void scroll( int iView_change )
-    {
-        double tView_change = (double) iView_change /iViewPerTime;
-        this.scroll( tView_change );
-    }
+	 // iView_change is measured in image or viewport pixel coordinates in pixel.
+	 // NOT measured in scrollbar's model, ie DefaultBoundRangeModel, coodinates
+	 public void scroll( int iView_change )
+	 {
+		 double tView_change = (double) iView_change / getViewPixelsPerUnitTime();
+		 this.scroll( tView_change );
+	 }
 
-    // iView_change is measured in image or viewport pixel coordinates in pixel.
-    // The following function allows scroll pass tGlobal_min and tGlobal_max.
-    // In general, it is not desirable, so Avoid using this scroll() function.
-    public void scroll( int iView_change, boolean isValueAdjusting )
-    {
-        old_tView_init = tView_init;
-        double tView_change = (double) iView_change / iViewPerTime;
-        int iScrollbar_change = this.timeRange2pixelRange( tView_change );
-        super.setRangeProperties( super.getValue() + iScrollbar_change,
-                                  super.getExtent(),
-                                  super.getMinimum(),
-                                  super.getMaximum(),
-                                  isValueAdjusting );
-        tView_init     = pixel2time( super.getValue() );
-        updateParamDisplay();
-    }
+	 // iView_change is measured in image or viewport pixel coordinates in pixel.
+	 // The following function allows scroll pass tGlobal_min and tGlobal_max.
+	 // In general, it is not desirable, so Avoid using this scroll() function.
+	 public void scroll( int iView_change, boolean isValueAdjusting )
+	 {
+		 double tView_change = (double) iView_change / getViewPixelsPerUnitTime();
+		 int iScrollbar_change = this.timeRange2pixelRange( tView_change );
+		 super.setRangeProperties( super.getValue() + iScrollbar_change,
+				 super.getExtent(),
+				 super.getMinimum(),
+				 super.getMaximum(),
+				 isValueAdjusting );
+		 tView_init     = pixel2time( super.getValue() );
+		 
+		 fireTimeChanged();
+	 }
 
 
 
-    /*
+	 /*
         Zoom Operations
-    */
-    public void zoomHome()
-    {
-        tZoomScale  = 1.0;
-        this.setTimeViewExtent( tGlobal_extent );
-        this.setTimeViewPosition( tGlobal_min );
+	  */
+	 public void zoomHome()
+	 {
+		 pushCurrentStateOnZoomStackAndClean();	
 
-        iViewPerTime = iView_width / tView_extent;
-        this.updatePixelCoords();
-        this.setScrollBarIncrements();
+		 this.setTimeViewPosition( tGlobal_min );
+		 this.setTimeViewExtent( getGlobalExtend() );		 
 
-        // clean up all the zoom stacks.
-        zoom_undo_stack.clear();
-        zoom_redo_stack.clear();
-    }
+		 this.updatePixelCoords();
+		 this.setScrollBarIncrements();
+	 }
 
-    private void updateZoomStack( Stack zoom_stack )
-    {
-        TimeBoundingBox vport_timebox;
-        vport_timebox = new TimeBoundingBox();
-        vport_timebox.setEarliestTime( tView_init );
-        vport_timebox.setLatestFromEarliest( tView_extent );
-        zoom_stack.push( vport_timebox );
-    }
+	 private void pushCurrentStateOnZoomStackAndClean( )
+	 {
+		 TimeBoundingBox vport_timebox;
+		 vport_timebox = new TimeBoundingBox();
+		 vport_timebox.setEarliestTime( tView_init );
+		 vport_timebox.setLatestFromEarliest( tView_extent );
+		 zoom_undo_stack.push( vport_timebox );
 
-    /*
-        Zoom In/Out operations:
+		 // remove all stack from redo:
+		 zoom_redo_stack.clear();
+	 }
+	 
+	 public void zoomIn()
+	 {
+		 this.pushCurrentStateOnZoomStackAndClean();
+		 
+		 zoom(tView_init + tView_extent / NORMAL_ZOOMFACTOR / 2.0, tView_extent / NORMAL_ZOOMFACTOR);
+	 }
 
-        (tView_init , tView_extent ) are before Zoom In/Out operations
-        (tView_init^, tView_extent^) are after  Zoom In/Out operations
+	 public void zoomOut()
+	 {
+		 this.pushCurrentStateOnZoomStackAndClean();
 
-        where user clicks should be constant before & after zoom in/out,
-        define  tView_ratio = ( tView_center - tView_init ) / tView_extent
-        e.g. if tView_center is the middle of viewport, tView_ratio = 1/2
+		 // take special care if we are outside of possible scaling.
+		 double extend = tView_extent * NORMAL_ZOOMFACTOR;
+		 double offset = tView_init - tView_extent / NORMAL_ZOOMFACTOR / 2.0;
+		 
+		 if( offset < tGlobal_min) offset = tGlobal_min;
+		 
+		 if ( extend + offset > getGlobalExtend() ) extend = getGlobalExtend() - offset;
+		 
+		 zoom(offset, extend);		 
+	 }
 
-           tView_init + tView_extent * tView_ratio
-         = tView_init^ + tView_extent^ * tView_ratio
-         = constant
+	 public void zoomRapidly( double new_tView_init, double new_tView_extent )
+	 {
+		 this.pushCurrentStateOnZoomStackAndClean();
+		 zoom(new_tView_init, new_tView_extent);
+	 }
 
-        when tView_focus is within viewport
-            constant = tView_focus
-        else
-            constant = middle of the viewport
-    */
-    public void zoomIn()
-    {
-        this.updateZoomStack( zoom_undo_stack );
+	 private void zoom( double new_tView_init, double new_tView_extent )
+	 {
+		 if(new_tView_init < tGlobal_min){
+			 new_tView_init = tGlobal_min; 
+		 }
+		 
+		 if(new_tView_init >= tGlobal_max){
+			 new_tView_init = tGlobal_min; 
+		 }
 
-        double tZoom_center;
-        double tView_ratio;
+		 if(new_tView_extent + new_tView_init > tGlobal_max + tGlobal_min){
+			 new_tView_extent = tGlobal_max - new_tView_init;
+		 }
+		 
+		 this.setTimeViewExtent( new_tView_extent );
+		 this.setTimeViewPosition( new_tView_init );
 
-        tZoomScale  *= tZoomFactor;
-        if (    tView_init  < tZoom_focus
-             && tZoom_focus < tView_init + tView_extent )
-            tZoom_center = tZoom_focus;
-        else
-            tZoom_center = tView_init + tView_extent / 2.0;
-        tView_ratio  = ( tZoom_center - tView_init ) / tView_extent;
-        this.setTimeViewExtent( tView_extent / tZoomFactor );
-        this.setTimeViewPosition( tZoom_center - tView_extent * tView_ratio );
+		 this.updatePixelCoords();
+		 this.setScrollBarIncrements();
+		 this.updateTimeCoords();
 
-        iViewPerTime = iView_width / tView_extent;
-        this.updatePixelCoords();
-        this.setScrollBarIncrements();
-    }
+		 this.fireTimeChanged();
+	 }
 
-    public void zoomOut()
-    {
-        this.updateZoomStack( zoom_undo_stack );
+	 public void zoomUndo()
+	 {
+		 if ( ! zoom_undo_stack.empty() ) {
+			 TimeBoundingBox vport_timebox;
 
-        double tZoom_center;
-        double tView_ratio;
+			 vport_timebox = new TimeBoundingBox();
+			 vport_timebox.setEarliestTime( tView_init );
+			 vport_timebox.setLatestFromEarliest( tView_extent );
+			 zoom_redo_stack.push(vport_timebox);
 
-        tZoomScale  /= tZoomFactor;
-        if (    tView_init  < tZoom_focus
-             && tZoom_focus < tView_init + tView_extent )
-            tZoom_center = tZoom_focus;
-        else
-            tZoom_center = tView_init + tView_extent / 2.0;
-        tView_ratio  = ( tZoom_center - tView_init ) / tView_extent;
-        this.setTimeViewExtent( tView_extent * tZoomFactor );
-        this.setTimeViewPosition( tZoom_center - tView_extent * tView_ratio );
+			 vport_timebox = zoom_undo_stack.pop();
+			 this.zoom( vport_timebox.getEarliestTime(), vport_timebox.getDuration() );			 
+		 }
+	 }
 
-        iViewPerTime = iView_width / tView_extent;
-        this.updatePixelCoords();
-        this.setScrollBarIncrements();
-    }
+	 public void zoomRedo()
+	 {
+		 if ( ! zoom_redo_stack.empty() ) {			 
+			 TimeBoundingBox vport_timebox;
 
-    public void zoomRapidly( double new_tView_init, double new_tView_extent )
-    {
-        double cur_tZoomScale;
-        cur_tZoomScale = tView_extent / new_tView_extent;
+			 vport_timebox = new TimeBoundingBox();
+			 vport_timebox.setEarliestTime( tView_init );
+			 vport_timebox.setLatestFromEarliest( tView_extent );
+			 zoom_undo_stack.push(vport_timebox);
 
-        // If this is a rapid zoom-in
-        // if ( cur_tZoomScale > 1.0d )
-            this.updateZoomStack( zoom_undo_stack );
+			 
+			 vport_timebox = zoom_redo_stack.pop();
+			 this.zoom( vport_timebox.getEarliestTime(), vport_timebox.getDuration() );
+		 }
+	 }
 
-        tZoomScale  *= cur_tZoomScale;
-        this.setTimeViewExtent( new_tView_extent );
-        this.setTimeViewPosition( new_tView_init );
+	 public boolean isZoomUndoStackEmpty()
+	 {
+		 return zoom_undo_stack.empty();
+	 }
 
-        iViewPerTime = iView_width / tView_extent;
-        this.updatePixelCoords();
-        this.setScrollBarIncrements();
-    }
+	 public boolean isZoomRedoStackEmpty()
+	 {
+		 return zoom_redo_stack.empty();
+	 }
 
-    private void zoomBack( double new_tView_init, double new_tView_extent )
-    {
-        double cur_tZoomScale;
-        cur_tZoomScale = tView_extent / new_tView_extent;
 
-        tZoomScale  *= cur_tZoomScale;
-        this.setTimeViewExtent( new_tView_extent );
-        this.setTimeViewPosition( new_tView_init );
+	 public void adjustmentValueChanged( AdjustmentEvent evt )
+	 {
+		 if ( Debug.isActive() ) {
+			 Debug.println( "ModelTime: AdjustmentValueChanged()'s START: " );
+			 Debug.println( "adj_evt = " + evt );
+		 }
 
-        iViewPerTime = iView_width / tView_extent;
-        this.updatePixelCoords();
-        this.setScrollBarIncrements();
-    }
+		 if ( Debug.isActive() )
+			 Debug.println( "ModelTime(before) = " + this.toString() );
+		 this.updateTimeCoords();
+		 if ( Debug.isActive() )
+			 Debug.println( "ModelTime(after) = " + this.toString() );
 
-    public void zoomUndo()
-    {
-        if ( ! zoom_undo_stack.empty() ) {
-            this.updateZoomStack( zoom_redo_stack );
-            TimeBoundingBox vport_timebox;
-            vport_timebox = (TimeBoundingBox) zoom_undo_stack.pop();
-            this.zoomBack( vport_timebox.getEarliestTime(),
-                           vport_timebox.getDuration() );
-            vport_timebox = null;
-        }
-    }
+		 // notify all TimeListeners of changes from Adjustment Listener
+		 this.fireTimeChanged();
+		 if ( Debug.isActive() )
+			 Debug.println( "ModelTime: AdjustmentValueChanged()'s END: " );
+	 }
 
-    public void zoomRedo()
-    {
-        if ( ! zoom_redo_stack.empty() ) {
-            this.updateZoomStack( zoom_undo_stack );
-            TimeBoundingBox vport_timebox;
-            vport_timebox = (TimeBoundingBox) zoom_redo_stack.pop();
-            this.zoomBack( vport_timebox.getEarliestTime(),
-                           vport_timebox.getDuration() );
-            vport_timebox = null;
-        }
-    }
+	 public String toString()
+	 {
+		 String str_rep = super.toString() + ",  "
+		 + "tGlobal_min=" + tGlobal_min + ", "
+		 + "tGlobal_max=" + tGlobal_max + ", "
+		 + "tView_init=" + tView_init + ", "
+		 + "tView_extent=" + tView_extent + ", "
+		 ;
 
-    public boolean isZoomUndoStackEmpty()
-    {
-        return zoom_undo_stack.empty();
-    }
-
-    public boolean isZoomRedoStackEmpty()
-    {
-        return zoom_redo_stack.empty();
-    }
-
-    // fire StateChanged for specific listener class.
-    /*
-    public void fireStateChanged( String listenerClass )
-    {
-        // listenersList is defined in superclass DefaultBoundedRangeModel
-        Object[] listeners = listenerList.getListenerList();
-        for ( int i = listeners.length - 2; i >= 0; i -=2 ) {
-            if (  listeners[i] == ChangeListener.class
-               && listeners[i+1].getClass().getName().equals(listenerClass) ) {
-                if ( Debug.isActive() )
-                    Debug.println( "ModelTime: fireStateChanged()'s "
-                                 + "listeners[" + (i+1) + "] = "
-                                 + listeners[i+1].getClass().getName() );
-                if (changeEvent == null) {
-                    changeEvent = new ChangeEvent(this);
-                }
-                ((ChangeListener)listeners[i+1]).stateChanged(changeEvent);
-            }
-
-            if ( Debug.isActive() && listeners[i] == ChangeListener.class )
-                Debug.println( "ModelTime: fireStateChanged()'s "
-                             + "ChangeListeners[" + (i+1) + "] = "
-                             + listeners[i+1].getClass().getName() );
-        }
-    }
-    */
-
-    public void adjustmentValueChanged( AdjustmentEvent evt )
-    {
-        if ( Debug.isActive() ) {
-            Debug.println( "ModelTime: AdjustmentValueChanged()'s START: " );
-            Debug.println( "adj_evt = " + evt );
-        }
-
-        if ( Debug.isActive() )
-            Debug.println( "ModelTime(before) = " + this.toString() );
-        this.updateTimeCoords();
-        if ( Debug.isActive() )
-            Debug.println( "ModelTime(after) = " + this.toString() );
-
-        // notify all TimeListeners of changes from Adjustment Listener
-        this.fireTimeChanged();
-        if ( Debug.isActive() )
-            Debug.println( "ModelTime: AdjustmentValueChanged()'s END: " );
-    }
-
-    public String toString()
-    {
-        String str_rep = super.toString() + ",  "
-                       + "tGlobal_min=" + tGlobal_min + ", "
-                       + "tGlobal_max=" + tGlobal_max + ", "
-                       + "tView_init=" + tView_init + ", "
-                       + "tView_extent=" + tView_extent + ", "
-                       + "iView_width=" + iView_width + ", "
-                       + "iViewPerTime=" + iViewPerTime + ", "
-                       + "iScrollbarPerTime=" + iScrollbarPerTime
-                       ;
-
-        return getClass().getName() + "{" + str_rep + "}";
-    }
+		 return getClass().getName() + "{" + str_rep + "}";
+	 }
 }

@@ -501,13 +501,6 @@ public abstract class ScrollableObject extends JComponent
         int img_idx, screen_img_pos;
         int side_idx, side_bit, side_offset;
 
-        // vport_mv_dir = viewport's moving direction
-        vport_mv_dir = model.getViewportMovingDir();
-        if ( vport_mv_dir < 0 )
-            vport_mv_dir = -1;
-        else
-            vport_mv_dir = 1;
-
         img_width = image_size.width;
 
         // draw Image in the middle of offscreenImages[]
@@ -531,7 +524,7 @@ public abstract class ScrollableObject extends JComponent
         for ( side_idx = 1; side_idx <= half_NumImages; side_idx++ ) {
             for ( side_bit = 1; side_bit >= -1; side_bit -= 2 ) {
                 // viewport_move_direction = -1 * image_move_direction
-                side_offset = side_bit * vport_mv_dir * side_idx;
+                side_offset = side_bit * side_idx;
                 img_idx = getValidImageIndex( cur_img_idx + side_offset );
                 if ( Debug.isActive() )
                     Debug.println( "ScrollableObject: paintComponent() "
