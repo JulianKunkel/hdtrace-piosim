@@ -18,6 +18,8 @@
 
 package de.hd.pvs.TraceFormat.statistics;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -26,7 +28,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author Julian M. Kunkel
  *
  */
-public class StatisticEntry {
+public class StatisticEntry implements TraceObject{
+	
+	private final ExternalStatisticsGroup group;
 	
 	/**
 	 * Maps the statistic name to the measured value.
@@ -35,7 +39,8 @@ public class StatisticEntry {
 	
 	private final Epoch timeStamp; 
 		
-	public StatisticEntry(Object [] values, Epoch timeStamp) {
+	public StatisticEntry(Object [] values, Epoch timeStamp, ExternalStatisticsGroup group) {
+		this.group = group;
 		this.values = values;
 		this.timeStamp = timeStamp;
 	}
@@ -44,7 +49,28 @@ public class StatisticEntry {
 		return values;
 	}
 	
+	/**
+	 * Return a number as double
+	 * @param which, the number of the value
+	 * @return
+	 */
+	public double getNumeric(int which){
+		if(Number.class.isAssignableFrom(values[which].getClass())){
+			return ((Number) values[which]).doubleValue();
+		}
+		return Double.NaN;
+	}
+	
 	public Epoch getTimeStamp() {
 		return timeStamp;
+	}
+	
+	@Override
+	final public TraceObjectType getType() {		
+		return TraceObjectType.STATISTIC;
+	}
+	
+	public ExternalStatisticsGroup getGroup() {
+		return group;
 	}
 }

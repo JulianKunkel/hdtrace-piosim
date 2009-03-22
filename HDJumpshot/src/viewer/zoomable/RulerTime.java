@@ -16,6 +16,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
 import viewer.common.Const;
@@ -130,11 +132,10 @@ public class RulerTime extends ScrollableObject
         }
     }
 
-    
-    public DrawObjects getDrawableAt( final Point local_click, final TimeBoundingBox  vport_timeframe ) {
-    	return null;
+    @Override
+    public TraceObject getDrawableAt(Point view_click, TimeBoundingBox vport_times) {
+    return null;
     }
-
     
     
     /*   Empty content to fulfill ScrollableObject's requirement  */

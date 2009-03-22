@@ -112,7 +112,10 @@ public class ProjectDescriptionXMLReader {
 			stat.setTimeOffset(Epoch.parseTime(toffset));
 		}
 		
-		final LinkedList<XMLTag> children = root.getNestedXMLTags(); 
+		final LinkedList<XMLTag> children = root.getNestedXMLTags();
+		
+		// the next number of the statistic group:
+		int currentNumberInGroup = 0;
 		for(XMLTag child: children){
 			int multiplier = 1;
 			if(child.getAttribute("multiplier").length() > 0){
@@ -120,10 +123,13 @@ public class ProjectDescriptionXMLReader {
 			}
 			StatisticDescription desc = new StatisticDescription(child.getName(), 
 					StatisticType.valueOf( child.getAttribute("type").toUpperCase() ),
+					currentNumberInGroup,
 					child.getAttribute("unit"),
 					multiplier);
 			
 			stat.addStatistic(desc);
+			
+			currentNumberInGroup++;
 		}
 		
 		return stat;

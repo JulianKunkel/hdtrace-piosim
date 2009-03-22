@@ -55,13 +55,18 @@ import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 public class TimelinePanel extends JPanel
 {
 	static final int LEFTPANEL_WIDTH = 150;
+	
+	//depends on the height of the two toolbars inside the timeline windoe
+	static final int DROPDOWN_HEIGHT = 88; 
+	 
+	
 	private Window                  root_window;
-	private TraceFormatBufferedFileReader       reader;
+	private final TraceFormatBufferedFileReader       reader;
 
 	private TimelineToolBar         toolbar;
 	
 	private BoundedRangeModel       y_model;
-	private final YaxisTree               y_tree;
+	private final YaxisTree         y_tree;
 	private JScrollPane             y_scroller;
 	private JScrollBar              y_scrollbar;
 
@@ -82,7 +87,6 @@ public class TimelinePanel extends JPanel
 	private ViewportTimePanel       time_canvas_panel;
 
 	private RowAdjustments          row_adjs;
-	private String                  err_msg;
 
 
 	private class IOOptionsListener extends JComboBox implements ActionListener
@@ -90,16 +94,17 @@ public class TimelinePanel extends JPanel
 		public IOOptionsListener(){
 			Insets canvas_panel_insets = time_canvas_panel.getInsets();
 			this.setMinimumSize(
-					new Dimension( LEFTPANEL_WIDTH, canvas_panel_insets.top ) );
+					new Dimension( LEFTPANEL_WIDTH, DROPDOWN_HEIGHT ) );
 			this.setMaximumSize(
-					new Dimension( Short.MAX_VALUE, canvas_panel_insets.top ) );
+					new Dimension( Short.MAX_VALUE, DROPDOWN_HEIGHT ) );
 			this.setPreferredSize(
-					new Dimension( LEFTPANEL_WIDTH, canvas_panel_insets.top ) );
+					new Dimension( LEFTPANEL_WIDTH, DROPDOWN_HEIGHT ) );
 			this.setAlignmentX(
 					Component.CENTER_ALIGNMENT );
 			this.addItem("PIOviz");
 			this.addActionListener( this );
 		}
+		
 		public void actionPerformed( ActionEvent evt )
 		{
 			int selected;
@@ -350,21 +355,8 @@ public class TimelinePanel extends JPanel
 		right_splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,
 				false, left_splitter, right_panel );
 		right_splitter.setOneTouchExpandable( true );
-		err_msg = null;
-		try {
-			left_splitter.setOneTouchExpandable( true );
-			right_splitter.setResizeWeight( 1.0d );
-		} catch ( NoSuchMethodError err ) {
-			err_msg =
-				"Method JSplitPane.setResizeWeight() cannot be found.\n"
-				+ "This indicates you are running an older Java2 RunTime,\n"
-				+ "like the one in J2SDK 1.2.2 or older. If this is the case,\n"
-				+ "some features in Timeline window may not work correctly,\n"
-				+ "For instance, automatic resize of the Timeline canvas\n"
-				+ "during window resizing and auto-update of the canvas\n"
-				+ "after adjustment of the slider's knob may fail silently,\n"
-				+ "manuel refresh of the canvas will be needed.";
-		}
+		left_splitter.setOneTouchExpandable( true );
+		right_splitter.setResizeWeight( 1.0d );
 
 		this.add( right_splitter, BorderLayout.CENTER );
 
@@ -374,24 +366,14 @@ public class TimelinePanel extends JPanel
 		time_canvas.setRequired(toolbar.getRestore_timelines_listener(), time_canvas_vport);
 		this.add( toolbar, BorderLayout.NORTH );
 
-		/*
-            Initialize the YaxisTree properties as well its display size which
-            indirectly determines the size of CanvasTimeline
-		 */
-		y_tree.init();
 		row_adjs.initYLabelTreeSize();
 	}
 
 	public void init()
 	{
-		// time_scrollbar.init();
-
 		// Initialize toolbar after creation of YaxisTree view
 		toolbar.init();
 		row_adjs.initSlidersAndTextFields();
-
-		if ( err_msg != null )
-			Dialogs.error( root_window, err_msg );
 
 		if ( Debug.isActive() ) {
 			Debug.println( "TimelinePanel.init(): time_model = "

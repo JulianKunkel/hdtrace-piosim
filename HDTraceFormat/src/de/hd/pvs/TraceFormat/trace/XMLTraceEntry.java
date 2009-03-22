@@ -20,6 +20,7 @@ package de.hd.pvs.TraceFormat.trace;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -28,19 +29,12 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
  * @author Julian M. Kunkel
  *
  */
-public abstract class XMLTraceEntry extends XMLTag {
-	public static enum TYPE{
-		STATE,
-		EVENT
-	};
-
+public abstract class XMLTraceEntry extends XMLTag implements TraceObject{
 	/**
 	 * when did the event/state etc. occur
 	 */
 	final Epoch time;
 	
-	abstract public TYPE getType();
-
 	private final XMLTraceEntry parentXMLData; 
 	
 	public XMLTraceEntry getParentTraceData() {

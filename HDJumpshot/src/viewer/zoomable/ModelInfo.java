@@ -13,6 +13,8 @@ import java.text.NumberFormat;
 import java.text.DecimalFormat;
 import java.awt.Color;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+
 import viewer.common.Const;
 import base.drawable.*;
 
@@ -35,21 +37,21 @@ public class ModelInfo
     }  
     
     
-    public void showInfo( DrawObjects dobj ) {
+    public void showInfo( TraceObject object ) {
        double duration;
-       
-       if ( (dobj != null) || (dobj instanceof Primitive) ) {
-           this.setStartTime( fmt.format( ( (Primitive) dobj ).getStartVertex().time ) );
-               this.setEndTime( fmt.format( ( (Primitive) dobj ).getFinalVertex().time ) );
-               duration = ( (Primitive) dobj ).getFinalVertex().time   
-                         -( (Primitive) dobj ).getStartVertex().time;
-               this.setDuration( fmt.format( duration ) );             
-           this.setCategoryName(dobj.getCategory().getName());    
-           this.setCategoryColor( (Color) dobj.getCategory().getColor() );
-           this.setInfoString( ( (Primitive) dobj ).toInfoBoxString().trim() );
-       } else {
-           this.reset();
-       }
+//       TODO
+//       if ( (dobj != null) || (dobj instanceof Primitive) ) {
+//           this.setStartTime( fmt.format( ( (Primitive) dobj ).getStartVertex().time ) );
+//               this.setEndTime( fmt.format( ( (Primitive) dobj ).getFinalVertex().time ) );
+//               duration = ( (Primitive) dobj ).getFinalVertex().time   
+//                         -( (Primitive) dobj ).getStartVertex().time;
+//               this.setDuration( fmt.format( duration ) );             
+//           this.setCategoryName(dobj.getCategory().getName());    
+//           this.setCategoryColor( (Color) dobj.getCategory().getColor() );
+//           this.setInfoString( ( (Primitive) dobj ).toInfoBoxString().trim() );
+//       } else {
+//           this.reset();
+//       }
     }
     
     

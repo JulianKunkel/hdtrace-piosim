@@ -18,17 +18,16 @@ import java.util.Properties;
 
 import base.topology.Arrow;
 import base.topology.Event;
-import base.topology.Line;
 import base.topology.State;
 import base.topology.StateBorder;
 
 public class Parameters
 {
-    private static final String       VERSION_INFO             = "1.0.1.1";
+    private static final String       VERSION_INFO             = "2.0";
     private static       String       setupfile_path           = null;
 
     // Options: Zoomable window reinitialization (requires window restart)
-    public  static       String       Y_AXIS_ROOT_LABEL        = "SLOG-2";
+    public  static       String       Y_AXIS_ROOT_LABEL        = "HD-Trace";
     public  static       short        INIT_SLOG2_LEVEL_READ    = 4;
     public  static       boolean      AUTO_WINDOWS_LOCATION    = true;
     public  static       float        SCREEN_HEIGHT_RATIO      = 0.5f;
@@ -46,7 +45,6 @@ public class Parameters
     public  static       Alias        ARROW_ANTIALIASING
                                       = Const.ANTIALIAS_DEFAULT;
     public  static       int          MIN_WIDTH_TO_DRAG        = 4;
-    public  static       int          CLICK_RADIUS_TO_LINE     = 3;
     public  static       boolean      LEFTCLICK_INSTANT_ZOOM   = true;
 
     // Options: Timeline zoomable window
@@ -96,9 +94,6 @@ public class Parameters
         Arrow.setHeadWidth( Parameters.ARROW_HEAD_WIDTH );
         // Define the size of EventBase
         Event.setBaseWidth( Parameters.EVENT_BASE_WIDTH ); 
-        // Define how a pixel is considered to be lying on a Line/Arrow/Event
-        Line.setPixelClosenessTolerance( Parameters.CLICK_RADIUS_TO_LINE );
-        Event.setPixelClosenessTolerance( Parameters.CLICK_RADIUS_TO_LINE );
         // Define state border type
         State.setBorderStyle( Parameters.STATE_BORDER );
     }
@@ -140,8 +135,6 @@ public class Parameters
                            String.valueOf( ARROW_ANTIALIASING ) );
         pptys.setProperty( "MIN_WIDTH_TO_DRAG",
                            String.valueOf( MIN_WIDTH_TO_DRAG ) );
-        pptys.setProperty( "CLICK_RADIUS_TO_LINE",
-                           String.valueOf( CLICK_RADIUS_TO_LINE ) );
         pptys.setProperty( "LEFTCLICK_INSTANT_ZOOM",
                            String.valueOf( LEFTCLICK_INSTANT_ZOOM ) );
 
@@ -285,9 +278,6 @@ public class Parameters
             MIN_WIDTH_TO_DRAG = Integer.parseInt( ppty_val );
         ppty_val = pptys.getProperty( "CLICK_RADIUS_TO_LINE" );
         if ( ppty_val != null )
-            CLICK_RADIUS_TO_LINE = Integer.parseInt( ppty_val );
-        ppty_val = pptys.getProperty( "LEFTCLICK_INSTANT_ZOOM" );
-        if ( ppty_val != null )
             LEFTCLICK_INSTANT_ZOOM =    ppty_val.equalsIgnoreCase( "true" )
                                      || ppty_val.equalsIgnoreCase( "yes" );
 
@@ -371,7 +361,6 @@ public class Parameters
         rep.append( "NESTING_HEIGHT_FACTOR = " + NESTING_HEIGHT_FACTOR + "\n" );
         rep.append( "ARROW_ANTIALIASING = "    + ARROW_ANTIALIASING    + "\n" );
         rep.append( "MIN_WIDTH_TO_DRAG = "     + MIN_WIDTH_TO_DRAG     + "\n" );
-        rep.append( "CLICK_RADIUS_TO_LINE = "  + CLICK_RADIUS_TO_LINE  + "\n" );
         rep.append( "LEFTCLICK_INSTANT_ZOOM = "+ LEFTCLICK_INSTANT_ZOOM+ "\n" );
 
         rep.append( "STATE_BORDER = "          + STATE_BORDER          + "\n" );

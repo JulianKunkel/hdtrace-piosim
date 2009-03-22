@@ -99,7 +99,7 @@ public class StatisticsReader{
 			values[pos++] = value;
 		}
 
-		return new StatisticEntry(values, timeStamp);
+		return new StatisticEntry(values, timeStamp, group);
 	}
 
 	public boolean isFinished(){

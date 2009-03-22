@@ -19,6 +19,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
 import viewer.common.Const;
@@ -574,7 +576,7 @@ public class ViewportTime extends JViewport
             InfoDialog        info_popup;
             Point             vport_click, view_click;
             double           click_time;
-            DrawObjects          dobj;
+            TraceObject      dobj;
 
             vport_click = mouse_evt.getPoint();
             click_time  = coord_xform.convertPixelToTime( vport_click.x );
@@ -586,8 +588,7 @@ public class ViewportTime extends JViewport
                     scrollable );
             dobj = scrollable.getDrawableAt( view_click, vport_timebox );
 
-            if (info_model != null) 
-            	info_model.showInfo( dobj );
+            info_model.showInfo( dobj );
         }    
         
         public void mouseEntered( MouseEvent mouse_evt )

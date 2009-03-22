@@ -32,7 +32,6 @@ public class ActionYaxisTreeExpand implements ActionListener
             Debug.println( "Action for Expand Tree button" );
 
         tree_view.expandLevel();
-        toolbar.getYaxisTreeCommitButton().doClick();
 
         // Set toolbar buttons to reflect status
         toolbar.resetYaxisTreeButtons();

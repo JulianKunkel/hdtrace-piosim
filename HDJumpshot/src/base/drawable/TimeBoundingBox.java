@@ -30,47 +30,11 @@ public class TimeBoundingBox
         latest_time   = timebox.latest_time;
     }
 
-    public TimeBoundingBox( final Coord[] vtxs )
-    {
-        if ( vtxs != null ) {
-            earliest_time  = latest_time  = vtxs[ 0 ].time;
-            for ( int idx = 1; idx < vtxs.length; idx++ ) {
-                this.affectEarliestTime( vtxs[ idx ].time );
-                this.affectLatestTime( vtxs[ idx ].time );
-            }
-        }
-        else {
-            earliest_time = Double.POSITIVE_INFINITY;
-            latest_time   = Double.NEGATIVE_INFINITY;
-        }
-    }
-
-    private TimeBoundingBox( double starttime, double finaltime )
-    {
-        earliest_time = starttime;
-        latest_time   = finaltime;
-    }
-
     public void affectTimeBounds( final TimeBoundingBox endtimes )
     {
         this.affectEarliestTime( endtimes.getEarliestTime() );
         this.affectLatestTime( endtimes.getLatestTime() );
     }
-
-    public void affectTimeBounds( final Coord vtx )
-    {
-        this.affectEarliestTime( vtx.time );
-        this.affectLatestTime( vtx.time );
-    }
-
-    public void affectTimeBounds( final Coord[] vtxs )
-    {
-        for ( int idx = 0; idx < vtxs.length; idx++ ) {
-            this.affectEarliestTime( vtxs[ idx ].time );
-            this.affectLatestTime( vtxs[ idx ].time );
-        }
-    }
-
 
     public void affectEarliestTime( double in_time )
     {

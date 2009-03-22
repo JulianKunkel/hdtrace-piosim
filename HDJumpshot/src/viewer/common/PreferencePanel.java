@@ -41,7 +41,6 @@ public class PreferencePanel extends JPanel
     private        LabeledFloatSlider     sdr_NESTING_HEIGHT_FACTOR;
     private        LabeledComboBox        lst_ARROW_ANTIALIASING;
     private        LabeledTextField       fld_MIN_WIDTH_TO_DRAG;
-    private        LabeledTextField       fld_CLICK_RADIUS_TO_LINE;
     private        LabeledComboBox        lst_LEFTCLICK_INSTANT_ZOOM;
 
     // Options: Timeline zoomable window
@@ -229,16 +228,6 @@ public class PreferencePanel extends JPanel
         fld_MIN_WIDTH_TO_DRAG.addSelfDocumentListener();
         fld_MIN_WIDTH_TO_DRAG.setEditable( true );
         super.add( fld_MIN_WIDTH_TO_DRAG );
-
-        fld_CLICK_RADIUS_TO_LINE = new LabeledTextField( true,
-                                       "CLICK_RADIUS_TO_LINE",
-                                       Const.INTEGER_FORMAT );
-        fld_CLICK_RADIUS_TO_LINE.setToolTipText(
-        "Radius in pixel for a click to be considered on the arrow." );
-        fld_CLICK_RADIUS_TO_LINE.setHorizontalAlignment( JTextField.CENTER );
-        fld_CLICK_RADIUS_TO_LINE.addSelfDocumentListener();
-        fld_CLICK_RADIUS_TO_LINE.setEditable( true );
-        super.add( fld_CLICK_RADIUS_TO_LINE );
 
         lst_LEFTCLICK_INSTANT_ZOOM = new LabeledComboBox(
                                          "LEFTCLICK_INSTANT_ZOOM" );
@@ -433,7 +422,6 @@ public class PreferencePanel extends JPanel
         sdr_NESTING_HEIGHT_FACTOR.setFloat( Parameters.NESTING_HEIGHT_FACTOR );
         lst_ARROW_ANTIALIASING.setSelectedItem( Parameters.ARROW_ANTIALIASING );
         fld_MIN_WIDTH_TO_DRAG.setInteger( Parameters.MIN_WIDTH_TO_DRAG );
-        fld_CLICK_RADIUS_TO_LINE.setInteger( Parameters.CLICK_RADIUS_TO_LINE );
         lst_LEFTCLICK_INSTANT_ZOOM.setSelectedBooleanItem(
                                    Parameters.LEFTCLICK_INSTANT_ZOOM );
 
@@ -494,8 +482,6 @@ public class PreferencePanel extends JPanel
                   = (Alias) lst_ARROW_ANTIALIASING.getSelectedItem();
         Parameters.MIN_WIDTH_TO_DRAG
                   = fld_MIN_WIDTH_TO_DRAG.getInteger();
-        Parameters.CLICK_RADIUS_TO_LINE
-                  = fld_CLICK_RADIUS_TO_LINE.getInteger();
         Parameters.LEFTCLICK_INSTANT_ZOOM
                   = lst_LEFTCLICK_INSTANT_ZOOM.getSelectedBooleanItem();
 

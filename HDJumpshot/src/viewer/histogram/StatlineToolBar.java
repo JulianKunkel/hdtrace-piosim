@@ -22,7 +22,6 @@ import viewer.zoomable.ActionTimelineRestore;
 import viewer.zoomable.RulerTime;
 import viewer.zoomable.ToolBarStatus;
 import viewer.zoomable.ModelTime;
-import viewer.zoomable.YaxisMaps;
 import viewer.zoomable.YaxisTree;
 import viewer.zoomable.ScrollbarTime;
 import viewer.zoomable.ViewportTimeYaxis;
@@ -34,7 +33,6 @@ import viewer.zoomable.ActionTimelineMove;
 import viewer.zoomable.ActionTimelineDelete;
 import viewer.zoomable.ActionYaxisTreeExpand;
 import viewer.zoomable.ActionYaxisTreeCollapse;
-import viewer.zoomable.ActionYaxisTreeCommit;
 import viewer.zoomable.ActionVportBackward;
 import viewer.zoomable.ActionVportForward;
 import viewer.zoomable.ActionZoomUndo;
@@ -44,7 +42,6 @@ import viewer.zoomable.ActionZoomIn;
 import viewer.zoomable.ActionZoomRedo;
 import viewer.zoomable.ActionPptyRefresh;
 import viewer.zoomable.ActionPptyPrint;
-import viewer.zoomable.ActionPptyStop;
 
 public class StatlineToolBar extends JToolBar
                              implements ToolBarStatus
@@ -53,10 +50,8 @@ public class StatlineToolBar extends JToolBar
     private ViewportTimeYaxis       canvas_vport;
     private JScrollBar              y_scrollbar;
     private YaxisTree               y_tree;
-    private YaxisMaps               y_maps;
     private ScrollbarTime           time_scrollbar;
     private ModelTime               time_model;
-    private RowAdjustments          row_adjs;
 
     private JButton                 mark_btn;
     private JButton                 move_btn;
@@ -67,7 +62,6 @@ public class StatlineToolBar extends JToolBar
 
     private JButton                 expand_btn;
     private JButton                 collapse_btn;
-    private JButton                 commit_btn;
 
     private JButton                 backward_btn;
     private JButton                 forward_btn;
@@ -81,7 +75,6 @@ public class StatlineToolBar extends JToolBar
 
     private JButton                 refresh_btn;
     private JButton                 print_btn;
-    private JButton                 stop_btn;
     private CanvasTimeline          cnvas_timeline = null;
     private ActionTimelineRestore   restore;
     private RulerTime	            time_ruler;
@@ -93,10 +86,8 @@ public class StatlineToolBar extends JToolBar
                             ViewportTimeYaxis  canvas_viewport,
                             JScrollBar         yaxis_scrollbar,
                             YaxisTree          yaxis_tree,
-                            YaxisMaps          yaxis_maps,
                             ScrollbarTime      a_time_scrollbar,
-                            ModelTime          a_time_model,
-                            RowAdjustments     a_row_adjs )
+                            ModelTime          a_time_model )
     {
         super();
         this.restore = restore;
@@ -105,10 +96,8 @@ public class StatlineToolBar extends JToolBar
         canvas_vport     = canvas_viewport;
         y_scrollbar      = yaxis_scrollbar;
         y_tree           = yaxis_tree;
-        y_maps           = yaxis_maps;
         time_scrollbar   = a_time_scrollbar;
         time_model       = a_time_model;
-        row_adjs         = a_row_adjs;
         this.addButtons();
         canvas_vport.setToolBarStatus( this );
     }
@@ -225,24 +214,7 @@ public class StatlineToolBar extends JToolBar
         collapse_btn.addActionListener(
                      new ActionYaxisTreeCollapse( this, y_tree ) );
         super.add( collapse_btn );
-
-        icon_URL = getURL( Const.IMG_PATH + "TreeCommit24.gif" );
-        if ( icon_URL != null )
-            commit_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            commit_btn = new JButton( "LabelCommit" );
-        commit_btn.setMargin( btn_insets );
-        commit_btn.setToolTipText(
-                   "Commit changes and Redraw the TimeLines Display" );
-        commit_btn.setMnemonic( KeyEvent.VK_D );
-        // collapse_btn.setPreferredSize( btn_dim );
-        commit_btn.addActionListener(
-                   new ActionYaxisTreeCommit( root_window, this,
-                                              canvas_vport, y_maps,
-                                              row_adjs ) );
-        // Elminate displaying this button, so user uses ScreenRefresh button
-        // super.add( commit_btn );
-
+        
         super.addSeparator();
         super.addSeparator();
 
@@ -348,21 +320,6 @@ public class StatlineToolBar extends JToolBar
 
         super.addSeparator( mini_separator_size );
 
-        /*
-        icon_URL = getURL( Const.IMG_PATH + "ZoomSet24.gif" );
-        if ( icon_URL != null )
-            zoomSet_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomSet_btn = new JButton( "ZoomSet" );
-        zoomSet_btn.setMargin( btn_insets );
-        zoomSet_btn.setToolTipText( "Set zoom paramter by a panel" );
-        // zoomHome_btn.setPreferredSize( btn_dim );
-        // zoomSet_btn.addActionListener(
-        //         new ActionZoomSet( this, time_model ) );
-        super.add( zoomSet_btn );
-        */
-
-        super.addSeparator();
         super.addSeparator();
 
         icon_URL = getURL( Const.IMG_PATH + "Refresh24.gif" );
@@ -377,7 +334,7 @@ public class StatlineToolBar extends JToolBar
         refresh_btn.setMnemonic( KeyEvent.VK_D );
         // refresh_btn.setPreferredSize( btn_dim );
         refresh_btn.addActionListener(
-                   new ActionPptyRefresh( y_tree, commit_btn ) );
+                   new ActionPptyRefresh( y_tree ) );
         super.add( refresh_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "Print24.gif" );
@@ -390,17 +347,6 @@ public class StatlineToolBar extends JToolBar
         // print_btn.setPreferredSize( btn_dim );
         print_btn.addActionListener( new ActionPptyPrint(cnvas_timeline, time_ruler) );
         super.add( print_btn );
-
-        icon_URL = getURL( Const.IMG_PATH + "Stop24.gif" );
-        if ( icon_URL != null )
-            stop_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            stop_btn = new JButton( "Exit" );
-        stop_btn.setMargin( btn_insets );
-        stop_btn.setToolTipText( "Exit the Statline window" );
-        // stop_btn.setPreferredSize( btn_dim );
-        stop_btn.addActionListener( new ActionPptyStop( root_window ) );
-        super.add( stop_btn );
     }
 
     private void initAllButtons()
@@ -421,7 +367,6 @@ public class StatlineToolBar extends JToolBar
 
         refresh_btn.setEnabled( true );
         print_btn.setEnabled( false );
-        stop_btn.setEnabled( true );
     }
 
     //  Interface for ToolBarStatus
@@ -441,12 +386,7 @@ public class StatlineToolBar extends JToolBar
     {
         expand_btn.setEnabled( y_tree.isLevelExpandable() );
         collapse_btn.setEnabled( y_tree.isLevelCollapsable() );
-        commit_btn.setEnabled( true );
     }
-
-    //  Interface for ToolBarStatus
-    public JButton getYaxisTreeCommitButton()
-    { return commit_btn; }
 
     //  Interface for ToolBarStatus
     public JButton getPropertyRefreshButton()

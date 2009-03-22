@@ -32,7 +32,6 @@ public class ActionYaxisTreeCollapse implements ActionListener
             Debug.println( "Action for Collapse Tree button" );
 
         tree_view.collapseLevel();
-        toolbar.getYaxisTreeCommitButton().doClick();
 
         // Set toolbar buttons to reflect status
         toolbar.resetYaxisTreeButtons();

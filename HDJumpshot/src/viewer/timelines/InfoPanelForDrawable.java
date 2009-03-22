@@ -36,9 +36,6 @@ import viewer.zoomable.TimeFormat;
 import viewer.zoomable.YaxisTreeNode;
 import base.drawable.Category;
 import base.drawable.CategoryWeight;
-import base.drawable.Coord;
-import base.drawable.DrawObjects;
-import base.drawable.Primitive;
 import base.drawable.Topology;
 
 

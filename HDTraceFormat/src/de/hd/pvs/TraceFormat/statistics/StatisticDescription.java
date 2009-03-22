@@ -21,6 +21,8 @@
  */
 package de.hd.pvs.TraceFormat.statistics;
 
+import javax.print.DocFlavor.STRING;
+
 
 public class StatisticDescription{
 	final StatisticType type;
@@ -29,11 +31,14 @@ public class StatisticDescription{
 	final String unit;
 	final int multiplier;
 	
-	public StatisticDescription(String name, StatisticType type, String unit, int multiplier) {
+	final int numberInGroup;
+	
+	public StatisticDescription(String name, StatisticType type, int numberInGroup, String unit, int multiplier) {
 		this.name = name;
 		this.type = type;
 		this.multiplier = multiplier;
-		this.unit = unit;
+		this.unit = unit;		
+		this.numberInGroup = numberInGroup;
 	}
 	
 	public String getName() {
@@ -50,5 +55,21 @@ public class StatisticDescription{
 	
 	public String getUnit() {
 		return unit;
+	}
+	
+	/**
+	 * Retuns true if this object is numeric
+	 * @return
+	 */
+	public boolean isNumeric() {
+		return ! type.equals(StatisticType.STRING);
+	}
+	
+	/**
+	 * Return the number/position this statistic has in the group
+	 * @return
+	 */
+	public int getNumberInGroup() {
+		return numberInGroup;
 	}
 }

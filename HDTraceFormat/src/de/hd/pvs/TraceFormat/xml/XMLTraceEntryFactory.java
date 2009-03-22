@@ -20,17 +20,17 @@ package de.hd.pvs.TraceFormat.xml;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry.TYPE;
 
 public class XMLTraceEntryFactory {
-	private static XMLTraceEntry.TYPE getType(String name){
+	private static TraceObjectType getType(String name){
 		if(name.equals("Event")){
-			return TYPE.EVENT;
+			return TraceObjectType.EVENT;
 		}else{
-			return TYPE.STATE;
+			return TraceObjectType.STATE;
 		}
 	}
 	
@@ -70,15 +70,15 @@ public class XMLTraceEntryFactory {
 
 	public static XMLTraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent){
 		// determine type
-		final XMLTraceEntry.TYPE type = getType(data.getName());
+		final TraceObjectType type = getType(data.getName());
 
-		if(type == TYPE.STATE ){
+		if(type == TraceObjectType.STATE ){
 			final HashMap<String, String>  attributes = data.getAttributes();
 			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes, parent);
 			traceObj.setNestedXMLTags(data.getNestedXMLTags());
 			
 			return traceObj;
-		}else if (type == TYPE.EVENT){
+		}else if (type == TraceObjectType.EVENT){
 			// strip of the real name
 			String name = data.getAttributes().remove("name");
 			if( name == null || name.length() < 2){

@@ -41,6 +41,8 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.Copies;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+
 public abstract class ScrollableObject extends JComponent
                                        implements ScrollableView
 {
@@ -686,8 +688,8 @@ public abstract class ScrollableObject extends JComponent
     }
 
 
-    public abstract DrawObjects
-    getDrawableAt( final Point            view_click,
+    public abstract TraceObject  getDrawableAt( 
+    								final Point view_click,
                    final TimeBoundingBox  vport_times );
 
 

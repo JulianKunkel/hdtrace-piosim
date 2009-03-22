@@ -76,9 +76,14 @@ public class YaxisTree extends JTree
         	}
         }
         setModel(new DefaultTreeModel(tree_root));
-
-        
         root_path = new TreePath( tree_root );
+        
+        this.update_leveled_paths();
+        super.setEditable( true );
+        
+        for(int i=0 ; i < 10; i++)
+        	expandLevel();
+        
         super.putClientProperty("JTree.lineStyle", "Angled");
     }
 
@@ -106,76 +111,6 @@ public class YaxisTree extends JTree
         return nvtr;
     }
 
-/*
-    private void tree_grow_leaves( DefaultMutableTreeNode parent,
-                                   int                    numLevels,
-                                   int                    numNodes,
-                                   int                    level_idx,
-                                   int                    prev_node_idx )
-    {
-        DefaultMutableTreeNode child;
-        String node_label;
-        int idx_offset, node_idx;
-
-        if ( level_idx < numLevels ) {
-            idx_offset = prev_node_idx * numNodes;
-            for ( int idx = 0; idx < numNodes; idx++ ) {
-                node_idx = idx_offset + idx;
-                node_label = "l=" + level_idx + " "
-                           + "n=(" + prev_node_idx + ", " + node_idx + ")";
-                child = new DefaultMutableTreeNode( node_label );
-                tree_grow_leaves( child, numLevels, numNodes,
-                                  level_idx + 1, node_idx );
-                parent.add( child );
-            }
-        }
-    }
-
-    private void tree_construction( DefaultMutableTreeNode root )
-    {
-        int numLevels = 5;
-        int numNodesPerParent  = 3;
-        tree_grow_leaves( root, numLevels, numNodesPerParent, 1, 0 );
-        ( (DefaultTreeModel) super.getModel() ).reload();
-    }
-*/
-
-    public void init()
-    {
-        // this.tree_construction( tree_root );
-        this.update_leveled_paths();
-        // System.out.println( "YaxisTree.init(): VisibleRowCount = "
-        //                   + super.getVisibleRowCount() + ", VisibleFrame = "
-        //                   + super.getVisibleRowCount()
-        //                   * super.getRowHeight() );
-        super.setEditable( true );
-
-        // this.initDisplaySize();
-    }
-
-/*
-    private void initDisplaySize()
-    {
-        int avail_screen_height;
-        int canvas_height;
-        int y_tree_row_height;
-        int y_tree_row_count;
-        int vis_row_count;
-
-        super.setRootVisible( Parameters.Y_AXIS_ROOT_VISIBLE );
-        y_tree_row_count    = super.getRowCount();
-        avail_screen_height = (int) ( Routines.getScreenSize().height
-                                    * Parameters.SCREEN_HEIGHT_RATIO );
-        y_tree_row_height   = avail_screen_height / y_tree_row_count;
-        super.setRowHeight( y_tree_row_height );
-        super.setVisibleRowCount( y_tree_row_count );
-        System.out.println( "avail_screen_height = " + avail_screen_height +"\n"
-                          + "y_tree_row_height = " + y_tree_row_height + "\n"
-                          + "y_tree_row_count = " + y_tree_row_count + "\n"
-                          + "canvas_height = " + canvas_height + "\n"
-                          + "vis_row_count = " + vis_row_count );
-    }
-*/
 
     public void update_leveled_paths()
     {
@@ -209,15 +144,6 @@ public class YaxisTree extends JTree
                 path = new TreePath( node.getPath() );
                 leveled_paths[ node.getLevel() ].add( path );
             }
-
-         /*
-         for ( ilevel = 0; ilevel <= max_level; ilevel++ ) {
-             paths = leveled_paths[ ilevel ].iterator();
-             while ( paths.hasNext() )
-                 System.out.println( paths.next() );
-             System.out.println();
-         }
-         */
 
          // Update next_expanding_level
          boolean isAllExpanded = true;

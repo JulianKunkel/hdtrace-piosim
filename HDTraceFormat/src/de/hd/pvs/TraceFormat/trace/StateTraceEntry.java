@@ -21,6 +21,7 @@ package de.hd.pvs.TraceFormat.trace;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 
@@ -53,8 +54,8 @@ public class StateTraceEntry extends XMLTraceEntry{
 	}
 		
 	@Override
-	public TYPE getType() {		
-		return TYPE.STATE;
+	public TraceObjectType getType() {		
+		return TraceObjectType.STATE;
 	}
 	
 	public Epoch getDurationTime() {

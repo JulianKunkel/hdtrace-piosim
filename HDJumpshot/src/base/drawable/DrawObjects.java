@@ -21,6 +21,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 
 public class DrawObjects{
+	
+	static double nestingMultiplier = 0.8;
+
 
 	public static  int  drawState( Graphics2D g,
 			CoordPixelXform  coord_xform,
@@ -32,7 +35,7 @@ public class DrawObjects{
         int iStart   = coord_xform.convertTimeToPixel( state.getTimeStamp().getDouble() );
         int iFinal   = coord_xform.convertTimeToPixel( state.getEndTime().getDouble() );
 
-        float height = coord_xform.getTimelineHeight(timeline) / nestingDepth;
+        float height = (float) ( coord_xform.getTimelineHeight(timeline) * Math.pow(nestingMultiplier, nestingDepth) );
         
         int jStart   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
         int jFinal   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
@@ -43,22 +46,23 @@ public class DrawObjects{
 	public static int  drawStatistic( 
 			Graphics2D g,
 			CoordPixelXform  coord_xform,
-			StatisticEntry currentStatistic,
-			StatisticEntry lastStatistic,
+			Epoch timeStamp,
+			double lastTimeStamp,
+			float normalizedHeight,
 			ColorAlpha color,
 			int timeline)
 	{
 
-        int iStart   = coord_xform.convertTimeToPixel( lastStatistic.getTimeStamp().getDouble() );
-        int iFinal   = coord_xform.convertTimeToPixel( currentStatistic.getTimeStamp().getDouble() );
+        int iStart   = coord_xform.convertTimeToPixel( lastTimeStamp );
+        int iFinal   = coord_xform.convertTimeToPixel( timeStamp.getDouble() );
 
         float height = coord_xform.getTimelineHeight(timeline);
         
         int jStart   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
         int jFinal   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
 		
-        // TODO replace height with real value...
-		return State.drawForward( g, color, null , iStart, jStart, iFinal, jFinal, 0.5f, false );
+		return State.drawForward( g, color, null , iStart, jStart, iFinal, jFinal, 
+				normalizedHeight, false );
 	}
 
 	//  assume this Primitive overlaps with coord_xform.TimeBoundingBox
@@ -88,6 +92,6 @@ public class DrawObjects{
         
         int jStart   = coord_xform.convertTimelineToPixel( timeline );
         
-		return Event.draw( g, color, null, iStart, jStart, 20, (int) coord_xform.getTimelineHeight(timeline) );
+		return Event.draw( g, color, null, iStart, jStart, (int) coord_xform.getTimelineHeight(timeline) );
 	}
 }

@@ -41,20 +41,6 @@ public class CategoryRatios
         excl_ratio     = 0.0f;
     }
 
-    // For SLOG-2 Output
-    public CategoryRatios( float new_incl_r, float new_excl_r )
-    {
-        incl_ratio     = new_incl_r;
-        excl_ratio     = new_excl_r;
-    }
-
-    // For SLOG-2 Output
-    public CategoryRatios( final CategoryRatios type_rts )
-    {
-        this.incl_ratio     = type_rts.incl_ratio;
-        this.excl_ratio     = type_rts.excl_ratio;
-    }
-
     public float getRatio( boolean isInclusive )
     {
         if ( isInclusive )
@@ -84,27 +70,6 @@ public class CategoryRatios
     public void addInclusiveRatio( float extra_ratio )
     {
         this.incl_ratio += extra_ratio;
-    }
-
-    public void writeObject( DataOutput outs )
-    throws java.io.IOException
-    {
-        outs.writeFloat( incl_ratio );
-        outs.writeFloat( excl_ratio );
-    }
-
-    public CategoryRatios( DataInput ins )
-    throws java.io.IOException
-    {
-        super();
-        this.readObject( ins );
-    }
-
-    public void readObject( DataInput ins )
-    throws java.io.IOException
-    {
-        incl_ratio     = ins.readFloat();
-        excl_ratio     = ins.readFloat();
     }
 
     // For InfoPanelForDrawable

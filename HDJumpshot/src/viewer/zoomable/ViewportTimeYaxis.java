@@ -14,6 +14,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+
 import base.drawable.DrawObjects;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
@@ -96,7 +98,7 @@ public class ViewportTimeYaxis extends ViewportTime
     }
 
 
-    private Rectangle  localRectangleForDrawable( final DrawObjects dobj )
+    private Rectangle  localRectangleForDrawable( final TraceObject dobj )
     {
         Rectangle  dobj_rect;
         Point      local_click; 

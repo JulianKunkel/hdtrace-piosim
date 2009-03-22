@@ -21,11 +21,11 @@ package de.hd.pvs.traceConverter.Input.Trace;
 
 import java.io.IOException;
 
+import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry.TYPE;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 
@@ -71,7 +71,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		if(currentTraceEntry != null && currentTraceEntry.isTraceChild()){
 			//System.out.println("Parent: " + currentTraceEntry.getName());
 			
-			if(currentTraceEntry.getType() == TYPE.STATE){
+			if(currentTraceEntry.getType() == TraceObjectType.STATE){
 				StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
 				if(state.hasNestedTraceChildren()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
@@ -113,11 +113,11 @@ public class TraceProcessor extends AbstractTraceProcessor{
 	public void processEarliestEvent(Epoch now) {		
 		//System.out.println(eventTime.getFullDigitString() + " " + stateStart + " processing " + currentTraceEntry.getName() + " t " + currentTraceEntry.getTime());
 		
-		if(currentTraceEntry.getType() == TYPE.EVENT){
+		if(currentTraceEntry.getType() == TraceObjectType.EVENT){
 			getOutputConverter().Event(getPID(), now, (EventTraceEntry) currentTraceEntry);
 			
 			readNextTraceEntryIfNecessary();
-		}else if(currentTraceEntry.getType() == TYPE.STATE){			
+		}else if(currentTraceEntry.getType() == TraceObjectType.STATE){			
 			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
 			final String name = currentTraceEntry.getName();
 			

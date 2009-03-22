@@ -18,6 +18,8 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.event.EventListenerList;
 
+import base.drawable.TimeBoundingBox;
+
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -564,7 +566,7 @@ public class ModelTime extends DefaultBoundedRangeModel
             TimeBoundingBox vport_timebox;
             vport_timebox = (TimeBoundingBox) zoom_undo_stack.pop();
             this.zoomBack( vport_timebox.getEarliestTime(),
-                           vport_timebox.getDurationTime() );
+                           vport_timebox.getDuration() );
             vport_timebox = null;
         }
     }
@@ -576,7 +578,7 @@ public class ModelTime extends DefaultBoundedRangeModel
             TimeBoundingBox vport_timebox;
             vport_timebox = (TimeBoundingBox) zoom_redo_stack.pop();
             this.zoomBack( vport_timebox.getEarliestTime(),
-                           vport_timebox.getDurationTime() );
+                           vport_timebox.getDuration() );
             vport_timebox = null;
         }
     }

@@ -77,7 +77,7 @@ public class CoordPixelImage implements CoordPixelXform
     }
     
     @Override
-    public float getTimelineHeight(int timeline) {
+    public int getTimelineHeight(int timeline) {
     	return row_hgt;
     }
 

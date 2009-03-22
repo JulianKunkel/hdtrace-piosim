@@ -17,7 +17,6 @@ public interface ToolBarStatus
 
     public void    resetYaxisTreeButtons();
 
-    public JButton getYaxisTreeCommitButton();
     public JButton getPropertyRefreshButton();
 
     public JButton getTimelineMarkButton();

@@ -33,22 +33,6 @@ public class CategoryWeight extends CategorySummary
         height         = 0;
     }
 
-    // For SLOG-2 Output
-    public CategoryWeight( final Category new_type,
-                           float new_incl_r, float new_excl_r,
-                           long new_num_real_objs )
-    {
-        super( new_incl_r, new_excl_r, new_num_real_objs );
-        type           = new_type;
-    }
-
-    // For SLOG-2 Output
-    public CategoryWeight( final CategoryWeight type_wgt )
-    {
-        super( type_wgt );
-        this.type           = type_wgt.type;
-    }
-
     public void setPixelWidth( int wdh )
     {
         width = wdh;
@@ -72,14 +56,6 @@ public class CategoryWeight extends CategorySummary
     public Category getCategory()
     {
         return type;
-    }
-
-
-    public CategoryWeight( DataInput ins )
-    throws java.io.IOException
-    {
-        super();
-        this.readObject( ins );
     }
 
     // For InfoPanelForDrawable

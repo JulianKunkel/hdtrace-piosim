@@ -20,6 +20,8 @@ package de.hd.pvs.TraceFormat.trace;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.TraceObjectType;
+
 
 public class EventTraceEntry extends XMLTraceEntry{
 
@@ -29,8 +31,8 @@ public class EventTraceEntry extends XMLTraceEntry{
 	}
 	
 	@Override
-	public TYPE getType() {		
-		return TYPE.EVENT;
+	public TraceObjectType getType() {		
+		return TraceObjectType.EVENT;
 	}
 	
 	

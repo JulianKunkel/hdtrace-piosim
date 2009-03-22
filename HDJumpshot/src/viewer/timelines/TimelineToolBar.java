@@ -23,7 +23,6 @@ import javax.swing.JToolBar;
 import viewer.common.Const;
 import viewer.zoomable.ActionPptyPrint;
 import viewer.zoomable.ActionPptyRefresh;
-import viewer.zoomable.ActionPptyStop;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
@@ -94,7 +93,6 @@ public class TimelineToolBar extends JToolBar
     private JButton                 refresh_btn;
     private JButton                 print_btn;
     private JButton                 print_btn_pc;
-    private JButton                 stop_btn;
     private CanvasTimeline          cnvas_timeline = null;
     private RulerTime	 			time_ruler = null;
     private ActionTimelineRestore   restore_timelines_listener;
@@ -455,7 +453,7 @@ public class TimelineToolBar extends JToolBar
         refresh_btn.setMnemonic( KeyEvent.VK_D );
         // refresh_btn.setPreferredSize( btn_dim );
         refresh_btn.addActionListener(
-                   new ActionPptyRefresh( y_tree, commit_btn ) );
+                   new ActionPptyRefresh( y_tree ) );
         super.add( refresh_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "Print24.gif" );
@@ -480,18 +478,6 @@ public class TimelineToolBar extends JToolBar
         // print_btn.setPreferredSize( btn_dim );
         print_btn_pc.addActionListener( new ActionPptyPrint(cnvas_timeline, 1) );
         super.add( print_btn_pc );
-
-
-        icon_URL = getURL( Const.IMG_PATH + "Stop24.gif" );
-        if ( icon_URL != null )
-            stop_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            stop_btn = new JButton( "Exit" );
-        stop_btn.setMargin( btn_insets );
-        stop_btn.setToolTipText( "Exit the Timeline window" );
-        // stop_btn.setPreferredSize( btn_dim );
-        stop_btn.addActionListener( new ActionPptyStop( root_window ) );
-        super.add( stop_btn );
     }
 
     private void initAllButtons()
@@ -516,7 +502,6 @@ public class TimelineToolBar extends JToolBar
 
         refresh_btn.setEnabled( true );
         print_btn.setEnabled( true );
-        stop_btn.setEnabled( true );
     }
 
     //  Interface for ToolBarStatus
