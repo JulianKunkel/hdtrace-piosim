@@ -18,15 +18,20 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Window;
 import java.util.Date;
+import java.util.Stack;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.sun.org.apache.xerces.internal.impl.xs.util.SimpleLocator;
+
 import viewer.BufferedStatisticFileReader;
 import viewer.BufferedTraceFileReader;
+import viewer.TimelineType;
 import viewer.TraceFormatBufferedFileReader;
 import viewer.common.CustomCursor;
 import viewer.common.Parameters;
@@ -49,10 +54,11 @@ import base.drawable.ColorAlpha;
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
@@ -61,7 +67,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class CanvasTimeline extends ScrollableObject
 implements SearchableView, SummarizableView
 {
-	private YaxisTree          tree_view;
+	private YaxisTree          timelineManager;
 	private BoundedRangeModel  y_model;
 
 	private Frame              root_frame;
@@ -92,7 +98,7 @@ implements SearchableView, SummarizableView
 		super( time_model );
 
 		this.reader = reader;
-		tree_view       = ytree;
+		timelineManager       = ytree;
 		y_model         = yaxis_model;
 		// timeframe4imgs to be initialized later in initializeAllOffImages()
 		timeframe4imgs  = null;
@@ -129,7 +135,7 @@ implements SearchableView, SummarizableView
 
 	public int getJComponentHeight()
 	{
-		int rows_size = tree_view.getRowCount() * tree_view.getRowHeight();
+		int rows_size = timelineManager.getRowCount() * timelineManager.getRowHeight();
 		int view_size = y_model.getMaximum() - y_model.getMinimum() + 1;
 		if ( view_size > rows_size )
 			return view_size;
@@ -156,8 +162,8 @@ implements SearchableView, SummarizableView
 		Routines.setComponentAndChildrenCursors( root_frame,
 				CustomCursor.Wait );
 
-		num_rows    = tree_view.getRowCount();
-		row_height  = tree_view.getRowHeight();
+		num_rows    = timelineManager.getRowCount();
+		row_height  = timelineManager.getRowHeight();
 
 		if ( Profile.isActive() )
 			init_time = new Date();
@@ -224,7 +230,7 @@ implements SearchableView, SummarizableView
 		offGraphics.setColor( Color.cyan );
 		for ( irow = 0 ; irow < num_rows ; irow++ ) {
 			//  Select only non-expanded row
-			if ( ! tree_view.isExpanded( irow ) ) {
+			if ( ! timelineManager.isExpanded( irow ) ) {
 				i_Y = coord_xform.convertTimelineToPixel(irow );
 				offGraphics.drawLine( 0, i_Y, offImage_width-1, i_Y );
 			}
@@ -257,7 +263,7 @@ implements SearchableView, SummarizableView
 		drawStatisticTimeline(3, "Power", 
 				(BufferedStatisticFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(1).getFilesPerThread().get(0).getStatisticReaders().get("Energy"),
 				offGraphics, timebounds, coord_xform);
-		
+
 		offGraphics.dispose();
 	}   // endof drawOneOffImage()
 
@@ -273,13 +279,13 @@ implements SearchableView, SummarizableView
 		final StatisticDescription statDesc =  sReader.getGroup().getStatistic(statName);
 		final int statNumber = statDesc.getNumberInGroup();
 
-		for(StatisticEntry entry: sReader.getStatEntries()){
+		for(StatisticGroupEntry entry: sReader.getStatEntries()){
 			double value =  (entry.getNumeric(statNumber) / maxValue);
 
 			DrawObjects.drawStatistic(offGraphics, coord_xform, 
 					entry.getTimeStamp(), lastTime, 
 					(float) value, 
-					reader.getCategory(entry, statName).getColor(), timeline);
+					reader.getCategory(entry.getGroup(), statName).getColor(), timeline);
 			lastTime = entry.getTimeStamp().getDouble();
 		}
 	}
@@ -330,28 +336,103 @@ implements SearchableView, SummarizableView
 	}
 
 
-	public TraceObject getDrawableAt( final Point local_click, final TimeBoundingBox  vport_timeframe ) {
+	public TraceObject getDrawableAt( 
+			final Point local_click, 
+			final TimeBoundingBox  vport_timeframe ) 
+	{		 				
 		CoordPixelImage coord_xform;  // Local Coordinate Transform
-		coord_xform = new CoordPixelImage( this, row_height,
-				super.getTimeBoundsOfImages() );
-		double clicked_time = coord_xform.convertPixelToTime( local_click.x );
+		coord_xform = new CoordPixelImage( this, row_height, super.getTimeBoundsOfImages() );
+
+		final double eventRadius = 2.0 / getViewPixelsPerUnitTime();
+
+		final double clickedTime = coord_xform.convertPixelToTime( local_click.x );
+		final int timeline       = coord_xform.convertPixelToTimeline( local_click.y);
+
+		if( timeline <= 0 || timeline > timelineManager.getTimelines() ){
+			return null;
+		}
+
+		switch(timelineManager.getType(timeline)){
+		case TRACE:
+			final BufferedTraceFileReader treader = timelineManager.getTraceReaderForTimeline(timeline);
+			XMLTraceEntry objMouse = treader.getTraceEntryClosestToTime(clickedTime);			
+
+			if (objMouse.getType() == TraceObjectType.STATE){
+				StateTraceEntry state = (StateTraceEntry) objMouse;
+
+				if(DrawObjects.getTimeDistance(clickedTime, state) != 0){
+					// mouse is not inside the state.
+					return null;
+				}
+
+				if (state.hasNestedTraceChildren()){					
+					XMLTraceEntry best = objMouse;
+					double dist = 0;
+
+					while(dist == 0){
+						// traverse nesting if necessary, and match events.
+
+						if (best.getType() == TraceObjectType.STATE ){
+							state = (StateTraceEntry) best;
+
+							if (state.hasNestedTraceChildren()){		
+								for(XMLTraceEntry child: state.getNestedTraceChildren()){
+									dist = DrawObjects.getTimeDistance(clickedTime, child);
+									if(child.getType() == TraceObjectType.EVENT ){
+										if( dist < eventRadius){
+											best = child;
+										}									
+									}
+									if (dist == 0){
+										// must be inside this one.
+										best = child;
+										break;
+									}
+								}
+							}else{
+								// no matching child
+								break;
+							}
+							
+						}
+					} // while
+					objMouse = best;
+				}				
+			}else if(objMouse.getType() == TraceObjectType.EVENT){
+				double distance = Math.abs(objMouse.getTimeStamp().getDouble() - clickedTime);
+				if( distance >= eventRadius){
+					return null;
+				}
+			}
+
+			//SimpleConsoleLogger.Debug("Mouse over " + objMouse.getName());
+
+			return objMouse;
+		case STATISTIC:
+			final BufferedStatisticFileReader sreader = timelineManager.getStatisticReaderForTimeline(timeline);
+			StatisticGroupEntry entry = sreader.getTraceEntryClosestToTime(clickedTime);
+			int which = timelineManager.getStatisticNumberForTimeline(timeline);			
+			return entry.createStatisticEntry(which);
+		default:
+
+		}
 
 		return null;
 	}
 
-
-
-
-
-	public InfoDialog getPropertyAt( final Point            local_click,
-			final TimeBoundingBox  vport_timeframe )
+	public InfoDialog getPropertyAt( final Point local_click,	final TimeBoundingBox  vport_timeframe )
 	{
 
-		/* System.out.println( "\nshowPropertyAt() " + local_click ); */
-		CoordPixelImage coord_xform;  // Local Coordinate Transform
-		coord_xform = new CoordPixelImage( this, row_height,
-				super.getTimeBoundsOfImages() );
-		double clicked_time = coord_xform.convertPixelToTime( local_click.x );
+		TraceObject obj = getDrawableAt(local_click, vport_timeframe);
+		if( obj != null ){
+      CoordPixelImage coord_xform;
+      coord_xform = new CoordPixelImage( this, 0,
+                                         this.getTimeBoundsOfImages() );
+      Window          window;
+      window = SwingUtilities.windowForComponent( this );
+			return new InfoDialogForTraceObjects((Frame) window, 
+					coord_xform.convertPixelToTime(local_click.x), obj);
+		}
 
 		return super.getTimePropertyAt( local_click );
 	} 
@@ -370,11 +451,8 @@ implements SearchableView, SummarizableView
 		width  = coord_xform.convertTimeToPixel( endTime.getDouble() )
 		- xloc;
 
-		/* assume RowID and NestingFactor have been calculated */
-		float      nesting_ftr = 1.0f / (1 + nestingDepth); 
-
 		yloc   = coord_xform.convertTimelineToPixel( timeline );
-		height = coord_xform.getTimelineHeight(timeline);
+		height = coord_xform.getTimelineHeight();
 		local_rect = new Rectangle( xloc, yloc, width, height );
 		return local_rect;
 	}

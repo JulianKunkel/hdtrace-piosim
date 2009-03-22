@@ -1,5 +1,7 @@
 package viewer;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public interface IBufferedReader {
@@ -15,4 +17,12 @@ public interface IBufferedReader {
 	 * @return
 	 */
 	public Epoch getMaxTime();
+	
+	/**
+	 * Return the trace entry which covers or the one which is closest to this time.
+	 * 
+	 * @param time
+	 * @return
+	 */
+	public TraceObject getTraceEntryClosestToTime(double dTime);
 }

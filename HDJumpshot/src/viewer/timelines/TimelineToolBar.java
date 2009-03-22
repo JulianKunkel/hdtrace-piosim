@@ -21,7 +21,7 @@ import javax.swing.JScrollBar;
 import javax.swing.JToolBar;
 
 import viewer.common.Const;
-import viewer.zoomable.ActionPptyPrint;
+import viewer.zoomable.ActionPptyScreenshot;
 import viewer.zoomable.ActionPptyRefresh;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
@@ -87,7 +87,6 @@ public class TimelineToolBar extends JToolBar
 
     private JButton                 refresh_btn;
     private JButton                 print_btn;
-    private JButton                 print_btn_pc;
     private CanvasTimeline          cnvas_timeline = null;
     private RulerTime	 			time_ruler = null;
     private ActionTimelineRestore   restore_timelines_listener;
@@ -455,22 +454,11 @@ public class TimelineToolBar extends JToolBar
         else
             print_btn = new JButton( "Print" );
 
-        if ( icon_URL != null )
-        	print_btn_pc = new JButton( new ImageIcon( icon_URL ) );
-        else
-            print_btn_pc = new JButton( "Print" );
-
         print_btn.setMargin( btn_insets );
-        print_btn.setToolTipText( "Print the Timeline window to /tmp/jumpshot*" );
+        print_btn.setToolTipText( "Screenshot the Timeline window to /tmp/jumpshot*" );
         // print_btn.setPreferredSize( btn_dim );
-        print_btn.addActionListener( new ActionPptyPrint(cnvas_timeline, time_ruler) );
+        print_btn.addActionListener( new ActionPptyScreenshot(cnvas_timeline, time_ruler) );
         super.add( print_btn );
-
-        print_btn_pc.setMargin( btn_insets );
-        print_btn_pc.setToolTipText( "Print the PCs" );
-        // print_btn.setPreferredSize( btn_dim );
-        print_btn_pc.addActionListener( new ActionPptyPrint(cnvas_timeline, 1) );
-        super.add( print_btn_pc );
     }
 
     private void initAllButtons()

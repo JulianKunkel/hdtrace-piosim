@@ -13,7 +13,7 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.HostnamePerProjectContainer;
 import de.hd.pvs.TraceFormat.topology.RanksPerHostnameTraceContainer;
@@ -97,7 +97,7 @@ public class TraceFormatBufferedFileReader {
 					double fileMinValue = Double.MAX_VALUE;
 										
 					// check file:
-					for(StatisticEntry entry: reader.statEntries){
+					for(StatisticGroupEntry entry: reader.statEntries){
 						double value = entry.getNumeric(groupNumber);
 						
 						if( value > fileMaxValue ) fileMaxValue = value;
@@ -229,8 +229,8 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStates.get(entry.getName());
 	}
 	
-	public Category getCategory(StatisticEntry entry, String statistic){
-		return categoriesStatistics.get(entry.getGroup().getName());
+	public Category getCategory(ExternalStatisticsGroup group, String statistic){
+		return categoriesStatistics.get(group.getName());
 	}
 	
 	public Collection<String> getGroupNames(){

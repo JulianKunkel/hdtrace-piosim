@@ -59,7 +59,11 @@ public class StateTraceEntry extends XMLTraceEntry{
 	}
 	
 	public Epoch getDurationTime() {
-		return getTimeStamp().subtract(endTime);
+		return endTime.subtract(getTimeStamp());
+	}
+	
+	public double getDurationTimeDouble() {
+		return endTime.getDouble() - getTimeStamp().getDouble();
 	}
 	
 	public Epoch getEndTime() {

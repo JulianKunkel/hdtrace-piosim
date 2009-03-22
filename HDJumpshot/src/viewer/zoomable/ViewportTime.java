@@ -20,6 +20,10 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
@@ -573,22 +577,31 @@ public class ViewportTime extends JViewport
 
         public void mouseMoved( MouseEvent mouse_evt ) {
             ScrollableObject  scrollable;
-            InfoDialog        info_popup;
             Point             vport_click, view_click;
-            double           click_time;
             TraceObject      dobj;
 
             vport_click = mouse_evt.getPoint();
-            click_time  = coord_xform.convertPixelToTime( vport_click.x );
-
+            
             scrollable = (ScrollableObject) view_img;
             
             view_click = SwingUtilities.convertPoint( this,
                     vport_click,
                     scrollable );
             dobj = scrollable.getDrawableAt( view_click, vport_timebox );
-
-            info_model.showInfo( dobj );
+            
+            if(dobj != null){
+          		switch (dobj.getType()){
+          		case STATE:
+          			info_model.showInfo((StateTraceEntry) dobj);
+          			break;
+          		case EVENT:
+          			info_model.showInfo((EventTraceEntry) dobj);
+          			break;
+          		case STATISTICENTRY:
+          			info_model.showInfo((StatisticEntry) dobj);
+          			break;
+          		}
+            }
         }    
         
         public void mouseEntered( MouseEvent mouse_evt )

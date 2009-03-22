@@ -17,7 +17,7 @@ public interface CoordPixelXform
 
     public int     convertTimelineToPixel( int timeline );
     
-    public int     getTimelineHeight(int timeline);
+    public int     getTimelineHeight();
 
     public int     convertPixelToTimeline( int vert_pixel );
 

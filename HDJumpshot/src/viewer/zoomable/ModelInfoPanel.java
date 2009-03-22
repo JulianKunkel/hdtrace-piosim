@@ -29,140 +29,145 @@ import viewer.common.LabeledTextField;
 
 public class ModelInfoPanel extends JPanel
 {
-    private ModelInfo         model = null;
+	private ModelInfo         model = null;
 
-    private LabeledTextField  fld_time_start;
-    private LabeledTextField  fld_time_end;
-    private LabeledTextField  fld_time_duration;
-    private LabeledTextField  fld_category_name;
-    private LabeledTextField  fld_operation_type;
-    private LabeledTextField  fld_callID;
-    private LabeledTextField  fld_jobID;
-    private LabeledTextField  fld_value;
+	private LabeledTextField  fld_time_start;
+	private LabeledTextField  fld_time_end;
+	private LabeledTextField  fld_time_duration;
+	private LabeledTextField  fld_category_name;
+	private LabeledTextField  fld_operation_type;
+	private LabeledTextField  fld_callID;
+	private LabeledTextField  fld_jobID;
+	private LabeledTextField  fld_value;
 
-    static private final String PVFS2_sm_state = "SM-State";
-    static private final String PVFS2_migration = "Migration";
-    static private final String PVFS2_sm_field = "sm";
-    static private final String PVFS2_sm_state_field = "st";
-    static private final String PVFS2_operation = "op";
-    static private final String PVFS2_callid = "cid";
-    static private final String PVFS2_callid_rank = "rank";
-    static private final String PVFS2_jobID = "jid";
-    static private final String PVFS2_value = "vl";
+	static private final String PVFS2_sm_state = "SM-State";
+	static private final String PVFS2_migration = "Migration";
+	static private final String PVFS2_sm_field = "sm";
+	static private final String PVFS2_sm_state_field = "st";
+	static private final String PVFS2_operation = "op";
+	static private final String PVFS2_callid = "cid";
+	static private final String PVFS2_callid_rank = "rank";
+	static private final String PVFS2_jobID = "jid";
+	static private final String PVFS2_value = "vl";
 
-    static private final String PVFS2_PC = "value";
-    static private final String PVFS2_PERCENT = "percent";
-    static private final String PROP_VALUE_MULTIPLIER = "multiplier";
-    static private final String PROP_VALUE_PREFIX = "prefix";
-
-
-    /**
-     * contains the categories which could be mapped to PVFS2 operation types directly
-     */
-    static final String decodeOperationType = "Request decode";
-
-    private List              vport_list;
-
-    public ModelInfoPanel( ModelInfo model )
-    {
-        super();
-        this.model         = model;
-        setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-
-        vport_list         = new ArrayList();
-
-        fld_category_name    = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
-        fld_category_name.setEditable( false );
-        fld_category_name.setBackground( Color.black );
-        add( fld_category_name );
+	static private final String PVFS2_PC = "value";
+	static private final String PVFS2_PERCENT = "percent";
+	static private final String PROP_VALUE_MULTIPLIER = "multiplier";
+	static private final String PROP_VALUE_PREFIX = "prefix";
 
 
-        fld_time_start    = new LabeledTextField( "Start time", Const.PANEL_TIME_FORMAT );
-        fld_time_start.setEditable( false );
-        add( fld_time_start );
+	/**
+	 * contains the categories which could be mapped to PVFS2 operation types directly
+	 */
+	static final String decodeOperationType = "Request decode";
 
-        fld_time_end    = new LabeledTextField( "End time", Const.PANEL_TIME_FORMAT );
-        fld_time_end.setEditable( false );
-        add( fld_time_end );
+	private List              vport_list;
 
+	public ModelInfoPanel( ModelInfo model )
+	{
+		super();
+		this.model         = model;
+		setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
 
-        fld_time_duration     = new LabeledTextField( "Duration", Const.PANEL_TIME_FORMAT );
-        fld_time_duration.setEditable( false );
-        add( fld_time_duration );
+		vport_list         = new ArrayList();
 
-        fld_callID = new LabeledTextField( "CallID", Const.PANEL_TIME_FORMAT );
-        fld_callID.setEditable( false );
-        add( fld_callID );
-
-        fld_operation_type = new LabeledTextField( "Operation Type", Const.PANEL_TIME_FORMAT );
-        fld_operation_type.setEditable( false );
-        add( fld_operation_type );
-
-        fld_jobID = new LabeledTextField( "Job ID", Const.PANEL_TIME_FORMAT );
-        fld_jobID.setEditable( false );
-        add( fld_jobID );
-
-        fld_value = new LabeledTextField( "Value", Const.PANEL_TIME_FORMAT );
-        fld_value.setEditable( false );
-        add( fld_value );
+		fld_category_name    = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
+		fld_category_name.setEditable( false );
+		fld_category_name.setBackground( Color.black );
+		add( fld_category_name );
 
 
-        super.setBorder( BorderFactory.createEtchedBorder() );
-    }
+		fld_time_start    = new LabeledTextField( "Start time", Const.PANEL_TIME_FORMAT );
+		fld_time_start.setEditable( false );
+		add( fld_time_start );
+
+		fld_time_end    = new LabeledTextField( "End time", Const.PANEL_TIME_FORMAT );
+		fld_time_end.setEditable( false );
+		add( fld_time_end );
 
 
-    public void reset() {
-        fld_time_start.setText("");
-        fld_time_end.setText("");
-        fld_time_duration.setText("");
-        fld_category_name.setText("");
-        fld_category_name.setBackground( Color.black );
-        setInfoString("");
-    }
+		fld_time_duration     = new LabeledTextField( "Duration", Const.PANEL_TIME_FORMAT );
+		fld_time_duration.setEditable( false );
+		add( fld_time_duration );
 
-    public void setStartTime(final String starttime)
-    {
-        fld_time_start.setText(starttime);
-    }
+		fld_callID = new LabeledTextField( "CallID", Const.PANEL_TIME_FORMAT );
+		fld_callID.setEditable( false );
+		add( fld_callID );
 
-    public void setEndTime(final String endtime)
-    {
-        fld_time_end.setText(endtime);
-    }
+		fld_operation_type = new LabeledTextField( "Operation Type", Const.PANEL_TIME_FORMAT );
+		fld_operation_type.setEditable( false );
+		add( fld_operation_type );
 
-    public void setDuration(final String duration)
-    {
-        fld_time_duration.setText(duration);
-    }
+		fld_jobID = new LabeledTextField( "Job ID", Const.PANEL_TIME_FORMAT );
+		fld_jobID.setEditable( false );
+		add( fld_jobID );
 
-    public void setCategoryColor(final Color color)
-    {
-        fld_category_name.setBackground( color );
-    }
+		fld_value = new LabeledTextField( "Value", Const.PANEL_TIME_FORMAT );
+		fld_value.setEditable( false );
+		add( fld_value );
 
-    public void setCategoryName(final String type)
-    {
-        fld_category_name.setText(type);
-    }
 
-    public void setInfoString(final String info)
-    {
+		super.setBorder( BorderFactory.createEtchedBorder() );
+	}
+
+
+	public void reset() {
+		fld_time_start.setText("");
+		fld_time_end.setText("");
+		fld_time_duration.setText("");
+		fld_category_name.setText("");
+		fld_category_name.setBackground( Color.black );
+		setInfoString("");
+	}
+
+	public void setStartTime(final String starttime)
+	{
+		fld_time_start.setText(starttime);
+	}
+
+	public void setEndTime(final String endtime)
+	{
+		fld_time_end.setText(endtime);
+	}
+
+	public void setDuration(final String duration)
+	{
+		fld_time_duration.setText(duration);
+	}
+
+	public void setCategoryColor(final Color color)
+	{
+		fld_category_name.setBackground( color );
+	}
+
+	public void setCategoryName(final String type)
+	{
+		fld_category_name.setText(type);
+	}
+
+	public void setInfoString(final String info)
+	{
+		if(info != null){
+			fld_value.setText(info);
+			return;
+		}
+		
 		fld_callID.setLabel("CallID");
 		fld_operation_type.setLabel("Operation type");
 		fld_value.setLabel("Value");
 
-    	fld_operation_type.setText("");
-    	fld_callID.setText("");
-    	fld_jobID.setText("");
-    	fld_value.setText("");
+		fld_operation_type.setText("");
+		fld_callID.setText("");
+		fld_jobID.setText("");
+		fld_value.setText("");
 		fld_callID.setVisible(true);
 		fld_jobID.setVisible(true);
-    	String param = null;
+		String param = null;
 
-        String category = fld_category_name.getText();
-        String category_plain = category.replaceAll("[ :\n\t]", "");
+		String category = fld_category_name.getText();
+		String category_plain = category.replaceAll("[ :\n\t]", "");
 
-  		/* figure out if this is object is a special PVFS2 object */
+		/* figure out if this is object is a special PVFS2 object */
 		if( category.equals(decodeOperationType) ){
 			param =  getParam(info, PVFS2_operation);
 			if(param != null){
@@ -272,44 +277,44 @@ public class ModelInfoPanel extends JPanel
 		if(param != null){
 			fld_value.setText(param);
 		}
-    }
+	}
 
 
-    public void addViewportTime( final ViewportTime  vport )
-    {
-        if ( vport != null )
-            vport_list.add( vport );
-    }
+	public void addViewportTime( final ViewportTime  vport )
+	{
+		if ( vport != null )
+			vport_list.add( vport );
+	}
 
-    static private Properties pvfs2_pc_modifier = new Properties();
-    static {
-    	try{
-    	pvfs2_pc_modifier.load(new FileInputStream("jumpshot-modelInfoPanel.property"));
-    	}catch(IOException e){
-    		System.err.println("Error during accessing jumpshot-modelInfoPanel.property: " + e.getMessage());
-    	}
-    }
+	static private Properties pvfs2_pc_modifier = new Properties();
+	static {
+		try{
+			pvfs2_pc_modifier.load(new FileInputStream("jumpshot-modelInfoPanel.property"));
+		}catch(IOException e){
+			System.err.println("Error during accessing jumpshot-modelInfoPanel.property: " + e.getMessage());
+		}
+	}
 
-    private String getPVFS2_PC_modifier(String category, String what){
-    	return pvfs2_pc_modifier.getProperty(category + "_" + what);
-    }
+	private String getPVFS2_PC_modifier(String category, String what){
+		return pvfs2_pc_modifier.getProperty(category + "_" + what);
+	}
 
 
-    private String getParam(String paramstring, String param) {
-        Pattern pattern =  Pattern.compile(param + "=(-?[0-9]*)", Pattern.DOTALL | Pattern.MULTILINE);
-        Matcher m = pattern.matcher( paramstring );
-        if(m.find()){
-            return m.group(1);
-        }
-        return null;
-    }
+	private String getParam(String paramstring, String param) {
+		Pattern pattern =  Pattern.compile(param + "=(-?[0-9]*)", Pattern.DOTALL | Pattern.MULTILINE);
+		Matcher m = pattern.matcher( paramstring );
+		if(m.find()){
+			return m.group(1);
+		}
+		return null;
+	}
 
-    private String getFloatParam(String paramstring, String param) {
-        Pattern pattern =  Pattern.compile(param + "=(-?[0-9]*[,.][0-9]*)", Pattern.DOTALL | Pattern.MULTILINE);
-        Matcher m = pattern.matcher( paramstring );
-        if(m.find()){
-            return m.group(1);
-        }
-        return null;
-    }
+	private String getFloatParam(String paramstring, String param) {
+		Pattern pattern =  Pattern.compile(param + "=(-?[0-9]*[,.][0-9]*)", Pattern.DOTALL | Pattern.MULTILINE);
+		Matcher m = pattern.matcher( paramstring );
+		if(m.find()){
+			return m.group(1);
+		}
+		return null;
+	}
 }

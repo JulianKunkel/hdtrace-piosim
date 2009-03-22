@@ -232,7 +232,7 @@ public class TimelinePanel extends JPanel
 		time_model.setScrollBar( time_scrollbar );
 
 
-		info_model     = new ModelInfo();
+		info_model     = new ModelInfo(reader);
 		info_display_panel = new ModelInfoPanel( info_model );
 		info_model.setParamDisplay( info_display_panel );
 		time_canvas_vport.setInfoModel( info_model );

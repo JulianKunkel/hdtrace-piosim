@@ -19,7 +19,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import viewer.BufferedStatisticFileReader;
+import viewer.BufferedTraceFileReader;
+import viewer.TimelineType;
 import viewer.TraceFormatBufferedFileReader;
+import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.HostnamePerProjectContainer;
 import de.hd.pvs.TraceFormat.topology.RanksPerHostnameTraceContainer;
 import de.hd.pvs.TraceFormat.topology.ThreadsPerRankTraceContainer;
@@ -30,17 +34,48 @@ import de.hd.pvs.TraceFormat.topology.ThreadsPerRankTraceContainer;
 public class YaxisTree extends JTree
 {
     private DefaultMutableTreeNode  tree_root;
-    private TreePath                root_path;
     
     final TraceFormatBufferedFileReader  reader;
 
-    private List[]                  leveled_paths;
+    private List<TreePath>[]                  leveled_paths;
     private int                     max_level;
     private int                     next_expanding_level;
  
-    private List                    cut_paste_buf;
+    private List<TreePath>          cut_paste_buf;
     private int                     buf_level;
+    
+    /**
+     * Get the trace reader for a particular timeline
+     * 
+     * @param timeline
+     * @return
+     */
+    public BufferedTraceFileReader getTraceReaderForTimeline(int timeline){
+    	return (BufferedTraceFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(0).getFilesPerThread().get(0).getTraceFileReader();
+    }
+    
+    /**
+     * Get the statistic reader responsible for a particular timeline
+     * @param timeline
+     * @return
+     */
+    public BufferedStatisticFileReader getStatisticReaderForTimeline(int timeline){
+    	return (BufferedStatisticFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(0).getFilesPerThread().get(0).getStatisticReaders().get("Energy");
+    }
+    
+    public int getStatisticNumberForTimeline(int timeline){
+    	return 1;
+    }
+    
+    public int getTimelines(){
+    	return 3;
+    }
 
+    public TimelineType getType(int timeline){
+    	return TimelineType.TRACE;
+    }
+    
+    ////
     
     public YaxisTree( final TraceFormatBufferedFileReader  reader )
     {
@@ -76,7 +111,6 @@ public class YaxisTree extends JTree
         	}
         }
         setModel(new DefaultTreeModel(tree_root));
-        root_path = new TreePath( tree_root );
         
         this.update_leveled_paths();
         super.setEditable( true );

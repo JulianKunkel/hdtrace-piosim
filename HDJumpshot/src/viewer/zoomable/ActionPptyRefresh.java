@@ -35,7 +35,9 @@ public class ActionPptyRefresh implements ActionListener
         pptys_frame = (PreferenceFrame) TopWindow.Preference.getWindow();
         if ( pptys_frame != null )
             pptys_frame.updateAllParametersFromFields();
+                
         Parameters.initStaticClasses();
+        
         y_tree.setRootVisible( Parameters.Y_AXIS_ROOT_VISIBLE );
     }
 }

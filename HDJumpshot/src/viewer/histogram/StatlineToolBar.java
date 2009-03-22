@@ -41,7 +41,7 @@ import viewer.zoomable.ActionZoomHome;
 import viewer.zoomable.ActionZoomIn;
 import viewer.zoomable.ActionZoomRedo;
 import viewer.zoomable.ActionPptyRefresh;
-import viewer.zoomable.ActionPptyPrint;
+import viewer.zoomable.ActionPptyScreenshot;
 
 public class StatlineToolBar extends JToolBar
                              implements ToolBarStatus
@@ -345,7 +345,7 @@ public class StatlineToolBar extends JToolBar
         print_btn.setMargin( btn_insets );
         print_btn.setToolTipText( "Print the Statline window" );
         // print_btn.setPreferredSize( btn_dim );
-        print_btn.addActionListener( new ActionPptyPrint(cnvas_timeline, time_ruler) );
+        print_btn.addActionListener( new ActionPptyScreenshot(cnvas_timeline, time_ruler) );
         super.add( print_btn );
     }
 

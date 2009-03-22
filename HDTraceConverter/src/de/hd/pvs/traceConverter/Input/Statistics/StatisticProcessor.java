@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
@@ -38,7 +38,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	
 	private boolean isFinished;
 	
-	private StatisticEntry lastRead;
+	private StatisticGroupEntry lastRead;
 	private long           currentOffset = 0;
 	
 	private Epoch nextTimeStamp;

@@ -11,5 +11,6 @@ package de.hd.pvs.TraceFormat;
 public enum TraceObjectType{
 	STATE,
 	EVENT,
-	STATISTIC
+	STATISTICGROUPVALUES, 
+	STATISTICENTRY
 }

@@ -21,7 +21,7 @@ package de.hd.pvs.TraceFormat.index;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
@@ -101,7 +101,7 @@ public class IndexCreator {
 	
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		
-		StatisticEntry entry = reader.readNextInputEntry();
+		StatisticGroupEntry entry = reader.readNextInputEntry();
 		while(entry != null){
 			
 			writer.writeNextEntry(entry.getTimeStamp(), reader.getFilePosition());

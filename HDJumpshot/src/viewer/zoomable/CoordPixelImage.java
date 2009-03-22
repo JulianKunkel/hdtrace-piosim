@@ -73,25 +73,13 @@ public class CoordPixelImage implements CoordPixelXform
 
     public int  convertPixelToTimeline( int vert_pixel )
     {
-        return ( vert_pixel - row_half_hgt ) / row_hgt;
+        return Math.round(( vert_pixel - row_half_hgt ) / (float) row_hgt);
     }
     
     @Override
-    public int getTimelineHeight(int timeline) {
+    public int getTimelineHeight() {
     	return row_hgt;
     }
-
-    /*
-    public double  getBoundedStartTime( double starttime )
-    {
-        return ( starttime > img_starttime ?  starttime :  img_starttime );
-    }
-
-    public double  getBoundedFinalTime( double finaltime )
-    {
-        return ( finaltime < img_finaltime ?  finaltime :  img_finaltime );
-    }
-    */
 
     public boolean contains( double time_coord )
     {

@@ -35,13 +35,10 @@ public class RulerTime extends ScrollableObject
     private double         tRange;
     private double         tIncrement;
     private DecimalFormat  fmt;
-
-    private ModelTime      time_model;
     
     public RulerTime( ModelTime model )
     {
         super( model );
-        time_model  = model;
         tRange      = 0.0d;
         tIncrement  = 0.0d;
         fmt         = (DecimalFormat) NumberFormat.getInstance();

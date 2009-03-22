@@ -2,9 +2,12 @@ package viewer;
 
 import java.util.ArrayList;
 
+import base.drawable.DrawObjects;
+
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
+import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class BufferedStatisticFileReader extends StatisticsReader implements IBufferedReader{
@@ -12,12 +15,12 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 	private Epoch minTime;
 	private Epoch maxTime;
 	
-	ArrayList<StatisticEntry> statEntries = new ArrayList<StatisticEntry>();
+	ArrayList<StatisticGroupEntry> statEntries = new ArrayList<StatisticGroupEntry>();
 	
 	public BufferedStatisticFileReader(String filename, ExternalStatisticsGroup group) throws Exception{
 		super(filename, group);
 		
-		StatisticEntry current = readNextInputEntry();
+		StatisticGroupEntry current = readNextInputEntry();
 		
 		minTime = current.getTimeStamp();
 		
@@ -30,7 +33,29 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		maxTime = statEntries.get(statEntries.size()-1).getTimeStamp();
 	}
 	
-	public ArrayList<StatisticEntry> getStatEntries() {
+	public StatisticGroupEntry getTraceEntryClosestToTime(double dTime){
+		int min = 0; 
+		int max = statEntries.size() - 1;
+		
+		while(true){
+			int cur = (min + max) / 2;
+			StatisticGroupEntry entry = statEntries.get(cur);
+			
+			if(min == max){ // found entry or stopped.
+				return entry;
+			} 
+			// not found => continue bin search:
+			
+			if ( entry.getTimeStamp().getDouble() >= dTime ){
+				max = cur;
+			}else{
+				min = cur + 1;
+			}
+		}
+	}
+
+	
+	public ArrayList<StatisticGroupEntry> getStatEntries() {
 		return statEntries;
 	}
 

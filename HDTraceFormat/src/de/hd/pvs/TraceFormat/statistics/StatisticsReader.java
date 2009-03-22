@@ -38,7 +38,7 @@ public class StatisticsReader{
 		this.file = new RandomAccessFile(filename, "r");
 	}
 	
-	public StatisticEntry readNextInputEntry() throws Exception{
+	public StatisticGroupEntry readNextInputEntry() throws Exception{
 		if(isFinished()){
 			return null;
 		}
@@ -99,7 +99,7 @@ public class StatisticsReader{
 			values[pos++] = value;
 		}
 
-		return new StatisticEntry(values, timeStamp, group);
+		return new StatisticGroupEntry(values, timeStamp, group);
 	}
 
 	public boolean isFinished(){
