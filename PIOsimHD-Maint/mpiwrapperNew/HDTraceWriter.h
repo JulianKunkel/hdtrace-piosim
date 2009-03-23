@@ -52,9 +52,14 @@ struct TraceFile
 	struct timeval start_time[HD_LOG_MAX_DEPTH];
 	
 	size_t buffer_pos;
-	int thread;
+
 	int function_depth; // keeps track of the depth of nested function calls
 	int nested_counter; // current depth of <Nested> tags in logfile
+	int rank;
+	int thread;
+
+	int trace_enable;
+	int always_flush;
 };
 
 typedef struct TraceFile * TraceFileP;
@@ -68,7 +73,7 @@ struct StatisticFileGroup{
 
 typedef struct StatisticFileGroup * StatisticFileGroupP;
 
-void hdTraceInit(const char * filePrefix); 
+void hdT_Init(const char * filePrefix); 
 
 // /tmp/test => /tmp/test.xml /tmp/test_<rank>_<thread>.xml .info
 
@@ -81,12 +86,19 @@ void hdTraceInit(const char * filePrefix);
  *
  * @returns a TraceFile which must be used for further input or NULL on error
  */
-TraceFileP hdTraceCreate(int rank, int thread);
+TraceFileP hdT_Create(int rank);
 /**
  * Closes an open trace file.
  * Must be called at the end of the program.
  */
-void hdTraceFinalize(TraceFileP file);
+void hdT_Finalize(TraceFileP file);
+void hdT_Enable(TraceFileP file, int enable);
+
+/**
+ * flush = 0 -> flush on full buffer
+ * flush = 1 -> flush after write
+ */
+void hdT_ForceFlush(TraceFileP file, int flush);
 
 
 
@@ -94,24 +106,21 @@ void hdTraceFinalize(TraceFileP file);
  * Can be called after LogStateStart or LogEventStart to write elements to the state/event.
  * Affects the last State for which hdLogStateEnd has not been called
  */
-void hdLogElement    (TraceFileP file, const char * name, const char* valueFormat, ...);
+void hdT_LogElement    (TraceFileP file, const char * name, const char* valueFormat, ...);
+
+void hdT_LogInfo(TraceFileP tracefile, const char * message, ...);
 
 /**
  * Can be called after LogStateStart or LogEventStart to write attributes to the state/event.
  * Affects the last State for which hdLogStateEnd has not been called
  */
-void hdLogAttributes (TraceFileP file, const char* valueFormat, ...);
-//"comm=\"%s\" name=\"%s\" flags=\"%d\" fh=\"%p\" ret='%d'",
-//	  getCommName(comm), name, flags, getFileHandleName(fh), ret);
+void hdT_LogAttributes (TraceFileP file, const char* valueFormat, ...);
 
-void hdLogStateStart    (TraceFileP file);
-void hdLogStateEnd      (TraceFileP file, const char * stateName, const char* sprinhdStringForFurtherValues, ...);
-//oder void hdLogStateEnd      (TraceFileP file, char* buff);
+void hdT_StateStart    (TraceFileP file);
+void hdT_StateEnd      (TraceFileP file, const char * stateName, const char* sprinhdStringForFurtherValues, ...);
 
-
-void hdLogEventStart    (TraceFileP file, char * eventName );
-// Variable list of arguments: http://publications.gbdirect.co.uk/c_book/chapter9/stdarg.html
-void hdLogEventEnd      (TraceFileP file, char* sprinhdStringForFurtherValues, ...);
+void hdT_EventStart    (TraceFileP file, char * eventName );
+void hdT_EventEnd      (TraceFileP file, char* sprinhdStringForFurtherValues, ...);
 //void hdLogEventEnd      (TraceFileP file, char* buff); falls so dann mergen mit hdLogEventStart.
 
 
@@ -152,5 +161,5 @@ wäre so lösbar.
 
 
 
-#define tprintf(format, ...) printf("[TRACER][%d] " format "\n", w_my_rank, __VA_ARGS__);
-#define tsprintf(format)     printf("[TRACER][%d] " format "\n", w_my_rank);
+#define tprintf(tfile, format, ...) printf("[TRACER][%d] " format "\n", tfile->rank, __VA_ARGS__);
+#define tsprintf(tfile, format)     printf("[TRACER][%d] " format "\n", tfile->rank);

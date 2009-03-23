@@ -18,6 +18,6 @@ HDTraceMPIWrapper.c: HDTraceMPIWrapper.src.c ./create_sim-wrapper.py
 	./create_sim-wrapper.py >> HDTraceMPIWrapper.c
 
 clean:
-	rm *~ *.o *.a HDTraceMPIWrapper.c
+	rm *.o *.a HDTraceMPIWrapper.c
 
 ### libglib2.0-0

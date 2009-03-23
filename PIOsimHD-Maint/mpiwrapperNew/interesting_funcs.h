@@ -9,6 +9,7 @@ int MPI_Issend(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
 int MPI_Irsend(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
 int MPI_Irecv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
 int MPI_Wait(MPI_Request *, MPI_Status *);
+int MPI_Test(MPI_Request *, int *, MPI_Status *);
 int MPI_Waitany(int, MPI_Request *, int *, MPI_Status *);
 int MPI_Testany(int, MPI_Request *, int *, int *, MPI_Status *);
 int MPI_Waitall(int, MPI_Request *, MPI_Status *);
@@ -69,10 +70,13 @@ int MPI_File_read(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
 int MPI_File_read_all(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
 int MPI_File_write(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
 int MPI_File_write_at(MPI_File, MPI_Offset, void* , int, MPI_Datatype, MPI_Status *);
+int MPI_File_write_at_all(MPI_File, MPI_Offset, void* , int, MPI_Datatype, MPI_Status *);
 int MPI_File_read_at(MPI_File, MPI_Offset, void* , int, MPI_Datatype, MPI_Status *);
+int MPI_File_read_at_all(MPI_File, MPI_Offset, void* , int, MPI_Datatype, MPI_Status *);
 int MPI_File_write_all(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
 int MPI_File_iread(MPI_File, void *, int, MPI_Datatype, MPIO_Request *);
 int MPI_File_iwrite(MPI_File, void *, int, MPI_Datatype, MPIO_Request *);
+int MPI_File_iwrite_at(MPI_File ,MPI_Offset ,void *,int ,MPI_Datatype , MPI_Request *);
 int MPI_File_seek(MPI_File, MPI_Offset, int);
 int MPI_File_get_position(MPI_File, MPI_Offset *);
 int MPI_File_read_shared(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
@@ -81,7 +85,9 @@ int MPI_File_read_ordered(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
 int MPI_File_write_ordered(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
 int MPI_File_seek_shared(MPI_File, MPI_Offset, int);
 int MPI_File_get_position_shared(MPI_File, MPI_Offset *);
+int MPI_File_read_at_all_begin(MPI_File,	MPI_Offset , void *, int , MPI_Datatype);
 int MPI_File_read_at_all_end(MPI_File, void *, MPI_Status *);
+int MPI_File_write_at_all_begin(MPI_File , MPI_Offset, void *, int, MPI_Datatype );
 int MPI_File_write_at_all_end(MPI_File, void *, MPI_Status *);
 int MPI_File_read_all_begin(MPI_File, void *, int, MPI_Datatype);
 int MPI_File_read_all_end(MPI_File, void *, MPI_Status *);
@@ -94,3 +100,10 @@ int MPI_File_write_ordered_end(MPI_File, void *, MPI_Status *);
 int MPI_File_get_type_extent(MPI_File, MPI_Datatype, MPI_Aint *);
 int MPI_File_set_atomicity(MPI_File, int);
 int MPI_File_sync(MPI_File);
+
+int MPI_File_set_info(MPI_File, MPI_Info);
+
+int MPI_Pcontrol(const int , ...);
+
+// int MPI_Type_vector(int, int, int, MPI_Datatype, MPI_Datatype *); 
+

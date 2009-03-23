@@ -39,55 +39,51 @@
 
 #include <stdarg.h>
 
+#include <pthread.h>
+
 #include "HDTraceWriter.h"
 
-int w_tracing = 1;
-int w_my_rank;
+
 
 // Traces all functions, even those without a custom logging routine
-static int trace_all_functions = 1;
-static int trace_compute_time = 1;
-static int trace_nested_operations = 1;
-static int trace_file_info = 1;
+int trace_all_functions = 1;
+int trace_compute_time = 1;
+int trace_nested_operations = 1;
+int trace_file_info = 1;
 
 
-static const char * control_vars[] = { "WRAPPER_TRACE_ALL_FUNCTIONS", 
-                                     "WRAPPER_TRACE_COMPUTE_TIME", 
-                                     "WRAPPER_TRACE_NESTED",
-                                     "WRAPPER_TRACE_FILE_INFO",
+const char * control_vars[] = { "HDTRACE_ALL_FUNCTIONS", 
+                                     "HDTRACE_COMPUTE_TIME", 
+                                     "HDTRACE_NESTED",
+                                     "HDTRACE_FILE_INFO",
                                      NULL };
-static int * controlled_vars[] = { &trace_all_functions,
+int * controlled_vars[] = { &trace_all_functions,
 								 &trace_compute_time,
 								 &trace_nested_operations, 
 								 &trace_file_info,
 								 NULL };
 
-
-void SimStartTracing(){
-  if(w_tracing == 0){
-    tsprintf("Started Tracing")
-    w_tracing = 1;
-  }else{
-    tsprintf("Started Tracing already!")
-  }
+void hdT_Enable(TraceFileP file, int enable)
+{
+	file -> trace_enable = enable;
 }
 
-void SimStopTracing(){
-  if(w_tracing == 1){
-    tsprintf("Stopped Tracing");
-    w_tracing = 0;
-  }else{
-    tsprintf("Stopped Tracing already!");
-  }
+/**
+ * flush = 0 -> flush on full buffer
+ * flush = 1 -> flush after write
+ */
+void hdT_ForceFlush(TraceFileP file, int flush)
+{
+	file -> always_flush = flush;
 }
 
-void hdLogFlush(TraceFileP tracefile)
+void hdT_LogFlush(TraceFileP tracefile)
 {
 	int ret;
 	char * ram_pos = tracefile -> buffer;
 	size_t amount_to_write = tracefile -> buffer_pos;
 
-	tprintf("flushing log length: %lld", (long long int) amount_to_write)
+	tprintf(tracefile, "flushing log length: %lld", (long long int) amount_to_write)
 
   // retry until all data is written:
   while(amount_to_write > 0){
@@ -98,15 +94,15 @@ void hdLogFlush(TraceFileP tracefile)
 		  case(EPIPE):
 		  case(EFBIG):
 		  case(EBADF):
-			  tprintf("Critical error during flushing of log, exiting: %s ", strerror(errno));
+			  tprintf(tracefile, "Critical error during flushing of log, exiting: %s ", strerror(errno));
 			  exit(1);
 		  case(ENOSPC):
-			  tprintf("Could not flush buffer: no space left on device. %s ", strerror(errno));
+			  tprintf(tracefile, "Could not flush buffer: no space left on device. %s ", strerror(errno));
 			  exit(1);
 		  case(EINTR):
 			  continue; // we are just interrupted
 		  default:
-			  tprintf("Unknown error during flushing of log: %s", strerror(errno))
+			  tprintf(tracefile, "Unknown error during flushing of log: %s", strerror(errno))
 		  }
 	  }
 	  amount_to_write -= ret;
@@ -116,8 +112,11 @@ void hdLogFlush(TraceFileP tracefile)
   tracefile -> buffer_pos = 0; // could use this one instead of amount_to_write, but easier to read.
 }
 
-void hdLogInfo(TraceFileP tracefile, const char * message, ...)
+void hdT_LogInfo(TraceFileP tracefile, const char * message, ...)
 {
+	if( !tracefile -> trace_enable )
+		return;
+
 	char buffer[HD_TMP_BUF_SIZE];
 	va_list argptr;
 	int ret;
@@ -142,15 +141,15 @@ void hdLogInfo(TraceFileP tracefile, const char * message, ...)
 			case(EPIPE):
 			case(EFBIG):
 			case(EBADF):
-				tprintf("Critical error during flushing of log, exiting: %s ", strerror(errno));
+				tprintf(tracefile, "Critical error during flushing of log, exiting: %s ", strerror(errno));
 				exit(1);
 			case(ENOSPC):
-				tprintf("Could not flush buffer: no space left on device. %s ", strerror(errno));
+				tprintf(tracefile, "Could not flush buffer: no space left on device. %s ", strerror(errno));
 				exit(1);
 			case(EINTR):
 				continue; // we are just interrupted
 			default:
-				tprintf("Unknown error during flushing of log: %s", strerror(errno));
+				tprintf(tracefile, "Unknown error during flushing of log: %s", strerror(errno));
 			}
 	  }
 	  amount_to_write -= ret;
@@ -161,13 +160,19 @@ void hdLogInfo(TraceFileP tracefile, const char * message, ...)
 
 void hdLogWrite(TraceFileP tracefile, const char * message)
 {
+	if( !tracefile -> trace_enable )
+		return;
 	int len = strlen(message);
 	if(tracefile -> buffer_pos + len >= HD_LOG_BUF_SIZE)
 	{
-		hdLogFlush(tracefile);
+		hdT_LogFlush(tracefile);
 	}
 	strncpy(tracefile -> buffer + tracefile -> buffer_pos, message, len);
 	tracefile -> buffer_pos += len;
+	if(tracefile -> always_flush)
+	{
+		hdT_LogFlush(tracefile);
+	}
 }
 
 void hdLogWriteFormatv(TraceFileP tracefile, const char * message, va_list valist)
@@ -177,7 +182,7 @@ void hdLogWriteFormatv(TraceFileP tracefile, const char * message, va_list valis
 	written = vsnprintf(buffer, HD_TMP_BUF_SIZE, message, valist);
 	if(written >= HD_TMP_BUF_SIZE)
 	{
-		tprintf("hdLogWriteFormat: buffer too small for string: %s", message);
+		tprintf(tracefile, "hdLogWriteFormat: buffer too small for string: %s", message);
 	}
 	hdLogWrite(tracefile, buffer);
 }
@@ -204,17 +209,28 @@ void hdLogWriteIndentation(TraceFileP tracefile)
 
 static const char * filePrefix = "";
 
-void hdTraceInit(const char * fp)
+void hdT_Init(const char * fp)
 {
 	filePrefix = fp;
 }
 
+int thread_counter = 0;
+pthread_mutex_t thread_counter_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-TraceFileP hdTraceCreate(int rank, int thread)
+TraceFileP hdT_Create(int rank)
 {
 	char filename[HD_LOG_BUF_SIZE];
 	int written = 0;
 	int fd;
+
+	pthread_mutex_lock(&thread_counter_mutex);
+
+	int thread = thread_counter;
+	++thread_counter;
+
+	pthread_mutex_unlock(&thread_counter_mutex);
+
+
 	TraceFileP tracefile = (TraceFileP)malloc(sizeof(struct TraceFile));
 	if(!tracefile) 
 	{
@@ -257,7 +273,7 @@ TraceFileP hdTraceCreate(int rank, int thread)
 	}
 
 	// write program definition file
-	if(w_my_rank == 0 && tracefile -> thread == 0) 
+	if(rank == 0 && tracefile -> thread == 0) 
 	{
 		written = snprintf(filename, HD_LOG_BUF_SIZE, "%s-desc.info", filePrefix);
 		if(written >= HD_LOG_BUF_SIZE || written < 0) // buffer too small or error
@@ -266,8 +282,8 @@ TraceFileP hdTraceCreate(int rank, int thread)
 			perror(filePrefix);
 			return NULL;
 		}
-		tracefile -> info_fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC  | O_NONBLOCK, 0662);
-		if(tracefile -> info_fd == -1) 
+		fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC  | O_NONBLOCK, 0662);
+		if(fd == -1) 
 		{
 			perror("Could not open file:");
 			perror(filename);
@@ -275,15 +291,14 @@ TraceFileP hdTraceCreate(int rank, int thread)
 		}
 
 		int size = 0;
-		char wbuff[HD_LOG_BUF_SIZE];
 		int i;
 		MPI_Comm_size(MPI_COMM_WORLD,& size); 
     
 		sprintf(filename, "%d\n", size);
-		write(fd, wbuff, strlen(wbuff)); // TODO: check for write errors
+		write(fd, filename, strlen(filename)); // TODO: check for write errors
 		for (i=0; i < size; i++)
 		{
-			snprintf(filename, HD_LOG_BUF_SIZE, "%s-%d-%d\n", filePrefix, rank, thread);
+			snprintf(filename, HD_LOG_BUF_SIZE, "%s-%d-%d\n", filePrefix, i, thread);
 			write(fd, filename, strlen(filename)); // TODO: check for write errors
 		}
 
@@ -306,7 +321,7 @@ TraceFileP hdTraceCreate(int rank, int thread)
 				}
 				else 
 				{
-					tprintf("environment variable %s has unrecognised value of %s",
+					tprintf(tracefile, "environment variable %s has unrecognised value of %s",
 							control_vars[ii], env_var );
 				}
 			}
@@ -318,13 +333,23 @@ TraceFileP hdTraceCreate(int rank, int thread)
 	tracefile -> nested_counter = 0;
 	tracefile -> buffer_pos = 0;
 	tracefile -> buffer[0] = '\0';
+	tracefile -> rank = rank;
+	tracefile -> thread = thread;
+
+	tracefile -> always_flush = 0;
+	tracefile -> trace_enable = 1;
+
+	//
+	hdLogWriteFormat(tracefile, "<Rank number='%d' thread='%d'>\n<Program>\n", rank, thread);
 
 	return tracefile;
 }
 
-void hdTraceFinalize(TraceFileP file)
+void hdT_Finalize(TraceFileP file)
 {
-	hdLogFlush(file);
+	hdLogWrite(file, "</Program>\n</Rank>\n\n");
+	hdT_LogFlush(file);
+	hdT_LogInfo(file, "\n\n");
 	close(file -> info_fd);
 	close(file -> trace_fd);
 	free(file);
@@ -345,6 +370,10 @@ void hdTraceFinalize(TraceFileP file)
 // writes as many <Nested> or </Nested>-Tags as needed to arrive at function_depth
 void writeNestedTags(TraceFileP file)
 {
+	if(trace_nested_operations == 0)
+	{
+		return;
+	}
 	while(file -> nested_counter > file -> function_depth) 
 	{
 		hdLogWriteIndentation(file);
@@ -359,7 +388,7 @@ void writeNestedTags(TraceFileP file)
 	}
 }
 
-void hdLogStateStart(TraceFileP file)
+void hdT_StateStart(TraceFileP file)
 {
 	file -> function_depth++;
 	writeNestedTags(file);
@@ -380,11 +409,11 @@ size_t min(size_t a, size_t b)
 }
 
 
-void hdLogElement(TraceFileP tracefile, const char * name, const char * valueFormat, ...)
+void hdT_LogElement(TraceFileP tracefile, const char * name, const char * valueFormat, ...)
 {
 	if(tracefile -> function_depth >= HD_LOG_MAX_DEPTH)
 	{
-		tprintf("maximum nesting depth exceeded. depth=%d", tracefile -> function_depth );
+		tprintf(tracefile, "maximum nesting depth exceeded. depth=%d", tracefile -> function_depth );
 		return;
 	}
 
@@ -406,11 +435,11 @@ void hdLogElement(TraceFileP tracefile, const char * name, const char * valueFor
 	va_end(valist);
 }
 
-void hdLogAttributes(TraceFileP tracefile, const char * valueFormat, ...)
+void hdT_LogAttributes(TraceFileP tracefile, const char * valueFormat, ...)
 {
 	if(tracefile -> function_depth >= HD_LOG_MAX_DEPTH)
 	{
-		tprintf("maximum nesting depth exceeded. depth=%d", tracefile -> function_depth );
+		tprintf(tracefile, "maximum nesting depth exceeded. depth=%d", tracefile -> function_depth );
 		return;
 	}
 
@@ -436,7 +465,7 @@ void hdLogAttributes(TraceFileP tracefile, const char * valueFormat, ...)
 
 
 
-void hdLogStateEnd(TraceFileP tracefile, const char * stateName, const char* format, ...)
+void hdT_StateEnd(TraceFileP tracefile, const char * stateName, const char* format, ...)
 {
 	va_list valist;
 	struct timeval end_time;

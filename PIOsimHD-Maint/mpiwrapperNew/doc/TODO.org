@@ -31,7 +31,7 @@
      Offset angegeben? Get_contents, get_envelope
      Genau so File_iwrite_at
 
-*** TODO Split-collective-Aufrufe
+*** DONE Split-collective-Aufrufe
     Jetzt wird geloggt:
     ----------------------------------
     <SplitBegin>           <Read_all aid="X">
@@ -55,7 +55,7 @@
     <SplitEnd file='97' />
     ----------------------------------
     ist das in Ordnung? 
-*** TODO Rufen die PMPI_* - Funktionen wieder MPI_* auf? 
+*** DONE Rufen die PMPI_* - Funktionen wieder MPI_* auf? 
     bzw., was wäre eine Funktion, die definitiv nested-Aufrufe beinhaltet?
     mpich2-1.0.5p4.mod/src/mpi/romio/mpi-io/mpioprof.h
     Sollte klappen.    
@@ -64,8 +64,9 @@
     Jetzt: für alle, die keine w_* - Funktion besitzen.
     Sollen die anderen auch geloggt werden?
     duration == endZeit => für alle Zustände!
-
 *** TODO File_Info rausschreiben 	
+    Soll die tatsächliche Info, oder nur die vom benutzer angegebene geschrieben werden?
+**** DONE    
 		Es wäre cool wenn man bei MPI-IO operationen noch die MPI_File_Info optional 
 		rausschreiben könnte, machbar mit:
 		int MPI_Info_get_nkeys(MPI_Info, int *); 
@@ -79,6 +80,9 @@
 		</File_open>
 
 		MPI_File_set_info, File_open, File_close
+*** TODO Description File
+    Das Description-File wird derzeit von Rang 0 geschrieben. 
+    Wenn mehrere threads zugelassen sind -> ungünstig
 * Aufgaben
 ** DONE Tests zum laufen kriegen
    Offizieller mpich-test compiliert größtenteils 
@@ -91,7 +95,7 @@
 *** TODO ist auch überall long long double bei den Größenangaben
 *** TODO mpich2-test auch verwenden?
 *** TODO Automatische Überprüfung der Ergebnisse?
-** TODO HDTraceWriter implementieren
+** DONE HDTraceWriter implementieren
 *** 
     Funktionsablauf, Beispiel:
     --------------------------------------------------------------------------------
@@ -111,7 +115,13 @@
 *** 
 	=> stattdessen speed-multiplier vom Original? (Float value?)
  	=> Duration = mikrosekunden = 10^-6 Sekunden
-** TODO Das absolutes-seek-file-offst-Problem
+** DONE Das absolutes-seek-file-offst-Problem
+   - Die jetzige Berechnung gibt bereits den richtigen byte-offset.
+   Im Fall des gemeinsamen Dateizeigers 
+** TODO Filename map
+   Filename <-> id map einbauen, bei öffnen prüfen und ggf. handle <-> id anpassen
+   (falls neue datei geöffnet)
+   ebenfalls: file_delete
 ** TODO Operationen tracen
 		Welche Operationen sollen getraced werden? (mpi_funcs.h, mpiio_funcs.h)
 		 Primär alle die kommunizieren oder I/O betreiben, allerdings gibt es einige 
@@ -130,6 +140,7 @@
 		
     - [X] int MPI_Barrier(MPI_Comm );
     - [X] int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm );
+
     - [X] int MPI_Gather(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, 
 		MPI_Comm); 
     - [X] int MPI_Gatherv(void* , int, MPI_Datatype, void*, int *, int *, MPI_Datatype, 
@@ -138,6 +149,7 @@
 		MPI_Comm);
     - [X] int MPI_Scatterv(void* , int *, int *,  MPI_Datatype, void*, int, 
 		MPI_Datatype, int, MPI_Comm);
+
     - [X] int MPI_Allgather(void* , int, MPI_Datatype, void*, int, MPI_Datatype, 
 		MPI_Comm);
     - [X] int MPI_Allgatherv(void* , int, MPI_Datatype, void*, int *, int *, 
@@ -146,6 +158,7 @@
 		MPI_Comm);
     - [X] int MPI_Alltoallv(void* , int *, int *, MPI_Datatype, void*, int *, int *, 
 		MPI_Datatype, MPI_Comm);
+
     - [X] int MPI_Reduce(void* , void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm);
     - [X] int MPI_Allreduce(void* , void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
     - [X] int MPI_Reduce_scatter(void* , void*, int *, MPI_Datatype, MPI_Op, MPI_Comm);
@@ -175,11 +188,11 @@
     - [X] int MPI_Iprobe(int, int, MPI_Comm, int *, MPI_Status *);
 
 
-*** DONE I/O operationen:
-**** DONE
+*** TODO I/O operationen:
+**** TODO
      - [X] int MPI_File_seek_shared(MPI_File, MPI_Offset, int);
      - [X] int MPI_File_open(MPI_Comm, char *, int, MPI_Info, MPI_File *);
-     - [X] int MPI_File_delete(char *, MPI_Info);
+     - [ ] int MPI_File_delete(char *, MPI_Info);
      - [X] int MPI_File_close(MPI_File *); 
      int MPI_File_set_size(MPI_File, MPI_Offset);
      int MPI_File_preallocate(MPI_File, MPI_Offset);
@@ -225,6 +238,7 @@
     - [X] int MPI_File_write_ordered_begin(MPI_File, void *, int, MPI_Datatype);
     - [X] int MPI_File_write_ordered_end(MPI_File, void *, MPI_Status *);
 
+*** DONE Wait*, Test*
 *** DONE Alle weiteren Operationen
 	Alle weiteren Operation z.b. MPI_Get_Count können einfach stdmäßig mit time + 
 	duration getraced werden (Umgebungsvariable aktiviert das, nicht sinnvoll für 
@@ -236,9 +250,10 @@
 
 *** DONE Später
 **** DONE     int MPI_Comm_get_name(MPI_Comm, char *, int *); // Nutzen um den Comm namen zu 
-		ermitteln
+		ermitteln		      
+		-> wird nicht mehr benötigt
 ** DONE Durations
-   - [ ] durations in MPI-I/O ops
+   - [ ] durations entfernt, time, end eingefügt
 ***
 		Gegenwärtige Zeit + duration (bei states) wird in die Tags hineingeneriert. 
 		 Primär für den Simulator uninteressant, aber fürs Tracing von MPI-I/O ops 
@@ -256,17 +271,20 @@
 ** DONE Optionales Logging
    - [X] Compute Tags sollten optional entfernbar sein, z.b. Umgebungsvariable einlesen 
 		am Anfang (MPI_init)... ;-)
+		-> Compute Tags weg
+
    - [X] Ebenso sollte die nested operation aktivierbar sein (std: nicht aktiv).
+                -> HDTRACE_NESTED=(1|0)
 **** TODO int MPI_File_set_info(MPI_File, MPI_Info); // optional machen ;-)
      schon geloggt, aber noch nicht optional
-*** DONE File_Info rausschreiben 	
+*** TODO File_Info rausschreiben 	
 		Es wäre cool wenn man bei MPI-IO operationen noch die MPI_File_Info optional 
 		rausschreiben könnte, machbar mit:
 		int MPI_Info_get_nkeys(MPI_Info, int *); 
 		int MPI_Info_get_nthkey(MPI_Info, int, char *);
    - [ ] File_Info rausschreiben 
 
-** DONE MPI_Pcontrol(...) benutzen?
+** TODO MPI_Pcontrol(...) benutzen?
 ***
 		int MPI_Pcontrol(const int, ...); // cool controliert profiling: 
 		http://mpi.dein.onet/mpi_functions/MPI_Pcontrol.html, vielleicht nutzen 
@@ -279,7 +297,8 @@
 		additional arguments.
 
 
-** TODO Sinnvolle Namen für den Communicator
+** DONE Sinnvolle Namen für den Communicator
+   - [X] namen werden 
 **** TODO  int MPI_Comm_set_name(MPI_Comm, char *); // evtl.
 ***
 		Bisher war es so das der Communicator im allgemeinen XML definiert welche 
@@ -317,9 +336,9 @@ Per HashMap Communicator ID speichern
 
 ------------------------------------------------------------------------------
 	
-** DONE? Nested Operations
-   - [ ] Nested Operations
-
+** DONE Nested Operations
+   - [X] Nested Operations
+   muss getestet werden
 ***		 
 		 Nach bisherigem Schema nicht möglich.
 		 Primär für den Simulator uninteresant (da die oberste Operation simuliert 
@@ -359,12 +378,24 @@ Per HashMap Communicator ID speichern
 
 
 
-** TODO "Fix Memleak" klären (MPI_Finalize, hashmaps löschen)
-** TODO Makros in Funktionen umwandeln?
+** DONE "Fix Memleak" klären (MPI_Finalize, hashmaps löschen)
+** DONE Makros in Funktionen umwandeln?
+   - 
+** DONE sind auch alle funktionen in interesting_funcs.h eingetragen?
+   - [X] Ja
+** TODO Welche Funktionen auser File_open können auf "neue" dateien zugreifen -> *.info - file beschreiben
+** TODO unifytraces: wenn im selben Verzeichnis ausgeführt 
+   -> fehler wenn ./ vor dateinamen weggelassen
 ** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
+** TODO Feinschliff
+** TODO g_int_equal nicht mehr für zeiger verwenden
+   oder wenigstens asserts reinmachen, dass die casts nicht verlustbehaftet sind...
 ** TODO Testen
+*** TODO nested operations
 *** TODO mpi2test/pt2pt/sendrecv3 stürzt ab?
 *** TODO Abbruch bei multithreaded-anwendungen
+
+
 * INFO
 ** Threads 
    - [ ] Wie für threads etc?

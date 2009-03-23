@@ -6,14 +6,18 @@ WRAPPER_LIB = " `pkg-config --libs glib-2.0` $(shell pwd)/../libHDTraceMPIWrappe
 .PHONY : clean
 .PHONY : mpich-test
 .PHONY : mpich-test-no-wrapper
+.PHONY : hdtest
 
-all:  test test2 
+all:  test test2 hdtest
 
 #../sim-wrapper.a:
 #	cd .. ; make
 
 ./../libHDTraceMPIWrapper.a:
 	cd ..; make
+
+hdtest: 
+	cd HDTests ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) CC=$(WRAPPER_CC) make
 
 test2: mpi2test ../libHDTraceMPIWrapper.a
 	cd mpi2test ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) ./configure --with-mpi=$(WRAPPER_MPI) 
@@ -38,6 +42,8 @@ mpi2test-no-wrapper:
 	tar -zxf mpich-test-2006.tar.gz
 	cd mpich-test ; SIM_WRAPPER_LIB="" ./configure -cc=$(WRAPPER_CC) -fc=mpif77
 	cd mpich-test ; SIM_WRAPPER_LIB="" make -k
+
+
 
 
 runtests:
