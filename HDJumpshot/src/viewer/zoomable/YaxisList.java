@@ -20,6 +20,9 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.DefaultMutableTreeNode;
+
+import viewer.topology.TopologyManager;
+
 import java.util.List;
 import java.util.Vector;
 import java.util.Enumeration;
@@ -29,11 +32,11 @@ public class YaxisList extends JList
                                   TreeExpansionListener,
                                   TreeModelListener
 {
-    private YaxisTree      tree_view;
+    private TopologyManager      tree_view;
     private List           list_data;
     private JScrollPane    scroller;    // Enclosing JScrollPane of the JList
 
-    public YaxisList( YaxisTree in_tree )
+    public YaxisList( TopologyManager in_tree )
     {
         super();
         tree_view = in_tree;   

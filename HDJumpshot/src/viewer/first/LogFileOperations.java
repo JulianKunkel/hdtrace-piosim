@@ -9,12 +9,13 @@
 
 package viewer.first;
 
+import hdTraceInput.TraceFormatBufferedFileReader;
+
 import java.awt.Window;
 import java.io.File;
 
 import javax.swing.JTextField;
 
-import viewer.TraceFormatBufferedFileReader;
 import viewer.common.Dialogs;
 import viewer.common.LogFileChooser;
 import viewer.common.Parameters;
@@ -78,7 +79,8 @@ public class LogFileOperations
 
             TraceFormatBufferedFileReader reader = null;
             try {
-                reader = new TraceFormatBufferedFileReader( logname );
+                reader = new TraceFormatBufferedFileReader( );
+                reader.loadAdditionalFile(logname);
             } catch ( NullPointerException nperr ) {
                 Dialogs.error( window,
                                "NullPointerException when initializing "

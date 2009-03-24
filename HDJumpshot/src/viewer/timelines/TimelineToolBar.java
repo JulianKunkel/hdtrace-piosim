@@ -21,6 +21,7 @@ import javax.swing.JScrollBar;
 import javax.swing.JToolBar;
 
 import viewer.common.Const;
+import viewer.topology.TopologyManager;
 import viewer.zoomable.ActionPptyScreenshot;
 import viewer.zoomable.ActionPptyRefresh;
 import viewer.zoomable.ActionSearchBackward;
@@ -47,7 +48,6 @@ import viewer.zoomable.RulerTime;
 import viewer.zoomable.ScrollbarTime;
 import viewer.zoomable.ToolBarStatus;
 import viewer.zoomable.ViewportTimeYaxis;
-import viewer.zoomable.YaxisTree;
 
 
 public class TimelineToolBar extends JToolBar
@@ -56,7 +56,7 @@ public class TimelineToolBar extends JToolBar
     private Window                  root_window;
     private ViewportTimeYaxis       canvas_vport;
     private JScrollBar              y_scrollbar;
-    private YaxisTree               y_tree;
+    private TopologyManager               y_tree;
     private ScrollbarTime           time_scrollbar;
     private ModelTime               time_model;
 
@@ -106,7 +106,7 @@ public class TimelineToolBar extends JToolBar
     						RulerTime	 time_ruler,
                             ViewportTimeYaxis  canvas_viewport,
                             JScrollBar         yaxis_scrollbar,
-                            YaxisTree          yaxis_tree,
+                            TopologyManager          yaxis_tree,
                             ScrollbarTime      a_time_scrollbar,
                             ModelTime          a_time_model,
                             RowAdjustments     a_row_adjs )

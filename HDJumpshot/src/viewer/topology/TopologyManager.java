@@ -7,7 +7,11 @@
  *  @author  Anthony Chan
  */
 
-package viewer.zoomable;
+package viewer.topology;
+
+import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedTraceFileReader;
+import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -19,19 +23,15 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import viewer.BufferedStatisticFileReader;
-import viewer.BufferedTraceFileReader;
-import viewer.TimelineType;
-import viewer.TraceFormatBufferedFileReader;
-import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.topology.HostnamePerProjectContainer;
-import de.hd.pvs.TraceFormat.topology.RanksPerHostnameTraceContainer;
-import de.hd.pvs.TraceFormat.topology.ThreadsPerRankTraceContainer;
+import viewer.timelines.TimelineType;
+import viewer.zoomable.Debug;
+import viewer.zoomable.named_vector;
+import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
+import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 
-// import viewer.common.Routines;
-// import viewer.common.Parameters;
-
-public class YaxisTree extends JTree
+public class TopologyManager extends JTree
 {
     private DefaultMutableTreeNode  tree_root;
     
@@ -44,6 +44,8 @@ public class YaxisTree extends JTree
     private List<TreePath>          cut_paste_buf;
     private int                     buf_level;
     
+    private ArrayList<TopologyTreeNode> topoToTimelineMapping = new ArrayList<TopologyTreeNode>();
+    
     /**
      * Get the trace reader for a particular timeline
      * 
@@ -51,7 +53,7 @@ public class YaxisTree extends JTree
      * @return
      */
     public BufferedTraceFileReader getTraceReaderForTimeline(int timeline){
-    	return (BufferedTraceFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(0).getFilesPerThread().get(0).getTraceFileReader();
+    	return (BufferedTraceFileReader) ((TopologyTraceTreeNode) topoToTimelineMapping.get(timeline)).getTraceSource();
     }
     
     /**
@@ -60,57 +62,114 @@ public class YaxisTree extends JTree
      * @return
      */
     public BufferedStatisticFileReader getStatisticReaderForTimeline(int timeline){
-    	return (BufferedStatisticFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(0).getFilesPerThread().get(0).getStatisticReaders().get("Energy");
+    	return (BufferedStatisticFileReader) ((TopologyStatisticTreeNode) topoToTimelineMapping.get(timeline)).getStatisticSource();
     }
     
-    public int getStatisticNumberForTimeline(int timeline){
-    	return 1;
+    public TopologyStatisticTreeNode getStatisticNodeForTimeline(int timeline){
+    	return ((TopologyStatisticTreeNode) topoToTimelineMapping.get(timeline));
     }
     
-    public int getTimelines(){
-    	return 3;
-    }
 
-    public TimelineType getType(int timeline){
-    	return TimelineType.TRACE;
+    
+    
+    /**
+     * Return the number of a statistic within a group
+     * @param timeline
+     * @return
+     */
+    public int getStatisticNumberForTimeline(int timeline){
+    	return ((TopologyStatisticTreeNode) topoToTimelineMapping.get(timeline)).getNumberInGroup();
     }
     
-    ////
+    public int getTimelineNumber(){
+    	return topoToTimelineMapping.size();
+    }    
     
-    public YaxisTree( final TraceFormatBufferedFileReader  reader )
+    public TimelineType getType(int timeline){    	
+    	if(topoToTimelineMapping.get(timeline) == null)
+    		return TimelineType.SPACER_NODE;
+    	return topoToTimelineMapping.get(timeline).getType();
+    }
+    
+    private void clearTopologyToTimelineMapping(){
+    	topoToTimelineMapping.clear();
+    }
+    
+    private void addTopologyTreeNode(TopologyTreeNode node, DefaultMutableTreeNode parent){
+    	if(node != null)
+    		node.setAssignedTimeline(topoToTimelineMapping.size());
+    	
+    	if(parent != null)
+    		parent.add(node);
+    	
+    	topoToTimelineMapping.add(node);
+    }
+    
+    private DefaultMutableTreeNode addDummyTreeNode(String name, DefaultMutableTreeNode parent){
+		DefaultMutableTreeNode node = new DefaultMutableTreeNode(name);
+		parent.add(node);
+		return node;
+    }
+    
+    
+    private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyInternalLevel topology, TraceFormatFileOpener file){
+    	if(topology.isLeaf()){
+        	TopologyTreeNode node = new TopologyTraceTreeNode(topology, file, this); 
+
+        	addTopologyTreeNode(node, parentNode);    	
+        	return;
+    	}
+    	TopologyTreeNode node = new TopologyInnerNode(topology, file, this); 
+    	
+    	addTopologyTreeNode(node, parentNode);    	
+   	
+    	for(TopologyInternalLevel child: topology.getChildElements().values()){
+    		recursivlyAddTopology(level +1, node, child, file);
+    	}
+    	
+    	// add statistic nodes:
+    	for(String groupName: topology.getStatisticSources().keySet()){    		
+    		ExternalStatisticsGroup group = file.getProjectDescription().getExternalStatisticsGroup(groupName);
+    		
+    		DefaultMutableTreeNode statGroupNode = addDummyTreeNode(groupName, node);
+    		
+    		for(StatisticDescription statDesc: group.getStatisticsOrdered()){
+    			TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file, this );
+    			
+    			addTopologyTreeNode(statNode, statGroupNode);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Load a default topology, filename => hierarchically print the children 
+     */
+    public void loadDefaultTopology(){
+    	clearTopologyToTimelineMapping();
+    	
+        tree_root = new DefaultMutableTreeNode("HDTrace");
+        // add a dummy
+        addTopologyTreeNode(null, null);
+        
+        setModel(new DefaultTreeModel(tree_root));            
+        
+        for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
+        	recursivlyAddTopology(1, tree_root, reader.getLoadedFile(f).getTopology(), reader.getLoadedFile(f));
+        }
+    }
+    
+    public TopologyTreeNode getTreeNodeForTimeline(int timeline){
+    	return topoToTimelineMapping.get(timeline);
+    }
+    
+    
+    public TopologyManager( final TraceFormatBufferedFileReader  reader )
     {
         this.reader = reader;
         
-        
-        tree_root = new DefaultMutableTreeNode("Hosts");  
-        
-        // add all hosts
-        // TODO generate PVFS2 stuff
-        for (HostnamePerProjectContainer hostfiles: reader.getFileOpener().getHostnameProcessMap().values()){
-        	final DefaultMutableTreeNode hostNode = new DefaultMutableTreeNode(hostfiles.getHostname());
-        	tree_root.add(hostNode);
-        	
-        	for(RanksPerHostnameTraceContainer rankFiles: hostfiles.getTraceFilesPerRank().values()){
-        		final DefaultMutableTreeNode rankNode = new DefaultMutableTreeNode(rankFiles.getRank());        		
-        		hostNode.add(rankNode);
-        		
-        		for(ThreadsPerRankTraceContainer threadFiles: rankFiles.getFilesPerThread().values()){
-        			final DefaultMutableTreeNode threadNode = new DefaultMutableTreeNode(threadFiles.getThread());        		
-            		rankNode.add(threadNode);
-            		            	
-            		// add all statistics & trace            		
-            		final DefaultMutableTreeNode traceNode = new DefaultMutableTreeNode("Trace");
-            		threadNode.add(traceNode);
-            		
-            		for(String stats : threadFiles.getStatisticReaders().keySet()){
-            			final DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(stats);
-            			threadNode.add(groupNode);
-            		}
-            			
-        		}
-        	}
-        }
-        setModel(new DefaultTreeModel(tree_root));
+
+        loadDefaultTopology();        
         
         this.update_leveled_paths();
         super.setEditable( true );

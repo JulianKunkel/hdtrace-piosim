@@ -19,6 +19,7 @@ import de.hd.pvs.TraceFormat.TraceObject;
 import base.drawable.DrawObjects;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
+import viewer.topology.TopologyManager;
 
 public class ViewportTimeYaxis extends ViewportTime
                                implements AdjustmentListener
@@ -33,7 +34,7 @@ public class ViewportTimeYaxis extends ViewportTime
 
     private ModelTime             time_model      = null;
     private BoundedRangeModel     y_model         = null;
-    private YaxisTree             tree_view       = null;
+    private TopologyManager             tree_view       = null;
 
     private Point                 view_pt         = null;
     private ComponentEvent        resize_evt      = null;
@@ -46,7 +47,7 @@ public class ViewportTimeYaxis extends ViewportTime
     private double                searching_time;              
 
     public ViewportTimeYaxis( final ModelTime time_axis_model, 
-                              BoundedRangeModel yaxis_model, YaxisTree y_tree )
+                              BoundedRangeModel yaxis_model, TopologyManager y_tree )
     {
         super( time_axis_model );
         time_model  = time_axis_model;

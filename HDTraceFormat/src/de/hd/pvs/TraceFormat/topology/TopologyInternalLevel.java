@@ -1,5 +1,6 @@
 package de.hd.pvs.TraceFormat.topology;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
@@ -24,6 +25,11 @@ public class TopologyInternalLevel {
 	public HashMap<String, StatisticSource> getStatisticSources() {
 		return statisticSources;
 	}
+	
+	public StatisticSource getStatisticSource(String groupName) {
+		return statisticSources.get(groupName);
+	}
+	
 	
 	public void setStatisticReader(String group, StatisticSource reader){
 		statisticSources.put(group, reader);
@@ -96,5 +102,20 @@ public class TopologyInternalLevel {
 	
 	public int getPositionInParent() {
 		return position;
+	}
+	
+	/**
+	 * Returns recursively all subchildren including this topology.
+	 * 
+	 * @return
+	 */
+	public ArrayList<TopologyInternalLevel> getSubTopologies(){
+		ArrayList<TopologyInternalLevel> sub = new ArrayList<TopologyInternalLevel>();
+		sub.add(this);
+		for(TopologyInternalLevel child: childElements.values()){
+			sub.addAll(child.getSubTopologies());
+		}
+		
+		return sub;
 	}
 }

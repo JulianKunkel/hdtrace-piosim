@@ -18,6 +18,7 @@ import javax.swing.*;
 import javax.swing.tree.*;
 
 import viewer.common.Dialogs;
+import viewer.topology.TopologyManager;
 
 public class ActionTimelineRestore implements ActionListener
 {
@@ -35,14 +36,14 @@ public class ActionTimelineRestore implements ActionListener
 
     private Window             root_window;
     private ToolBarStatus      toolbar;
-    private YaxisTree          tree;
+    private TopologyManager          tree;
     private DefaultTreeModel   tree_model;
     private ArrayList<timeline_remove_operations> operations =
     	new ArrayList<timeline_remove_operations>();
 
     public ActionTimelineRestore( Window           parent_window,
                                  ToolBarStatus    in_toolbar,
-                                 YaxisTree        in_tree )
+                                 TopologyManager        in_tree )
     {
         root_window  = parent_window;
         toolbar      = in_toolbar;

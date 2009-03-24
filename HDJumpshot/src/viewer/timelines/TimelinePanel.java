@@ -9,6 +9,8 @@
 
 package viewer.timelines;
 
+import hdTraceInput.TraceFormatBufferedFileReader;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -30,9 +32,8 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
-import viewer.TraceFormatBufferedFileReader;
 import viewer.common.Const;
-import viewer.common.Dialogs;
+import viewer.topology.TopologyManager;
 import viewer.zoomable.Debug;
 import viewer.zoomable.ModelInfo;
 import viewer.zoomable.ModelInfoPanel;
@@ -46,7 +47,6 @@ import viewer.zoomable.TimeListener;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimePanel;
 import viewer.zoomable.ViewportTimeYaxis;
-import viewer.zoomable.YaxisTree;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 
 
@@ -68,7 +68,7 @@ public class TimelinePanel extends JPanel
 	private TimelineToolBar         toolbar;
 	
 	private BoundedRangeModel       y_model;
-	private final YaxisTree         y_tree;
+	private final TopologyManager         y_tree;
 	private JScrollPane             y_scroller;
 	private JScrollBar              y_scrollbar;
 
@@ -130,7 +130,7 @@ public class TimelinePanel extends JPanel
 		super();
 		
 		// TODO fixMe
-		this.y_tree = new YaxisTree(reader);
+		this.y_tree = new TopologyManager(reader);
 		
 		root_window  = parent_window;
 		this.reader  = reader;
@@ -207,12 +207,11 @@ public class TimelinePanel extends JPanel
 		
 		time_canvas_vport = new ViewportTimeYaxis( time_model, y_model, y_tree );
 		time_canvas_vport.setView( time_canvas );
+		
 		time_canvas_panel = new ViewportTimePanel( time_canvas_vport );
-		time_canvas_panel.setBorderTitle( " TimeLines ",
-				TitledBorder.RIGHT,
-				TitledBorder.TOP,
-				null, Color.blue );
 		time_canvas_vport.initLeftMouseToZoom( true );
+		
+		
 		/* Inform "time_canvas_vport" time has been changed */
 		time_model.addTimeListener( time_canvas_vport );
 

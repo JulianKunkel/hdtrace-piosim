@@ -7,6 +7,7 @@ import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
@@ -89,5 +90,13 @@ public class TraceFormatFileOpener {
 		TopologyInternalLevel root = projectDescription.getTopologyRoot();
 
 		recursivlyCreateTraceSources(root, statCls, traceCls, readNested );
+	}	
+	
+	public TopologyInternalLevel getTopology(){
+		return projectDescription.getTopologyRoot();
+	}
+	
+	public TopologyLabels getTopologyLabels(){
+		return projectDescription.getTopologyLabels();
 	}
 }

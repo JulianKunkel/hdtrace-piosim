@@ -14,13 +14,15 @@ import java.awt.event.*;
 import java.net.*;
 import javax.swing.*;
 
+import viewer.topology.TopologyManager;
+
 public class ActionYaxisTreeExpand implements ActionListener
 {
     private ToolBarStatus      toolbar;
-    private YaxisTree          tree_view;
+    private TopologyManager          tree_view;
 
     public ActionYaxisTreeExpand( ToolBarStatus   in_toolbar,
-                                  YaxisTree       in_tree )
+                                  TopologyManager       in_tree )
     {
         toolbar    = in_toolbar;
         tree_view  = in_tree;

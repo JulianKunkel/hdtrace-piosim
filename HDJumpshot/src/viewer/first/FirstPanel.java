@@ -126,10 +126,7 @@ public class FirstPanel extends JPanel
                                            lowered_border, etched_border ) );
                     logname_fld.addActionListener(
                                 new LogNameTextFieldListener() );
-                    
-                    // TODO this is for testing only:
-                    logname_fld.setText("/home/julian/workspace/HDJumpshot/test.xml");
-                    
+                                        
                     Routines.setShortJComponentSizes( logname_fld,
                                                       fld_pref_sz );
                 logname_panel.add( logname_fld );

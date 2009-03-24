@@ -9,13 +9,14 @@
 
 package viewer.legends;
 
+import hdTraceInput.TraceFormatBufferedFileReader;
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import viewer.TraceFormatBufferedFileReader;
 import viewer.common.TopWindow;
 
 
@@ -25,7 +26,7 @@ public class LegendFrame extends JFrame
 
     public LegendFrame( final TraceFormatBufferedFileReader  reader )
     {
-        super( "Legend: " + reader.getProjectFilename() );
+        super( "Legend: " + reader.getCombinedProjectFilename() );
         super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
         TopWindow.Legend.disposeAll();
         TopWindow.Legend.setWindow( this );

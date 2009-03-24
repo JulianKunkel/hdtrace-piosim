@@ -30,6 +30,7 @@ import viewer.common.Const;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
 import viewer.timelines.CanvasTimeline;
+import viewer.topology.TopologyManager;
 import viewer.zoomable.ActionTimelineRestore;
 import viewer.zoomable.Debug;
 import viewer.zoomable.ModelTime;
@@ -43,7 +44,6 @@ import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimePanel;
 import viewer.zoomable.ViewportTimeYaxis;
 import viewer.zoomable.YaxisMaps;
-import viewer.zoomable.YaxisTree;
 import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
 
@@ -57,7 +57,7 @@ public class StatlinePanel extends JPanel
     private StatBoxStatusPanel      status_panel;
     private BoundedRangeModel       y_model;
     private YaxisMaps               y_maps;
-    private YaxisTree               y_tree;
+    private TopologyManager               y_tree;
     private JScrollPane             y_scroller;
     private JScrollBar              y_scrollbar;
 
@@ -99,7 +99,7 @@ public class StatlinePanel extends JPanel
         /* Initialize the YaxisMaps through the initialization of YaxisTree */
         String[]      y_colnames = lineIDmap.getColumnLabels();
         y_maps      = new YaxisMaps( lineIDmap );
-        y_tree      = new YaxisTree( y_maps.getTreeRoot() );
+        y_tree      = new TopologyManager( y_maps.getTreeRoot() );
         y_maps.setTreeView( y_tree );
                     /* done YaxisMaps initialization */
 

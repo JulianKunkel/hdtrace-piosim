@@ -15,12 +15,14 @@ import java.net.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 
+import viewer.topology.TopologyManager;
+
 public class ActionTimelineRemove implements ActionListener
 {
     private YaxisList         list;
-    private YaxisTree         tree;
+    private TopologyManager         tree;
 
-    public ActionTimelineRemove( YaxisTree in_tree, YaxisList in_list )
+    public ActionTimelineRemove( TopologyManager in_tree, YaxisList in_list )
     {
         tree = in_tree;
         list = in_list;

@@ -16,18 +16,19 @@ import javax.swing.*;
 import javax.swing.tree.*;
 
 import viewer.common.Dialogs;
+import viewer.topology.TopologyManager;
 
 public class ActionTimelineDelete implements ActionListener
 {
     private Window             root_window;
     private ToolBarStatus      toolbar;
-    private YaxisTree          tree;
+    private TopologyManager          tree;
     private DefaultTreeModel   tree_model;
     private ActionTimelineRestore restore;
 
     public ActionTimelineDelete( Window           parent_window,
                                  ToolBarStatus    in_toolbar,
-                                 YaxisTree        in_tree,
+                                 TopologyManager        in_tree,
                                  ActionTimelineRestore restore)
     {
         root_window  = parent_window;

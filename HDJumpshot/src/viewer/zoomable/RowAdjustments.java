@@ -28,6 +28,7 @@ import viewer.common.Const;
 import viewer.common.Routines;
 import viewer.common.Parameters;
 import viewer.common.LabeledTextField;
+import viewer.topology.TopologyManager;
 
 public class RowAdjustments
 {
@@ -36,7 +37,7 @@ public class RowAdjustments
     private static final String    ROW_HEIGHT_RESIZE = "Height";
 
     private ViewportTimeYaxis      canvas_vport;
-    private YaxisTree              tree_view;
+    private TopologyManager              tree_view;
 
     private JComboBox              combo_ROW_RESIZE;
     private ScaledSlider           slider_VIS_ROW_HEIGHT;
@@ -52,7 +53,7 @@ public class RowAdjustments
 
     private Diagnosis              debug;
 
-    public RowAdjustments( ViewportTimeYaxis y_vport, YaxisTree y_tree )
+    public RowAdjustments( ViewportTimeYaxis y_vport, TopologyManager y_tree )
     {
         canvas_vport  = y_vport;
         tree_view     = y_tree;

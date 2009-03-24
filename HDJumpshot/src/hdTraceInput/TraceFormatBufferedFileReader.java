@@ -1,10 +1,11 @@
-package viewer;
+package hdTraceInput;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
-import viewer.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
-
+import viewer.topology.GlobalStatisticStatsPerGroup;
+import viewer.topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
 import base.drawable.Category;
 import base.drawable.ColorAlpha;
 import base.drawable.Topology;
@@ -14,16 +15,17 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.topology.HostnamePerProjectContainer;
-import de.hd.pvs.TraceFormat.topology.RanksPerHostnameTraceContainer;
-import de.hd.pvs.TraceFormat.topology.ThreadsPerRankTraceContainer;
+import de.hd.pvs.TraceFormat.statistics.StatisticSource;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceSource;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
+ * Manages information for different projects.
  * Contains all information about the project, contained files within the project.
  * 
  * @author julian
@@ -34,14 +36,14 @@ public class TraceFormatBufferedFileReader {
 	private Epoch globalMinTime = new Epoch(Integer.MAX_VALUE, 0);
 	private Epoch globalMaxTime = new Epoch(Integer.MIN_VALUE, -1);
 
-	final TraceFormatFileOpener fileOpener;
+	final ArrayList<TraceFormatFileOpener> loadedFiles = new ArrayList<TraceFormatFileOpener>();
 
 	// map category names to the category:
 	HashMap<String, Category> categoriesStates = new HashMap<String, Category>();	
 	HashMap<String, Category> categoriesEvents = new HashMap<String, Category>();
 	HashMap<String, Category> categoriesStatistics = new HashMap<String, Category>();
 	
-		HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup>(); 
+	HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup>(); 
 
 	/**
 	 * Update global times:
@@ -67,8 +69,8 @@ public class TraceFormatBufferedFileReader {
 	 * Also set/create global statistics about statistics *g*
 	 * @param stats
 	 */
-	private void setGlobalValuesOnStatistics(HashMap<String, StatisticsReader> stats){
-		for(StatisticsReader statReader: stats.values()){			
+	private void setGlobalValuesOnStatistics(Collection<StatisticSource> stats){
+		for(StatisticSource statReader: stats){			
 			final BufferedStatisticFileReader reader = ((BufferedStatisticFileReader) statReader);
 			updateMinMaxTime(reader);
 			
@@ -151,7 +153,7 @@ public class TraceFormatBufferedFileReader {
 		addTraceObjectCategoryIfNecessary(entry);
     }
     
-    private void createStatisticCategories(){
+    private void updateStatisticCategories(TraceFormatFileOpener fileOpener){
         for(String catName: fileOpener.getProjectDescription().getExternalStatisticGroupNames()){
         	categoriesStatistics.put(catName, new Category(catName, Topology.STATISTIC, new ColorAlpha(0,0,200)));
         }        	
@@ -162,43 +164,50 @@ public class TraceFormatBufferedFileReader {
 	 * 
 	 * @param projectFileName
 	 * @throws Exception
-	 */
-	public TraceFormatBufferedFileReader(String projectFileName) throws Exception{
-		fileOpener = new TraceFormatFileOpener( projectFileName, true, BufferedStatisticFileReader.class, BufferedTraceFileReader.class );
+	 */	
+	public void loadAdditionalFile(String projectFileName) throws Exception{
+		TraceFormatFileOpener fileOpener = new TraceFormatFileOpener( projectFileName, true, BufferedStatisticFileReader.class, BufferedTraceFileReader.class );
 
-		createStatisticCategories();
+		updateStatisticCategories(fileOpener);
 		
 		// determine global min/maxtime
-		for (String host: fileOpener.getHostnameProcessMap().keySet()){
-			final HostnamePerProjectContainer hostInfo = fileOpener.getHostnameProcessMap().get(host);
-			setGlobalValuesOnStatistics(hostInfo.getStatisticReaders());
+		TopologyInternalLevel rootTopology = fileOpener.getTopology();
+		
+		for(TopologyInternalLevel topology: rootTopology.getSubTopologies()){
+			setGlobalValuesOnStatistics(topology.getStatisticSources().values());
+			if(topology.isLeaf()){
+				final TopologyLeafLevel leaf = (TopologyLeafLevel) topology;
+				final TraceSource traceSource = leaf.getTraceSource();
+				
+				updateMinMaxTime((IBufferedReader) traceSource);
 
-			for (Integer rank: hostInfo.getTraceFilesPerRank().keySet()){
-				final RanksPerHostnameTraceContainer ranksInfo = hostInfo.getTraceFilesPerRank().get(rank);
-				setGlobalValuesOnStatistics(ranksInfo.getStatisticReaders());
-
-				for(Integer thread: ranksInfo.getFilesPerThread().keySet()){
-					final ThreadsPerRankTraceContainer threadInfo = ranksInfo.getFilesPerThread().get(thread);
-
-					setGlobalValuesOnStatistics(threadInfo.getStatisticReaders());
-
-					updateMinMaxTime((IBufferedReader) threadInfo.getTraceFileReader());
-
-					updateVisibleCategories((BufferedTraceFileReader) threadInfo.getTraceFileReader());
-				}
-				// TODO read from category index file.
+		   		updateVisibleCategories((BufferedTraceFileReader) traceSource);		
 			}
 		}
-
+					
 		SimpleConsoleLogger.Debug("Global Min/Max time: " + getGlobalMinTime() + "/" + getGlobalMaxTime());
+		
+		loadedFiles.add(fileOpener);
+	}
+	
+	public int getNumberOfFilesLoaded(){
+		return loadedFiles.size();
 	}
 
-	public TraceFormatFileOpener getFileOpener() {
-		return fileOpener;
+	public TraceFormatFileOpener getLoadedFile(int fileNumber) {
+		return loadedFiles.get(fileNumber);
 	}
 
-	public String getProjectFilename(){
-		return fileOpener.getProjectDescription().getProjectFilename();
+	public String getProjectFilename(int fileNumber){
+		return loadedFiles.get(fileNumber).getProjectDescription().getProjectFilename();
+	}
+	
+	public String getCombinedProjectFilename(){
+		String name = "";
+		for(TraceFormatFileOpener tf:loadedFiles){
+			name= name + tf.getProjectDescription().getProjectFilename() + " ";
+		}
+		return name;
 	}
 
 	public Epoch getGlobalMaxTime() {
@@ -233,8 +242,8 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStatistics.get(group.getName());
 	}
 	
-	public Collection<String> getGroupNames(){
-		return fileOpener.getProjectDescription().getExternalStatisticGroupNames();
+	public Collection<String> getGroupNames(int fileNumber){
+		return loadedFiles.get(fileNumber).getProjectDescription().getExternalStatisticGroupNames();
 	}
 	
 	public GlobalStatisticStatsPerGroup getGlobalStatStats(ExternalStatisticsGroup group) {

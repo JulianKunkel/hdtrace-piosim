@@ -16,14 +16,15 @@ import javax.swing.JButton;
 import viewer.common.TopWindow;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
+import viewer.topology.TopologyManager;
 
 public class ActionPptyRefresh implements ActionListener
 {
-    private YaxisTree        y_tree;
+    private TopologyManager        y_tree;
 
     private PreferenceFrame  pptys_frame;
 
-    public ActionPptyRefresh( YaxisTree in_y_tree )
+    public ActionPptyRefresh( TopologyManager in_y_tree )
     {
         y_tree             = in_y_tree;
     }

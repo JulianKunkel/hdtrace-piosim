@@ -1,4 +1,4 @@
-package viewer;
+package hdTraceInput;
 
 import java.util.ArrayList;
 

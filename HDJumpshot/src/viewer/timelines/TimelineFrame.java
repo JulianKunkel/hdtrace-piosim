@@ -9,6 +9,8 @@
 
 package viewer.timelines;
 
+import hdTraceInput.TraceFormatBufferedFileReader;
+
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -16,7 +18,6 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import viewer.TraceFormatBufferedFileReader;
 import viewer.common.TopWindow;
 
 
@@ -29,7 +30,7 @@ public class TimelineFrame extends JFrame
 
     public TimelineFrame( final TraceFormatBufferedFileReader reader )
     {
-        super( "TimeLine: " + reader.getProjectFilename() );
+        super( "TimeLine: " + reader.getCombinedProjectFilename() );
         super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
         TopWindow.Timeline.disposeAll();
         TopWindow.Timeline.setWindow( this );

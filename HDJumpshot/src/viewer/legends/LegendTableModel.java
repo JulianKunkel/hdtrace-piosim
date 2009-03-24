@@ -9,6 +9,8 @@
 
 package viewer.legends;
 
+import hdTraceInput.TraceFormatBufferedFileReader;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +21,6 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import viewer.TraceFormatBufferedFileReader;
 import base.drawable.Category;
 import base.drawable.ColorAlpha;
 

@@ -1,4 +1,4 @@
-package viewer;
+package viewer.topology;
 
 import java.util.HashMap;
 

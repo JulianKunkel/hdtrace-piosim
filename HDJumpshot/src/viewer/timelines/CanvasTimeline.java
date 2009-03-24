@@ -9,6 +9,10 @@
 
 package viewer.timelines;
 
+import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedTraceFileReader;
+import hdTraceInput.TraceFormatBufferedFileReader;
+
 import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -20,23 +24,18 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.util.Date;
-import java.util.Stack;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.sun.org.apache.xerces.internal.impl.xs.util.SimpleLocator;
-
-import viewer.BufferedStatisticFileReader;
-import viewer.BufferedTraceFileReader;
-import viewer.TimelineType;
-import viewer.TraceFormatBufferedFileReader;
 import viewer.common.CustomCursor;
 import viewer.common.Parameters;
 import viewer.common.Routines;
 import viewer.histogram.StatlineDialog;
+import viewer.topology.TopologyManager;
+import viewer.topology.TopologyStatisticTreeNode;
 import viewer.zoomable.ActionTimelineRestore;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.Debug;
@@ -49,12 +48,9 @@ import viewer.zoomable.SearchPanel;
 import viewer.zoomable.SearchableView;
 import viewer.zoomable.SummarizableView;
 import viewer.zoomable.ViewportTimeYaxis;
-import viewer.zoomable.YaxisTree;
-import base.drawable.ColorAlpha;
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
-import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
@@ -67,7 +63,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class CanvasTimeline extends ScrollableObject
 implements SearchableView, SummarizableView
 {
-	private YaxisTree          timelineManager;
+	private TopologyManager          timelineManager;
 	private BoundedRangeModel  y_model;
 
 	private Frame              root_frame;
@@ -93,7 +89,7 @@ implements SearchableView, SummarizableView
 	public CanvasTimeline( ModelTime           time_model,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
-			YaxisTree ytree)
+			TopologyManager ytree)
 	{
 		super( time_model );
 
@@ -248,31 +244,38 @@ implements SearchableView, SummarizableView
 
 
 		// Draw all drawables            
-		// TODO draw:
+		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
 
-		BufferedTraceFileReader tr = (BufferedTraceFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(0).getFilesPerThread().get(0).getTraceFileReader();
 
-		DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
-
-		drawTraceTimeline(1, tr, offGraphics, timebounds, coord_xform);
-
-		drawStatisticTimeline(2, "Power", 
-				(BufferedStatisticFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(0).getFilesPerThread().get(0).getStatisticReaders().get("Energy"),
-				offGraphics, timebounds, coord_xform);
-
-		drawStatisticTimeline(3, "Power", 
-				(BufferedStatisticFileReader) reader.getFileOpener().getHostnameProcessMap().get("localhost").getTraceFilesPerRank().get(1).getFilesPerThread().get(0).getStatisticReaders().get("Energy"),
-				offGraphics, timebounds, coord_xform);
-
+		for(int i=0; i < timelineManager.getTimelineNumber(); i++){
+			System.out.println(i);
+			
+			switch (timelineManager.getType(i)){
+			case SPACER_NODE:
+				break;
+			case INNER_NODE:
+				break;
+			case STATISTIC:
+				drawStatisticTimeline(i, timelineManager.getStatisticNodeForTimeline(i),	offGraphics, timebounds, coord_xform);
+				break;
+			case TRACE:
+				drawTraceTimeline(i, timelineManager.getTraceReaderForTimeline(i), offGraphics, timebounds, coord_xform);
+				break;
+			}
+				
+				
+		}
+		
 		offGraphics.dispose();
 	}   // endof drawOneOffImage()
 
 	public void drawStatisticTimeline(
 			int timeline,
-			String statName, 
-			BufferedStatisticFileReader sReader,  Graphics2D offGraphics,
+			TopologyStatisticTreeNode node,  Graphics2D offGraphics,
 			final TimeBoundingBox  timebounds, CoordPixelImage coord_xform)
 	{
+		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
+		final String statName = node.getStatisticName();
 		double lastTime = timebounds.getEarliestTime();
 
 		final double maxValue = reader.getGlobalStatStats(sReader.getGroup()).getStatsForStatistic(statName).getGlobalMaxValue();
@@ -319,7 +322,7 @@ implements SearchableView, SummarizableView
 		if(entry.getType() == TraceObjectType.EVENT){          
 			final EventTraceEntry event = (EventTraceEntry) entry;
 
-			DrawObjects.drawEvent(offGraphics, coord_xform, event, 1, reader.getCategory(event).getColor());
+			DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, reader.getCategory(event).getColor());
 
 		}else if(entry.getType() == TraceObjectType.STATE){
 			final StateTraceEntry state = (StateTraceEntry) entry;
@@ -348,7 +351,7 @@ implements SearchableView, SummarizableView
 		final double clickedTime = coord_xform.convertPixelToTime( local_click.x );
 		final int timeline       = coord_xform.convertPixelToTimeline( local_click.y);
 
-		if( timeline <= 0 || timeline > timelineManager.getTimelines() ){
+		if( timeline <= 0 || timeline > timelineManager.getTimelineNumber() ){
 			return null;
 		}
 

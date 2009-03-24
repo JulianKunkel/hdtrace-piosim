@@ -9,20 +9,19 @@
 
 package viewer.zoomable;
 
-import java.text.NumberFormat;
-import java.text.DecimalFormat;
-import java.awt.Color;
+import hdTraceInput.TraceFormatBufferedFileReader;
 
-import de.hd.pvs.TraceFormat.TraceObject;
+import java.awt.Color;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+import viewer.common.Const;
+import base.drawable.Category;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-
-import viewer.TraceFormatBufferedFileReader;
-import viewer.common.Const;
-import base.drawable.*;
 
 
 public class ModelInfo 
@@ -56,10 +55,13 @@ public class ModelInfo
 		
 		this.setDuration( fmt.format( 0 ) );
 		final Category cat = reader.getCategory(groupEntry.getGroup(), desc.getName()); 
-		this.setCategoryName( cat.getName() );    
+		this.setCategoryName( desc.getName() );    
 		this.setCategoryColor( (Color) cat.getColor() );
 		
-		this.setInfoString(statistic.getValue().toString() + " " + desc.getUnit());
+		if(desc.getUnit() != null)
+			this.setInfoString(statistic.getValue().toString() + " " + desc.getUnit());
+		else
+			this.setInfoString(statistic.getValue().toString());
 	}
 
 

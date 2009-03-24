@@ -12,15 +12,15 @@ package viewer.timelines;
 import java.util.Arrays;
 
 import base.drawable.DrawObjects;
-import viewer.zoomable.YaxisTree;
+import viewer.topology.TopologyManager;
 
 public class SearchCriteria
 {
-    private YaxisTree   tree_view;
+    private TopologyManager   tree_view;
     private int[]       selected_rowIDs;
     private boolean     searchAllRows;
 
-    public SearchCriteria( final YaxisTree y_tree )
+    public SearchCriteria( final TopologyManager y_tree )
     {
         tree_view = y_tree;
     }

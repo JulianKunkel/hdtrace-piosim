@@ -1,4 +1,4 @@
-package viewer;
+package hdTraceInput;
 
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;

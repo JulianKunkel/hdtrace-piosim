@@ -16,17 +16,18 @@ import javax.swing.*;
 import javax.swing.tree.*;
 
 import viewer.common.Dialogs;
+import viewer.topology.TopologyManager;
 
 public class ActionTimelineMark implements ActionListener
 {
     private Window             root_window;
     private ToolBarStatus      toolbar;
-    private YaxisTree          tree;
+    private TopologyManager          tree;
     private DefaultTreeModel   tree_model;
 
     public ActionTimelineMark( Window           parent_window,
                                ToolBarStatus    in_toolbar,
-                               YaxisTree        in_tree )
+                               TopologyManager        in_tree )
     {
         root_window  = parent_window;
         toolbar      = in_toolbar;

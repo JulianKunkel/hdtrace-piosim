@@ -29,13 +29,13 @@ import viewer.common.CustomCursor;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
 import viewer.common.Routines;
+import viewer.topology.TopologyManager;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.Debug;
 import viewer.zoomable.InfoDialog;
 import viewer.zoomable.ModelTime;
 import viewer.zoomable.Profile;
 import viewer.zoomable.ScrollableObject;
-import viewer.zoomable.YaxisTree;
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
@@ -48,7 +48,7 @@ public class CanvasStatline extends ScrollableObject
     private static       GradientPaint  BackgroundPaint       = null;
 
     private BufForTimeAveBoxes buf4statboxes;
-    private YaxisTree          tree_view;
+    private TopologyManager          tree_view;
     private BoundedRangeModel  y_model;
     private String[]           y_colnames;
 
