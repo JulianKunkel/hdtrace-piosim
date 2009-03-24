@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?><Application name="result" processCount="1">
  <Description>     </Description> 
 <FileList> </FileList>
+
+
+<Topology>
+        <Level name="Hostname">
+        <Level name="Rank">
+        <Level name="Thread">
+        </Level>
+        </Level>
+        </Level> 
+
+        <Label value="node01">
+        <Label value="Rank 0">
+                <Label value="main"/>
+        </Label>       
+        </Label>                       
+</Topology>
+
 <CommunicatorList> 
 <Communicator name="WORLD">
-<Rank number="0" cid="1"/>
+<Rank name="Rank 0" cid="1"/>
 </Communicator>
- </CommunicatorList> 
+</CommunicatorList>
+
 </Application>

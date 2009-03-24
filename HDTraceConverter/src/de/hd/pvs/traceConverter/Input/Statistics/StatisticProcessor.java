@@ -35,12 +35,12 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
  */
 public class StatisticProcessor  extends AbstractTraceProcessor{
 	private final StatisticsReader reader;
-	
+
 	private boolean isFinished;
-	
+
 	private StatisticGroupEntry lastRead;
 	private long           currentOffset = 0;
-	
+
 	private Epoch nextTimeStamp;
 
 	private ExternalStatisticsGroup group;
@@ -64,18 +64,18 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	private void getNextStatistic() throws Exception{
 		if(! isFinished){
 			currentOffset = reader.getFilePosition();
-			lastRead = reader.readNextInputEntry();
+			lastRead = reader.getNextInputEntry();
 			if(! reader.isFinished()){
 				nextTimeStamp = lastRead.getTimeStamp();
 			}
 		}
 	}
-	
+
 	@Override
 	public long getFilePosition() throws IOException {
 		return currentOffset;
 	}
-	
+
 	public StatisticProcessor(StatisticsReader reader) throws Exception{
 		this.reader = reader;
 	}
@@ -141,11 +141,11 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 							}
 						}
 
-						SimpleConsoleLogger.Debug(now + " "  + getPID() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
+						SimpleConsoleLogger.Debug(now + " "  + getTopology() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
 
 						// put in current average value as a new "old value"
 						lastUpdatedStatistic.put(stat, new StatisticWritten(val));
-						getOutputConverter().Statistics(getPID(), now, stat, group, val );
+						getOutputConverter().Statistics(getTopology(), now, stat, group, val );
 						continue;
 
 					}
@@ -155,15 +155,14 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			}		
 
 			// write the value as it is:						
-			getOutputConverter().Statistics(getPID(), now, stat, group, val );
+			getOutputConverter().Statistics(getTopology(), now, stat, group, val );
 
 		}
 
 		try{
 			getNextStatistic();
 		}catch(Exception e){
-			throw new IllegalArgumentException("Error in stat group " + group.getName() + " rank, thread " + 
-					getPID().getProcessNumber() + "," +getPID().getProcessNumber() , e);
+			throw new IllegalArgumentException("Error in stat group " + group.getName() + " topology " + getTopology() , e);
 		}
 	}
 
@@ -172,14 +171,17 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 		this.group = reader.getGroup();
 
 		assert(group != null);
-		
+
 		isFinished = reader.isFinished();
 		try{
 			getNextStatistic();
 		}catch(Exception e){
-			throw new IllegalArgumentException("Error in stat group " + group.getName() + " rank, thread " + 
-					getPID().getProcessNumber() + "," +getPID().getProcessNumber() , e);
+			throw new IllegalArgumentException("Error in stat group " + group.getName() + " topology " + 
+					getTopology() , e);
 		}
+
+		// register me on the trace converter
+		getOutputConverter().addTopology(getTopology());
 	}
 
 	@Override

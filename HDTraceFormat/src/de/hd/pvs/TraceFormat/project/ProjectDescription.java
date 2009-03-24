@@ -19,11 +19,12 @@
 package de.hd.pvs.TraceFormat.project;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 
 public class ProjectDescription {
 	// describes the project file:
@@ -31,6 +32,8 @@ public class ProjectDescription {
 	private String filePrefix;
 	private String projectFilename;
 
+	private TopologyInternalLevel topologyRoot;
+	private TopologyLabels        topologyLabels;
 	
 	private String applicationName = "";
 
@@ -40,9 +43,6 @@ public class ProjectDescription {
 
 	private int processCount = 0;	
 
-	// maps process rank and existing thread ids  
-	final ArrayList<Integer> processThreadCount = new ArrayList<Integer>();  
-	
 	// available statistics
 	final HashMap<String, ExternalStatisticsGroup> statisticGroupDescriptions = new HashMap<String, ExternalStatisticsGroup>();
 	
@@ -50,8 +50,12 @@ public class ProjectDescription {
 		statisticGroupDescriptions.put(group.getName(), group);
 	}
 	
-	public Collection<String> getExternalStatisticGroups(){
+	public Collection<String> getExternalStatisticGroupNames(){
 		return statisticGroupDescriptions.keySet();
+	}
+	
+	public Collection<ExternalStatisticsGroup> getExternalStatisticGroups(){
+		return statisticGroupDescriptions.values();
 	}
 	
 	public ExternalStatisticsGroup getExternalStatisticsGroup(String groupName){
@@ -73,15 +77,7 @@ public class ProjectDescription {
 	
 	public String getAbsoluteFilenameOfProject(){
 		return getAbsoluteFilesPrefix() + ".xml";
-	}
-	
-	public String getAbsoluteFilenameOfTrace(int rank, int thread){
-		return getAbsoluteFilesPrefix() + "_" + rank +"_" + thread +".xml";
-	}
-	
-	public String getAbsoluteFilenameOfStatistics(int rank, int thread, String statGroup){		
-		return getAbsoluteFilesPrefix() + "_" + rank +"_" + thread + "_stat_" + statGroup + ".dat";
-	}
+	}	
 
 	public String getFilesPrefix() {
 		return filePrefix;
@@ -118,7 +114,10 @@ public class ProjectDescription {
 
 		this.parentDir = parent.getAbsolutePath();
 		this.projectFilename = projectFile.getName();
-		this.filePrefix = prefix;		
+		this.filePrefix = prefix;
+		
+		if(topologyRoot != null)
+			topologyRoot.setLabel(this.projectFilename);
 	}
 	
 	public void setApplicationName(String applicationName) {
@@ -138,32 +137,22 @@ public class ProjectDescription {
 	}
 
 	public void setProcessCount(int processCount) {
-		// remove old values if too many present:
-		for (int i=this.processCount ; i < processThreadCount.size(); i++){
-			processThreadCount.remove(i);				
-		}
-		
-		// add new values if less present:
-		processThreadCount.ensureCapacity(processCount);
-		for (int i= this.processThreadCount.size() ; i < processCount; i++){
-			processThreadCount.add(0);
-		}
-		
 		this.processCount = processCount;
 	}
 	
-	/**
-	 * Set the number of threads of a particular process,
-	 * the threads are numbered with 0..(threadCount - 1)
-	 * 
-	 * @param process
-	 * @param threadCount
-	 */
-	public void setProcessThreadCount(final int process, int threadCount) {
-		processThreadCount.set(process, threadCount);
+	public void setTopologyLabels(TopologyLabels topologyLabels) {
+		this.topologyLabels = topologyLabels;
 	}
 	
-	public int getProcessThreadCount(int process){
-		return processThreadCount.get(process);
+	public void setTopologyRoot(TopologyInternalLevel topologyRoot) {
+		this.topologyRoot = topologyRoot;
+	}
+	
+	public TopologyLabels getTopologyLabels() {
+		return topologyLabels;
+	}
+	
+	public TopologyInternalLevel getTopologyRoot() {
+		return topologyRoot;
 	}
 }

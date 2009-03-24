@@ -26,6 +26,9 @@ import java.util.LinkedList;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -66,20 +69,19 @@ public class ProjectDescriptionXMLReader {
 			"Invalid XML, \"processCount\" missing in project description");
 		}
 
-		// now add available thread count per process, by checking for existing files:
-		for(int i=0; i < descriptionInOut.getProcessCount(); i++){
-			int t = 0;
-			while(true){
-				File threadFile = new File(descriptionInOut.getAbsoluteFilenameOfTrace(i, t));
-				if(! threadFile.exists()) break;
-				t++;
-			}
-			if(t == 0){
-				throw new IOException("No thread found for rank " + i + " project " + projectFilename);
-			}
-			descriptionInOut.setProcessThreadCount(i, t);
+		final XMLTag xmlTopology = rootTag.getAndRemoveFirstNestedXMLTagWithName("Topology");
+		TopologyLabels labels = new TopologyLabels();
+		
+		if(xmlTopology == null){
+			throw new IllegalArgumentException("Topology Tag not found! Invalid XML!");
 		}
 		
+		parseTopologyLabel(xmlTopology, labels);
+		
+		descriptionInOut.setTopologyLabels(labels);
+		
+		descriptionInOut.setTopologyRoot( parseTopology(xmlTopology, descriptionInOut.getFilesPrefix(), null) );
+
 		// parse the descriptions of the external statistics:
 		XMLTag element = rootTag.getAndRemoveFirstNestedXMLTagWithName("ExternalStatistics");
 		if(element != null){
@@ -90,6 +92,48 @@ public class ProjectDescriptionXMLReader {
 			}
 		}
 	}
+	
+	/**
+	 * Recursivly read topology labels
+	 * @param topologyTag
+	 * @param labels
+	 */
+	private void parseTopologyLabel(XMLTag topologyTag, TopologyLabels labels){
+		final XMLTag curLabel = topologyTag.getFirstNestedXMLTagWithName("Level");
+		if(curLabel == null){
+			return;
+		}
+		final String name = curLabel.getAttribute("name");		
+		labels.addLabelOfNextDepth(name);
+		
+		parseTopologyLabel(curLabel, labels);
+	}
+	
+	
+	private TopologyInternalLevel parseTopology(XMLTag xmlTopology, String name, TopologyInternalLevel parent){		
+		LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label"); 
+		
+		if(children.size() == 0){
+			// leaf level
+			TopologyLeafLevel level = new TopologyLeafLevel(name, parent);
+			return level;
+		}
+		
+		TopologyInternalLevel level = new TopologyInternalLevel(name, parent);
+		
+		int pos = 0;
+		for(XMLTag tag: children){
+			String childName = tag.getAttribute("value");
+			
+			TopologyInternalLevel child = parseTopology(tag,  childName, level);
+			level.setChild(childName, child);
+			
+			level.setPositionInParent(pos++);
+		}
+		
+        return level;
+	}
+	
 		
 	private ExternalStatisticsGroup parseStatisticGroupInXML(XMLTag root){
 		ExternalStatisticsGroup stat = new ExternalStatisticsGroup();

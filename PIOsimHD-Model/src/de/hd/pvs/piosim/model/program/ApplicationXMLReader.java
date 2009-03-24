@@ -21,9 +21,11 @@ package de.hd.pvs.piosim.model.program;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
@@ -82,8 +84,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		}
 		elements = elements.get(0).getNestedXMLTagsWithName("Communicator");
 		for (int i = 0; i < elements.size(); i++) {
-			Communicator c = new Communicator();
-			c.readXML(elements.get(i));
+			Communicator c = readCommunicator(elements.get(i), app);
 			app.getCommunicators().put(c.getName(), c);
 		}
 
@@ -91,38 +92,85 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		Program [][] programs = new Program[app.getProcessCount()] [];
 
 		final XMLReaderToRAM reader = new XMLReaderToRAM();
-		
-		for (int rank = 0; rank < app.getProcessCount(); rank++) {
-			final int threadCnt =  app.getProcessThreadCount(rank);
 
-			programs[rank] = new Program[threadCnt]; 
-
-			for(int thread = 0 ; thread < threadCnt; thread++){
-
-				// for each program open the corresponding file				
-				final String file = app.getAbsoluteFilenameOfTrace(rank, thread);
-
-				if(!  (new File(file)).canRead() ){
-					throw new IOException("File " + file + " is not readable!");
-				}
-
-				if(readCompleteProgram){
-					// use DOM reader
-					final XMLTag tag = reader.readXML(file);
-					programs[rank][thread] = readProgramXMLDOM(rank, thread, tag, app);
-				}else{ // use SAX Reader to read the file
-					programs[rank][thread] = new ProgramReadXMLOnDemand();					
-				}
+		int rank = -1;
+		for (TopologyInternalLevel host: app.getTopologyRoot().getChildElements().values()) {			
+			for (TopologyInternalLevel topoRanks: host.getChildElements().values()) {
 				
-				programs[rank][thread].setApplication(app, rank, thread);
-				programs[rank][thread].setFilename(file);
-				programs[rank][thread].restartWithFirstCommand();
+				rank++;
+				
+				final int threadCnt =  topoRanks.getChildElements().size();
+
+				programs[rank] = new Program[threadCnt]; 
+				int thread = -1;
+				for(TopologyInternalLevel topoThread : topoRanks.getChildElements().values() ){
+					thread++;
+					
+					// for each program open the corresponding file				
+					final String file = app.getParentDir() + "/" + topoThread.getTraceFileName();
+
+					if(!  (new File(file)).canRead() ){
+						throw new IOException("File " + file + " is not readable!");
+					}
+
+					if(readCompleteProgram){
+						// use DOM reader
+						final XMLTag tag = reader.readXML(file);
+						programs[rank][thread] = readProgramXMLDOM(rank, thread, tag, app);
+					}else{ // use SAX Reader to read the file
+						programs[rank][thread] = new ProgramReadXMLOnDemand();					
+					}
+
+					programs[rank][thread].setApplication(app, rank, thread);
+					programs[rank][thread].setFilename(file);
+					programs[rank][thread].restartWithFirstCommand();
+				}
 			}
 		}
 
 		app.setProcessThreadProgramMap(programs);
 
 		return app;
+	}
+	
+
+	private Communicator readCommunicator(XMLTag xml, Application app) throws Exception {
+		Communicator comm = new Communicator();
+		
+		String name =xml.getAttribute("name").toUpperCase();
+		comm.setName(name);
+
+		final LinkedList<XMLTag>  elements = xml.getNestedXMLTagsWithName("Rank");
+		
+		Iterator<XMLTag> it = elements.iterator();
+		
+		for(int i=0; i < elements.size(); i++){
+			XMLTag tag = it.next();
+			
+			final String rank = tag.getAttribute("name");
+			if (rank == null){
+				throw new InvalidParameterException("Invalid XML, no rank name specified !");
+			}
+			final String cid = tag.getAttribute("cid");
+			if (rank == null){
+				throw new InvalidParameterException("Invalid XML, no communicator ID specified !");
+			}			
+			
+			int ranki = -1;
+			
+			// lookup rank:
+			ranki = app.getRank(rank);			
+			
+			try{
+				final int cidi = Integer.parseInt(cid);
+				comm.addRank(ranki, cidi);
+				
+			}catch(NumberFormatException e){
+				throw new InvalidParameterException("Invalid XML, no integer cid specified");
+			}	
+		}
+		
+		return comm;
 	}
 
 	/**
@@ -138,7 +186,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		program.setApplication(app, rank, thread);
 
 		LinkedList<XMLTag> elements = processXML.getNestedXMLTags();
-		
+
 		CommandXMLReader cmdReader = new CommandXMLReader(program);
 
 		for (XMLTag xmlcmd: elements) {		

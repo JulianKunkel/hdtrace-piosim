@@ -24,6 +24,7 @@ import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 
@@ -48,9 +49,22 @@ public class ProjectDescriptionXMLWriter {
 		
 		buff.append("<Application name=\"" + desc.getApplicationName() + "\" processCount=\"" + desc.getProcessCount() + "\">\n");
 
+		// topology labels:
+		buff.append("<Topology>\n");
+		for(String label: desc.getTopologyLabels().getLabels()){
+			 buff.append("<Level name=\"" + label + "\">\n");
+		}
+		for(String label: desc.getTopologyLabels().getLabels()){
+			buff.append("</Level>\n");
+		}
+		
+		writeTopologyRecursive(buff, desc.getTopologyRoot());
+		
+		buff.append("</Topology>\n");
+		
 		buff.append("<ExternalStatistics>\n");
 		
-		for(String groupName: desc.getExternalStatisticGroups()){
+		for(String groupName: desc.getExternalStatisticGroupNames()){
 			final ExternalStatisticsGroup group = desc.getExternalStatisticsGroup(groupName);
 			buff.append("<" + group.getName() + " timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeOffset=\"" +
 					group.getTimeOffset()  + "\"");
@@ -82,6 +96,16 @@ public class ProjectDescriptionXMLWriter {
 		
 		buff.append("</Application>\n");
 		writeToFile(desc.getAbsoluteFilenameOfProject(), buff);
+	}
+	
+	private void writeTopologyRecursive(StringBuffer buff, TopologyInternalLevel topologyInternalLevel){
+		buff.append("<Label value=\"" + topologyInternalLevel.getLabel() + "\">\n");
+		if(! topologyInternalLevel.isLeaf()){
+			for(TopologyInternalLevel child: topologyInternalLevel.getChildElements().values()){
+				writeTopologyRecursive(buff, child);
+			}
+		}
+		buff.append("</Label>\n");
 	}
 	
 	/**

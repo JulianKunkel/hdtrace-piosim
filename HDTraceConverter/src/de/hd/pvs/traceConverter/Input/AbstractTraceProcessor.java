@@ -20,6 +20,7 @@ package de.hd.pvs.traceConverter.Input;
 
 import java.io.IOException;
 
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -39,7 +40,7 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	 */
 	private TraceOutputWriter outputConverter;
 	
-	private ProcessIdentifier  processIdentifier;
+	private TopologyInternalLevel topology;
 	
 	private RunParameters      runParameters;
 	
@@ -85,12 +86,13 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 		return outputConverter;
 	}
 	
-	/**
-	 * Set all information about the running process needed.
-	 * @param pid
-	 */
-	public void setProcessIdentifier(ProcessIdentifier pid){
-		this.processIdentifier = pid;
+
+	public void setTopology(TopologyInternalLevel topology) {
+		this.topology = topology;
+	}
+	
+	public TopologyInternalLevel getTopology() {
+		return topology;
 	}
 	
 	@Override
@@ -98,13 +100,6 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 		return this.peekEarliestTime().compareTo(o.peekEarliestTime());
 	}
 
-	/**
-	 * Return the process ID of this trace processor
-	 * @return
-	 */
-	public ProcessIdentifier getPID() {
-		return processIdentifier;
-	}
 	
 	public RunParameters getRunParameters() {
 		return runParameters;

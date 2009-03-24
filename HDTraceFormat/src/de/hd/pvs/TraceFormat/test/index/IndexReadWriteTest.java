@@ -94,6 +94,6 @@ public class IndexReadWriteTest{
 	public void CreateTraceStatisticFileIndex() throws Exception{
 		IndexCreator creator = new IndexCreator();
 	
-		creator.createIndexForStatisticFile("../HDTraceConverter/Example/test.xml", "Energy", 0, 0);
+		//creator.createIndexForStatisticFile("../HDTraceConverter/Example/test.xml", "Energy", 0, 0);
 	}
 }

@@ -24,6 +24,7 @@ package de.hd.pvs.piosim.model.program;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 
 /**
@@ -81,5 +82,19 @@ public class Application extends ProjectDescription{
 
 	public void setFiles(HashMap<Integer, MPIFile> files) {
 		this.files = files;
+	}
+	
+	public int getRank(String topoName){
+		// lookup rank:
+		int curRank = -1;
+		for(TopologyInternalLevel host: getTopologyRoot().getChildElements().values() ){
+			for(TopologyInternalLevel ranks: host.getChildElements().values() ){
+				curRank++;
+				if( ranks.getLabel().equals(topoName)){
+					return curRank;
+				}
+			}
+		}
+		throw new IllegalArgumentException("No such rank with name " + topoName);
 	}
 }

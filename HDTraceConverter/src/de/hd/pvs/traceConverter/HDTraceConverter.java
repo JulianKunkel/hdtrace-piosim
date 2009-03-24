@@ -22,14 +22,13 @@ import java.util.PriorityQueue;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.topology.HostnamePerProjectContainer;
-import de.hd.pvs.TraceFormat.topology.RanksPerHostnameTraceContainer;
-import de.hd.pvs.TraceFormat.topology.ThreadsPerRankTraceContainer;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
-import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Input.Statistics.StatisticProcessor;
 import de.hd.pvs.traceConverter.Input.Trace.TraceProcessor;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -66,47 +65,8 @@ public class HDTraceConverter {
 					traceReader.getProjectDescriptionXMLReader().getUnparsedChildTags());
 		}
 
-		for(String hostname: traceReader.getHostnameProcessMap().keySet()){
-			HostnamePerProjectContainer rankMap = traceReader.getHostnameProcessMap().get(hostname);
-			for(Integer rank: rankMap.getTraceFilesPerRank().keySet()){
-				final RanksPerHostnameTraceContainer filesThisRank =  rankMap.getTraceFilesPerRank().get(rank);
-
-				for(Integer thread: filesThisRank.getFilesPerThread().keySet()){
-					final ThreadsPerRankTraceContainer fileCont = filesThisRank.getFilesPerThread().get(thread);
-					final ProcessIdentifier pid = new ProcessIdentifier(rank, thread);
-
-					StAXTraceFileReader reader = fileCont.getTraceFileReader();
-					if( reader != null){
-						TraceProcessor processor = new TraceProcessor(reader);
-						processor.setOutputConverter(outputConverter);
-						processor.setProcessIdentifier(pid);
-						processor.setRunParameters(param);
-
-						processor.initalize();
-
-						if(processor.peekEarliestTime() != null){
-							pendingReaders.add(processor);
-						}
-					}else{
-						System.err.println("No trace file for rank,thread: " + rank +"," + thread);
-					}
-
-					for(StatisticsReader sReader: fileCont.getStatisticReaders().values()){
-						StatisticProcessor processor = new StatisticProcessor(sReader);
-						processor.setOutputConverter(outputConverter);
-						processor.setProcessIdentifier(pid);
-						processor.setRunParameters(param);
-
-						processor.initalize();
-
-						if(processor.peekEarliestTime() != null){
-							pendingReaders.add(processor);
-						}
-					}
-				}
-			}
-		}
-
+		// read from topology
+		recursivlyInstantiateProcessors(outputConverter,  projectDescription.getTopologyRoot(), param, pendingReaders );
 
 		Epoch now = Epoch.ZERO;
 		Epoch old = Epoch.ZERO;
@@ -149,6 +109,51 @@ public class HDTraceConverter {
 		outputConverter.finalizeTrace();
 
 		System.out.println("Completed -> processed " + eventCount + " events");
+	}
+
+	private void recursivlyInstantiateProcessors(TraceOutputWriter outputConverter, TopologyInternalLevel topo, RunParameters param, PriorityQueue<AbstractTraceProcessor> pendingReaders) throws Exception{
+		for(StatisticSource ssource: topo.getStatisticSources().values()){
+			StatisticsReader reader = (StatisticsReader)  ssource;
+
+			StatisticProcessor processor = new StatisticProcessor(reader);
+			processor.setOutputConverter(outputConverter);
+			processor.setTopology(topo);
+			processor.setRunParameters(param);
+
+			processor.initalize();
+
+			if(processor.peekEarliestTime() != null){
+				pendingReaders.add(processor);
+			}
+		}
+
+
+		if( topo.isLeaf() ){
+			final TopologyLeafLevel leaf = (TopologyLeafLevel) topo;
+
+			StAXTraceFileReader reader = (StAXTraceFileReader) leaf.getTraceSource();
+			if( reader == null){
+				throw new IllegalArgumentException("Trace reader is not initialized for topology: " + topo);
+			}
+			TraceProcessor processor = new TraceProcessor(reader);
+			processor.setOutputConverter(outputConverter);
+			processor.setTopology(topo);
+			processor.setRunParameters(param);
+
+			processor.initalize();
+
+			if(processor.peekEarliestTime() != null){
+				pendingReaders.add(processor);
+			}
+
+		}else{
+			assert(topo.getChildElements().size() > 0);
+
+			for(TopologyInternalLevel child: topo.getChildElements().values()){
+				recursivlyInstantiateProcessors(outputConverter, child, param, pendingReaders);
+			}
+		}
+
 	}
 
 	/** 

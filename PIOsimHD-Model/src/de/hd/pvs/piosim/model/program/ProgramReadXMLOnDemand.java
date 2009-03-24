@@ -63,7 +63,7 @@ public class ProgramReadXMLOnDemand extends Program{
 			// check if this command is valid:
 			modelVerifier.checkConsistency(cmd);
 			
-			nextCmdEntry = traceFileReader.readNextInputEntry();			
+			nextCmdEntry = traceFileReader.getNextInputEntry();			
 			return cmd;
 		}catch(Exception e){
 			throw new IllegalStateException(e);
@@ -79,7 +79,7 @@ public class ProgramReadXMLOnDemand extends Program{
 	public void restartWithFirstCommand() {
 		try{
 			traceFileReader = new StAXTraceFileReader(filename, false);
-			nextCmdEntry = traceFileReader.readNextInputEntry();
+			nextCmdEntry = traceFileReader.getNextInputEntry();
 		}catch(Exception e){
 			throw new IllegalArgumentException(e);
 		}

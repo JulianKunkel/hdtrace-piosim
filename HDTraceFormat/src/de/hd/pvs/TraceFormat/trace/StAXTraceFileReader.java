@@ -37,7 +37,7 @@ import de.hd.pvs.TraceFormat.xml.XMLTraceEntryFactory;
  * 
  * @author Julian M. Kunkel
  */
-public class StAXTraceFileReader{
+public class StAXTraceFileReader implements TraceSource{
 
 	private XMLStreamReader reader;
 
@@ -75,7 +75,7 @@ public class StAXTraceFileReader{
 	 * 
 	 * @return
 	 */
-	public XMLTraceEntry readNextInputEntry(){
+	public XMLTraceEntry getNextInputEntry(){
 		try{
 
 			/**

@@ -152,7 +152,7 @@ public class TraceFormatBufferedFileReader {
     }
     
     private void createStatisticCategories(){
-        for(String catName: fileOpener.getProjectDescription().getExternalStatisticGroups()){
+        for(String catName: fileOpener.getProjectDescription().getExternalStatisticGroupNames()){
         	categoriesStatistics.put(catName, new Category(catName, Topology.STATISTIC, new ColorAlpha(0,0,200)));
         }        	
     }
@@ -234,7 +234,7 @@ public class TraceFormatBufferedFileReader {
 	}
 	
 	public Collection<String> getGroupNames(){
-		return fileOpener.getProjectDescription().getExternalStatisticGroups();
+		return fileOpener.getProjectDescription().getExternalStatisticGroupNames();
 	}
 	
 	public GlobalStatisticStatsPerGroup getGlobalStatStats(ExternalStatisticsGroup group) {

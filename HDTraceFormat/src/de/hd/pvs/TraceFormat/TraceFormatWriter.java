@@ -26,6 +26,8 @@ import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticWriter;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceWriter;
@@ -39,51 +41,54 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
  * 
  */
 public class TraceFormatWriter {
-	
-	static class PerThreadFiles{
+
+	static class OutFiles{
 		TraceWriter traceWriter;
 		HashMap<ExternalStatisticsGroup, StatisticWriter> registeredStatisticWriter = new HashMap<ExternalStatisticsGroup, StatisticWriter>();
 	}
 
 	// map a single process id to the corresponding trace writer.
-	final HashMap<Integer, HashMap<Integer, PerThreadFiles>> traceWriterMap = new HashMap<Integer, HashMap<Integer,PerThreadFiles>>();
-	
+	final HashMap<TopologyInternalLevel, OutFiles> traceWriterMap = new HashMap<TopologyInternalLevel, OutFiles>();
+
 	final ProjectDescription outProject = new ProjectDescription();
-	
+
 	LinkedList<XMLTag> unparsedTagsToWrite = null;
-	
+
 	public void setUnparsedTagsToWrite(LinkedList<XMLTag> unparsedTagsToWrite){
 		this.unparsedTagsToWrite = unparsedTagsToWrite;
 	}
-	
+
 	public void initializeTrace(String resultFile) {
 		outProject.setProjectFilename(resultFile + ".xml");
-	}
-
-	public void addTimeline(int process, int thread) {
-		final String file = outProject.getAbsoluteFilenameOfTrace(process, thread);
-		try {
-			HashMap<Integer, PerThreadFiles> threadMap = traceWriterMap.get(process);
-			if(threadMap == null){
-				threadMap = new HashMap<Integer, PerThreadFiles>();
-				traceWriterMap.put(process, threadMap);
-			}
-			PerThreadFiles files = new PerThreadFiles();
-			files.traceWriter =  new TraceWriter(file);
-			
-			threadMap.put(thread, files);
-		} catch (Exception e) {
-			throw new IllegalArgumentException(
-					"Statistic file could not be created: " + file);
-		}
-		if(process >= outProject.getProcessCount() ){
-			outProject.setProcessCount(process + 1);
-		}
-		if(thread >= outProject.getProcessThreadCount(process)){
-			outProject.setProcessThreadCount(process, thread+1);
-		}
+		
+		outProject.setTopologyRoot( new TopologyInternalLevel(outProject.getFilesPrefix(), null));
 	}
 	
+	public void setTopologyLabels(TopologyLabels labels){
+		outProject.setTopologyLabels(labels);
+	}
+
+	public void addTopology(TopologyInternalLevel topology) {
+		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
+
+		OutFiles files = traceWriterMap.get(topology);
+		if(files != null){
+			return;
+		}
+		
+		files = new OutFiles();
+		traceWriterMap.put(topology, files);
+
+		try {
+			if(topology.isLeaf()){
+				files.traceWriter =  new TraceWriter(file);
+			}
+		} catch (Exception e) {
+			throw new IllegalArgumentException(
+					"Trace file could not be created: " + file);
+		}
+	}
+
 	/**
 	 * Add a statistic group for output. 
 	 * @param group
@@ -92,50 +97,47 @@ public class TraceFormatWriter {
 		outProject.addExternalStatisticsGroup(group);
 	}
 
-	
-	public void Event(int process, int thread, Epoch time,
+
+	public void Event(TopologyInternalLevel topology, Epoch time,
 			EventTraceEntry traceEntry) {
-		TraceWriter writer = traceWriterMap.get(process).get(thread).traceWriter;
+		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 		try {
 			writer.Event(time, traceEntry);
 		} catch (IOException e) {
-			throw new IllegalArgumentException("Could not write file for id "
-					+ process +"," + thread);
+			throw new IllegalArgumentException("Could not write file for id " + topology);
 		}
 	}
 
-	public void StateEnd(int process, int thread, Epoch time,
+	public void StateEnd(TopologyInternalLevel topology, Epoch time,
 			StateTraceEntry traceEntry) {
-		TraceWriter writer = traceWriterMap.get(process).get(thread).traceWriter;
-
+		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 		try {
 			writer.StateEnd(time, traceEntry);
 		} catch (IOException e) {
-			throw new IllegalArgumentException("Could not write file for "
-					+ process + "," + thread);
+			throw new IllegalArgumentException("Could not write file for id " + topology);
 		}
 	}
 
-	public void StateStart(int process, int thread, Epoch time,
+	public void StateStart(TopologyInternalLevel topology, Epoch time,
 			StateTraceEntry traceEntry) {
-		TraceWriter writer =  traceWriterMap.get(process).get(thread).traceWriter;
+		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 
 		try {
 			writer.StateStart(time, traceEntry);
 		} catch (IOException e) {
-			throw new IllegalArgumentException("Could not write file for "
-					+ process + "," + thread);
+			throw new IllegalArgumentException("Could not write file for id " + topology);
 		}
 	}
-	
-	public void Statistics(int process, int thread, Epoch time, String statistic,
+
+	public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic,
 			ExternalStatisticsGroup group, Object value) {
-		final HashMap<ExternalStatisticsGroup, StatisticWriter> stats =  traceWriterMap.get(process).get(thread).registeredStatisticWriter;
-				
+		final HashMap<ExternalStatisticsGroup, StatisticWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
+
 		StatisticWriter outWriter = stats.get(group);
 
 		if (outWriter == null) {			
-			final String file = outProject.getAbsoluteFilenameOfStatistics(process, thread, group.getName());
+			final String file = outProject.getParentDir() + "/" + topology.getStatisticFileName(group.getName());
+
 			try {
 				// generate a new output writer
 				outWriter = new StatisticWriter(file, group);
@@ -156,20 +158,19 @@ public class TraceFormatWriter {
 	}
 
 	public void finalizeTrace() throws IOException{
-		for (HashMap<Integer, PerThreadFiles> pidMap : traceWriterMap.values()) {
-			for (PerThreadFiles files : pidMap.values()) {
+		for (OutFiles files : traceWriterMap.values()) {
+			if(files.traceWriter != null)
 				files.traceWriter.finalize();
-				
-				for (StatisticWriter writer : files.registeredStatisticWriter.values()) {
-					writer.finalize();
-				}				
-			}
+
+			for (StatisticWriter writer : files.registeredStatisticWriter.values()) {
+				writer.finalize();
+			}				
 		}
-		
+
 		final ProjectDescriptionXMLWriter projectWriter = new ProjectDescriptionXMLWriter();		
 		projectWriter.writeXMLToProjectFile(outProject, unparsedTagsToWrite);
 	}
-	
+
 	public ProjectDescription getProjectDescription(){
 		return outProject;
 	}

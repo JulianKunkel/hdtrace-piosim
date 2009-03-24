@@ -43,7 +43,7 @@ public class ApplicationBuilder {
 	private void build(String applicationName, String desc, int processes, int [] threadsPerProcess) {
 		app.setApplicationName(applicationName);
 		app.setDescription(desc);
-		// shall be set from outside.
+		// shall be set from outside.				
 		app.setProjectFilename(applicationName + ".xml");
 		
 		setProcessNumber(processes, threadsPerProcess);		

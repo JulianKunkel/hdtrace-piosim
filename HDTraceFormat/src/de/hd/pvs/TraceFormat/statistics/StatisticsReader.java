@@ -29,7 +29,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author Julian M. Kunkel
  *
  */
-public class StatisticsReader{
+public class StatisticsReader implements StatisticSource{
 	final RandomAccessFile file;	
 	final ExternalStatisticsGroup group;
 
@@ -38,7 +38,7 @@ public class StatisticsReader{
 		this.file = new RandomAccessFile(filename, "r");
 	}
 	
-	public StatisticGroupEntry readNextInputEntry() throws Exception{
+	public StatisticGroupEntry getNextInputEntry() throws Exception{
 		if(isFinished()){
 			return null;
 		}

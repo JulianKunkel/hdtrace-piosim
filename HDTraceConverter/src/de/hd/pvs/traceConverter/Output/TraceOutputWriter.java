@@ -21,12 +21,12 @@ package de.hd.pvs.traceConverter.Output;
 import java.io.IOException;
 
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.HDTraceConverter;
 import de.hd.pvs.traceConverter.RunParameters;
-import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 
 /**
  * An implementation of the TraceOutputWriter decides how to 
@@ -59,24 +59,15 @@ abstract public class TraceOutputWriter {
 	/**
 	 * Announce the existence of a rank/thread line for events. Called by the TraceProcessor
 	 */
-	abstract public void addTimeline(ProcessIdentifier pid);
-	
-	/**
-	 * Add the normal timeline.
-	 * @param pid
-	 */
-	final public void addNormalTimeline(ProcessIdentifier pid){
-		addTimeline(pid);
-	}
-
-	
+	abstract public void addTopology(TopologyInternalLevel topology);
+		
 	// handle states == default case
-	abstract public void StateStart(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry);
-	abstract public void StateEnd(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry);
+	abstract public void StateStart(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry);
+	abstract public void StateEnd(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry);
 
 	// handle events
-	abstract public void Event(ProcessIdentifier id,Epoch time, EventTraceEntry traceEntry);
+	abstract public void Event(TopologyInternalLevel topology,Epoch time, EventTraceEntry traceEntry);
 	
 	// handle statistics
-	abstract public void Statistics(ProcessIdentifier id, Epoch time, String statistic, ExternalStatisticsGroup group, Object value);	
+	abstract public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic, ExternalStatisticsGroup group, Object value);	
 }

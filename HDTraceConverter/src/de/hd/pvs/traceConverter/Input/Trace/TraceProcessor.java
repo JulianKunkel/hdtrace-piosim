@@ -60,7 +60,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 	@Override
 	public void initalize() {
 		// register me on the trace converter, right now use just one timeline for our events.
-		getOutputConverter().addNormalTimeline(getPID());
+		getOutputConverter().addTopology(getTopology());
 	}
 	
 	private void readNextTraceEntryIfNecessary(){		
@@ -102,7 +102,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		
 		currentTraceEntryOffset = reader.getFilePosition();
 		
-		currentTraceEntry = reader.readNextInputEntry();
+		currentTraceEntry = reader.getNextInputEntry();
 		if(currentTraceEntry == null)
 			return;
 				
@@ -114,7 +114,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		//System.out.println(eventTime.getFullDigitString() + " " + stateStart + " processing " + currentTraceEntry.getName() + " t " + currentTraceEntry.getTime());
 		
 		if(currentTraceEntry.getType() == TraceObjectType.EVENT){
-			getOutputConverter().Event(getPID(), now, (EventTraceEntry) currentTraceEntry);
+			getOutputConverter().Event(getTopology(), now, (EventTraceEntry) currentTraceEntry);
 			
 			readNextTraceEntryIfNecessary();
 		}else if(currentTraceEntry.getType() == TraceObjectType.STATE){			
@@ -123,7 +123,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			
 			if(stateStart){
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
-					getOutputConverter().StateStart(getPID(), now, state);
+					getOutputConverter().StateStart(getTopology(), now, state);
 				
 				if(state.hasNestedTraceChildren()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
@@ -135,7 +135,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 				}
 			}else{
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
-					getOutputConverter().StateEnd(getPID(), now, state);
+					getOutputConverter().StateEnd(getTopology(), now, state);
 				
 				stateStart = true;
 				readNextTraceEntryIfNecessary();

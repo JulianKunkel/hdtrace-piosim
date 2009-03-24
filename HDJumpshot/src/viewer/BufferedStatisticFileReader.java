@@ -20,14 +20,14 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 	public BufferedStatisticFileReader(String filename, ExternalStatisticsGroup group) throws Exception{
 		super(filename, group);
 		
-		StatisticGroupEntry current = readNextInputEntry();
+		StatisticGroupEntry current = getNextInputEntry();
 		
 		minTime = current.getTimeStamp();
 		
 		while(current != null){
 			statEntries.add(current);
 
-			current = readNextInputEntry();
+			current = getNextInputEntry();
 		}
 		
 		maxTime = statEntries.get(statEntries.size()-1).getTimeStamp();

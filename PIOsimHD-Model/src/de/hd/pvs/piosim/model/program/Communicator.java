@@ -18,14 +18,8 @@
 
 package de.hd.pvs.piosim.model.program;
 
-import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-
-import de.hd.pvs.TraceFormat.xml.XMLTag;
-import de.hd.pvs.piosim.model.interfaces.IXMLReader;
 
 /**
  * Implements an MPI communicator. Contains a set of client world ranks which should be used 
@@ -35,7 +29,7 @@ import de.hd.pvs.piosim.model.interfaces.IXMLReader;
  * @author Julian M. Kunkel
  *
  */
-public class Communicator implements IXMLReader{
+public class Communicator{
 		
 	/**
 	 * Predefined Communicator for communication with the I/O servers.
@@ -74,6 +68,10 @@ public class Communicator implements IXMLReader{
 		return name;
 	}
 	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	/**
 	 * Add a single worldRank to this communicator.
 	 * @param rank 
@@ -97,40 +95,6 @@ public class Communicator implements IXMLReader{
 	public Communicator(String name) {
 		this();
 		this.name = name;
-	}
-	
-	public void readXML(XMLTag xml) throws Exception {
-		name =xml.getAttribute("name").toUpperCase(); 
-
-		final LinkedList<XMLTag>  elements = xml.getNestedXMLTagsWithName("Rank");
-		
-		Iterator<XMLTag> it = elements.iterator();
-		
-		for(int i=0; i < elements.size(); i++){
-			XMLTag tag = it.next();
-			
-			final String rank = tag.getAttribute("number");
-			if (rank == null){
-				throw new InvalidParameterException("Invalid XML, no rank number specified !");
-			}
-			final String cid = tag.getAttribute("cid");
-			if (rank == null){
-				throw new InvalidParameterException("Invalid XML, no communicator ID specified !");
-			}			
-			
-			try{
-				final int ranki = Integer.parseInt(rank);
-				final int cidi = Integer.parseInt(cid);
-				addRank(ranki, cidi);
-				
-			}catch(NumberFormatException e){
-				throw new InvalidParameterException("Invalid XML, no integer rank or cid specified");
-			}	
-		}
-	}
-	
-	public void writeXML(StringBuffer sb) {
-		
 	}
 	
 		

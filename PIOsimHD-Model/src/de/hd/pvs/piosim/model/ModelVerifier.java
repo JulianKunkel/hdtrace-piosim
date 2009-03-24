@@ -112,13 +112,18 @@ public class ModelVerifier {
 	 * @param app
 	 * @throws Exception
 	 */
-	public void checkConsistency(Application app) throws Exception{		
-		for (int p= 0; p < app.getProcessCount();  p++){
+	public void checkConsistency(Application app) throws Exception{
+		Program [][] programs = app.getRankProgramMap();
+		
+		for (int p= 0; p < programs.length;  p++){
+			Program [] threads = programs[p];
+			
 			boolean err = false;
-			final int threadCnt =  app.getProcessThreadCount(p);
+			final int threadCnt = threads.length;
 
 			for(int thread = 0 ; thread < threadCnt; thread++){
-				Program program = app.getClientProgram(p, thread);
+				Program program = threads[thread];
+				
 				assert(program != null);			
 				if(ProgramInMemory.class.isAssignableFrom(program.getClass())){
 					for(Command cmd: ((ProgramInMemory) program).getCommands()){

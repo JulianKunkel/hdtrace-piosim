@@ -22,11 +22,11 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.RunParameters;
-import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
 import edu.uoregon.tau.trace.TraceFactory;
 import edu.uoregon.tau.trace.TraceWriter;
@@ -81,14 +81,33 @@ public class TauWriter extends TraceOutputWriter {
 		}
 	}
 
+	private int getThread(TopologyInternalLevel topology){
+		if(topology.isLeaf()){
+			return topology.getPositionInParent();
+		}
+		return 0;
+	}
+	
+	private int getRank(TopologyInternalLevel topology){
+		if(topology.isLeaf()){
+			return topology.getParent().getPositionInParent();
+		}
+		return topology.getPositionInParent();
+	}
+	
 	@Override
-	public void addTimeline(ProcessIdentifier pid) {
-		tauWriter.defThread(pid.getProcessNumber(), pid.getThread(), pid.getProcessNumber() + "_" + pid.getThread());
+	public void addTopology(TopologyInternalLevel topology) {
+		final int rank = getRank(topology);
+		final int thread = getThread(topology);
+		tauWriter.defThread(rank, thread, topology.toString());
 	}
 
 	@Override
-	public void Event(ProcessIdentifier id, Epoch time,
+	public void Event(TopologyInternalLevel topology, Epoch time,
 			EventTraceEntry traceEntry) {	
+		final int rank = getRank(topology);
+		final int thread = getThread(topology);
+
 		final String eventName = traceEntry.getName(); 
 		Integer categoryID = tauCategoryMap.get(eventName);
 		if (categoryID == null){
@@ -100,22 +119,25 @@ public class TauWriter extends TraceOutputWriter {
 
 		//System.out.println("E " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
 
-		tauWriter.eventTrigger(getTimeMikro(time),	 id.getProcessNumber(), id.getThread(), categoryID, 0);
+		tauWriter.eventTrigger(getTimeMikro(time),	 rank, thread, categoryID, 0);
 	}
 
 
 	@Override
-	public void StateEnd(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry) {		
+	public void StateEnd(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry) {		
 		pendingStarts--;
+
+		final int rank = getRank(topology);
+		final int thread = getThread(topology);
 
 		Integer categoryID = tauCategoryMap.get(traceEntry.getName());
 
 		//System.out.println("> " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
-		tauWriter.leaveState(getTimeMikro(time), id.getProcessNumber(), id.getThread(), categoryID);	
+		tauWriter.leaveState(getTimeMikro(time), rank, thread, categoryID);	
 	}
 
 	@Override
-	public void StateStart(ProcessIdentifier id, Epoch time, StateTraceEntry traceEntry) {
+	public void StateStart(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry) {
 		final String stateName = traceEntry.getName();
 		pendingStarts++;
 
@@ -127,12 +149,15 @@ public class TauWriter extends TraceOutputWriter {
 			tauCategoryMap.put(stateName, categoryID);
 		}
 
-		//System.out.println("< " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());		
-		tauWriter.enterState(getTimeMikro(time), id.getProcessNumber(), id.getThread(), categoryID);		
+		//System.out.println("< " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
+		final int rank = getRank(topology);
+		final int thread = getThread(topology);
+
+		tauWriter.enterState(getTimeMikro(time), rank, thread, categoryID);		
 	}
 
 	@Override
-	public void Statistics(ProcessIdentifier id, Epoch time, String name,
+	public void Statistics(TopologyInternalLevel topology, Epoch time, String name,
 			ExternalStatisticsGroup group, Object value) {
 		long convertedValue;
 		final StatisticType type = group.getType(name);
@@ -167,9 +192,10 @@ public class TauWriter extends TraceOutputWriter {
 			tauCategoryMap.put(eventName, categoryID);
 		}
 
-		//System.out.println("Stat " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread() + " : " + convertedValue);
+		final int rank = getRank(topology);
+		final int thread = getThread(topology);
 
-		tauWriter.eventTrigger(getTimeMikro(time),	 id.getProcessNumber(), id.getThread(), categoryID, convertedValue);
+		tauWriter.eventTrigger(getTimeMikro(time), rank, thread, categoryID, convertedValue);
 	}
 
 

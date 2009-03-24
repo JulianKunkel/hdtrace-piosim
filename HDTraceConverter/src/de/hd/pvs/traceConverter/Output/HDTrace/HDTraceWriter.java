@@ -24,12 +24,12 @@ import java.util.LinkedList;
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.traceConverter.RunParameters;
-import de.hd.pvs.traceConverter.Input.ProcessIdentifier;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
 
 /**
@@ -40,56 +40,60 @@ import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
  */
 public class HDTraceWriter extends TraceOutputWriter {	
 	TraceFormatWriter writer = new TraceFormatWriter();
-	
+
 	public void initalizeProjectDescriptionWithOldValues(ProjectDescription oldDescription, LinkedList<XMLTag> unparsedTagsToWrite){
 		writer.setUnparsedTagsToWrite(unparsedTagsToWrite);
-		
+
 		ProjectDescription outProject = writer.getProjectDescription();		
 		outProject.setDescription(oldDescription.getDescription());
 		outProject.setApplicationName(oldDescription.getName());
+		
+		outProject.setTopologyLabels(oldDescription.getTopologyLabels());
+		outProject.setTopologyRoot(oldDescription.getTopologyRoot());
 	}
-	
+
 	@Override
 	public void initializeTrace(RunParameters parameters, String resultFile) {
 		parameters.setProcessAlsoComputeEvents(true);
 		writer.initializeTrace(resultFile);
+
 	}
-	
+
 	@Override
-	public void addTimeline(ProcessIdentifier pid) {
-		writer.addTimeline(pid.getProcessNumber(), pid.getThread());
+	public void addTopology(TopologyInternalLevel topology) {
+		writer.addTopology(topology);
 	}
-	
+
 	@Override
-	public void Event(ProcessIdentifier id, Epoch time,
+	public void Event(TopologyInternalLevel topology, Epoch time,
 			EventTraceEntry traceEntry) {
-		writer.Event(id.getProcessNumber(), id.getThread(), time, traceEntry);
+		writer.Event(topology, time, traceEntry);
 	}
-	
+
 	@Override
 	public void finalizeTrace() throws IOException {
 		writer.finalizeTrace();
 	}
-	
+
 	@Override
-	public void StateEnd(ProcessIdentifier id, Epoch time,
+	public void StateEnd(TopologyInternalLevel topology, Epoch time,
 			StateTraceEntry traceEntry) {
-		writer.StateEnd(id.getProcessNumber(), id.getThread(), time, traceEntry);
+		writer.StateEnd(topology, time, traceEntry);
 	}
-	
+
 	@Override
-	public void StateStart(ProcessIdentifier id, Epoch time,
+	public void StateStart(TopologyInternalLevel topology, Epoch time,
 			StateTraceEntry traceEntry) {
-		writer.StateStart(id.getProcessNumber(), id.getThread(), time, traceEntry);
+		writer.StateStart(topology, time, traceEntry);
 	}
-	
+
 	@Override
-	public void Statistics(ProcessIdentifier id, Epoch time, String statistic,
+	public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic,
 			ExternalStatisticsGroup group, Object value) {
 		if(writer.getProjectDescription().getExternalStatisticsGroup(group.getName()) == null){
 			writer.addStatisticGroup(group);
 		}
-		
-		writer.Statistics(id.getProcessNumber(), id.getThread(), time, statistic, group, value);
+
+		writer.Statistics(topology, time, statistic, group, value);
 	}	
 }

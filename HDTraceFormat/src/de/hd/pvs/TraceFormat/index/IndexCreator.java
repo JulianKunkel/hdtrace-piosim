@@ -23,6 +23,7 @@ import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
+import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 
@@ -48,12 +49,12 @@ public class IndexCreator {
 
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		
-		XMLTraceEntry entry = reader.readNextInputEntry();
+		XMLTraceEntry entry = reader.getNextInputEntry();
 		while(entry != null){
 			
 			writer.writeNextEntry(entry.getTimeStamp(), reader.getFilePosition());
 			
-			entry = reader.readNextInputEntry();
+			entry = reader.getNextInputEntry();
 		}
 		
 		reader.close();
@@ -69,14 +70,14 @@ public class IndexCreator {
 	 * @param thread
 	 * @throws Exception
 	 */
-	public void createIndexForStatisticFile(String projectFile, String group, int rank, int thread) throws Exception{
+	public void createIndexForStatisticFile(String projectFile, String group, TopologyInternalLevel topology) throws Exception{
 		final ProjectDescriptionXMLReader preader = new ProjectDescriptionXMLReader();
 		
 		final ProjectDescription desc = new ProjectDescription();
 		
 		preader.readProjectDescription(desc, projectFile);
 				
-		final String inputFile = desc.getAbsoluteFilenameOfStatistics(rank, thread, group);
+		final String inputFile = topology.getStatisticFileName(group);
 		final ExternalStatisticsGroup realGroup = desc.getExternalStatisticsGroup(group);
 		if(realGroup == null){
 			throw new IllegalArgumentException("Group \"" + group + "\" does not exisist");
@@ -101,12 +102,12 @@ public class IndexCreator {
 	
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		
-		StatisticGroupEntry entry = reader.readNextInputEntry();
+		StatisticGroupEntry entry = reader.getNextInputEntry();
 		while(entry != null){
 			
 			writer.writeNextEntry(entry.getTimeStamp(), reader.getFilePosition());
 			
-			entry = reader.readNextInputEntry();
+			entry = reader.getNextInputEntry();
 		}
 		
 		reader.close();

@@ -22,14 +22,14 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	public BufferedTraceFileReader(String filename, boolean nested) throws Exception {
 		super(filename, nested);
 
-		XMLTraceEntry current = readNextInputEntry();
+		XMLTraceEntry current = getNextInputEntry();
 
 		minTime = current.getTimeStamp();
 
 		while(current != null){
 			traceEntries.add(current);
 
-			current = readNextInputEntry();
+			current = getNextInputEntry();
 		}
 
 		maxTime = traceEntries.get(traceEntries.size()-1).getTimeStamp();

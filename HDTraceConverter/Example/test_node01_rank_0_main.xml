@@ -1,9 +1,9 @@
 	<Program>
 		<Compute time="1" end="2" />
-		<FileOpen time="2" end="3" file="10000" truncate="true"
+		<FileOpen time="2" end="3" fid="10000" truncate="true" name="pvfs2://pvfs2//visualization.dat"
 			comm="WORLD" />
 		<Compute time="3" end="4" />
-		<FileWrite time="4" end="5" file="10000">
+		<FileWrite time="4" end="5" fid="10000">
 			<Data offset="0" size="4"></Data>
 			<Data offset="20" size="4000"></Data>
 		</FileWrite>
@@ -15,11 +15,11 @@
 			</Nested>
 			<Send time="6" end="6.9"/>
 		</Nested>
-		<FileWrite time="5" end="7.0" file="10000">
+		<FileWrite time="5" end="7.0" fid="10000">
 			<Data offset="8" size="32" />
 		</FileWrite>
 
-		<Event name="test2" time="7.2" />
+		<Event name="test2" time="7" />
 
 		<Nested>
 			<Event name="test4" time="7.4" />
