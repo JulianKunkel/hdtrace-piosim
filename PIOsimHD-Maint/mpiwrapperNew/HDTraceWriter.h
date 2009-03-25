@@ -30,8 +30,8 @@
 void hdStartTracing();
 void hdStopTracing();
 
-//#define HD_LOG_BUF_SIZE (1024 * 1024)
-#define HD_LOG_BUF_SIZE (1024)
+#define HD_LOG_BUF_SIZE (1024 * 1024)
+//#define HD_LOG_BUF_SIZE (1024)
 #define HD_LOG_TAB_STRING "  "
 #define HD_LOG_COMMAND_BUF_SIZE 1024 * 16
 #define HD_LOG_ELEMENT_NAME_BUF_SIZE 1024
@@ -40,34 +40,37 @@ void hdStopTracing();
 
 //ideas for a trace API:
 
-
 struct TraceFile
 {
-	int trace_fd; // file descriptor
-	int info_fd;
+	int trace_fd; // file descriptor for xml file
+	int info_fd;  // file descriptor for info file
 
-	size_t elements_pos[HD_LOG_MAX_DEPTH];
 	char state_name[HD_LOG_MAX_DEPTH][HD_LOG_ELEMENT_NAME_BUF_SIZE];
 	char attributes[HD_LOG_MAX_DEPTH][HD_LOG_COMMAND_BUF_SIZE];
 	size_t attributes_pos[HD_LOG_MAX_DEPTH];
 
 	char elements[HD_LOG_MAX_DEPTH][HD_LOG_COMMAND_BUF_SIZE];
+	size_t elements_pos[HD_LOG_MAX_DEPTH];
+
 	char buffer[HD_LOG_BUF_SIZE];
+	size_t buffer_pos;
 
 	struct timeval start_time[HD_LOG_MAX_DEPTH];
 	struct timeval end_time[HD_LOG_MAX_DEPTH];
-	
-	size_t buffer_pos;
 
 	int function_depth; // keeps track of the depth of nested function calls
-	//int nested_counter; // current depth of <Nested> tags in logfile
 	int rank;
 	int thread;
 
 	int trace_enable;
 	int always_flush;
 	int trace_nested_operations;
-	int has_nested[HD_LOG_MAX_DEPTH];
+	
+	int has_nested[HD_LOG_MAX_DEPTH]; 
+    /* has_nested[i] = 1 if functions with depth i+1 have been logged.
+	 * otherwise 0. the variable is reset after hdT_StateEnd is called with
+	 * function_depth == i
+	 */
 };
 
 typedef struct TraceFile * TraceFileP;

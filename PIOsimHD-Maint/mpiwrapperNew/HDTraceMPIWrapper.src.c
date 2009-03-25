@@ -85,13 +85,14 @@ static char * getCommName(MPI_Comm comm)
   return cnbuff;
 }
 
+int MPI_hdT_Test_nested(int rec, int max);
 
-int PMPI_hdT_Test_nested(int rec)
+int PMPI_hdT_Test_nested(int rec, int max)
 {
-	if(rec > 0)
+	if(rec < max)
 	{
-		MPI_hdT_Test_nested(rec - 1);
-		MPI_hdT_Test_nested(rec - 1);
+		MPI_hdT_Test_nested(rec + 1, max);
+		MPI_hdT_Test_nested(rec + 1, max);
 	}
 	return 0;
 }

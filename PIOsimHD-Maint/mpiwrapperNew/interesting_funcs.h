@@ -107,4 +107,4 @@ int MPI_Pcontrol(const int , ...);
 
 // int MPI_Type_vector(int, int, int, MPI_Datatype, MPI_Datatype *); 
 
-int MPI_hdT_Test_nested(int);
+int MPI_hdT_Test_nested(int, int);

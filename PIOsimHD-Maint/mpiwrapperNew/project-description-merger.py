@@ -36,26 +36,27 @@ import os
 def usage():
    print "Syntax: -o <output_fname.xml> -i <TraceDescription>"
 
-desc="trace-desc-partdiff-par.xml"
-output_fname="result.xml"
+#desc="trace-desc-partdiff-par.xml"
+desc = ""
+output_fname = "result.xml"
 
 try:
-  opts, args = getopt.getopt(sys.argv[1:], "ho:i:d", ["help", "output_fname=", "input="]) 
+   opts, args = getopt.getopt(sys.argv[1:], "ho:i:d", ["help", "output_fname=", "input="]) 
 except getopt.GetoptError:
-    usage()
-    sys.exit(2)
-    
+   usage()
+   sys.exit(2)
+   
 for opt, arg in opts:                
-      if opt in ("-h", "--help"):      
-          usage()                     
-          sys.exit()                  
-      elif opt == '-d':                
-          global _debug               
-          _debug = 1                  
-      elif opt in ("-o", "--output_fname"): 
-          output_fname = arg               
-      elif opt in ("-i", "--input"): 
-          desc = arg               
+   if opt in ("-h", "--help"):      
+      usage()                     
+      sys.exit()                  
+   elif opt == '-d':                
+      global _debug               
+      _debug = 1                  
+   elif opt in ("-o", "--output_fname"): 
+      output_fname = arg               
+   elif opt in ("-i", "--input"): 
+      desc = arg               
 
 description = open(desc).read().splitlines()
 
@@ -64,11 +65,11 @@ out = open(output_fname, "w")
 processCount = int(description[0]);
 
 if output_fname.find ("/") <= -1 :
-  regex = re.match("([^.]*)\.", output_fname)
-  filename = regex.group(1)
+   regex = re.match("([^.]*)\.", output_fname)
+   filename = regex.group(1)
 else:
-  regex = re.match(".*[/]([^./]*)\.", output_fname)
-  filename = regex.group(1)
+   regex = re.match(".*[/]([^./]*)\.", output_fname)
+   filename = regex.group(1)
 
 print "Writing application " + filename + " into " + output_fname;
 
@@ -78,41 +79,46 @@ if path != "":
    path += "/"
 #################
 
+
+
 #Generate header
 out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
 out.write("<Application name=\"" + filename  +  "\" processCount=\"" + str(processCount) +  "\">\n");
 out.write(" <Description>     </Description> <FileList> \n");
 for i in range(0, processCount):
-  inp = open(path + description[i+1] + ".info")
-  # File_open name="./visualization.dat" comm="WORLD" flags=5 InitialSize=0 id=10000
-  for line in inp:
-	  #res = re.match("File_open name=\"([^\"]*)\" comm=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
-          res = re.match("File name=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
-	  if res :
-  		print "File: " + res.group(1) + " " + res.group(2) + " " + res.group(3)    
-		out.write("<File name=\"" + res.group(1) + "\" id=\"" + res.group(3) + "\">\n")
-		out.write("<InitialSize>" + res.group(2) + "</InitialSize>\n")
-		out.write("               <Distribution name=\"SimpleStripe\"> <Chunk-Size>100K</Chunk-Size>   </Distribution>  </File>\n")
+   inp = open(path + description[i+1] + ".info")
+   # File_open name="./visualization.dat" comm="WORLD" flags=5 InitialSize=0 id=10000
+   for line in inp:
+      #res = re.match("File_open name=\"([^\"]*)\" comm=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
+      res = re.match("File name=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
+      if res :
+         print "File: " + res.group(1) + " " + res.group(2) + " " + res.group(3)    
+         out.write("<File name=\"" + res.group(1) + "\" id=\"" + res.group(3) + "\">\n")
+         out.write("<InitialSize>" + res.group(2) + "</InitialSize>\n")
+         out.write("               <Distribution name=\"SimpleStripe\"> <Chunk-Size>100K</Chunk-Size>   </Distribution>  </File>\n")
+         continue
           
-          res = re.match("Comm map='([^']*)' id=(\d*) name='([^']*)'", line)
-          if res : 
-             print "Comm " + res.group(1) + " " + res.group(2) + " " + res.group(3)
+      res = re.match("Comm map='([^']*)' id=(\d*) name='([^']*)'", line)
+      if res : 
+         print "Comm " + res.group(1) + " " + res.group(2) + " " + res.group(3)
+         continue
              
-             #Type id='1275069445' combiner='MPI_COMBINER_NAMED' name='MPI_INT'
-          res = re.match("Type id='([^']*)' combiner='([^']*)' name='([^']*)'", line)
-          if res:
-             print "Type " + res.group(1) + " " + res.group(2) + " " + res.group(3)
+      #Type id='1275069445' combiner='MPI_COMBINER_NAMED' name='MPI_INT'
+      res = re.match("Type id='([^']*)' combiner='([^']*)' name='([^']*)'", line)
+      if res:
+         print "Type " + res.group(1) + " " + res.group(2) + " " + res.group(3)
+         continue
 
-  inp.close()
+   inp.close()
 
 
 out.write("\n </FileList> <CommunicatorList> <Communicator name=\"WORLD\"/>  </CommunicatorList> ");
 out.write("<ProcessList>\n");
 
 for i in range(0, processCount):
-  inp = open(path + description[i+1] + ".xml")
-  out.write(inp.read() + "\n")
-  inp.close()
+   inp = open(path + description[i+1] + ".xml")
+   out.write(inp.read() + "\n")
+   inp.close()
 
 #generate trailer
 out.write("</ProcessList></Application>\n");
