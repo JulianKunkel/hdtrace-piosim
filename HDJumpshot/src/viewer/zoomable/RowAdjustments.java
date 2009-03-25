@@ -151,18 +151,6 @@ public class RowAdjustments
 		slider_panel.repaint();
 	}
 
-	private class ResizeModeActionListener implements ActionListener
-	{
-		public void actionPerformed( ActionEvent evt )
-		{
-			if ( debug.isActive() )
-				debug.println( "ResizeModeActionListener: START" );
-			initPanelsToRowCountMode();
-			if ( debug.isActive() )
-				debug.println( "ResizeModeActionListener: END" );
-		}
-	}
-
 	public void updateSlidersAfterTreeExpansion()
 	{
 		int row_count   = tree_view.getRowCount();
@@ -179,7 +167,7 @@ public class RowAdjustments
 			vis_row_count  = fld_VIS_ROW_COUNT.getDouble();
 			row_height     = ((double) canvas_vport.getHeight() - HEIGHT_SUBTRACTION) / vis_row_count;
 			tree_view.setRowHeight( (int) Math.round( row_height ) );
-			canvas_vport.fireComponentResized();
+			canvas_vport.fireComponentRedrawEvent();
 			if ( debug.isActive() )
 				debug.println( "ROW: row_height = " + row_height );
 		}
@@ -228,7 +216,7 @@ public class RowAdjustments
 		double row_height     = ((double) canvas_vport.getHeight() - HEIGHT_SUBTRACTION) /  irow_count ;
 		tree_view.setRowHeight( (int) row_height );
 
-		canvas_vport.fireComponentResized();
+		canvas_vport.fireComponentRedrawEvent();
 	}
 
 	private class ButtonActionListener implements ActionListener

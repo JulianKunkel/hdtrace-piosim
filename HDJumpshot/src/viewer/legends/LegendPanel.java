@@ -53,7 +53,6 @@ implements ActionListener
 						empty_border, etched_border ) ) );
 		super.add( scroller );
 
-
 		Border titled_border;
 
 		JPanel  select_panel = new JPanel();

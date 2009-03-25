@@ -103,7 +103,7 @@ public class ViewportTimeYaxis extends ViewportTime
             Debug.println( "ViewportTimeYaxis: adjChanged()'s END: " );
     }
 
-    public void fireComponentResized()
+    public void fireComponentRedrawEvent()
     {
         super.componentResized( resize_evt );
     }

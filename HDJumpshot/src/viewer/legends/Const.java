@@ -20,7 +20,7 @@ public class Const
          for appealing reason.
     */
            static final int    ICON_WIDTH                  = 35;
-           static final int    ICON_HEIGHT                 = 21;
+           static final int    ICON_HEIGHT                 = 40;
 
            static final int    CELL_HEIGHT                 = ICON_HEIGHT + 10;
            static final int    CELL_ICON_TEXT_GAP          = 8;

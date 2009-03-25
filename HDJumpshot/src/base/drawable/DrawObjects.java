@@ -95,7 +95,7 @@ public class DrawObjects{
         
         int jStart   = coord_xform.convertTimelineToPixel( timeline );
         
-		return Event.draw( g, color, null, iStart, jStart, (int) coord_xform.getTimelineHeight() );
+		return Event.draw( g, color, iStart, jStart, (int) coord_xform.getTimelineHeight() );
 	}
 	
 

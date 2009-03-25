@@ -1,5 +1,6 @@
 #
-#Sun Mar 22 10:23:13 CET 2009
+#Wed Mar 25 16:00:59 CET 2009
+test2=RGB(20,0,0)
 Compute=RGB(51,51,255)
 Bcast=RGB(255,153,153)
 FileOpen=RGB(102,0,102)

@@ -34,6 +34,7 @@ import viewer.common.CustomCursor;
 import viewer.common.Parameters;
 import viewer.common.Routines;
 import viewer.histogram.StatlineDialog;
+import viewer.legends.CategoryVisibleListener;
 import viewer.topology.TopologyManager;
 import viewer.topology.TopologyStatisticTreeNode;
 import viewer.zoomable.ActionTimelineRestore;
@@ -48,6 +49,7 @@ import viewer.zoomable.SearchPanel;
 import viewer.zoomable.SearchableView;
 import viewer.zoomable.SummarizableView;
 import viewer.zoomable.ViewportTimeYaxis;
+import base.drawable.Category;
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
@@ -80,6 +82,14 @@ implements SearchableView, SummarizableView
 	private ViewportTimeYaxis  canvas_viewport;
 	final private TraceFormatBufferedFileReader reader;
 
+	// gets triggered if the visibility of an category is changed
+	private CategoryVisibleListener categoryVisibleListener = new CategoryVisibleListener(){
+		@Override
+		public void CategoryVisibilityChanged(boolean state) {
+			forceRedraw();
+		}
+	};
+	
 	public void setRequired(ActionTimelineRestore restore,
 			ViewportTimeYaxis  canvas_viewport){
 		this.canvas_viewport = canvas_viewport;
@@ -102,6 +112,8 @@ implements SearchableView, SummarizableView
 		root_frame      = null;
 		change_event    = null;
 		change_listener = null;
+		
+		reader.getLegendModel().addVisibilityChangedListener(categoryVisibleListener);
 	}
 
 	public void addChangeListener( ChangeListener listener )
@@ -325,17 +337,21 @@ implements SearchableView, SummarizableView
 			Graphics2D offGraphics, 
 			CoordPixelImage coord_xform)
 	{
-		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
+		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();		
 		
 		if(entry.getType() == TraceObjectType.EVENT){          
 			final EventTraceEntry event = (EventTraceEntry) entry;
-
-			DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, reader.getCategory(event).getColor(), globalMinTime);
+			
+			final Category category = reader.getCategory(event);
+			if(category.isVisible())
+				DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
 
 		}else if(entry.getType() == TraceObjectType.STATE){
 			final StateTraceEntry state = (StateTraceEntry) entry;
+			final Category category = reader.getCategory(state);
 
-			DrawObjects.drawState(offGraphics, coord_xform, state , reader.getCategory(state).getColor(), 
+			if(category.isVisible())
+				DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 
 					depth, timeline, globalMinTime);
 
 			if(state.hasNestedTraceChildren()){
@@ -371,7 +387,7 @@ implements SearchableView, SummarizableView
 			XMLTraceEntry objMouse = treader.getTraceEntryClosestToTime(clickedTime);			
 
 			if (objMouse.getType() == TraceObjectType.STATE){
-				StateTraceEntry state = (StateTraceEntry) objMouse;
+				StateTraceEntry state = (StateTraceEntry) objMouse;				
 
 				if(DrawObjects.getTimeDistance(clickedTime, state) != 0){
 					// mouse is not inside the state.
@@ -411,9 +427,23 @@ implements SearchableView, SummarizableView
 					} // while
 					objMouse = best;
 				}				
+				
+				if(objMouse.getType() == TraceObjectType.STATE){
+					if(! reader.getCategoriesStates().get(objMouse.getName()).isVisible() ){
+						return null;
+					}
+				}else{
+					if(! reader.getCategoriesEvents().get(objMouse.getName()).isVisible() ){
+						return null;
+					}
+				}				
 			}else if(objMouse.getType() == TraceObjectType.EVENT){
 				double distance = Math.abs(objMouse.getTimeStamp().subtract(clickedTime).getDouble());
 				if( distance >= eventRadius){
+					return null;
+				}
+				
+				if(! reader.getCategoriesEvents().get(objMouse.getName()).isVisible() ){
 					return null;
 				}
 			}
@@ -468,15 +498,6 @@ implements SearchableView, SummarizableView
 		height = coord_xform.getTimelineHeight();
 		local_rect = new Rectangle( xloc, yloc, width, height );
 		return local_rect;
-	}
-
-	private InfoPanelForDrawable createInfoPanelForDrawable( DrawObjects dobj )
-	{
-		InfoPanelForDrawable  info_popup = null;
-		// TODO
-		//info_popup = new InfoPanelForDrawable( map_line2treeleaf,
-		//                                       y_colnames, dobj );
-		return info_popup;
 	}
 
 	// NEW search starting from the specified time

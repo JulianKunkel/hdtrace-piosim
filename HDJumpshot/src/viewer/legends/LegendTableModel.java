@@ -9,8 +9,6 @@
 
 package viewer.legends;
 
-import hdTraceInput.TraceFormatBufferedFileReader;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +23,6 @@ import base.drawable.Category;
 import base.drawable.ColorAlpha;
 
 public class LegendTableModel extends AbstractTableModel
-//                              implements ListSelectionListener
 {
     public  static final int        ICON_COLUMN            = 0;
     public  static final int        NAME_COLUMN            = 1;
@@ -33,13 +30,14 @@ public class LegendTableModel extends AbstractTableModel
     public  static final int        SEARCHABILITY_COLUMN   = 3;
 
     private static final String[]   COLUMN_TITLES
-                                    = { "Topo", "Name", "V", "S" };
+                                    = { "Topo", "Name     ", "V", "S" };
     private static final String[]   COLUMN_TOOLTIPS
                                     = { "Topology/Color", "Category Name",
                                         "Visibility", "Searchability" };
     private static final Class[]    COLUMN_CLASSES
-                                    = { CategoryIcon.class, String.class,
+                                    = { CategoryIcon.class, Object.class,
                                         Boolean.class, Boolean.class };
+    
     private static final Color[]    COLUMN_TITLE_FORE_COLORS
                                     = { Color.magenta, Color.pink,
                                         Color.green, Color.yellow };
@@ -49,21 +47,30 @@ public class LegendTableModel extends AbstractTableModel
                                         Color.blue.darker() };
     private static final boolean[]  COLUMN_TITLE_RAISED_ICONS
                                     = { false, false, true, false };
-
+    
     final private List<Category>   categories = new LinkedList<Category>();
-    private List<CategoryIcon>   icon_list      = null;
+    private List<CategoryIcon>   icon_list      = new ArrayList<CategoryIcon>();
+    
+    private List<CategoryVisibleListener> visibleListener = new LinkedList<CategoryVisibleListener>();
 
-    public LegendTableModel( TraceFormatBufferedFileReader reader )
-    {
-        super();
-        for(Category cat: reader.getCategoriesEvents().values())
-        	categories.add(cat);
-        for(Category cat: reader.getCategoriesStates().values())
-        	categories.add(cat);
-        for(Category cat: reader.getCategoriesStatistics().values())
-        	categories.add(cat);
-        
-        this.sortNormally( LegendComparators.CASE_SENSITIVE_ORDER );
+    /**
+     * Remove all existing categories
+     */
+    public void clearCategories(){
+    	categories.clear();
+    	icon_list.clear();
+    }
+    
+    /**
+     * Add a category
+     * @param cat
+     */
+    public void addCategory(Category cat){
+    	categories.add(cat);
+    }
+    
+    public void addVisibilityChangedListener(CategoryVisibleListener listener){
+    	visibleListener.add(listener);
     }
 
     //  Sorting into various order
@@ -79,6 +86,13 @@ public class LegendTableModel extends AbstractTableModel
             icon   = new CategoryIcon( objdef );
             icon_list.add( icon );
         }
+    }
+    
+    /**
+     * If the model categories are completed, then commit them.
+     */
+    public void commitModel(){
+        this.sortNormally( LegendComparators.CASE_SENSITIVE_ORDER );
     }
 
     private void sortNormally( Comparator comparator )
@@ -178,7 +192,9 @@ public class LegendTableModel extends AbstractTableModel
 
     public boolean isCellEditable( int irow, int icolumn )
     {
-        return true;
+    	if(icolumn != NAME_COLUMN)
+    		return true;
+    	return false;
     }
 
     public void setValueAt( Object value, int irow, int icolumn )
@@ -197,11 +213,15 @@ public class LegendTableModel extends AbstractTableModel
                 fireTableCellUpdated( irow, icolumn );
                 break;
             case NAME_COLUMN :
-                objdef.setName( (String) value );
-                fireTableCellUpdated( irow, icolumn );
+                //objdef.setName( (String) value );
+                //fireTableCellUpdated( irow, icolumn );
                 break;
             case VISIBILITY_COLUMN :
-                objdef.setVisible( ( (Boolean) value ).booleanValue() );
+            	boolean val = ( (Boolean) value ).booleanValue() ;
+                objdef.setVisible( val );
+                for(CategoryVisibleListener list: visibleListener){
+                	list.CategoryVisibilityChanged(val);
+                }
                 fireTableCellUpdated( irow, icolumn );
                 break;
             case SEARCHABILITY_COLUMN :
@@ -212,24 +232,6 @@ public class LegendTableModel extends AbstractTableModel
                 System.err.print( "LegendTableModel.setValueAt("
                                 + irow + "," + icolumn + ") fails!" );
         }
-        // System.out.println( "setValueAt("+irow+","+icolumn+"): "+objdef );
     }
 
-/*
-    public void valueChanged( ListSelectionEvent evt ) 
-    {
-        if ( evt.getValueIsAdjusting() )
-            return;
-
-        ListSelectionModel  select_model;
-        int                 min_idx, max_idx;
-        select_model = (ListSelectionModel) evt.getSource();
-        min_idx      = select_model.getMinSelectionIndex();
-        max_idx      = select_model.getMaxSelectionIndex();
-        for ( int irow = min_idx; irow <= max_idx; irow++ )
-             if ( select_model.isSelectedIndex( irow ) )
-                 System.out.println( "ListSelectionListener.valueChanged("
-                                   + irow + ")" );
-    }
-*/
 }

@@ -177,27 +177,6 @@ public class CategoryIcon implements Icon
 		x2 = x1;                         y2 = y + ICON_HEIGHT-1 - 2;
 		g.drawLine( x1, y1, x2, y2 );
 	}
-	/*
-    private void paintEventIcon( Graphics g, int x, int y )
-    {
-        int x1, y1, x2, y2, x3, y3;
-
-        // g.setColor( Color.black );
-        g.setColor( (Color) Parameters.BACKGROUND_COLOR.toValue() );
-        g.fillRect( x, y, ICON_WIDTH, ICON_HEIGHT );
-
-        g.setColor( color_shown );
-
-        int half_base_width = ICON_QUARTER_WIDTH - 2;
-        // Draw the sym triangle
-        x1 = x + ICON_HALF_WIDTH;                y1 = y + 2;
-        x2 = x + half_base_width;                y2 = y + ICON_HEIGHT-1 - 2;
-        x3 = x + ICON_WIDTH-1 - half_base_width; y3 = y2;
-        g.drawLine( x1, y1, x2, y2 );
-        g.drawLine( x1, y1, x3, y3 );
-        g.drawLine( x2, y2, x3, y3 );
-    }
-	 */
 
 	private void paintBlankIcon( Graphics g, int x, int y )
 	{

@@ -450,8 +450,7 @@ public class TimelineToolBar extends JToolBar
                    + "Preference/Legend window or Yaxis label panel" );
         refresh_btn.setMnemonic( KeyEvent.VK_D );
         // refresh_btn.setPreferredSize( btn_dim );
-        refresh_btn.addActionListener(
-                   new ActionPptyRefresh( topologyManager ) );
+        refresh_btn.addActionListener( new ActionPptyRefresh( topologyManager, cnvas_timeline ) );
         super.add( refresh_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "Print24.gif" );

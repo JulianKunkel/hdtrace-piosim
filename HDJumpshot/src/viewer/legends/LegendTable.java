@@ -30,30 +30,25 @@ public class LegendTable extends JTable
 {
     private static final Insets EMPTY_INSETS
                                 = new Insets( 0, 0, 0, 0 );
-    private static final Color  CELL_BACKCOLOR
-                                = Const.CELL_BACKCOLOR;
-    private static final Color  CELL_FORECOLOR
-                                = Const.CELL_FORECOLOR;
-    private static final Color  CELL_BACKCOLOR_SELECTED
-                                = Const.CELL_BACKCOLOR_SELECTED;
-    private static final Color  CELL_FORECOLOR_SELECTED
-                                = Const.CELL_FORECOLOR_SELECTED;
 
     private LegendTableModel    table_model;
     private TableColumnModel    column_model;
     private JTableHeader        table_header;
 
-    public LegendTable( TraceFormatBufferedFileReader reader )
+    public LegendTable(TraceFormatBufferedFileReader  reader )
     {
         super();
 
-        table_model = new LegendTableModel( reader );
+        this.table_model = reader.getLegendModel();
         super.setModel( table_model );
+        
         super.setDefaultRenderer( CategoryIcon.class,
                                   new CategoryIconRenderer() );
         super.setDefaultEditor( CategoryIcon.class,
                                 new CategoryIconEditor() );
-        super.setAutoResizeMode( AUTO_RESIZE_OFF );
+        
+        //super.setAutoResizeMode( AUTO_RESIZE_OFF );
+        //setFont(viewer.common.Const.FONT);        
         super.setIntercellSpacing( new Dimension( 2, 2 ) );
         super.setShowHorizontalLines( false );
         super.setShowVerticalLines( true );
@@ -96,7 +91,7 @@ public class LegendTable extends JTable
                 renderer = new GenericHeaderRenderer( this, icol );
                 ((GenericHeaderRenderer) renderer).initPressablePullDownTab();
                 column.setHeaderRenderer( renderer );
-
+                
                 pop_menu = new OperationStringMenu( this, icol );
                 handler  = new TableHeaderHandler( this, icol, pop_menu );
                 table_header.addMouseListener( handler );
@@ -176,8 +171,7 @@ public class LegendTable extends JTable
                 column.setPreferredWidth( header_width );
                 vport_width  += header_width;
             }
-            cell_height   = cell_size.height
-                          + cell_insets.top + cell_insets.bottom;
+            cell_height   = cell_size.height + cell_insets.top + cell_insets.bottom + 15;
             if ( cell_height > row_height )
                 row_height  = cell_height;
         }
@@ -191,4 +185,8 @@ public class LegendTable extends JTable
         super.setPreferredScrollableViewportSize(
               new Dimension( vport_width, vport_height ) );
     }
+    
+    public LegendTableModel getTableModel() {
+		return table_model;
+	}
 }

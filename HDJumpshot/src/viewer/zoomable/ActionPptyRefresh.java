@@ -15,29 +15,32 @@ import java.awt.event.ActionListener;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.common.TopWindow;
+import viewer.timelines.CanvasTimeline;
 import viewer.topology.TopologyManager;
 
 public class ActionPptyRefresh implements ActionListener
 {
     private TopologyManager        y_tree;
 
-    private PreferenceFrame  pptys_frame;
+    private CanvasTimeline      timelines;
+    private PreferenceFrame  	   pptys_frame;
 
-    public ActionPptyRefresh( TopologyManager in_y_tree )
+    public ActionPptyRefresh( TopologyManager in_y_tree, CanvasTimeline timelines)
     {
         y_tree             = in_y_tree;
+        this.timelines = timelines;
     }
 
     public void actionPerformed( ActionEvent event )
     {
-       System.out.println("Action for Refresh button" );
-
         pptys_frame = (PreferenceFrame) TopWindow.Preference.getWindow();
         if ( pptys_frame != null )
             pptys_frame.updateAllParametersFromFields();
                 
         Parameters.initStaticClasses();
-        
+                
         y_tree.setRootVisible( Parameters.Y_AXIS_ROOT_VISIBLE );
+        
+        timelines.forceRedraw();
     }
 }

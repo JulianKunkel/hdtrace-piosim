@@ -15,26 +15,30 @@ import java.awt.Stroke;
 
 public class Event
 {
-	static int event_base_width = 20;
+	static int event_base_width = 30;
 	
-    public static int  draw( Graphics2D g, Color color, Stroke stroke,
-			int x, int y, // center position
+    public static int  draw( Graphics2D g, Color color, int x, int y, // center position
 			int height)
     {
+    	Stroke stroke = null; // TOOD maybe neat?
         Stroke orig_stroke = null;
+        
         if ( stroke != null ) {
             orig_stroke = g.getStroke();
             g.setStroke( stroke );
         }
         
         g.setColor( color );
-        g.drawLine( x ,  y + height/4, x , y - height/4);
+        g.drawLine( x-1 ,  y + height/2, x-1 , y - height/4);
+        g.drawLine( x+1 ,  y + height/2, x+1 , y - height/4);
+        
         /* Fill the ellipse first */
-        g.fillArc( x - event_base_width/2 , y - height/4, event_base_width, height/8, 0, 360 );
+        g.fillArc( x - event_base_width/2 , y - height/4, event_base_width, event_base_width, 0, 360 );
 
         g.setColor( Color.white );
         /* Draw the white ellipse boundray */
-        g.drawArc( x - event_base_width/2 , y - height/4, event_base_width, height/8, 0, 360 );
+        g.drawLine( x ,  y + height/2, x , y - height/4);
+        g.drawArc( x - event_base_width/2 , y - height/4, event_base_width, event_base_width, 0, 360 );
 
         if ( stroke != null )
             g.setStroke( orig_stroke );

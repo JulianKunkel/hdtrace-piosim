@@ -481,7 +481,6 @@ public abstract class ScrollableObject extends JComponent
         //     drawOneOffImage( offscreenImage );
         // }
         */
-        int img_width, vport_mv_dir;
         int img_idx, screen_img_pos;
         int side_idx, side_bit, side_offset;
 
@@ -509,10 +508,7 @@ public abstract class ScrollableObject extends JComponent
                 // viewport_move_direction = -1 * image_move_direction
                 side_offset = side_bit * side_idx;
                 img_idx = getValidImageIndex( cur_img_idx + side_offset );
-                if ( Debug.isActive() )
-                    Debug.println( "ScrollableObject: paintComponent() "
-                                 + "side_offset = " + side_offset + ",  "
-                                 + "img_idx = " + img_idx );
+           
                 screen_img_pos = ( half_NumImages + side_offset ) * image_size.width;
                 if ( offscreenImages[ img_idx ] != null )
                     g.drawImage( offscreenImages[ img_idx ],
@@ -552,7 +548,7 @@ public abstract class ScrollableObject extends JComponent
         }
         else
             visible_size = getVisibleRect().getSize();
-
+        
         image_size.setSize( visible_size.width * NumViewsPerImage,
                             getJComponentHeight() );
 
@@ -606,6 +602,14 @@ public abstract class ScrollableObject extends JComponent
 
         if ( Debug.isActive() )
             Debug.println( "ScrollableObject: componentResized()'s END: " );
+    }
+    
+    /**
+     * force to redraw the timelines
+     */
+    public void forceRedraw(){
+    	componentResized(null); 
+    	repaint();
     }
 
     /*

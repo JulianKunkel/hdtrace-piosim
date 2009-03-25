@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
+import viewer.legends.LegendTableModel;
 import viewer.topology.GlobalStatisticStatsPerGroup;
 import viewer.topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
 import base.drawable.Category;
@@ -35,6 +36,8 @@ public class TraceFormatBufferedFileReader {
 
 	private Epoch globalMinTime = new Epoch(Integer.MAX_VALUE, 0);
 	private Epoch globalMaxTime = new Epoch(Integer.MIN_VALUE, -1);
+	
+	final LegendTableModel legendModel = new LegendTableModel();
 
 	final ArrayList<TraceFormatFileOpener> loadedFiles = new ArrayList<TraceFormatFileOpener>();
 
@@ -194,6 +197,19 @@ public class TraceFormatBufferedFileReader {
 		SimpleConsoleLogger.Debug("Global Min/Max time: " + getGlobalMinTime() + "/" + getGlobalMaxTime());
 		
 		loadedFiles.add(fileOpener);
+		
+		
+		// update legends:
+		legendModel.clearCategories();
+		
+        for(Category cat: getCategoriesEvents().values())
+        	legendModel.addCategory(cat);
+        for(Category cat: getCategoriesStates().values())
+        	legendModel.addCategory(cat);
+        for(Category cat: getCategoriesStatistics().values())
+        	legendModel.addCategory(cat);
+     
+        legendModel.commitModel();
 	}
 	
 	public int getNumberOfFilesLoaded(){
@@ -256,5 +272,7 @@ public class TraceFormatBufferedFileReader {
 		return globalStatStats.get(group);
 	}
 	
-	
+	public LegendTableModel getLegendModel() {
+		return legendModel;
+	}
 }
