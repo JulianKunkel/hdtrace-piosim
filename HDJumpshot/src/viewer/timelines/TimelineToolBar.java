@@ -22,8 +22,8 @@ import javax.swing.JToolBar;
 
 import viewer.common.Const;
 import viewer.topology.TopologyManager;
-import viewer.zoomable.ActionPptyScreenshot;
 import viewer.zoomable.ActionPptyRefresh;
+import viewer.zoomable.ActionPptyScreenshot;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
@@ -113,7 +113,6 @@ public class TimelineToolBar extends JToolBar
     {
         super();
 		
-        this.cnvas_timeline = cnvas_timeline;
         this.time_ruler = time_ruler;
         root_window      = parent_window;
         canvas_vport     = canvas_viewport;
@@ -123,6 +122,10 @@ public class TimelineToolBar extends JToolBar
         time_model       = a_time_model;
         this.addButtons();
         canvas_vport.setToolBarStatus( this );
+        
+        this.setFloatable(false);
+        
+        addSeparator(new Dimension(1000,10));
     }
 
     public void init()
@@ -458,7 +461,7 @@ public class TimelineToolBar extends JToolBar
         print_btn.setToolTipText( "Screenshot the Timeline window to /tmp/jumpshot*" );
         // print_btn.setPreferredSize( btn_dim );
         print_btn.addActionListener( new ActionPptyScreenshot(cnvas_timeline, time_ruler) );
-        super.add( print_btn );
+        super.add( print_btn );        
     }
 
     private void initAllButtons()

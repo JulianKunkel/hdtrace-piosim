@@ -37,7 +37,7 @@ public class TopologyManager extends JTree
     
     final TraceFormatBufferedFileReader  reader;
 
-    private List<TreePath>[]                  leveled_paths;
+    private List<TreePath>[]        leveled_paths;
     private int                     max_level;
     private int                     next_expanding_level;
  
@@ -86,8 +86,10 @@ public class TopologyManager extends JTree
     }    
     
     public TimelineType getType(int timeline){    	
+    	if(topoToTimelineMapping.size() <= timeline)
+    		return TimelineType.INVALID_TIMELINE;
     	if(topoToTimelineMapping.get(timeline) == null)
-    		return TimelineType.SPACER_NODE;
+    		return TimelineType.SPACER_NODE;    	
     	return topoToTimelineMapping.get(timeline).getType();
     }
     
@@ -108,6 +110,8 @@ public class TopologyManager extends JTree
     private DefaultMutableTreeNode addDummyTreeNode(String name, DefaultMutableTreeNode parent){
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(name);
 		parent.add(node);
+		
+		topoToTimelineMapping.add(null);
 		return node;
     }
     
@@ -141,6 +145,19 @@ public class TopologyManager extends JTree
     	}
     }
     
+    public String getTopologyLabels(){
+    	StringBuffer buff = new StringBuffer();
+    	for(int i=0; i < reader.getNumberOfFilesLoaded(); i++ ){
+    		TraceFormatFileOpener file = reader.getLoadedFile(i);
+    		buff.append(file.getProjectDescription().getProjectFilename() + ": ");
+    		for(String label: file.getTopologyLabels().getLabels()){
+    			buff.append(label + " ");
+    		}
+    		buff.append("\n");
+    	}
+    	
+    	return buff.toString();
+    }
     
     /**
      * Load a default topology, filename => hierarchically print the children 

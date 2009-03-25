@@ -19,15 +19,17 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
@@ -47,7 +49,6 @@ import viewer.zoomable.TimeListener;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimePanel;
 import viewer.zoomable.ViewportTimeYaxis;
-import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 
 
 /**
@@ -56,19 +57,15 @@ import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
  */
 public class TimelinePanel extends JPanel
 {
-	static final int LEFTPANEL_WIDTH = 150;
-	
-	//depends on the height of the two toolbars inside the timeline windoe
-	static final int DROPDOWN_HEIGHT = 88; 
-	 
+	static final int LEFTPANEL_WIDTH = 150;	
 	
 	private Window                  root_window;
-	private final TraceFormatBufferedFileReader       reader;
 
 	private TimelineToolBar         toolbar;
 	
 	private BoundedRangeModel       y_model;
-	private final TopologyManager         y_tree;
+	private final TopologyManager   topologyManager;
+	private JScrollPane             y_colpanel;
 	private JScrollPane             y_scroller;
 	private JScrollBar              y_scrollbar;
 
@@ -79,7 +76,6 @@ public class TimelinePanel extends JPanel
 
 	private ModelInfo               info_model;
 	private ModelInfoPanel          info_display_panel;
-	private JComboBox               io_options_pulldown_list;
 	private RulerTime               time_ruler;
 	private ViewportTime            time_ruler_vport;
 	private ViewportTimePanel       time_ruler_panel;
@@ -105,36 +101,33 @@ public class TimelinePanel extends JPanel
 	{
 		public IOOptionsListener(){
 			Insets canvas_panel_insets = time_canvas_panel.getInsets();
+						
 			this.setMinimumSize(
-					new Dimension( LEFTPANEL_WIDTH, DROPDOWN_HEIGHT ) );
+					new Dimension( LEFTPANEL_WIDTH, 100 ) );
 			this.setMaximumSize(
-					new Dimension( Short.MAX_VALUE, DROPDOWN_HEIGHT ) );
+					new Dimension( Short.MAX_VALUE, 100 ) );
 			this.setPreferredSize(
-					new Dimension( LEFTPANEL_WIDTH, DROPDOWN_HEIGHT ) );
+					new Dimension( LEFTPANEL_WIDTH, 100 ) );
 			this.setAlignmentX(
 					Component.CENTER_ALIGNMENT );
-			this.addItem("PIOviz");
 			this.addActionListener( this );
 		}
 		
 		public void actionPerformed( ActionEvent evt )
 		{
 			int selected;
-			selected = io_options_pulldown_list.getSelectedIndex();
+			selected = getSelectedIndex();
 		}
 	}
 	
-	public TimelinePanel( final Window    parent_window,
-			final TraceFormatBufferedFileReader  reader)
+	public TimelinePanel( final Window    parent_window, final TraceFormatBufferedFileReader  reader)
 	{
 		super();
 		
-		// TODO fixMe
-		this.y_tree = new TopologyManager(reader);
+		this.topologyManager = new TopologyManager(reader);
 		
 		root_window  = parent_window;
-		this.reader  = reader;
-
+		
 		Dimension sb_minThumbSz = (Dimension)
 		UIManager.get( "ScrollBar.minimumThumbSize" );
 		sb_minThumbSz.width = 4;
@@ -143,9 +136,9 @@ public class TimelinePanel extends JPanel
            y_scroller for y_tree needs to be created before time_canvas, so
            y_model can be extracted to be used for the creation of time_canvas
 		 */
-		y_scroller  = new JScrollPane( y_tree,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS );
+		y_scroller  = new JScrollPane( topologyManager,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
 		y_scrollbar = y_scroller.getVerticalScrollBar();
 		y_model     = y_scrollbar.getModel();
 
@@ -155,14 +148,11 @@ public class TimelinePanel extends JPanel
 				reader.getGlobalMinTime(),
 				reader.getGlobalMaxTime());
 				
-		SimpleConsoleLogger.Debug( "tZoomFtr = " + time_model.getTimeZoomFactor() );
-
 		this.setLayout( new BorderLayout() );
 
 		/* Setting up the CENTER panel to store various time-related GUIs */
 		JPanel center_panel = new JPanel();
-		center_panel.setLayout( new BoxLayout( center_panel,
-				BoxLayout.Y_AXIS ) );
+		center_panel.setLayout( new BoxLayout( center_panel,	BoxLayout.Y_AXIS ) );
 
 		/* The Time Ruler */
 		time_ruler        = new RulerTime( time_model );
@@ -196,16 +186,13 @@ public class TimelinePanel extends JPanel
                    to its Minimum Height and Maximum Height.
 		 */
 		Insets   ruler_panel_insets = time_ruler_panel.getInsets();
-		int      ruler_panel_height = ruler_panel_insets.top
-		+ time_ruler.getJComponentHeight()
-		+ ruler_panel_insets.bottom;
-		time_ruler_panel.setPreferredSize(
-				new Dimension( 100, ruler_panel_height ) );
+		int      ruler_panel_height = ruler_panel_insets.top + time_ruler.getJComponentHeight()	+ ruler_panel_insets.bottom;
+		time_ruler_panel.setPreferredSize(	new Dimension( 100, ruler_panel_height ) );
 
 		/* The TimeLine Canvas */
-		time_canvas       = new CanvasTimeline(  time_model, reader,  y_model, y_tree);
+		time_canvas       = new CanvasTimeline(  time_model, reader,  y_model, topologyManager);
 		
-		time_canvas_vport = new ViewportTimeYaxis( time_model, y_model, y_tree );
+		time_canvas_vport = new ViewportTimeYaxis( time_model, y_model, topologyManager );
 		time_canvas_vport.setView( time_canvas );
 		
 		time_canvas_panel = new ViewportTimePanel( time_canvas_vport );
@@ -219,10 +206,8 @@ public class TimelinePanel extends JPanel
 		time_display_panel = new ModelTimePanel( time_model );
 		time_model.setParamDisplay( time_display_panel );
 		JPanel canvas_lmouse;
-		canvas_lmouse = time_canvas_vport.createLeftMouseModePanel(
-				BoxLayout.X_AXIS );
-		canvas_lmouse.setToolTipText(
-				"Operation for left mouse button click on Timeline canvas" );
+		canvas_lmouse = time_canvas_vport.createLeftMouseModePanel(	BoxLayout.X_AXIS );
+		canvas_lmouse.setToolTipText("Operation for left mouse button click on Timeline canvas" );
 		time_display_panel.add( canvas_lmouse );
 
 		/* The Horizontal "Time" ScrollBar */
@@ -236,16 +221,14 @@ public class TimelinePanel extends JPanel
 		info_model.setParamDisplay( info_display_panel );
 		time_canvas_vport.setInfoModel( info_model );
 
-		center_panel.add( time_display_panel );
-		center_panel.add( info_display_panel );
+		
 		center_panel.add( time_canvas_panel );
 		center_panel.add( time_scrollbar );
 		center_panel.add( time_ruler_panel );
 
 		/* Setting up the LEFT panel to store various Y-axis related GUIs */
 		JPanel left_panel = new JPanel();
-		left_panel.setLayout( new BoxLayout( left_panel,
-				BoxLayout.Y_AXIS ) );
+		left_panel.setLayout( new BoxLayout( left_panel, BoxLayout.Y_AXIS ) );
 
 		/* "VIEW" title */
 		Insets canvas_panel_insets = time_canvas_panel.getInsets();
@@ -258,21 +241,14 @@ public class TimelinePanel extends JPanel
 		/* YaxisTree's Column Labels */
 		int       left_bottom_height = ruler_panel_height
 		+ canvas_panel_insets.bottom;
-		JTextArea y_colarea   = new JTextArea();
+		JLabel y_colarea   = new JLabel();
 		// y_colarea.setFont( Const.FONT );
-		StringBuffer text_space  = new StringBuffer( " " );
 		
-		/*
-		 * TODO what the heck?
-		 * for ( int idx = 0; idx < y_colnames.length; idx++ ) {
-			y_colarea.append( text_space.toString() + "@ "
-					+ y_colnames[ idx ] + "\n" );
-			text_space.append( "    " );
-		}
-		*/
-		JScrollPane y_colpanel = new JScrollPane( y_colarea,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS );
+		y_colarea.setText( topologyManager.getTopologyLabels() );
+
+		y_colpanel = new JScrollPane( y_colarea,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		/*
                    Since there is NOT a specific Top Level JPanel for
                    y_colpanel, so we need to set its PreferredSize here.
@@ -288,20 +264,21 @@ public class TimelinePanel extends JPanel
 				new Dimension( Short.MAX_VALUE, left_bottom_height ) );
 		y_colpanel.setPreferredSize(
 				new Dimension( 20, left_bottom_height ) );
+		
+		// if the y scroller is changed, then update y_collpanel also.
+		y_scroller.getHorizontalScrollBar().addAdjustmentListener( new toplogyManagerAxisValueChangedListener());
 
-
-		io_options_pulldown_list = new IOOptionsListener();
-
-		left_panel.add( io_options_pulldown_list );
 		left_panel.add( y_scroller );
 		// left_panel.add( y_title_btm );
 		left_panel.add( y_colpanel );
+		
+		left_panel.setMinimumSize( new Dimension(LEFTPANEL_WIDTH, 200));
 
 		/* Setting up the RIGHT panel to store various time-related GUIs */
 		JPanel right_panel = new JPanel();
 		right_panel.setLayout( new BoxLayout( right_panel,
 				BoxLayout.Y_AXIS ) );
-		row_adjs = new RowAdjustments( time_canvas_vport, y_tree );
+		row_adjs = new RowAdjustments( time_canvas_vport, topologyManager );
 
 		JPanel row_resize  = row_adjs.getComboBoxPanel();
 		row_resize.setMinimumSize(
@@ -333,7 +310,7 @@ public class TimelinePanel extends JPanel
 
 		JScrollPane row_colpanel = new JScrollPane( row_misc,
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS );
 		/*
                    Since there is NOT a specific Top Level JPanel for
                    row_colpanel, so we need to set its PreferredSize here.
@@ -357,26 +334,44 @@ public class TimelinePanel extends JPanel
 
 		/* Store the LEFT and CENTER panels in the JSplitPane */
 		JSplitPane left_splitter, right_splitter;
-		left_splitter  = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,
-				false, left_panel, center_panel );
+		left_splitter  = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,	false, left_panel, center_panel );
 		//  left_splitter.setResizeWeight( 0.0d );
-		right_splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,
-				false, left_splitter, right_panel );
+		right_splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,	false, left_splitter, right_panel );
 		right_splitter.setOneTouchExpandable( true );
 		left_splitter.setOneTouchExpandable( true );
 		right_splitter.setResizeWeight( 1.0d );
 
-		this.add( right_splitter, BorderLayout.CENTER );
-
 		/* The ToolBar for various user controls */
 		toolbar = new TimelineToolBar( root_window, time_canvas, time_ruler , time_canvas_vport,
-				y_scrollbar, y_tree, time_scrollbar, time_model, row_adjs );
+				y_scrollbar, topologyManager, time_scrollbar, time_model, row_adjs );
+
+		final JPanel top_panel = new JPanel();
+		top_panel.setLayout( new BoxLayout( top_panel, BoxLayout.Y_AXIS ) );
+		top_panel.add(toolbar);
+		top_panel.add( time_display_panel);
+		top_panel.add( info_display_panel);
+		
+		this.add( top_panel, BorderLayout.NORTH );
+		
+		this.add( right_splitter, BorderLayout.CENTER );
+		
 		time_canvas.setRequired(toolbar.getRestore_timelines_listener(), time_canvas_vport);
-		this.add( toolbar, BorderLayout.NORTH );
 
 		row_adjs.initYLabelTreeSize();
 	}
 
+	/**
+	 * Called if the y-axis scrollbar value changed 
+	 * @author julian
+	 *
+	 */
+	public class toplogyManagerAxisValueChangedListener implements AdjustmentListener{
+		@Override
+		public void adjustmentValueChanged(AdjustmentEvent e) {
+			y_colpanel.getHorizontalScrollBar().setValue(y_scroller.getHorizontalScrollBar().getValue());
+		}
+	}
+	
 	public void init()
 	{
 		// Initialize toolbar after creation of YaxisTree view

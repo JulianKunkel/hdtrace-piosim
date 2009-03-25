@@ -63,7 +63,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class CanvasTimeline extends ScrollableObject
 implements SearchableView, SummarizableView
 {
-	private TopologyManager          timelineManager;
+	private TopologyManager    timelineManager;
 	private BoundedRangeModel  y_model;
 
 	private Frame              root_frame;
@@ -247,9 +247,7 @@ implements SearchableView, SummarizableView
 		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
 
 
-		for(int i=0; i < timelineManager.getTimelineNumber(); i++){
-			System.out.println(i);
-			
+		for(int i=0; i < timelineManager.getTimelineNumber(); i++){			
 			switch (timelineManager.getType(i)){
 			case SPACER_NODE:
 				break;
@@ -276,7 +274,8 @@ implements SearchableView, SummarizableView
 	{
 		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
 		final String statName = node.getStatisticName();
-		double lastTime = timebounds.getEarliestTime();
+		
+		double lastTime = timebounds.getLatestTime();
 
 		final double maxValue = reader.getGlobalStatStats(sReader.getGroup()).getStatsForStatistic(statName).getGlobalMaxValue();
 		final StatisticDescription statDesc =  sReader.getGroup().getStatistic(statName);
@@ -299,12 +298,12 @@ implements SearchableView, SummarizableView
 	public void drawTraceTimeline(
 			int timeline,
 			BufferedTraceFileReader tr,  Graphics2D offGraphics,
-			final TimeBoundingBox  timebounds, CoordPixelImage coord_xform
+			TimeBoundingBox  timebounds, CoordPixelImage coord_xform
 	)
 	{
 		for(XMLTraceEntry entry: tr.getTraceEntries()){
 			// TODO only read necessary elements, bin search, also use index, partial file load ...
-			drawTraceElementRecursively(timeline, 0, entry, tr, offGraphics, coord_xform);
+			drawTraceElementRecursively(timeline, 0, timebounds, entry, tr, offGraphics, coord_xform);
 		}
 	}
 
@@ -315,10 +314,12 @@ implements SearchableView, SummarizableView
 	private void drawTraceElementRecursively(
 			int timeline,
 			int depth,
+			TimeBoundingBox  timebounds,
 			TraceObject entry, 
 			BufferedTraceFileReader tr, 
 			Graphics2D offGraphics, 
-			CoordPixelImage coord_xform){
+			CoordPixelImage coord_xform)
+	{
 		if(entry.getType() == TraceObjectType.EVENT){          
 			final EventTraceEntry event = (EventTraceEntry) entry;
 
@@ -332,7 +333,7 @@ implements SearchableView, SummarizableView
 
 			if(state.hasNestedTraceChildren()){
 				for(XMLTraceEntry child: state.getNestedTraceChildren()){
-					drawTraceElementRecursively(timeline, depth +1, child, tr, offGraphics, coord_xform);
+					drawTraceElementRecursively(timeline, depth +1, timebounds, child, tr, offGraphics, coord_xform);
 				}
 			}
 		}
