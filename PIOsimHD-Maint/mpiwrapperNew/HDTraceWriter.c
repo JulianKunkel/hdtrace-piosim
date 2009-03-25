@@ -43,25 +43,21 @@
 
 #include "HDTraceWriter.h"
 
+size_t htT_min(size_t a, size_t b)
+{
+	if(a < b)
+		return a;
+	return b;
+}
 
 
-// Traces all functions, even those without a custom logging routine
-int trace_all_functions = 1;
-int trace_compute_time = 1;
-int trace_nested_operations = 1;
-int trace_file_info = 1;
+void writeState(TraceFileP tracefile);
 
 
-const char * control_vars[] = { "HDTRACE_ALL_FUNCTIONS", 
-                                     "HDTRACE_COMPUTE_TIME", 
-                                     "HDTRACE_NESTED",
-                                     "HDTRACE_FILE_INFO",
-                                     NULL };
-int * controlled_vars[] = { &trace_all_functions,
-								 &trace_compute_time,
-								 &trace_nested_operations, 
-								 &trace_file_info,
-								 NULL };
+void hdT_TraceNested(TraceFileP file, int trace)
+{
+	file -> trace_nested_operations = trace;
+}
 
 void hdT_Enable(TraceFileP file, int enable)
 {
@@ -77,6 +73,9 @@ void hdT_ForceFlush(TraceFileP file, int flush)
 	file -> always_flush = flush;
 }
 
+/**
+ * flush tracefile -> buffer into tracefile -> trace_fd.
+ */
 void hdT_LogFlush(TraceFileP tracefile)
 {
 	int ret;
@@ -85,33 +84,36 @@ void hdT_LogFlush(TraceFileP tracefile)
 
 	tprintf(tracefile, "flushing log length: %lld", (long long int) amount_to_write)
 
-  // retry until all data is written:
-  while(amount_to_write > 0){
-	  ret = write(tracefile -> trace_fd, ram_pos, amount_to_write );
-	  if( ret == -1){
-		  switch(errno){
-		  case(EFAULT):
-		  case(EPIPE):
-		  case(EFBIG):
-		  case(EBADF):
-			  tprintf(tracefile, "Critical error during flushing of log, exiting: %s ", strerror(errno));
-			  exit(1);
-		  case(ENOSPC):
-			  tprintf(tracefile, "Could not flush buffer: no space left on device. %s ", strerror(errno));
-			  exit(1);
-		  case(EINTR):
-			  continue; // we are just interrupted
-		  default:
-			  tprintf(tracefile, "Unknown error during flushing of log: %s", strerror(errno))
-		  }
-	  }
-	  amount_to_write -= ret;
-	  ram_pos += ret;
-  }
+		// retry until all data is written:
+		while(amount_to_write > 0){
+			ret = write(tracefile -> trace_fd, ram_pos, amount_to_write );
+			if( ret == -1){
+				switch(errno){
+				case(EFAULT):
+				case(EPIPE):
+				case(EFBIG):
+				case(EBADF):
+					tprintf(tracefile, "Critical error during flushing of log, exiting: %s ", strerror(errno));
+					exit(1);
+				case(ENOSPC):
+					tprintf(tracefile, "Could not flush buffer: no space left on device. %s ", strerror(errno));
+					exit(1);
+				case(EINTR):
+					continue; // we are just interrupted
+				default:
+					tprintf(tracefile, "Unknown error during flushing of log: %s", strerror(errno))
+						}
+			}
+			amount_to_write -= ret;
+			ram_pos += ret;
+		}
 
-  tracefile -> buffer_pos = 0; // could use this one instead of amount_to_write, but easier to read.
+	tracefile -> buffer_pos = 0; // could use this one instead of amount_to_write, but easier to read.
 }
 
+/**
+ * write data to tracefile -> info_fd. this output is not buffered
+ */ 
 void hdT_LogInfo(TraceFileP tracefile, const char * message, ...)
 {
 	if( !tracefile -> trace_enable )
@@ -158,7 +160,7 @@ void hdT_LogInfo(TraceFileP tracefile, const char * message, ...)
 }
 
 
-void hdLogWrite(TraceFileP tracefile, const char * message)
+void hdT_LogWrite(TraceFileP tracefile, const char * message)
 {
 	if( !tracefile -> trace_enable )
 		return;
@@ -175,34 +177,37 @@ void hdLogWrite(TraceFileP tracefile, const char * message)
 	}
 }
 
-void hdLogWriteFormatv(TraceFileP tracefile, const char * message, va_list valist)
+void hdT_LogWriteFormatv(TraceFileP tracefile, const char * message, va_list valist)
 {
+	if( !tracefile -> trace_enable )
+		return;
 	char buffer[HD_TMP_BUF_SIZE];
 	int written;
 	written = vsnprintf(buffer, HD_TMP_BUF_SIZE, message, valist);
 	if(written >= HD_TMP_BUF_SIZE)
 	{
-		tprintf(tracefile, "hdLogWriteFormat: buffer too small for string: %s", message);
+		tprintf(tracefile, "hdT_LogWriteFormat: buffer too small for string: %s", message);
 	}
-	hdLogWrite(tracefile, buffer);
+	hdT_LogWrite(tracefile, buffer);
 }
 
-void hdLogWriteFormat(TraceFileP tracefile, const char * message, ...)
+void hdT_LogWriteFormat(TraceFileP tracefile, const char * message, ...)
 {
+	if( !tracefile -> trace_enable )
+		return;
 	va_list valist;
 	va_start(valist, message);
-	hdLogWriteFormatv(tracefile, message, valist);
+	hdT_LogWriteFormatv(tracefile, message, valist);
 	va_end(valist);
 }
 
 
-
-void hdLogWriteIndentation(TraceFileP tracefile)
+void hdT_LogWriteIndentation(TraceFileP tracefile, int count)
 {
 	int i;
-	for(i = 0; i < tracefile -> nested_counter; ++i)
+	for(i = 0; i < count; ++i)
 	{
-		hdLogWrite(tracefile, HD_LOG_TAB_STRING);
+		hdT_LogWrite(tracefile, HD_LOG_TAB_STRING);
 	}
 }
 
@@ -304,33 +309,10 @@ TraceFileP hdT_Create(int rank)
 
 		close(fd);
 
-		// read environment variables and set corresponding control values
-		char *env_var, *getenv();
-		int ii = 0;
-		while(control_vars[ii] && controlled_vars[ii])
-		{
-			if((env_var = getenv(control_vars[ii])) != NULL)
-			{
-				if(strcmp(env_var, "0") == 0) 
-				{
-					*controlled_vars[ii] = 0;
-				}
-				else if(strcmp(env_var, "1") == 0) 
-				{
-					*controlled_vars[ii] = 1;
-				}
-				else 
-				{
-					tprintf(tracefile, "environment variable %s has unrecognised value of %s",
-							control_vars[ii], env_var );
-				}
-			}
-			ii++;
-		}
+
 	}
 	
 	tracefile -> function_depth = -1;
-	tracefile -> nested_counter = 0;
 	tracefile -> buffer_pos = 0;
 	tracefile -> buffer[0] = '\0';
 	tracefile -> rank = rank;
@@ -338,76 +320,28 @@ TraceFileP hdT_Create(int rank)
 
 	tracefile -> always_flush = 0;
 	tracefile -> trace_enable = 1;
+	tracefile -> trace_nested_operations = 1;
+	int i;
+	for(i = 0; i < HD_LOG_MAX_DEPTH; ++i)
+	{
+		tracefile -> has_nested[i] = 0;
+		tracefile -> state_name[i][0] = '\0';
+	}
 
-	//
-	hdLogWriteFormat(tracefile, "<Rank number='%d' thread='%d'>\n<Program>\n", rank, thread);
+	hdT_LogWriteFormat(tracefile, "<Rank number='%d' thread='%d'>\n<Program>\n", rank, thread);
 
 	return tracefile;
 }
 
 void hdT_Finalize(TraceFileP file)
 {
-	hdLogWrite(file, "</Program>\n</Rank>\n\n");
+	hdT_LogWrite(file, "</Program>\n</Rank>\n\n");
 	hdT_LogFlush(file);
 	hdT_LogInfo(file, "\n\n");
 	close(file -> info_fd);
 	close(file -> trace_fd);
 	free(file);
 }
-
-/*
-    MPI_Write
-	hdLogStateStart()
-		Prüfe ob nested Tag geschrieben / nötig für gegenwärtige Tiefe
-	PMPI_Send
-	hdLogAttributes
-	GENERATE_WRITE_NESTED_TAGS in Buffer
-	hdLogStateEnd(buffer)
-		Prüfe ob END nested Tag nötig
-		Eigentliche Daten speichern
-*/
-
-// writes as many <Nested> or </Nested>-Tags as needed to arrive at function_depth
-void writeNestedTags(TraceFileP file)
-{
-	if(trace_nested_operations == 0)
-	{
-		return;
-	}
-	while(file -> nested_counter > file -> function_depth) 
-	{
-		hdLogWriteIndentation(file);
-		hdLogWrite(file, "</Nested>\n");
-		file -> nested_counter--;
-	}
-	while(file -> nested_counter < file -> function_depth)
-	{
-		hdLogWriteIndentation(file);
-		hdLogWrite(file, "<Nested>\n");
-		file -> nested_counter++;
-	}
-}
-
-void hdT_StateStart(TraceFileP file)
-{
-	file -> function_depth++;
-	writeNestedTags(file);
-	file -> elements_pos[file -> function_depth] = 0;
-	file -> attributes_pos[file -> function_depth] = 0;
-
-	if(file -> function_depth < HD_LOG_MAX_DEPTH)
-	{
-		gettimeofday(&file -> start_time[file -> function_depth], NULL);
-	}
-}
-
-size_t min(size_t a, size_t b)
-{
-	if(a < b)
-		return a;
-	return b;
-}
-
 
 void hdT_LogElement(TraceFileP tracefile, const char * name, const char * valueFormat, ...)
 {
@@ -423,15 +357,15 @@ void hdT_LogElement(TraceFileP tracefile, const char * name, const char * valueF
 	write = snprintf(tracefile -> elements[tracefile -> function_depth] + tracefile -> elements_pos[tracefile -> function_depth],
 					 HD_LOG_COMMAND_BUF_SIZE - (tracefile -> elements_pos[tracefile -> function_depth]),
 					 "<%s ", name);
-	tracefile -> elements_pos[tracefile -> function_depth] = min(tracefile -> elements_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
+	tracefile -> elements_pos[tracefile -> function_depth] = htT_min(tracefile -> elements_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
 	write = vsnprintf(tracefile -> elements[tracefile -> function_depth] + tracefile -> elements_pos[tracefile -> function_depth],
 					  HD_LOG_COMMAND_BUF_SIZE - tracefile -> elements_pos[tracefile -> function_depth],
 					 valueFormat, valist);
-	tracefile -> elements_pos[tracefile -> function_depth] = min(tracefile -> elements_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);	
+	tracefile -> elements_pos[tracefile -> function_depth] = htT_min(tracefile -> elements_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);	
 	write = snprintf(tracefile -> elements[tracefile -> function_depth] + tracefile -> elements_pos[tracefile -> function_depth],
 					  HD_LOG_COMMAND_BUF_SIZE - tracefile -> elements_pos[tracefile -> function_depth],
 					 " />\n");
-	tracefile -> elements_pos[tracefile -> function_depth] = min(tracefile -> elements_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
+	tracefile -> elements_pos[tracefile -> function_depth] = htT_min(tracefile -> elements_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 }
 
@@ -450,76 +384,122 @@ void hdT_LogAttributes(TraceFileP tracefile, const char * valueFormat, ...)
 	write = snprintf(tracefile -> attributes[tracefile -> function_depth] + tracefile -> attributes_pos[tracefile -> function_depth],
 					 HD_LOG_COMMAND_BUF_SIZE - (tracefile -> attributes_pos[tracefile -> function_depth]),
 					 "%s='", name);
-	tracefile -> attributes_pos[tracefile -> function_depth] = min(tracefile -> attributes_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
+	tracefile -> attributes_pos[tracefile -> function_depth] = htT_min(tracefile -> attributes_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
 	*/
 	write = vsnprintf(tracefile -> attributes[tracefile -> function_depth] + tracefile -> attributes_pos[tracefile -> function_depth],
 					  HD_LOG_COMMAND_BUF_SIZE - tracefile -> attributes_pos[tracefile -> function_depth],
 					 valueFormat, valist);
-	tracefile -> attributes_pos[tracefile -> function_depth] = min(tracefile -> attributes_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);	
+	tracefile -> attributes_pos[tracefile -> function_depth] = htT_min(tracefile -> attributes_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);	
 	write = snprintf(tracefile -> attributes[tracefile -> function_depth] + tracefile -> attributes_pos[tracefile -> function_depth],
 					  HD_LOG_COMMAND_BUF_SIZE - tracefile -> attributes_pos[tracefile -> function_depth],
 					 " ");
-	tracefile -> attributes_pos[tracefile -> function_depth] = min(tracefile -> attributes_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
+	tracefile -> attributes_pos[tracefile -> function_depth] = htT_min(tracefile -> attributes_pos[tracefile -> function_depth] + write, HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 }
 
 
-
-void hdT_StateEnd(TraceFileP tracefile, const char * stateName, const char* format, ...)
+void writeState(TraceFileP tracefile)
 {
-	va_list valist;
-	struct timeval end_time;
-	gettimeofday(&end_time, NULL);
+	if(tracefile -> function_depth >= HD_LOG_MAX_DEPTH)
+		return;
 
-	hdLogWriteIndentation(tracefile);
-
-	hdLogWrite(tracefile, "<");
-	hdLogWrite(tracefile, stateName);
-	hdLogWrite(tracefile, " ");
+	hdT_LogWriteIndentation(tracefile, tracefile -> function_depth);
+	hdT_LogWrite(tracefile, "<");
+	hdT_LogWrite(tracefile, tracefile -> state_name[tracefile -> function_depth]);
+	hdT_LogWrite(tracefile, " ");
 
 	// write pending attributes
-	if(tracefile -> function_depth < HD_LOG_MAX_DEPTH 
-	   && tracefile -> attributes_pos[tracefile -> function_depth] != 0)
+	if(tracefile -> attributes_pos[tracefile -> function_depth] != 0)
 	{
-		hdLogWrite(tracefile, tracefile -> attributes[tracefile -> function_depth]);
+		hdT_LogWrite(tracefile, tracefile -> attributes[tracefile -> function_depth]);
 	}
 
-	//hdLogWrite(tracefile, " ");
-	va_start(valist, format);
-	hdLogWriteFormatv(tracefile, format, valist);
-	va_end(valist);
-
-	// write start and end times
-	if(tracefile -> function_depth < HD_LOG_MAX_DEPTH )
-	{
-		hdLogWriteFormat(tracefile, " time='%d.%6d'", 
-						 (unsigned)tracefile -> start_time[tracefile -> function_depth].tv_sec, 
-						 (unsigned)tracefile -> start_time[tracefile -> function_depth].tv_usec);
-	}
-	hdLogWriteFormat(tracefile, " end='%d.%6d' ", 
-						 (unsigned)end_time.tv_sec, 
-						 (unsigned)end_time.tv_usec);
+	// write time information
+	hdT_LogWriteFormat(tracefile, " time='%d.%.6d'", 
+					   (unsigned)tracefile -> start_time[tracefile -> function_depth].tv_sec, 
+					   (unsigned)tracefile -> start_time[tracefile -> function_depth].tv_usec);
+	
+	hdT_LogWriteFormat(tracefile, " end='%d.%.6d' ", 
+					   (unsigned)tracefile -> end_time[tracefile -> function_depth].tv_sec, 
+					   (unsigned)tracefile -> end_time[tracefile -> function_depth].tv_usec);
 
 	// write pending elements
-	if(tracefile -> function_depth < HD_LOG_MAX_DEPTH 
-	   && tracefile -> elements_pos[tracefile -> function_depth] != 0)
+	if(tracefile -> elements_pos[tracefile -> function_depth] != 0)
 	{
-		hdLogWrite(tracefile, ">\n" HD_LOG_TAB_STRING);
-		hdLogWriteIndentation(tracefile);
-		hdLogWrite(tracefile, tracefile -> elements[tracefile -> function_depth]);
-		hdLogWriteIndentation(tracefile);
-		hdLogWrite(tracefile, "</");
-		hdLogWrite(tracefile, stateName);
-		hdLogWrite(tracefile, ">\n");
+		hdT_LogWrite(tracefile, ">\n" HD_LOG_TAB_STRING);
+		hdT_LogWriteIndentation(tracefile, tracefile -> function_depth);
+		hdT_LogWrite(tracefile, tracefile -> elements[tracefile -> function_depth]);
+		hdT_LogWriteIndentation(tracefile, tracefile -> function_depth);
+		hdT_LogWrite(tracefile, "</");
+		hdT_LogWrite(tracefile, tracefile -> state_name[tracefile -> function_depth]);
+		hdT_LogWrite(tracefile, ">\n");
 	}
 	else
 	{
-		hdLogWrite(tracefile, " />\n");
+		hdT_LogWrite(tracefile, " />\n");
+	}
+}
+
+void hdT_StateStart(TraceFileP file, const char * stateName)
+{
+	file -> function_depth++;
+	if(!file -> trace_nested_operations && file -> function_depth > 0)
+	{
+		return;
+	}
+
+	if(file -> function_depth > 0 && (file -> function_depth - 1 < HD_LOG_MAX_DEPTH))
+	{
+		if(file -> has_nested[file -> function_depth - 1] == 0)
+		{
+			hdT_LogWriteIndentation(file, file -> function_depth - 1);
+			hdT_LogWrite(file, "<Nested>\n");
+			file -> has_nested[file -> function_depth - 1] = 1;
+		}
+	}
+
+	//hdT_writeNested(file); 
+
+	if(file -> function_depth < HD_LOG_MAX_DEPTH)
+	{
+		file -> elements_pos[file -> function_depth] = 0;
+		file -> attributes_pos[file -> function_depth] = 0;
+
+		gettimeofday(&file -> start_time[file -> function_depth], NULL);
+		snprintf(file -> state_name[file -> function_depth],
+				 HD_LOG_ELEMENT_NAME_BUF_SIZE,
+				 "%s", stateName);
+	}
+}
+
+void hdT_StateEnd(TraceFileP tracefile)
+{
+	if(tracefile -> function_depth > 0 && !tracefile -> trace_nested_operations)
+	{
+		tracefile -> function_depth--;
+		return;
+	}
+
+	if(tracefile -> function_depth >= HD_LOG_MAX_DEPTH )
+	{
+		tracefile -> function_depth--;
+		return;
+	}
+	gettimeofday(&tracefile->end_time[tracefile -> function_depth], NULL);
+	
+	if(tracefile -> has_nested[tracefile -> function_depth])
+	{
+		hdT_LogWriteIndentation(tracefile, tracefile -> function_depth);
+		hdT_LogWrite(tracefile, "</Nested>\n");
+		tracefile -> has_nested[tracefile -> function_depth] = 0;
 	}
 
 
-			   
-
+	writeState(tracefile);
+		
+	//if(tracefile -> trace_nested_operations == 0 && tracefile -> function_depth == 0)
+	//	writeState(tracefile);
+	
 	tracefile -> function_depth--;
 }
 //oder void hdLogStateEnd      (TraceFileP file, char* buff);

@@ -35,31 +35,36 @@ int main (int argc, char** argv)
 		MPI_Abort(MPI_COMM_WORLD, -1);
 	}
 
-	if (rank == 0){
 
-		MPI_Group  group;
-		MPI_Group  worldGroup;
+	MPI_Group  group;
+	MPI_Group  worldGroup;
 
-        int ranksInOUT[20];
-        int ranksOut[20];
-		for(i=0; i < size; i++){
-			ranksInOUT[i] = i;
-		}
-
-		MPI_Comm_group(MPI_COMM_WORLD, & worldGroup);
-
-		/* for testing */
-		int testRanks [] = {2, 4};
-        MPI_Group_incl( worldGroup, 2, testRanks, & group ) ;
-
-		ret = MPI_Group_translate_ranks( worldGroup, size, ranksInOUT, group, ranksOut ) ;
-
-		printf("ret: %d\n", ret);
-
-		for(i=0; i < size; i++){
-			printf(" %d %d \n", i, ranksOut[i]);
-		}
+	int ranksInOUT[20];
+	int ranksOut[20];
+	for(i=0; i < size; i++){
+		ranksInOUT[i] = i;
 	}
+
+	MPI_Comm_group(MPI_COMM_WORLD, & worldGroup);
+
+	/* for testing */
+	int testRanks [] = {2, 4};
+	MPI_Group_incl( worldGroup, 2, testRanks, & group ) ;
+
+	ret = MPI_Group_translate_ranks( worldGroup, size, ranksInOUT, group, ranksOut ) ;
+
+	printf("ret: %d\n", ret);
+
+	for(i=0; i < size; i++){
+		printf(" %d %d \n", i, ranksOut[i]);
+	}
+		
+	MPI_Comm newcomm;
+	MPI_Comm_create(MPI_COMM_WORLD, group, &newcomm);
+
+	if( rank == 2 || rank == 4)
+		MPI_Barrier(newcomm);
+
 
 	MPI_Barrier(MPI_COMM_WORLD);
 	

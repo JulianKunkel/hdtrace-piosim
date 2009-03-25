@@ -125,6 +125,11 @@ beforeMpi = {
   "Testall" : wait_elements,
   "Testany" : wait_elements,
   "Testsome" : wait_elements,
+
+  "File_close" : """
+  gint pre_close_id = getFileId(*v1);
+  removeHandle(*v1);
+""",
 }
 
 # the right place to call hdT_LogInfo(...), hdT_LogElement(...) and hdLogAttribute(...) 
@@ -133,9 +138,9 @@ afterMpi = {
   {
     MPI_Offset fileSize;
     PMPI_File_get_size(*v5, &fileSize);
-    hdT_LogInfo(tracefile, 
-	      "File_open name=\\"%s\\" comm=\\"%d\\" InitialSize=%lld id=%d flags=%d \\n", 
-	      v2, getCommId(v1), v3, (long long int)fileSize, getFileId(*v5));
+//    hdT_LogInfo(tracefile, 
+//	      "File_open name=\\"%s\\" comm=\\"%d\\" InitialSize=%lld id=%d flags=%d \\n", 
+//	      v2, getCommId(v1), v3, (long long int)fileSize, getFileIdEx(*v5, v2));
   }
 """ + info_elements("v4"),
 
@@ -294,15 +299,15 @@ logAttributes = {
                         "getTypeSize(v2, v3), v4, v5, v6, v7, getCommId(v8)"),
   "Allreduce" : ("size='%lld' comm='%d'", 
                  "getTypeSize(v3, v4), getCommId(v6)"),
-  "File_open" : ("comm='%d' name='%s' flags='%d'", 
-                 "getCommId(v1), v2, v3"),
+  "File_open" : ("comm='%d' name='%s' flags='%d' file='%d'", 
+                 "getCommId(v1), v2, v3, getFileIdEx(*v5, v2)"),
 
   "File_close" : ("file='%d'", 
-                  "getFileId(*v1)"),
+                  "pre_close_id"),
 
-  # 
-  #"File_delete" : ("name='%s'", 
-  #                 "
+   
+  "File_delete" : ("file='%d'", 
+                   "getFileIdFromName(v1)"),
 
   "File_write" :        ("file='%d'", "getFileId(v1)", "File_write"),
 
@@ -370,6 +375,8 @@ logAttributes = {
 
   "Type_vector" : ("from_type='%d'", "getTypeId(v4)"),
 
+  "hdT_Test_nested" : ("depth='%d'", "v1"),
+
 }
 
 noLog = ["Abort", "Init"]
@@ -413,7 +420,12 @@ for f in funcs:
       print '  ' + beforeLog[fkt] + ';'
 
     if not fkt in noLog:
-      print '  hdT_StateStart(tracefile);'
+      logname = ""
+      if fkt in logAttributes and len(logAttributes[fkt]) > 2:
+        logname = logAttributes[fkt][2]
+      else:
+        logname = fkt
+      print '  hdT_StateStart(tracefile, "%s");' % logname
       print
 
     if fkt in beforeMpi:
@@ -432,10 +444,7 @@ for f in funcs:
         else:
           print '  hdT_LogAttributes(tracefile, "' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');'
       
-      if fkt in logAttributes and len(logAttributes[fkt]) > 2:
-        print '  hdT_StateEnd(tracefile, "' + logAttributes[fkt][2] + '", "");'
-      else:
-        print '  hdT_StateEnd(tracefile, "' + fkt + '", "");'
+      print '  hdT_StateEnd(tracefile);'
       print
 
     if fkt in afterLog:

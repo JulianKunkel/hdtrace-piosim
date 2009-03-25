@@ -73,7 +73,9 @@ else:
 print "Writing application " + filename + " into " + output_fname;
 
 #################
-path = os.path.dirname(desc) + "/"
+path = os.path.dirname(desc)
+if path != "":
+   path += "/"
 #################
 
 #Generate header
@@ -84,12 +86,22 @@ for i in range(0, processCount):
   inp = open(path + description[i+1] + ".info")
   # File_open name="./visualization.dat" comm="WORLD" flags=5 InitialSize=0 id=10000
   for line in inp:
-	  res = re.match("File_open name=\"([^\"]*)\" comm=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
+	  #res = re.match("File_open name=\"([^\"]*)\" comm=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
+          res = re.match("File name=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
 	  if res :
-  		print res.group(1) + " " + res.group(2) + " " + res.group(3)  + " " + res.group(4)  
-		out.write("<File name=\"" + res.group(1) + "\" id=\"" + res.group(4) + "\">\n")
-		out.write("<InitialSize>" + res.group(3) + "</InitialSize>\n")
+  		print "File: " + res.group(1) + " " + res.group(2) + " " + res.group(3)    
+		out.write("<File name=\"" + res.group(1) + "\" id=\"" + res.group(3) + "\">\n")
+		out.write("<InitialSize>" + res.group(2) + "</InitialSize>\n")
 		out.write("               <Distribution name=\"SimpleStripe\"> <Chunk-Size>100K</Chunk-Size>   </Distribution>  </File>\n")
+          
+          res = re.match("Comm map='([^']*)' id=(\d*) name='([^']*)'", line)
+          if res : 
+             print "Comm " + res.group(1) + " " + res.group(2) + " " + res.group(3)
+             
+             #Type id='1275069445' combiner='MPI_COMBINER_NAMED' name='MPI_INT'
+          res = re.match("Type id='([^']*)' combiner='([^']*)' name='([^']*)'", line)
+          if res:
+             print "Type " + res.group(1) + " " + res.group(2) + " " + res.group(3)
 
   inp.close()
 

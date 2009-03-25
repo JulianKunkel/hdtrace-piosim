@@ -29,6 +29,7 @@
 #include <mpio.h>
 #include <pthread.h>
 
+#include <limits.h>
 #include <stdlib.h>
 
 #include <stdio.h>
@@ -46,7 +47,29 @@ __thread TraceFileP tracefile = NULL;
 
 __thread char cnbuff[TMP_BUF_LEN];
 
-extern int trace_file_info;
+// Traces all functions, even those without a custom logging routine
+int trace_all_functions = 1;
+int trace_nested_operations = 1;
+int trace_file_info = 1;
+int trace_force_flush = 0;
+
+const char * control_vars[] = { "HDTRACE_ALL_FUNCTIONS", 
+								"HDTRACE_NESTED",
+								"HDTRACE_FILE_INFO",
+								"HDTRACE_FORCE_FLUSH",
+								NULL };
+int * controlled_vars[] = { &trace_all_functions,
+							&trace_nested_operations, 
+							&trace_file_info,
+							&trace_force_flush,
+							NULL };
+
+size_t hdT_min(size_t a, size_t b)
+{
+	if(a < b)
+		return a;
+	return b;
+}
 
 static char * getCommName(MPI_Comm comm)
 {
@@ -60,6 +83,17 @@ static char * getCommName(MPI_Comm comm)
   }
   MPI_Comm_get_name(comm, cnbuff, & len);
   return cnbuff;
+}
+
+
+int PMPI_hdT_Test_nested(int rec)
+{
+	if(rec > 0)
+	{
+		MPI_hdT_Test_nested(rec - 1);
+		MPI_hdT_Test_nested(rec - 1);
+	}
+	return 0;
 }
 
 
@@ -88,14 +122,18 @@ void writeCommInfo(MPI_Comm comm, gint comm_id)
 	char buffer[TMP_BUF_LEN];
 	size_t position = 0;
 	position += snprintf(buffer + position, TMP_BUF_LEN - position, "Comm map='");
+	position = hdT_min(position, TMP_BUF_LEN);
+
 	for(i = 0; i < size; ++i)
 	{
 		if(ranks_comm[i] != MPI_UNDEFINED ) 
 		{
 			position += snprintf(buffer + position, TMP_BUF_LEN - position, "%d->%d;", i, ranks_comm[i]);
+			position = hdT_min(position, TMP_BUF_LEN);
 		}
 	}
 	position += snprintf(buffer + position, TMP_BUF_LEN - position, "' id=%d name='%s'\n", comm_id, getCommName(comm));
+	position = hdT_min(position, TMP_BUF_LEN);
 
 	hdT_LogInfo(tracefile, buffer);
 }
@@ -123,6 +161,7 @@ gint getCommId(MPI_Comm comm)
 }
 
 __thread GHashTable *file_handle_to_id = NULL;
+__thread GHashTable *file_name_to_id = NULL;
 __thread gint file_id_counter = 0;
 
 gint getFileId(MPI_File fh)
@@ -141,9 +180,150 @@ gint getFileId(MPI_File fh)
 		g_hash_table_insert(file_handle_to_id, g_handle, g_id);
 		file_id_counter++;
 
+		tprintf(tracefile, "getFileId: got File handle without associated id. new id=%d", (*g_id));
+
 		return *g_id;
 	}
 	return *(gint*)result;
+}
+
+gint getFileIdFromName(const char * name)
+{
+	if(file_name_to_id == NULL)
+	{
+		file_name_to_id = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+	}
+
+	
+	/* NOTE: it would be nice to canonicalize the file name, e.g. with 
+	 * nrealpath(name, NULL);. Unfortunately, this doesn't work with names 
+     * beginning with "pvfs://"
+	 */ 
+	char * real_path = g_strdup(name);
+
+	gpointer result =  g_hash_table_lookup(file_name_to_id, real_path); 
+	if(result == NULL)
+	{
+		gint *g_id = malloc(sizeof(gint));
+		*g_id = file_id_counter;
+		g_hash_table_insert(file_name_to_id, real_path, g_id);
+		file_id_counter++;
+
+		// TODO: we don't know the size of the file. just log zero?
+		hdT_LogInfo(tracefile, 
+						"File name=\"%s\" Size=0 id=%d\n",
+						name, *g_id);
+
+		return *g_id;
+	}
+	return *(gint*)result;
+}
+
+void removeHandle(MPI_File fh)
+{
+	g_hash_table_remove(file_handle_to_id, &fh);
+}
+
+/**
+ * This function should be used, whenever a file is acessed by name and its 
+ * file pointer is known (File_open...)
+ * If the file has been accessed before (by name), the same id can
+ * be associated again.
+ *
+ * If the file has not yet been opened, an entry is written to the trace file
+ * 
+ */
+gint getFileIdEx(MPI_File fh, const char * name)
+{
+	if(file_name_to_id == NULL)
+	{
+		file_name_to_id = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+	}
+	if(file_handle_to_id == NULL)
+	{
+		file_handle_to_id = g_hash_table_new_full(g_int_hash, g_int_equal, free, free);
+	}	
+
+	/* NOTE: it would be nice to canonicalize the file name, e.g. with 
+	 * nrealpath(name, NULL);. Unfortunately, this doesn't work with names 
+     * beginning with "pvfs://"
+	 */ 
+	char * real_path = g_strdup(name);
+
+	gpointer name_result = g_hash_table_lookup(file_name_to_id, real_path); 
+	gpointer handle_result = g_hash_table_lookup(file_handle_to_id, &fh);
+
+	if(name_result == NULL) //don't know the file
+	{
+		if(handle_result != NULL)
+		{
+			//the file has a handle without us knowing the name. this is bad
+			tsprintf(tracefile, "getFileIdEx(...): file handle without matching filename");
+			return -1;
+		}
+		else
+		{
+			// this is a new file
+			gint *g_id = malloc(sizeof(gint)); 
+			gint *g_id2 = malloc(sizeof(gint)); // this makes it easier to automatically free the memory
+			gint *g_fh = malloc(sizeof(gint));
+			assert(sizeof(gint) >= sizeof(MPI_File));
+			
+			*g_fh = (gint)fh;
+			*g_id = file_id_counter;
+			*g_id2 = file_id_counter;
+
+			g_hash_table_insert(file_name_to_id, real_path, g_id);
+			g_hash_table_insert(file_handle_to_id, g_fh, g_id2);
+
+			long long int fileSize;
+			PMPI_File_get_size(fh, &fileSize);
+			hdT_LogInfo(tracefile, 
+						"File name=\"%s\" Size=%lld id=%d\n",
+						name, fileSize, *g_id);
+			
+			file_id_counter++;
+
+			return *g_id;
+		}
+	}
+	else
+	{
+		// know the file
+		if(handle_result != NULL)
+		{
+			// file probably has been opened before...
+			if( *(gint*)name_result == *(gint*)handle_result )
+			{
+				return *(gint*)name_result;
+			}
+			else
+			{
+				// fix the fh -> id mapping and warn 
+				gint *g_id = malloc(sizeof(gint));
+				gint *g_fh = malloc(sizeof(gint));
+				*g_id = *(gint*)name_result;
+				*g_fh = *(gint*)fh;
+
+				tprintf(tracefile, "file handle map and file name map do not match. id=%d", *g_id);
+
+				g_hash_table_insert(file_handle_to_id, g_fh, g_id);
+				return *g_id;
+			}
+		}
+		else
+		{
+			// know the file, don't know the handle
+			// insert the fh -> id mapping
+			gint *g_id = malloc(sizeof(gint));
+			gint *g_fh = malloc(sizeof(gint));
+			*g_id = *(gint*)name_result;
+			*g_fh = *(gint*)fh;
+
+			g_hash_table_insert(file_handle_to_id, g_fh, g_id);
+			return *g_id;
+		}
+	}
 }
 
 const char * getCombinerName(int combiner)
@@ -221,12 +401,14 @@ void writeTypeInfo(MPI_Datatype type, gint id)
 		int pos = 0;
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
 						"Type id='%d' Combiner='%s' Integers='", (int)id, getCombinerName(combiner));
+		pos = hdT_min(pos, TMP_BUF_LEN);
 
 		int i;
 		for(i = 0; i < max_integers; ++i)
 		{
 			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
 							"%d;", integers[i] );
+			pos = hdT_min(pos, TMP_BUF_LEN);
 		}
 
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
@@ -235,6 +417,7 @@ void writeTypeInfo(MPI_Datatype type, gint id)
 		{
 			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
 							"%lld;", (long long int)addresses[i] );
+			pos = hdT_min(pos, TMP_BUF_LEN);
 		}
 
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
@@ -243,9 +426,11 @@ void writeTypeInfo(MPI_Datatype type, gint id)
 		{
 			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
 							"%d;", getTypeId(datatypes[i]) );
+			pos = hdT_min(pos, TMP_BUF_LEN);
 		}
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
 						"'\n");
+		pos = hdT_min(pos, TMP_BUF_LEN);
 
 		hdT_LogInfo(tracefile, buffer);
 
@@ -331,6 +516,11 @@ void destroyHashTables()
 		g_hash_table_destroy(file_handle_to_id);
 		file_handle_to_id = NULL;
 	}
+	if(file_name_to_id)
+	{
+		g_hash_table_destroy(file_name_to_id);
+		file_name_to_id = NULL;
+	}
 	if(comm_to_id)
 	{
 		g_hash_table_destroy(comm_to_id);
@@ -403,6 +593,33 @@ void after_Init(int *argc, char ***argv)
 	PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	tracefile = hdT_Create(rank);
+
+	// read environment variables and set corresponding control values
+	char *env_var, *getenv();
+	int ii = 0;
+	while(control_vars[ii] && controlled_vars[ii])
+	{
+		if((env_var = getenv(control_vars[ii])) != NULL)
+		{
+			if(strcmp(env_var, "0") == 0) 
+			{
+				*controlled_vars[ii] = 0;
+			}
+			else if(strcmp(env_var, "1") == 0) 
+			{
+				*controlled_vars[ii] = 1;
+			}
+			else 
+			{
+				tprintf(tracefile, "environment variable %s has unrecognised value of %s",
+						control_vars[ii], env_var );
+			}
+		}
+		ii++;
+	}
+
+	hdT_TraceNested(tracefile, trace_nested_operations);
+	hdT_ForceFlush(tracefile, trace_force_flush);
 }
 
 void after_Finalize(void)

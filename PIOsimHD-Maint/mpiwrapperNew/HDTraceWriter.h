@@ -30,11 +30,13 @@
 void hdStartTracing();
 void hdStopTracing();
 
-#define HD_LOG_BUF_SIZE (1024 * 1024)
-#define HD_LOG_TAB_STRING "\t"
+//#define HD_LOG_BUF_SIZE (1024 * 1024)
+#define HD_LOG_BUF_SIZE (1024)
+#define HD_LOG_TAB_STRING "  "
 #define HD_LOG_COMMAND_BUF_SIZE 1024 * 16
+#define HD_LOG_ELEMENT_NAME_BUF_SIZE 1024
 #define HD_TMP_BUF_SIZE 1024 * 16
-#define HD_LOG_MAX_DEPTH 10
+#define HD_LOG_MAX_DEPTH 4
 
 //ideas for a trace API:
 
@@ -43,23 +45,29 @@ struct TraceFile
 {
 	int trace_fd; // file descriptor
 	int info_fd;
-	char buffer[HD_LOG_BUF_SIZE];
-	char elements[HD_LOG_MAX_DEPTH][HD_LOG_COMMAND_BUF_SIZE];
+
 	size_t elements_pos[HD_LOG_MAX_DEPTH];
+	char state_name[HD_LOG_MAX_DEPTH][HD_LOG_ELEMENT_NAME_BUF_SIZE];
 	char attributes[HD_LOG_MAX_DEPTH][HD_LOG_COMMAND_BUF_SIZE];
 	size_t attributes_pos[HD_LOG_MAX_DEPTH];
 
+	char elements[HD_LOG_MAX_DEPTH][HD_LOG_COMMAND_BUF_SIZE];
+	char buffer[HD_LOG_BUF_SIZE];
+
 	struct timeval start_time[HD_LOG_MAX_DEPTH];
+	struct timeval end_time[HD_LOG_MAX_DEPTH];
 	
 	size_t buffer_pos;
 
 	int function_depth; // keeps track of the depth of nested function calls
-	int nested_counter; // current depth of <Nested> tags in logfile
+	//int nested_counter; // current depth of <Nested> tags in logfile
 	int rank;
 	int thread;
 
 	int trace_enable;
 	int always_flush;
+	int trace_nested_operations;
+	int has_nested[HD_LOG_MAX_DEPTH];
 };
 
 typedef struct TraceFile * TraceFileP;
@@ -100,6 +108,11 @@ void hdT_Enable(TraceFileP file, int enable);
  */
 void hdT_ForceFlush(TraceFileP file, int flush);
 
+/**
+ * trace = 0 -> nested operations are not traced
+ * trace = 1 -> nested operations are traced
+ */
+void hdT_TraceNested(TraceFileP file, int trace);
 
 
 /**
@@ -116,8 +129,9 @@ void hdT_LogInfo(TraceFileP tracefile, const char * message, ...);
  */
 void hdT_LogAttributes (TraceFileP file, const char* valueFormat, ...);
 
-void hdT_StateStart    (TraceFileP file);
-void hdT_StateEnd      (TraceFileP file, const char * stateName, const char* sprinhdStringForFurtherValues, ...);
+
+void hdT_StateStart    (TraceFileP file, const char * stateName);
+void hdT_StateEnd      (TraceFileP file);
 
 void hdT_EventStart    (TraceFileP file, char * eventName );
 void hdT_EventEnd      (TraceFileP file, char* sprinhdStringForFurtherValues, ...);

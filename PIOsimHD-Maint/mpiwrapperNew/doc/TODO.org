@@ -118,11 +118,11 @@
 ** DONE Das absolutes-seek-file-offst-Problem
    - Die jetzige Berechnung gibt bereits den richtigen byte-offset.
    Im Fall des gemeinsamen Dateizeigers 
-** TODO Filename map
+** DONE Filename map
    Filename <-> id map einbauen, bei öffnen prüfen und ggf. handle <-> id anpassen
    (falls neue datei geöffnet)
    ebenfalls: file_delete
-** TODO Operationen tracen
+** DONE Operationen tracen
 		Welche Operationen sollen getraced werden? (mpi_funcs.h, mpiio_funcs.h)
 		 Primär alle die kommunizieren oder I/O betreiben, allerdings gibt es einige 
 		wo selten eingesetzt werden und es daher nicht sinnvoll ist das gleich zu 
@@ -188,11 +188,11 @@
     - [X] int MPI_Iprobe(int, int, MPI_Comm, int *, MPI_Status *);
 
 
-*** TODO I/O operationen:
-**** TODO
+*** DONE I/O operationen:
+**** DONE
      - [X] int MPI_File_seek_shared(MPI_File, MPI_Offset, int);
      - [X] int MPI_File_open(MPI_Comm, char *, int, MPI_Info, MPI_File *);
-     - [ ] int MPI_File_delete(char *, MPI_Info);
+     - [X] int MPI_File_delete(char *, MPI_Info);
      - [X] int MPI_File_close(MPI_File *); 
      int MPI_File_set_size(MPI_File, MPI_Offset);
      int MPI_File_preallocate(MPI_File, MPI_Offset);
@@ -284,7 +284,7 @@
 		int MPI_Info_get_nthkey(MPI_Info, int, char *);
    - [ ] File_Info rausschreiben 
 
-** TODO MPI_Pcontrol(...) benutzen?
+** DONE MPI_Pcontrol(...) benutzen?
 ***
 		int MPI_Pcontrol(const int, ...); // cool controliert profiling: 
 		http://mpi.dein.onet/mpi_functions/MPI_Pcontrol.html, vielleicht nutzen 
@@ -383,14 +383,28 @@ Per HashMap Communicator ID speichern
    - 
 ** DONE sind auch alle funktionen in interesting_funcs.h eingetragen?
    - [X] Ja
-** TODO Welche Funktionen auser File_open können auf "neue" dateien zugreifen -> *.info - file beschreiben
-** TODO unifytraces: wenn im selben Verzeichnis ausgeführt 
+** DONE Welche Funktionen auser File_open können auf "neue" dateien zugreifen -> *.info - file beschreiben
+   bis jetzt nur File_open und File_delete
+   File_open -> GetFileIdEx
+   File_delete -> GetFileIdFromName
+** DONE File_close  : file handle aus hashmap entfernen!
+** DONE unifytraces: wenn im selben Verzeichnis ausgeführt 
    -> fehler wenn ./ vor dateinamen weggelassen
+** TODO Zur zeit werden die Funktionsnamen kopiert: man kann auch den zeiger
+  speichern (da sowieso statisch). ist das sinnvoll?
 ** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
+** TODO Wenn auf Datei nur über den namen zugegriffen wird, wird filesize=0 geloggt.
+** TODO Kommentare optimiern
+** TODO Kommunikator- und Typnamen in unifyTraces zusammenbasteln
 ** TODO Feinschliff
+** TODO wenn File_open etc. schiefgeht -> nicht loggen?
 ** TODO g_int_equal nicht mehr für zeiger verwenden
    oder wenigstens asserts reinmachen, dass die casts nicht verlustbehaftet sind...
 ** TODO Testen
+*** TODO
+    werden auch veränderbare argumente vor/nach dem mpi-aufruf geloggt?
+*** TODO file hashtables:
+    - eine datei erst löschen dann öffnen
 *** TODO nested operations
 *** TODO mpi2test/pt2pt/sendrecv3 stürzt ab?
 *** TODO Abbruch bei multithreaded-anwendungen
