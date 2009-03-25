@@ -11,7 +11,6 @@ package viewer.zoomable;
 
 import java.awt.Color;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +28,6 @@ import viewer.common.LabeledTextField;
 
 public class ModelInfoPanel extends JPanel
 {
-	private ModelInfo         model = null;
-
 	private LabeledTextField  fld_time_start;
 	private LabeledTextField  fld_time_end;
 	private LabeledTextField  fld_time_duration;
@@ -66,7 +63,6 @@ public class ModelInfoPanel extends JPanel
 	public ModelInfoPanel( ModelInfo model )
 	{
 		super();
-		this.model         = model;
 		setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
 
 		vport_list         = new ArrayList();

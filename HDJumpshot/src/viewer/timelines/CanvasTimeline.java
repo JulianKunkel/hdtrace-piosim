@@ -133,10 +133,11 @@ implements SearchableView, SummarizableView
 	{
 		int rows_size = timelineManager.getRowCount() * timelineManager.getRowHeight();
 		int view_size = y_model.getMaximum() - y_model.getMinimum() + 1;
+	
 		if ( view_size > rows_size )
 			return view_size;
 		else
-			return rows_size;
+			return rows_size;		
 	}
 
 	private void fireChangeEvent()
@@ -272,10 +273,12 @@ implements SearchableView, SummarizableView
 			TopologyStatisticTreeNode node,  Graphics2D offGraphics,
 			final TimeBoundingBox  timebounds, CoordPixelImage coord_xform)
 	{
-		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
-		final String statName = node.getStatisticName();
+		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
 		
-		double lastTime = timebounds.getLatestTime();
+		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
+		final String statName = node.getStatisticName();		
+		
+		double lastTime = timebounds.getEarliestTime();
 
 		final double maxValue = reader.getGlobalStatStats(sReader.getGroup()).getStatsForStatistic(statName).getGlobalMaxValue();
 		final StatisticDescription statDesc =  sReader.getGroup().getStatistic(statName);
@@ -283,12 +286,14 @@ implements SearchableView, SummarizableView
 
 		for(StatisticGroupEntry entry: sReader.getStatEntries()){
 			double value =  (entry.getNumeric(statNumber) / maxValue);
-
+			final Epoch adaptedTime = entry.getTimeStamp().subtract(globalMinTime) ;
+			
 			DrawObjects.drawStatistic(offGraphics, coord_xform, 
-					entry.getTimeStamp(), lastTime, 
+					adaptedTime, lastTime, 
 					(float) value, 
 					reader.getCategory(entry.getGroup(), statName).getColor(), timeline);
-			lastTime = entry.getTimeStamp().getDouble();
+			
+			lastTime = adaptedTime.getDouble();
 		}
 	}
 
@@ -320,16 +325,18 @@ implements SearchableView, SummarizableView
 			Graphics2D offGraphics, 
 			CoordPixelImage coord_xform)
 	{
+		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
+		
 		if(entry.getType() == TraceObjectType.EVENT){          
 			final EventTraceEntry event = (EventTraceEntry) entry;
 
-			DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, reader.getCategory(event).getColor());
+			DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, reader.getCategory(event).getColor(), globalMinTime);
 
 		}else if(entry.getType() == TraceObjectType.STATE){
 			final StateTraceEntry state = (StateTraceEntry) entry;
 
 			DrawObjects.drawState(offGraphics, coord_xform, state , reader.getCategory(state).getColor(), 
-					depth, timeline);
+					depth, timeline, globalMinTime);
 
 			if(state.hasNestedTraceChildren()){
 				for(XMLTraceEntry child: state.getNestedTraceChildren()){
@@ -344,12 +351,14 @@ implements SearchableView, SummarizableView
 			final Point local_click, 
 			final TimeBoundingBox  vport_timeframe ) 
 	{		 				
+		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
+		
 		CoordPixelImage coord_xform;  // Local Coordinate Transform
 		coord_xform = new CoordPixelImage( this, row_height, super.getTimeBoundsOfImages() );
 
 		final double eventRadius = 2.0 / getViewPixelsPerUnitTime();
 
-		final double clickedTime = coord_xform.convertPixelToTime( local_click.x );
+		final Epoch clickedTime =  globalMinTime.add(coord_xform.convertPixelToTime( local_click.x ));
 		final int timeline       = coord_xform.convertPixelToTimeline( local_click.y);
 
 		if( timeline <= 0 || timeline > timelineManager.getTimelineNumber() ){
@@ -403,7 +412,7 @@ implements SearchableView, SummarizableView
 					objMouse = best;
 				}				
 			}else if(objMouse.getType() == TraceObjectType.EVENT){
-				double distance = Math.abs(objMouse.getTimeStamp().getDouble() - clickedTime);
+				double distance = Math.abs(objMouse.getTimeStamp().subtract(clickedTime).getDouble());
 				if( distance >= eventRadius){
 					return null;
 				}

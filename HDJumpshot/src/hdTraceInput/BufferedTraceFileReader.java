@@ -1,14 +1,9 @@
 package hdTraceInput;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 import base.drawable.DrawObjects;
-
-import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -54,7 +49,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	 * @param time
 	 * @return
 	 */
-	public XMLTraceEntry getTraceEntryClosestToTime(double dTime){	
+	public XMLTraceEntry getTraceEntryClosestToTime(Epoch dTime){	
 		int min = 0; 
 		int max = traceEntries.size() - 1;
 		
@@ -92,7 +87,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 			} 
 			// not found => continue bin search:
 			
-			if ( entry.getTimeStamp().getDouble() >= dTime ){
+			if ( entry.getTimeStamp().compareTo(dTime) >= 0){
 				max = cur;
 			}else{
 				min = cur + 1;

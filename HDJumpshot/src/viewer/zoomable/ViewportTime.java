@@ -9,35 +9,54 @@
 
 package viewer.zoomable;
 
-import java.util.List;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Stack;
-import java.net.URL;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import java.util.List;
 
-import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.GrayFilter;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.event.MouseInputListener;
 
-import base.drawable.DrawObjects;
-import base.drawable.TimeBoundingBox;
 import viewer.common.Const;
 import viewer.common.CustomCursor;
-import viewer.common.Routines;
 import viewer.common.Parameters;
+import base.drawable.TimeBoundingBox;
+import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 
 public class ViewportTime extends JViewport
                           implements TimeListener,
                                      ComponentListener,
                                      MouseInputListener,
                                      KeyListener
-//                                     HierarchyBoundsListener
 {
     private static final Color   INFO_LINE_COLOR  = Color.green;
     private static final Color   INFO_AREA_COLOR  = new Color(255,255,  0,64);
@@ -187,6 +206,7 @@ public class ViewportTime extends JViewport
             Debug.println( "ViewportTime: timeChanged()'s START: " );
             Debug.println( "time_evt = " + evt );
         }
+        
         if ( view_img != null ) {
             // view_img.checkToXXXXView() assumes constant image size
             view_img.checkToZoomView();
@@ -307,7 +327,7 @@ public class ViewportTime extends JViewport
     {
         double      line_time;
         int         x1_pos, x2_pos;
-
+        
         if ( vport_timebox.overlaps( timebox ) ) {
             line_time = timebox.getEarliestTime();
             if ( coord_xform.contains( line_time ) ) {
@@ -356,7 +376,7 @@ public class ViewportTime extends JViewport
         vport_timebox.setEarliestTime( time_model.getTimeViewPosition() );
         vport_timebox.setLatestFromEarliest( time_model.getTimeViewExtent() );
         coord_xform.resetTimeBounds( vport_timebox );
-
+        
         // Draw a line at time_model.getTimeZoomFocus() 
         if ( ! Parameters.LEFTCLICK_INSTANT_ZOOM ) {
             focus_time = time_model.getTimeZoomFocus();
@@ -403,73 +423,6 @@ public class ViewportTime extends JViewport
             Debug.println( "ViewportTime: paint()'s END: " );
     }
 
-
-    /*
-        Implementation of HierarchyBoundsListener
-    */
-/*
-    public void ancestorMoved( HierarchyEvent evt )
-    {
-        if ( Debug.isActive() ) {
-            Debug.println( "ViewportTime: ancestorMoved()'s START: " );
-            Debug.println( "hrk_evt = " + evt );
-            Debug.println( "ViewportTime: ancestorMoved()'s END: " );
-        }
-    }
-
-    public void ancestorResized( HierarchyEvent evt )
-    {
-        if ( Debug.isActive() ) {
-            Debug.println( "ViewportTime: ancestorResized()'s START: " );
-            Debug.println( "hrk_evt = " + evt );
-            if ( view_img != null ) {
-                Debug.println( "ViewportTime: "
-                             + "view_img.getXaxisViewPosition() = "
-                             + view_pt.x );
-                Debug.println( "ViewportTime: [before] getViewPosition() = "
-                             + super.getViewPosition() );
-                Debug.println( "ViewportTime: ancestorMoved()'s this = "
-                             + this );
-            }
-        }
-        if ( view_img != null ) {
-            //  ScrollableView.setJComponentSize(),
-            //  JViewport.setPreferredSize() and JViewport.setViewPosition()
-            //  need to be called when the topmost container in the
-            //  containment hierarchy is
-            //  resized but this class is moved but NOT resized.  In 
-            //  this scenario, the resizing of topmost container seems 
-            //  to reset the location of scrollable to (0,0) as well as 
-            //  the size of the ScrollableView to the visible size of 
-            //  the JViewport.
-
-            //  view_img.setJComponentSize();
-            this.setPreferredSize( getSize() );
-            view_pt.x = view_img.getXaxisViewPosition();
-            super.setViewPosition( view_pt );
-
-            // calling view.repaint() to ensure the view is repainted
-            // after setViewPosition is called.
-            // -- apparently, this.repaint(), the RepaintManager, has invoked 
-            //    ( (Component) view_img ).repaint();
-            // -- JViewport.setViewPosition() may have invoked super.repaint()
-
-            this.repaint();
-        }
-        if ( Debug.isActive() ) {
-            if ( view_img != null ) {
-                Debug.println( "ViewportTime: "
-                             + "view_img.getXaxisViewPosition() = "
-                             + view_pt.x );
-                Debug.println( "ViewportTime: [after] getViewPosition() = "
-                             + super.getViewPosition() );
-                Debug.println( "ViewportTime: ancestorMoved()'s this = "
-                             + this );
-            }
-            Debug.println( "ViewportTime: ancestorResized()'s END: " );
-        }
-    }
-*/
 
     private URL getURL( String filename )
     {

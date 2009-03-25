@@ -9,38 +9,22 @@
 
 package viewer.zoomable;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Cursor;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Window;
 import java.awt.image.BufferedImage;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageProducer;
-import java.awt.image.RenderedImage;
 
-import javax.swing.*;
+import javax.swing.DebugGraphics;
+import javax.swing.JComponent;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 
-import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
-import viewer.common.CustomCursor;
-
-import javax.swing.event.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageOutputStream;
-import javax.print.Doc;
-import javax.print.DocFlavor;
-import javax.print.DocPrintJob;
-import javax.print.PrintException;
-import javax.print.PrintService;
-import javax.print.PrintServiceLookup;
-import javax.print.SimpleDoc;
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import javax.print.attribute.PrintRequestAttributeSet;
-import javax.print.attribute.standard.Copies;
-
 import de.hd.pvs.TraceFormat.TraceObject;
 
 public abstract class ScrollableObject extends JComponent
@@ -51,7 +35,7 @@ public abstract class ScrollableObject extends JComponent
     protected static final int   NumViewsPerImage = 2;
     protected static final int   NumViewsTotal = NumImages * NumViewsPerImage;
 
-    private   ModelTime          model = null;
+    private   ModelTime          modelTime = null;
     private   BufferedImage      offscreenImages[ /* NumImages */ ];
 
     // The start and end of the image(s) in the user time coordinates
@@ -91,7 +75,7 @@ public abstract class ScrollableObject extends JComponent
             // System.exit( 1 );
         }
 
-        this.model = model;
+        this.modelTime = model;
         offscreenImages = new BufferedImage[ NumImages ];
         tImages         = new TimeBoundingBox[ NumImages ];
         for ( int idx = 0; idx < NumImages; idx++ )
@@ -115,12 +99,12 @@ public abstract class ScrollableObject extends JComponent
     // tImages_all needs to be synchronized with tImages[]
     private void setImagesInitTimeBounds()
     {
-        double model_view_extent = model.getTimeViewExtent();
+        double model_view_extent = modelTime.getTimeViewExtent();
         tImage_extent            = NumViewsPerImage * model_view_extent;
         tImages_all.reinitialize();
 
         int img_idx = 0;
-        tImages[ img_idx ].setEarliestTime( model.getTimeViewPosition()
+        tImages[ img_idx ].setEarliestTime( modelTime.getTimeViewPosition()
                                           - 0.5 * model_view_extent
                                           * (NumViewsTotal - 1) );
         tImages[ img_idx ].setLatestFromEarliest( tImage_extent );
@@ -254,8 +238,8 @@ public abstract class ScrollableObject extends JComponent
 
     private int getNumImagesMoved()
     {
-        double cur_tView_init   = model.getTimeViewPosition();
-        double cur_tView_extent = model.getTimeViewExtent();
+        double cur_tView_init   = modelTime.getTimeViewPosition();
+        double cur_tView_extent = modelTime.getTimeViewExtent();
         double cur_tView_final  = cur_tView_init + cur_tView_extent;
 
         if ( Debug.isActive() ) {
@@ -310,7 +294,7 @@ public abstract class ScrollableObject extends JComponent
     {
         if ( Debug.isActive() )
             Debug.println( "ScrollableObject: checkToZoomView()'s START: " );
-        double cur_tView_extent = model.getTimeViewExtent();
+        double cur_tView_extent = modelTime.getTimeViewExtent();
         if ( cur_tView_extent * NumViewsPerImage != tImage_extent ) {
             setImagesInitTimeBounds();
 
@@ -438,16 +422,16 @@ public abstract class ScrollableObject extends JComponent
     protected int time2pixel( double time_coord )
     {
         return (int) Math.round( ( time_coord - tImages_all.getEarliestTime() )
-                                 * model.getViewPixelsPerUnitTime() );
+                                 * modelTime.getViewPixelsPerUnitTime() );
     }
 
     public double getViewPixelsPerUnitTime(){
-    	return model.getViewPixelsPerUnitTime();
+    	return modelTime.getViewPixelsPerUnitTime();
     }
     
     protected double pixel2time( int pixel_coord )
     {
-        return (double) pixel_coord / model.getViewPixelsPerUnitTime()
+        return (double) pixel_coord / modelTime.getViewPixelsPerUnitTime()
                       + tImages_all.getEarliestTime();
     }
 
@@ -458,9 +442,9 @@ public abstract class ScrollableObject extends JComponent
         if ( Debug.isActive() )
             Debug.println( "ScrollableObject: getViewPosition() : "
                          + "model.getTimeViewPosition()="
-                         + model.getTimeViewPosition() );
+                         + modelTime.getTimeViewPosition() );
         //System.out.println(tImages_all.getEarliestTime());
-        return time2pixel( model.getTimeViewPosition()  );
+        return time2pixel( modelTime.getTimeViewPosition()  );
     }
 
     /*
@@ -593,8 +577,8 @@ public abstract class ScrollableObject extends JComponent
            i.e. model.updatePixelCoords() does model.fireTimeChanged()
         */
         if ( NumOKImages == NumImages && visible_size.width > 0 ) {
-            model.setViewPixelsPerUnitTime( visible_size.width );
-            model.updatePixelCoords();
+            modelTime.setViewPixelsPerUnitTime( visible_size.width );
+            modelTime.updatePixelCoords();
         }
         /*
             It is very IMPORTANT to setSize() to indicate the width
@@ -699,4 +683,8 @@ public abstract class ScrollableObject extends JComponent
             return new InfoDialogForTime( (Dialog) window,
                            coord_xform.convertPixelToTime( local_click.x ) );
     }
+    
+    public ModelTime getModelTime() {
+		return modelTime;
+	}
 }

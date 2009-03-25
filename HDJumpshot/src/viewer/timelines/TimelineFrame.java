@@ -23,9 +23,6 @@ import viewer.common.TopWindow;
 
 public class TimelineFrame extends JFrame
 {
-    private static String         in_filename;      // For main()
-    private static int            in_view_ID  = 0;  // For main()
-
     private        TimelinePanel  top_panel;
 
     public TimelineFrame( final TraceFormatBufferedFileReader reader )
@@ -44,7 +41,7 @@ public class TimelineFrame extends JFrame
             }
         } );
 
-        top_panel.setPreferredSize(new Dimension(1210, 600)); /* JK-SIZE */
+       top_panel.setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
     }
 
     public void setVisible( boolean val )

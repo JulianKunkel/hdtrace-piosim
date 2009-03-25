@@ -12,7 +12,6 @@ package viewer.timelines;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -32,9 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
-import javax.swing.border.TitledBorder;
 
-import viewer.common.Const;
 import viewer.topology.TopologyManager;
 import viewer.zoomable.Debug;
 import viewer.zoomable.ModelInfo;
@@ -57,7 +54,7 @@ import viewer.zoomable.ViewportTimeYaxis;
  */
 public class TimelinePanel extends JPanel
 {
-	static final int LEFTPANEL_WIDTH = 150;	
+	static final int MIN_LEFTPANEL_WIDTH = 150;	
 	
 	private Window                  root_window;
 
@@ -102,12 +99,6 @@ public class TimelinePanel extends JPanel
 		public IOOptionsListener(){
 			Insets canvas_panel_insets = time_canvas_panel.getInsets();
 						
-			this.setMinimumSize(
-					new Dimension( LEFTPANEL_WIDTH, 100 ) );
-			this.setMaximumSize(
-					new Dimension( Short.MAX_VALUE, 100 ) );
-			this.setPreferredSize(
-					new Dimension( LEFTPANEL_WIDTH, 100 ) );
 			this.setAlignmentX(
 					Component.CENTER_ALIGNMENT );
 			this.addActionListener( this );
@@ -136,17 +127,13 @@ public class TimelinePanel extends JPanel
            y_scroller for y_tree needs to be created before time_canvas, so
            y_model can be extracted to be used for the creation of time_canvas
 		 */
-		y_scroller  = new JScrollPane( topologyManager,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+		y_scroller  = new JScrollPane( topologyManager, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,	ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS );
 		y_scrollbar = y_scroller.getVerticalScrollBar();
 		y_model     = y_scrollbar.getModel();
 
 		/* Initialize the ModelTime slog.input.InputLog().getTreeRoot() */
 		
-		time_model    = new ModelTime( root_window,
-				reader.getGlobalMinTime(),
-				reader.getGlobalMaxTime());
+		time_model    = new ModelTime( root_window,	reader.getGlobalMinTime(),	reader.getGlobalMaxTime());
 				
 		this.setLayout( new BorderLayout() );
 
@@ -159,10 +146,6 @@ public class TimelinePanel extends JPanel
 		time_ruler_vport  = new ViewportTime( time_model );
 		time_ruler_vport.setView( time_ruler );
 		time_ruler_panel  = new ViewportTimePanel( time_ruler_vport );
-		time_ruler_panel.setBorderTitle( " Time (seconds) ",
-				TitledBorder.RIGHT,
-				TitledBorder.BOTTOM,
-				Const.FONT, Color.red );
 		time_ruler_vport.initLeftMouseToZoom( false );
 		/*
                    Propagation of AdjustmentEvent originating from scroller:
@@ -172,9 +155,6 @@ public class TimelinePanel extends JPanel
                    viewport is between time_model and view because
                    viewport is what user sees.
 		 */
-		time_model.addTimeListener( time_ruler_vport );
-		
-		time_model.addTimeListener( timeUpdateListener);
 		/*
                    Since there is NOT a specific ViewportTime/ViewTimePanel
                    for RulerTime, so we need to set PreferredSize of RulerTime
@@ -199,9 +179,6 @@ public class TimelinePanel extends JPanel
 		time_canvas_vport.initLeftMouseToZoom( true );
 		
 		
-		/* Inform "time_canvas_vport" time has been changed */
-		time_model.addTimeListener( time_canvas_vport );
-
 		/* The View's Time Display Panel */
 		time_display_panel = new ModelTimePanel( time_model );
 		time_model.setParamDisplay( time_display_panel );
@@ -246,9 +223,7 @@ public class TimelinePanel extends JPanel
 		
 		y_colarea.setText( topologyManager.getTopologyLabels() );
 
-		y_colpanel = new JScrollPane( y_colarea,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+		y_colpanel = new JScrollPane( y_colarea, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,	ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		/*
                    Since there is NOT a specific Top Level JPanel for
                    y_colpanel, so we need to set its PreferredSize here.
@@ -272,71 +247,30 @@ public class TimelinePanel extends JPanel
 		// left_panel.add( y_title_btm );
 		left_panel.add( y_colpanel );
 		
-		left_panel.setMinimumSize( new Dimension(LEFTPANEL_WIDTH, 200));
+		left_panel.setMinimumSize( new Dimension(MIN_LEFTPANEL_WIDTH, 200));
 
-		/* Setting up the RIGHT panel to store various time-related GUIs */
-		JPanel right_panel = new JPanel();
-		right_panel.setLayout( new BoxLayout( right_panel,
-				BoxLayout.Y_AXIS ) );
+		/* Setting up the RIGHT panel to store various time-related GUIs */		
 		row_adjs = new RowAdjustments( time_canvas_vport, topologyManager );
 
-		JPanel row_resize  = row_adjs.getComboBoxPanel();
-		row_resize.setMinimumSize(
-				new Dimension( 0, canvas_panel_insets.top ) );
-		row_resize.setMaximumSize(
-				new Dimension( Short.MAX_VALUE, canvas_panel_insets.top ) );
-		row_resize.setPreferredSize(
-				new Dimension( 20, canvas_panel_insets.top ) );
-		row_resize.setAlignmentX( Component.CENTER_ALIGNMENT );
-
-		JPanel row_txtfld  = row_adjs.getTextFieldPanel();
-		row_txtfld.setAlignmentX( Component.CENTER_ALIGNMENT );
 
 		JPanel row_slider  = row_adjs.getSliderPanel();
 		JScrollPane slider_scroller = new JScrollPane( row_slider,
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS );
 		slider_scroller.setAlignmentX( Component.CENTER_ALIGNMENT );
-
-		JPanel row_misc  = row_adjs.getMiscPanel();
-		row_misc.setAlignmentX( Component.CENTER_ALIGNMENT );
-		JPanel ruler_lmouse;
-		ruler_lmouse = time_ruler_vport.createLeftMouseModePanel(
-				BoxLayout.X_AXIS );
-		ruler_lmouse.setToolTipText(
-				"Operation for left mouse button click on Time Ruler" );
-		ruler_lmouse.setAlignmentX( Component.LEFT_ALIGNMENT );
-		row_misc.add( ruler_lmouse );
-
-		JScrollPane row_colpanel = new JScrollPane( row_misc,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS );
-		/*
-                   Since there is NOT a specific Top Level JPanel for
-                   row_colpanel, so we need to set its PreferredSize here.
-                   Since slider_scroller(i.e. JScrollPane containing JSlider)
-                   is the space hungary component here.  So it is CRUCIAL
-                   to set the height PreferredSize equal to that of MinimumSize
-                   and MaximumSize, hence slider_scroller will be fixed in
-                   height during resizing of the top level frame.
-		 */
-		row_colpanel.setMinimumSize(
-				new Dimension( 0, left_bottom_height ) );
-		row_colpanel.setMaximumSize(
-				new Dimension( Short.MAX_VALUE, left_bottom_height ) );
-		row_colpanel.setPreferredSize(
-				new Dimension( 20, left_bottom_height ) );
-		right_panel.add( row_resize );
-		right_panel.add( row_txtfld );
-		right_panel.add( slider_scroller );
-		right_panel.add( row_colpanel );
-
+		
+		slider_scroller.setMinimumSize(
+				new Dimension( 0, canvas_panel_insets.top ) );
+		slider_scroller.setMaximumSize(
+				new Dimension( Short.MAX_VALUE, canvas_panel_insets.top ) );
+		slider_scroller.setPreferredSize(
+				new Dimension( 20, canvas_panel_insets.top ) );
 
 		/* Store the LEFT and CENTER panels in the JSplitPane */
 		JSplitPane left_splitter, right_splitter;
 		left_splitter  = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,	false, left_panel, center_panel );
 		//  left_splitter.setResizeWeight( 0.0d );
-		right_splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,	false, left_splitter, right_panel );
+		right_splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,	false, left_splitter, row_adjs.getSliderPanel() );
 		right_splitter.setOneTouchExpandable( true );
 		left_splitter.setOneTouchExpandable( true );
 		right_splitter.setResizeWeight( 1.0d );
@@ -358,6 +292,12 @@ public class TimelinePanel extends JPanel
 		time_canvas.setRequired(toolbar.getRestore_timelines_listener(), time_canvas_vport);
 
 		row_adjs.initYLabelTreeSize();
+		
+
+		/* Inform "time_canvas_vport" time has been changed */
+		time_model.addTimeListener( time_canvas_vport );
+		time_model.addTimeListener( time_ruler_vport );		
+		time_model.addTimeListener( timeUpdateListener);
 	}
 
 	/**

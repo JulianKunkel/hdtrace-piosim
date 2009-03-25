@@ -56,7 +56,7 @@ public class TimelineToolBar extends JToolBar
     private Window                  root_window;
     private ViewportTimeYaxis       canvas_vport;
     private JScrollBar              y_scrollbar;
-    private TopologyManager               y_tree;
+    private TopologyManager         topologyManager;
     private ScrollbarTime           time_scrollbar;
     private ModelTime               time_model;
 
@@ -87,7 +87,7 @@ public class TimelineToolBar extends JToolBar
 
     private JButton                 refresh_btn;
     private JButton                 print_btn;
-    private CanvasTimeline          cnvas_timeline = null;
+    private final CanvasTimeline          cnvas_timeline;
     private RulerTime	 			time_ruler = null;
     private ActionTimelineRestore   restore_timelines_listener;
 
@@ -112,12 +112,14 @@ public class TimelineToolBar extends JToolBar
                             RowAdjustments     a_row_adjs )
     {
         super();
+        
+        this.cnvas_timeline = cnvas_timeline;
 		
         this.time_ruler = time_ruler;
         root_window      = parent_window;
         canvas_vport     = canvas_viewport;
         y_scrollbar      = yaxis_scrollbar;
-        y_tree           = yaxis_tree;
+        topologyManager           = yaxis_tree;
         time_scrollbar   = a_time_scrollbar;
         time_model       = a_time_model;
         this.addButtons();
@@ -125,6 +127,7 @@ public class TimelineToolBar extends JToolBar
         
         this.setFloatable(false);
         
+        // orientate the toolbar left:
         addSeparator(new Dimension(1000,10));
     }
 
@@ -184,7 +187,7 @@ public class TimelineToolBar extends JToolBar
         mark_btn.setToolTipText( "Mark the timelines" );
         // mark_btn.setPreferredSize( btn_dim );
         mark_btn.addActionListener(
-                 new ActionTimelineMark( root_window, this, y_tree ) );
+                 new ActionTimelineMark( root_window, this, topologyManager ) );
         super.add( mark_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "Paste24.gif" );
@@ -196,12 +199,12 @@ public class TimelineToolBar extends JToolBar
         move_btn.setToolTipText( "Move the marked timelines" );
         // move_btn.setPreferredSize( btn_dim );
         move_btn.addActionListener(
-                 new ActionTimelineMove( root_window, this, y_tree ) );
+                 new ActionTimelineMove( root_window, this, topologyManager ) );
         super.add( move_btn );
 
 
         restore_timelines_listener = new ActionTimelineRestore( root_window,
-        		this, y_tree );
+        		this, topologyManager );
 
         icon_URL = getURL( Const.IMG_PATH + "Delete24.gif" );
         if ( icon_URL != null )
@@ -212,7 +215,7 @@ public class TimelineToolBar extends JToolBar
         delete_btn.setToolTipText( "Delete the marked timelines" );
         // delete_btn.setPreferredSize( btn_dim );
         delete_btn.addActionListener(
-                   new ActionTimelineDelete( root_window, this, y_tree, restore_timelines_listener ) );
+                   new ActionTimelineDelete( root_window, this, topologyManager, restore_timelines_listener ) );
         super.add( delete_btn );
 
 
@@ -239,7 +242,7 @@ public class TimelineToolBar extends JToolBar
         expand_btn.setMnemonic( KeyEvent.VK_E );
         // expand_btn.setPreferredSize( btn_dim );
         expand_btn.addActionListener(
-                   new ActionYaxisTreeExpand( this, y_tree ) );
+                   new ActionYaxisTreeExpand( this, topologyManager ) );
         super.add( expand_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "TreeCollapse24.gif" );
@@ -253,7 +256,7 @@ public class TimelineToolBar extends JToolBar
         collapse_btn.setMnemonic( KeyEvent.VK_C );
         // collapse_btn.setPreferredSize( btn_dim );
         collapse_btn.addActionListener(
-                     new ActionYaxisTreeCollapse( this, y_tree ) );
+                     new ActionYaxisTreeCollapse( this, topologyManager ) );
         super.add( collapse_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "TreeCommit24.gif" );
@@ -448,7 +451,7 @@ public class TimelineToolBar extends JToolBar
         refresh_btn.setMnemonic( KeyEvent.VK_D );
         // refresh_btn.setPreferredSize( btn_dim );
         refresh_btn.addActionListener(
-                   new ActionPptyRefresh( y_tree ) );
+                   new ActionPptyRefresh( topologyManager ) );
         super.add( refresh_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "Print24.gif" );
@@ -503,8 +506,8 @@ public class TimelineToolBar extends JToolBar
     //  Interface for ToolBarStatus
     public void resetYaxisTreeButtons()
     {
-        expand_btn.setEnabled( y_tree.isLevelExpandable() );
-        collapse_btn.setEnabled( y_tree.isLevelCollapsable() );
+        expand_btn.setEnabled( topologyManager.isLevelExpandable() );
+        collapse_btn.setEnabled( topologyManager.isLevelCollapsable() );
         commit_btn.setEnabled( true );
     }
 

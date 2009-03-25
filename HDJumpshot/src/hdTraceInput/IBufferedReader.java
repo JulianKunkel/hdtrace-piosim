@@ -1,7 +1,6 @@
 package hdTraceInput;
 
 import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public interface IBufferedReader {
@@ -24,5 +23,5 @@ public interface IBufferedReader {
 	 * @param time
 	 * @return
 	 */
-	public TraceObject getTraceEntryClosestToTime(double dTime);
+	public TraceObject getTraceEntryClosestToTime(Epoch dTime);
 }

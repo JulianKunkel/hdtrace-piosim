@@ -119,7 +119,6 @@ public class LegendTable extends JTable
         Component          component;
         TableColumn        column; 
         Dimension          intercell_gap;
-        Object             header_value;
         Dimension          header_size;
         Insets             header_insets;
         int                header_width;

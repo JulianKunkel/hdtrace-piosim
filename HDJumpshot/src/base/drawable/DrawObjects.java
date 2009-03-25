@@ -15,7 +15,6 @@ import base.topology.Arrow;
 import base.topology.Event;
 import base.topology.State;
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
@@ -32,10 +31,11 @@ public class DrawObjects{
 			StateTraceEntry state,                            
 			ColorAlpha color,
 			int nestingDepth,
-			int timeline)
-	{		
-        int iStart   = coord_xform.convertTimeToPixel( state.getTimeStamp().getDouble() );
-        int iFinal   = coord_xform.convertTimeToPixel( state.getEndTime().getDouble() );
+			int timeline,
+			Epoch globalMinTime)
+	{	
+        int iStart   = coord_xform.convertTimeToPixel( state.getTimeStamp().subtract(globalMinTime).getDouble() );
+        int iFinal   = coord_xform.convertTimeToPixel( state.getEndTime().subtract(globalMinTime).getDouble() );
 
         float height = (float) ( coord_xform.getTimelineHeight() * Math.pow(nestingMultiplier, nestingDepth) );
         
@@ -87,10 +87,11 @@ public class DrawObjects{
 	public static int  drawEvent( Graphics2D g, CoordPixelXform coord_xform,
 			EventTraceEntry event,
 			int timeline,
-			ColorAlpha color )
+			ColorAlpha color,
+			Epoch globalMinTime)
 	{
 
-		int iStart   = coord_xform.convertTimeToPixel( event.getTimeStamp().getDouble() );
+		int iStart   = coord_xform.convertTimeToPixel( event.getTimeStamp().subtract(globalMinTime).getDouble() );
         
         int jStart   = coord_xform.convertTimelineToPixel( timeline );
         
@@ -105,17 +106,17 @@ public class DrawObjects{
 	 * @param entry
 	 * @return
 	 */
-	static public double getTimeDistance(double time, XMLTraceEntry entry){
-		double distance = Math.abs( entry.getTimeStamp().getDouble() - time);
+	static public double getTimeDistance(Epoch time, XMLTraceEntry entry){
+		double distance = Math.abs( entry.getTimeStamp().subtract( time).getDouble() );
 		
 		if(entry.getType() == TraceObjectType.STATE){
 			final StateTraceEntry state = (StateTraceEntry) entry;
-			if ( time <= state.getEndTime().getDouble() && time >= state.getTimeStamp().getDouble() ){
+			if ( time.compareTo(state.getEndTime()) <= 0 && time.compareTo(state.getTimeStamp()) >= 0 ){
 				// perfect match.
 				return 0;
 			}
 			
-			double distanceRight = Math.abs( state.getEndTime().getDouble() - time);
+			double distanceRight = Math.abs( state.getEndTime().subtract(time).getDouble() );
 			
 			if(distanceRight < distance){
 				return distanceRight;

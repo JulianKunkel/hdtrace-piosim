@@ -11,14 +11,13 @@ package viewer.zoomable;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
-import java.util.ArrayList;
-import java.net.URL;
-import java.awt.Window;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import viewer.common.Const;
-import viewer.common.Dialogs;
 import viewer.common.LabeledTextField;
 
 public class ModelTimePanel extends JPanel
@@ -128,12 +127,12 @@ public class ModelTimePanel extends JPanel
             Debug.println( "ModelTimePanel: timeChanged()'s START: " );
         fld_iZoom_faktor.setDouble(model.getZoomFaktor());
         
-        fld_tGlobal_min.setDouble( model.getTimeGlobalMinimum() );
+        fld_tGlobal_min.setDouble( model.getTimeGlobalMinimum().getDouble() );
         fld_tView_init.setDouble( model.getTimeViewPosition() );
         fld_tZoom_focus.setDouble( model.getTimeZoomFocus() );
         fld_tView_final.setDouble( model.getTimeViewPosition()
                                  + model.getTimeViewExtent() );
-        fld_tGlobal_max.setDouble( model.getTimeGlobalMaximum() );
+        fld_tGlobal_max.setDouble( model.getTimeGlobalDuration() );
         fld_time_per_pixel.setDouble( 1.0d/model.getViewPixelsPerUnitTime() );
         if ( Debug.isActive() )
             Debug.println( "ModelTimePanel: timeChanged()'s END: " );

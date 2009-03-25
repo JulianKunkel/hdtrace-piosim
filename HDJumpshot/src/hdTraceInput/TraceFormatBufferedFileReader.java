@@ -45,6 +45,12 @@ public class TraceFormatBufferedFileReader {
 	
 	HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup>(); 
 
+
+	public double subtractGlobalMinTimeOffset(Epoch time){
+		return time.subtract(globalMinTime).getDouble();
+	}
+	
+	
 	/**
 	 * Update global times:
 	 * 

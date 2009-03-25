@@ -18,10 +18,9 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.event.EventListenerList;
 
-import base.drawable.TimeBoundingBox;
-
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
+import base.drawable.TimeBoundingBox;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /*
@@ -48,13 +47,11 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class ModelTime extends DefaultBoundedRangeModel
 implements AdjustmentListener
 {
-	private int    MAX_SCROLLBAR_PIXELS = 1073741824;  // = 2^(30)
-
 	private static double NORMAL_ZOOMFACTOR = 2 ;
 	
 	// user coordinates of the time axis of the viewport
-	private double tGlobal_min;
-	private double tGlobal_max;
+	private Epoch tGlobal_min;
+	private Epoch tGlobal_max;
 	
 	// current position:
 	private double tView_init;
@@ -66,7 +63,6 @@ implements AdjustmentListener
 
 	// screen properties
 	private int iViewWidth;// No. of View pixel per unit time
-
 
 	// special purpose ChangeListeners, TimeListeners, to avoid conflict with
 	// the EventListenerList, listenerList, in DefaultBoundedRangeModel
@@ -81,9 +77,7 @@ implements AdjustmentListener
 	private Stack<TimeBoundingBox> zoom_undo_stack;
 	private Stack<TimeBoundingBox> zoom_redo_stack;
 
-	public ModelTime( final Window  top_window,
-			Epoch  init_global_time,
-			Epoch  final_global_time )
+	public ModelTime( final Window  top_window, Epoch  init_global_time, Epoch  final_global_time )
 	{
 		params_display     = null;
 		time_chg_evt       = null;
@@ -95,38 +89,38 @@ implements AdjustmentListener
 		setTimeGlobalMinimum( init_global_time );
 		setTimeGlobalMaximum( final_global_time );
 	}
-
+	
 	/*
         None of the setTimeXXXXXX() functions updates the __Pixel__ coordinates
 	 */
 	 private void setTimeGlobalMinimum( Epoch init_global_time )
 	 {
-		 tGlobal_min    = init_global_time.getDouble();
-		 tView_init     = tGlobal_min;
+		 tGlobal_min    = init_global_time;
+		 tView_init     = 0;
 	 }
 
 	 private void setTimeGlobalMaximum( Epoch final_global_time )
 	 {
-		 tGlobal_max    = final_global_time.getDouble();
-		 tView_extent   = getGlobalExtend();
+		 tGlobal_max    = final_global_time;
+		 tView_extent   = getTimeGlobalDuration();
 	 }
 	 
-	 private double getScollbarPixelPerTime(double extend){
-		 return (double) MAX_SCROLLBAR_PIXELS / extend;
-	 }
-
-	 private double getGlobalExtend(){
-		 return tGlobal_max - tGlobal_min;
+	 /**
+	  * The runtime of the traces/statistics
+	  * @return
+	  */
+	 public double getTimeGlobalDuration(){
+		 return tGlobal_max.subtract(tGlobal_min).getDouble();
 	 }
 	 
 	 // tGlobal_min & tGlobal_max cannot be changed by setTimeViewPosition()
 	 private void setTimeViewPosition( double cur_view_init )
 	 {
-		 if ( cur_view_init < tGlobal_min )
-			 tView_init     = tGlobal_min;
+		 if ( cur_view_init < 0 )
+			 tView_init     = 0;
 		 else {
-			 if ( cur_view_init > tGlobal_max - tView_extent )
-				 tView_init     = tGlobal_max - tView_extent;
+			 if ( cur_view_init > getTimeGlobalDuration() - tView_extent )
+				 tView_init     = getTimeGlobalDuration() - tView_extent;
 			 else
 				 tView_init     = cur_view_init;
 		 }
@@ -135,24 +129,24 @@ implements AdjustmentListener
 	 // tGlobal_min & tGlobal_max cannot be changed by setTimeViewExtent()
 	 private void setTimeViewExtent( double cur_view_extent )
 	 {
-		 if ( cur_view_extent < getGlobalExtend() ) {
+		 if ( cur_view_extent < getTimeGlobalDuration() ) {
 			 tView_extent   = cur_view_extent;
-			 if ( tView_init  > tGlobal_max - tView_extent ) {
-				 tView_init      = tGlobal_max - tView_extent;
+			 if ( tView_init  > getTimeGlobalDuration() - tView_extent ) {
+				 tView_init      = getTimeGlobalDuration() - tView_extent;
 			 }
 		 }
 		 else {
-			 tView_extent   = getGlobalExtend();
-			 tView_init     = tGlobal_min;
+			 tView_extent   = getTimeGlobalDuration();
+			 tView_init     = 0;
 		 }
 	 }
 
-	 public double getTimeGlobalMinimum()
+	 public Epoch getTimeGlobalMinimum()
 	 {
 		 return tGlobal_min;
 	 }
 
-	 public double getTimeGlobalMaximum()
+	 public Epoch getTimeGlobalMaximum()
 	 {
 		 return tGlobal_max;
 	 }
@@ -215,7 +209,7 @@ implements AdjustmentListener
 	 public void removeTimeListener( TimeListener tl )
 	 {
 		 time_listener_list.remove( TimeListener.class, tl );
-	 }
+	 }	
 
 	 // Notify __ALL__ listeners that have registered interest for
 	 // notification on this event type.  The event instance 
@@ -247,13 +241,12 @@ implements AdjustmentListener
 	  */
 	 private int time2pixel( double time_coord )
 	 {
-		 return (int) Math.round( ( time_coord - tGlobal_min )
-				 * getViewPixelsPerUnitTime() );
+		 return (int) Math.round( time_coord * getViewPixelsPerUnitTime() );
 	 }
 
 	 private double pixel2time( int pixel_coord )
 	 {
-		 return (double) pixel_coord / getViewPixelsPerUnitTime() + tGlobal_min;
+		 return (double) pixel_coord / getViewPixelsPerUnitTime();
 	 }
 
 	 private int timeRange2pixelRange( double time_range )
@@ -268,13 +261,11 @@ implements AdjustmentListener
 
 	 public void updatePixelCoords()
 	 {
-		 // super.setRangeProperties() calls super.fireStateChanged();
 		 super.setRangeProperties( time2pixel( tView_init ),
 				 timeRange2pixelRange( tView_extent ),
-				 time2pixel( tGlobal_min ),
-				 time2pixel( tGlobal_max ),
+				 0,
+				 time2pixel( getTimeGlobalDuration() ),
 				 super.getValueIsAdjusting() );
-		 // fireTimeChanged();
 	 }
 
 	 public void updateTimeCoords()
@@ -300,7 +291,7 @@ implements AdjustmentListener
 	  */
 	 public double getZoomFaktor()
 	 {
-		 return getGlobalExtend() / tView_extent;
+		 return getTimeGlobalDuration() / tView_extent;
 	 }
 
 	 private void setScrollBarIncrements()
@@ -375,9 +366,9 @@ implements AdjustmentListener
 	 public void zoomHome()
 	 {
 		 pushCurrentStateOnZoomStackAndClean();	
-
-		 this.setTimeViewPosition( tGlobal_min );
-		 this.setTimeViewExtent( getGlobalExtend() );		 
+		 
+		 this.setTimeViewPosition( 0 );
+		 this.setTimeViewExtent( getTimeGlobalDuration() );		 
 
 		 this.updatePixelCoords();
 		 this.setScrollBarIncrements();
@@ -410,9 +401,9 @@ implements AdjustmentListener
 		 double extend = tView_extent * NORMAL_ZOOMFACTOR;
 		 double offset = tView_init - tView_extent / NORMAL_ZOOMFACTOR / 2.0;
 		 
-		 if( offset < tGlobal_min) offset = tGlobal_min;
+		 if( offset < 0) offset = 0;
 		 
-		 if ( extend + offset > getGlobalExtend() ) extend = getGlobalExtend() - offset;
+		 if ( extend + offset > getTimeGlobalDuration() ) extend = getTimeGlobalDuration() - offset;
 		 
 		 zoom(offset, extend);		 
 	 }
@@ -425,16 +416,16 @@ implements AdjustmentListener
 
 	 private void zoom( double new_tView_init, double new_tView_extent )
 	 {
-		 if(new_tView_init < tGlobal_min){
-			 new_tView_init = tGlobal_min; 
+		 if(new_tView_init < 0){
+			 new_tView_init = 0; 
 		 }
 		 
-		 if(new_tView_init >= tGlobal_max){
-			 new_tView_init = tGlobal_min; 
+		 if(new_tView_init >= getTimeGlobalDuration()){
+			 new_tView_init = 0; 
 		 }
 
-		 if(new_tView_extent + new_tView_init > tGlobal_max + tGlobal_min){
-			 new_tView_extent = tGlobal_max - new_tView_init;
+		 if(new_tView_extent + new_tView_init > getTimeGlobalDuration()){
+			 new_tView_extent = getTimeGlobalDuration() - new_tView_init;
 		 }
 		 
 		 this.setTimeViewExtent( new_tView_extent );

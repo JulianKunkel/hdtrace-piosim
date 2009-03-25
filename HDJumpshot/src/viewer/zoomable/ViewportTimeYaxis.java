@@ -9,17 +9,27 @@
 
 package viewer.zoomable;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.awt.Window;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
 
-import de.hd.pvs.TraceFormat.TraceObject;
+import javax.swing.BoundedRangeModel;
+import javax.swing.SwingUtilities;
 
-import base.drawable.DrawObjects;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
 import viewer.topology.TopologyManager;
+import base.drawable.DrawObjects;
+import de.hd.pvs.TraceFormat.TraceObject;
 
 public class ViewportTimeYaxis extends ViewportTime
                                implements AdjustmentListener
@@ -56,7 +66,7 @@ public class ViewportTimeYaxis extends ViewportTime
         view_pt     = new Point( 0, 0 );
         resize_evt  = new ComponentEvent( this,
                                           ComponentEvent.COMPONENT_RESIZED );
-        searching_time = time_model.getTimeGlobalMinimum();
+        searching_time = 0;
     }
 
     public void setView( Component view )

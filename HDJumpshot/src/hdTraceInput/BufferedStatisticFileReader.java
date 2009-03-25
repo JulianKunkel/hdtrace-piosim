@@ -2,12 +2,9 @@ package hdTraceInput;
 
 import java.util.ArrayList;
 
-import base.drawable.DrawObjects;
-
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class BufferedStatisticFileReader extends StatisticsReader implements IBufferedReader{
@@ -33,7 +30,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		maxTime = statEntries.get(statEntries.size()-1).getTimeStamp();
 	}
 	
-	public StatisticGroupEntry getTraceEntryClosestToTime(double dTime){
+	public StatisticGroupEntry getTraceEntryClosestToTime(Epoch dTime){
 		int min = 0; 
 		int max = statEntries.size() - 1;
 		
@@ -46,7 +43,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			} 
 			// not found => continue bin search:
 			
-			if ( entry.getTimeStamp().getDouble() >= dTime ){
+			if ( entry.getTimeStamp().compareTo(dTime) >= 0 ){
 				max = cur;
 			}else{
 				min = cur + 1;

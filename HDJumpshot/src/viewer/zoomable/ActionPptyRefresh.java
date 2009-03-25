@@ -11,11 +11,10 @@ package viewer.zoomable;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JButton;
 
-import viewer.common.TopWindow;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
+import viewer.common.TopWindow;
 import viewer.topology.TopologyManager;
 
 public class ActionPptyRefresh implements ActionListener

@@ -45,12 +45,13 @@ public class ModelInfo
 
 	public void showInfo( StatisticEntry statistic ) {
 		reset();		
-
+		
 		StatisticGroupEntry groupEntry = statistic.getParentGroupEntry();
 		StatisticDescription desc = statistic.getDescription();
+		final double time = reader.subtractGlobalMinTimeOffset(groupEntry.getTimeStamp());
 		
-		this.setStartTime( "" + groupEntry.getTimeStamp().getDouble()  );
-		this.setEndTime( "" + groupEntry.getTimeStamp().getDouble());
+		this.setStartTime( "" );
+		this.setEndTime( "" + time);
 
 		
 		this.setDuration( fmt.format( 0 ) );
@@ -68,8 +69,8 @@ public class ModelInfo
 	public void showInfo( StateTraceEntry state ) {
 		reset();
 		
-		this.setStartTime( "" + state.getTimeStamp().getDouble()  );
-		this.setEndTime( "" + state.getEndTime().getDouble());
+		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getTimeStamp())  );
+		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(state.getEndTime()) );
 
 		this.setDuration( fmt.format( state.getDurationTimeDouble() ) );
 		final Category cat = reader.getCategory(state); 
@@ -80,8 +81,10 @@ public class ModelInfo
 	public void showInfo( EventTraceEntry event ) {
 		reset();
 		
-		this.setStartTime( "" + event.getTimeStamp().getDouble()  );
-		this.setEndTime( "" + event.getTimeStamp().getDouble());
+		final double time = reader.subtractGlobalMinTimeOffset(event.getTimeStamp());
+		
+		this.setStartTime( "" + time  );
+		this.setEndTime( "" + time );
 
 		this.setDuration( fmt.format( 0 ) );
 		final Category cat = reader.getCategory(event); 
