@@ -17,8 +17,6 @@ abstract public class TopologyTreeNode extends DefaultMutableTreeNode{
 	final TopologyInternalLevel topology;
 	final TraceFormatFileOpener file;	
 	final TopologyManager       manager;
-
-	int assignedTimeline;
 	
 	abstract public TimelineType getType();
 	
@@ -43,13 +41,5 @@ abstract public class TopologyTreeNode extends DefaultMutableTreeNode{
 	@Override
 	public String toString() {
 		return topology.getLabel();
-	}
-	
-	public void setAssignedTimeline(int assignedTimeline) {
-		this.assignedTimeline = assignedTimeline;
-	}
-	
-	public int getAssignedTimeline() {
-		return assignedTimeline;
 	}
 }

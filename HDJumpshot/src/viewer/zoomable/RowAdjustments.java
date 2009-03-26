@@ -31,8 +31,6 @@ import viewer.topology.TopologyManager;
 
 public class RowAdjustments
 {
-	static final int HEIGHT_SUBTRACTION = 5;
-
 	private ViewportTimeYaxis      canvas_vport;
 	private TopologyManager        topologyManager;
 
@@ -148,8 +146,8 @@ public class RowAdjustments
 		{
 			double vis_row_count, row_height;
 			vis_row_count  = fld_VIS_ROW_COUNT.getDouble();
-			row_height     = ((double) canvas_vport.getHeight() - HEIGHT_SUBTRACTION) / vis_row_count;
-			topologyManager.setRowHeight( (int) Math.round( row_height ) );
+			row_height     = (double) canvas_vport.getHeight() / vis_row_count;
+			topologyManager.setRowHeight( (int) row_height );
 			canvas_vport.fireComponentRedrawEvent();
 		}
 	}
@@ -194,7 +192,7 @@ public class RowAdjustments
 		fld_VIS_ROW_COUNT.setInteger( irow_count );
 		slider_VIS_ROW_COUNT.setValue( irow_count );
 
-		double row_height     = ((double) canvas_vport.getHeight() - HEIGHT_SUBTRACTION) /  irow_count ;
+		double row_height     = (double) canvas_vport.getHeight() /  irow_count ;
 		topologyManager.setRowHeight( (int) row_height );
 
 		canvas_vport.fireComponentRedrawEvent();

@@ -14,6 +14,7 @@ import hdTraceInput.BufferedTraceFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -46,30 +47,47 @@ public class TopologyManager extends JTree
 	private int                     next_expanding_level;
 
 	private List<TreePath>          cut_paste_buf;
-	private int                     buf_level;
+	private int                     buf_level;	
 
 	private ArrayList<TopologyTreeNode> topoToTimelineMapping = new ArrayList<TopologyTreeNode>();
 
+	/**
+	 * If set to true then listeners are not notified on a topology change, this allows mass update of topology
+	 */
+	private boolean                            changeListenerDisabled = false;
 	private LinkedList<TopologyChangeListener> changeListener = new LinkedList<TopologyChangeListener>();
 
 	private class TopologyTreeExpansionListener implements TreeExpansionListener{    
 		// from tree expansion listener
 		@Override
 		public void treeCollapsed(TreeExpansionEvent event) {
-			reloadTopologyMappingFromTree();
-			for(TopologyChangeListener list: changeListener){
-				list.topologyChanged();
-			}
+			fireTopologyChanged();
 		}
 
 		@Override
 		public void treeExpanded(TreeExpansionEvent event) {
-			reloadTopologyMappingFromTree();
-
-			for(TopologyChangeListener list: changeListener){
-				list.topologyChanged();
-			}
+			fireTopologyChanged();
 		}
+	}
+	
+	public void fireTopologyChanged(){
+		if( changeListenerDisabled ) return;
+		
+		reloadTopologyMappingFromTree();
+
+		for(TopologyChangeListener list: changeListener){
+			list.topologyChanged();
+		}
+	}
+	
+	/**
+	 * If set to true then listeners are not notified on a topology change, this allows mass update of topology.
+	 * Don't forget to enable if after a mass update.
+	 *  
+	 * @param changeListenerDisabled
+	 */
+	public void setChangeListenerDisabled(boolean changeListenerDisabled) {
+		this.changeListenerDisabled = changeListenerDisabled;
 	}
 
 	public void addTopologyChangedListener(TopologyChangeListener listener){
@@ -145,9 +163,6 @@ public class TopologyManager extends JTree
 	}
 
 	private void addTopologyTreeNode(TopologyTreeNode node, DefaultMutableTreeNode parent){
-		if(node != null)
-			node.setAssignedTimeline(topoToTimelineMapping.size());
-
 		if(parent != null)
 			parent.add(node);
 	}
@@ -160,21 +175,7 @@ public class TopologyManager extends JTree
 	}
 
 
-	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyInternalLevel topology, TraceFormatFileOpener file){
-		if(topology.isLeaf()){
-			TopologyTreeNode node = new TopologyTraceTreeNode(topology, file, this); 
-
-			addTopologyTreeNode(node, parentNode);    	
-			return;
-		}
-		TopologyTreeNode node = new TopologyInnerNode(topology, file, this); 
-
-		addTopologyTreeNode(node, parentNode);    	
-
-		for(TopologyInternalLevel child: topology.getChildElements().values()){
-			recursivlyAddTopology(level +1, node, child, file);
-		}
-
+	private void addStatisticsInTopology(int level, DefaultMutableTreeNode node, TopologyInternalLevel topology, TraceFormatFileOpener file){
 		// add statistic nodes:
 		for(String groupName: topology.getStatisticSources().keySet()){    		
 			ExternalStatisticsGroup group = file.getProjectDescription().getExternalStatisticsGroup(groupName);
@@ -187,6 +188,47 @@ public class TopologyManager extends JTree
 				addTopologyTreeNode(statNode, statGroupNode);
 			}
 		}
+	}
+
+	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyInternalLevel topology, TraceFormatFileOpener file){
+		if(max_level < level + 5 ){
+			max_level = level + 5 ;
+		}
+		
+		final TopologyTreeNode node = new TopologyInnerNode(topology, file, this);
+
+		addTopologyTreeNode(node, parentNode);    	
+
+		if(topology.getChildElements().size() != 0){
+			// handle leaf level == trace nodes differently:
+			Collection<TopologyInternalLevel> children = topology.getChildElements().values();
+			boolean leafLevel = children.iterator().next().isLeaf();
+			if(leafLevel){
+				final DefaultMutableTreeNode traceParent = addDummyTreeNode("Trace", node);
+				
+				for(TopologyInternalLevel child: topology.getChildElements().values()){					
+					if (child.getStatisticSources().size() == 0){
+						// no statistic on the leaf level:
+						TopologyTreeNode childNode = new TopologyTraceTreeNode(child, file, this);
+						addTopologyTreeNode(childNode, traceParent);						
+					}else{
+						// handles statistics on the leaf level:
+						final DefaultMutableTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
+						
+						TopologyTreeNode childNode = new TopologyTraceTreeNode(child, file, this);
+						addTopologyTreeNode(childNode, extra);
+						
+						addStatisticsInTopology(level, extra, child, file);
+					}
+				}								
+			}else{
+				for(TopologyInternalLevel child: topology.getChildElements().values()){
+					recursivlyAddTopology(level +1, node, child, file);
+				}
+			}
+		}
+
+		addStatisticsInTopology(level, node, topology, file);
 	}
 
 	public String getTopologyLabels(){
@@ -210,8 +252,6 @@ public class TopologyManager extends JTree
 		clearTopologyToTimelineMapping();
 
 		tree_root = new DefaultMutableTreeNode("HDTrace");
-		// add a dummy
-		addTopologyTreeNode(null, null);
 
 		setModel(new DefaultTreeModel(tree_root));            
 
@@ -223,7 +263,7 @@ public class TopologyManager extends JTree
 
 		for(int i=0 ; i < 10; i++)
 			expandLevel();
-		
+
 		reloadTopologyMappingFromTree();
 	}
 
@@ -240,7 +280,7 @@ public class TopologyManager extends JTree
 		super.setEditable( true );
 
 		super.putClientProperty("JTree.lineStyle", "Angled");
-		
+
 		loadDefaultTopology();   
 
 		this.addTreeExpansionListener( new TopologyTreeExpansionListener());
@@ -278,9 +318,6 @@ public class TopologyManager extends JTree
 		DefaultMutableTreeNode  node;
 		TreePath                path;
 		int                     ilevel;
-
-		// Update the tree's Maximum allowed Level
-		max_level = tree_root.getLastLeaf().getLevel();
 
 		if ( Debug.isActive() ) {
 			Debug.println( "tree_root(" + tree_root + ").level="
@@ -334,6 +371,9 @@ public class TopologyManager extends JTree
 
 		if ( ! isLevelExpandable() )
 			return;
+		
+
+		setChangeListenerDisabled(true);
 
 		paths = leveled_paths[ next_expanding_level ].iterator();
 		while ( paths.hasNext() ) {
@@ -345,6 +385,9 @@ public class TopologyManager extends JTree
 			next_expanding_level++;
 		else
 			next_expanding_level = max_level;
+		
+		setChangeListenerDisabled(false);
+		fireTopologyChanged();
 	}
 
 	public boolean isLevelCollapsable()
@@ -355,12 +398,15 @@ public class TopologyManager extends JTree
 
 	public void collapseLevel()
 	{
+		
 		Iterator    paths;
 		TreePath    path;
 		int         next_collapsing_level;
 
 		if ( ! isLevelCollapsable() )
 			return;
+		
+		setChangeListenerDisabled(true);
 
 		next_collapsing_level = next_expanding_level - 1;
 		paths = leveled_paths[ next_collapsing_level ].iterator();
@@ -370,6 +416,9 @@ public class TopologyManager extends JTree
 				super.collapsePath( path );
 		}
 		next_expanding_level = next_collapsing_level;
+		
+		setChangeListenerDisabled(false);
+		fireTopologyChanged();
 	}
 
 	//  Manipulation of the Cut&Paste buffer
