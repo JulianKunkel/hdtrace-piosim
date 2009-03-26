@@ -9,10 +9,15 @@
 
 package viewer.common;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.net.URL;
-import javax.swing.ImageIcon;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Insets;
+import java.awt.Toolkit;
+
 import javax.swing.JComponent;
 
 public class Routines
@@ -33,8 +38,7 @@ public class Routines
         }
     }
 
-    public static void setComponentAndChildrenCursors( Component  comp,
-                                                       Cursor     csr )
+    public static void setComponentAndChildrenCursors( Component  comp, Cursor     csr )
     {
         if ( comp == null )
             return;

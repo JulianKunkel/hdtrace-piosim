@@ -15,12 +15,11 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-
+import viewer.common.Debug;
 import viewer.common.Dialogs;
 import viewer.common.TopControl;
 import viewer.common.TopWindow;
-import viewer.zoomable.Debug;
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 
 public class Jumpshot extends JFrame
                         implements TopControl
@@ -42,6 +41,8 @@ public class Jumpshot extends JFrame
         super.setContentPane( top_panel );
         top_menubar  = new FirstMenuBar( isApplet, top_panel );
         super.setJMenuBar( top_menubar );
+        
+        this.setResizable(false);
 
         addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
@@ -83,13 +84,11 @@ public class Jumpshot extends JFrame
         SimpleConsoleLogger.setDebugEverything(true);
         Debug.setActive(true);
         
-        viewer.zoomable.Debug.initTextArea();
+        viewer.common.Debug.initTextArea();
         // viewer.zoomable.Profile.initTextArea();
 
-        System.out.println( "Starting the SLOG-2 Display Program ..... " );
+        System.out.println( "Starting HDJumpshot" );
         frame     = new Jumpshot();
-        // frame.setSize( new Dimension( 460, 100 ) );
-        // frame.pack() has to be called after the object is created
         frame.pack();
         TopWindow.layoutIdealLocations();
         frame.setVisible( true );
@@ -131,11 +130,11 @@ public class Jumpshot extends JFrame
                         idx++;
                     }
                     else if ( argv[ idx ].equals( "-debug" ) ) {
-                        viewer.zoomable.Debug.setActive( true );
+                        viewer.common.Debug.setActive( true );
                         idx++;
                     }
                     else if ( argv[ idx ].equals( "-profile" ) ) {
-                        viewer.zoomable.Profile.setActive( true );
+                        viewer.common.Profile.setActive( true );
                         idx++;
                     }
                     else {

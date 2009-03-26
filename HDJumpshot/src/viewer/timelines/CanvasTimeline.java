@@ -20,7 +20,6 @@ import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.util.Date;
@@ -28,31 +27,27 @@ import java.util.Date;
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
 
+import topology.TopologyChangeListener;
+import topology.TopologyManager;
+import topology.TopologyStatisticTreeNode;
 import viewer.common.CustomCursor;
+import viewer.common.Debug;
 import viewer.common.Parameters;
+import viewer.common.Profile;
 import viewer.common.Routines;
+import viewer.dialog.InfoDialog;
+import viewer.dialog.InfoDialogForTraceObjects;
+import viewer.dialog.InitializableDialog;
+import viewer.dialog.SummarizableView;
 import viewer.histogram.StatlineDialog;
 import viewer.legends.CategoryUpdatedListener;
-import viewer.topology.TopologyChangeListener;
-import viewer.topology.TopologyManager;
-import viewer.topology.TopologyStatisticTreeNode;
 import viewer.zoomable.ActionTimelineRestore;
 import viewer.zoomable.CoordPixelImage;
-import viewer.zoomable.Debug;
-import viewer.zoomable.InfoDialog;
-import viewer.zoomable.InitializableDialog;
 import viewer.zoomable.ModelTime;
-import viewer.zoomable.Profile;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.SearchPanel;
 import viewer.zoomable.SearchableView;
-import viewer.zoomable.SummarizableView;
 import viewer.zoomable.ViewportTimeYaxis;
-import base.drawable.Category;
-import base.drawable.ColorAlpha;
-import base.drawable.DrawObjects;
-import base.drawable.TimeBoundingBox;
-import base.statistics.BufForTimeAveBoxes;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
@@ -62,6 +57,10 @@ import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import drawable.Category;
+import drawable.ColorAlpha;
+import drawable.DrawObjects;
+import drawable.TimeBoundingBox;
 
 public class CanvasTimeline extends ScrollableObject
 implements SearchableView, SummarizableView
@@ -168,8 +167,7 @@ implements SearchableView, SummarizableView
 		if ( timeframe4imgs == null )
 			timeframe4imgs = new TimeBoundingBox( imgs_times );
 
-		Routines.setComponentAndChildrenCursors( root_frame,
-				CustomCursor.Wait );
+		Routines.setComponentAndChildrenCursors( root_frame, CustomCursor.Wait );
 
 		num_rows    = timelineManager.getRowCount();
 		row_height  = timelineManager.getRowHeight();
@@ -485,25 +483,6 @@ implements SearchableView, SummarizableView
 	} 
 
 
-
-	public Rectangle localRectangleForDrawable(int timeline, int nestingDepth, Epoch startTime, Epoch endTime)
-	{
-		CoordPixelImage       coord_xform;
-		Rectangle             local_rect;
-		int                   xloc, yloc, width, height;
-		// local_rect is created with CanvasTimeline's pixel coordinate system
-		coord_xform = new CoordPixelImage( this, row_height,
-				super.getTimeBoundsOfImages() );
-		xloc   = coord_xform.convertTimeToPixel( startTime.getDouble() );
-		width  = coord_xform.convertTimeToPixel( endTime.getDouble() )
-		- xloc;
-
-		yloc   = coord_xform.convertTimelineToPixel( timeline );
-		height = coord_xform.getTimelineHeight();
-		local_rect = new Rectangle( xloc, yloc, width, height );
-		return local_rect;
-	}
-
 	// NEW search starting from the specified time
 	public SearchPanel searchPreviousComponent( double searching_time )
 	{
@@ -550,11 +529,8 @@ implements SearchableView, SummarizableView
 	public InitializableDialog createSummary( final Dialog          dialog,
 			final TimeBoundingBox timebox )
 	{
-		BufForTimeAveBoxes  buf4statboxes = null;
-		//TODO 
-
 		//buf4statboxes  = tree_search.createBufForTimeAveBoxes( timebox );
 		// System.out.println( "Statistics = " + buf4statboxes );
-		return new StatlineDialog( dialog, timebox, buf4statboxes, restore, canvas_viewport );
+		return new StatlineDialog( dialog, timebox, restore, canvas_viewport );
 	}
 }

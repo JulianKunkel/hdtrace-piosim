@@ -25,19 +25,20 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import drawable.DrawObjects;
+import drawable.TimeBoundingBox;
+
+import topology.TopologyManager;
 import viewer.common.CustomCursor;
+import viewer.common.Debug;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
+import viewer.common.Profile;
 import viewer.common.Routines;
-import viewer.topology.TopologyManager;
+import viewer.dialog.InfoDialog;
 import viewer.zoomable.CoordPixelImage;
-import viewer.zoomable.Debug;
-import viewer.zoomable.InfoDialog;
 import viewer.zoomable.ModelTime;
-import viewer.zoomable.Profile;
 import viewer.zoomable.ScrollableObject;
-import base.drawable.DrawObjects;
-import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
 import base.statistics.Summarizable;
 

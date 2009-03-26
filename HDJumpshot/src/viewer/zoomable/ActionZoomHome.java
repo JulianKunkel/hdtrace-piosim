@@ -15,6 +15,7 @@ import java.net.*;
 import javax.swing.*;
 
 import viewer.common.Const;
+import viewer.common.Debug;
 import viewer.common.Dialogs;
 
 public class ActionZoomHome implements ActionListener

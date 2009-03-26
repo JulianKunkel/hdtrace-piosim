@@ -13,15 +13,14 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
-import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JScrollBar;
 import javax.swing.JToolBar;
 
+import topology.TopologyManager;
 import viewer.common.Const;
-import viewer.topology.TopologyManager;
 import viewer.zoomable.ActionPptyRefresh;
 import viewer.zoomable.ActionPptyScreenshot;
 import viewer.zoomable.ActionSearchBackward;
@@ -124,27 +123,15 @@ public class TimelineToolBar extends JToolBar
         this.initAllButtons();
     }
 
-    protected URL getURL( String filename )
-    {
-        URL url = null;
-        url = getClass().getResource( filename );
-        return url;
-    }
-
     private void addButtons()
     {
         Insets     btn_insets;
         Dimension  mini_separator_size;
-        URL        icon_URL;
 
         btn_insets          = new Insets( 2, 2, 2, 2 );
         mini_separator_size = new Dimension( 5, 5 );
 
-        icon_URL = getURL( Const.IMG_PATH + "Up24.gif" );
-        if ( icon_URL != null )
-            up_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            up_btn = new JButton( "Up" );
+        up_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Up24.gif" ) );
         up_btn.setMargin( btn_insets );
         up_btn.setToolTipText( "Scroll Upward by half a screen" );
         // up_btn.setPreferredSize( btn_dim );
@@ -152,11 +139,8 @@ public class TimelineToolBar extends JToolBar
         up_btn.setMnemonic( KeyEvent.VK_UP );
         super.add( up_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "Down24.gif" );
-        if ( icon_URL != null )
-            down_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            down_btn = new JButton( "Down" );
+        down_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Down24.gif" ) );
+        
         down_btn.setMargin( btn_insets );
         down_btn.setToolTipText( "Scroll Downward by half a screen" );
         down_btn.setMnemonic( KeyEvent.VK_DOWN );
@@ -166,33 +150,20 @@ public class TimelineToolBar extends JToolBar
 
         super.addSeparator( mini_separator_size );
 
-        icon_URL = getURL( Const.IMG_PATH + "Delete24.gif" );
-        if ( icon_URL != null )
-            timeline_delete_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            timeline_delete_btn = new JButton( "LabelDelete" );
+        timeline_delete_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Delete24.gif" ) );
         timeline_delete_btn.setMargin( btn_insets );
         timeline_delete_btn.setToolTipText( "Delete the marked timelines" );
         // delete_btn.setPreferredSize( btn_dim );
         timeline_delete_btn.addActionListener( new ActionTimelineRemove( topologyManager) );
         super.add( timeline_delete_btn );
 
-
-        icon_URL = getURL(  Const.IMG_PATH + "WinUndo.gif"  );
-        if ( icon_URL != null )
-        	timelines_restore_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-        	timelines_restore_btn = new JButton( "LabelUndoDelete" );
+       	timelines_restore_btn = new JButton( new ImageIcon( Const.IMG_PATH + "WinUndo.gif"  ) );
         timelines_restore_btn.setMargin( btn_insets );
         timelines_restore_btn.setToolTipText( "Restore the timelines" );
         timelines_restore_btn.addActionListener( new ActionTimelineRestore(topologyManager) );
         super.add( timelines_restore_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "TreeExpand24.gif" );
-        if ( icon_URL != null )
-            timelines_expand_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            timelines_expand_btn = new JButton( "LabelExpand" );
+        timelines_expand_btn = new JButton( new ImageIcon( Const.IMG_PATH + "WinUndo.gif"  ) );
         timelines_expand_btn.setMargin( btn_insets );
         timelines_expand_btn.setToolTipText(
                    "Expand the Y-axis tree label by 1 level" );
@@ -201,31 +172,17 @@ public class TimelineToolBar extends JToolBar
         timelines_expand_btn.addActionListener( new ActionYaxisTreeExpand( topologyManager ) );
         super.add( timelines_expand_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "TreeCommit24.gif" );
-        if ( icon_URL != null )
-            commit_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            commit_btn = new JButton( "LabelCommit" );
+        commit_btn = new JButton( new ImageIcon(  Const.IMG_PATH + "TreeCommit24.gif"  ) );
+        
         commit_btn.setMargin( btn_insets );
         commit_btn.setToolTipText(
                    "Commit changes and Redraw the TimeLines Display" );
         commit_btn.setMnemonic( KeyEvent.VK_D );
-        // collapse_btn.setPreferredSize( btn_dim );
-        
-        // TODO Commit changes button
-        //commit_btn.addActionListener(
-         //          new ActionYaxisTreeCommit( root_window, this,
-         //                                     canvas_vport, y_maps,
-         //                                     row_adjs ) );
         
         super.addSeparator();
         super.addSeparator();
 
-        icon_URL = getURL( Const.IMG_PATH + "Backward24.gif" );
-        if ( icon_URL != null )
-            backward_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            backward_btn = new JButton( "Backward" );
+        backward_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Backward24.gif"  ) );
         backward_btn.setMargin( btn_insets );
         backward_btn.setToolTipText( "Scroll Backward by half a screen" );
         backward_btn.setMnemonic( KeyEvent.VK_LEFT );
@@ -234,11 +191,7 @@ public class TimelineToolBar extends JToolBar
                      new ActionVportBackward( time_scrollbar ) );
         super.add( backward_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "Forward24.gif" );
-        if ( icon_URL != null )
-            forward_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            forward_btn = new JButton( "Forward" );
+        forward_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Forward24.gif"  ) );
         forward_btn.setMargin( btn_insets );
         forward_btn.setToolTipText( "Scroll Forward by half a screen" );
         forward_btn.setMnemonic( KeyEvent.VK_RIGHT );
@@ -249,12 +202,7 @@ public class TimelineToolBar extends JToolBar
         
         super.addSeparator( );
 
-        // icon_URL = getURL( Const.IMG_PATH + "Undo24.gif" );
-        icon_URL = getURL( Const.IMG_PATH + "WinUndo.gif" );
-        if ( icon_URL != null )
-            zoomUndo_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomUndo_btn = new JButton( "ZoomUndo" );
+        zoomUndo_btn = new JButton( new ImageIcon( Const.IMG_PATH + "WinUndo.gif"  ) );
         zoomUndo_btn.setMargin( btn_insets );
         zoomUndo_btn.setToolTipText( "Undo the previous zoom operation" );
         zoomUndo_btn.setMnemonic( KeyEvent.VK_U );
@@ -263,27 +211,17 @@ public class TimelineToolBar extends JToolBar
                      new ActionZoomUndo( this, time_model ) );
         super.add( zoomUndo_btn );
 
-        // icon_URL = getURL( Const.IMG_PATH + "Redo24.gif" );
-        icon_URL = getURL( Const.IMG_PATH + "WinRedo.gif" );
-        if ( icon_URL != null )
-            zoomRedo_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomRedo_btn = new JButton( "ZoomRedo" );
+        zoomRedo_btn = new JButton( new ImageIcon( Const.IMG_PATH + "WinRedo.gif" ) );
         zoomRedo_btn.setMargin( btn_insets );
         zoomRedo_btn.setToolTipText( "Redo the previous zoom operation" );
         zoomRedo_btn.setMnemonic( KeyEvent.VK_R );
-        // zoomRedo_btn.setPreferredSize( btn_dim );
         zoomRedo_btn.addActionListener(
                      new ActionZoomRedo( this, time_model ) );
         super.add( zoomRedo_btn );
         
         super.addSeparator( mini_separator_size );
         
-        icon_URL = getURL( Const.IMG_PATH + "ZoomOut24.gif" );
-        if ( icon_URL != null )
-            zoomOut_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomOut_btn = new JButton( "ZoomOut" );
+        zoomOut_btn = new JButton( new ImageIcon( Const.IMG_PATH + "ZoomOut24.gif"  ) );        
         zoomOut_btn.setMargin( btn_insets );
         zoomOut_btn.setToolTipText( "Zoom Out by 1 level in time" );
         zoomOut_btn.setMnemonic( KeyEvent.VK_O );
@@ -292,11 +230,7 @@ public class TimelineToolBar extends JToolBar
                     new ActionZoomOut( this, time_model ) );
         super.add( zoomOut_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "Home24.gif" );
-        if ( icon_URL != null )
-            zoomHome_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomHome_btn = new JButton( "ZoomHome" );
+        zoomHome_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Home24.gif" ) );
         zoomHome_btn.setMargin( btn_insets );
         zoomHome_btn.setToolTipText(
                      "Reset zoom to the initial resolution in time" );
@@ -306,11 +240,7 @@ public class TimelineToolBar extends JToolBar
                  new ActionZoomHome( this, time_model ) );
         super.add( zoomHome_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "ZoomIn24.gif" );
-        if ( icon_URL != null )
-            zoomIn_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomIn_btn = new JButton( "ZoomIn" );
+        zoomIn_btn = new JButton( new ImageIcon( Const.IMG_PATH + "ZoomIn24.gif" ) );
         zoomIn_btn.setMargin( btn_insets );
         zoomIn_btn.setToolTipText( "Zoom In iby 1 level in time" );
         zoomIn_btn.setMnemonic( KeyEvent.VK_I );
@@ -319,30 +249,9 @@ public class TimelineToolBar extends JToolBar
                    new ActionZoomIn( this, time_model ) );
         super.add( zoomIn_btn );
 
-        super.addSeparator( );
-
-        /*
-        icon_URL = getURL( Const.IMG_PATH + "ZoomSet24.gif" );
-        if ( icon_URL != null )
-            zoomSet_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            zoomSet_btn = new JButton( "ZoomSet" );
-        zoomSet_btn.setMargin( btn_insets );
-        zoomSet_btn.setToolTipText( "Set zoom paramter by a panel" );
-        // zoomHome_btn.setPreferredSize( btn_dim );
-        // zoomSet_btn.addActionListener(
-        //         new ActionZoomSet( this, time_model ) );
-        super.add( zoomSet_btn );
-        */
-
-        super.addSeparator();
         super.addSeparator();
 
-        icon_URL = getURL( Const.IMG_PATH + "FindBack24.gif" );
-        if ( icon_URL != null )
-            searchBack_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            searchBack_btn = new JButton( "SearchBackward" );
+        searchBack_btn = new JButton( new ImageIcon( Const.IMG_PATH + "FindBack24.gif" ) );
         searchBack_btn.setMargin( btn_insets );
         searchBack_btn.setToolTipText( "Search Backward in time" );
         searchBack_btn.setMnemonic( KeyEvent.VK_B );
@@ -351,11 +260,7 @@ public class TimelineToolBar extends JToolBar
                        new ActionSearchBackward( this, canvas_vport ) );
         super.add( searchBack_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "Find24.gif" );
-        if ( icon_URL != null )
-            searchInit_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            searchInit_btn = new JButton( "SearchInitialize" );
+        searchInit_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Find24.gif" ) );
         searchInit_btn.setMargin( btn_insets );
         searchInit_btn.setToolTipText(
                       "Search Initialization from last popup InfoBox's time" );
@@ -365,11 +270,7 @@ public class TimelineToolBar extends JToolBar
                        new ActionSearchInit( this, canvas_vport ) );
         super.add( searchInit_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "FindFore24.gif" );
-        if ( icon_URL != null )
-            searchFore_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            searchFore_btn = new JButton( "SearchForward" );
+        searchFore_btn = new JButton( new ImageIcon( Const.IMG_PATH + "FindFore24.gif" ) );
         searchFore_btn.setMargin( btn_insets );
         searchFore_btn.setToolTipText( "Search Forward in time" );
         searchFore_btn.setMnemonic( KeyEvent.VK_F );
@@ -381,11 +282,7 @@ public class TimelineToolBar extends JToolBar
         super.addSeparator();
         super.addSeparator();
 
-        icon_URL = getURL( Const.IMG_PATH + "Refresh24.gif" );
-        if ( icon_URL != null )
-            refresh_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            refresh_btn = new JButton( "CanvasReDraw" );
+        refresh_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Refresh24.gif" ) );
         refresh_btn.setMargin( btn_insets );
         refresh_btn.setToolTipText(
                      "Redraw canvas to synchronize changes from "
@@ -395,11 +292,7 @@ public class TimelineToolBar extends JToolBar
         refresh_btn.addActionListener( new ActionPptyRefresh( topologyManager, cnvas_timeline ) );
         super.add( refresh_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "Print24.gif" );
-        if ( icon_URL != null )
-            print_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            print_btn = new JButton( "Print" );
+        print_btn = new JButton( new ImageIcon(  Const.IMG_PATH + "Print24.gif" ) );
 
         print_btn.setMargin( btn_insets );
         print_btn.setToolTipText( "Screenshot the Timeline window to /tmp/jumpshot*" );

@@ -10,8 +10,9 @@ package viewer.legends;
 
 import java.util.Comparator;
 
+import drawable.Category;
+
 import viewer.common.Parameters;
-import base.drawable.Category;
 
 public class LegendComparators
 {

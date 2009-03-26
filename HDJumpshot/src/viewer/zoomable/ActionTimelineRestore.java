@@ -12,7 +12,7 @@ package viewer.zoomable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import viewer.topology.TopologyManager;
+import topology.TopologyManager;
 
 public class ActionTimelineRestore implements ActionListener
 {

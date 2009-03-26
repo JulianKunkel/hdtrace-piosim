@@ -19,8 +19,9 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import base.drawable.Category;
-import base.drawable.ColorAlpha;
+import drawable.Category;
+import drawable.ColorAlpha;
+
 
 public class LegendTableModel extends AbstractTableModel
 {

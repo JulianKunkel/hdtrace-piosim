@@ -17,11 +17,13 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import de.hd.pvs.TraceFormat.TraceObject;
+import drawable.DrawObjects;
+import drawable.TimeBoundingBox;
 
-import base.drawable.DrawObjects;
-import base.drawable.TimeBoundingBox;
 import viewer.common.Const;
+import viewer.common.Debug;
 import viewer.common.Routines;
+import viewer.dialog.InfoDialog;
 
 public class RulerTime extends ScrollableObject
 {

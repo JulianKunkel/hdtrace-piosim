@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
+import topology.GlobalStatisticStatsPerGroup;
+import topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
 import viewer.legends.LegendTableModel;
-import viewer.topology.GlobalStatisticStatsPerGroup;
-import viewer.topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
-import base.drawable.Category;
-import base.drawable.ColorAlpha;
-import base.drawable.Topology;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -24,6 +21,9 @@ import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import drawable.Category;
+import drawable.ColorAlpha;
+import drawable.TopologyType;
 
 /**
  * Manages information for different projects.
@@ -143,10 +143,10 @@ public class TraceFormatBufferedFileReader {
 		
 		if(entry.getType() == TraceObjectType.STATE){		
 			if(! categoriesStates.containsKey(catName))
-				categoriesStates.put( catName, new Category(catName, Topology.STATE, new ColorAlpha(20,00,0)));
+				categoriesStates.put( catName, new Category(catName, TopologyType.STATE, new ColorAlpha(20,00,0)));
 		}if(entry.getType() == TraceObjectType.EVENT){
 			if(! categoriesEvents.containsKey(catName))
-				categoriesEvents.put( catName, new Category(catName, Topology.EVENT, new ColorAlpha(20,00,0)));
+				categoriesEvents.put( catName, new Category(catName, TopologyType.EVENT, new ColorAlpha(20,00,0)));
 		}
 	}
 
@@ -171,7 +171,7 @@ public class TraceFormatBufferedFileReader {
         	for(StatisticDescription desc: group.getStatisticsOrdered()){
         		final String name = group.getName() + ":" + desc.getName(); 
         		if(!categoriesStatistics.containsKey(name)){
-        			categoriesStatistics.put(name, new Category(name, Topology.STATISTIC, new ColorAlpha(0,0,200)));
+        			categoriesStatistics.put(name, new Category(name, TopologyType.STATISTIC, new ColorAlpha(0,0,200)));
         		}
         	}
         }        	

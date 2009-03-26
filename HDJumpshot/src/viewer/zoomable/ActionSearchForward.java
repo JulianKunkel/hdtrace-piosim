@@ -11,6 +11,8 @@ package viewer.zoomable;
 
 import java.awt.event.*;
 
+import viewer.common.Debug;
+
 public class ActionSearchForward implements ActionListener
 {
     private ToolBarStatus      toolbar;

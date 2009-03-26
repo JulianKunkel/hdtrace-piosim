@@ -24,10 +24,10 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import topology.TopologyChangeListener;
+import topology.TopologyManager;
 import viewer.common.Const;
 import viewer.common.LabeledTextField;
-import viewer.topology.TopologyChangeListener;
-import viewer.topology.TopologyManager;
 
 public class RowAdjustments
 {

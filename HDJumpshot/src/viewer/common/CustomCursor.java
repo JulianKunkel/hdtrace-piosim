@@ -10,13 +10,14 @@
 package viewer.common;
 
 import java.awt.Cursor;
-import java.awt.Toolkit;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.net.URL;
+import java.io.File;
+
 import javax.swing.ImageIcon;
 
 public class CustomCursor
@@ -35,25 +36,22 @@ public class CustomCursor
         ( new CustomCursor() ).initCursors();
     }
 
-    // private static URL getURL( String filename )
-    private URL getURL( String filename )
-    {
-        // return ClassLoader.getSystemResource( Const.IMG_PATH + filename );
-        return getClass().getResource( Const.IMG_PATH + filename );
-    }
-
     private Image getBestCursorImage( String filename )
     {
-        URL            icon_URL;
         Image          img;
         Dimension      opt_size;
         Graphics2D     g2d;
         int            iwidth, iheight;
 
-        icon_URL = getURL( filename );
-        img      = new ImageIcon( icon_URL ).getImage();
+        final File f = new File(Const.IMG_PATH + filename);        
+        if (! f.canRead()){
+        	throw new IllegalArgumentException("Image does not exist: " + f.getAbsolutePath() );
+        }
+        
+        img      = new ImageIcon( Const.IMG_PATH + filename ).getImage();
         iwidth   = img.getWidth( null );
         iheight  = img.getHeight( null );
+                
         opt_size = toolkit.getBestCursorSize( iwidth, iheight );
         if ( opt_size.width == iwidth && opt_size.height == iheight )
             return img;

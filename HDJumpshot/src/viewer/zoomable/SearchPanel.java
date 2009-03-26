@@ -11,7 +11,8 @@ package viewer.zoomable;
 
 import javax.swing.JPanel;
 
-import base.drawable.DrawObjects;
+import drawable.DrawObjects;
+
 
 /*
     Class implementing this interface has to be java.awt.Component

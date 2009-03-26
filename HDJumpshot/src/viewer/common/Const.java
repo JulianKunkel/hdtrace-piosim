@@ -9,8 +9,8 @@
 
 package viewer.common;
 
-import java.awt.Font;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.RenderingHints;
 
 public class Const
@@ -52,8 +52,8 @@ public class Const
     public  static final Alias   COLOR_WHITE
             = new Alias( Color.white, "white" );
 
-    public  static final String  IMG_PATH = "/images/";
-    public  static final String  DOC_PATH = "/html/";
+    public  static final String  IMG_PATH = "images/";
+    public  static final String  DOC_PATH = "html/";
 
     public static Alias  parseAntiAliasing( String str_rep )
     {

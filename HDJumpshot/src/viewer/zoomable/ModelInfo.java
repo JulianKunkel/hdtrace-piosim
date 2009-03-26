@@ -16,12 +16,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import viewer.common.Const;
-import base.drawable.Category;
+import viewer.common.TimeFormat;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import drawable.Category;
 
 
 public class ModelInfo 

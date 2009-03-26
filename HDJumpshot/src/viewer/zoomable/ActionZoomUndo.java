@@ -14,8 +14,10 @@ import java.awt.event.*;
 import java.net.*;
 import javax.swing.*;
 
-import base.drawable.TimeBoundingBox;
+import drawable.TimeBoundingBox;
+
 import viewer.common.Const;
+import viewer.common.Debug;
 import viewer.common.Dialogs;
 
 public class ActionZoomUndo implements ActionListener

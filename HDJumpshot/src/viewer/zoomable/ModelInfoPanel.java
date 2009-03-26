@@ -24,6 +24,8 @@ import javax.swing.JPanel;
 
 import viewer.common.Const;
 import viewer.common.LabeledTextField;
+import viewer.pvfs2.PVFS2OpTypeParser;
+import viewer.pvfs2.PVFS2SMParser;
 
 
 public class ModelInfoPanel extends JPanel

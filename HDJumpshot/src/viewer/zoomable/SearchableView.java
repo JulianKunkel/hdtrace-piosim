@@ -9,9 +9,6 @@
 
 package viewer.zoomable;
 
-import java.awt.Rectangle;
-
-import de.hd.pvs.TraceFormat.util.Epoch;
 
 /*
    Define the interface to be implemented by the view object, ScrollableView,
@@ -19,9 +16,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 */
 
 public interface SearchableView
-{
-    public Rectangle localRectangleForDrawable(int timeline, int nestingDepth, Epoch startTime, Epoch endTime);
-
+{   
     // NEW search starting from the specified time
     public SearchPanel searchPreviousComponent( double searching_time );
 

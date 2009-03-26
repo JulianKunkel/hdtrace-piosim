@@ -13,9 +13,10 @@ import java.awt.*;
 import javax.swing.BoxLayout;
 import javax.swing.JTree;
 
-import base.drawable.CategoryWeight;
+import drawable.CategoryWeight;
+
 import base.statistics.Summarizable;
-import viewer.zoomable.InfoDialog;
+import viewer.dialog.InfoDialog;
 
 public class InfoDialogForSummary extends InfoDialog
 {

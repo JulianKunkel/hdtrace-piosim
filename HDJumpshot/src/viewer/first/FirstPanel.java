@@ -15,7 +15,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,400 +34,305 @@ import viewer.common.Dialogs;
 import viewer.common.Routines;
 import viewer.common.TopWindow;
 
+public class FirstPanel extends JPanel {
+	private static String about_str = "HDJumpshot.\n"	+ "bug-reports/questions:\n" + "            julian.kunkel@gmx.de";
+	private static String manual_path = Const.DOC_PATH + "usersguide.html";
+	private static String faq_path = Const.DOC_PATH + "faq_index.html";
+	private static String js_icon_path = Const.IMG_PATH + "jumpshot.gif";
 
+	private static String open_icon_path = Const.IMG_PATH + "Open24.gif";
+	private static String close_icon_path = Const.IMG_PATH + "Stop24.gif";
+	private static String legend_icon_path = Const.IMG_PATH	+ "Properties24.gif";
+	private static String prefer_icon_path = Const.IMG_PATH
+			+ "Preferences24.gif";
+	private static String manual_icon_path = Const.IMG_PATH + "Help24.gif";
+	private static String faq_icon_path = Const.IMG_PATH + "Information24.gif";
+	private static String about_icon_path = Const.IMG_PATH + "About24.gif";
 
-public class FirstPanel extends JPanel
-{
-    private static String        about_str = "HDJumpshot.\n"
-                                           + "bug-reports/questions:\n"
-                                           + "            chan@mcs.anl.gov";
-    private static String        manual_path        = Const.DOC_PATH
-                                                    + "usersguide.html";
-    private static String        faq_path           = Const.DOC_PATH
-                                                    + "faq_index.html";
-    private static String        js_icon_path       = Const.IMG_PATH
-                                                    + "jumpshot.gif";
+	private ActableTextField logname_fld;
+	private JComboBox pulldown_list;
 
-    private static String        open_icon_path     = Const.IMG_PATH
-                                                    + "Open24.gif";
-    private static String        close_icon_path    = Const.IMG_PATH
-                                                    + "Stop24.gif";
-    private static String        legend_icon_path   = Const.IMG_PATH
-                                                    + "Properties24.gif";
-    private static String        prefer_icon_path   = Const.IMG_PATH
-                                                    + "Preferences24.gif";
-    private static String        manual_icon_path   = Const.IMG_PATH
-                                                    + "Help24.gif";
-    private static String        faq_icon_path      = Const.IMG_PATH
-                                                    + "Information24.gif";
-    private static String        about_icon_path    = Const.IMG_PATH
-                                                    + "About24.gif";
+	/* some of these are hidden buttons */
+	private JButton file_select_btn;
+	private JButton file_convert_btn;
+	private JButton file_close_btn;
+	private JButton show_timeline_btn;
+	private JButton show_legend_btn;
+	private JButton edit_prefer_btn;
+	private JButton help_manual_btn;
+	private JButton help_faq_btn;
+	private JButton help_about_btn;
 
-    private        ActableTextField    logname_fld;
-    private        JComboBox           pulldown_list;
+	private HTMLviewer manual_viewer;
+	private HTMLviewer faq_viewer;
 
-    /*  some of these are hidden buttons */
-    private        JButton             file_select_btn;
-    private        JButton             file_convert_btn;
-    private        JButton             file_close_btn;
-    private        JButton             show_timeline_btn;
-    private        JButton             show_legend_btn;
-    private        JButton             edit_prefer_btn;
-    private        JButton             help_manual_btn;
-    private        JButton             help_faq_btn;
-    private        JButton             help_about_btn;
+	private LogFileOperations file_ops;
+	private String logfile_name;
+	private int view_ID;
 
-    private        HTMLviewer          manual_viewer;
-    private        HTMLviewer          faq_viewer;
+	public FirstPanel(boolean isApplet, String filename, int view_idx) {
+		super();
+		super.setLayout(new BorderLayout());
 
-    private        LogFileOperations   file_ops;
-    private        String              logfile_name;
-    private        int                 view_ID;
+		Border lowered_border, etched_border;
+		lowered_border = BorderFactory.createLoweredBevelBorder();
+		etched_border = BorderFactory.createEtchedBorder();
 
+		file_ops = new LogFileOperations(isApplet);
+		logfile_name = filename;
+		view_ID = view_idx;
 
-    public FirstPanel( boolean isApplet, String filename, int view_idx )
-    {
-        super();
-        super.setLayout( new BorderLayout() );
+		Dimension row_pref_sz;
+		Dimension lbl_pref_sz;
+		Dimension fld_pref_sz;
+		row_pref_sz = new Dimension(410, 27);
+		lbl_pref_sz = new Dimension(110, 25);
+		fld_pref_sz = new Dimension(row_pref_sz.width - lbl_pref_sz.width,
+				lbl_pref_sz.height);
 
-        Border   lowered_border, etched_border;
-        lowered_border  = BorderFactory.createLoweredBevelBorder();
-        etched_border   = BorderFactory.createEtchedBorder();
+		JPanel ctr_panel;
+		ctr_panel = new JPanel();
+		ctr_panel.setLayout(new BoxLayout(ctr_panel, BoxLayout.Y_AXIS));
+		ctr_panel.add(Box.createVerticalGlue());
 
-        file_ops     = new LogFileOperations( isApplet );
-        logfile_name = filename;
-        view_ID      = view_idx;
+		JLabel label;
+		JPanel logname_panel = new JPanel();
+		logname_panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		logname_panel.setLayout(new BoxLayout(logname_panel, BoxLayout.X_AXIS));
 
+		label = new JLabel(" ProjectFile: ");
+		Routines.setShortJComponentSizes(label, lbl_pref_sz);
+		logname_panel.add(label);
+		logname_fld = new ActableTextField(logfile_name, 40);
+		logname_fld.setBorder(BorderFactory.createCompoundBorder(
+				lowered_border, etched_border));
+		logname_fld.addActionListener(new LogNameTextFieldListener());
 
-        Dimension   row_pref_sz;
-        Dimension   lbl_pref_sz;
-        Dimension   fld_pref_sz;
-        row_pref_sz  = new Dimension( 410, 27 );
-        lbl_pref_sz  = new Dimension( 110, 25 );
-        fld_pref_sz  = new Dimension( row_pref_sz.width - lbl_pref_sz.width,
-                                      lbl_pref_sz.height );
+		Routines.setShortJComponentSizes(logname_fld, fld_pref_sz);
+		logname_panel.add(logname_fld);
+		Routines.setShortJComponentSizes(logname_panel, row_pref_sz);
+		// logname_panel.add( Box.createHorizontalStrut( 40 ) );
+		ctr_panel.add(logname_panel);
+		ctr_panel.add(Box.createVerticalGlue());
+		ctr_panel.add(Box.createVerticalStrut(4));
+		ctr_panel.add(Box.createVerticalGlue());
 
-        JPanel  ctr_panel;
-        ctr_panel  = new JPanel();
-        ctr_panel.setLayout( new BoxLayout( ctr_panel, BoxLayout.Y_AXIS ) );
-            ctr_panel.add( Box.createVerticalGlue() );
+		ctr_panel.setBorder(etched_border);
 
-                JLabel  label;
-                JPanel logname_panel = new JPanel();
-                logname_panel.setAlignmentX( Component.CENTER_ALIGNMENT );
-                logname_panel.setLayout( new BoxLayout( logname_panel,
-                                                        BoxLayout.X_AXIS ) );
+		super.add(ctr_panel, BorderLayout.CENTER);
 
-                    label = new JLabel( " ProjectFile: " );
-                    Routines.setShortJComponentSizes( label, lbl_pref_sz );
-                logname_panel.add( label );
-                    logname_fld = new ActableTextField( logfile_name, 40 );
-                    logname_fld.setBorder( BorderFactory.createCompoundBorder(
-                                           lowered_border, etched_border ) );
-                    logname_fld.addActionListener(
-                                new LogNameTextFieldListener() );
-                                        
-                    Routines.setShortJComponentSizes( logname_fld,
-                                                      fld_pref_sz );
-                logname_panel.add( logname_fld );
-                Routines.setShortJComponentSizes( logname_panel, row_pref_sz );
-                // logname_panel.add( Box.createHorizontalStrut( 40 ) );
-            ctr_panel.add( logname_panel );
-            ctr_panel.add( Box.createVerticalGlue() );
-            ctr_panel.add( Box.createVerticalStrut( 4 ) );
-            ctr_panel.add( Box.createVerticalGlue() );
+		JToolBar toolbar;
+		toolbar = createToolBarAndButtons(JToolBar.HORIZONTAL);
+		super.add(toolbar, BorderLayout.SOUTH);
 
-        ctr_panel.setBorder( etched_border );
+	}
 
-        super.add( ctr_panel, BorderLayout.CENTER );
+	private JToolBar createToolBarAndButtons(int orientation) {
+		Border raised_border, empty_border;
+		raised_border = BorderFactory.createRaisedBevelBorder();
+		empty_border = BorderFactory.createEmptyBorder();
 
-        JToolBar  toolbar;
-        toolbar  = createToolBarAndButtons( JToolBar.HORIZONTAL );
-        super.add( toolbar, BorderLayout.SOUTH );
+		JToolBar toolbar;
+		toolbar = new JToolBar(orientation);
+		toolbar.setFloatable(true);
 
-    }
+		Insets btn_insets;
+		btn_insets = new Insets(1, 1, 1, 1);
 
-    private JToolBar createToolBarAndButtons( int orientation )
-    {
-        Border    raised_border, empty_border;
-        raised_border   = BorderFactory.createRaisedBevelBorder();
-        empty_border    = BorderFactory.createEmptyBorder();
+		// test existence of icons:
+		if(! new File(open_icon_path).canRead()){
+			throw new IllegalArgumentException("Image files seem not to exist (or readable) in path: " + new File(open_icon_path).getAbsolutePath());
+		}
+		
+		
+		file_select_btn = new JButton(new ImageIcon(open_icon_path));
 
-        JToolBar  toolbar;
-        toolbar         = new JToolBar( orientation );
-        toolbar.setFloatable( true );
+		file_select_btn.setToolTipText("Select a new logfile");
+		// file_select_btn.setBorder( empty_border );
+		file_select_btn.setMargin(btn_insets);
+		file_select_btn.addActionListener(new FileSelectButtonListener());
+		toolbar.add(file_select_btn);
 
-        Insets    btn_insets;
-        btn_insets      = new Insets( 1, 1, 1, 1 );
+		toolbar.addSeparator();
+		show_legend_btn = new JButton(new ImageIcon(legend_icon_path));
+		show_legend_btn.setToolTipText("Display the Legend window");
+		// show_legend_btn.setBorder( empty_border );
+		show_legend_btn.setMargin(btn_insets);
+		show_legend_btn.addActionListener(new ShowLegendButtonListener());
+		toolbar.add(show_legend_btn);
 
-        URL     icon_URL;
+		show_timeline_btn = new JButton(new ImageIcon(legend_icon_path));
+		show_timeline_btn.setToolTipText("Display the timeline window");
+		show_timeline_btn.setMargin(btn_insets);
+		show_timeline_btn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				file_ops.showTimelineWindow();
+			}
+		});
+		toolbar.add(show_timeline_btn);
 
-            icon_URL = null;
-            icon_URL = getURL( open_icon_path );
-            if ( icon_URL != null )
-                file_select_btn = new JButton( new ImageIcon( icon_URL ) );
-            else
-                file_select_btn = new JButton( "SELECT" );
-            file_select_btn.setToolTipText( "Select a new logfile" );
-            // file_select_btn.setBorder( empty_border );
-            file_select_btn.setMargin( btn_insets );
-            file_select_btn.addActionListener(
-                            new FileSelectButtonListener() );
-        toolbar.add( file_select_btn );
+		toolbar.addSeparator();
 
-        toolbar.addSeparator();
+		edit_prefer_btn = new JButton(new ImageIcon(prefer_icon_path));
+	
+		edit_prefer_btn.setToolTipText("Open the Preference window");
+		// edit_prefer_btn.setBorder( empty_border );
+		edit_prefer_btn.setMargin(btn_insets);
+		edit_prefer_btn.addActionListener(new EditPreferButtonListener());
+		toolbar.add(edit_prefer_btn);
 
-            icon_URL = null;
-            icon_URL = getURL( legend_icon_path );
-            if ( icon_URL != null )
-                show_legend_btn = new JButton( new ImageIcon( icon_URL ) );
-            else
-                show_legend_btn = new JButton( "LEGEND" );
-            show_legend_btn.setToolTipText( "Display the Legend window" );
-            // show_legend_btn.setBorder( empty_border );
-            show_legend_btn.setMargin( btn_insets );
-            show_legend_btn.addActionListener(
-                            new ShowLegendButtonListener() );
-        toolbar.add( show_legend_btn );
+		toolbar.addSeparator();
 
-        show_timeline_btn = new JButton(new ImageIcon(icon_URL));
-        show_timeline_btn.setToolTipText( "Display the timeline window" );
-        show_timeline_btn.setMargin( btn_insets );
-        show_timeline_btn.addActionListener(
-                        new ActionListener(){
-                        	@Override
-                        	public void actionPerformed(ActionEvent e) {
-                        		file_ops.showTimelineWindow();	
-                        	}
-                        });
-        toolbar.add( show_timeline_btn );
+		help_manual_btn = new JButton(new ImageIcon(manual_icon_path));
 
-        
-        toolbar.addSeparator();
+		help_manual_btn.setToolTipText("Open the user's manual window");
+		// help_manual_btn.setBorder( empty_border );
+		help_manual_btn.setMargin(btn_insets);
+		help_manual_btn.addActionListener(new HelpManualButtonListener());
+		toolbar.add(help_manual_btn);
 
-            icon_URL = null;
-            icon_URL = getURL( prefer_icon_path );
-            if ( icon_URL != null )
-                edit_prefer_btn = new JButton( new ImageIcon( icon_URL ) );
-            else
-                edit_prefer_btn = new JButton( "PREFERENCE" );
-            edit_prefer_btn.setToolTipText( "Open the Preference window" );
-            // edit_prefer_btn.setBorder( empty_border );
-            edit_prefer_btn.setMargin( btn_insets );
-            edit_prefer_btn.addActionListener(
-                            new EditPreferButtonListener() );
-        toolbar.add( edit_prefer_btn );
+		help_faq_btn = new JButton(new ImageIcon(faq_icon_path));
+		
+		help_faq_btn.setToolTipText("Open the FAQ window");
+		// help_faq_btn.setBorder( empty_border );
+		help_faq_btn.setMargin(btn_insets);
+		help_faq_btn.addActionListener(new HelpFAQsButtonListener());
+		toolbar.add(help_faq_btn);
 
-        toolbar.addSeparator();
+		/* help_about_btn is a hidden button */
+		help_about_btn = new JButton(new ImageIcon(about_icon_path));
 
-            icon_URL = null;
-            icon_URL = getURL( manual_icon_path );
-            if ( icon_URL != null )
-                help_manual_btn = new JButton( new ImageIcon( icon_URL ) );
-            else
-                help_manual_btn = new JButton( "MANUAL" );
-            help_manual_btn.setToolTipText( "Open the user's manual window" );
-            // help_manual_btn.setBorder( empty_border );
-            help_manual_btn.setMargin( btn_insets );
-            help_manual_btn.addActionListener(
-                            new HelpManualButtonListener() );
-        toolbar.add( help_manual_btn );
+		help_about_btn.setToolTipText("Open the About-This window");
+		// help_about_btn.setBorder( empty_border );
+		help_about_btn.setMargin(btn_insets);
+		help_about_btn.addActionListener(new HelpAboutButtonListener());
 
-            icon_URL = null;
-            icon_URL = getURL( faq_icon_path );
-            if ( icon_URL != null )
-                help_faq_btn = new JButton( new ImageIcon( icon_URL ) );
-            else
-                help_faq_btn = new JButton( "FAQ" );
-            help_faq_btn.setToolTipText( "Open the FAQ window" );
-            // help_faq_btn.setBorder( empty_border );
-            help_faq_btn.setMargin( btn_insets );
-            help_faq_btn.addActionListener(
-                         new HelpFAQsButtonListener() );
-        toolbar.add( help_faq_btn );
+		/* file_close_btn is a hidden button */
+		
+		file_close_btn = new JButton(new ImageIcon(close_icon_path));
+		
+		file_close_btn.setToolTipText("Close the logfile");
+		// file_close_btn.setBorder( empty_border );
+		file_close_btn.setMargin(btn_insets);
+		file_close_btn.addActionListener(new FileCloseButtonListener());
 
-            /* help_about_btn is a hidden button */
-            icon_URL = null;
-            icon_URL = getURL( about_icon_path );
-            if ( icon_URL != null )
-                help_about_btn = new JButton( new ImageIcon( icon_URL ) );
-            else
-                help_about_btn = new JButton( "ABOUT" );
-            help_about_btn.setToolTipText( "Open the About-This window" );
-            // help_about_btn.setBorder( empty_border );
-            help_about_btn.setMargin( btn_insets );
-            help_about_btn.addActionListener(
-                           new HelpAboutButtonListener() );
+		manual_viewer = new HTMLviewer("Manual", help_manual_btn);
+		faq_viewer = new HTMLviewer("FAQs", help_faq_btn);
 
-            /* file_close_btn is a hidden button */
-            icon_URL = null;
-            icon_URL = getURL( close_icon_path );
-            if ( icon_URL != null )
-                file_close_btn = new JButton( new ImageIcon( icon_URL ) );
-            else
-                file_close_btn = new JButton( "CLOSE" );
-            file_close_btn.setToolTipText( "Close the logfile" );
-            // file_close_btn.setBorder( empty_border );
-            file_close_btn.setMargin( btn_insets );
-            file_close_btn.addActionListener(
-                           new FileCloseButtonListener() );
+		return toolbar;
+	}
 
-            manual_viewer = new HTMLviewer( "Manual", help_manual_btn );
-            faq_viewer    = new HTMLviewer( "FAQs", help_faq_btn );
+	public void init() {
+		file_ops.init();
+		if (logfile_name != null)
+			logname_fld.fireActionPerformed();
+	}
 
-        return toolbar;
-    }
+	public JButton getLogFileSelectButton() {
+		return file_select_btn;
+	}
 
-    public void init()
-    {
-        file_ops.init();
-        if ( logfile_name != null )
-            logname_fld.fireActionPerformed();
-    }
+	public JButton getLogFileConvertButton() {
+		return file_convert_btn;
+	}
 
-    private URL getURL( String filename )
-    {
-        return getClass().getResource( filename );
-    }
+	public JButton getLogFileCloseButton() {
+		return file_close_btn;
+	}
 
-    public JButton getLogFileSelectButton()
-    {
-        return file_select_btn;
-    }
+	public JButton getShowLegendButton() {
+		return show_legend_btn;
+	}
 
-    public JButton getLogFileConvertButton()
-    {
-        return file_convert_btn;
-    }
+	public JButton getShowTimelineButton() {
+		return show_timeline_btn;
+	}
 
-    public JButton getLogFileCloseButton()
-    {
-        return file_close_btn;
-    }
+	public JButton getEditPreferenceButton() {
+		return edit_prefer_btn;
+	}
 
-    public JButton getShowLegendButton()
-    {
-        return show_legend_btn;
-    }
+	public JButton getHelpManualButton() {
+		return help_manual_btn;
+	}
 
-    public JButton getShowTimelineButton()
-    {
-        return show_timeline_btn;
-    }
+	public JButton getHelpFAQsButton() {
+		return help_faq_btn;
+	}
 
-    public JButton getEditPreferenceButton()
-    {
-        return edit_prefer_btn;
-    }
+	public JButton getHelpAboutButton() {
+		return help_about_btn;
+	}
 
-    public JButton getHelpManualButton()
-    {
-        return help_manual_btn;
-    }
+	private class FileSelectButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			final String filename = file_ops.selectLogFile();
+			if (filename != null && filename.length() > 0) {
+				logname_fld.setText(filename);
+				logname_fld.fireActionPerformed();
+			}
+		}
+	}
 
-    public JButton getHelpFAQsButton()
-    {
-        return help_faq_btn;
-    }
+	private class LogNameTextFieldListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			file_ops.disposeLogFileAndResources();
 
-    public JButton getHelpAboutButton()
-    {
-        return help_about_btn;
-    }
+			file_ops.openLogFile(logname_fld);
+		}
+	}
 
+	private class ShowLegendButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			file_ops.showLegendWindow();
+		}
+	}
 
+	private class EditPreferButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			file_ops.showPreferenceWindow();
+		}
+	}
 
+	private class HelpManualButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			try{
+				manual_viewer.init(manual_path);
+			
+				manual_viewer.setVisible(true);
+			}catch(Exception e){
+				Dialogs.warn(TopWindow.First.getWindow(), "Cannot locate "
+						+ manual_path + ".");
+			}
+		}
+	}
 
-    private class FileSelectButtonListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-            final String filename = file_ops.selectLogFile();
-            if ( filename != null && filename.length() > 0 ) {
-                logname_fld.setText( filename );
-                logname_fld.fireActionPerformed();
-            }
-        }
-    }
-    
-    private class LogNameTextFieldListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-            file_ops.disposeLogFileAndResources();
-            
-            file_ops.openLogFile(logname_fld);
-        }
-    }
+	private class HelpFAQsButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			try{
+				manual_viewer.init(faq_path);
+			
+				manual_viewer.setVisible(true);
+			}catch(Exception e){
+				Dialogs.warn(TopWindow.First.getWindow(), "Cannot locate "
+						+ faq_path + ".");
+			}
+		}
+	}
 
+	private class HelpAboutButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			ImageIcon js_icon = new ImageIcon(js_icon_path);
+			Dialogs.info(TopWindow.First.getWindow(), about_str, js_icon);
+		}
+	}
 
-    private class ShowLegendButtonListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-            file_ops.showLegendWindow();
-        }
-    }
-
-    private class EditPreferButtonListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-            file_ops.showPreferenceWindow();
-        }
-    }
-
-    private class HelpManualButtonListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-            URL manual_URL = getURL( manual_path );
-            if ( manual_URL != null ) {
-                manual_viewer.init( manual_URL );
-                manual_viewer.setVisible( true );
-            }
-            else
-                Dialogs.warn( TopWindow.First.getWindow(),
-                              "Cannot locate " + manual_path + "." );
-        }
-    }
-
-    private class HelpFAQsButtonListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-           URL faq_URL = getURL( faq_path );
-            if ( faq_URL != null ) {
-                faq_viewer.init( faq_URL );
-                faq_viewer.setVisible( true );
-            }
-            else
-                Dialogs.warn( TopWindow.First.getWindow(),
-                              "Cannot locate " + faq_path + "." );
-        }
-    }
-
-    private class HelpAboutButtonListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-            URL icon_URL = getURL( js_icon_path );
-            if ( icon_URL != null ) {
-                ImageIcon js_icon = new ImageIcon( icon_URL );
-                Dialogs.info( TopWindow.First.getWindow(), about_str, js_icon );
-            }
-            else
-                Dialogs.info( TopWindow.First.getWindow(), about_str, null );
-        }
-    }
-
-    private class FileCloseButtonListener implements ActionListener
-    {
-        public void actionPerformed( ActionEvent evt )
-        {
-            file_ops.disposeLogFileAndResources();
-            pulldown_list.removeAllItems();
-        }
-    }
+	private class FileCloseButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			file_ops.disposeLogFileAndResources();
+			pulldown_list.removeAllItems();
+		}
+	}
 
 }

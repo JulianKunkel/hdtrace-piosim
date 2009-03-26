@@ -20,7 +20,8 @@ import javax.swing.JColorChooser;
 import javax.swing.DefaultCellEditor;
 import javax.swing.table.TableCellEditor;
 
-import base.drawable.ColorAlpha;
+import drawable.ColorAlpha;
+
 
 // Used DefaultCellEditor instead of AbstractCellEditor so jre1.2.2 can be used
 // public class CategoryIconEditor extends AbstractCellEditor

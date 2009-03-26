@@ -9,39 +9,38 @@
 
 package viewer.histogram;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.util.*;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.Window;
+import java.awt.event.KeyEvent;
 import java.net.URL;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JScrollBar;
+import javax.swing.JToolBar;
+
+import topology.TopologyManager;
 import viewer.common.Const;
 import viewer.timelines.CanvasTimeline;
-import viewer.topology.TopologyManager;
-import viewer.zoomable.ActionTimelineRestore;
-import viewer.zoomable.RulerTime;
-import viewer.zoomable.ToolBarStatus;
-import viewer.zoomable.ModelTime;
-import viewer.zoomable.ScrollbarTime;
-import viewer.zoomable.ViewportTimeYaxis;
-import viewer.zoomable.RowAdjustments;
-import viewer.zoomable.ActionVportUp;
-import viewer.zoomable.ActionVportDown;
-import viewer.zoomable.ActionTimelineMark;
-import viewer.zoomable.ActionTimelineMove;
-import viewer.zoomable.ActionTimelineDelete;
-import viewer.zoomable.ActionYaxisTreeExpand;
-import viewer.zoomable.ActionYaxisTreeCollapse;
-import viewer.zoomable.ActionVportBackward;
-import viewer.zoomable.ActionVportForward;
-import viewer.zoomable.ActionZoomUndo;
-import viewer.zoomable.ActionZoomOut;
-import viewer.zoomable.ActionZoomHome;
-import viewer.zoomable.ActionZoomIn;
-import viewer.zoomable.ActionZoomRedo;
 import viewer.zoomable.ActionPptyRefresh;
 import viewer.zoomable.ActionPptyScreenshot;
+import viewer.zoomable.ActionTimelineRestore;
+import viewer.zoomable.ActionVportBackward;
+import viewer.zoomable.ActionVportDown;
+import viewer.zoomable.ActionVportForward;
+import viewer.zoomable.ActionVportUp;
+import viewer.zoomable.ActionYaxisTreeExpand;
+import viewer.zoomable.ActionZoomHome;
+import viewer.zoomable.ActionZoomIn;
+import viewer.zoomable.ActionZoomOut;
+import viewer.zoomable.ActionZoomRedo;
+import viewer.zoomable.ActionZoomUndo;
+import viewer.zoomable.ModelTime;
+import viewer.zoomable.RulerTime;
+import viewer.zoomable.ScrollbarTime;
+import viewer.zoomable.ToolBarStatus;
+import viewer.zoomable.ViewportTimeYaxis;
 
 public class StatlineToolBar extends JToolBar
                              implements ToolBarStatus
@@ -107,13 +106,6 @@ public class StatlineToolBar extends JToolBar
         this.initAllButtons();
     }
 
-    protected URL getURL( String filename )
-    {
-        URL url = null;
-        url = getClass().getResource( filename );
-        return url;
-    }
-
     private void addButtons()
     {
         Insets     btn_insets;
@@ -123,11 +115,7 @@ public class StatlineToolBar extends JToolBar
         btn_insets          = new Insets( 2, 2, 2, 2 );
         mini_separator_size = new Dimension( 5, 5 );
 
-        icon_URL = getURL( Const.IMG_PATH + "Up24.gif" );
-        if ( icon_URL != null )
-            up_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            up_btn = new JButton( "Up" );
+        up_btn = new JButton( new ImageIcon(  Const.IMG_PATH + "Up24.gif" ) );
         up_btn.setMargin( btn_insets );
         up_btn.setToolTipText( "Scroll Upward by half a screen" );
         // up_btn.setPreferredSize( btn_dim );
@@ -135,11 +123,8 @@ public class StatlineToolBar extends JToolBar
         up_btn.setMnemonic( KeyEvent.VK_UP );
         super.add( up_btn );
 
-        icon_URL = getURL( Const.IMG_PATH + "Down24.gif" );
-        if ( icon_URL != null )
-            down_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            down_btn = new JButton( "Down" );
+        down_btn = new JButton( new ImageIcon(  Const.IMG_PATH + "Down24.gif" ) );
+        
         down_btn.setMargin( btn_insets );
         down_btn.setToolTipText( "Scroll Downward by half a screen" );
         down_btn.setMnemonic( KeyEvent.VK_DOWN );
@@ -149,11 +134,8 @@ public class StatlineToolBar extends JToolBar
 
         super.addSeparator( mini_separator_size );
 
-        icon_URL = getURL( Const.IMG_PATH + "Edit24.gif" );
-        if ( icon_URL != null )
-            mark_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            mark_btn = new JButton( "LabelMark" );
+        mark_btn = new JButton( new ImageIcon(  Const.IMG_PATH + "Down24.gif" ) );
+        
         mark_btn.setMargin( btn_insets );
         mark_btn.setToolTipText( "Mark the timelines" );
         // mark_btn.setPreferredSize( btn_dim );

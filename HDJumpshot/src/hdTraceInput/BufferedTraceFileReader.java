@@ -2,10 +2,10 @@ package hdTraceInput;
 
 import java.util.ArrayList;
 
-import base.drawable.DrawObjects;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import drawable.DrawObjects;
 
 public class BufferedTraceFileReader extends StAXTraceFileReader implements IBufferedReader {
 

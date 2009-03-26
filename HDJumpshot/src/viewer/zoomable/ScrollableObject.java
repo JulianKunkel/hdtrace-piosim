@@ -24,8 +24,12 @@ import javax.swing.JComponent;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 
-import base.drawable.TimeBoundingBox;
+import viewer.common.Debug;
+import viewer.dialog.InfoDialog;
+import viewer.dialog.InfoDialogForTime;
+
 import de.hd.pvs.TraceFormat.TraceObject;
+import drawable.TimeBoundingBox;
 
 public abstract class ScrollableObject extends JComponent
                                        implements ScrollableView

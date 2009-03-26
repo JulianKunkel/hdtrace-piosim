@@ -28,8 +28,7 @@ public class LogFileChooser extends JFileChooser
 
 		FileFilter  filter;
 
-		filter = new LogPermitDirFilter(
-				new String[]{ "xml" } );
+		filter = new LogPermitDirFilter( new String[]{ "xml" } );
 		super.addChoosableFileFilter( filter );
 
 	}

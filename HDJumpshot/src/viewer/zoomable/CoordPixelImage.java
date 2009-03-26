@@ -9,8 +9,8 @@
 
 package viewer.zoomable;
 
-import base.drawable.CoordPixelXform;
-import base.drawable.TimeBoundingBox;
+import drawable.CoordPixelXform;
+import drawable.TimeBoundingBox;
 
 public class CoordPixelImage implements CoordPixelXform
 {

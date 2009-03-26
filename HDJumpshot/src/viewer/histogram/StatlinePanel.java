@@ -26,25 +26,26 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.TitledBorder;
 
+import drawable.TimeBoundingBox;
+
+import topology.TopologyManager;
 import viewer.common.Const;
+import viewer.common.Debug;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
+import viewer.common.TimeEvent;
+import viewer.common.TimeListener;
 import viewer.timelines.CanvasTimeline;
-import viewer.topology.TopologyManager;
 import viewer.zoomable.ActionTimelineRestore;
-import viewer.zoomable.Debug;
 import viewer.zoomable.ModelTime;
 import viewer.zoomable.ModelTimePanel;
 import viewer.zoomable.RowAdjustments;
 import viewer.zoomable.RulerTime;
 import viewer.zoomable.ScrollbarTime;
-import viewer.zoomable.TimeEvent;
-import viewer.zoomable.TimeListener;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimePanel;
 import viewer.zoomable.ViewportTimeYaxis;
 import viewer.zoomable.YaxisMaps;
-import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
 
 public class StatlinePanel extends JPanel

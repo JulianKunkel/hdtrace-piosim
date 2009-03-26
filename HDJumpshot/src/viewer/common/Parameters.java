@@ -16,10 +16,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import base.topology.Arrow;
-import base.topology.Event;
-import base.topology.State;
-import base.topology.StateBorder;
+import drawable.ArrowDrawer;
+import drawable.EventDrawer;
+import drawable.StateBorder;
+import drawable.StateDrawer;
+
 
 public class Parameters
 {
@@ -90,12 +91,12 @@ public class Parameters
         LabeledTextField.setDefaultFont( Const.FONT );
         LabeledComboBox.setDefaultFont( Const.FONT );
         // Define the size of ArrowHead
-        Arrow.setHeadLength( Parameters.ARROW_HEAD_LENGTH );
-        Arrow.setHeadWidth( Parameters.ARROW_HEAD_WIDTH );
+        ArrowDrawer.setHeadLength( Parameters.ARROW_HEAD_LENGTH );
+        ArrowDrawer.setHeadWidth( Parameters.ARROW_HEAD_WIDTH );
         // Define the size of EventBase
-        Event.setBaseWidth( Parameters.EVENT_BASE_WIDTH ); 
+        EventDrawer.setBaseWidth( Parameters.EVENT_BASE_WIDTH ); 
         // Define state border type
-        State.setBorderStyle( Parameters.STATE_BORDER );
+        StateDrawer.setBorderStyle( Parameters.STATE_BORDER );
     }
 
     public static final void writeToSetupFile( Component parent_window )

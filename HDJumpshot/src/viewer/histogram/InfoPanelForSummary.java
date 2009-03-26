@@ -15,7 +15,8 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import base.drawable.Topology;
+import drawable.TopologyType;
+
 import base.statistics.CategoryWeightF;
 import base.statistics.CategoryTimeBox;
 import base.statistics.TimeAveBox;
@@ -24,8 +25,8 @@ import base.topology.SummaryState;
 import viewer.common.Const;
 import viewer.common.Routines;
 import viewer.common.Parameters;
+import viewer.common.TimeFormat;
 import viewer.legends.CategoryLabel;
-import viewer.zoomable.TimeFormat;
 
 
 public class InfoPanelForSummary extends JPanel
@@ -64,7 +65,7 @@ public class InfoPanelForSummary extends JPanel
             Normal_Border = BorderFactory.createEtchedBorder();
         }
 
-        Topology  topo          = summarizable.getTopology();
+        TopologyType  topo          = summarizable.getTopology();
         int       rowID_start   = summarizable.getStartRowID();
         int       rowID_final   = summarizable.getFinalRowID();
         Object    clicked_obj   = summarizable.getClickedObject();
@@ -197,7 +198,7 @@ public class InfoPanelForSummary extends JPanel
                 return -1;
         }
 
-        public void  setEndRowIDsText( final Topology  topo,
+        public void  setEndRowIDsText( final TopologyType  topo,
                                              int       rowID_start,
                                              int       rowID_final )
         {
@@ -239,7 +240,7 @@ public class InfoPanelForSummary extends JPanel
             }
         }
 
-        private int   getPrintStatus( final Topology topo )
+        private int   getPrintStatus( final TopologyType topo )
         {
             if ( topo.isState() )
                 if ( SummaryState.isDisplayTypeEqualWeighted() )
@@ -275,7 +276,7 @@ public class InfoPanelForSummary extends JPanel
         public void setTimeAveBoxText( final TimeAveBox  avebox )
         {
             StringBuffer       linebuf;
-            Topology           avebox_topo;
+            TopologyType           avebox_topo;
             CategoryTimeBox[]  typeboxes;
             CategoryWeightF    twgf;
             String             twgf_str;

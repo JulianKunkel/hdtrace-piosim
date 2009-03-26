@@ -23,8 +23,8 @@ import viewer.common.PreferenceFrame;
 import viewer.common.SwingWorker;
 import viewer.common.TopWindow;
 import viewer.legends.LegendFrame;
+import viewer.pvfs2.PVFS2Slog2FileParser;
 import viewer.timelines.TimelineFrame;
-import viewer.zoomable.PVFS2Slog2FileParser;
 
 
 public class LogFileOperations

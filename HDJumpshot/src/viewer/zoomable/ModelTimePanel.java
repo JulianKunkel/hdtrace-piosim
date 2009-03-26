@@ -18,7 +18,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import viewer.common.Const;
+import viewer.common.Debug;
 import viewer.common.LabeledTextField;
+import viewer.common.TimeEvent;
+import viewer.common.TimeListener;
 
 public class ModelTimePanel extends JPanel
                             implements TimeListener

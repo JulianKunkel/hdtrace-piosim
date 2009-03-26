@@ -14,6 +14,8 @@ import java.awt.event.*;
 import java.net.*;
 import javax.swing.*;
 
+import viewer.common.Debug;
+
 public class ActionVportDown implements ActionListener
 {
     private JScrollBar   scrollbar;

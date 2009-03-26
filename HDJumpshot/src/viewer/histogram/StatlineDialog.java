@@ -15,11 +15,10 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.WindowConstants;
 
+import viewer.dialog.InitializableDialog;
 import viewer.zoomable.ActionTimelineRestore;
-import viewer.zoomable.InitializableDialog;
 import viewer.zoomable.ViewportTimeYaxis;
-import base.drawable.TimeBoundingBox;
-import base.statistics.BufForTimeAveBoxes;
+import drawable.TimeBoundingBox;
 
 public class StatlineDialog extends InitializableDialog
 {
@@ -27,7 +26,6 @@ public class StatlineDialog extends InitializableDialog
 
     public StatlineDialog( final Dialog              ancestor_dialog,
                            final TimeBoundingBox     timebox,
-                           final BufForTimeAveBoxes  buf4statboxes,
                            ActionTimelineRestore restore,
                            ViewportTimeYaxis  canvas_viewport)
     {
@@ -36,7 +34,7 @@ public class StatlineDialog extends InitializableDialog
                               + (float)timebox.getLatestTime() + " ]" );
         super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
 
-        top_panel = new StatlinePanel( this, timebox, buf4statboxes, restore, canvas_viewport );
+        top_panel = new StatlinePanel( this, timebox, restore, canvas_viewport );
         setContentPane( top_panel );
 
         addWindowListener( new WindowAdapter() {

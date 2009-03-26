@@ -18,7 +18,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import base.topology.StateBorder;
+import drawable.StateBorder;
+
 
 public class PreferencePanel extends JPanel
 {

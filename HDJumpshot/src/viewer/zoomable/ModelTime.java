@@ -18,10 +18,13 @@ import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.event.EventListenerList;
 
+import viewer.common.Debug;
 import viewer.common.Dialogs;
 import viewer.common.Parameters;
-import base.drawable.TimeBoundingBox;
+import viewer.common.TimeEvent;
+import viewer.common.TimeListener;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import drawable.TimeBoundingBox;
 
 /*
    This is the Model( as in MVC architecture ) that determines the 

@@ -16,9 +16,10 @@ import java.awt.Graphics2D;
 
 import javax.swing.Icon;
 
+import drawable.Category;
+import drawable.TopologyType;
+
 import viewer.common.Parameters;
-import base.drawable.Category;
-import base.drawable.Topology;
 
 public class CategoryIcon implements Icon
 {
@@ -56,13 +57,13 @@ public class CategoryIcon implements Icon
 	{	
 		Color old_color = g.getColor();
 		
-		if ( type.getTopology() == Topology.EVENT)
+		if ( type.getTopology() == TopologyType.EVENT)
 			this.paintEventIcon( g, x, y );
-		else if ( type.getTopology() == Topology.STATE)
+		else if ( type.getTopology() == TopologyType.STATE)
 			this.paintStateIcon( g, x, y );
-		else if ( type.getTopology() == Topology.ARROW)
+		else if ( type.getTopology() == TopologyType.ARROW)
 			this.paintArrowIcon( g, x, y );
-		else if ( type.getTopology() == Topology.STATISTIC)
+		else if ( type.getTopology() == TopologyType.STATISTIC)
 			this.paintStatisticIcon( g, x, y );		
 		else
 			this.paintBlankIcon( g, x, y );

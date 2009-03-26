@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import viewer.common.Debug;
 import viewer.timelines.CanvasTimeline;
 
 /**
