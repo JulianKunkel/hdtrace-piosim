@@ -23,7 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -91,7 +91,7 @@ public class TextWriter extends TraceOutputWriter {
 
 	@Override
 	public void Statistics(TopologyInternalLevel topology, Epoch time, String name,
-			ExternalStatisticsGroup group, Object value) {
+			StatisticsGroupDescription group, Object value) {
 		String unit = "";
 		if(group.getStatistic(name).getUnit() != null){
 			unit = " " + group.getStatistic(name).getUnit(); 

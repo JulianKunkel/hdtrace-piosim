@@ -75,7 +75,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 				StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
 				if(state.hasNestedTraceChildren()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-					eventTime = currentTraceEntry.getTimeStamp();		
+					eventTime = currentTraceEntry.getEarliestTime();		
 
 					stateStart = true;
 					return;
@@ -88,13 +88,13 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			
 			if(state.hasNestedTraceChildren()){
 				currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-				eventTime = currentTraceEntry.getTimeStamp();		
+				eventTime = currentTraceEntry.getEarliestTime();		
 				
 				stateStart = true;
 			}else{
 				// finish State now
 				stateStart = false;
-				eventTime = state.getEndTime();			
+				eventTime = state.getLatestTime();			
 			}
 			
 			return;
@@ -106,7 +106,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		if(currentTraceEntry == null)
 			return;
 				
-		eventTime = currentTraceEntry.getTimeStamp();		
+		eventTime = currentTraceEntry.getEarliestTime();		
 	}
 		
 	@Override
@@ -127,11 +127,11 @@ public class TraceProcessor extends AbstractTraceProcessor{
 				
 				if(state.hasNestedTraceChildren()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-					eventTime = currentTraceEntry.getTimeStamp();					
+					eventTime = currentTraceEntry.getEarliestTime();					
 					stateStart = true;
 				}else{
 					stateStart = false;				
-					eventTime = state.getEndTime();
+					eventTime = state.getLatestTime();
 				}
 			}else{
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))

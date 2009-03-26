@@ -24,7 +24,7 @@ import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
@@ -44,7 +44,7 @@ public class TraceFormatWriter {
 
 	static class OutFiles{
 		TraceWriter traceWriter;
-		HashMap<ExternalStatisticsGroup, StatisticWriter> registeredStatisticWriter = new HashMap<ExternalStatisticsGroup, StatisticWriter>();
+		HashMap<StatisticsGroupDescription, StatisticWriter> registeredStatisticWriter = new HashMap<StatisticsGroupDescription, StatisticWriter>();
 	}
 
 	// map a single process id to the corresponding trace writer.
@@ -93,7 +93,7 @@ public class TraceFormatWriter {
 	 * Add a statistic group for output. 
 	 * @param group
 	 */
-	public void addStatisticGroup(ExternalStatisticsGroup group){
+	public void addStatisticGroup(StatisticsGroupDescription group){
 		outProject.addExternalStatisticsGroup(group);
 	}
 
@@ -130,8 +130,8 @@ public class TraceFormatWriter {
 	}
 
 	public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic,
-			ExternalStatisticsGroup group, Object value) {
-		final HashMap<ExternalStatisticsGroup, StatisticWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
+			StatisticsGroupDescription group, Object value) {
+		final HashMap<StatisticsGroupDescription, StatisticWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
 
 		StatisticWriter outWriter = stats.get(group);
 

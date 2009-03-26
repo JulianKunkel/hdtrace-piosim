@@ -11,7 +11,7 @@ package viewer.zoomable;
 
 import javax.swing.JPanel;
 
-import drawable.DrawObjects;
+import de.hd.pvs.TraceFormat.TraceObject;
 
 
 /*
@@ -19,5 +19,5 @@ import drawable.DrawObjects;
 */
 public abstract class SearchPanel extends JPanel
 {
-     public abstract DrawObjects  getSearchedDrawable();
+     public abstract TraceObject  getSearchedDrawable();
 }

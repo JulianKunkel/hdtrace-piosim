@@ -27,7 +27,7 @@ public class ActionSearchInit implements ActionListener
 
     public void actionPerformed( ActionEvent event )
     {
-        canvas_vport.searchInit();
+        canvas_vport.searchInitFromDialogPosition();
 
         if ( Debug.isActive() )
             Debug.println( "Action for Search Initialize button. " );

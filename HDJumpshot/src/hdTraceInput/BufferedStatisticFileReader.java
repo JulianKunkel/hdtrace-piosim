@@ -2,7 +2,7 @@ package hdTraceInput;
 
 import java.util.ArrayList;
 
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -14,12 +14,12 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 	
 	ArrayList<StatisticGroupEntry> statEntries = new ArrayList<StatisticGroupEntry>();
 	
-	public BufferedStatisticFileReader(String filename, ExternalStatisticsGroup group) throws Exception{
+	public BufferedStatisticFileReader(String filename, StatisticsGroupDescription group) throws Exception{
 		super(filename, group);
 		
 		StatisticGroupEntry current = getNextInputEntry();
 		
-		minTime = current.getTimeStamp();
+		minTime = current.getEarliestTime();
 		
 		while(current != null){
 			statEntries.add(current);
@@ -27,7 +27,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			current = getNextInputEntry();
 		}
 		
-		maxTime = statEntries.get(statEntries.size()-1).getTimeStamp();
+		maxTime = statEntries.get(statEntries.size()-1).getEarliestTime();
 	}
 	
 	public StatisticGroupEntry getTraceEntryClosestToTime(Epoch dTime){
@@ -43,7 +43,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			} 
 			// not found => continue bin search:
 			
-			if ( entry.getTimeStamp().compareTo(dTime) >= 0 ){
+			if ( entry.getEarliestTime().compareTo(dTime) >= 0 ){
 				max = cur;
 			}else{
 				min = cur + 1;

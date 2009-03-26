@@ -20,7 +20,7 @@ package de.hd.pvs.TraceFormat.index;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
@@ -52,7 +52,7 @@ public class IndexCreator {
 		XMLTraceEntry entry = reader.getNextInputEntry();
 		while(entry != null){
 			
-			writer.writeNextEntry(entry.getTimeStamp(), reader.getFilePosition());
+			writer.writeNextEntry(entry.getEarliestTime(), reader.getFilePosition());
 			
 			entry = reader.getNextInputEntry();
 		}
@@ -78,7 +78,7 @@ public class IndexCreator {
 		preader.readProjectDescription(desc, projectFile);
 				
 		final String inputFile = topology.getStatisticFileName(group);
-		final ExternalStatisticsGroup realGroup = desc.getExternalStatisticsGroup(group);
+		final StatisticsGroupDescription realGroup = desc.getExternalStatisticsGroup(group);
 		if(realGroup == null){
 			throw new IllegalArgumentException("Group \"" + group + "\" does not exisist");
 		}
@@ -94,7 +94,7 @@ public class IndexCreator {
 	 * @param group
 	 * @throws Exception
 	 */
-	public void createIndexForStatisticFile(String inputFile, ExternalStatisticsGroup group) throws Exception{
+	public void createIndexForStatisticFile(String inputFile, StatisticsGroupDescription group) throws Exception{
 		final int dotPos = inputFile.lastIndexOf('.');		
 		final String outFileName = inputFile.substring(0, dotPos) + ".idx";
 		
@@ -105,7 +105,7 @@ public class IndexCreator {
 		StatisticGroupEntry entry = reader.getNextInputEntry();
 		while(entry != null){
 			
-			writer.writeNextEntry(entry.getTimeStamp(), reader.getFilePosition());
+			writer.writeNextEntry(entry.getEarliestTime(), reader.getFilePosition());
 			
 			entry = reader.getNextInputEntry();
 		}

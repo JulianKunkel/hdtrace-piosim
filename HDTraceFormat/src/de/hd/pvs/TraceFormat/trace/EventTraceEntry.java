@@ -21,6 +21,7 @@ package de.hd.pvs.TraceFormat.trace;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 
 public class EventTraceEntry extends XMLTraceEntry{
@@ -33,6 +34,11 @@ public class EventTraceEntry extends XMLTraceEntry{
 	@Override
 	public TraceObjectType getType() {		
 		return TraceObjectType.EVENT;
+	}
+	
+	@Override
+	public Epoch getLatestTime() {
+		return getEarliestTime();
 	}
 	
 	

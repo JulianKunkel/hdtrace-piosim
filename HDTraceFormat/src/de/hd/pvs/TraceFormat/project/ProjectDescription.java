@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 
@@ -44,9 +44,9 @@ public class ProjectDescription {
 	private int processCount = 0;	
 
 	// available statistics
-	final HashMap<String, ExternalStatisticsGroup> statisticGroupDescriptions = new HashMap<String, ExternalStatisticsGroup>();
+	final HashMap<String, StatisticsGroupDescription> statisticGroupDescriptions = new HashMap<String, StatisticsGroupDescription>();
 	
-	public void addExternalStatisticsGroup(ExternalStatisticsGroup group){
+	public void addExternalStatisticsGroup(StatisticsGroupDescription group){
 		statisticGroupDescriptions.put(group.getName(), group);
 	}
 	
@@ -54,11 +54,11 @@ public class ProjectDescription {
 		return statisticGroupDescriptions.keySet();
 	}
 	
-	public Collection<ExternalStatisticsGroup> getExternalStatisticGroups(){
+	public Collection<StatisticsGroupDescription> getExternalStatisticGroups(){
 		return statisticGroupDescriptions.values();
 	}
 	
-	public ExternalStatisticsGroup getExternalStatisticsGroup(String groupName){
+	public StatisticsGroupDescription getExternalStatisticsGroup(String groupName){
 		return statisticGroupDescriptions.get(groupName);
 	}
 	

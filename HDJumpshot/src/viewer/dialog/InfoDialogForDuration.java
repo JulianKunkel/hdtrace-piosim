@@ -9,18 +9,22 @@
 
 package viewer.dialog;
 
-import java.text.NumberFormat;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
 import java.text.DecimalFormat;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.text.NumberFormat;
 
-import drawable.TimeBoundingBox;
+import javax.swing.BoxLayout;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import viewer.common.Const;
 import viewer.common.Routines;
 import viewer.common.TimeFormat;
 import viewer.zoomable.ScrollableObject;
+import drawable.TimeBoundingBox;
 
 public class InfoDialogForDuration extends InfoDialog
 {
@@ -97,15 +101,6 @@ public class InfoDialogForDuration extends InfoDialog
         JScrollPane scroller = new JScrollPane( text_area );
         scroller.setAlignmentX( Component.LEFT_ALIGNMENT );
         root_panel.add( scroller );
-
-        if ( scrollable instanceof SummarizableView ) {
-            SummarizableView  summarizable;
-            JPanel           ops4d_panel;
-            summarizable = (SummarizableView) scrollable;  // CanvasXXXXline
-            ops4d_panel  = new OperationDurationPanel( timebox, summarizable );
-            ops4d_panel.setAlignmentX( Component.LEFT_ALIGNMENT );
-            root_panel.add( ops4d_panel );
-        }
 
         root_panel.add( super.getCloseButtonPanel() );
     }

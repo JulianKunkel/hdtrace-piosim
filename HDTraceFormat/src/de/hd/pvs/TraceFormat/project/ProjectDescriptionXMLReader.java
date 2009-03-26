@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
@@ -87,7 +87,7 @@ public class ProjectDescriptionXMLReader {
 		if(element != null){
 			final LinkedList<XMLTag> children = element.getNestedXMLTags(); 
 			for(XMLTag stat: children){
-				ExternalStatisticsGroup out = parseStatisticGroupInXML(stat);
+				StatisticsGroupDescription out = parseStatisticGroupInXML(stat);
 				descriptionInOut.addExternalStatisticsGroup(out);
 			}
 		}
@@ -135,8 +135,8 @@ public class ProjectDescriptionXMLReader {
 	}
 	
 		
-	private ExternalStatisticsGroup parseStatisticGroupInXML(XMLTag root){
-		ExternalStatisticsGroup stat = new ExternalStatisticsGroup();
+	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
+		StatisticsGroupDescription stat = new StatisticsGroupDescription();
 		stat.setName(root.getName());
 		//System.out.println("Statistics: " + root.getNodeName());
 		

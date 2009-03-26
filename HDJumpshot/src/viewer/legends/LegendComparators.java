@@ -10,9 +10,8 @@ package viewer.legends;
 
 import java.util.Comparator;
 
-import drawable.Category;
-
 import viewer.common.Parameters;
+import drawable.Category;
 
 public class LegendComparators
 {
@@ -31,7 +30,7 @@ public class LegendComparators
         {
             Category type1 = (Category) o1;
             Category type2 = (Category) o2;
-            return type1.getTopology().ordinal() - type2.getTopology().ordinal();            
+            return type1.getTopologyType().ordinal() - type2.getTopologyType().ordinal();            
         }
     }
 
@@ -41,8 +40,7 @@ public class LegendComparators
         {
             Category type1      = (Category) o1;
             Category type2      = (Category) o2;
-            return   type2.getTopology().hashCode()
-                   - type1.getTopology().hashCode();
+            return   type2.getTopologyType().hashCode() - type1.getTopologyType().hashCode();
             // intentionally reversed, so arrow < state < event
         }
     }

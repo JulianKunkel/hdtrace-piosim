@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -43,7 +43,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 	private Epoch nextTimeStamp;
 
-	private ExternalStatisticsGroup group;
+	private StatisticsGroupDescription group;
 
 	private static class StatisticWritten{
 		Object lastValue;		
@@ -66,7 +66,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			currentOffset = reader.getFilePosition();
 			lastRead = reader.getNextInputEntry();
 			if(! reader.isFinished()){
-				nextTimeStamp = lastRead.getTimeStamp();
+				nextTimeStamp = lastRead.getEarliestTime();
 			}
 		}
 	}

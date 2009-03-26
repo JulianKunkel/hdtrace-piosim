@@ -49,7 +49,7 @@ public class ModelInfo
 		
 		StatisticGroupEntry groupEntry = statistic.getParentGroupEntry();
 		StatisticDescription desc = statistic.getDescription();
-		final double time = reader.subtractGlobalMinTimeOffset(groupEntry.getTimeStamp());
+		final double time = reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime());
 		
 		this.setStartTime( "" );
 		this.setEndTime( "" + time);
@@ -70,8 +70,8 @@ public class ModelInfo
 	public void showInfo( StateTraceEntry state ) {
 		reset();
 		
-		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getTimeStamp())  );
-		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(state.getEndTime()) );
+		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
+		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(state.getLatestTime()) );
 
 		this.setDuration( fmt.format( state.getDurationTimeDouble() ) );
 		final Category cat = reader.getCategory(state); 
@@ -82,7 +82,7 @@ public class ModelInfo
 	public void showInfo( EventTraceEntry event ) {
 		reset();
 		
-		final double time = reader.subtractGlobalMinTimeOffset(event.getTimeStamp());
+		final double time = reader.subtractGlobalMinTimeOffset(event.getEarliestTime());
 		
 		this.setStartTime( "" + time  );
 		this.setEndTime( "" + time );

@@ -31,9 +31,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 public class StatisticsReader implements StatisticSource{
 	final RandomAccessFile file;	
-	final ExternalStatisticsGroup group;
+	final StatisticsGroupDescription group;
 
-	public StatisticsReader(String filename, ExternalStatisticsGroup group) throws Exception {
+	public StatisticsReader(String filename, StatisticsGroupDescription group) throws Exception {
 		this.group = group;
 		this.file = new RandomAccessFile(filename, "r");
 	}
@@ -118,7 +118,7 @@ public class StatisticsReader implements StatisticSource{
 		}
 	}
 	
-	public ExternalStatisticsGroup getGroup() {
+	public StatisticsGroupDescription getGroup() {
 		return group;
 	}
 

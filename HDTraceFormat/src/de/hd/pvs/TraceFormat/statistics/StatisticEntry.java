@@ -2,6 +2,7 @@ package de.hd.pvs.TraceFormat.statistics;
 
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
  * A single read statistic value.
@@ -41,4 +42,13 @@ public class StatisticEntry implements TraceObject {
 		return TraceObjectType.STATISTICENTRY;
 	}
 	
+	@Override
+	public Epoch getEarliestTime() {
+		return parentGroupEntry.getEarliestTime();
+	}	
+	
+	@Override
+	public Epoch getLatestTime() {	
+		return parentGroupEntry.getLatestTime();
+	}
 }

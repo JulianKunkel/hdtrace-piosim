@@ -23,7 +23,7 @@ import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -89,7 +89,7 @@ public class HDTraceWriter extends TraceOutputWriter {
 
 	@Override
 	public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic,
-			ExternalStatisticsGroup group, Object value) {
+			StatisticsGroupDescription group, Object value) {
 		if(writer.getProjectDescription().getExternalStatisticsGroup(group.getName()) == null){
 			writer.addStatisticGroup(group);
 		}

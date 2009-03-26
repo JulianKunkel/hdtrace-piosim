@@ -9,11 +9,13 @@ import topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
 import viewer.legends.LegendTableModel;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
+import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -22,8 +24,10 @@ import de.hd.pvs.TraceFormat.trace.TraceSource;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
+import drawable.CategoryEvent;
+import drawable.CategoryState;
+import drawable.CategoryStatistic;
 import drawable.ColorAlpha;
-import drawable.TopologyType;
 
 /**
  * Manages information for different projects.
@@ -46,7 +50,7 @@ public class TraceFormatBufferedFileReader {
 	HashMap<String, Category> categoriesEvents = new HashMap<String, Category>();
 	HashMap<String, Category> categoriesStatistics = new HashMap<String, Category>();
 	
-	HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<ExternalStatisticsGroup, GlobalStatisticStatsPerGroup>(); 
+	HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
 
 	public double subtractGlobalMinTimeOffset(Epoch time){
@@ -83,7 +87,7 @@ public class TraceFormatBufferedFileReader {
 			final BufferedStatisticFileReader reader = ((BufferedStatisticFileReader) statReader);
 			updateMinMaxTime(reader);
 			
-			final ExternalStatisticsGroup group = reader.getGroup();
+			final StatisticsGroupDescription group = reader.getGroup();
 			
 			final GlobalStatisticStatsPerGroup globalStats = new GlobalStatisticStatsPerGroup(group);
 			globalStatStats.put(group, globalStats);
@@ -143,10 +147,10 @@ public class TraceFormatBufferedFileReader {
 		
 		if(entry.getType() == TraceObjectType.STATE){		
 			if(! categoriesStates.containsKey(catName))
-				categoriesStates.put( catName, new Category(catName, TopologyType.STATE, new ColorAlpha(20,00,0)));
+				categoriesStates.put( catName, new CategoryState(catName, new ColorAlpha(20,00,0)));
 		}if(entry.getType() == TraceObjectType.EVENT){
 			if(! categoriesEvents.containsKey(catName))
-				categoriesEvents.put( catName, new Category(catName, TopologyType.EVENT, new ColorAlpha(20,00,0)));
+				categoriesEvents.put( catName, new CategoryEvent(catName, new ColorAlpha(20,00,0)));
 		}
 	}
 
@@ -167,11 +171,11 @@ public class TraceFormatBufferedFileReader {
      * @param fileOpener
      */
     private void updateStatisticCategories(TraceFormatFileOpener fileOpener){
-        for(ExternalStatisticsGroup group: fileOpener.getProjectDescription().getExternalStatisticGroups()){
+        for(StatisticsGroupDescription group: fileOpener.getProjectDescription().getExternalStatisticGroups()){
         	for(StatisticDescription desc: group.getStatisticsOrdered()){
         		final String name = group.getName() + ":" + desc.getName(); 
         		if(!categoriesStatistics.containsKey(name)){
-        			categoriesStatistics.put(name, new Category(name, TopologyType.STATISTIC, new ColorAlpha(0,0,200)));
+        			categoriesStatistics.put(name, new CategoryStatistic(name, new ColorAlpha(0,0,200)));
         		}
         	}
         }        	
@@ -269,7 +273,22 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStates.get(entry.getName());
 	}
 	
-	public Category getCategory(ExternalStatisticsGroup group, String statistic){
+	public Category getCategory(TraceObject object){
+		switch(object.getType()){
+		case EVENT:
+			return getCategory((EventTraceEntry) object);			
+		case STATISTICGROUPVALUES:
+			return null;
+		case STATE:
+			return getCategory((StateTraceEntry) object);
+		case STATISTICENTRY:
+			StatisticEntry entry = (StatisticEntry) object;
+			return getCategory(entry.getParentGroupEntry().getGroup(), entry.getDescription().getName());
+		}
+		return null;	
+	}
+	
+	public Category getCategory(StatisticsGroupDescription group, String statistic){
 		return categoriesStatistics.get(group.getName() + ":" + statistic);
 	}
 	
@@ -277,7 +296,7 @@ public class TraceFormatBufferedFileReader {
 		return loadedFiles.get(fileNumber).getProjectDescription().getExternalStatisticGroupNames();
 	}
 	
-	public GlobalStatisticStatsPerGroup getGlobalStatStats(ExternalStatisticsGroup group) {
+	public GlobalStatisticStatsPerGroup getGlobalStatStats(StatisticsGroupDescription group) {
 		return globalStatStats.get(group);
 	}
 	

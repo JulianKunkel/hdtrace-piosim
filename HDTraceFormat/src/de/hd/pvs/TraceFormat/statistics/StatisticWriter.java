@@ -33,13 +33,13 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 public class StatisticWriter {
 	private final DataOutputStream file;	
-	private final ExternalStatisticsGroup group;
+	private final StatisticsGroupDescription group;
 	
 	private Epoch lastTimeStamp = null;
 
 	private Iterator<StatisticDescription> nextExpectedStatisticIter = null;
 	
-	public StatisticWriter(String filename, ExternalStatisticsGroup newGroup) throws Exception {
+	public StatisticWriter(String filename, StatisticsGroupDescription newGroup) throws Exception {
 		this.group = newGroup;
 		this.file = new DataOutputStream(new FileOutputStream(filename));
 	}
@@ -114,7 +114,7 @@ public class StatisticWriter {
 		}
 	}
 	
-	public ExternalStatisticsGroup getOutputGroup() {
+	public StatisticsGroupDescription getOutputGroup() {
 		return group;
 	}
 }

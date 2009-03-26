@@ -30,7 +30,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 public class StatisticGroupEntry implements TraceObject{
 	
-	private final ExternalStatisticsGroup group;
+	private final StatisticsGroupDescription group;
 	
 	/**
 	 * Maps the statistic name to the measured value.
@@ -39,7 +39,7 @@ public class StatisticGroupEntry implements TraceObject{
 	
 	private final Epoch timeStamp; 
 		
-	public StatisticGroupEntry(Object [] values, Epoch timeStamp, ExternalStatisticsGroup group) {
+	public StatisticGroupEntry(Object [] values, Epoch timeStamp, StatisticsGroupDescription group) {
 		this.group = group;
 		this.values = values;
 		this.timeStamp = timeStamp;
@@ -65,7 +65,12 @@ public class StatisticGroupEntry implements TraceObject{
 		return new StatisticEntry(values[which], group.getStatisticsOrdered().get(which) , this);
 	}
 	
-	public Epoch getTimeStamp() {
+	public Epoch getEarliestTime() {
+		return timeStamp;
+	}
+	
+	@Override
+	public Epoch getLatestTime() {
 		return timeStamp;
 	}
 	
@@ -74,7 +79,7 @@ public class StatisticGroupEntry implements TraceObject{
 		return TraceObjectType.STATISTICGROUPVALUES;
 	}
 	
-	public ExternalStatisticsGroup getGroup() {
+	public StatisticsGroupDescription getGroup() {
 		return group;
 	}
 }

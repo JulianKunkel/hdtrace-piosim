@@ -59,9 +59,11 @@ public abstract class XMLTraceEntry extends XMLTag implements TraceObject{
 
 	}
 
-
-	public Epoch getTimeStamp() {
+	@Override
+	public Epoch getEarliestTime() {
 		return time;
 	}
+	
+	
 
 }

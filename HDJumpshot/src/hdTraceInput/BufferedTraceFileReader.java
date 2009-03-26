@@ -19,7 +19,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 
 		XMLTraceEntry current = getNextInputEntry();
 
-		minTime = current.getTimeStamp();
+		minTime = current.getEarliestTime();
 
 		while(current != null){
 			traceEntries.add(current);
@@ -27,7 +27,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 			current = getNextInputEntry();
 		}
 
-		maxTime = traceEntries.get(traceEntries.size()-1).getTimeStamp();
+		maxTime = traceEntries.get(traceEntries.size()-1).getEarliestTime();
 	}
 
 	public ArrayList<XMLTraceEntry> getTraceEntries() {
@@ -87,7 +87,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 			} 
 			// not found => continue bin search:
 			
-			if ( entry.getTimeStamp().compareTo(dTime) >= 0){
+			if ( entry.getEarliestTime().compareTo(dTime) >= 0){
 				max = cur;
 			}else{
 				min = cur + 1;

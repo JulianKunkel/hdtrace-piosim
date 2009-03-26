@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 
-public class ExternalStatisticsGroup{
+public class StatisticsGroupDescription{
 
 	/**
 	 * Describes the format of the Timestamp.
@@ -53,12 +53,12 @@ public class ExternalStatisticsGroup{
 	final HashMap<String, StatisticDescription> statisticTypeMap;
 	final ArrayList<StatisticDescription>      statisticOrder;
 
-	public ExternalStatisticsGroup() {
+	public StatisticsGroupDescription() {
 		statisticTypeMap = new HashMap<String, StatisticDescription>();
 		statisticOrder = new ArrayList<StatisticDescription>();
 	}
 
-	public ExternalStatisticsGroup(ArrayList<StatisticDescription> statisticOrder,
+	public StatisticsGroupDescription(ArrayList<StatisticDescription> statisticOrder,
 			HashMap<String, StatisticDescription> statisticTypeMap){
 		this.statisticOrder = statisticOrder;
 		this.statisticTypeMap = statisticTypeMap;

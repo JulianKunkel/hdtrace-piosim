@@ -22,7 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -65,7 +65,7 @@ public class ProjectDescriptionXMLWriter {
 		buff.append("<ExternalStatistics>\n");
 		
 		for(String groupName: desc.getExternalStatisticGroupNames()){
-			final ExternalStatisticsGroup group = desc.getExternalStatisticsGroup(groupName);
+			final StatisticsGroupDescription group = desc.getExternalStatisticsGroup(groupName);
 			buff.append("<" + group.getName() + " timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeOffset=\"" +
 					group.getTimeOffset()  + "\"");
 			if(group.getTimeResolutionMultiplierName() != null){

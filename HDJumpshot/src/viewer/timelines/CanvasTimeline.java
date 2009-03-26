@@ -14,7 +14,6 @@ import hdTraceInput.BufferedTraceFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics2D;
@@ -23,6 +22,7 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.util.Date;
+import java.util.Enumeration;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
@@ -37,22 +37,17 @@ import viewer.common.Profile;
 import viewer.common.Routines;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTraceObjects;
-import viewer.dialog.InitializableDialog;
-import viewer.dialog.SummarizableView;
-import viewer.histogram.StatlineDialog;
 import viewer.legends.CategoryUpdatedListener;
-import viewer.zoomable.ActionTimelineRestore;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableObject;
-import viewer.zoomable.SearchPanel;
+import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
-import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
@@ -62,8 +57,7 @@ import drawable.ColorAlpha;
 import drawable.DrawObjects;
 import drawable.TimeBoundingBox;
 
-public class CanvasTimeline extends ScrollableObject
-implements SearchableView, SummarizableView
+public class CanvasTimeline extends ScrollableObject implements SearchableView
 {
 	private TopologyManager    timelineManager;
 	private BoundedRangeModel  y_model;
@@ -75,17 +69,16 @@ implements SearchableView, SummarizableView
 	private int                row_height;
 
 	private Date               zero_time, init_time, final_time;
-	private ActionTimelineRestore restore;
-	private ViewportTimeYaxis  canvas_viewport;
+
 	final private TraceFormatBufferedFileReader reader;
-	
+
 	private class MyTopologyChangeListener implements TopologyChangeListener{
 		@Override
 		public void topologyChanged() {
 			forceRedraw();
 		}
 	}
-	
+
 	private MyTopologyChangeListener topologyChangeListener = new MyTopologyChangeListener();
 
 	// gets triggered if the visibility of an category is changed
@@ -94,18 +87,12 @@ implements SearchableView, SummarizableView
 		public void categoryVisibilityChanged() {
 			forceRedraw();
 		}
-		
+
 		@Override
 		public void categoryColorChanged() {
 			forceRedraw();
 		}
 	};
-	
-	public void setRequired(ActionTimelineRestore restore,
-			ViewportTimeYaxis  canvas_viewport){
-		this.canvas_viewport = canvas_viewport;
-		this.restore = restore;
-	}
 
 	public CanvasTimeline( ModelTime           time_model,
 			TraceFormatBufferedFileReader reader,
@@ -121,9 +108,9 @@ implements SearchableView, SummarizableView
 		timeframe4imgs  = null;
 
 		root_frame      = null;
-		
+
 		reader.getLegendModel().addVisibilityChangedListener(categoryVisibleListener);
-		
+
 		timelineManager.addTopologyChangedListener(topologyChangeListener);
 	}
 
@@ -150,7 +137,7 @@ implements SearchableView, SummarizableView
 	{
 		int rows_size = timelineManager.getRowCount() * timelineManager.getRowHeight();
 		int view_size = y_model.getMaximum() - y_model.getMinimum() + 1;
-	
+
 		if ( view_size > rows_size )
 			return view_size;
 		else
@@ -268,10 +255,8 @@ implements SearchableView, SummarizableView
 				drawTraceTimeline(i, timelineManager.getTraceReaderForTimeline(i), offGraphics, timebounds, coord_xform);
 				break;
 			}
-				
-				
 		}
-		
+
 		offGraphics.dispose();
 	}   // endof drawOneOffImage()
 
@@ -281,17 +266,17 @@ implements SearchableView, SummarizableView
 			final TimeBoundingBox  timebounds, CoordPixelImage coord_xform)
 	{
 		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
-		
+
 		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
-		
+
 		final String statName = node.getStatisticName();
-		final ExternalStatisticsGroup group = sReader.getGroup();
-		
+		final StatisticsGroupDescription group = sReader.getGroup();
+
 		double lastTime = timebounds.getEarliestTime();
-		
+
 		final Category cat = reader.getCategory(group, statName);
 		final ColorAlpha color = cat.getColor();
-		
+
 		if(! cat.isVisible()){
 			return;
 		}
@@ -302,11 +287,11 @@ implements SearchableView, SummarizableView
 
 		for(StatisticGroupEntry entry: sReader.getStatEntries()){
 			double value =  (entry.getNumeric(statNumber) / maxValue);
-			final Epoch adaptedTime = entry.getTimeStamp().subtract(globalMinTime) ;
-			
+			final Epoch adaptedTime = entry.getEarliestTime().subtract(globalMinTime) ;
+
 			DrawObjects.drawStatistic(offGraphics, coord_xform, 
 					adaptedTime, lastTime, (float) value, color , timeline);
-			
+
 			lastTime = adaptedTime.getDouble();
 		}
 	}
@@ -320,7 +305,7 @@ implements SearchableView, SummarizableView
 			TimeBoundingBox  timebounds, CoordPixelImage coord_xform
 	)
 	{
-		for(XMLTraceEntry entry: tr.getTraceEntries()){
+		for(XMLTraceEntry entry: tr.getTraceEntries()){			
 			// TODO only read necessary elements, bin search, also use index, partial file load ...
 			drawTraceElementRecursively(timeline, 0, timebounds, entry, tr, offGraphics, coord_xform);
 		}
@@ -340,10 +325,10 @@ implements SearchableView, SummarizableView
 			CoordPixelImage coord_xform)
 	{
 		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();		
-		
+
 		if(entry.getType() == TraceObjectType.EVENT){          
 			final EventTraceEntry event = (EventTraceEntry) entry;
-			
+
 			final Category category = reader.getCategory(event);
 			if(category.isVisible())
 				DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
@@ -354,7 +339,7 @@ implements SearchableView, SummarizableView
 
 			if(category.isVisible())
 				DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 
-					depth, timeline, globalMinTime);
+						depth, timeline, globalMinTime);
 
 			if(state.hasNestedTraceChildren()){
 				for(XMLTraceEntry child: state.getNestedTraceChildren()){
@@ -370,7 +355,7 @@ implements SearchableView, SummarizableView
 			final TimeBoundingBox  vport_timeframe ) 
 	{		 				
 		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
-		
+
 		CoordPixelImage coord_xform;  // Local Coordinate Transform
 		coord_xform = new CoordPixelImage( this, row_height, super.getTimeBoundsOfImages() );
 
@@ -424,12 +409,12 @@ implements SearchableView, SummarizableView
 								// no matching child
 								break;
 							}
-							
+
 						}
 					} // while
 					objMouse = best;
 				}				
-				
+
 				if(objMouse.getType() == TraceObjectType.STATE){
 					if(! reader.getCategoriesStates().get(objMouse.getName()).isVisible() ){
 						return null;
@@ -440,11 +425,11 @@ implements SearchableView, SummarizableView
 					}
 				}				
 			}else if(objMouse.getType() == TraceObjectType.EVENT){
-				double distance = Math.abs(objMouse.getTimeStamp().subtract(clickedTime).getDouble());
+				double distance = Math.abs(objMouse.getEarliestTime().subtract(clickedTime).getDouble());
 				if( distance >= eventRadius){
 					return null;
 				}
-				
+
 				if(! reader.getCategoriesEvents().get(objMouse.getName()).isVisible() ){
 					return null;
 				}
@@ -470,67 +455,159 @@ implements SearchableView, SummarizableView
 
 		TraceObject obj = getDrawableAt(local_click, vport_timeframe);
 		if( obj != null ){
-      CoordPixelImage coord_xform;
-      coord_xform = new CoordPixelImage( this, 0,
-                                         this.getTimeBoundsOfImages() );
-      Window          window;
-      window = SwingUtilities.windowForComponent( this );
+			CoordPixelImage coord_xform;
+			coord_xform = new CoordPixelImage( this, 0,
+					this.getTimeBoundsOfImages() );
+			Window          window;
+			window = SwingUtilities.windowForComponent( this );
 			return new InfoDialogForTraceObjects((Frame) window, 
 					coord_xform.convertPixelToTime(local_click.x), obj);
 		}
 
 		return super.getTimePropertyAt( local_click );
-	} 
+	}
+	
+	@Override
+	public SearchResults searchNextComponent(Epoch laterThan) {
+		TraceObject minObject = null;
+		// figure out the object with the smallest time over all timelines which is searchable
+		Epoch minTime = reader.getGlobalMaxTime();
+		int minTimeline = -1;
 
-
-	// NEW search starting from the specified time
-	public SearchPanel searchPreviousComponent( double searching_time )
-	{
-		//   Drawable  dobj = tree_search.previousDrawable( searching_time );
-		//   if ( dobj != null )
-		//       return this.createInfoPanelForDrawable( dobj );
-		//   else
-		return null;
+		for(int i=0; i < num_rows ; i++){			
+			switch (timelineManager.getType(i)){
+			case TRACE:
+				BufferedTraceFileReader tr = timelineManager.getTraceReaderForTimeline(i);
+				
+				traceElementLoop: 
+				for(XMLTraceEntry entry: tr.getTraceEntries()){
+					if(entry.getLatestTime().compareTo(laterThan) > 0){
+						if(entry.getType() == TraceObjectType.EVENT){
+							Category cat = reader.getCategory((EventTraceEntry) entry);
+							if(cat.isSearchable()){												
+								if( entry.getEarliestTime().compareTo(minTime) < 0){							
+									minObject = entry;
+									minTime = entry.getEarliestTime();
+									minTimeline = i;
+								}
+								// found one so break
+								break;
+							}							
+						}else if(entry.getType() == TraceObjectType.STATE){
+							StateTraceEntry state = (StateTraceEntry) entry;
+							Category cat = reader.getCategory(state);
+							// iterate through children if necessary:
+														
+							if(cat.isSearchable() && entry.getEarliestTime().compareTo(laterThan) > 0 ){												
+								if( entry.getEarliestTime().compareTo(minTime) < 0){							
+									minObject = entry;
+									minTime = entry.getEarliestTime();
+									minTimeline = i;
+								}
+								// the state is the one we are looking for.
+								break;
+							}
+							if(state.hasNestedTraceChildren()){
+								final Enumeration<XMLTraceEntry> children = state.childForwardEnumeration();
+								while(children.hasMoreElements()){
+									final XMLTraceEntry nestedChild = children.nextElement();
+									
+									if( nestedChild.getEarliestTime().compareTo(laterThan) <= 0 ){
+										continue;
+									}
+									
+									if( reader.getCategory(nestedChild).isSearchable()){												
+										if( entry.getEarliestTime().compareTo(minTime) < 0){							
+											minObject = nestedChild;
+											minTime = nestedChild.getEarliestTime();
+											minTimeline = i;
+										}
+										// found one so break
+										break traceElementLoop;
+									}	
+								}
+							}
+						}else{
+							throw new IllegalArgumentException("SearchNextComponent Invalid type " + entry.getType());
+						}
+					}
+				}
+				break;
+			}
+		}
+		return new SearchResults(minTimeline, minObject);
 	}
 
-	// CONTINUING search
-	public SearchPanel searchPreviousComponent()
-	{
-		//Drawable  dobj = tree_search.previousDrawable();
-		//if ( dobj != null )
-		//    return this.createInfoPanelForDrawable( dobj );
-		//else
-		// TODO SEARCH
-		return null;
-	}
+	@Override
+	public SearchResults searchPreviousComponent(Epoch earlierThan) {
 
-	// NEW search starting from the specified time
-	public SearchPanel searchNextComponent( double searching_time )
-	{
-		//TODO SEARCH
-		//Drawable  dobj = tree_search.nextDrawable( searching_time );
-		//if ( dobj != null )
-		//            return this.createInfoPanelForDrawable( dobj );
-		//      else
-		return null;
-	}
+		TraceObject minObject = null;
+		Epoch maxTime = Epoch.ZERO;
+		int minTimeline = -1;
 
-	// CONTINUING search
-	public SearchPanel searchNextComponent()
-	{
-		//   Drawable  dobj = tree_search.nextDrawable();
-		//   if ( dobj != null )
-		//       return this.createInfoPanelForDrawable( dobj );
-		//   else
-		return null;
-	}
-
-	// Interface for SummarizableView
-	public InitializableDialog createSummary( final Dialog          dialog,
-			final TimeBoundingBox timebox )
-	{
-		//buf4statboxes  = tree_search.createBufForTimeAveBoxes( timebox );
-		// System.out.println( "Statistics = " + buf4statboxes );
-		return new StatlineDialog( dialog, timebox, restore, canvas_viewport );
+		for(int i=0; i < num_rows ; i++){			
+			switch (timelineManager.getType(i)){
+			case TRACE:
+				BufferedTraceFileReader tr = timelineManager.getTraceReaderForTimeline(i);
+				
+				traceElementLoop: 
+				for(int te=tr.getTraceEntries().size() -1 ; te >= 0 ; te-- ){
+					XMLTraceEntry entry = tr.getTraceEntries().get(te);
+					
+					if(entry.getEarliestTime().compareTo(earlierThan) < 0){
+						if(entry.getType() == TraceObjectType.EVENT){
+							Category cat = reader.getCategory((EventTraceEntry) entry);
+							if(cat.isSearchable()){												
+								if( entry.getLatestTime().compareTo(maxTime) > 0){							
+									minObject = entry;
+									maxTime = entry.getLatestTime();
+									minTimeline = i;
+								}
+								// found one so break
+								break;
+							}							
+						}else if(entry.getType() == TraceObjectType.STATE){
+							StateTraceEntry state = (StateTraceEntry) entry;
+							Category cat = reader.getCategory(state);
+							// iterate through children if necessary:
+														
+							if(cat.isSearchable() && entry.getLatestTime().compareTo(earlierThan) < 0 ){												
+								if( entry.getLatestTime().compareTo(maxTime) > 0){							
+									minObject = entry;
+									maxTime = entry.getLatestTime();
+									minTimeline = i;
+								}
+								// the state is the one we are looking for.
+								break;
+							}
+							if(state.hasNestedTraceChildren()){
+								final Enumeration<XMLTraceEntry> children = state.childBackwardEnumeration();
+								while(children.hasMoreElements()){
+									final XMLTraceEntry nestedChild = children.nextElement();
+									
+									if( nestedChild.getLatestTime().compareTo(earlierThan) >= 0 ){
+										continue;
+									}
+									
+									if( reader.getCategory(nestedChild).isSearchable()){												
+										if( entry.getLatestTime().compareTo(maxTime) > 0){							
+											minObject = nestedChild;
+											maxTime = nestedChild.getLatestTime();
+											minTimeline = i;
+										}
+										// found one so break
+										break traceElementLoop;
+									}	
+								}
+							}
+						}else{
+							throw new IllegalArgumentException("SearchNextComponent Invalid type " + entry.getType());
+						}
+					}
+				}
+				break;
+			}
+		}
+		return new SearchResults(minTimeline, minObject);
 	}
 }

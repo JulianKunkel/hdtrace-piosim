@@ -20,6 +20,7 @@ import viewer.common.Dialogs;
 import viewer.common.TopControl;
 import viewer.common.TopWindow;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
+import drawable.Category;
 
 public class Jumpshot extends JFrame
                         implements TopControl
@@ -35,6 +36,9 @@ public class Jumpshot extends JFrame
     {    	
         super( "HDJumpshot" );
         super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
+        
+        Category.loadColors("jumpshot-color.property");
+        
         TopWindow.First.setWindow( this );
 
         top_panel    = new FirstPanel( isApplet, filename, view_ID );

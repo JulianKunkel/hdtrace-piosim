@@ -11,12 +11,8 @@ package viewer.zoomable;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Stroke;
-import java.awt.Window;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
@@ -25,39 +21,34 @@ import java.awt.event.MouseEvent;
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
 
-import drawable.DrawObjects;
-
 import topology.TopologyManager;
 import viewer.common.Debug;
 import viewer.common.Dialogs;
-import viewer.common.Parameters;
 import viewer.dialog.InfoDialog;
-import viewer.dialog.SearchDialog;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
-public class ViewportTimeYaxis extends ViewportTime
-implements AdjustmentListener
+public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListener
 {
 	private static final Color    SEARCH_LINE_COLOR       = Color.yellow;
 	private static final int      SEARCH_ARROW_HALF_ANGLE = 15;          // deg
 	private static final double   SEARCH_ARROW_ANGLE      = Math.PI/6.0; // rad
-	private static final double   COS_SEARCH_ARROW_ANGLE
-	= Math.cos( SEARCH_ARROW_ANGLE );
-	private static final double   SIN_SEARCH_ARROW_ANGLE
-	= Math.sin( SEARCH_ARROW_ANGLE );
+	private static final double   COS_SEARCH_ARROW_ANGLE  = Math.cos( SEARCH_ARROW_ANGLE );
+	private static final double   SIN_SEARCH_ARROW_ANGLE  = Math.sin( SEARCH_ARROW_ANGLE );
 
 	private ModelTime             time_model      = null;
 	private BoundedRangeModel     y_model         = null;
-	private TopologyManager             tree_view       = null;
+	private TopologyManager       topologyManager       = null;
 
 	private Point                 view_pt         = null;
 	private ComponentEvent        resize_evt      = null;
 
+	private int     mouse_last_Yloc;
+	private double  ratio_ymodel2vportH;
+	
 	// searchable = view_img is both a Component and ScrollableView object
 	private SearchableView        searchable      = null;
-	private SearchDialog          search_dialog   = null;
-
-	private DrawObjects              searched_dobj   = null;
-	private double                searching_time;              
+	private Epoch                 searchingTime  = Epoch.ZERO;        
+	private SearchResults         searchResults   = null;
 
 	public ViewportTimeYaxis( final ModelTime time_axis_model, 
 			BoundedRangeModel yaxis_model, TopologyManager y_tree )
@@ -65,11 +56,10 @@ implements AdjustmentListener
 		super( time_axis_model );
 		time_model  = time_axis_model;
 		y_model     = yaxis_model;
-		tree_view   = y_tree;
+		topologyManager   = y_tree;
 		view_pt     = new Point( 0, 0 );
 		resize_evt  = new ComponentEvent( this,
 				ComponentEvent.COMPONENT_RESIZED );
-		searching_time = 0;
 	}
 
 	public void setView( Component view )
@@ -110,103 +100,7 @@ implements AdjustmentListener
 	{
 		super.componentResized( resize_evt );
 	}
-
-	private void drawMarkerForSearchedDrawable( Graphics g )
-	{
-		Stroke     orig_stroke;
-		Rectangle  dobj_rect;
-		Color      dobj_color, dobj_brighter_color, dobj_darker_color;
-		int        vport_width, vport_height;
-		int        radius, diameter;
-		int        arrow_Xoff, arrow_Yoff;
-		int        frame_thickness;
-		int        x1, y1, x2, y2, ii;
-
-		vport_width     = this.getWidth();
-		vport_height    = this.getHeight();
-		dobj_rect       = this.localRectangleForDrawable( searched_dobj );
-		// Draw a vertical line along the searched_time;
-		if ( dobj_rect.x >= 0 && dobj_rect.x < vport_width ) {
-			dobj_color           = searched_dobj.getCategory().getColor();
-			dobj_brighter_color  = dobj_color.brighter();
-			dobj_darker_color    = dobj_color.darker();
-
-			frame_thickness = Parameters.SEARCH_FRAME_THICKNESS;
-			radius          = Parameters.SEARCH_ARROW_LENGTH;
-			diameter        = 2 * radius;
-			arrow_Xoff      = (int) (radius*SIN_SEARCH_ARROW_ANGLE + 0.5d);
-			arrow_Yoff      = (int) (radius*COS_SEARCH_ARROW_ANGLE + 0.5d);
-
-			// Fill upper arrowhead with 2 shades of color
-			x1 = dobj_rect.x;
-			y1 = dobj_rect.y - frame_thickness;
-			g.setColor( dobj_color ); // g.setColor( Color.yellow );
-			g.fillArc( x1-radius, y1-radius, diameter, diameter,
-					90, -SEARCH_ARROW_HALF_ANGLE );
-			g.setColor( dobj_darker_color ); // g.setColor( Color.gray );
-			g.fillArc( x1-radius, y1-radius, diameter, diameter,
-					90-SEARCH_ARROW_HALF_ANGLE, -SEARCH_ARROW_HALF_ANGLE );
-			// Draw upper arrowhead with border
-			g.setColor( dobj_brighter_color ); // g.setColor( Color.gray );
-			g.drawLine( x1, y1, x1, y1-radius );
-			g.setColor( dobj_brighter_color ); // g.setColor( Color.white );
-			g.drawLine( x1, y1, x1+arrow_Xoff, y1-arrow_Yoff );
-
-			// Fill lower arrowhead with 2 shades of color
-			x2 = x1;
-			y2 = dobj_rect.y + dobj_rect.height + frame_thickness;
-			g.setColor( Color.yellow );
-			g.fillArc( x2-radius, y2-radius, diameter, diameter,
-					270, SEARCH_ARROW_HALF_ANGLE );
-			g.setColor( Color.darkGray );
-			g.fillArc( x2-radius, y2-radius, diameter, diameter,
-					270+SEARCH_ARROW_HALF_ANGLE, SEARCH_ARROW_HALF_ANGLE );
-			// Draw lower arrowhead with border
-			g.setColor( Color.gray );
-			g.drawLine( x2, y2, x2, y2+radius );
-			g.setColor( Color.white );
-			g.drawLine( x2, y2, x2+arrow_Xoff, y2+arrow_Yoff );
-		}
-
-		// Compute the intersecting rectangle % the Viewport & the drawable
-		dobj_rect = SwingUtilities.computeIntersection(
-				0, 0, vport_width, vport_height, dobj_rect );
-		if ( dobj_rect.x >= 0 ) {
-			if ( Parameters.SEARCHED_OBJECT_ON_TOP ) {
-				g.setColor( searched_dobj.getCategory().getColor() );
-				g.fillRect( dobj_rect.x, dobj_rect.y,
-						dobj_rect.width, dobj_rect.height );
-			}
-			frame_thickness = Parameters.SEARCH_FRAME_THICKNESS;
-			x1  = dobj_rect.x;
-			y1  = dobj_rect.y;
-			x2  = x1 + dobj_rect.width;
-			y2  = y1 + dobj_rect.height;
-			// Draw the innermost left & top with a dark color
-			g.setColor( Color.black );
-			ii = 0;
-			g.drawLine( x1-ii, y1-ii, x1-ii, y2+ii );  // left
-			g.drawLine( x1-ii, y1-ii, x2+ii, y1-ii );  // top
-			// Draw left & top with a bright color
-			g.setColor( Color.white );
-			for ( ii = 1; ii <= frame_thickness; ii++ ) {
-				g.drawLine( x1-ii, y1-ii, x1-ii, y2+ii );  // left
-				g.drawLine( x1-ii, y1-ii, x2+ii, y1-ii );  // top
-			}
-			// Draw the innermost right & bottom with a bright color
-			g.setColor( Color.white );
-			ii = 0;
-			g.drawLine( x2+ii, y1-ii, x2+ii, y2+ii );  // right
-			g.drawLine( x1-ii, y2+ii, x2+ii, y2+ii );  // bottom
-			// Draw right & bottom with a dark color
-			g.setColor( Color.darkGray );
-			for ( ii = 1; ii <= frame_thickness; ii++ ) {
-				g.drawLine( x2+ii, y1-ii, x2+ii, y2+ii );  // right
-				g.drawLine( x1-ii, y2+ii, x2+ii, y2+ii );  // bottom
-			}
-		}
-	}
-
+	
 	public void paint( Graphics g )
 	{
 		int   x_pos;
@@ -217,154 +111,66 @@ implements AdjustmentListener
 		super.paint( g );
 
 		// Draw a line at searching_time
-		if ( super.coord_xform.contains( searching_time ) ) {
-			x_pos = super.coord_xform.convertTimeToPixel( searching_time );
+		final double virtTime = searchingTime.subtract(time_model.getTimeGlobalMinimum()).getDouble();
+		if ( super.coord_xform.contains( virtTime ) ) {
+			x_pos = super.coord_xform.convertTimeToPixel( virtTime );
 			g.setColor( SEARCH_LINE_COLOR );
 			g.drawLine( x_pos, 0, x_pos, this.getHeight() );
 		}
-		// Draw marker around searched_dobj if it exists
-		if ( searched_dobj != null )
-			this.drawMarkerForSearchedDrawable( g );
 
 		if ( Debug.isActive() )
 			Debug.println( "ViewportTimeYaxis: paint()'s END: " );
 	}
 
-	public void eraseSearchedDrawable()
-	{
-		searched_dobj = null;
+	public void clearSearchResults()
+	{		
+		searchResults = null;
+		searchingTime = Epoch.ZERO;
 	}
-
-
-	private static final double INVALID_TIME   = Double.NEGATIVE_INFINITY;
-	private              double searched_time  = INVALID_TIME;
-
-	/*
-        searchBackward() is for ActionSearchBackward
-	 */
-	public boolean searchBackward()
-	{
-		SearchPanel  dobj_panel = null;
-
-		// searchBackward can only be called from TimelineFrame, JFrame.
-		if ( search_dialog == null ) {
-			Window window  = SwingUtilities.windowForComponent( this );
-			if ( window instanceof Frame )
-				search_dialog  = new SearchDialog( (Frame) window, this );
-			else
-				Dialogs.error( window,
-						"ViewportTimeYaxis.searchBackward() "
-						+ "is meant to be invoked from a top JFrame." );
+	
+	public void searchForward(){
+		final Epoch oldTime = searchingTime;
+		searchResults = searchable.searchNextComponent(searchingTime);
+		if(searchResults.wasSucessfull()){
+			searchingTime = searchResults.getObject().getEarliestTime();
+			
+			time_model.scroll( searchingTime.subtract(oldTime).getDouble() );	
+			
+			// Scroll the Y-axis as well so searchResults becomes visible			
+			topologyManager.scrollRowToVisible( searchResults.getTimeline() );
+		}else{
+			clearSearchResults();
+			
+			Dialogs.info( SwingUtilities.windowForComponent( this ), "Search forward has no more TraceObject to return.\n", null );
 		}
-
-		if ( searching_time != searched_time )
-			dobj_panel  = searchable.searchPreviousComponent( searching_time );
-		else
-			dobj_panel  = searchable.searchPreviousComponent();
-		if ( dobj_panel != null ) {
-			searched_dobj = dobj_panel.getSearchedDrawable();
-			searched_time = searched_dobj.getEarliestTime();
-			// Scroll the Time axis and set Time Focus at the drawable found.
-			time_model.scroll( searched_time - searching_time );
-			searching_time = searched_time;
-			// Scroll the Y-axis as well so searched_dobj becomes visible
-			tree_view.scrollRowToVisible( searched_dobj.getRowID() );
-			//  call this.paint( g );
-			this.repaint();
-
-			search_dialog.replace( dobj_panel );
-			if ( ! search_dialog.isVisible() )
-				search_dialog.setVisibleAtDefaultLocation();
-			return true;
-		}
-		else {
-			if (    searched_dobj != null
-					&& (    searched_dobj.getEarliestTime()
-							== time_model.getTimeGlobalMinimum() ) )
-				Dialogs.info( SwingUtilities.windowForComponent( this ),
-						"The FIRST drawable in the logfile has been "
-						+ "reached.\n  Search backward has no more "
-						+ "drawable to return.\n", null );
-			else
-				Dialogs.warn( SwingUtilities.windowForComponent( this ),
-						"If the logfile's beginning is not within view,\n"
-						+ "SCROLL BACKWARD till you see more drawables\n"
-						+ "are within view.  All drawables in view or in \n"
-						+ "the memory have been searched.\n" );
-			search_dialog.setVisible( false );
-			searched_dobj = null;
-			searched_time = INVALID_TIME;
-			this.repaint();
-			return false;
-		}
+		this.repaint();
 	}
+	
+	public void searchBackward(){
+		final Epoch oldTime = searchingTime;
+		searchResults = searchable.searchPreviousComponent(searchingTime);
+		if(searchResults.wasSucessfull()){
+			searchingTime = searchResults.getObject().getLatestTime();
 
-	/*
-        searchForward() is for ActionSearchForward
-	 */
-	public boolean searchForward()
+			time_model.scroll(  searchingTime.subtract(oldTime).getDouble() );
+			// Scroll the Y-axis as well so searchResults becomes visible			
+			topologyManager.scrollRowToVisible( searchResults.getTimeline() );			
+		}else{
+			clearSearchResults();
+			
+			Dialogs.info( SwingUtilities.windowForComponent( this ), "Search backward has no more TraceObject to return.\n", null );
+		}
+		this.repaint();
+	}	
+
+	
+	public boolean searchInitFromDialogPosition()
 	{
-		SearchPanel  dobj_panel = null;
-
-		// searchForward can only be called from TimelineFrame, JFrame.
-		if ( search_dialog == null ) {
-			Window window  = SwingUtilities.windowForComponent( this );
-			if ( window instanceof Frame )
-				search_dialog  = new SearchDialog( (Frame) window, this );
-			else
-				Dialogs.error( window,
-						"ViewportTimeYaxis.searchForward() "
-						+ "is meant to be invoked from a top JFrame." );
-		}
-
-		if ( searching_time != searched_time )
-			dobj_panel  = searchable.searchNextComponent( searching_time );
-		else
-			dobj_panel  = searchable.searchNextComponent();
-
-		if ( dobj_panel != null ) {
-			searched_dobj = dobj_panel.getSearchedDrawable();
-			searched_time = searched_dobj.getEarliestTime();
-			// Scroll the screen and set Time Focus at the drawable found.
-			time_model.scroll( searched_time - searching_time );
-			searching_time = searched_time;
-			// Scroll the Y-axis as well so searched_dobj becomes visible
-			tree_view.scrollRowToVisible( searched_dobj.getRowID() );
-			//  call this.paint( g );
-			this.repaint();
-
-			search_dialog.replace( dobj_panel );
-			if ( ! search_dialog.isVisible() )
-				search_dialog.setVisibleAtDefaultLocation();
-			return true;
-		}
-		else {
-			if (    searched_dobj != null
-					&& (    searched_dobj.getLatestTime()
-							== time_model.getTimeGlobalMaximum() ) )
-				Dialogs.info( SwingUtilities.windowForComponent( this ),
-						"The LAST drawable in the logfile has been "
-						+ "reached.\n  Search forward has no more "
-						+ "drawable to return.\n", null );
-			else
-				Dialogs.warn( SwingUtilities.windowForComponent( this ),
-						"If the end of the logfile is not within view,\n"
-						+ "SCROLL FORWARD till you see more drawables\n"
-						+ "are within view.  All drawables in view or in \n"
-						+ "the memory have been searched.\n" );
-			search_dialog.setVisible( false );
-			searched_dobj = null;
-			searched_time = INVALID_TIME;
-			this.repaint();
-			return false;
-		}
-	}
-
-	public boolean searchInit()
-	{
+		clearSearchResults();
+		
 		InfoDialog  info_popup = super.getLastInfoDialog();
 		if ( info_popup != null ) {
-			searching_time = info_popup.getClickedTime();
+			searchInit( info_popup.getClickedTime() );
 			info_popup.getCloseButton().doClick();
 			this.repaint();
 			return true;
@@ -375,6 +181,10 @@ implements AdjustmentListener
 					+ "by right mouse clicking on the timeline canvas\n" );
 			return false;
 		}
+	}
+	
+	public void searchInit(double visTime){
+		searchingTime = time_model.getTimeGlobalMinimum().add( visTime );
 	}
 
 
@@ -390,15 +200,13 @@ implements AdjustmentListener
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( ! super.isLeftMouseClick4Zoom ) {  // Hand Mode
 				vport_click    = mouse_evt.getPoint();
-				searching_time = super.coord_xform.convertPixelToTime(
-						vport_click.x );
+				searchInit( super.coord_xform.convertPixelToTime(vport_click.x ) );
+								
 				this.repaint();
 			}
 		}
 	}
 
-	private int     mouse_last_Yloc;
-	private double  ratio_ymodel2vportH;
 
 	/*
             In order to allow grasp & scroll along Y-axis, the change in
