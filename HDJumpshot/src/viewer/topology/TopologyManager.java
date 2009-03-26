@@ -1,11 +1,3 @@
-/*
- *  (C) 2001 by Argonne National Laboratory
- *      See COPYRIGHT in top-level directory.
- */
-
-/*
- *  @author  Anthony Chan
- */
 
 package viewer.topology;
 
@@ -16,21 +8,18 @@ import hdTraceInput.TraceFormatBufferedFileReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import viewer.timelines.TimelineType;
-import viewer.zoomable.Debug;
-import viewer.zoomable.named_vector;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
@@ -42,13 +31,6 @@ public class TopologyManager extends JTree
 
 	final TraceFormatBufferedFileReader  reader;
 
-	private List<TreePath>[]        leveled_paths;
-	private int                     max_level;
-	private int                     next_expanding_level;
-
-	private List<TreePath>          cut_paste_buf;
-	private int                     buf_level;	
-
 	private ArrayList<TopologyTreeNode> topoToTimelineMapping = new ArrayList<TopologyTreeNode>();
 
 	/**
@@ -56,6 +38,11 @@ public class TopologyManager extends JTree
 	 */
 	private boolean                            changeListenerDisabled = false;
 	private LinkedList<TopologyChangeListener> changeListener = new LinkedList<TopologyChangeListener>();
+	
+	private TreeExpansionListener treeExpansionListener = new TopologyTreeExpansionListener();
+	
+
+
 
 	private class TopologyTreeExpansionListener implements TreeExpansionListener{    
 		// from tree expansion listener
@@ -69,17 +56,17 @@ public class TopologyManager extends JTree
 			fireTopologyChanged();
 		}
 	}
-	
+
 	public void fireTopologyChanged(){
 		if( changeListenerDisabled ) return;
-		
+
 		reloadTopologyMappingFromTree();
 
 		for(TopologyChangeListener list: changeListener){
 			list.topologyChanged();
 		}
 	}
-	
+
 	/**
 	 * If set to true then listeners are not notified on a topology change, this allows mass update of topology.
 	 * Don't forget to enable if after a mass update.
@@ -88,6 +75,12 @@ public class TopologyManager extends JTree
 	 */
 	public void setChangeListenerDisabled(boolean changeListenerDisabled) {
 		this.changeListenerDisabled = changeListenerDisabled;
+		
+		if(changeListenerDisabled == true){
+			this.removeTreeExpansionListener(treeExpansionListener);
+		}else{
+			this.addTreeExpansionListener( treeExpansionListener);			
+		}
 	}
 
 	public void addTopologyChangedListener(TopologyChangeListener listener){
@@ -97,7 +90,7 @@ public class TopologyManager extends JTree
 	/**
 	 * Recreate topology based on tree, i.e. not expanded nodes are not shown as timelines.
 	 */
-	public void reloadTopologyMappingFromTree(){
+	private void reloadTopologyMappingFromTree(){
 		topoToTimelineMapping.clear();
 		for(int timeline = 0; timeline < getRowCount(); timeline++){
 			final TreePath path = getPathForRow(timeline);
@@ -154,12 +147,8 @@ public class TopologyManager extends JTree
 		if(topoToTimelineMapping.size() <= timeline)
 			return TimelineType.INVALID_TIMELINE;
 		if(topoToTimelineMapping.get(timeline) == null)
-			return TimelineType.SPACER_NODE;    	
+			return TimelineType.INNER_NODE;    	
 		return topoToTimelineMapping.get(timeline).getType();
-	}
-
-	private void clearTopologyToTimelineMapping(){
-		topoToTimelineMapping.clear();
 	}
 
 	private void addTopologyTreeNode(TopologyTreeNode node, DefaultMutableTreeNode parent){
@@ -191,10 +180,6 @@ public class TopologyManager extends JTree
 	}
 
 	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyInternalLevel topology, TraceFormatFileOpener file){
-		if(max_level < level + 5 ){
-			max_level = level + 5 ;
-		}
-		
 		final TopologyTreeNode node = new TopologyInnerNode(topology, file, this);
 
 		addTopologyTreeNode(node, parentNode);    	
@@ -205,7 +190,7 @@ public class TopologyManager extends JTree
 			boolean leafLevel = children.iterator().next().isLeaf();
 			if(leafLevel){
 				final DefaultMutableTreeNode traceParent = addDummyTreeNode("Trace", node);
-				
+
 				for(TopologyInternalLevel child: topology.getChildElements().values()){					
 					if (child.getStatisticSources().size() == 0){
 						// no statistic on the leaf level:
@@ -214,10 +199,10 @@ public class TopologyManager extends JTree
 					}else{
 						// handles statistics on the leaf level:
 						final DefaultMutableTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
-						
+
 						TopologyTreeNode childNode = new TopologyTraceTreeNode(child, file, this);
 						addTopologyTreeNode(childNode, extra);
-						
+
 						addStatisticsInTopology(level, extra, child, file);
 					}
 				}								
@@ -246,25 +231,83 @@ public class TopologyManager extends JTree
 	}
 
 	/**
+	 * restore the timelines to the normal / selected topology 
+	 */
+	public void restoreTopology(){
+		setChangeListenerDisabled(true);
+		// TODO allow different topologies.
+		topoToTimelineMapping.clear();
+
+		this.tree_root = loadDefaultTopologyToTreeMapping();
+
+		expandTreeInternal();		
+		
+		setChangeListenerDisabled(false);
+		
+		fireTopologyChanged();
+	}
+
+	/**
+	 * Remove timelines marked in the tree from the view
+	 */
+	public void removeMarkedTimelines(){
+		TreePath [] paths = getSelectionPaths();
+		if(paths.length == 0)
+			return;
+
+		final DefaultTreeModel model = (DefaultTreeModel) getModel();
+
+		for(TreePath path: paths){
+			int depth = path.getPathCount(); 
+			if(depth > 1){
+				model.removeNodeFromParent((MutableTreeNode) path.getLastPathComponent());
+
+				// recursivly remove empty timelines
+				for(int curDepth = depth - 2; curDepth >= 1; curDepth-- ){
+					final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getPathComponent(curDepth);
+					if( TopologyInnerNode.class.isInstance(node) ){
+						final TopologyInnerNode topNode = (TopologyInnerNode) node;
+												
+						if(topNode.getType() == TimelineType.INNER_NODE && node.getChildCount() == 0){
+							if(topNode.getParent() != null){
+								model.removeNodeFromParent(topNode);
+							}
+							continue;
+						}
+						break;
+					}else{
+						if(node.getChildCount() != 0){
+							break;
+						}
+						//otherwise remove it
+						if(node.getParent() != null)
+							model.removeNodeFromParent(node);
+					}
+				}
+			}
+			//removeSelectionPaths(paths);
+
+			// TODO unload loaded file if pathCount == 1!!!
+		}
+
+		reloadTopologyMappingFromTree();	
+		fireTopologyChanged();
+	}
+
+
+	/**
 	 * Load a default topology, filename => hierarchically print the children 
 	 */
-	public void loadDefaultTopology(){
-		clearTopologyToTimelineMapping();
-
-		tree_root = new DefaultMutableTreeNode("HDTrace");
+	public DefaultMutableTreeNode loadDefaultTopologyToTreeMapping(){
+		DefaultMutableTreeNode tree_root = new DefaultMutableTreeNode("HDTrace");
 
 		setModel(new DefaultTreeModel(tree_root));            
 
 		for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
 			recursivlyAddTopology(1, tree_root, reader.getLoadedFile(f).getTopology(), reader.getLoadedFile(f));
 		}
-
-		this.update_leveled_paths();
-
-		for(int i=0 ; i < 10; i++)
-			expandLevel();
-
-		reloadTopologyMappingFromTree();
+		
+		return tree_root;
 	}
 
 	public TopologyTreeNode getTreeNodeForTimeline(int timeline){
@@ -275,216 +318,33 @@ public class TopologyManager extends JTree
 	public TopologyManager( final TraceFormatBufferedFileReader  reader )
 	{
 		this.reader = reader;
-
-
 		super.setEditable( true );
-
 		super.putClientProperty("JTree.lineStyle", "Angled");
 
-		loadDefaultTopology();   
-
-		this.addTreeExpansionListener( new TopologyTreeExpansionListener());
+		restoreTopology();
 	}
 
-	private void getAllLeavesForNode( named_vector nvtr,
-			DefaultMutableTreeNode node )
+	public void expandTree()
 	{
-		DefaultMutableTreeNode child;
-		Enumeration children  = node.children();
-		while ( children.hasMoreElements() ) {
-			child = (DefaultMutableTreeNode) children.nextElement();
-			if ( child.isLeaf() )
-				nvtr.add( child.getUserObject() );
-			else
-				getAllLeavesForNode( nvtr, child );
-		}
-	}
-
-	public named_vector getNamedVtr( TreePath node_path )
-	{
-		DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-		node_path.getLastPathComponent();
-		named_vector nvtr = new named_vector( node.toString() );
-		if ( ! super.isExpanded( node_path ) )
-			getAllLeavesForNode( nvtr, node );
-		return nvtr;
-	}
-
-
-	public void update_leveled_paths()
-	{
-		Iterator                paths;
-		Enumeration             nodes;
-		DefaultMutableTreeNode  node;
-		TreePath                path;
-		int                     ilevel;
-
-		if ( Debug.isActive() ) {
-			Debug.println( "tree_root(" + tree_root + ").level="
-					+ tree_root.getLevel() );
-			Debug.println( "last_leaf(" + tree_root.getLastLeaf() + ").level="
-					+ max_level );
-		}
-
-		// Initialize the leveled_paths[] sizes
-		leveled_paths = new ArrayList[ max_level + 1 ];
-		leveled_paths[ 0 ] = new ArrayList( 1 );
-		for ( ilevel = 1; ilevel <= max_level; ilevel++ )
-			leveled_paths[ ilevel ] = new ArrayList();
-
-		// Update the leveled_paths[]'s content
-		nodes = tree_root.breadthFirstEnumeration();
-		if ( nodes != null )
-			while ( nodes.hasMoreElements() ) {
-				node = (DefaultMutableTreeNode) nodes.nextElement();
-				path = new TreePath( node.getPath() );
-				leveled_paths[ node.getLevel() ].add( path );
-			}
-
-		// Update next_expanding_level
-		boolean isAllExpanded = true;
-		ilevel = 0;
-		next_expanding_level = ilevel;
-		while ( ilevel < max_level && isAllExpanded ) {
-			paths = leveled_paths[ ilevel ].iterator();
-			while ( paths.hasNext() && isAllExpanded ) {
-				path = (TreePath) paths.next();
-				isAllExpanded = isAllExpanded && super.isExpanded( path );
-			}
-			ilevel++;
-		}
-		if ( ilevel > max_level )
-			next_expanding_level = max_level;
-		else
-			next_expanding_level = ilevel - 1;
-	}
-
-	public boolean isLevelExpandable()
-	{
-		return next_expanding_level < max_level;
-	}
-
-	public void expandLevel()
-	{
-		Iterator    paths;
-		TreePath    path;
-
-		if ( ! isLevelExpandable() )
-			return;
-		
-
 		setChangeListenerDisabled(true);
 
-		paths = leveled_paths[ next_expanding_level ].iterator();
-		while ( paths.hasNext() ) {
-			path = (TreePath) paths.next();
-			if ( super.isCollapsed( path ) )
-				super.expandPath( path );
-		}
-		if ( next_expanding_level < max_level )
-			next_expanding_level++;
-		else
-			next_expanding_level = max_level;
-		
+		expandTreeInternal();
+
 		setChangeListenerDisabled(false);
 		fireTopologyChanged();
 	}
+	
+	private void expandTreeInternal(){
 
-	public boolean isLevelCollapsable()
-	{
-		int next_collapsing_level = next_expanding_level - 1;
-		return next_collapsing_level >= 0;
-	}
-
-	public void collapseLevel()
-	{
-		
-		Iterator    paths;
-		TreePath    path;
-		int         next_collapsing_level;
-
-		if ( ! isLevelCollapsable() )
-			return;
-		
-		setChangeListenerDisabled(true);
-
-		next_collapsing_level = next_expanding_level - 1;
-		paths = leveled_paths[ next_collapsing_level ].iterator();
-		while ( paths.hasNext() ) {
-			path = (TreePath) paths.next();
-			if ( super.isExpanded( path ) )
-				super.collapsePath( path );
-		}
-		next_expanding_level = next_collapsing_level;
-		
-		setChangeListenerDisabled(false);
-		fireTopologyChanged();
-	}
-
-	//  Manipulation of the Cut&Paste buffer
-	public void renewCutAndPasteBuffer()
-	{
-		buf_level = -1;
-		if ( cut_paste_buf != null )
-			cut_paste_buf.clear();
-		else
-			cut_paste_buf = new ArrayList();
-	}
-
-	public boolean isPathLevelSameAsThatOfCutAndPasteBuffer( TreePath path )
-	{
-		return buf_level == this.getLastPathComponentLevel( path );
-	}
-
-	private int getLastPathComponentLevel( TreePath path )
-	{
-		DefaultMutableTreeNode node;
-		node = (DefaultMutableTreeNode) path.getLastPathComponent();
-		return node.getLevel();
-	}
-
-	public boolean isCutAndPasteBufferUniformlyLeveled( TreePath [] paths )
-	{
-		if ( paths != null && paths.length > 0 ) {
-			int ilevel = this.getLastPathComponentLevel( paths[ 0 ] );
-			for ( int idx = 1; idx < paths.length; idx++ ) {
-				if ( ilevel != this.getLastPathComponentLevel( paths[ idx ] ) )
-					return false;
+		Enumeration<DefaultMutableTreeNode> rootEnumeration = tree_root.depthFirstEnumeration();
+		while(rootEnumeration.hasMoreElements()){
+			DefaultMutableTreeNode node = rootEnumeration.nextElement();
+			if(! node.isLeaf()){
+				// construct path
+				TreePath path = new TreePath(node.getPath());
+				expandPath(path);
 			}
-			buf_level = ilevel;
 		}
-		return true;
-	}
 
-	public void addToCutAndPasteBuffer( TreePath [] paths )
-	{
-		if ( cut_paste_buf != null ) {
-			for ( int idx = 0; idx < paths.length; idx++ )
-				cut_paste_buf.add( paths[ idx ] );
-		}
-	}
-
-	public int getLevelOfCutAndPasteBuffer()
-	{
-		return buf_level;
-	}
-
-	public TreePath[] getFromCutAndPasteBuffer()
-	{
-		if ( cut_paste_buf != null ) {
-			Object [] objs    = cut_paste_buf.toArray();
-			TreePath [] paths = new TreePath[ objs.length ];
-			for ( int idx = 0; idx < objs.length; idx++ )
-				paths[ idx ] = (TreePath) objs[ idx ];
-			return paths;
-		}
-		else
-			return null;
-	}
-
-	public void clearCutAndPasteBuffer()
-	{
-		if ( cut_paste_buf != null )
-			cut_paste_buf.clear();
 	}
 }

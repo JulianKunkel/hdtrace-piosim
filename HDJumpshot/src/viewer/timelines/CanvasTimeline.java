@@ -261,8 +261,6 @@ implements SearchableView, SummarizableView
 
 		for(int i=0; i < num_rows ; i++){			
 			switch (timelineManager.getType(i)){
-			case SPACER_NODE:
-				break;
 			case INNER_NODE:
 				break;
 			case STATISTIC:

@@ -27,15 +27,12 @@ import viewer.zoomable.ActionPptyScreenshot;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
-import viewer.zoomable.ActionTimelineDelete;
-import viewer.zoomable.ActionTimelineMark;
-import viewer.zoomable.ActionTimelineMove;
+import viewer.zoomable.ActionTimelineRemove;
 import viewer.zoomable.ActionTimelineRestore;
 import viewer.zoomable.ActionVportBackward;
 import viewer.zoomable.ActionVportDown;
 import viewer.zoomable.ActionVportForward;
 import viewer.zoomable.ActionVportUp;
-import viewer.zoomable.ActionYaxisTreeCollapse;
 import viewer.zoomable.ActionYaxisTreeExpand;
 import viewer.zoomable.ActionZoomHome;
 import viewer.zoomable.ActionZoomIn;
@@ -60,16 +57,13 @@ public class TimelineToolBar extends JToolBar
     private ScrollbarTime           time_scrollbar;
     private ModelTime               time_model;
 
-    private JButton                 mark_btn;
-    private JButton                 move_btn;
-    public  JButton                 delete_btn;
-    public  JButton                 restore_timelines_btn;
-
+    public  JButton                 timeline_delete_btn;
+    public  JButton                 timelines_restore_btn;
+    private JButton                 timelines_expand_btn;
+    
     private JButton                 up_btn;
     private JButton                 down_btn;
 
-    private JButton                 expand_btn;
-    private JButton                 collapse_btn;
     private JButton                 commit_btn;
 
     private JButton                 backward_btn;
@@ -89,16 +83,10 @@ public class TimelineToolBar extends JToolBar
     private JButton                 print_btn;
     private final CanvasTimeline          cnvas_timeline;
     private RulerTime	 			time_ruler = null;
-    private ActionTimelineRestore   restore_timelines_listener;
-
 
 
     public ViewportTimeYaxis getCanvas_vport() {
 		return canvas_vport;
-	}
-
-	public ActionTimelineRestore getRestore_timelines_listener() {
-		return restore_timelines_listener;
 	}
 
 	public TimelineToolBar( Window             parent_window,
@@ -178,86 +166,40 @@ public class TimelineToolBar extends JToolBar
 
         super.addSeparator( mini_separator_size );
 
-        icon_URL = getURL( Const.IMG_PATH + "Edit24.gif" );
-        if ( icon_URL != null )
-            mark_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            mark_btn = new JButton( "LabelMark" );
-        mark_btn.setMargin( btn_insets );
-        mark_btn.setToolTipText( "Mark the timelines" );
-        // mark_btn.setPreferredSize( btn_dim );
-        mark_btn.addActionListener(
-                 new ActionTimelineMark( root_window, this, topologyManager ) );
-        super.add( mark_btn );
-
-        icon_URL = getURL( Const.IMG_PATH + "Paste24.gif" );
-        if ( icon_URL != null )
-            move_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            move_btn = new JButton( "LabelMove" );
-        move_btn.setMargin( btn_insets );
-        move_btn.setToolTipText( "Move the marked timelines" );
-        // move_btn.setPreferredSize( btn_dim );
-        move_btn.addActionListener(
-                 new ActionTimelineMove( root_window, this, topologyManager ) );
-        super.add( move_btn );
-
-
-        restore_timelines_listener = new ActionTimelineRestore( root_window,
-        		this, topologyManager );
-
         icon_URL = getURL( Const.IMG_PATH + "Delete24.gif" );
         if ( icon_URL != null )
-            delete_btn = new JButton( new ImageIcon( icon_URL ) );
+            timeline_delete_btn = new JButton( new ImageIcon( icon_URL ) );
         else
-            delete_btn = new JButton( "LabelDelete" );
-        delete_btn.setMargin( btn_insets );
-        delete_btn.setToolTipText( "Delete the marked timelines" );
+            timeline_delete_btn = new JButton( "LabelDelete" );
+        timeline_delete_btn.setMargin( btn_insets );
+        timeline_delete_btn.setToolTipText( "Delete the marked timelines" );
         // delete_btn.setPreferredSize( btn_dim );
-        delete_btn.addActionListener(
-                   new ActionTimelineDelete( root_window, this, topologyManager, restore_timelines_listener ) );
-        super.add( delete_btn );
+        timeline_delete_btn.addActionListener( new ActionTimelineRemove( topologyManager) );
+        super.add( timeline_delete_btn );
 
 
         icon_URL = getURL(  Const.IMG_PATH + "WinUndo.gif"  );
         if ( icon_URL != null )
-        	restore_timelines_btn = new JButton( new ImageIcon( icon_URL ) );
+        	timelines_restore_btn = new JButton( new ImageIcon( icon_URL ) );
         else
-        	restore_timelines_btn = new JButton( "LabelUndoDelete" );
-        restore_timelines_btn.setMargin( btn_insets );
-        restore_timelines_btn.setToolTipText( "Restore the timelines" );
-        restore_timelines_btn.addActionListener( restore_timelines_listener );
-        super.add( restore_timelines_btn );
-
-        super.addSeparator( mini_separator_size );
+        	timelines_restore_btn = new JButton( "LabelUndoDelete" );
+        timelines_restore_btn.setMargin( btn_insets );
+        timelines_restore_btn.setToolTipText( "Restore the timelines" );
+        timelines_restore_btn.addActionListener( new ActionTimelineRestore(topologyManager) );
+        super.add( timelines_restore_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "TreeExpand24.gif" );
         if ( icon_URL != null )
-            expand_btn = new JButton( new ImageIcon( icon_URL ) );
+            timelines_expand_btn = new JButton( new ImageIcon( icon_URL ) );
         else
-            expand_btn = new JButton( "LabelExpand" );
-        expand_btn.setMargin( btn_insets );
-        expand_btn.setToolTipText(
+            timelines_expand_btn = new JButton( "LabelExpand" );
+        timelines_expand_btn.setMargin( btn_insets );
+        timelines_expand_btn.setToolTipText(
                    "Expand the Y-axis tree label by 1 level" );
-        expand_btn.setMnemonic( KeyEvent.VK_E );
+        timelines_expand_btn.setMnemonic( KeyEvent.VK_E );
         // expand_btn.setPreferredSize( btn_dim );
-        expand_btn.addActionListener(
-                   new ActionYaxisTreeExpand( this, topologyManager ) );
-        super.add( expand_btn );
-
-        icon_URL = getURL( Const.IMG_PATH + "TreeCollapse24.gif" );
-        if ( icon_URL != null )
-            collapse_btn = new JButton( new ImageIcon( icon_URL ) );
-        else
-            collapse_btn = new JButton( "LabelCollapse" );
-        collapse_btn.setMargin( btn_insets );
-        collapse_btn.setToolTipText(
-                     "Collapse the Y-axis tree label by 1 level" );
-        collapse_btn.setMnemonic( KeyEvent.VK_C );
-        // collapse_btn.setPreferredSize( btn_dim );
-        collapse_btn.addActionListener(
-                     new ActionYaxisTreeCollapse( this, topologyManager ) );
-        super.add( collapse_btn );
+        timelines_expand_btn.addActionListener( new ActionYaxisTreeExpand( topologyManager ) );
+        super.add( timelines_expand_btn );
 
         icon_URL = getURL( Const.IMG_PATH + "TreeCommit24.gif" );
         if ( icon_URL != null )
@@ -470,14 +412,7 @@ public class TimelineToolBar extends JToolBar
     {
         up_btn.setEnabled( true );
         down_btn.setEnabled( true );
-
-        mark_btn.setEnabled( true );
-        move_btn.setEnabled( false );
-        delete_btn.setEnabled( false );
-        // remove_btn.setEnabled( true );
-
-        this.resetYaxisTreeButtons();
-
+        
         backward_btn.setEnabled( true );
         forward_btn.setEnabled( true );
         this.resetZoomButtons();
@@ -502,13 +437,6 @@ public class TimelineToolBar extends JToolBar
         zoomRedo_btn.setEnabled( ! time_model.isZoomRedoStackEmpty() );
     }
 
-    //  Interface for ToolBarStatus
-    public void resetYaxisTreeButtons()
-    {
-        expand_btn.setEnabled( topologyManager.isLevelExpandable() );
-        collapse_btn.setEnabled( topologyManager.isLevelCollapsable() );
-        commit_btn.setEnabled( true );
-    }
 
     //  Interface for ToolBarStatus
     public JButton getYaxisTreeCommitButton()
@@ -519,14 +447,6 @@ public class TimelineToolBar extends JToolBar
     { return refresh_btn; }
 
     //  Interface for ToolBarStatus
-    public JButton getTimelineMarkButton()
-    { return mark_btn; }
-
-    //  Interface for ToolBarStatus
-    public JButton getTimelineMoveButton()
-    { return move_btn; }
-
-    //  Interface for ToolBarStatus
     public JButton getTimelineDeleteButton()
-    { return delete_btn; }
+    { return timeline_delete_btn; }
 }
