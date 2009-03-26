@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
@@ -185,7 +186,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		final ProgramInMemory program = new ProgramInMemory();
 		program.setApplication(app, rank, thread);
 
-		LinkedList<XMLTag> elements = processXML.getNestedXMLTags();
+		final List<XMLTag> elements = processXML.getNestedXMLTags();
 
 		CommandXMLReader cmdReader = new CommandXMLReader(program);
 

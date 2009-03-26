@@ -19,7 +19,7 @@
 package de.hd.pvs.traceConverter.Output.HDTrace;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.List;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
@@ -41,7 +41,7 @@ import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
 public class HDTraceWriter extends TraceOutputWriter {	
 	TraceFormatWriter writer = new TraceFormatWriter();
 
-	public void initalizeProjectDescriptionWithOldValues(ProjectDescription oldDescription, LinkedList<XMLTag> unparsedTagsToWrite){
+	public void initalizeProjectDescriptionWithOldValues(ProjectDescription oldDescription, List<XMLTag> unparsedTagsToWrite){
 		writer.setUnparsedTagsToWrite(unparsedTagsToWrite);
 
 		ProjectDescription outProject = writer.getProjectDescription();		

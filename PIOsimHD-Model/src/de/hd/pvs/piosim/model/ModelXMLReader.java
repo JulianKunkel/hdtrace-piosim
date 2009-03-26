@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -217,14 +218,14 @@ public class ModelXMLReader {
 		for (String type : DynamicModelClassMapper.getAvailableModelTypes()) {
 			XMLTag element = componentList.getFirstNestedXMLTagWithName(type + "List");
 			
-			final LinkedList<XMLTag> list = element.getNestedXMLTags();
+			final List<XMLTag> list = element.getNestedXMLTags();
 			
 			for (XMLTag sub : list) {
 				
-				LinkedList<XMLTag> subList = sub.getNestedXMLTags();
+				List<XMLTag> subList = sub.getNestedXMLTags();
 					
 				for (XMLTag e : subList) {
-					LinkedList<XMLTag> connectedTo = e.getNestedXMLTags();
+					List<XMLTag> connectedTo = e.getNestedXMLTags();
 					
 					for (XMLTag el : connectedTo) {					
 						XMLTag pConnection = el.getFirstNestedXMLTagWithName("connection");
@@ -342,7 +343,7 @@ public class ModelXMLReader {
 	 */
 	private void readTemplates(Model model, XMLTag templateRoot)
 	throws Exception {
-		LinkedList<XMLTag> elements = templateRoot.getNestedXMLTags();
+		List<XMLTag> elements = templateRoot.getNestedXMLTags();
 		
 		for(XMLTag e: elements){				
 			BasicComponent component = createComponentFromXML(e, false);
@@ -361,7 +362,7 @@ public class ModelXMLReader {
 		for (String type : DynamicModelClassMapper.getAvailableModelTypes()) {		
 			// the elements are contained in the tag XXList 
 			XMLTag element = xml.getFirstNestedXMLTagWithName(type + "List");
-			LinkedList<XMLTag>  list = element.getNestedXMLTags();
+			List<XMLTag>  list = element.getNestedXMLTags();
 			for (XMLTag e : list) {
 				BasicComponent newComponent = createComponentFromXML(e, false);
 				model.addComponent(newComponent);		
@@ -415,7 +416,7 @@ public class ModelXMLReader {
 				
 				field.setAccessible(true);
 				
-				LinkedList<XMLTag>  elements = parentNode.getNestedXMLTags();
+				List<XMLTag>  elements = parentNode.getNestedXMLTags();
 				if(elements != null){
 					// create child components
 					for(XMLTag e: elements){

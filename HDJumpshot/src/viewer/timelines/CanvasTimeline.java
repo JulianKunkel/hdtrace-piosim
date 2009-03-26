@@ -183,8 +183,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 					+ " msec." );
 	}
 
-	protected void drawOneOffImage(       Image            offImage,
-			final TimeBoundingBox  timebounds )
+	protected void drawOneOffImage(Image offImage, final TimeBoundingBox  timebounds )
 	{
 		if ( Debug.isActive() )
 			Debug.println( "CanvasTimeline: drawOneOffImage()'s offImage = "
@@ -243,16 +242,18 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		// Draw all drawables            
 		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
 
+		final Epoch vStartTime = new Epoch(timebounds.getEarliestTime());
+		final Epoch vEndTime = new Epoch(timebounds.getLatestTime());
 
 		for(int i=0; i < num_rows ; i++){			
 			switch (timelineManager.getType(i)){
 			case INNER_NODE:
 				break;
 			case STATISTIC:
-				drawStatisticTimeline(i, timelineManager.getStatisticNodeForTimeline(i),	offGraphics, timebounds, coord_xform);
+				drawStatisticTimeline(i, timelineManager.getStatisticNodeForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
 			case TRACE:
-				drawTraceTimeline(i, timelineManager.getTraceReaderForTimeline(i), offGraphics, timebounds, coord_xform);
+				drawTraceTimeline(i, timelineManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
 			}
 		}
@@ -263,7 +264,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 	public void drawStatisticTimeline(
 			int timeline,
 			TopologyStatisticTreeNode node,  Graphics2D offGraphics,
-			final TimeBoundingBox  timebounds, CoordPixelImage coord_xform)
+			Epoch vStartTime, Epoch vEndTime, CoordPixelImage coord_xform)
 	{
 		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
 
@@ -272,8 +273,8 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		final String statName = node.getStatisticName();
 		final StatisticsGroupDescription group = sReader.getGroup();
 
-		double lastTime = timebounds.getEarliestTime();
-
+		double lastTime = vStartTime.getDouble();
+		
 		final Category cat = reader.getCategory(group, statName);
 		final ColorAlpha color = cat.getColor();
 
@@ -283,9 +284,14 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		final double maxValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMaxValue();
 		final StatisticDescription statDesc =  group.getStatistic(statName);
-		final int statNumber = statDesc.getNumberInGroup();	
+		final int statNumber = statDesc.getNumberInGroup();
+		
+		final Enumeration<StatisticGroupEntry> entries = sReader.enumerateStatistics(
+				vStartTime.add(getModelTime().getTimeGlobalMinimum()),
+				vEndTime.add(getModelTime().getTimeGlobalMinimum()));
 
-		for(StatisticGroupEntry entry: sReader.getStatEntries()){
+		while(entries.hasMoreElements()){
+			StatisticGroupEntry entry = entries.nextElement();
 			double value =  (entry.getNumeric(statNumber) / maxValue);
 			final Epoch adaptedTime = entry.getEarliestTime().subtract(globalMinTime) ;
 
@@ -302,12 +308,16 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 	public void drawTraceTimeline(
 			int timeline,
 			BufferedTraceFileReader tr,  Graphics2D offGraphics,
-			TimeBoundingBox  timebounds, CoordPixelImage coord_xform
+			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		for(XMLTraceEntry entry: tr.getTraceEntries()){			
-			// TODO only read necessary elements, bin search, also use index, partial file load ...
-			drawTraceElementRecursively(timeline, 0, timebounds, entry, tr, offGraphics, coord_xform);
+		final Enumeration<XMLTraceEntry> elements = tr.enumerateTraceEntry(false, 
+				startTime.add(getModelTime().getTimeGlobalMinimum()), 
+				endTime.add(getModelTime().getTimeGlobalMinimum())) ;
+		
+		while(elements.hasMoreElements()){			
+			XMLTraceEntry element = elements.nextElement();
+			drawTraceElementRecursively(timeline, 0, element, tr, offGraphics, coord_xform);
 		}
 	}
 
@@ -318,7 +328,6 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 	private void drawTraceElementRecursively(
 			int timeline,
 			int depth,
-			TimeBoundingBox  timebounds,
 			TraceObject entry, 
 			BufferedTraceFileReader tr, 
 			Graphics2D offGraphics, 
@@ -343,7 +352,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 			if(state.hasNestedTraceChildren()){
 				for(XMLTraceEntry child: state.getNestedTraceChildren()){
-					drawTraceElementRecursively(timeline, depth +1, timebounds, child, tr, offGraphics, coord_xform);
+					drawTraceElementRecursively(timeline, depth +1, child, tr, offGraphics, coord_xform);
 				}
 			}
 		}

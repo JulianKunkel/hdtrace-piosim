@@ -1,9 +1,10 @@
 package hdTraceInput;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -30,7 +31,11 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		maxTime = statEntries.get(statEntries.size()-1).getEarliestTime();
 	}
 	
-	public StatisticGroupEntry getTraceEntryClosestToTime(Epoch dTime){
+	public Enumeration<StatisticGroupEntry> enumerateStatistics(Epoch startTime, Epoch endTime){
+		return new ReaderStatisticGroupEnumerator(this, getGroup(), startTime, endTime);
+	}
+	
+	public int getStatisticPositionAfter(Epoch minEndTime){
 		int min = 0; 
 		int max = statEntries.size() - 1;
 		
@@ -39,16 +44,29 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			StatisticGroupEntry entry = statEntries.get(cur);
 			
 			if(min == max){ // found entry or stopped.
-				return entry;
+				if(entry.getLatestTime().compareTo(minEndTime) > 0 && cur == 0){
+					// there was no entry before!
+					return -1;
+				}
+				
+				return cur;
 			} 
 			// not found => continue bin search:
 			
-			if ( entry.getEarliestTime().compareTo(dTime) >= 0 ){
+			if ( entry.getLatestTime().compareTo(minEndTime) >= 0 ){
 				max = cur;
 			}else{
 				min = cur + 1;
 			}
 		}
+	}
+	
+	public StatisticGroupEntry getTraceEntryClosestToTime(Epoch dTime){
+		int pos = getStatisticPositionAfter(dTime);
+		if (pos == -1)
+			pos = statEntries.size()-1;
+		
+		return statEntries.get(pos);
 	}
 
 	

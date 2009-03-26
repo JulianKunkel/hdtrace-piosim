@@ -21,11 +21,12 @@ package de.hd.pvs.TraceFormat.project;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
@@ -85,7 +86,7 @@ public class ProjectDescriptionXMLReader {
 		// parse the descriptions of the external statistics:
 		XMLTag element = rootTag.getAndRemoveFirstNestedXMLTagWithName("ExternalStatistics");
 		if(element != null){
-			final LinkedList<XMLTag> children = element.getNestedXMLTags(); 
+			final ArrayList<XMLTag> children = element.getNestedXMLTags(); 
 			for(XMLTag stat: children){
 				StatisticsGroupDescription out = parseStatisticGroupInXML(stat);
 				descriptionInOut.addExternalStatisticsGroup(out);
@@ -156,7 +157,7 @@ public class ProjectDescriptionXMLReader {
 			stat.setTimeOffset(Epoch.parseTime(toffset));
 		}
 		
-		final LinkedList<XMLTag> children = root.getNestedXMLTags();
+		final ArrayList<XMLTag> children = root.getNestedXMLTags();
 		
 		// the next number of the statistic group:
 		int currentNumberInGroup = 0;
@@ -179,7 +180,7 @@ public class ProjectDescriptionXMLReader {
 		return stat;
 	}	
 	
-	public LinkedList<XMLTag> getUnparsedChildTags() {
+	public ArrayList<XMLTag> getUnparsedChildTags() {
 		return rootTag.getNestedXMLTags();
 	}
 }

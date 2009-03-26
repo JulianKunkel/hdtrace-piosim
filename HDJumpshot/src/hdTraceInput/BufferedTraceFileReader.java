@@ -1,6 +1,7 @@
 package hdTraceInput;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
@@ -13,6 +14,21 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	private Epoch maxTime;
 
 	ArrayList<XMLTraceEntry> traceEntries = new ArrayList<XMLTraceEntry>();
+	
+	/**
+	 * Return an enumeration of the contained trace entries between start & endTime.
+	 * 
+	 * @param nested
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public Enumeration<XMLTraceEntry> enumerateTraceEntry(boolean nested, Epoch startTime, Epoch endTime){
+		if(! nested)
+			return new ReaderTraceElementEnumerator(this, startTime, endTime);
+		else
+			return new ReaderTraceElementNestedEnumerator(this, startTime, endTime);
+	}
 
 	public BufferedTraceFileReader(String filename, boolean nested) throws Exception {
 		super(filename, nested);
@@ -30,6 +46,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		maxTime = traceEntries.get(traceEntries.size()-1).getEarliestTime();
 	}
 
+	
 	public ArrayList<XMLTraceEntry> getTraceEntries() {
 		return traceEntries;
 	}
@@ -42,14 +59,13 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		return maxTime;
 	}
 
-	
 	/**
-	 * Return the XMLTrace entry which is covered or closest to this time.
+	 * Note: nested objects are not taken into account! 
 	 * 
-	 * @param time
+	 * @param laterThanTime
 	 * @return
 	 */
-	public XMLTraceEntry getTraceEntryClosestToTime(Epoch dTime){	
+	public int getTraceEntryPositionLaterThan(Epoch laterThanTime){
 		int min = 0; 
 		int max = traceEntries.size() - 1;
 		
@@ -58,7 +74,30 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 			XMLTraceEntry entry = traceEntries.get(cur);
 			
 			if(min == max){ // found entry or stopped.
-				XMLTraceEntry best = entry;
+				if( traceEntries.get(cur).getLatestTime().compareTo(laterThanTime) <= 0 )
+					return -1;				
+				return cur;
+			} 
+			// not found => continue bin search:
+			
+			if ( entry.getLatestTime().compareTo(laterThanTime) >= 0){
+				max = cur;
+			}else{
+				min = cur + 1;
+			}
+		}
+	}
+	
+	public int getTraceEntryClosestToTimePosition(Epoch dTime){
+		int min = 0; 
+		int max = traceEntries.size() - 1;
+		
+		while(true){
+			int cur = (min + max) / 2;
+			XMLTraceEntry entry = traceEntries.get(cur);
+			
+			if(min == max){ // found entry or stopped.
+				int best = cur;
 				double bestDistance = DrawObjects.getTimeDistance(dTime, entry);
 								
 				// check entries left and right.
@@ -68,7 +107,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 					
 					if(leftDistance < bestDistance){
 						bestDistance = leftDistance;
-						best = left;
+						best = cur-1;
 					}
 				}
 				
@@ -79,7 +118,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 					
 					if(rightDistance < bestDistance){
 						bestDistance = rightDistance;
-						best = right;
+						best = cur+1;
 					}
 				}
 
@@ -93,5 +132,17 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 				min = cur + 1;
 			}
 		}
+	}
+	
+	
+	/**
+	 * Return the XMLTrace entry which is covered or closest to this time.
+	 * 
+	 * @param time
+	 * @return
+	 */
+	public XMLTraceEntry getTraceEntryClosestToTime(Epoch dTime){
+		int best = getTraceEntryClosestToTimePosition(dTime);
+		return traceEntries.get(best);
 	}
 }

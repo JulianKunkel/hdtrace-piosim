@@ -15,7 +15,6 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import viewer.common.Debug;
 import viewer.common.Dialogs;
 import viewer.common.TopControl;
 import viewer.common.TopWindow;
@@ -86,7 +85,7 @@ public class Jumpshot extends JFrame
         parseCmdLineArgs( args );
 
         SimpleConsoleLogger.setDebugEverything(true);
-        Debug.setActive(true);
+        //Debug.setActive(true);
         
         viewer.common.Debug.initTextArea();
         // viewer.zoomable.Profile.initTextArea();

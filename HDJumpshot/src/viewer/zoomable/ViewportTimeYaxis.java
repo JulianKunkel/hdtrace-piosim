@@ -29,11 +29,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListener
 {
+	private static final long serialVersionUID = 6547118773325705282L;
+
 	private static final Color    SEARCH_LINE_COLOR       = Color.yellow;
-	private static final int      SEARCH_ARROW_HALF_ANGLE = 15;          // deg
-	private static final double   SEARCH_ARROW_ANGLE      = Math.PI/6.0; // rad
-	private static final double   COS_SEARCH_ARROW_ANGLE  = Math.cos( SEARCH_ARROW_ANGLE );
-	private static final double   SIN_SEARCH_ARROW_ANGLE  = Math.sin( SEARCH_ARROW_ANGLE );
 
 	private ModelTime             time_model      = null;
 	private BoundedRangeModel     y_model         = null;

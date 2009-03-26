@@ -18,6 +18,7 @@
 
 package de.hd.pvs.TraceFormat.xml;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -29,7 +30,7 @@ import java.util.LinkedList;
  *
  */
 public class XMLTag {
-	private LinkedList<XMLTag> nestedXMLTags;
+	private ArrayList<XMLTag> nestedXMLTags;
 
 	private final HashMap<String, String> attributes;	
 	private final String					  name;
@@ -50,7 +51,7 @@ public class XMLTag {
 	
 	private void addXMLChildTag(XMLTag tag){
 		if (nestedXMLTags == null){
-			nestedXMLTags = new LinkedList<XMLTag>();
+			nestedXMLTags = new ArrayList<XMLTag>();
 		}
 		
 		nestedXMLTags.add(tag);
@@ -61,7 +62,7 @@ public class XMLTag {
 		this.parentTag = parent;
 	}
 	
-	public LinkedList<XMLTag> getNestedXMLTags() {
+	public ArrayList<XMLTag> getNestedXMLTags() {
 		return nestedXMLTags;
 	}
 	
@@ -129,7 +130,7 @@ public class XMLTag {
 		return null;
 	}
 	
-	public void setNestedXMLTags(LinkedList<XMLTag> nestedXMLTags) {
+	public void setNestedXMLTags(ArrayList<XMLTag> nestedXMLTags) {
 		this.nestedXMLTags = nestedXMLTags;
 	}
 	

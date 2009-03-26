@@ -20,12 +20,12 @@ package de.hd.pvs.TraceFormat;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticWriter;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -52,9 +52,9 @@ public class TraceFormatWriter {
 
 	final ProjectDescription outProject = new ProjectDescription();
 
-	LinkedList<XMLTag> unparsedTagsToWrite = null;
+	List<XMLTag> unparsedTagsToWrite = null;
 
-	public void setUnparsedTagsToWrite(LinkedList<XMLTag> unparsedTagsToWrite){
+	public void setUnparsedTagsToWrite(List<XMLTag> unparsedTagsToWrite){
 		this.unparsedTagsToWrite = unparsedTagsToWrite;
 	}
 

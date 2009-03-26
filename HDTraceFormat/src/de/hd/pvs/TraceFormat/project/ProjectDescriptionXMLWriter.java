@@ -20,10 +20,10 @@ package de.hd.pvs.TraceFormat.project;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.List;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -42,7 +42,7 @@ public class ProjectDescriptionXMLWriter {
 	 * @param unparsedTags if provided these tags are written below the root tag.
 	 * @throws IOException
 	 */
-	public void writeXMLToProjectFile(ProjectDescription desc, LinkedList<XMLTag> unparsedTags) throws IOException{
+	public void writeXMLToProjectFile(ProjectDescription desc, List<XMLTag> unparsedTags) throws IOException{
 		StringBuffer buff = new StringBuffer(1000);
 		
 		buff.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
