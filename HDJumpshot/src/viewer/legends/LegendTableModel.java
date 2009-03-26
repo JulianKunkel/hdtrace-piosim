@@ -51,7 +51,7 @@ public class LegendTableModel extends AbstractTableModel
     final private List<Category>   categories = new LinkedList<Category>();
     private List<CategoryIcon>   icon_list      = new ArrayList<CategoryIcon>();
     
-    private List<CategoryVisibleListener> visibleListener = new LinkedList<CategoryVisibleListener>();
+    private List<CategoryUpdatedListener> visibleListener = new LinkedList<CategoryUpdatedListener>();
 
     /**
      * Remove all existing categories
@@ -69,7 +69,7 @@ public class LegendTableModel extends AbstractTableModel
     	categories.add(cat);
     }
     
-    public void addVisibilityChangedListener(CategoryVisibleListener listener){
+    public void addVisibilityChangedListener(CategoryUpdatedListener listener){
     	visibleListener.add(listener);
     }
 
@@ -197,6 +197,25 @@ public class LegendTableModel extends AbstractTableModel
     	return false;
     }
 
+    /**
+     * Notify all components that the visibility changed
+     */
+    public void fireCategoryVisibilityChanged(){
+        for(CategoryUpdatedListener list: visibleListener){
+        	list.categoryVisibilityChanged();
+        }
+    }
+
+
+    /**
+     * Notify all components that the color changed
+     */
+    public void fireCategoryColorChanged(){
+        for(CategoryUpdatedListener list: visibleListener){
+        	list.categoryColorChanged();
+        }
+    }    
+    
     public void setValueAt( Object value, int irow, int icolumn )
     {
         Category      objdef;
@@ -210,7 +229,8 @@ public class LegendTableModel extends AbstractTableModel
                 objdef.setColor( color );
                 icon   = (CategoryIcon) icon_list.get( irow );
                 icon.getCategory().setColor( color );
-                fireTableCellUpdated( irow, icolumn );
+                fireTableCellUpdated( irow, icolumn );                
+                fireCategoryColorChanged();
                 break;
             case NAME_COLUMN :
                 //objdef.setName( (String) value );
@@ -219,9 +239,7 @@ public class LegendTableModel extends AbstractTableModel
             case VISIBILITY_COLUMN :
             	boolean val = ( (Boolean) value ).booleanValue() ;
                 objdef.setVisible( val );
-                for(CategoryVisibleListener list: visibleListener){
-                	list.CategoryVisibilityChanged(val);
-                }
+                fireCategoryVisibilityChanged();
                 fireTableCellUpdated( irow, icolumn );
                 break;
             case SEARCHABILITY_COLUMN :

@@ -33,7 +33,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 
 import viewer.topology.TopologyManager;
-import viewer.zoomable.Debug;
 import viewer.zoomable.ModelInfo;
 import viewer.zoomable.ModelInfoPanel;
 import viewer.zoomable.ModelTime;
@@ -289,11 +288,6 @@ public class TimelinePanel extends JPanel
 		
 		this.add( right_splitter, BorderLayout.CENTER );
 		
-		time_canvas.setRequired(toolbar.getRestore_timelines_listener(), time_canvas_vport);
-
-		row_adjs.initYLabelTreeSize();
-		
-
 		/* Inform "time_canvas_vport" time has been changed */
 		time_model.addTimeListener( time_canvas_vport );
 		time_model.addTimeListener( time_ruler_vport );		
@@ -316,15 +310,6 @@ public class TimelinePanel extends JPanel
 	{
 		// Initialize toolbar after creation of YaxisTree view
 		toolbar.init();
-		row_adjs.initSlidersAndTextFields();
-
-		if ( Debug.isActive() ) {
-			Debug.println( "TimelinePanel.init(): time_model = "
-					+ time_model );
-			Debug.println( "TimelinePanel.init(): time_scrollbar = "
-					+ time_scrollbar );
-			Debug.println( "TimelinePanel.init(): time_ruler = "
-					+ time_ruler );
-		}
+		row_adjs.refreshSlidersAndTextFields();
 	}
 }

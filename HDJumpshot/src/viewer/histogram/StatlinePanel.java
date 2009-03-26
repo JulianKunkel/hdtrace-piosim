@@ -392,7 +392,7 @@ public class StatlinePanel extends JPanel
     {
         // Initialize toolbar after creation of YaxisTree view
         toolbar.init();
-        row_adjs.initSlidersAndTextFields();
+        row_adjs.refreshSlidersAndTextFields();
         /*
             status_panel & summary_state_combobox listen canvas redraw events,
             They cannot be initialized before RowAdjustment has been

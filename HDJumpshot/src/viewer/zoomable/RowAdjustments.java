@@ -26,16 +26,15 @@ import javax.swing.event.ChangeListener;
 
 import viewer.common.Const;
 import viewer.common.LabeledTextField;
-import viewer.common.Parameters;
-import viewer.common.Routines;
+import viewer.topology.TopologyChangeListener;
 import viewer.topology.TopologyManager;
 
 public class RowAdjustments
 {
-	static final int HEIGHT_SUBTRACTION = 10;
+	static final int HEIGHT_SUBTRACTION = 5;
 
 	private ViewportTimeYaxis      canvas_vport;
-	private TopologyManager              tree_view;
+	private TopologyManager        topologyManager;
 
 	private JSlider                slider_VIS_ROW_COUNT;
 	private LabeledTextField       fld_VIS_ROW_COUNT;
@@ -43,17 +42,23 @@ public class RowAdjustments
 
 	private JPanel                 slider_panel;
 
-	private Diagnosis              debug;
-
 	private int oldRowCount = -1;
-
-	public RowAdjustments( ViewportTimeYaxis y_vport, TopologyManager y_tree )
+	
+	private MyTopologyChangeListener topoChangeListener = new MyTopologyChangeListener();
+	
+	private class MyTopologyChangeListener implements TopologyChangeListener{
+		@Override
+		public void topologyChanged() {
+			refreshSlidersAndTextFields();
+		}
+	}
+	
+	public RowAdjustments( ViewportTimeYaxis y_vport, TopologyManager topologyManager )
 	{
-		canvas_vport  = y_vport;
-		tree_view     = y_tree;
+		this.canvas_vport  = y_vport;
+		this.topologyManager     = topologyManager;
+		topologyManager.addTopologyChangedListener(topoChangeListener);
 
-		debug         = new Diagnosis();
-		debug.setActive( false );
 
 		// For constant visible row count during timeline canvas resizing
 		slider_VIS_ROW_COUNT = new JSlider( JSlider.VERTICAL );
@@ -98,33 +103,13 @@ public class RowAdjustments
 		slider_VIS_ROW_COUNT.setMinimumSize(fitall_btn.getMinimumSize());
 	}
 
-	public void initYLabelTreeSize()
+
+	public void refreshSlidersAndTextFields()
 	{
-		int avail_screen_height;
-		int row_height;
-		int row_count;
+		int row_count   = topologyManager.getRowCount();
+		int row_height  = topologyManager.getRowHeight();
 
-		tree_view.setRootVisible( Parameters.Y_AXIS_ROOT_VISIBLE );
-		avail_screen_height = (int) ( Routines.getScreenSize().height * Parameters.SCREEN_HEIGHT_RATIO );
-
-		row_count           = tree_view.getRowCount();
-		row_height          = avail_screen_height / row_count;
-
-		tree_view.setRowHeight( row_height );
-		tree_view.setVisibleRowCount( row_count );        
-	}
-
-	public void initSlidersAndTextFields()
-	{
-		int row_count   = tree_view.getRowCount();
-		int row_height  = tree_view.getRowHeight();
-		if ( debug.isActive() ) {
-			debug.println( "initSliders: START" );
-			debug.println( "initSliders: N=" + row_count
-					+ ", h=" + row_height );
-		}
-
-		slider_VIS_ROW_COUNT.setMinimum( 1 );
+		slider_VIS_ROW_COUNT.setMinimum( row_count < 2 ? 1 : 2 );
 		slider_VIS_ROW_COUNT.setMaximum( row_count );
 
 
@@ -133,8 +118,6 @@ public class RowAdjustments
 		slider_VIS_ROW_COUNT.setValue(row_count);
 		oldRowCount = row_count;
 
-		if ( debug.isActive() )
-			debug.println( "initSliders: END" );
 	}
 
 
@@ -153,7 +136,7 @@ public class RowAdjustments
 
 	public void updateSlidersAfterTreeExpansion()
 	{
-		int row_count   = tree_view.getRowCount();
+		int row_count   = topologyManager.getRowCount();
 		slider_VIS_ROW_COUNT.setMaximum( row_count );
 		fld_VIS_ROW_COUNT.fireActionPerformed();
 	}
@@ -166,10 +149,8 @@ public class RowAdjustments
 			double vis_row_count, row_height;
 			vis_row_count  = fld_VIS_ROW_COUNT.getDouble();
 			row_height     = ((double) canvas_vport.getHeight() - HEIGHT_SUBTRACTION) / vis_row_count;
-			tree_view.setRowHeight( (int) Math.round( row_height ) );
+			topologyManager.setRowHeight( (int) Math.round( row_height ) );
 			canvas_vport.fireComponentRedrawEvent();
-			if ( debug.isActive() )
-				debug.println( "ROW: row_height = " + row_height );
 		}
 	}
 
@@ -214,7 +195,7 @@ public class RowAdjustments
 		slider_VIS_ROW_COUNT.setValue( irow_count );
 
 		double row_height     = ((double) canvas_vport.getHeight() - HEIGHT_SUBTRACTION) /  irow_count ;
-		tree_view.setRowHeight( (int) row_height );
+		topologyManager.setRowHeight( (int) row_height );
 
 		canvas_vport.fireComponentRedrawEvent();
 	}
@@ -223,7 +204,7 @@ public class RowAdjustments
 	{
 		public void actionPerformed( ActionEvent evt )
 		{
-			adjustRowCount(tree_view.getRowCount());            
+			adjustRowCount(topologyManager.getRowCount());            
 		}
 	}
 }

@@ -27,14 +27,13 @@ import java.util.Date;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import viewer.common.CustomCursor;
 import viewer.common.Parameters;
 import viewer.common.Routines;
 import viewer.histogram.StatlineDialog;
-import viewer.legends.CategoryVisibleListener;
+import viewer.legends.CategoryUpdatedListener;
+import viewer.topology.TopologyChangeListener;
 import viewer.topology.TopologyManager;
 import viewer.topology.TopologyStatisticTreeNode;
 import viewer.zoomable.ActionTimelineRestore;
@@ -50,11 +49,13 @@ import viewer.zoomable.SearchableView;
 import viewer.zoomable.SummarizableView;
 import viewer.zoomable.ViewportTimeYaxis;
 import base.drawable.Category;
+import base.drawable.ColorAlpha;
 import base.drawable.DrawObjects;
 import base.drawable.TimeBoundingBox;
 import base.statistics.BufForTimeAveBoxes;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.statistics.ExternalStatisticsGroup;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -71,9 +72,6 @@ implements SearchableView, SummarizableView
 	private Frame              root_frame;
 	private TimeBoundingBox    timeframe4imgs;   // TimeFrame for images[]
 
-	private ChangeListener     change_listener;
-	private ChangeEvent        change_event;
-
 	private int                num_rows;
 	private int                row_height;
 
@@ -81,11 +79,25 @@ implements SearchableView, SummarizableView
 	private ActionTimelineRestore restore;
 	private ViewportTimeYaxis  canvas_viewport;
 	final private TraceFormatBufferedFileReader reader;
+	
+	private class MyTopologyChangeListener implements TopologyChangeListener{
+		@Override
+		public void topologyChanged() {
+			forceRedraw();
+		}
+	}
+	
+	private MyTopologyChangeListener topologyChangeListener = new MyTopologyChangeListener();
 
 	// gets triggered if the visibility of an category is changed
-	private CategoryVisibleListener categoryVisibleListener = new CategoryVisibleListener(){
+	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
 		@Override
-		public void CategoryVisibilityChanged(boolean state) {
+		public void categoryVisibilityChanged() {
+			forceRedraw();
+		}
+		
+		@Override
+		public void categoryColorChanged() {
 			forceRedraw();
 		}
 	};
@@ -110,16 +122,10 @@ implements SearchableView, SummarizableView
 		timeframe4imgs  = null;
 
 		root_frame      = null;
-		change_event    = null;
-		change_listener = null;
 		
 		reader.getLegendModel().addVisibilityChangedListener(categoryVisibleListener);
-	}
-
-	public void addChangeListener( ChangeListener listener )
-	{
-		change_event    = new ChangeEvent( this );
-		change_listener = listener;
+		
+		timelineManager.addTopologyChangedListener(topologyChangeListener);
 	}
 
 	public Dimension getMinimumSize()
@@ -152,12 +158,6 @@ implements SearchableView, SummarizableView
 			return rows_size;		
 	}
 
-	private void fireChangeEvent()
-	{
-		if ( change_event != null )
-			change_listener.stateChanged( change_event );
-	}
-
 	protected void initializeAllOffImages( final TimeBoundingBox imgs_times )
 	{
 		if ( Profile.isActive() )
@@ -184,7 +184,6 @@ implements SearchableView, SummarizableView
 		// Update the timeframe of all images
 		timeframe4imgs.setEarliestTime( imgs_times.getEarliestTime() );
 		timeframe4imgs.setLatestTime( imgs_times.getLatestTime() );
-		this.fireChangeEvent();  // to update TreeTrunkPanel.
 		Routines.setComponentAndChildrenCursors( root_frame,
 				CustomCursor.Normal );
 
@@ -239,7 +238,7 @@ implements SearchableView, SummarizableView
 		offGraphics.setColor( Color.cyan );
 		for ( irow = 0 ; irow < num_rows ; irow++ ) {
 			//  Select only non-expanded row
-			if ( ! timelineManager.isExpanded( irow ) ) {
+			if ( timelineManager.getType(irow) == TimelineType.TRACE  ) {
 				i_Y = coord_xform.convertTimelineToPixel(irow );
 				offGraphics.drawLine( 0, i_Y, offImage_width-1, i_Y );
 			}
@@ -260,7 +259,7 @@ implements SearchableView, SummarizableView
 		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
 
 
-		for(int i=0; i < timelineManager.getTimelineNumber(); i++){			
+		for(int i=0; i < num_rows ; i++){			
 			switch (timelineManager.getType(i)){
 			case SPACER_NODE:
 				break;
@@ -288,22 +287,29 @@ implements SearchableView, SummarizableView
 		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
 		
 		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
-		final String statName = node.getStatisticName();		
+		
+		final String statName = node.getStatisticName();
+		final ExternalStatisticsGroup group = sReader.getGroup();
 		
 		double lastTime = timebounds.getEarliestTime();
+		
+		final Category cat = reader.getCategory(group, statName);
+		final ColorAlpha color = cat.getColor();
+		
+		if(! cat.isVisible()){
+			return;
+		}
 
-		final double maxValue = reader.getGlobalStatStats(sReader.getGroup()).getStatsForStatistic(statName).getGlobalMaxValue();
-		final StatisticDescription statDesc =  sReader.getGroup().getStatistic(statName);
-		final int statNumber = statDesc.getNumberInGroup();
+		final double maxValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMaxValue();
+		final StatisticDescription statDesc =  group.getStatistic(statName);
+		final int statNumber = statDesc.getNumberInGroup();	
 
 		for(StatisticGroupEntry entry: sReader.getStatEntries()){
 			double value =  (entry.getNumeric(statNumber) / maxValue);
 			final Epoch adaptedTime = entry.getTimeStamp().subtract(globalMinTime) ;
 			
 			DrawObjects.drawStatistic(offGraphics, coord_xform, 
-					adaptedTime, lastTime, 
-					(float) value, 
-					reader.getCategory(entry.getGroup(), statName).getColor(), timeline);
+					adaptedTime, lastTime, (float) value, color , timeline);
 			
 			lastTime = adaptedTime.getDouble();
 		}

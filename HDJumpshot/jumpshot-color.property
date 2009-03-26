@@ -1,14 +1,17 @@
 #
-#Wed Mar 25 16:00:59 CET 2009
+#Thu Mar 26 09:52:03 CET 2009
 test2=RGB(20,0,0)
+Energy\:Voltage=RGB(102,255,204)
 Compute=RGB(51,51,255)
 Bcast=RGB(255,153,153)
+Energy\:Current=RGB(255,204,102)
 FileOpen=RGB(102,0,102)
-test=RGB(153,255,102)
 Kernel=RGB(102,102,255)
+test=RGB(153,255,102)
 Send=RGB(255,255,153)
 Energy=RGB(255,153,153)
 FileWrite=RGB(102,0,102)
 SINGLE=RGB(255,204,204)
+Energy\:Power=RGB(255,102,102)
 test4=RGB(102,102,255)
 test3=RGB(255,153,153)

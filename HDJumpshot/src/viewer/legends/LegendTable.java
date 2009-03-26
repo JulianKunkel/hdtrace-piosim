@@ -156,21 +156,22 @@ public class LegendTable extends JTable
                 cell_insets = EMPTY_INSETS;
             cell_width   = cell_size.width
                          + cell_insets.left + cell_insets.right;
-            /*
-            System.out.println( "At column " + icol + "\n"
-                              + "\t header size = " + header_size + "\n"
-                              + "\t cell size = " + cell_size );
-            System.out.println( "\t header_width = " + header_width
-                              + ", cell_width = " + cell_width );
-            */
+
             if ( cell_width > header_width ) {
-                column.setPreferredWidth( cell_width );
+                column.setPreferredWidth( cell_width );                
                 vport_width  += cell_width;
             }
             else {
                 column.setPreferredWidth( header_width );
                 vport_width  += header_width;
             }
+            
+            // fixate column width of static columns
+            if(icol != LegendTableModel.NAME_COLUMN){
+            	column.setMaxWidth(column.getPreferredWidth());            	
+            }
+            column.setMinWidth(column.getPreferredWidth());         
+            
             cell_height   = cell_size.height + cell_insets.top + cell_insets.bottom + 15;
             if ( cell_height > row_height )
                 row_height  = cell_height;
@@ -185,8 +186,4 @@ public class LegendTable extends JTable
         super.setPreferredScrollableViewportSize(
               new Dimension( vport_width, vport_height ) );
     }
-    
-    public LegendTableModel getTableModel() {
-		return table_model;
-	}
 }

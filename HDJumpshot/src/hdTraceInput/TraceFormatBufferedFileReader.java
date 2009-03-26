@@ -162,12 +162,21 @@ public class TraceFormatBufferedFileReader {
 		addTraceObjectCategoryIfNecessary(entry);
     }
     
+    /**
+     * Add statistic categories in the file if not already part of the category.
+     * @param fileOpener
+     */
     private void updateStatisticCategories(TraceFormatFileOpener fileOpener){
-        for(String catName: fileOpener.getProjectDescription().getExternalStatisticGroupNames()){
-        	categoriesStatistics.put(catName, new Category(catName, Topology.STATISTIC, new ColorAlpha(0,0,200)));
+        for(ExternalStatisticsGroup group: fileOpener.getProjectDescription().getExternalStatisticGroups()){
+        	for(StatisticDescription desc: group.getStatisticsOrdered()){
+        		final String name = group.getName() + ":" + desc.getName(); 
+        		if(!categoriesStatistics.containsKey(name)){
+        			categoriesStatistics.put(name, new Category(name, Topology.STATISTIC, new ColorAlpha(0,0,200)));
+        		}
+        	}
         }        	
     }
-	
+    
 	/**
 	 * Reads a trace file.
 	 * 
@@ -261,7 +270,7 @@ public class TraceFormatBufferedFileReader {
 	}
 	
 	public Category getCategory(ExternalStatisticsGroup group, String statistic){
-		return categoriesStatistics.get(group.getName());
+		return categoriesStatistics.get(group.getName() + ":" + statistic);
 	}
 	
 	public Collection<String> getGroupNames(int fileNumber){
