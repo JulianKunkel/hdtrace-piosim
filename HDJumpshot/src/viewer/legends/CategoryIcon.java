@@ -1,10 +1,28 @@
+//	Copyright (C) 2009 Julian M. Kunkel
+//	
+//	This file is part of HDJumpshot.
+//	
+//	HDJumpshot is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+//	
+//	HDJumpshot is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /*
  *  (C) 2001 by Argonne National Laboratory
  *      See COPYRIGHT in top-level directory.
  */
 
 /*
- *  @author  Anthony Chan
+ *  @author Anthony Chan (Jumpshot 4), Julian M. Kunkel
  */
 
 package viewer.legends;
@@ -22,12 +40,12 @@ import drawable.TopologyType;
 
 public class CategoryIcon implements Icon
 {
-	private static final int    ICON_WIDTH           = Const.ICON_WIDTH;
-	private static final int    ICON_HEIGHT          = Const.ICON_HEIGHT;
-	private static final int    ICON_HALF_WIDTH      = Const.ICON_WIDTH / 2;
-	private static final int    ICON_QUARTER_WIDTH   = Const.ICON_WIDTH / 4;
-	private static final int    ICON_HALF_HEIGHT     = Const.ICON_HEIGHT / 2;
-	private static final int    ICON_QUARTER_HEIGHT  = Const.ICON_HEIGHT / 4;
+	private static final int    ICON_WIDTH           = LegendConst.ICON_WIDTH;
+	private static final int    ICON_HEIGHT          = LegendConst.ICON_HEIGHT;
+	private static final int    ICON_HALF_WIDTH      = LegendConst.ICON_WIDTH / 2;
+	private static final int    ICON_QUARTER_WIDTH   = LegendConst.ICON_WIDTH / 4;
+	private static final int    ICON_HALF_HEIGHT     = LegendConst.ICON_HEIGHT / 2;
+	private static final int    ICON_QUARTER_HEIGHT  = LegendConst.ICON_HEIGHT / 4;
 	private static final int    XOFF                 = 3;
 	private static final int    YOFF                 = 2;
 

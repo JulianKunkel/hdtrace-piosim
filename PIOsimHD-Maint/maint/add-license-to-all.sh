@@ -8,3 +8,4 @@ for FOLDER in $SIMF $MODELF $TRACECONVERTERF $TRACEF; do
 	./add-license.sh $FOLDER/src
 done
   
+./add-license.sh $HDJUMPSHOT license-hdjumpshot.txt 

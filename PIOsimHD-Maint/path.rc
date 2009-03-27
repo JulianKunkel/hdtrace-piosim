@@ -16,6 +16,7 @@ DOCF="$PFAD/PIOsimHD-Doc"
 MODELF="$PFAD/PIOsimHD-Model"
 TRACECONVERTERF="$PFAD/HDTraceConverter"
 TRACEF="$PFAD/HDTraceFormat"
+HDJUMPSHOT="$PFAD/HDJumpshot"
 
 if [[ ! -e  "$SIMF" ]] ; then
 	echo "$SIMF" does not exist

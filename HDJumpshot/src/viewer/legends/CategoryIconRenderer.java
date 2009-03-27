@@ -1,10 +1,28 @@
+//	Copyright (C) 2009 Julian M. Kunkel
+//	
+//	This file is part of HDJumpshot.
+//	
+//	HDJumpshot is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+//	
+//	HDJumpshot is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /*
  *  (C) 2001 by Argonne National Laboratory
  *      See COPYRIGHT in top-level directory.
  */
 
 /*
- *  @author  Anthony Chan
+ *  @author Anthony Chan (Jumpshot 4), Julian M. Kunkel
  */
 
 package viewer.legends;
@@ -23,13 +41,13 @@ public class CategoryIconRenderer extends JLabel
                                   implements TableCellRenderer
 {
     private static final Color  CELL_BACKCOLOR
-                                = Const.CELL_BACKCOLOR;
+                                = LegendConst.CELL_BACKCOLOR;
     private static final Color  CELL_FORECOLOR
-                                = Const.CELL_FORECOLOR;
+                                = LegendConst.CELL_FORECOLOR;
     private static final Color  CELL_BACKCOLOR_SELECTED
-                                = Const.CELL_BACKCOLOR_SELECTED;
+                                = LegendConst.CELL_BACKCOLOR_SELECTED;
     private static final Color  CELL_FORECOLOR_SELECTED
-                                = Const.CELL_FORECOLOR_SELECTED;
+                                = LegendConst.CELL_FORECOLOR_SELECTED;
 
     private Border  raised_border, lowered_border;
 
@@ -38,7 +56,7 @@ public class CategoryIconRenderer extends JLabel
         super();
         super.setOpaque( true );
         super.setHorizontalAlignment( SwingConstants.CENTER );
-        super.setIconTextGap( Const.CELL_ICON_TEXT_GAP );
+        super.setIconTextGap( LegendConst.CELL_ICON_TEXT_GAP );
         raised_border  = BorderFactory.createRaisedBevelBorder();
         lowered_border = BorderFactory.createLoweredBevelBorder();
     }
