@@ -1,7 +1,8 @@
 #
-#Thu Mar 26 14:26:39 CET 2009
+#Fri Mar 27 14:02:15 CET 2009
 test2=RGB(20,0,0)
 Energy\:Voltage=RGB(102,255,204)
+Julians\ Event=RGB(20,0,0)
 Compute=RGB(51,51,255)
 Bcast=RGB(255,153,153)
 Energy\:Current=RGB(255,204,102)

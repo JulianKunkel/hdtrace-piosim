@@ -19,7 +19,6 @@ import javax.swing.JScrollBar;
 import javax.swing.event.EventListenerList;
 
 import viewer.common.Debug;
-import viewer.common.Dialogs;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
@@ -47,9 +46,10 @@ import drawable.TimeBoundingBox;
       updatePixelCoords()
    are accessed by RulerTime class.
  */
-public class ModelTime extends DefaultBoundedRangeModel
-implements AdjustmentListener
+public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentListener
 {
+	private static final long serialVersionUID = -7160539618754681624L;
+
 	private static double NORMAL_ZOOMFACTOR = 2 ;
 	
 	// user coordinates of the time axis of the viewport
@@ -67,28 +67,19 @@ implements AdjustmentListener
 	// screen properties
 	private int iViewWidth;// No. of View pixel per unit time
 
-	// special purpose ChangeListeners, TimeListeners, to avoid conflict with
-	// the EventListenerList, listenerList, in DefaultBoundedRangeModel
-	private ModelTimePanel     params_display;
-	private EventListenerList  time_listener_list;
-	// internal global variable for use in fireTimeChanged()
-	private TimeEvent          time_chg_evt;
-
-	private Window             root_window;
 	private JScrollBar         scrollbar;
 
-	private Stack<TimeBoundingBox> zoom_undo_stack;
-	private Stack<TimeBoundingBox> zoom_redo_stack;
+	// special purpose ChangeListeners, TimeListeners, to avoid conflict with
+	// the EventListenerList, listenerList, in DefaultBoundedRangeModel
+	final private EventListenerList  time_listener_list = new EventListenerList();
+	// internal global variable for use in fireTimeChanged()
+	final private TimeEvent          time_chg_evt =  new TimeEvent( this );
+
+	final private Stack<TimeBoundingBox> zoom_undo_stack = new Stack<TimeBoundingBox>();
+	final private Stack<TimeBoundingBox> zoom_redo_stack = new Stack<TimeBoundingBox>();
 
 	public ModelTime( final Window  top_window, Epoch  init_global_time, Epoch  final_global_time )
 	{
-		params_display     = null;
-		time_chg_evt       = null;
-		time_listener_list = new EventListenerList();
-		zoom_undo_stack    = new Stack<TimeBoundingBox>();
-		zoom_redo_stack    = new Stack<TimeBoundingBox>();
-
-		root_window        = top_window;
 		setTimeGlobalMinimum( init_global_time );
 		setTimeGlobalMaximum( final_global_time );
 	}
@@ -119,9 +110,9 @@ implements AdjustmentListener
 	 // tGlobal_min & tGlobal_max cannot be changed by setTimeViewPosition()
 	 private void setTimeViewPosition( double cur_view_init )
 	 {
-		 if ( cur_view_init < 0 )
+		 if ( cur_view_init < 0 ){
 			 tView_init     = 0;
-		 else {
+		 }else {
 			 if ( cur_view_init > getTimeGlobalDuration() - tView_extent )
 				 tView_init     = getTimeGlobalDuration() - tView_extent;
 			 else
@@ -188,22 +179,7 @@ implements AdjustmentListener
 	 {
 		 scrollbar = sb;
 	 }
-
-	 public void removeScrollBar()
-	 {
-		 scrollbar = null;
-	 }
-
-	 public void setParamDisplay( ModelTimePanel tl )
-	 {
-		 params_display = tl;
-	 }
-
-	 public void removeParamDisplay( ModelTimePanel tl )
-	 {
-		 params_display = null;
-	 }
-
+	 
 	 public void addTimeListener( TimeListener tl )
 	 {
 		 time_listener_list.add( TimeListener.class, tl );
@@ -226,9 +202,6 @@ implements AdjustmentListener
 		 // those that are interested in this event
 		 for ( int i = listeners.length-2; i>=0; i-=2 ) {
 			 if ( listeners[i] == TimeListener.class ) {
-				 // Lazily create the event:
-				 if ( time_chg_evt == null )
-					 time_chg_evt = new TimeEvent( this );
 				 ( (TimeListener) listeners[i+1] ).timeChanged( time_chg_evt );
 			 }
 		 }
@@ -265,10 +238,7 @@ implements AdjustmentListener
 	 public void updatePixelCoords()
 	 {
 		 super.setRangeProperties( time2pixel( tView_init ),
-				 timeRange2pixelRange( tView_extent ),
-				 0,
-				 time2pixel( getTimeGlobalDuration() ),
-				 super.getValueIsAdjusting() );
+				 timeRange2pixelRange( tView_extent ), 0, time2pixel( getTimeGlobalDuration() ), super.getValueIsAdjusting() );
 	 }
 
 	 public void updateTimeCoords()
@@ -297,7 +267,7 @@ implements AdjustmentListener
 		 return getTimeGlobalDuration() / tView_extent;
 	 }
 
-	 private void setScrollBarIncrements()
+	 private void setScrollBarIncrements() throws IllegalStateException
 	 {
 		 /*
             This needs to be called after updatePixelCoords()
@@ -306,22 +276,17 @@ implements AdjustmentListener
 		 if ( scrollbar != null ) {
 			 sb_block_incre = super.getExtent();
 			 if ( sb_block_incre <= 0 ) {
-				 Dialogs.error( root_window,
+				 throw new IllegalStateException(
 						 "You have reached the Zoom limit! "
 						 + "Time ScrollBar has 0 BLOCK Increment. "
 						 + "Zoom out or risk crashing the viewer." );
-				 return;
 			 }
 			 scrollbar.setBlockIncrement( sb_block_incre );
-			 sb_unit_incre  =  timeRange2pixelRange( tView_extent
-					 * Parameters.TIME_SCROLL_UNIT_RATIO );
+			 sb_unit_incre  =  timeRange2pixelRange( tView_extent * Parameters.TIME_SCROLL_UNIT_RATIO );
 			 if ( sb_unit_incre <= 0 ) {
-				 Dialogs.error( root_window,
-						 "You have reached the Zoom limit! "
+				 throw new IllegalStateException( "You have reached the Zoom limit! "
 						 + "Time ScrollBar has 0 UNIT Increment. "
 						 + "Zoom out or risk crashing the viewer." );
-				 sb_unit_incre = 0;
-				 return;
 			 }
 			 
 			 scrollbar.setUnitIncrement( sb_unit_incre );
@@ -333,7 +298,6 @@ implements AdjustmentListener
 	 {
 		 this.setTimeViewPosition( tView_init + tView_change );
 		 this.updatePixelCoords();
-		 // this.setScrollBarIncrements();
 	 }
 
 	 // iView_change is measured in image or viewport pixel coordinates in pixel.
@@ -391,33 +355,69 @@ implements AdjustmentListener
 	 
 	 public void zoomIn()
 	 {
-		 this.pushCurrentStateOnZoomStackAndClean();
-		 
-		 zoom(tView_init + tView_extent / NORMAL_ZOOMFACTOR / 2.0, tView_extent / NORMAL_ZOOMFACTOR);
+		 zoomIn(tView_init + tView_extent / NORMAL_ZOOMFACTOR / 2.0);
 	 }
 
-	 public void zoomOut()
+	 public void zoomOut(double offsetTime)
 	 {
 		 this.pushCurrentStateOnZoomStackAndClean();
 
 		 // take special care if we are outside of possible scaling.
 		 double extend = tView_extent * NORMAL_ZOOMFACTOR;
+		 
+		 if( offsetTime < 0) offsetTime = 0;
+		 
+		 if ( extend + offsetTime > getTimeGlobalDuration() ) extend = getTimeGlobalDuration() - offsetTime;
+		 
+		 zoom(offsetTime, extend);		
+	 }
+	 
+	 public void zoomIn(double offsetTime)
+	 {
+		 final double oldtView_extent = tView_extent;
+		 final double oldtView_init  = tView_init; 
+		 
+		 // do not permit a too deep zooming
+		 try{
+			 this.pushCurrentStateOnZoomStackAndClean();
+		 
+			 zoom(offsetTime, tView_extent / NORMAL_ZOOMFACTOR);
+		 }catch(IllegalStateException e){
+			 zoom(oldtView_init, oldtView_extent);
+			 zoom_undo_stack.pop();
+			 
+			 //Dialogs.error( root_window,
+			 return;
+		 }	
+	 }
+	 
+	 
+	 public void zoomOut()
+	 {
 		 double offset = tView_init - tView_extent / NORMAL_ZOOMFACTOR / 2.0;
-		 
-		 if( offset < 0) offset = 0;
-		 
-		 if ( extend + offset > getTimeGlobalDuration() ) extend = getTimeGlobalDuration() - offset;
-		 
-		 zoom(offset, extend);		 
+		 zoomOut(offset);
 	 }
 
 	 public void zoomRapidly( double new_tView_init, double new_tView_extent )
-	 {
-		 this.pushCurrentStateOnZoomStackAndClean();
-		 zoom(new_tView_init, new_tView_extent);
+	 {	 
+		 final double oldtView_extent = tView_extent;
+		 final double oldtView_init  = tView_init; 
+		 
+		 // do not permit a too deep zooming
+		 try{
+			 this.pushCurrentStateOnZoomStackAndClean();
+
+			 zoom(new_tView_init, new_tView_extent);
+		 }catch(IllegalStateException e){
+			 zoom(oldtView_init, oldtView_extent);
+			 zoom_undo_stack.pop();
+			 
+			 //Dialogs.error( root_window,
+			 return;
+		 }
 	 }
 
-	 private void zoom( double new_tView_init, double new_tView_extent )
+	 private void zoom( double new_tView_init, double new_tView_extent ) throws IllegalStateException
 	 {
 		 if(new_tView_init < 0){
 			 new_tView_init = 0; 
@@ -435,10 +435,12 @@ implements AdjustmentListener
 		 this.setTimeViewPosition( new_tView_init );
 
 		 this.updatePixelCoords();
+		 
 		 this.setScrollBarIncrements();
 		 this.updateTimeCoords();
 
 		 this.fireTimeChanged();
+		 
 	 }
 
 	 public void zoomUndo()

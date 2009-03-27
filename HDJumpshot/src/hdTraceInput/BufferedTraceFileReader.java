@@ -1,7 +1,6 @@
 package hdTraceInput;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
@@ -23,7 +22,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	 * @param endTime
 	 * @return
 	 */
-	public Enumeration<XMLTraceEntry> enumerateTraceEntry(boolean nested, Epoch startTime, Epoch endTime){
+	public ReaderTraceElementEnumerator enumerateTraceEntry(boolean nested, Epoch startTime, Epoch endTime){
 		if(! nested)
 			return new ReaderTraceElementEnumerator(this, startTime, endTime);
 		else

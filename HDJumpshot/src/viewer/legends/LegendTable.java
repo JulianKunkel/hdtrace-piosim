@@ -11,7 +11,6 @@ package viewer.legends;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -28,7 +27,9 @@ import javax.swing.table.TableColumnModel;
 
 public class LegendTable extends JTable
 {
-    private static final Insets EMPTY_INSETS
+	private static final long serialVersionUID = 996884107800805302L;
+
+	private static final Insets EMPTY_INSETS
                                 = new Insets( 0, 0, 0, 0 );
 
     private LegendTableModel    table_model;
@@ -47,8 +48,6 @@ public class LegendTable extends JTable
         super.setDefaultEditor( CategoryIcon.class,
                                 new CategoryIconEditor() );
         
-        //super.setAutoResizeMode( AUTO_RESIZE_OFF );
-        //setFont(viewer.common.Const.FONT);        
         super.setIntercellSpacing( new Dimension( 2, 2 ) );
         super.setShowHorizontalLines( false );
         super.setShowVerticalLines( true );
@@ -57,8 +56,6 @@ public class LegendTable extends JTable
         table_header = this.getTableHeader();
         this.setColumnHeaderRenderers();
         this.initColumnSize();
-
-        // super.getSelectionModel().addListSelectionListener( table_model );
     }
 
     private void setColumnHeaderRenderers()
@@ -67,8 +64,7 @@ public class LegendTable extends JTable
         TableCellRenderer  renderer;
         JPopupMenu         pop_menu;
         MouseAdapter       handler;
-        Color              bg_color;
-        Class              class_type;
+        Class<?>              class_type;
         int                column_count;
 
         column_count  = table_model.getColumnCount();

@@ -72,10 +72,6 @@ public class Parameters
                                       = StateBorder.COLOR_RAISED_BORDER;
     public  static       int          SUMMARY_ARROW_LOG_BASE   = 5;
 
-    // Options: Legend window
-    public  static       boolean      LEGEND_TOPOLOGY_ORDER    = true;
-
-
     public static final void initSetupFile()
     {
         String user_homedir, file_sep;
@@ -174,10 +170,6 @@ public class Parameters
                            String.valueOf( SUMMARY_STATE_BORDER ) );
         pptys.setProperty( "SUMMARY_ARROW_LOG_BASE",
                            String.valueOf( SUMMARY_ARROW_LOG_BASE ) );
-
-        // Options: Legend window
-        pptys.setProperty( "LEGEND_TOPOLOGY_ORDER",
-                           String.valueOf( LEGEND_TOPOLOGY_ORDER ) );
 
 
         try {
@@ -334,12 +326,6 @@ public class Parameters
         ppty_val = pptys.getProperty( "SUMMARY_ARROW_LOG_BASE" );
         if ( ppty_val != null )
             SUMMARY_ARROW_LOG_BASE = Integer.parseInt( ppty_val );
-
-        // Options: Legend window
-        ppty_val = pptys.getProperty( "LEGEND_TOPOLOGY_ORDER" );
-        if ( ppty_val != null ) 
-            LEGEND_TOPOLOGY_ORDER =    ppty_val.equalsIgnoreCase( "true" )
-                                    || ppty_val.equalsIgnoreCase( "yes" );
     }
 
     public static String toInOutString()
@@ -382,8 +368,6 @@ public class Parameters
         rep.append( "HISTOGRAM_ZERO_ORIGIN = " + HISTOGRAM_ZERO_ORIGIN + "\n" );
         rep.append( "SUMMARY_STATE_BORDER = "  + SUMMARY_STATE_BORDER  + "\n" );
         rep.append( "SUMMARY_ARROW_LOG_BASE = "+ SUMMARY_ARROW_LOG_BASE+ "\n" );
-
-        rep.append( "LEGEND_TOPOLOGY_ORDER = " + LEGEND_TOPOLOGY_ORDER + "\n" );
 
         return rep.toString();
     }

@@ -29,7 +29,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -56,12 +55,10 @@ import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import drawable.TimeBoundingBox;
 
-public class ViewportTime extends JViewport
-implements TimeListener,
-ComponentListener,
-MouseInputListener,
-KeyListener
+public class ViewportTime extends JViewport implements TimeListener, ComponentListener, MouseInputListener, KeyListener
 {
+	private static final long serialVersionUID = -3752967463821381046L;
+	
 	private static final Color   INFO_LINE_COLOR  = Color.green;
 	private static final Color   INFO_AREA_COLOR  = new Color(255,255,  0,64);
 	private static final Color   ZOOM_LINE_COLOR  = Color.white;
@@ -82,7 +79,7 @@ KeyListener
 	private   TimeBoundingBox           info_timebox  = null;
 
 	// info_dialogs list is used to keep track of all InfoDialog boxes.
-	private   List                      info_dialogs;
+	private   ArrayList<InfoDialog>          info_dialogs;
 
 	private   InfoDialogActionListener  info_action_listener;
 	private   InfoDialogWindowListener  info_window_listener;
@@ -149,11 +146,9 @@ KeyListener
 		super.addMouseMotionListener( this );
 		super.addKeyListener( this );
 
-		info_dialogs = new ArrayList();
-		info_action_listener = new InfoDialogActionListener( this,
-				info_dialogs );
-		info_window_listener = new InfoDialogWindowListener( this,
-				info_dialogs );
+		info_dialogs = new ArrayList<InfoDialog>();
+		info_action_listener = new InfoDialogActionListener( );
+		info_window_listener = new InfoDialogWindowListener( );
 	}
 
 	public void setToolBarStatus( ToolBarStatus  in_toolbar )
@@ -360,7 +355,7 @@ KeyListener
 
 	public void paint( Graphics g )
 	{
-		Iterator    itr;
+		Iterator<InfoDialog>    itr;
 		InfoDialog  info_popup;
 		double      popup_time;
 		double      focus_time;
@@ -558,22 +553,22 @@ KeyListener
 
 	public void mouseClicked( MouseEvent mouse_evt )
 	{
-		Point  vport_click;
-		double focus_time;
+		
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( isLeftMouseClick4Zoom ) {  // Zoom Mode
-				vport_click = mouse_evt.getPoint();
-				focus_time  = coord_xform.convertPixelToTime(
-						vport_click.x );
+				double focus_time;				
+				Point  vport_click = mouse_evt.getPoint();
+				
+				focus_time  = coord_xform.convertPixelToTime( vport_click.x );				
 				if ( Parameters.LEFTCLICK_INSTANT_ZOOM ) {
-					// Left clicking with Shift to Zoom Out,
-					// Left clinking to Zoom In.
-					if ( mouse_evt.isShiftDown() ) {
+					// Left click with Shift to Zoom Out,
+					// Left click to Zoom In.
+					if ( mouse_evt.isShiftDown() ) {						
 						time_model.zoomOut();
 						super.setCursor( CustomCursor.ZoomMinus );
 					}
 					else {
-						time_model.zoomIn();
+						time_model.zoomIn(focus_time);
 						super.setCursor( CustomCursor.ZoomPlus );
 					}
 					super.requestFocus();
@@ -635,7 +630,6 @@ KeyListener
 	{
 		Point  vport_click;
 		double click_time;
-		double focus_time;
 
 		// Ignore all mouse events when Control key is pressed
 		if ( mouse_evt.isControlDown() || hasControlKeyBeenPressed ) {
@@ -684,7 +678,7 @@ KeyListener
 		InfoDialog        info_popup;
 		Window            window;
 		Point             vport_click, view_click, global_click;
-		double            click_time, focus_time;
+		double            click_time;
 
 		// Ignore all mouse events when Control key is pressed
 		if ( mouse_evt.isControlDown() || hasControlKeyBeenPressed ) {
@@ -709,9 +703,6 @@ KeyListener
 						time_model.zoomRapidly(
 								zoom_timebox.getEarliestTime(),
 								zoom_timebox.getDuration() );
-						focus_time = ( zoom_timebox.getEarliestTime()
-								+ zoom_timebox.getLatestTime()
-						) / 2.0d;
 					}
 					zoom_timebox = null;
 					this.repaint();
@@ -807,35 +798,31 @@ KeyListener
 	{
 		int info_dialogs_size = info_dialogs.size();
 		if ( info_dialogs_size > 0 )
-			return (InfoDialog) info_dialogs.get( info_dialogs_size - 1 );
+			return  info_dialogs.get( info_dialogs_size - 1 );
 		else
 			return null;
 	}
 
 
+	private void forceRepaint(){
+		this.repaint();
+	}
+	
 
 	private class InfoDialogActionListener implements ActionListener
 	{
-		private ViewportTime  viewport;
-		private List          info_dialogs;
-
-		public InfoDialogActionListener( ViewportTime vport, List dialogs )
-		{
-			viewport      = vport;
-			info_dialogs  = dialogs;
-		}
 
 		public void actionPerformed( ActionEvent evt )
 		{
 			InfoDialog  info_popup;
 			Object      evt_src = evt.getSource();
-			Iterator itr = info_dialogs.iterator();
+			Iterator<InfoDialog> itr = info_dialogs.iterator();
 			while ( itr.hasNext() ) {
-				info_popup = (InfoDialog) itr.next();
+				info_popup = itr.next();
 				if ( evt_src == info_popup.getCloseButton() ) {
 					info_dialogs.remove( info_popup );
 					info_popup.dispose();
-					viewport.repaint();
+					forceRepaint();
 					break;
 				}
 			}
@@ -844,26 +831,17 @@ KeyListener
 
 	private class InfoDialogWindowListener extends WindowAdapter
 	{
-		private ViewportTime  viewport;
-		private List          info_dialogs;
-
-		public InfoDialogWindowListener( ViewportTime vport, List dialogs )
-		{
-			viewport      = vport;
-			info_dialogs  = dialogs;
-		}
-
 		public void windowClosing( WindowEvent evt )
 		{
 			InfoDialog  info_popup;
 			Object      evt_src = evt.getSource();
-			Iterator itr = info_dialogs.iterator();
+			Iterator<InfoDialog> itr = info_dialogs.iterator();
 			while ( itr.hasNext() ) {
 				info_popup = (InfoDialog) itr.next();
 				if ( evt_src == info_popup ) {
 					info_dialogs.remove( info_popup );
 					info_popup.dispose();
-					viewport.repaint();
+					forceRepaint();
 					break;
 				}
 			}

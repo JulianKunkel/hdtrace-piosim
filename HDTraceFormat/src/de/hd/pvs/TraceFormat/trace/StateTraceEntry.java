@@ -37,7 +37,7 @@ public class StateTraceEntry extends XMLTraceEntry{
 	 * This includes not the parent state.
 	 * @return
 	 */
-	public Enumeration<XMLTraceEntry> childForwardEnumeration(){
+	public ForwardStateEnumeration childForwardEnumeration(){
 		return new ForwardStateEnumeration(this);
 	}
 	
@@ -47,7 +47,7 @@ public class StateTraceEntry extends XMLTraceEntry{
 	 * This includes not the parent state. 
 	 * @return
 	 */
-	public Enumeration<XMLTraceEntry> childForwardEnumeration(Epoch startTime){
+	public ForwardStateEnumeration childForwardEnumeration(Epoch startTime){
 		return new ForwardStateEnumerationStartTime(this, startTime);
 	}
 

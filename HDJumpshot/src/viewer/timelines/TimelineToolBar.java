@@ -163,10 +163,9 @@ public class TimelineToolBar extends JToolBar
         timelines_restore_btn.addActionListener( new ActionTimelineRestore(topologyManager) );
         super.add( timelines_restore_btn );
 
-        timelines_expand_btn = new JButton( new ImageIcon( Const.IMG_PATH + "WinUndo.gif"  ) );
+        timelines_expand_btn = new JButton( new ImageIcon( Const.IMG_PATH + "TreeExpand24.gif"  ) );
         timelines_expand_btn.setMargin( btn_insets );
-        timelines_expand_btn.setToolTipText(
-                   "Expand the Y-axis tree label by 1 level" );
+        timelines_expand_btn.setToolTipText( "Expand the Y-axis tree label by 1 level" );
         timelines_expand_btn.setMnemonic( KeyEvent.VK_E );
         // expand_btn.setPreferredSize( btn_dim );
         timelines_expand_btn.addActionListener( new ActionYaxisTreeExpand( topologyManager ) );

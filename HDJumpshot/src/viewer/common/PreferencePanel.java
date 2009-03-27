@@ -59,8 +59,6 @@ public class PreferencePanel extends JPanel
     private        LabeledComboBox        lst_SUMMARY_STATE_BORDER;
     private        LabeledTextField       fld_SUMMARY_ARROW_LOG_BASE;
 
-    // Options: Legend window
-    private        LabeledComboBox        lst_LEGEND_TOPOLOGY_ORDER;
 
     public PreferencePanel()
     {
@@ -388,14 +386,6 @@ public class PreferencePanel extends JPanel
         label_panel.setAlignmentX( Component.LEFT_ALIGNMENT );
         super.add( label_panel );
 
-        lst_LEGEND_TOPOLOGY_ORDER = new LabeledComboBox(
-                                       "LEGEND_TOPOLOGY_ORDER" );
-        lst_LEGEND_TOPOLOGY_ORDER.addItem( Boolean.TRUE );
-        lst_LEGEND_TOPOLOGY_ORDER.addItem( Boolean.FALSE );
-        lst_LEGEND_TOPOLOGY_ORDER.setToolTipText(
-        "Whether to arrange the legends with a hidden Topology order." );
-        super.add( lst_LEGEND_TOPOLOGY_ORDER );
-
         super.add( Box.createVerticalStrut( VERTICAL_GAP_HEIGHT ) );
 
         super.setBorder( BorderFactory.createEtchedBorder() );
@@ -446,9 +436,6 @@ public class PreferencePanel extends JPanel
         fld_SUMMARY_ARROW_LOG_BASE.setInteger(
                                    Parameters.SUMMARY_ARROW_LOG_BASE );
 
-        // Options: Legend window
-        lst_LEGEND_TOPOLOGY_ORDER.setSelectedBooleanItem(
-                                  Parameters.LEGEND_TOPOLOGY_ORDER );
     }
 
     public void updateAllParametersFromFields()
@@ -510,9 +497,5 @@ public class PreferencePanel extends JPanel
                   = (StateBorder) lst_SUMMARY_STATE_BORDER.getSelectedItem();
         Parameters.SUMMARY_ARROW_LOG_BASE
                   = fld_SUMMARY_ARROW_LOG_BASE.getInteger();
-
-        // Options: Legend window
-        Parameters.LEGEND_TOPOLOGY_ORDER
-                  = lst_LEGEND_TOPOLOGY_ORDER.getSelectedBooleanItem();
     }
 }

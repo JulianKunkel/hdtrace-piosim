@@ -36,7 +36,7 @@ public class LegendTableModel extends AbstractTableModel
                                     = { "Topology/Color", "Category Name",
                                         "Visibility", "Searchability" };
     private static final Class[]    COLUMN_CLASSES
-                                    = { CategoryIcon.class, Object.class,
+                                    = { CategoryIcon.class, String.class,
                                         Boolean.class, Boolean.class };
     
     private static final Color[]    COLUMN_TITLE_FORE_COLORS
@@ -93,7 +93,7 @@ public class LegendTableModel extends AbstractTableModel
      * If the model categories are completed, then commit them.
      */
     public void commitModel(){
-        this.sortNormally( LegendComparators.CASE_SENSITIVE_ORDER );
+        this.sortNormally( LegendComparators.TOPOLOGY_NAME_ORDER );
     }
 
     private void sortNormally( Comparator comparator )

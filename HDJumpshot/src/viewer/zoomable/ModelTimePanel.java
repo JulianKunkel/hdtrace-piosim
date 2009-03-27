@@ -42,29 +42,24 @@ public class ModelTimePanel extends JPanel
         this.model         = model;
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
 
-        fld_iZoom_faktor    = new LabeledTextField( "Zoom faktor ",
-                                                   Const.INTEGER_FORMAT );
+        fld_iZoom_faktor    = new LabeledTextField( "Zoom faktor ", Const.INTEGER_FORMAT );
         fld_iZoom_faktor.setEditable( false );
         fld_iZoom_faktor.setHorizontalAlignment( JTextField.CENTER );
         add( fld_iZoom_faktor ); // addSeparator();
 
-        fld_tGlobal_min    = new LabeledTextField( "Global Min Time",
-                                                   Const.PANEL_TIME_FORMAT );
+        fld_tGlobal_min    = new LabeledTextField( "Real Global Min Time", Const.PANEL_TIME_FORMAT );
         fld_tGlobal_min.setEditable( false );
         add( fld_tGlobal_min ); // addSeparator();
 
-        fld_tView_init     = new LabeledTextField( "View  Init Time",
-                                                   Const.PANEL_TIME_FORMAT );
+        fld_tView_init     = new LabeledTextField( "View  Init Time", Const.PANEL_TIME_FORMAT );
         fld_tView_init.setEditable( true );
         add( fld_tView_init ); // addSeparator();
 
-        fld_tZoom_focus    = new LabeledTextField( "Zoom Focus Time",
-                                                   Const.PANEL_TIME_FORMAT );
+        fld_tZoom_focus    = new LabeledTextField( "Zoom Focus Time", Const.PANEL_TIME_FORMAT );
         fld_tZoom_focus.setEditable( true );
         add( fld_tZoom_focus );
 
-        fld_tView_final    = new LabeledTextField( "View Final Time",
-                                                   Const.PANEL_TIME_FORMAT );
+        fld_tView_final    = new LabeledTextField( "View Final Time", Const.PANEL_TIME_FORMAT );
         fld_tView_final.setEditable( true );
         add( fld_tView_final ); // addSeparator();
 

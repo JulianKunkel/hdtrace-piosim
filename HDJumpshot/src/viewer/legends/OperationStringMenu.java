@@ -24,24 +24,12 @@ import viewer.common.Const;
  */
 public class OperationStringMenu extends JPopupMenu
 {
-	private static String     index_order_icon_path
-	= Const.IMG_PATH
-	+ "checkbox/IndexOrder.gif";
-	private static String     case_sensitive_topo_order_icon_path
-	= Const.IMG_PATH
-	+ "checkbox/CaseSensitiveTopoOrder.gif";
-	private static String     case_insensitive_topo_order_icon_path
-	= Const.IMG_PATH
-	+ "checkbox/CaseInsensitiveTopoOrder.gif";
-	private static String     case_sensitive_order_icon_path
-	= Const.IMG_PATH
-	+ "checkbox/CaseSensitiveOrder.gif";
-	private static String     case_insensitive_order_icon_path
-	= Const.IMG_PATH
-	+ "checkbox/CaseInsensitiveOrder.gif";
-	private static String     reverse_order_icon_path
-	= Const.IMG_PATH
-	+ "checkbox/ReverseOrder.gif";
+	private static String     index_order_icon_path	= Const.IMG_PATH	+ "checkbox/IndexOrder.gif";
+	private static String     case_sensitive_topo_order_icon_path	= Const.IMG_PATH	+ "checkbox/CaseSensitiveTopoOrder.gif";
+	private static String     case_insensitive_topo_order_icon_path	= Const.IMG_PATH	+ "checkbox/CaseInsensitiveTopoOrder.gif";
+	private static String     case_sensitive_order_icon_path	= Const.IMG_PATH	+ "checkbox/CaseSensitiveOrder.gif";
+	private static String     case_insensitive_order_icon_path	= Const.IMG_PATH	+ "checkbox/CaseInsensitiveOrder.gif";
+	private static String     reverse_order_icon_path	= Const.IMG_PATH	+ "checkbox/ReverseOrder.gif";
 
 	private JTable            table_view;
 	private LegendTableModel  table_model;
@@ -65,6 +53,7 @@ public class OperationStringMenu extends JPopupMenu
 		Icon       icon;
 
 		icon = new ImageIcon( case_sensitive_topo_order_icon_path );
+		System.out.println(case_sensitive_topo_order_icon_path);
 		menu_item = new JMenuItem( "A...Z a...z", icon );
 		menu_item.addActionListener( new ActionListener() {
 			public void actionPerformed( ActionEvent evt )
@@ -100,19 +89,19 @@ public class OperationStringMenu extends JPopupMenu
 
 		icon = new ImageIcon( index_order_icon_path );
 
-		menu_item   = new JMenuItem( "Creation Order", icon );
+		menu_item   = new JMenuItem( "Topology aA..zZ", icon );
 		menu_item.addActionListener(
 				new ActionListener() {
 					public void actionPerformed( ActionEvent evt )
-					{ table_model.arrangeOrder( LegendComparators.INDEX_ORDER ); }
+					{ table_model.arrangeOrder( LegendComparators.TOPOLOGY_NAME_ORDER ); }
 				} );
 		super.add( menu_item );
 
-		menu_item   = new JMenuItem( "Reverse Creation Order", icon );
+		menu_item   = new JMenuItem( "Topology zZ..aA", icon );
 		menu_item.addActionListener(
 				new ActionListener() {
 					public void actionPerformed( ActionEvent evt )
-					{ table_model.reverseOrder( LegendComparators.INDEX_ORDER ); }
+					{ table_model.reverseOrder( LegendComparators.TOPOLOGY_NAME_ORDER ); }
 				} );
 		super.add( menu_item );
 	}

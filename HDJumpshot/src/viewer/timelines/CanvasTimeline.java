@@ -11,6 +11,7 @@ package viewer.timelines;
 
 import hdTraceInput.BufferedStatisticFileReader;
 import hdTraceInput.BufferedTraceFileReader;
+import hdTraceInput.ReaderTraceElementEnumerator;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
@@ -311,53 +312,35 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		final Enumeration<XMLTraceEntry> elements = tr.enumerateTraceEntry(false, 
+		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntry(true, 
 				startTime.add(getModelTime().getTimeGlobalMinimum()), 
 				endTime.add(getModelTime().getTimeGlobalMinimum())) ;
 		
-		while(elements.hasMoreElements()){			
-			XMLTraceEntry element = elements.nextElement();
-			drawTraceElementRecursively(timeline, 0, element, tr, offGraphics, coord_xform);
-		}
-	}
+		while(elements.hasMoreElements()){		
+			final int depth = elements.getNestingDepthOfNextElement() + 1;
+			
+			XMLTraceEntry entry = elements.nextElement();
 
-	/**
-	 * Draw an trace object, if it has nested elements, draw them also
-	 * @param depth 0 means root element
-	 */
-	private void drawTraceElementRecursively(
-			int timeline,
-			int depth,
-			TraceObject entry, 
-			BufferedTraceFileReader tr, 
-			Graphics2D offGraphics, 
-			CoordPixelImage coord_xform)
-	{
-		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();		
+			final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();		
 
-		if(entry.getType() == TraceObjectType.EVENT){          
-			final EventTraceEntry event = (EventTraceEntry) entry;
+			if(entry.getType() == TraceObjectType.EVENT){          
+				final EventTraceEntry event = (EventTraceEntry) entry;
 
-			final Category category = reader.getCategory(event);
-			if(category.isVisible())
-				DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
+				final Category category = reader.getCategory(event);
+				if(category.isVisible())
+					DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
 
-		}else if(entry.getType() == TraceObjectType.STATE){
-			final StateTraceEntry state = (StateTraceEntry) entry;
-			final Category category = reader.getCategory(state);
+			}else if(entry.getType() == TraceObjectType.STATE){
+				final StateTraceEntry state = (StateTraceEntry) entry;
+				final Category category = reader.getCategory(state);
 
-			if(category.isVisible())
-				DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 
-						depth, timeline, globalMinTime);
-
-			if(state.hasNestedTraceChildren()){
-				for(XMLTraceEntry child: state.getNestedTraceChildren()){
-					drawTraceElementRecursively(timeline, depth +1, child, tr, offGraphics, coord_xform);
-				}
+				if(category.isVisible())
+					DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 
+							depth, timeline, globalMinTime);
 			}
+			
 		}
 	}
-
 
 	public TraceObject getDrawableAt( 
 			final Point local_click, 

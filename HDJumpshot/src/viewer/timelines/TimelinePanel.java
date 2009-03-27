@@ -180,7 +180,6 @@ public class TimelinePanel extends JPanel
 		
 		/* The View's Time Display Panel */
 		time_display_panel = new ModelTimePanel( time_model );
-		time_model.setParamDisplay( time_display_panel );
 		JPanel canvas_lmouse;
 		canvas_lmouse = time_canvas_vport.createLeftMouseModePanel(	BoxLayout.X_AXIS );
 		canvas_lmouse.setToolTipText("Operation for left mouse button click on Timeline canvas" );

@@ -13,11 +13,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JTable;
+
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
-import javax.swing.DefaultCellEditor;
+import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 
 import drawable.ColorAlpha;
@@ -29,7 +30,9 @@ public class CategoryIconEditor extends DefaultCellEditor
                                 implements TableCellEditor,
                                            ActionListener
 {
-    private JButton      delegate_btn;
+	private static final long serialVersionUID = -2487506394326350488L;
+	
+	private JButton      delegate_btn;
     private ColorAlpha   saved_color;
     private Color        prev_color;
 
