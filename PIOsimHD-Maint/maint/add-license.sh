@@ -25,6 +25,11 @@ fi
 
 source `dirname $0`/../path.rc || exit 1
 
+if [ -e  /dev/shm/tmp ] ; then
+        echo "remove  /dev/shm/tmp and restart"
+        exit 1
+fi
+
 cd $FOLDER
 
 for FILE in `find -name "*.java"`; do
@@ -36,12 +41,11 @@ fi
 (
 cat $LICENSE
 echo ""
-cat $FILE
+cat "$FILE"
 ) > /dev/shm/tmp
 sed  "s/author.*julian/author Julian M. Kunkel/" /dev/shm/tmp > $FILE
 
 echo "processed: $FILE"
-
 done
   
 rm /dev/shm/tmp 2>/dev/null || echo "No file processed!"

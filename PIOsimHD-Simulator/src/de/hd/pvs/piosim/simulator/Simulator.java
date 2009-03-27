@@ -1,4 +1,11 @@
 
+ /** Version Control Information $Id$
+  * @lastmodified    $Date$
+  * @modifiedby      $LastChangedBy$
+  * @version         $Revision$ 
+  */
+
+
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
 //	
 //	This file is part of PIOsimHD.
@@ -18,10 +25,10 @@
 
 package de.hd.pvs.piosim.simulator;
 
-/* $Id: Simulator.java,v 1.61 2008-12-31 11:12:35 kunkel Exp $
- * $Date: 2008-12-31 11:12:35 $
- * $Author: kunkel $
- * $Revision: 1.61 $
+/* $Id$
+ * $Date$
+ * $Author$
+ * $Revision$
  */
 
 import java.lang.reflect.Constructor;

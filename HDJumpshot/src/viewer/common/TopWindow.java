@@ -1,3 +1,10 @@
+
+ /** Version Control Information $Id$
+  * @lastmodified    $Date$
+  * @modifiedby      $LastChangedBy$
+  * @version         $Revision$ 
+  */
+
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
 //	This file is part of HDJumpshot.
