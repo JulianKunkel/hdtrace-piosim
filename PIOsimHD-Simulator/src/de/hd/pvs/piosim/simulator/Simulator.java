@@ -60,6 +60,7 @@ import de.hd.pvs.piosim.simulator.components.Node.GNode;
 import de.hd.pvs.piosim.simulator.components.Switch.GSwitch;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
+import de.hd.pvs.piosim.simulator.output.SHDTraceWriter;
 import de.hd.pvs.piosim.simulator.output.STraceWriter;
 
 /**
@@ -134,7 +135,7 @@ public final class Simulator{
 		checkModelConsistency(model);		
 		
 		// load trace writer
-		traceWriter = new STraceWriter(runParameters.traceFile, this);
+		traceWriter = new SHDTraceWriter(runParameters.traceFile, this);
 
 		/* create clients and servers from the model */
 		ArrayList<GNode> nodes = new ArrayList<GNode>();

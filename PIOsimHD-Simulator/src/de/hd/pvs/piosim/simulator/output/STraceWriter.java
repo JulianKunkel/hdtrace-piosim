@@ -28,27 +28,22 @@
  */
 package de.hd.pvs.piosim.simulator.output;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 
-import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.event.MessagePart;
-import edu.uoregon.tau.trace.TraceFactory;
-import edu.uoregon.tau.trace.TraceWriter;
 
 /**
- * This class writes a TAU trace file and an XML file with statistics
+ * This class is a superclass for all TraceWriting classes which can
+ * be used with the simulator.
  * 
  * @author Julian M. Kunkel
  *
  */
-public class STraceWriter {
+abstract public class STraceWriter {
 	
 	/**
 	 * Each event belongs to one of this types
@@ -65,57 +60,31 @@ public class STraceWriter {
 	/**
 	 * The simulator.
 	 */
-	final Simulator sim;
+	private final Simulator sim;
 	
+	private final String filenamePrefix;
+
 	/**
-	 * The XML file for the statistics.
+	 * for internal debugging, shows how many arrows (and jobs) started but not yet ended 
 	 */
-	private BufferedWriter xmlstatistics;
-	/**
-	 * The prefix of all filenames.
-	 */
-	private String filenamePrefix;
+	private static int pendingArrows = 0;
+	private static int pendingStarts = 0;
 	
+
 	/**
-	 * The tau trace writer.
+	 * Register a component identifier inside the trace, then the component can be used later for tracing.
+	 * 
+	 * @param cid
 	 */
-	private TraceWriter tauWriter;
+	abstract public void preregister(SPassiveComponent component);
 	
 	/**
 	 * Return the current simulation time.
 	 * @return
 	 */
-	private long getTime(){
-		return (long)(sim.getVirtualTime().getDouble() * 1000 * 1000 ); //wrong SCALING !! 3 x  * 1000
+	private Epoch getTimeEpoch(){
+		return sim.getVirtualTime();
 	}
-	
-	/**
-	 * The next jobID which can be used, should be unique. TODO fix for long runs. 
-	 */
-	private static long jobID = 0; 
-	
-	/**
-	 * Inside the trace file each class gets its own group.  
-	 */
-	private static int nextCompID = 0;
-	private HashMap<Class<?>, Integer> tauCompGroupMap = new HashMap<Class<?>, Integer>();
-	
-	/**
-	 * contains all CIDs for which an event got written.
-	 */
-	private HashSet<ComponentIdentifier> usedCIDs = new HashSet<ComponentIdentifier>();
-	
-	/**
-	 * Category map. Virtual distinguishes between different types of events.
-	 */
-	private static int nextCatID = 0;
-	private HashMap<String, Integer> tauCategoryMap = new HashMap<String,Integer>();
-	
-	/**
-	 * for internal debugging, shows how many arrows (and jobs) started but not yet ended 
-	 */
-	static int pendingArrows = 0;
-	static int pendingStarts = 0;
 	
 	/**
 	 * for debugging only. Counts started jobs per components which are not finished. 
@@ -151,14 +120,6 @@ public class STraceWriter {
 		return true;
 	}
 	
-	/**
-	 * Register a component identifier inside the trace, then the component can be used later for tracing.
-	 * 
-	 * @param cid
-	 */
-	public void preregister(SPassiveComponent component){
-		tauWriter.defThread(component.getIdentifier().getID(), 0, component.getIdentifier().toString());
-	}
 	
 	/**
 	 * Check if the component is tracable with the current settings. 
@@ -190,6 +151,8 @@ public class STraceWriter {
 		return false;
 	}
 	
+	abstract protected void startStateInternal(Epoch time, SPassiveComponent comp, String eventDesc);
+	
 	/**
 	 * Start a job with a given description.
 	 * 
@@ -197,41 +160,18 @@ public class STraceWriter {
 	 * @param category
 	 * @return jobID (to be used for end)
 	 */
-	public void start(TraceType type, SPassiveComponent comp, String eventDesc){
+	final public void startState(TraceType type, SPassiveComponent comp, String eventDesc){
 		if(! isTracableComponent(type))
 			return;
 		
 		pendingStarts++;
-		
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer nodeID = cid.getID();	
-		assert(nodeID != null);
-		
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-		if (categoryID == null){
-			categoryID = ++nextCatID;
-			
-			Integer compGroupID = tauCompGroupMap.get(comp.getClass());
-			if (compGroupID == null){
-				++nextCompID;
-				
-				tauWriter.defStateGroup(comp.getClass().getSimpleName(), nextCompID);
-				
-				compGroupID = nextCompID;
-				tauCompGroupMap.put(comp.getClass(), compGroupID);
-			}
-			
-			tauWriter.defState(categoryID, eventDesc, compGroupID);
-			tauCategoryMap.put(eventDesc, categoryID);
-		}
-		
-		tauWriter.enterState(getTime(),	nodeID, 0, categoryID);
+		startStateInternal(getTimeEpoch(), comp, eventDesc);
 		
 		assert(logStartOfEvent(comp, eventDesc));
-		
-		jobID++;
 	}
+	
+	abstract protected void arrowStartInternal(Epoch time, SPassiveComponent src, SPassiveComponent tgt, 
+			long messageSize, int messageTag, int messageComm);
 	
 	/**
 	 * Start an arrow from the source to the target. An appropriate arrowEnd must been called.
@@ -242,31 +182,20 @@ public class STraceWriter {
 	 * @param messageTag
 	 * @param messageComm
 	 */
-	public void arrowStart(TraceType type, SPassiveComponent src, SPassiveComponent tgt, 
+	final public void arrowStart(TraceType type, SPassiveComponent src, SPassiveComponent tgt, 
 			long messageSize, int messageTag, int messageComm){
 		if(! isTracableComponent(type))
 			return;
 		
 		assert(tgt != null);
 		
-		//endtime == now
-		Integer nodeIDStart = src.getIdentifier().getID();
-		Integer nodeIDEnd = tgt.getIdentifier().getID();
-		
-		//System.out.println("S:" + src.getIdentifier() + "-" + tgt.getIdentifier() + " " + getTime() + " " + nodeIDStart + ", " + nodeIDEnd + " :" + messageTag + " " + messageComm);
-		
-		// Warning do not use values which are bigger than half of integer, otherwise the signed Trace Writer will remove them!!!
-		assert(messageComm <= 100000 && messageComm >= 0);
-		assert(messageTag >= 0);
-		assert(messageSize <= 44576804/2);
-		assert(nodeIDStart != null);
-		assert(nodeIDEnd != null);
-		
-		tauWriter.sendMessage(getTime(), nodeIDStart, 0, nodeIDEnd, 
-				0, (int) messageSize, messageTag, messageComm);
+		arrowStartInternal(getTimeEpoch(), src, tgt, messageSize, messageTag, messageComm);
 		
 		pendingArrows++;
 	}
+	
+	abstract protected void arrowEndInternal(Epoch time, SPassiveComponent src, SPassiveComponent tgt, 
+			long messageSize, int messageTag, int messageComm);
 	
 	/**
 	 * End an arrow which got started earlier.
@@ -278,33 +207,23 @@ public class STraceWriter {
 	 * @param messageTag
 	 * @param messageComm
 	 */
-	public void arrowEnd(TraceType type, SPassiveComponent src, SPassiveComponent tgt, 
+	final public void arrowEnd(TraceType type, SPassiveComponent src, SPassiveComponent tgt, 
 			long messageSize, int messageTag, int messageComm){
 		if(! isTracableComponent(type))
 			return;
 		
-		//endtime == now
-		Integer nodeIDStart = src.getIdentifier().getID();
-		Integer nodeIDEnd = tgt.getIdentifier().getID();
-		
-		assert(nodeIDStart != null);
-		assert(nodeIDEnd != null);
-		
-		//System.out.println("E:"+ src.getIdentifier() + "-" + tgt.getIdentifier() + " "  + getTime() + " " + nodeIDStart + ", " + nodeIDEnd + " :" + messageTag + " " + messageComm);
-		
-		tauWriter.recvMessage(getTime(), nodeIDStart, 0, nodeIDEnd, 
-				0, (int)  messageSize, messageTag, messageComm);
-		
+		arrowEndInternal(getTimeEpoch(), src, tgt, messageSize, messageTag, messageComm);
+				
 		pendingArrows--;
 	}
 	
-	public void arrowStart(TraceType type, SPassiveComponent src, SPassiveComponent tgt, MessagePart p){
+	final public void arrowStart(TraceType type, SPassiveComponent src, SPassiveComponent tgt, MessagePart p){
 		arrowStart(type, src, tgt, 
 				p.getSize(), p.getNetworkJob().getTag(), 
 				p.getNetworkJob().getCommunicator().getIdentity());
 	}
 	
-	public void arrowEnd(TraceType type, SPassiveComponent src, SPassiveComponent tgt, MessagePart p){
+	final public void arrowEnd(TraceType type, SPassiveComponent src, SPassiveComponent tgt, MessagePart p){
 		arrowEnd(type, src, tgt, 
 				p.getSize(), p.getNetworkJob().getTag(), p.getNetworkJob().getCommunicator().getIdentity());
 	}
@@ -317,56 +236,30 @@ public class STraceWriter {
 	 * @param comp
 	 * @param eventDesc
 	 */
-	public void end(TraceType type, SPassiveComponent comp, String eventDesc){
-		if(! isTracableComponent(type))
-			return;
-		
-		pendingStarts--;
-		
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer nodeID = cid.getID();
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-
-		assert(nodeID != null);
-		assert(categoryID != null);
-		
-		assert(logEndOfEvent(comp, eventDesc));
-
-		tauWriter.leaveState(getTime(), nodeID, 0, categoryID);		
-		
-		addUsedComponent(comp);
+	final public void endState(TraceType type, SPassiveComponent comp, String eventDesc){
+		endState(type,comp, eventDesc, getTimeEpoch());
 	}
 	
-	private void addUsedComponent(SPassiveComponent comp){
-		usedCIDs.add(comp.getIdentifier());
-	}
+	abstract protected void endStateInternal(Epoch time, SPassiveComponent comp, String eventDesc);
 	
 	/**
-	 * for internal use !
+	 * End a job which got started with start.
+	 * 
 	 * @param type
 	 * @param comp
 	 * @param eventDesc
-	 * @param endTime
 	 */
-	private void end(TraceType type, SPassiveComponent comp, String eventDesc, long endTime){
+	final public void endState(TraceType type, SPassiveComponent comp, String eventDesc, Epoch endTime){
 		if(! isTracableComponent(type))
 			return;
 		
 		pendingStarts--;
 		
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer nodeID = cid.getID();
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-
-		assert(nodeID != null);
-		assert(categoryID != null);
-		
 		assert(logEndOfEvent(comp, eventDesc));
-
-		tauWriter.leaveState(endTime, nodeID, 0, categoryID);		
+		endStateInternal(endTime, comp, eventDesc);		
 	}
+	
+	abstract protected void eventInternal(Epoch time, SPassiveComponent comp, String eventDesc, long userEventValue);
 	
 	/**
 	 * Start a single event.
@@ -375,94 +268,28 @@ public class STraceWriter {
 	 * @param eventDesc
 	 * @param userEventValue
 	 */
-	public void event(TraceType type, SPassiveComponent comp, String eventDesc, long userEventValue){
+	final public void event(TraceType type, SPassiveComponent comp, String eventDesc, long userEventValue){
 		if(! isTracableComponent(type))
 			return;
 		
-		ComponentIdentifier cid = comp.getIdentifier();
-		
-		Integer threadID = cid.getID();
-		
-		Integer categoryID = tauCategoryMap.get(eventDesc);
-		if (categoryID == null){
-			categoryID = ++nextCatID;
-			
-			Integer compGroupID = tauCompGroupMap.get(comp.getClass());
-			if (compGroupID == null){
-				++nextCompID;
-				
-				tauWriter.defStateGroup(comp.getClass().getSimpleName(), nextCompID);
-				
-				compGroupID = nextCompID;
-				tauCompGroupMap.put(comp.getClass(), compGroupID);
-			}
-			
-			tauWriter.defUserEvent(categoryID, eventDesc, compGroupID);
-			tauCategoryMap.put(eventDesc, categoryID);
-		}
-		
-		tauWriter.eventTrigger(getTime(),	threadID, 0, categoryID, userEventValue);
-		
-		addUsedComponent(comp);
-		
-		jobID++;		
+		eventInternal(getTimeEpoch(), comp, eventDesc, userEventValue);
 	}
-	
-	private void writeInTraceFile(String what){
-		try{ 
-			xmlstatistics.write(what);
-		}catch(IOException e){
-			System.err.println("Could not write in XML output file " + filenamePrefix +  ".xml - " + e.getMessage());
-		}
-	}
-	
+		
 	/**
 	 * Instantiate the trace writer with the given filename (Prefix).
 	 */
 	public STraceWriter(String filename, Simulator sim) {	
 		this.filenamePrefix = filename;
 		this.sim = sim;
-		try{ 
-			FileWriter fstream = new FileWriter(filename + ".xml");
-			xmlstatistics = new BufferedWriter(fstream);
-		}catch (IOException e){//Catch exception if any
-			System.err.println("Could not create Tracefile " + filename + " - " + e.getMessage());
-			System.exit(1);
-		}
-		
-		try    {
-			this.tauWriter = TraceFactory.OpenFileForOutput(
-					filename + ".trc",
-					filename + ".edf");
-		} catch    (Exception e)    {
-			e.printStackTrace();
-			System.exit(1);
-		}
 	}
+	
+	abstract protected void finalizeInternal(Epoch endTime, Collection<SPassiveComponent> existingComponents);
 	
 	/**
 	 * finish the tracing.
 	 */
-	public void finalize(Collection<SPassiveComponent> existingComponents){
-		// finalize logfile
-		for(SPassiveComponent component: existingComponents){
-			if(usedCIDs.contains(component.getIdentifier())){
-				start(TraceType.ALWAYS, component, component.getClass().getSimpleName());
-			}
-		}
-		for(SPassiveComponent component: existingComponents){
-			if(usedCIDs.contains(component.getIdentifier())){
-				end(TraceType.ALWAYS, component, component.getClass().getSimpleName(), (long) (getTime() * 1.2));
-			}
-		}
-		
-		tauWriter.closeTrace();
-		
-		try{ 
-			xmlstatistics.close();
-		}catch(IOException e){
-			System.err.println("Could not close file: " + e.getMessage());
-		}
+	final public void finalize(Collection<SPassiveComponent> existingComponents){
+		finalizeInternal(getTimeEpoch(), existingComponents);
 		
 		if (pendingArrows != 0)
 			System.err.println("StraceWriter: pending (unfinished arrows) " + pendingArrows);
@@ -492,5 +319,9 @@ public class STraceWriter {
 		}
 		
 		
+	}
+	
+	public String getFilenamePrefix() {
+		return filenamePrefix;
 	}
 }

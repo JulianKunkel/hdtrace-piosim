@@ -35,12 +35,12 @@ public class IOSubsytemHelper {
 	}
 	
 	public static void traceIOStart(IGIOSubsystem<?> subsystem, IOJob job, String postFix){
-		subsystem.getSimulator().getTraceWriter().start(TraceType.IOSERVER, subsystem.getSimulatorObject(), job.getType().toString() + postFix);
+		subsystem.getSimulator().getTraceWriter().startState(TraceType.IOSERVER, subsystem.getSimulatorObject(), job.getType().toString() + postFix);
 	}
 	
 	
 	public static void traceIOEnd(IGIOSubsystem<?> subsystem, IOJob job, String postFix){		
-		subsystem.getSimulator().getTraceWriter().end(TraceType.IOSERVER, subsystem.getSimulatorObject(), job.getType().toString() + postFix);		
+		subsystem.getSimulator().getTraceWriter().endState(TraceType.IOSERVER, subsystem.getSimulatorObject(), job.getType().toString() + postFix);		
 	}
 	
 	public static void traceIOEnd(IGIOSubsystem<?> subsystem, IOJob job){

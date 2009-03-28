@@ -269,13 +269,13 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		
 		if(start == false) {
 			if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class){
-				getSimulator().getTraceWriter().end(TraceType.CLIENT, this, string);
+				getSimulator().getTraceWriter().endState(TraceType.CLIENT, this, string);
 			}else{
 				getSimulator().getTraceWriter().event(TraceType.CLIENT, this, string + " end", 0);
 			}
 		}else {
 			if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class){
-				getSimulator().getTraceWriter().start(TraceType.CLIENT, this, string);
+				getSimulator().getTraceWriter().startState(TraceType.CLIENT, this, string);
 			}else{
 				getSimulator().getTraceWriter().event(TraceType.CLIENT, this, string + " start", 0);
 			}
@@ -431,7 +431,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				}
 
 				if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
-					getSimulator().getTraceWriter().start(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);			
+					getSimulator().getTraceWriter().startState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);			
 				}
 
 
@@ -454,7 +454,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 				return ; /* we shall not run the command directly, instead wait for a time */		
 			}else if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
-				getSimulator().getTraceWriter().end(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);			
+				getSimulator().getTraceWriter().endState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);			
 			}
 
 			/* now run the appropriate command to generate new events */

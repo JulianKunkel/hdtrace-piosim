@@ -108,6 +108,10 @@ public class ProjectDescription {
 	}
 
 	public void setProjectFilename(String projectFileName) {
+		if (projectFileName.lastIndexOf(".xml") < 1){
+			projectFileName = projectFileName + ".xml";
+		}
+		
 		File projectFile = new File(projectFileName);
 		
 		// scan for the trace files

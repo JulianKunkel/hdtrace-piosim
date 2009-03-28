@@ -1,26 +1,26 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
-//	Copyright (C) 2009 Julian M. Kunkel
-//	
-//	This file is part of HDJumpshot.
-//	
-//	HDJumpshot is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	HDJumpshot is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+//Copyright (C) 2009 Julian M. Kunkel
+
+//This file is part of HDJumpshot.
+
+//HDJumpshot is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//HDJumpshot is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
@@ -46,8 +46,8 @@ import javax.swing.tree.TreePath;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 
 public class TopologyManager extends JTree
@@ -63,9 +63,9 @@ public class TopologyManager extends JTree
 	 */
 	private boolean                            changeListenerDisabled = false;
 	private LinkedList<TopologyChangeListener> changeListener = new LinkedList<TopologyChangeListener>();
-	
+
 	private TreeExpansionListener treeExpansionListener = new TopologyTreeExpansionListener();
-	
+
 
 
 
@@ -100,7 +100,7 @@ public class TopologyManager extends JTree
 	 */
 	public void setChangeListenerDisabled(boolean changeListenerDisabled) {
 		this.changeListenerDisabled = changeListenerDisabled;
-		
+
 		if(changeListenerDisabled == true){
 			this.removeTreeExpansionListener(treeExpansionListener);
 		}else{
@@ -209,8 +209,14 @@ public class TopologyManager extends JTree
 
 		addTopologyTreeNode(node, parentNode);    	
 
+		if(topology.getTraceSource() != null){
+			TopologyTreeNode childNode = new TopologyTraceTreeNode("Trace", topology, file, this);
+			addTopologyTreeNode(childNode, node);						
+		}
+		
 		if(topology.getChildElements().size() != 0){
 			// handle leaf level == trace nodes differently:
+
 			Collection<TopologyInternalLevel> children = topology.getChildElements().values();
 			boolean leafLevel = children.iterator().next().isLeaf();
 			if(leafLevel){
@@ -219,13 +225,13 @@ public class TopologyManager extends JTree
 				for(TopologyInternalLevel child: topology.getChildElements().values()){					
 					if (child.getStatisticSources().size() == 0){
 						// no statistic on the leaf level:
-						TopologyTreeNode childNode = new TopologyTraceTreeNode(child, file, this);
+						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file, this);
 						addTopologyTreeNode(childNode, traceParent);						
 					}else{
 						// handles statistics on the leaf level:
 						final DefaultMutableTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
 
-						TopologyTreeNode childNode = new TopologyTraceTreeNode(child, file, this);
+						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file, this);
 						addTopologyTreeNode(childNode, extra);
 
 						addStatisticsInTopology(level, extra, child, file);
@@ -266,9 +272,9 @@ public class TopologyManager extends JTree
 		this.tree_root = loadDefaultTopologyToTreeMapping();
 
 		expandTreeInternal();		
-		
+
 		setChangeListenerDisabled(false);
-		
+
 		fireTopologyChanged();
 	}
 
@@ -292,7 +298,7 @@ public class TopologyManager extends JTree
 					final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getPathComponent(curDepth);
 					if( TopologyInnerNode.class.isInstance(node) ){
 						final TopologyInnerNode topNode = (TopologyInnerNode) node;
-												
+
 						if(topNode.getType() == TimelineType.INNER_NODE && node.getChildCount() == 0){
 							if(topNode.getParent() != null){
 								model.removeNodeFromParent(topNode);
@@ -331,7 +337,7 @@ public class TopologyManager extends JTree
 		for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
 			recursivlyAddTopology(1, tree_root, reader.getLoadedFile(f).getTopology(), reader.getLoadedFile(f));
 		}
-		
+
 		return tree_root;
 	}
 
@@ -358,7 +364,7 @@ public class TopologyManager extends JTree
 		setChangeListenerDisabled(false);
 		fireTopologyChanged();
 	}
-	
+
 	private void expandTreeInternal(){
 
 		Enumeration<DefaultMutableTreeNode> rootEnumeration = tree_root.depthFirstEnumeration();

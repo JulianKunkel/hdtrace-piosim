@@ -62,8 +62,7 @@ public class HDTraceWriter extends TraceOutputWriter {
 	@Override
 	public void initializeTrace(RunParameters parameters, String resultFile) {
 		parameters.setProcessAlsoComputeEvents(true);
-		writer.initializeTrace(resultFile);
-
+		writer.initializeTrace(resultFile, writer.getProjectDescription().getTopologyLabels());
 	}
 
 	@Override

@@ -36,7 +36,6 @@ import de.hd.pvs.TraceFormat.statistics.StatisticType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
-import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -119,24 +118,14 @@ public class ProjectDescriptionXMLReader {
 	
 	
 	private TopologyInternalLevel parseTopology(XMLTag xmlTopology, String name, TopologyInternalLevel parent){		
-		LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label"); 
-		
-		if(children.size() == 0){
-			// leaf level
-			TopologyLeafLevel level = new TopologyLeafLevel(name, parent);
-			return level;
-		}
+		LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label"); 		
 		
 		TopologyInternalLevel level = new TopologyInternalLevel(name, parent);
 		
-		int pos = 0;
 		for(XMLTag tag: children){
 			String childName = tag.getAttribute("value");
 			
-			TopologyInternalLevel child = parseTopology(tag,  childName, level);
-			level.setChild(childName, child);
-			
-			level.setPositionInParent(pos++);
+			parseTopology(tag,  childName, level);			
 		}
 		
         return level;

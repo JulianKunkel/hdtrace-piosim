@@ -65,7 +65,8 @@ public class ProjectDescriptionXMLWriter {
 			buff.append("</Level>\n");
 		}
 		
-		writeTopologyRecursive(buff, desc.getTopologyRoot());
+		if(desc.getTopologyRoot() != null)
+			writeTopologyRecursive(buff, desc.getTopologyRoot());
 		
 		buff.append("</Topology>\n");
 		

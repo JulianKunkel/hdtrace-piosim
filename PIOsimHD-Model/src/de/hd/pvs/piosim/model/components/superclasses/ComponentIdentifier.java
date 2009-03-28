@@ -80,7 +80,7 @@ public class ComponentIdentifier implements Comparable<ComponentIdentifier> {
 
 	@Override
 	public String toString() {
-		return "\"" + name + "\" " + " id=\""+ id +"\"";
+		return "\"" + name + "\"" + " id="+ id;
 	}
 
 	@Override

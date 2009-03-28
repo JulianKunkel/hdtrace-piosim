@@ -65,18 +65,20 @@ public class TraceFormatWriter {
 		this.unparsedTagsToWrite = unparsedTagsToWrite;
 	}
 
-	public void initializeTrace(String resultFile) {
-		outProject.setProjectFilename(resultFile + ".xml");
+	public void initializeTrace(String resultFile, TopologyLabels labels) {
+		outProject.setProjectFilename(resultFile);
 		
 		outProject.setTopologyRoot( new TopologyInternalLevel(outProject.getFilesPrefix(), null));
-	}
-	
-	public void setTopologyLabels(TopologyLabels labels){
 		outProject.setTopologyLabels(labels);
 	}
 
+	/**
+	 * Add a topology to the existing topology
+	 * @param topology
+	 */
 	public void addTopology(TopologyInternalLevel topology) {
 		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
+		System.out.println("HERNEs" + file);
 
 		OutFiles files = traceWriterMap.get(topology);
 		if(files != null){

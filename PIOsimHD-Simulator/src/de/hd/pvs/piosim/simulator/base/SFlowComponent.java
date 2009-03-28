@@ -310,7 +310,7 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 
 		SPassiveComponent source =  event.getIssuingComponent();
 
-		getSimulator().getTraceWriter().start(TraceType.INTERNAL, this, event.getEventData().getClass().getSimpleName());
+		getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, event.getEventData().getClass().getSimpleName());
 		
 		/**
 		 * special case for NIC which generates new events.
@@ -345,7 +345,7 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 	final protected void jobCompleted(Event<EventDataType> event, Epoch endTime) {		
 		debug( " event " + event);
 		
-		getSimulator().getTraceWriter().end(TraceType.INTERNAL, this, event.getEventData().getClass().getSimpleName());
+		getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, event.getEventData().getClass().getSimpleName());
 		
 		SFlowComponent targetComponent = getTargetFlowComponent(event.getEventData());
 		

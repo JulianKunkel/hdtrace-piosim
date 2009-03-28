@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 
 //Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -32,7 +32,6 @@ import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
-import de.hd.pvs.TraceFormat.topology.TopologyLeafLevel;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
@@ -135,13 +134,13 @@ public class HDTraceConverter {
 		}
 
 
-		if( topo.isLeaf() ){
-			final TopologyLeafLevel leaf = (TopologyLeafLevel) topo;
 
-			StAXTraceFileReader reader = (StAXTraceFileReader) leaf.getTraceSource();
-			if( reader == null){
+		StAXTraceFileReader reader = (StAXTraceFileReader) topo.getTraceSource();
+		if( reader == null){
+			if( topo.isLeaf() ){
 				throw new IllegalArgumentException("Trace reader is not initialized for topology: " + topo);
 			}
+		}else{
 			TraceProcessor processor = new TraceProcessor(reader);
 			processor.setOutputConverter(outputConverter);
 			processor.setTopology(topo);
@@ -152,15 +151,11 @@ public class HDTraceConverter {
 			if(processor.peekEarliestTime() != null){
 				pendingReaders.add(processor);
 			}
-
-		}else{
-			assert(topo.getChildElements().size() > 0);
-
-			for(TopologyInternalLevel child: topo.getChildElements().values()){
-				recursivlyInstantiateProcessors(outputConverter, child, param, pendingReaders);
-			}
 		}
 
+		for(TopologyInternalLevel child: topo.getChildElements().values()){
+			recursivlyInstantiateProcessors(outputConverter, child, param, pendingReaders);
+		}
 	}
 
 	/** 

@@ -30,6 +30,13 @@ import java.util.ArrayList;
 public class TopologyLabels {
 	private final ArrayList<String> labels = new ArrayList<String>();
 	
+	public void setTopologyLabels(String [] labels){
+		this.labels.clear();
+		for(int i=0; i < labels.length; i++){
+			addLabelOfNextDepth(labels[i]);
+		}
+	}
+	
 	public void addLabelOfNextDepth(String label) {
 		labels.add(label);
 	}

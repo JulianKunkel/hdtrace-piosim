@@ -29,12 +29,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
+import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 public class TopologyInternalLevel {	
 	
 	String label;
-	
-	int position;
+	final int positionInParent;
 	
 	final HashMap<String, StatisticSource> statisticSources = new HashMap<String, StatisticSource>();
 	
@@ -42,9 +42,26 @@ public class TopologyInternalLevel {
 	
 	final TopologyInternalLevel parent;
 	
+	private TraceSource traceSource = null;
+		
+	/**
+	 * Create a node as child of a parent. Also add this node to the parent if necessary.
+	 * @param label
+	 * @param parent
+	 */
 	public TopologyInternalLevel(String label, TopologyInternalLevel parent) {
 		this.label = label;
 		this.parent = parent;
+		if(parent != null){
+			parent.setChild(label, this);
+			positionInParent = parent.getSize();
+		}else{
+			positionInParent = -1;
+		}
+	}
+	
+	public int getPositionInParent() {
+		return positionInParent;
 	}
 	
 	public HashMap<String, StatisticSource> getStatisticSources() {
@@ -60,7 +77,9 @@ public class TopologyInternalLevel {
 		statisticSources.put(group, reader);
 	}
 
-	public void setChild(String name, TopologyInternalLevel child){
+	private void setChild(String name, TopologyInternalLevel child){
+		if(childElements.containsKey(name))
+			throw new IllegalArgumentException("Child element already present in topology");
 		childElements.put(name, child);
 	}
 	
@@ -82,7 +101,7 @@ public class TopologyInternalLevel {
 	
 	private String getUnifiedLabel(){
 		// TODO account for more invalid characters.
-		return label.toLowerCase().replace(' ', '_');
+		return label.toLowerCase().replace(' ', '_').replace("\"", "").replace("=", "");
 	}
 	
 	public String getFilePrefix(){
@@ -110,7 +129,7 @@ public class TopologyInternalLevel {
 	}
 	
 	public boolean isLeaf(){
-		return false;
+		return childElements.size() == 0;
 	}
 	
 	@Override
@@ -121,13 +140,6 @@ public class TopologyInternalLevel {
 		return label; 
 	}
 	
-	public void setPositionInParent(int pos){
-		this.position = pos;
-	}
-	
-	public int getPositionInParent() {
-		return position;
-	}
 	
 	/**
 	 * Returns recursively all subchildren including this topology.
@@ -143,4 +155,17 @@ public class TopologyInternalLevel {
 		
 		return sub;
 	}
+
+	public TraceSource getTraceSource() {
+		return traceSource;
+	}
+	
+	public void setTraceSource(TraceSource traceSource) {
+		this.traceSource = traceSource;
+	}
+	
+	public boolean hasParent(){
+		return parent != null;
+	}
 }
+
