@@ -48,7 +48,7 @@ import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyManager extends JTree
 {
@@ -189,7 +189,7 @@ public class TopologyManager extends JTree
 	}
 
 
-	private void addStatisticsInTopology(int level, DefaultMutableTreeNode node, TopologyInternalLevel topology, TraceFormatFileOpener file){
+	private void addStatisticsInTopology(int level, DefaultMutableTreeNode node, TopologyEntry topology, TraceFormatFileOpener file){
 		// add statistic nodes:
 		for(String groupName: topology.getStatisticSources().keySet()){    		
 			StatisticsGroupDescription group = file.getProjectDescription().getExternalStatisticsGroup(groupName);
@@ -204,7 +204,7 @@ public class TopologyManager extends JTree
 		}
 	}
 
-	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyInternalLevel topology, TraceFormatFileOpener file){
+	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyEntry topology, TraceFormatFileOpener file){
 		final TopologyTreeNode node = new TopologyInnerNode(topology, file, this);
 
 		addTopologyTreeNode(node, parentNode);    	
@@ -217,12 +217,12 @@ public class TopologyManager extends JTree
 		if(topology.getChildElements().size() != 0){
 			// handle leaf level == trace nodes differently:
 
-			Collection<TopologyInternalLevel> children = topology.getChildElements().values();
+			Collection<TopologyEntry> children = topology.getChildElements().values();
 			boolean leafLevel = children.iterator().next().isLeaf();
 			if(leafLevel){
 				final DefaultMutableTreeNode traceParent = addDummyTreeNode("Trace", node);
 
-				for(TopologyInternalLevel child: topology.getChildElements().values()){					
+				for(TopologyEntry child: topology.getChildElements().values()){					
 					if (child.getStatisticSources().size() == 0){
 						// no statistic on the leaf level:
 						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file, this);
@@ -238,7 +238,7 @@ public class TopologyManager extends JTree
 					}
 				}								
 			}else{
-				for(TopologyInternalLevel child: topology.getChildElements().values()){
+				for(TopologyEntry child: topology.getChildElements().values()){
 					recursivlyAddTopology(level +1, node, child, file);
 				}
 			}

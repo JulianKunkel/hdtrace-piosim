@@ -33,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
@@ -102,8 +102,8 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		final XMLReaderToRAM reader = new XMLReaderToRAM();
 
 		int rank = -1;
-		for (TopologyInternalLevel host: app.getTopologyRoot().getChildElements().values()) {			
-			for (TopologyInternalLevel topoRanks: host.getChildElements().values()) {
+		for (TopologyEntry host: app.getTopologyRoot().getChildElements().values()) {			
+			for (TopologyEntry topoRanks: host.getChildElements().values()) {
 				
 				rank++;
 				
@@ -111,7 +111,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 				programs[rank] = new Program[threadCnt]; 
 				int thread = -1;
-				for(TopologyInternalLevel topoThread : topoRanks.getChildElements().values() ){
+				for(TopologyEntry topoThread : topoRanks.getChildElements().values() ){
 					thread++;
 					
 					// for each program open the corresponding file				

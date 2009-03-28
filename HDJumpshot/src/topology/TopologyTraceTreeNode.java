@@ -27,14 +27,14 @@ package topology;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 public class TopologyTraceTreeNode extends TopologyTreeNode{
 
 	private final String label;
 	
-	public TopologyTraceTreeNode(String label, TopologyInternalLevel topNode,
+	public TopologyTraceTreeNode(String label, TopologyEntry topNode,
 			TraceFormatFileOpener file, TopologyManager manager) {
 		super(topNode, file, manager);
 		this.label = label;

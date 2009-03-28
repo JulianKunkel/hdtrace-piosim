@@ -29,7 +29,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 /**
  * 
@@ -39,19 +39,19 @@ import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
  */
 abstract public class TopologyTreeNode extends DefaultMutableTreeNode{
 	// topology belonging to this node:
-	final TopologyInternalLevel topology;
+	final TopologyEntry topology;
 	final TraceFormatFileOpener file;	
 	final TopologyManager       manager;
 	
 	abstract public TimelineType getType();
 	
-	public TopologyTreeNode(TopologyInternalLevel topNode,  TraceFormatFileOpener file, TopologyManager manager) {
+	public TopologyTreeNode(TopologyEntry topNode,  TraceFormatFileOpener file, TopologyManager manager) {
 		this.topology = topNode;
 		this.manager = manager;
 		this.file = file;
 	}
 	
-	public TopologyInternalLevel getTopology() {
+	public TopologyEntry getTopology() {
 		return topology;
 	}
 

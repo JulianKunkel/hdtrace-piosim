@@ -30,13 +30,13 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	final StatisticSource statisticSource;
 	final StatisticDescription statisticDescription;
 	
-	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyInternalLevel topNode, TraceFormatFileOpener file, TopologyManager manager) {
+	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyEntry topNode, TraceFormatFileOpener file, TopologyManager manager) {
 		super(topNode, file, manager);
 		
 		this.statisticSource = topNode.getStatisticSource(group.getName());

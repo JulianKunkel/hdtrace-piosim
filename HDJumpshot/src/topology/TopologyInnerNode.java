@@ -27,12 +27,12 @@ package topology;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyInnerNode extends TopologyTreeNode{
 	
 	
-	public TopologyInnerNode(TopologyInternalLevel topNode,
+	public TopologyInnerNode(TopologyEntry topNode,
 			TraceFormatFileOpener file, TopologyManager manager) {
 		super(topNode, file, manager);
 	}
