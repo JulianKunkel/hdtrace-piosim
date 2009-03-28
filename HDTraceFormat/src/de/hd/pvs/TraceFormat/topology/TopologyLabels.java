@@ -29,7 +29,11 @@ import java.util.ArrayList;
 
 public class TopologyLabels {
 	private final ArrayList<String> labels = new ArrayList<String>();
-	
+
+	/**
+	 * Set all topology labels at once. (Additional could be added with addLabel...) 
+	 * @param labels
+	 */
 	public void setTopologyLabels(String [] labels){
 		this.labels.clear();
 		for(int i=0; i < labels.length; i++){
@@ -37,6 +41,10 @@ public class TopologyLabels {
 		}
 	}
 	
+	/**
+	 * Add a label i.e. the next depth. 
+	 * @param label
+	 */
 	public void addLabelOfNextDepth(String label) {
 		labels.add(label);
 	}

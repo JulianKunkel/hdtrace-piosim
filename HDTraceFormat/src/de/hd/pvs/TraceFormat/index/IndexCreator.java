@@ -30,7 +30,7 @@ import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
 
@@ -77,7 +77,7 @@ public class IndexCreator {
 	 * @param thread
 	 * @throws Exception
 	 */
-	public void createIndexForStatisticFile(String projectFile, String group, TopologyInternalLevel topology) throws Exception{
+	public void createIndexForStatisticFile(String projectFile, String group, TopologyEntry topology) throws Exception{
 		final ProjectDescriptionXMLReader preader = new ProjectDescriptionXMLReader();
 		
 		final ProjectDescription desc = new ProjectDescription();

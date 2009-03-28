@@ -33,7 +33,7 @@ import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
 import de.hd.pvs.TraceFormat.statistics.StatisticWriter;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -55,7 +55,7 @@ public class TraceFormatWriter {
 	}
 
 	// map a single process id to the corresponding trace writer.
-	final HashMap<TopologyInternalLevel, OutFiles> traceWriterMap = new HashMap<TopologyInternalLevel, OutFiles>();
+	final HashMap<TopologyEntry, OutFiles> traceWriterMap = new HashMap<TopologyEntry, OutFiles>();
 
 	final ProjectDescription outProject = new ProjectDescription();
 
@@ -65,33 +65,67 @@ public class TraceFormatWriter {
 		this.unparsedTagsToWrite = unparsedTagsToWrite;
 	}
 
-	public void initializeTrace(String resultFile, TopologyLabels labels) {
+	public TraceFormatWriter(String resultFile, TopologyLabels labels) {
 		outProject.setProjectFilename(resultFile);
 		
-		outProject.setTopologyRoot( new TopologyInternalLevel(outProject.getFilesPrefix(), null));
+		outProject.setTopologyRoot( new TopologyEntry(outProject.getFilesPrefix(), null));
 		outProject.setTopologyLabels(labels);
+	}
+	
+	/**
+	 * Create the topology in the project description. 
+	 * All parent topologies required are created.
+	 * @param topology
+	 * @return
+	 */
+	public TopologyEntry createTopology(String [] topology){
+		TopologyEntry cur = outProject.getTopologyRoot();
+		
+		if (topology.length >= outProject.getTopologyLabels().getLabels().size()){
+			throw new IllegalArgumentException("Topology labels are not as deep as the topology " +
+					"you want to create");
+		}
+		for(int p = 0 ; p < topology.length; p++){
+			// check if parents exist
+			final TopologyEntry child = cur.getChild(topology[p]);
+			if( child == null){
+				// create all the next ones.
+				for(int n = p ; n < topology.length; n++){
+					cur = new TopologyEntry(topology[n], cur);
+				}
+				return cur;
+			}
+			cur = child;
+		}
+		throw new IllegalArgumentException("Topology exists already!");
 	}
 
 	/**
-	 * Add a topology to the existing topology
+	 * Announce that an already existing topology will create some statistics or a trace.
+	 * 
 	 * @param topology
 	 */
-	public void addTopology(TopologyInternalLevel topology) {
+	public void initalizeTopology(TopologyEntry topology) {		
+		//lookup topology in project description and create missing topologies				
 		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
-		System.out.println("HERNEs" + file);
 
 		OutFiles files = traceWriterMap.get(topology);
 		if(files != null){
-			return;
+			throw new IllegalArgumentException("Topology already initalized! " + topology.toString() );
+		}
+		
+		// check existence of parent topology in registered topology.
+		for (TopologyEntry parent: topology.getParentTopologies()){
+			if(! traceWriterMap.containsKey(parent)){
+				throw new IllegalArgumentException("Parent topology " + parent.toString() + " not registered!");
+			}
 		}
 		
 		files = new OutFiles();
 		traceWriterMap.put(topology, files);
 
 		try {
-			if(topology.isLeaf()){
-				files.traceWriter =  new TraceWriter(file);
-			}
+			files.traceWriter =  new TraceWriter(file);
 		} catch (Exception e) {
 			throw new IllegalArgumentException(
 					"Trace file could not be created: " + file);
@@ -107,7 +141,7 @@ public class TraceFormatWriter {
 	}
 
 
-	public void Event(TopologyInternalLevel topology, Epoch time,
+	public void Event(TopologyEntry topology, Epoch time,
 			EventTraceEntry traceEntry) {
 		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 		try {
@@ -117,7 +151,7 @@ public class TraceFormatWriter {
 		}
 	}
 
-	public void StateEnd(TopologyInternalLevel topology, Epoch time,
+	public void StateEnd(TopologyEntry topology, Epoch time,
 			StateTraceEntry traceEntry) {
 		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 		try {
@@ -127,10 +161,10 @@ public class TraceFormatWriter {
 		}
 	}
 
-	public void StateStart(TopologyInternalLevel topology, Epoch time,
+	public void StateStart(TopologyEntry topology, Epoch time,
 			StateTraceEntry traceEntry) {
 		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
-
+		
 		try {
 			writer.StateStart(time, traceEntry);
 		} catch (IOException e) {
@@ -138,7 +172,7 @@ public class TraceFormatWriter {
 		}
 	}
 
-	public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic,
+	public void Statistics(TopologyEntry topology, Epoch time, String statistic,
 			StatisticsGroupDescription group, Object value) {
 		final HashMap<StatisticsGroupDescription, StatisticWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
 

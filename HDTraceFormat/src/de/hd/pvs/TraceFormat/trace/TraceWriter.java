@@ -25,8 +25,10 @@
 
 package de.hd.pvs.TraceFormat.trace;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -42,6 +44,10 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
 public class TraceWriter {
 
 	private final FileWriter file;
+	private final String filename;
+	
+	// tag length <program> + </program>, allows to remove empty files
+	private final int EMPTY_FILE_LENGTH = 21; 
 	
 	// stack the states to produce nested entries.
 	LinkedList<StateTraceEntry> stackedEntries = new LinkedList<StateTraceEntry>();
@@ -52,13 +58,22 @@ public class TraceWriter {
 		file = new FileWriter(filename);
 		
 		file.write("<Program>\n");
+	
+		this.filename = filename;
 	}
 
 	public void finalize() {
 		try {
 			file.write("</Program>\n");
 			file.close();
-		} catch (IOException e) {
+
+			// test if the file is empty:
+			long size = new RandomAccessFile(filename, "r").length();
+			if (size == 21 ){
+				// nothing got written, thus remove file
+				new File(filename).delete();
+			}
+		} catch (IOException e) { 
 			throw new IllegalArgumentException(e);
 		}
 	}

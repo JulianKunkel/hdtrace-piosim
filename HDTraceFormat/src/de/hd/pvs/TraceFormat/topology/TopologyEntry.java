@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+ /** Version Control Information $Id: TopologyInternalLevel.java 150 2009-03-28 12:51:52Z kunkel $
+  * @lastmodified    $Date: 2009-03-28 13:51:52 +0100 (Sa, 28 Mrz 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 150 $ 
   */
 
 //	Copyright (C) 2009 Julian M. Kunkel
@@ -27,20 +27,21 @@ package de.hd.pvs.TraceFormat.topology;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
-public class TopologyInternalLevel {	
+public class TopologyEntry {	
 	
 	String label;
 	final int positionInParent;
 	
 	final HashMap<String, StatisticSource> statisticSources = new HashMap<String, StatisticSource>();
 	
-	final HashMap<String, TopologyInternalLevel>    childElements = new HashMap<String, TopologyInternalLevel>();
+	final HashMap<String, TopologyEntry>    childElements = new HashMap<String, TopologyEntry>();
 	
-	final TopologyInternalLevel parent;
+	final TopologyEntry parent;
 	
 	private TraceSource traceSource = null;
 		
@@ -49,7 +50,7 @@ public class TopologyInternalLevel {
 	 * @param label
 	 * @param parent
 	 */
-	public TopologyInternalLevel(String label, TopologyInternalLevel parent) {
+	public TopologyEntry(String label, TopologyEntry parent) {
 		this.label = label;
 		this.parent = parent;
 		if(parent != null){
@@ -77,17 +78,17 @@ public class TopologyInternalLevel {
 		statisticSources.put(group, reader);
 	}
 
-	private void setChild(String name, TopologyInternalLevel child){
+	private void setChild(String name, TopologyEntry child){
 		if(childElements.containsKey(name))
 			throw new IllegalArgumentException("Child element already present in topology");
 		childElements.put(name, child);
 	}
 	
-	public HashMap<String, TopologyInternalLevel> getChildElements() {
+	public HashMap<String, TopologyEntry> getChildElements() {
 		return childElements;
 	}
 	
-	public TopologyInternalLevel getChild(String name){
+	public TopologyEntry getChild(String name){
 		return childElements.get(name);
 	}
 	
@@ -95,15 +96,23 @@ public class TopologyInternalLevel {
 		return childElements.size();
 	}
 	
-	public TopologyInternalLevel getParent() {
+	public TopologyEntry getParent() {
 		return parent;
 	}
 	
-	private String getUnifiedLabel(){
-		// TODO account for more invalid characters.
-		return label.toLowerCase().replace(' ', '_').replace("\"", "").replace("=", "");
+	/**
+	 * Return the label but remove invalid characters in the label
+	 * @return 
+	 */
+	private String getUnifiedLabel(){		
+		return label.toLowerCase().replaceAll("[^a-zA-Z0-9]", "");
 	}
 	
+	/**
+	 * Construct the file prefix of this topology entry.
+	 * This does not include the directory the files are located. 
+	 * @return
+	 */
 	public String getFilePrefix(){
 		if (parent != null){
 			return parent.getFilePrefix() + "_" + getUnifiedLabel();
@@ -111,11 +120,22 @@ public class TopologyInternalLevel {
 		
 		return getUnifiedLabel();
 	}
-	
+
+	/**
+	 * Construct the trace file name of this topology entry.
+	 * This does not include the directory the files are located. 
+	 * @return
+	 */
 	public String getTraceFileName(){
 		return getFilePrefix() + ".xml";
 	}
 	
+	/**
+	 * Construct the static group file name of a particular group 
+	 * located under this topology entry.
+	 * This does not include the directory the files are located. 
+	 * @return
+	 */
 	public String getStatisticFileName(String group){
 		return getFilePrefix() + "_stat_" + group + ".dat";
 	}
@@ -128,32 +148,51 @@ public class TopologyInternalLevel {
 		this.label = label;
 	}
 	
+	/**
+	 * @return true if no other children exist
+	 */
 	public boolean isLeaf(){
 		return childElements.size() == 0;
 	}
 	
-	@Override
-	public String toString() {
+	final public String toRecursiveString() {
 		if (parent != null){
-			return parent.toString() + "-" + label; 
+			return parent.toRecursiveString() + "-" + label; 
 		}
 		return label; 
 	}
 	
 	
 	/**
-	 * Returns recursively all subchildren including this topology.
-	 * 
+	 * Recursively get all child topology including this topology.
+	 * TODO: could be done with an enumeration.
 	 * @return
 	 */
-	public ArrayList<TopologyInternalLevel> getSubTopologies(){
-		ArrayList<TopologyInternalLevel> sub = new ArrayList<TopologyInternalLevel>();
+	public ArrayList<TopologyEntry> getSubTopologies(){
+		ArrayList<TopologyEntry> sub = new ArrayList<TopologyEntry>();
 		sub.add(this);
-		for(TopologyInternalLevel child: childElements.values()){
+		for(TopologyEntry child: childElements.values()){
 			sub.addAll(child.getSubTopologies());
 		}
 		
 		return sub;
+	}
+	
+	/**
+	 * Return the parent topologies up to root, the first element is a child of root.
+	 *  
+	 * @return
+	 */
+	public LinkedList<TopologyEntry> getParentTopologies(){
+		LinkedList<TopologyEntry> list = new LinkedList<TopologyEntry>();
+		TopologyEntry par = parent;
+		if(par == null)
+			return list;
+		while(par.parent != null){
+			list.addFirst(par);
+			par = par.parent;
+		}
+		return list;
 	}
 
 	public TraceSource getTraceSource() {
@@ -164,6 +203,10 @@ public class TopologyInternalLevel {
 		this.traceSource = traceSource;
 	}
 	
+	/**
+	 * Check if this topology entry has a parent entry. 
+	 * @return true if yes.
+	 */
 	public boolean hasParent(){
 		return parent != null;
 	}

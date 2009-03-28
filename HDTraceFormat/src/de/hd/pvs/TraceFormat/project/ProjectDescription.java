@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 
 public class ProjectDescription {
@@ -39,8 +39,8 @@ public class ProjectDescription {
 	private String filePrefix;
 	private String projectFilename;
 
-	private TopologyInternalLevel topologyRoot;
-	private TopologyLabels        topologyLabels;
+	private TopologyEntry topologyRoot;
+	private TopologyLabels topologyLabels;
 	
 	private String applicationName = "";
 
@@ -155,7 +155,7 @@ public class ProjectDescription {
 		this.topologyLabels = topologyLabels;
 	}
 	
-	public void setTopologyRoot(TopologyInternalLevel topologyRoot) {
+	public void setTopologyRoot(TopologyEntry topologyRoot) {
 		this.topologyRoot = topologyRoot;
 	}
 	
@@ -163,7 +163,7 @@ public class ProjectDescription {
 		return topologyLabels;
 	}
 	
-	public TopologyInternalLevel getTopologyRoot() {
+	public TopologyEntry getTopologyRoot() {
 		return topologyRoot;
 	}
 }
