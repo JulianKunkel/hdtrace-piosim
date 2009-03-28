@@ -67,7 +67,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 	@Override
 	public void initalize() {
 		// register me on the trace converter, right now use just one timeline for our events.
-		getOutputConverter().addTopology(getTopology());
+		getOutputConverter().initalizeForTopology(getTopologyEntryResponsibleFor());
 	}
 	
 	private void readNextTraceEntryIfNecessary(){		
@@ -121,7 +121,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		//System.out.println(eventTime.getFullDigitString() + " " + stateStart + " processing " + currentTraceEntry.getName() + " t " + currentTraceEntry.getTime());
 		
 		if(currentTraceEntry.getType() == TraceObjectType.EVENT){
-			getOutputConverter().Event(getTopology(), now, (EventTraceEntry) currentTraceEntry);
+			getOutputConverter().Event(getTopologyEntryResponsibleFor(), now, (EventTraceEntry) currentTraceEntry);
 			
 			readNextTraceEntryIfNecessary();
 		}else if(currentTraceEntry.getType() == TraceObjectType.STATE){			
@@ -130,7 +130,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 			
 			if(stateStart){
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
-					getOutputConverter().StateStart(getTopology(), now, state);
+					getOutputConverter().StateStart(getTopologyEntryResponsibleFor(), now, state);
 				
 				if(state.hasNestedTraceChildren()){
 					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
@@ -142,7 +142,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 				}
 			}else{
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
-					getOutputConverter().StateEnd(getTopology(), now, state);
+					getOutputConverter().StateEnd(getTopologyEntryResponsibleFor(), now, state);
 				
 				stateStart = true;
 				readNextTraceEntryIfNecessary();

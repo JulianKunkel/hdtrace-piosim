@@ -31,7 +31,7 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
@@ -67,7 +67,9 @@ public class HDTraceConverter {
 
 		// if it is the HDTrace writer, then write the project description:
 		if(outputConverter.getClass().equals(HDTraceWriter.class)){
-			((HDTraceWriter) outputConverter).initalizeProjectDescriptionWithOldValues(projectDescription, 
+			((HDTraceWriter) outputConverter).initalizeProjectDescriptionWithOldValues(
+					param.getOutputFilePrefix(),
+					projectDescription, 
 					traceReader.getProjectDescriptionXMLReader().getUnparsedChildTags());
 		}
 
@@ -117,13 +119,13 @@ public class HDTraceConverter {
 		System.out.println("Completed -> processed " + eventCount + " events");
 	}
 
-	private void recursivlyInstantiateProcessors(TraceOutputWriter outputConverter, TopologyInternalLevel topo, RunParameters param, PriorityQueue<AbstractTraceProcessor> pendingReaders) throws Exception{
+	private void recursivlyInstantiateProcessors(TraceOutputWriter outputConverter, TopologyEntry topo, RunParameters param, PriorityQueue<AbstractTraceProcessor> pendingReaders) throws Exception{
 		for(StatisticSource ssource: topo.getStatisticSources().values()){
 			StatisticsReader reader = (StatisticsReader)  ssource;
 
 			StatisticProcessor processor = new StatisticProcessor(reader);
 			processor.setOutputConverter(outputConverter);
-			processor.setTopology(topo);
+			processor.setTopologyEntryResponsibleFor(topo);
 			processor.setRunParameters(param);
 
 			processor.initalize();
@@ -143,7 +145,7 @@ public class HDTraceConverter {
 		}else{
 			TraceProcessor processor = new TraceProcessor(reader);
 			processor.setOutputConverter(outputConverter);
-			processor.setTopology(topo);
+			processor.setTopologyEntryResponsibleFor(topo);
 			processor.setRunParameters(param);
 
 			processor.initalize();
@@ -153,7 +155,7 @@ public class HDTraceConverter {
 			}
 		}
 
-		for(TopologyInternalLevel child: topo.getChildElements().values()){
+		for(TopologyEntry child: topo.getChildElements().values()){
 			recursivlyInstantiateProcessors(outputConverter, child, param, pendingReaders);
 		}
 	}

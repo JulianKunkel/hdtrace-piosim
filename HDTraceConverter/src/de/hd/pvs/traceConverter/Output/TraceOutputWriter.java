@@ -28,7 +28,7 @@ package de.hd.pvs.traceConverter.Output;
 import java.io.IOException;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -36,9 +36,8 @@ import de.hd.pvs.traceConverter.HDTraceConverter;
 import de.hd.pvs.traceConverter.RunParameters;
 
 /**
- * An implementation of the TraceOutputWriter decides how to 
- * use the data provided inside the XML trace.
- * The methods of the Converter are called to preserve increasing time in the trace.
+ * An implementation of the TraceOutputWriter decides how to use the data provided inside the XML trace.
+ * The methods of the converter are called which must preserve increasing time in the trace.
  * 
  * @author Julian M. Kunkel
  *
@@ -64,17 +63,26 @@ abstract public class TraceOutputWriter {
 	
 	
 	/**
-	 * Announce the existence of a rank/thread line for events. Called by the TraceProcessor
+	 * Announce the existence of a real topology for which trace or statistic data
+	 * will be generated.
+	 * Each topology must be initialized before it can be used in subsequent calls.
 	 */
-	abstract public void addTopology(TopologyInternalLevel topology);
+	abstract public void initalizeForTopology(TopologyEntry newTopologyEntry);
 		
+	
+	/**
+	 * Each topology must be initialized before it can be used in subsequent calls.
+	 * @param topology
+	 * @param time
+	 * @param traceEntry
+	 */
 	// handle states == default case
-	abstract public void StateStart(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry);
-	abstract public void StateEnd(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry);
+	abstract public void StateStart(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry);
+	abstract public void StateEnd(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry);
 
 	// handle events
-	abstract public void Event(TopologyInternalLevel topology,Epoch time, EventTraceEntry traceEntry);
+	abstract public void Event(TopologyEntry topology,Epoch time, EventTraceEntry traceEntry);
 	
 	// handle statistics
-	abstract public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic, StatisticsGroupDescription group, Object value);	
+	abstract public void Statistics(TopologyEntry topology, Epoch time, String statistic, StatisticsGroupDescription group, Object value);	
 }

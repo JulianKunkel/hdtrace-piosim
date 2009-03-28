@@ -29,7 +29,7 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -88,14 +88,14 @@ public class TauWriter extends TraceOutputWriter {
 		}
 	}
 
-	private int getThread(TopologyInternalLevel topology){
+	private int getThread(TopologyEntry topology){
 		if(topology.isLeaf()){
 			return topology.getPositionInParent();
 		}
 		return 0;
 	}
 	
-	private int getRank(TopologyInternalLevel topology){
+	private int getRank(TopologyEntry topology){
 		if(topology.isLeaf()){
 			return topology.getParent().getPositionInParent();
 		}
@@ -103,14 +103,14 @@ public class TauWriter extends TraceOutputWriter {
 	}
 	
 	@Override
-	public void addTopology(TopologyInternalLevel topology) {
+	public void initalizeForTopology(TopologyEntry topology) {
 		final int rank = getRank(topology);
 		final int thread = getThread(topology);
 		tauWriter.defThread(rank, thread, topology.toString());
 	}
 
 	@Override
-	public void Event(TopologyInternalLevel topology, Epoch time,
+	public void Event(TopologyEntry topology, Epoch time,
 			EventTraceEntry traceEntry) {	
 		final int rank = getRank(topology);
 		final int thread = getThread(topology);
@@ -131,7 +131,7 @@ public class TauWriter extends TraceOutputWriter {
 
 
 	@Override
-	public void StateEnd(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry) {		
+	public void StateEnd(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry) {		
 		pendingStarts--;
 
 		final int rank = getRank(topology);
@@ -144,7 +144,7 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateStart(TopologyInternalLevel topology, Epoch time, StateTraceEntry traceEntry) {
+	public void StateStart(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry) {
 		final String stateName = traceEntry.getName();
 		pendingStarts++;
 
@@ -164,7 +164,7 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyInternalLevel topology, Epoch time, String name,
+	public void Statistics(TopologyEntry topology, Epoch time, String name,
 			StatisticsGroupDescription group, Object value) {
 		long convertedValue;
 		final StatisticType type = group.getType(name);

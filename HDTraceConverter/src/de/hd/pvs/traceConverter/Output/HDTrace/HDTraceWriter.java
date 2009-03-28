@@ -31,7 +31,7 @@ import java.util.List;
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -46,32 +46,41 @@ import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
  * 
  */
 public class HDTraceWriter extends TraceOutputWriter {	
-	TraceFormatWriter writer = new TraceFormatWriter();
+	TraceFormatWriter writer;
 
-	public void initalizeProjectDescriptionWithOldValues(ProjectDescription oldDescription, List<XMLTag> unparsedTagsToWrite){
+	public void initalizeProjectDescriptionWithOldValues(String resultFile, ProjectDescription oldDescription, List<XMLTag> unparsedTagsToWrite){
+		writer = new TraceFormatWriter(resultFile,  oldDescription.getTopologyLabels());
 		writer.setUnparsedTagsToWrite(unparsedTagsToWrite);
 
 		ProjectDescription outProject = writer.getProjectDescription();		
 		outProject.setDescription(oldDescription.getDescription());
 		outProject.setApplicationName(oldDescription.getName());
 		
-		outProject.setTopologyLabels(oldDescription.getTopologyLabels());
-		outProject.setTopologyRoot(oldDescription.getTopologyRoot());
+		// TODO fix for on the fly generated topologies. Right now just use the old ones.
+		outProject.setTopologyRoot(oldDescription.getTopologyRoot());		
 	}
 
 	@Override
 	public void initializeTrace(RunParameters parameters, String resultFile) {
 		parameters.setProcessAlsoComputeEvents(true);
-		writer.initializeTrace(resultFile, writer.getProjectDescription().getTopologyLabels());
 	}
 
 	@Override
-	public void addTopology(TopologyInternalLevel topology) {
-		writer.addTopology(topology);
+	public void initalizeForTopology(TopologyEntry topology) {
+		// check existence of parent topology in registered topology.		
+
+		for(TopologyEntry parent: topology.getParentTopologies()){
+			try{
+				writer.initalizeTopology(parent);
+			}catch(IllegalArgumentException e){
+				// 
+			}
+		}
+		writer.initalizeTopology(topology);
 	}
 
 	@Override
-	public void Event(TopologyInternalLevel topology, Epoch time,
+	public void Event(TopologyEntry topology, Epoch time,
 			EventTraceEntry traceEntry) {
 		writer.Event(topology, time, traceEntry);
 	}
@@ -82,19 +91,19 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyInternalLevel topology, Epoch time,
+	public void StateEnd(TopologyEntry topology, Epoch time,
 			StateTraceEntry traceEntry) {
 		writer.StateEnd(topology, time, traceEntry);
 	}
 
 	@Override
-	public void StateStart(TopologyInternalLevel topology, Epoch time,
+	public void StateStart(TopologyEntry topology, Epoch time,
 			StateTraceEntry traceEntry) {
 		writer.StateStart(topology, time, traceEntry);
 	}
 
 	@Override
-	public void Statistics(TopologyInternalLevel topology, Epoch time, String statistic,
+	public void Statistics(TopologyEntry topology, Epoch time, String statistic,
 			StatisticsGroupDescription group, Object value) {
 		if(writer.getProjectDescription().getExternalStatisticsGroup(group.getName()) == null){
 			writer.addStatisticGroup(group);

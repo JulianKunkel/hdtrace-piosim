@@ -27,7 +27,7 @@ package de.hd.pvs.traceConverter.Input;
 
 import java.io.IOException;
 
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -47,7 +47,7 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	 */
 	private TraceOutputWriter outputConverter;
 	
-	private TopologyInternalLevel topology;
+	private TopologyEntry topology;
 	
 	private RunParameters      runParameters;
 	
@@ -94,11 +94,11 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	}
 	
 
-	public void setTopology(TopologyInternalLevel topology) {
+	public void setTopologyEntryResponsibleFor(TopologyEntry topology) {
 		this.topology = topology;
 	}
 	
-	public TopologyInternalLevel getTopology() {
+	public TopologyEntry getTopologyEntryResponsibleFor() {
 		return topology;
 	}
 	

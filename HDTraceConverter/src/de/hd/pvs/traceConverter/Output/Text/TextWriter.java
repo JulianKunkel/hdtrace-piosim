@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyInternalLevel;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -49,7 +49,7 @@ public class TextWriter extends TraceOutputWriter {
 	private BufferedWriter writer;
 
 	@Override
-	public void Event(TopologyInternalLevel topology, Epoch time,
+	public void Event(TopologyEntry topology, Epoch time,
 			EventTraceEntry traceEntry) {
 		try {
 			writer.append(time.getFullDigitString() + " E " + topology + " " + traceEntry.getName() + "\n");
@@ -69,7 +69,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyInternalLevel topology, Epoch time,
+	public void StateEnd(TopologyEntry topology, Epoch time,
 			StateTraceEntry traceEntry) {
 		try {
 			writer.append(time.getFullDigitString() + " E " + topology + " " + traceEntry.getName() + "\n");
@@ -80,7 +80,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateStart(TopologyInternalLevel topology, Epoch time,
+	public void StateStart(TopologyEntry topology, Epoch time,
 			StateTraceEntry traceEntry) {
 		try {
 			writer.append(time.getFullDigitString() + " < " + topology + " " + traceEntry.getName() + "\n");
@@ -97,7 +97,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyInternalLevel topology, Epoch time, String name,
+	public void Statistics(TopologyEntry topology, Epoch time, String name,
 			StatisticsGroupDescription group, Object value) {
 		String unit = "";
 		if(group.getStatistic(name).getUnit() != null){
@@ -112,7 +112,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void addTopology(TopologyInternalLevel topology) {
+	public void initalizeForTopology(TopologyEntry topology) {
 	}
 
 	@Override

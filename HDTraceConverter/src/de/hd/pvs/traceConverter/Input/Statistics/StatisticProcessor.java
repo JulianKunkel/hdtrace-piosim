@@ -29,8 +29,8 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
@@ -148,11 +148,11 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 							}
 						}
 
-						SimpleConsoleLogger.Debug(now + " "  + getTopology() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
+						SimpleConsoleLogger.Debug(now + " "  + getTopologyEntryResponsibleFor() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
 
 						// put in current average value as a new "old value"
 						lastUpdatedStatistic.put(stat, new StatisticWritten(val));
-						getOutputConverter().Statistics(getTopology(), now, stat, group, val );
+						getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, stat, group, val );
 						continue;
 
 					}
@@ -162,14 +162,14 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			}		
 
 			// write the value as it is:						
-			getOutputConverter().Statistics(getTopology(), now, stat, group, val );
+			getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, stat, group, val );
 
 		}
 
 		try{
 			getNextStatistic();
 		}catch(Exception e){
-			throw new IllegalArgumentException("Error in stat group " + group.getName() + " topology " + getTopology() , e);
+			throw new IllegalArgumentException("Error in stat group " + group.getName() + " topology " + getTopologyEntryResponsibleFor() , e);
 		}
 	}
 
@@ -184,11 +184,15 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			getNextStatistic();
 		}catch(Exception e){
 			throw new IllegalArgumentException("Error in stat group " + group.getName() + " topology " + 
-					getTopology() , e);
+					getTopologyEntryResponsibleFor() , e);
 		}
 
 		// register me on the trace converter
-		getOutputConverter().addTopology(getTopology());
+		try{
+			getOutputConverter().initalizeForTopology(getTopologyEntryResponsibleFor());
+		}catch(IllegalArgumentException e){
+			// if the topology was already registered by a trace converter.  
+		}
 	}
 
 	@Override
