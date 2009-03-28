@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id: TopologyInternalLevel.java 150 2009-03-28 12:51:52Z kunkel $
-  * @lastmodified    $Date: 2009-03-28 13:51:52 +0100 (Sa, 28 Mrz 2009) $
-  * @modifiedby      $LastChangedBy: kunkel $
-  * @version         $Revision: 150 $ 
+ /** Version Control Information $Id$
+  * @lastmodified    $Date$
+  * @modifiedby      $LastChangedBy$
+  * @version         $Revision$ 
   */
 
 //	Copyright (C) 2009 Julian M. Kunkel
