@@ -37,6 +37,7 @@ package viewer.zoomable;
 import java.awt.Window;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.util.LinkedList;
 import java.util.Stack;
 
 import javax.swing.DefaultBoundedRangeModel;
@@ -100,7 +101,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	// internal global variable for use in fireTimeChanged()
 	final private TimeEvent          time_chg_evt =  new TimeEvent( this );
 
-	final private Stack<TimeBoundingBox> zoom_undo_stack = new Stack<TimeBoundingBox>();
+	final private LinkedList<TimeBoundingBox> zoom_undo_stack = new LinkedList<TimeBoundingBox>();
 	final private Stack<TimeBoundingBox> zoom_redo_stack = new Stack<TimeBoundingBox>();
 
 	public ModelTime( final Window  top_window, Epoch  init_global_time, Epoch  final_global_time )
@@ -373,6 +374,10 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 		 vport_timebox.setEarliestTime( tView_init );
 		 vport_timebox.setLatestFromEarliest( tView_extent );
 		 zoom_undo_stack.push( vport_timebox );
+		 
+		 // remove entry if too many already stacked otherwise unlimited
+		 if(zoom_undo_stack.size() > 10)
+			 zoom_undo_stack.pollLast();
 
 		 // remove all stack from redo:
 		 zoom_redo_stack.clear();
@@ -470,7 +475,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 
 	 public void zoomUndo()
 	 {
-		 if ( ! zoom_undo_stack.empty() ) {
+		 if ( ! zoom_undo_stack.isEmpty() ) {
 			 TimeBoundingBox vport_timebox;
 
 			 vport_timebox = new TimeBoundingBox();
@@ -501,7 +506,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 
 	 public boolean isZoomUndoStackEmpty()
 	 {
-		 return zoom_undo_stack.empty();
+		 return zoom_undo_stack.isEmpty();
 	 }
 
 	 public boolean isZoomRedoStackEmpty()

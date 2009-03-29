@@ -119,6 +119,7 @@ public class LegendTableModel extends AbstractTableModel
      */
     public void commitModel(){
         this.sortNormally( LegendComparators.TOPOLOGY_NAME_ORDER );
+        fireTableDataChanged();
     }
 
     private void sortNormally( Comparator comparator )

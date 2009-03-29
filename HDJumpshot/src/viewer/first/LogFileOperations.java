@@ -56,7 +56,7 @@ public class LogFileOperations
 {
     private        LogFileChooser    file_chooser;
 
-    private        TraceFormatBufferedFileReader file;
+    private        TraceFormatBufferedFileReader reader;
     private        PreferenceFrame   pptys_frame;
     private        LegendFrame       legend_frame;
     private        TimelineFrame     timeline_frame;
@@ -65,7 +65,7 @@ public class LogFileOperations
     {
         file_chooser    = new LogFileChooser( isApplet );
 
-        file        = null;
+        reader        = null;
         legend_frame    = null;
         timeline_frame  = null;
     }
@@ -133,11 +133,11 @@ public class LogFileOperations
     /* This disposes all the windows and InputLog related resources. */
     public void disposeLogFileAndResources()
     {
-        if ( file != null ) {
+        if ( reader != null ) {
             TopWindow.Legend.disposeAll();
             // TODO:
             // file.close();
-            file        = null;
+            reader        = null;
             legend_frame    = null;
             timeline_frame  = null;
         }
@@ -157,8 +157,8 @@ public class LogFileOperations
                 return selected_file.getPath();
             }
         }
-        else
-            Dialogs.info( TopWindow.First.getWindow(), "No file chosen", null );
+        //else
+        //    Dialogs.info( TopWindow.First.getWindow(), "No file chosen", null );
         return null;
     }
 
@@ -166,16 +166,14 @@ public class LogFileOperations
         this.disposeLogFileAndResources() has to be called
         before this.openLogFile() can be invoked.
     */
-    public void openLogFile( JTextField  logname_txtfld )
+    public void openLogFile( String filename )
     {
-        String filename;
-        filename  = logname_txtfld.getText();
-        file  = createInputLog(TopWindow.First.getWindow(), filename );
-        if ( file == null ) {
+        reader  = createInputLog(TopWindow.First.getWindow(), filename );
+        if ( reader == null ) {
             return;
         }
 
-        legend_frame = new LegendFrame( file );
+        legend_frame = new LegendFrame( reader );
         legend_frame.pack();
         TopWindow.layoutIdealLocations();
         legend_frame.setVisible( true );
@@ -185,14 +183,20 @@ public class LogFileOperations
         //TODO PVFS2 stuff
         PVFS2Slog2FileParser.parseSlog2(filename);
     }
+    
+    public void addLogFile(String file) throws Exception{
+    	reader.loadAdditionalFile(file);
+    	      
+      //createTimelineWindow( );
+    }
 
     public void createTimelineWindow( )
     {
-        if ( file != null ) {
+        if ( reader != null ) {
             SwingWorker create_timeline_worker = new SwingWorker() {
                 public Object construct()
                 {
-                    timeline_frame = new TimelineFrame( file );
+                    timeline_frame = new TimelineFrame( reader );
                     return null;  // returned value is not needed
                 }
                 public void finished()
@@ -209,7 +213,7 @@ public class LogFileOperations
 
     public void showLegendWindow()
     {
-        if ( file != null && legend_frame != null ) {
+        if ( reader != null && legend_frame != null ) {
             legend_frame.pack();
             TopWindow.layoutIdealLocations();
             legend_frame.setVisible( true );
@@ -218,7 +222,7 @@ public class LogFileOperations
     
     public void showTimelineWindow()
     {
-        if ( file != null && timeline_frame != null ) {
+        if ( reader != null && timeline_frame != null ) {
         	timeline_frame.pack();
             TopWindow.layoutIdealLocations();
             timeline_frame.setVisible( true );

@@ -52,6 +52,8 @@ import java.util.Enumeration;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
@@ -85,7 +87,7 @@ import drawable.TimeBoundingBox;
 
 public class CanvasTimeline extends ScrollableObject implements SearchableView
 {
-	private TopologyManager    timelineManager;
+	private TopologyManager    topologyManager;
 	private BoundedRangeModel  y_model;
 
 	private Frame              root_frame;
@@ -120,7 +122,8 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		}
 	};
 
-	public CanvasTimeline( ModelTime           time_model,
+  
+	public CanvasTimeline( ModelTime time_model,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
 			TopologyManager ytree)
@@ -128,7 +131,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		super( time_model );
 
 		this.reader = reader;
-		timelineManager       = ytree;
+		topologyManager       = ytree;
 		y_model         = yaxis_model;
 		// timeframe4imgs to be initialized later in initializeAllOffImages()
 		timeframe4imgs  = null;
@@ -137,7 +140,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		reader.getLegendModel().addVisibilityChangedListener(categoryVisibleListener);
 
-		timelineManager.addTopologyChangedListener(topologyChangeListener);
+		topologyManager.addTopologyChangedListener(topologyChangeListener);
 	}
 
 	public Dimension getMinimumSize()
@@ -161,7 +164,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 	public int getJComponentHeight()
 	{
-		int rows_size = timelineManager.getRowCount() * timelineManager.getRowHeight();
+		int rows_size = topologyManager.getRowCount() * topologyManager.getRowHeight();
 		int view_size = y_model.getMaximum() - y_model.getMinimum() + 1;
 
 		if ( view_size > rows_size )
@@ -182,8 +185,8 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		Routines.setComponentAndChildrenCursors( root_frame, CustomCursor.Wait );
 
-		num_rows    = timelineManager.getRowCount();
-		row_height  = timelineManager.getRowHeight();
+		num_rows    = topologyManager.getRowCount();
+		row_height  = topologyManager.getRowHeight();
 
 		if ( Profile.isActive() )
 			init_time = new Date();
@@ -248,7 +251,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		offGraphics.setColor( Color.cyan );
 		for ( irow = 0 ; irow < num_rows ; irow++ ) {
 			//  Select only non-expanded row
-			if ( timelineManager.getType(irow) == TimelineType.TRACE  ) {
+			if ( topologyManager.getType(irow) == TimelineType.TRACE  ) {
 				i_Y = coord_xform.convertTimelineToPixel(irow );
 				offGraphics.drawLine( 0, i_Y, offImage_width-1, i_Y );
 			}
@@ -268,18 +271,18 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		// Draw all drawables            
 		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
 
-		final Epoch vStartTime = new Epoch(timebounds.getEarliestTime());
-		final Epoch vEndTime = new Epoch(timebounds.getLatestTime());
+		final Epoch vStartTime = new Epoch(timebounds.getEarliestTime() );
+		final Epoch vEndTime = new Epoch(timebounds.getLatestTime() );
 
 		for(int i=0; i < num_rows ; i++){			
-			switch (timelineManager.getType(i)){
+			switch (topologyManager.getType(i)){
 			case INNER_NODE:
 				break;
 			case STATISTIC:
-				drawStatisticTimeline(i, timelineManager.getStatisticNodeForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
+				drawStatisticTimeline(i, topologyManager.getStatisticNodeForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
 			case TRACE:
-				drawTraceTimeline(i, timelineManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
+				drawTraceTimeline(i, topologyManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
 			}
 		}
@@ -381,13 +384,13 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		final Epoch clickedTime =  globalMinTime.add(coord_xform.convertPixelToTime( local_click.x ));
 		final int timeline       = coord_xform.convertPixelToTimeline( local_click.y);
 
-		if( timeline <= 0 || timeline > timelineManager.getTimelineNumber() ){
+		if( timeline <= 0 || timeline > topologyManager.getTimelineNumber() ){
 			return null;
 		}
 
-		switch(timelineManager.getType(timeline)){
+		switch(topologyManager.getType(timeline)){
 		case TRACE:
-			final BufferedTraceFileReader treader = timelineManager.getTraceReaderForTimeline(timeline);
+			final BufferedTraceFileReader treader = topologyManager.getTraceReaderForTimeline(timeline);
 			XMLTraceEntry objMouse = treader.getTraceEntryClosestToTime(clickedTime);			
 
 			if (objMouse.getType() == TraceObjectType.STATE){
@@ -456,9 +459,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 			return objMouse;
 		case STATISTIC:
-			final BufferedStatisticFileReader sreader = timelineManager.getStatisticReaderForTimeline(timeline);
+			final BufferedStatisticFileReader sreader = topologyManager.getStatisticReaderForTimeline(timeline);
 			StatisticGroupEntry entry = sreader.getTraceEntryClosestToTime(clickedTime);
-			int which = timelineManager.getStatisticNumberForTimeline(timeline);			
+			int which = topologyManager.getStatisticNumberForTimeline(timeline);			
 			return entry.createStatisticEntry(which);
 		default:
 
@@ -492,9 +495,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		int minTimeline = -1;
 
 		for(int i=0; i < num_rows ; i++){			
-			switch (timelineManager.getType(i)){
+			switch (topologyManager.getType(i)){
 			case TRACE:
-				BufferedTraceFileReader tr = timelineManager.getTraceReaderForTimeline(i);
+				BufferedTraceFileReader tr = topologyManager.getTraceReaderForTimeline(i);
 				
 				traceElementLoop: 
 				for(XMLTraceEntry entry: tr.getTraceEntries()){
@@ -563,9 +566,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		int minTimeline = -1;
 
 		for(int i=0; i < num_rows ; i++){			
-			switch (timelineManager.getType(i)){
+			switch (topologyManager.getType(i)){
 			case TRACE:
-				BufferedTraceFileReader tr = timelineManager.getTraceReaderForTimeline(i);
+				BufferedTraceFileReader tr = topologyManager.getTraceReaderForTimeline(i);
 				
 				traceElementLoop: 
 				for(int te=tr.getTraceEntries().size() -1 ; te >= 0 ; te-- ){

@@ -37,14 +37,21 @@ package viewer.first;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -52,6 +59,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.border.Border;
+import javax.swing.event.ListDataListener;
 
 import viewer.common.ActableTextField;
 import viewer.common.Const;
@@ -60,6 +68,8 @@ import viewer.common.Routines;
 import viewer.common.TopWindow;
 
 public class FirstPanel extends JPanel {
+	private static final long serialVersionUID = 8085293176219056520L;
+	
 	private static String about_str = "HDJumpshot.\n"	+ "bug-reports/questions:\n" + "            julian.kunkel@gmx.de";
 	private static String manual_path = Const.DOC_PATH + "usersguide.html";
 	private static String faq_path = Const.DOC_PATH + "faq_index.html";
@@ -68,17 +78,19 @@ public class FirstPanel extends JPanel {
 	private static String open_icon_path = Const.IMG_PATH + "Open24.gif";
 	private static String close_icon_path = Const.IMG_PATH + "Stop24.gif";
 	private static String legend_icon_path = Const.IMG_PATH	+ "Properties24.gif";
-	private static String prefer_icon_path = Const.IMG_PATH
-			+ "Preferences24.gif";
+	private static String prefer_icon_path = Const.IMG_PATH	+ "Preferences24.gif";
 	private static String manual_icon_path = Const.IMG_PATH + "Help24.gif";
 	private static String faq_icon_path = Const.IMG_PATH + "Information24.gif";
 	private static String about_icon_path = Const.IMG_PATH + "About24.gif";
 
 	private ActableTextField logname_fld;
-	private JComboBox pulldown_list;
+	private JComboBox additionalLoadedFilesBox;
+	final private Vector<String> additionalLoadedFiles = new Vector<String>();
 
 	/* some of these are hidden buttons */
-	private JButton file_select_btn;
+	private JButton file_open_btn;
+	private JButton file_add_btn;
+	
 	private JButton file_convert_btn;
 	private JButton file_close_btn;
 	private JButton show_timeline_btn;
@@ -93,8 +105,7 @@ public class FirstPanel extends JPanel {
 
 	private LogFileOperations file_ops;
 	private String logfile_name;
-	private int view_ID;
-
+	
 	public FirstPanel(boolean isApplet, String filename, int view_idx) {
 		super();
 		super.setLayout(new BorderLayout());
@@ -105,7 +116,6 @@ public class FirstPanel extends JPanel {
 
 		file_ops = new LogFileOperations(isApplet);
 		logfile_name = filename;
-		view_ID = view_idx;
 
 		Dimension row_pref_sz;
 		Dimension lbl_pref_sz;
@@ -115,33 +125,39 @@ public class FirstPanel extends JPanel {
 		fld_pref_sz = new Dimension(row_pref_sz.width - lbl_pref_sz.width,
 				lbl_pref_sz.height);
 
+		// layout, main panel:
+    final GridBagLayout gridbag = new GridBagLayout();
+    final GridBagConstraints gConstraints = new GridBagConstraints();
+    
 		JPanel ctr_panel;
 		ctr_panel = new JPanel();
-		ctr_panel.setLayout(new BoxLayout(ctr_panel, BoxLayout.Y_AXIS));
-		ctr_panel.add(Box.createVerticalGlue());
+		ctr_panel.setLayout(gridbag);
 
 		JLabel label;
-		JPanel logname_panel = new JPanel();
-		logname_panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		logname_panel.setLayout(new BoxLayout(logname_panel, BoxLayout.X_AXIS));
-
+		gConstraints.fill = GridBagConstraints.BOTH;
+		gConstraints.weightx = 1.0;
+		
 		label = new JLabel(" ProjectFile: ");
 		Routines.setShortJComponentSizes(label, lbl_pref_sz);
-		logname_panel.add(label);
+		ctr_panel.add(label);
 		logname_fld = new ActableTextField(logfile_name, 40);
 		logname_fld.setBorder(BorderFactory.createCompoundBorder(
 				lowered_border, etched_border));
 		logname_fld.addActionListener(new LogNameTextFieldListener());
 
 		Routines.setShortJComponentSizes(logname_fld, fld_pref_sz);
-		logname_panel.add(logname_fld);
-		Routines.setShortJComponentSizes(logname_panel, row_pref_sz);
-		// logname_panel.add( Box.createHorizontalStrut( 40 ) );
-		ctr_panel.add(logname_panel);
-		ctr_panel.add(Box.createVerticalGlue());
-		ctr_panel.add(Box.createVerticalStrut(4));
-		ctr_panel.add(Box.createVerticalGlue());
-
+		ctr_panel.add(logname_fld);
+		
+		gConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		gridbag.setConstraints(logname_fld, gConstraints); 
+		
+		JLabel label2 = new JLabel(" Loaded projects: ");
+		Routines.setShortJComponentSizes(label, lbl_pref_sz);
+		ctr_panel.add(label2);
+		additionalLoadedFilesBox = new JComboBox(new DefaultComboBoxModel(additionalLoadedFiles));		
+		ctr_panel.add(additionalLoadedFilesBox);		
+		gridbag.setConstraints(additionalLoadedFilesBox,  gConstraints);
+		
 		ctr_panel.setBorder(etched_border);
 
 		super.add(ctr_panel, BorderLayout.CENTER);
@@ -153,13 +169,9 @@ public class FirstPanel extends JPanel {
 	}
 
 	private JToolBar createToolBarAndButtons(int orientation) {
-		Border raised_border, empty_border;
-		raised_border = BorderFactory.createRaisedBevelBorder();
-		empty_border = BorderFactory.createEmptyBorder();
-
 		JToolBar toolbar;
 		toolbar = new JToolBar(orientation);
-		toolbar.setFloatable(true);
+		toolbar.setFloatable(false);
 
 		Insets btn_insets;
 		btn_insets = new Insets(1, 1, 1, 1);
@@ -170,14 +182,19 @@ public class FirstPanel extends JPanel {
 		}
 		
 		
-		file_select_btn = new JButton(new ImageIcon(open_icon_path));
+		file_open_btn = new JButton(new ImageIcon(open_icon_path));
+		file_open_btn.setToolTipText("Open a new project file");
+		file_open_btn.setMargin(btn_insets);
+		file_open_btn.addActionListener(new FileSelectButtonListener());
+		toolbar.add(file_open_btn);
 
-		file_select_btn.setToolTipText("Select a new logfile");
+		file_add_btn = new JButton(new ImageIcon(open_icon_path));
+		file_add_btn.setToolTipText("Add another project file to current view");
 		// file_select_btn.setBorder( empty_border );
-		file_select_btn.setMargin(btn_insets);
-		file_select_btn.addActionListener(new FileSelectButtonListener());
-		toolbar.add(file_select_btn);
-
+		file_add_btn.setMargin(btn_insets);
+		file_add_btn.addActionListener(new FileAddButtonListener());
+		toolbar.add(file_add_btn);
+		
 		toolbar.addSeparator();
 		show_legend_btn = new JButton(new ImageIcon(legend_icon_path));
 		show_legend_btn.setToolTipText("Display the Legend window");
@@ -255,7 +272,11 @@ public class FirstPanel extends JPanel {
 	}
 
 	public JButton getLogFileSelectButton() {
-		return file_select_btn;
+		return file_open_btn;
+	}
+	
+	public JButton getFileaddButton() {
+		return file_add_btn;
 	}
 
 	public JButton getLogFileConvertButton() {
@@ -294,8 +315,35 @@ public class FirstPanel extends JPanel {
 		public void actionPerformed(ActionEvent evt) {
 			final String filename = file_ops.selectLogFile();
 			if (filename != null && filename.length() > 0) {
+				file_ops.disposeLogFileAndResources();
+
 				logname_fld.setText(filename);
 				logname_fld.fireActionPerformed();
+				
+				additionalLoadedFiles.add(filename);
+				additionalLoadedFilesBox.setSelectedItem(filename);				
+			}
+		}
+	}
+	
+	private class FileAddButtonListener implements ActionListener {
+		public void actionPerformed(ActionEvent evt) {
+			final String filename = file_ops.selectLogFile();
+			if (filename != null && filename.length() > 0) {
+				if(additionalLoadedFiles.contains(filename)){
+					Dialogs.info( TopWindow.First.getWindow(), "File is already loaded: " + filename, null);
+					return;
+				}
+				
+				try{
+					file_ops.addLogFile(filename);
+					additionalLoadedFiles.add(filename);
+					additionalLoadedFilesBox.setSelectedItem(filename);
+					
+				}catch(Exception e){
+					Dialogs.info( TopWindow.First.getWindow(), "Error while loading file: " + filename + "\n" +
+							"Cause: " + e.getMessage(), null );
+				}
 			}
 		}
 	}
@@ -303,8 +351,8 @@ public class FirstPanel extends JPanel {
 	private class LogNameTextFieldListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
 			file_ops.disposeLogFileAndResources();
-
-			file_ops.openLogFile(logname_fld);
+			additionalLoadedFiles.clear();
+			file_ops.openLogFile(logname_fld.getText());
 		}
 	}
 
@@ -356,7 +404,8 @@ public class FirstPanel extends JPanel {
 	private class FileCloseButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
 			file_ops.disposeLogFileAndResources();
-			pulldown_list.removeAllItems();
+			additionalLoadedFilesBox.removeAllItems();
+			additionalLoadedFiles.clear();
 		}
 	}
 

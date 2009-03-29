@@ -67,7 +67,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 			current = getNextInputEntry();
 		}
 
-		maxTime = traceEntries.get(traceEntries.size()-1).getEarliestTime();
+		maxTime = traceEntries.get(traceEntries.size()-1).getLatestTime();
 	}
 
 	

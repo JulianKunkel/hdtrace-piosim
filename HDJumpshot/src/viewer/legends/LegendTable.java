@@ -44,10 +44,13 @@ import java.awt.event.MouseAdapter;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 
 public class LegendTable extends JTable
@@ -60,7 +63,19 @@ public class LegendTable extends JTable
     private LegendTableModel    table_model;
     private TableColumnModel    column_model;
     private JTableHeader        table_header;
-
+    private final UpdateTableModelListener myTableChangeListener = new UpdateTableModelListener();
+    
+    private class UpdateTableModelListener implements TableModelListener{
+    	@Override
+    	public void tableChanged(TableModelEvent e) {
+    		getTable().repaint();
+    	}
+    }
+    
+    private LegendTable getTable(){
+    	return this;
+    }
+    
     public LegendTable(TraceFormatBufferedFileReader  reader )
     {
         super();
@@ -81,8 +96,10 @@ public class LegendTable extends JTable
         table_header = this.getTableHeader();
         this.setColumnHeaderRenderers();
         this.initColumnSize();
+        
+        table_model.addTableModelListener(myTableChangeListener);
     }
-
+    
     private void setColumnHeaderRenderers()
     {
         TableColumn        column; 

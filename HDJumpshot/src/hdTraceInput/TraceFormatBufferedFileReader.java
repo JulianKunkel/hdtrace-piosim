@@ -244,7 +244,7 @@ public class TraceFormatBufferedFileReader {
 		for(Category cat: getCategoriesStatistics().values())
 			legendModel.addCategory(cat);
 
-		legendModel.commitModel();
+		legendModel.commitModel();		
 	}
 
 	public int getNumberOfFilesLoaded(){
