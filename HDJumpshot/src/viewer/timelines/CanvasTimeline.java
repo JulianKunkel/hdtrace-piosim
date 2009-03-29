@@ -52,8 +52,6 @@ import java.util.Enumeration;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
@@ -387,6 +385,11 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			}else if(entry.getType() == TraceObjectType.STATE){
 				final StateTraceEntry state = (StateTraceEntry) entry;
 				final Category category = reader.getCategory(state);
+				
+				if(category == null){
+					System.out.println(state.getName()  + " SCHUH " + state);
+					System.exit(1);
+				}
 
 				if(category.isVisible())
 					DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 

@@ -27,7 +27,10 @@ package hdTraceInput;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
+
+import com.sun.jmx.snmp.Enumerated;
 
 import topology.GlobalStatisticStatsPerGroup;
 import topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
@@ -44,14 +47,13 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceSource;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceSource;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
 import drawable.CategoryEvent;
 import drawable.CategoryState;
 import drawable.CategoryStatistic;
-import drawable.ColorAlpha;
 
 /**
  * Manages information for different projects.
@@ -161,34 +163,21 @@ public class TraceFormatBufferedFileReader {
 
 	// TODO read from category index file.
 	private void updateVisibleCategories(BufferedTraceFileReader reader){
-		for(TraceEntry entry: reader.getTraceEntries()){
-			createTraceObjectCategory(entry);
+		Enumeration<TraceEntry> enu = reader.enumerateTraceEntry(true, reader.getMinTime(), reader.getMaxTime());
+		while(enu.hasMoreElements()){
+			final TraceEntry entry = enu.nextElement();
+			final String catName = entry.getName();
+
+			if(entry.getType() == TraceObjectType.STATE){		
+				if(! categoriesStates.containsKey(catName))
+					categoriesStates.put( catName, new CategoryState(catName, null));
+			}if(entry.getType() == TraceObjectType.EVENT){
+				if(! categoriesEvents.containsKey(catName))
+					categoriesEvents.put( catName, new CategoryEvent(catName, null));
+			}
 		}	
 	}
 
-	private void addTraceObjectCategoryIfNecessary(TraceEntry entry){
-		final String catName = entry.getName();
-
-		if(entry.getType() == TraceObjectType.STATE){		
-			if(! categoriesStates.containsKey(catName))
-				categoriesStates.put( catName, new CategoryState(catName, null));
-		}if(entry.getType() == TraceObjectType.EVENT){
-			if(! categoriesEvents.containsKey(catName))
-				categoriesEvents.put( catName, new CategoryEvent(catName, null));
-		}
-	}
-
-	private void createTraceObjectCategory(TraceEntry entry){
-		if(entry.getType() == TraceObjectType.STATE){
-			StateTraceEntry state = (StateTraceEntry) entry;
-			if(state.hasNestedTraceChildren()){
-				for(TraceEntry child: state.getNestedTraceChildren()){
-					addTraceObjectCategoryIfNecessary(child);
-				}
-			}
-		}
-		addTraceObjectCategoryIfNecessary(entry);
-	}
 
 	/**
 	 * Add statistic categories in the file if not already part of the category.

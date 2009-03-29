@@ -42,8 +42,9 @@ public class FakeBasicComponent extends BasicComponent{
 	 * @param name
 	 * @param model
 	 */
-	public FakeBasicComponent(String name, Model model) {
+	public FakeBasicComponent(String name, Model model, BasicComponent<?> parentComponent) {
 		getIdentifier().setName(name);
+		setParentComponent(parentComponent);
 	}
 	
 	@Override

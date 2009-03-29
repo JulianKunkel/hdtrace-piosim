@@ -53,7 +53,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		else
 			return new ReaderTraceElementNestedEnumerator(this, startTime, endTime);
 	}
-
+	
 	public BufferedTraceFileReader(String filename, boolean nested) throws Exception {
 		super(filename, nested);
 

@@ -256,7 +256,8 @@ public class SimpleNIC extends GNIC<NIC>{
 		 * Set the simulated model component to the same as the NICs
 		 * this shall never happen !!!
 		 */
-		FakeBasicComponent c = new FakeBasicComponent(comp.getIdentifier().getName()+ " upload", sim.getModel());
+		FakeBasicComponent c = new FakeBasicComponent(comp.getIdentifier().getName()+ " upload", 
+				sim.getModel(), comp);
 		this.upload.setSimulatedModelComponent(	c , sim		);
 	}
 	
