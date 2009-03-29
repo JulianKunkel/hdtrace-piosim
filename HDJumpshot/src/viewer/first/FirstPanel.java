@@ -85,7 +85,7 @@ public class FirstPanel extends JPanel {
 
 	private ActableTextField logname_fld;
 	private JComboBox additionalLoadedFilesBox;
-	final private Vector<String> additionalLoadedFiles = new Vector<String>();
+	final private Vector<String> loadedFiles = new Vector<String>();
 
 	/* some of these are hidden buttons */
 	private JButton file_open_btn;
@@ -154,7 +154,7 @@ public class FirstPanel extends JPanel {
 		JLabel label2 = new JLabel(" Loaded projects: ");
 		Routines.setShortJComponentSizes(label, lbl_pref_sz);
 		ctr_panel.add(label2);
-		additionalLoadedFilesBox = new JComboBox(new DefaultComboBoxModel(additionalLoadedFiles));		
+		additionalLoadedFilesBox = new JComboBox(new DefaultComboBoxModel(loadedFiles));		
 		ctr_panel.add(additionalLoadedFilesBox);		
 		gridbag.setConstraints(additionalLoadedFilesBox,  gConstraints);
 		
@@ -318,10 +318,7 @@ public class FirstPanel extends JPanel {
 				file_ops.disposeLogFileAndResources();
 
 				logname_fld.setText(filename);
-				logname_fld.fireActionPerformed();
-				
-				additionalLoadedFiles.add(filename);
-				additionalLoadedFilesBox.setSelectedItem(filename);				
+				logname_fld.fireActionPerformed();		
 			}
 		}
 	}
@@ -330,14 +327,14 @@ public class FirstPanel extends JPanel {
 		public void actionPerformed(ActionEvent evt) {
 			final String filename = file_ops.selectLogFile();
 			if (filename != null && filename.length() > 0) {
-				if(additionalLoadedFiles.contains(filename)){
+				if(loadedFiles.contains(filename)){
 					Dialogs.info( TopWindow.First.getWindow(), "File is already loaded: " + filename, null);
 					return;
 				}
 				
 				try{
 					file_ops.addLogFile(filename);
-					additionalLoadedFiles.add(filename);
+					loadedFiles.add(filename);
 					additionalLoadedFilesBox.setSelectedItem(filename);
 					
 				}catch(Exception e){
@@ -350,9 +347,14 @@ public class FirstPanel extends JPanel {
 
 	private class LogNameTextFieldListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
+			final String filename = logname_fld.getText();
 			file_ops.disposeLogFileAndResources();
-			additionalLoadedFiles.clear();
-			file_ops.openLogFile(logname_fld.getText());
+			loadedFiles.clear();
+			file_ops.openLogFile(filename);
+			
+
+			loadedFiles.add(filename);
+			additionalLoadedFilesBox.setSelectedItem(filename);		
 		}
 	}
 
@@ -405,7 +407,7 @@ public class FirstPanel extends JPanel {
 		public void actionPerformed(ActionEvent evt) {
 			file_ops.disposeLogFileAndResources();
 			additionalLoadedFilesBox.removeAllItems();
-			additionalLoadedFiles.clear();
+			loadedFiles.clear();
 		}
 	}
 
