@@ -45,11 +45,12 @@ public class CommandLineInterface {
 						+ " -o <outputFilePrefix> (default: \"" + runParameters.outputFilePrefix + "\")\n"
 						+ " -F <outputFormat> (default:" + runParameters.getOutputFormat() +  ")\n"
 						+ "    supported are Text, Tau, HDTrace \n"
-						+ " -D enable all debugging information (default: false) \n"					
+						+ " -D [true|false] enable all debugging information \n"					
 						+ " -l <floatValue> update Statistics only if they vary more than value %\n"
 						+ " -a Compute average statistics for omited values (otherwise latest value), (-l will be activated \n"
 						+ "    with current value: " +	runParameters.getStatisticModificationUntilUpdate() + "%, change with -l \n"
-						+ " -C Process also trace-events for compute \n"
+						+ " -S [true|false] decide to process statistics \n" 
+						+ " -C [true|false] Process trace-events for compute \n"
 						+ " -h show help\n"
 						+ "\nBoolean values can be set 0 or 1\n");
 
@@ -87,11 +88,11 @@ public class CommandLineInterface {
 		while (i < args.length && args[i].startsWith("-")) {
 			String param = args[i++];
 
-			boolean boolArgument = true;
+			boolean boolArgument = false;
 			String stringArgument = "";
 
 			if (i < args.length && !args[i].startsWith("-")) {
-				boolArgument = args[i].equals("1");
+				boolArgument = args[i].equals("true");
 				stringArgument = args[i];
 
 				i++;
@@ -103,8 +104,11 @@ public class CommandLineInterface {
 			}
 
 			switch(param.charAt(1)){
+			case('S'):
+				runParameters.setProcessStatistics(boolArgument);
+				break;
 			case('C'):
-				runParameters.setProcessAlsoComputeEvents(true);
+				runParameters.setProcessAlsoComputeEvents(boolArgument);
 				break;
 			case('a'):
 				runParameters.setUpdateStatisticsOnlyIfTheyChangeTooMuch(true);
@@ -121,7 +125,7 @@ public class CommandLineInterface {
 				runParameters.setInputTraceFile( stringArgument );
 				break;
 			case('D'):
-				SimpleConsoleLogger.setDebugEverything(true);
+				SimpleConsoleLogger.setDebugEverything(boolArgument);
 				break;
 			case('F'):	
 				runParameters.setOutputFormat(stringArgument);

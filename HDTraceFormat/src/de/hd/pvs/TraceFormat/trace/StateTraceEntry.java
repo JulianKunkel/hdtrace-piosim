@@ -33,11 +33,11 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 
-public class StateTraceEntry extends XMLTraceEntry{
+public class StateTraceEntry extends TraceEntry{
 
-	final Epoch endTime;
+	Epoch endTime;
 
-	LinkedList<XMLTraceEntry> nestedTraceChildren = null;
+	LinkedList<TraceEntry> nestedTraceChildren = null;
 
 	/**
 	 * Walk through the children in correct time order, aka Depth First Search
@@ -63,13 +63,17 @@ public class StateTraceEntry extends XMLTraceEntry{
 	 * Walk through the children in reversed time order
 	 * @return
 	 */
-	public Enumeration<XMLTraceEntry> childBackwardEnumeration(){
+	public Enumeration<TraceEntry> childBackwardEnumeration(){
 		return new BackwardStateEnumeration(this);
 	}
 
-	public StateTraceEntry(String name, final HashMap<String, String> attributes,
-			XMLTraceEntry parentXMLData) {
-		super(name, attributes, parentXMLData);
+	/**
+	 * Constructor from XML
+	 * @param name
+	 * @param attributes
+	 */
+	public StateTraceEntry(String name, final HashMap<String, String> attributes) {
+		super(name, attributes);
 
 		// parse common time value
 		String value = attributes.remove("end");
@@ -79,10 +83,18 @@ public class StateTraceEntry extends XMLTraceEntry{
 			throw new IllegalArgumentException("Trace invalid, no time given");
 		}
 	}
+	
+	public StateTraceEntry(String name, Epoch start){
+		super(name, start);
+	}
+	
+	public void setEndTime(Epoch endTime) {
+		this.endTime = endTime;
+	}
 
-	public void addXMLTraceChild(XMLTraceEntry child){
+	public void addTraceChild(TraceEntry child){
 		if(nestedTraceChildren == null){
-			nestedTraceChildren = new LinkedList<XMLTraceEntry>();
+			nestedTraceChildren = new LinkedList<TraceEntry>();
 		}
 
 		nestedTraceChildren.add(child);
@@ -109,7 +121,7 @@ public class StateTraceEntry extends XMLTraceEntry{
 		return nestedTraceChildren != null && ! nestedTraceChildren.isEmpty();
 	}
 
-	public LinkedList<XMLTraceEntry> getNestedTraceChildren() {
+	public LinkedList<TraceEntry> getNestedTraceChildren() {
 		return nestedTraceChildren;
 	}
 
@@ -118,7 +130,7 @@ public class StateTraceEntry extends XMLTraceEntry{
 
 		if(nestedTraceChildren != null){
 			// print nestedXMLTags
-			for(XMLTraceEntry child: nestedTraceChildren){
+			for(TraceEntry child: nestedTraceChildren){
 				buff.append(child);
 			}
 		}

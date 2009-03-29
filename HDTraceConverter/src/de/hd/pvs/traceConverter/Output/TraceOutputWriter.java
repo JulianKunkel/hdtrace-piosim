@@ -77,11 +77,11 @@ abstract public class TraceOutputWriter {
 	 * @param traceEntry
 	 */
 	// handle states == default case
-	abstract public void StateStart(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry);
-	abstract public void StateEnd(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry);
+	abstract public void StateStart(TopologyEntry topology, StateTraceEntry traceEntry);
+	abstract public void StateEnd(TopologyEntry topology, StateTraceEntry traceEntry);
 
 	// handle events
-	abstract public void Event(TopologyEntry topology,Epoch time, EventTraceEntry traceEntry);
+	abstract public void Event(TopologyEntry topology, EventTraceEntry traceEntry);
 	
 	// handle statistics
 	abstract public void Statistics(TopologyEntry topology, Epoch time, String statistic, StatisticsGroupDescription group, Object value);	

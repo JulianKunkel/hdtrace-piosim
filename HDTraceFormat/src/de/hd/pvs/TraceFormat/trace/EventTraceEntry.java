@@ -31,11 +31,19 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 
-public class EventTraceEntry extends XMLTraceEntry{
+public class EventTraceEntry extends TraceEntry{
 
-	public EventTraceEntry(String name, final HashMap<String, String> attributes,
-			XMLTraceEntry parentXMLData) {
-		super(name, attributes, parentXMLData);		
+	/**
+	 * Constructor from XML.
+	 * @param name
+	 * @param attributes
+	 */
+	public EventTraceEntry(String name, final HashMap<String, String> attributes) {
+		super(name, attributes);		
+	}
+	
+	public EventTraceEntry(String name, Epoch time){
+		super(name, time);
 	}
 	
 	@Override

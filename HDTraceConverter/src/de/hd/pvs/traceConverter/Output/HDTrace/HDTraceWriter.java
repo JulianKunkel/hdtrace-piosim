@@ -80,9 +80,8 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Event(TopologyEntry topology, Epoch time,
-			EventTraceEntry traceEntry) {
-		writer.Event(topology, time, traceEntry);
+	public void Event(TopologyEntry topology,	EventTraceEntry traceEntry) {
+		writer.Event(topology, traceEntry);
 	}
 
 	@Override
@@ -91,15 +90,13 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyEntry topology, Epoch time,
-			StateTraceEntry traceEntry) {
-		writer.StateEnd(topology, time, traceEntry);
+	public void StateEnd(TopologyEntry topology, StateTraceEntry traceEntry) {
+		writer.StateEnd(topology, traceEntry);
 	}
 
 	@Override
-	public void StateStart(TopologyEntry topology, Epoch time,
-			StateTraceEntry traceEntry) {
-		writer.StateStart(topology, time, traceEntry);
+	public void StateStart(TopologyEntry topology, StateTraceEntry traceEntry) {
+		writer.StateStart(topology, traceEntry);
 	}
 
 	@Override

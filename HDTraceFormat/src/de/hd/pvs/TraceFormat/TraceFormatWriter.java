@@ -78,12 +78,13 @@ public class TraceFormatWriter {
 	 * @param topology
 	 * @return
 	 */
-	public TopologyEntry createTopology(String [] topology){
+	public TopologyEntry createInitalizeTopology(String [] topology){
 		TopologyEntry cur = outProject.getTopologyRoot();
 		
-		if (topology.length >= outProject.getTopologyLabels().getLabels().size()){
+		if (topology.length > outProject.getTopologyLabels().getLabels().size()){
 			throw new IllegalArgumentException("Topology labels are not as deep as the topology " +
-					"you want to create");
+					"you want to create: " + topology.length + " labels: " + 
+					outProject.getTopologyLabels().getLabels().size() );
 		}
 		for(int p = 0 ; p < topology.length; p++){
 			// check if parents exist
@@ -92,35 +93,24 @@ public class TraceFormatWriter {
 				// create all the next ones.
 				for(int n = p ; n < topology.length; n++){
 					cur = new TopologyEntry(topology[n], cur);
+					initalizeTopologyInternal(cur);
 				}
 				return cur;
 			}
 			cur = child;
 		}
-		throw new IllegalArgumentException("Topology exists already!");
+		return cur;
 	}
 
-	/**
-	 * Announce that an already existing topology will create some statistics or a trace.
-	 * 
-	 * @param topology
-	 */
-	public void initalizeTopology(TopologyEntry topology) {		
+	public void initalizeTopologyInternal(TopologyEntry topology) {
 		//lookup topology in project description and create missing topologies				
 		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
 
 		OutFiles files = traceWriterMap.get(topology);
 		if(files != null){
-			throw new IllegalArgumentException("Topology already initalized! " + topology.toString() );
+			throw new IllegalArgumentException("Topology already initalized! " + topology.toRecursiveString() );
 		}
-		
-		// check existence of parent topology in registered topology.
-		for (TopologyEntry parent: topology.getParentTopologies()){
-			if(! traceWriterMap.containsKey(parent)){
-				throw new IllegalArgumentException("Parent topology " + parent.toString() + " not registered!");
-			}
-		}
-		
+
 		files = new OutFiles();
 		traceWriterMap.put(topology, files);
 
@@ -130,6 +120,22 @@ public class TraceFormatWriter {
 			throw new IllegalArgumentException(
 					"Trace file could not be created: " + file);
 		}
+	}
+	
+	/**
+	 * Announce that an already existing topology will create some statistics or a trace.
+	 * The parent topologies must be added before.
+	 * 
+	 * @param topology
+	 */
+	public void initalizeTopology(TopologyEntry topology) {		
+		// check existence of parent topology in registered topology.
+		for (TopologyEntry parent: topology.getParentTopologies()){
+			if(! traceWriterMap.containsKey(parent)){
+				throw new IllegalArgumentException("Parent topology " + parent.toRecursiveString() + " not registered!");
+			}
+		}
+		initalizeTopologyInternal(topology);
 	}
 
 	/**
@@ -141,32 +147,37 @@ public class TraceFormatWriter {
 	}
 
 
-	public void Event(TopologyEntry topology, Epoch time,
-			EventTraceEntry traceEntry) {
+	public void Event(TopologyEntry topology, EventTraceEntry traceEntry) {
 		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 		try {
-			writer.Event(time, traceEntry);
+			writer.Event(traceEntry);
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Could not write file for id " + topology);
 		}
 	}
 
-	public void StateEnd(TopologyEntry topology, Epoch time,
-			StateTraceEntry traceEntry) {
+	/**
+	 * Finish a state.
+	 * 
+	 * Note that the end time of the traceEntry must be set correctly!
+	 * @param topology
+	 * @param traceEntry
+	 */
+	public void StateEnd(TopologyEntry topology, 	StateTraceEntry traceEntry) {
 		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 		try {
-			writer.StateEnd(time, traceEntry);
+			writer.StateEnd(traceEntry);
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Could not write file for id " + topology);
 		}
 	}
 
-	public void StateStart(TopologyEntry topology, Epoch time,
+	public void StateStart(TopologyEntry topology, 
 			StateTraceEntry traceEntry) {
 		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
 		
 		try {
-			writer.StateStart(time, traceEntry);
+			writer.StateStart(traceEntry);
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Could not write file for id " + topology);
 		}

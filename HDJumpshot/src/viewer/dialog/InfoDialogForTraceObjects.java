@@ -34,7 +34,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 
 import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 
 public class InfoDialogForTraceObjects extends InfoDialog
 {
@@ -61,7 +61,7 @@ public class InfoDialogForTraceObjects extends InfoDialog
         	label = new JLabel("Contained XML data:");
           root_panel.add(label);
           
-        	text = ((XMLTraceEntry) obj).toString();
+        	text = ((TraceEntry) obj).toString();
         	break;
         case STATISTICENTRY:        	        
         	break;

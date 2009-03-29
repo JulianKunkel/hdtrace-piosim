@@ -35,7 +35,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 class ForwardStateEnumerationStartTime extends ForwardStateEnumeration{
 	
-	XMLTraceEntry current = null;
+	TraceEntry current = null;
 		
 	public ForwardStateEnumerationStartTime(StateTraceEntry owner, Epoch startTime) {
 		super(owner);
@@ -48,8 +48,8 @@ class ForwardStateEnumerationStartTime extends ForwardStateEnumeration{
 	}
 	
 	@Override
-	public XMLTraceEntry nextElement() {
-		XMLTraceEntry old = current;
+	public TraceEntry nextElement() {
+		TraceEntry old = current;
 		
 		if(super.hasMoreElements){
 			current = super.nextElement();

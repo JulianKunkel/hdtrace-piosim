@@ -4,12 +4,16 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Stack;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLHelper;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
@@ -19,15 +23,29 @@ public class SHDTraceWriter extends STraceWriter {
 	final TraceFormatWriter out;
 	final ProjectDescription desc;
 
-	final HashMap<SPassiveComponent<?>, TopologyEntry> topMap = new HashMap<SPassiveComponent<?>, TopologyEntry>();
+	private static class ComponentTraceInfo{
+		final TopologyEntry topology;
+		final Stack<StateTraceEntry> stackedStates = new Stack<StateTraceEntry>();
+		
+		public ComponentTraceInfo(TopologyEntry top) {
+			this.topology = top;
+		}
+	}
 	
-	final static int HIERACHY_DEPTH = 3; // root component, component, component
+	/**
+	 * Maps the passive component to the initalized topology of the trace writer
+	 */
+	final HashMap<SPassiveComponent<?>, ComponentTraceInfo> topMap = new HashMap<SPassiveComponent<?>, ComponentTraceInfo>();
+	
+	// root component, component.., (final) component
+	// other hierarchical information is dropped.
+	final static int MAX_COMPONENT_NESTING = 5; 
 
 	public SHDTraceWriter(String filename, Simulator sim) {
 		super(filename, sim);
 		
 		final TopologyLabels labels = new TopologyLabels();
-		labels.setTopologyLabels(new String []{ "Root Component", "Component", "Component"});
+		labels.setTopologyLabels(new String []{ "Root Component", "Component", "Component", "Component", "Component"});
 		
 		out = new TraceFormatWriter(filename, labels);
 		desc = out.getProjectDescription();
@@ -37,33 +55,25 @@ public class SHDTraceWriter extends STraceWriter {
 	public void preregister(SPassiveComponent component) {
 		// manufacture topology and cache it.
 		
-		BasicComponent<?> parent = component.getModelComponent();
-		LinkedList<BasicComponent<?>> hierachy = new LinkedList<BasicComponent<?>>();
-		while(parent != null){
-			hierachy.push(parent);
-			parent = parent.getParentComponent();
-		}
+		final LinkedList<BasicComponent<?>> path = component.getModelComponent().getParentComponentsPlusMe();
+		
+		final String [] strPath = new String[path.size()];
 		
 		// manufacture topology:
-		// limit max depth
-		int maxDepth = hierachy.size() > HIERACHY_DEPTH ? HIERACHY_DEPTH : hierachy.size();
-		System.out.println("component: " + maxDepth + component.getIdentifier());
-		
-		final TopologyEntry rootTopo = new TopologyEntry(
-				hierachy.get(0).getIdentifier().toString(), null);
-		
-		TopologyEntry parentTopo = rootTopo;
-		 
-		for(int i = 1 ; i < maxDepth-1; i++){
-			parentTopo  = new TopologyEntry(hierachy.get(i).getIdentifier().toString(), parentTopo);
+		if(MAX_COMPONENT_NESTING < strPath.length){
+			throw new IllegalArgumentException("Simulator hierachy is not as deep "+ MAX_COMPONENT_NESTING +  
+					" to record full" +	" hierachy: " + path.size());
 		}
 		
-		// add leaf level:
-		final TopologyEntry leafTopo = 
-			new TopologyEntry(hierachy.get(hierachy.size()-1).getIdentifier().toString(), parentTopo);
+
+		int pos = 0;
+		for(BasicComponent<?> comp: path){
+			strPath[pos] = comp.getIdentifier().toString();
+			pos++;
+		}
 		
-		
-		out.initalizeTopology(rootTopo);
+		final TopologyEntry newTopo = out.createInitalizeTopology(strPath);
+		topMap.put(component, new ComponentTraceInfo(newTopo));
 	}
 
 
@@ -84,25 +94,40 @@ public class SHDTraceWriter extends STraceWriter {
 	}
 
 	@Override
+	protected void startStateInternal(Epoch time, SPassiveComponent comp,
+			String eventDesc) {
+		final ComponentTraceInfo info = topMap.get(comp);
+		final String validText = XMLHelper.validTag(eventDesc);
+		final StateTraceEntry state = new StateTraceEntry(validText, time);
+		
+		info.stackedStates.push(state);		
+		out.StateStart(info.topology, state);
+	}
+	
+	@Override
 	protected void endStateInternal(Epoch time, SPassiveComponent comp,
 			String eventDesc) {
-		// TODO Auto-generated method stub
-
+		final ComponentTraceInfo info = topMap.get(comp);		
+		final StateTraceEntry state = info.stackedStates.pop();
+		
+		final String validText = XMLHelper.validTag(eventDesc);
+		if(state == null || ! state.getName().equals(validText)){
+			throw new IllegalArgumentException("End state without startstate! " + eventDesc + 
+					" current stacked: " + state);
+		}
+		state.setEndTime(time);
+		out.StateEnd(info.topology, state);
 	}
 
 	@Override
 	protected void eventInternal(Epoch time, SPassiveComponent comp,
 			String eventDesc, long userEventValue) {
-		// TODO Auto-generated method stub
-
+		final ComponentTraceInfo info = topMap.get(comp);
+		final EventTraceEntry event = new EventTraceEntry(XMLHelper.escapeAttribute(eventDesc), time);
+		event.addAttribute("value" , "" + userEventValue);
+		out.Event(info.topology, event);
 	}
 
-	@Override
-	protected void startStateInternal(Epoch time, SPassiveComponent comp,
-			String eventDesc) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	protected void finalizeInternal(Epoch endTime,
@@ -112,7 +137,6 @@ public class SHDTraceWriter extends STraceWriter {
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}
-
 	}
 
 }

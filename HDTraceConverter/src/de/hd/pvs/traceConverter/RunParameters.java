@@ -60,6 +60,11 @@ public class RunParameters {
 	boolean updateStatisticsOnlyIfTheyChangeTooMuch = false; 
 	
 	/**
+	 * Process any statistics
+	 */
+	boolean processStatistics = true;
+	
+	/**
 	 * if true AND updateStatisticsOnlyIfTheyChangeTooMuch, then the average of the value
 	 * is written, otherwise the current (last) value gets written if the statistics fluctuated too much.
 	 */
@@ -167,5 +172,13 @@ public class RunParameters {
 	
 	public boolean isReadNestedTrace() {
 		return readNestedTraceEntries;
+	}
+	
+	public void setProcessStatistics(boolean processStatistics) {
+		this.processStatistics = processStatistics;
+	}
+	
+	public boolean isProcessStatistics() {
+		return processStatistics;
 	}
 }

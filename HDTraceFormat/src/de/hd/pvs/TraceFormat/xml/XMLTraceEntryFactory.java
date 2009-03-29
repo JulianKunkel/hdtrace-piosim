@@ -30,7 +30,7 @@ import java.util.HashMap;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 
 public class XMLTraceEntryFactory {
 	private static TraceObjectType getType(String name){
@@ -48,8 +48,8 @@ public class XMLTraceEntryFactory {
 	 * @param nestedData
 	 * @return
 	 */
-	public static XMLTraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, XMLTag nestedData){		
-		final XMLTraceEntry traceObject = manufactureXMLTraceObject(data, parent);
+	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, XMLTag nestedData){		
+		final TraceEntry traceObject = manufactureXMLTraceObject(data, parent);
 		
 		if(nestedData != null){
 			// type must be state:
@@ -60,9 +60,9 @@ public class XMLTraceEntryFactory {
 				if(child.getName().equals("Nested")){
 					newNestedData = child;
 				}else{					
-					XMLTraceEntry childTraceEntry = manufactureXMLTraceObject(child, traceObj, newNestedData);
+					TraceEntry childTraceEntry = manufactureXMLTraceObject(child, traceObj, newNestedData);
 					newNestedData = null;
-					traceObj.addXMLTraceChild(childTraceEntry);
+					traceObj.addTraceChild(childTraceEntry);
 				}
 			}
 			
@@ -75,13 +75,13 @@ public class XMLTraceEntryFactory {
 	}
 	 
 
-	public static XMLTraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent){
+	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent){
 		// determine type
 		final TraceObjectType type = getType(data.getName());
 
 		if(type == TraceObjectType.STATE ){
 			final HashMap<String, String>  attributes = data.getAttributes();
-			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes, parent);
+			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes);
 			traceObj.setNestedXMLTags(data.getNestedXMLTags());
 			
 			return traceObj;
@@ -91,7 +91,7 @@ public class XMLTraceEntryFactory {
 			if( name == null || name.length() < 2){
 				throw new IllegalArgumentException("Event invalid");
 			}
-			EventTraceEntry traceObj= new EventTraceEntry(name, data.getAttributes(), parent);
+			EventTraceEntry traceObj= new EventTraceEntry(name, data.getAttributes());
 			traceObj.setNestedXMLTags(data.getNestedXMLTags());
 			return traceObj;
 		}else{

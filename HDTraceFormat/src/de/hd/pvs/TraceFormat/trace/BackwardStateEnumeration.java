@@ -36,7 +36,7 @@ class BackwardStateEnumeration extends ForwardStateEnumeration{
 	}
 	
 	@Override
-	protected Iterator<XMLTraceEntry> iterator(StateTraceEntry state) {		
+	protected Iterator<TraceEntry> iterator(StateTraceEntry state) {		
 		return state.getNestedTraceChildren().descendingIterator();
 	}
 }

@@ -38,6 +38,8 @@ import de.hd.pvs.TraceFormat.topology.TopologyEntry;
  * @author Julian M. Kunkel
  */
 abstract public class TopologyTreeNode extends DefaultMutableTreeNode{
+	private static final long serialVersionUID = -5708766035964911422L;
+	
 	// topology belonging to this node:
 	final TopologyEntry topology;
 	final TraceFormatFileOpener file;	

@@ -45,7 +45,7 @@ import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
 import drawable.CategoryEvent;
@@ -161,28 +161,28 @@ public class TraceFormatBufferedFileReader {
 
 	// TODO read from category index file.
 	private void updateVisibleCategories(BufferedTraceFileReader reader){
-		for(XMLTraceEntry entry: reader.getTraceEntries()){
+		for(TraceEntry entry: reader.getTraceEntries()){
 			createTraceObjectCategory(entry);
 		}	
 	}
 
-	private void addTraceObjectCategoryIfNecessary(XMLTraceEntry entry){
+	private void addTraceObjectCategoryIfNecessary(TraceEntry entry){
 		final String catName = entry.getName();
 
 		if(entry.getType() == TraceObjectType.STATE){		
 			if(! categoriesStates.containsKey(catName))
-				categoriesStates.put( catName, new CategoryState(catName, new ColorAlpha(20,00,0)));
+				categoriesStates.put( catName, new CategoryState(catName, null));
 		}if(entry.getType() == TraceObjectType.EVENT){
 			if(! categoriesEvents.containsKey(catName))
-				categoriesEvents.put( catName, new CategoryEvent(catName, new ColorAlpha(20,00,0)));
+				categoriesEvents.put( catName, new CategoryEvent(catName, null));
 		}
 	}
 
-	private void createTraceObjectCategory(XMLTraceEntry entry){
+	private void createTraceObjectCategory(TraceEntry entry){
 		if(entry.getType() == TraceObjectType.STATE){
 			StateTraceEntry state = (StateTraceEntry) entry;
 			if(state.hasNestedTraceChildren()){
-				for(XMLTraceEntry child: state.getNestedTraceChildren()){
+				for(TraceEntry child: state.getNestedTraceChildren()){
 					addTraceObjectCategoryIfNecessary(child);
 				}
 			}
@@ -199,7 +199,7 @@ public class TraceFormatBufferedFileReader {
 			for(StatisticDescription desc: group.getStatisticsOrdered()){
 				final String name = group.getName() + ":" + desc.getName(); 
 				if(!categoriesStatistics.containsKey(name)){
-					categoriesStatistics.put(name, new CategoryStatistic(name, new ColorAlpha(0,0,200)));
+					categoriesStatistics.put(name, new CategoryStatistic(name, null));
 				}
 			}
 		}        	
@@ -212,7 +212,8 @@ public class TraceFormatBufferedFileReader {
 	 * @throws Exception
 	 */	
 	public void loadAdditionalFile(String projectFileName) throws Exception{
-		TraceFormatFileOpener fileOpener = new TraceFormatFileOpener( projectFileName, true, BufferedStatisticFileReader.class, BufferedTraceFileReader.class );
+		TraceFormatFileOpener fileOpener = new TraceFormatFileOpener( projectFileName, true, 
+				BufferedStatisticFileReader.class, BufferedTraceFileReader.class );
 
 		updateStatisticCategories(fileOpener);
 

@@ -33,6 +33,8 @@ import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyStatisticTreeNode extends TopologyTreeNode {
+	private static final long serialVersionUID = 7893694713193686328L;
+	
 	final StatisticSource statisticSource;
 	final StatisticDescription statisticDescription;
 	

@@ -39,7 +39,7 @@ import java.awt.Graphics2D;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 
@@ -128,7 +128,7 @@ public class DrawObjects{
 	 * @param entry
 	 * @return
 	 */
-	static public double getTimeDistance(Epoch time, XMLTraceEntry entry){
+	static public double getTimeDistance(Epoch time, TraceEntry entry){
 		double distance = Math.abs( entry.getEarliestTime().subtract( time).getDouble() );
 		
 		if(entry.getType() == TraceObjectType.STATE){

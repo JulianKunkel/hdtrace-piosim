@@ -49,10 +49,10 @@ public class TextWriter extends TraceOutputWriter {
 	private BufferedWriter writer;
 
 	@Override
-	public void Event(TopologyEntry topology, Epoch time,
-			EventTraceEntry traceEntry) {
+	public void Event(TopologyEntry topology, EventTraceEntry traceEntry) {
 		try {
-			writer.append(time.getFullDigitString() + " E " + topology + " " + traceEntry.getName() + "\n");
+			writer.append(traceEntry.getEarliestTime().getFullDigitString() + 
+					" E " + topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
 
 			if(printDetails && traceEntry.getNestedXMLTags() != null){
 				for(XMLTag nested: traceEntry.getNestedXMLTags()){
@@ -69,10 +69,10 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyEntry topology, Epoch time,
-			StateTraceEntry traceEntry) {
+	public void StateEnd(TopologyEntry topology, StateTraceEntry traceEntry) {
 		try {
-			writer.append(time.getFullDigitString() + " E " + topology + " " + traceEntry.getName() + "\n");
+			writer.append(traceEntry.getLatestTime().getFullDigitString() + " > " + 
+					topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
 		} catch (IOException e) {			
 			e.printStackTrace();
 			System.exit(1);
@@ -80,10 +80,10 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateStart(TopologyEntry topology, Epoch time,
+	public void StateStart(TopologyEntry topology,
 			StateTraceEntry traceEntry) {
 		try {
-			writer.append(time.getFullDigitString() + " < " + topology + " " + traceEntry.getName() + "\n");
+			writer.append(traceEntry.getEarliestTime().getFullDigitString() + " < " + topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
 
 			if(printDetails && traceEntry.getNestedXMLTags() != null){
 				for(XMLTag nested: traceEntry.getNestedXMLTags()){
@@ -104,7 +104,7 @@ public class TextWriter extends TraceOutputWriter {
 			unit = " " + group.getStatistic(name).getUnit(); 
 		}
 		try {
-			writer.append(time.getFullDigitString() + " S " + topology + " " + group.getName() + " " + name + " " + value + unit + "\n");
+			writer.append(time.getFullDigitString() + " S " + topology.toRecursiveString() + " " + group.getName() + " " + name + " " + value + unit + "\n");
 		} catch (IOException e) {			
 			e.printStackTrace();
 			System.exit(1);

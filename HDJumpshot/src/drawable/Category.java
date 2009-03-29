@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,10 +97,22 @@ public abstract class Category
     	}
     }
     
+    /**
+     * Create a new category.
+     * @param in_name
+     * @param in_color if null, then use default color, if unset then create a random color
+     */
     public Category( String in_name,  ColorAlpha in_color )
     {
         name         = in_name;
-        color        = in_color;
+        if(in_color == null){
+        	color        = getColor();
+        	if (color == null){
+        		// create a random color
+            final Random r = new Random();
+        		setColor(new ColorAlpha(r.nextInt(255), r.nextInt(255), r.nextInt(255)));
+        	}
+        }
         isVisible    = true;
     }
 

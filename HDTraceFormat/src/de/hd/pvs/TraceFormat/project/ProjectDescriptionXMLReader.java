@@ -91,7 +91,7 @@ public class ProjectDescriptionXMLReader {
 
 		// parse the descriptions of the external statistics:
 		XMLTag element = rootTag.getAndRemoveFirstNestedXMLTagWithName("ExternalStatistics");
-		if(element != null){
+		if(element != null && element.getNestedXMLTags() != null){
 			final ArrayList<XMLTag> children = element.getNestedXMLTags(); 
 			for(XMLTag stat: children){
 				StatisticsGroupDescription out = parseStatisticGroupInXML(stat);

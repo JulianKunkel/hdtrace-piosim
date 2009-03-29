@@ -36,25 +36,19 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
  * @author Julian M. Kunkel
  *
  */
-public abstract class XMLTraceEntry extends XMLTag implements TraceObject{
+public abstract class TraceEntry extends XMLTag implements TraceObject{
 	/**
 	 * when did the event/state etc. occur
 	 */
 	final Epoch time;
-	
-	private final XMLTraceEntry parentXMLData; 
-	
-	public XMLTraceEntry getParentTraceData() {
-		return parentXMLData;
-	}
-	
-	public boolean isTraceChild(){
-		return parentXMLData != null;
-	}	
-	
-	public XMLTraceEntry(final String name, final HashMap<String, String> attributes, XMLTraceEntry parentXMLData) {
+		
+	/**
+	 * Constructor from XML.
+	 * @param name
+	 * @param attributes
+	 */
+	public TraceEntry(final String name, final HashMap<String, String> attributes) {
 		super(name, attributes, null);		
-		this.parentXMLData  = parentXMLData;
 
 		// parse common time value
 		String value = attributes.remove("time");
@@ -63,7 +57,16 @@ public abstract class XMLTraceEntry extends XMLTag implements TraceObject{
 		}else{
 			throw new IllegalArgumentException("Trace invalid, no time given");
 		}
-
+	}
+	
+	/**
+	 * Constructor
+	 * @param name
+	 * @param attributes
+	 */
+	public TraceEntry(final String name, final Epoch time) {
+		super(name, new HashMap<String, String>(), null);
+		this.time = time;
 	}
 
 	@Override

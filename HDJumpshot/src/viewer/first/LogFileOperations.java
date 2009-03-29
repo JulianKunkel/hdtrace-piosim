@@ -80,9 +80,11 @@ public class LogFileOperations
         pptys_frame.setVisible( false );
     }
 
-    private TraceFormatBufferedFileReader createInputLog( Window window, String pathname )
+    private TraceFormatBufferedFileReader createInputLog( String pathname )  throws Exception
     {
-        String logname = pathname.trim();
+    		final Window window = TopWindow.First.getWindow();
+    		
+        final String logname = pathname.trim();
         if ( logname != null && logname.length() > 0 ) {
             File logfile = new File( logname );
             if ( ! logfile.exists() ) {
@@ -102,22 +104,9 @@ public class LogFileOperations
                 return null;
             }
 
-            TraceFormatBufferedFileReader reader = null;
-            try {
-                reader = new TraceFormatBufferedFileReader( );
-                reader.loadAdditionalFile(logname);
-            } catch ( NullPointerException nperr ) {
-                Dialogs.error( window,
-                               "NullPointerException when initializing "
-                             + logname + "!" );
-                return null;
-            } catch ( Exception err ) {
-            	err.printStackTrace();
-                Dialogs.error( window,
-                               "EOFException when initializing "
-                             + logname + "!" );
-                return null;
-            }
+            final TraceFormatBufferedFileReader reader = new TraceFormatBufferedFileReader( );
+            reader.loadAdditionalFile(logname);
+
             return reader;
         }
         else {
@@ -168,10 +157,18 @@ public class LogFileOperations
     */
     public void openLogFile( String filename )
     {
-        reader  = createInputLog(TopWindow.First.getWindow(), filename );
+    	try{
+        reader  = createInputLog(filename );
         if ( reader == null ) {
             return;
         }
+    	}catch(Exception e){    		
+      	e.printStackTrace();
+      	
+        Dialogs.error( TopWindow.First.getWindow(), "Error when initializing " + filename + "!\n" +
+        		e.getMessage() );
+        return;
+    	}
 
         legend_frame = new LegendFrame( reader );
         legend_frame.pack();

@@ -28,7 +28,7 @@ package hdTraceInput;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -36,12 +36,12 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * 
  * @author Julian M. Kunkel
  */
-public class ReaderTraceElementEnumerator implements Enumeration<XMLTraceEntry>{
+public class ReaderTraceElementEnumerator implements Enumeration<TraceEntry>{
 
 	protected int currentPos;
-	protected XMLTraceEntry currentEntry;
+	protected TraceEntry currentEntry;
 	
-	final protected ArrayList<XMLTraceEntry> entries;	
+	final protected ArrayList<TraceEntry> entries;	
 	final protected Epoch endTime;
 	boolean hasMoreElements;
 	
@@ -68,8 +68,8 @@ public class ReaderTraceElementEnumerator implements Enumeration<XMLTraceEntry>{
 	}
 	
 	@Override
-	public XMLTraceEntry nextElement() {
-		final XMLTraceEntry old = currentEntry;
+	public TraceEntry nextElement() {
+		final TraceEntry old = currentEntry;
 
 		updateHasMoreElements();	
 		if(hasMoreElements)

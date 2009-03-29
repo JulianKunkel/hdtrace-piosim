@@ -82,7 +82,7 @@ public class StAXTraceFileReader implements TraceSource{
 	 * 
 	 * @return
 	 */
-	public XMLTraceEntry getNextInputEntry(){
+	public TraceEntry getNextInputEntry(){
 		try{
 
 			/**
@@ -146,7 +146,7 @@ public class StAXTraceFileReader implements TraceSource{
 
 						nestedData = currentData;				
 					}else if(! currentData.isChild()){
-						XMLTraceEntry newTraceEntry;
+						TraceEntry newTraceEntry;
 						try{
 							newTraceEntry = XMLTraceEntryFactory.manufactureXMLTraceObject(currentData, null, nestedData);
 						}catch(IllegalArgumentException e){			

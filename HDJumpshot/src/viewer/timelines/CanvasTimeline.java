@@ -78,7 +78,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
 import drawable.ColorAlpha;
@@ -347,7 +347,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		while(elements.hasMoreElements()){		
 			final int depth = elements.getNestingDepthOfNextElement() + 1;
 			
-			XMLTraceEntry entry = elements.nextElement();
+			TraceEntry entry = elements.nextElement();
 
 			final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();		
 
@@ -391,7 +391,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		switch(topologyManager.getType(timeline)){
 		case TRACE:
 			final BufferedTraceFileReader treader = topologyManager.getTraceReaderForTimeline(timeline);
-			XMLTraceEntry objMouse = treader.getTraceEntryClosestToTime(clickedTime);			
+			TraceEntry objMouse = treader.getTraceEntryClosestToTime(clickedTime);			
 
 			if (objMouse.getType() == TraceObjectType.STATE){
 				StateTraceEntry state = (StateTraceEntry) objMouse;				
@@ -402,7 +402,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 				}
 
 				if (state.hasNestedTraceChildren()){					
-					XMLTraceEntry best = objMouse;
+					TraceEntry best = objMouse;
 					double dist = 0;
 
 					while(dist == 0){
@@ -412,7 +412,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 							state = (StateTraceEntry) best;
 
 							if (state.hasNestedTraceChildren()){		
-								for(XMLTraceEntry child: state.getNestedTraceChildren()){
+								for(TraceEntry child: state.getNestedTraceChildren()){
 									dist = DrawObjects.getTimeDistance(clickedTime, child);
 									if(child.getType() == TraceObjectType.EVENT ){
 										if( dist < eventRadius){
@@ -500,7 +500,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 				BufferedTraceFileReader tr = topologyManager.getTraceReaderForTimeline(i);
 				
 				traceElementLoop: 
-				for(XMLTraceEntry entry: tr.getTraceEntries()){
+				for(TraceEntry entry: tr.getTraceEntries()){
 					if(entry.getLatestTime().compareTo(laterThan) > 0){
 						if(entry.getType() == TraceObjectType.EVENT){
 							Category cat = reader.getCategory((EventTraceEntry) entry);
@@ -528,9 +528,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 								break;
 							}
 							if(state.hasNestedTraceChildren()){
-								final Enumeration<XMLTraceEntry> children = state.childForwardEnumeration();
+								final Enumeration<TraceEntry> children = state.childForwardEnumeration();
 								while(children.hasMoreElements()){
-									final XMLTraceEntry nestedChild = children.nextElement();
+									final TraceEntry nestedChild = children.nextElement();
 									
 									if( nestedChild.getEarliestTime().compareTo(laterThan) <= 0 ){
 										continue;
@@ -572,7 +572,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 				
 				traceElementLoop: 
 				for(int te=tr.getTraceEntries().size() -1 ; te >= 0 ; te-- ){
-					XMLTraceEntry entry = tr.getTraceEntries().get(te);
+					TraceEntry entry = tr.getTraceEntries().get(te);
 					
 					if(entry.getEarliestTime().compareTo(earlierThan) < 0){
 						if(entry.getType() == TraceObjectType.EVENT){
@@ -601,9 +601,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 								break;
 							}
 							if(state.hasNestedTraceChildren()){
-								final Enumeration<XMLTraceEntry> children = state.childBackwardEnumeration();
+								final Enumeration<TraceEntry> children = state.childBackwardEnumeration();
 								while(children.hasMoreElements()){
-									final XMLTraceEntry nestedChild = children.nextElement();
+									final TraceEntry nestedChild = children.nextElement();
 									
 									if( nestedChild.getLatestTime().compareTo(earlierThan) >= 0 ){
 										continue;

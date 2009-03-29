@@ -110,8 +110,7 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Event(TopologyEntry topology, Epoch time,
-			EventTraceEntry traceEntry) {	
+	public void Event(TopologyEntry topology,	EventTraceEntry traceEntry) {	
 		final int rank = getRank(topology);
 		final int thread = getThread(topology);
 
@@ -126,12 +125,12 @@ public class TauWriter extends TraceOutputWriter {
 
 		//System.out.println("E " + time + "-" + eventName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
 
-		tauWriter.eventTrigger(getTimeMikro(time),	 rank, thread, categoryID, 0);
+		tauWriter.eventTrigger(getTimeMikro(traceEntry.getEarliestTime()),	 rank, thread, categoryID, 0);
 	}
 
 
 	@Override
-	public void StateEnd(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry) {		
+	public void StateEnd(TopologyEntry topology, StateTraceEntry traceEntry) {		
 		pendingStarts--;
 
 		final int rank = getRank(topology);
@@ -140,11 +139,11 @@ public class TauWriter extends TraceOutputWriter {
 		Integer categoryID = tauCategoryMap.get(traceEntry.getName());
 
 		//System.out.println("> " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
-		tauWriter.leaveState(getTimeMikro(time), rank, thread, categoryID);	
+		tauWriter.leaveState(getTimeMikro(traceEntry.getLatestTime()), rank, thread, categoryID);	
 	}
 
 	@Override
-	public void StateStart(TopologyEntry topology, Epoch time, StateTraceEntry traceEntry) {
+	public void StateStart(TopologyEntry topology, StateTraceEntry traceEntry) {
 		final String stateName = traceEntry.getName();
 		pendingStarts++;
 
@@ -160,7 +159,7 @@ public class TauWriter extends TraceOutputWriter {
 		final int rank = getRank(topology);
 		final int thread = getThread(topology);
 
-		tauWriter.enterState(getTimeMikro(time), rank, thread, categoryID);		
+		tauWriter.enterState(getTimeMikro(traceEntry.getEarliestTime()), rank, thread, categoryID);		
 	}
 
 	@Override

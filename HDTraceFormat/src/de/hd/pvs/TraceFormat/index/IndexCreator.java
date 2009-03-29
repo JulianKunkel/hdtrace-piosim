@@ -32,7 +32,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 
 /**
  * Create an index file for a statistic group or trace file.
@@ -56,7 +56,7 @@ public class IndexCreator {
 
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		
-		XMLTraceEntry entry = reader.getNextInputEntry();
+		TraceEntry entry = reader.getNextInputEntry();
 		while(entry != null){
 			
 			writer.writeNextEntry(entry.getEarliestTime(), reader.getFilePosition());

@@ -26,7 +26,7 @@
 package de.hd.pvs.piosim.model.program;
 
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.piosim.model.ModelVerifier;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
@@ -48,7 +48,7 @@ public class ProgramReadXMLOnDemand extends Program{
 	private StAXTraceFileReader traceFileReader;
 	private String filename;
 	
-	private XMLTraceEntry nextCmdEntry;
+	private TraceEntry nextCmdEntry;
 	
 	public ProgramReadXMLOnDemand() {
 		this.cmdReader = new CommandXMLReader(this);

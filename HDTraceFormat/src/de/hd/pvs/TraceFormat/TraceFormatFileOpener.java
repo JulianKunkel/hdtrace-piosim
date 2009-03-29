@@ -64,7 +64,12 @@ public class TraceFormatFileOpener {
 		return file.exists();
 	}
 
-	private void recursivlyCreateTraceSources(TopologyEntry currentTopo, Class<? extends StatisticSource> statCls, Class<? extends TraceSource> traceCls, boolean readNested) throws Exception{		
+	private void recursivlyCreateTraceSources(TopologyEntry currentTopo, 
+			Class<? extends StatisticSource> statCls, 
+			Class<? extends TraceSource> traceCls, 
+			boolean readNested
+		) throws Exception
+{		
 		final String filePath = projectDescription.getParentDir() + "/"; 
 
 		// load statistics:
@@ -86,8 +91,11 @@ public class TraceFormatFileOpener {
 			SimpleConsoleLogger.Debug("Checking trace: " + traceFile);
 
 			if( ! fileExists(traceFile) ){
-				if( currentTopo.isLeaf() ) // leafs MUST contain a trace file
-					throw new IllegalArgumentException("Trace file does not exist: " + traceFile);
+				if( currentTopo.isLeaf() ){ // leafs should contain a trace file
+					//throw new IllegalArgumentException("Trace file does not exist: " + traceFile);
+					SimpleConsoleLogger.Debug("Topology leaf should contain a trace file: " + currentTopo.toRecursiveString() );					
+				}
+				currentTopo.setTraceSource(null);
 			}else{
 				TraceSource staxReader = traceCls.getConstructor(new Class<?>[]{String.class, boolean.class}).newInstance(new Object[]{traceFile, readNested});			
 				currentTopo.setTraceSource(staxReader);

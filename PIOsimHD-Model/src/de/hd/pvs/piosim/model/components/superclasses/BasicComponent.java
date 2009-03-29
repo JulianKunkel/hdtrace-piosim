@@ -28,6 +28,7 @@ package de.hd.pvs.piosim.model.components.superclasses;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
@@ -102,6 +103,22 @@ implements Comparable{
 		getIdentifier().setName(name);
 	}
 
+	/**
+	 * Get all the parent components plus the component itself
+	 * @return 
+	 */
+	public LinkedList<BasicComponent<?>> getParentComponentsPlusMe(){
+		LinkedList<BasicComponent<?>> hierachy = new LinkedList<BasicComponent<?>>();
+		
+		BasicComponent<?> parent = this;
+		while(parent != null){
+			hierachy.push(parent);
+			parent = parent.getParentComponent();
+		}
+		
+		return hierachy;
+	}
+	
 	/**
 	 * This function returns the child components (but not their child components).
 	 * It uses reflection and the ChildComponents Annotation.

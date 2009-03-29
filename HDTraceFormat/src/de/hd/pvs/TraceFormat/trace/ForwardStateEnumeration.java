@@ -35,9 +35,9 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
  * Enumerate the children in correct time order
  * @author Julian M. Kunkel
  */
-public class ForwardStateEnumeration implements Enumeration<XMLTraceEntry>{
+public class ForwardStateEnumeration implements Enumeration<TraceEntry>{
 	Stack<StateTraceEntry> nestedChildren = new Stack<StateTraceEntry>();
-	Stack<Iterator<XMLTraceEntry>> nestedIterator = new Stack<Iterator<XMLTraceEntry>>();
+	Stack<Iterator<TraceEntry>> nestedIterator = new Stack<Iterator<TraceEntry>>();
 
 	protected boolean hasMoreElements;
 
@@ -53,7 +53,7 @@ public class ForwardStateEnumeration implements Enumeration<XMLTraceEntry>{
 		}			
 	}
 	
-	protected Iterator<XMLTraceEntry> iterator(StateTraceEntry entry){
+	protected Iterator<TraceEntry> iterator(StateTraceEntry entry){
 		return entry.getNestedTraceChildren().iterator();
 	}
 
@@ -63,10 +63,10 @@ public class ForwardStateEnumeration implements Enumeration<XMLTraceEntry>{
 	}
 
 	@Override
-	public XMLTraceEntry nextElement() {
-		Iterator<XMLTraceEntry> iter = nestedIterator.peek();
+	public TraceEntry nextElement() {
+		Iterator<TraceEntry> iter = nestedIterator.peek();
 
-		XMLTraceEntry obj = iter.next();
+		TraceEntry obj = iter.next();
 
 		if(obj.getType() == TraceObjectType.STATE){
 			// we have to do a DFS, therefore go into this one:

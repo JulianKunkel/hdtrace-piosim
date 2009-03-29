@@ -52,6 +52,8 @@ import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyManager extends JTree
 {
+	private static final long serialVersionUID = 362940508169891280L;
+
 	private DefaultMutableTreeNode  tree_root;
 
 	final TraceFormatBufferedFileReader  reader;
@@ -204,7 +206,8 @@ public class TopologyManager extends JTree
 		}
 	}
 
-	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyEntry topology, TraceFormatFileOpener file){
+	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyEntry topology, 
+			TraceFormatFileOpener file){
 		final TopologyTreeNode node = new TopologyInnerNode(topology, file, this);
 
 		addTopologyTreeNode(node, parentNode);    	
@@ -220,13 +223,21 @@ public class TopologyManager extends JTree
 			Collection<TopologyEntry> children = topology.getChildElements().values();
 			boolean leafLevel = children.iterator().next().isLeaf();
 			if(leafLevel){
+				if(topology.getChildElements().size() == 0)
+					// TODO remove this child!
+					return;
+				
 				final DefaultMutableTreeNode traceParent = addDummyTreeNode("Trace", node);
 
 				for(TopologyEntry child: topology.getChildElements().values()){					
 					if (child.getStatisticSources().size() == 0){
-						// no statistic on the leaf level:
-						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file, this);
-						addTopologyTreeNode(childNode, traceParent);						
+						if(child.getTraceSource() != null){
+							// only if the file really exists
+							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file, this);
+							addTopologyTreeNode(childNode, traceParent);
+						}else{
+							// TODO remove this child from topology
+						}
 					}else{
 						// handles statistics on the leaf level:
 						final DefaultMutableTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
@@ -366,7 +377,6 @@ public class TopologyManager extends JTree
 	}
 
 	private void expandTreeInternal(){
-
 		Enumeration<DefaultMutableTreeNode> rootEnumeration = tree_root.depthFirstEnumeration();
 		while(rootEnumeration.hasMoreElements()){
 			DefaultMutableTreeNode node = rootEnumeration.nextElement();

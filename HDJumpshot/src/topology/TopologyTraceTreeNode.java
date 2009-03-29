@@ -30,8 +30,10 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
-public class TopologyTraceTreeNode extends TopologyTreeNode{
-
+public class TopologyTraceTreeNode extends TopologyTreeNode
+{
+	private static final long serialVersionUID = 3518866075690297655L;
+	
 	private final String label;
 	
 	public TopologyTraceTreeNode(String label, TopologyEntry topNode,

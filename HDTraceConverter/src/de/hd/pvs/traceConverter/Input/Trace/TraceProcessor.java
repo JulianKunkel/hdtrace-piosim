@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -27,12 +27,16 @@ package de.hd.pvs.traceConverter.Input.Trace;
 
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Stack;
 
+import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ForwardStateEnumeration;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 
@@ -44,120 +48,122 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
  */
 public class TraceProcessor extends AbstractTraceProcessor{
 	final StAXTraceFileReader reader;
-	
-	private XMLTraceEntry currentTraceEntry = null;	
+
+	private Stack<StateTraceEntry> nestedStates = new Stack<StateTraceEntry>();
+	private TraceObject currentTraceObject = null;
 	private long          currentTraceEntryOffset = 0;
-	
+
 	/**
 	 * If the currentTraceEntry is a State, does it start now, or end?
 	 */
-	private boolean stateStart = true;
+	private boolean stateStarts = true;
 	private Epoch   eventTime;
-	
+
 	@Override
 	public long getFilePosition() throws IOException {	
 		return currentTraceEntryOffset;
 	}
-	
+
 	public TraceProcessor(final StAXTraceFileReader reader) {
 		this.reader = reader;
 		readNextTraceEntryIfNecessary();
 	}
-	
+
 	@Override
 	public void initalize() {
 		// register me on the trace converter, right now use just one timeline for our events.
 		getOutputConverter().initalizeForTopology(getTopologyEntryResponsibleFor());
 	}
-	
-	private void readNextTraceEntryIfNecessary(){		
-		//if(currentTraceEntry != null)
-			//System.out.println(currentTraceEntry);
-		
-		// if it is a child, pick the next object:
-		if(currentTraceEntry != null && currentTraceEntry.isTraceChild()){
-			//System.out.println("Parent: " + currentTraceEntry.getName());
-			
-			if(currentTraceEntry.getType() == TraceObjectType.STATE){
-				StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
-				if(state.hasNestedTraceChildren()){
-					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-					eventTime = currentTraceEntry.getEarliestTime();		
 
-					stateStart = true;
+	private void readNextTraceEntryIfNecessary(){		
+		//System.out.println(currentTraceObject);
+
+		if(currentTraceObject != null){
+			// if it is a child, pick the next object:
+			//System.out.println("Parent: " + currentTraceEntry.getName());
+
+			if(stateStarts == true && currentTraceObject.getType() == TraceObjectType.STATE){
+				StateTraceEntry state = (StateTraceEntry) currentTraceObject;
+
+				if(state.hasNestedTraceChildren()){
+					nestedStates.push(state);
+					currentTraceObject = state.getNestedTraceChildren().pollFirst();
+					eventTime = currentTraceObject.getEarliestTime();		
+
+					stateStarts = true;
+					return;
+				}else{
+					stateStarts = false;
+					eventTime = state.getLatestTime();			
 					return;
 				}
 			}			
-			
-			currentTraceEntry = currentTraceEntry.getParentTraceData();
-			// are there further children?
-			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
-			
-			if(state.hasNestedTraceChildren()){
-				currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-				eventTime = currentTraceEntry.getEarliestTime();		
-				
-				stateStart = true;
-			}else{
-				// finish State now
-				stateStart = false;
-				eventTime = state.getLatestTime();			
+
+			// now a state end is reached or an event.
+			if(nestedStates.size() > 0){
+				StateTraceEntry state = nestedStates.peek();
+
+				if(state.hasNestedTraceChildren()){
+					currentTraceObject = state.getNestedTraceChildren().pollFirst();
+					eventTime = currentTraceObject.getEarliestTime();		
+
+					stateStarts = true;
+				}else{
+					// finish State now
+					currentTraceObject = nestedStates.pop();
+
+					stateStarts = false;
+					eventTime = state.getLatestTime();			
+				}
+				return;
 			}
-			
-			return;
+
+			// normal event end => read new...
 		}
-		
+
+		stateStarts = true;
 		currentTraceEntryOffset = reader.getFilePosition();
-		
-		currentTraceEntry = reader.getNextInputEntry();
-		if(currentTraceEntry == null)
+
+		currentTraceObject = reader.getNextInputEntry();
+		if(currentTraceObject == null)
 			return;
-				
-		eventTime = currentTraceEntry.getEarliestTime();		
+
+		eventTime = currentTraceObject.getEarliestTime();	
 	}
-		
+
 	@Override
 	public void processEarliestEvent(Epoch now) {		
-		//System.out.println(eventTime.getFullDigitString() + " " + stateStart + " processing " + currentTraceEntry.getName() + " t " + currentTraceEntry.getTime());
-		
-		if(currentTraceEntry.getType() == TraceObjectType.EVENT){
-			getOutputConverter().Event(getTopologyEntryResponsibleFor(), now, (EventTraceEntry) currentTraceEntry);
-			
-			readNextTraceEntryIfNecessary();
-		}else if(currentTraceEntry.getType() == TraceObjectType.STATE){			
-			StateTraceEntry state = (StateTraceEntry) currentTraceEntry;
-			final String name = currentTraceEntry.getName();
-			
-			if(stateStart){
+		//System.out.println(eventTime.getFullDigitString() + " " + currentTraceObject + " processing " + " t " + currentTraceObject.getEarliestTime());
+
+		if(currentTraceObject.getType() == TraceObjectType.EVENT){
+			getOutputConverter().Event(getTopologyEntryResponsibleFor(), (EventTraceEntry) currentTraceObject);
+
+		}else if(currentTraceObject.getType() == TraceObjectType.STATE){			
+			StateTraceEntry state = (StateTraceEntry) currentTraceObject;
+			final String name = state.getName();
+
+			if(stateStarts){
 				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
-					getOutputConverter().StateStart(getTopologyEntryResponsibleFor(), now, state);
-				
-				if(state.hasNestedTraceChildren()){
-					currentTraceEntry = state.getNestedTraceChildren().pollFirst();
-					eventTime = currentTraceEntry.getEarliestTime();					
-					stateStart = true;
-				}else{
-					stateStart = false;				
-					eventTime = state.getLatestTime();
-				}
+					getOutputConverter().StateStart(getTopologyEntryResponsibleFor(), state);
 			}else{
-				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute"))
-					getOutputConverter().StateEnd(getTopologyEntryResponsibleFor(), now, state);
-				
-				stateStart = true;
-				readNextTraceEntryIfNecessary();
+				if(getRunParameters().isProcessAlsoComputeEvents() || ! name.equals("Compute")){
+					state.setEndTime(now);
+					getOutputConverter().StateEnd(getTopologyEntryResponsibleFor(), state);
+				}
 			}
 		}		
+
+		readNextTraceEntryIfNecessary();
 	}
-	
+
 	@Override
 	public Epoch peekEarliestTime() {		
 		return eventTime;
 	}
-	
+
 	@Override
 	public boolean isFinished() {
-		return currentTraceEntry == null;
+		return currentTraceObject == null;
 	}
-	
+
 }

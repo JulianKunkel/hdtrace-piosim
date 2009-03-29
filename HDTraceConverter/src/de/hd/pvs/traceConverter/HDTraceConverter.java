@@ -119,22 +119,26 @@ public class HDTraceConverter {
 		System.out.println("Completed -> processed " + eventCount + " events");
 	}
 
-	private void recursivlyInstantiateProcessors(TraceOutputWriter outputConverter, TopologyEntry topo, RunParameters param, PriorityQueue<AbstractTraceProcessor> pendingReaders) throws Exception{
-		for(StatisticSource ssource: topo.getStatisticSources().values()){
-			StatisticsReader reader = (StatisticsReader)  ssource;
+	private void recursivlyInstantiateProcessors(TraceOutputWriter outputConverter, 
+			TopologyEntry topo, RunParameters param, 
+			PriorityQueue<AbstractTraceProcessor> pendingReaders) throws Exception{
 
-			StatisticProcessor processor = new StatisticProcessor(reader);
-			processor.setOutputConverter(outputConverter);
-			processor.setTopologyEntryResponsibleFor(topo);
-			processor.setRunParameters(param);
+		if(param.isProcessStatistics()){
+			for(StatisticSource ssource: topo.getStatisticSources().values()){
+				StatisticsReader reader = (StatisticsReader)  ssource;
 
-			processor.initalize();
+				StatisticProcessor processor = new StatisticProcessor(reader);
+				processor.setOutputConverter(outputConverter);
+				processor.setTopologyEntryResponsibleFor(topo);
+				processor.setRunParameters(param);
 
-			if(processor.peekEarliestTime() != null){
-				pendingReaders.add(processor);
+				processor.initalize();
+
+				if(processor.peekEarliestTime() != null){
+					pendingReaders.add(processor);
+				}
 			}
 		}
-
 
 
 		StAXTraceFileReader reader = (StAXTraceFileReader) topo.getTraceSource();

@@ -69,7 +69,7 @@ public class TraceWriter {
 
 			// test if the file is empty:
 			long size = new RandomAccessFile(filename, "r").length();
-			if (size == 21 ){
+			if (size <= EMPTY_FILE_LENGTH){
 				// nothing got written, thus remove file
 				new File(filename).delete();
 			}
@@ -78,7 +78,7 @@ public class TraceWriter {
 		}
 	}
 
-	private void writeAttributes(XMLTraceEntry traceEntry) throws IOException{
+	private void writeAttributes(TraceEntry traceEntry) throws IOException{
 		writeAttributes(traceEntry.getAttributes()); 
 	}
 
@@ -101,10 +101,11 @@ public class TraceWriter {
 		lastOpenedStateTraceEntry = null;
 	}
 	
-	public void Event(Epoch time, EventTraceEntry traceEntry) throws IOException{
+	public void Event(EventTraceEntry traceEntry) throws IOException{
 		updateNestedObjectsOnEnter();
 		
-		file.write("<Event name=\"" + traceEntry.getName() + "\" time=\"" + time.toNormalizedString() + "\"");
+		file.write("<Event name=\"" + traceEntry.getName() + "\" time=\"" + 
+				traceEntry.getEarliestTime().toNormalizedString() + "\"");
 
 		writeAttributes(traceEntry);
 		
@@ -126,7 +127,7 @@ public class TraceWriter {
 	 * @param traceEntry
 	 * @throws IOException
 	 */
-	public void StateEnd(Epoch time, StateTraceEntry finEntry) throws IOException{		
+	public void StateEnd(StateTraceEntry finEntry) throws IOException{		
 		if(lastOpenedStateTraceEntry != finEntry){
 			StateTraceEntry traceEntry;
 			if(stackedEntries.size() == 0){
@@ -138,19 +139,19 @@ public class TraceWriter {
 				file.write("</Nested>\n");			
 			}
 			traceEntry = stackedEntries.pollFirst();
-			writeState(finEntry, traceEntry.getEarliestTime(),  time);			
+			writeState(finEntry);			
 		}else{
 			StateTraceEntry traceEntry;
 			// last start == end tag => not nested 
 			traceEntry = lastOpenedStateTraceEntry;
 			lastOpenedStateTraceEntry = null;			
-			writeState(traceEntry, traceEntry.getEarliestTime(), time);
+			writeState(traceEntry);
 		}
 	}
 	
-	private void writeState(StateTraceEntry traceEntry, Epoch time, Epoch endTime) throws IOException{
-		file.write("<" + traceEntry.getName() + " time=\"" + time.toNormalizedString() + "\" end=\"" 
-				+ endTime.toNormalizedString() + "\"");
+	private void writeState(StateTraceEntry traceEntry) throws IOException{
+		file.write("<" + traceEntry.getName() + " time=\"" + traceEntry.getEarliestTime().toNormalizedString() + "\" end=\"" 
+				+ traceEntry.getLatestTime().toNormalizedString() + "\"");
 			writeAttributes(traceEntry);			
 
 			if(traceEntry.getNestedXMLTags() != null && traceEntry.getNestedXMLTags().size() != 0 ){
@@ -164,7 +165,7 @@ public class TraceWriter {
 			}		
 	}
 
-	public void StateStart(Epoch time, StateTraceEntry traceEntry) throws IOException {
+	public void StateStart(StateTraceEntry traceEntry) throws IOException {
 		updateNestedObjectsOnEnter();
 		
 		lastOpenedStateTraceEntry = traceEntry;

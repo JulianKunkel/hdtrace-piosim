@@ -28,7 +28,7 @@ package hdTraceInput;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.ForwardStateEnumeration;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.XMLTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -46,7 +46,7 @@ public class ReaderTraceElementNestedEnumerator extends ReaderTraceElementEnumer
 			return;
 
 		// scan if the state before has nested elements later than the given time.
-		final XMLTraceEntry before = entries.get(currentPos -1 );
+		final TraceEntry before = entries.get(currentPos -1 );
 
 		if(before.getLatestTime().compareTo(startTime) <= 0){
 			// then there might be no overlapping of the potential previous state.
@@ -69,9 +69,9 @@ public class ReaderTraceElementNestedEnumerator extends ReaderTraceElementEnumer
 	}
 
 	@Override
-	public XMLTraceEntry nextElement() {
+	public TraceEntry nextElement() {
 		if( stateChildEnumeration == null){ 
-			final XMLTraceEntry current = super.nextElement();
+			final TraceEntry current = super.nextElement();
 			
 			if(current.getType() == TraceObjectType.STATE){
 				final StateTraceEntry state = (StateTraceEntry) current;
@@ -86,7 +86,7 @@ public class ReaderTraceElementNestedEnumerator extends ReaderTraceElementEnumer
 		}
 		
 		// now stateChildEnumeration != null
-		final XMLTraceEntry current = stateChildEnumeration.nextElement();
+		final TraceEntry current = stateChildEnumeration.nextElement();
 		
 		if(! stateChildEnumeration.hasMoreElements()){
 			stateChildEnumeration = null;
