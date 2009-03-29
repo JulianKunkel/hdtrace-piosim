@@ -45,6 +45,7 @@ import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -80,7 +81,7 @@ import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import drawable.TimeBoundingBox;
 
-public class ViewportTime extends JViewport implements TimeListener, ComponentListener, MouseInputListener, KeyListener
+public class ViewportTime extends JViewport implements TimeListener, MouseInputListener, KeyListener
 {
 	private static final long serialVersionUID = -3752967463821381046L;
 	
@@ -112,8 +113,57 @@ public class ViewportTime extends JViewport implements TimeListener, ComponentLi
 	protected boolean                   isLeftMouseClick4Zoom;
 	private   JRadioButton              zoom_btn;
 	private   JRadioButton              hand_btn;
+	
+	private class MyComponentResizeListener extends ComponentAdapter{
+		
+		@Override
+		public void componentResized(ComponentEvent e) {
 
-
+			if ( view_img != null ) {
+				/*
+	               Instead of informing the view by ComponentEvent, i.e.
+	               doing addComponentListener( (ComponentListener) view ),
+	               ( (ComponentListener) view ).componentResized() is called
+	               directly here to ensure that view is resized before 
+	               super.setViewPosition() is called on view.  This is done
+	               to ensure the correct sequence of componentResized().
+	               This also means the "view" does NOT need to implement
+	               ComponentListener interface.
+				 */
+				view_img.forceRedraw(getSize().width, getSize().height);
+				/*
+	               It is very IMPORTANT to do setPreferredSize() for JViewport
+	               with custom JComponent view.  If PreferredSize is NOT set,
+	               the top-level container, JFrame, will have difficulty to
+	               compute the size final display window when calling
+	               Window.pack().  The consequence will be the initial
+	               view of JViewport has its getViewPosition() set to (0,0)
+	               in view coordinates during program starts up.
+	               Apparently, Window.pack() uses PreferredSize to compute
+	               window size.
+				 */
+				getMe().setPreferredSize( getSize() );
+				if ( Debug.isActive() )
+					Debug.println( "ViewportTime: componentResized()'s view_img = "
+							+ view_img );
+				view_pt.x = view_img.getXaxisViewPosition();
+				getMe().setViewPosition( view_pt );
+				/*
+	               calling view.repaint() to ensure the view is repainted
+	               after setViewPosition is called.
+	               -- apparently, this.repaint(), the RepaintManager, has invoked 
+	                  ( (Component) view_img ).repaint();
+	               -- JViewport.setViewPosition() may have invoked super.repaint()
+				 */
+				getMe().repaint();
+			}
+		}
+	};	
+	
+	private ViewportTime getMe(){
+		return this;
+	}
+	
 	public ViewportTime( final ModelTime in_model )
 	{
 		time_model             = in_model;
@@ -121,10 +171,6 @@ public class ViewportTime extends JViewport implements TimeListener, ComponentLi
 		isLeftMouseClick4Zoom  = false;   // default to Scroll with left mouse
 		zoom_btn               = null;
 		hand_btn               = null;
-		/*
-            For resizing of the viewport => resizing of the ScrollableView
-		 */
-		addComponentListener( this );
 		/*
             HierarchyBoundsListener is for the case when this class
             is moved but NOT resized.  That it checks for situation
@@ -139,6 +185,8 @@ public class ViewportTime extends JViewport implements TimeListener, ComponentLi
 
 		// setDebugGraphicsOptions( DebugGraphics.LOG_OPTION );
 		vport_timebox       = new TimeBoundingBox();
+		
+		this.addComponentListener( new MyComponentResizeListener());
 	}
 
 
@@ -260,91 +308,7 @@ public class ViewportTime extends JViewport implements TimeListener, ComponentLi
 			Debug.println( "ViewportTime: timeChanged()'s END: " );
 		}
 	}
-
-	public void componentResized( ComponentEvent evt )
-	{
-		if ( Debug.isActive() ) {
-			Debug.println( "ViewportTime: componentResized()'s START: " );
-			Debug.println( "comp_evt = " + evt );
-		}
-		if ( view_img != null ) {
-			/*
-               Instead of informing the view by ComponentEvent, i.e.
-               doing addComponentListener( (ComponentListener) view ),
-               ( (ComponentListener) view ).componentResized() is called
-               directly here to ensure that view is resized before 
-               super.setViewPosition() is called on view.  This is done
-               to ensure the correct sequence of componentResized().
-               This also means the "view" does NOT need to implement
-               ComponentListener interface.
-			 */
-			view_img.componentResized( this );
-			/*
-               It is very IMPORTANT to do setPreferredSize() for JViewport
-               with custom JComponent view.  If PreferredSize is NOT set,
-               the top-level container, JFrame, will have difficulty to
-               compute the size final display window when calling
-               Window.pack().  The consequence will be the initial
-               view of JViewport has its getViewPosition() set to (0,0)
-               in view coordinates during program starts up.
-               Apparently, Window.pack() uses PreferredSize to compute
-               window size.
-			 */
-			this.setPreferredSize( getSize() );
-			if ( Debug.isActive() )
-				Debug.println( "ViewportTime: componentResized()'s view_img = "
-						+ view_img );
-			view_pt.x = view_img.getXaxisViewPosition();
-			super.setViewPosition( view_pt );
-			/*
-               calling view.repaint() to ensure the view is repainted
-               after setViewPosition is called.
-               -- apparently, this.repaint(), the RepaintManager, has invoked 
-                  ( (Component) view_img ).repaint();
-               -- JViewport.setViewPosition() may have invoked super.repaint()
-			 */
-			this.repaint();
-		}
-		if ( Debug.isActive() ) {
-			if ( view_img != null ) {
-				Debug.println( "ViewportTime: "
-						+ "view_img.getXaxisViewPosition() = "
-						+ view_pt.x );
-				Debug.println( "ViewportTime: [after] getViewPosition() = "
-						+ super.getViewPosition() );
-			}
-			Debug.println( "ViewportTime: componentResized()'s END: " );
-		}
-	}
-
-
-	public void componentMoved( ComponentEvent evt ) 
-	{
-		if ( Debug.isActive() ) {
-			Debug.println( "ViewportTime: componentMoved()'s START: " );
-			Debug.println( "comp_evt = " + evt );
-			Debug.println( "ViewportTime: componentMoved()'s END: " );
-		}
-	}
-
-	public void componentHidden( ComponentEvent evt ) 
-	{
-		if ( Debug.isActive() ) {
-			Debug.println( "ViewportTime: componentHidden()'s START: " );
-			Debug.println( "comp_evt = " + evt );
-			Debug.println( "ViewportTime: componentHidden()'s END: " );
-		}
-	}
-
-	public void componentShown( ComponentEvent evt ) 
-	{
-		if ( Debug.isActive() ) {
-			Debug.println( "ViewportTime: componentShown()'s START: " );
-			Debug.println( "comp_evt = " + evt );
-			Debug.println( "ViewportTime: componentShown()'s END: " );
-		}
-	}
-
+	
 	private void drawShadyTimeBoundingBox( Graphics g,
 			final TimeBoundingBox timebox,
 			Color line_color, Color area_color )

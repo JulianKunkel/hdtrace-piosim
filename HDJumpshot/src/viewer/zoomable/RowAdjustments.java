@@ -39,6 +39,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -48,6 +49,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.xml.bind.Marshaller.Listener;
 
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
@@ -68,6 +70,8 @@ public class RowAdjustments
 	private int oldRowCount = -1;
 	
 	private MyTopologyChangeListener topoChangeListener = new MyTopologyChangeListener();
+	
+	private LinkedList<RowNumberChangedListener>     rowChangedListener = new LinkedList<RowNumberChangedListener>();
 	
 	private class MyTopologyChangeListener implements TopologyChangeListener{
 		@Override
@@ -173,7 +177,6 @@ public class RowAdjustments
 			vis_row_count  = fld_VIS_ROW_COUNT.getDouble();
 			row_height     = (double) canvas_vport.getHeight() / vis_row_count;
 			topologyManager.setRowHeight( (int) row_height );
-			canvas_vport.fireComponentRedrawEvent();
 		}
 	}
 
@@ -220,8 +223,16 @@ public class RowAdjustments
 		double row_height     = (double) canvas_vport.getHeight() /  irow_count ;
 		topologyManager.setRowHeight( (int) row_height );
 
-		canvas_vport.fireComponentRedrawEvent();
+		for(RowNumberChangedListener list: rowChangedListener){
+			list.rowNumberChanged();
+		}
 	}
+	
+	public void addRowChangedListener(RowNumberChangedListener listener){
+		rowChangedListener.add(listener);
+	}
+	
+	
 
 	private class ButtonActionListener implements ActionListener
 	{

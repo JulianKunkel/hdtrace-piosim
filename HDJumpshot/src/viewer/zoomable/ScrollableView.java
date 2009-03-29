@@ -50,7 +50,7 @@ public interface ScrollableView
 
     public int  getXaxisViewPosition();
 
-    public void componentResized( JViewport viewport );
-
-    // public void setJComponentSize();
+    public void forceRedraw();
+    
+    public void forceRedraw(int width, int height);
 }

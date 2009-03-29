@@ -63,6 +63,7 @@ public class LegendTable extends JTable
     private LegendTableModel    table_model;
     private TableColumnModel    column_model;
     private JTableHeader        table_header;
+    
     private final UpdateTableModelListener myTableChangeListener = new UpdateTableModelListener();
     
     private class UpdateTableModelListener implements TableModelListener{

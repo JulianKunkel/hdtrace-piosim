@@ -175,7 +175,7 @@ public class LogFileOperations
         TopWindow.layoutIdealLocations();
         legend_frame.setVisible( true );
         
-        createTimelineWindow( );
+        createTimelineWindow( );        
 
         //TODO PVFS2 stuff
         PVFS2Slog2FileParser.parseSlog2(filename);
@@ -183,8 +183,6 @@ public class LogFileOperations
     
     public void addLogFile(String file) throws Exception{
     	reader.loadAdditionalFile(file);
-    	      
-      //createTimelineWindow( );
     }
 
     public void createTimelineWindow( )
@@ -201,7 +199,6 @@ public class LogFileOperations
                     timeline_frame.pack();
                     TopWindow.layoutIdealLocations();
                     timeline_frame.setVisible( true );
-                    timeline_frame.init();
                 }
             };
             create_timeline_worker.start();

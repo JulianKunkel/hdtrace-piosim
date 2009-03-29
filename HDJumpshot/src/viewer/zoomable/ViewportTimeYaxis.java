@@ -63,7 +63,6 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 	private TopologyManager       topologyManager       = null;
 
 	private Point                 view_pt         = null;
-	private ComponentEvent        resize_evt      = null;
 
 	private int     mouse_last_Yloc;
 	private double  ratio_ymodel2vportH;
@@ -81,8 +80,6 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		y_model     = yaxis_model;
 		topologyManager   = y_tree;
 		view_pt     = new Point( 0, 0 );
-		resize_evt  = new ComponentEvent( this,
-				ComponentEvent.COMPONENT_RESIZED );
 	}
 
 	public void setView( Component view )
@@ -117,11 +114,6 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		super.repaint();
 		if ( Debug.isActive() )
 			Debug.println( "ViewportTimeYaxis: adjChanged()'s END: " );
-	}
-
-	public void fireComponentRedrawEvent()
-	{
-		super.componentResized( resize_evt );
 	}
 	
 	public void paint( Graphics g )

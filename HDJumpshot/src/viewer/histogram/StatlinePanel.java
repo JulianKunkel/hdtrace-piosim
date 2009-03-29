@@ -406,7 +406,7 @@ public class StatlinePanel extends JPanel
             Initialize the YaxisTree properties as well its display size which
             indirectly determines the size of CanvasTime
         */
-            y_tree.init();
+            y_tree.refresh();
             row_adjs.initYLabelTreeSize();
             status_panel.addRedrawListener(
                          toolbar.getPropertyRefreshButton() );

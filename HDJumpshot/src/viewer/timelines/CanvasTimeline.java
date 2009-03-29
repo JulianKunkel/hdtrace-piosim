@@ -71,6 +71,7 @@ import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
@@ -87,6 +88,8 @@ import drawable.TimeBoundingBox;
 
 public class CanvasTimeline extends ScrollableObject implements SearchableView
 {
+	private static final long serialVersionUID = 1424310776190717432L;
+	
 	private TopologyManager    topologyManager;
 	private BoundedRangeModel  y_model;
 
@@ -138,7 +141,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		root_frame      = null;
 
-		reader.getLegendModel().addVisibilityChangedListener(categoryVisibleListener);
+		reader.getLegendModel().addCategoryUpdateListener(categoryVisibleListener);
 
 		topologyManager.addTopologyChangedListener(topologyChangeListener);
 	}
@@ -220,6 +223,8 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		if ( offImage == null ) {
 			return;
 		}
+		final long startTime = System.currentTimeMillis();
+		
 		// int offImage_width = visible_size.width * NumViewsPerImage;
 		int        offImage_width  = offImage.getWidth( this );
 		int        offImage_height = offImage.getHeight( this );
@@ -268,6 +273,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 				Parameters.ARROW_ANTIALIASING.toValue() );
 
 
+		long drawedStatistics = 0;
+		long drawedTraceElements = 0;
+		
 		// Draw all drawables            
 		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
 
@@ -279,18 +287,26 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			case INNER_NODE:
 				break;
 			case STATISTIC:
-				drawStatisticTimeline(i, topologyManager.getStatisticNodeForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
+				drawedStatistics += drawStatisticTimeline(i, topologyManager.getStatisticNodeForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
 			case TRACE:
-				drawTraceTimeline(i, topologyManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
+				drawedTraceElements += drawTraceTimeline(i, topologyManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
 			}
 		}
 
+		if(SimpleConsoleLogger.isDebugEverything()){			
+			SimpleConsoleLogger.DebugWithStackTrace( (System.currentTimeMillis() - startTime) +  "ms Draw Canvas [t] "  
+				+ timebounds.getEarliestTime() +" - " + timebounds.getLatestTime()  
+				+	" drawn trace: " + drawedTraceElements +" stat:"  +	drawedStatistics + "",
+				2);
+
+		}
+		
 		offGraphics.dispose();
 	}   // endof drawOneOffImage()
 
-	public void drawStatisticTimeline(
+	public int drawStatisticTimeline(
 			int timeline,
 			TopologyStatisticTreeNode node,  Graphics2D offGraphics,
 			Epoch vStartTime, Epoch vEndTime, CoordPixelImage coord_xform)
@@ -308,8 +324,10 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		final ColorAlpha color = cat.getColor();
 
 		if(! cat.isVisible()){
-			return;
+			return 0;
 		}
+		
+		int drawedStatistics = 0;
 
 		final double maxValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMaxValue();
 		final StatisticDescription statDesc =  group.getStatistic(statName);
@@ -328,13 +346,17 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 					adaptedTime, lastTime, (float) value, color , timeline);
 
 			lastTime = adaptedTime.getDouble();
+			
+			drawedStatistics++;
 		}
+		
+		return drawedStatistics;
 	}
 
 	/**
 	 * Draw a single timeline within the bounds.
 	 */
-	public void drawTraceTimeline(
+	public int drawTraceTimeline(
 			int timeline,
 			BufferedTraceFileReader tr,  Graphics2D offGraphics,
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
@@ -344,12 +366,16 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 				startTime.add(getModelTime().getTimeGlobalMinimum()), 
 				endTime.add(getModelTime().getTimeGlobalMinimum())) ;
 		
-		while(elements.hasMoreElements()){		
+		int drawedTraceObjects = 0;
+		
+		while(elements.hasMoreElements()){
+			drawedTraceObjects++;
+			
 			final int depth = elements.getNestingDepthOfNextElement() + 1;
 			
 			TraceEntry entry = elements.nextElement();
 
-			final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();		
+			final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
 
 			if(entry.getType() == TraceObjectType.EVENT){          
 				final EventTraceEntry event = (EventTraceEntry) entry;
@@ -368,6 +394,8 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			}
 			
 		}
+		
+		return drawedTraceObjects;
 	}
 
 	public TraceObject getDrawableAt( 

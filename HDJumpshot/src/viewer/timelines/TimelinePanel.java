@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -63,11 +63,13 @@ import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
+import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.ModelInfo;
 import viewer.zoomable.ModelInfoPanel;
 import viewer.zoomable.ModelTime;
 import viewer.zoomable.ModelTimePanel;
 import viewer.zoomable.RowAdjustments;
+import viewer.zoomable.RowNumberChangedListener;
 import viewer.zoomable.RulerTime;
 import viewer.zoomable.ScrollbarTime;
 import viewer.zoomable.ViewportTime;
@@ -82,11 +84,11 @@ import viewer.zoomable.ViewportTimeYaxis;
 public class TimelinePanel extends JPanel
 {
 	static final int MIN_LEFTPANEL_WIDTH = 150;	
-	
+
 	private Window                  root_window;
 
 	private TimelineToolBar         toolbar;
-	
+
 	private BoundedRangeModel       y_model;
 	private final TopologyManager   topologyManager;
 	private JScrollPane             y_colpanel;
@@ -113,24 +115,31 @@ public class TimelinePanel extends JPanel
 	/** 
 	 * This listener is invoked if the zoomlevel changes
 	 */
-  private TimeListener           timeUpdateListener = new TimeListener(){
-  	@Override
-  	public void timeChanged(TimeEvent evt) {
-  		// set zoom in/out button status.
-      toolbar.resetZoomButtons();
-  	}
-  };
+	private TimeListener           timeUpdateListener = new TimeListener(){
+		@Override
+		public void timeChanged(TimeEvent evt) {
+			// set zoom in/out button status.
+			toolbar.resetZoomButtons();
+		}
+	};
 
+	private class MyNumberOfRowsChangedListener implements RowNumberChangedListener{
+		@Override
+		public void rowNumberChanged() {
+			time_canvas.forceRedraw();
+		}
+	}
+		
 	private class IOOptionsListener extends JComboBox implements ActionListener
 	{
 		public IOOptionsListener(){
 			Insets canvas_panel_insets = time_canvas_panel.getInsets();
-						
+
 			this.setAlignmentX(
 					Component.CENTER_ALIGNMENT );
 			this.addActionListener( this );
 		}
-		
+
 		public void actionPerformed( ActionEvent evt )
 		{
 			int selected;
@@ -139,25 +148,25 @@ public class TimelinePanel extends JPanel
 	}
 
 
-  private final UpdateTableModelListener myTableLegendChangeListener = new UpdateTableModelListener();
-  
-  private class UpdateTableModelListener implements TableModelListener{
-  	@Override
-  	public void tableChanged(TableModelEvent e) {
+	private final UpdateTableModelListener myTableLegendChangeListener = new UpdateTableModelListener();
+
+	private class UpdateTableModelListener extends CategoryUpdatedListener{
+		@Override
+		public void categoriesAddedOrRemoved() {
 			topologyManager.restoreTopology();
-  	}
-  }  
-	
+		}
+	}  
+
 	public TimelinePanel( final Window    parent_window, final TraceFormatBufferedFileReader  reader)
 	{
 		super();
-		
+
 		this.topologyManager = new TopologyManager(reader);
 
-		reader.getLegendModel().addTableModelListener(myTableLegendChangeListener);
-		
+		reader.getLegendModel().addCategoryUpdateListener(myTableLegendChangeListener);
+
 		root_window  = parent_window;
-		
+
 		Dimension sb_minThumbSz = (Dimension)
 		UIManager.get( "ScrollBar.minimumThumbSize" );
 		sb_minThumbSz.width = 4;
@@ -171,9 +180,9 @@ public class TimelinePanel extends JPanel
 		y_model     = y_scrollbar.getModel();
 
 		/* Initialize the ModelTime slog.input.InputLog().getTreeRoot() */
-		
+
 		time_model    = new ModelTime( root_window,	reader.getGlobalMinTime(),	reader.getGlobalMaxTime());
-				
+
 		this.setLayout( new BorderLayout() );
 
 		/* Setting up the CENTER panel to store various time-related GUIs */
@@ -210,14 +219,14 @@ public class TimelinePanel extends JPanel
 
 		/* The TimeLine Canvas */
 		time_canvas       = new CanvasTimeline(  time_model, reader,  y_model, topologyManager);
-		
+
 		time_canvas_vport = new ViewportTimeYaxis( time_model, y_model, topologyManager );
 		time_canvas_vport.setView( time_canvas );
-		
+
 		time_canvas_panel = new ViewportTimePanel( time_canvas_vport );
 		time_canvas_vport.initLeftMouseToZoom( true );
-		
-		
+
+
 		/* The View's Time Display Panel */
 		time_display_panel = new ModelTimePanel( time_model );
 		JPanel canvas_lmouse;
@@ -236,7 +245,7 @@ public class TimelinePanel extends JPanel
 		info_model.setParamDisplay( info_display_panel );
 		time_canvas_vport.setInfoModel( info_model );
 
-		
+
 		center_panel.add( time_canvas_panel );
 		center_panel.add( time_scrollbar );
 		center_panel.add( time_ruler_panel );
@@ -258,7 +267,7 @@ public class TimelinePanel extends JPanel
 		+ canvas_panel_insets.bottom;
 		JLabel y_colarea   = new JLabel();
 		// y_colarea.setFont( Const.FONT );
-		
+
 		y_colarea.setText( topologyManager.getTopologyLabels() );
 
 		y_colpanel = new JScrollPane( y_colarea, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,	ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
@@ -277,14 +286,14 @@ public class TimelinePanel extends JPanel
 				new Dimension( Short.MAX_VALUE, left_bottom_height ) );
 		y_colpanel.setPreferredSize(
 				new Dimension( 20, left_bottom_height ) );
-		
+
 		// if the y scroller is changed, then update y_collpanel also.
 		y_scroller.getHorizontalScrollBar().addAdjustmentListener( new toplogyManagerAxisValueChangedListener());
 
 		left_panel.add( y_scroller );
 		// left_panel.add( y_title_btm );
 		left_panel.add( y_colpanel );
-		
+
 		left_panel.setMinimumSize( new Dimension(MIN_LEFTPANEL_WIDTH, 200));
 
 		/* Setting up the RIGHT panel to store various time-related GUIs */		
@@ -296,7 +305,7 @@ public class TimelinePanel extends JPanel
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS );
 		slider_scroller.setAlignmentX( Component.CENTER_ALIGNMENT );
-		
+
 		slider_scroller.setMinimumSize(
 				new Dimension( 0, canvas_panel_insets.top ) );
 		slider_scroller.setMaximumSize(
@@ -322,15 +331,21 @@ public class TimelinePanel extends JPanel
 		top_panel.add(toolbar);
 		top_panel.add( time_display_panel);
 		top_panel.add( info_display_panel);
-		
+
 		this.add( top_panel, BorderLayout.NORTH );
-		
+
 		this.add( right_splitter, BorderLayout.CENTER );
-		
+
 		/* Inform "time_canvas_vport" time has been changed */
 		time_model.addTimeListener( time_canvas_vport );
 		time_model.addTimeListener( time_ruler_vport );		
 		time_model.addTimeListener( timeUpdateListener);
+
+		// Initialize toolbar after creation of YaxisTree view
+		toolbar.init();
+		row_adjs.refreshSlidersAndTextFields();
+		
+		row_adjs.addRowChangedListener(new MyNumberOfRowsChangedListener());
 	}
 
 	/**
@@ -343,12 +358,5 @@ public class TimelinePanel extends JPanel
 		public void adjustmentValueChanged(AdjustmentEvent e) {
 			y_colpanel.getHorizontalScrollBar().setValue(y_scroller.getHorizontalScrollBar().getValue());
 		}
-	}
-	
-	public void init()
-	{
-		// Initialize toolbar after creation of YaxisTree view
-		toolbar.init();
-		row_adjs.refreshSlidersAndTextFields();
 	}
 }

@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -48,35 +48,32 @@ import viewer.common.TopWindow;
 
 public class TimelineFrame extends JFrame
 {
-    private        TimelinePanel  top_panel;
+	private static final long serialVersionUID = -496973267971206572L;
 
-    public TimelineFrame( final TraceFormatBufferedFileReader reader )
-    {
-        super( "TimeLine: " + reader.getCombinedProjectFilename() );
-        super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
-        TopWindow.Timeline.disposeAll();
-        TopWindow.Timeline.setWindow( this );
-        
-        top_panel = new TimelinePanel( this, reader);
-        setContentPane( top_panel );
+	private        TimelinePanel  top_panel;
 
-        addWindowListener( new WindowAdapter() {
-            public void windowClosing( WindowEvent e ) {
-                TopWindow.Timeline.disposeAll();
-            }
-        } );
+	public TimelineFrame( final TraceFormatBufferedFileReader reader )
+	{
+		super( "TimeLine: " + reader.getCombinedProjectFilename() );
+		super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
+		TopWindow.Timeline.disposeAll();
+		TopWindow.Timeline.setWindow( this );
 
-       top_panel.setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
-    }
+		top_panel = new TimelinePanel( this, reader);
+		setContentPane( top_panel );
 
-    public void setVisible( boolean val )
-    {
-        super.setVisible( val );
-        TopWindow.Control.setShowTimelineButtonEnabled( !val );
-    }
+		addWindowListener( new WindowAdapter() {
+			public void windowClosing( WindowEvent e ) {
+				TopWindow.Timeline.disposeAll();
+			}
+		} );
 
-    public void init()
-    {
-        top_panel.init();
-    }
+		top_panel.setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
+	}
+
+	public void setVisible( boolean val )
+	{
+		super.setVisible( val );
+		TopWindow.Control.setShowTimelineButtonEnabled( !val );
+	}
 }

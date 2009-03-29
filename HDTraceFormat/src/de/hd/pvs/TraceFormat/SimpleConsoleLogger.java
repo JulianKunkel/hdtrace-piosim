@@ -40,6 +40,24 @@ public class SimpleConsoleLogger {
 		return debugEverything;
 	}
 	
+	static public void DebugWithStackTrace(String what, int ignoreParent){
+		if(!debugEverything)
+			return;
+		
+		StringBuffer buff = new StringBuffer(what);
+		StackTraceElement [] elems = new Throwable().getStackTrace();						
+		
+		buff.append("\t-- ");
+		buff.append(elems[ignoreParent + 1].getMethodName());
+		buff.append(" ");		
+		
+		for ( int i= ignoreParent + 1; i < elems.length ; i++){
+			buff.append ( " [" +  i +  "] " + elems[i]);
+		}
+		
+		System.err.println(buff.toString());
+	}
+	
 	/**
 	 * Write the debugging string if necessary.
 	 * @param what

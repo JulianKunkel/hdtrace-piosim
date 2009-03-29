@@ -60,7 +60,7 @@ public class LegendTableModel extends AbstractTableModel
     private static final String[]   COLUMN_TOOLTIPS
                                     = { "Topology/Color", "Category Name",
                                         "Visibility", "Searchability" };
-    private static final Class[]    COLUMN_CLASSES
+    private static final Class<?>[]    COLUMN_CLASSES
                                     = { CategoryIcon.class, String.class,
                                         Boolean.class, Boolean.class };
     
@@ -77,7 +77,7 @@ public class LegendTableModel extends AbstractTableModel
     final private List<Category>   categories = new LinkedList<Category>();
     private List<CategoryIcon>   icon_list      = new ArrayList<CategoryIcon>();
     
-    private List<CategoryUpdatedListener> visibleListener = new LinkedList<CategoryUpdatedListener>();
+    private List<CategoryUpdatedListener> categoryUpdateListeners = new LinkedList<CategoryUpdatedListener>();
 
     /**
      * Remove all existing categories
@@ -95,8 +95,8 @@ public class LegendTableModel extends AbstractTableModel
     	categories.add(cat);
     }
     
-    public void addVisibilityChangedListener(CategoryUpdatedListener listener){
-    	visibleListener.add(listener);
+    public void addCategoryUpdateListener(CategoryUpdatedListener listener){
+    	categoryUpdateListeners.add(listener);
     }
 
     //  Sorting into various order
@@ -119,7 +119,10 @@ public class LegendTableModel extends AbstractTableModel
      */
     public void commitModel(){
         this.sortNormally( LegendComparators.TOPOLOGY_NAME_ORDER );
-        fireTableDataChanged();
+        
+        for(CategoryUpdatedListener listener: categoryUpdateListeners){
+        	listener.categoriesAddedOrRemoved();
+        }
     }
 
     private void sortNormally( Comparator comparator )
@@ -228,7 +231,7 @@ public class LegendTableModel extends AbstractTableModel
      * Notify all components that the visibility changed
      */
     public void fireCategoryVisibilityChanged(){
-        for(CategoryUpdatedListener list: visibleListener){
+        for(CategoryUpdatedListener list: categoryUpdateListeners){
         	list.categoryVisibilityChanged();
         }
     }
@@ -238,7 +241,7 @@ public class LegendTableModel extends AbstractTableModel
      * Notify all components that the color changed
      */
     public void fireCategoryColorChanged(){
-        for(CategoryUpdatedListener list: visibleListener){
+        for(CategoryUpdatedListener list: categoryUpdateListeners){
         	list.categoryColorChanged();
         }
     }    
