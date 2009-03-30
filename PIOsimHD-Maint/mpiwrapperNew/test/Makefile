@@ -19,6 +19,9 @@ all:  test test2 hdtest
 hdtest: 
 	cd HDTests ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) CC=$(WRAPPER_CC) make
 
+hdtest-no-wrapper: 
+	cd HDTests ; SIM_WRAPPER_LIB="" CC=mpicc make
+
 test2: mpi2test ../libHDTraceMPIWrapper.a
 	cd mpi2test ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) ./configure --with-mpi=$(WRAPPER_MPI) 
 	cd mpi2test ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) make 
@@ -37,12 +40,6 @@ mpich-test-no-wrapper:
 	tar -zxf mpich-test-2006.tar.gz
 	cd mpich-test ; SIM_WRAPPER_LIB="" ./configure -cc=mpicc -fc=mpif77
 	cd mpich-test ; SIM_WRAPPER_LIB="" make 
-
-mpi2test-no-wrapper:
-	tar -zxf mpich-test-2006.tar.gz
-	cd mpich-test ; SIM_WRAPPER_LIB="" ./configure -cc=$(WRAPPER_CC) -fc=mpif77
-	cd mpich-test ; SIM_WRAPPER_LIB="" make -k
-
 
 
 

@@ -32,9 +32,9 @@ import re
 
 funcs = open('interesting_funcs.h').read().splitlines()
 
-
 beforeLog = {
 }
+
 
 
 def info_elements(arg):
@@ -64,7 +64,6 @@ write_elements = """
                  (long long int)getByteOffset(v1), getTypeSize(v3, v4), v3, getTypeId(v4));
   }
 """
-
 wait_elements = """
   {
     int i;
@@ -74,12 +73,12 @@ wait_elements = """
     }
   }
 """
-
 split_end_element = """
   {
     hdT_LogElement(tracefile, "For", "request='%d'", getRequestIdForSplit(v1));
   }
 """
+
 
 beforeMpi = {
   "Abort" : "before_Abort(v1, v2)",
@@ -132,7 +131,7 @@ beforeMpi = {
 """,
 }
 
-# the right place to call hdT_LogInfo(...), hdT_LogElement(...) and hdLogAttribute(...) 
+
 afterMpi = {
   "File_open" : """
   {
@@ -196,7 +195,7 @@ afterMpi = {
     for(i = 0; i < size; ++i)
     {
       hdT_LogElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' type='%d'",
-                   i, getTypeSize(v2[i], v4), v2[i], getTypeId(v4));
+                   getWorldRank(i, v9), getTypeSize(v2[i], v4), v2[i], getTypeId(v4));
     }
   }
 """,
@@ -208,7 +207,7 @@ afterMpi = {
     for(i = 0; i < size; ++i)
     {
       hdT_LogElement(tracefile, "Recv", "rank='%d' size='%lld' count='%d' type='%d'",
-                   i, getTypeSize(v3[i], v4), v3[i], v4);
+                   getWorldRank(i, v6), getTypeSize(v3[i], v4), v3[i], v4);
     }             
   }
 """,
@@ -230,9 +229,9 @@ afterLog = {
 }
 
 send_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' tag='%d' comm='%d'", 
-                   "getTypeSize(v2, v3), v2, getTypeId(v3), v4, v5, getCommId(v6)")
+                   "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6)")
 isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' tag='%d' comm='%d' request='%d'", 
-                    "getTypeSize(v2, v3), v2, getTypeId(v3), v4, v5, getCommId(v6), getRequestId(*v7)")
+                    "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6), getRequestId(*v7)")
 
 # maps function basename to the list (format_string, arguments, [tag name])
 # [tag name] may be omitted; the name of the mpi function without the 'MPI_'
@@ -251,22 +250,22 @@ logAttributes = {
   "Issend" : isend_attributes, 
   "Irsend" : isend_attributes, 
 
-  "Bcast" : ("size='%lld' rootRank='%d' comm='%s' count='%d' type='%d'", 
-             "getTypeSize(v2, v3), v4, getCommId(v5), v2, getTypeId(v3)"),
+  "Bcast" : ("size='%lld' rootRank='%d' comm='%d' count='%d' type='%d'", 
+             "getTypeSize(v2, v3), getWorldRank(v4, v5), getCommId(v5), v2, getTypeId(v3)"),
 
   "Gather" : ("size='%lld' recvSize='%lld' root='%d' comm='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
-              "getTypeSize(v2, v3), getTypeSize(v5, v6), v7, getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)" ),
+              "getTypeSize(v2, v3), getTypeSize(v5, v6), getWorldRank(v7, v8), getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)" ),
 
   "Gatherv" : ("size='%lld' root='%d' comm='%d' size='%d' type='%d'",
-               "getTypeSize(v2, v3), v8, getCommId(v9), v2, getTypeId(v3)"), 
+               "getTypeSize(v2, v3), getWorldRank(v8, v9), getCommId(v9), v2, getTypeId(v3)"), 
   
   "Scatter" : ("size='%lld' recvSize='%lld' root='%d' comm='%d' count='%d' type='%d' recvCount'%d' recvType='%d'",
-               "getTypeSize(v2, v3), getTypeSize(v5, v6), v7, getCommId(v7), v2, getTypeId(v3), v5, getTypeId(v6)"),
+               "getTypeSize(v2, v3), getTypeSize(v5, v6), getWorldRank(v7, v8), getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)"),
 
   "Scatterv" : ("recvSize='%lld' root='%d' comm='%d' recvCount='%d' recvType='%d'",
-                "getTypeSize(v6, v7), v8, getCommId(v9), v6, getTypeId(v7)"),
+                "getTypeSize(v6, v7), getWorldRank(v8, v9), getCommId(v9), v6, getTypeId(v7)"),
 
-  "Allgather" : ("size='%lld' recvSize='%lld' comm='%s' count='%d' type='%d' recvCount='%d' recvType='%d'",
+  "Allgather" : ("size='%lld' recvSize='%lld' comm='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
                  "getTypeSize(v2, v3), getTypeSize(v5, v6), getCommId(v7), v2, getTypeId(v3), v5, getTypeId(v6)"),
 
   "Allgatherv" : ("size='%lld' comm='%d' count='%d' type='%d'",
@@ -278,7 +277,7 @@ logAttributes = {
   "Alltoallv" : ("comm='%d'", "getCommId(v9)"), 
 
   "Reduce" : ("size='%lld' rootRank='%d' comm='%d' count='%d' type='%d'",
-              "getTypeSize(v3, v4), v6, getCommId(v7), v3, getTypeId(v4)"),
+              "getTypeSize(v3, v4), getWorldRank(v6, v7), getCommId(v7), v3, getTypeId(v4)"),
 
   "Reduce_scatter" : ("comm='%d'", "getCommId(v6)"),
 
@@ -288,17 +287,21 @@ logAttributes = {
   "Exscan" : ("size='%lld' comm='%d' count='%d' type='%d'",
             "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
-  "Recv" : ("fromRank='%d' tag='%d' comm='%d'", "v4, v5, getCommId(v6)"),
-  "Irecv" : ("fromRank='%d' tag='%d' comm='%d'", "v4, v5, getCommId(v6)"),
+  "Recv" : ("fromRank='%d' tag='%d' comm='%d'", "getWorldRank(v4, v6), v5, getCommId(v6)"),
+
+  "Irecv" : ("fromRank='%d' tag='%d' comm='%d'", "getWorldRank(v4, v6), v5, getCommId(v6)"),
 
   "Barrier" : ("comm='%d'", "getCommId(v1)"),
+
   "Sendrecv" : ("size='%lld' toRank='%d' to-tag='%d' fromRank='%d' fromTag='%d' comm='%d'", 
-                "getTypeSize(v2, v3), v4, v9, v10, getCommId(v11)"),
+                "getTypeSize(v2, v3), getWorldRank(v4, v11), v5, getWorldRank(v9, v11), v10, getCommId(v11)"),
 
   "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' to-tag='%d' fromRank='%d' fromTag='%d' comm='%d'", 
-                        "getTypeSize(v2, v3), v4, v5, v6, v7, getCommId(v8)"),
+                        "getTypeSize(v2, v3), getWorldRank(v4, v8), v5, getWorldRank(v6, v8), v7, getCommId(v8)"),
+
   "Allreduce" : ("size='%lld' comm='%d'", 
                  "getTypeSize(v3, v4), getCommId(v6)"),
+
   "File_open" : ("comm='%d' name='%s' flags='%d' file='%d'", 
                  "getCommId(v1), v2, v3, getFileIdEx(*v5, v2)"),
 
@@ -371,12 +374,13 @@ logAttributes = {
                         "getFileId(v1), (long long int)v2, getWhenceString(v3), getByteOffset(v1)"),
 
 
-  "Iprobe" : ("source='%d' tag='%d' comm='%d'", "v1, v2, getCommId(v3)"),
+  "Iprobe" : ("source='%d' tag='%d' comm='%d'", "getWorldRank(v1, v3), v2, getCommId(v3)"),
 
   "Type_vector" : ("from_type='%d'", "getTypeId(v4)"),
 
   "hdT_Test_nested" : ("depth='%d'", "v1"),
 
+  "Type_commit" : ("type='%d'", "getTypeId(*v1)"),
 }
 
 noLog = ["Abort", "Init"]

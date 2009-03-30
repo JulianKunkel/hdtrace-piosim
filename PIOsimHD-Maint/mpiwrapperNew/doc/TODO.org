@@ -90,11 +90,6 @@
 *** DONE mpich-test
     -> offizieller mpich-test 
 *** DONE mpi2test
-*** TODO sind auch überall die xml-tags geschlossen?
-*** TODO auf jeden Fall nicht nur mit COMM_WORLD testen
-*** TODO ist auch überall long long double bei den Größenangaben
-*** TODO mpich2-test auch verwenden?
-*** TODO Automatische Überprüfung der Ergebnisse?
 ** DONE HDTraceWriter implementieren
 *** 
     Funktionsablauf, Beispiel:
@@ -390,16 +385,23 @@ Per HashMap Communicator ID speichern
 ** DONE File_close  : file handle aus hashmap entfernen!
 ** DONE unifytraces: wenn im selben Verzeichnis ausgeführt 
    -> fehler wenn ./ vor dateinamen weggelassen
+** DONE comm-rank -> world-rank im log
+** TODO project-description-merger
+*** TODO Kommunikator- und Typnamen in unifyTraces zusammenbasteln
+*** DONE project-description-merger + hdtraceWriter.c
+   replace minus with underscore in filenames
+
 ** TODO Zur zeit werden die Funktionsnamen kopiert: man kann auch den zeiger
   speichern (da sowieso statisch). ist das sinnvoll?
-** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
-** TODO Wenn auf Datei nur über den namen zugegriffen wird, wird filesize=0 geloggt.
 ** TODO Kommentare optimiern
-** TODO Kommunikator- und Typnamen in unifyTraces zusammenbasteln
-** TODO Feinschliff
+** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
+   - einlesen der globalen variablen: 
+** DONE Wenn auf Datei nur über den namen zugegriffen wird, wird filesize=0 geloggt.
+   - works as intended. Bis jetzt ist das nur der fall, wenn die datei gelöscht wird.
 ** TODO wenn File_open etc. schiefgeht -> nicht loggen?
 ** TODO g_int_equal nicht mehr für zeiger verwenden
    oder wenigstens asserts reinmachen, dass die casts nicht verlustbehaftet sind...
+** TODO Feinschliff
 ** TODO Testen
 *** TODO
     werden auch veränderbare argumente vor/nach dem mpi-aufruf geloggt?
@@ -410,6 +412,10 @@ Per HashMap Communicator ID speichern
 *** TODO Abbruch bei multithreaded-anwendungen
 
 
+*** TODO auf jeden Fall nicht nur mit COMM_WORLD testen
+*** TODO ist auch überall long long double bei den Größenangaben
+*** TODO mpich2-test auch verwenden?
+*** TODO Automatische Überprüfung der Ergebnisse?
 * INFO
 ** Threads 
    - [ ] Wie für threads etc?

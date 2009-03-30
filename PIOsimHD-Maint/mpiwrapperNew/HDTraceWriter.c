@@ -246,7 +246,7 @@ TraceFileP hdT_Create(int rank)
 	tracefile -> thread = thread;
 	
 	// open xml log
-	written = snprintf(filename, HD_LOG_BUF_SIZE, "%s-%d-%d.xml", filePrefix, rank, thread);
+	written = snprintf(filename, HD_LOG_BUF_SIZE, "%s_%d_%d.xml", filePrefix, rank, thread);
 	if(written >= HD_LOG_BUF_SIZE || written < 0) // buffer too small or error
 	{
 		perror("Could not generate output file path. File Prefix:");
@@ -262,7 +262,7 @@ TraceFileP hdT_Create(int rank)
 	}
 
 	// open info log
-	written = snprintf(filename, HD_LOG_BUF_SIZE, "%s-%d-%d.info", filePrefix, rank, thread);
+	written = snprintf(filename, HD_LOG_BUF_SIZE, "%s_%d_%d.info", filePrefix, rank, thread);
 	if(written >= HD_LOG_BUF_SIZE || written < 0)  // buffer too small or error
 	{
 		perror("Could not generate output file path. File Prefix:");
@@ -280,7 +280,7 @@ TraceFileP hdT_Create(int rank)
 	// write program definition file
 	if(rank == 0 && tracefile -> thread == 0) 
 	{
-		written = snprintf(filename, HD_LOG_BUF_SIZE, "%s-desc.info", filePrefix);
+		written = snprintf(filename, HD_LOG_BUF_SIZE, "%s_desc.info", filePrefix);
 		if(written >= HD_LOG_BUF_SIZE || written < 0) // buffer too small or error
 		{
 			perror("Could not generate output file path. File Prefix:");
@@ -303,7 +303,7 @@ TraceFileP hdT_Create(int rank)
 		write(fd, filename, strlen(filename)); // TODO: check for write errors
 		for (i=0; i < size; i++)
 		{
-			snprintf(filename, HD_LOG_BUF_SIZE, "%s-%d-%d\n", filePrefix, i, thread);
+			snprintf(filename, HD_LOG_BUF_SIZE, "%s_%d_%d\n", filePrefix, i, thread);
 			write(fd, filename, strlen(filename)); // TODO: check for write errors
 		}
 
@@ -326,14 +326,12 @@ TraceFileP hdT_Create(int rank)
 		tracefile -> state_name[i][0] = '\0';
 	}
 
-	hdT_LogWriteFormat(tracefile, "<Rank number='%d' thread='%d'>\n<Program>\n", rank, thread);
-
 	return tracefile;
 }
 
 void hdT_Finalize(TraceFileP file)
 {
-	hdT_LogWrite(file, "</Program>\n</Rank>\n\n");
+	hdT_LogWrite(file, "</Program>\n");
 	hdT_LogFlush(file);
 	hdT_LogInfo(file, "\n\n");
 	close(file -> info_fd);

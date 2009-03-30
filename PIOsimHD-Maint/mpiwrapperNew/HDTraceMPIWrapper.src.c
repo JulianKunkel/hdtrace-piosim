@@ -41,30 +41,36 @@
 
 #include "HDTraceWriter.h"
 
-__thread TraceFileP tracefile = NULL;
+static __thread TraceFileP tracefile = NULL;
 
 #define TMP_BUF_LEN 1024 * 16
 
-__thread char cnbuff[TMP_BUF_LEN];
+static __thread char cnbuff[TMP_BUF_LEN];
 
 // Traces all functions, even those without a custom logging routine
-int trace_all_functions = 1;
-int trace_nested_operations = 1;
-int trace_file_info = 1;
-int trace_force_flush = 0;
+// TODO: these are not thread-safe yet
 
-const char * control_vars[] = { "HDTRACE_ALL_FUNCTIONS", 
+static pthread_mutex_t envvar_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int envvar_read = 0;
+
+static int trace_all_functions = 1;
+static int trace_nested_operations = 1;
+static int trace_file_info = 1;
+static int trace_force_flush = 0;
+
+static const char * control_vars[] = { "HDTRACE_ALL_FUNCTIONS", 
 								"HDTRACE_NESTED",
 								"HDTRACE_FILE_INFO",
 								"HDTRACE_FORCE_FLUSH",
 								NULL };
-int * controlled_vars[] = { &trace_all_functions,
-							&trace_nested_operations, 
-							&trace_file_info,
-							&trace_force_flush,
-							NULL };
 
-size_t hdT_min(size_t a, size_t b)
+static int * controlled_vars[] = { &trace_all_functions,
+								   &trace_nested_operations, 
+								   &trace_file_info,
+								   &trace_force_flush,
+								   NULL };
+
+static size_t hdT_min(size_t a, size_t b)
 {
 	if(a < b)
 		return a;
@@ -75,6 +81,7 @@ static char * getCommName(MPI_Comm comm)
 {
 	// NOTE: the result becomes invalid after a consecutive
     // call to getCommName(...)
+
   int len = TMP_BUF_LEN;
   int cmp = 0;
   MPI_Comm_compare(comm, MPI_COMM_WORLD, & cmp);
@@ -87,13 +94,14 @@ static char * getCommName(MPI_Comm comm)
 
 int MPI_hdT_Test_nested(int rec, int max);
 
-int PMPI_hdT_Test_nested(int rec, int max)
+static int PMPI_hdT_Test_nested(int rec, int max)
 {
 	if(rec < max)
 	{
 		MPI_hdT_Test_nested(rec + 1, max);
 		MPI_hdT_Test_nested(rec + 1, max);
 	}
+
 	return 0;
 }
 
@@ -101,7 +109,7 @@ int PMPI_hdT_Test_nested(int rec, int max)
 __thread GHashTable *comm_to_id = NULL;
 __thread gint comm_id_counter = 0;
 
-void writeCommInfo(MPI_Comm comm, gint comm_id)
+static void writeCommInfo(MPI_Comm comm, gint comm_id)
 {
 	int size;
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -139,7 +147,7 @@ void writeCommInfo(MPI_Comm comm, gint comm_id)
 	hdT_LogInfo(tracefile, buffer);
 }
 
-gint getCommId(MPI_Comm comm)
+static gint getCommId(MPI_Comm comm)
 {
 	if(comm_to_id == NULL)
 	{
@@ -165,7 +173,7 @@ __thread GHashTable *file_handle_to_id = NULL;
 __thread GHashTable *file_name_to_id = NULL;
 __thread gint file_id_counter = 0;
 
-gint getFileId(MPI_File fh)
+static gint getFileId(MPI_File fh)
 {
 	if(file_handle_to_id == NULL)
 	{
@@ -188,7 +196,7 @@ gint getFileId(MPI_File fh)
 	return *(gint*)result;
 }
 
-gint getFileIdFromName(const char * name)
+static gint getFileIdFromName(const char * name)
 {
 	if(file_name_to_id == NULL)
 	{
@@ -210,7 +218,6 @@ gint getFileIdFromName(const char * name)
 		g_hash_table_insert(file_name_to_id, real_path, g_id);
 		file_id_counter++;
 
-		// TODO: we don't know the size of the file. just log zero?
 		hdT_LogInfo(tracefile, 
 						"File name=\"%s\" Size=0 id=%d\n",
 						name, *g_id);
@@ -220,7 +227,7 @@ gint getFileIdFromName(const char * name)
 	return *(gint*)result;
 }
 
-void removeHandle(MPI_File fh)
+static void removeHandle(MPI_File fh)
 {
 	g_hash_table_remove(file_handle_to_id, &fh);
 }
@@ -234,7 +241,7 @@ void removeHandle(MPI_File fh)
  * If the file has not yet been opened, an entry is written to the trace file
  * 
  */
-gint getFileIdEx(MPI_File fh, const char * name)
+static gint getFileIdEx(MPI_File fh, const char * name)
 {
 	if(file_name_to_id == NULL)
 	{
@@ -327,12 +334,12 @@ gint getFileIdEx(MPI_File fh, const char * name)
 	}
 }
 
-const char * getCombinerName(int combiner)
+static const char * getCombinerName(int combiner)
 {
 	if(combiner == MPI_COMBINER_NAMED)
 		return "MPI_COMBINER_NAMED";
 	else if(combiner == MPI_COMBINER_DUP)
-		return "MPI_COMBINER_DUP MPI_TYPE_DUP";
+		return "MPI_COMBINER_DUP";
 	else if(combiner == MPI_COMBINER_CONTIGUOUS)
 		return "MPI_COMBINER_CONTIGUOUS";
 	else if(combiner == MPI_COMBINER_VECTOR)
@@ -369,9 +376,23 @@ const char * getCombinerName(int combiner)
 		return "UNKNOWN";
 }
 
-gint getTypeId(MPI_Datatype type);
+static int getWorldRank(int rank, MPI_Comm comm)
+{
+	if(comm == MPI_COMM_WORLD)
+		return rank;
 
-void writeTypeInfo(MPI_Datatype type, gint id)
+	MPI_Group group, worldgroup;
+	MPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
+	MPI_Comm_group(comm, &group);
+	int out;
+	MPI_Group_translate_ranks(group, 1, &rank, worldgroup, &out);
+	return out;
+}
+
+
+static gint getTypeId(MPI_Datatype type);
+
+static void writeTypeInfo(MPI_Datatype type, gint id)
 {
 	int max_integers, 
 		max_addresses, 
@@ -401,7 +422,7 @@ void writeTypeInfo(MPI_Datatype type, gint id)
 		char buffer[TMP_BUF_LEN];
 		int pos = 0;
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
-						"Type id='%d' Combiner='%s' Integers='", (int)id, getCombinerName(combiner));
+						"Type id='%d' combiner='%s' name='%s' integers='", (int)id, getCombinerName(combiner), typename);
 		pos = hdT_min(pos, TMP_BUF_LEN);
 
 		int i;
@@ -414,6 +435,7 @@ void writeTypeInfo(MPI_Datatype type, gint id)
 
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
 						"' addresses='");
+		pos = hdT_min(pos, TMP_BUF_LEN);
 		for(i = 0; i < max_addresses; ++i)
 		{
 			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
@@ -423,6 +445,7 @@ void writeTypeInfo(MPI_Datatype type, gint id)
 
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
 						"' types='");
+		pos = hdT_min(pos, TMP_BUF_LEN);
 		for(i = 0; i < max_datatypes; ++i)
 		{
 			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
@@ -444,7 +467,7 @@ void writeTypeInfo(MPI_Datatype type, gint id)
 __thread GHashTable *type_table = NULL;
 __thread gint type_table_result = 1;
 
-gint getTypeId(MPI_Datatype type)
+static gint getTypeId(MPI_Datatype type)
 {
 	if(type_table == NULL)
 	{
@@ -466,7 +489,7 @@ __thread GHashTable *request_to_id = NULL;
 __thread GHashTable *fh_to_request_id = NULL; // used to log split-collective-calls
 __thread gint request_counter = 0;
 
-gint getRequestId(MPI_Request request)
+static gint getRequestId(MPI_Request request)
 {
 	if(request_to_id == NULL)
 	{
@@ -487,7 +510,7 @@ gint getRequestId(MPI_Request request)
 	return *(gint*)result;
 }
 
-gint getRequestIdForSplit(MPI_File file)
+static gint getRequestIdForSplit(MPI_File file)
 {
 	if(fh_to_request_id == NULL)
 	{
@@ -510,7 +533,7 @@ gint getRequestIdForSplit(MPI_File file)
 }
 
 
-void destroyHashTables()
+static void destroyHashTables()
 {
 	if(file_handle_to_id)
 	{
@@ -546,7 +569,7 @@ inline static long long getTypeSize(int count, MPI_Datatype type)
   return (count * (long long) t_size );
 }
 
-long long int getByteOffset(MPI_File v1)
+static long long int getByteOffset(MPI_File v1)
 {
 	assert(sizeof(long long int) >= sizeof(MPI_Offset));
     MPI_Offset view_offset;
@@ -558,7 +581,7 @@ long long int getByteOffset(MPI_File v1)
 	return (long long int)real_offset;
 }
 
-const char * getWhenceString(int whence)
+static const char * getWhenceString(int whence)
 {
 	switch(whence)
 	{
@@ -573,7 +596,7 @@ const char * getWhenceString(int whence)
 	}
 }
 
-void after_Init(int *argc, char ***argv)
+static void after_Init(int *argc, char ***argv)
 {
 	int rank;
 
@@ -582,11 +605,11 @@ void after_Init(int *argc, char ***argv)
 	char * lastSlash = strrchr(**argv , '/');
 	if( lastSlash != NULL)
 	{
-		snprintf(basename, TMP_BUF_LEN, "trace-%s", lastSlash+1 );
+		snprintf(basename, TMP_BUF_LEN, "trace_%s", lastSlash+1 );
 	}
 	else
 	{
-		snprintf(basename, TMP_BUF_LEN, "trace-%s", (*argv)[0]+2 );
+		snprintf(basename, TMP_BUF_LEN, "trace_%s", (*argv)[0]+2 );
 	}
 	
 	hdT_Init(basename);
@@ -595,42 +618,48 @@ void after_Init(int *argc, char ***argv)
 
 	tracefile = hdT_Create(rank);
 
-	// read environment variables and set corresponding control values
-	char *env_var, *getenv();
-	int ii = 0;
-	while(control_vars[ii] && controlled_vars[ii])
+	pthread_mutex_lock(&envvar_mutex);
+	if(envvar_read == 0)
 	{
-		if((env_var = getenv(control_vars[ii])) != NULL)
+		// read environment variables and set corresponding control values
+		char *env_var, *getenv();
+		int ii = 0;
+		while(control_vars[ii] && controlled_vars[ii])
 		{
-			if(strcmp(env_var, "0") == 0) 
+			if((env_var = getenv(control_vars[ii])) != NULL)
 			{
-				*controlled_vars[ii] = 0;
+				if(strcmp(env_var, "0") == 0) 
+				{
+					*controlled_vars[ii] = 0;
+				}
+				else if(strcmp(env_var, "1") == 0) 
+				{
+					*controlled_vars[ii] = 1;
+				}
+				else 
+				{
+					tprintf(tracefile, "environment variable %s has unrecognised value of %s",
+							control_vars[ii], env_var );
+				}
 			}
-			else if(strcmp(env_var, "1") == 0) 
-			{
-				*controlled_vars[ii] = 1;
-			}
-			else 
-			{
-				tprintf(tracefile, "environment variable %s has unrecognised value of %s",
-						control_vars[ii], env_var );
-			}
+			ii++;
 		}
-		ii++;
+		envvar_read = 1;
 	}
+	pthread_mutex_unlock(&envvar_mutex);
 
 	hdT_TraceNested(tracefile, trace_nested_operations);
 	hdT_ForceFlush(tracefile, trace_force_flush);
 }
 
-void after_Finalize(void)
+static void after_Finalize(void)
 {
 	hdT_Finalize(tracefile);
 	tracefile = NULL;
 	destroyHashTables();
 }
 
-void before_Abort(MPI_Comm comm, int code)
+static void before_Abort(MPI_Comm comm, int code)
 {
 	hdT_Finalize(tracefile);
 	tracefile = NULL;

@@ -63,7 +63,20 @@ int main (int argc, char** argv)
 	MPI_Comm_create(MPI_COMM_WORLD, group, &newcomm);
 
 	if( rank == 2 || rank == 4)
+	{
+		int sendbuf, recvbuf;
+		MPI_Status status;
+
+		MPI_Sendrecv(&sendbuf, 1, MPI_INT, 6 - rank, 0, 
+					 &recvbuf, 1, MPI_INT, 6 - rank, 0,
+					 MPI_COMM_WORLD, &status);
+
+		MPI_Sendrecv(&sendbuf, 1, MPI_INT, rank==2 ? 1 : 0, 0, 
+					 &recvbuf, 1, MPI_INT, rank==2 ? 1 : 0, 0,
+					 newcomm, &status);
+
 		MPI_Barrier(newcomm);
+	}
 
 
 	MPI_Barrier(MPI_COMM_WORLD);
