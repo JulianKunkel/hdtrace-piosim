@@ -31,7 +31,7 @@ typedef struct _hdTopology * hdTopology;
 typedef struct _hdTopology * hdTopoNames;
 
 /**
- * Create new topology
+ * Create new topology.
  */
 hdTopology hdT_createTopology(
                 const char *label1,
@@ -40,12 +40,27 @@ hdTopology hdT_createTopology(
                 );
 
 /**
- * Create new topology names
+ * Create new topology names.
  */
 hdTopoNames hdT_createTopoNames(
                 const char *name1,
                 const char *name2,
                 const char *name3
                 );
+
+/**
+ * Get the depth of the passed topology.
+ */
+int hdT_getTopoDepth(
+		hdTopology topology
+		);
+
+/**
+ * Get one level of the passed topology.
+ */
+const char * hdT_getTopoLevel(
+		hdTopology topology,
+		int level
+		);
 
 #endif /* HDTOPO_H_ */

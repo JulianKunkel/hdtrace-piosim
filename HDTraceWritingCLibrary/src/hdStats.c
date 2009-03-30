@@ -10,12 +10,13 @@
  */
 
 #include "hdStats.h"
-#include "hdTrace.h"
 
-#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 
+#include "common.h"
 #include "util.h"
 
 /**
@@ -24,7 +25,8 @@
 #define MAX_STATISTICS_VALUES_PER_GROUP = 256
 
 /**
- * @details
+ * Create a new statistics group.
+ *
  * Creates and opens the file for a new statistics group. The filename is built
  * using the rules for hdTrace statistics files an the given topology and
  * level.
@@ -46,9 +48,9 @@
  * @retval NULL error, setting errno
  *
  * @errno
- *  - HD_INVALIDARG
- *  - HD_MALLOC
- *  - HD_CREATEFILE
+ *  - HD_ERR_INVALID_ARGUMENT
+ *  - HD_ERR_MALLOC
+ *  - HD_ERR_CREATE_FILE
  *
  *  @sa hdT_createTopology
  */
@@ -58,73 +60,29 @@ hdStatsGroup hdS_createGroup (
         int topologyLevel      /* Level of topology the group belongs to */
         )
 {
+	size_t ret;
+
+	/* TODO where to get project? */
+	char *project = "Project";
+
 	/* check input */
-	if (isValidString(groupName) || topology == NULL)
+	if (isValidString(groupName) || hdT_getTopoDepth(topology) <= topologyLevel)
 	{
-		errno = HD_INVALIDARG;
+		errno = HD_ERR_INVALID_ARGUMENT;
 		return NULL;
 	}
 
-	switch (topologyLevel) {
-	case 3:
-		if(isValidString(topology->labelDepth3))
-		{
-			errno = HD_INVALIDARG;
-			return NULL;
-		}
-		/* fall through */
-	case 2:
-		if(isValidString(topology->labelDepth2))
-		{
-			errno = HD_INVALIDARG;
-			return NULL;
-		}
-		/* fall through */
-	case 1:
-		if(isValidString(topology->labelDepth1))
-		{
-			errno = HD_INVALIDARG;
-			return NULL;
-		}
-		break;
-	default:
-		errno = HD_INVALIDARG;
-		return NULL;
-	}
-
-
-	/* generate filename */
-	char filename[1024];
-
-	strcpy(filename, "ProjectX");
-
-	strcat(filename, "_");
-	strcat(filename, topology->labelDepth1);
-
-	if (topologyLevel >= 2)
-	{
-		strcat(filename, "_");
-		strcat(filename, topology->labelDepth2);
-
-	}
-
-	if (topologyLevel >= 3)
-	{
-		strcat(filename, "_");
-		strcat(filename, topology->labelDepth3);
-
-	}
-
-	strcat(filename, "_");
-	strcat(filename, groupName);
-	strcat(filename, ".dat");
-
-
-	int ret;
+	/* generate filename of the form Project_Level1_Level2..._Group.dat */
+	char *filename = generateFilename(project, topology, topologyLevel, groupName, ".dat");
+	 if (filename == NULL)
+	 {
+		 return NULL;
+	 }
 
 	/* open file and truncate if it already exists  */
 	FILE *tracefile = fopen(filename,"wb");
 	/* TODO: error checking */
+	free(filename);
 
 	/*
 	 *  Write group header
@@ -180,8 +138,9 @@ hdStatsGroup hdS_createGroup (
 }
 
 /**
- * @details
- * \....
+ * Add a new value to statistics group.
+ *
+ * TODO: Description
  *
  * @param group              Statistics Group
  * @param name               Name of the new value
@@ -209,8 +168,9 @@ int hdS_addValue (
 }
 
 /**
- * @details
- * \....
+ * Commit Group, closes initialization step.
+ *
+ * TODO: Description
  *
  * @param group Statistics Group
  *
@@ -231,8 +191,9 @@ int hdS_commitGroup (
 
 
 /**
- * @details
- * \....
+ * Writes a complete entry to a statistics group.
+ *
+ * TODO: Description
  *
  * @param group        Statistics Group
  * @param entry        Pointer to the entry to write
@@ -256,8 +217,9 @@ int hdS_writeEntry (
 }
 
 /**
- * @details
- * \....
+ * Writes 4 byte integer as next value to a statistics group.
+ *
+ * TODO: Description
  *
  * @param group Statistics Group
  * @param value INT32 value to write
@@ -279,8 +241,9 @@ int hdS_writeInt32Value (
 }
 
 /**
- * @details
- * \....
+ * Writes 8 byte integer as next value to a statistics group.
+ *
+ * TODO: Description
  *
  * @param group Statistics Group
  * @param value INT64 value to write
@@ -302,8 +265,9 @@ int hdS_writeInt64Value (
 }
 
 /**
- * @details
- * \....
+ * Writes 4 byte float as next value to a statistics group.
+ *
+ * TODO: Description
  *
  * @param group Statistics Group
  * @param value FLOAT value to write
@@ -325,8 +289,9 @@ int hdS_writeFloatValue (
 }
 
 /**
- * @details
- * \....
+ * Writes 8 byte double as next value to a statistics group.
+ *
+ * TODO: Description
  *
  * @param group Statistics Group
  * @param value DOUBLE value to write
@@ -348,8 +313,9 @@ int hdS_writeDoubleValue (
 }
 
 /**
- * @details
- * \....
+ * Writes string as the next value to a statistics group.
+ *
+ * TODO: Description
  *
  * @param group Statistics Group
  * @param str STRING value to write
@@ -371,7 +337,8 @@ int hdS_writeString (
 }
 
 /**
- * @details
+ * Finalizes a statistics group.
+ *
  * This must be the last hdStatistics* function called in a program.
  *
  * @param group Statistics Group

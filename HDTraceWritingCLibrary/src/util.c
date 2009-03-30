@@ -12,8 +12,11 @@
 
 #include <string.h>
 
+/* TODO: Consistent naming scheme for util functions */
+
 /**
- * @details
+ * Check if the given string is valid.
+ *
  * Valid strings means here a string containing characters. So the given string
  * is checked to be a NULL pointer or zero length string. If so, return false
  * since it is an invalid string.
@@ -30,4 +33,19 @@ BOOL isValidString(const char *string) {
 		return FALSE;
 	else
 		return TRUE;
+}
+
+/**
+ * Returns minimum of the two size arguments.
+ *
+ * @param a First size
+ * @param b Second size
+ *
+ * @return Minimum out of @a a and @a b
+ */
+size_t minSize(size_t a, size_t b)
+{
+	if(a < b)
+		return a;
+	return b;
 }

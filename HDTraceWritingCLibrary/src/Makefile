@@ -5,12 +5,15 @@ MAKEDEPEND=gcc -MM
 
 #CPPFLAGS=-DDEBUG
 CPPFLAGS=
-CFLAGS=-Wall -g -std=c99 -pedantic -D_POSIX_C_SOURCE -I$(INCLUDE_DIR)
+CFLAGS=-W -Wall -g -std=c99 -pedantic -D_POSIX_C_SOURCE -I$(INCLUDE_DIR)
 
 # use large file compilation environment
 CFLAGS+=$(shell getconf LFS_CFLAGS)
 LDFLAGS+=$(shell getconf LFS_LDFLAGS)
 LIBS+=$(shell getconf LFS_LIBS)
+
+#prevent warnings at x64 (bug!?!)
+CFLAGS+=-D_LARGEFILE_SOURCE
 
 SRCS = $(wildcard *.c)
 

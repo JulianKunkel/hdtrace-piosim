@@ -43,7 +43,7 @@
 
 
 /**
- * Enumeration of value types for statistics groups
+ * Enumeration of value types for statistics groups.
  */
 enum _hdStatsValueType {
     /** 32 bit integer */
@@ -59,12 +59,12 @@ enum _hdStatsValueType {
 };
 
 /**
- * Type to use for value types for statistics groups
+ * Type to use for value types for statistics groups.
  */
 typedef enum _hdStatsValueType hdStatsValueType;
 
 /**
- * Structure representing one statistics group
+ * Structure representing one statistics group.
  */
 struct _hdStatsGroup {
     /**
@@ -101,7 +101,7 @@ struct _hdStatsGroup {
 };
 
 /**
- * Type to use for statistics groups
+ * Type to use for statistics groups.
  */
 typedef struct _hdStatsGroup * hdStatsGroup;
 
@@ -128,7 +128,7 @@ hdStatsGroup hdS_createGroup (
         );
 
 /**
- * Add a new value to statistics group
+ * Add a new value to statistics group.
  */
 int hdS_addValue (
         hdStatsGroup group,      /* Statistics Group */
@@ -139,7 +139,7 @@ int hdS_addValue (
         );
 
 /**
- * Commit Group, closes initialization step
+ * Commit Group, closes initialization step.
  */
 int hdS_commitGroup (
         hdStatsGroup group       /* Statistics Group */
@@ -171,7 +171,7 @@ int hdS_writeEntry (
         );
 
 /**
- * Writes 4 byte integer as next value to a statistics group
+ * Writes 4 byte integer as next value to a statistics group.
  */
 int hdS_writeInt32Value (
         hdStatsGroup group,      /* Statistics Group */
@@ -179,7 +179,7 @@ int hdS_writeInt32Value (
         );
 
 /**
- * Writes 8 byte integer as next value to a statistics group
+ * Writes 8 byte integer as next value to a statistics group.
  */
 int hdS_writeInt64Value (
         hdStatsGroup group,      /* Statistics Group */
@@ -187,7 +187,7 @@ int hdS_writeInt64Value (
         );
 
 /**
- * Writes 4 byte float as next value to a statistics group
+ * Writes 4 byte float as next value to a statistics group.
  */
 int hdS_writeFloatValue (
         hdStatsGroup group,      /* Statistics Group */
@@ -195,7 +195,7 @@ int hdS_writeFloatValue (
         );
 
 /**
- * Writes 8 byte double as next value to a statistics group
+ * Writes 8 byte double as next value to a statistics group.
  */
 int hdS_writeDoubleValue (
         hdStatsGroup group,      /* Statistics Group */
@@ -203,7 +203,7 @@ int hdS_writeDoubleValue (
         );
 
 /**
- * Writes string as the next value to a statistics group
+ * Writes string as the next value to a statistics group.
  */
 int hdS_writeString (
         hdStatsGroup group,      /* Statistics Group */
@@ -211,7 +211,7 @@ int hdS_writeString (
         );
 
 /**
- * Finalizes a statistics group
+ * Finalizes a statistics group.
  */
 int hdS_finalize(
         hdStatsGroup group      /* Statistics Group */

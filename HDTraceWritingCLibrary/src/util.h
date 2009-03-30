@@ -12,6 +12,7 @@
 #define UTIL_H_
 
 #include <stdint.h>
+#include <sys/types.h>
 
 /**
  * Define boolean type
@@ -32,8 +33,13 @@ typedef int8_t BOOL;
 #endif
 
 /**
- * Check if the given string is valid
+ * Check if the given string is valid.
  */
 BOOL isValidString(const char *string);
+
+/**
+ * Returns minimum of the two size arguments.
+ */
+size_t minSize(size_t a, size_t b);
 
 #endif /* UTIL_H_ */

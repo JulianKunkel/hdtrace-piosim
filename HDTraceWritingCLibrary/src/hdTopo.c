@@ -11,12 +11,15 @@
 #include "hdTopo.h"
 
 #include <stdlib.h>
+#include <errno.h>
 
+#include "hdError.h"
 #include "util.h"
 
 
 /**
- * @details
+ * Create new topology.
+ *
  * The topology is the semantical structure of HDTrace files. It is meant to
  * map a hierarchical structure to the trace files.
  *
@@ -78,10 +81,11 @@ hdTopology hdT_createTopology(
 }
 
 /**
- * @details
+ * Create new topology names.
+ *
  * The names of the topology levels do have only descriptive character and are
  * not used by this library but writing them to the Trace Info.
- * (\ref hdT_initTrace) Other tools like the Project Description Merger could
+ * (\ref hdT_createTrace) Other tools like the Project Description Merger could
  * use this information for consistency checks.
  *
  * This function generates and returns a hdTopoNames that actually hides a
@@ -101,7 +105,7 @@ hdTopology hdT_createTopology(
  *
  * @return HDTrace Topology Names
  *
- * @sa hdT_initTrace
+ * @sa hdT_createTrace
  */
 hdTopoNames hdT_createTopoNames(
                 const char *name1,
@@ -112,3 +116,81 @@ hdTopoNames hdT_createTopoNames(
 	return (hdTopoNames) hdT_createTopology(name1, name2, name3);
 }
 
+/**
+ * Get the depth of the passed topology.
+ *
+ * Returns the depth (not the highest level) of \a topology. A topology with
+ *  maximum a maximum level of 1 is of depth 2 because it has two levels.
+ *  The depth of a non existing topology (\a topology == \a NULL) or of one
+ *  with no levels is 0.
+ *
+ * @param topology Topology to get the depth of
+ *
+ * @return The depth of the Topology.
+ */
+int hdT_getTopoDepth(hdTopology topology)
+{
+	if (topology == NULL)
+		return 0;
+
+	int level = 0;
+
+	if (isValidString(topology->labelDepth1))
+		++level;
+	else
+		return level;
+
+	if (isValidString(topology->labelDepth2))
+		++level;
+	else
+		return level;
+
+	if (isValidString(topology->labelDepth3))
+		++level;
+	else
+		return level;
+
+	return level;
+}
+
+/**
+ * Get one level of the passed topology.
+ *
+ * The \a level of \a topology is returned if it exist, else NULL is returned.
+ *
+ * @param topology Topology to get the level from
+ * @param level    Number of level to get
+ *
+ * @return Level string
+ *
+ * @retval String if \a topology is at least of depth \a level
+ * @retval NULL   on error
+ *
+ * @errno
+ * - HD_ERR_INVALID_ARGUMENT
+ */
+const char * hdT_getTopoLevel(hdTopology topology, int level)
+{
+	/* check input */
+	if (hdT_getTopoDepth(topology) < level)
+	{
+		errno = HD_ERR_INVALID_ARGUMENT;
+		return NULL;
+	}
+
+	/* return level string */
+	switch (level)
+	{
+	case 1:
+		return topology->labelDepth1;
+		break;
+	case 2:
+		return topology->labelDepth2;
+		break;
+	case 3:
+		return topology->labelDepth3;
+		break;
+	}
+	/* should never come here */
+	return NULL;
+}

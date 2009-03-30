@@ -24,20 +24,20 @@ dist-clean: clean
 	rm -f tags
 	rm -rf doc/*
 
-lib/libhdTrace.a: src/hdTrace.o src/hdTopo.o src/util.o
+lib/libhdTrace.a: src/hdTrace.o src/hdTopo.o src/common.o src/util.o
 	@echo "  AR   $@"; \
 	$(AR) $(ARFLAGS) $@ $^
 
-lib/libhdStats.a: src/hdStats.o src/hdTopo.o src/util.o
+lib/libhdStats.a: src/hdStats.o src/hdTopo.o src/common.o src/util.o
 	@echo "  AR   $@"; \
 	$(AR) $(ARFLAGS) $@ $^
 
-.PHONY: src doc
+.PHONY: force
 
-src/%o:
-	$(MAKE) -C $(SRC_DIR)
+src/%o: force
+	$(MAKE) -C $(SRC_DIR) $(notdir $@)
 
-doc:
+doc: force
 	doxygen Doxyfile
 	
 tags: $(wildcard *.[ch])
