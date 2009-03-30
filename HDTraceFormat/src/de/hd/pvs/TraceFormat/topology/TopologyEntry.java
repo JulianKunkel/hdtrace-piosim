@@ -105,7 +105,7 @@ public class TopologyEntry {
 	 * @return 
 	 */
 	private String getUnifiedLabel(){		
-		return label.toLowerCase().replaceAll("[^a-zA-Z0-9]", "");
+		return label.toLowerCase().replaceAll("[^a-zA-Z0-9-]", "");
 	}
 	
 	/**

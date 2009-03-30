@@ -3,6 +3,7 @@
 	<name>HDTraceMPIWrapper</name>
 	<comment></comment>
 	<projects>
+		<project>HDTraceWritingCLibrary</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

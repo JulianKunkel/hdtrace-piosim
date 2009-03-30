@@ -30,8 +30,8 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyInnerNode extends TopologyTreeNode{
-	
-	
+	private static final long serialVersionUID = 8019988454872650120L;
+
 	public TopologyInnerNode(TopologyEntry topNode,
 			TraceFormatFileOpener file, TopologyManager manager) {
 		super(topNode, file, manager);

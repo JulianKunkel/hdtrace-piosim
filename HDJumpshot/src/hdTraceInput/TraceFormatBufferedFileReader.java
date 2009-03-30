@@ -30,8 +30,6 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 
-import com.sun.jmx.snmp.Enumerated;
-
 import topology.GlobalStatisticStatsPerGroup;
 import topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
 import viewer.legends.LegendTableModel;
@@ -163,14 +161,18 @@ public class TraceFormatBufferedFileReader {
 
 	// TODO read from category index file.
 	private void updateVisibleCategories(BufferedTraceFileReader reader){
-		Enumeration<TraceEntry> enu = reader.enumerateTraceEntry(true, reader.getMinTime(), reader.getMaxTime());
+		Enumeration<TraceEntry> enu = reader.enumerateNestedTraceEntry(); //reader.enumerateTraceEntry(true, new Epoch(-1),new Epoch(300000000));
+		
 		while(enu.hasMoreElements()){
+			
 			final TraceEntry entry = enu.nextElement();
-			final String catName = entry.getName();
-
+			final String catName = entry.getName();		
+						
 			if(entry.getType() == TraceObjectType.STATE){		
-				if(! categoriesStates.containsKey(catName))
+				if(! categoriesStates.containsKey(catName)){
 					categoriesStates.put( catName, new CategoryState(catName, null));
+				}
+				
 			}if(entry.getType() == TraceObjectType.EVENT){
 				if(! categoriesEvents.containsKey(catName))
 					categoriesEvents.put( catName, new CategoryEvent(catName, null));

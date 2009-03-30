@@ -425,10 +425,14 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			TraceEntry objMouse = treader.getTraceEntryClosestToTime(clickedTime);			
 
 			if (objMouse.getType() == TraceObjectType.STATE){
-				StateTraceEntry state = (StateTraceEntry) objMouse;				
+				StateTraceEntry state = (StateTraceEntry) objMouse;
+				final double curDist = DrawObjects.getTimeDistance(clickedTime, state);
 
-				if(DrawObjects.getTimeDistance(clickedTime, state) != 0){
+				if(curDist != 0){
 					// mouse is not inside the state.
+					if( curDist < eventRadius)
+						return state;
+					
 					return null;
 				}
 

@@ -38,44 +38,35 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 public class ReaderTraceElementEnumerator implements Enumeration<TraceEntry>{
 
-	protected int currentPos;
-	protected TraceEntry currentEntry;
+	protected int curPos;
 	
 	final protected ArrayList<TraceEntry> entries;	
 	final protected Epoch endTime;
-	boolean hasMoreElements;
 	
-	private void updateHasMoreElements(){
-		hasMoreElements = currentPos >= 0 && currentPos < entries.size() && (entries.get(currentPos).getEarliestTime().compareTo(endTime) < 0);
-	}
 	
 	public ReaderTraceElementEnumerator(BufferedTraceFileReader reader, Epoch startTime, Epoch endTime) {
-		this.currentPos = reader.getTraceEntryPositionLaterThan(startTime);
+		this.curPos = reader.getTraceEntryPositionLaterThan(startTime);
 		
 		this.entries = reader.getTraceEntries();
 		this.endTime = endTime;
-	
-
-		updateHasMoreElements();	
 		
-		if(hasMoreElements)
-			currentEntry = entries.get(currentPos++);
+		if(this.curPos < 0){
+			this.curPos = entries.size();
+		}
 	}
 
 	@Override
-	public boolean hasMoreElements() {		
-		return hasMoreElements;
+	public boolean hasMoreElements() {
+		return  curPos < entries.size() && (entries.get(curPos).getEarliestTime().compareTo(endTime) < 0);
 	}
 	
 	@Override
 	public TraceEntry nextElement() {
-		final TraceEntry old = currentEntry;
-
-		updateHasMoreElements();	
-		if(hasMoreElements)
-			currentEntry = entries.get(currentPos++);
-		
-		return old;
+		return entries.get(curPos++);	
+	}
+	
+	public TraceEntry peekNextElement(){
+		return entries.get(curPos);
 	}
 	
 	/**

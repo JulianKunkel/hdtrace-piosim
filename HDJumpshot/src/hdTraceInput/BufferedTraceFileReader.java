@@ -51,7 +51,11 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		if(! nested)
 			return new ReaderTraceElementEnumerator(this, startTime, endTime);
 		else
-			return new ReaderTraceElementNestedEnumerator(this, startTime, endTime);
+			return new ReaderTraceElementNestedTimeEnumerator(this, startTime, endTime);
+	}
+	
+	public ReaderTraceElementNestedEnumerator enumerateNestedTraceEntry(){
+		return new ReaderTraceElementNestedEnumerator(this);
 	}
 	
 	public BufferedTraceFileReader(String filename, boolean nested) throws Exception {
@@ -98,9 +102,16 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 			TraceEntry entry = traceEntries.get(cur);
 			
 			if(min == max){ // found entry or stopped.
-				if( traceEntries.get(cur).getLatestTime().compareTo(laterThanTime) <= 0 )
-					return -1;				
-				return cur;
+				final int ret = traceEntries.get(cur).getLatestTime().compareTo(laterThanTime);
+				if( ret > 0 ){
+					return cur;				
+				}else if (ret == 0){
+					if(cur +1 == traceEntries.size())
+						return -1;
+					return cur + 1;
+				}else{				
+					return -1;
+				}
 			} 
 			// not found => continue bin search:
 			

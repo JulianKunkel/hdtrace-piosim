@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+ /** Version Control Information $Id: ReaderTraceElementNestedEnumerator.java 157 2009-03-29 13:17:40Z kunkel $
+  * @lastmodified    $Date: 2009-03-29 15:17:40 +0200 (So, 29. Mär 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 157 $ 
   */
 
 //	Copyright (C) 2009 Julian M. Kunkel
@@ -25,36 +25,45 @@
 
 package hdTraceInput;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.ForwardStateEnumeration;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
- * walks through a list of XMLTraceEntries and also through nested elements.
+ * walks through a list of XMLTraceEntries between a start and endtime and also through nested elements.
  * 
  * @author Julian M. Kunkel
  */
-public class ReaderTraceElementNestedEnumerator implements Enumeration<TraceEntry>{
+public class ReaderTraceElementNestedTimeEnumerator extends ReaderTraceElementEnumerator {
 
 	protected ForwardStateEnumeration stateChildEnumeration = null;
-	final protected ArrayList<TraceEntry> list;
-	int curPos = 0;
 
-	public ReaderTraceElementNestedEnumerator(BufferedTraceFileReader reader) {		
-		list = reader.getTraceEntries();
+	public ReaderTraceElementNestedTimeEnumerator(BufferedTraceFileReader reader, Epoch startTime, Epoch endTime) {
+		super(reader, startTime, endTime);
+		if (! hasMoreElements())
+			return ;
 		
-		if(list.size() == 0)
-			return;		
+		// scan if the state before has nested elements later than the given time.
+		final TraceEntry next = peekNextElement();
+
+		if(next.getType() == TraceObjectType.STATE){
+			// now its a state
+			final StateTraceEntry state = (StateTraceEntry) next;
+			if(! state.hasNestedTraceChildren())
+				return;
+			stateChildEnumeration = state.childForwardEnumeration(startTime);
+			if(! stateChildEnumeration.hasMoreElements()){
+				stateChildEnumeration = null;
+			}
+		}
 	}
 
 	@Override
 	public TraceEntry nextElement() {
 		if( stateChildEnumeration == null ){ 
-			final TraceEntry current = list.get(curPos++);
+			final TraceEntry current = super.nextElement();
 			
 			if(current.getType() == TraceObjectType.STATE){
 				final StateTraceEntry state = (StateTraceEntry) current;
@@ -82,9 +91,10 @@ public class ReaderTraceElementNestedEnumerator implements Enumeration<TraceEntr
 
 	@Override
 	public boolean hasMoreElements() {
-		return stateChildEnumeration != null || curPos < list.size();
+		return stateChildEnumeration != null || super.hasMoreElements();
 	}
 	
+	@Override
 	public int getNestingDepthOfNextElement() {
 		if (stateChildEnumeration == null)
 			return 0;

@@ -216,7 +216,7 @@ public class TopologyManager extends JTree
 			TopologyTreeNode childNode = new TopologyTraceTreeNode("Trace", topology, file, this);
 			addTopologyTreeNode(childNode, node);						
 		}
-		
+
 		if(topology.getChildElements().size() != 0){
 			// handle leaf level == trace nodes differently:
 
@@ -226,7 +226,7 @@ public class TopologyManager extends JTree
 				if(topology.getChildElements().size() == 0)
 					// TODO remove this child!
 					return;
-				
+
 				final DefaultMutableTreeNode traceParent = addDummyTreeNode("Trace", node);
 
 				for(TopologyEntry child: topology.getChildElements().values()){					
@@ -273,6 +273,52 @@ public class TopologyManager extends JTree
 	}
 
 	/**
+	 * remove all topologies from the tree which have empty leafs.
+	 */
+	public void removeEmptyTopologies(){
+		final DefaultTreeModel model = (DefaultTreeModel) getModel();
+
+		clearSelection();
+		for(int row = 0 ; row < getRowCount() ; row++){
+			setSelectionRow(row);
+
+			final TreePath path = getSelectionPath(); 
+			final int depth = path.getPathCount();
+
+			if(depth > 1 && ((DefaultMutableTreeNode) path.getLastPathComponent()).isLeaf() ){				
+				// recursivly remove empty timelines
+				for(int curDepth = depth - 1; curDepth >= 1; curDepth-- ){
+					final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getPathComponent(curDepth);
+					if(node.getChildCount() != 0){
+						break;
+					}
+
+					if( TopologyTreeNode.class.isInstance(node) ){
+						final TopologyTreeNode topNode = (TopologyTreeNode) node;
+						
+						//System.out.println( depth + " " + node.toString() + " " + topNode.getType());
+
+						if(topNode.getType() == TimelineType.INNER_NODE) {
+							model.removeNodeFromParent(topNode);
+							row--;
+							continue;
+						}
+						break;
+					}else{
+						//otherwise remove it
+						model.removeNodeFromParent(node);
+						row--;
+
+						continue;
+					}
+				}
+			}
+
+			clearSelection();
+		}
+	}
+
+	/**
 	 * restore the timelines to the normal / selected topology 
 	 */
 	public void restoreTopology(){
@@ -282,7 +328,9 @@ public class TopologyManager extends JTree
 
 		this.tree_root = loadDefaultTopologyToTreeMapping();
 
-		expandTreeInternal();		
+		expandTreeInternal();
+
+		removeEmptyTopologies();
 
 		setChangeListenerDisabled(false);
 
@@ -307,8 +355,8 @@ public class TopologyManager extends JTree
 				// recursivly remove empty timelines
 				for(int curDepth = depth - 2; curDepth >= 1; curDepth-- ){
 					final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getPathComponent(curDepth);
-					if( TopologyInnerNode.class.isInstance(node) ){
-						final TopologyInnerNode topNode = (TopologyInnerNode) node;
+					if( TopologyTreeNode.class.isInstance(node) ){
+						final TopologyTreeNode topNode = (TopologyTreeNode) node;
 
 						if(topNode.getType() == TimelineType.INNER_NODE && node.getChildCount() == 0){
 							if(topNode.getParent() != null){
