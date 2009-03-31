@@ -1,7 +1,7 @@
 
 WRAPPER_MPI = $(shell pwd)
 WRAPPER_CC = $(shell pwd)/bin/mpicc
-WRAPPER_LIB = " `pkg-config --libs glib-2.0` $(shell pwd)/../libHDTraceMPIWrapper.a  $(shell pwd)/../libHDTrace.a"
+WRAPPER_LIB = " `pkg-config --libs glib-2.0` $(shell pwd)/../libHDTraceMPIWrapper.a  $(shell pwd)/../../../HDTraceWritingCLibrary/lib/libhdTrace.a"
 
 .PHONY : clean
 .PHONY : mpich-test
@@ -13,23 +13,20 @@ all:  test test2 hdtest
 #../sim-wrapper.a:
 #	cd .. ; make
 
-./../libHDTraceMPIWrapper.a:
-	cd ..; make
-
 hdtest: 
 	cd HDTests ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) CC=$(WRAPPER_CC) make
 
 hdtest-no-wrapper: 
 	cd HDTests ; SIM_WRAPPER_LIB="" CC=mpicc make
 
-test2: mpi2test ../libHDTraceMPIWrapper.a
+test2: mpi2test ../libHDTraceMPIWrapper.a ../../../HDTraceWritingCLibrary/lib/
 	cd mpi2test ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) ./configure --with-mpi=$(WRAPPER_MPI) 
 	cd mpi2test ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) make 
 
 mpi2test: 
 	tar -zxf mpi2test.tar.gz
 
-test: mpich-test ../libHDTraceMPIWrapper.a
+test: mpich-test ../libHDTraceMPIWrapper.a ../../../HDTraceWritingCLibrary/lib/
 	cd mpich-test ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) ./configure -cc=$(WRAPPER_CC) -fc=mpif77
 	cd mpich-test ; SIM_WRAPPER_LIB=$(WRAPPER_LIB) make -k
 

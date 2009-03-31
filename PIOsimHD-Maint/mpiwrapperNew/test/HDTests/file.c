@@ -27,6 +27,9 @@ int main (int argc, char** argv)
 	MPI_File fh;
 	MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_RDONLY, info, &fh);
 	MPI_File_close(&fh);
+
+	MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_RDONLY, info, &fh);
+	MPI_File_close(&fh);
 	
 	MPI_File_delete("filetest_02.tmp", info);
 	MPI_File_delete("filetest_03.tmp", info);

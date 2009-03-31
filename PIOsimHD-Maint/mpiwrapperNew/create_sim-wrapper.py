@@ -299,8 +299,8 @@ logAttributes = {
   "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' to-tag='%d' fromRank='%d' fromTag='%d' comm='%d'", 
                         "getTypeSize(v2, v3), getWorldRank(v4, v8), v5, getWorldRank(v6, v8), v7, getCommId(v8)"),
 
-  "Allreduce" : ("size='%lld' comm='%d'", 
-                 "getTypeSize(v3, v4), getCommId(v6)"),
+  "Allreduce" : ("size='%lld' comm='%d' count='%d' type='%d'", 
+                 "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
   "File_open" : ("comm='%d' name='%s' flags='%d' file='%d'", 
                  "getCommId(v1), v2, v3, getFileIdEx(*v5, v2)"),

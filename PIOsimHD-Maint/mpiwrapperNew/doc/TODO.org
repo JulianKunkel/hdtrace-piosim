@@ -282,7 +282,7 @@
 ** DONE MPI_Pcontrol(...) benutzen?
 ***
 		int MPI_Pcontrol(const int, ...); // cool controliert profiling: 
-		http://mpi.dein.onet/mpi_functions/MPI_Pcontrol.html, vielleicht nutzen 
+		http://mpi.deino.net/mpi_functions/MPI_Pcontrol.html, vielleicht nutzen 
 		anstelle Trace an aus fkt.
 		    * level==0 Profiling is disabled.
 		    * level==1 Profiling is enabled at a normal default level of detail.
@@ -386,12 +386,28 @@ Per HashMap Communicator ID speichern
 ** DONE unifytraces: wenn im selben Verzeichnis ausgeführt 
    -> fehler wenn ./ vor dateinamen weggelassen
 ** DONE comm-rank -> world-rank im log
+** TODO Struktur umstellen
+** TODO clean getFileIdEx
+** TODO set_view loggen -> datentyp
+** TODO Endtags!
+** TODO Datei-Dupletten beseitigen
+** DONE stephans filewriter verwenden
+** TODO merger ordentlich machen + dokumentieren
+** TODO topologie ändern (merger, writer)
+   -> Projektname trace_mpi-io-test_hostname_rank_thread_
+
+** TODO threads testen
+** TODO eigene tests dokumentieren, am besten vollautom. test
+** TODO überall datentyp rausschreiben
+** TODO trace-dateinamen normalisieren
 ** TODO project-description-merger
+*** TODO Refactor
+*** TODO DARRAY ausgabe: MPI-Knostanten ordentlich loggen (MPI_DISTRIBUTE_BLOCK...)
 *** TODO Kommunikator- und Typnamen in unifyTraces zusammenbasteln
 *** DONE project-description-merger + hdtraceWriter.c
    replace minus with underscore in filenames
 
-** TODO Zur zeit werden die Funktionsnamen kopiert: man kann auch den zeiger
+** TODO Zur Zeit werden die Funktionsnamen kopiert: man kann auch den zeiger
   speichern (da sowieso statisch). ist das sinnvoll?
 ** TODO Kommentare optimiern
 ** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
@@ -432,3 +448,6 @@ Per HashMap Communicator ID speichern
 	
 ** INFO über MPI_Request
      OpenMPI: /ompi-trunk/ompi/request/request.h:ompi_request_t
+     
+** Visualisieren von tracefiles
+   geht mit HDJumpshot/view/first/Jumpshot

@@ -34,14 +34,16 @@
 
 #include <stdio.h>
 #include <string.h>
-
 #include <glib.h>
 
 #include <assert.h>
+#include <unistd.h>
+#include <errno.h>
 
-#include "HDTraceWriter.h"
+#include "hdTrace.h"
+#include "hdTopo.h"
 
-static __thread TraceFileP tracefile = NULL;
+static __thread hdTrace tracefile = NULL;
 
 #define TMP_BUF_LEN 1024 * 16
 
@@ -105,6 +107,23 @@ static int PMPI_hdT_Test_nested(int rec, int max)
 	return 0;
 }
 
+/** Hash function for MPI_File. This function is needed for 
+ * file handle to id hashtables
+ */
+guint hash_MPI_File(gconstpointer key)
+{
+	return (guint)*(MPI_File*)key;
+}
+
+/** Compare two MPI_File objects. This function is needed for
+ * file handle to id hashtables
+ */
+gboolean equal_MPI_File(gconstpointer a, gconstpointer b)
+{
+	if((*(MPI_File*)a) == (*(MPI_File*)b))
+		return TRUE;
+	return FALSE;
+}
 
 __thread GHashTable *comm_to_id = NULL;
 __thread gint comm_id_counter = 0;
@@ -177,19 +196,19 @@ static gint getFileId(MPI_File fh)
 {
 	if(file_handle_to_id == NULL)
 	{
-		file_handle_to_id = g_hash_table_new_full(g_int_hash, g_int_equal, free, free);
+		file_handle_to_id = g_hash_table_new_full(hash_MPI_File, equal_MPI_File, free, free);
 	}	
 	gpointer result = g_hash_table_lookup(file_handle_to_id, &fh);
 	if(result == NULL)
 	{
-		gint * g_handle = malloc(sizeof(gint));
-		*g_handle = (gint)fh;
-		gint * g_id = malloc(sizeof(gint));
+		MPI_File *g_handle = malloc(sizeof(MPI_File));
+		*g_handle = fh;
+		gint *g_id = malloc(sizeof(gint));
 		*g_id = (gint)file_id_counter;
 		g_hash_table_insert(file_handle_to_id, g_handle, g_id);
 		file_id_counter++;
 
-		tprintf(tracefile, "getFileId: got File handle without associated id. new id=%d", (*g_id));
+		//tprintf(tracefile, "getFileId: got File handle without associated id. new id=%d, fh=%llx", (*g_id), fh);
 
 		return *g_id;
 	}
@@ -203,9 +222,8 @@ static gint getFileIdFromName(const char * name)
 		file_name_to_id = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 	}
 
-	
 	/* NOTE: it would be nice to canonicalize the file name, e.g. with 
-	 * nrealpath(name, NULL);. Unfortunately, this doesn't work with names 
+	 * realpath(name, NULL);. Unfortunately, this doesn't work with names 
      * beginning with "pvfs://"
 	 */ 
 	char * real_path = g_strdup(name);
@@ -249,16 +267,14 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 	}
 	if(file_handle_to_id == NULL)
 	{
-		file_handle_to_id = g_hash_table_new_full(g_int_hash, g_int_equal, free, free);
+		file_handle_to_id = g_hash_table_new_full(hash_MPI_File, equal_MPI_File, free, free);
 	}	
 
 	/* NOTE: it would be nice to canonicalize the file name, e.g. with 
 	 * nrealpath(name, NULL);. Unfortunately, this doesn't work with names 
      * beginning with "pvfs://"
 	 */ 
-	char * real_path = g_strdup(name);
-
-	gpointer name_result = g_hash_table_lookup(file_name_to_id, real_path); 
+	gpointer name_result = g_hash_table_lookup(file_name_to_id, name); 
 	gpointer handle_result = g_hash_table_lookup(file_handle_to_id, &fh);
 
 	if(name_result == NULL) //don't know the file
@@ -266,7 +282,7 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 		if(handle_result != NULL)
 		{
 			//the file has a handle without us knowing the name. this is bad
-			tsprintf(tracefile, "getFileIdEx(...): file handle without matching filename");
+			//hdt_debug(tracefile, "getFileIdEx(...): file handle without matching filename");
 			return -1;
 		}
 		else
@@ -274,14 +290,14 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 			// this is a new file
 			gint *g_id = malloc(sizeof(gint)); 
 			gint *g_id2 = malloc(sizeof(gint)); // this makes it easier to automatically free the memory
-			gint *g_fh = malloc(sizeof(gint));
+			MPI_File *g_fh = malloc(sizeof(MPI_File));
 			assert(sizeof(gint) >= sizeof(MPI_File));
 			
-			*g_fh = (gint)fh;
+			*g_fh = fh;
 			*g_id = file_id_counter;
 			*g_id2 = file_id_counter;
 
-			g_hash_table_insert(file_name_to_id, real_path, g_id);
+			g_hash_table_insert(file_name_to_id, g_strdup(name), g_id);
 			g_hash_table_insert(file_handle_to_id, g_fh, g_id2);
 
 			long long int fileSize;
@@ -309,11 +325,11 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 			{
 				// fix the fh -> id mapping and warn 
 				gint *g_id = malloc(sizeof(gint));
-				gint *g_fh = malloc(sizeof(gint));
+				MPI_File *g_fh = malloc(sizeof(MPI_File));
 				*g_id = *(gint*)name_result;
-				*g_fh = *(gint*)fh;
+				*g_fh = fh;
 
-				tprintf(tracefile, "file handle map and file name map do not match. id=%d", *g_id);
+				//hdt_debug(tracefile, "file handle map and file name map do not match. id=%d", *g_id);
 
 				g_hash_table_insert(file_handle_to_id, g_fh, g_id);
 				return *g_id;
@@ -324,9 +340,9 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 			// know the file, don't know the handle
 			// insert the fh -> id mapping
 			gint *g_id = malloc(sizeof(gint));
-			gint *g_fh = malloc(sizeof(gint));
+			MPI_File *g_fh = malloc(sizeof(MPI_File));
 			*g_id = *(gint*)name_result;
-			*g_fh = *(gint*)fh;
+			*g_fh = fh;
 
 			g_hash_table_insert(file_handle_to_id, g_fh, g_id);
 			return *g_id;
@@ -464,8 +480,9 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 	}
 }
 
+
 __thread GHashTable *type_table = NULL;
-__thread gint type_table_result = 1;
+__thread gint type_table_result = 1; // what is returned when the type is found in type_table
 
 static gint getTypeId(MPI_Datatype type)
 {
@@ -514,15 +531,15 @@ static gint getRequestIdForSplit(MPI_File file)
 {
 	if(fh_to_request_id == NULL)
 	{
-		fh_to_request_id = g_hash_table_new_full(g_int_hash, g_int_equal, free, free);
+		fh_to_request_id = g_hash_table_new_full(hash_MPI_File, equal_MPI_File, free, free);
 	}
 	gpointer result = g_hash_table_lookup(fh_to_request_id, &file);
 	if(result == NULL)
 	{
-		gint *g_fh = malloc(sizeof(gint));
+		MPI_File *g_fh = malloc(sizeof(MPI_File));
 		gint *g_id = malloc(sizeof(gint));
 		assert(sizeof(MPI_File) <= sizeof(gint)); // otherwise, casting to gint is bad
-		*g_fh = (gint)file;
+		*g_fh = file;
 		*g_id = request_counter;
 		request_counter++;
 		g_hash_table_insert(fh_to_request_id, g_fh, g_id);
@@ -596,6 +613,14 @@ static const char * getWhenceString(int whence)
 	}
 }
 
+#define NAME_LEN 10
+static __thread char hostname[HOST_NAME_MAX];
+static __thread char rankname[NAME_LEN];
+static __thread char threadname[NAME_LEN];
+
+static int thread_counter = 0;
+static pthread_mutex_t thread_counter_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static void after_Init(int *argc, char ***argv)
 {
 	int rank;
@@ -616,7 +641,26 @@ static void after_Init(int *argc, char ***argv)
 	
 	PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	tracefile = hdT_Create(rank);
+	// find out, which thread we're in
+    pthread_mutex_lock(&thread_counter_mutex);
+    int thread = thread_counter;
+    ++thread_counter;
+    pthread_mutex_unlock(&thread_counter_mutex);
+
+
+	gethostname(hostname, HOST_NAME_MAX);
+
+	snprintf(rankname, NAME_LEN, "%d", rank);
+	snprintf(threadname, NAME_LEN, "%d", thread);
+
+	//hdTopology topology = hdT_createTopology(hostname, rankname, "0");
+	hdTopology topology = hdT_createTopology(hostname, rankname, threadname);
+	hdTopoNames topo_names = hdT_createTopoNames("Host", "Rank", "Thread");
+
+	tracefile = hdT_createTrace(topology, topo_names);
+
+	if(tracefile == NULL)
+		printf("tracefile == NULL, errno=%d\n", errno);
 
 	pthread_mutex_lock(&envvar_mutex);
 	if(envvar_read == 0)
@@ -638,8 +682,8 @@ static void after_Init(int *argc, char ***argv)
 				}
 				else 
 				{
-					tprintf(tracefile, "environment variable %s has unrecognised value of %s",
-							control_vars[ii], env_var );
+					//tprintf(tracefile, "environment variable %s has unrecognised value of %s",
+					//		control_vars[ii], env_var );
 				}
 			}
 			ii++;

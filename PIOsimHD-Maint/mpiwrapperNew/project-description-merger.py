@@ -332,7 +332,6 @@ def subarray_string(id, combiner, name, integers, addresses, types):
 
 
 def darray_string(id, combiner, name, integers, addresses, types):
-
    assert int(integers[2]) * 4 + 4 == len(integers)
    result = ""
    result += '  <%s id="%s" name="%s" size="%s" order="%s" rank="%s" dims="%s">\n' % (combiner, id, name, integers[0], integers[-1], integers[1], integers[2])
