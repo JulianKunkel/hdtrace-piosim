@@ -122,9 +122,10 @@ typedef struct _hdStatsGroup * hdStatsGroup;
  * Create a new statistics group.
  */
 hdStatsGroup hdS_createGroup (
-        const char *groupName,  /* Name of the new group */
-        hdTopology topology,    /* Topology to assign group to */
-        int topologyLevel       /* Topology level to assign group to */
+        const char *groupName, /* Name of the new statistics group */
+        hdTopology topology,   /* Topology to use, only needed for project name */
+        hdTopoNode topoNode,   /* Topology node to use */
+        int topoLevel          /* Topology level the group shell belong to */
         );
 
 /**
@@ -159,6 +160,27 @@ int hdS_commitGroup (
  * The timestamp is 4 byte integer seconds and 4 byte integer nanoseconds since
  * epoch (Jan 01 1970). Function @b gettimeofday is used to get the time and the
  * returned microseconds are transferred to nanoseconds.
+ *
+ * @subsection ssecfc File Content
+ * The file written for each statistics group is constructed in three parts.
+ * -# The first part is only 5 bytes an contains the length of the header, the
+ *  second part, as string in decimal notation with leading zeros.
+ * -# The second part is the header. It describes the binary data, the third
+ *  part, and is written in incomplete XML notation.
+ * -# The third part is where the actual trace data are written to in entries
+ *  like described in "Writing Values".
+ *
+ * Example:
+ * @code
+ * 00152
+ * <Energy timestampDatatype="EPOCH">
+ *   <Voltage type="float" unit="mV"/>
+ *   <Current type="float" unit="mA"/>
+ *   <Power type="float" unit="mW"/>
+ * </Energy>
+ * BINARYBINARYBINARYBINARYBINAY.......
+ * @endcode
+ * 152 since '\\n' and spaces also count of cause.
  */
 
 /**

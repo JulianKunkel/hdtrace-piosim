@@ -20,9 +20,11 @@ SRCS = $(wildcard *.c)
 DEPDIR = .deps
 df = $(DEPDIR)/$(*F)
 
-.PHONY: all clean dist-clean
+BINS=hdTopoTest
 
-all: $(SRCS:%.c=%.o)
+.PHONY: all clean dist-clean force
+
+all: $(BINS)
 
 clean:
 	rm -f *.o $(BINS)
@@ -30,6 +32,9 @@ clean:
 dist-clean: clean
 	rm -f .deps/*
 
+../src/%o: force
+	$(MAKE) -C ../src $(notdir $@)
+	
 %.o : %.c
 	@echo "  DEP  $@"; \
 	$(MAKEDEPEND) $(CPPFLAGS) $(CFLAGS) -o $(df).d $<; \
@@ -40,4 +45,8 @@ dist-clean: clean
 	@echo "  CC   $@"; \
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
+hdTopoTest: hdTopoTest.o ../src/hdTopo.o
+	@echo "  LD  $@"; \
+	$(CC) $(LDFLAGS) -o $@ $^
+	
 -include $(SRCS:%.c=$(DEPDIR)/%.P)

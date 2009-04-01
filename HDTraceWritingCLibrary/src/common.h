@@ -27,7 +27,7 @@
  */
 char * generateFilename(
 		const char *project,
-		const hdTopology topology,
+		const hdTopoNode topology,
 		int level,
 		const char *groupname,
 		const char *affix

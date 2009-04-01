@@ -12,55 +12,106 @@
 #define HDTOPO_H_
 
 /**
- * Structure representing one topology instance
+ * @internal
+ * Structure representing one topology object.
+ *
+ * No not use directly, use \ref hdTopology instead.
  */
 struct _hdTopology {
-	const char *labelDepth1;
-	const char *labelDepth2;
-	const char *labelDepth3;
+	/**
+	 * Project name and label of the topology level 0.
+	 */
+	char *project;
+	/**
+	 * Names of the topology levels >0.
+	 */
+	char **levels;
+	/**
+	 * Number of levels the topology has beside root level 0
+	 */
+	int  nlevels;
 };
 
 /**
- * Type for topologies
+ * Type for using topology objects.
+ * Use \ref hdT_createTopology to get one of this objects.
  */
 typedef struct _hdTopology * hdTopology;
 
 /**
- * Type for topology names
+ * @internal
+ * Structure representing one topology node object.
+ *
+ * No not use directly, use \ref hdTopoNode instead.
  */
-typedef struct _hdTopology * hdTopoNames;
+struct _hdTopoNode {
+	/**
+	 * Path to the node.
+	 */
+	char **path;
+	/**
+	 * Length of the path.
+	 */
+	int  length;
+	/**
+	 * Path in string representation (for error reporting)
+	 */
+	char *string;
+};
+
+/**
+ * Type for using topology node objects
+ * Use \ref hdT_createTopoNode to get one of this objects.
+ */
+typedef struct _hdTopoNode * hdTopoNode;
 
 /**
  * Create new topology.
  */
 hdTopology hdT_createTopology(
-                const char *label1,
-                const char *label2,
-                const char *label3
-                );
+		const char *project,
+		char **levels,
+		int nlevels
+		);
 
 /**
- * Create new topology names.
+ * Get the depth of a topology.
  */
-hdTopoNames hdT_createTopoNames(
-                const char *name1,
-                const char *name2,
-                const char *name3
-                );
+int hdT_getTopoDepth(hdTopology topology);
 
 /**
- * Get the depth of the passed topology.
+ * Destroy topology object.
  */
-int hdT_getTopoDepth(
+int hdT_destroyTopology(
 		hdTopology topology
 		);
 
 /**
- * Get one level of the passed topology.
+ * Create new topology node.
  */
-const char * hdT_getTopoLevel(
-		hdTopology topology,
-		int level
+hdTopoNode hdT_createTopoNode(
+		char **path,
+		int length
 		);
+
+/**
+ * Get the topology tree level of a node.
+ */
+int hdT_getTopoNodeLevel(hdTopoNode node);
+
+/**
+ * Get the path string of a topology node.
+ */
+const char * hdT_getTopoPathString(hdTopoNode node);
+
+/**
+ * Get the label of one node at the passed \a node's path.
+ */
+const char * hdT_getTopoPathLabel(hdTopoNode node, int level);
+
+/**
+ * Destroy topology node.
+ */
+int hdT_destroyTopoNode(hdTopoNode node);
 
 #endif /* HDTOPO_H_ */

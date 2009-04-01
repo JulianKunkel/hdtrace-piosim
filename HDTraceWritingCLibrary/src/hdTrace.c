@@ -33,7 +33,7 @@
  */
 #define hdt_debugf(trace, format, ...) \
 	printf("D: [TRACER][%s] %s (%s:%d): " format "\n", \
-			hdT_getTopoLevel(trace->topology, 2), \
+			hdT_getTopoPathString(trace->topoNode), \
 			__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__);
 
 /**
@@ -41,7 +41,7 @@
  */
 #define hdt_debug(trace, string) \
 	printf("D: [TRACER][%s] %s (%s:%d): %s\n", \
-			hdT_getTopoLevel(trace->topology, 2), \
+			hdT_getTopoPathString(trace->topoNode), \
 			__FUNCTION__, __FILE__, __LINE__, string);
 
 /**
@@ -50,19 +50,15 @@
  */
 #define hdt_infof(trace, format, ...) \
 	printf("I: [TRACER][%s]: " format "\n", \
-			hdT_getTopoLevel(trace->topology, 2), __VA_ARGS__);
+			hdT_getTopoPathString(trace->topoNode), __VA_ARGS__);
 
 /**
  * Macro to print info message (fix string)
  */
 #define hdt_info(trace, string) \
 	printf("I: [TRACER][%s]: %s\n", \
-			hdT_getTopoLevel(trace->topology, 2), string);
+			hdT_getTopoPathString(trace->topoNode), string);
 
-/**
- * TODO: Description
- */
-static const char * project = "";
 
 //////////////////////////////////
 // Static function declarations //
@@ -105,18 +101,6 @@ static int writeState(hdTrace trace);
 /////////////////////////////////////
 
 /**
- * Initialize the trace environment.
- *
- * TODO: Description
- *
- * @param projectName  Name of the whole project
- */
-void hdT_Init(const char * projectName)
-{
-	project = projectName;
-}
-
-/**
  * Create, open and initialize trace for given topology.
  *
  * This function creates and opens the trace files for the given topology. The
@@ -124,8 +108,8 @@ void hdT_Init(const char * projectName)
  *
  * For example:
  * @code
- * hdTopology myTopo = hdT_createTopology("myhost", "myrank", "mythread");
- * hdTopoNames myTopoNames = hdT_createTopoNames("Host", "Rank", "Thread");
+ * hdTopoNode myTopo = hdT_createTopoNode("myhost", "myrank", "mythread");
+ * hdTopology myTopoNames = hdT_createTopology("Host", "Rank", "Thread");
  * hdT_createTrace(myTopo, myTopoNames);
  * @endcode
  * creates the following files:
@@ -145,7 +129,7 @@ void hdT_Init(const char * projectName)
  * - @ref HD_ERR_MALLOC
  * - @ref HD_ERR_CREATE_FILE
  *
- * @sa hdT_createTopology, hdT_createTopoNames
+ * @sa hdT_createTopoNode, hdT_createTopology
  */
 /*
  * Note that each thread must create its own trace file. However, the hdTrace (actually a Pointer) can
@@ -161,12 +145,12 @@ static int thread_counter = 0;
 static pthread_mutex_t thread_counter_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-hdTrace hdT_createTrace(hdTopology topology, hdTopoNames names)
+hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 {
-	/* good to know that hdTopology is the same as hdTopoNames ;) */
-	if (hdT_getTopoDepth(topology) <= 0
-			|| hdT_getTopoDepth(topology)
-			!= hdT_getTopoDepth((hdTopology) names))
+	/* good to know that hdTopoNode is the same as hdTopology ;) */
+	if (hdT_getTopoNodeLevel(topoNode) <= 0
+			|| hdT_getTopoNodeLevel(topoNode)
+			!= hdT_getTopoDepth(topology))
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return NULL;
@@ -197,8 +181,8 @@ hdTrace hdT_createTrace(hdTopology topology, hdTopoNames names)
 	char *filename;
 
 	// generate filename
-	filename = generateFilename(project, topology,
-			hdT_getTopoDepth(topology) - 1, NULL, ".xml");
+	filename = generateFilename(topology->project, topoNode,
+			hdT_getTopoNodeLevel(topoNode), NULL, ".xml");
 	if (filename == NULL)
 	{
 		return NULL;
@@ -220,8 +204,8 @@ hdTrace hdT_createTrace(hdTopology topology, hdTopoNames names)
 	 */
 
 	// generate filename
-	filename = generateFilename(project, topology,
-			hdT_getTopoDepth(topology) - 1, (char*) NULL, ".info");
+	filename = generateFilename(topology->project, topoNode,
+			hdT_getTopoNodeLevel(topoNode), (char*) NULL, ".info");
 	if (filename == NULL)
 	{
 		return NULL;
@@ -242,7 +226,8 @@ hdTrace hdT_createTrace(hdTopology topology, hdTopoNames names)
 	// write program definition file
 	if(rank == 0 && tracefile->thread == 0)
 	{
-		filename = generateFilename(project, topology, 1, NULL, "-desc.info");
+		filename = generateFilename(topology->project,
+				topoNode, 1, NULL, "-desc.info");
 
 		fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
 		if(fd == -1)
@@ -261,7 +246,8 @@ hdTrace hdT_createTrace(hdTopology topology, hdTopoNames names)
 		write(fd, filename, strlen(filename)); // TODO: check for write errors
 		for (i=0; i < size; i++)
 		{
-			snprintf(filename, HD_LOG_BUF_SIZE, "%s-%d-%d\n", filePrefix, i, thread);
+			snprintf(filename, HD_LOG_BUF_SIZE,
+					"%s-%d-%d\n", filePrefix, i, thread);
 			write(fd, filename, strlen(filename)); // TODO: check for write errors
 		}
 		close(fd);
@@ -272,7 +258,7 @@ hdTrace hdT_createTrace(hdTopology topology, hdTopoNames names)
 	trace->function_depth = -1;
 	trace->buffer_pos = 0;
 	trace->buffer[0] = '\0';
-	trace->topology = topology;
+	trace->topoNode = topoNode;
 
 	trace->always_flush = 0;
 	trace->trace_enable = 1;
@@ -287,8 +273,8 @@ hdTrace hdT_createTrace(hdTopology topology, hdTopoNames names)
 	// TODO: Adjust to new topology concept
 	hdT_LogWriteFormat(trace,
 			"<rank='%s' thread='%s'>\n<Program>\n",
-			hdT_getTopoLevel(topology, 2),
-			hdT_getTopoLevel(topology, 3)
+			hdT_getTopoPathLabel(topoNode, 2),
+			hdT_getTopoPathLabel(topoNode, 3)
 			);
 
 	return trace;

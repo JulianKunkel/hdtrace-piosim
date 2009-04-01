@@ -28,23 +28,22 @@
  * Create a new statistics group.
  *
  * Creates and opens the file for a new statistics group. The filename is built
- * using the rules for hdTrace statistics files an the given topology and
+ * using the rules for HDTrace statistics files an the given topology and
  * level.
  *
  * For example:
  * @code
- * hdTopology myTopo = hdT_createTopology("myhost", "myrank", "mythread");
- * hdS_createGroup("Energy", myTopo, 1);
+ * hdTopoNode myTopoNode = hdT_createTopoNode({"myhost", "myrank", "mythread"} , 3);
+ * hdS_createGroup("Energy", myTopoNode, 1);
  * @endcode
  * creates a file named @c Project_myhost_Energy.dat
  *
- * TODO: Need to get the project name
+ * @param groupName  Name of the new statistics group
+ * @param topology   Topology to use (for project name)
+ * @param topoNode   Topology node to use
+ * @param topoLevel  Topology level the group shell belong to
  *
- * @param groupName      Name of the new statistics group
- * @param topology       Name of the file to create for the group
- * @param topologyLevel  Level of topology the group belongs to
- *
- * @retval hdStatsGroup New statistics group
+ * @retval Statistics group on success
  * @retval NULL error, setting errno
  *
  * @errno
@@ -52,34 +51,35 @@
  *  - HD_ERR_MALLOC
  *  - HD_ERR_CREATE_FILE
  *
- *  @sa hdT_createTopology
+ *  @sa hdT_createTopoNode, hdT_createTopology
  */
 hdStatsGroup hdS_createGroup (
         const char *groupName, /* Name of the new statistics group */
-        hdTopology topology,   /* Name of the file to create for the group */
-        int topologyLevel      /* Level of topology the group belongs to */
+        hdTopology topology,   /* Topology to use, only needed for project name */
+        hdTopoNode topoNode,   /* Topology node to use */
+        int topoLevel          /* Topology level the group shell belong to */
         )
 {
 	size_t ret;
 
-	/* TODO where to get project? */
-	char *project = "Project";
-
 	/* check input */
-	if (isValidString(groupName) || hdT_getTopoDepth(topology) <= topologyLevel)
+	if (isValidString(groupName) || topology == NULL
+			|| hdT_getTopoNodeLevel(topoNode) <= topoLevel)
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return NULL;
 	}
 
 	/* generate filename of the form Project_Level1_Level2..._Group.dat */
-	char *filename = generateFilename(project, topology, topologyLevel, groupName, ".dat");
+	char *filename = generateFilename(topology->project,
+			topoNode, topoLevel, groupName, ".dat");
 	 if (filename == NULL)
 	 {
+		 /* errno set by generateFilename */
 		 return NULL;
 	 }
 
-	/* open file and truncate if it already exists  */
+	/* open file and truncate to zero if it already exists  */
 	FILE *tracefile = fopen(filename,"wb");
 	/* TODO: error checking */
 	free(filename);

@@ -128,7 +128,7 @@ struct _hdTrace {
 	/**
 	 * Topology leaf this trace belongs to.
 	 */
-	hdTopology topology;
+	hdTopoNode topoNode;
 
 	/**
 	 * TODO: Description
@@ -172,8 +172,8 @@ void hdT_Init(
  * Create, open and initialize trace for given topology.
  */
 hdTrace hdT_createTrace(
-		hdTopology topology,
-		hdTopoNames names
+		hdTopoNode topoNode,
+		hdTopology topology
 		);
 
 /**

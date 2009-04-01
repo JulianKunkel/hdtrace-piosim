@@ -25,33 +25,34 @@
 /**
  * Generate well formed filename.
  *
- * This function generates the filenames for the traces. If \a groupname is
+ * This function generates the filenames for the traces. If \a group is
  *  \a NULL, a name of the form "[Project]_[Level1]_[Level2]...[Affix]" is
- *  generated to be used in hdTrace. If \a groupname is not \a NULL a filename
- *  of the form "[Project]_[Level1]_[Level2]..._[Group][Affix]" is generated
- *  for hdStats.
+ *  generated to be used in hdTrace. If \a group is not \a NULL a filename of
+ *  the form "[Project]_[Level1]_[Level2]..._[Group][Affix]" is generated for
+ *  hdStats.
  *
- * For hdTrace usage \a max_level should always be the depth of the topology
- *  minus 1 since hdTrace files are only allowed for topology leaf nodes.
+ * For hdTrace usage \a level should always be the number of the highest level
+ *  of the topology since hdTrace files are only allowed for topology leaf
+ *  nodes.
  *
- * <b>The memory the returned \a char* pointing to is allocated by this
- *  function but the calling function has free it.</b>
+ * <b>The memory for the returned \a char* pointing to is allocated by this
+ *  function but the caller has to free it by himself.</b>
  *
  * Example:
  * @code
- * char * filename = generateFilename(topology, hdT_getTopoDepth(topology), NULL, ".xml");
+ * char * filename = generateFilename(toponode, hdT_getTopoNodeLevel(toponode), NULL, ".xml");
  * if (filename == NULL)
  *         // error
  * @endcode
  * @code
- * char * filename = generateFilename(topology, topologyLevel, groupName, ".dat");
+ * char * filename = generateFilename(toponode, topoLevel, groupName, ".dat");
  * if (filename == NULL)
  *         // error
  * @endcode
  *
  * @param project   Project the file is for
- * @param topology  Topology the file is for
- * @param max_level Maximum level to include in the filename
+ * @param toponode  Topology node to use
+ * @param level     Topology level to create the filename for
  * @param group     Name of statistics group or \a NULL for hdTrace filename
  * @param affix     Affix to append to the filename
  *
@@ -60,11 +61,11 @@
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-char * generateFilename(const char *project, hdTopology topology,
-		int max_level, const char *group, const char* affix)
+char * generateFilename(const char *project, hdTopoNode toponode,
+		int level, const char *group, const char* affix)
 {
 	/* check input */
-	if (!isValidString(project) || hdT_getTopoDepth(topology) >= max_level
+	if (!isValidString(project) || hdT_getTopoNodeLevel(toponode) <= level
 			|| !isValidString(affix))
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
@@ -89,10 +90,10 @@ char * generateFilename(const char *project, hdTopology topology,
 	pos = strlen(filename);
 
 	/* append "_level" for each topology level */
-	for (int i = 0; i <= max_level; ++i)
+	for (int i = 1; i <= level; ++i)
 	{
 		ret = snprintf(filename+pos, HD_MAX_FILENAME_LENGTH - pos, "_%s",
-				hdT_getTopoLevel(topology, i));
+				hdT_getTopoPathLabel(toponode, i));
 		ERROR_CHECK
 		pos = strlen(filename);
 	}
