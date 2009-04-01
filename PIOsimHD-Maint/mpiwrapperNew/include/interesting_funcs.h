@@ -44,6 +44,7 @@ int MPI_Allreduce(void* , void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 int MPI_Reduce_scatter(void* , void*, int *, MPI_Datatype, MPI_Op, MPI_Comm);
 int MPI_Scan(void* , void*, int, MPI_Datatype, MPI_Op, MPI_Comm );
 int MPI_Init(int *, char ***);
+int MPI_Init_thread(int *, char ***, int, int *);
 int MPI_Finalize(void);
 int MPI_Abort(MPI_Comm, int);
 int MPI_Comm_set_name(MPI_Comm, char *);
@@ -105,8 +106,10 @@ int MPI_File_set_info(MPI_File, MPI_Info);
 
 int MPI_Pcontrol(const int , ...);
 
-// int MPI_Type_vector(int, int, int, MPI_Datatype, MPI_Datatype *); 
+int MPI_Type_vector(int, int, int, MPI_Datatype, MPI_Datatype *); 
 
 int MPI_hdT_Test_nested(int, int);
 
 int MPI_Type_commit(MPI_Datatype *);
+
+int MPI_File_set_view(MPI_File, MPI_Offset, MPI_Datatype, MPI_Datatype, char *, MPI_Info);

@@ -49,7 +49,6 @@ static __thread hdTrace tracefile = NULL;
 
 static __thread char cnbuff[TMP_BUF_LEN];
 
-// Traces all functions, even those without a custom logging routine
 // TODO: these are not thread-safe yet
 
 static pthread_mutex_t envvar_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -406,6 +405,23 @@ static int getWorldRank(int rank, MPI_Comm comm)
 }
 
 
+static const char * getDistributeConstantName(int constant)
+{
+	if(constant == MPI_DISTRIBUTE_BLOCK)
+		return "MPI_DISTRIBUTE_BLOCK";
+	else if(constant == MPI_DISTRIBUTE_CYCLIC)
+		return "MPI_DISTRIBUTE_CYCLIC";
+	else if(constant == MPI_DISTRIBUTE_NONE)
+		return "MPI_DISTRIBUTE_NONE";
+	else if(constant == MPI_DISTRIBUTE_DFLT_DARG)
+		return "MPI_DISTRIBUTE_DFLT_DARG";
+	else
+	{
+		// TODO: this is an error
+		return "???";
+	}
+}
+
 static gint getTypeId(MPI_Datatype type);
 
 static void writeTypeInfo(MPI_Datatype type, gint id)
@@ -442,11 +458,39 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 		pos = hdT_min(pos, TMP_BUF_LEN);
 
 		int i;
-		for(i = 0; i < max_integers; ++i)
+		if(combiner == MPI_COMBINER_DARRAY)
 		{
-			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
-							"%d;", integers[i] );
-			pos = hdT_min(pos, TMP_BUF_LEN);
+			// this is not nice, but we need to log the names of the constantes 
+			// used by mpi_create_darray, not the numerical values
+			assert(max_integers > 2);
+			for(i = 0; i < integers[2] + 3; ++i)
+			{
+				pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+								"%d;", integers[i] );
+				pos = hdT_min(pos, TMP_BUF_LEN);
+			}
+
+			for(i = integers[2] + 3; i < integers[2]*3 + 3; ++i)
+			{
+				pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+								"%s;", getDistributeConstantName(integers[i]) );
+				pos = hdT_min(pos, TMP_BUF_LEN);
+			}
+			for(i = integers[2]*3 + 3; i < max_integers; ++i)
+			{
+				pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+								"%d;", integers[i] );
+				pos = hdT_min(pos, TMP_BUF_LEN);
+			}
+		}
+		else
+		{
+			for(i = 0; i < max_integers; ++i)
+			{
+				pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+								"%d;", integers[i] );
+				pos = hdT_min(pos, TMP_BUF_LEN);
+			}
 		}
 
 		pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
@@ -538,7 +582,6 @@ static gint getRequestIdForSplit(MPI_File file)
 	{
 		MPI_File *g_fh = malloc(sizeof(MPI_File));
 		gint *g_id = malloc(sizeof(gint));
-		assert(sizeof(MPI_File) <= sizeof(gint)); // otherwise, casting to gint is bad
 		*g_fh = file;
 		*g_id = request_counter;
 		request_counter++;
@@ -634,10 +677,10 @@ static void after_Init(int *argc, char ***argv)
 	}
 	else
 	{
-		snprintf(basename, TMP_BUF_LEN, "trace_%s", (*argv)[0]+2 );
+		snprintf(basename, TMP_BUF_LEN, "trace_%s", (*argv)[0] );
 	}
 	
-	hdT_Init(basename);
+	//hdT_Init(basename);
 	
 	PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -653,14 +696,18 @@ static void after_Init(int *argc, char ***argv)
 	snprintf(rankname, NAME_LEN, "%d", rank);
 	snprintf(threadname, NAME_LEN, "%d", thread);
 
+	char *toponames[3] = {"Host", "Rank", "Thread"};
+	char *levels[3] = {hostname, rankname, threadname};
+
 	//hdTopology topology = hdT_createTopology(hostname, rankname, "0");
-	hdTopology topology = hdT_createTopology(hostname, rankname, threadname);
-	hdTopoNames topo_names = hdT_createTopoNames("Host", "Rank", "Thread");
+	hdTopology topology = hdT_createTopology(basename, toponames, 3);
+	hdTopoNode topo_names = hdT_createTopoNode(levels, 3);
 
-	tracefile = hdT_createTrace(topology, topo_names);
 
-	if(tracefile == NULL)
-		printf("tracefile == NULL, errno=%d\n", errno);
+	tracefile = hdT_createTrace(topo_names, topology);
+
+	//if(tracefile == NULL)
+	//     printf("tracefile == NULL, errno=%d\n", errno);
 
 	pthread_mutex_lock(&envvar_mutex);
 	if(envvar_read == 0)

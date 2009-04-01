@@ -6,4 +6,4 @@ all:
 	$(CC) -o mpi-io-test mpi-io-test.c
 
 clean:
-	rm *.o *~ trace* comm file nested types
+	rm -f *.o *~ trace* comm file nested types mpi-io-test *.tmp

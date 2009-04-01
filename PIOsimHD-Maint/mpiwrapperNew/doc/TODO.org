@@ -83,6 +83,7 @@
 *** TODO Description File
     Das Description-File wird derzeit von Rang 0 geschrieben. 
     Wenn mehrere threads zugelassen sind -> ungünstig
+*** TODO brauche ein programm um thread-sicherheit zu testen
 * Aufgaben
 ** DONE Tests zum laufen kriegen
    Offizieller mpich-test compiliert größtenteils 
@@ -386,38 +387,35 @@ Per HashMap Communicator ID speichern
 ** DONE unifytraces: wenn im selben Verzeichnis ausgeführt 
    -> fehler wenn ./ vor dateinamen weggelassen
 ** DONE comm-rank -> world-rank im log
-** TODO Struktur umstellen
+** DONE create_sim-wrapper formatieren
+** DONE create_sim-wrapper: split collecve *_end funktionen: attribute schreiben!
+** DONE Verzeichnisstruktur umstellen
 ** TODO clean getFileIdEx
 ** TODO set_view loggen -> datentyp
-** TODO Endtags!
-** TODO Datei-Dupletten beseitigen
+** DONE Endtags!
+** DONE Datei-Dupletten beseitigen
 ** DONE stephans filewriter verwenden
-** TODO merger ordentlich machen + dokumentieren
-** TODO topologie ändern (merger, writer)
-   -> Projektname trace_mpi-io-test_hostname_rank_thread_
-
+** DONE merger ordentlich machen + dokumentieren
 ** TODO threads testen
 ** TODO eigene tests dokumentieren, am besten vollautom. test
 ** TODO überall datentyp rausschreiben
-** TODO trace-dateinamen normalisieren
-** TODO project-description-merger
-*** TODO Refactor
-*** TODO DARRAY ausgabe: MPI-Knostanten ordentlich loggen (MPI_DISTRIBUTE_BLOCK...)
-*** TODO Kommunikator- und Typnamen in unifyTraces zusammenbasteln
+** DONE DARRAY ausgabe: MPI-Knostanten ordentlich loggen (MPI_DISTRIBUTE_BLOCK...)
+** DONE project-description-merger
+*** DONE Kommunikator- und Typnamen in unifyTraces zusammenbasteln
 *** DONE project-description-merger + hdtraceWriter.c
    replace minus with underscore in filenames
 
 ** TODO Zur Zeit werden die Funktionsnamen kopiert: man kann auch den zeiger
   speichern (da sowieso statisch). ist das sinnvoll?
 ** TODO Kommentare optimiern
-** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
-   - einlesen der globalen variablen: 
+** TODO lizenz - header
 ** DONE Wenn auf Datei nur über den namen zugegriffen wird, wird filesize=0 geloggt.
    - works as intended. Bis jetzt ist das nur der fall, wenn die datei gelöscht wird.
 ** TODO wenn File_open etc. schiefgeht -> nicht loggen?
-** TODO g_int_equal nicht mehr für zeiger verwenden
-   oder wenigstens asserts reinmachen, dass die casts nicht verlustbehaftet sind...
-** TODO Feinschliff
+** DONE g_int_equal nicht mehr für zeiger verwenden
+** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
+   - einlesen der globalen variablen: 
+** TODO thread tests aus mpi2test funktionieren nicht ?
 ** TODO Testen
 *** TODO
     werden auch veränderbare argumente vor/nach dem mpi-aufruf geloggt?

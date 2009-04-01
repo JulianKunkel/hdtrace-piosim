@@ -1,24 +1,35 @@
-CFLAGS  += -Wall -ggdb  -I../../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS`
+CFLAGS  += -Wall -pedantic -std=gnu99 -ggdb  -I../../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS`
 LDFLAGS += $(shell pkg-config --libs glib-2.0)
 
-all: libHDTraceMPIWrapper.a
-#all: libHDTrace.a  libHDTraceMPIWrapper.a
+.PHONY: all
+all: libs/libHDTraceMPIWrapper.a
 
-#HDTraceWriter.o: HDTraceWriter.c HDTraceWriter.h
+libs/libHDTraceMPIWrapper.a: src/HDTraceMPIWrapper.o $(LDFLAGS)
+	ar rcs libs/libHDTraceMPIWrapper.a src/HDTraceMPIWrapper.o 
 
-#libHDTrace.a: HDTraceWriter.o
-#	ar rcs libHDTrace.a HDTraceWriter.o
+src/HDTraceMPIWrapper.o: src/HDTraceMPIWrapper.src.c 
 
-libHDTraceMPIWrapper.a: HDTraceMPIWrapper.o $(LDFLAGS)
-	ar rcs libHDTraceMPIWrapper.a HDTraceMPIWrapper.o 
 
-HDTraceMPIWrapper.src.o: HDTraceMPIWrapper.src.c
+src/HDTraceMPIWrapper.c: src/HDTraceMPIWrapper.src.c scripts/create_sim-wrapper.py scripts/wrapper_conf.py include/interesting_funcs.h
+	cat src/HDTraceMPIWrapper.src.c > src/HDTraceMPIWrapper.c
+	scripts/create_sim-wrapper.py include/interesting_funcs.h >> src/HDTraceMPIWrapper.c
 
-HDTraceMPIWrapper.c: HDTraceMPIWrapper.src.c ./create_sim-wrapper.py
-	cat HDTraceMPIWrapper.src.c > HDTraceMPIWrapper.c
-	./create_sim-wrapper.py >> HDTraceMPIWrapper.c
+.PHONY: test
+
+test:
+	cd test ; make
+
+.PHONY: hdtest
+
+hdtest: all
+	cd test ; make hdtest
+
+.PHONY: clean
 
 clean:
-	rm *.o *.a HDTraceMPIWrapper.c
+	cd test ; make clean
+	rm -f src/*.o libs/*.a
+	rm -f src/HDTraceMPIWrapper.c
+
 
 ### libglib2.0-0
