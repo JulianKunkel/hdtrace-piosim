@@ -61,7 +61,7 @@
 				<Current type="float" multiplier="1000" unit="mA"/>				
 				<Power type="float" multiplier="1000" unit="mW"/>				
 			</Energy>
-			<Kernel timestampDatatype="EPOCH" timeOffset="30.001s"> <!-- implizit stored in a file stat_Kernel -->
+			<Kernel timestampDatatype="EPOCH" timeOffset="30.001s">
 				<Load type="float" multiplier="1000"/>
 			</Kernel>
 </ExternalStatistics>
