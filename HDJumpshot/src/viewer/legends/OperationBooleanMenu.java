@@ -63,13 +63,13 @@ public class OperationBooleanMenu extends JPopupMenu {
 			+ "checkbox/DisableAll.gif";
 
 	private JTable table_view;
-	private LegendTableModel table_model;
+	private LegendTableTraceModel table_model;
 	private int bool_column; // index where Boolean.class is
 
 	public OperationBooleanMenu(JTable in_table, int in_column) {
 		super();
 		table_view = in_table;
-		table_model = (LegendTableModel) table_view.getModel();
+		table_model = (LegendTableTraceModel) table_view.getModel();
 		bool_column = in_column;
 
 		super.setLabel(table_model.getColumnName(bool_column));
@@ -146,6 +146,8 @@ public class OperationBooleanMenu extends JPopupMenu {
 		int irows_length, irow, idx;
 		Boolean bval;
 
+		table_model.enableCategoryListener(false);
+		
 		irows = table_view.getSelectedRows();
 		irows_length = irows.length;
 		for (idx = 0; idx < irows_length; idx++) {
@@ -156,11 +158,17 @@ public class OperationBooleanMenu extends JPopupMenu {
 			else
 				table_model.setValueAt(Boolean.TRUE, irow, icolumn);
 		}
+		
+		table_model.enableCategoryListener(true);
+		if(icolumn == 2)
+			table_model.fireCategoryVisibilityChanged();
 	}
 
 	private void setSelectedAtColumn(int icolumn, Boolean bval) {
 		int[] irows;
 		int irows_length, irow, idx;
+		
+		table_model.enableCategoryListener(false);
 
 		irows = table_view.getSelectedRows();
 		irows_length = irows.length;
@@ -168,12 +176,18 @@ public class OperationBooleanMenu extends JPopupMenu {
 			irow = irows[idx];
 			table_model.setValueAt(bval, irow, icolumn);
 		}
+		
+		table_model.enableCategoryListener(true);
+		if(icolumn == 2)
+			table_model.fireCategoryVisibilityChanged();
 	}
 
 	private void toggleAllAtColumn(int icolumn) {
 		int irows_length, irow;
 		Boolean bval;
 
+		table_model.enableCategoryListener(false);
+		
 		irows_length = table_model.getRowCount();
 		for (irow = 0; irow < irows_length; irow++) {
 			bval = (Boolean) table_model.getValueAt(irow, icolumn);
@@ -182,14 +196,25 @@ public class OperationBooleanMenu extends JPopupMenu {
 			else
 				table_model.setValueAt(Boolean.TRUE, irow, icolumn);
 		}
+		
+		table_model.enableCategoryListener(true);
+		if(icolumn == 2)
+			table_model.fireCategoryVisibilityChanged();
 	}
 
 	private void setAllAtColumn(int icolumn, Boolean bval) {
 		int irows_length, irow;
 
+		table_model.enableCategoryListener(false);
+		
 		irows_length = table_model.getRowCount();
 		for (irow = 0; irow < irows_length; irow++) {
 			table_model.setValueAt(bval, irow, icolumn);
 		}
+		
+		
+		table_model.enableCategoryListener(true);
+		if(icolumn == 2)
+			table_model.fireCategoryVisibilityChanged();
 	}
 }

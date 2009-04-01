@@ -56,10 +56,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 
-import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
@@ -163,7 +160,7 @@ public class TimelinePanel extends JPanel
 
 		this.topologyManager = new TopologyManager(reader);
 
-		reader.getLegendModel().addCategoryUpdateListener(myTableLegendChangeListener);
+		reader.getLegendTraceModel().addCategoryUpdateListener(myTableLegendChangeListener);
 
 		root_window  = parent_window;
 

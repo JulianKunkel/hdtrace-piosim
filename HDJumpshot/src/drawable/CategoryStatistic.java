@@ -26,8 +26,37 @@
 package drawable;
 
 public class CategoryStatistic extends Category {
+	public enum Scaling{
+		DECIMAL,
+		LOGARITHMIC
+	}
+	
+	public enum Adjustment{
+		GLOBAL_MAX_VALUE,
+		LOCAL_MAX_VALUE
+	}
+	
+	private Scaling scaling = Scaling.DECIMAL;
+	private Adjustment adjustment = Adjustment.GLOBAL_MAX_VALUE;	
+	
 	public CategoryStatistic(String in_name, ColorAlpha in_color ) {
 		super(in_name, in_color);
+	}	
+
+	public Adjustment getAdjustment() {
+		return adjustment;
+	}
+	
+	public Scaling getScaling() {
+		return scaling;
+	}
+	
+	public void setAdjustment(Adjustment adaption) {
+		this.adjustment = adaption;
+	}
+	
+	public void setScaling(Scaling scaling) {
+		this.scaling = scaling;
 	}
 	
 	@Override

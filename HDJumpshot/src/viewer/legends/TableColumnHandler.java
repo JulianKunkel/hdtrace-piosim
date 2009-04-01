@@ -35,12 +35,12 @@
 package viewer.legends;
 
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.JTableHeader;
 
 
@@ -70,10 +70,8 @@ public class TableColumnHandler extends MouseAdapter
     */
     public void mousePressed( MouseEvent evt )
     {
-        Rectangle  header_rect;
         Point      click;
         int        click_column, model_column;
-        int        pt_x, pt_y;
 
         if ( ! SwingUtilities.isRightMouseButton( evt ) )
             return;

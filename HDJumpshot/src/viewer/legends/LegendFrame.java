@@ -36,10 +36,13 @@ package viewer.legends;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
+import javax.swing.JSplitPane;
 import javax.swing.WindowConstants;
 
 import viewer.common.TopWindow;
@@ -47,7 +50,9 @@ import viewer.common.TopWindow;
 
 public class LegendFrame extends JFrame
 {
-    private        LegendPanel    top_panel;
+    private        LegendTracePanel        trace_panel;
+    private        LegendStatisticPanel    statistic_panel;
+    
 
     public LegendFrame( final TraceFormatBufferedFileReader  reader )
     {
@@ -56,16 +61,35 @@ public class LegendFrame extends JFrame
         TopWindow.Legend.disposeAll();
         TopWindow.Legend.setWindow( this );
 
-        top_panel = new LegendPanel( reader );
-        super.setContentPane( top_panel );
+        trace_panel = new LegendTracePanel( reader );
+        statistic_panel = new LegendStatisticPanel(reader);
+        
+        final JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);        
+        split.setOneTouchExpandable(true);
+        
+        final Dimension minimumSize = new Dimension(100, 50);
+        trace_panel.setMinimumSize(minimumSize);
+        statistic_panel.setMinimumSize(minimumSize);
+                
+        //panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );        
+        split.add(trace_panel);
+        split.add(statistic_panel);     
+        
+        super.setContentPane( split );
+        
+        // set a nice height:
 
+        // determine real width/height:
+        this.pack();      
+        final Dimension maxSize = Toolkit.getDefaultToolkit().getScreenSize();          
+        this.setPreferredSize(new Dimension(getWidth(), maxSize.height / 9 * 8));                
+
+        // do not really close upon close:
         addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
                 LegendFrame.this.setVisible( false );
             }
         } );
-
-        /* setVisible( true ); */
     }
 
     public void setVisible( boolean val )

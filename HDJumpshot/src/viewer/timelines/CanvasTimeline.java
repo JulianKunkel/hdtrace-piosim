@@ -80,9 +80,12 @@ import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
+import drawable.CategoryStatistic;
 import drawable.ColorAlpha;
 import drawable.DrawObjects;
 import drawable.TimeBoundingBox;
+import drawable.CategoryStatistic.Adjustment;
+import drawable.CategoryStatistic.Scaling;
 
 public class CanvasTimeline extends ScrollableObject implements SearchableView
 {
@@ -139,7 +142,8 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		root_frame      = null;
 
-		reader.getLegendModel().addCategoryUpdateListener(categoryVisibleListener);
+		reader.getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
+		reader.getLegendStatisticModel().addCategoryUpdateListener(categoryVisibleListener);
 
 		topologyManager.addTopologyChangedListener(topologyChangeListener);
 	}
@@ -318,8 +322,10 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		double lastTime = vStartTime.getDouble();
 		
-		final Category cat = reader.getCategory(group, statName);
+		final CategoryStatistic cat = reader.getCategory(group, statName);
 		final ColorAlpha color = cat.getColor();
+		
+		final int statNumberInGroup = node.getNumberInGroup();
 
 		if(! cat.isVisible()){
 			return 0;
@@ -327,7 +333,23 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		
 		int drawedStatistics = 0;
 
-		final double maxValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMaxValue();
+		/** 
+		 * How do we tread the maximum value:
+		 */
+		double maxValue;
+		final Scaling scale = cat.getScaling();
+		
+		if( cat.getAdjustment() == Adjustment.GLOBAL_MAX_VALUE ){
+			maxValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMaxValue();
+		}else{
+			maxValue = sReader.getMaxNumericValue(statNumberInGroup);
+		}
+		
+		if(scale == Scaling.LOGARITHMIC){
+			maxValue = Math.log10(maxValue);
+		}
+		
+		
 		final StatisticDescription statDesc =  group.getStatistic(statName);
 		final int statNumber = statDesc.getNumberInGroup();
 		
@@ -336,8 +358,19 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 				vEndTime.add(getModelTime().getTimeGlobalMinimum()));
 
 		while(entries.hasMoreElements()){
-			StatisticGroupEntry entry = entries.nextElement();
-			double value =  (entry.getNumeric(statNumber) / maxValue);
+			final StatisticGroupEntry entry = entries.nextElement();
+			final double value;
+			switch(scale){
+			case DECIMAL:
+				value =  (entry.getNumeric(statNumber) / maxValue);
+				break;
+			case LOGARITHMIC:
+				value =  Math.log10((entry.getNumeric(statNumber)))/ maxValue;
+				break;
+			default:
+				value = 0;
+			}
+			
 			final Epoch adaptedTime = entry.getEarliestTime().subtract(globalMinTime) ;
 
 			DrawObjects.drawStatistic(offGraphics, coord_xform, 

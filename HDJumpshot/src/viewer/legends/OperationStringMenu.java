@@ -57,14 +57,14 @@ public class OperationStringMenu extends JPopupMenu
 	private static String     reverse_order_icon_path	= Const.IMG_PATH	+ "checkbox/ReverseOrder.gif";
 
 	private JTable            table_view;
-	private LegendTableModel  table_model;
+	private LegendTableTraceModel  table_model;
 	private int               str_column;  // index where String.class is
 
 	public OperationStringMenu( JTable in_table, int in_column )
 	{
 		super();
 		table_view  = in_table;
-		table_model = (LegendTableModel) table_view.getModel();
+		table_model = (LegendTableTraceModel) table_view.getModel();
 		str_column  = in_column;
 
 		super.setLabel( table_model.getColumnName( str_column ) );

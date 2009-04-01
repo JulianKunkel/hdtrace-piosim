@@ -34,28 +34,24 @@
 
 package viewer.legends;
 
-import java.awt.Point;
 import java.awt.Color;
-import java.awt.event.MouseEvent;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import javax.swing.Icon;
-import javax.swing.border.Border;
-import javax.swing.BorderFactory;
 import javax.swing.SwingConstants;
-import javax.swing.JTable;
-import javax.swing.table.TableModel;
-import javax.swing.table.JTableHeader;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 
 public class GenericHeaderRenderer extends DefaultTableCellRenderer
 {
-    private static final Border BORDER
-                                = BorderFactory.createEmptyBorder( 1,3,1,3 );
-
-    private JTable             table_view;
+	private static final long serialVersionUID = -1929338988672843913L;
+	
+	private LegendTable   table_view;
     private int                renderer_column;
 
-    private LegendTableModel   table_model;
+    private LegendTableTraceModel   table_model;
     private JTableHeader       table_header;
     private Color              released_bg_color;
     private Color              pressed_bg_color;
@@ -69,7 +65,7 @@ public class GenericHeaderRenderer extends DefaultTableCellRenderer
         table_view       = in_table;
         renderer_column  = icolumn;
 
-        table_model = (LegendTableModel) table_view.getModel();
+        table_model = (LegendTableTraceModel) table_view.getModel();
         super.setText( table_model.getColumnName( icolumn ) );
         super.setToolTipText( table_model.getColumnToolTip( icolumn ) );
         super.setHorizontalAlignment( SwingConstants.CENTER );
@@ -78,10 +74,6 @@ public class GenericHeaderRenderer extends DefaultTableCellRenderer
         released_bg_color  = table_model.getColumnNameBackground( icolumn );
         pressed_bg_color   = released_bg_color.darker();
         super.setBackground( released_bg_color );
-
-        table_header       = null;
-        released_tab_icon  = null;
-        pressed_tab_icon   = null;
     }
 
     /*

@@ -32,14 +32,14 @@ import java.util.HashMap;
 
 import topology.GlobalStatisticStatsPerGroup;
 import topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
-import viewer.legends.LegendTableModel;
+import viewer.legends.LegendTableStatisticModel;
+import viewer.legends.LegendTableTraceModel;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
@@ -65,14 +65,15 @@ public class TraceFormatBufferedFileReader {
 	private Epoch globalMinTime = new Epoch(Integer.MAX_VALUE, 0);
 	private Epoch globalMaxTime = new Epoch(Integer.MIN_VALUE, -1);
 
-	final LegendTableModel legendModel = new LegendTableModel();
+	final LegendTableTraceModel legendTraceModel = new LegendTableTraceModel();
+	final LegendTableStatisticModel legendStatisticModel = new LegendTableStatisticModel();
 
 	final ArrayList<TraceFormatFileOpener> loadedFiles = new ArrayList<TraceFormatFileOpener>();
 
 	// map category names to the category:
 	HashMap<String, Category> categoriesStates = new HashMap<String, Category>();	
 	HashMap<String, Category> categoriesEvents = new HashMap<String, Category>();
-	HashMap<String, Category> categoriesStatistics = new HashMap<String, Category>();
+	HashMap<String, CategoryStatistic> categoriesStatistics = new HashMap<String, CategoryStatistic>();
 
 	HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
@@ -113,8 +114,13 @@ public class TraceFormatBufferedFileReader {
 
 			final StatisticsGroupDescription group = reader.getGroup();
 
-			final GlobalStatisticStatsPerGroup globalStats = new GlobalStatisticStatsPerGroup(group);
-			globalStatStats.put(group, globalStats);
+			GlobalStatisticStatsPerGroup globalStats = globalStatStats.get(group);
+			
+			if (globalStats == null){
+				globalStats = new GlobalStatisticStatsPerGroup(group);
+				globalStatStats.put(group, globalStats);				
+			}
+			
 			// for each member, update global statistic information TODO put into a file
 			int groupNumber = -1;
 			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
@@ -131,29 +137,17 @@ public class TraceFormatBufferedFileReader {
 
 				// compute statistic if possible:
 				if(statDesc.isNumeric()){
-
-					double fileMaxValue = Double.MIN_VALUE;
-					double fileMinValue = Double.MAX_VALUE;
-
-					// check file:
-					for(StatisticGroupEntry entry: reader.statEntries){
-						double value = entry.getNumeric(groupNumber);
-
-						if( value > fileMaxValue ) fileMaxValue = value;
-						if( value < fileMinValue ) fileMinValue = value;
-					}
-
 					// update globals:
 					double globalMaxValue = statsPerStatistic.getGlobalMaxValue();
 					double globalMinValue = statsPerStatistic.getGlobalMinValue(); 
 
-					if( fileMaxValue > globalMaxValue ) globalMaxValue = fileMaxValue;
-					if( fileMinValue < globalMinValue ) globalMinValue = fileMinValue;
+					if( reader.getMaxNumericValue(groupNumber) > globalMaxValue ) globalMaxValue = reader.getMaxNumericValue(groupNumber);
+					if( reader.getMinNumericValue(groupNumber) < globalMinValue ) globalMinValue = reader.getMinNumericValue(groupNumber);
 
 					statsPerStatistic.setGlobalMaxValue(globalMaxValue);
 					statsPerStatistic.setGlobalMinValue(globalMinValue);
 
-					//System.out.println(stat + " " + globalMaxValue +"  min " + globalMinValue + " file-min: " + fileMinValue + " max: " + fileMaxValue);
+					//System.out.println(stat + " " + globalMaxValue +"  min " + globalMinValue + " file-max: " + reader.getMaxNumericValue(groupNumber));
 				}				
 			}
 		}
@@ -227,16 +221,18 @@ public class TraceFormatBufferedFileReader {
 
 
 		// update legends:
-		legendModel.clearCategories();
+		legendTraceModel.clearCategories();
+		legendStatisticModel.clearCategories();
 
 		for(Category cat: getCategoriesEvents().values())
-			legendModel.addCategory(cat);
+			legendTraceModel.addCategory(cat);
 		for(Category cat: getCategoriesStates().values())
-			legendModel.addCategory(cat);
+			legendTraceModel.addCategory(cat);
 		for(Category cat: getCategoriesStatistics().values())
-			legendModel.addCategory(cat);
+			legendStatisticModel.addCategory(cat);
 
-		legendModel.commitModel();		
+		legendTraceModel.commitModel();
+		legendStatisticModel.commitModel();
 	}
 
 	public int getNumberOfFilesLoaded(){
@@ -275,7 +271,7 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStates;
 	}
 
-	public HashMap<String, Category> getCategoriesStatistics() {
+	public HashMap<String, CategoryStatistic> getCategoriesStatistics() {
 		return categoriesStatistics;
 	}
 
@@ -302,7 +298,7 @@ public class TraceFormatBufferedFileReader {
 		return null;	
 	}
 
-	public Category getCategory(StatisticsGroupDescription group, String statistic){
+	public CategoryStatistic getCategory(StatisticsGroupDescription group, String statistic){
 		return categoriesStatistics.get(group.getName() + ":" + statistic);
 	}
 
@@ -314,7 +310,11 @@ public class TraceFormatBufferedFileReader {
 		return globalStatStats.get(group);
 	}
 
-	public LegendTableModel getLegendModel() {
-		return legendModel;
+	public LegendTableTraceModel getLegendTraceModel() {
+		return legendTraceModel;
+	}
+	
+	public LegendTableStatisticModel getLegendStatisticModel() {
+		return legendStatisticModel;
 	}
 }
