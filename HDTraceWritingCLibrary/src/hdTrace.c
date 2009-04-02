@@ -188,38 +188,6 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
 
-#if 0
-	// write program definition file
-	if(rank == 0 && tracefile->thread == 0)
-	{
-		filename = generateFilename(topology->project,
-				topoNode, 1, NULL, "-desc.info");
-
-		fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
-		if(fd == -1)
-		{
-			perror("Could not open file:");
-			perror(filename);
-			return NULL;
-		}
-		free(filename);
-
-		int size = 0;
-		int i;
-		MPI_Comm_size(MPI_COMM_WORLD,& size);
-
-		sprintf(filename, "%d\n", size);
-		write(fd, filename, strlen(filename)); // TODO: check for write errors
-		for (i=0; i < size; i++)
-		{
-			snprintf(filename, HD_LOG_BUF_SIZE,
-					"%s-%d-%d\n", filePrefix, i, thread);
-			write(fd, filename, strlen(filename)); // TODO: check for write errors
-		}
-		close(fd);
-	}
-#endif
-
 	/* initialize remaining trace file structure */
 	trace->function_depth = -1;
 	trace->buffer_pos = 0;

@@ -172,13 +172,6 @@ typedef struct _hdTrace * hdTrace;
 
 
 /**
- * Initialize the trace environment
- */
-void hdT_Init(
-		const char * filePrefix
-		);
-
-/**
  * Create, open and initialize trace for given topology.
  */
 hdTrace hdT_createTrace(

@@ -25,6 +25,7 @@
 
 #include "config.h"
 
+
 /**
  * Generate well formed filename.
  *
@@ -62,39 +63,49 @@
  * @return Generated filename of \a NULL on error setting \a errno
  *
  * @errno
- * - HD_ERR_INVALID_ARGUMENT
+ * - HD_ERR_MALLOC
+ * - HD_ERR_BUFFER_OVERFLOW
  */
 char * generateFilename(const char *project, hdTopoNode toponode,
 		int level, const char *group, const char* affix)
 {
 	/* check input */
-	if (!isValidString(project) || hdT_getTopoNodeLevel(toponode) < level
-			|| !isValidString(affix))
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return NULL;
-	}
+	assert(isValidString(project));
+	assert(hdT_getTopoNodeLevel(toponode) >= level);
+	assert(isValidString(affix));
 
 	/* generate filename */
+	assert(HD_MAX_FILENAME_LENGTH != 0);
 	char *filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(*filename));
+	if(filename == NULL)
+	{
+		hd_error_msg("malloc() error during %s filename generation for %s: %s",
+				affix, toponode->string, strerror(errno));
+		hd_error_return(HD_ERR_MALLOC, NULL);
+	}
+
 	size_t pos = 0;
 	size_t ret;
+
+#define ERROR_MSG \
+	hd_error_msg("Overflow of HD_MAX_FILENAME_LENGTH buffer during" \
+			" %s filename generation for %s", affix, toponode->string);
 
 	strncpy(filename, project, HD_MAX_FILENAME_LENGTH);
 	if (filename[HD_MAX_FILENAME_LENGTH - 1] != '\0')
 	{
-		errno = HD_ERR_CREATE_FILE;
+		ERROR_MSG
 		free(filename);
-		return NULL;
+		hd_error_return(HD_ERR_BUFFER_OVERFLOW, NULL);
 	}
 	pos = strlen(filename);
 
 #define ERROR_CHECK \
 	if (ret >= HD_MAX_FILENAME_LENGTH - pos) \
 	{ \
-		errno = HD_ERR_CREATE_FILE; \
+		ERROR_MSG \
 		free(filename); \
-		return NULL; \
+		hd_error_return(HD_ERR_BUFFER_OVERFLOW, NULL); \
 	} \
 
 	/* append "_level" for each topology level */
@@ -119,6 +130,7 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	}
 
 #undef ERROR_CHECK
+#undef ERROR_MSG
 
 	return filename;
 }
@@ -178,10 +190,13 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		int sret = select(fd+1, NULL, &writefds, NULL, &timeout);
 		if (sret == 0)
 		{
+			hd_debug_msg("Timeout during writing to %s", filename);
 			hd_error_return(HD_ERR_TIMEOUT, -1);
 		}
 		else if (sret < 0)
 		{
+			hd_error_msg("select() error during writing to %s: %s",
+					filename, strerror(errno));
 			switch (errno)
 			{
 			case EBADF: /* fd is an invalid file descriptor */
@@ -207,7 +222,8 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		ssize_t wret = write(fd, buffer, count);
 		if (wret == -1)
 		{
-			hd_error_msg("Write error: %s", strerror(errno));
+			hd_error_msg("write() error during writing to %s: %s",
+					filename, strerror(errno));
 			switch (errno)
 			{
 			case EINTR:  /* interrupted by signal */
@@ -218,13 +234,11 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 			case EFAULT: /* buf is outside your accessible address space */
 			case EINVAL: /* some of the arguments are invalid */
 			case EPIPE:  /* fd is connected to pipe of socket */
-				/* since all arguments are passed directly as received */
-				hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+				/* since this is an internal function, we did something wrong */
+				assert(0);
 			case EFBIG:  /* tried to write beyond allowed file size */
 			case ENOSPC: /* no space left on device */
 			case EIO:    /* low-level I/O error */
-				fprintf(stderr, "Problem while writing %s: %s",
-						filename, strerror(errno));
 				hd_error_return(HD_ERR_WRITE_FILE, -1);
 			default:
 				hd_error_return(HD_ERR_UNKNOWN, -1);

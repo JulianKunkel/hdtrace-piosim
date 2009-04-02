@@ -21,5 +21,10 @@
  */
 #define HD_WRITE_TIMEOUT  10
 
+/**
+ * Verbosity level
+ * TODO: Make this controlled by environment
+ */
+#define VLEVEL 5
 
 #endif /* CONFIG_H_ */
