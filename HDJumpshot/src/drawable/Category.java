@@ -34,6 +34,7 @@
 
 package drawable;
 
+import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,14 +48,14 @@ import java.util.regex.Pattern;
 public abstract class Category
 {
     private String          name;
-    private ColorAlpha      color;
+    private Color      color;
 
     private boolean         isVisible;   
     
     /**
      * Default color to category mapping.
      */
-    static private HashMap<String, ColorAlpha> colorMapping = new HashMap<String,ColorAlpha>();
+    static private HashMap<String, Color> colorMapping = new HashMap<String,Color>();
 
     static public void loadColors(String filename){
     	Properties prop = new Properties();
@@ -88,7 +89,7 @@ public abstract class Category
     	Properties prop = new Properties();
     	try{
     		for(String cat: colorMapping.keySet()){
-    			 ColorAlpha c = colorMapping.get(cat);
+    			 Color c = colorMapping.get(cat);
     			 prop.put(cat, "RGB(" + c.getRed() + ","  + c.getGreen() +  ","  + c.getBlue()  + ")");
     		}
     		prop.store(new FileOutputStream("jumpshot-color.property"), "");
@@ -145,7 +146,7 @@ public abstract class Category
         return name;
     }
 
-    public void setColor( ColorAlpha in_color )
+    public void setColor( Color in_color )
     {
         colorMapping.put(getName(), in_color);
         saveColors();
@@ -153,7 +154,7 @@ public abstract class Category
         color      = in_color;
     }
 
-    public ColorAlpha getColor()
+    public Color getColor()
     {
         if( colorMapping.containsKey(getName()) ){
         	return colorMapping.get(getName());

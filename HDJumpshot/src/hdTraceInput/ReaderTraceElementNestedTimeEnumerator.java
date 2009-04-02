@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id: ReaderTraceElementNestedEnumerator.java 157 2009-03-29 13:17:40Z kunkel $
-  * @lastmodified    $Date: 2009-03-29 15:17:40 +0200 (So, 29. Mär 2009) $
-  * @modifiedby      $LastChangedBy: kunkel $
-  * @version         $Revision: 157 $ 
+ /** Version Control Information $Id$
+  * @lastmodified    $Date$
+  * @modifiedby      $LastChangedBy$
+  * @version         $Revision$ 
   */
 
 //	Copyright (C) 2009 Julian M. Kunkel

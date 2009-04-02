@@ -34,42 +34,42 @@
 
 package viewer.legends;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.EventObject;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
+import javax.swing.JDialog;
 import javax.swing.JTable;
+import javax.swing.event.CellEditorListener;
 import javax.swing.table.TableCellEditor;
 
-import drawable.ColorAlpha;
-
-
-// Used DefaultCellEditor instead of AbstractCellEditor so jre1.2.2 can be used
-// public class CategoryIconEditor extends AbstractCellEditor
-public class CategoryIconEditor extends DefaultCellEditor
-                                implements TableCellEditor,
-                                           ActionListener
+public class CategoryIconEditor implements TableCellEditor, ActionListener                                           
 {
 	private static final long serialVersionUID = -2487506394326350488L;
 	
 	private JButton      delegate_btn;
-    private ColorAlpha   saved_color;
-    private Color        prev_color;
+	private CellEditorListener listener;
+	
+    final private JColorChooser colorChooser = new JColorChooser();    
+    
+    private JDialog      colorDialog;
+    private ColorListener colorListener = new ColorListener();
+    
+    private class ColorListener implements ActionListener{
+    	@Override
+    	public void actionPerformed(ActionEvent e) {     
+            listener.editingStopped(null);	
+    	}
+    }
 
     public CategoryIconEditor()
     {
-        super( new JCheckBox() );         // super(); for DefaultCellEditor
         delegate_btn  = new JButton();
         delegate_btn.addActionListener( this );
-        editorComponent = delegate_btn;   // for DefaultCellEditor
-        super.setClickCountToStart(1);    // for DefaultCellEditor
-        saved_color   = null;
-        prev_color    = null;
+        colorDialog = JColorChooser.createDialog(null, "Pick a Color", false, colorChooser, colorListener, null);
     }
 
     // Called 1st
@@ -78,31 +78,53 @@ public class CategoryIconEditor extends DefaultCellEditor
                                                   boolean  isSelected,
                                                   int      irow,
                                                   int      icolumn )
-    {
-        // save color in "(CategoryIcon) value" for setting JColorChooser later
+    {    	
         CategoryIcon icon;
         icon        = (CategoryIcon) value;
-        prev_color  = icon.getCategory().getColor() ;
+        colorChooser.setColor(icon.getCategory().getColor());
         delegate_btn.setIcon( icon );
+        
         return delegate_btn;
     }
 
-    // Called 2nd
+    @Override
     public void actionPerformed( ActionEvent evt )
     {
-        Color new_color = JColorChooser.showDialog( delegate_btn,
-                                                    "Pick a Color",
-                                                    prev_color );
-        if ( new_color != null ) 
-            saved_color = new ColorAlpha( new_color, ColorAlpha.OPAQUE );
-        else
-            saved_color = new ColorAlpha( prev_color, ColorAlpha.OPAQUE );
-        fireEditingStopped();
+    	// called upon click on the table:
+    	colorDialog.setVisible(true);
     }
-
-    // Called 3rd
+    
+    @Override
     public Object getCellEditorValue()
-    {
-        return saved_color;
+    {      
+    	return colorChooser.getColor();    
+    }
+    
+    @Override
+    public void addCellEditorListener(CellEditorListener l) {
+    	listener = l;
+    }
+    
+    @Override
+    public void cancelCellEditing() {
+    }
+    
+    @Override
+    public boolean isCellEditable(EventObject anEvent) {
+    	return true;
+    }
+    
+    @Override
+    public void removeCellEditorListener(CellEditorListener l) {
+    }
+    
+    @Override
+    public boolean shouldSelectCell(EventObject anEvent) {
+    	return true;
+    }
+    
+    @Override
+    public boolean stopCellEditing() {
+    	return true;
     }
 }

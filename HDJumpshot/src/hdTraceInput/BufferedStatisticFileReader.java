@@ -91,13 +91,14 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 	public int getStatisticPositionAfter(Epoch minEndTime){
 		int min = 0; 
 		int max = statEntries.size() - 1;
-
-		while(true){
+		
+		while(true){						
 			int cur = (min + max) / 2;
 			StatisticGroupEntry entry = statEntries.get(cur);
-
+			
 			if(min == max){ // found entry or stopped.
-				if(entry.getLatestTime().compareTo(minEndTime) > 0 && cur == 0){
+				
+				if(entry.getLatestTime().compareTo(minEndTime) < 0 && cur == 0){
 					// there was no entry before!
 					return -1;
 				}

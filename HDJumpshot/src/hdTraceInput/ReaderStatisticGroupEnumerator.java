@@ -47,7 +47,7 @@ public class ReaderStatisticGroupEnumerator implements Enumeration<StatisticGrou
 		entries = reader.getStatEntries();
 		currentPos = reader.getStatisticPositionAfter(startTime) ;
 
-		this.endTime = endTime;
+		this.endTime = endTime;	
 		
 		if(currentPos < 0){
 			currentPos = entries.size() - 1;

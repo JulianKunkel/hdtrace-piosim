@@ -1,8 +1,8 @@
 
-/** Version Control Information $Id: LegendTableModel.java 158 2009-03-29 15:24:32Z kunkel $
- * @lastmodified    $Date: 2009-03-29 17:24:32 +0200 (So, 29. Mär 2009) $
- * @modifiedby      $LastChangedBy: kunkel $
- * @version         $Revision: 158 $ 
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
  */
 
 //	Copyright (C) 2009 Julian M. Kunkel
@@ -37,7 +37,8 @@ package viewer.legends;
 import java.awt.Color;
 
 import drawable.CategoryStatistic;
-import drawable.CategoryStatistic.Adjustment;
+import drawable.CategoryStatistic.MaxAdjustment;
+import drawable.CategoryStatistic.MinAdjustment;
 import drawable.CategoryStatistic.Scaling;
 
 
@@ -49,38 +50,42 @@ public class LegendTableStatisticModel extends LegendTableTraceModel
 	public  static final int        NAME_COLUMN            = 1;
 	public  static final int        VISIBILITY_COLUMN      = 2;
 	public  static final int        SCALING_COLUMN         = 3;
-	public  static final int        ADJUSTMENT_COLUMN      = 4;
+	public  static final int        ADJUSTMENT_MIN_COLUMN  = 4;
+	public  static final int        ADJUSTMENT_MAX_COLUMN  = 5;
 
-	private static final String[]   COLUMN_TITLES  = { "Topo", "Name      ", "V",  "S", "A"};
-	private static final String[]   COLUMN_TOOLTIPS = { "Topology/Color", "Statistic Group Name", "Visibility", "Scaling", "Adjustment" };
-	private static final Class<?>[]    COLUMN_CLASSES = { CategoryIcon.class, String.class, Boolean.class, TablePopupHandler.class, TablePopupHandler.class };
+	private static final String[]   COLUMN_TITLES  = { "Topo", "Name         ", "V",  "S", "<", ">"};
+	private static final String[]   COLUMN_TOOLTIPS = { "Topology/Color", "Statistic Group Name", "Visibility", "Scaling", "Max Adjustment", "Min Adjustment" };
+	private static final Class<?>[]    COLUMN_CLASSES = { CategoryIcon.class, String.class, Boolean.class, TablePopupHandler.class, TablePopupHandler.class, TablePopupHandler.class };
 
-	private static final Color[]    COLUMN_TITLE_FORE_COLORS = { Color.magenta, Color.pink,  Color.green, Color.yellow, Color.yellow, Color.yellow , Color.yellow  };
-	private static final Color[]    COLUMN_TITLE_BACK_COLORS = { Color.black, Color.gray, Color.darkGray.darker(),  Color.blue.darker(), Color.gray, Color.gray   };
-	private static final boolean[]  COLUMN_TITLE_RAISED_ICONS = { false, false, true, false, false, false };
-
+	private static final Color[]    COLUMN_TITLE_FORE_COLORS = { Color.magenta, Color.pink,  Color.green, Color.yellow, Color.yellow, Color.yellow, Color.yellow, Color.yellow  };
+	private static final Color[]    COLUMN_TITLE_BACK_COLORS = { Color.black, Color.gray, Color.darkGray.darker(),  Color.blue.darker(), Color.gray, Color.gray, Color.gray   };
+	private static final boolean[]  COLUMN_TITLE_RAISED_ICONS = { false, false, true, false, true, true, true };
+	
 	@Override
-	public Object[] getColumnAlternatives(int column) {
+	public IPopupType[] getPopupColumnAlternatives(int column) {
 		switch ( column ) {
 		case SCALING_COLUMN:{
 			return CategoryStatistic.Scaling.values();
-		}case ADJUSTMENT_COLUMN:{
-			return CategoryStatistic.Adjustment.values();
+		}case ADJUSTMENT_MIN_COLUMN:{
+			return CategoryStatistic.MinAdjustment.values();			
+		}case ADJUSTMENT_MAX_COLUMN:{
+			return CategoryStatistic.MaxAdjustment.values();
 		}
 		}
-		return super.getColumnAlternatives(column);
+		return super.getPopupColumnAlternatives(column);
 	}
 
 	@Override
 	public Object getValueAt( int irow, int icolumn )
 	{
+		final CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
 		switch ( icolumn ) {
 		case SCALING_COLUMN:{
-			CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
-			return stat.getScaling();
-		}case ADJUSTMENT_COLUMN:{
-			CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
-			return stat.getAdjustment();
+			return stat.getScaling().getAbbreviationChar();
+		}case ADJUSTMENT_MIN_COLUMN:{
+			return stat.getMinAdjustment().getAbbreviationChar();
+		}case ADJUSTMENT_MAX_COLUMN:{
+			return stat.getMaxAdjustment().getAbbreviationChar();			
 		}default:
 			return super.getValueAt(irow, icolumn);
 		}
@@ -89,17 +94,25 @@ public class LegendTableStatisticModel extends LegendTableTraceModel
 	@Override
 	public void setValueAt( Object value, int irow, int icolumn )
 	{
+    	if (value == null)
+    		return;
+
+		final CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
 		switch ( icolumn ) {
 		case SCALING_COLUMN:{
-			CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
 			stat.setScaling(Scaling.valueOf((String) value));
 			fireTableCellUpdated( irow, icolumn );
 			
 			fireCategoryVisibilityChanged();
 			return;
-		}case ADJUSTMENT_COLUMN:{
-			CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
-			stat.setAdjustment(Adjustment.valueOf((String) value));
+		}case ADJUSTMENT_MIN_COLUMN:{
+			stat.setMinAdjustment(MinAdjustment.valueOf((String) value));
+			fireTableCellUpdated( irow, icolumn );
+			
+			fireCategoryVisibilityChanged();
+			return;			
+		}case ADJUSTMENT_MAX_COLUMN:{
+			stat.setMaxAdjustment(MaxAdjustment.valueOf((String) value));
 			fireTableCellUpdated( irow, icolumn );
 			
 			fireCategoryVisibilityChanged();

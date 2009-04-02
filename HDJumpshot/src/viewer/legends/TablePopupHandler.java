@@ -1,8 +1,8 @@
 
-/** Version Control Information $Id: TableColumnHandler.java 149 2009-03-27 13:55:56Z kunkel $
- * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27. Mär 2009) $
- * @modifiedby      $LastChangedBy: kunkel $
- * @version         $Revision: 149 $ 
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
  */
 
 //	Copyright (C) 2009 Julian M. Kunkel
@@ -51,6 +51,9 @@ import javax.swing.table.JTableHeader;
 public class TablePopupHandler extends MouseAdapter implements ActionListener
 {
 	final private JPopupMenu        pop_menu;
+	
+	// kind of a label for the popup menu:
+	final private JMenuItem         setForAll = new JMenuItem("Set for all");
 
 	final private JTable            table_view;
 	final private JTableHeader      table_header;
@@ -70,13 +73,15 @@ public class TablePopupHandler extends MouseAdapter implements ActionListener
 		the_column    = in_column;
 		pop_menu      = new JPopupMenu();
 
-
 		model = (LegendTableTraceModel) table_view.getModel();;
 
-		final Object[] values = model.getColumnAlternatives(in_column);
+		final IPopupType[] values = model.getPopupColumnAlternatives(in_column);
 
+		setForAll.setEnabled(false);
+		pop_menu.add(setForAll);
+		
 		if(values != null){
-			for(Object val: values){
+			for(IPopupType val: values){
 				final JMenuItem item = new JMenuItem(val.toString());
 				pop_menu.add(item);
 				item.addActionListener(this);
@@ -88,6 +93,17 @@ public class TablePopupHandler extends MouseAdapter implements ActionListener
 	/** when an option gets selected */
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		
+		if(setForAll.isVisible()){
+			model.enableCategoryListener(false);
+			for(int i=0; i < model.getRowCount(); i++){
+				model.setValueAt(e.getActionCommand(), i, the_column);
+			}
+			model.enableCategoryListener(true);
+			
+		}
+		
+		// fires the appropriate update mechanism
 		model.setValueAt(e.getActionCommand(), lastClickedRow, the_column);
 	}
 
@@ -99,8 +115,11 @@ public class TablePopupHandler extends MouseAdapter implements ActionListener
 		Point      click;
 		int        click_column, model_column;
 
-		if ( ! SwingUtilities.isLeftMouseButton( evt ) )
-			return;
+		if ( SwingUtilities.isLeftMouseButton( evt ) ){
+			setForAll.setVisible(false);
+		}else{
+			setForAll.setVisible(true);
+		}
 
 		click        = evt.getPoint();
 		click_column = table_header.columnAtPoint( click );

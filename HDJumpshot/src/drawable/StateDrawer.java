@@ -56,8 +56,7 @@ public class StateDrawer
 	 */
 	public static int  drawForward( Graphics2D g, Color color, Insets insets,
 			int x1, int y1,
-			int x2, int y2,
-			float percentFilled, boolean drawBorder)
+			int x2, int y2)
 	{
 		if ( insets != null ) {
 			x1 += insets.left;
@@ -71,28 +70,7 @@ public class StateDrawer
 		int height = y2-y1+1;
 		g.fillRect( x1, y1, x2-x1+1, height );
 
-		if(percentFilled != 1f){
-			//state with filled bar !
-			Color newColor;
-			if(color.getBlue() + color.getRed() + color.getGreen() > 120){
-				//make it darker:
-				newColor = new Color(color.getRed()/2, color.getGreen()/2, color.getBlue()/2,
-						color.getAlpha());
-			}else{ //make it brighter, take extra care for real black !
-				newColor = new Color((color.getRed()+5)*2, (color.getGreen()+5)*2, (color.getBlue()+5)*2,
-						color.getAlpha());
-			}
-			g.setColor( newColor );
-			//System.out.println(g.getColor() + " NEW:" + newColor +  " OLD:" + color);
-
-			g.fillRect( x1, y1, x2-x1+1, (int) (height * (1.0f - percentFilled) ));
-		}
-
-		if(drawBorder){ //normal state with border
-			BorderStyle.paintStateBorder( g, color,
-					x1, y1, true,
-					x2, y2, true );
-		}
+		BorderStyle.paintStateBorder( g, color,	x1, y1, true, x2, y2, true );
 		return 1;
 	}
 

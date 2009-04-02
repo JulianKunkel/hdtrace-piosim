@@ -25,34 +25,85 @@
 
 package drawable;
 
-public class CategoryStatistic extends Category {
-	public enum Scaling{
-		DECIMAL,
-		LOGARITHMIC
+import viewer.legends.IPopupType;
+
+public class CategoryStatistic extends Category {		
+	public enum Scaling implements IPopupType{
+		DECIMAL('D'),
+		LOGARITHMIC('L');
+		
+		final private char abreviationLetter;
+		
+		Scaling(char abreviationLetter){
+			this.abreviationLetter = abreviationLetter;
+		}
+
+		@Override
+		public char getAbbreviationChar() {
+			return abreviationLetter;
+		}
 	}
 	
-	public enum Adjustment{
-		GLOBAL_MAX_VALUE,
-		LOCAL_MAX_VALUE
-	}
+	public enum MaxAdjustment implements IPopupType{
+		GLOBAL_MAX('G'),
+		TIMELINE_MAX('L');
+		
+		final private char abreviationLetter;
+		
+		MaxAdjustment(char abreviationLetter){
+			this.abreviationLetter = abreviationLetter;
+		}
+
+		@Override
+		public char getAbbreviationChar() {
+			return abreviationLetter;
+		}
+	}		
+	
+	public enum MinAdjustment implements IPopupType{
+		ZERO('-'),
+		GLOBAL_MIN('G'),
+		TIMELINE_MIN('L');
+		
+		final private char abreviationLetter;
+		
+		MinAdjustment(char abreviationLetter){
+			this.abreviationLetter = abreviationLetter;
+		}
+
+		@Override
+		public char getAbbreviationChar() {
+			return abreviationLetter;
+		}
+	}		
 	
 	private Scaling scaling = Scaling.DECIMAL;
-	private Adjustment adjustment = Adjustment.GLOBAL_MAX_VALUE;	
+	private MinAdjustment minAdjustment = MinAdjustment.ZERO;
+	private MaxAdjustment maxAdjustment = MaxAdjustment.GLOBAL_MAX;
 	
 	public CategoryStatistic(String in_name, ColorAlpha in_color ) {
 		super(in_name, in_color);
 	}	
 
-	public Adjustment getAdjustment() {
-		return adjustment;
+	
+	public MaxAdjustment getMaxAdjustment() {
+		return maxAdjustment;
+	}
+	
+	public MinAdjustment getMinAdjustment() {
+		return minAdjustment;
+	}
+	
+	public void setMaxAdjustment(MaxAdjustment maxAdjustment) {
+		this.maxAdjustment = maxAdjustment;
+	}
+	
+	public void setMinAdjustment(MinAdjustment minAdjustment) {
+		this.minAdjustment = minAdjustment;
 	}
 	
 	public Scaling getScaling() {
 		return scaling;
-	}
-	
-	public void setAdjustment(Adjustment adaption) {
-		this.adjustment = adaption;
 	}
 	
 	public void setScaling(Scaling scaling) {

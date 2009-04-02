@@ -80,10 +80,8 @@ public class LegendTable extends JTable
 		this.table_model = model;
 		super.setModel( table_model );
 
-		super.setDefaultRenderer( CategoryIcon.class, new CategoryIconRenderer() );
-		super.setDefaultEditor( CategoryIcon.class,  new CategoryIconEditor() );
-
-		super.setIntercellSpacing( new Dimension( 2, 2 ) );
+		super.setIntercellSpacing( new Dimension( 1, 1 ) );
+		super.setDragEnabled(false);
 		super.setShowHorizontalLines( false );
 		super.setShowVerticalLines( true );
 
@@ -93,6 +91,9 @@ public class LegendTable extends JTable
 		this.initColumnSize();
 
 		table_model.addTableModelListener(myTableChangeListener);
+		
+		super.setDefaultRenderer( CategoryIcon.class, new CategoryIconRenderer() );
+		super.setDefaultEditor( CategoryIcon.class,  new CategoryIconEditor() );
 	}
 
 	private void setColumnHeaderRenderers()
@@ -120,11 +121,13 @@ public class LegendTable extends JTable
 				handler  = new TableColumnHandler( this, icol, pop_menu );
 				this.addMouseListener( handler );
 			}
-
+			
 			if(class_type == TablePopupHandler.class){
 				renderer = new GenericHeaderRenderer( this, icol );
+				column.setHeaderRenderer( renderer );
 				handler = new TablePopupHandler(this, icol);
 				this.addMouseListener(handler);
+				( (JComponent) renderer).setToolTipText(table_model.getColumnToolTip( icol ) );
 			}
 
 			if ( class_type == String.class ) {
@@ -135,14 +138,14 @@ public class LegendTable extends JTable
 				pop_menu = new OperationStringMenu( this, icol );
 				handler  = new TableHeaderHandler( this, icol, pop_menu );
 				table_header.addMouseListener( handler );
+				
 				handler  = new TableColumnHandler( this, icol, pop_menu );
 				this.addMouseListener( handler );
 			}else if ( renderer == null ) {
 				renderer = new GenericHeaderRenderer( this, icol );
 				column.setHeaderRenderer( renderer );
 			}else{
-				( (JComponent) renderer).setToolTipText(
-						table_model.getColumnToolTip( icol ) );
+				( (JComponent) renderer).setToolTipText(table_model.getColumnToolTip( icol ) );
 			}
 		}
 	}

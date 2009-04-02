@@ -34,6 +34,7 @@
 
 package drawable;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -51,7 +52,7 @@ public class DrawObjects{
 	public static  int  drawState( Graphics2D g,
 			CoordPixelXform  coord_xform,
 			StateTraceEntry state,                            
-			ColorAlpha color,
+			Color color,
 			int nestingDepth,
 			int timeline,
 			Epoch globalMinTime)
@@ -64,29 +65,53 @@ public class DrawObjects{
         int jStart   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
         int jFinal   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
 		
-		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal, 1f, true );
+		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal );
 	}
 
+	public static void  drawStatisticBackground(			
+			Graphics2D g,
+			CoordPixelXform  coord_xform,
+			double startTime,
+			double endTime,
+			Color backGroundcolor,
+			Color color,
+			int timeline)
+	{
+        int x1   = coord_xform.convertTimeToPixel( startTime );
+        int x2   = coord_xform.convertTimeToPixel( endTime );
+
+        int height = coord_xform.getTimelineHeight();
+        
+        int y1   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
+        int y2   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
+		
+		g.setColor( backGroundcolor );
+		g.fillRect( x1, y1, x2-x1+1, height);
+		
+		g.setColor( color );
+	}
+	
 	public static int  drawStatistic( 
 			Graphics2D g,
 			CoordPixelXform  coord_xform,
 			Epoch timeStamp,
 			double lastTimeStamp,
 			float normalizedHeight,
-			ColorAlpha color,
 			int timeline)
 	{
 
-        int iStart   = coord_xform.convertTimeToPixel( lastTimeStamp );
-        int iFinal   = coord_xform.convertTimeToPixel( timeStamp.getDouble() );
+        int x1   = coord_xform.convertTimeToPixel( lastTimeStamp );
+        int x2   = coord_xform.convertTimeToPixel( timeStamp.getDouble() );
 
-        float height = coord_xform.getTimelineHeight();
+        int height = (coord_xform.getTimelineHeight() );
         
-        int jStart   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
-        int jFinal   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
-		
-		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal, 
-				normalizedHeight, false );
+        int y1   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
+        
+		// Fill the color of the rectangle
+        
+		g.fillRect( x1, y1 - (int) (height * normalizedHeight), x2-x1 +1, (int) (height * normalizedHeight) );
+
+		return 1;
 	}
 
 	//  assume this Primitive overlaps with coord_xform.TimeBoundingBox
@@ -109,7 +134,7 @@ public class DrawObjects{
 	public static int  drawEvent( Graphics2D g, CoordPixelXform coord_xform,
 			EventTraceEntry event,
 			int timeline,
-			ColorAlpha color,
+			Color color,
 			Epoch globalMinTime)
 	{
 

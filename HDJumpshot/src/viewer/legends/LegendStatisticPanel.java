@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id: LegendPanel.java 149 2009-03-27 13:55:56Z kunkel $
-  * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27. Mär 2009) $
-  * @modifiedby      $LastChangedBy: kunkel $
-  * @version         $Revision: 149 $ 
+ /** Version Control Information $Id$
+  * @lastmodified    $Date$
+  * @modifiedby      $LastChangedBy$
+  * @version         $Revision$ 
   */
 
 //	Copyright (C) 2009 Julian M. Kunkel

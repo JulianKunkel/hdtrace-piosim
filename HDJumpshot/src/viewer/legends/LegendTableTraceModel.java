@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id: LegendTableModel.java 158 2009-03-29 15:24:32Z kunkel $
-  * @lastmodified    $Date: 2009-03-29 17:24:32 +0200 (So, 29. Mär 2009) $
-  * @modifiedby      $LastChangedBy: kunkel $
-  * @version         $Revision: 158 $ 
+ /** Version Control Information $Id$
+  * @lastmodified    $Date$
+  * @modifiedby      $LastChangedBy$
+  * @version         $Revision$ 
   */
 
 //	Copyright (C) 2009 Julian M. Kunkel
@@ -45,7 +45,6 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 import drawable.Category;
-import drawable.ColorAlpha;
 
 
 public class LegendTableTraceModel extends AbstractTableModel
@@ -160,7 +159,7 @@ public class LegendTableTraceModel extends AbstractTableModel
      * @param column
      * @return
      */
-    public Object[] getColumnAlternatives(int column){
+    public IPopupType[] getPopupColumnAlternatives(int column){
     	return null;
     }
 
@@ -277,14 +276,17 @@ public class LegendTableTraceModel extends AbstractTableModel
     
     public void setValueAt( Object value, int irow, int icolumn )
     {
+    	if (value == null)
+    		return;
+    	
         Category      objdef;
         CategoryIcon  icon;
-        ColorAlpha    color;
+        Color    color;
 
         objdef = categories.get( irow );
         switch ( icolumn ) {
             case ICON_COLUMN :
-                color  = (ColorAlpha) value;
+                color  = (Color) value;
                 objdef.setColor( color );
                 icon   = (CategoryIcon) icon_list.get( irow );
                 icon.getCategory().setColor( color );
@@ -310,7 +312,7 @@ public class LegendTableTraceModel extends AbstractTableModel
                                 + irow + "," + icolumn + ") fails!" );
         }
     }
-
+    
     protected Category getCategory(int irow){
         return categories.get( irow );
     }
