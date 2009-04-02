@@ -1,6 +1,0 @@
-hdTrace.o: hdTrace.c ../include/hdTrace.h ../include/hdError.h \
-  ../include/hdTopo.h ../include/hdError.h common.h ../include/hdTopo.h \
-  util.h
-hdTrace.c ../include/hdTrace.h ../include/hdError.h :
-  ../include/hdTopo.h ../include/hdError.h common.h ../include/hdTopo.h :
-  util.h :

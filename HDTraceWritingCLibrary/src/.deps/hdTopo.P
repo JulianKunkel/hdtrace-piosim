@@ -1,2 +1,0 @@
-hdTopo.o: hdTopo.c ../include/hdTopo.h ../include/hdError.h util.h
-hdTopo.c ../include/hdTopo.h ../include/hdError.h util.h :

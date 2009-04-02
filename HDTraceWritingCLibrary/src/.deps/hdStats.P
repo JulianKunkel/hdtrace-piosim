@@ -1,4 +1,0 @@
-hdStats.o: hdStats.c ../include/hdStats.h ../include/hdError.h \
-  ../include/hdTopo.h common.h ../include/hdTopo.h util.h
-hdStats.c ../include/hdStats.h ../include/hdError.h :
-  ../include/hdTopo.h common.h ../include/hdTopo.h util.h :
