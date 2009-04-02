@@ -76,6 +76,16 @@ struct _hdTrace {
 	int info_fd;
 
 	/**
+	 * Name of the log file (for error output)
+	 */
+	char *logfile;
+
+	/**
+	 * Name of the info file (for error output)
+	 */
+	char *infofile;
+
+	/**
 	 * TODO: Description
 	 */
 	char state_name[HD_LOG_MAX_DEPTH][HD_LOG_ELEMENT_NAME_BUF_SIZE];

@@ -16,5 +16,10 @@
  */
 #define HD_MAX_FILENAME_LENGTH   1024
 
+/**
+ * Timeout for writing files in seconds.
+ */
+#define HD_WRITE_TIMEOUT  10
+
 
 #endif /* CONFIG_H_ */

@@ -30,9 +30,13 @@ enum hdCommonError {
     /** Error while creating a file */
     HD_ERR_CREATE_FILE,
     /** Error while creating a file */
-	HD_ERR_WRITE_FILE ,
+	HD_ERR_WRITE_FILE,
     /** Error while creating a file */
-	HD_ERR_CLOSE_FILE
+	HD_ERR_CLOSE_FILE,
+	/** Timeout occured */
+	HD_ERR_TIMEOUT,
+	/** Error with unknown cause */
+	HD_ERR_UNKNOWN
 };
 
 /**

@@ -12,9 +12,12 @@
 #include "common.h"
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/select.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "hdError.h"
 #include "hdTopo.h"
@@ -118,4 +121,124 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 #undef ERROR_CHECK
 
 	return filename;
+}
+
+/**
+ * Writes data to a file at the current offset.
+ *
+ * @param fd       File descriptor of the file to use
+ * @param buffer   Data to write
+ * @param nbytes   Number of bytes to write
+ * @param filename Filename for error messages
+ *
+ * @return Number of bytes written or -1 on error, setting errno
+ *
+ * @retval >=0  Success
+ * @retval -1   Error, check errno
+ *
+ * @errno
+ * - HD_ERR_TIMEOUT
+ * - HD_ERR_MALLOC
+ * - HD_ERR_WRITE_FILE
+ * - HD_ERR_UNKNOWN
+ */
+ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
+{
+	/* check input */
+	assert(fd > 0);
+	assert(buf != NULL);
+	assert(isValidString(filename));
+
+
+	ssize_t written = 0;
+
+	char *buffer = buf;
+
+	/* create select() stuff */
+	fd_set writefds;
+
+	FD_ZERO(&writefds);
+	FD_SET(fd, &writefds);
+
+	struct timeval timeout;
+
+	/* set timeout */
+	/* setting this only once results in:
+	 * - aggregate multiple timeouts to this maximum on Linux
+	 * - using this timeout all the time again on some other systems
+	 * see select(2)
+	 */
+	timeout.tv_sec=HD_WRITE_TIMEOUT;
+	timeout.tv_usec=0;
+
+	/* write to fd */
+	while (count > 0)
+	{
+		/* wait until fd is ready for writing or timeout */
+		int sret = select(fd+1, NULL, &writefds, NULL, &timeout);
+		if (sret == 0)
+		{
+			hd_error_return(HD_ERR_TIMEOUT, -1);
+		}
+		else if (sret < 0)
+		{
+			switch (errno)
+			{
+			case EBADF: /* fd is an invalid file descriptor */
+				hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+				break;
+			case EINTR: /* signal was caught */
+				continue;
+			case ENOMEM: /* unable to allocate memory for internal tables */
+				hd_error_return(HD_ERR_MALLOC, -1);
+				break;
+			case EINVAL:
+				assert(0);
+				/* fall through if NDEBUG defined */
+			default:
+				hd_error_return(HD_ERR_UNKNOWN, -1);
+			}
+		}
+
+		/* assure fd is ready for writing */
+		assert(FD_ISSET(fd, &writefds));
+
+		/* coming here means fd is ready for writing */
+		ssize_t wret = write(fd, buffer, count);
+		if (wret == -1)
+		{
+			hd_error_msg("Write error: %s", strerror(errno));
+			switch (errno)
+			{
+			case EINTR:  /* interrupted by signal */
+				/* try again */
+				continue;
+			case EAGAIN: /* fd marked non-blocking and the write would block */
+			case EBADF:  /* fd is not a valid file descriptor */
+			case EFAULT: /* buf is outside your accessible address space */
+			case EINVAL: /* some of the arguments are invalid */
+			case EPIPE:  /* fd is connected to pipe of socket */
+				/* since all arguments are passed directly as received */
+				hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+			case EFBIG:  /* tried to write beyond allowed file size */
+			case ENOSPC: /* no space left on device */
+			case EIO:    /* low-level I/O error */
+				fprintf(stderr, "Problem while writing %s: %s",
+						filename, strerror(errno));
+				hd_error_return(HD_ERR_WRITE_FILE, -1);
+			default:
+				hd_error_return(HD_ERR_UNKNOWN, -1);
+			}
+		}
+
+		/* update number of bytes to write and pointer to next data */
+		count -= wret;
+		buffer += wret;
+
+		/* update number of bytes written */
+		written += wret;
+
+	}
+
+	return written;
 }

@@ -131,20 +131,6 @@ static int writeState(hdTrace trace);
  *
  * @sa hdT_createTopoNode, hdT_createTopology
  */
-/*
- * Note that each thread must create its own trace file. However, the hdTrace (actually a Pointer) can
- * be reused if it is guaranteed that it is not used by several threads to write different states/events
- * at the same time.
- * TODO: Don't understand that - SK
- *
- * This function is thread safe.
- *
- */
-#if 0
-static int thread_counter = 0;
-static pthread_mutex_t thread_counter_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
 hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 {
 	/* good to know that hdTopoNode is the same as hdTopology ;) */
@@ -155,17 +141,6 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return NULL;
 	}
-
-
-#if 0
-	/* needed for only one thread should write an description file */
-	pthread_mutex_lock(&thread_counter_mutex);
-
-	int thread = thread_counter;
-	++thread_counter;
-
-	pthread_mutex_unlock(&thread_counter_mutex);
-#endif
 
 	/* create trace file structure */
 	hdTrace trace = malloc(sizeof(*trace));
@@ -178,49 +153,40 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 	/*
 	 * Create trace and info file
 	 */
-	char *filename;
 
 	// generate filename
-	filename = generateFilename(topology->project, topoNode,
+	trace->logfile = generateFilename(topology->project, topoNode,
 			hdT_getTopoNodeLevel(topoNode), NULL, ".xml");
-	if (filename == NULL)
-	{
-		return NULL;
-	}
+	assert(isValidString(trace->logfile));
 
 	// create and open file
-	trace->log_fd = open(filename,
+	trace->log_fd = open(trace->logfile,
 			O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
 	if (trace->log_fd == -1)
 	{
-		perror("Could not open file:");
-		perror(filename);
-		return NULL;
+		hdt_debugf(trace, "Could not open file %s: %s",
+				trace->logfile, strerror(errno));
+		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
-	free(filename);
 
 	/*
 	 * Create trace info file
 	 */
 
 	// generate filename
-	filename = generateFilename(topology->project, topoNode,
+	trace->infofile = generateFilename(topology->project, topoNode,
 			hdT_getTopoNodeLevel(topoNode), (char*) NULL, ".info");
-	if (filename == NULL)
-	{
-		return NULL;
-	}
+	assert(isValidString(trace->infofile));
 
 	// create and open file
-	trace->info_fd = open(filename,
+	trace->info_fd = open(trace->infofile,
 			O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
 	if (trace->info_fd == -1)
 	{
-		perror("Could not open file:");
-		perror(filename);
-		return NULL;
+		hdt_debugf(trace, "Could not open file %s: %s",
+				trace->infofile, strerror(errno));
+		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
-	free(filename);
 
 #if 0
 	// write program definition file
@@ -372,6 +338,10 @@ int hdT_ForceFlush(hdTrace trace, int flush)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  * - HD_ERR_BUFFER_OVERFLOW
+ * - HD_ERR_TIMEOUT
+ * - HD_ERR_MALLOC
+ * - HD_ERR_WRITE_FILE
+ * - HD_ERR_UNKNOWN
  */
 int hdT_LogInfo(hdTrace trace, const char *format, ...)
 {
@@ -387,55 +357,42 @@ int hdT_LogInfo(hdTrace trace, const char *format, ...)
 	char buffer[HD_TMP_BUF_SIZE];
 	va_list argptr;
 	int ret;
-	size_t amount_to_write;
-	char * ram_pos = buffer;
+	size_t count;
+	char *buf = buffer;
 
 	va_start(argptr, format);
-	amount_to_write = vsnprintf(buffer, HD_TMP_BUF_SIZE, format, argptr);
-	if (amount_to_write >= HD_TMP_BUF_SIZE)
+	count = vsnprintf(buffer, HD_TMP_BUF_SIZE, format, argptr);
+	if (count >= HD_TMP_BUF_SIZE)
 	{
 		hdt_debug(trace, "Temporary buffer too small for message.");
 		return HD_ERR_BUFFER_OVERFLOW;
 	}
 	va_end( argptr );
 
-	while (amount_to_write > 0)
+	ssize_t written = writeToFile(trace->info_fd, buf, count, trace->infofile);
+	if (written < 0)
 	{
-		ret = write(trace->info_fd, ram_pos, amount_to_write);
-		if (ret == -1)
+		switch (errno)
 		{
-			switch (errno)
-			{
-			case (EFAULT):
-			case (EPIPE):
-			case (EFBIG):
-			case (EBADF):
-				hdt_debugf(trace,
-						"Critical error during flushing of trace info,"
-						"stop logging: %s ", strerror(errno));
-				hdT_Enable(trace, 0);
-				errno = HD_ERR_WRITE_FILE;
-				return -1;
-			case (ENOSPC):
-				hdt_debugf(trace,
-						"Could not flush buffer, stop logging: %s",
-						strerror(errno));
-				hdT_Enable(trace, 0);
-				errno = HD_ERR_WRITE_FILE;
-				return -1;
-			case (EINTR):
-				continue; // we are just interrupted
-			default:
-				hdt_debugf(trace,
-						"Unknown error during flushing of log,"
-						"stop logging: %s", strerror(errno));
-				hdT_Enable(trace, 0);
-				errno = HD_ERR_WRITE_FILE;
-				return -1;
-			}
+		case HD_ERR_TIMEOUT:
+			hdt_info(trace,	"Timeout during writing of trace info,"
+					" stop logging");
+		case HD_ERR_MALLOC:
+			hdt_info(trace,
+					"Out of memory during writing of trace info,"
+					" stop logging");
+		case HD_ERR_WRITE_FILE:
+			hdt_info(trace, "Write error during writing of trace info,"
+					" stop logging");
+		case HD_ERR_UNKNOWN:
+			hdt_info(trace, "Unknown error during writing of trace info,"
+					" stop logging");
 		}
-		amount_to_write -= ret;
-		ram_pos += ret;
+		/* disable further logging */
+		hdT_Enable(trace, 0);
+
+		/* do not change errno, just return error */
+		return -1;
 	}
 
 	return 0;
@@ -848,6 +805,11 @@ int hdT_Finalize(hdTrace trace)
 		}
 	}
 
+	/* free memory allocated by generateFilename() */
+	free(trace->logfile);
+	free(trace->infofile);
+
+	/* free memory allocated by hdT_createTrace() */
 	free(trace);
 	return 0;
 }
@@ -966,56 +928,49 @@ static int hdT_LogWrite(hdTrace trace, const char * message)
  * @retval -1 Error, setting errno
  *
  * @errno
- * - each from \a write(3) except of EINTR
+ * - HD_ERR_TIMEOUT
+ * - HD_ERR_MALLOC
+ * - HD_ERR_WRITE_FILE
+ * - HD_ERR_UNKNOWN
  */
 static int hdT_LogFlush(hdTrace trace)
 {
 	assert(trace);
 
 	int ret;
-	char * ram_pos = trace->buffer;
-	size_t amount_to_write = trace->buffer_pos;
+	int fd = trace->log_fd;
+	char *buf = trace->buffer;
+	size_t count = trace->buffer_pos;
 
-	hdt_debugf(trace, "flushing log length: %lld", (long long int) amount_to_write)
+	hdt_debugf(trace, "flushing log length: %lld", (long long int) count)
 
-	// retry until all data is written:
-	while (amount_to_write > 0)
+	ssize_t written = writeToFile(fd, buf, count, trace->logfile);
+	if (written < 0)
 	{
-		ret = write(trace->log_fd, ram_pos, amount_to_write);
-		if (ret == -1)
+		switch (errno)
 		{
-			switch (errno)
-			{
-			case (EFAULT):
-			case (EPIPE):
-			case (EFBIG):
-			case (EBADF):
-				hdt_debugf(trace,
-						"Critical error during flushing of log, stop logging: %s ",
-						strerror(errno));
-				hdT_Enable(trace, 0);
-				return(-1);
-			case (ENOSPC):
-				hdt_debugf(trace,
-						"Could not flush buffer, stop logging: %s ",
-						strerror(errno));
-				hdT_Enable(trace, 0);
-				return(-1);
-			case (EINTR):
-				continue; // we are just interrupted
-			default:
-				hdt_debugf(trace,
-						"Unknown error during flushing of log, stop logging: %s",
-						strerror(errno));
-				hdT_Enable(trace, 0);
-				return(-1);
-			}
+		case HD_ERR_TIMEOUT:
+			hdt_info(trace,	"Timeout during flushing of trace log,"
+					" stop logging");
+		case HD_ERR_MALLOC:
+			hdt_info(trace,
+					"Out of memory during flushing of trace log,"
+					" stop logging");
+		case HD_ERR_WRITE_FILE:
+			hdt_info(trace, "Write error during flushing of trace log,"
+					" stop logging");
+		case HD_ERR_UNKNOWN:
+			hdt_info(trace, "Unknown error during flushing of trace log,"
+					" stop logging");
 		}
-		amount_to_write -= ret;
-		ram_pos += ret;
+		/* disable further logging */
+		hdT_Enable(trace, 0);
+
+		/* do not change errno, just return error */
+		return -1;
 	}
 
-	trace->buffer_pos = 0; // could use this one instead of amount_to_write, but easier to read.
+	trace->buffer_pos = 0;
 
 	return 0;
 }

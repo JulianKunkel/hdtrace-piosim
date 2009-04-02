@@ -1,0 +1,4 @@
+common.o: common.c common.h ../include/hdTopo.h ../include/hdError.h \
+  util.h config.h
+common.c common.h ../include/hdTopo.h ../include/hdError.h :
+  util.h config.h :
