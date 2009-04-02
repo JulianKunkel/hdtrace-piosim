@@ -170,14 +170,12 @@ static void after_Init(int *argc, char ***argv)
 	char * lastSlash = strrchr(**argv , '/');
 	if( lastSlash != NULL)
 	{
-		snprintf(basename, TMP_BUF_LEN, "trace_%s", lastSlash+1 );
+		snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, lastSlash+1 );
 	}
 	else
 	{
-		snprintf(basename, TMP_BUF_LEN, "trace_%s", (*argv)[0] );
+		snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, (*argv)[0] );
 	}
-	
-	//hdT_Init(basename);
 	
 	PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -186,7 +184,6 @@ static void after_Init(int *argc, char ***argv)
     int thread = thread_counter;
     ++thread_counter;
     pthread_mutex_unlock(&thread_counter_mutex);
-
 
 	gethostname(hostname, HOST_NAME_MAX);
 

@@ -390,6 +390,7 @@ Per HashMap Communicator ID speichern
 ** DONE create_sim-wrapper formatieren
 ** DONE create_sim-wrapper: split collecve *_end funktionen: attribute schreiben!
 ** DONE Verzeichnisstruktur umstellen
+** TODO trace_ vor dem tracefile weglassen
 ** TODO clean getFileIdEx
 ** TODO set_view loggen -> datentyp
 ** DONE Endtags!

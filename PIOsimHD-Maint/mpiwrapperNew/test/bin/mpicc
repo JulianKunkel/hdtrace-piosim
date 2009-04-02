@@ -18,7 +18,7 @@ if not "SIM_WRAPPER_LIB" in os.environ:
     sys.exit(0)
 
 wrapper_lib = os.environ["SIM_WRAPPER_LIB"]
-print wrapper_lib
+#print wrapper_lib
 
 #if not "-c" in sys.argv[1:]:
 #    command += " `pkg-config --libs glib-2.0` "
