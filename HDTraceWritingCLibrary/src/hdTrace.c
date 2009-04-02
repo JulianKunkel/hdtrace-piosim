@@ -67,28 +67,28 @@
 /**
  * sprintf like function writing to trace log instead of string
  */
-static int hdT_LogWriteFormat(hdTrace trace, const char * format, ...);
+static int writeLogf(hdTrace trace, const char * format, ...);
 
 /**
  * vsprintf like function writing to trace log instead of string
  */
-static int hdT_LogWriteFormatv(hdTrace trace, const char * format,
+static int writeLogfv(hdTrace trace, const char * format,
 		va_list valist);
 
 /**
  * Write a message to the trace log buffer and flush to file if needed.
  */
-static int hdT_LogWrite(hdTrace trace, const char * message);
+static int writeLog(hdTrace trace, const char * message);
 
 /**
  * Flush the buffer of trace log
  */
-static int hdT_LogFlush(hdTrace trace);
+static int flushLog(hdTrace trace);
 
 /**
  * Write given number of indentations to trace log
  */
-static int hdT_LogWriteIndentation(hdTrace trace, int count);
+static int writeLogIndentation(hdTrace trace, int count);
 
 /**
  * Write state to trace log
@@ -205,7 +205,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 	}
 
 	// TODO: Adjust to new topology concept
-	hdT_LogWriteFormat(trace,
+	writeLogf(trace,
 			"<Program rank='%s' thread='%s'>\n",
 			hdT_getTopoPathLabel(topoNode, 2),
 			hdT_getTopoPathLabel(topoNode, 3)
@@ -226,7 +226,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_TraceNested(hdTrace trace, int depth)
+int hdT_setNestedDepth(hdTrace trace, int depth)
 {
 	if (trace == NULL)
 	{
@@ -253,7 +253,7 @@ int hdT_TraceNested(hdTrace trace, int depth)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_Enable(hdTrace trace, int enable)
+int hdT_enableTracing(hdTrace trace, int enable)
 {
 	if (trace == NULL)
 	{
@@ -280,7 +280,7 @@ int hdT_Enable(hdTrace trace, int enable)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_ForceFlush(hdTrace trace, int flush)
+int hdT_setForceFlush(hdTrace trace, int flush)
 {
 	if (trace == NULL)
 	{
@@ -311,7 +311,7 @@ int hdT_ForceFlush(hdTrace trace, int flush)
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_UNKNOWN
  */
-int hdT_LogInfo(hdTrace trace, const char *format, ...)
+int hdT_writeInfo(hdTrace trace, const char *format, ...)
 {
 	if (trace == NULL || !isValidString(format))
 	{
@@ -357,7 +357,7 @@ int hdT_LogInfo(hdTrace trace, const char *format, ...)
 					" stop logging");
 		}
 		/* disable further logging */
-		hdT_Enable(trace, 0);
+		hdT_enableTracing(trace, 0);
 
 		/* do not change errno, just return error */
 		return -1;
@@ -369,9 +369,9 @@ int hdT_LogInfo(hdTrace trace, const char *format, ...)
 /**
  * Log Element
  *
- * Can be called after \ref hdT_StateStart or \ref hdT_EventStart to
+ * Can be called after \ref hdT_logStateStart or \ref hdT_logEventStart to
  *  write elements to the state/event.
- * Affects the last state for which \ref hdT_StateEnd has not been called
+ * Affects the last state for which \ref hdT_logStateEnd has not been called
  *
  * TODO: Better description
  *
@@ -386,7 +386,7 @@ int hdT_LogInfo(hdTrace trace, const char *format, ...)
  * - HD_ERR_INVALID_ARGUMENT
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_LogElement(hdTrace trace, const char * name,
+int hdT_logElement(hdTrace trace, const char * name,
 		const char * valueFormat, ...)
 {
 	if (trace == NULL || isValidString(name) || isValidString(valueFormat)
@@ -458,9 +458,9 @@ int hdT_LogElement(hdTrace trace, const char * name,
 /**
  * Log Attributes
  *
- * Can be called after \ref hdT_StateStart or \ref hdT_EventStart to
+ * Can be called after \ref hdT_logStateStart or \ref hdT_logEventStart to
  *  write attributes to the state/event.
- * Affects the last State for which \ref hdT_StateEnd has not been called.
+ * Affects the last State for which \ref hdT_logStateEnd has not been called.
  *
  * TODO: Better description
  *
@@ -476,7 +476,7 @@ int hdT_LogElement(hdTrace trace, const char * name,
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_LogAttributes(hdTrace trace, const char * valueFormat, ...)
+int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
 {
 	if (trace == NULL || !isValidString(valueFormat))
 	{
@@ -545,7 +545,7 @@ int hdT_LogAttributes(hdTrace trace, const char * valueFormat, ...)
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_StateStart(hdTrace trace, const char * stateName)
+int hdT_logStateStart(hdTrace trace, const char * stateName)
 {
 	if (trace == NULL || !isValidString(stateName)
 			|| strlen(stateName) >= HD_LOG_ELEMENT_NAME_BUF_SIZE)
@@ -565,12 +565,12 @@ int hdT_StateStart(hdTrace trace, const char * stateName)
 	{
 		if (trace->has_nested[trace->function_depth - 1] == 0)
 		{
-			if (hdT_LogWriteIndentation(trace, trace->function_depth - 1) != 0)
+			if (writeLogIndentation(trace, trace->function_depth - 1) != 0)
 			{
 				errno = HD_ERR_WRITE_FILE;
 				return -1;
 			}
-			if (hdT_LogWrite(trace, "<Nested>\n") != 0)
+			if (writeLog(trace, "<Nested>\n") != 0)
 			{
 				errno = HD_ERR_WRITE_FILE;
 				return -1;
@@ -588,7 +588,7 @@ int hdT_StateStart(hdTrace trace, const char * stateName)
 		{
 			hdt_debugf(trace,
 					"Problems getting time, stop logging: %s", strerror(errno));
-			hdT_Enable(trace, 0);
+			hdT_enableTracing(trace, 0);
 			errno = HD_ERR_GET_TIME;
 			return -1;
 		}
@@ -618,7 +618,7 @@ int hdT_StateStart(hdTrace trace, const char * stateName)
  * - HD_ERR_GET_TIME
  * - HD_ERR_WRITE_FILE
  */
-int hdT_StateEnd(hdTrace trace)
+int hdT_logStateEnd(hdTrace trace)
 {
 	if (trace == NULL)
 	{
@@ -641,18 +641,18 @@ int hdT_StateEnd(hdTrace trace)
 	if (gettimeofday(&trace->end_time[trace->function_depth], NULL) != 0)
 	{
 		hdt_debugf(trace, "Problems getting time, stop logging: %s", strerror(errno));
-		hdT_Enable(trace, 0);
+		hdT_enableTracing(trace, 0);
 		errno = HD_ERR_GET_TIME;
 		return -1;
 	}
 	if (trace->has_nested[trace->function_depth])
 	{
-		if (hdT_LogWriteIndentation(trace, trace->function_depth) != 0)
+		if (writeLogIndentation(trace, trace->function_depth) != 0)
 		{
 			errno = HD_ERR_WRITE_FILE;
 			return -1;
 		}
-		if (hdT_LogWrite(trace, "</Nested>\n") != 0)
+		if (writeLog(trace, "</Nested>\n") != 0)
 		{
 			errno = HD_ERR_WRITE_FILE;
 			return -1;
@@ -673,7 +673,7 @@ int hdT_StateEnd(hdTrace trace)
 /**
  * Not yet implemented
  */
-int hdT_EventStart(
+int hdT_logEventStart(
 		hdTrace trace,
 		char * eventName )
 {
@@ -683,7 +683,7 @@ int hdT_EventStart(
 /**
  * Not yet implemented
  */
-int hdT_EventEnd(
+int hdT_logEventEnd(
 		hdTrace trace,
 		char* sprinhdStringForFurtherValues,
 		...
@@ -706,7 +706,7 @@ int hdT_EventEnd(
  * - HD_ERR_WRITE FILE
  * - HD_ERR_CLOSE_FILE
  */
-int hdT_Finalize(hdTrace trace)
+int hdT_finalize(hdTrace trace)
 {
 	if (trace == NULL)
 	{
@@ -715,21 +715,21 @@ int hdT_Finalize(hdTrace trace)
 	}
 
 	// finalize trace log file
-	if (hdT_LogWrite(trace, "</Program>\n\n") != 0)
+	if (writeLog(trace, "</Program>\n\n") != 0)
 	{
 		errno = HD_ERR_WRITE_FILE;
 		return -1;
 	}
 
 	// flush trace log
-	if (hdT_LogFlush(trace) != 0)
+	if (flushLog(trace) != 0)
 	{
 		errno = HD_ERR_WRITE_FILE;
 		return -1;
 	}
 
 	// finalize trace info file
-	if (hdT_LogInfo(trace, "\n\n") != 0)
+	if (hdT_writeInfo(trace, "\n\n") != 0)
 	{
 		errno = HD_ERR_WRITE_FILE;
 		return -1;
@@ -799,7 +799,7 @@ int hdT_Finalize(hdTrace trace)
  * @errno
  * - each from \sa hdT_LogWriteFormatv
  */
-static int hdT_LogWriteFormat(hdTrace trace, const char * format, ...)
+static int writeLogf(hdTrace trace, const char * format, ...)
 {
 	assert(trace && isValidString(format));
 
@@ -807,7 +807,7 @@ static int hdT_LogWriteFormat(hdTrace trace, const char * format, ...)
 		return 0;
 	va_list valist;
 	va_start(valist, format);
-	if (hdT_LogWriteFormatv(trace, format, valist) != 0)
+	if (writeLogfv(trace, format, valist) != 0)
 		return -1;
 	va_end(valist);
 	return 0;
@@ -828,7 +828,7 @@ static int hdT_LogWriteFormat(hdTrace trace, const char * format, ...)
  * - HD_ERR_BUFFER_OVERFLOW
  * - each from \sa hdT_LogWrite
  */
-static int hdT_LogWriteFormatv(hdTrace trace, const char * format,
+static int writeLogfv(hdTrace trace, const char * format,
 		va_list valist)
 {
 	assert(trace && isValidString(format));
@@ -844,7 +844,7 @@ static int hdT_LogWriteFormatv(hdTrace trace, const char * format,
 		errno = HD_ERR_BUFFER_OVERFLOW;
 		return -1;
 	}
-	if (hdT_LogWrite(trace, buffer) != 0)
+	if (writeLog(trace, buffer) != 0)
 		return -1;
 
 	return 0;
@@ -862,7 +862,7 @@ static int hdT_LogWriteFormatv(hdTrace trace, const char * format,
  * @errno
  * - each from \sa hdT_LogFlush
  */
-static int hdT_LogWrite(hdTrace trace, const char * message)
+static int writeLog(hdTrace trace, const char * message)
 {
 	assert(trace && isValidString(message));
 
@@ -871,14 +871,14 @@ static int hdT_LogWrite(hdTrace trace, const char * message)
 	int len = strlen(message);
 	if (trace->buffer_pos + len >= HD_LOG_BUF_SIZE)
 	{
-		if (hdT_LogFlush(trace) != 0)
+		if (flushLog(trace) != 0)
 			return -1;
 	}
 	strncpy(trace->buffer + trace->buffer_pos, message, len);
 	trace->buffer_pos += len;
 	if (trace->always_flush)
 	{
-		if(hdT_LogFlush(trace) != 0)
+		if(flushLog(trace) != 0)
 			return -1;
 	}
 	return 0;
@@ -901,7 +901,7 @@ static int hdT_LogWrite(hdTrace trace, const char * message)
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_UNKNOWN
  */
-static int hdT_LogFlush(hdTrace trace)
+static int flushLog(hdTrace trace)
 {
 	assert(trace);
 
@@ -932,7 +932,7 @@ static int hdT_LogFlush(hdTrace trace)
 					" stop logging");
 		}
 		/* disable further logging */
-		hdT_Enable(trace, 0);
+		hdT_enableTracing(trace, 0);
 
 		/* do not change errno, just return error */
 		return -1;
@@ -955,13 +955,13 @@ static int hdT_LogFlush(hdTrace trace)
  * @errno
  * - each from \sa hdT_LogWrite
  */
-static int hdT_LogWriteIndentation(hdTrace trace, int count)
+static int writeLogIndentation(hdTrace trace, int count)
 {
 	assert(trace && count >= 0);
 
 	for (int i = 0; i < count; ++i)
 	{
-		if (hdT_LogWrite(trace, HD_LOG_TAB_STRING) != 0)
+		if (writeLog(trace, HD_LOG_TAB_STRING) != 0)
 			return -1;
 	}
 	return 0;
@@ -988,33 +988,33 @@ static int writeState(hdTrace trace)
 		return 0;
 
 
-	if (hdT_LogWriteIndentation(trace, trace->function_depth) != 0)
+	if (writeLogIndentation(trace, trace->function_depth) != 0)
 		return -1;
-	if (hdT_LogWrite(trace, "<") != 0)
+	if (writeLog(trace, "<") != 0)
 		return -1;
-	if (hdT_LogWrite(trace,
+	if (writeLog(trace,
 			trace->state_name[trace->function_depth]) != 0)
 		return -1;
-	if (hdT_LogWrite(trace, " ") != 0)
+	if (writeLog(trace, " ") != 0)
 		return -1;
 
 	// write pending attributes
 	if (trace->attributes_pos[trace->function_depth] != 0)
 	{
-		if (hdT_LogWrite(trace,
+		if (writeLog(trace,
 				trace->attributes[trace->function_depth]) != 0)
 			return -1;
 	}
 
 	// write time information
-	if (hdT_LogWriteFormat(
+	if (writeLogf(
 			trace,
 			" time='%d.%.6d'",
 			(unsigned) trace->start_time[trace->function_depth].tv_sec,
 			(unsigned) trace->start_time[trace->function_depth].tv_usec) != 0)
 		return -1;
 
-	if (hdT_LogWriteFormat(
+	if (writeLogf(
 			trace,
 			" end='%d.%.6d' ",
 			(unsigned) trace->end_time[trace->function_depth].tv_sec,
@@ -1024,26 +1024,26 @@ static int writeState(hdTrace trace)
 	// write pending elements
 	if (trace->elements_pos[trace->function_depth] != 0)
 	{
-		if (hdT_LogWrite(trace, ">\n" HD_LOG_TAB_STRING) != 0)
+		if (writeLog(trace, ">\n" HD_LOG_TAB_STRING) != 0)
 			return -1;
-		if (hdT_LogWriteIndentation(trace, trace->function_depth) != 0)
+		if (writeLogIndentation(trace, trace->function_depth) != 0)
 			return -1;
-		if (hdT_LogWrite(trace,
+		if (writeLog(trace,
 				trace->elements[trace->function_depth]) != 0)
 			return -1;
-		if (hdT_LogWriteIndentation(trace, trace->function_depth) != 0)
+		if (writeLogIndentation(trace, trace->function_depth) != 0)
 			return -1;
-		if (hdT_LogWrite(trace, "</") != 0)
+		if (writeLog(trace, "</") != 0)
 			return -1;
-		if (hdT_LogWrite(trace,
+		if (writeLog(trace,
 				trace->state_name[trace->function_depth]) != 0)
 			return -1;
-		if (hdT_LogWrite(trace, ">\n") != 0)
+		if (writeLog(trace, ">\n") != 0)
 			return -1;
 	}
 	else
 	{
-		if (hdT_LogWrite(trace, " />\n") != 0)
+		if (writeLog(trace, " />\n") != 0)
 			return -1;
 	}
 	return 0;

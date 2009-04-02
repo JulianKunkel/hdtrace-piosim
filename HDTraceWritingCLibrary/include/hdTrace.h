@@ -160,7 +160,7 @@ struct _hdTrace {
 	 */
 	int has_nested[HD_LOG_MAX_DEPTH];
     /* has_nested[i] = 1 if functions with depth i+1 have been logged.
-	 * otherwise 0. the variable is reset after hdT_StateEnd is called with
+	 * otherwise 0. the variable is reset after hdT_logStateEnd is called with
 	 * function_depth == i
 	 */
 };
@@ -182,7 +182,7 @@ hdTrace hdT_createTrace(
 /**
  * Set depth of nested operations to log into trace
  */
-int hdT_TraceNested(
+int hdT_setNestedDepth(
 		hdTrace trace,
 		int depth
 		);
@@ -190,7 +190,7 @@ int hdT_TraceNested(
 /**
  * Enable/disable trace writing
  */
-int hdT_Enable(
+int hdT_enableTracing(
 		hdTrace trace,
 		int enable
 		);
@@ -198,7 +198,7 @@ int hdT_Enable(
 /**
  * Set flushing behavior for trace file
  */
-int hdT_ForceFlush(
+int hdT_setForceFlush(
 		hdTrace trace,
 		int flush
 		);
@@ -206,7 +206,7 @@ int hdT_ForceFlush(
 /**
  * Log Element
  */
-int hdT_LogElement(
+int hdT_logElement(
 		hdTrace trace,
 		const char * name,
 		const char* valueFormat,
@@ -216,7 +216,7 @@ int hdT_LogElement(
 /**
  * Write info message to trace (printf like).
  */
-int hdT_LogInfo(
+int hdT_writeInfo(
 		hdTrace trace,
 		const char * message,
 		...
@@ -225,7 +225,7 @@ int hdT_LogInfo(
 /**
  * Log Attributes
  */
-int hdT_LogAttributes(
+int hdT_logAttributes(
 		hdTrace trace,
 		const char* valueFormat,
 		...
@@ -234,7 +234,7 @@ int hdT_LogAttributes(
 /**
  * Mark the start of a new state
  */
-int hdT_StateStart(
+int hdT_logStateStart(
 		hdTrace trace,
 		const char * stateName
 		);
@@ -242,21 +242,21 @@ int hdT_StateStart(
 /**
  * Mark the end of a state and write it
  */
-int hdT_StateEnd(
+int hdT_logStateEnd(
 		hdTrace trace
 		);
 
 /**
  * Not yet implemented
  */
-int hdT_EventStart(
+int hdT_logEventStart(
 		hdTrace trace,
 		char * eventName );
 
 /**
  * Not yet implemented
  */
-int hdT_EventEnd(
+int hdT_logEventEnd(
 		hdTrace trace,
 		char* sprinhdStringForFurtherValues,
 		...
@@ -265,7 +265,7 @@ int hdT_EventEnd(
 /*
  * Finalize and close trace.
  */
-int hdT_Finalize(
+int hdT_finalize(
 		hdTrace trace
 		);
 
