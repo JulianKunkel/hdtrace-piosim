@@ -150,7 +150,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 	/* good to know that hdTopoNode is the same as hdTopology ;) */
 	if (hdT_getTopoNodeLevel(topoNode) <= 0
 			|| hdT_getTopoNodeLevel(topoNode)
-			!= hdT_getTopoDepth(topology))
+			!= hdT_getTopoDepth(topology) - 1)
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return NULL;
@@ -168,7 +168,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 #endif
 
 	/* create trace file structure */
-	hdTrace trace = malloc(sizeof(trace));
+	hdTrace trace = malloc(sizeof(*trace));
 	if (!trace)
 	{
 		errno = HD_ERR_MALLOC;
@@ -272,7 +272,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 
 	// TODO: Adjust to new topology concept
 	hdT_LogWriteFormat(trace,
-			"<rank='%s' thread='%s'>\n<Program>\n",
+			"<Program rank='%s' thread='%s'>\n",
 			hdT_getTopoPathLabel(topoNode, 2),
 			hdT_getTopoPathLabel(topoNode, 3)
 			);
@@ -375,7 +375,7 @@ int hdT_ForceFlush(hdTrace trace, int flush)
  */
 int hdT_LogInfo(hdTrace trace, const char *format, ...)
 {
-	if (trace == NULL || isValidString(format))
+	if (trace == NULL || !isValidString(format))
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return -1;
@@ -790,7 +790,7 @@ int hdT_Finalize(hdTrace trace)
 	}
 
 	// finalize trace log file
-	if (hdT_LogWrite(trace, "</Program>\n</Rank>\n\n") != 0)
+	if (hdT_LogWrite(trace, "</Program>\n\n") != 0)
 	{
 		errno = HD_ERR_WRITE_FILE;
 		return -1;

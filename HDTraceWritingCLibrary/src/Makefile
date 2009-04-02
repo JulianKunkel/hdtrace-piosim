@@ -5,7 +5,7 @@ MAKEDEPEND=gcc -MM
 
 #CPPFLAGS=-DDEBUG
 CPPFLAGS=
-CFLAGS=-W -Wall -g -std=c99 -pedantic -D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
+CFLAGS=-Wall -Wextra -Wformat=2 -g -std=c99 -pedantic -D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
 
 # use large file compilation environment
 CFLAGS+=$(shell getconf LFS_CFLAGS)

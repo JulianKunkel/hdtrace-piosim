@@ -65,7 +65,7 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 		int level, const char *group, const char* affix)
 {
 	/* check input */
-	if (!isValidString(project) || hdT_getTopoNodeLevel(toponode) <= level
+	if (!isValidString(project) || hdT_getTopoNodeLevel(toponode) < level
 			|| !isValidString(affix))
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
@@ -77,6 +77,15 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	size_t pos = 0;
 	size_t ret;
 
+	strncpy(filename, project, HD_MAX_FILENAME_LENGTH);
+	if (filename[HD_MAX_FILENAME_LENGTH - 1] != '\0')
+	{
+		errno = HD_ERR_CREATE_FILE;
+		free(filename);
+		return NULL;
+	}
+	pos = strlen(filename);
+
 #define ERROR_CHECK \
 	if (ret >= HD_MAX_FILENAME_LENGTH - pos) \
 	{ \
@@ -84,10 +93,6 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 		free(filename); \
 		return NULL; \
 	} \
-
-	ret = snprintf(filename, HD_MAX_FILENAME_LENGTH, project);
-	ERROR_CHECK
-	pos = strlen(filename);
 
 	/* append "_level" for each topology level */
 	for (int i = 1; i <= level; ++i)
