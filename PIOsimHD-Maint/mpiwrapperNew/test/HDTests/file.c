@@ -27,10 +27,9 @@ int main (int argc, char** argv)
 	MPI_File fh;
 	MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_RDONLY, info, &fh);
 	
-
 	MPI_Status status;
 	char buf[] = "r";
-	MPI_File_write_at_all(fh, sizeof(char)*rank, buf, 1, MPI_CHAR);
+	MPI_File_write_at_all(fh, sizeof(char)*rank, buf, 1, MPI_CHAR, &status);
 	MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR);
 	MPI_File_write_at_all_end(fh, "r", &status);
 	MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR);
