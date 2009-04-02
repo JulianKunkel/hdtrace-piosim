@@ -115,7 +115,7 @@ public class LegendTable extends JTable
 				((GenericHeaderRenderer) renderer).initPressablePullDownTab();
 				column.setHeaderRenderer( renderer );
 
-				pop_menu = new OperationBooleanMenu( this, icol );
+				pop_menu = new OperationBooleanMenu( this, icol, table_model.getForceFireListenerOnUpdate(icol) );
 				handler  = new TableHeaderHandler( this, icol, pop_menu );
 				table_header.addMouseListener( handler );
 				handler  = new TableColumnHandler( this, icol, pop_menu );

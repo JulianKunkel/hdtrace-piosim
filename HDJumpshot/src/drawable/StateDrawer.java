@@ -37,7 +37,6 @@ package drawable;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.Point;
 
 public class StateDrawer
 {
@@ -72,37 +71,5 @@ public class StateDrawer
 
 		BorderStyle.paintStateBorder( g, color,	x1, y1, true, x2, y2, true );
 		return 1;
-	}
-
-	/*
-        Check if a point in pixel coordinate is in a Rectangle
-        specified between left-upper vertex (start_time, start_ypos)
-        and right-lower vertex (final_time, final_ypos)
-        Assume caller guarantees the order of timestamps and ypos, such that
-        start_time <= final_time  and  start_ypos <= final_ypos
-	 */
-	public static boolean isPixelIn( Point pt,
-			int x1, int y1,
-			int x2, int y2)
-	{
-		int      pt_x, pt_y;
-
-		pt_y     = pt.y;
-
-		if ( pt_y < y1  )
-			return false;
-
-		if ( pt_y > y2 )
-			return false;
-
-		pt_x     = pt.x;
-
-		if ( pt_x < x1 )
-			return false;
-
-		if ( pt_x > x2 )
-			return false;
-
-		return true;
 	}
 }

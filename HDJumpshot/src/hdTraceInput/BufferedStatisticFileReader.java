@@ -39,8 +39,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 	private Epoch minTime;
 	private Epoch maxTime;
 
-	final double maxNumericValue [];
-	final double minNumericValue [];
+	final StatisticStatistics [] statistics;
 
 	ArrayList<StatisticGroupEntry> statEntries = new ArrayList<StatisticGroupEntry>();
 
@@ -62,8 +61,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		//  update local min/max value
 		// check file:
 
-		maxNumericValue = new double [group.getSize()];
-		minNumericValue = new double [group.getSize()];
+		statistics = new StatisticStatistics [group.getSize()];
 
 		for(StatisticDescription desc: group.getStatisticsOrdered()){
 			if(! desc.isNumeric())
@@ -71,16 +69,30 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			
 			double min = Double.MAX_VALUE;
 			double max = Double.MIN_VALUE;
+			double sum = 0;
+			final int cnt = statEntries.size();
 			
-			final int groupNumber = desc.getNumberInGroup(); 
+			final int groupNumber = desc.getNumberInGroup();
+			
 			for(StatisticGroupEntry entry: statEntries){
 				double value = entry.getNumeric(groupNumber);
 				if( value > max ) max = value;
 				if( value < min ) min = value;
+				
+				sum += value;  
 			}
 			
-			minNumericValue[groupNumber] = min;
-			maxNumericValue[groupNumber] = max;
+			final double avg = sum / cnt;
+			
+			double stddev = 0;
+			for(StatisticGroupEntry entry: statEntries){
+				double value = entry.getNumeric(groupNumber);
+				stddev += (value - avg) * (value - avg);
+			}
+			
+			stddev = Math.sqrt(stddev);
+			
+			statistics[groupNumber] = new StatisticStatistics(max, min, avg, stddev);
 		}
 	}
 
@@ -136,11 +148,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		return maxTime;
 	}
 
-	public double getMaxNumericValue(int which) {
-		return maxNumericValue[which];
-	}
-
-	public double getMinNumericValue(int which) {
-		return minNumericValue[which];
+	public StatisticStatistics getStatisticsFor(int which) {
+		return statistics[which];
 	}
 }

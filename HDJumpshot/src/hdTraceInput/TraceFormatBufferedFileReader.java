@@ -139,10 +139,12 @@ public class TraceFormatBufferedFileReader {
 				if(statDesc.isNumeric()){
 					// update globals:
 					double globalMaxValue = statsPerStatistic.getGlobalMaxValue();
-					double globalMinValue = statsPerStatistic.getGlobalMinValue(); 
+					double globalMinValue = statsPerStatistic.getGlobalMinValue();
+					
+					final StatisticStatistics statsForFile = reader.getStatisticsFor(groupNumber);
 
-					if( reader.getMaxNumericValue(groupNumber) > globalMaxValue ) globalMaxValue = reader.getMaxNumericValue(groupNumber);
-					if( reader.getMinNumericValue(groupNumber) < globalMinValue ) globalMinValue = reader.getMinNumericValue(groupNumber);
+					if( statsForFile.getMaxValue() > globalMaxValue ) globalMaxValue =  statsForFile.getMaxValue();
+					if( statsForFile.getMinValue() < globalMinValue ) globalMinValue =  statsForFile.getMinValue();
 
 					statsPerStatistic.setGlobalMaxValue(globalMaxValue);
 					statsPerStatistic.setGlobalMinValue(globalMinValue);

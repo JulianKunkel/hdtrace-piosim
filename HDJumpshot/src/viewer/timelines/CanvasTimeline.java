@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -37,6 +37,7 @@ package viewer.timelines;
 import hdTraceInput.BufferedStatisticFileReader;
 import hdTraceInput.BufferedTraceFileReader;
 import hdTraceInput.ReaderTraceElementEnumerator;
+import hdTraceInput.StatisticStatistics;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
@@ -89,7 +90,7 @@ import drawable.CategoryStatistic.Scaling;
 public class CanvasTimeline extends ScrollableObject implements SearchableView
 {
 	private static final long serialVersionUID = 1424310776190717432L;
-	
+
 	private TopologyManager    topologyManager;
 	private BoundedRangeModel  y_model;
 
@@ -125,7 +126,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		}
 	};
 
-  
+
 	public CanvasTimeline( ModelTime time_model,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
@@ -225,7 +226,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			return;
 		}
 		final long startTime = System.currentTimeMillis();
-		
+
 		// int offImage_width = visible_size.width * NumViewsPerImage;
 		int        offImage_width  = offImage.getWidth( this );
 		int        offImage_height = offImage.getHeight( this );
@@ -276,7 +277,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		long drawedStatistics = 0;
 		long drawedTraceElements = 0;
-		
+
 		// Draw all drawables            
 		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
 
@@ -298,12 +299,12 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		if(SimpleConsoleLogger.isDebugEverything()){			
 			SimpleConsoleLogger.DebugWithStackTrace( (System.currentTimeMillis() - startTime) +  "ms Draw Canvas [t] "  
-				+ timebounds.getEarliestTime() +" - " + timebounds.getLatestTime()  
-				+	" drawn trace: " + drawedTraceElements +" stat:"  +	drawedStatistics + "",
-				2);
+					+ timebounds.getEarliestTime() +" - " + timebounds.getLatestTime()  
+					+	" drawn trace: " + drawedTraceElements +" stat:"  +	drawedStatistics + "",
+					2);
 
 		}
-		
+
 		offGraphics.dispose();
 	}   // endof drawOneOffImage()
 
@@ -320,7 +321,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		final StatisticsGroupDescription group = sReader.getGroup();
 
 		double lastTime = vStartTime.getDouble();
-		
+
 		final CategoryStatistic cat = reader.getCategory(group, statName);
 
 		final int statNumberInGroup = node.getNumberInGroup();
@@ -331,7 +332,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		final Color color = cat.getColor();
 		final Color backGroundColor;
-		
+
 		if(color.getBlue() + color.getRed() + color.getGreen() > 120){
 			//make it darker:
 			backGroundColor = new Color(color.getRed()/2, color.getGreen()/2, color.getBlue()/2,
@@ -340,7 +341,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			backGroundColor = new Color((color.getRed()+5)*2, (color.getGreen()+5)*2, (color.getBlue()+5)*2,
 					color.getAlpha());
 		}
-		
+
 		DrawObjects.drawStatisticBackground(offGraphics, coord_xform, vStartTime.getDouble(), vEndTime.getDouble(), backGroundColor, color, timeline);
 
 		int drawedStatistics = 0;
@@ -351,34 +352,36 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		double maxValue;
 		double minValue;
 		final Scaling scale = cat.getScaling();
-		
+		final StatisticStatistics statStat = sReader.getStatisticsFor(statNumberInGroup);
+
+
 		if( cat.getMaxAdjustment() == MaxAdjustment.GLOBAL_MAX ){
 			maxValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMaxValue();
 		}else{
-			maxValue = sReader.getMaxNumericValue(statNumberInGroup);
+			maxValue = statStat.getMaxValue();
 		}
-		
+
 		switch(cat.getMinAdjustment()){
 		case GLOBAL_MIN:
 			minValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMinValue();
 			break;
 		case TIMELINE_MIN:
-			minValue = sReader.getMinNumericValue(statNumberInGroup);
+			minValue = statStat.getMinValue();
 			break;
 		default:
 			minValue = 0.0;
 		}
-		
+
 		maxValue = maxValue - minValue;
-		
+
 		if(scale == Scaling.LOGARITHMIC){
 			maxValue = Math.log10(maxValue);
 		}
-		
-		
+
+
 		final StatisticDescription statDesc =  group.getStatistic(statName);
 		final int statNumber = statDesc.getNumberInGroup();
-		
+
 		final Enumeration<StatisticGroupEntry> entries = sReader.enumerateStatistics(
 				vStartTime.add(getModelTime().getTimeGlobalMinimum()),
 				vEndTime.add(getModelTime().getTimeGlobalMinimum()));
@@ -397,22 +400,50 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			default:
 				value = 0;
 			}
-			
+
 			if (value < 0){
 				value = 0;
 			}else if (value > 1.0){
 				value = 1.0f;
 			}
-			
+
 			final Epoch adaptedTime = entry.getEarliestTime().subtract(globalMinTime) ;
 
 			DrawObjects.drawStatistic(offGraphics, coord_xform, adaptedTime, lastTime, (float) value , timeline);
 
 			lastTime = adaptedTime.getDouble();
-			
+
 			drawedStatistics++;
 		}
-		
+
+		if( cat.isShowAverageLine() ){ // draw average line... TODO cleanup the whole code here...
+			Color avgLineColor = backGroundColor.brighter();
+			
+			int x1   = coord_xform.convertTimeToPixel( vStartTime.getDouble() );
+			int x2   = coord_xform.convertTimeToPixel( vEndTime.getDouble() );
+
+			int height = (coord_xform.getTimelineHeight() );
+
+			int y1   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2 ;
+
+			// Fill the color of the rectangle
+
+			offGraphics.setColor(avgLineColor);
+
+			double adaption = 0;
+			switch(scale){
+			case DECIMAL:
+				adaption =  ((statStat.getAverageValue() - minValue) / maxValue);
+				break;
+			case LOGARITHMIC:
+				adaption =  Math.log10((statStat.getAverageValue() - minValue))/ maxValue;
+				break;
+			}
+
+			adaption *= height;		
+			offGraphics.drawLine(x1, y1 - (int) adaption, x2, (int) y1 - (int) adaption);
+		}       
+
 		return drawedStatistics;
 	}
 
@@ -428,14 +459,14 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntry(true, 
 				startTime.add(getModelTime().getTimeGlobalMinimum()), 
 				endTime.add(getModelTime().getTimeGlobalMinimum())) ;
-		
+
 		int drawedTraceObjects = 0;
-		
+
 		while(elements.hasMoreElements()){
 			drawedTraceObjects++;
-			
+
 			final int depth = elements.getNestingDepthOfNextElement() + 1;
-			
+
 			TraceEntry entry = elements.nextElement();
 
 			final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
@@ -450,7 +481,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			}else if(entry.getType() == TraceObjectType.STATE){
 				final StateTraceEntry state = (StateTraceEntry) entry;
 				final Category category = reader.getCategory(state);
-				
+
 				if(category == null){
 					System.out.println(state.getName()  + " SCHUH " + state);
 					System.exit(1);
@@ -460,9 +491,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 					DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 
 							depth, timeline, globalMinTime);
 			}
-			
+
 		}
-		
+
 		return drawedTraceObjects;
 	}
 
@@ -497,7 +528,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 					// mouse is not inside the state.
 					if( curDist < eventRadius)
 						return state;
-					
+
 					return null;
 				}
 
@@ -586,7 +617,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		return super.getTimePropertyAt( local_click );
 	}
-	
+
 	@Override
 	public SearchResults searchNextComponent(Epoch laterThan) {
 		TraceObject minObject = null;
@@ -598,60 +629,60 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			switch (topologyManager.getType(i)){
 			case TRACE:
 				BufferedTraceFileReader tr = topologyManager.getTraceReaderForTimeline(i);
-				
+
 				traceElementLoop: 
-				for(TraceEntry entry: tr.getTraceEntries()){
-					if(entry.getLatestTime().compareTo(laterThan) > 0){
-						if(entry.getType() == TraceObjectType.EVENT){
-							Category cat = reader.getCategory((EventTraceEntry) entry);
-							if(cat.isSearchable()){												
-								if( entry.getEarliestTime().compareTo(minTime) < 0){							
-									minObject = entry;
-									minTime = entry.getEarliestTime();
-									minTimeline = i;
-								}
-								// found one so break
-								break;
-							}							
-						}else if(entry.getType() == TraceObjectType.STATE){
-							StateTraceEntry state = (StateTraceEntry) entry;
-							Category cat = reader.getCategory(state);
-							// iterate through children if necessary:
-														
-							if(cat.isSearchable() && entry.getEarliestTime().compareTo(laterThan) > 0 ){												
-								if( entry.getEarliestTime().compareTo(minTime) < 0){							
-									minObject = entry;
-									minTime = entry.getEarliestTime();
-									minTimeline = i;
-								}
-								// the state is the one we are looking for.
-								break;
-							}
-							if(state.hasNestedTraceChildren()){
-								final Enumeration<TraceEntry> children = state.childForwardEnumeration();
-								while(children.hasMoreElements()){
-									final TraceEntry nestedChild = children.nextElement();
-									
-									if( nestedChild.getEarliestTime().compareTo(laterThan) <= 0 ){
-										continue;
+					for(TraceEntry entry: tr.getTraceEntries()){
+						if(entry.getLatestTime().compareTo(laterThan) > 0){
+							if(entry.getType() == TraceObjectType.EVENT){
+								Category cat = reader.getCategory((EventTraceEntry) entry);
+								if(cat.isSearchable()){												
+									if( entry.getEarliestTime().compareTo(minTime) < 0){							
+										minObject = entry;
+										minTime = entry.getEarliestTime();
+										minTimeline = i;
 									}
-									
-									if( reader.getCategory(nestedChild).isSearchable()){												
-										if( entry.getEarliestTime().compareTo(minTime) < 0){							
-											minObject = nestedChild;
-											minTime = nestedChild.getEarliestTime();
-											minTimeline = i;
-										}
-										// found one so break
-										break traceElementLoop;
-									}	
+									// found one so break
+									break;
+								}							
+							}else if(entry.getType() == TraceObjectType.STATE){
+								StateTraceEntry state = (StateTraceEntry) entry;
+								Category cat = reader.getCategory(state);
+								// iterate through children if necessary:
+
+								if(cat.isSearchable() && entry.getEarliestTime().compareTo(laterThan) > 0 ){												
+									if( entry.getEarliestTime().compareTo(minTime) < 0){							
+										minObject = entry;
+										minTime = entry.getEarliestTime();
+										minTimeline = i;
+									}
+									// the state is the one we are looking for.
+									break;
 								}
+								if(state.hasNestedTraceChildren()){
+									final Enumeration<TraceEntry> children = state.childForwardEnumeration();
+									while(children.hasMoreElements()){
+										final TraceEntry nestedChild = children.nextElement();
+
+										if( nestedChild.getEarliestTime().compareTo(laterThan) <= 0 ){
+											continue;
+										}
+
+										if( reader.getCategory(nestedChild).isSearchable()){												
+											if( entry.getEarliestTime().compareTo(minTime) < 0){							
+												minObject = nestedChild;
+												minTime = nestedChild.getEarliestTime();
+												minTimeline = i;
+											}
+											// found one so break
+											break traceElementLoop;
+										}	
+									}
+								}
+							}else{
+								throw new IllegalArgumentException("SearchNextComponent Invalid type " + entry.getType());
 							}
-						}else{
-							throw new IllegalArgumentException("SearchNextComponent Invalid type " + entry.getType());
 						}
 					}
-				}
 				break;
 			}
 		}
@@ -669,62 +700,62 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			switch (topologyManager.getType(i)){
 			case TRACE:
 				BufferedTraceFileReader tr = topologyManager.getTraceReaderForTimeline(i);
-				
+
 				traceElementLoop: 
-				for(int te=tr.getTraceEntries().size() -1 ; te >= 0 ; te-- ){
-					TraceEntry entry = tr.getTraceEntries().get(te);
-					
-					if(entry.getEarliestTime().compareTo(earlierThan) < 0){
-						if(entry.getType() == TraceObjectType.EVENT){
-							Category cat = reader.getCategory((EventTraceEntry) entry);
-							if(cat.isSearchable()){												
-								if( entry.getLatestTime().compareTo(maxTime) > 0){							
-									minObject = entry;
-									maxTime = entry.getLatestTime();
-									minTimeline = i;
-								}
-								// found one so break
-								break;
-							}							
-						}else if(entry.getType() == TraceObjectType.STATE){
-							StateTraceEntry state = (StateTraceEntry) entry;
-							Category cat = reader.getCategory(state);
-							// iterate through children if necessary:
-														
-							if(cat.isSearchable() && entry.getLatestTime().compareTo(earlierThan) < 0 ){												
-								if( entry.getLatestTime().compareTo(maxTime) > 0){							
-									minObject = entry;
-									maxTime = entry.getLatestTime();
-									minTimeline = i;
-								}
-								// the state is the one we are looking for.
-								break;
-							}
-							if(state.hasNestedTraceChildren()){
-								final Enumeration<TraceEntry> children = state.childBackwardEnumeration();
-								while(children.hasMoreElements()){
-									final TraceEntry nestedChild = children.nextElement();
-									
-									if( nestedChild.getLatestTime().compareTo(earlierThan) >= 0 ){
-										continue;
+					for(int te=tr.getTraceEntries().size() -1 ; te >= 0 ; te-- ){
+						TraceEntry entry = tr.getTraceEntries().get(te);
+
+						if(entry.getEarliestTime().compareTo(earlierThan) < 0){
+							if(entry.getType() == TraceObjectType.EVENT){
+								Category cat = reader.getCategory((EventTraceEntry) entry);
+								if(cat.isSearchable()){												
+									if( entry.getLatestTime().compareTo(maxTime) > 0){							
+										minObject = entry;
+										maxTime = entry.getLatestTime();
+										minTimeline = i;
 									}
-									
-									if( reader.getCategory(nestedChild).isSearchable()){												
-										if( entry.getLatestTime().compareTo(maxTime) > 0){							
-											minObject = nestedChild;
-											maxTime = nestedChild.getLatestTime();
-											minTimeline = i;
-										}
-										// found one so break
-										break traceElementLoop;
-									}	
+									// found one so break
+									break;
+								}							
+							}else if(entry.getType() == TraceObjectType.STATE){
+								StateTraceEntry state = (StateTraceEntry) entry;
+								Category cat = reader.getCategory(state);
+								// iterate through children if necessary:
+
+								if(cat.isSearchable() && entry.getLatestTime().compareTo(earlierThan) < 0 ){												
+									if( entry.getLatestTime().compareTo(maxTime) > 0){							
+										minObject = entry;
+										maxTime = entry.getLatestTime();
+										minTimeline = i;
+									}
+									// the state is the one we are looking for.
+									break;
 								}
+								if(state.hasNestedTraceChildren()){
+									final Enumeration<TraceEntry> children = state.childBackwardEnumeration();
+									while(children.hasMoreElements()){
+										final TraceEntry nestedChild = children.nextElement();
+
+										if( nestedChild.getLatestTime().compareTo(earlierThan) >= 0 ){
+											continue;
+										}
+
+										if( reader.getCategory(nestedChild).isSearchable()){												
+											if( entry.getLatestTime().compareTo(maxTime) > 0){							
+												minObject = nestedChild;
+												maxTime = nestedChild.getLatestTime();
+												minTimeline = i;
+											}
+											// found one so break
+											break traceElementLoop;
+										}	
+									}
+								}
+							}else{
+								throw new IllegalArgumentException("SearchNextComponent Invalid type " + entry.getType());
 							}
-						}else{
-							throw new IllegalArgumentException("SearchNextComponent Invalid type " + entry.getType());
 						}
 					}
-				}
 				break;
 			}
 		}

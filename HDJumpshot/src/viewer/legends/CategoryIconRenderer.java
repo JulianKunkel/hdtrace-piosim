@@ -36,18 +36,21 @@ package viewer.legends;
 
 import java.awt.Color;
 import java.awt.Component;
-import javax.swing.SwingConstants;
-import javax.swing.border.Border;
+
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
 public class CategoryIconRenderer extends JLabel
                                   implements TableCellRenderer
 {
-    private static final Color  CELL_BACKCOLOR
+	private static final long serialVersionUID = 1054236453753786546L;
+	
+	private static final Color  CELL_BACKCOLOR
                                 = LegendConst.CELL_BACKCOLOR;
     private static final Color  CELL_FORECOLOR
                                 = LegendConst.CELL_FORECOLOR;

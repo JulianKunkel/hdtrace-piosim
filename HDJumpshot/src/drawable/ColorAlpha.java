@@ -38,9 +38,9 @@ import java.awt.Color;
 import java.util.Arrays;
 
 public class ColorAlpha extends Color
-                        implements Comparable
+                        implements Comparable<ColorAlpha>
 {
-    public static final int         BYTESIZE         = 5;
+	private static final long serialVersionUID = -4694529781755510600L;
 
     public static final int         OPAQUE           = 255;
     public static final int         NEAR_OPAQUE      = 191;
@@ -58,47 +58,37 @@ public class ColorAlpha extends Color
                                     = new ColorAlpha( ColorAlpha.yellow,
                                                       ColorAlpha.OPAQUE );
 
-    private boolean  isModifiable;
-
     public ColorAlpha()
     {
-        // {red=255, green=192, blue= 203} is "pink" from jumpshot.colors
-        // Initialize all color to "pink", and "opaque"
         super( 255, 192, 203, ColorAlpha.OPAQUE );
-        isModifiable  = true;
     }
 
     public ColorAlpha( int red, int green, int blue )
     {
         super( red, green, blue, ColorAlpha.OPAQUE );
-        isModifiable  = true;
     }
 
     public ColorAlpha( Color color, int alpha )
     {
         super( color.getRed(), color.getGreen(), color.getBlue(), alpha );
-        isModifiable  = true;
     }
 
-    // Used by logformat.slog2.update.UpdatedInputLog
     public ColorAlpha( Color color )
     {
         super( color.getRed(), color.getGreen(), color.getBlue(),
                color.getAlpha() );
-        isModifiable  = true;
     }
 
     public ColorAlpha( int red, int green, int blue, int alpha,
                        boolean in_isModifiable )
     {
         super( red, green, blue, alpha );
-        isModifiable  = in_isModifiable;
     }
 
     public String toString()
     {
         return "(" + getRed() + "," + getGreen() +  "," + getBlue()
-             + "," + getAlpha() + "," + isModifiable + ")";
+             + "," + getAlpha() + ")";
     }
 
     public int getLengthSq()
@@ -115,9 +105,8 @@ public class ColorAlpha extends Color
                && ( super.getBlue()  == clr.getBlue() );
     }
 
-    public int compareTo( Object obj )
+    public int compareTo( ColorAlpha clr )
     {
-        ColorAlpha clr = (ColorAlpha) obj;
         if ( ! this.equals( clr ) )
             // return this.getLengthSq() - clr.getLengthSq();
             return clr.getLengthSq() - this.getLengthSq();
@@ -134,7 +123,6 @@ public class ColorAlpha extends Color
     */
     private static void initDefaultColors()
     {
-        ColorAlpha  color;
         int         ired, igreen, iblue;
         int         vals_length, colors_length, idx;
         int         vals[] = { 0x0, 0x33, 0x66, 0x99, 0xCC, 0xFF };

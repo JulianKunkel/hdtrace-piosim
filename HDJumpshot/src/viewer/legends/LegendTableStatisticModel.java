@@ -52,14 +52,15 @@ public class LegendTableStatisticModel extends LegendTableTraceModel
 	public  static final int        SCALING_COLUMN         = 3;
 	public  static final int        ADJUSTMENT_MIN_COLUMN  = 4;
 	public  static final int        ADJUSTMENT_MAX_COLUMN  = 5;
+	public  static final int        SHOW_AVG_LINE_COLUMN   = 6;
 
-	private static final String[]   COLUMN_TITLES  = { "Topo", "Name         ", "V",  "S", "<", ">"};
-	private static final String[]   COLUMN_TOOLTIPS = { "Topology/Color", "Statistic Group Name", "Visibility", "Scaling", "Max Adjustment", "Min Adjustment" };
-	private static final Class<?>[]    COLUMN_CLASSES = { CategoryIcon.class, String.class, Boolean.class, TablePopupHandler.class, TablePopupHandler.class, TablePopupHandler.class };
+	private static final String[]   COLUMN_TITLES  = { "Topo", "Name         ", "V",  "S", "<", ">", "A"};
+	private static final String[]   COLUMN_TOOLTIPS = { "Topology/Color", "Statistic Group Name", "Visibility", "Scaling", "Max Adjustment", "Min Adjustment", "Show average line" };
+	private static final Class<?>[]    COLUMN_CLASSES = { CategoryIcon.class, String.class, Boolean.class, TablePopupHandler.class, TablePopupHandler.class, TablePopupHandler.class, Boolean.class };
 
-	private static final Color[]    COLUMN_TITLE_FORE_COLORS = { Color.magenta, Color.pink,  Color.green, Color.yellow, Color.yellow, Color.yellow, Color.yellow, Color.yellow  };
-	private static final Color[]    COLUMN_TITLE_BACK_COLORS = { Color.black, Color.gray, Color.darkGray.darker(),  Color.blue.darker(), Color.gray, Color.gray, Color.gray   };
-	private static final boolean[]  COLUMN_TITLE_RAISED_ICONS = { false, false, true, false, true, true, true };
+	private static final Color[]    COLUMN_TITLE_FORE_COLORS = { Color.magenta, Color.pink,  Color.green, Color.yellow, Color.yellow, Color.yellow, Color.yellow, Color.yellow, Color.yellow  };
+	private static final Color[]    COLUMN_TITLE_BACK_COLORS = { Color.black, Color.gray, Color.darkGray.darker(),  Color.blue.darker(), Color.gray, Color.gray, Color.gray, Color.gray   };
+	private static final boolean[]  COLUMN_TITLE_RAISED_ICONS = { false, false, true, false, true, true, true, false };
 	
 	@Override
 	public IPopupType[] getPopupColumnAlternatives(int column) {
@@ -80,6 +81,8 @@ public class LegendTableStatisticModel extends LegendTableTraceModel
 	{
 		final CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
 		switch ( icolumn ) {
+		case SHOW_AVG_LINE_COLUMN:
+			return stat.isShowAverageLine();
 		case SCALING_COLUMN:{
 			return stat.getScaling().getAbbreviationChar();
 		}case ADJUSTMENT_MIN_COLUMN:{
@@ -99,6 +102,12 @@ public class LegendTableStatisticModel extends LegendTableTraceModel
 
 		final CategoryStatistic stat = (CategoryStatistic) getCategory(irow);
 		switch ( icolumn ) {
+		case SHOW_AVG_LINE_COLUMN:
+			stat.setShowAverageLine((Boolean) value);
+			fireTableCellUpdated( irow, icolumn );
+			
+			fireCategoryVisibilityChanged();
+			return;
 		case SCALING_COLUMN:{
 			stat.setScaling(Scaling.valueOf((String) value));
 			fireTableCellUpdated( irow, icolumn );
@@ -122,8 +131,15 @@ public class LegendTableStatisticModel extends LegendTableTraceModel
 		return;
 		}
 	}
-
-
+	
+	@Override
+	public boolean getForceFireListenerOnUpdate(int icolumn) {
+		if (icolumn == SHOW_AVG_LINE_COLUMN)
+			return true;
+		return super.getForceFireListenerOnUpdate(icolumn);
+	}
+	
+	
 	public int getColumnCount()
 	{
 		return COLUMN_TITLES.length;

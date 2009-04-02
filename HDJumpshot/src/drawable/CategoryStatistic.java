@@ -81,6 +81,8 @@ public class CategoryStatistic extends Category {
 	private MinAdjustment minAdjustment = MinAdjustment.ZERO;
 	private MaxAdjustment maxAdjustment = MaxAdjustment.GLOBAL_MAX;
 	
+	private boolean showAverageLine = true;
+	
 	public CategoryStatistic(String in_name, ColorAlpha in_color ) {
 		super(in_name, in_color);
 	}	
@@ -123,5 +125,13 @@ public class CategoryStatistic extends Category {
 	@Override
 	public TopologyType getTopologyType() {
 		return TopologyType.STATISTIC;
+	}
+	
+	public boolean isShowAverageLine() {
+		return showAverageLine;
+	}
+	
+	public void setShowAverageLine(boolean showAverageLine) {
+		this.showAverageLine = showAverageLine;
 	}
 }

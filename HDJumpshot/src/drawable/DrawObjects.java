@@ -83,8 +83,7 @@ public class DrawObjects{
         int height = coord_xform.getTimelineHeight();
         
         int y1   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
-        int y2   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
-		
+        
 		g.setColor( backGroundcolor );
 		g.fillRect( x1, y1, x2-x1+1, height);
 		

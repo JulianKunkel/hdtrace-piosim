@@ -49,24 +49,20 @@ import viewer.common.Const;
  Class to simulate a JMenuBar header editor for a JTable with boolean value
  */
 public class OperationBooleanMenu extends JPopupMenu {
-	private static String toggle_selected_icon_path = Const.IMG_PATH
-			+ "checkbox/ToggleSelected.gif";
-	private static String enable_selected_icon_path = Const.IMG_PATH
-			+ "checkbox/EnableSelected.gif";
-	private static String disable_selected_icon_path = Const.IMG_PATH
-			+ "checkbox/DisableSelected.gif";
-	private static String toggle_all_icon_path = Const.IMG_PATH
-			+ "checkbox/ToggleAll.gif";
-	private static String enable_all_icon_path = Const.IMG_PATH
-			+ "checkbox/EnableAll.gif";
-	private static String disable_all_icon_path = Const.IMG_PATH
-			+ "checkbox/DisableAll.gif";
+	private static String toggle_selected_icon_path = Const.IMG_PATH + "checkbox/ToggleSelected.gif";
+	private static String enable_selected_icon_path = Const.IMG_PATH + "checkbox/EnableSelected.gif";
+	private static String disable_selected_icon_path = Const.IMG_PATH + "checkbox/DisableSelected.gif";
+	private static String toggle_all_icon_path = Const.IMG_PATH	+ "checkbox/ToggleAll.gif";
+	private static String enable_all_icon_path = Const.IMG_PATH	+ "checkbox/EnableAll.gif";
+	private static String disable_all_icon_path = Const.IMG_PATH + "checkbox/DisableAll.gif";
 
 	private JTable table_view;
 	private LegendTableTraceModel table_model;
 	private int bool_column; // index where Boolean.class is
+	
+	private boolean fireListenerOnUpdate = true;
 
-	public OperationBooleanMenu(JTable in_table, int in_column) {
+	public OperationBooleanMenu(JTable in_table, int in_column, boolean fireListenerOnUpdate) {
 		super();
 		table_view = in_table;
 		table_model = (LegendTableTraceModel) table_view.getModel();
@@ -75,6 +71,8 @@ public class OperationBooleanMenu extends JPopupMenu {
 		super.setLabel(table_model.getColumnName(bool_column));
 		super.setToolTipText(table_model.getColumnToolTip(bool_column));
 		this.addMenuItems();
+		
+		this.fireListenerOnUpdate = fireListenerOnUpdate;
 	}
 
 	private void addMenuItems() {
@@ -160,7 +158,7 @@ public class OperationBooleanMenu extends JPopupMenu {
 		}
 		
 		table_model.enableCategoryListener(true);
-		if(icolumn == 2)
+		if(fireListenerOnUpdate)
 			table_model.fireCategoryVisibilityChanged();
 	}
 
@@ -178,11 +176,11 @@ public class OperationBooleanMenu extends JPopupMenu {
 		}
 		
 		table_model.enableCategoryListener(true);
-		if(icolumn == 2)
+		if(fireListenerOnUpdate)
 			table_model.fireCategoryVisibilityChanged();
 	}
 
-	private void toggleAllAtColumn(int icolumn) {
+	protected void toggleAllAtColumn(int icolumn) {
 		int irows_length, irow;
 		Boolean bval;
 
@@ -198,7 +196,7 @@ public class OperationBooleanMenu extends JPopupMenu {
 		}
 		
 		table_model.enableCategoryListener(true);
-		if(icolumn == 2)
+		if(fireListenerOnUpdate)
 			table_model.fireCategoryVisibilityChanged();
 	}
 
@@ -214,7 +212,7 @@ public class OperationBooleanMenu extends JPopupMenu {
 		
 		
 		table_model.enableCategoryListener(true);
-		if(icolumn == 2)
+		if(fireListenerOnUpdate)
 			table_model.fireCategoryVisibilityChanged();
 	}
 }

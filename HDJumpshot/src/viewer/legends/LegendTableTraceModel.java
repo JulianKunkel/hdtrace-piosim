@@ -177,6 +177,10 @@ public class LegendTableTraceModel extends AbstractTableModel
     {
         return COLUMN_CLASSES[ icolumn ];
     }
+    
+    public boolean getForceFireListenerOnUpdate(int icolumn){
+    	return icolumn == 2;
+    }
 
     public String getColumnName( int icolumn )
     {
