@@ -27,9 +27,9 @@ package topology;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyStatisticTreeNode extends TopologyTreeNode {
@@ -48,6 +48,10 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	
 	public String getStatisticName() {
 		return statisticDescription.getName();
+	}
+	
+	public StatisticDescription getStatisticDescription() {
+		return statisticDescription;
 	}
 	
 	public StatisticSource getStatisticSource() {

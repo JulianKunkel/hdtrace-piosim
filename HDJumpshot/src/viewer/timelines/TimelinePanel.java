@@ -123,7 +123,7 @@ public class TimelinePanel extends JPanel
 	private class MyNumberOfRowsChangedListener implements RowNumberChangedListener{
 		@Override
 		public void rowNumberChanged() {
-			time_canvas.forceRedraw();
+			time_canvas.redrawIfAutoRedraw();
 		}
 	}
 		
@@ -158,7 +158,8 @@ public class TimelinePanel extends JPanel
 	{
 		super();
 
-		this.topologyManager = new TopologyManager(reader);
+		time_model    = new ModelTime( root_window,	reader.getGlobalMinTime(),	reader.getGlobalMaxTime());
+		this.topologyManager = new TopologyManager(reader, time_model);
 
 		reader.getLegendTraceModel().addCategoryUpdateListener(myTableLegendChangeListener);
 
@@ -178,7 +179,6 @@ public class TimelinePanel extends JPanel
 
 		/* Initialize the ModelTime slog.input.InputLog().getTreeRoot() */
 
-		time_model    = new ModelTime( root_window,	reader.getGlobalMinTime(),	reader.getGlobalMaxTime());
 
 		this.setLayout( new BorderLayout() );
 

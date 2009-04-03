@@ -103,11 +103,11 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 	private Date               zero_time, init_time, final_time;
 
 	final private TraceFormatBufferedFileReader reader;
-
+	
 	private class MyTopologyChangeListener implements TopologyChangeListener{
 		@Override
-		public void topologyChanged() {
-			forceRedraw();
+		public void topologyChanged() {			
+			redrawIfAutoRedraw();
 		}
 	}
 
@@ -117,12 +117,12 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
 		@Override
 		public void categoryVisibilityChanged() {
-			forceRedraw();
+			redrawIfAutoRedraw();
 		}
 
 		@Override
 		public void categoryColorChanged() {
-			forceRedraw();
+			redrawIfAutoRedraw();
 		}
 	};
 
@@ -130,12 +130,12 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 	public CanvasTimeline( ModelTime time_model,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
-			TopologyManager ytree)
+			TopologyManager topologyManager)
 	{
 		super( time_model );
 
 		this.reader = reader;
-		topologyManager       = ytree;
+		this.topologyManager       = topologyManager;
 		y_model         = yaxis_model;
 		// timeframe4imgs to be initialized later in initializeAllOffImages()
 		timeframe4imgs  = null;
@@ -761,4 +761,5 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		}
 		return new SearchResults(minTimeline, minObject);
 	}
+	
 }

@@ -22,49 +22,54 @@
 //	You should have received a copy of the GNU General Public License
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /*
- *  (C) 2001 by Argonne National Laboratory
- *      See COPYRIGHT in top-level directory.
- */
-
-/*
- *  @author Anthony Chan (Jumpshot 4), Julian M. Kunkel
+ *  @author Julian M. Kunkel
  */
 
 package viewer.zoomable;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import topology.TopologyManager;
-import viewer.common.Parameters;
-import viewer.common.PreferenceFrame;
-import viewer.common.TopWindow;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+
 import viewer.timelines.CanvasTimeline;
 
-public class ActionPptyRefresh implements ActionListener
+public class ActionPptyAutoRefresh implements ActionListener
 {
-    private TopologyManager        	 topologyManager;
 
     final private CanvasTimeline     timelines;
+    final private JButton			 refresh_btn;
 
-    public ActionPptyRefresh( TopologyManager in_y_tree, CanvasTimeline timelines)
+    public ActionPptyAutoRefresh(CanvasTimeline timelines, JButton refresh_btn)
     {
-        this.topologyManager = in_y_tree;
         this.timelines = timelines;
+        this.refresh_btn = refresh_btn;
+        
+        setBorder();
+    }
+    
+    private void setBorder(){
+    	if(timelines.isAutoRefresh()){
+    		refresh_btn.setBorder(BorderFactory.createLoweredBevelBorder());
+    		refresh_btn.setBackground(Color.GREEN);
+    	}else{
+    		refresh_btn.setBorder(BorderFactory.createRaisedBevelBorder());
+    		refresh_btn.setBackground(Color.GRAY);
+    	}
     }
 
     public void actionPerformed( ActionEvent event )
     {
-    	PreferenceFrame pptys_frame = (PreferenceFrame) TopWindow.Preference.getWindow();
-        if ( pptys_frame != null )
-            pptys_frame.updateAllParametersFromFields();
-                
-        Parameters.initStaticClasses();
-                
-        topologyManager.setRootVisible( Parameters.Y_AXIS_ROOT_VISIBLE );
-        
-        timelines.forceRedraw();
+    	if(timelines.isAutoRefresh()){
+    		timelines.setAutoRefresh(false);    		    		    		
+    	}else{    		
+    		timelines.setAutoRefresh(true);
+    		//timelines.forceRedraw();
+    	}
+    	
+    	setBorder();
     }
 }

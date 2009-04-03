@@ -34,7 +34,6 @@
 
 package viewer.zoomable;
 
-import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -46,13 +45,11 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.DebugGraphics;
 import javax.swing.JComponent;
-import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 
 import viewer.common.Debug;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTime;
-
 import de.hd.pvs.TraceFormat.TraceObject;
 import drawable.TimeBoundingBox;
 
@@ -91,6 +88,10 @@ implements ScrollableView
 	private   Dimension          image_size;
 	// The size of this JCompoent in pixel coordinates
 	private   Dimension          component_size;
+	
+	// desides whether a call of redrawIfAutoRedraw refreshes
+	boolean autoRefresh = true;
+
 
 	//  The following constructor is NOT meant to be called.
 	public ScrollableObject( ModelTime model )
@@ -499,6 +500,11 @@ implements ScrollableView
 
 	public abstract int getJComponentHeight();
 
+	public void redrawIfAutoRedraw(){
+		if(autoRefresh)
+			forceRedraw();
+	}
+	
 	/**
 	 * force to redraw the timelines
 	 */
@@ -621,5 +627,14 @@ implements ScrollableView
 
 	public ModelTime getModelTime() {
 		return modelTime;
+	}
+	
+
+	public boolean isAutoRefresh() {
+		return autoRefresh;
+	}
+	
+	public void setAutoRefresh(boolean autoRefresh) {
+		this.autoRefresh = autoRefresh;
 	}
 }

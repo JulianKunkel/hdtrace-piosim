@@ -30,12 +30,18 @@ import hdTraceInput.BufferedStatisticFileReader;
 import hdTraceInput.BufferedTraceFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedList;
 
+import javax.swing.AbstractAction;
+import javax.swing.JPopupMenu;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -44,7 +50,9 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import viewer.histogram.StatisticHistogramFrame;
 import viewer.timelines.TimelineType;
+import viewer.zoomable.ModelTime;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
@@ -57,9 +65,11 @@ public class TopologyManager extends JTree
 	private DefaultMutableTreeNode  tree_root;
 
 	final TraceFormatBufferedFileReader  reader;
+	final ModelTime                      modelTime;
 
 	private ArrayList<TopologyTreeNode> topoToTimelineMapping = new ArrayList<TopologyTreeNode>();
-
+	
+	
 	/**
 	 * If set to true then listeners are not notified on a topology change, this allows mass update of topology
 	 */
@@ -67,7 +77,56 @@ public class TopologyManager extends JTree
 	private LinkedList<TopologyChangeListener> changeListener = new LinkedList<TopologyChangeListener>();
 
 	private TreeExpansionListener treeExpansionListener = new TopologyTreeExpansionListener();
+	
+	/**
+	 * used to detect clicks on the tree i.e. for expanding the menus
+	 */
+	private MouseListener treeMouseListener = new MouseAdapter(){
+		public void mouseClicked(java.awt.event.MouseEvent evt) {
+			if (SwingUtilities.isRightMouseButton( evt )){
+				final TreePath path = getMe().getClosestPathForLocation(evt.getX(), evt.getY());
+				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+				
+				// return if we are not in the Boundrary of the current path (i.e. not really clicked inside the path).
+				if(! getMe().getPathBounds(path).contains(evt.getPoint())){
+					return;
+				}
+				
+				if( TopologyStatisticTreeNode.class.isInstance(node) ){
+					final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) node;
 
+					JPopupMenu statisticPopupMenu = new JPopupMenu();
+					statisticPopupMenu.add(new ShowStatisticHistogramAction(statNode));					
+					statisticPopupMenu.show( evt.getComponent(), evt.getX(), evt.getY() );					
+				}
+			}
+		};	
+	};
+	
+	private class ShowStatisticHistogramAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		
+		final TopologyStatisticTreeNode statNode;
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			StatisticHistogramFrame frame = new StatisticHistogramFrame(
+					(BufferedStatisticFileReader) statNode.getStatisticSource(), 
+					statNode.getStatisticDescription(), modelTime, 
+					reader.getCategory(((BufferedStatisticFileReader) statNode.getStatisticSource()).getGroup(), statNode.getStatisticDescription().getName()));
+			frame.show();
+		}
+		
+		public ShowStatisticHistogramAction(TopologyStatisticTreeNode statNode) {
+			super("Show statistics for " + statNode.getStatisticName());
+			this.statNode = statNode;
+	        //putValue(SHORT_DESCRIPTION, desc);
+		}
+	}
+
+	private JTree getMe(){
+		return this;
+	}
 
 
 
@@ -405,11 +464,14 @@ public class TopologyManager extends JTree
 	}
 
 
-	public TopologyManager( final TraceFormatBufferedFileReader  reader )
-	{
+	public TopologyManager( final TraceFormatBufferedFileReader  reader, ModelTime modelTime )
+	{		
+		this.modelTime = modelTime;
 		this.reader = reader;
-		super.setEditable( true );
+		super.setEditable( true );		
 		super.putClientProperty("JTree.lineStyle", "Angled");
+		
+		this.addMouseListener(treeMouseListener);
 
 		restoreTopology();
 	}
