@@ -143,7 +143,7 @@ struct _hdTrace {
 	/**
 	 * TODO: Description
 	 */
-	int trace_enable;
+	int isEnabled;
 
 	/**
 	 * TODO: Description
@@ -188,12 +188,19 @@ int hdT_setNestedDepth(
 		);
 
 /**
- * Enable/disable trace writing
+ * Enable trace.
  */
-int hdT_enableTracing(
-		hdTrace trace,
-		int enable
-		);
+int hdT_enableTrace(hdTrace trace);
+
+/**
+ * Disable trace.
+ */
+int hdT_disableTrace(hdTrace trace);
+
+/**
+ * Get if trace is enabled.
+ */
+int hdT_isEnabled(hdTrace trace);
 
 /**
  * Set flushing behavior for trace file

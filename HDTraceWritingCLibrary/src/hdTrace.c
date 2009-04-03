@@ -195,7 +195,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 	trace->topoNode = topoNode;
 
 	trace->always_flush = 0;
-	trace->trace_enable = 1;
+	trace->isEnabled = 1;
 	trace->trace_nested_operations = 1;
 	int i;
 	for (i = 0; i < HD_LOG_MAX_DEPTH; ++i)
@@ -239,30 +239,74 @@ int hdT_setNestedDepth(hdTrace trace, int depth)
 }
 
 /**
- * Enable/disable trace writing
+ * Enable trace.
  *
- * enable = 0 => trace writing disabled<br>
- * enable = 1 => trace writing enabled
+ * This function does not set errno!
  *
- * @param trace   Trace to set for
- * @param enable  Truth value to enable/disable trace writing
+ * @param trace  Trace to enable
  *
- * @retval  0  Success
- * @retval -1  Error, setting \a errno
+ * @retval  1 Success, was already enabled
+ * @retval  0 Success, is now enabled
+ * @retval -1 Error: \a group is NULL
  *
- * @errno
- * - HD_ERR_INVALID_ARGUMENT
+ * @sa hdT_disableTrace
  */
-int hdT_enableTracing(hdTrace trace, int enable)
+int hdT_enableTrace(hdTrace trace)
 {
 	if (trace == NULL)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
 		return -1;
-	}
 
-	trace->trace_enable = enable;
+	if (trace->isEnabled == 1)
+		return 1;
+
+	trace->isEnabled = 1;
 	return 0;
+}
+
+/**
+ * Disable trace.
+ *
+ * This function does not set errno!
+ * So it can easier be used as reaction of errors.
+ *
+ * @param trace  Trace to disable
+ *
+ * @retval  1 Success, was already disabled
+ * @retval  0 Success, is now disabled
+ * @retval -1 Error: \a group is NULL
+ *
+ * @sa hdT_enableTrace
+ */
+int hdT_disableTrace(hdTrace trace)
+{
+	if (trace == NULL)
+		return -1;
+
+	if (trace->isEnabled == 0)
+		return 1;
+
+	trace->isEnabled = 0;
+	return 0;
+}
+
+/**
+ * Get if trace is enabled.
+ *
+ * This function produces no error, a NULL group is always disabled;
+ *
+ * @param trace  Trace to ask
+ *
+ * @retval  1 Trace is enabled
+ * @retval  0 Trace is disabled
+ *
+ * @sa hdT_enableTrace, hdT_disableTrace
+ */
+int hdT_isEnabled(hdTrace trace)
+{
+	if (trace == NULL)
+		return 0;
+
+	return trace->isEnabled;
 }
 
 /**
@@ -319,12 +363,11 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 		return -1;
 	}
 
-	if (!trace->trace_enable)
+	if (!hdT_isEnabled(trace))
 		return 0;
 
 	char buffer[HD_TMP_BUF_SIZE];
 	va_list argptr;
-	int ret;
 	size_t count;
 	char *buf = buffer;
 
@@ -356,8 +399,8 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 			hdt_info(trace, "Unknown error during writing of trace info,"
 					" stop logging");
 		}
-		/* disable further logging */
-		hdT_enableTracing(trace, 0);
+		/* disable further traceing (does not touch errno) */
+		hdT_disableTrace(trace);
 
 		/* do not change errno, just return error */
 		return -1;
@@ -588,7 +631,7 @@ int hdT_logStateStart(hdTrace trace, const char * stateName)
 		{
 			hdt_debugf(trace,
 					"Problems getting time, stop logging: %s", strerror(errno));
-			hdT_enableTracing(trace, 0);
+			hdT_disableTrace(trace);
 			errno = HD_ERR_GET_TIME;
 			return -1;
 		}
@@ -641,7 +684,7 @@ int hdT_logStateEnd(hdTrace trace)
 	if (gettimeofday(&trace->end_time[trace->function_depth], NULL) != 0)
 	{
 		hdt_debugf(trace, "Problems getting time, stop logging: %s", strerror(errno));
-		hdT_enableTracing(trace, 0);
+		hdT_disableTrace(trace);
 		errno = HD_ERR_GET_TIME;
 		return -1;
 	}
@@ -803,7 +846,7 @@ static int writeLogf(hdTrace trace, const char * format, ...)
 {
 	assert(trace && isValidString(format));
 
-	if (!trace->trace_enable)
+	if (!hdT_isEnabled(trace))
 		return 0;
 	va_list valist;
 	va_start(valist, format);
@@ -833,7 +876,7 @@ static int writeLogfv(hdTrace trace, const char * format,
 {
 	assert(trace && isValidString(format));
 
-	if (!trace->trace_enable)
+	if (!hdT_isEnabled(trace))
 		return 0;
 	char buffer[HD_TMP_BUF_SIZE];
 	int written;
@@ -866,7 +909,7 @@ static int writeLog(hdTrace trace, const char * message)
 {
 	assert(trace && isValidString(message));
 
-	if (!trace->trace_enable)
+	if (!hdT_isEnabled(trace))
 		return 0;
 	int len = strlen(message);
 	if (trace->buffer_pos + len >= HD_LOG_BUF_SIZE)
@@ -905,7 +948,6 @@ static int flushLog(hdTrace trace)
 {
 	assert(trace);
 
-	int ret;
 	int fd = trace->log_fd;
 	char *buf = trace->buffer;
 	size_t count = trace->buffer_pos;
@@ -932,7 +974,7 @@ static int flushLog(hdTrace trace)
 					" stop logging");
 		}
 		/* disable further logging */
-		hdT_enableTracing(trace, 0);
+		hdT_disableTrace(trace);
 
 		/* do not change errno, just return error */
 		return -1;
