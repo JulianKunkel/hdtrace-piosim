@@ -79,7 +79,7 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	char *filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(*filename));
 	if(filename == NULL)
 	{
-		hd_error_msg("malloc() error during %s filename generation for %s: %s",
+		hd_info_msg("malloc() error during %s filename generation for %s: %s",
 				affix, toponode->string, strerror(errno));
 		hd_error_return(HD_ERR_MALLOC, NULL);
 	}
@@ -139,8 +139,8 @@ char * generateFilename(const char *project, hdTopoNode toponode,
  * Writes data to a file at the current offset.
  *
  * @param fd       File descriptor of the file to use
- * @param buffer   Data to write
- * @param nbytes   Number of bytes to write
+ * @param buf      Data to write
+ * @param count    Number of bytes to write
  * @param filename Filename for error messages
  *
  * @return Number of bytes written or -1 on error, setting errno
@@ -190,12 +190,12 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		int sret = select(fd+1, NULL, &writefds, NULL, &timeout);
 		if (sret == 0)
 		{
-			hd_debug_msg("Timeout during writing to %s", filename);
+			hd_info_msg("Timeout during writing to %s", filename);
 			hd_error_return(HD_ERR_TIMEOUT, -1);
 		}
 		else if (sret < 0)
 		{
-			hd_error_msg("select() error during writing to %s: %s",
+			hd_info_msg("select() error during writing to %s: %s",
 					filename, strerror(errno));
 			switch (errno)
 			{
@@ -222,7 +222,7 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		ssize_t wret = write(fd, buffer, count);
 		if (wret == -1)
 		{
-			hd_error_msg("write() error during writing to %s: %s",
+			hd_info_msg("write() error during writing to %s: %s",
 					filename, strerror(errno));
 			switch (errno)
 			{

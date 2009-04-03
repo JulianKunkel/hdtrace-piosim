@@ -47,15 +47,15 @@
  */
 enum _hdStatsValueType {
     /** 32 bit integer */
-    INT32, //!< INT32
+    INT32,
     /** 64 bit integer */
-    INT64, //!< INT64
-    /** 32 bit floating point */
-    FLOAT, //!< FLOAT
-    /** 64 bit floating point */
-    DOUBLE,//!< DOUBLE
+    INT64,
+    /** single precision floating point */
+    FLOAT,
+    /** double precision floating point */
+    DOUBLE,
     /** String */
-    STRING //!< STRING
+    STRING
 };
 
 /**
@@ -68,9 +68,24 @@ typedef enum _hdStatsValueType hdStatsValueType;
  */
 struct _hdStatsGroup {
     /**
-     * Trace file to write statistics group to
+     * File descriptor of the statistics group file
      */
-    FILE *tracefile;
+	int fd;
+
+    /**
+     * Filename of the statistics group file (for error output only)
+     */
+    char *tracefile;
+
+    /**
+     * Buffer for creating header and collecting entries
+     */
+    char *buffer;
+
+    /**
+     * Offset for buffer to write next byte
+     */
+    int offset;
 
     /**
      * True if string values are defined
@@ -97,7 +112,12 @@ struct _hdStatsGroup {
     /**
      * True if the group is committed (for error checking)
      */
-    int isCommited;
+    int isCommitted;
+
+    /**
+     * True if the group is enabled to trace
+     */
+    int isEnabled;
 };
 
 /**
@@ -145,6 +165,21 @@ int hdS_addValue (
 int hdS_commitGroup (
         hdStatsGroup group       /* Statistics Group */
         );
+
+/**
+ * Enable statistics group.
+ */
+int hdS_enableGroup(hdStatsGroup group);
+
+/**
+ * Disable statistics group.
+ */
+int hdS_disableGroup(hdStatsGroup group);
+
+/**
+ * Get if statistics group is enabled.
+ */
+int hdS_isEnabled(hdStatsGroup group);
 
 /**
  * @addtogroup hdStats

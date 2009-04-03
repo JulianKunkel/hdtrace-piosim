@@ -24,6 +24,12 @@
 	fprintf(stderr, X ": %s (%s:%d): " format "\n", __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 /**
+ * Print a formated error message prefixed by "E:" and code position
+ */
+#define hd_error_msg(format, ...) \
+	if (VLEVEL >= V_ERROR) hd_X_msg("E", format, __VA_ARGS__)
+
+/**
  * Print a formated info message prefixed by "I:" and the code position
  */
 #define hd_info_msg(format, ...) \
@@ -36,12 +42,6 @@
 	if (VLEVEL >= V_DEBUG) hd_X_msg("D", format, __VA_ARGS__)
 
 /**
- * Print a formated error message prefixed by "E:" and code position
- */
-#define hd_error_msg(format, ...) \
-	if (VLEVEL >= V_ERROR) hd_X_msg("E", format, __VA_ARGS__)
-
-/**
  * Set errno to \a eno and return \a ret
  */
 #define hd_error_return(eno,ret) { \
@@ -49,12 +49,21 @@
 	return ret; }
 
 /**
- *
+ * Verbosity levels of the libraries.
  */
 enum verbosity {
+	/**
+	 * Print only error messages. (default)
+	 */
 	V_ERROR,
-	V_DEBUG,
-	V_INFO
+	/**
+	 * Print additional info messages.
+	 */
+	V_INFO,
+	/**
+	 * Print detailed debugging messages.
+	 */
+	V_DEBUG
 };
 
 /**

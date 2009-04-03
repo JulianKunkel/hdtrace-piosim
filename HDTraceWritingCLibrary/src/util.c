@@ -11,6 +11,7 @@
 #include "util.h"
 
 #include <string.h>
+#include <ctype.h>
 
 /* TODO: Consistent naming scheme for util functions */
 
@@ -33,6 +34,37 @@ BOOL isValidString(const char *string) {
 		return FALSE;
 	else
 		return TRUE;
+}
+
+/**
+ * Check if the given string is a valid XML tag name
+ *
+ * Valid tag string must not contain other characters than alphanumeric ascii.
+ * We do not allow special characters and Unicode in out Tags.
+ *
+ * @param string String to check
+ *
+ * @return Truth value meaning if the given string is valid tag.
+ *
+ * @retval TRUE  \a string is valid tag
+ * @retval FALSE \a string not valid tag
+ */
+BOOL isValidTagString(const char *string)
+{
+	if (!isValidString(string))
+		return FALSE;
+
+	for (size_t i = 0; i < strlen(string); ++i)
+	{
+		/* must be ascii */
+		if (!isascii(string[i]))
+			return FALSE;
+		/* must be alphanumeric */
+		if (!isalnum(string[i]))
+			return FALSE;
+	}
+
+	return TRUE;
 }
 
 /**

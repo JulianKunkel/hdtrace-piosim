@@ -38,6 +38,11 @@ typedef int8_t BOOL;
 BOOL isValidString(const char *string);
 
 /**
+ * Check if the given string is a valid XML tag name
+ */
+BOOL isValidTagString(const char *string);
+
+/**
  * Returns minimum of the two size arguments.
  */
 size_t minSize(size_t a, size_t b);
