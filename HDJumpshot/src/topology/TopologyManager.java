@@ -401,7 +401,7 @@ public class TopologyManager extends JTree
 	 */
 	public void removeMarkedTimelines(){
 		TreePath [] paths = getSelectionPaths();
-		if(paths.length == 0)
+		if(paths == null || paths.length == 0)
 			return;
 
 		final DefaultTreeModel model = (DefaultTreeModel) getModel();

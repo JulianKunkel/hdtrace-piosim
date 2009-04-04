@@ -37,6 +37,8 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
+import viewer.common.IconManager.IconType;
+import viewer.first.Jumpshot;
 import viewer.timelines.CanvasTimeline;
 
 /**
@@ -52,7 +54,7 @@ public class ButtonAutoRefresh extends JButton implements ActionListener
 
 	public ButtonAutoRefresh(IAutoRefreshable autoRefreshable)
 	{
-		super(new ImageIcon( Const.IMG_PATH + "Refresh24.gif" ));
+		super(Jumpshot.getIconManager().getActiveToolbarIcon(IconType.AutoRefresh));
 		this.setToolTipText( "Automatically redraw" );
 		this.setMnemonic( KeyEvent.VK_A );
 
@@ -68,7 +70,7 @@ public class ButtonAutoRefresh extends JButton implements ActionListener
 			setBackground(Color.GREEN);
 		}else{
 			setBorder(BorderFactory.createRaisedBevelBorder());
-			setBackground(Color.GRAY);
+			setBackground(Color.LIGHT_GRAY);
 		}
 	}
 

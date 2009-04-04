@@ -45,7 +45,7 @@ import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 import javax.swing.WindowConstants;
 
-import viewer.common.TopWindow;
+import viewer.first.TopWindow;
 
 
 public class LegendFrame extends JFrame

@@ -203,8 +203,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		// Update the timeframe of all images
 		timeframe4imgs.setEarliestTime( imgs_times.getEarliestTime() );
 		timeframe4imgs.setLatestTime( imgs_times.getLatestTime() );
-		Routines.setComponentAndChildrenCursors( root_frame,
-				CustomCursor.Normal );
+		Routines.setComponentAndChildrenCursors( root_frame,	CustomCursor.Normal );
 
 		if ( Profile.isActive() )
 			final_time = new Date();

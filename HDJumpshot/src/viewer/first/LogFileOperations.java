@@ -46,7 +46,6 @@ import viewer.common.LogFileChooser;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.common.SwingWorker;
-import viewer.common.TopWindow;
 import viewer.legends.LegendFrame;
 import viewer.pvfs2.PVFS2Slog2FileParser;
 import viewer.timelines.TimelineFrame;

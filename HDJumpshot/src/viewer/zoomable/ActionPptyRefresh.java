@@ -40,7 +40,7 @@ import java.awt.event.ActionListener;
 import topology.TopologyManager;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
-import viewer.common.TopWindow;
+import viewer.first.TopWindow;
 import viewer.timelines.CanvasTimeline;
 
 public class ActionPptyRefresh implements ActionListener

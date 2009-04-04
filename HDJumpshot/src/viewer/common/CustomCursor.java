@@ -58,22 +58,22 @@ public class CustomCursor
     private static Toolkit  toolkit      = null;
 
     static {
-        ( new CustomCursor() ).initCursors();
+        initCursors();
     }
 
-    private Image getBestCursorImage( String filename )
+    private static Image getBestCursorImage( String filename )
     {
         Image          img;
         Dimension      opt_size;
         Graphics2D     g2d;
         int            iwidth, iheight;
 
-        final File f = new File(Const.IMG_PATH + filename);        
+        final File f = new File(Const.IMG_PATH + "cursors" + "/" +  filename);        
         if (! f.canRead()){
         	throw new IllegalArgumentException("Image does not exist: " + f.getAbsolutePath() );
         }
         
-        img      = new ImageIcon( Const.IMG_PATH + filename ).getImage();
+        img      = new ImageIcon( f.getAbsolutePath() ).getImage();
         iwidth   = img.getWidth( null );
         iheight  = img.getHeight( null );
                 
@@ -94,7 +94,7 @@ public class CustomCursor
         }
     }
 
-    public void initCursors()
+    private static void initCursors()
     {
         Image    img;
         Point    pt;
@@ -106,13 +106,13 @@ public class CustomCursor
         toolkit   = Toolkit.getDefaultToolkit();
         pt        = new Point( 1, 1 );
 
-        img       = this.getBestCursorImage( "HandOpenUpLeft25.gif" );
+        img       = getBestCursorImage( "HandOpenUpLeft25.gif" );
         HandOpen  = toolkit.createCustomCursor( img, pt, "Hand Open" );
-        img       = this.getBestCursorImage( "HandCloseUpLeft25.gif" );
+        img       = getBestCursorImage( "HandCloseUpLeft25.gif" );
         HandClose = toolkit.createCustomCursor( img, pt, "Hand Close" );
-        img       = this.getBestCursorImage( "ZoomPlusUpLeft25.gif" );
+        img       = getBestCursorImage( "ZoomPlusUpLeft25.gif" );
         ZoomPlus  = toolkit.createCustomCursor( img, pt, "Zoom Plus" );
-        img       = this.getBestCursorImage( "ZoomMinusUpLeft25.gif" );
+        img       = getBestCursorImage( "ZoomMinusUpLeft25.gif" );
         ZoomMinus = toolkit.createCustomCursor( img, pt, "Zoom Minus" );
     }
 }

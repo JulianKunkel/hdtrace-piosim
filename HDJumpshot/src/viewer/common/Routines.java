@@ -55,7 +55,6 @@ public class Routines
         for ( int ii = 0; ii < ilevel; ii++ )
             rep.append( UnitIndentStr );
         rep.append( comp.toString() );
-        System.out.println( rep.toString() );
         if ( comp instanceof Container ) {
             Component [] child_comps = ( (Container) comp ).getComponents();
             for ( int idx = 0; idx < child_comps.length; idx++)

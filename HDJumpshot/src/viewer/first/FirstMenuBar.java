@@ -42,10 +42,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.border.EtchedBorder;
 
-import viewer.common.TopWindow;
 
 public class FirstMenuBar extends JMenuBar
 {
+	private static final long serialVersionUID = -7909027107571610938L;
+	
 	private        boolean         isApplet;
 	private        FirstPanel      first_panel;
 
@@ -56,7 +57,6 @@ public class FirstMenuBar extends JMenuBar
 	private        JMenuItem       show_timeline_item;
 	private        JMenuItem       edit_prefer_item;
 	private        JMenuItem       help_manual_item;
-	private        JMenuItem       help_faq_item;
 	private        JMenuItem       help_about_item;
 
 	public FirstMenuBar( boolean isTopApplet, FirstPanel in_panel )
@@ -143,13 +143,7 @@ public class FirstMenuBar extends JMenuBar
 			}
 		} );
 		menu.add( help_manual_item );
-		help_faq_item = new JMenuItem( "FAQ" );
-		help_faq_item.addActionListener( new ActionListener() {
-			public void actionPerformed( ActionEvent evt ) {
-				first_panel.getHelpFAQsButton().doClick();
-			}
-		} );
-		menu.add( help_faq_item );
+
 		help_about_item = new JMenuItem( "About" );
 		help_about_item.addActionListener( new ActionListener() {
 			public void actionPerformed( ActionEvent evt ) {

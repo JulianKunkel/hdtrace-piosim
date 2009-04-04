@@ -42,7 +42,6 @@ import java.util.Stack;
 
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JScrollBar;
-import javax.swing.event.EventListenerList;
 
 import viewer.common.Debug;
 import viewer.common.Parameters;
@@ -97,7 +96,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 
 	// special purpose ChangeListeners, TimeListeners, to avoid conflict with
 	// the EventListenerList, listenerList, in DefaultBoundedRangeModel
-	final private EventListenerList  time_listener_list = new EventListenerList();
+	final private LinkedList<TimeListener>  time_listener_list = new LinkedList<TimeListener>();
 	// internal global variable for use in fireTimeChanged()
 	final private TimeEvent          time_chg_evt =  new TimeEvent( this );
 
@@ -208,28 +207,18 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	 
 	 public void addTimeListener( TimeListener tl )
 	 {
-		 time_listener_list.add( TimeListener.class, tl );
+		 time_listener_list.add( tl );
 	 }
 
 	 public void removeTimeListener( TimeListener tl )
 	 {
-		 time_listener_list.remove( TimeListener.class, tl );
+		 time_listener_list.remove( tl );
 	 }	
 
-	 // Notify __ALL__ listeners that have registered interest for
-	 // notification on this event type.  The event instance 
-	 // is lazily created using the parameters passed into 
-	 // the fire method.
 	 protected void fireTimeChanged()
 	 {
-		 // Guaranteed to return a non-null array
-		 Object[] listeners = time_listener_list.getListenerList();
-		 // Process the listeners last to first, notifying
-		 // those that are interested in this event
-		 for ( int i = listeners.length-2; i>=0; i-=2 ) {
-			 if ( listeners[i] == TimeListener.class ) {
-				 ( (TimeListener) listeners[i+1] ).timeChanged( time_chg_evt );
-			 }
+		 for ( TimeListener listener: time_listener_list ) {
+				 listener.timeChanged( time_chg_evt );
 		 }
 	 }
 

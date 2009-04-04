@@ -65,7 +65,8 @@ import javax.swing.text.Document;
 
 import viewer.common.Const;
 import viewer.common.Dialogs;
-import viewer.common.TopWindow;
+import viewer.common.IconManager;
+import viewer.common.IconManager.IconType;
 
 public class HTMLviewer extends JDialog
 implements HyperlinkListener
@@ -173,8 +174,10 @@ implements HyperlinkListener
 		small_spacer_size   = new Dimension( 5, 5 );
 		medium_spacer_size  = new Dimension( 10, 5 );
 		big_spacer_size     = new Dimension( 20, 5 );
-
-		backward_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Stat110x40.gif" ) );
+		
+		final IconManager icons = Jumpshot.getIconManager();
+		
+		backward_btn = new JButton( icons.getActiveToolbarIcon(IconType.Left));
 		backward_btn.setMargin( btn_insets );
 		backward_btn.setToolTipText( "Go Backward one page" );
 		// backward_btn.setPreferredSize( btn_dim );
@@ -192,7 +195,7 @@ implements HyperlinkListener
 
 		toolbar.addSeparator( small_spacer_size );
 
-		forward_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Forward24.gif" ) );
+		forward_btn = new JButton( icons.getActiveToolbarIcon(IconType.Right) );
 		
 		forward_btn.setMargin( btn_insets );
 		forward_btn.setToolTipText( "Go Forward one page" );
@@ -211,7 +214,7 @@ implements HyperlinkListener
 
 		toolbar.addSeparator( medium_spacer_size );
 
-		refresh_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Refresh24.gif"  ) );
+		refresh_btn = new JButton(icons.getActiveToolbarIcon(IconType.Refresh) );
 
 		refresh_btn.setMargin( btn_insets );
 		refresh_btn.setToolTipText( "Refresh the current page" );
@@ -232,7 +235,7 @@ implements HyperlinkListener
 
 		toolbar.addSeparator( big_spacer_size );
 
-		close_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Refresh24.gif"  ) );
+		close_btn = new JButton( icons.getActiveToolbarIcon(IconType.Close));
 		
 		close_btn.setMargin( btn_insets );
 		close_btn.setToolTipText( "Close the HTMLviewer window" );

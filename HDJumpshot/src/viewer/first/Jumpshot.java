@@ -41,8 +41,8 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import viewer.common.Dialogs;
+import viewer.common.IconManager;
 import viewer.common.TopControl;
-import viewer.common.TopWindow;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import drawable.Category;
 
@@ -55,11 +55,16 @@ public class Jumpshot extends JFrame
 
     private        FirstPanel     top_panel;
     private        FirstMenuBar   top_menubar;
+    private static IconManager    iconManager;
 
     public Jumpshot()
     {    	
         super( "HDJumpshot" );
         super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
+
+        // setVisible( true );
+        // load icon theme
+        iconManager = new IconManager("buuf");
         
         Category.loadColors("jumpshot-color.property");
         
@@ -80,10 +85,12 @@ public class Jumpshot extends JFrame
                 }
             }
         } );
-
-        // setVisible( true );
     }
 
+    public static IconManager getIconManager(){
+    	return iconManager;
+    }
+    
     public void init()
     {
         top_panel.init();

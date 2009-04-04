@@ -43,7 +43,7 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import viewer.common.TopWindow;
+import viewer.first.TopWindow;
 
 
 public class TimelineFrame extends JFrame

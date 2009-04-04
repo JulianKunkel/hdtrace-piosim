@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Vector;
 
+import javax.net.ssl.SSLEngineResult.Status;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -64,8 +65,11 @@ import javax.swing.event.ListDataListener;
 import viewer.common.ActableTextField;
 import viewer.common.Const;
 import viewer.common.Dialogs;
+import viewer.common.IconManager;
 import viewer.common.Routines;
-import viewer.common.TopWindow;
+import viewer.common.IconManager.IconType;
+import viewer.histogram.StatisticHistogramFrame;
+import viewer.histogram.TraceProfileFrame;
 
 public class FirstPanel extends JPanel {
 	private static final long serialVersionUID = 8085293176219056520L;
@@ -73,15 +77,6 @@ public class FirstPanel extends JPanel {
 	private static String about_str = "HDJumpshot.\n"	+ "bug-reports/questions:\n" + "            julian.kunkel@gmx.de";
 	private static String manual_path = Const.DOC_PATH + "usersguide.html";
 	private static String faq_path = Const.DOC_PATH + "faq_index.html";
-	private static String js_icon_path = Const.IMG_PATH + "jumpshot.gif";
-
-	private static String open_icon_path = Const.IMG_PATH + "Open24.gif";
-	private static String close_icon_path = Const.IMG_PATH + "Stop24.gif";
-	private static String legend_icon_path = Const.IMG_PATH	+ "Properties24.gif";
-	private static String prefer_icon_path = Const.IMG_PATH	+ "Preferences24.gif";
-	private static String manual_icon_path = Const.IMG_PATH + "Help24.gif";
-	private static String faq_icon_path = Const.IMG_PATH + "Information24.gif";
-	private static String about_icon_path = Const.IMG_PATH + "About24.gif";
 
 	private ActableTextField logname_fld;
 	private JComboBox additionalLoadedFilesBox;
@@ -94,17 +89,17 @@ public class FirstPanel extends JPanel {
 	private JButton file_convert_btn;
 	private JButton file_close_btn;
 	private JButton show_timeline_btn;
+	private JButton show_trace_profile_btn;
 	private JButton show_legend_btn;
 	private JButton edit_prefer_btn;
 	private JButton help_manual_btn;
-	private JButton help_faq_btn;
 	private JButton help_about_btn;
 
 	private HTMLviewer manual_viewer;
-	private HTMLviewer faq_viewer;
 
 	private LogFileOperations file_ops;
 	private String logfile_name;
+	private TraceProfileFrame traceHistogramFrame = null;
 	
 	public FirstPanel(boolean isApplet, String filename, int view_idx) {
 		super();
@@ -175,20 +170,16 @@ public class FirstPanel extends JPanel {
 
 		Insets btn_insets;
 		btn_insets = new Insets(1, 1, 1, 1);
-
-		// test existence of icons:
-		if(! new File(open_icon_path).canRead()){
-			throw new IllegalArgumentException("Image files seem not to exist (or readable) in path: " + new File(open_icon_path).getAbsolutePath());
-		}
 		
+		final IconManager icons = Jumpshot.getIconManager();
 		
-		file_open_btn = new JButton(new ImageIcon(open_icon_path));
+		file_open_btn = new JButton( icons.getActiveToolbarIcon(IconType.Open));
 		file_open_btn.setToolTipText("Open a new project file");
 		file_open_btn.setMargin(btn_insets);
 		file_open_btn.addActionListener(new FileSelectButtonListener());
 		toolbar.add(file_open_btn);
 
-		file_add_btn = new JButton(new ImageIcon(open_icon_path));
+		file_add_btn = new JButton(icons.getActiveToolbarIcon(IconType.AddFile));
 		file_add_btn.setToolTipText("Add another project file to current view");
 		// file_select_btn.setBorder( empty_border );
 		file_add_btn.setMargin(btn_insets);
@@ -196,14 +187,14 @@ public class FirstPanel extends JPanel {
 		toolbar.add(file_add_btn);
 		
 		toolbar.addSeparator();
-		show_legend_btn = new JButton(new ImageIcon(legend_icon_path));
+		show_legend_btn = new JButton(icons.getActiveToolbarIcon(IconType.FrameLegend));
 		show_legend_btn.setToolTipText("Display the Legend window");
 		// show_legend_btn.setBorder( empty_border );
 		show_legend_btn.setMargin(btn_insets);
 		show_legend_btn.addActionListener(new ShowLegendButtonListener());
 		toolbar.add(show_legend_btn);
 
-		show_timeline_btn = new JButton(new ImageIcon(legend_icon_path));
+		show_timeline_btn = new JButton(icons.getActiveToolbarIcon(IconType.FrameTimeline));
 		show_timeline_btn.setToolTipText("Display the timeline window");
 		show_timeline_btn.setMargin(btn_insets);
 		show_timeline_btn.addActionListener(new ActionListener() {
@@ -213,10 +204,21 @@ public class FirstPanel extends JPanel {
 			}
 		});
 		toolbar.add(show_timeline_btn);
-
+		
+		show_trace_profile_btn = new JButton(icons.getActiveToolbarIcon(IconType.FrameTimelineProfile));
+		show_trace_profile_btn.setToolTipText("Display the trace profile window");
+		show_trace_profile_btn.setMargin(btn_insets);
+		show_trace_profile_btn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showTraceProfileFrame();
+			}
+		});
+		toolbar.add(show_trace_profile_btn);
+		
 		toolbar.addSeparator();
 
-		edit_prefer_btn = new JButton(new ImageIcon(prefer_icon_path));
+		edit_prefer_btn = new JButton(icons.getActiveToolbarIcon(IconType.FramePreferences));
 	
 		edit_prefer_btn.setToolTipText("Open the Preference window");
 		// edit_prefer_btn.setBorder( empty_border );
@@ -226,7 +228,7 @@ public class FirstPanel extends JPanel {
 
 		toolbar.addSeparator();
 
-		help_manual_btn = new JButton(new ImageIcon(manual_icon_path));
+		help_manual_btn = new JButton(icons.getActiveToolbarIcon(IconType.FrameHelp));
 
 		help_manual_btn.setToolTipText("Open the user's manual window");
 		// help_manual_btn.setBorder( empty_border );
@@ -234,16 +236,8 @@ public class FirstPanel extends JPanel {
 		help_manual_btn.addActionListener(new HelpManualButtonListener());
 		toolbar.add(help_manual_btn);
 
-		help_faq_btn = new JButton(new ImageIcon(faq_icon_path));
-		
-		help_faq_btn.setToolTipText("Open the FAQ window");
-		// help_faq_btn.setBorder( empty_border );
-		help_faq_btn.setMargin(btn_insets);
-		help_faq_btn.addActionListener(new HelpFAQsButtonListener());
-		toolbar.add(help_faq_btn);
-
 		/* help_about_btn is a hidden button */
-		help_about_btn = new JButton(new ImageIcon(about_icon_path));
+		help_about_btn = new JButton(icons.getActiveToolbarIcon(IconType.FrameHelp));
 
 		help_about_btn.setToolTipText("Open the About-This window");
 		// help_about_btn.setBorder( empty_border );
@@ -252,7 +246,7 @@ public class FirstPanel extends JPanel {
 
 		/* file_close_btn is a hidden button */
 		
-		file_close_btn = new JButton(new ImageIcon(close_icon_path));
+		file_close_btn = new JButton(icons.getActiveToolbarIcon(IconType.Close));
 		
 		file_close_btn.setToolTipText("Close the logfile");
 		// file_close_btn.setBorder( empty_border );
@@ -260,9 +254,12 @@ public class FirstPanel extends JPanel {
 		file_close_btn.addActionListener(new FileCloseButtonListener());
 
 		manual_viewer = new HTMLviewer("Manual", help_manual_btn);
-		faq_viewer = new HTMLviewer("FAQs", help_faq_btn);
 
 		return toolbar;
+	}
+	
+	public void showTraceProfileFrame(){
+		traceHistogramFrame = new TraceProfileFrame();		
 	}
 
 	public void init() {
@@ -301,10 +298,6 @@ public class FirstPanel extends JPanel {
 
 	public JButton getHelpManualButton() {
 		return help_manual_btn;
-	}
-
-	public JButton getHelpFAQsButton() {
-		return help_faq_btn;
 	}
 
 	public JButton getHelpAboutButton() {
@@ -398,7 +391,7 @@ public class FirstPanel extends JPanel {
 
 	private class HelpAboutButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			ImageIcon js_icon = new ImageIcon(js_icon_path);
+			ImageIcon js_icon = Jumpshot.getIconManager().getActiveToolbarIcon(IconType.FrameHelp);
 			Dialogs.info(TopWindow.First.getWindow(), about_str, js_icon);
 		}
 	}

@@ -70,11 +70,14 @@ import javax.swing.event.MouseInputListener;
 import viewer.common.Const;
 import viewer.common.CustomCursor;
 import viewer.common.Debug;
+import viewer.common.IconManager;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
+import viewer.common.IconManager.IconType;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForDuration;
+import viewer.first.Jumpshot;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -415,12 +418,13 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	{
 		ButtonGroup  btn_group;
 		ImageIcon    icon, icon_shaded;
+		final IconManager icons = Jumpshot.getIconManager();
 
 		isLeftMouseClick4Zoom  = in_isLeftMouseClick4Zoom;
 		btn_group              = new ButtonGroup();
 
-		icon         = new ImageIcon(  Const.IMG_PATH + "ZoomBW16.gif" );
-		icon_shaded  = new ImageIcon( GrayFilter.createDisabledImage( icon.getImage() ) );
+		icon         = icons.getActiveToolbarIcon(IconType.ZoomIn);
+		icon_shaded  = icons.getDisabledToolbarIcon(IconType.ZoomIn);
 
 		zoom_btn     = new JRadioButton( icon_shaded );
 		zoom_btn.setSelectedIcon( icon );
@@ -437,9 +441,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			zoom_btn.doClick();
 		btn_group.add( zoom_btn );
 
-		icon         = new ImageIcon( Const.IMG_PATH + "HandOpen16.gif" );
-		icon_shaded  = new ImageIcon(
-				GrayFilter.createDisabledImage( icon.getImage() ) );
+		icon         = icons.getActiveToolbarIcon(IconType.Hand);
+		icon_shaded  = icons.getDisabledToolbarIcon(IconType.Hand);
 		hand_btn = new JRadioButton( icon_shaded );
 		hand_btn.setSelectedIcon( icon );
 		hand_btn.setBorderPainted( true );

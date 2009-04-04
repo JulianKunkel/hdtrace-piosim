@@ -37,13 +37,15 @@ package viewer.legends;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 
 import viewer.common.Const;
+import viewer.common.IconManager;
+import viewer.common.IconManager.IconType;
+import viewer.first.Jumpshot;
 
 /*
  Class to simulate a JMenuBar header editor for a JTable with boolean value
@@ -75,22 +77,19 @@ public class OperationBooleanMenu extends JPopupMenu {
 		this.fireListenerOnUpdate = fireListenerOnUpdate;
 	}
 
-	private void addMenuItems() {
+	private void addMenuItems() {		
+		final IconManager icons = Jumpshot.getIconManager();
+		
 		JMenuItem menu_item;
-		Icon icon;
-		icon = new ImageIcon(toggle_selected_icon_path);
-		menu_item = new JMenuItem("Toggle Selected", icon);
+		menu_item = new JMenuItem("Toggle Selected", icons.getActiveMenuItemIcon(IconType.ToggleSelected));
 		menu_item.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				toggleSelectedAtColumn(bool_column);
 			}
 		});
 		super.add(menu_item);
-
-
-		icon = new ImageIcon(enable_selected_icon_path);
 		
-		menu_item = new JMenuItem("Enable Selected", icon);
+		menu_item = new JMenuItem("Enable Selected", icons.getActiveMenuItemIcon(IconType.EnableSelected));
 		menu_item.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				setSelectedAtColumn(bool_column, Boolean.TRUE);
@@ -98,18 +97,15 @@ public class OperationBooleanMenu extends JPopupMenu {
 		});
 		super.add(menu_item);
 
-		icon = new ImageIcon(disable_selected_icon_path);
-		menu_item = new JMenuItem("Disable Selected", icon);
+		menu_item = new JMenuItem("Disable Selected", icons.getActiveMenuItemIcon(IconType.DisableSelected));
 		menu_item.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				setSelectedAtColumn(bool_column, Boolean.FALSE);
 			}
 		});
 		super.add(menu_item);
-
-		icon = new ImageIcon(disable_selected_icon_path);
 		
-		menu_item = new JMenuItem("Toggle All", icon);
+		menu_item = new JMenuItem("Toggle All", icons.getActiveMenuItemIcon(IconType.ToggleAll));
 		menu_item.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				toggleAllAtColumn(bool_column);
@@ -117,8 +113,7 @@ public class OperationBooleanMenu extends JPopupMenu {
 		});
 		super.add(menu_item);
 
-		icon = new ImageIcon(enable_all_icon_path);
-		menu_item = new JMenuItem("Enable All", icon);
+		menu_item = new JMenuItem("Enable All", icons.getActiveMenuItemIcon(IconType.EnableAll));
 		menu_item.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				setAllAtColumn(bool_column, Boolean.TRUE);
@@ -126,8 +121,7 @@ public class OperationBooleanMenu extends JPopupMenu {
 		});
 		super.add(menu_item);
 
-		icon = new ImageIcon(disable_all_icon_path);
-		menu_item = new JMenuItem("Disable All", icon);
+		menu_item = new JMenuItem("Disable All", icons.getActiveMenuItemIcon(IconType.DisableAll));
 		menu_item.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				setAllAtColumn(bool_column, Boolean.FALSE);

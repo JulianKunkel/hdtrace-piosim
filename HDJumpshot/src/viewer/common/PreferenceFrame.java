@@ -43,6 +43,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.*;
 
+import viewer.first.TopWindow;
+
 public class PreferenceFrame extends JFrame
                              implements ActionListener
 {
