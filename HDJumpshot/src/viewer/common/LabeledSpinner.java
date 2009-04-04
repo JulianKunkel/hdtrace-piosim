@@ -29,6 +29,8 @@
 package viewer.common;
 
 import java.awt.Component;
+import java.awt.Dimension;
+import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -48,14 +50,19 @@ public class LabeledSpinner extends JPanel
 	public LabeledSpinner( String text, SpinnerModel model, ChangeListener listener)
 	{
 		super.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-		this.label = new JLabel( " " + text + " " );
-		this.label.setBorder( BorderFactory.createEtchedBorder() );
-		this.label.setAlignmentX( Component.LEFT_ALIGNMENT );
+		label = new JLabel( " " + text + " " );
+		label.setAlignmentX( Component.LEFT_ALIGNMENT );
 
 		super.add( this.label);
 				
 		spinner =  new JSpinner(model);
-		this.add(spinner);						
+		spinner.setAlignmentX(Component.LEFT_ALIGNMENT);
+		add(spinner);
+		
+		label.setLabelFor(spinner);
+		label.setFont(Const.FONT);
+		
+		spinner.setFont(Const.FONT);		
 		
 		spinner.addChangeListener(listener);
 		
@@ -69,4 +76,10 @@ public class LabeledSpinner extends JPanel
 	public void setValue(Object val){
 		spinner.setValue(val);
 	}
+	
+  public Dimension getMaximumSize()
+  {  
+      return new Dimension( Short.MAX_VALUE,
+                            spinner.getPreferredSize().height + label.getHeight() );
+  }
 }

@@ -45,8 +45,8 @@ import javax.swing.JScrollBar;
 import javax.swing.JToolBar;
 
 import topology.TopologyManager;
+import viewer.common.ButtonAutoRefresh;
 import viewer.common.Const;
-import viewer.zoomable.ActionPptyAutoRefresh;
 import viewer.zoomable.ActionPptyRefresh;
 import viewer.zoomable.ActionPptyScreenshot;
 import viewer.zoomable.ActionSearchBackward;
@@ -328,11 +328,8 @@ public class TimelineToolBar extends JToolBar
         
         super.addSeparator();
         
-        JButton autoRefresh_btn = new JButton( new ImageIcon( Const.IMG_PATH + "Refresh24.gif" ) );
+        JButton autoRefresh_btn = new ButtonAutoRefresh(cnvas_timeline);
         autoRefresh_btn.setMargin( btn_insets );
-        autoRefresh_btn.setToolTipText( "Automatically redraw timeline on modification" );
-        autoRefresh_btn.setMnemonic( KeyEvent.VK_A );
-        autoRefresh_btn.addActionListener( new ActionPptyAutoRefresh( cnvas_timeline, autoRefresh_btn ) );
         super.add( autoRefresh_btn );        
     }
 

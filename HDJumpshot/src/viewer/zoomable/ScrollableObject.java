@@ -48,13 +48,14 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
 import viewer.common.Debug;
+import viewer.common.IAutoRefreshable;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTime;
 import de.hd.pvs.TraceFormat.TraceObject;
 import drawable.TimeBoundingBox;
 
 public abstract class ScrollableObject extends JComponent
-implements ScrollableView
+implements ScrollableView, IAutoRefreshable
 {
 	private static final long serialVersionUID = 8964666662265862335L;
 	

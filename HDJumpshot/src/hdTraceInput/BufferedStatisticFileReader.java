@@ -87,10 +87,14 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			double stddev = 0;
 			for(StatisticGroupEntry entry: statEntries){
 				double value = entry.getNumeric(groupNumber);
-				stddev += (value - avg) * (value - avg);
+				stddev += (value - avg) * (value - avg);				
 			}
-			
-			stddev = Math.sqrt(stddev);
+						
+			if( cnt > 1){
+				stddev = Math.sqrt(stddev / (cnt - 1));
+			}else{
+				stddev = 0;
+			}
 			
 			statistics[groupNumber] = new StatisticStatistics(max, min, avg, stddev);
 		}
