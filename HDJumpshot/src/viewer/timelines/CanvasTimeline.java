@@ -188,8 +188,6 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		if ( timeframe4imgs == null )
 			timeframe4imgs = new TimeBoundingBox( imgs_times );
 
-		Routines.setComponentAndChildrenCursors( root_frame, CustomCursor.Wait );
-
 		num_rows    = topologyManager.getRowCount();
 		row_height  = topologyManager.getRowHeight();
 
@@ -203,8 +201,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		// Update the timeframe of all images
 		timeframe4imgs.setEarliestTime( imgs_times.getEarliestTime() );
 		timeframe4imgs.setLatestTime( imgs_times.getLatestTime() );
-		Routines.setComponentAndChildrenCursors( root_frame,	CustomCursor.Normal );
-
+		
 		if ( Profile.isActive() )
 			final_time = new Date();
 		if ( Profile.isActive() )

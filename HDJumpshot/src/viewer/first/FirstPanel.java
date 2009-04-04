@@ -133,21 +133,18 @@ public class FirstPanel extends JPanel {
 		gConstraints.weightx = 1.0;
 		
 		label = new JLabel(" ProjectFile: ");
-		Routines.setShortJComponentSizes(label, lbl_pref_sz);
 		ctr_panel.add(label);
 		logname_fld = new ActableTextField(logfile_name, 40);
 		logname_fld.setBorder(BorderFactory.createCompoundBorder(
 				lowered_border, etched_border));
 		logname_fld.addActionListener(new LogNameTextFieldListener());
 
-		Routines.setShortJComponentSizes(logname_fld, fld_pref_sz);
 		ctr_panel.add(logname_fld);
 		
 		gConstraints.gridwidth = GridBagConstraints.REMAINDER;
 		gridbag.setConstraints(logname_fld, gConstraints); 
 		
 		JLabel label2 = new JLabel(" Loaded projects: ");
-		Routines.setShortJComponentSizes(label, lbl_pref_sz);
 		ctr_panel.add(label2);
 		additionalLoadedFilesBox = new JComboBox(new DefaultComboBoxModel(loadedFiles));		
 		ctr_panel.add(additionalLoadedFilesBox);		

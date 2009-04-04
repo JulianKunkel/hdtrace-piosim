@@ -47,6 +47,8 @@ import javax.swing.DebugGraphics;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
+import sun.awt.X11.Screen;
+import viewer.common.CustomCursor;
 import viewer.common.Debug;
 import viewer.common.IAutoRefreshable;
 import viewer.dialog.InfoDialog;

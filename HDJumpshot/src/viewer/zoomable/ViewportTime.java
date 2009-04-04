@@ -114,8 +114,6 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private   InfoDialogWindowListener  info_window_listener;
 
 	protected boolean                   isLeftMouseClick4Zoom;
-	private   JRadioButton              zoom_btn;
-	private   JRadioButton              hand_btn;
 	
 	private class MyComponentResizeListener extends ComponentAdapter{
 		
@@ -172,8 +170,6 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		time_model             = in_model;
 		view_pt                = new Point( 0, 0 );
 		isLeftMouseClick4Zoom  = false;   // default to Scroll with left mouse
-		zoom_btn               = null;
-		hand_btn               = null;
 		/*
             HierarchyBoundsListener is for the case when this class
             is moved but NOT resized.  That it checks for situation
@@ -414,63 +410,14 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			Debug.println( "ViewportTime: paint()'s END: " );
 	}
 
-	public void initLeftMouseToZoom( boolean in_isLeftMouseClick4Zoom )
+	public void setLeftMouseToZoom( boolean in_isLeftMouseClick4Zoom )
 	{
-		ButtonGroup  btn_group;
-		ImageIcon    icon, icon_shaded;
-		final IconManager icons = Jumpshot.getIconManager();
-
 		isLeftMouseClick4Zoom  = in_isLeftMouseClick4Zoom;
-		btn_group              = new ButtonGroup();
-
-		icon         = icons.getActiveToolbarIcon(IconType.ZoomIn);
-		icon_shaded  = icons.getDisabledToolbarIcon(IconType.ZoomIn);
-
-		zoom_btn     = new JRadioButton( icon_shaded );
-		zoom_btn.setSelectedIcon( icon );
-		zoom_btn.setBorderPainted( true );
-		zoom_btn.setToolTipText( "Left mouse button click to Zoom" );
-		zoom_btn.addActionListener( new ActionListener() {
-			public void actionPerformed( ActionEvent evt )
-			{
-				if ( zoom_btn.isSelected() )
-					isLeftMouseClick4Zoom = true;
-			}
-		} );
+		
 		if ( isLeftMouseClick4Zoom )
-			zoom_btn.doClick();
-		btn_group.add( zoom_btn );
-
-		icon         = icons.getActiveToolbarIcon(IconType.Hand);
-		icon_shaded  = icons.getDisabledToolbarIcon(IconType.Hand);
-		hand_btn = new JRadioButton( icon_shaded );
-		hand_btn.setSelectedIcon( icon );
-		hand_btn.setBorderPainted( true );
-		hand_btn.setToolTipText( "Left mouse button click to Scroll" );
-		hand_btn.addActionListener( new ActionListener() {
-			public void actionPerformed( ActionEvent evt )
-			{
-				if ( hand_btn.isSelected() )
-					isLeftMouseClick4Zoom = false;
-			}
-		} );
-		if ( !isLeftMouseClick4Zoom )
-			hand_btn.doClick();
-		btn_group.add( hand_btn );
-	}
-
-	public JPanel createLeftMouseModePanel( int boxlayout_mode )
-	{
-		JPanel   btn_panel = null;
-		btn_panel = null;
-		if ( zoom_btn != null && hand_btn != null ) {
-			btn_panel = new JPanel();
-			btn_panel.setLayout( new BoxLayout( btn_panel, boxlayout_mode ) );
-			btn_panel.add( zoom_btn );
-			btn_panel.add( hand_btn );
-			btn_panel.setBorder( BorderFactory.createEtchedBorder() );
-		}
-		return btn_panel;
+			super.setCursor( CustomCursor.ZoomPlus );
+		else
+			super.setCursor( CustomCursor.HandOpen );
 	}
 
 
@@ -488,8 +435,9 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			else
 				super.setCursor( CustomCursor.HandOpen );
 		}
-		else
+		else{
 			super.setCursor( new_cursor );
+		}
 	}
 
 	/*

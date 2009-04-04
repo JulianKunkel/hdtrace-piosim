@@ -38,28 +38,44 @@ import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+
 import topology.TopologyManager;
+import viewer.common.CustomCursor;
+import viewer.common.IconManager;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
+import viewer.common.IconManager.IconType;
+import viewer.first.Jumpshot;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.ModelInfo;
 import viewer.zoomable.ModelInfoPanel;
@@ -68,6 +84,7 @@ import viewer.zoomable.ModelTimePanel;
 import viewer.zoomable.RowAdjustments;
 import viewer.zoomable.RowNumberChangedListener;
 import viewer.zoomable.RulerTime;
+import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ScrollbarTime;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimePanel;
@@ -109,6 +126,9 @@ public class TimelinePanel extends JPanel
 
 	private RowAdjustments          row_adjs;
 
+	private   JRadioButton          zoom_btn;
+	private   JRadioButton          hand_btn;
+	
 	/** 
 	 * This listener is invoked if the zoomlevel changes
 	 */
@@ -191,7 +211,7 @@ public class TimelinePanel extends JPanel
 		time_ruler_vport  = new ViewportTime( time_model );
 		time_ruler_vport.setView( time_ruler );
 		time_ruler_panel  = new ViewportTimePanel( time_ruler_vport );
-		time_ruler_vport.initLeftMouseToZoom( false );
+		time_ruler_vport.setLeftMouseToZoom( true );
 		/*
                    Propagation of AdjustmentEvent originating from scroller:
 
@@ -221,13 +241,55 @@ public class TimelinePanel extends JPanel
 		time_canvas_vport.setView( time_canvas );
 
 		time_canvas_panel = new ViewportTimePanel( time_canvas_vport );
-		time_canvas_vport.initLeftMouseToZoom( true );
+		time_canvas_vport.setLeftMouseToZoom( true );
 
 
 		/* The View's Time Display Panel */
 		time_display_panel = new ModelTimePanel( time_model );
+		
+		
 		JPanel canvas_lmouse;
-		canvas_lmouse = time_canvas_vport.createLeftMouseModePanel(	BoxLayout.X_AXIS );
+		
+		final IconManager icons = Jumpshot.getIconManager();
+		// allow only one button to be set:
+		final ButtonGroup buttonGroup = new ButtonGroup();
+		
+		zoom_btn     = new JRadioButton( icons.getDisabledToolbarIcon(IconType.ZoomIn) );
+		zoom_btn.setSelectedIcon( icons.getActiveToolbarIcon(IconType.ZoomIn) );
+		zoom_btn.setBorderPainted( true );
+		zoom_btn.setToolTipText( "Left mouse button click to Zoom" );
+		zoom_btn.setSelected(true);
+		zoom_btn.addActionListener( new ActionListener() {
+			public void actionPerformed( ActionEvent evt )
+			{
+				if ( zoom_btn.isSelected() )
+					time_canvas_vport.setLeftMouseToZoom(true);
+					time_ruler_vport.setLeftMouseToZoom(true);
+			}
+		} );
+
+		hand_btn = new JRadioButton( icons.getDisabledToolbarIcon(IconType.Hand) );
+		hand_btn.setSelectedIcon( icons.getActiveToolbarIcon(IconType.Hand) );
+		hand_btn.setBorderPainted( true );
+		hand_btn.setToolTipText( "Left mouse button click to Scroll" );
+		hand_btn.addActionListener( new ActionListener() {
+			public void actionPerformed( ActionEvent evt )
+			{
+				if ( hand_btn.isSelected() )
+					time_canvas_vport.setLeftMouseToZoom(false);
+					time_ruler_vport.setLeftMouseToZoom(false);
+			}
+		} );
+		
+		buttonGroup.add(hand_btn);
+		buttonGroup.add(zoom_btn);
+	
+		canvas_lmouse = new JPanel();
+		canvas_lmouse.setLayout( new BoxLayout( canvas_lmouse, BoxLayout.X_AXIS ) );
+		canvas_lmouse.add( zoom_btn );
+		canvas_lmouse.add( hand_btn );
+		canvas_lmouse.setBorder( BorderFactory.createEtchedBorder() );
+			
 		canvas_lmouse.setToolTipText("Operation for left mouse button click on Timeline canvas" );
 		time_display_panel.add( canvas_lmouse );
 

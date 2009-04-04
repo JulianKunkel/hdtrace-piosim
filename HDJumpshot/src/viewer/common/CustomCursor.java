@@ -78,9 +78,10 @@ public class CustomCursor
         iheight  = img.getHeight( null );
                 
         opt_size = toolkit.getBestCursorSize( iwidth, iheight );
-        if ( opt_size.width == iwidth && opt_size.height == iheight )
+        if ( opt_size.width == iwidth && opt_size.height == iheight ){
             return img;
-        else {
+        }else {
+        	// resize existing cursor
             BufferedImage  buf_img;
             buf_img = new BufferedImage( opt_size.width, opt_size.height,
                                           BufferedImage.TYPE_INT_ARGB );

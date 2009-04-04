@@ -62,30 +62,6 @@ public class Routines
         }
     }
 
-    public static void setComponentAndChildrenCursors( Component  comp, Cursor     csr )
-    {
-        if ( comp == null )
-            return;
-        comp.setCursor( csr );
-        if ( comp instanceof Container ) {
-            Component [] comps = ( (Container) comp ).getComponents();
-            for ( int ii = 0; ii < comps.length; ii++)
-                setComponentAndChildrenCursors( comps[ ii ], csr );
-        }
-    }
-
-    public static void setShortJComponentSizes( JComponent  comp,
-                                                Dimension   pref_size )
-    {
-        Dimension  min_size, max_size;
-        min_size  = new Dimension( 0, pref_size.height );
-        max_size  = new Dimension( Short.MAX_VALUE, pref_size.height );
-        comp.setMinimumSize( min_size );
-        comp.setMaximumSize( max_size );
-        comp.setPreferredSize( pref_size );
-    }
-
-
 
     public static Dimension getScreenSize()
     {
