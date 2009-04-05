@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -39,6 +39,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
@@ -49,7 +51,6 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.xml.bind.Marshaller.Listener;
 
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
@@ -68,18 +69,18 @@ public class RowAdjustments
 	private JPanel                 slider_panel;
 
 	private int oldRowCount = -1;
-	
+
 	private MyTopologyChangeListener topoChangeListener = new MyTopologyChangeListener();
-	
+
 	private LinkedList<RowNumberChangedListener>     rowChangedListener = new LinkedList<RowNumberChangedListener>();
-	
+
 	private class MyTopologyChangeListener implements TopologyChangeListener{
 		@Override
 		public void topologyChanged() {
 			refreshSlidersAndTextFields();
 		}
 	}
-	
+
 	public RowAdjustments( ViewportTimeYaxis y_vport, TopologyManager topologyManager )
 	{
 		this.canvas_vport  = y_vport;
@@ -93,11 +94,13 @@ public class RowAdjustments
 		slider_VIS_ROW_COUNT.setMinorTickSpacing(1);
 		slider_VIS_ROW_COUNT.setInverted( false );
 		slider_VIS_ROW_COUNT.addChangeListener(	new RowCountSliderListener() );
+		slider_VIS_ROW_COUNT.addMouseListener(new RowCountSliderFinishListener());
+
 		slider_VIS_ROW_COUNT.setAlignmentX(Component.CENTER_ALIGNMENT);
 		slider_VIS_ROW_COUNT.setPaintTicks(true);
 		slider_VIS_ROW_COUNT.setPaintLabels(true);
 
-		
+
 		fld_VIS_ROW_COUNT = new LabeledTextField( "Row Count", "###0.0#" );
 		// Const.INTEGER_FORMAT );
 		fld_VIS_ROW_COUNT.setToolTipText(
@@ -113,20 +116,20 @@ public class RowAdjustments
 				+ "in the Timeline canvas" );
 		fitall_btn.addActionListener( new ButtonActionListener() );
 		fitall_btn.setFont(Const.FONT);
-		
+
 		slider_panel = new JPanel();			
-		
+
 		slider_panel.setLayout( new BoxLayout( slider_panel, BoxLayout.Y_AXIS ) );
 		slider_panel.addComponentListener( new SliderComponentListener() );
-		
+
 		fld_VIS_ROW_COUNT.setAlignmentX(Component.CENTER_ALIGNMENT);
 		slider_VIS_ROW_COUNT.setAlignmentX(Component.CENTER_ALIGNMENT);
 		fitall_btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-		
+
 		slider_panel.add(fld_VIS_ROW_COUNT);
 		slider_panel.add(slider_VIS_ROW_COUNT);
 		slider_panel.add(fitall_btn);
-		
+
 		slider_VIS_ROW_COUNT.setMinimumSize(fitall_btn.getMinimumSize());
 	}
 
@@ -134,7 +137,6 @@ public class RowAdjustments
 	public void refreshSlidersAndTextFields()
 	{
 		int row_count   = topologyManager.getRowCount();
-		int row_height  = topologyManager.getRowHeight();
 
 		slider_VIS_ROW_COUNT.setMinimum( row_count < 2 ? 1 : 2 );
 		slider_VIS_ROW_COUNT.setMaximum( row_count );
@@ -153,22 +155,6 @@ public class RowAdjustments
 		return slider_panel;
 	}
 
-	private void initPanelsToRowCountMode()
-	{
-		slider_panel.removeAll();
-		slider_panel.add( slider_VIS_ROW_COUNT );
-		slider_panel.revalidate();
-		slider_panel.repaint();
-	}
-
-	public void updateSlidersAfterTreeExpansion()
-	{
-		int row_count   = topologyManager.getRowCount();
-		slider_VIS_ROW_COUNT.setMaximum( row_count );
-		fld_VIS_ROW_COUNT.fireActionPerformed();
-	}
-
-
 	private class SliderComponentListener extends ComponentAdapter
 	{
 		public void componentResized( ComponentEvent evt )
@@ -180,11 +166,18 @@ public class RowAdjustments
 		}
 	}
 
+	private class RowCountSliderFinishListener extends MouseAdapter{
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			adjustRowCount( slider_VIS_ROW_COUNT.getValue(), true );
+		}
+	}
+
 	private class RowCountSliderListener implements ChangeListener
 	{
 		public void stateChanged( ChangeEvent evt )
-		{
-			adjustRowCount( slider_VIS_ROW_COUNT.getValue() );
+		{			
+			adjustRowCount( slider_VIS_ROW_COUNT.getValue(), false );
 		}		
 	}
 
@@ -192,12 +185,11 @@ public class RowAdjustments
 	{
 		public void actionPerformed( ActionEvent evt )
 		{
-			adjustRowCount( fld_VIS_ROW_COUNT.getInteger());
+			adjustRowCount( fld_VIS_ROW_COUNT.getInteger(), true);
 		}
 	}
 
-	private void adjustRowCount(int row_count){    	
-
+	private void adjustRowCount(int row_count, boolean notifyListeners){    	
 		int min_vis_row_count, max_vis_row_count;
 		min_vis_row_count = (int) slider_VIS_ROW_COUNT.getMinimum();
 		max_vis_row_count = (int) slider_VIS_ROW_COUNT.getMaximum();
@@ -215,7 +207,8 @@ public class RowAdjustments
 		if( oldRowCount == irow_count )
 			return;
 
-		oldRowCount = irow_count;
+		if(notifyListeners == true)
+			oldRowCount = irow_count;
 
 		fld_VIS_ROW_COUNT.setInteger( irow_count );
 		slider_VIS_ROW_COUNT.setValue( irow_count );
@@ -223,22 +216,24 @@ public class RowAdjustments
 		double row_height     = (double) canvas_vport.getHeight() /  irow_count ;
 		topologyManager.setRowHeight( (int) row_height );
 
-		for(RowNumberChangedListener list: rowChangedListener){
-			list.rowNumberChanged();
+		if(notifyListeners){
+			for(RowNumberChangedListener list: rowChangedListener){
+				list.rowNumberChanged();
+			}
 		}
 	}
-	
+
 	public void addRowChangedListener(RowNumberChangedListener listener){
 		rowChangedListener.add(listener);
 	}
-	
-	
+
+
 
 	private class ButtonActionListener implements ActionListener
 	{
 		public void actionPerformed( ActionEvent evt )
 		{
-			adjustRowCount(topologyManager.getRowCount());            
+			adjustRowCount(topologyManager.getRowCount(), true);            
 		}
 	}
 }

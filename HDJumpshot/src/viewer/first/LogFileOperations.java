@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -39,196 +39,207 @@ import hdTraceInput.TraceFormatBufferedFileReader;
 import java.awt.Window;
 import java.io.File;
 
-import javax.swing.JTextField;
-
 import viewer.common.Dialogs;
 import viewer.common.LogFileChooser;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.common.SwingWorker;
+import viewer.histogram.TraceProfileFrame;
 import viewer.legends.LegendFrame;
 import viewer.pvfs2.PVFS2Slog2FileParser;
 import viewer.timelines.TimelineFrame;
+import viewer.zoomable.ModelTime;
 
 
 public class LogFileOperations
 {
-    private        LogFileChooser    file_chooser;
+	private        LogFileChooser    file_chooser;
 
-    private        TraceFormatBufferedFileReader reader;
-    private        PreferenceFrame   pptys_frame;
-    private        LegendFrame       legend_frame;
-    private        TimelineFrame     timeline_frame;
+	private        TraceFormatBufferedFileReader reader;
+	private        ModelTime         modelTime;
+	private        PreferenceFrame   pptys_frame;
+	private        LegendFrame       legend_frame;
+	private        TimelineFrame     timeline_frame;
+	private        TraceProfileFrame traceProfileFrame = null;
 
-    public LogFileOperations( boolean isApplet )
-    {
-        file_chooser    = new LogFileChooser( isApplet );
+	public LogFileOperations( boolean isApplet )
+	{
+		file_chooser    = new LogFileChooser( isApplet );
 
-        reader        = null;
-        legend_frame    = null;
-        timeline_frame  = null;
-    }
+		reader        = null;
+		legend_frame    = null;
+		timeline_frame  = null;
+	}
 
-    public void init()
-    {
-        /*  Initialization  */
-        Parameters.initSetupFile();
-        Parameters.readFromSetupFile( TopWindow.First.getWindow() );
-        Parameters.initStaticClasses();
-        pptys_frame     = new PreferenceFrame();
-        pptys_frame.setVisible( false );
-    }
+	public void init()
+	{
+		/*  Initialization  */
+		Parameters.initSetupFile();
+		Parameters.readFromSetupFile( TopWindow.First.getWindow() );
+		Parameters.initStaticClasses();
+		pptys_frame     = new PreferenceFrame();
+		pptys_frame.setVisible( false );
+	}
 
-    private TraceFormatBufferedFileReader createInputLog( String pathname )  throws Exception
-    {
-    		final Window window = TopWindow.First.getWindow();
-    		
-        final String logname = pathname.trim();
-        if ( logname != null && logname.length() > 0 ) {
-            File logfile = new File( logname );
-            if ( ! logfile.exists() ) {
-                Dialogs.error( window,
-                               "File Not Found when initializing "
-                             + logname + "." );
-                return null;
-            }
-            if ( logfile.isDirectory() ) {
-                Dialogs.error( window,
-                               logname + " is a directory." );
-                return null;
-            }
-            if ( ! logfile.canRead() ) {
-                Dialogs.error( window,
-                               "File " + logname + " cannot be read." );
-                return null;
-            }
+	private TraceFormatBufferedFileReader createInputLog( String pathname )  throws Exception
+	{
+		final Window window = TopWindow.First.getWindow();
 
-            final TraceFormatBufferedFileReader reader = new TraceFormatBufferedFileReader( );
-            reader.loadAdditionalFile(logname);
+		final String logname = pathname.trim();
+		if ( logname != null && logname.length() > 0 ) {
+			File logfile = new File( logname );
+			if ( ! logfile.exists() ) {
+				Dialogs.error( window,
+						"File Not Found when initializing "
+						+ logname + "." );
+				return null;
+			}
+			if ( logfile.isDirectory() ) {
+				Dialogs.error( window,
+						logname + " is a directory." );
+				return null;
+			}
+			if ( ! logfile.canRead() ) {
+				Dialogs.error( window,
+						"File " + logname + " cannot be read." );
+				return null;
+			}
 
-            return reader;
-        }
-        else {
-            if ( logname == null )
-                Dialogs.error( window, "Null pathname!" );
-            else // if ( logname.length() == 0 )
-                Dialogs.error( window, "pathname is empty!" );
-            return null;
-        }
+			final TraceFormatBufferedFileReader reader = new TraceFormatBufferedFileReader( );
+			reader.loadAdditionalFile(logname);
+			modelTime  = new ModelTime( reader.getGlobalMinTime(),	reader.getGlobalMaxTime());
 
-    }
+			return reader;
+		}
+		else {
+			if ( logname == null )
+				Dialogs.error( window, "Null pathname!" );
+			else // if ( logname.length() == 0 )
+				Dialogs.error( window, "pathname is empty!" );
+			return null;
+		}
 
-    /* This disposes all the windows and InputLog related resources. */
-    public void disposeLogFileAndResources()
-    {
-        if ( reader != null ) {
-            TopWindow.Legend.disposeAll();
-            // TODO:
-            // file.close();
-            reader        = null;
-            legend_frame    = null;
-            timeline_frame  = null;
-        }
-    }
+	}
 
-    public String selectLogFile()
-    {
-        int   istat;
-        istat = file_chooser.showOpenDialog( TopWindow.First.getWindow() );
-        if ( istat == LogFileChooser.APPROVE_OPTION ) {
-            File   selected_file, selected_dir;
-            selected_file = file_chooser.getSelectedFile();
-            if ( selected_file != null ) {
-                selected_dir  = selected_file.getParentFile();
-                if ( selected_dir != null )
-                    file_chooser.setCurrentDirectory( selected_dir );
-                return selected_file.getPath();
-            }
-        }
-        //else
-        //    Dialogs.info( TopWindow.First.getWindow(), "No file chosen", null );
-        return null;
-    }
+	/* This disposes all the windows and InputLog related resources. */
+	public void disposeLogFileAndResources()
+	{
+		if ( reader != null ) {
+			TopWindow.Legend.disposeAll();
+			// TODO:
+			// file.close();
+			reader        = null;
+			legend_frame    = null;
+			timeline_frame  = null;
+		}
+	}
 
-    /*
+	public String selectLogFile()
+	{
+		int   istat;
+		istat = file_chooser.showOpenDialog( TopWindow.First.getWindow() );
+		if ( istat == LogFileChooser.APPROVE_OPTION ) {
+			File   selected_file, selected_dir;
+			selected_file = file_chooser.getSelectedFile();
+			if ( selected_file != null ) {
+				selected_dir  = selected_file.getParentFile();
+				if ( selected_dir != null )
+					file_chooser.setCurrentDirectory( selected_dir );
+				return selected_file.getPath();
+			}
+		}
+		//else
+			//    Dialogs.info( TopWindow.First.getWindow(), "No file chosen", null );
+		return null;
+	}
+
+	/*
         this.disposeLogFileAndResources() has to be called
         before this.openLogFile() can be invoked.
-    */
-    public void openLogFile( String filename )
-    {
-    	try{
-        reader  = createInputLog(filename );
-        if ( reader == null ) {
-            return;
-        }
-    	}catch(Exception e){    		
-      	e.printStackTrace();
-      	
-        Dialogs.error( TopWindow.First.getWindow(), "Error when initializing " + filename + "!\n" +
-        		e.getMessage() );
-        return;
-    	}
+	 */
+	public void openLogFile( String filename )
+	{
+		try{
+			reader  = createInputLog(filename );
+			if ( reader == null ) {
+				return;
+			}
+		}catch(Exception e){    		
+			e.printStackTrace();
 
-        legend_frame = new LegendFrame( reader );
-        legend_frame.pack();
-        TopWindow.layoutIdealLocations();
-        legend_frame.setVisible( true );
-        
-        createTimelineWindow( );        
+			Dialogs.error( TopWindow.First.getWindow(), "Error when initializing " + filename + "!\n" +
+					e.getMessage() );
+			return;
+		}
 
-        //TODO PVFS2 stuff
-        PVFS2Slog2FileParser.parseSlog2(filename);
-    }
-    
-    public void addLogFile(String file) throws Exception{
-    	reader.loadAdditionalFile(file);
-    }
+		legend_frame = new LegendFrame( reader );
+		legend_frame.pack();
+		TopWindow.layoutIdealLocations();
+		legend_frame.setVisible( true );
 
-    public void createTimelineWindow( )
-    {
-        if ( reader != null ) {
-            SwingWorker create_timeline_worker = new SwingWorker() {
-                public Object construct()
-                {
-                    timeline_frame = new TimelineFrame( reader );
-                    return null;  // returned value is not needed
-                }
-                public void finished()
-                {
-                    timeline_frame.pack();
-                    TopWindow.layoutIdealLocations();
-                    timeline_frame.setVisible( true );
-                }
-            };
-            create_timeline_worker.start();
-        }
-    }
+		createTimelineWindow( );        
 
-    public void showLegendWindow()
-    {
-        if ( reader != null && legend_frame != null ) {
-            legend_frame.pack();
-            TopWindow.layoutIdealLocations();
-            legend_frame.setVisible( true );
-        }
-    }
-    
-    public void showTimelineWindow()
-    {
-        if ( reader != null && timeline_frame != null ) {
-        	timeline_frame.pack();
-            TopWindow.layoutIdealLocations();
-            timeline_frame.setVisible( true );
-        }
-    }
+		//TODO PVFS2 stuff
+		PVFS2Slog2FileParser.parseSlog2(filename);
+	}
 
-    public void showPreferenceWindow()
-    {
-        if ( pptys_frame != null ) {
-            pptys_frame.pack();
-            TopWindow.layoutIdealLocations();
-            pptys_frame.setVisible( true );
-            pptys_frame.toFront();
-        }
-    }
+	public void addLogFile(String file) throws Exception{
+		reader.loadAdditionalFile(file);
+		
+		// TODO. Maybe the global time should be adapted:
+		//modelTime.setGlobalTime( reader.getGlobalMinTime(),	reader.getGlobalMaxTime());
+	}
+
+	public void createTimelineWindow( )
+	{
+		if ( reader != null ) {
+			SwingWorker create_timeline_worker = new SwingWorker() {
+				public Object construct()
+				{
+					timeline_frame = new TimelineFrame( reader, modelTime );
+					timeline_frame.pack();
+					return null;  // returned value is not needed					
+				}
+				public void finished()
+				{					
+					TopWindow.layoutIdealLocations();
+					timeline_frame.setVisible( true );
+				}
+			};
+			create_timeline_worker.start();
+		}
+	}
+
+	public void showTraceProfileFrame(){
+		traceProfileFrame = new TraceProfileFrame(modelTime, reader);	
+		traceProfileFrame.show();
+	}
+
+	public void showLegendWindow()
+	{
+		if ( reader != null && legend_frame != null ) {
+			legend_frame.pack();
+			TopWindow.layoutIdealLocations();
+			legend_frame.setVisible( true );
+		}
+	}
+
+	public void showTimelineWindow()
+	{
+		if ( reader != null && timeline_frame != null ) {
+			//timeline_frame.pack();
+			TopWindow.layoutIdealLocations();
+			timeline_frame.setVisible( true );
+		}
+	}
+
+	public void showPreferenceWindow()
+	{
+		if ( pptys_frame != null ) {
+			pptys_frame.pack();
+			TopWindow.layoutIdealLocations();
+			pptys_frame.setVisible( true );
+			pptys_frame.toFront();
+		}
+	}
 }

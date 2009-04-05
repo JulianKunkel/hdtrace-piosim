@@ -48,7 +48,6 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Window;
-import java.util.Date;
 import java.util.Enumeration;
 
 import javax.swing.BoundedRangeModel;
@@ -57,11 +56,9 @@ import javax.swing.SwingUtilities;
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import topology.TopologyStatisticTreeNode;
-import viewer.common.CustomCursor;
 import viewer.common.Debug;
 import viewer.common.Parameters;
 import viewer.common.Profile;
-import viewer.common.Routines;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTraceObjects;
 import viewer.legends.CategoryUpdatedListener;
@@ -99,8 +96,6 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 	private int                num_rows;
 	private int                row_height;
-
-	private Date               zero_time, init_time, final_time;
 
 	final private TraceFormatBufferedFileReader reader;
 	
@@ -145,7 +140,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		reader.getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
 		reader.getLegendStatisticModel().addCategoryUpdateListener(categoryVisibleListener);
 
-		topologyManager.addTopologyChangedListener(topologyChangeListener);
+		topologyManager.addTopologyChangedListener(topologyChangeListener); 
 	}
 
 	public Dimension getMinimumSize()
@@ -180,8 +175,6 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 	protected void initializeAllOffImages( final TimeBoundingBox imgs_times )
 	{
-		if ( Profile.isActive() )
-			zero_time = new Date();
 
 		if ( root_frame == null )
 			root_frame  = (Frame) SwingUtilities.windowForComponent( this );
@@ -191,9 +184,6 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		num_rows    = topologyManager.getRowCount();
 		row_height  = topologyManager.getRowHeight();
 
-		if ( Profile.isActive() )
-			init_time = new Date();
-
 	}
 
 	protected void finalizeAllOffImages( final TimeBoundingBox imgs_times )
@@ -201,16 +191,6 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		// Update the timeframe of all images
 		timeframe4imgs.setEarliestTime( imgs_times.getEarliestTime() );
 		timeframe4imgs.setLatestTime( imgs_times.getLatestTime() );
-		
-		if ( Profile.isActive() )
-			final_time = new Date();
-		if ( Profile.isActive() )
-			Profile.println( "CanvasTimeline.finalizeAllOffImages(): "
-					+ "init. time = "
-					+ (init_time.getTime() - zero_time.getTime())
-					+ " msec.,   total time = "
-					+ (final_time.getTime() - zero_time.getTime())
-					+ " msec." );
 	}
 
 	protected void drawOneOffImage(Image offImage, final TimeBoundingBox  timebounds )
@@ -218,7 +198,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		if ( Debug.isActive() )
 			Debug.println( "CanvasTimeline: drawOneOffImage()'s offImage = "
 					+ offImage );
-		if ( offImage == null ) {
+		// check if the timebounds are valid:
+		if ( offImage == null || timebounds.getLatestTime() <= 0 || 
+				timebounds.getEarliestTime() >= getModelTime().getTimeGlobalMaximum().getDouble()) {
 			return;
 		}
 		final long startTime = System.currentTimeMillis();

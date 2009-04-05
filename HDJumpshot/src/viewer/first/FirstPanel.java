@@ -35,23 +35,15 @@
 package viewer.first;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Vector;
 
-import javax.net.ssl.SSLEngineResult.Status;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -60,16 +52,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.border.Border;
-import javax.swing.event.ListDataListener;
 
 import viewer.common.ActableTextField;
 import viewer.common.Const;
 import viewer.common.Dialogs;
 import viewer.common.IconManager;
-import viewer.common.Routines;
 import viewer.common.IconManager.IconType;
-import viewer.histogram.StatisticHistogramFrame;
-import viewer.histogram.TraceProfileFrame;
 
 public class FirstPanel extends JPanel {
 	private static final long serialVersionUID = 8085293176219056520L;
@@ -99,7 +87,6 @@ public class FirstPanel extends JPanel {
 
 	private LogFileOperations file_ops;
 	private String logfile_name;
-	private TraceProfileFrame traceHistogramFrame = null;
 	
 	public FirstPanel(boolean isApplet, String filename, int view_idx) {
 		super();
@@ -208,7 +195,7 @@ public class FirstPanel extends JPanel {
 		show_trace_profile_btn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				showTraceProfileFrame();
+				file_ops.showTraceProfileFrame();
 			}
 		});
 		toolbar.add(show_trace_profile_btn);
@@ -255,10 +242,6 @@ public class FirstPanel extends JPanel {
 		return toolbar;
 	}
 	
-	public void showTraceProfileFrame(){
-		traceHistogramFrame = new TraceProfileFrame();		
-	}
-
 	public void init() {
 		file_ops.init();
 		if (logfile_name != null)

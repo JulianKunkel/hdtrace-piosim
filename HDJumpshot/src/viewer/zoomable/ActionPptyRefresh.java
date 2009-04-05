@@ -37,7 +37,6 @@ package viewer.zoomable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import topology.TopologyManager;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.first.TopWindow;
@@ -45,13 +44,10 @@ import viewer.timelines.CanvasTimeline;
 
 public class ActionPptyRefresh implements ActionListener
 {
-    private TopologyManager        	 topologyManager;
+	  final private CanvasTimeline     timelines;
 
-    final private CanvasTimeline     timelines;
-
-    public ActionPptyRefresh( TopologyManager in_y_tree, CanvasTimeline timelines)
+    public ActionPptyRefresh( CanvasTimeline timelines)
     {
-        this.topologyManager = in_y_tree;
         this.timelines = timelines;
     }
 
@@ -62,9 +58,7 @@ public class ActionPptyRefresh implements ActionListener
             pptys_frame.updateAllParametersFromFields();
                 
         Parameters.initStaticClasses();
-                
-        topologyManager.setRootVisible( Parameters.Y_AXIS_ROOT_VISIBLE );
-        
+                        
         timelines.forceRedraw();
     }
 }

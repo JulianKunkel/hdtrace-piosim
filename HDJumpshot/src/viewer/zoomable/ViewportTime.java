@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -47,7 +47,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -56,38 +55,28 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.GrayFilter;
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputListener;
 
-import viewer.common.Const;
 import viewer.common.CustomCursor;
 import viewer.common.Debug;
-import viewer.common.IconManager;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
-import viewer.common.IconManager.IconType;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForDuration;
-import viewer.first.Jumpshot;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import drawable.TimeBoundingBox;
 
+
 public class ViewportTime extends JViewport implements TimeListener, MouseInputListener, KeyListener
 {
 	private static final long serialVersionUID = -3752967463821381046L;
-	
+
 	private static final Color   INFO_LINE_COLOR  = Color.green;
 	private static final Color   INFO_AREA_COLOR  = new Color(255,255,  0,64);
 	private static final Color   ZOOM_LINE_COLOR  = Color.white;
@@ -114,9 +103,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private   InfoDialogWindowListener  info_window_listener;
 
 	protected boolean                   isLeftMouseClick4Zoom;
-	
-	private class MyComponentResizeListener extends ComponentAdapter{
-		
+
+	private class MyComponentResizeListener extends ComponentAdapter{		
 		@Override
 		public void componentResized(ComponentEvent e) {
 
@@ -160,11 +148,11 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			}
 		}
 	};	
-	
+
 	private ViewportTime getMe(){
 		return this;
 	}
-	
+
 	public ViewportTime( final ModelTime in_model )
 	{
 		time_model             = in_model;
@@ -184,7 +172,6 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 		// setDebugGraphicsOptions( DebugGraphics.LOG_OPTION );
 		vport_timebox       = new TimeBoundingBox();
-		
 		this.addComponentListener( new MyComponentResizeListener());
 	}
 
@@ -307,7 +294,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			Debug.println( "ViewportTime: timeChanged()'s END: " );
 		}
 	}
-	
+
 	private void drawShadyTimeBoundingBox( Graphics g,
 			final TimeBoundingBox timebox,
 			Color line_color, Color area_color )
@@ -413,7 +400,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	public void setLeftMouseToZoom( boolean in_isLeftMouseClick4Zoom )
 	{
 		isLeftMouseClick4Zoom  = in_isLeftMouseClick4Zoom;
-		
+
 		if ( isLeftMouseClick4Zoom )
 			super.setCursor( CustomCursor.ZoomPlus );
 		else
@@ -493,12 +480,12 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 	public void mouseClicked( MouseEvent mouse_evt )
 	{
-		
+
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( isLeftMouseClick4Zoom ) {  // Zoom Mode
 				double focus_time;				
 				Point  vport_click = mouse_evt.getPoint();
-				
+
 				focus_time  = coord_xform.convertPixelToTime( vport_click.x );				
 				if ( Parameters.LEFTCLICK_INSTANT_ZOOM ) {
 					// Left click with Shift to Zoom Out,
@@ -550,11 +537,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			if ( isLeftMouseClick4Zoom ) {  // Zoom Mode
 				zoom_timebox = new TimeBoundingBox();
 				zoom_timebox.setZeroDuration( click_time );
-				this.repaint();
-				super.setCursor( CustomCursor.ZoomPlus );
 			}
-			else  // Hand Mode
-				super.setCursor( CustomCursor.HandClose );
 		}
 		else if ( SwingUtilities.isRightMouseButton( mouse_evt ) ) {
 			info_timebox = new TimeBoundingBox();
@@ -747,7 +730,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private void forceRepaint(){
 		this.repaint();
 	}
-	
+
 
 	private class InfoDialogActionListener implements ActionListener
 	{

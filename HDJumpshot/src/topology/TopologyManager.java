@@ -58,10 +58,11 @@ import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
-public class TopologyManager extends JTree
+public class TopologyManager 
 {
 	private static final long serialVersionUID = 362940508169891280L;
 
+	private JTree tree = new JTree();
 	private DefaultMutableTreeNode  tree_root;
 
 	final TraceFormatBufferedFileReader  reader;
@@ -84,11 +85,11 @@ public class TopologyManager extends JTree
 	private MouseListener treeMouseListener = new MouseAdapter(){
 		public void mouseClicked(java.awt.event.MouseEvent evt) {
 			if (SwingUtilities.isRightMouseButton( evt )){
-				final TreePath path = getMe().getClosestPathForLocation(evt.getX(), evt.getY());
+				final TreePath path = tree.getClosestPathForLocation(evt.getX(), evt.getY());
 				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
 				
 				// return if we are not in the Boundrary of the current path (i.e. not really clicked inside the path).
-				if(! getMe().getPathBounds(path).contains(evt.getPoint())){
+				if(! tree.getPathBounds(path).contains(evt.getPoint())){
 					return;
 				}
 				
@@ -124,12 +125,6 @@ public class TopologyManager extends JTree
 		}
 	}
 
-	private JTree getMe(){
-		return this;
-	}
-
-
-
 	private class TopologyTreeExpansionListener implements TreeExpansionListener{    
 		// from tree expansion listener
 		@Override
@@ -146,6 +141,7 @@ public class TopologyManager extends JTree
 	public void fireTopologyChanged(){
 		if( changeListenerDisabled ) return;
 
+		// avoid a cyclic update:	changeListenerDisabled = true;
 		reloadTopologyMappingFromTree();
 
 		for(TopologyChangeListener list: changeListener){
@@ -163,9 +159,9 @@ public class TopologyManager extends JTree
 		this.changeListenerDisabled = changeListenerDisabled;
 
 		if(changeListenerDisabled == true){
-			this.removeTreeExpansionListener(treeExpansionListener);
+			tree.removeTreeExpansionListener(treeExpansionListener);
 		}else{
-			this.addTreeExpansionListener( treeExpansionListener);			
+			tree.addTreeExpansionListener( treeExpansionListener);			
 		}
 	}
 
@@ -178,8 +174,8 @@ public class TopologyManager extends JTree
 	 */
 	private void reloadTopologyMappingFromTree(){
 		topoToTimelineMapping.clear();
-		for(int timeline = 0; timeline < getRowCount(); timeline++){
-			final TreePath path = getPathForRow(timeline);
+		for(int timeline = 0; timeline < tree.getRowCount(); timeline++){
+			final TreePath path = tree.getPathForRow(timeline);
 			final TreeNode node = (TreeNode) path.getLastPathComponent();
 
 			if(TopologyTreeNode.class.isInstance(node)){
@@ -335,13 +331,13 @@ public class TopologyManager extends JTree
 	 * remove all topologies from the tree which have empty leafs.
 	 */
 	public void removeEmptyTopologies(){
-		final DefaultTreeModel model = (DefaultTreeModel) getModel();
+		final DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
 
-		clearSelection();
-		for(int row = 0 ; row < getRowCount() ; row++){
-			setSelectionRow(row);
+		tree.clearSelection();
+		for(int row = 0 ; row < tree.getRowCount() ; row++){
+			tree.setSelectionRow(row);
 
-			final TreePath path = getSelectionPath(); 
+			final TreePath path = tree.getSelectionPath(); 
 			final int depth = path.getPathCount();
 
 			if(depth > 1 && ((DefaultMutableTreeNode) path.getLastPathComponent()).isLeaf() ){				
@@ -373,7 +369,7 @@ public class TopologyManager extends JTree
 				}
 			}
 
-			clearSelection();
+			tree.clearSelection();
 		}
 	}
 
@@ -400,18 +396,18 @@ public class TopologyManager extends JTree
 	 * Remove timelines marked in the tree from the view
 	 */
 	public void removeMarkedTimelines(){
-		TreePath [] paths = getSelectionPaths();
+		TreePath [] paths = tree.getSelectionPaths();
 		if(paths == null || paths.length == 0)
 			return;
 
-		final DefaultTreeModel model = (DefaultTreeModel) getModel();
+		final DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
 
 		for(TreePath path: paths){
 			int depth = path.getPathCount(); 
 			if(depth > 1){
 				model.removeNodeFromParent((MutableTreeNode) path.getLastPathComponent());
 
-				// recursivly remove empty timelines
+				// recursively remove empty timelines
 				for(int curDepth = depth - 2; curDepth >= 1; curDepth-- ){
 					final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getPathComponent(curDepth);
 					if( TopologyTreeNode.class.isInstance(node) ){
@@ -450,7 +446,7 @@ public class TopologyManager extends JTree
 	public DefaultMutableTreeNode loadDefaultTopologyToTreeMapping(){
 		DefaultMutableTreeNode tree_root = new DefaultMutableTreeNode("HDTrace");
 
-		setModel(new DefaultTreeModel(tree_root));            
+		tree.setModel(new DefaultTreeModel(tree_root));            
 
 		for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
 			recursivlyAddTopology(1, tree_root, reader.getLoadedFile(f).getTopology(), reader.getLoadedFile(f));
@@ -468,10 +464,10 @@ public class TopologyManager extends JTree
 	{		
 		this.modelTime = modelTime;
 		this.reader = reader;
-		super.setEditable( true );		
-		super.putClientProperty("JTree.lineStyle", "Angled");
+		tree.setEditable( true );		
+		tree.putClientProperty("JTree.lineStyle", "Angled");
 		
-		this.addMouseListener(treeMouseListener);
+		tree.addMouseListener(treeMouseListener);
 
 		restoreTopology();
 	}
@@ -493,9 +489,28 @@ public class TopologyManager extends JTree
 			if(! node.isLeaf()){
 				// construct path
 				TreePath path = new TreePath(node.getPath());
-				expandPath(path);
+				tree.expandPath(path);
 			}
 		}
+	}
+	
+	public JTree getTree() {
+		return tree;
+	}
 
+	public void scrollRowToVisible(int timeline) {
+		tree.scrollRowToVisible(timeline);
+	}
+
+	public int getRowCount() {
+		return tree.getRowCount();
+	}
+
+	public int getRowHeight() {
+		return tree.getRowHeight();
+	}
+
+	public void setRowHeight(int rowHeight) {
+		tree.setRowHeight(rowHeight);
 	}
 }

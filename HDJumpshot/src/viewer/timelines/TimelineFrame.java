@@ -44,6 +44,7 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import viewer.first.TopWindow;
+import viewer.zoomable.ModelTime;
 
 
 public class TimelineFrame extends JFrame
@@ -52,14 +53,16 @@ public class TimelineFrame extends JFrame
 
 	private        TimelinePanel  top_panel;
 
-	public TimelineFrame( final TraceFormatBufferedFileReader reader )
+	public TimelineFrame( final TraceFormatBufferedFileReader reader, final ModelTime modelTime )
 	{
 		super( "TimeLine: " + reader.getCombinedProjectFilename() );
 		super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
 		TopWindow.Timeline.disposeAll();
 		TopWindow.Timeline.setWindow( this );
 
-		top_panel = new TimelinePanel( this, reader);
+		setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
+		
+		top_panel = new TimelinePanel( modelTime, this, reader);
 		setContentPane( top_panel );
 
 		addWindowListener( new WindowAdapter() {
@@ -67,8 +70,8 @@ public class TimelineFrame extends JFrame
 				TopWindow.Timeline.disposeAll();
 			}
 		} );
-
-		top_panel.setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
+		
+		this.pack();
 	}
 
 	public void setVisible( boolean val )

@@ -7,15 +7,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.Stroke;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Enumeration;
@@ -23,7 +19,6 @@ import java.util.Enumeration;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
@@ -100,15 +95,10 @@ public class StatisticHistogramFrame {
 		// now all important fields are set:
 		this.histogramPanel = new HistogramImagePanel();
 
-		frame = new JFrame(reader.getGroup().getName() + " : " + description.getName());
+		frame = new JFrame();
 		frame.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
 		frame.setMinimumSize(new Dimension(400, 250));
 		frame.setResizable(true);
-
-		JPanel yPanel = new JPanel();
-		yPanel.setLayout(new BoxLayout( yPanel, BoxLayout.Y_AXIS));		
-		yPanel.setMinimumSize(frame.getPreferredSize());
-		yPanel.add(histogramPanel);
 
 		JPanel xPanel = new JPanel();
 		xPanel.setLayout(new BoxLayout( xPanel, BoxLayout.X_AXIS));
@@ -139,11 +129,18 @@ public class StatisticHistogramFrame {
 		labelMaxValue    = new LabeledTextField( "MaxValue", Const.FLOAT_FORMAT );
 		labelMaxValue.setEditable( false );		
 		xPanel.add(labelMaxValue);		
-
+		
     JButton autoRefresh_btn = new ButtonAutoRefresh(histogramPanel);
     xPanel.add( autoRefresh_btn );        
 		
+
+		final JPanel yPanel = new JPanel();
+		yPanel.setLayout(new BoxLayout( yPanel, BoxLayout.Y_AXIS));		
+		yPanel.setMinimumSize(frame.getPreferredSize());
+		
+
 		yPanel.add(xPanel);
+		yPanel.add(histogramPanel);
 
 		frame.add(yPanel);
 		
@@ -223,6 +220,7 @@ public class StatisticHistogramFrame {
 		public void refreshHistogramData(){
 			histogramData = computeHistogram();			
 			oldMouseOverBin = -1;
+			
 			this.repaint();
 		}
 
@@ -259,6 +257,14 @@ public class StatisticHistogramFrame {
 
 		@Override
 		public void paint(Graphics graphics) {
+			// automatically adapt the title.
+			frame.setTitle(reader.getGroup().getName() + ":" + description.getName() + " (" +
+					String.format("%.4f", modelTime.getTimeViewPosition()) + "-" + 
+					String.format("%.4f",(modelTime.getTimeViewExtent() + modelTime.getTimeViewPosition()))
+					+ ")"
+					);
+			
+			
 			final Graphics2D g = (Graphics2D) graphics;
 
 			g.setFont(drawFont);
@@ -276,6 +282,8 @@ public class StatisticHistogramFrame {
 
 			final int width = vis.width - xOffsetByLabels;
 			final int height = vis.height - fontSize * 2;
+			
+			vis.y += fontSize;
 
 			widthPerBin = (double) width / numberOfBins;
 			if(widthPerBin < 1.0){
@@ -290,7 +298,7 @@ public class StatisticHistogramFrame {
 			final int yLabelCount = (vis.height / fontSize) - 1;
 
 			for(int i=0 ; i <= yLabelCount; i++){
-				str = String.format("%.1f", ((float) histogramData.maxNumber/ yLabelCount * i));
+				str = String.format("%d", Math.round((float) histogramData.maxNumber/ yLabelCount * i));
 				g.drawChars( str.toCharArray(), 0, str.length(), vis.x , vis.y + vis.height - fontSize - i * fontSize);
 			}
 

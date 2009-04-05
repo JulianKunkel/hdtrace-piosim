@@ -36,10 +36,8 @@ package viewer.timelines;
 
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.awt.Window;
 import java.awt.event.KeyEvent;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JScrollBar;
 import javax.swing.JToolBar;
@@ -78,7 +76,6 @@ import viewer.zoomable.ViewportTimeYaxis;
 public class TimelineToolBar extends JToolBar
                              implements ToolBarStatus
 {
-    private Window                  root_window;
     private ViewportTimeYaxis       canvas_vport;
     private JScrollBar              y_scrollbar;
     private TopologyManager         topologyManager;
@@ -116,9 +113,8 @@ public class TimelineToolBar extends JToolBar
 		return canvas_vport;
 	}
 
-	public TimelineToolBar( Window             parent_window,
-    						CanvasTimeline cnvas_timeline,
-    						RulerTime	 time_ruler,
+	public TimelineToolBar( CanvasTimeline cnvas_timeline,
+    											RulerTime	 time_ruler,
                             ViewportTimeYaxis  canvas_viewport,
                             JScrollBar         yaxis_scrollbar,
                             TopologyManager          yaxis_tree,
@@ -131,7 +127,6 @@ public class TimelineToolBar extends JToolBar
         this.cnvas_timeline = cnvas_timeline;
 		
         this.time_ruler = time_ruler;
-        root_window      = parent_window;
         canvas_vport     = canvas_viewport;
         y_scrollbar      = yaxis_scrollbar;
         topologyManager           = yaxis_tree;
@@ -297,7 +292,7 @@ public class TimelineToolBar extends JToolBar
                      "Redraw canvas to synchronize changes from "
                    + "Preference/Legend window or Yaxis label panel" );
         refresh_btn.setMnemonic( KeyEvent.VK_D );
-        refresh_btn.addActionListener( new ActionPptyRefresh( topologyManager, cnvas_timeline ) );
+        refresh_btn.addActionListener( new ActionPptyRefresh( cnvas_timeline ) );
         super.add( refresh_btn );
 
         

@@ -34,7 +34,6 @@
 
 package viewer.zoomable;
 
-import java.awt.Window;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.LinkedList;
@@ -103,7 +102,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	final private LinkedList<TimeBoundingBox> zoom_undo_stack = new LinkedList<TimeBoundingBox>();
 	final private Stack<TimeBoundingBox> zoom_redo_stack = new Stack<TimeBoundingBox>();
 
-	public ModelTime( final Window  top_window, Epoch  init_global_time, Epoch  final_global_time )
+	public ModelTime( Epoch  init_global_time, Epoch  final_global_time )
 	{
 		setTimeGlobalMinimum( init_global_time );
 		setTimeGlobalMaximum( final_global_time );
