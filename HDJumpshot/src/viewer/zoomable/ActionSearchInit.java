@@ -34,19 +34,17 @@
 
 package viewer.zoomable;
 
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import viewer.common.Debug;
 
 public class ActionSearchInit implements ActionListener
 {
-    private ToolBarStatus      toolbar;
     private ViewportTimeYaxis  canvas_vport;
 
-    public ActionSearchInit( ToolBarStatus      in_toolbar,
-                             ViewportTimeYaxis  in_vport )
+    public ActionSearchInit( ViewportTimeYaxis  in_vport )
     {
-        toolbar       = in_toolbar;
         canvas_vport  = in_vport;
     }
 

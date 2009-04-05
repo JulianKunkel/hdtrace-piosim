@@ -40,13 +40,12 @@ import java.awt.event.ActionListener;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.first.TopWindow;
-import viewer.timelines.CanvasTimeline;
 
 public class ActionPptyRefresh implements ActionListener
 {
-	  final private CanvasTimeline     timelines;
+	  final private ScrollableObject     timelines;
 
-    public ActionPptyRefresh( CanvasTimeline timelines)
+    public ActionPptyRefresh( ScrollableObject timelines)
     {
         this.timelines = timelines;
     }

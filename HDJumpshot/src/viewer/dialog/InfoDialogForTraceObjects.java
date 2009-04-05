@@ -35,14 +35,16 @@ import javax.swing.JLabel;
 
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class InfoDialogForTraceObjects extends InfoDialog
 {
     public InfoDialogForTraceObjects( final Frame     frame, 
-                                  final double    clicked_time,
+                                  final Epoch    clicked_time,
+                                  final Epoch realModelTimeStart,
                                   TraceObject obj )
     {
-        super( frame, "Traceable Object Info Box", clicked_time );
+        super( frame, "Traceable Object Info Box", clicked_time, realModelTimeStart);
 
         Container root_panel = this.getContentPane();
         root_panel.setLayout( new BoxLayout( root_panel, BoxLayout.Y_AXIS ) );

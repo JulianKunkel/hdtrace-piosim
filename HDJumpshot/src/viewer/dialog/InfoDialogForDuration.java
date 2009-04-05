@@ -49,6 +49,7 @@ import viewer.common.Const;
 import viewer.common.Routines;
 import viewer.common.TimeFormat;
 import viewer.zoomable.ScrollableObject;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.TimeBoundingBox;
 
 public class InfoDialogForDuration extends InfoDialog
@@ -62,9 +63,10 @@ public class InfoDialogForDuration extends InfoDialog
 
     public InfoDialogForDuration( final Frame             frame,
                                   final TimeBoundingBox   times,
+                                  final Epoch realModelTimeStart,
                                   final ScrollableObject  scrollobj )
     {
-        super( frame, "Duration Info Box", times.getLatestTime() );
+        super( frame, "Duration Info Box", new Epoch(times.getLatestTime()), realModelTimeStart );
         timebox     = times;
         scrollable  = scrollobj;
         this.init();
@@ -72,9 +74,10 @@ public class InfoDialogForDuration extends InfoDialog
 
     public InfoDialogForDuration( final Dialog            dialog,
                                   final TimeBoundingBox   times,
+                                  final Epoch realModelTimeStart,
                                   final ScrollableObject  scrollobj )
     {
-        super( dialog, "Duration Info Box", times.getLatestTime() );
+        super( dialog, "Duration Info Box", new Epoch(times.getLatestTime()), realModelTimeStart );
         timebox     = times;
         scrollable  = scrollobj;
         this.init();

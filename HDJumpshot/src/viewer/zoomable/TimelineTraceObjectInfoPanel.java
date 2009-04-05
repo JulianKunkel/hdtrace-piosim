@@ -34,27 +34,37 @@
 
 package viewer.zoomable;
 
+import hdTraceInput.TraceFormatBufferedFileReader;
+
 import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import viewer.common.Const;
 import viewer.common.LabeledTextField;
+import viewer.common.ModelInfoPanel;
+import viewer.common.TimeFormat;
 import viewer.pvfs2.PVFS2OpTypeParser;
 import viewer.pvfs2.PVFS2SMParser;
+import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import drawable.Category;
 
 
-public class ModelInfoPanel extends JPanel
+public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 {
+	
 	private LabeledTextField  fld_time_start;
 	private LabeledTextField  fld_time_end;
 	private LabeledTextField  fld_time_duration;
@@ -80,61 +90,137 @@ public class ModelInfoPanel extends JPanel
 	static private final String PROP_VALUE_PREFIX = "prefix";
 
 
+	private static final String         FORMAT = Const.INFOBOX_TIME_FORMAT;
+	private static       DecimalFormat  fmt    = null;
+	private static       TimeFormat     tfmt   = null;
+
 	/**
 	 * contains the categories which could be mapped to PVFS2 operation types directly
 	 */
 	static final String decodeOperationType = "Request decode";
+	
+	final private TraceFormatBufferedFileReader reader;
 
-	private List              vport_list;
+	@Override
+	public void showInfo(TraceObject obj) {
+		switch(obj.getType()){
+		case EVENT:
+			showInfo((EventTraceEntry) obj);
+			return;
+		case STATE:
+			showInfo((StateTraceEntry) obj);
+			return;
+		case STATISTICENTRY:
+			showInfo((StatisticEntry) obj);
+			return;
+		default:
+			throw new IllegalArgumentException("Unexpected object of trace type: " + obj.getType());
+		}
+	}
+	
+	public void showInfo( StatisticEntry statistic ) {
+		reset();		
+		
+		StatisticGroupEntry groupEntry = statistic.getParentGroupEntry();
+		StatisticDescription desc = statistic.getDescription();
+		final double time = reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime());
+		
+		this.setStartTime( "" );
+		this.setEndTime( "" + time);
 
-	public ModelInfoPanel( ModelInfo model )
-	{
-		super();
-		setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-
-		vport_list         = new ArrayList();
-
-		fld_category_name    = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
-		fld_category_name.setEditable( false );
-		fld_category_name.setBackground( Color.black );
-		add( fld_category_name );
-
-
-		fld_time_start    = new LabeledTextField( "Start time", Const.PANEL_TIME_FORMAT );
-		fld_time_start.setEditable( false );
-		add( fld_time_start );
-
-		fld_time_end    = new LabeledTextField( "End time", Const.PANEL_TIME_FORMAT );
-		fld_time_end.setEditable( false );
-		add( fld_time_end );
-
-
-		fld_time_duration     = new LabeledTextField( "Duration", Const.PANEL_TIME_FORMAT );
-		fld_time_duration.setEditable( false );
-		add( fld_time_duration );
-
-		fld_callID = new LabeledTextField( "CallID", Const.PANEL_TIME_FORMAT );
-		fld_callID.setEditable( false );
-		add( fld_callID );
-
-		fld_operation_type = new LabeledTextField( "Operation Type", Const.PANEL_TIME_FORMAT );
-		fld_operation_type.setEditable( false );
-		add( fld_operation_type );
-
-		fld_jobID = new LabeledTextField( "Job ID", Const.PANEL_TIME_FORMAT );
-		fld_jobID.setEditable( false );
-		add( fld_jobID );
-
-		fld_value = new LabeledTextField( "Value", Const.PANEL_TIME_FORMAT );
-		fld_value.setEditable( false );
-		add( fld_value );
-
-
-		super.setBorder( BorderFactory.createEtchedBorder() );
+		
+		this.setDuration( fmt.format( 0 ) );
+		final Category cat = reader.getCategory(groupEntry.getGroup(), desc.getName()); 
+		this.setCategoryName( desc.getName() );    
+		this.setCategoryColor( (Color) cat.getColor() );
+		
+		if(desc.getUnit() != null)
+			this.setInfoString(statistic.getValue().toString() + " " + desc.getUnit());
+		else
+			this.setInfoString(statistic.getValue().toString());
 	}
 
 
-	public void reset() {
+	public void showInfo( StateTraceEntry state ) {
+		reset();
+		
+		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
+		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(state.getLatestTime()) );
+
+		this.setDuration( fmt.format( state.getDurationTimeDouble() ) );
+		final Category cat = reader.getCategory(state); 
+		this.setCategoryName( cat.getName() );    
+		this.setCategoryColor( (Color) cat.getColor() );
+	}
+
+	public void showInfo( EventTraceEntry event ) {
+		reset();
+		
+		final double time = reader.subtractGlobalMinTimeOffset(event.getEarliestTime());
+		
+		this.setStartTime( "" + time  );
+		this.setEndTime( "" + time );
+
+		this.setDuration( fmt.format( 0 ) );
+		final Category cat = reader.getCategory(event); 
+		this.setCategoryName( cat.getName() );    
+		this.setCategoryColor( (Color) cat.getColor() );
+	}
+
+	
+	
+	@Override
+	protected void addControlsToPanel(JPanel panel) {
+		if ( fmt == null ) {
+			fmt = (DecimalFormat) NumberFormat.getInstance();
+			fmt.applyPattern( FORMAT );
+		}
+		if ( tfmt == null )
+			tfmt = new TimeFormat();
+		
+		fld_category_name    = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
+		fld_category_name.setEditable( false );
+		fld_category_name.setBackground( Color.black );
+
+		fld_time_start    = new LabeledTextField( "Start time", Const.PANEL_TIME_FORMAT );
+		fld_time_start.setEditable( false );
+
+		fld_time_end    = new LabeledTextField( "End time", Const.PANEL_TIME_FORMAT );
+		fld_time_end.setEditable( false );
+
+		fld_time_duration     = new LabeledTextField( "Duration", Const.PANEL_TIME_FORMAT );
+		fld_time_duration.setEditable( false );
+
+		fld_callID = new LabeledTextField( "CallID", Const.PANEL_TIME_FORMAT );
+		fld_callID.setEditable( false );
+
+		fld_operation_type = new LabeledTextField( "Operation Type", Const.PANEL_TIME_FORMAT );
+		fld_operation_type.setEditable( false );
+
+		fld_jobID = new LabeledTextField( "Job ID", Const.PANEL_TIME_FORMAT );
+		fld_jobID.setEditable( false );
+
+		fld_value = new LabeledTextField( "Value", Const.PANEL_TIME_FORMAT );
+		fld_value.setEditable( false );
+		
+		panel.add( fld_category_name );
+		panel.add( fld_time_start );
+		panel.add( fld_time_end );
+		panel.add( fld_time_duration );
+		panel.add( fld_callID );
+		panel.add( fld_operation_type );
+		panel.add( fld_jobID );		
+		panel.add( fld_value );
+
+	}
+	
+	public TimelineTraceObjectInfoPanel( TraceFormatBufferedFileReader reader )
+	{
+		this.reader = reader;
+	}
+
+
+	private void reset() {
 		fld_time_start.setText("");
 		fld_time_end.setText("");
 		fld_time_duration.setText("");
@@ -143,32 +229,32 @@ public class ModelInfoPanel extends JPanel
 		setInfoString("");
 	}
 
-	public void setStartTime(final String starttime)
+	private void setStartTime(final String starttime)
 	{
 		fld_time_start.setText(starttime);
 	}
 
-	public void setEndTime(final String endtime)
+	private void setEndTime(final String endtime)
 	{
 		fld_time_end.setText(endtime);
 	}
 
-	public void setDuration(final String duration)
+	private void setDuration(final String duration)
 	{
 		fld_time_duration.setText(duration);
 	}
 
-	public void setCategoryColor(final Color color)
+	private void setCategoryColor(final Color color)
 	{
 		fld_category_name.setBackground( color );
 	}
 
-	public void setCategoryName(final String type)
+	private void setCategoryName(final String type)
 	{
 		fld_category_name.setText(type);
 	}
 
-	public void setInfoString(final String info)
+	private void setInfoString(final String info)
 	{
 		if(info != null){
 			fld_value.setText(info);
@@ -300,13 +386,6 @@ public class ModelInfoPanel extends JPanel
 		if(param != null){
 			fld_value.setText(param);
 		}
-	}
-
-
-	public void addViewportTime( final ViewportTime  vport )
-	{
-		if ( vport != null )
-			vport_list.add( vport );
 	}
 
 	static private Properties pvfs2_pc_modifier = new Properties();

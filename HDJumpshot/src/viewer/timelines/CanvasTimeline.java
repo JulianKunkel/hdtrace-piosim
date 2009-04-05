@@ -41,11 +41,9 @@ import hdTraceInput.StatisticStatistics;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.util.Enumeration;
@@ -64,7 +62,7 @@ import viewer.dialog.InfoDialogForTraceObjects;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ModelTime;
-import viewer.zoomable.ScrollableObject;
+import viewer.zoomable.ScrollableTimeline;
 import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
@@ -84,18 +82,9 @@ import drawable.TimeBoundingBox;
 import drawable.CategoryStatistic.MaxAdjustment;
 import drawable.CategoryStatistic.Scaling;
 
-public class CanvasTimeline extends ScrollableObject implements SearchableView
+public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 {
 	private static final long serialVersionUID = 1424310776190717432L;
-
-	private TopologyManager    topologyManager;
-	private BoundedRangeModel  y_model;
-
-	private Frame              root_frame;
-	private TimeBoundingBox    timeframe4imgs;   // TimeFrame for images[]
-
-	private int                num_rows;
-	private int                row_height;
 
 	final private TraceFormatBufferedFileReader reader;
 	
@@ -127,15 +116,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			BoundedRangeModel   yaxis_model,
 			TopologyManager topologyManager)
 	{
-		super( time_model );
+		super( time_model, yaxis_model, topologyManager );
 
 		this.reader = reader;
-		this.topologyManager       = topologyManager;
-		y_model         = yaxis_model;
-		// timeframe4imgs to be initialized later in initializeAllOffImages()
-		timeframe4imgs  = null;
-
-		root_frame      = null;
 
 		reader.getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
 		reader.getLegendStatisticModel().addCategoryUpdateListener(categoryVisibleListener);
@@ -143,58 +126,13 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		topologyManager.addTopologyChangedListener(topologyChangeListener); 
 	}
 
-	public Dimension getMinimumSize()
+
+	final protected void drawOneOffImage(Image offImage, final TimeBoundingBox  timebounds )
 	{
-		int  min_view_height = 0;
-		//  the width below is arbitary
-		if ( Debug.isActive() )
-			Debug.println( "CanvasTimeline: min_size = "
-					+ "(0," + min_view_height + ")" );
-		return new Dimension( 0, min_view_height );
-	}
+		final int num_rows   = getRowCount();
+		final int row_height = getRowHeight();
+		final TopologyManager topologyManager = getTopologyManager();
 
-	public Dimension getMaximumSize()
-	{
-		if ( Debug.isActive() )
-			Debug.println( "CanvasTimeline: max_size = "
-					+ "(" + Short.MAX_VALUE
-					+ "," + Short.MAX_VALUE + ")" );
-		return new Dimension( Short.MAX_VALUE, Short.MAX_VALUE );
-	}
-
-	public int getJComponentHeight()
-	{
-		int rows_size = topologyManager.getRowCount() * topologyManager.getRowHeight();
-		int view_size = y_model.getMaximum() - y_model.getMinimum() + 1;
-
-		if ( view_size > rows_size )
-			return view_size;
-		else
-			return rows_size;		
-	}
-
-	protected void initializeAllOffImages( final TimeBoundingBox imgs_times )
-	{
-
-		if ( root_frame == null )
-			root_frame  = (Frame) SwingUtilities.windowForComponent( this );
-		if ( timeframe4imgs == null )
-			timeframe4imgs = new TimeBoundingBox( imgs_times );
-
-		num_rows    = topologyManager.getRowCount();
-		row_height  = topologyManager.getRowHeight();
-
-	}
-
-	protected void finalizeAllOffImages( final TimeBoundingBox imgs_times )
-	{        
-		// Update the timeframe of all images
-		timeframe4imgs.setEarliestTime( imgs_times.getEarliestTime() );
-		timeframe4imgs.setLatestTime( imgs_times.getLatestTime() );
-	}
-
-	protected void drawOneOffImage(Image offImage, final TimeBoundingBox  timebounds )
-	{
 		if ( Debug.isActive() )
 			Debug.println( "CanvasTimeline: drawOneOffImage()'s offImage = "
 					+ offImage );
@@ -237,7 +175,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		for ( irow = 0 ; irow < num_rows ; irow++ ) {
 			//  Select only non-expanded row
 			if ( topologyManager.getType(irow) == TimelineType.TRACE  ) {
-				i_Y = coord_xform.convertTimelineToPixel(irow );
+				i_Y = coord_xform.convertTimelineToPixel(irow ) + row_height / 2;
 				offGraphics.drawLine( 0, i_Y, offImage_width-1, i_Y );
 			}
 		}
@@ -402,7 +340,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 			int height = (coord_xform.getTimelineHeight() );
 
-			int y1   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2 ;
+			int y1   = coord_xform.convertTimelineToPixel( timeline ) ;
 
 			// Fill the color of the rectangle
 
@@ -474,33 +412,21 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 		return drawedTraceObjects;
 	}
-
-	public TraceObject getDrawableAt( 
-			final Point local_click, 
-			final TimeBoundingBox  vport_timeframe ) 
-	{		 				
-		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
-
-		CoordPixelImage coord_xform;  // Local Coordinate Transform
-		coord_xform = new CoordPixelImage( this, row_height, super.getTimeBoundsOfImages() );
+	
+	@Override
+	public TraceObject getTraceObjectAt(int timeline, Epoch realTime, int y) {
+		final TopologyManager topologyManager = getTopologyManager();
 
 		final double eventRadius = 2.0 / getViewPixelsPerUnitTime();
-
-		final Epoch clickedTime =  globalMinTime.add(coord_xform.convertPixelToTime( local_click.x ));
-		final int timeline       = coord_xform.convertPixelToTimeline( local_click.y);
-
-		if( timeline <= 0 || timeline > topologyManager.getTimelineNumber() ){
-			return null;
-		}
 
 		switch(topologyManager.getType(timeline)){
 		case TRACE:
 			final BufferedTraceFileReader treader = topologyManager.getTraceReaderForTimeline(timeline);
-			TraceEntry objMouse = treader.getTraceEntryClosestToTime(clickedTime);			
+			TraceEntry objMouse = treader.getTraceEntryClosestToTime(realTime);			
 
 			if (objMouse.getType() == TraceObjectType.STATE){
 				StateTraceEntry state = (StateTraceEntry) objMouse;
-				final double curDist = DrawObjects.getTimeDistance(clickedTime, state);
+				final double curDist = DrawObjects.getTimeDistance(realTime, state);
 
 				if(curDist != 0){
 					// mouse is not inside the state.
@@ -522,7 +448,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 							if (state.hasNestedTraceChildren()){		
 								for(TraceEntry child: state.getNestedTraceChildren()){
-									dist = DrawObjects.getTimeDistance(clickedTime, child);
+									dist = DrawObjects.getTimeDistance(realTime, child);
 									if(child.getType() == TraceObjectType.EVENT ){
 										if( dist < eventRadius){
 											best = child;
@@ -554,7 +480,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 					}
 				}				
 			}else if(objMouse.getType() == TraceObjectType.EVENT){
-				double distance = Math.abs(objMouse.getEarliestTime().subtract(clickedTime).getDouble());
+				double distance = Math.abs(objMouse.getEarliestTime().subtract(realTime).getDouble());
 				if( distance >= eventRadius){
 					return null;
 				}
@@ -569,7 +495,7 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 			return objMouse;
 		case STATISTIC:
 			final BufferedStatisticFileReader sreader = topologyManager.getStatisticReaderForTimeline(timeline);
-			StatisticGroupEntry entry = sreader.getTraceEntryClosestToTime(clickedTime);
+			StatisticGroupEntry entry = sreader.getTraceEntryClosestToTime(realTime);
 			int which = topologyManager.getStatisticNumberForTimeline(timeline);			
 			return entry.createStatisticEntry(which);
 		default:
@@ -579,25 +505,26 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 		return null;
 	}
 
-	public InfoDialog getPropertyAt( final Point local_click,	final TimeBoundingBox  vport_timeframe )
-	{
-
-		TraceObject obj = getDrawableAt(local_click, vport_timeframe);
+	
+	
+	@Override
+	public InfoDialog getPropertyAt(int timeline, Epoch realTime, int y) {
+		TraceObject obj = getTraceObjectAt(timeline, realTime, y);
 		if( obj != null ){
-			CoordPixelImage coord_xform;
-			coord_xform = new CoordPixelImage( this, 0,
-					this.getTimeBoundsOfImages() );
 			Window          window;
 			window = SwingUtilities.windowForComponent( this );
-			return new InfoDialogForTraceObjects((Frame) window, 
-					coord_xform.convertPixelToTime(local_click.x), obj);
+			return new InfoDialogForTraceObjects((Frame) window, realTime.subtract(
+					getModelTime().getTimeGlobalMinimum()), realTime, obj);
 		}
 
-		return super.getTimePropertyAt( local_click );
+		return super.getTimePropertyAt(realTime);
 	}
 
 	@Override
 	public SearchResults searchNextComponent(Epoch laterThan) {
+		final int num_rows   = getRowCount();
+		final TopologyManager topologyManager = getTopologyManager();
+		
 		TraceObject minObject = null;
 		// figure out the object with the smallest time over all timelines which is searchable
 		Epoch minTime = reader.getGlobalMaxTime();
@@ -669,7 +596,9 @@ public class CanvasTimeline extends ScrollableObject implements SearchableView
 
 	@Override
 	public SearchResults searchPreviousComponent(Epoch earlierThan) {
-
+		final int num_rows   = getRowCount();
+		final TopologyManager topologyManager = getTopologyManager();
+		
 		TraceObject minObject = null;
 		Epoch maxTime = Epoch.ZERO;
 		int minTimeline = -1;

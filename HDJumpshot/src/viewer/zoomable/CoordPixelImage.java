@@ -41,7 +41,6 @@ public class CoordPixelImage implements CoordPixelXform
 {
     private ScrollableObject  img_obj;
     private int               row_hgt;
-    private int               row_half_hgt;
 
     private TimeBoundingBox   img_endtimes;
     private double            img_starttime;
@@ -54,7 +53,6 @@ public class CoordPixelImage implements CoordPixelXform
     {
         img_obj        = image_object;
         row_hgt        = 0;
-        row_half_hgt   = 0;
     }
 
     public CoordPixelImage( ScrollableObject image_object, int row_height,
@@ -68,7 +66,6 @@ public class CoordPixelImage implements CoordPixelXform
     public void resetRowHeight( int row_height )
     {
         row_hgt        = row_height;
-        row_half_hgt   = row_height / 2 + 1;
     }
 
     public void resetTimeBounds( final TimeBoundingBox  image_timebounds )
@@ -93,12 +90,12 @@ public class CoordPixelImage implements CoordPixelXform
 
     public int     convertTimelineToPixel( int rowID )
     {
-        return Math.round( rowID * row_hgt + row_half_hgt );
+        return rowID * row_hgt;
     }
 
     public int  convertPixelToTimeline( int vert_pixel )
     {
-        return Math.round(( vert_pixel - row_half_hgt ) / (float) row_hgt);
+        return  vert_pixel / row_hgt;
     }
     
     @Override

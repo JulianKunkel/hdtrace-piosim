@@ -34,37 +34,41 @@
 
 package viewer.dialog;
 
-import java.text.NumberFormat;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
 import java.text.DecimalFormat;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.text.NumberFormat;
+
+import javax.swing.BoxLayout;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import viewer.common.Const;
 import viewer.common.Routines;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class InfoDialogForTime extends InfoDialog
 {
     private static final String         FORMAT = Const.INFOBOX_TIME_FORMAT;
     private static       DecimalFormat  fmt = null;
 
-    private double   click_time;
-
     public InfoDialogForTime( final Frame            frame,
-                              final double           time )
+                              final Epoch           time,
+                              final Epoch realModelTimeStart)
        
     {
-        super( frame, "Time Info Box", time );
-        click_time  = time;
+        super( frame, "Time Info Box", time, realModelTimeStart );
         this.init();
     }
 
     public InfoDialogForTime( final Dialog           dialog,
-                              final double           time )
+                              final Epoch           time,
+                              final Epoch realModelTimeStart)
 
     {
-        super( dialog, "Time Info Box", time );
-        click_time  = time;
+        super( dialog, "Time Info Box", time, realModelTimeStart );
         this.init();
     }
 
@@ -83,7 +87,7 @@ public class InfoDialogForTime extends InfoDialog
             int          num_cols = 0, num_rows = 1;
 
             StringBuffer linebuf = new StringBuffer();
-            linebuf.append( "time = " + fmt.format(click_time) );
+            linebuf.append( "time = " + fmt.format(getClickedTime().getDouble()) );
             num_cols = linebuf.length();
             textbuf.append( linebuf.toString() );
             

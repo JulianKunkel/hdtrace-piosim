@@ -30,12 +30,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
 import viewer.common.Debug;
-import viewer.timelines.CanvasTimeline;
 
 /**
  * Create a screenshot
@@ -44,13 +42,13 @@ import viewer.timelines.CanvasTimeline;
  */
 public class ActionPptyScreenshot implements ActionListener
 {
-	private final CanvasTimeline timelines;
+	private final ScrollableObject timelines;
 	private final RulerTime	 time_ruler;
 
 	private static int screenshotNumber = 0;
 
 
-	public ActionPptyScreenshot( CanvasTimeline scrl, RulerTime	 time_ruler )
+	public ActionPptyScreenshot( ScrollableObject scrl, RulerTime	 time_ruler )
 	{
 		this.timelines = scrl;
 		this.time_ruler = time_ruler;

@@ -61,15 +61,13 @@ import javax.swing.event.MouseInputListener;
 
 import viewer.common.CustomCursor;
 import viewer.common.Debug;
+import viewer.common.ModelInfoPanel;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForDuration;
 import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import drawable.TimeBoundingBox;
 
 
@@ -87,7 +85,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	// view_img is both a Component and ScrollableView object
 	private   ScrollableView            view_img      = null;
 	private   ModelTime                 time_model    = null;
-	private   ModelInfo                 info_model    = null;    
+	private   ModelInfoPanel            info_model    = null;    
 	private   ToolBarStatus             toolbar       = null;
 
 	private   TimeBoundingBox           vport_timebox = null;
@@ -175,13 +173,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		this.addComponentListener( new MyComponentResizeListener());
 	}
 
-
-	public void setInfoModel( ModelInfo in_model ) {
+	public void setInfoModel( ModelInfoPanel in_model ) {
 		this.info_model = in_model;
-	}
-
-	public ModelInfo getInfoModel() {
-		return this.info_model;
 	}
 
 
@@ -384,7 +377,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 						INFO_AREA_COLOR );
 			}
 			else {
-				popup_time = info_popup.getClickedTime();
+				popup_time = info_popup.getClickedTime().getDouble();
 				if ( coord_xform.contains( popup_time ) ) {
 					x_pos = coord_xform.convertTimeToPixel( popup_time );
 					g.setColor( INFO_LINE_COLOR );
@@ -443,20 +436,10 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		view_click = SwingUtilities.convertPoint( this,
 				vport_click,
 				scrollable );
-		dobj = scrollable.getDrawableAt( view_click, vport_timebox );
+		dobj = scrollable.getObjectAt( view_click  );
 
 		if(dobj != null){
-			switch (dobj.getType()){
-			case STATE:
-				info_model.showInfo((StateTraceEntry) dobj);
-				break;
-			case EVENT:
-				info_model.showInfo((EventTraceEntry) dobj);
-				break;
-			case STATISTICENTRY:
-				info_model.showInfo((StatisticEntry) dobj);
-				break;
-			}
+				info_model.showInfo(dobj);
 		}
 	}    
 
@@ -653,18 +636,19 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 				if ( window instanceof Frame )
 					info_popup = new InfoDialogForDuration( (Frame) window,
 							info_timebox,
+							time_model.getTimeGlobalMinimum().add(info_timebox.getEarliestTime()),
 							scrollable );
 				else // if ( window instanceof Dialog )
 					info_popup = new InfoDialogForDuration( (Dialog) window,
 							info_timebox,
+							time_model.getTimeGlobalMinimum().add(info_timebox.getEarliestTime()),
 							scrollable );
 			}
 			else {
 				view_click = SwingUtilities.convertPoint( this,
 						vport_click,
 						scrollable );
-				info_popup = scrollable.getPropertyAt( view_click,
-						vport_timebox );
+				info_popup = scrollable.getPropertyAt( view_click );
 			}
 			global_click = new Point( vport_click );
 			SwingUtilities.convertPointToScreen( global_click, this );

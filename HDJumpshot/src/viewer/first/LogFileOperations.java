@@ -44,8 +44,8 @@ import viewer.common.LogFileChooser;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.common.SwingWorker;
-import viewer.histogram.TraceProfileFrame;
 import viewer.legends.LegendFrame;
+import viewer.profile.TraceProfileFrame;
 import viewer.pvfs2.PVFS2Slog2FileParser;
 import viewer.timelines.TimelineFrame;
 import viewer.zoomable.ModelTime;
@@ -197,7 +197,6 @@ public class LogFileOperations
 				public Object construct()
 				{
 					timeline_frame = new TimelineFrame( reader, modelTime );
-					timeline_frame.pack();
 					return null;  // returned value is not needed					
 				}
 				public void finished()
@@ -211,8 +210,8 @@ public class LogFileOperations
 	}
 
 	public void showTraceProfileFrame(){
-		traceProfileFrame = new TraceProfileFrame(modelTime, reader);	
-		traceProfileFrame.show();
+		traceProfileFrame = new TraceProfileFrame(reader, modelTime);	
+		traceProfileFrame.setVisible(true);
 	}
 
 	public void showLegendWindow()

@@ -37,46 +37,97 @@ package viewer.timelines;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
 import javax.swing.WindowConstants;
 
+import viewer.common.AbstractTimelineFrame;
+import viewer.common.IconManager;
+import viewer.common.ModelInfoPanel;
+import viewer.common.IconManager.IconType;
 import viewer.first.TopWindow;
+import viewer.zoomable.ActionSearchBackward;
+import viewer.zoomable.ActionSearchForward;
+import viewer.zoomable.ActionSearchInit;
 import viewer.zoomable.ModelTime;
+import viewer.zoomable.ScrollableObject;
+import viewer.zoomable.TimelineTraceObjectInfoPanel;
+import de.hd.pvs.TraceFormat.TraceObject;
 
-
-public class TimelineFrame extends JFrame
+public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 {
 	private static final long serialVersionUID = -496973267971206572L;
+	
+	private JButton                 searchBack_btn;
+  private JButton                 searchInit_btn;
+  private JButton                 searchFore_btn;
 
-	private        TimelinePanel  top_panel;
-
+	
 	public TimelineFrame( final TraceFormatBufferedFileReader reader, final ModelTime modelTime )
 	{
-		super( "TimeLine: " + reader.getCombinedProjectFilename() );
-		super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
-		TopWindow.Timeline.disposeAll();
-		TopWindow.Timeline.setWindow( this );
-
-		setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
+		super( "TimeLine: " + reader.getCombinedProjectFilename(), reader, modelTime );
 		
-		top_panel = new TimelinePanel( modelTime, this, reader);
-		setContentPane( top_panel );
+		getFrame().setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
+		TopWindow.Timeline.disposeAll();
+		TopWindow.Timeline.setWindow( getFrame() );
 
-		addWindowListener( new WindowAdapter() {
+		getFrame().setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
+		
+		getFrame().addWindowListener( new WindowAdapter() {
 			public void windowClosing( WindowEvent e ) {
 				TopWindow.Timeline.disposeAll();
 			}
 		} );
-		
-		this.pack();
 	}
+	
+	@Override
+	protected void addOwnPanelsOrToolbars(JPanel menuPanel) {
+		// no own toolbars.
+	}
+	
+	@Override
+	protected void addToToolbarMenu(JToolBar toolbar, IconManager iconManager, Insets insets) {
+    searchBack_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchLeft) );
+    searchBack_btn.setMargin( insets );
+    searchBack_btn.setToolTipText( "Search Backward in time" );
+    searchBack_btn.setMnemonic( KeyEvent.VK_B );
+    searchBack_btn.addActionListener(
+                   new ActionSearchBackward( getTimeCanvasVport() ) );
+    toolbar.add( searchBack_btn );
 
-	public void setVisible( boolean val )
-	{
-		super.setVisible( val );
-		TopWindow.Control.setShowTimelineButtonEnabled( !val );
+    searchInit_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.Search) );
+    searchInit_btn.setMargin( insets );
+    searchInit_btn.setToolTipText(
+                  "Search Initialization from last popup InfoBox's time" );
+    searchInit_btn.setMnemonic( KeyEvent.VK_S );
+    searchInit_btn.addActionListener(
+                   new ActionSearchInit( getTimeCanvasVport() ) );
+    toolbar.add( searchInit_btn );
+
+    searchFore_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchRight) );
+    searchFore_btn.setMargin( insets );
+    searchFore_btn.setToolTipText( "Search Forward in time" );
+    searchFore_btn.setMnemonic( KeyEvent.VK_F );
+    searchFore_btn.addActionListener(
+                   new ActionSearchForward( getTimeCanvasVport() ) );
+    toolbar.add( searchFore_btn );
+    
+    toolbar.addSeparator();
+	}
+	
+	@Override
+	protected ModelInfoPanel<TraceObject> createModelInfoPanel() {
+		return new TimelineTraceObjectInfoPanel(getReader());
+	}
+	
+	@Override
+	protected ScrollableObject createCanvasArea() {
+		return new CanvasTimeline(  getModelTime(), getReader(),  getYModel(), getTopologyManager());
 	}
 }

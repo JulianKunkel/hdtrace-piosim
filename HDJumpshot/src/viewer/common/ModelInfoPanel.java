@@ -22,39 +22,41 @@
 //	You should have received a copy of the GNU General Public License
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
+package viewer.common;
 
-/*
- *  (C) 2001 by Argonne National Laboratory
- *      See COPYRIGHT in top-level directory.
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+
+
+/**
+ * Superclass for an Panel which shows information about a particular object
+ * @author julian
+ *
  */
-
-/*
- *  @author Anthony Chan (Jumpshot 4), Julian M. Kunkel
- */
-
-package drawable;
-
-public interface CoordPixelXform
+abstract public class ModelInfoPanel<InfoType>
 {
-    public int     convertTimeToPixel( double time_coord );
-
-    public double  convertPixelToTime( int hori_pixel );
-
-    /**
-     * Returns the first pixel belonging to the timeline (i.e. height pixels belong to it)
-     * @param timeline
-     * @return
-     */
-    public int     convertTimelineToPixel( int timeline );
-    
-    public int     getTimelineHeight();
-
-    public int     convertPixelToTimeline( int vert_pixel );
-
-    
-    public boolean contains( double time_coord );
-
-    public boolean overlaps( final TimeBoundingBox  timebox );
-
-    public int     getImageWidth();
+	/**
+	 * Show information about the object
+	 * @param obj
+	 */
+	public abstract void showInfo(InfoType obj);
+	
+	/*
+	 * Add the controls to the info panel, called upon instantiation of the ModelInfoPanel  
+	 */
+	protected abstract void addControlsToPanel(JPanel panel);
+	
+	private JPanel panel = new JPanel();
+	
+	public ModelInfoPanel(  )
+	{
+		panel.setLayout( new BoxLayout( panel, BoxLayout.X_AXIS ) );
+		panel.setBorder( BorderFactory.createEtchedBorder() );
+		addControlsToPanel(panel);
+	}
+	
+	final public JPanel getPanel() {
+		return panel;
+	}
 }

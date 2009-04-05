@@ -34,21 +34,20 @@
 
 package viewer.zoomable;
 
-import java.text.NumberFormat;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
 import java.text.DecimalFormat;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-
-import de.hd.pvs.TraceFormat.TraceObject;
-import drawable.DrawObjects;
-import drawable.TimeBoundingBox;
+import java.text.NumberFormat;
 
 import viewer.common.Const;
 import viewer.common.Debug;
 import viewer.common.Routines;
-import viewer.dialog.InfoDialog;
+import de.hd.pvs.TraceFormat.TraceObject;
+import drawable.TimeBoundingBox;
 
 public class RulerTime extends ScrollableObject
 {
@@ -88,18 +87,14 @@ public class RulerTime extends ScrollableObject
 		return new Dimension( Short.MAX_VALUE, VIEW_HEIGHT );
 	}
 
+	@Override
 	//  Function defined the height of the JComponent.
 	public int getJComponentHeight()
 	{
 		return VIEW_HEIGHT;
 	}
 
-	protected void initializeAllOffImages( final TimeBoundingBox imgs_times )
-	{}
-
-	protected void finalizeAllOffImages( final TimeBoundingBox imgs_times )
-	{}
-
+	@Override
 	protected void drawOneOffImage(       Image            offImage,
 			final TimeBoundingBox  timebounds )
 	{
@@ -156,16 +151,7 @@ public class RulerTime extends ScrollableObject
 	}
 
 	@Override
-	public TraceObject getDrawableAt(Point view_click, TimeBoundingBox vport_times) {
+	public TraceObject getObjectAt(Point view_click) {
 		return null;
 	}
-
-
-	/*   Empty content to fulfill ScrollableObject's requirement  */
-	public InfoDialog getPropertyAt( final Point            view_click,
-			final TimeBoundingBox  vport_times )
-	{
-		return super.getTimePropertyAt( view_click );
-	}
-
 }

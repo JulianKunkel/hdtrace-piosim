@@ -45,27 +45,36 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
+
 public class InfoDialog extends JDialog
 {
     private JPanel   btn_panel;
     private JButton  close_btn;
-    private double   clicked_time;
+
+    private Epoch   clicked_time;
+    private Epoch   realModelTime;
+
 
     public InfoDialog( final Frame   ancestor_frame,
                              String  title_str,
-                             double  time )
+                             Epoch  clickedTime,
+                             Epoch realModelTime)
     {
         super( ancestor_frame, title_str );
-        clicked_time = time;
+        clicked_time = clickedTime;
+        this.realModelTime = realModelTime;
         this.init();
     }
 
     public InfoDialog( final Dialog  ancestor_dialog,
                              String  title_str,
-                             double  time )
+                             Epoch  clickedTime,
+                             Epoch realModelTime)
     {
         super( ancestor_dialog, title_str );
-        clicked_time = time;
+        clicked_time = clickedTime;
+        this.realModelTime = realModelTime;
         this.init();
     }
 
@@ -93,10 +102,14 @@ public class InfoDialog extends JDialog
         return btn_panel;
     }
 
-    public double getClickedTime()
+    public Epoch getClickedTime()
     {
         return clicked_time;
     }
+    
+    public Epoch getModelTime() {
+			return realModelTime;
+		}
 
     public void setVisibleAtLocation( final Point global_pt )
     {

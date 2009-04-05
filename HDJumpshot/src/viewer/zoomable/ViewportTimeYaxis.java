@@ -40,7 +40,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoundedRangeModel;
@@ -198,8 +197,8 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		}
 	}
 	
-	public void searchInit(double visTime){
-		searchingTime = time_model.getTimeGlobalMinimum().add( visTime );
+	public void searchInit(Epoch visTime){
+		searchingTime = visTime;
 	}
 
 
@@ -215,7 +214,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( ! super.isLeftMouseClick4Zoom ) {  // Hand Mode
 				vport_click    = mouse_evt.getPoint();
-				searchInit( super.coord_xform.convertPixelToTime(vport_click.x ) );
+				searchInit( time_model.getTimeGlobalMinimum().add(super.coord_xform.convertPixelToTime(vport_click.x )) );
 								
 				this.repaint();
 			}

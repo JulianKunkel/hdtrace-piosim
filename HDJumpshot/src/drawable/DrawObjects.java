@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -45,7 +45,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 
 public class DrawObjects{
-	
+
 	static double nestingMultiplier = 0.8;
 
 
@@ -57,14 +57,14 @@ public class DrawObjects{
 			int timeline,
 			Epoch globalMinTime)
 	{	
-        int iStart   = coord_xform.convertTimeToPixel( state.getEarliestTime().subtract(globalMinTime).getDouble() );
-        int iFinal   = coord_xform.convertTimeToPixel( state.getLatestTime().subtract(globalMinTime).getDouble() );
+		int iStart   = coord_xform.convertTimeToPixel( state.getEarliestTime().subtract(globalMinTime).getDouble() );
+		int iFinal   = coord_xform.convertTimeToPixel( state.getLatestTime().subtract(globalMinTime).getDouble() );
 
-        float height = (float) ( coord_xform.getTimelineHeight() * Math.pow(nestingMultiplier, nestingDepth) );
-        
-        int jStart   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
-        int jFinal   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
-		
+		float height = (float) ( coord_xform.getTimelineHeight() * Math.pow(nestingMultiplier, nestingDepth) );
+
+		int jStart   = coord_xform.convertTimelineToPixel( timeline );
+		int jFinal   = coord_xform.convertTimelineToPixel( timeline ) + (int)  height;
+
 		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal );
 	}
 
@@ -77,19 +77,19 @@ public class DrawObjects{
 			Color color,
 			int timeline)
 	{
-        int x1   = coord_xform.convertTimeToPixel( startTime );
-        int x2   = coord_xform.convertTimeToPixel( endTime );
+		int x1   = coord_xform.convertTimeToPixel( startTime );
+		int x2   = coord_xform.convertTimeToPixel( endTime );
 
-        int height = coord_xform.getTimelineHeight();
-        
-        int y1   = coord_xform.convertTimelineToPixel( timeline ) - (int) height/2;
-        
+		int height = coord_xform.getTimelineHeight();
+
+		int y1   = coord_xform.convertTimelineToPixel( timeline );
+
 		g.setColor( backGroundcolor );
 		g.fillRect( x1, y1, x2-x1+1, height);
-		
+
 		g.setColor( color );
 	}
-	
+
 	public static int  drawStatistic( 
 			Graphics2D g,
 			CoordPixelXform  coord_xform,
@@ -99,15 +99,15 @@ public class DrawObjects{
 			int timeline)
 	{
 
-        int x1   = coord_xform.convertTimeToPixel( lastTimeStamp );
-        int x2   = coord_xform.convertTimeToPixel( timeStamp.getDouble() );
+		int x1   = coord_xform.convertTimeToPixel( lastTimeStamp );
+		int x2   = coord_xform.convertTimeToPixel( timeStamp.getDouble() );
 
-        int height = (coord_xform.getTimelineHeight() );
-        
-        int y1   = coord_xform.convertTimelineToPixel( timeline ) + (int) height/2;
-        
+		int height = (coord_xform.getTimelineHeight() );
+
+		int y1   = coord_xform.convertTimelineToPixel( timeline + 1 );
+
 		// Fill the color of the rectangle
-        
+
 		g.fillRect( x1, y1 - (int) (height * normalizedHeight), x2-x1 +1, (int) (height * normalizedHeight) );
 
 		return 1;
@@ -122,10 +122,10 @@ public class DrawObjects{
 			ColorAlpha color )
 	{
 		int iStart   = coord_xform.convertTimeToPixel( startTime.getDouble() );
-        int iFinal   = coord_xform.convertTimeToPixel( endTime.getDouble() );
+		int iFinal   = coord_xform.convertTimeToPixel( endTime.getDouble() );
 
-        int jStart   = coord_xform.convertTimelineToPixel( startTimeLine );
-        int jFinal   = coord_xform.convertTimelineToPixel( endTimeline );
+		int jStart   = coord_xform.convertTimelineToPixel( startTimeLine );
+		int jFinal   = coord_xform.convertTimelineToPixel( endTimeline );
 
 		return ArrowDrawer.draw( g, color, null, iStart, jStart, iFinal, jFinal );
 	}
@@ -138,12 +138,12 @@ public class DrawObjects{
 	{
 
 		int iStart   = coord_xform.convertTimeToPixel( event.getEarliestTime().subtract(globalMinTime).getDouble() );
-        
-        int jStart   = coord_xform.convertTimelineToPixel( timeline );
-        
+
+		int jStart   = coord_xform.convertTimelineToPixel( timeline );
+
 		return EventDrawer.draw( g, color, iStart, jStart, (int) coord_xform.getTimelineHeight() );
 	}
-	
+
 
 	/**
 	 * Determine the time distance between a time and a trace entry.
@@ -154,16 +154,16 @@ public class DrawObjects{
 	 */
 	static public double getTimeDistance(Epoch time, TraceEntry entry){
 		double distance = Math.abs( entry.getEarliestTime().subtract( time).getDouble() );
-		
+
 		if(entry.getType() == TraceObjectType.STATE){
 			final StateTraceEntry state = (StateTraceEntry) entry;
 			if ( time.compareTo(state.getLatestTime()) <= 0 && time.compareTo(state.getEarliestTime()) >= 0 ){
 				// perfect match.
 				return 0;
 			}
-			
+
 			double distanceRight = Math.abs( state.getLatestTime().subtract(time).getDouble() );
-			
+
 			if(distanceRight < distance){
 				return distanceRight;
 			}

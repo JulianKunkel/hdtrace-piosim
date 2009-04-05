@@ -47,13 +47,12 @@ import javax.swing.DebugGraphics;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
-import sun.awt.X11.Screen;
-import viewer.common.CustomCursor;
 import viewer.common.Debug;
 import viewer.common.IAutoRefreshable;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTime;
 import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.TimeBoundingBox;
 
 public abstract class ScrollableObject extends JComponent
@@ -95,7 +94,21 @@ implements ScrollableView, IAutoRefreshable
 	// desides whether a call of redrawIfAutoRedraw refreshes
 	boolean autoRefresh = true;
 
+	/**
+	 * Get an object of a given type from the clicked position:
+	 * @param view_click
+	 * @return
+	 */
+	public abstract TraceObject getObjectAt( final Point view_click );
+	
+	public InfoDialog getPropertyAt( final Point  view_click){
+		final CoordPixelImage coord_xform;  // Local Coordinate Transform
+		coord_xform = new CoordPixelImage( this );
+		final Epoch realTime =  getModelTime().getTimeGlobalMinimum().add(coord_xform.convertPixelToTime( view_click.x ));
+		return getTimePropertyAt(realTime);
+	}
 
+	
 	//  The following constructor is NOT meant to be called.
 	public ScrollableObject( ModelTime model )
 	{
@@ -280,12 +293,10 @@ implements ScrollableView, IAutoRefreshable
 		if ( cur_tView_extent * NumViewsPerImage != tImage_extent ) {
 			setImagesInitTimeBounds();
 
-			initializeAllOffImages( tImages_all );
 			for ( int img_idx = 0; img_idx < NumImages; img_idx++ )
 				// for ( int img_idx = NumImages-1 ; img_idx >= 0 ; img_idx-- )
 				drawOneOffImage( offscreenImages[ img_idx ],
 						tImages[ img_idx ] );
-			finalizeAllOffImages( tImages_all );
 		}
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: checkToZoomView()'s END: " );
@@ -354,7 +365,6 @@ implements ScrollableView, IAutoRefreshable
 				}
 
 				// Update the offscreenImages[] of those scrolled
-				initializeAllOffImages( tImages_all );
 				if ( img_mv_dir > 0 )
 					//for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
 					for ( idx = Math.abs( Nimages_moved ); idx >=1; idx-- ) {
@@ -372,7 +382,6 @@ implements ScrollableView, IAutoRefreshable
 							drawOneOffImage( offscreenImages[ img_idx ],
 									tImages[ img_idx ] );
 					}
-				finalizeAllOffImages( tImages_all );
 
 				// Update cur_img_idx in the offscreenImages[]
 				cur_img_idx = getValidImageIndex( cur_img_idx + Nimages_moved );
@@ -386,12 +395,10 @@ implements ScrollableView, IAutoRefreshable
 				}
 				setImagesInitTimeBounds();
 
-				initializeAllOffImages( tImages_all );
 				for ( img_idx = 0; img_idx < NumImages; img_idx++ )
 					// for ( img_idx = NumImages-1; img_idx >=0; img_idx-- )
 					drawOneOffImage( offscreenImages[ img_idx ],
 							tImages[ img_idx ] );
-				finalizeAllOffImages( tImages_all );
 			}
 
 
@@ -430,22 +437,10 @@ implements ScrollableView, IAutoRefreshable
 	}
 
 	/*
-        images_endtimes:  endtimes of the collective OffSreenImageS, offImage[]
-	 */
-	protected abstract void
-	initializeAllOffImages( final TimeBoundingBox  images_endtimes );
-
-	/*
         image_endtimes:  endtimes of the OffScreenImage, image
 	 */
 	protected abstract void
 	drawOneOffImage( Image image, final TimeBoundingBox  image_endtimes );
-
-	/*
-        images_endtimes:  endtimes of the collective OffSreenImageS, offImage[]
-	 */
-	protected abstract void
-	finalizeAllOffImages( final TimeBoundingBox  images_endtimes );
 
 	public void paintComponent( Graphics g )
 	{
@@ -503,7 +498,7 @@ implements ScrollableView, IAutoRefreshable
 
 	public abstract int getJComponentHeight();
 
-	public void redrawIfAutoRedraw(){
+	final public void redrawIfAutoRedraw(){
 		if(autoRefresh)
 			forceRedraw();
 	}
@@ -512,13 +507,13 @@ implements ScrollableView, IAutoRefreshable
 	 * force to redraw the timelines
 	 */
 
-	public void forceRedraw(){
+	final public void forceRedraw(){
 		Dimension visible_size = getVisibleRect().getSize();
 		forceRedraw(visible_size.width, visible_size.height);
 	}
 	
 	@Override
-	public void forceRedraw(final int visWidth, final int visHeight) {
+	final public void forceRedraw(final int visWidth, final int visHeight) {
 		/*
            The offscreenImage cannot be created inside the constructor,
            because image size cannot be determined before the object
@@ -570,14 +565,12 @@ implements ScrollableView, IAutoRefreshable
 
 		// compute the last image index in the image buffer
 		int img_idx = getValidImageIndex( cur_img_idx + half_NumImages + 1 );
-		initializeAllOffImages( tImages_all );
 		for ( int idx = 0; idx < NumImages; idx++ ) {
 			drawOneOffImage( offscreenImages[ img_idx ],
 					tImages[ img_idx ] );
 			// img_idx = getNearPastImageIndex( img_idx );
 			img_idx = getNearFutureImageIndex( img_idx );
 		}
-		finalizeAllOffImages( tImages_all );
 
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: componentResized()'s END: " );
@@ -603,29 +596,15 @@ implements ScrollableView, IAutoRefreshable
 		return component_size;
 	}
 
-	public abstract TraceObject  getDrawableAt( 
-			final Point view_click,
-			final TimeBoundingBox  vport_times );
-
-
-	public abstract InfoDialog
-	getPropertyAt( final Point            view_click,
-			final TimeBoundingBox  vport_times );
-
-	protected InfoDialog getTimePropertyAt( final Point  local_click )
+	protected InfoDialog getTimePropertyAt( Epoch realTime )
 	{
-		/* System.out.println( "\nshowPropertyAt() " + local_click ); */
-		CoordPixelImage coord_xform;
-		coord_xform = new CoordPixelImage( this, 0,
-				this.getTimeBoundsOfImages() );
+		final Epoch clickedTime = realTime.subtract(modelTime.getTimeGlobalMinimum());
 		Window          window;
 		window = SwingUtilities.windowForComponent( this );
 		if ( window instanceof Frame )
-			return new InfoDialogForTime( (Frame) window,
-					coord_xform.convertPixelToTime( local_click.x ) );
+			return new InfoDialogForTime( (Frame) window, clickedTime, realTime);
 		else // if ( window instanceof Dialog )
-			return new InfoDialogForTime( (Dialog) window,
-					coord_xform.convertPixelToTime( local_click.x ) );
+			return new InfoDialogForTime( (Dialog) window, clickedTime, realTime );
 	}
 
 	public ModelTime getModelTime() {
