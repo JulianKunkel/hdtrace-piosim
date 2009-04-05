@@ -34,7 +34,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedList;
 
@@ -56,7 +55,6 @@ import viewer.zoomable.ModelTime;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyManager 
 {
@@ -233,86 +231,6 @@ public class TopologyManager
 		return topoToTimelineMapping.get(timeline).getType();
 	}
 
-	private void addTopologyTreeNode(TopologyTreeNode node, DefaultMutableTreeNode parent){
-		if(parent != null)
-			parent.add(node);
-	}
-
-	private DefaultMutableTreeNode addDummyTreeNode(String name, DefaultMutableTreeNode parent){
-		DefaultMutableTreeNode node = new DefaultMutableTreeNode(name);
-		parent.add(node);
-
-		return node;
-	}
-
-
-	private void addStatisticsInTopology(int level, DefaultMutableTreeNode node, TopologyEntry topology, TraceFormatFileOpener file){
-		// add statistic nodes:
-		for(String groupName: topology.getStatisticSources().keySet()){    		
-			StatisticsGroupDescription group = file.getProjectDescription().getExternalStatisticsGroup(groupName);
-
-			DefaultMutableTreeNode statGroupNode = addDummyTreeNode(groupName, node);
-
-			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
-				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file, this );
-
-				addTopologyTreeNode(statNode, statGroupNode);
-			}
-		}
-	}
-
-	private void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyEntry topology, 
-			TraceFormatFileOpener file){
-		final TopologyTreeNode node = new TopologyInnerNode(topology, file, this);
-
-		addTopologyTreeNode(node, parentNode);    	
-
-		if(topology.getTraceSource() != null){
-			TopologyTreeNode childNode = new TopologyTraceTreeNode("Trace", topology, file, this);
-			addTopologyTreeNode(childNode, node);						
-		}
-
-		if(topology.getChildElements().size() != 0){
-			// handle leaf level == trace nodes differently:
-
-			Collection<TopologyEntry> children = topology.getChildElements().values();
-			boolean leafLevel = children.iterator().next().isLeaf();
-			if(leafLevel){
-				if(topology.getChildElements().size() == 0)
-					// TODO remove this child!
-					return;
-
-				final DefaultMutableTreeNode traceParent = addDummyTreeNode("Trace", node);
-
-				for(TopologyEntry child: topology.getChildElements().values()){					
-					if (child.getStatisticSources().size() == 0){
-						if(child.getTraceSource() != null){
-							// only if the file really exists
-							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file, this);
-							addTopologyTreeNode(childNode, traceParent);
-						}else{
-							// TODO remove this child from topology
-						}
-					}else{
-						// handles statistics on the leaf level:
-						final DefaultMutableTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
-
-						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file, this);
-						addTopologyTreeNode(childNode, extra);
-
-						addStatisticsInTopology(level, extra, child, file);
-					}
-				}								
-			}else{
-				for(TopologyEntry child: topology.getChildElements().values()){
-					recursivlyAddTopology(level +1, node, child, file);
-				}
-			}
-		}
-
-		addStatisticsInTopology(level, node, topology, file);
-	}
-
 	public String getTopologyLabels(){
 		StringBuffer buff = new StringBuffer();
 		for(int i=0; i < reader.getNumberOfFilesLoaded(); i++ ){
@@ -378,11 +296,12 @@ public class TopologyManager
 	 */
 	public void restoreTopology(){
 		setChangeListenerDisabled(true);
-		// TODO allow different topologies.
 		topoToTimelineMapping.clear();
 
-		this.tree_root = loadDefaultTopologyToTreeMapping();
+		this.tree_root = (new DefaultTopologyTreeMapping(true)).loadTopology(reader);
 
+		tree.setModel(new DefaultTreeModel(tree_root));
+		
 		expandTreeInternal();
 
 		removeEmptyTopologies();
@@ -390,6 +309,27 @@ public class TopologyManager
 		setChangeListenerDisabled(false);
 
 		fireTopologyChanged();
+	}
+	
+	public void makeStatisticInvisible(StatisticsGroupDescription group, StatisticDescription statistic){
+		// walk through tree:
+		final DefaultTreeModel model = getTreeModel();
+		
+		for(int i=0 ; i < tree.getRowCount(); i++){
+			final TreePath path = tree.getPathForRow(i);
+			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+			
+			if(! node.isLeaf())
+				continue;
+			
+			if( TopologyStatisticTreeNode.class.isInstance(node) ){
+				final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) node;
+				if(statNode.getStatisticGroup() == group && statistic == statNode.getStatisticDescription()){
+					// remove that node:
+					model.removeNodeFromParent(statNode);
+				}
+			}
+		}		
 	}
 
 	/**
@@ -400,7 +340,7 @@ public class TopologyManager
 		if(paths == null || paths.length == 0)
 			return;
 
-		final DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+		final DefaultTreeModel model = getTreeModel();
 
 		for(TreePath path: paths){
 			int depth = path.getPathCount(); 
@@ -440,20 +380,6 @@ public class TopologyManager
 	}
 
 
-	/**
-	 * Load a default topology, filename => hierarchically print the children 
-	 */
-	public DefaultMutableTreeNode loadDefaultTopologyToTreeMapping(){
-		DefaultMutableTreeNode tree_root = new DefaultMutableTreeNode("HDTrace");
-
-		tree.setModel(new DefaultTreeModel(tree_root));            
-
-		for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
-			recursivlyAddTopology(1, tree_root, reader.getLoadedFile(f).getTopology(), reader.getLoadedFile(f));
-		}
-
-		return tree_root;
-	}
 
 	public TopologyTreeNode getTreeNodeForTimeline(int timeline){
 		return topoToTimelineMapping.get(timeline);
@@ -496,6 +422,10 @@ public class TopologyManager
 	
 	public JTree getTree() {
 		return tree;
+	}
+	
+	private DefaultTreeModel getTreeModel(){
+		return (DefaultTreeModel) tree.getModel();
 	}
 
 	public void scrollRowToVisible(int timeline) {

@@ -226,7 +226,6 @@ public class LogFileOperations
 	public void showTimelineWindow()
 	{
 		if ( reader != null && timeline_frame != null ) {
-			//timeline_frame.pack();
 			TopWindow.layoutIdealLocations();
 			timeline_frame.setVisible( true );
 		}

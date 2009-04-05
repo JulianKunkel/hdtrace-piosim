@@ -27,15 +27,40 @@ package viewer.legends;
 
 import java.util.EventListener;
 
+import drawable.Category;
+
 public class CategoryUpdatedListener implements EventListener{
-	public void categoryVisibilityChanged(){
+	/**
+	 * Called for each category which is modified
+	 */
+	public void categoryVisibilityModified(Category category, boolean value){
 		
 	}
 	
-	public void categoryColorChanged(){
+	/**
+	 * Called once after one or multiple visibilities were modified
+	 */
+	public void categoryVisibilityWasModified(){
 		
 	}
 	
+	/**
+	 * Called for each category which is modified
+	 */
+	public void categoryAttributeModified(Category category, Object newValue){
+		
+	}
+
+	/**
+	 * Called once after one or multiple attributes were modified
+	 */
+	public void categoryAttributesWereModified(){
+		
+	}
+	
+	/**
+	 * Called once after one or multiple categories got added and/or removed.
+	 */
 	public void categoriesAddedOrRemoved(){
 		
 	}

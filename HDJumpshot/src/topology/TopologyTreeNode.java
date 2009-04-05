@@ -43,13 +43,11 @@ abstract public class TopologyTreeNode extends DefaultMutableTreeNode{
 	// topology belonging to this node:
 	final TopologyEntry topology;
 	final TraceFormatFileOpener file;	
-	final TopologyManager       manager;
 	
 	abstract public TimelineType getType();
 	
-	public TopologyTreeNode(TopologyEntry topNode,  TraceFormatFileOpener file, TopologyManager manager) {
+	public TopologyTreeNode(TopologyEntry topNode,  TraceFormatFileOpener file) {
 		this.topology = topNode;
-		this.manager = manager;
 		this.file = file;
 	}
 	
@@ -61,9 +59,6 @@ abstract public class TopologyTreeNode extends DefaultMutableTreeNode{
 		return file;
 	}
 	
-	public TopologyManager getManager() {
-		return manager;
-	}
 	
 	@Override
 	public String toString() {

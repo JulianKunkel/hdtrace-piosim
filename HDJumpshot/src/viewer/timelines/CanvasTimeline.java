@@ -100,14 +100,15 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
 		@Override
-		public void categoryVisibilityChanged() {
+		public void categoryVisibilityWasModified() {
 			redrawIfAutoRedraw();
 		}
-
+		
 		@Override
-		public void categoryColorChanged() {
+		public void categoryAttributesWereModified() {
 			redrawIfAutoRedraw();
 		}
+		
 	};
 
 
@@ -340,7 +341,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 			int height = (coord_xform.getTimelineHeight() );
 
-			int y1   = coord_xform.convertTimelineToPixel( timeline ) ;
+			int y1   = coord_xform.convertTimelineToPixel( timeline + 1) ;
 
 			// Fill the color of the rectangle
 
@@ -381,7 +382,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		while(elements.hasMoreElements()){
 			drawedTraceObjects++;
 
-			final int depth = elements.getNestingDepthOfNextElement() + 1;
+			final int depth = elements.getNestingDepthOfNextElement();
 
 			TraceEntry entry = elements.nextElement();
 
@@ -397,11 +398,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			}else if(entry.getType() == TraceObjectType.STATE){
 				final StateTraceEntry state = (StateTraceEntry) entry;
 				final Category category = reader.getCategory(state);
-
-				if(category == null){
-					System.out.println(state.getName()  + " SCHUH " + state);
-					System.exit(1);
-				}
 
 				if(category.isVisible())
 					DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 

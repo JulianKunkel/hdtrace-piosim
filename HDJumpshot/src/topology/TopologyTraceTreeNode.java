@@ -37,8 +37,8 @@ public class TopologyTraceTreeNode extends TopologyTreeNode
 	private final String label;
 	
 	public TopologyTraceTreeNode(String label, TopologyEntry topNode,
-			TraceFormatFileOpener file, TopologyManager manager) {
-		super(topNode, file, manager);
+			TraceFormatFileOpener file) {
+		super(topNode, file);
 		this.label = label;
 	}
 

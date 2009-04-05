@@ -106,39 +106,31 @@ public class LegendTableStatisticModel extends LegendTableTraceModel
 			stat.setShowAverageLine((Boolean) value);
 			fireTableCellUpdated( irow, icolumn );
 			
-			fireCategoryVisibilityChanged();
+			fireCategoryAttributeChanged(stat, value);
 			return;
 		case SCALING_COLUMN:{
 			stat.setScaling(Scaling.valueOf((String) value));
 			fireTableCellUpdated( irow, icolumn );
 			
-			fireCategoryVisibilityChanged();
+			fireCategoryAttributeChanged(stat, value);
 			return;
 		}case ADJUSTMENT_MIN_COLUMN:{
 			stat.setMinAdjustment(MinAdjustment.valueOf((String) value));
 			fireTableCellUpdated( irow, icolumn );
 			
-			fireCategoryVisibilityChanged();
+			fireCategoryAttributeChanged(stat, value);
 			return;			
 		}case ADJUSTMENT_MAX_COLUMN:{
 			stat.setMaxAdjustment(MaxAdjustment.valueOf((String) value));
 			fireTableCellUpdated( irow, icolumn );
 			
-			fireCategoryVisibilityChanged();
+			fireCategoryAttributeChanged(stat, value);
 			return;
 		}default:
 			super.setValueAt(value, irow, icolumn);
 		return;
 		}
 	}
-	
-	@Override
-	public boolean getForceFireListenerOnUpdate(int icolumn) {
-		if (icolumn == SHOW_AVG_LINE_COLUMN)
-			return true;
-		return super.getForceFireListenerOnUpdate(icolumn);
-	}
-	
 	
 	public int getColumnCount()
 	{

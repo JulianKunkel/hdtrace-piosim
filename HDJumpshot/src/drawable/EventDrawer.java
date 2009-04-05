@@ -54,16 +54,16 @@ public class EventDrawer
 		}
 
 		g.setColor( color );
-		g.drawLine( x-1 ,  y + height/2, x-1 , y - height/4);
-		g.drawLine( x+1 ,  y + height/2, x+1 , y - height/4);
+		g.drawLine( x-1 ,  y + height, x-1 , y + height/4);
+		g.drawLine( x+1 ,  y + height, x+1 , y + height/4);
 
 		/* Fill the ellipse first */
-		g.fillArc( x - event_base_width/2 , y - height/4, event_base_width, event_base_width, 0, 360 );
+		g.fillArc( x - event_base_width/2 , y + height/4, event_base_width, event_base_width, 0, 360 );
 
 		g.setColor( Color.white );
 		/* Draw the white ellipse boundray */
-		g.drawLine( x ,  y + height/2, x , y - height/4);
-		g.drawArc( x - event_base_width/2 , y - height/4, event_base_width, event_base_width, 0, 360 );
+		g.drawLine( x ,  y + height/2, x , y + height/4);
+		g.drawArc( x - event_base_width/2 , y + height/4, event_base_width, event_base_width, 0, 360 );
 
 		if ( stroke != null )
 			g.setStroke( orig_stroke );

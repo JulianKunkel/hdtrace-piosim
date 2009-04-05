@@ -387,9 +387,6 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		frame = new JFrame(title);
 		frame.setContentPane( createContentPane());
 
-		frame.pack();
-		
-
 		// default on close operation:
 		frame.addWindowListener(new MyWindowClosedListener());
 	}
@@ -408,9 +405,8 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 
 	public void setVisible( boolean val )
 	{
-		if(val == true)
-			frame.pack();
-		frame.setVisible( val );
+		frame.pack();
+		frame.setVisible( val );		
 	}
 	
 	protected TopologyManager getTopologyManager() {

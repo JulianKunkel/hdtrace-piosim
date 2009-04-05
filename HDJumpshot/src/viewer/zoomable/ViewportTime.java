@@ -106,7 +106,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		@Override
 		public void componentResized(ComponentEvent e) {
 
-			if ( view_img != null ) {
+			if ( view_img != null && getSize().width > 30) {
 				/*
 	               Instead of informing the view by ComponentEvent, i.e.
 	               doing addComponentListener( (ComponentListener) view ),

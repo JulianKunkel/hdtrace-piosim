@@ -25,6 +25,7 @@
 
 package topology;
 
+import hdTraceInput.BufferedStatisticFileReader;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
@@ -38,12 +39,16 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	final StatisticSource statisticSource;
 	final StatisticDescription statisticDescription;
 	
-	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyEntry topNode, TraceFormatFileOpener file, TopologyManager manager) {
-		super(topNode, file, manager);
+	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyEntry topNode, TraceFormatFileOpener file) {
+		super(topNode, file);
 		
 		this.statisticSource = topNode.getStatisticSource(group.getName());
 		this.statisticDescription = statDesc;
 		
+	}
+	
+	public StatisticsGroupDescription getStatisticGroup(){
+		return ((BufferedStatisticFileReader) statisticSource).getGroup();
 	}
 	
 	public String getStatisticName() {

@@ -60,10 +60,10 @@ public class DrawObjects{
 		int iStart   = coord_xform.convertTimeToPixel( state.getEarliestTime().subtract(globalMinTime).getDouble() );
 		int iFinal   = coord_xform.convertTimeToPixel( state.getLatestTime().subtract(globalMinTime).getDouble() );
 
-		float height = (float) ( coord_xform.getTimelineHeight() * Math.pow(nestingMultiplier, nestingDepth) );
+		int height = (int) ( coord_xform.getTimelineHeight() * Math.pow(nestingMultiplier, nestingDepth) );
 
-		int jStart   = coord_xform.convertTimelineToPixel( timeline );
-		int jFinal   = coord_xform.convertTimelineToPixel( timeline ) + (int)  height;
+		int jStart   = coord_xform.convertTimelineToPixel( timeline ) + (coord_xform.getTimelineHeight() - height) / 2;
+		int jFinal   = jStart + height;
 
 		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal );
 	}
