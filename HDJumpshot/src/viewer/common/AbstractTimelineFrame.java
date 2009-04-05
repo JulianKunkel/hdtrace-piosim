@@ -85,6 +85,8 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	private   JRadioButton          zoom_btn;
 	private   JRadioButton          hand_btn;
 	
+	private boolean visibleTheFirstTime = true;
+	
 
 	/**
 	 * Subclass can create its own menu panel.
@@ -110,6 +112,13 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	 * @return
 	 */
 	abstract protected ScrollableObject createCanvasArea();
+	
+	/**
+	 * Called after it got visible the first time
+	 */
+	protected void gotVisibleTheFirstTime(){
+		
+	}
 	
 	/** 
 	 * This listener is invoked if the zoomlevel changes
@@ -374,6 +383,10 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		return contentPanel;
 	}
 
+	public void forceRedraw(){
+		canvasArea.forceRedraw();
+	}
+	
 	/**
 	 * Called if the y-axis scrollbar value changed 
 	 * @author Julian M. Kunkel
@@ -393,7 +406,7 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		frame.addWindowListener(new MyWindowClosedListener());		
 	}
 	
-	public void init(String title, final TraceFormatBufferedFileReader reader, final ModelTime modelTime) {		
+	public void init(final TraceFormatBufferedFileReader reader, final ModelTime modelTime) {		
 		this.reader = reader;
 		this.modelTime = modelTime;
 		
@@ -420,8 +433,10 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		
 		frame.setVisible( val );	
 
-		if(val == true){
+		if(val == true && visibleTheFirstTime){
+			visibleTheFirstTime = false;
 			topologyManager.restoreTopology();
+			gotVisibleTheFirstTime();
 		}
 	}
 	

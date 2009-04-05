@@ -4,7 +4,7 @@ import javax.swing.JPanel;
 
 import viewer.common.ModelInfoPanel;
 
-public class TraceProfileInfoPanel extends ModelInfoPanel<TraceObjectProfile> {
+public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProfile> {
 	@Override
 	protected void addControlsToPanel(JPanel panel) {
 		// TODO Auto-generated method stub
@@ -12,7 +12,7 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceObjectProfile> {
 	}
 	
 	@Override
-	public void showInfo(TraceObjectProfile obj) {
+	public void showInfo(TraceCategoryStateProfile obj) {
 		// TODO Auto-generated method stub
 		
 	}

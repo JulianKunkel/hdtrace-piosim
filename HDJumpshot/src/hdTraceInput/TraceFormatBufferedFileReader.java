@@ -71,8 +71,8 @@ public class TraceFormatBufferedFileReader {
 	final ArrayList<TraceFormatFileOpener> loadedFiles = new ArrayList<TraceFormatFileOpener>();
 
 	// map category names to the category:
-	HashMap<String, Category> categoriesStates = new HashMap<String, Category>();	
-	HashMap<String, Category> categoriesEvents = new HashMap<String, Category>();
+	HashMap<String, CategoryState> categoriesStates = new HashMap<String, CategoryState>();	
+	HashMap<String, CategoryEvent> categoriesEvents = new HashMap<String, CategoryEvent>();
 	HashMap<String, CategoryStatistic> categoriesStatistics = new HashMap<String, CategoryStatistic>();
 
 	HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
@@ -265,11 +265,11 @@ public class TraceFormatBufferedFileReader {
 		return globalMinTime;
 	}
 
-	public HashMap<String, Category> getCategoriesEvents() {
+	public HashMap<String, CategoryEvent> getCategoriesEvents() {
 		return categoriesEvents;
 	}
 
-	public HashMap<String, Category> getCategoriesStates() {
+	public HashMap<String, CategoryState> getCategoriesStates() {
 		return categoriesStates;
 	}
 
@@ -277,11 +277,11 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStatistics;
 	}
 
-	public Category getCategory(EventTraceEntry entry){
+	public CategoryEvent getCategory(EventTraceEntry entry){
 		return categoriesEvents.get(entry.getName());
 	}
 
-	public Category getCategory(StateTraceEntry entry){
+	public CategoryState getCategory(StateTraceEntry entry){
 		return categoriesStates.get(entry.getName());
 	}
 

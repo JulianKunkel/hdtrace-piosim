@@ -101,6 +101,10 @@ public class LegendTableTraceModel extends AbstractTableModel
 	public void addCategoryUpdateListener(CategoryUpdatedListener listener){
 		categoryUpdateListeners.add(listener);
 	}
+	
+	public void removeCategoryUpdateListener(CategoryUpdatedListener listener){
+		categoryUpdateListeners.remove(listener);
+	}
 
 	//  Sorting into various order
 	private void initIconListFromCategoryList()

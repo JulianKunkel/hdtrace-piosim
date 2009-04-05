@@ -102,6 +102,8 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	final private LinkedList<TimeBoundingBox> zoom_undo_stack = new LinkedList<TimeBoundingBox>();
 	final private Stack<TimeBoundingBox> zoom_redo_stack = new Stack<TimeBoundingBox>();
 
+	boolean enableFireTimeUpdate = true;
+	
 	public ModelTime( Epoch  init_global_time, Epoch  final_global_time )
 	{
 		setTimeGlobalMinimum( init_global_time );
@@ -216,6 +218,8 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 
 	 public void fireTimeChanged()
 	 {
+		 if(! enableFireTimeUpdate)
+			 return;
 		 for ( TimeListener listener: time_listener_list ) {
 				 listener.timeChanged( time_chg_evt );
 		 }
@@ -346,13 +350,9 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	  */
 	 public void zoomHome()
 	 {
-		 pushCurrentStateOnZoomStackAndClean();	
+		 pushCurrentStateOnZoomStackAndClean();
 		 
-		 this.setTimeViewPosition( 0 );
-		 this.setTimeViewExtent( getTimeGlobalDuration() );		 
-
-		 this.updatePixelCoords();
-		 this.setScrollBarIncrements();
+		 zoom(0, getTimeGlobalDuration());		 
 	 }
 
 	 private void pushCurrentStateOnZoomStackAndClean( )
@@ -448,15 +448,21 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 		 if(new_tView_extent + new_tView_init > getTimeGlobalDuration()){
 			 new_tView_extent = getTimeGlobalDuration() - new_tView_init;
 		 }
+
+		 // disable multiple triggers:
+		 enableFireTimeUpdate = false;
 		 
 		 this.setTimeViewExtent( new_tView_extent );
 		 this.setTimeViewPosition( new_tView_init );
 
 		 this.updatePixelCoords();
 		 
+		 
 		 this.setScrollBarIncrements();
 		 this.updateTimeCoords();
 
+		 enableFireTimeUpdate = true;
+		 
 		 this.fireTimeChanged();
 		 
 	 }
