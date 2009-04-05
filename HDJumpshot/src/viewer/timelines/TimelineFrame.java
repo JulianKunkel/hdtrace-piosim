@@ -70,8 +70,9 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 
 	
 	public TimelineFrame( final TraceFormatBufferedFileReader reader, final ModelTime modelTime )
-	{
-		super( "TimeLine: " + reader.getCombinedProjectFilename(), reader, modelTime );
+	{		
+		super.init( "TimeLine: " + reader.getCombinedProjectFilename(), reader, modelTime );
+		
 		
 		getFrame().setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
 		TopWindow.Timeline.disposeAll();

@@ -53,8 +53,8 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	private static final long serialVersionUID = 7857561458577391709L;
 
 	final private JFrame frame;
-	final private TraceFormatBufferedFileReader reader;
-	final private ModelTime modelTime;
+	private TraceFormatBufferedFileReader reader;
+	private ModelTime modelTime;
 	
 
 	static final int MIN_LEFTPANEL_WIDTH = 150;	
@@ -62,7 +62,7 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	private TimelineToolBar         toolbar;
 
 	private BoundedRangeModel       y_model;
-	private final TopologyManager   topologyManager;
+	private TopologyManager         topologyManager;
 	private JScrollPane             y_colpanel;
 	private JScrollPane             y_scroller;
 	private JScrollBar              y_scrollbar;
@@ -130,9 +130,17 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 			modelTime.removeTimeListener( time_ruler_vport );		
 			modelTime.removeTimeListener( timeUpdateListener);
 			modelTime.removeTimeListener( time_display_panel );
+			windowIsClosing();
 			
 			super.windowClosed(e);
 		}		
+	}
+	
+	/**
+	 * Override to perform own cleanup:
+	 */
+	protected void windowIsClosing(){
+		
 	}
 	
 	private class MyNumberOfRowsChangedListener implements RowNumberChangedListener{
@@ -378,17 +386,20 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		}
 	}
 	
-	public AbstractTimelineFrame(String title, 
-			final TraceFormatBufferedFileReader reader, final ModelTime modelTime) {		
+	public AbstractTimelineFrame() {
+		frame = new JFrame();
+		
+		// default on close operation:
+		frame.addWindowListener(new MyWindowClosedListener());		
+	}
+	
+	public void init(String title, final TraceFormatBufferedFileReader reader, final ModelTime modelTime) {		
 		this.reader = reader;
 		this.modelTime = modelTime;
-		this.topologyManager = new TopologyManager(reader, modelTime);
 		
-		frame = new JFrame(title);
-		frame.setContentPane( createContentPane());
+		this.topologyManager = new TopologyManager(reader, modelTime);		
 
-		// default on close operation:
-		frame.addWindowListener(new MyWindowClosedListener());
+		frame.setContentPane( createContentPane());
 	}
 	
 	protected JFrame getFrame(){
@@ -404,9 +415,14 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	}	
 
 	public void setVisible( boolean val )
-	{
+	{		
 		frame.pack();
-		frame.setVisible( val );		
+		
+		frame.setVisible( val );	
+
+		if(val == true){
+			topologyManager.restoreTopology();
+		}
 	}
 	
 	protected TopologyManager getTopologyManager() {
@@ -437,4 +453,7 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		frame.setTitle(text);
 	}
 	
+	public boolean isAutoRefresh(){
+		return canvasArea.isAutoRefresh();
+	}
 }

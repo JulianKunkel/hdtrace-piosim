@@ -28,7 +28,6 @@
  */
 package de.hd.pvs.TraceFormat.statistics;
 
-import javax.print.DocFlavor.STRING;
 
 
 public class StatisticDescription{
@@ -40,12 +39,15 @@ public class StatisticDescription{
 	
 	final int numberInGroup;
 	
-	public StatisticDescription(String name, StatisticType type, int numberInGroup, String unit, int multiplier) {
+	final StatisticsGroupDescription group;
+	
+	public StatisticDescription(StatisticsGroupDescription group, String name, StatisticType type, int numberInGroup, String unit, int multiplier) {
 		this.name = name;
 		this.type = type;
 		this.multiplier = multiplier;
 		this.unit = unit;		
 		this.numberInGroup = numberInGroup;
+		this.group = group;
 	}
 	
 	public String getName() {
@@ -78,5 +80,9 @@ public class StatisticDescription{
 	 */
 	public int getNumberInGroup() {
 		return numberInGroup;
+	}
+	
+	public StatisticsGroupDescription getGroup() {
+		return group;
 	}
 }

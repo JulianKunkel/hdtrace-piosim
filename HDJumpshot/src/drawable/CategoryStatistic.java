@@ -26,6 +26,7 @@
 package drawable;
 
 import viewer.legends.IPopupType;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 
 public class CategoryStatistic extends Category {		
 	public enum Scaling implements IPopupType{
@@ -83,10 +84,17 @@ public class CategoryStatistic extends Category {
 	
 	private boolean showAverageLine = true;
 	
-	public CategoryStatistic(String in_name, ColorAlpha in_color ) {
-		super(in_name, in_color);
+	final private StatisticDescription statisticDescription;
+	
+	public CategoryStatistic( StatisticDescription statistic, ColorAlpha in_color ) {
+		super(statistic.getGroup().getName() + ":" + statistic.getName(), in_color);
+		
+		this.statisticDescription = statistic;
 	}	
 
+	public StatisticDescription getStatisticDescription() {
+		return statisticDescription;
+	}
 	
 	public MaxAdjustment getMaxAdjustment() {
 		return maxAdjustment;

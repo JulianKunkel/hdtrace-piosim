@@ -79,6 +79,7 @@ import drawable.Category;
 import drawable.CategoryStatistic;
 import drawable.DrawObjects;
 import drawable.TimeBoundingBox;
+import drawable.TopologyType;
 import drawable.CategoryStatistic.MaxAdjustment;
 import drawable.CategoryStatistic.Scaling;
 
@@ -101,12 +102,22 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
 		@Override
 		public void categoryVisibilityWasModified() {
+			getTopologyManager().fireTopologyChanged();
 			redrawIfAutoRedraw();
 		}
 		
 		@Override
 		public void categoryAttributesWereModified() {
 			redrawIfAutoRedraw();
+		}
+		
+		@Override
+		public void categoryVisibilityModified(Category category, boolean value) {
+			if(category.getTopologyType() == TopologyType.STATISTIC){
+				final CategoryStatistic statCat = (CategoryStatistic) category;
+				
+				getTopologyManager().setStatisticVisiblity(statCat.getStatisticDescription(), value);
+			}
 		}
 		
 	};

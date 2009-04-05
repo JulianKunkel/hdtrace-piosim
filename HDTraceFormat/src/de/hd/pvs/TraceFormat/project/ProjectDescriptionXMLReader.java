@@ -162,7 +162,8 @@ public class ProjectDescriptionXMLReader {
 			if(child.getAttribute("multiplier").length() > 0){
 				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
 			}
-			StatisticDescription desc = new StatisticDescription(child.getName(), 
+			StatisticDescription desc = new StatisticDescription(stat,
+					child.getName(), 
 					StatisticType.valueOf( child.getAttribute("type").toUpperCase() ),
 					currentNumberInGroup,
 					child.getAttribute("unit"),

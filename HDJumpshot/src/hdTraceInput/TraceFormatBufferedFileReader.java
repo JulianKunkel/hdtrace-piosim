@@ -186,7 +186,7 @@ public class TraceFormatBufferedFileReader {
 			for(StatisticDescription desc: group.getStatisticsOrdered()){
 				final String name = group.getName() + ":" + desc.getName(); 
 				if(!categoriesStatistics.containsKey(name)){
-					categoriesStatistics.put(name, new CategoryStatistic(name, null));
+					categoriesStatistics.put(name, new CategoryStatistic(desc, null));
 				}
 			}
 		}        	

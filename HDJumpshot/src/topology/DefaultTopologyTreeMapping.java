@@ -17,8 +17,8 @@ import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 public class DefaultTopologyTreeMapping {
 	final boolean addStatistics;
 	
-	public DefaultTopologyTreeMapping(boolean addStatistics) {
-		this.addStatistics = addStatistics;
+	public DefaultTopologyTreeMapping(TopologyManagerContents type) {
+		this.addStatistics = !(type == TopologyManagerContents.TRACE_ONLY);
 	}
 	
 	public DefaultMutableTreeNode loadTopology(TraceFormatBufferedFileReader reader){

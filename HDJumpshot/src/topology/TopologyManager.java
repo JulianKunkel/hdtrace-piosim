@@ -35,6 +35,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import javax.swing.AbstractAction;
@@ -54,7 +55,6 @@ import viewer.timelines.TimelineType;
 import viewer.zoomable.ModelTime;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 
 public class TopologyManager 
 {
@@ -77,6 +77,29 @@ public class TopologyManager
 
 	private TreeExpansionListener treeExpansionListener = new TopologyTreeExpansionListener();
 	
+  private TopologyManagerContents topologyManagerType = TopologyManagerContents.EVERYTHING;
+
+  /**
+   * The following class allows to store information about removed nodes.
+   * @author julian
+   */
+	private class RemovedNode{
+		final DefaultMutableTreeNode parent;
+		final DefaultMutableTreeNode child;
+		
+		public RemovedNode(DefaultMutableTreeNode child) {
+			this.parent = (DefaultMutableTreeNode) child.getParent();
+			this.child = child;
+		}
+	}
+	
+	/**
+	 * Stores information per StatisticDescription to allow to remove timelines if a statistic is visible
+	 * and to restore them if made visible.
+	 */
+	private HashMap<StatisticDescription, LinkedList<RemovedNode>> removedNodesMap = new HashMap<StatisticDescription, LinkedList<RemovedNode>>(); 
+	
+  
 	/**
 	 * used to detect clicks on the tree i.e. for expanding the menus
 	 */
@@ -298,7 +321,7 @@ public class TopologyManager
 		setChangeListenerDisabled(true);
 		topoToTimelineMapping.clear();
 
-		this.tree_root = (new DefaultTopologyTreeMapping(true)).loadTopology(reader);
+		this.tree_root = (new DefaultTopologyTreeMapping(topologyManagerType)).loadTopology(reader);
 
 		tree.setModel(new DefaultTreeModel(tree_root));
 		
@@ -311,25 +334,42 @@ public class TopologyManager
 		fireTopologyChanged();
 	}
 	
-	public void makeStatisticInvisible(StatisticsGroupDescription group, StatisticDescription statistic){
-		// walk through tree:
+	public void setStatisticVisiblity(StatisticDescription statistic, boolean visible){
 		final DefaultTreeModel model = getTreeModel();
 		
-		for(int i=0 ; i < tree.getRowCount(); i++){
-			final TreePath path = tree.getPathForRow(i);
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+		if(visible == true){
+			final LinkedList<RemovedNode> removedNodes = removedNodesMap.remove(statistic);
+			if(removedNodes == null || removedNodes.size() == 0){
+				return;
+			}
+			// now add the old values:
+			for(RemovedNode rmNode: removedNodes){
+				model.insertNodeInto(rmNode.child, rmNode.parent, 0);
+			}
 			
-			if(! node.isLeaf())
-				continue;
+			return;
+		}
+		
+		// walk through tree:
+		final Enumeration<DefaultMutableTreeNode> nodes = tree_root.depthFirstEnumeration();
+		final LinkedList<RemovedNode> removedNodes = new LinkedList<RemovedNode>();
+		
+		while(nodes.hasMoreElements()){
+			final DefaultMutableTreeNode node = nodes.nextElement();
 			
 			if( TopologyStatisticTreeNode.class.isInstance(node) ){
 				final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) node;
-				if(statNode.getStatisticGroup() == group && statistic == statNode.getStatisticDescription()){
+				if(statNode.getStatisticGroup() == statistic.getGroup() && statistic == statNode.getStatisticDescription()){
 					// remove that node:
+					removedNodes.add( new RemovedNode(statNode));
+					
 					model.removeNodeFromParent(statNode);
 				}
 			}
-		}		
+		}
+		removedNodesMap.put(statistic, removedNodes);
+		
+		reloadTopologyMappingFromTree();
 	}
 
 	/**
@@ -394,8 +434,6 @@ public class TopologyManager
 		tree.putClientProperty("JTree.lineStyle", "Angled");
 		
 		tree.addMouseListener(treeMouseListener);
-
-		restoreTopology();
 	}
 
 	public void expandTree()
@@ -442,5 +480,13 @@ public class TopologyManager
 
 	public void setRowHeight(int rowHeight) {
 		tree.setRowHeight(rowHeight);
+	}
+	
+	public TopologyManagerContents getTopologyManagerContents() {
+		return topologyManagerType;
+	}
+	
+	public void setTopologyManagerContents(TopologyManagerContents topologyManagerContents) {
+		this.topologyManagerType = topologyManagerContents;
 	}
 }

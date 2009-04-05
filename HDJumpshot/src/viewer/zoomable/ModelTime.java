@@ -111,13 +111,13 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	/*
         None of the setTimeXXXXXX() functions updates the __Pixel__ coordinates
 	 */
-	 private void setTimeGlobalMinimum( Epoch init_global_time )
+	 public void setTimeGlobalMinimum( Epoch init_global_time )
 	 {
 		 tGlobal_min    = init_global_time;
 		 tView_init     = 0;
 	 }
 
-	 private void setTimeGlobalMaximum( Epoch final_global_time )
+	 public void setTimeGlobalMaximum( Epoch final_global_time )
 	 {
 		 tGlobal_max    = final_global_time;
 		 tView_extent   = getTimeGlobalDuration();
@@ -214,7 +214,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 		 time_listener_list.remove( tl );
 	 }	
 
-	 protected void fireTimeChanged()
+	 public void fireTimeChanged()
 	 {
 		 for ( TimeListener listener: time_listener_list ) {
 				 listener.timeChanged( time_chg_evt );
