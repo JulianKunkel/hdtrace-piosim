@@ -67,7 +67,6 @@ import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForDuration;
-import de.hd.pvs.TraceFormat.TraceObject;
 import drawable.TimeBoundingBox;
 
 
@@ -85,7 +84,12 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	// view_img is both a Component and ScrollableView object
 	private   ScrollableView            view_img      = null;
 	private   ModelTime                 time_model    = null;
+	
+	// show information about the object the mouse is moved over
 	private   ModelInfoPanel            info_model    = null;    
+	
+	// store the last object the mouse is moved over to avoid multiple invocations of the info_model
+	private   Object                  lastMouseMoveObject = null;
 	private   ToolBarStatus             toolbar       = null;
 
 	private   TimeBoundingBox           vport_timebox = null;
@@ -99,6 +103,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 	private   InfoDialogActionListener  info_action_listener;
 	private   InfoDialogWindowListener  info_window_listener;
+ 
 
 	protected boolean                   isLeftMouseClick4Zoom;
 
@@ -427,20 +432,20 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	public void mouseMoved( MouseEvent mouse_evt ) {
 		ScrollableObject  scrollable;
 		Point             vport_click, view_click;
-		TraceObject      dobj;
+		Object            dobj;
 
 		vport_click = mouse_evt.getPoint();
 
 		scrollable = (ScrollableObject) view_img;
 
-		view_click = SwingUtilities.convertPoint( this,
-				vport_click,
-				scrollable );
+		view_click = SwingUtilities.convertPoint( this,	vport_click, scrollable );
 		dobj = scrollable.getObjectAt( view_click  );
 
-		if(dobj != null){
+		if( dobj != lastMouseMoveObject ){
 				info_model.showInfo(dobj);
 		}
+		
+		lastMouseMoveObject = dobj;
 	}    
 
 	public void mouseEntered( MouseEvent mouse_evt )

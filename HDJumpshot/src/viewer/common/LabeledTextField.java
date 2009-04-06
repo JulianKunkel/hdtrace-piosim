@@ -34,18 +34,23 @@
 
 package viewer.common;
 
-import java.text.NumberFormat;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.awt.Font;
-import java.awt.Dimension;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.Document;
 import javax.swing.text.BadLocationException;
-import javax.swing.*;
+import javax.swing.text.Document;
 
 public class LabeledTextField extends JPanel
 {
@@ -69,7 +74,7 @@ public class LabeledTextField extends JPanel
     {
         super();
         super.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-        tag = new JLabel( label );
+        tag = new JLabel( " " + label + " " ); // add " " to guarantee spacing
         if ( isIndentedLabel ) {
             JPanel tag_panel = new JPanel();
             tag_panel.setLayout( new BoxLayout( tag_panel, BoxLayout.X_AXIS ) );

@@ -32,7 +32,7 @@
  *  @organization PVS University Heidelberg
  */
 
-package viewer.zoomable;
+package viewer.timelines;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
 
@@ -103,6 +103,9 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 
 	@Override
 	public void showInfo(TraceObject obj) {
+		if(obj == null)
+			return;
+		
 		switch(obj.getType()){
 		case EVENT:
 			showInfo((EventTraceEntry) obj);

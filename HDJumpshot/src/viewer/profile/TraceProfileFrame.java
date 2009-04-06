@@ -5,6 +5,7 @@ import hdTraceInput.ReaderTraceElementEnumerator;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
@@ -12,9 +13,8 @@ import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JButton;
@@ -39,7 +39,6 @@ import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ScrollableTimeline;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
@@ -53,12 +52,27 @@ import drawable.TimeBoundingBox;
  */
 public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateProfile>{
 	
+	// the real model's time
 	final ModelTime realModelTime;
 	
+	// real profiling data
 	TraceObjectProfile profile;
 	
+	// mapping from TraceObjectProfile to visible information:
+	HashMap<Integer, TraceObjectProfileMap> timelineMap = new HashMap<Integer, TraceObjectProfileMap>();		
+	
 	boolean profileNested = true;
+	// shall there be an automatic update of the time i.e. synchronization between timeline window and profile?
 	boolean isTimeUpdateing = true;
+	
+	// what the user wants to see:
+	enum VisualizedMetric {
+		INCLUSIVE_TIME,
+		EXCLUSIVE_TIME,
+		NUMBER_OF_CALLS
+	}
+	
+	VisualizedMetric visualizedMetric = null;
 	
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
@@ -77,14 +91,14 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	
 	/** 
-	 * This listener is invoked if the zoomlevel changes
+	 * This listener is invoked if the zoom level changes
 	 */
 	private TimeListener  timeUpdateListener = new TimeListener(){
 		@Override
 		public void timeChanged(TimeEvent evt) {
 			if(isAutoRefresh() ){
 				updateTimeInformation();
-				forceRedraw();
+				getModelTime().zoomHomeWithoutStacking();
 			}
 		}
 	};
@@ -97,16 +111,48 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		SimpleConsoleLogger.DebugWithStackTrace("updateTimeInformation()", 2);
 		
 		recomputeTraceProfile();
-				
-		getModelTime().setTimeGlobalMaximum(new Epoch(realModelTime.getTimeViewExtent()));
-		getModelTime().zoomHome();		
+	}
+	
+	public VisualizedMetric getVisualizedMetric() {
+		return visualizedMetric;
+	}
+	
+	private void setVisualizedMetric(VisualizedMetric what){
+		this.visualizedMetric = what;		
+
+		final TopologyManager topologyManager = getTopologyManager();
+		
+		final TraceProfileValueHandler handler = new TraceProfileValueHandler.InclusiveTimeHandler();
+		final TraceProfileComparator comparator = new TraceProfileComparator.Normal(handler);
+		
+		double maxValue = 0.1; // initalize to something
+		
+		for ( int timeline = 0 ; timeline < topologyManager.getRowCount() ; timeline++ ) {
+			//  Select only non-expanded row
+			if ( topologyManager.getType(timeline) != TimelineType.TRACE  ) {
+				continue;
+			}
+			final ArrayList<TraceCategoryStateProfile> list = getProfile().getProfileSortedBy(timeline, comparator);
+		
+			final TraceObjectProfileMap tlMap = new TraceObjectProfileMap(list, handler);
+			timelineMap.put(timeline, tlMap);		
+			
+			// adapt max value
+			maxValue = (maxValue < tlMap.getMaxValue()) ? tlMap.getMaxValue(): maxValue; 
+		}
+		
+		// adjust time:
+		getModelTime().setTimeGlobalMaximum(new Epoch(maxValue));
 	}
 	
 	public void recomputeTraceProfile(){		
 		final Epoch startTime = new Epoch(realModelTime.getTimeViewPosition()).subtract(realModelTime.getTimeGlobalMinimum());
 		final Epoch endTime = startTime.add(realModelTime.getTimeViewExtent());
 		
-		profile = ComputeTraceProfile(startTime, endTime);
+		profile = ComputeTraceProfile(startTime, endTime);		
+
+		// update visible time
+		setVisualizedMetric(getVisualizedMetric());
 	}
 	
 	private TraceObjectProfile ComputeTraceProfile(Epoch starttime, Epoch endtime){
@@ -159,7 +205,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				// TODO handle events also?
 			}			
 			
-			final LinkedList<TraceCategoryStateProfile> stateList = new LinkedList<TraceCategoryStateProfile>();
+			final ArrayList<TraceCategoryStateProfile> stateList = new ArrayList<TraceCategoryStateProfile>();
 			stateList.addAll(catMap.values());
 			profile.addProfileInformation(timeline, stateList);
 		}
@@ -210,22 +256,27 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		getReader().getLegendTraceModel().removeCategoryUpdateListener(categoryVisibleListener);
 	}
 	
+	@Override
+	protected void gotVisibleTheFirstTime() {
+		recomputeTraceProfile();		
+	}
+	
 	public TraceProfileFrame(TraceFormatBufferedFileReader reader, ModelTime modelTime) 
 	{		
+		super(reader);
 		this.realModelTime = modelTime;
-		super.init(reader, new ModelTime(new Epoch(0), new Epoch(modelTime.getTimeViewExtent())));
+
+
+		final ModelTime virtualTime = new ModelTime(Epoch.ZERO, new Epoch(1.0));
+		super.init(virtualTime);
 		
-		getTopologyManager().setTopologyManagerContents(TopologyManagerContents.TRACE_ONLY);
+		getTopologyManager().setTopologyManagerContents(TopologyManagerContents.TRACE_ONLY);							
+		
 		getFrame().setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
+		getFrame().setPreferredSize(new Dimension(800, 600)); /* JK-SIZE */
 		
 		realModelTime.addTimeListener(timeUpdateListener);
 		reader.getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
-	}
-
-	@Override
-	protected void gotVisibleTheFirstTime() {
-		recomputeTraceProfile();
-		forceRedraw();
 	}
 	
 	private class ProfileImagePanel extends ScrollableTimeline{
@@ -239,13 +290,12 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		
 		@Override
 		protected void drawOneOffImage(Image image, TimeBoundingBox timebounds) {
-			final ModelTime modelTime = getModelTime();
 			final TraceFormatBufferedFileReader reader = getReader();
 			
 			// automatically adapt the title.
 			setTitle("Trace Profile " + " (" +
-					String.format("%.4f", modelTime.getTimeViewPosition()) + "-" + 
-					String.format("%.4f",(modelTime.getTimeViewExtent() + modelTime.getTimeViewPosition()))
+					String.format("%.4f", realModelTime.getTimeViewPosition()) + "-" + 
+					String.format("%.4f",(realModelTime.getTimeViewExtent() + realModelTime.getTimeViewPosition()))
 					+ ") " + reader.getCombinedProjectFilename()
 					);
 			
@@ -292,27 +342,34 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 		}
 
-		private void drawTimeline(Graphics2D g, int timeline, CoordPixelImage coordXform){
-			Iterator<TraceCategoryStateProfile> it = getProfile().getProfileIteratorSortByExclusiveTime(timeline);
+		private void drawTimeline(Graphics2D g, int timeline, CoordPixelImage coordXform){			
+			final TraceObjectProfileMap map = timelineMap.get(timeline);
+			
 			
 			final int height = coordXform.getTimelineHeight(); 			
-			double currentTime = 0;
-			
 			final int yPos = coordXform.convertTimelineToPixel(timeline);
 			
-			while(it.hasNext()){
-				final TraceCategoryStateProfile profile = it.next();
+			final double [] values = map.getValues();
+			final TraceCategoryStateProfile [] profiles = map.getProfiles();
+			
+			
+			double lastValue = 0;
+			
+			for(int i=0 ; i < values.length ; i++){
+				final TraceCategoryStateProfile profile = profiles[i];
+				
+				final double value = values[i];								
+				
+				final int x1 = coordXform.convertTimeToPixel(lastValue);				
+				final int x2 = coordXform.convertTimeToPixel(value);
+				
+				lastValue = value;
+
 				
 				if(! profile.getCategory().isVisible())
 					continue;
-				
-				final double value =  profile.getExclusiveTime();				
-				
+
 				g.setColor( profile.getCategory().getColor() );											
-				
-				final int x1 = coordXform.convertTimeToPixel(currentTime);				
-				currentTime += value;				
-				final int x2 = coordXform.convertTimeToPixel(currentTime);
 				
 				g.fillRect( x1, yPos, x2-x1, height );
 				
@@ -320,9 +377,13 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		}
 
 		@Override
-		public TraceObject getTraceObjectAt(int timeline, Epoch realModelTime, int y) {
-			// TODO Auto-generated method stub
-			return null;
+		public TraceCategoryStateProfile getTraceObjectAt(int timeline, Epoch realModelTime, int y) {
+			final TraceObjectProfileMap map = timelineMap.get(timeline);
+			if(map == null){
+				return null;
+			}
+			
+			return map.getProfileWithTime(realModelTime.getDouble());
 		}
 		
 		@Override

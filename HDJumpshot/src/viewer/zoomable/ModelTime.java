@@ -263,8 +263,6 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	 {
 			 tView_init     = pixel2time( super.getValue() );
 			 tView_extent   = pixelRange2timeRange( super.getExtent() );
-			 
-			 fireTimeChanged();
 	 }
 
 	 public double getTimeZoomFactor()
@@ -354,6 +352,10 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 		 
 		 zoom(0, getTimeGlobalDuration());		 
 	 }
+	 
+	 public void zoomHomeWithoutStacking(){
+		 zoom(0, getTimeGlobalDuration());
+	 }
 
 	 private void pushCurrentStateOnZoomStackAndClean( )
 	 {
@@ -403,8 +405,6 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 		 }catch(IllegalStateException e){
 			 zoom(oldtView_init, oldtView_extent);
 			 zoom_undo_stack.pop();
-			 
-			 //Dialogs.error( root_window,
 			 return;
 		 }	
 	 }
@@ -437,6 +437,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 
 	 private void zoom( double new_tView_init, double new_tView_extent ) throws IllegalStateException
 	 {
+		 System.out.println(new_tView_extent + " SCHUH " + new_tView_init);
 		 if(new_tView_init < 0){
 			 new_tView_init = 0; 
 		 }
@@ -455,9 +456,7 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 		 this.setTimeViewExtent( new_tView_extent );
 		 this.setTimeViewPosition( new_tView_init );
 
-		 this.updatePixelCoords();
-		 
-		 
+		 this.updatePixelCoords();		 		 
 		 this.setScrollBarIncrements();
 		 this.updateTimeCoords();
 

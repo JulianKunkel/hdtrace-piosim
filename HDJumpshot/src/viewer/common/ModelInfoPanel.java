@@ -53,7 +53,11 @@ abstract public class ModelInfoPanel<InfoType>
 	{
 		panel.setLayout( new BoxLayout( panel, BoxLayout.X_AXIS ) );
 		panel.setBorder( BorderFactory.createEtchedBorder() );
-		addControlsToPanel(panel);
+
+	}
+	
+	final public void init(){
+		addControlsToPanel(panel);		
 	}
 	
 	final public JPanel getPanel() {

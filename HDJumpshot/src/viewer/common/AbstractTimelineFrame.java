@@ -277,6 +277,7 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		modelTime.setScrollBar( time_scrollbar );
 
 		info_model     = createModelInfoPanel();
+		info_model.init();
 		timeCanvasVport.setInfoModel( info_model );
 
 
@@ -399,20 +400,20 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		}
 	}
 	
-	public AbstractTimelineFrame() {
+	public AbstractTimelineFrame(final TraceFormatBufferedFileReader reader) {
+		this.reader = reader;
+		
 		frame = new JFrame();
 		
 		// default on close operation:
 		frame.addWindowListener(new MyWindowClosedListener());		
+
+		this.topologyManager = new TopologyManager(reader);		
 	}
 	
-	public void init(final TraceFormatBufferedFileReader reader, final ModelTime modelTime) {		
-		this.reader = reader;
-		this.modelTime = modelTime;
-		
-		this.topologyManager = new TopologyManager(reader, modelTime);		
-
-		frame.setContentPane( createContentPane());
+	public void init(final ModelTime modelTime) {		
+		this.modelTime = modelTime;	
+		frame.setContentPane( createContentPane());		
 	}
 	
 	protected JFrame getFrame(){
@@ -435,7 +436,9 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 
 		if(val == true && visibleTheFirstTime){
 			visibleTheFirstTime = false;
-			topologyManager.restoreTopology();
+			
+			getTopologyManager().init(modelTime);
+			
 			gotVisibleTheFirstTime();
 		}
 	}

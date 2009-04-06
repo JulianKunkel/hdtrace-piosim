@@ -8,7 +8,6 @@ import javax.swing.BoundedRangeModel;
 import topology.TopologyManager;
 import viewer.common.Debug;
 import viewer.dialog.InfoDialog;
-import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 abstract public class ScrollableTimeline extends ScrollableObject{
@@ -25,12 +24,12 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 		this.y_model         = yaxis_model;
 	}
 	
-	public abstract TraceObject getTraceObjectAt(int timeline, Epoch realModelTime, int y);
+	public abstract Object getTraceObjectAt(int timeline, Epoch realModelTime, int y);
 	
 	public abstract InfoDialog getPropertyAt(int timeline, Epoch realModelTime, int y);
 	
 	@Override
-	final public TraceObject getObjectAt(Point local_click) {		
+	final public Object getObjectAt(Point local_click) {		
 		final CoordPixelImage coord_xform;  // Local Coordinate Transform
 		coord_xform = new CoordPixelImage( this, getRowHeight(), super.getTimeBoundsOfImages() );
 		

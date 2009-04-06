@@ -51,7 +51,6 @@ import viewer.common.Debug;
 import viewer.common.IAutoRefreshable;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTime;
-import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.TimeBoundingBox;
 
@@ -99,7 +98,7 @@ implements ScrollableView, IAutoRefreshable
 	 * @param view_click
 	 * @return
 	 */
-	public abstract TraceObject getObjectAt( final Point view_click );
+	public abstract Object getObjectAt( final Point view_click );
 	
 	public InfoDialog getPropertyAt( final Point  view_click){
 		final CoordPixelImage coord_xform;  // Local Coordinate Transform

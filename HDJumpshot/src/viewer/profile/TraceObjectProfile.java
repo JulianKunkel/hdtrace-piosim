@@ -1,8 +1,8 @@
 package viewer.profile;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * 
@@ -14,38 +14,33 @@ import java.util.LinkedList;
  */
 public class TraceObjectProfile {
 	//final HashMap<CategoryState, TraceCategoryStateProfile> categoryProfiles = new HashMap<CategoryState, TraceCategoryStateProfile>();
-	final HashMap<Integer, LinkedList<TraceCategoryStateProfile>> categoryProfiles = new HashMap<Integer, LinkedList<TraceCategoryStateProfile>>(); 
+	final HashMap<Integer, ArrayList<TraceCategoryStateProfile>> categoryProfiles = new HashMap<Integer, ArrayList<TraceCategoryStateProfile>>(); 
 	
-	private LinkedList<TraceCategoryStateProfile> getProfileForTimeline(int timeline){
-		LinkedList<TraceCategoryStateProfile> profileInfo = categoryProfiles.get(timeline);
+	private ArrayList<TraceCategoryStateProfile> getProfileForTimeline(int timeline){
+		ArrayList<TraceCategoryStateProfile> profileInfo = categoryProfiles.get(timeline);
 		if(profileInfo == null){
-			profileInfo = new LinkedList<TraceCategoryStateProfile>();
+			profileInfo = new ArrayList<TraceCategoryStateProfile>();
 			categoryProfiles.put(timeline, profileInfo);
 		}
 		return profileInfo;
 	}
 	
-	public void addProfileInformation(int timeline, LinkedList<TraceCategoryStateProfile> profile){
+	public void addProfileInformation(int timeline, ArrayList<TraceCategoryStateProfile> profile){
 		categoryProfiles.put(timeline, profile);
 	}
 	
-	public Iterator<TraceCategoryStateProfile> getProfileIteratorUnsorted(int timeline){
-		final LinkedList<TraceCategoryStateProfile> profileInfo = getProfileForTimeline(timeline);
-		return profileInfo.iterator();
+	/**
+	 * Return the current sorting order of the list.
+	 * @param timeline
+	 * @return
+	 */
+	public ArrayList<TraceCategoryStateProfile> getProfileCurrentSortOrder(int timeline){
+		return getProfileForTimeline(timeline);
 	}
 
-	public Iterator<TraceCategoryStateProfile> getProfileIteratorSortByName(int timeline){
-		final LinkedList<TraceCategoryStateProfile> profileInfo = getProfileForTimeline(timeline);
-		return profileInfo.iterator();
-	}
-	
-	public Iterator<TraceCategoryStateProfile> getProfileIteratorSortByInclusiveTime(int timeline){
-		final LinkedList<TraceCategoryStateProfile> profileInfo = getProfileForTimeline(timeline);
-		return profileInfo.iterator();
-	}
-	
-	public Iterator<TraceCategoryStateProfile> getProfileIteratorSortByExclusiveTime(int timeline){
-		final LinkedList<TraceCategoryStateProfile> profileInfo = getProfileForTimeline(timeline);
-		return profileInfo.iterator();
+	public ArrayList<TraceCategoryStateProfile> getProfileSortedBy(int timeline, TraceProfileComparator comparator){
+		ArrayList<TraceCategoryStateProfile> list = getProfileForTimeline(timeline); 
+		Collections.sort(list, comparator);
+		return list;
 	}
 }

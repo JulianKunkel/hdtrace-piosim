@@ -57,77 +57,77 @@ import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
 import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableObject;
-import viewer.zoomable.TimelineTraceObjectInfoPanel;
 import de.hd.pvs.TraceFormat.TraceObject;
 
 public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 {
 	private static final long serialVersionUID = -496973267971206572L;
-	
-	private JButton                 searchBack_btn;
-  private JButton                 searchInit_btn;
-  private JButton                 searchFore_btn;
 
-	
+	private JButton                 searchBack_btn;
+	private JButton                 searchInit_btn;
+	private JButton                 searchFore_btn;
+
+
 	public TimelineFrame( final TraceFormatBufferedFileReader reader, final ModelTime modelTime )
 	{		
-		super.init( reader, modelTime );
+		super(reader);
+		super.init( modelTime );
 		setTitle("TimeLine: " + reader.getCombinedProjectFilename());
-		
-		
+
+
 		getFrame().setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
 		TopWindow.Timeline.disposeAll();
 		TopWindow.Timeline.setWindow( getFrame() );
 
 		getFrame().setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
-		
+
 		getFrame().addWindowListener( new WindowAdapter() {
 			public void windowClosing( WindowEvent e ) {
 				TopWindow.Timeline.disposeAll();
 			}
 		} );
 	}
-	
+
 	@Override
 	protected void addOwnPanelsOrToolbars(JPanel menuPanel) {
 		// no own toolbars.
 	}
-	
+
 	@Override
 	protected void addToToolbarMenu(JToolBar toolbar, IconManager iconManager, Insets insets) {
-    searchBack_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchLeft) );
-    searchBack_btn.setMargin( insets );
-    searchBack_btn.setToolTipText( "Search Backward in time" );
-    searchBack_btn.setMnemonic( KeyEvent.VK_B );
-    searchBack_btn.addActionListener(
-                   new ActionSearchBackward( getTimeCanvasVport() ) );
-    toolbar.add( searchBack_btn );
+		searchBack_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchLeft) );
+		searchBack_btn.setMargin( insets );
+		searchBack_btn.setToolTipText( "Search Backward in time" );
+		searchBack_btn.setMnemonic( KeyEvent.VK_B );
+		searchBack_btn.addActionListener(
+				new ActionSearchBackward( getTimeCanvasVport() ) );
+		toolbar.add( searchBack_btn );
 
-    searchInit_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.Search) );
-    searchInit_btn.setMargin( insets );
-    searchInit_btn.setToolTipText(
-                  "Search Initialization from last popup InfoBox's time" );
-    searchInit_btn.setMnemonic( KeyEvent.VK_S );
-    searchInit_btn.addActionListener(
-                   new ActionSearchInit( getTimeCanvasVport() ) );
-    toolbar.add( searchInit_btn );
+		searchInit_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.Search) );
+		searchInit_btn.setMargin( insets );
+		searchInit_btn.setToolTipText(
+				"Search Initialization from last popup InfoBox's time" );
+		searchInit_btn.setMnemonic( KeyEvent.VK_S );
+		searchInit_btn.addActionListener(
+				new ActionSearchInit( getTimeCanvasVport() ) );
+		toolbar.add( searchInit_btn );
 
-    searchFore_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchRight) );
-    searchFore_btn.setMargin( insets );
-    searchFore_btn.setToolTipText( "Search Forward in time" );
-    searchFore_btn.setMnemonic( KeyEvent.VK_F );
-    searchFore_btn.addActionListener(
-                   new ActionSearchForward( getTimeCanvasVport() ) );
-    toolbar.add( searchFore_btn );
-    
-    toolbar.addSeparator();
+		searchFore_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchRight) );
+		searchFore_btn.setMargin( insets );
+		searchFore_btn.setToolTipText( "Search Forward in time" );
+		searchFore_btn.setMnemonic( KeyEvent.VK_F );
+		searchFore_btn.addActionListener(
+				new ActionSearchForward( getTimeCanvasVport() ) );
+		toolbar.add( searchFore_btn );
+
+		toolbar.addSeparator();
 	}
-	
+
 	@Override
 	protected ModelInfoPanel<TraceObject> createModelInfoPanel() {
 		return new TimelineTraceObjectInfoPanel(getReader());
 	}
-	
+
 	@Override
 	protected ScrollableObject createCanvasArea() {
 		return new CanvasTimeline(  getModelTime(), getReader(),  getYModel(), getTopologyManager());

@@ -64,7 +64,7 @@ public class TopologyManager
 	private DefaultMutableTreeNode  tree_root;
 
 	final TraceFormatBufferedFileReader  reader;
-	final ModelTime                      modelTime;
+	ModelTime                      modelTime;
 
 	private ArrayList<TopologyTreeNode> topoToTimelineMapping = new ArrayList<TopologyTreeNode>();
 	
@@ -313,6 +313,14 @@ public class TopologyManager
 			tree.clearSelection();
 		}
 	}
+	
+	/**
+	 * Call it once.
+	 */
+	public void init(ModelTime modelTime){
+		this.modelTime = modelTime;
+		restoreTopology();
+	}
 
 	/**
 	 * restore the timelines to the normal / selected topology 
@@ -426,9 +434,8 @@ public class TopologyManager
 	}
 
 
-	public TopologyManager( final TraceFormatBufferedFileReader  reader, ModelTime modelTime )
+	public TopologyManager( final TraceFormatBufferedFileReader  reader )
 	{		
-		this.modelTime = modelTime;
 		this.reader = reader;
 		tree.setEditable( true );		
 		tree.putClientProperty("JTree.lineStyle", "Angled");
