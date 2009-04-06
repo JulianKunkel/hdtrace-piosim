@@ -18,13 +18,18 @@ import java.util.HashMap;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.WindowConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import topology.TopologyManager;
 import topology.TopologyManagerContents;
 import viewer.common.AbstractTimelineFrame;
+import viewer.common.Const;
 import viewer.common.IconManager;
 import viewer.common.ModelInfoPanel;
 import viewer.common.Parameters;
@@ -55,16 +60,22 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	// the real model's time
 	final ModelTime realModelTime;
 	
+	JButton timeRefreshBtn;
+	
 	// real profiling data
 	TraceObjectProfile profile;
 	
 	// mapping from TraceObjectProfile to visible information:
 	HashMap<Integer, TraceObjectProfileMap> timelineMap = new HashMap<Integer, TraceObjectProfileMap>();		
 	
-	boolean profileNested = true;
 	// shall there be an automatic update of the time i.e. synchronization between timeline window and profile?
 	boolean isTimeUpdateing = true;
 	
+	/**
+	 * ! normal == reversed
+	 */
+	boolean normalSorting = true;
+		
 	// what the user wants to see:
 	enum VisualizedMetric {
 		INCLUSIVE_TIME,
@@ -72,7 +83,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		NUMBER_OF_CALLS
 	}
 	
-	VisualizedMetric visualizedMetric = null;
+	VisualizedMetric visualizedMetric = VisualizedMetric.INCLUSIVE_TIME;
+	
+	final JComboBox visualizedMetricBox = new JComboBox(VisualizedMetric.values());
+	final JCheckBox processNestedChkbox = new JCheckBox("Nested");
 	
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
@@ -117,13 +131,36 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		return visualizedMetric;
 	}
 	
-	private void setVisualizedMetric(VisualizedMetric what){
-		this.visualizedMetric = what;		
-
+	public void setVisualizedMetric(VisualizedMetric what){
+		this.visualizedMetric = what;
+		
+		updateVisualizedMetric();
+	}
+	
+	private void updateVisualizedMetric(){
 		final TopologyManager topologyManager = getTopologyManager();
 		
-		final TraceProfileValueHandler handler = new TraceProfileValueHandler.InclusiveTimeHandler();
-		final TraceProfileComparator comparator = new TraceProfileComparator.Normal(handler);
+		final TraceProfileValueHandler handler;
+		switch(visualizedMetric){
+		case EXCLUSIVE_TIME:
+			handler = new TraceProfileValueHandler.ExclusiveTimeHandler();
+			break;
+		case INCLUSIVE_TIME:
+			handler = new TraceProfileValueHandler.InclusiveTimeHandler();
+			break;
+		case NUMBER_OF_CALLS:
+			handler = new TraceProfileValueHandler.NumberOfCallsHandler();
+			break;
+		default:
+			handler = null;
+		}
+		
+		final TraceProfileComparator comparator;
+		
+		if(normalSorting)
+			comparator = new TraceProfileComparator.Normal(handler);
+		else 
+			comparator = new TraceProfileComparator.Reversed(handler);
 		
 		double maxValue = 0.1; // initalize to something
 		
@@ -152,7 +189,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		profile = ComputeTraceProfile(startTime, endTime);		
 
 		// update visible time
-		setVisualizedMetric(getVisualizedMetric());
+		updateVisualizedMetric();
 	}
 	
 	private TraceObjectProfile ComputeTraceProfile(Epoch starttime, Epoch endtime){
@@ -168,6 +205,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			final TraceFormatBufferedFileReader reader = getReader();
 			final BufferedTraceFileReader traceReader = topologyManager.getTraceReaderForTimeline(timeline);
 					
+			final boolean profileNested = processNestedChkbox.isSelected();
+			
 			final ReaderTraceElementEnumerator enumerator = traceReader.enumerateTraceEntry(profileNested, starttime, endtime);
 			while(enumerator.hasMoreElements()){
 				final TraceEntry entry = enumerator.nextElement();
@@ -225,18 +264,53 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	@Override
 	protected void addToToolbarMenu(JToolBar toolbar, IconManager iconManager,
 			Insets insets) {		
-		JButton refresh_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.Refresh) );
-		refresh_btn.setMargin( insets );
-		refresh_btn.setToolTipText(	"Redraw canvas to synchronize time information from timeline" );
-		refresh_btn.setMnemonic( KeyEvent.VK_D );
-		refresh_btn.addActionListener( new ActionListener(){
+		toolbar.addSeparator();
+		timeRefreshBtn = new JButton( iconManager.getActiveToolbarIcon(IconType.Refresh) );
+		timeRefreshBtn.setMargin( insets );
+		timeRefreshBtn.setToolTipText(	"Redraw canvas to synchronize time information from timeline" );
+		timeRefreshBtn.setMnemonic( KeyEvent.VK_D );
+		timeRefreshBtn.addActionListener( new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				updateTimeInformation();
 			}
+		});		
+		
+		// disable update if autorefresh is active:
+		getToolbar().getAutoRefreshBtn().addActionListener( new ActionListener(){
+			public void actionPerformed(ActionEvent event) {
+				timeRefreshBtn.setEnabled(isAutoRefresh());				
+			}
 		});
 		
-		toolbar.add( refresh_btn );
+		timeRefreshBtn.setEnabled(! isAutoRefresh());
+		
+		toolbar.add( timeRefreshBtn );
+		
+		visualizedMetricBox.setFont(Const.FONT);
+		
+		visualizedMetricBox.addActionListener( new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				setVisualizedMetric((VisualizedMetric) visualizedMetricBox.getSelectedItem());
+				getModelTime().zoomHomeWithoutStacking();
+			}
+			});
+		visualizedMetricBox.setToolTipText("Select the visualized metric");
+		toolbar.add(visualizedMetricBox);		
+		
+		processNestedChkbox.setSelected(true);
+
+		processNestedChkbox.setToolTipText("Are nested states used for the computation of the values?");
+		processNestedChkbox.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent e) {				
+				recomputeTraceProfile();
+				getModelTime().zoomHomeWithoutStacking();
+			}
+		});
+		toolbar.add(processNestedChkbox);
+		
+		toolbar.addSeparator();
 	}
 	
 	@Override
@@ -273,7 +347,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		getTopologyManager().setTopologyManagerContents(TopologyManagerContents.TRACE_ONLY);							
 		
 		getFrame().setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
-		getFrame().setPreferredSize(new Dimension(800, 600)); /* JK-SIZE */
+		getFrame().setPreferredSize(new Dimension(950, 600)); /* JK-SIZE */
 		
 		realModelTime.addTimeListener(timeUpdateListener);
 		reader.getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);

@@ -437,7 +437,6 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 
 	 private void zoom( double new_tView_init, double new_tView_extent ) throws IllegalStateException
 	 {
-		 System.out.println(new_tView_extent + " SCHUH " + new_tView_init);
 		 if(new_tView_init < 0){
 			 new_tView_init = 0; 
 		 }

@@ -36,6 +36,8 @@ package viewer.common;
 
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JButton;
@@ -97,8 +99,10 @@ implements ToolBarStatus
 
 	private JButton                 refresh_btn;
 	private JButton                 print_btn;
-	private final ScrollableObject    cnvas_timeline;
-	private RulerTime	 			        time_ruler = null;
+	private final ScrollableObject  cnvas_timeline;
+	private RulerTime	 			time_ruler = null;
+	
+	private ButtonAutoRefresh autoRefresh_btn;
 
 
 	public ViewportTimeYaxis getCanvas_vport() {
@@ -140,13 +144,22 @@ implements ToolBarStatus
 		Insets btn_insets          = getInsets();		
 		btn_insets          = new Insets( 2, 2, 2, 2 );
 
+		autoRefresh_btn.setMargin( btn_insets );
+		autoRefresh_btn.addActionListener( new ActionListener(){
+			public void actionPerformed(ActionEvent event) {
+				refresh_btn.setEnabled(autoRefresh_btn.isAutoRefresh());				
+			}
+		});
+		
+		
 		refresh_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.Refresh) );
 		refresh_btn.setMargin( btn_insets );
-		refresh_btn.setToolTipText(
-				"Redraw canvas to synchronize changes from "
-				+ "Preference/Legend window or Yaxis label panel" );
+		refresh_btn.setToolTipText(	"Redraw canvas to synchronize changes from Preference/Legend window or Yaxis label panel" );
 		refresh_btn.setMnemonic( KeyEvent.VK_D );
 		refresh_btn.addActionListener( new ActionPptyRefresh( cnvas_timeline ) );
+		
+		refresh_btn.setEnabled(! autoRefresh_btn.isAutoRefresh());
+		
 		super.add( refresh_btn );
 
 
@@ -158,9 +171,7 @@ implements ToolBarStatus
 		super.add( print_btn );        
 
 		super.addSeparator();
-
-		JButton autoRefresh_btn = new ButtonAutoRefresh(cnvas_timeline);
-		autoRefresh_btn.setMargin( btn_insets );
+		
 		super.add( autoRefresh_btn );      
 
 		// orientate the toolbar left:
@@ -286,6 +297,8 @@ implements ToolBarStatus
 		 super.add( zoomIn_btn );
 
 		 super.addSeparator();
+		 
+		 autoRefresh_btn = new ButtonAutoRefresh(cnvas_timeline);
 	 }
 
 	 protected void initAllButtons()
@@ -297,10 +310,9 @@ implements ToolBarStatus
 		 forward_btn.setEnabled( true );
 		 this.resetZoomButtons();
 
-		 refresh_btn.setEnabled( true );
 		 print_btn.setEnabled( true );
 	 }
-
+	 
 	 //  Interface for ToolBarStatus
 	 public void resetZoomButtons()
 	 {
@@ -312,4 +324,8 @@ implements ToolBarStatus
 		 zoomUndo_btn.setEnabled( ! time_model.isZoomUndoStackEmpty() );
 		 zoomRedo_btn.setEnabled( ! time_model.isZoomRedoStackEmpty() );
 	 }
+	 
+	 public ButtonAutoRefresh getAutoRefreshBtn() {
+		return autoRefresh_btn;
+	}
 }

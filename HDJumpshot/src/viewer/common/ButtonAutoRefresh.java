@@ -34,12 +34,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
 import viewer.common.IconManager.IconType;
 import viewer.first.Jumpshot;
-import viewer.timelines.CanvasTimeline;
 
 /**
  * This button is for triggering auto refresh in any form, it shows its state.
@@ -76,12 +74,12 @@ public class ButtonAutoRefresh extends JButton implements ActionListener
 
 	public void actionPerformed( ActionEvent event )
 	{
-		if(autoRefreshable.isAutoRefresh()){
-			autoRefreshable.setAutoRefresh(false);    		    		    		
-		}else{    		
-			autoRefreshable.setAutoRefresh(true);
-		}
-
+		autoRefreshable.setAutoRefresh(! autoRefreshable.isAutoRefresh());    		    		    		
+	
 		setBorder();
+	}
+	
+	public boolean isAutoRefresh(){
+		return autoRefreshable.isAutoRefresh();
 	}
 }

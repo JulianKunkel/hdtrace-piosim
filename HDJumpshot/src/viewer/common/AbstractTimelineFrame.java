@@ -459,6 +459,10 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		return timeCanvasVport;
 	}
 	
+	protected TimelineToolBar getToolbar() {
+		return toolbar;
+	}
+	
 	/**
 	 * Leftmost down area, below topology manager.
 	 * @return

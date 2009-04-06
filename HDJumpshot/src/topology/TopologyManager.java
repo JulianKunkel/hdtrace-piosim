@@ -173,10 +173,15 @@ public class TopologyManager
 	/**
 	 * If set to true then listeners are not notified on a topology change, this allows mass update of topology.
 	 * Don't forget to enable if after a mass update.
+	 * Return the previous state of the changelistener
 	 *  
 	 * @param changeListenerDisabled
 	 */
-	public void setChangeListenerDisabled(boolean changeListenerDisabled) {
+	public boolean setChangeListenerDisabled(boolean changeListenerDisabled) {
+		boolean old = this.changeListenerDisabled;
+		if(old == changeListenerDisabled)
+			return old;
+		
 		this.changeListenerDisabled = changeListenerDisabled;
 
 		if(changeListenerDisabled == true){
@@ -184,6 +189,8 @@ public class TopologyManager
 		}else{
 			tree.addTreeExpansionListener( treeExpansionListener);			
 		}
+		
+		return old;
 	}
 
 	public void addTopologyChangedListener(TopologyChangeListener listener){
@@ -321,12 +328,12 @@ public class TopologyManager
 		this.modelTime = modelTime;
 		restoreTopology();
 	}
-
+	
 	/**
 	 * restore the timelines to the normal / selected topology 
 	 */
 	public void restoreTopology(){
-		setChangeListenerDisabled(true);
+		final boolean old = setChangeListenerDisabled(true);
 		topoToTimelineMapping.clear();
 
 		this.tree_root = (new DefaultTopologyTreeMapping(topologyManagerType)).loadTopology(reader);
@@ -337,7 +344,7 @@ public class TopologyManager
 
 		removeEmptyTopologies();
 
-		setChangeListenerDisabled(false);
+		setChangeListenerDisabled(old);
 
 		fireTopologyChanged();
 	}

@@ -21,7 +21,7 @@ abstract public class TraceProfileComparator implements Comparator<TraceCategory
 		@Override
 		public int compare(TraceCategoryStateProfile arg0,
 				TraceCategoryStateProfile arg1) {		
-			return (int) (handler.getInterestingValue(arg0) - handler.getInterestingValue(arg1));
+			return handler.getInterestingValue(arg1) > handler.getInterestingValue(arg0) ? + 1 : -1 ;
 		}
 	}
 	
@@ -35,7 +35,7 @@ abstract public class TraceProfileComparator implements Comparator<TraceCategory
 		@Override
 		public int compare(TraceCategoryStateProfile arg0,
 				TraceCategoryStateProfile arg1) {		
-			return (int) (handler.getInterestingValue(arg1) - handler.getInterestingValue(arg0));
+			return handler.getInterestingValue(arg1) > handler.getInterestingValue(arg0) ? - 1 : +1 ;
 		}
 	}
 }
