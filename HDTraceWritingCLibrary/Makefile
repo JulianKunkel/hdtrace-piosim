@@ -44,8 +44,14 @@ $(SRC_DIR)/%o: force
 tests: force all
 	$(MAKE) -C $(TESTS_DIR)
 
-doc: force
+doc: devdoc apidoc
+
+devdoc: force
 	doxygen Doxyfile
+
+apidoc: force
+	mkdir doc/api
+	doxygen Doxyfile.api_only
 	
 tags: $(wildcard *.[ch])
 	@echo "  TAGS"; \

@@ -3,6 +3,10 @@
  *
  * Declarations of functions and types concerning the HDTrace Topologys
  *
+ * @ifnot api_only
+ *  @ingroup hdTopo
+ * @endif
+ *
  * @date 25.03.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
  * @version 0.1
@@ -10,6 +14,12 @@
 
 #ifndef HDTOPO_H_
 #define HDTOPO_H_
+
+/**
+ * @addtogroup hdTopo HDTrace Topology
+ *
+ * TODO: Explanation
+ */
 
 /**
  * @internal

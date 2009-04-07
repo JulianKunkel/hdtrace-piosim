@@ -1,8 +1,11 @@
 /**
  * @file hdStats.h
- * @ingroup hdStats
  *
  * Declarations of all functions and types for writing statistics
+ *
+ * @ifnot api_only
+ *  @ingroup hdStats
+ * @endif
  *
  * @date 25.03.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
@@ -58,6 +61,17 @@ enum _hdStatsValueType {
     STRING
 };
 
+/** Definition of string representation of type INT32 */
+#define INT32_STRING "INT32"
+/** Definition of string representation of type INT64 */
+#define INT64_STRING "INT64"
+/** Definition of string representation of type FLOAT */
+#define FLOAT_STRING "FLOAT"
+/** Definition of string representation of type DOUBLE */
+#define DOUBLE_STRING "DOUBLE"
+/** Definition of string representation of type STRING */
+#define STRING_STRING "STRING"
+
 /**
  * Type to use for value types for statistics groups.
  */
@@ -66,59 +80,7 @@ typedef enum _hdStatsValueType hdStatsValueType;
 /**
  * Structure representing one statistics group.
  */
-struct _hdStatsGroup {
-    /**
-     * File descriptor of the statistics group file
-     */
-	int fd;
-
-    /**
-     * Filename of the statistics group file (for error output only)
-     */
-    char *tracefile;
-
-    /**
-     * Buffer for creating header and collecting entries
-     */
-    char *buffer;
-
-    /**
-     * Offset for buffer to write next byte
-     */
-    int offset;
-
-    /**
-     * True if string values are defined
-     * => reduced error checking
-     */
-    int hasString;
-
-    /**
-     * Length that an entry should have
-     */
-    int entryLength;
-
-    /**
-     * Types of the defined values (for error checking)
-     * '-1' terminated in @ref hdS_commitGroup
-     */
-    hdStatsValueType *valueTypes;
-
-    /**
-     * Index of the next value to write (for error checking)
-     */
-    int nextValueIdx;
-
-    /**
-     * True if the group is committed (for error checking)
-     */
-    int isCommitted;
-
-    /**
-     * True if the group is enabled to trace
-     */
-    int isEnabled;
-};
+struct _hdStatsGroup;
 
 /**
  * Type to use for statistics groups.
@@ -149,14 +111,13 @@ hdStatsGroup hdS_createGroup (
         );
 
 /**
- * Add a new value to statistics group.
+ * Add a new value to the entry structure of a statistics group.
  */
 int hdS_addValue (
         hdStatsGroup group,      /* Statistics Group */
         const char* name,        /* Name of the new value */
         hdStatsValueType type,   /* Type of the new value */
-        const char* unit,        /* Unit string of the new value */
-        long readOutMultiplier   /* Multiplier to match unit */
+        const char* unit         /* Unit string of the new value */
         );
 
 /**
@@ -273,6 +234,55 @@ int hdS_writeString (
 int hdS_finalize(
         hdStatsGroup group      /* Statistics Group */
         );
+
+/* Defines for byte order conversion */
+#include <endian.h>
+#include <byteswap.h>
+
+#define __order_bytes32p(x) bswap_32(*((uint32_t *)x))
+#define __order_bytes64p(x) bswap_64(*((uint64_t *)x))
+
+/**
+ * @def order_bytes32ip
+ * Conversation of a 32 bit integer to network byte order.
+ * The argument has to be a pointer to the integer an become converted in
+ *  place.
+ */
+/**
+ * @def order_bytes64ip
+ * Conversation of a 64 bit integer to network byte order.
+ * The argument has to be a pointer to the integer an become converted in
+ *  place.
+ */
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+# define order_bytes32ip(x) __order_bytes32p(x)
+# define order_bytes64ip(x) __order_bytes64p(x)
+#elif __BYTE_ORDER == __BIG_ENDIAN
+# define order_bytes32ip(x) (x)
+# define order_bytes64ip(x) (x)
+#endif
+/**
+ * @def order_bytes32fp
+ * Conversation of a 32 bit floating point number (float) to network byte
+ *  order.
+ * The argument has to be a pointer to the integer an become converted in
+ *  place.
+ */
+/**
+ * @def order_bytes64fp
+ * Conversation of a 64 bit floating point number (double) to network byte
+ *  order.
+ * The argument has to be a pointer to the integer an become converted in
+ *  place.
+ */
+#if __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
+# define order_bytes32fp(x) __order_bytes32p(x)
+# define order_bytes64fp(x) __order_bytes64p(x)
+#elif __FLOAT_WORD_ORDER == __BIG_ENDIAN
+# define order_bytes32f(x) (x)
+# define order_bytes64f(x) (x)
+#endif
+
 
 #endif /* HDSTATS_H_ */
 

@@ -3,6 +3,10 @@
  *
  * Declaration of the enumerations for error reporting
  *
+ * @ifnot api_only
+ *  @ingroup hdError
+ * @endif
+ *
  * @date 25.03.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
  * @version 0.1
@@ -12,6 +16,9 @@
 #define HDERROR_H_
 
 #define HD_MIN_ERRNO_VALUE  800000
+/**
+ * @addtogroup hdError HDTrace Errors
+ */
 
 /**
  * Enumeration for common errors in function.
@@ -29,11 +36,11 @@ enum hdCommonError {
     HD_ERR_GET_TIME,
     /** Error while creating a file */
     HD_ERR_CREATE_FILE,
-    /** Error while creating a file */
+    /** Error while writing a file */
 	HD_ERR_WRITE_FILE,
-    /** Error while creating a file */
+    /** Error while closing a file */
 	HD_ERR_CLOSE_FILE,
-	/** Timeout occured */
+	/** Timeout occurred */
 	HD_ERR_TIMEOUT,
 	/** Error with unknown cause */
 	HD_ERR_UNKNOWN
@@ -53,17 +60,72 @@ enum hdTraceError {
  * hdS_* functions can set errno to one of these values in case of an error
  */
 enum hdStatsError {
-    /** Statistics group is not created correctly */
-    HDS_NOGROUP = HD_MIN_ERRNO_VALUE + 200,
-    /** Name is empty that is not allowed */
-    HDS_EMPTYNAME,
-    /** Statistics group already committed */
-    HDS_ISCOMMITED,
-    /** Value has not the expected length */
-    HDS_WRONGLENGTH,
-    /** Value has not the expected type */
-    HDS_WRONGTYPE
+	/** Statistics group's commit state is not the needed */
+	HDS_ERR_GROUP_COMMIT_STATE = HD_MIN_ERRNO_VALUE + 200,
+	/** One of the arguments has an unexpected value */
+	HDS_ERR_UNEXPECTED_ARGVALUE,
+	/** State of the current entry is wrong for requested action */
+	HDS_ERR_ENTRY_STATE
 };
+
+/******** @cond api_only ********/
+/**
+ * @enum hdCommonError
+ * @ingroup hdError
+ */
+/**
+ * @var	HD_ERR_INVALID_ARGUMENT
+ * @ingroup hdError
+ */
+/**
+ * @var HD_ERR_MALLOC
+ * @ingroup hdError
+ */
+/**
+ * @var HD_ERR_BUFFER_OVERFLOW
+ * @ingroup hdError
+ */
+/**
+ * @var HD_ERR_GET_TIME
+ * @ingroup hdError
+ */
+/**
+ * @var HD_ERR_CREATE_FILE
+ * @ingroup hdError
+ */
+/**
+ * @var HD_ERR_WRITE_FILE
+ * @ingroup hdError
+ */
+/**
+ * @var	HD_ERR_CLOSE_FILE
+ * @ingroup hdError
+ */
+/**
+ * @var	HD_ERR_TIMEOUT
+ * @ingroup hdError
+ */
+/**
+ * @var	HD_ERR_UNKNOWN
+ * @ingroup hdError
+ */
+/**
+ * @enum hdStatsError
+ * @ingroup hdError
+ */
+/**
+ * @var HDS_ERR_GROUP_COMMIT_STATE
+ * @ingroup hdError
+ */
+/**
+ * @var HDS_ERR_UNEXPECTED_ARGVALUE
+ * @ingroup hdError
+ */
+/**
+ * @var HDS_ERR_ENTRY_STATE
+ * @ingroup hdError
+ */
+/** @endcond **/
 
 
 #endif /* HDERROR_H_ */

@@ -3,6 +3,10 @@
  *
  * Declarations of functions and types concerning the HDTrace Topologys
  *
+ * @ifnot api_only
+ *  @ingroup hdTopo
+ * @endif
+ *
  * @date 25.03.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
  * @version 0.1
@@ -19,6 +23,16 @@
 #include "hdError.h"
 #include "util.h"
 
+/******* @cond api_only *******/
+/**
+ * @typedef hdTopology
+ * @ingroup hdTopo
+ */
+/**
+ * @typedef hdTopoNode
+ * @ingroup hdTopo
+ */
+/********** @endcond **********/
 
 
 /**
@@ -42,6 +56,10 @@
  * @code
  * hdTopology myTopology = hdT_createTopology("ProjectX", {"Host", "Process", "Thread"}, 3);
  * @endcode
+ *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
  *
  * @param project Name of the HDTrace project
  * @param levels  Array of names
@@ -94,6 +112,10 @@ hdTopology hdT_createTopology(
 /**
  * Get the depth of a topology.
  *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
+ *
  * Returns the number of levels in the topology including root level (level 0).
  *
  * @param topology Topology to use
@@ -122,6 +144,10 @@ int hdT_getTopoDepth(hdTopology topology)
 
 /**
  * Destroy topology object.
+ *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
  *
  * @param topology  Topology object to destroy
  *
@@ -197,6 +223,10 @@ int hdT_destroyTopology(
  * hdTopoNode myTopology = hdT_createTopoNode({hostname, pid}, 2);
  * @endcode
  *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
+ *
  * @param path   Array of pointers to the node labels on the path.
  * @param length Length of the path.
  *
@@ -268,6 +298,10 @@ hdTopoNode hdT_createTopoNode(
  *
  * Returns the level where the \a node take place in its topology.
  *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
+ *
  * @param node Topology node to use
  *
  * @return The number of the topology level \a node lives in.
@@ -298,6 +332,10 @@ int hdT_getTopoNodeLevel(hdTopoNode node)
  *
  * For example: \c host1.process1.thread1
  * The \a level of \a topology is returned if it exist, else NULL is returned.
+ *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
  *
  * @param node  Topology node to use
  *
@@ -337,6 +375,10 @@ const char * hdT_getTopoPathString(hdTopoNode node)
  * hdT_getTopoPathLabel(myTopoNode, 2);
  * @endcode
  *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
+ *
  * @param node  Topology node to use
  * @param level Level to get node label for (>0)
  *
@@ -362,6 +404,10 @@ const char * hdT_getTopoPathLabel(hdTopoNode node, int level)
 
 /**
  * Destroy topology node.
+ *
+ * @if api_only
+ *  @ingroup hdTopo
+ * @endif
  *
  * @param node Topology node to destroy
  *
