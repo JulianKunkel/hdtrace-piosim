@@ -58,7 +58,7 @@ public abstract class ScrollableObject extends JComponent
 implements ScrollableView, IAutoRefreshable
 {
 	private static final long serialVersionUID = 8964666662265862335L;
-	
+
 	//  The least number of images for this class to work is "3"
 	public    static final int   NumImages = 3;
 	protected static final int   NumViewsPerImage = 2;
@@ -89,7 +89,7 @@ implements ScrollableView, IAutoRefreshable
 	private   Dimension          image_size;
 	// The size of this JCompoent in pixel coordinates
 	private   Dimension          component_size;
-	
+
 	// desides whether a call of redrawIfAutoRedraw refreshes
 	boolean autoRefresh = true;
 
@@ -99,7 +99,7 @@ implements ScrollableView, IAutoRefreshable
 	 * @return
 	 */
 	public abstract Object getObjectAt( final Point view_click );
-	
+
 	public InfoDialog getPropertyAt( final Point  view_click){
 		final CoordPixelImage coord_xform;  // Local Coordinate Transform
 		coord_xform = new CoordPixelImage( this );
@@ -107,7 +107,7 @@ implements ScrollableView, IAutoRefreshable
 		return getTimePropertyAt(realTime);
 	}
 
-	
+
 	//  The following constructor is NOT meant to be called.
 	public ScrollableObject( ModelTime model )
 	{
@@ -150,8 +150,7 @@ implements ScrollableView, IAutoRefreshable
 
 		int img_idx = 0;
 		tImages[ img_idx ].setEarliestTime( modelTime.getTimeViewPosition()
-				- 0.5 * model_view_extent
-				* (NumViewsTotal - 1) );
+				- 0.5 * model_view_extent * (NumViewsTotal - 1) );
 		tImages[ img_idx ].setLatestFromEarliest( tImage_extent );
 		tImages_all.affectTimeBounds( tImages[ img_idx ] );
 		for ( img_idx = 1; img_idx < NumImages; img_idx++ ) {
@@ -161,7 +160,7 @@ implements ScrollableView, IAutoRefreshable
 			tImages_all.affectTimeBounds( tImages[ img_idx ] );
 		}
 		// initialize cur_img_idx in offscreenImages[]
-		                                             cur_img_idx = half_NumImages;
+		cur_img_idx = half_NumImages;
 	}
 
 	public String getStringforTimesOfImages()
@@ -178,7 +177,7 @@ implements ScrollableView, IAutoRefreshable
 		return new TimeBoundingBox( tImages_all );
 	}
 
-	
+
 	// getValidImageIndex() convert an index to be
 	// { 0 <= image index < NumImages }
 	//  i.e. implements periodic boundary condition
@@ -284,7 +283,7 @@ implements ScrollableView, IAutoRefreshable
 	}
 
 	// scrollable_image interface when the view is zoomed in or out.
-	public void checkToZoomView()
+	public boolean checkToZoomView()
 	{
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: checkToZoomView()'s START: " );
@@ -296,13 +295,15 @@ implements ScrollableView, IAutoRefreshable
 				// for ( int img_idx = NumImages-1 ; img_idx >= 0 ; img_idx-- )
 				drawOneOffImage( offscreenImages[ img_idx ],
 						tImages[ img_idx ] );
+			
+			return true;
 		}
-		if ( Debug.isActive() )
-			Debug.println( "ScrollableObject: checkToZoomView()'s END: " );
+		
+		return false;
 	}
 
 	// scrollable_image interface when the view is scrolled by the scrollbar.
-	public void checkToScrollView()
+	public boolean checkToScrollView()
 	{
 		int Nimages_moved;
 		int img_mv_dir, img_idx;
@@ -353,10 +354,10 @@ implements ScrollableView, IAutoRefreshable
 					}
 					else { // img_mv_dir < 0
 						future_img_idx = getNearFutureImageIndex( img_idx );
-					tImages[ img_idx ].setLatestTime(
-							tImages[ future_img_idx ].getEarliestTime() );
-					tImages[ img_idx ].setEarliestFromLatest(
-							tImage_extent );
+						tImages[ img_idx ].setLatestTime(
+								tImages[ future_img_idx ].getEarliestTime() );
+						tImages[ img_idx ].setEarliestFromLatest(
+								tImage_extent );
 					}
 					// update tImages_all to reflect changes in tImages[]
 					// so drawOneOffImage() can use tImages_all
@@ -364,7 +365,7 @@ implements ScrollableView, IAutoRefreshable
 				}
 
 				// Update the offscreenImages[] of those scrolled
-				if ( img_mv_dir > 0 )
+				if ( img_mv_dir > 0 ){
 					//for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
 					for ( idx = Math.abs( Nimages_moved ); idx >=1; idx-- ) {
 						img_idx = getValidImageIndex( start_idx
@@ -373,7 +374,7 @@ implements ScrollableView, IAutoRefreshable
 							drawOneOffImage( offscreenImages[ img_idx ],
 									tImages[ img_idx ] );
 					}
-				else
+				}else{
 					for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
 						img_idx = getValidImageIndex( start_idx
 								+ img_mv_dir * idx );
@@ -381,9 +382,11 @@ implements ScrollableView, IAutoRefreshable
 							drawOneOffImage( offscreenImages[ img_idx ],
 									tImages[ img_idx ] );
 					}
+				}
 
 				// Update cur_img_idx in the offscreenImages[]
 				cur_img_idx = getValidImageIndex( cur_img_idx + Nimages_moved );
+				return true;
 			}
 			else {  // Math.abs( Nimages_moved ) > NumImages
 				if ( Debug.isActive() ) {
@@ -398,13 +401,13 @@ implements ScrollableView, IAutoRefreshable
 					// for ( img_idx = NumImages-1; img_idx >=0; img_idx-- )
 					drawOneOffImage( offscreenImages[ img_idx ],
 							tImages[ img_idx ] );
+				
+				return true;
 			}
 
 
 		}   // Endof if ( Nimages_moved != 0 )
-		if ( Debug.isActive() )
-			Debug.println( "ScrollableObject: checkToScrollView()'s END: " );
-
+		return false;
 	}
 
 	protected int time2pixel( double time_coord )
@@ -442,7 +445,7 @@ implements ScrollableView, IAutoRefreshable
 	drawOneOffImage( Image image, final TimeBoundingBox  image_endtimes );
 
 	public void paintComponent( Graphics g )
-	{
+	{		
 		if ( Debug.isActive() ) {
 			Debug.println( "ScrollableObject : paintComponent()'s START : " );
 			Debug.println( "ScrollableObject : paintComponent() "
@@ -501,7 +504,7 @@ implements ScrollableView, IAutoRefreshable
 		if(autoRefresh)
 			forceRedraw();
 	}
-	
+
 	/**
 	 * force to redraw the timelines
 	 */
@@ -510,16 +513,16 @@ implements ScrollableView, IAutoRefreshable
 		Dimension visible_size = getVisibleRect().getSize();
 		forceRedraw(visible_size.width, visible_size.height);
 	}
-	
+
 	@Override
-	final public void forceRedraw(final int visWidth, final int visHeight) {
+	final public void forceRedraw(final int visWidth, final int visHeight) {		
 		/*
            The offscreenImage cannot be created inside the constructor,
            because image size cannot be determined before the object
            is created
 		 */
-				
-		
+
+
 		if ( Debug.isActive() ) {
 			Debug.println( "ScrollableObject: componentResized()'s START: " );
 		}
@@ -573,7 +576,7 @@ implements ScrollableView, IAutoRefreshable
 
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: componentResized()'s END: " );
-		
+
 		repaint();
 	}
 
@@ -609,12 +612,12 @@ implements ScrollableView, IAutoRefreshable
 	public ModelTime getModelTime() {
 		return modelTime;
 	}
-	
+
 
 	public boolean isAutoRefresh() {
 		return autoRefresh;
 	}
-	
+
 	public void setAutoRefresh(boolean autoRefresh) {
 		this.autoRefresh = autoRefresh;
 	}

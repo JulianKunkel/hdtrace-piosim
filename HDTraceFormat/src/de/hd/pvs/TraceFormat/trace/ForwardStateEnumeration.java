@@ -32,18 +32,19 @@ import java.util.Stack;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 
 /**
- * Enumerate the children in correct time order
+ * Enumerate the children in correct time order. 
+ * 
  * @author Julian M. Kunkel
  */
 public class ForwardStateEnumeration implements Enumeration<TraceEntry>{
-	Stack<StateTraceEntry> nestedChildren = new Stack<StateTraceEntry>();
-	Stack<Iterator<TraceEntry>> nestedIterator = new Stack<Iterator<TraceEntry>>();
-
+	private Stack<StateTraceEntry> nestedChildren = new Stack<StateTraceEntry>();
+	private Stack<Iterator<TraceEntry>> nestedIterator = new Stack<Iterator<TraceEntry>>();
+	
 	protected boolean hasMoreElements;
 
 	public ForwardStateEnumeration(StateTraceEntry owner) {			
 		pushOnStackIfPossible(owner);
-		hasMoreElements = (nestedIterator.size() != 0);			
+		hasMoreElements = (nestedIterator.size() != 0);
 	}
 
 	private void pushOnStackIfPossible(StateTraceEntry entry){
@@ -62,6 +63,7 @@ public class ForwardStateEnumeration implements Enumeration<TraceEntry>{
 		return hasMoreElements;
 	}
 
+	
 	@Override
 	public TraceEntry nextElement() {
 		Iterator<TraceEntry> iter = nestedIterator.peek();

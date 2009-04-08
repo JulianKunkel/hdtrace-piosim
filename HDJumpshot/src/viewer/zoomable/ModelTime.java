@@ -462,7 +462,6 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 		 enableFireTimeUpdate = true;
 		 
 		 this.fireTimeChanged();
-		 
 	 }
 
 	 public void zoomUndo()

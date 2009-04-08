@@ -384,7 +384,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntry(true, 
+		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntryLaterThan(true, 
 				startTime.add(getModelTime().getTimeGlobalMinimum()), 
 				endTime.add(getModelTime().getTimeGlobalMinimum())) ;
 

@@ -34,7 +34,6 @@
 
 package viewer.zoomable;
 
-import javax.swing.JViewport;
 
 /*
    Define the interface to be implemented by the view object within
@@ -44,9 +43,13 @@ import javax.swing.JViewport;
 
 public interface ScrollableView
 {
-    public void checkToZoomView();
+	/**
+	 * Returns whether it is redrawn or not.
+	 * @return
+	 */
+    public boolean checkToZoomView();
 
-    public void checkToScrollView();
+    public boolean checkToScrollView();
 
     public int  getXaxisViewPosition();
 

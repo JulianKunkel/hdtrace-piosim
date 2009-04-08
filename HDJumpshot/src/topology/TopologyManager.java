@@ -50,6 +50,7 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import viewer.common.Const;
 import viewer.histogram.StatisticHistogramFrame;
 import viewer.timelines.TimelineType;
 import viewer.zoomable.ModelTime;
@@ -448,6 +449,8 @@ public class TopologyManager
 		tree.putClientProperty("JTree.lineStyle", "Angled");
 		
 		tree.addMouseListener(treeMouseListener);
+		tree.setFont(Const.FONT);
+		
 	}
 
 	public void expandTree()

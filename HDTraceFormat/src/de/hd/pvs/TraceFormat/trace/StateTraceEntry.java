@@ -54,7 +54,7 @@ public class StateTraceEntry extends TraceEntry{
 	 * This includes not the parent state. 
 	 * @return
 	 */
-	public ForwardStateEnumeration childForwardEnumeration(Epoch startTime){
+	public ForwardStateEnumerationStartTime childForwardEnumeration(Epoch startTime){
 		return new ForwardStateEnumerationStartTime(this, startTime);
 	}
 

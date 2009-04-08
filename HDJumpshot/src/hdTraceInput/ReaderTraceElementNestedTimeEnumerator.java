@@ -41,36 +41,20 @@ public class ReaderTraceElementNestedTimeEnumerator extends ReaderTraceElementEn
 	protected ForwardStateEnumeration stateChildEnumeration = null;
 
 	public ReaderTraceElementNestedTimeEnumerator(BufferedTraceFileReader reader, Epoch startTime, Epoch endTime) {
-		super(reader, startTime, endTime);
-		if (! hasMoreElements())
-			return ;
-		
-		// scan if the state before has nested elements later than the given time.
-		final TraceEntry next = peekNextElement();
-
-		if(next.getType() == TraceObjectType.STATE){
-			// now its a state
-			final StateTraceEntry state = (StateTraceEntry) next;
-			if(! state.hasNestedTraceChildren())
-				return;
-			stateChildEnumeration = state.childForwardEnumeration(startTime);
-			if(! stateChildEnumeration.hasMoreElements()){
-				stateChildEnumeration = null;
-			}
-		}
+		super(reader, startTime, endTime);		
 	}
 
 	@Override
-	public TraceEntry nextElement() {
-		if( stateChildEnumeration == null ){ 
+	public TraceEntry nextElement() {		
+		if( stateChildEnumeration == null){ 
 			final TraceEntry current = super.nextElement();
-			
 			if(current.getType() == TraceObjectType.STATE){
 				final StateTraceEntry state = (StateTraceEntry) current;
 				if(! state.hasNestedTraceChildren())
 					return current;
 				
 				stateChildEnumeration = state.childForwardEnumeration();
+								
 				return current;
 			}
 			
@@ -78,7 +62,7 @@ public class ReaderTraceElementNestedTimeEnumerator extends ReaderTraceElementEn
 			
 			return current;
 		}
-		
+				
 		// now stateChildEnumeration != null
 		final TraceEntry current = stateChildEnumeration.nextElement();
 		
@@ -91,7 +75,7 @@ public class ReaderTraceElementNestedTimeEnumerator extends ReaderTraceElementEn
 
 	@Override
 	public boolean hasMoreElements() {
-		return stateChildEnumeration != null || super.hasMoreElements();
+		return (stateChildEnumeration != null && stateChildEnumeration.hasMoreElements()) || super.hasMoreElements();
 	}
 	
 	@Override

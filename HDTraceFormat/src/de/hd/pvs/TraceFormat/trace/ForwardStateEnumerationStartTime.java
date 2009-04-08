@@ -29,11 +29,11 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 
 /**
- * Enumerate the children in correct time order, start with an initial time.
+ * Enumerate the children in correct time order, start with an initial time. The enumeration allows to look ahead one element.
  * 
  * @author Julian M. Kunkel
  */
-class ForwardStateEnumerationStartTime extends ForwardStateEnumeration{
+public class ForwardStateEnumerationStartTime extends ForwardStateEnumeration{
 	
 	TraceEntry current = null;
 		
@@ -45,6 +45,17 @@ class ForwardStateEnumerationStartTime extends ForwardStateEnumeration{
 				return;
 			}
 		}
+		if(! super.hasMoreElements){
+			current = null;
+		}
+	}
+	
+	/**
+	 * Look at the next element without extracting it.
+	 * @return
+	 */
+	public TraceEntry peek(){
+		return current;
 	}
 	
 	@Override

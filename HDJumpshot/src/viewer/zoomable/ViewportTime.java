@@ -265,8 +265,9 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 		if ( view_img != null ) {
 			// view_img.checkToXXXXView() assumes constant image size
-			view_img.checkToZoomView();
-			view_img.checkToScrollView();
+			if(! view_img.checkToZoomView() && ! view_img.checkToScrollView()) // if already redrawn, don't redraw again:
+				view_img.forceRedraw();
+			
 			if ( Debug.isActive() )
 				Debug.println( "ViewportTime:timeChanged()'s view_img = "
 						+ view_img );
