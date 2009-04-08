@@ -1,3 +1,17 @@
+/**
+ * \file file.c
+ * This program can be used to test the logging capabilities
+ * of the MPI wrapper.
+ * The programs creates, deletes and opens some files, for which
+ * the logfile must show identical IDs for the same files and
+ * different IDs for different files.
+ *
+ * The deletion of a file before opening it should be handled
+ * correctly, even if the occurrence of such a sequence is rare.
+ *
+ * \author Paul Mueller <pmueller@ix.urz.uni-heidelberg.de>
+ */
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,10 +37,10 @@ int main (int argc, char** argv)
 	MPI_Info info;
 	MPI_Info_create(&info);
 	MPI_File_delete("filetest_01.tmp", info);
-	
+
 	MPI_File fh;
 	MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_RDONLY, info, &fh);
-	
+
 	MPI_Status status;
 	char buf[] = "r";
 	MPI_File_write_at_all(fh, sizeof(char)*rank, buf, 1, MPI_CHAR, &status);
@@ -44,13 +58,13 @@ int main (int argc, char** argv)
 
 	MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_RDONLY, info, &fh);
 	MPI_File_close(&fh);
-	
+
 	MPI_File_delete("filetest_02.tmp", info);
 	MPI_File_delete("filetest_03.tmp", info);
-	
-	
+
+
 	MPI_Barrier(MPI_COMM_WORLD);
-	
+
 	MPI_Finalize();
 
 	return 0;

@@ -28,9 +28,9 @@
 * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 * SUCH DAMAGE.
 */
+"""
 
-
-
+"""
 This script uses the configuration from wrapper_conf to produce C functions 
 which can then be compiled to an MPI wrapper. The used variables from wrapper_conf 
 are:
@@ -70,6 +70,9 @@ int MPI_<Function>(<type 1> v1, <type 2> v2, ..., <type n> vn)
 --------------------------------------------------------------------------------
 """
 
+
+
+
 import re
 import sys
 from wrapper_conf import noLog, beforeMpi, afterMpi, afterLog, logAttributes
@@ -86,6 +89,10 @@ funcs = open(sys.argv[1]).readlines()
 # print all function definitions
 for i in xrange(0, len(funcs)):
   f = funcs[i]
+
+  #ignore comments
+  if len(f) >= 1 and f[0] == "/":  
+    continue
   if len(f) > 5 :
     regex = re.match("int MPI_([^(]*)\(([^)]*)", f)
     if not regex:

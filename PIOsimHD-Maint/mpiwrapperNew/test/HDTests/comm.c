@@ -1,3 +1,10 @@
+/**
+ * @file comm.c
+ * This program can be used to perform a test of the logging capabilities
+ * of the MPI wrapper. \a MPI_Sendrecv(...) is attempted with
+ * MPI_COMM_WORLD and a manually created MPI communicator.
+ */
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +35,7 @@ int main (int argc, char** argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	printf("%3d/%3d: Hello world!\n", rank + 1, size);
-	
+
 	if(size < 5)
 	{
 		perror("This test requires a group size of at least 5\n");
@@ -58,7 +65,7 @@ int main (int argc, char** argv)
 	for(i=0; i < size; i++){
 		printf(" %d %d \n", i, ranksOut[i]);
 	}
-		
+
 	MPI_Comm newcomm;
 	MPI_Comm_create(MPI_COMM_WORLD, group, &newcomm);
 
@@ -67,11 +74,11 @@ int main (int argc, char** argv)
 		int sendbuf, recvbuf;
 		MPI_Status status;
 
-		MPI_Sendrecv(&sendbuf, 1, MPI_INT, 6 - rank, 0, 
+		MPI_Sendrecv(&sendbuf, 1, MPI_INT, 6 - rank, 0,
 					 &recvbuf, 1, MPI_INT, 6 - rank, 0,
 					 MPI_COMM_WORLD, &status);
 
-		MPI_Sendrecv(&sendbuf, 1, MPI_INT, rank==2 ? 1 : 0, 0, 
+		MPI_Sendrecv(&sendbuf, 1, MPI_INT, rank==2 ? 1 : 0, 0,
 					 &recvbuf, 1, MPI_INT, rank==2 ? 1 : 0, 0,
 					 newcomm, &status);
 
@@ -80,7 +87,7 @@ int main (int argc, char** argv)
 
 
 	MPI_Barrier(MPI_COMM_WORLD);
-	
+
 	MPI_Finalize();
 
 	return 0;

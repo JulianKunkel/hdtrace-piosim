@@ -28,7 +28,6 @@
 # * SUCH DAMAGE.
 # */
 
-
 """
 This script takes an output file and a number of HDTraceMPIWrapper logfiles as 
 an argument. 
@@ -40,26 +39,26 @@ the output file.
 # running mpi-io-test with 5 nodes results in the following files being written:
 
 $ mpiexec -n 5 ./mpi-io-test
-$ ls -1 trace_mpi-io-test*
-trace_mpi-io-test_node01_0_0.info
-trace_mpi-io-test_node01_0_0.xml
-trace_mpi-io-test_node01_2_0.info
-trace_mpi-io-test_node01_2_0.xml
-trace_mpi-io-test_node01_4_0.info
-trace_mpi-io-test_node01_4_0.xml
-trace_mpi-io-test_node02_1_0.info
-trace_mpi-io-test_node02_1_0.xml
-trace_mpi-io-test_node02_3_0.info
-trace_mpi-io-test_node02_3_0.xml
+$ ls -1 mpi-io-test*
+mpi-io-test_node01_0_0.info
+mpi-io-test_node01_0_0.xml
+mpi-io-test_node01_2_0.info
+mpi-io-test_node01_2_0.xml
+mpi-io-test_node01_4_0.info
+mpi-io-test_node01_4_0.xml
+mpi-io-test_node02_1_0.info
+mpi-io-test_node02_1_0.xml
+mpi-io-test_node02_3_0.info
+mpi-io-test_node02_3_0.xml
 
 #
 # to process the output, call this script:
 # 
 
-$ project-description-merger.py -o trace_mpi-io-test.xml trace_mpi-io-test_*
+$ project-description-merger.py -o mpi-io-test.xml mpi-io-test_*
 
 #
-# trace_mpi-io-test.xml now contains the project data for the program.
+# mpi-io-test.xml now contains the project data for the program.
 #
 #################################################################################
 

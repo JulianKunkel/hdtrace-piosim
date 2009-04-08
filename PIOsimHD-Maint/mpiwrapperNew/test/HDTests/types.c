@@ -1,3 +1,15 @@
+/**
+ * \file types.c
+ *
+ * This program can be used to test the logging capabilities of
+ * the MPI wrapper.
+ *
+ * The program creates and uses some MPI datatypes which should
+ * be logged by the wrapper.
+ *
+ * \author Paul Mueller <pmueller@ix.urz.uni-heidelberg.de>
+ */
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,9 +18,6 @@
 
 int rank;
 int size;
-
-int MPI_hdT_Test_nested(int, int);
-
 
 
 int darray_2d_c_test1(void)
@@ -20,7 +29,7 @@ int darray_2d_c_test1(void)
     int array_dargs[2] = {MPI_DISTRIBUTE_DFLT_DARG, MPI_DISTRIBUTE_DFLT_DARG};
     int array_psizes[2] = {3, 3};
     int i, rank, err, errs = 0, sizeoftype;
- 
+
     /* pretend we are each rank, one at a time */
     for (rank=0; rank < 9; rank++) {
         /* set up buffer */
@@ -99,7 +108,7 @@ int main (int argc, char** argv)
 
 	MPI_Type_create_resized(type5, 10, 20, &type4);
 	MPI_Type_commit(&type4);
-	
+
 	MPI_Type_contiguous(3, type4, &type3);
 	MPI_Type_commit(&type3);
 
@@ -116,8 +125,8 @@ int main (int argc, char** argv)
 	printf("size=%d\n", size);
 	//size = 10000;
 	char *send = malloc(size);
-	//MPI_Bcast(send, 1, type2, 0, MPI_COMM_WORLD);
-	
+	MPI_Bcast(send, 1, type2, 0, MPI_COMM_WORLD);
+
 	MPI_Finalize();
 
 	free(send);

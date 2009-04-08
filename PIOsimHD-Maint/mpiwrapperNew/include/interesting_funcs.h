@@ -1,3 +1,27 @@
+///
+/// @file interesting_funcs.h
+///
+///All functions declared here will be traced by the MPI Wrapper.
+/// This file is processed by a script to automatically generate a
+/// C source file, which means only a small subset of valid C function
+/// declarations may be used.
+///
+/// In particular, only argument types may be used in the declaration.
+/// Using an argument name will cause the script to produce
+/// an erroneous source file.
+/// Lines beginning with a forward slash ("/") are ignored.
+///
+///
+/// Correct declaration:
+/// @code
+/// int MPI_Init(int *, char ***);
+/// @endcode
+///
+/// Incorrect declaration:
+/// @code
+/// int MPI_Init(int *argc, char ***argv);
+/// @endcode
+///
 int MPI_Send(void*, int, MPI_Datatype, int, int, MPI_Comm);
 int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
 int MPI_Bsend(void*, int, MPI_Datatype, int, int, MPI_Comm);
@@ -31,8 +55,8 @@ int MPI_Sendrecv(void *, int, MPI_Datatype,int, int, void *, int, MPI_Datatype, 
 int MPI_Sendrecv_replace(void*, int, MPI_Datatype, int, int, int, int, MPI_Comm, MPI_Status *);
 int MPI_Barrier(MPI_Comm );
 int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm );
-int MPI_Gather(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm); 
-int MPI_Gatherv(void* , int, MPI_Datatype, void*, int *, int *, MPI_Datatype, int, MPI_Comm); 
+int MPI_Gather(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
+int MPI_Gatherv(void* , int, MPI_Datatype, void*, int *, int *, MPI_Datatype, int, MPI_Comm);
 int MPI_Scatter(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
 int MPI_Scatterv(void* , int *, int *,  MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
 int MPI_Allgather(void* , int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm);
@@ -106,9 +130,7 @@ int MPI_File_set_info(MPI_File, MPI_Info);
 
 int MPI_Pcontrol(const int , ...);
 
-int MPI_Type_vector(int, int, int, MPI_Datatype, MPI_Datatype *); 
-
-int MPI_hdT_Test_nested(int, int);
+int MPI_Type_vector(int, int, int, MPI_Datatype, MPI_Datatype *);
 
 int MPI_Type_commit(MPI_Datatype *);
 

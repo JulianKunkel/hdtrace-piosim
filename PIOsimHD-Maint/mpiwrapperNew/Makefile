@@ -30,6 +30,12 @@ clean:
 	cd test ; make clean
 	rm -f src/*.o libs/*.a
 	rm -f src/HDTraceMPIWrapper.c
+	rm -rf doc/doxygen/html
+	rm -rf doc/doxygen/latex
 
+.PHONY: doc
+
+doc:
+	doxygen Doxyfile
 
 ### libglib2.0-0

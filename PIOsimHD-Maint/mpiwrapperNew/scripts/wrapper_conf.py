@@ -22,7 +22,7 @@ logAttributes contains the information about the names and values of the logged
 
 Further information is documented for each variable below.
 
-Author: Paul Müller, pmueller@ix.urz.uni-heidelberg.de
+Author: Paul Müller <pmueller@ix.urz.uni-heidelberg.de>
 """
 
 
@@ -239,7 +239,7 @@ afterMpi = {
    {
      if(v3 != MPI_THREAD_SINGLE )
      {
-       printf("Init_thread: multithreading currently not supported by HDTrace\\n");
+       printDebugMessage("Init_thread: multithreading currently not supported by HDTrace\\n");
        return -1;
      }
    }

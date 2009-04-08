@@ -1,15 +1,40 @@
+/**
+ * @file hash_tables.c
+ *
+ * The MPI wrapper maps file handles, file names, communicators
+ * and types to integers for easier logging. This file provides
+ * an interface to these mappings.
+ *
+ * Example: The first call of getCommId(comm) creates a new id
+ * (an integer) and associates it with \a comm. Any following call
+ * with the same argument will return the same id.
+ *
+ *
+ */
+
 #include "write_info.h"
 
-/** Hash function for MPI_File. This function is needed for 
- * file handle to id hashtables
+/**
+ * Hash function for MPI_File.
+ *
+ * This function is used to create a GHashTable of MPI_File
+ * objects.
+ *
+ * @return  Key hash, which is a simple cast to int.
  */
 guint hash_MPI_File(gconstpointer key)
 {
 	return (guint)*(MPI_File*)key;
 }
 
-/** Compare two MPI_File objects. This function is needed for
+/**
+ * Comparison function for MPI_File objects.
+ *
+ * Compare two MPI_File objects. This function is needed for
  * file handle to id hashtables
+ *
+ * @return \a TRUE if the file handles are equal and \a FALSE
+ * otherwise.
  */
 gboolean equal_MPI_File(gconstpointer a, gconstpointer b)
 {
@@ -19,15 +44,38 @@ gboolean equal_MPI_File(gconstpointer a, gconstpointer b)
 }
 
 
+/**
+ * This thread global variable holds a pointer to a hash table that maps
+ * an MPI communicator to an ID number. The ID is assigned to
+ * the communicator on the first use.
+ *
+ * The hash table is created at first use of this variable and
+ * destroyed, when \a destroyHashTables() is called.
+ */
 static __thread GHashTable *comm_to_id = NULL;
+
+/**
+ * This thread global variable is used to assign unique IDs to
+ * the used communicators. On the first use of an MPI communicator,
+ * the value of \a comm_id_counter is used as ID. \a comm_id_counter
+ * is incremented afterwards.
+ */
 static __thread gint comm_id_counter = 0;
 
+/**
+ * This function returns the ID that has been assigned to \a comm.
+ * If \a comm does not have an ID, a new one will be assigned.
+ *
+ * \param comm an MPI communicator
+ *
+ * \return the ID that is associated with the communicator.
+ */
 static gint getCommId(MPI_Comm comm)
 {
 	if(comm_to_id == NULL)
 	{
 		comm_to_id = g_hash_table_new_full(g_int_hash, g_int_equal, free, free);
-	}	
+	}
 	gpointer result = g_hash_table_lookup(comm_to_id, &comm);
 	if(result == NULL)
 	{
@@ -44,16 +92,48 @@ static gint getCommId(MPI_Comm comm)
 	return *(gint*)result;
 }
 
+/**
+ * This variable holds a pointer to a hash table that maps
+ * an MPI file handle to an ID that has been assigned to the
+ * file handle.
+ *
+ * The hash table is created in \a getFileId(...) or \a getFileIdEx(...)
+ * and destroyed in \a destroyHashTables()
+ */
 __thread GHashTable *file_handle_to_id = NULL;
+
+/**
+ * This variable holds a pointer to a hash table that maps the
+ * name of a file to an ID. If a file is opened, the corresponding
+ * file handle is mapped to the same ID by the hash table
+ * \a file_handle_to_id.
+ *
+ * The hash table is created in \a getFileIdFromName(...)
+ *  or \a getFileIdEx(...) and destroyed in \a destroyHashTables()
+ */
 __thread GHashTable *file_name_to_id = NULL;
+
+/**
+ * This variable is used to assign unique IDs to file handles and
+ * file names. Whenever a new ID is needed, the value of
+ * \a file_id_counter is taken as id and \a file_id_counter is incremented.
+ */
 __thread gint file_id_counter = 0;
 
+/**
+ * This function returns the unique ID that has been assigned to the
+ * MPI file handle \a fh. A new ID is assigned, if needed.
+ *
+ * \param fh an MPI file handle.
+ *
+ * \return the ID assigned to \a fh.
+ */
 static gint getFileId(MPI_File fh)
 {
 	if(file_handle_to_id == NULL)
 	{
 		file_handle_to_id = g_hash_table_new_full(hash_MPI_File, equal_MPI_File, free, free);
-	}	
+	}
 	gpointer result = g_hash_table_lookup(file_handle_to_id, &fh);
 	if(result == NULL)
 	{
@@ -71,9 +151,26 @@ static gint getFileId(MPI_File fh)
 	return *(gint*)result;
 }
 
+/**
+ * This function can be used to remove a file handle from the
+ * \a file_handle_to_id map. It should be called whenever the
+ * file handle becomes invalid (i.e. on \aMPI_File_close(...) )
+ *
+ * \param fh The file handle to be removed
+ */
+static void removeFileHandle(MPI_File fh)
+{
+	g_hash_table_remove(file_handle_to_id, &fh);
+}
 
-
-
+/**
+ * This function returns the file ID that has been associated
+ * with \a name.
+ *
+ * \param name the name of the file
+ *
+ * \return ID associated with \a name
+ */
 static gint getFileIdFromName(const char * name)
 {
 	if(file_name_to_id == NULL)
@@ -81,20 +178,20 @@ static gint getFileIdFromName(const char * name)
 		file_name_to_id = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 	}
 
-	/* NOTE: it would be nice to canonicalize the file name, e.g. with 
-	 * realpath(name, NULL);. Unfortunately, this doesn't work with names 
+	/* NOTE: it would be nice to canonicalize the file name, e.g. with
+	 * realpath(name, NULL);. Unfortunately, this doesn't work with names
      * beginning with "pvfs://"
-	 */ 
+	 */
 	char * real_path = g_strdup(name);
 
-	gpointer result =  g_hash_table_lookup(file_name_to_id, real_path); 
+	gpointer result =  g_hash_table_lookup(file_name_to_id, real_path);
 	if(result == NULL)
 	{
 		gint *g_id = malloc(sizeof(gint));
 		*g_id = file_id_counter;
 		g_hash_table_insert(file_name_to_id, real_path, g_id);
 		file_id_counter++;
-		
+
 		writeFileInfo(name, 0, *g_id);
 
 		return *g_id;
@@ -102,16 +199,14 @@ static gint getFileIdFromName(const char * name)
 	return *(gint*)result;
 }
 
-
-
  /**
- * This function should be used, whenever a file is acessed by name and its 
+ * This function should be used, whenever a file is acessed by name and its
  * file pointer is known (File_open...)
  * If the file has been accessed before (by name), the same id can
  * be associated again.
  *
  * If the file has not yet been opened, an entry is written to the trace file
- * 
+ *
  */
 static gint getFileIdEx(MPI_File fh, const char * name)
 {
@@ -122,13 +217,13 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 	if(file_handle_to_id == NULL)
 	{
 		file_handle_to_id = g_hash_table_new_full(hash_MPI_File, equal_MPI_File, free, free);
-	}	
+	}
 
-	/* NOTE: it would be nice to canonicalize the file name, e.g. with 
-	 * nrealpath(name, NULL);. Unfortunately, this doesn't work with names 
+	/* NOTE: it would be nice to canonicalize the file name, e.g. with
+	 * nrealpath(name, NULL);. Unfortunately, this doesn't work with names
      * beginning with "pvfs://"
-	 */ 
-	gpointer name_result = g_hash_table_lookup(file_name_to_id, name); 
+	 */
+	gpointer name_result = g_hash_table_lookup(file_name_to_id, name);
 	gpointer handle_result = g_hash_table_lookup(file_handle_to_id, &fh);
 
 	if(name_result == NULL) //don't know the file
@@ -142,11 +237,11 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 		else
 		{
 			// this is a new file
-			gint *g_id = malloc(sizeof(gint)); 
+			gint *g_id = malloc(sizeof(gint));
 			gint *g_id2 = malloc(sizeof(gint)); // this makes it easier to automatically free the memory
 			MPI_File *g_fh = malloc(sizeof(MPI_File));
 			assert(sizeof(gint) >= sizeof(MPI_File));
-			
+
 			*g_fh = fh;
 			*g_id = file_id_counter;
 			*g_id2 = file_id_counter;
@@ -159,11 +254,11 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 
 			writeFileInfo(name, fileSize, *g_id);
 			/*
-			hdT_LogInfo(tracefile, 
+			hdT_LogInfo(tracefile,
 						"File name=\"%s\" Size=%lld id=%d\n",
 						name, fileSize, *g_id);
 			*/
-			
+
 			file_id_counter++;
 
 			return *g_id;
@@ -181,7 +276,7 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 			}
 			else
 			{
-				// fix the fh -> id mapping and warn 
+				// fix the fh -> id mapping and warn
 				gint *g_id = malloc(sizeof(gint));
 				MPI_File *g_fh = malloc(sizeof(MPI_File));
 				*g_id = *(gint*)name_result;
@@ -208,9 +303,25 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 	}
 }
 
+/**
+ * This variable holds a pointer to the hash table that maps MPI types
+ * to IDs
+ */
 __thread GHashTable *type_table = NULL;
+
+/**
+ * This is the value that is saved in \a type_table for every
+ * type that is listed in the map. We don't need to create
+ * new IDs because we can cast the MPI_Datatype to an int and
+ * use that as ID.
+ */
 __thread gint type_table_result = 1; // what is returned when the type is found in type_table
 
+/**
+ * This function returns the ID that is associated with the
+ * MPI datatype \a type. If no ID is associated, a new one is created
+ * and returned.
+ */
 static gint getTypeId(MPI_Datatype type)
 {
 	if(type_table == NULL)
@@ -229,16 +340,42 @@ static gint getTypeId(MPI_Datatype type)
 	return type;
 }
 
+/**
+ * \a request_to_id holds a pointer to a hash table that maps an
+ * MPI_Request to an ID.
+ *
+ * Because we use requests to keep track of split collective calls
+ * as well as for nonblocking calls, we need to map MPI_Requests
+ * and file handles to unique request IDs
+ */
 __thread GHashTable *request_to_id = NULL;
+
+/**
+ * \a request_to_id holds a pointer to a hash table that maps an
+ * MPI file handle to an ID.
+ *
+ * Because we use requests to keep track of split collective calls
+ * as well as for nonblocking calls, we need to map MPI_Requests
+ * and file handles to unique request IDs
+ */
 __thread GHashTable *fh_to_request_id = NULL; // used to log split-collective-calls
+
+/**
+ * This counter provides the request IDs that are assigned
+ * to MPI_Requests (from nonblocking calls) and file handles
+ * (from split collective calls).
+ */
 __thread gint request_counter = 0;
 
+/**
+ * This function returns the ID that has been assigned to \a request.
+ */
 static gint getRequestId(MPI_Request request)
 {
 	if(request_to_id == NULL)
 	{
 		request_to_id = g_hash_table_new_full(g_int_hash, g_int_equal, free, free);
-	}	
+	}
 	gpointer result = g_hash_table_lookup(request_to_id, &request);
 	if(result == NULL)
 	{
@@ -254,6 +391,10 @@ static gint getRequestId(MPI_Request request)
 	return *(gint*)result;
 }
 
+/**
+ * This function returns the request ID that has been assigned to
+ * the \a file for a split collective call.
+ */
 static gint getRequestIdForSplit(MPI_File file)
 {
 	if(fh_to_request_id == NULL)
@@ -269,12 +410,15 @@ static gint getRequestIdForSplit(MPI_File file)
 		*g_id = request_counter;
 		request_counter++;
 		g_hash_table_insert(fh_to_request_id, g_fh, g_id);
-		
+
 		return *g_id;
 	}
 	return *(gint*)result;
 }
 
+/**
+ * This functions destroys all hash tables that have been created.
+ */
 static void destroyHashTables()
 {
 	if(file_handle_to_id)
@@ -304,7 +448,4 @@ static void destroyHashTables()
 	}
 }
 
-static void removeFileHandle(MPI_File fh)
-{
-	g_hash_table_remove(file_handle_to_id, &fh);
-}
+
