@@ -20,8 +20,13 @@
  * Print X followed by the code position followed by formated message
  * Do not use directly, use hd_(info|debug|error)_msg instead.
  */
-#define hd_X_msg(X, format, ...) \
-	fprintf(stderr, X ": %s (%s:%d): " format "\n", __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#ifdef NDEBUG
+# define hd_X_msg(X, format, ...) \
+	fprintf(stderr, X ": " format "\n", __VA_ARGS__);
+#else
+# define hd_X_msg(X, format, ...) \
+	fprintf(stderr, X ": %s (%s:%d): " format "\n", __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#endif /* NDEBUG */
 
 /**
  * Print a formated error message prefixed by "E:" and code position
@@ -49,21 +54,35 @@
 	return ret; }
 
 /**
+ * Allocate memory and check for error
+ */
+#define	hd_malloc(var, num, fail) \
+	var = malloc(num * sizeof(*(var))); \
+	if (var == NULL) { hd_error_return(HD_ERR_MALLOC,fail) }
+
+/**
+ * Free memory and set pointer to null for easier debugging
+ */
+#define	hd_free(var) \
+	free(var); \
+	var = NULL;
+
+/**
  * Verbosity levels of the libraries.
  */
 enum verbosity {
 	/**
 	 * Print only error messages. (default)
 	 */
-	V_ERROR,
+	V_ERROR,//!< V_ERROR
 	/**
 	 * Print additional info messages.
 	 */
-	V_INFO,
+	V_INFO, //!< V_INFO
 	/**
 	 * Print detailed debugging messages.
 	 */
-	V_DEBUG
+	V_DEBUG //!< V_DEBUG
 };
 
 /**
@@ -91,5 +110,10 @@ ssize_t writeToFile(
 		size_t count,
 		const char *filename
 		);
+
+/**
+ * Print a number of indentations to a string.
+ */
+int snprintIndent(char* string, size_t size, int num);
 
 #endif /* COMMON_H_ */

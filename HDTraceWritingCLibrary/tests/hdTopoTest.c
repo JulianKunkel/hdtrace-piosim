@@ -15,12 +15,7 @@
 #include "hdTopo.h"
 #include "hdError.h"
 
-#define TEST_BEGIN(name) \
-	printf("%s: Start test \"%s\"\n", __FUNCTION__, name);
-
-#define TEST_PASSED \
-	printf("%s: Passed\n", __FUNCTION__);
-
+#include "tests.h"
 
 /**
  * Test hdT_createTopology.

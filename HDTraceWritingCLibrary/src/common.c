@@ -256,3 +256,40 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 
 	return written;
 }
+
+/**
+ * Print a number of indentations to a string.
+ *
+ * Upon successful return, this function return the number of characters
+ *  printed (not including the trailing '\\0' used to end output to
+ *  strings).<br>
+ * The function do not write more than \a size bytes (including  the trailing
+ *  '\\0'). If the output was truncated due to this limit then the return value
+ *  is the number of characters (not including the trailing '\\0') which would
+ *  have been written to the final string if enough space had been available.
+ *  Thus, a return value of \a size  or  more  means  that  the output was
+ *  truncated. (See also \c snprintf(3))<br>
+ *
+ * @param string  String to use
+ * @param size    Maximum size to write in bytes
+ * @param num     Number of indentations to write
+ *
+ * @return  Number of bytes written to string
+ */
+/* NOT USED --- REMOVE IF YOU DESIDE TO */
+int snprintIndent(char* string, size_t size, int num)
+{
+	int off;
+	for (int i = 0; i < num; ++i)
+	{
+		int sret = snprintf(string+off, size - off, HD_INDENT_STRING);
+		if ((size_t) sret >= size - off)
+			return off + sret;  // snprintf like return value
+		if (sret < 0)
+			return sret;  // should never happen
+
+		off += sret;
+	}
+	return off;
+}
+

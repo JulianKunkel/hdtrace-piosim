@@ -1,4 +1,5 @@
 INCLUDE_DIR=../include
+LIB_DIR=../lib
 
 CC=gcc
 MAKEDEPEND=gcc -MM
@@ -6,6 +7,7 @@ MAKEDEPEND=gcc -MM
 #CPPFLAGS=-DDEBUG
 CPPFLAGS=
 CFLAGS=-W -Wall -g -std=c99 -pedantic -D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
+LDFLAGS=-L$(LIB_DIR)
 
 # use large file compilation environment
 CFLAGS+=$(shell getconf LFS_CFLAGS)
@@ -34,6 +36,9 @@ dist-clean: clean
 
 ../src/%o: force
 	$(MAKE) -C ../src $(notdir $@)
+
+../lib/%: force
+	$(MAKE) -C .. lib/$(notdir $@)
 	
 %.o : %.c
 	@echo "  DEP  $@"; \
@@ -47,6 +52,10 @@ dist-clean: clean
 
 hdTopoTest: hdTopoTest.o ../src/hdTopo.o
 	@echo "  LD  $@"; \
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) $^ -o $@
+	
+hdStatsTest: hdStatsTest.o ../lib/libhdStats.a
+	echo "  LD  $@"; \
+	$(CC) $(LDFLAGS) $^ -lhdStats -o $@
 	
 -include $(SRCS:%.c=$(DEPDIR)/%.P)

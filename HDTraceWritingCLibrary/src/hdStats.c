@@ -262,7 +262,7 @@ hdStatsGroup hdS_createGroup (
         )
 {
 	/* check input */
-	if (isValidTagString(groupName) || topology == NULL
+	if (!isValidTagString(groupName) || topology == NULL
 			|| hdT_getTopoNodeLevel(topoNode) < topoLevel)
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
@@ -282,26 +282,27 @@ hdStatsGroup hdS_createGroup (
 	int fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
 	if (fd < 0)
 	{
-		hd_error_msg("Could not open file %s: %s", filename, strerror(errno));
-	 	hd_error_return(HD_ERR_CREATE_FILE, NULL);
+		hd_error_msg("Could not open file %s: %s", filename, strerror(errno))
+	 	hd_error_return(HD_ERR_CREATE_FILE, NULL)
  	}
 
 	/* create group */
-	hdStatsGroup group = malloc(sizeof(*group));
+	hdStatsGroup group;
+	hd_malloc(group, 1, NULL)
 
 	/* setup group buffer for header */
-	group->buffer =
-		malloc(HDS_HEADER_BUF_SIZE * sizeof(*(group->buffer)));
+    hd_malloc(group->buffer, HDS_HEADER_BUF_SIZE, NULL)
+
 	group->btype = HDS_HEADER_BUFFER;
 	group->offset = 0;
 
 	/* set remaining group attributes */
+	group->name = strdup(groupName);
 	group->fd = fd;
 	group->tracefile = filename;
     group->hasString = 0;
     group->entryLength = 0;
-    group->valueTypes =
-    	malloc(HDS_MAX_VALUES_PER_GROUP * sizeof(*(group->valueTypes)));
+    hd_malloc(group->valueTypes, HDS_MAX_VALUES_PER_GROUP, NULL)
     group->nextValueIdx = 0;
     group->isCommitted = 0;
     group->isEnabled = 0;
@@ -317,61 +318,66 @@ hdStatsGroup hdS_createGroup (
 	/* append header length terminating newline to buffer */
 	group->buffer[group->offset++] = '\n';
 
-	int sret;
+	/* print debug output */
+	hd_debug_msg("Group '%s': offset=%d, btype=%d",
+			group->name, group->offset, group->btype);
+
+
+	int ret;
 
 	/* append TopologyNode start tag to buffer */
-	sret = appendFormatToGroupBuffer(group, "<TopologyNode>\n");
-	if (sret < 0)
+	ret = appendFormatToGroupBuffer(group, "<TopologyNode>\n");
+	if (ret < 0)
 		return NULL;
 
 	for (int i = 1; i < topoLevel; ++i)
 	{
 		/* append Indentation for i-th Label start tag to buffer */
-		sret = appendIndentToGroupBuffer(group, i);
-		if (sret < 0)
+		ret = appendIndentToGroupBuffer(group, i);
+		if (ret < 0)
 			return NULL;
 
 		/* append i-th Label start tag to buffer */
-		sret = appendFormatToGroupBuffer(group, "<Label name=\"%s\">\n",
+		ret = appendFormatToGroupBuffer(group, "<Label value=\"%s\">\n",
 				hdT_getTopoPathLabel(topoNode,i));
-		if (sret < 0)
+		if (ret < 0)
 			return NULL;
 	}
 
 	/* append Indentation for last Label tag to buffer */
-	sret = appendIndentToGroupBuffer(group, topoLevel);
-	if (sret < 0)
+	ret = appendIndentToGroupBuffer(group, topoLevel);
+	if (ret < 0)
 		return NULL;
 
 	/* append last Label tag to buffer */
-	sret = appendFormatToGroupBuffer(group, "<Label name=\"%s\" />\n",
+	ret = appendFormatToGroupBuffer(group, "<Label value=\"%s\" />\n",
 			hdT_getTopoPathLabel(topoNode,topoLevel));
-	if (sret < 0)
+	if (ret < 0)
 		return NULL;
 
 	for (int i = topoLevel - 1; i >= 1; --i)
 	{
 		/* append Indentation for i-th Label end tag to buffer */
-		sret = appendIndentToGroupBuffer(group, i);
-		if (sret < 0)
+		ret = appendIndentToGroupBuffer(group, i);
+		if (ret < 0)
 			return NULL;
 
 		/* append i-th Label end tag to buffer */
-		sret = appendFormatToGroupBuffer(group, "</Label>\n");
-		if (sret < 0)
+		ret = appendFormatToGroupBuffer(group, "</Label>\n");
+		if (ret < 0)
 			return NULL;
 	}
 
 	/* write TopologyNode end tag to buffer */
-	sret = appendFormatToGroupBuffer(group, "</TopologyNode>\n",
+	ret = appendFormatToGroupBuffer(group, "</TopologyNode>\n",
 			hdT_getTopoPathLabel(topoNode,topoLevel));
-	if (sret < 0)
+	if (ret < 0)
 		return NULL;
 
 	/* write statistics group start tag to buffer */
-	sret = appendFormatToGroupBuffer(group,
+	ret = appendFormatToGroupBuffer(group,
 			"<%s timestampDatatype=\"EPOCH\">\n", groupName);
-	if (sret < 0)
+	if (ret < 0)
 		return NULL;
 
     return group;
@@ -437,7 +443,7 @@ int hdS_addValue (
 	}
 
 	/* check if maximum is already reached */
-	if(group->nextValueIdx == HDS_MAX_VALUES_PER_GROUP)
+	if(group->nextValueIdx >= HDS_MAX_VALUES_PER_GROUP)
 	{
 		hd_error_msg("Maximum number of values exceeded. Cannot add value %s"
 				" (group file %s). Check HDS_MAX_VALUES_PER_GROUP.",
@@ -454,7 +460,7 @@ int hdS_addValue (
 	/*
 	 * Add value to group
 	 */
-	group->valueTypes[group->nextValueIdx++] = type;
+	group->valueTypes[group->nextValueIdx] = type;
 
 	/* if there is a string value, checking the entry length is impossible */
 	if(group->hasString == 0)
@@ -479,21 +485,22 @@ int hdS_addValue (
 	 * Write value to header buffer
 	 */
 
-	int sret;  // return value
+	int ret;  // return value
 
 	/* write indentation to buffer */
-	sret = appendIndentToGroupBuffer(group, 1);
-	if (sret < 0)
-		return sret;
+	ret = appendIndentToGroupBuffer(group, 1);
+	if (ret < 0)
+		return ret;
 
 	/* write tag for value */
-	sret = appendFormatToGroupBuffer(group, "<%s type=\"%s\" unit=\"%s\">\n",
+	ret = appendFormatToGroupBuffer(group, "<%s type=\"%s\" unit=\"%s\" />\n",
 			name, getTypeString(type), unit);
-	if (sret < 0)
-		return sret;
+	if (ret < 0)
+		return ret;
 
 	/* assure group->buffer is '\0' terminated with length group->offset */
-	assert(group->offset == (int) strlen(group->buffer));
+	assert(group->offset - HDS_HEADER_SIZE_LENGTH
+			== (int) strlen(group->buffer + HDS_HEADER_SIZE_LENGTH));
 
 	return 0;
 }
@@ -560,7 +567,7 @@ int hdS_commitGroup (
 	/* write header length */
 	int hlen = group->offset - HDS_HEADER_SIZE_LENGTH -1;
 
-	sret = snprintf(group->buffer, HDS_HEADER_SIZE_LENGTH + 1, "%5.d", hlen);
+	sret = snprintf(group->buffer, HDS_HEADER_SIZE_LENGTH + 1, "%05d", hlen);
 	/* since we have already written behind, this cannot happen */
 	assert(sret <= HDS_HEADER_BUF_SIZE - group->offset);
 	if (sret < 0)
@@ -569,7 +576,7 @@ int hdS_commitGroup (
 	}
 
 	/* assure buffer is '\0' terminated (see snprintf(3)) */
-	assert(group->buffer[HDS_HEADER_SIZE_LENGTH-1] == '\0');
+	assert(group->buffer[HDS_HEADER_SIZE_LENGTH] == '\0');
 
 	/* override '\0' by '\n' again */
 	group->buffer[HDS_HEADER_SIZE_LENGTH] = '\n';
@@ -578,10 +585,10 @@ int hdS_commitGroup (
 	flushGroupBuffer(group);
 
 	/* free header buffer allocated in hdS_createGroup() */
-	free(group->buffer);
+	hd_free(group->buffer);
 
 	/* setup buffer for collecting entries */
-	group->buffer = malloc(HDS_ENTRY_BUF_SIZE * sizeof(*(group->buffer)));
+	hd_malloc(group->buffer, HDS_ENTRY_BUF_SIZE, -1);
 	group->btype = HDS_ENTRY_BUFFER;
 	group->offset = 0;
 
@@ -1014,16 +1021,16 @@ int hdS_finalize(
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
 
-	/* free memory allocated in generateFilename */
-	free(group->tracefile);
-	free(group->valueTypes);
-
 	/* free memory allocated in hdS_commitGroup */
-	free(group->buffer);
+	hd_free(group->buffer);
+
+	/* free memory allocated in generateFilename */
+	hd_free(group->tracefile);
 
 	/* free memory allocated in hdS_createGroup() */
-	free(group->name);
-	free(group);
+	hd_free(group->valueTypes);
+	hd_free(group->name);
+	hd_free(group);
 
 	return 0;
 }
@@ -1102,8 +1109,8 @@ static char * getTypeString(hdStatsValueType type)
  */
 static int appendFormatToGroupBuffer(hdStatsGroup group, const char *format, ...)
 {
-	assert(group == NULL);
-	assert(format == NULL);
+	assert(group != NULL);
+	assert(format != NULL);
 
 	/* switch buffer size and error message depending on buffer usage type */
 	size_t bsize;
@@ -1114,10 +1121,15 @@ static int appendFormatToGroupBuffer(hdStatsGroup group, const char *format, ...
 		bsize = HDS_HEADER_BUF_SIZE;
 		errmsg = "Overflow of HDS_HEADER_BUF_SIZE buffer during creation"
 			" of header";
+		break;
 	case HDS_ENTRY_BUFFER:
 		bsize = HDS_ENTRY_BUF_SIZE;
 		errmsg = "Overflow of HDS_ENTRY_BUF_SIZE buffer during writing"
 			" value to group event buffer";
+		break;
+	default:
+		assert(group->btype != HDS_HEADER_BUFFER
+				&& group->btype != HDS_ENTRY_BUFFER);
 	}
 
 	/* use vsnprintf to actually write to the buffer */
@@ -1137,15 +1149,15 @@ static int appendFormatToGroupBuffer(hdStatsGroup group, const char *format, ...
 		hd_error_return(HD_ERR_UNKNOWN, -1);
 	}
 
-	/* update offset */
-	group->offset += sret;
-
 	/* assure the buffer is '\0' terminated (see vsnprintf(3)) */
 	assert(group->buffer[bsize-1] == '\0');
 
 	/* print info output */
-	hd_info_msg("Added to %s group buffer: \"%s\"",
+	hd_info_msg("Appended to %s group buffer: \"%s\"",
 			group->name, group->buffer + group->offset);
+
+	/* update offset */
+	group->offset += sret;
 
 	/* print debug output */
 	hd_debug_msg("Group '%s': offset=%d, btype=%d",
@@ -1173,14 +1185,14 @@ static int appendFormatToGroupBuffer(hdStatsGroup group, const char *format, ...
  */
 static int appendIndentToGroupBuffer(hdStatsGroup group, int num)
 {
-	assert(group == NULL);
-	assert(num < 0);
+	assert(group != NULL);
+	assert(num >= 0);
 
-	int sret;
+	int ret;
 	for (int i = 0; i < num; ++i)
 	{
-		sret = appendFormatToGroupBuffer(group, "%s", HD_INDENT_STRING);
-		if (sret < 0)
+		ret = appendFormatToGroupBuffer(group, "%s", HD_INDENT_STRING);
+		if (ret < 0)
 			return -1;
 	}
 
