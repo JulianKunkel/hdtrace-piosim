@@ -65,6 +65,7 @@ import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableTimeline;
 import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
+import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -126,9 +127,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	public CanvasTimeline( ModelTime time_model,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
-			TopologyManager topologyManager)
+			TopologyManager topologyManager,
+			ViewportTimeYaxis viewport)
 	{
-		super( time_model, yaxis_model, topologyManager );
+		super( time_model, yaxis_model, topologyManager, viewport);
 
 		this.reader = reader;
 
@@ -139,7 +141,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	}
 
 
-	final protected void drawOneOffImage(Image offImage, final TimeBoundingBox  timebounds )
+	final protected void drawOneImageInBackground(Image offImage, final TimeBoundingBox  timebounds )
 	{
 		final int num_rows   = getRowCount();
 		final int row_height = getRowHeight();
@@ -314,7 +316,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				vStartTime.add(getModelTime().getTimeGlobalMinimum()),
 				vEndTime.add(getModelTime().getTimeGlobalMinimum()));
 
-		while(entries.hasMoreElements()){
+		while(entries.hasMoreElements()){			
 			final StatisticGroupEntry entry = entries.nextElement();
 			double value;
 			final double input = entry.getNumeric(statNumber);

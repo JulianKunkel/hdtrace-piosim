@@ -123,7 +123,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	 * Creates the main drawing area (which is scrollable).
 	 * @return
 	 */
-	abstract protected ScrollableObject createCanvasArea();
+	abstract protected ScrollableObject createCanvasArea(ViewportTimeYaxis viewport);
 	
 	/** 
 	 * This listener is invoked if the zoomlevel changes
@@ -173,8 +173,11 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		JPanel center_panel = new JPanel();
 		center_panel.setLayout( new BoxLayout( center_panel,	BoxLayout.Y_AXIS ) );
 
+
+		timeCanvasVport = new ViewportTimeYaxis( modelTime, y_model, topologyManager );
+		
 		/* The Time Ruler */
-		time_ruler        = new RulerTime( modelTime );
+		time_ruler        = new RulerTime( modelTime, timeCanvasVport );
 		time_ruler_vport  = new ViewportTime( modelTime );
 		time_ruler_vport.setView( time_ruler );
 		
@@ -200,9 +203,8 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		int      ruler_panel_height = time_ruler.getJComponentHeight();
 
 		/* The TimeLine Canvas */
-		canvasArea       = createCanvasArea();
 
-		timeCanvasVport = new ViewportTimeYaxis( modelTime, y_model, topologyManager );
+		canvasArea       = createCanvasArea(timeCanvasVport);
 		timeCanvasVport.setView( canvasArea );
 
 		timeCanvasVport.setLeftMouseToZoom( true );

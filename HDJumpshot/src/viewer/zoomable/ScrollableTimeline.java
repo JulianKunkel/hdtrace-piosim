@@ -33,8 +33,8 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 	
 	public ScrollableTimeline(ModelTime modelTime, 
 			BoundedRangeModel   yaxis_model,
-			TopologyManager topologyManager) {
-		super(modelTime);
+			TopologyManager topologyManager, ViewportTimeYaxis viewport) {
+		super(modelTime, viewport);
 		
 
 		this.topologyManager       = topologyManager;

@@ -42,7 +42,6 @@ import viewer.common.IconManager;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.common.Routines;
-import viewer.common.SwingWorker;
 import viewer.legends.LegendFrame;
 import viewer.profile.TraceProfileFrame;
 import viewer.timelines.TimelineFrame;
@@ -112,23 +111,9 @@ public class MainManager{
 	
 	private static void createWindow( final TopWindow windows )
 	{
-		SwingWorker worker = new SwingWorker() {
-			TopWindow window;
-
-			public Object construct()
-			{
-				this.window = windows;
-				return null;  // returned value is not needed					
-			}
-			public void finished()
-			{					
-				window.setVisible( true );
-				window.getFrame().toFront();
-
-				MainManager.layoutIdealLocations();
-			}
-		};
-		worker.start();
+		windows.setVisible( true );
+		windows.getFrame().toFront();
+		MainManager.layoutIdealLocations();
 	}
 
 	public static void showTraceProfileFrame(){

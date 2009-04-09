@@ -110,7 +110,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 
                calling the ViewortTime.paint() to avoid redrawing in this class
 		 */
-		super.repaint();
+		//SCHUH super.repaint();
 		if ( Debug.isActive() )
 			Debug.println( "ViewportTimeYaxis: adjChanged()'s END: " );
 	}
@@ -216,7 +216,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 				vport_click    = mouse_evt.getPoint();
 				searchInit( time_model.getTimeGlobalMinimum().add(super.coord_xform.convertPixelToTime(vport_click.x )) );
 								
-				this.repaint();
+				// SCHUH this.repaint();
 			}
 		}
 	}

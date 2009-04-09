@@ -356,6 +356,11 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	 public void zoomHomeWithoutStacking(){
 		 zoom(0, getTimeGlobalDuration());
 	 }
+	 
+	 public void clearStacks(){
+		 zoom_redo_stack.clear();
+		 zoom_undo_stack.clear();
+	 }
 
 	 private void pushCurrentStateOnZoomStackAndClean( )
 	 {
@@ -540,5 +545,9 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 	public void adjustGlobalTime(Epoch globalMinTime, Epoch globalMaxTime) {
 		setTimeGlobalMinimum(globalMinTime);
 		setTimeGlobalMaximum(globalMaxTime);
+	}
+	
+	public void setEnableFireTimeUpdate(boolean enableFireTimeUpdate) {
+		this.enableFireTimeUpdate = enableFireTimeUpdate;
 	}
 }

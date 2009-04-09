@@ -63,9 +63,9 @@ public class RulerTime extends ScrollableObject
 	private double         tIncrement;
 	private DecimalFormat  fmt;
 
-	public RulerTime( ModelTime model )
+	public RulerTime( ModelTime model, ViewportTimeYaxis viewport )
 	{
-		super( model );
+		super( model, viewport );
 		tRange      = 0.0d;
 		tIncrement  = 0.0d;
 		fmt         = (DecimalFormat) NumberFormat.getInstance();
@@ -95,7 +95,7 @@ public class RulerTime extends ScrollableObject
 	}
 
 	@Override
-	protected void drawOneOffImage(       Image            offImage,
+	protected void drawOneImageInBackground(       Image            offImage,
 			final TimeBoundingBox  timebounds )
 	{
 		if ( Debug.isActive() )

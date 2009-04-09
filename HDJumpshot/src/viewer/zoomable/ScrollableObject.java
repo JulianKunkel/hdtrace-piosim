@@ -42,10 +42,13 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.DebugGraphics;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import viewer.common.Debug;
 import viewer.common.IAutoRefreshable;
@@ -54,6 +57,12 @@ import viewer.dialog.InfoDialogForTime;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.TimeBoundingBox;
 
+/**
+ * Realizes a object which can be zoomed and scrolled.
+ * The drawing of complex content is done by a worker thread.
+ * @author julian
+ *
+ */
 public abstract class ScrollableObject extends JComponent
 implements ScrollableView, IAutoRefreshable
 {
@@ -64,6 +73,7 @@ implements ScrollableView, IAutoRefreshable
 	protected static final int   NumViewsPerImage = 2;
 	protected static final int   NumViewsTotal = NumImages * NumViewsPerImage;
 
+	final private ViewportTimeYaxis viewport;
 	private   ModelTime          modelTime = null;
 	private   BufferedImage      offscreenImages[ /* NumImages */ ];
 
@@ -109,8 +119,10 @@ implements ScrollableView, IAutoRefreshable
 
 
 	//  The following constructor is NOT meant to be called.
-	public ScrollableObject( ModelTime model )
+	public ScrollableObject( ModelTime model, ViewportTimeYaxis viewport )
 	{
+		this.viewport = viewport;
+		
 		// Check if the number of images is an ODD number
 		if ( NumImages % 2 == 0 || NumImages < 3 ) {
 			String err_msg = "ScrollableObject(): NumImages = "
@@ -125,6 +137,7 @@ implements ScrollableView, IAutoRefreshable
 		tImages         = new TimeBoundingBox[ NumImages ];
 		for ( int idx = 0; idx < NumImages; idx++ )
 			tImages[ idx ] = new TimeBoundingBox();
+		
 		tImages_all     = new TimeBoundingBox();
 		super.setDoubleBuffered( false );
 
@@ -216,19 +229,6 @@ implements ScrollableView, IAutoRefreshable
 			return getNearFutureImageIndex( img_idx );
 	}
 
-	//  Given a graphic context, create an offscreen image of specified size.
-	private Image createImage( Dimension image_sz )
-	{
-		if ( Debug.isActive() )
-			Debug.println( "ScrollableObject: createImage()'s image_sz = "
-					+ image_sz );
-
-		if ( image_sz.width > 0 && image_sz.height > 0 )
-			return super.createImage( image_sz.width, image_sz.height );
-		else
-			return null;
-	}
-
 	private int getNumImagesMoved()
 	{
 		double cur_tView_init   = modelTime.getTimeViewPosition();
@@ -293,8 +293,7 @@ implements ScrollableView, IAutoRefreshable
 
 			for ( int img_idx = 0; img_idx < NumImages; img_idx++ )
 				// for ( int img_idx = NumImages-1 ; img_idx >= 0 ; img_idx-- )
-				drawOneOffImage( offscreenImages[ img_idx ],
-						tImages[ img_idx ] );
+				scheduleToDrawOneImageInBackground(  img_idx , tImages[ img_idx ] );
 			
 			return true;
 		}
@@ -317,6 +316,7 @@ implements ScrollableView, IAutoRefreshable
 		//  the images needed to be redrawn
 		img_mv_dir = 0;
 		Nimages_moved = getNumImagesMoved();
+
 		if ( Nimages_moved != 0 ) {
 			if ( Math.abs( Nimages_moved ) <= NumImages ) {
 				img_mv_dir = Nimages_moved / Math.abs( Nimages_moved );
@@ -368,19 +368,17 @@ implements ScrollableView, IAutoRefreshable
 				if ( img_mv_dir > 0 ){
 					//for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
 					for ( idx = Math.abs( Nimages_moved ); idx >=1; idx-- ) {
-						img_idx = getValidImageIndex( start_idx
-								+ img_mv_dir * idx );
-						if ( offscreenImages[ img_idx ] != null )
-							drawOneOffImage( offscreenImages[ img_idx ],
-									tImages[ img_idx ] );
+						img_idx = getValidImageIndex( start_idx	+ img_mv_dir * idx );
+						if ( offscreenImages[ img_idx ] != null ){
+							scheduleToDrawOneImageInBackground( img_idx, tImages[ img_idx ] );
+						}
 					}
 				}else{
 					for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
 						img_idx = getValidImageIndex( start_idx
 								+ img_mv_dir * idx );
 						if ( offscreenImages[ img_idx ] != null )
-							drawOneOffImage( offscreenImages[ img_idx ],
-									tImages[ img_idx ] );
+							scheduleToDrawOneImageInBackground( img_idx , tImages[ img_idx ] );
 					}
 				}
 
@@ -396,11 +394,10 @@ implements ScrollableView, IAutoRefreshable
 							+ " ) | >= NumImages( " + NumImages + " )" );
 				}
 				setImagesInitTimeBounds();
-
+				
+				cancelRedrawing();
 				for ( img_idx = 0; img_idx < NumImages; img_idx++ )
-					// for ( img_idx = NumImages-1; img_idx >=0; img_idx-- )
-					drawOneOffImage( offscreenImages[ img_idx ],
-							tImages[ img_idx ] );
+					scheduleToDrawOneImageInBackground( img_idx,	tImages[ img_idx ] );
 				
 				return true;
 			}
@@ -438,11 +435,145 @@ implements ScrollableView, IAutoRefreshable
 		return time2pixel( modelTime.getTimeViewPosition()  );
 	}
 
-	/*
-        image_endtimes:  endtimes of the OffScreenImage, image
+	/**
+      * image_endtimes:  endtimes of the OffScreenImage, image
+      * This function is called by a worker thread.
 	 */
-	protected abstract void
-	drawOneOffImage( Image image, final TimeBoundingBox  image_endtimes );
+	protected abstract void drawOneImageInBackground( Image image, final TimeBoundingBox  image_endtimes );
+	
+	static class BackgroundRendering{
+		final int imagePos;
+		final TimeBoundingBox box;
+		final Image image;
+		
+		public BackgroundRendering(int imagePos, Image image, TimeBoundingBox box) {
+			this.box = box;
+			this.imagePos = imagePos;
+			this.image = image;
+		}
+	}
+	
+	// contains the pending rendering jobs and process with FIFO order.
+	LinkedList<BackgroundRendering> renderingJobs =  new LinkedList<BackgroundRendering>();
+	
+	BackgroundRendering currentTask = null;
+	BackgroundThread backgroundThread = null;
+	
+	boolean doAdditionalBackgroundProcessing = false;
+	
+	/**
+	 * Overload this method to perform some background computation needed to draw an image
+	 * This function is called by a worker thread and might NEVER call any non-threadsafe
+	 * Swing functions.
+	 */
+	protected void doAdditionalBackgroundThreadWork(){
+		
+	}
+	
+	public synchronized void triggerAdditionalBackgroundThreadWork(){
+		doAdditionalBackgroundProcessing = true;
+		
+		if(backgroundThread == null || backgroundThread.isDone() ){
+			// create background thread:
+			backgroundThread = new BackgroundThread(); 
+			backgroundThread.execute();
+		}		
+	}
+	
+	private synchronized boolean isAdditionalBackgroundProcessing(){
+		boolean val = doAdditionalBackgroundProcessing;
+		doAdditionalBackgroundProcessing = false;
+		return val;
+	}
+	
+	/**
+	 * At most one of this thread is executed.  
+	 * @author julian
+	 */
+	class BackgroundThread extends SwingWorker<Void, Void>{
+		boolean abortCurrentJob = false;
+		
+		@Override
+		protected Void doInBackground() throws Exception {
+			while (true) {
+				if (isAdditionalBackgroundProcessing()){
+					doAdditionalBackgroundThreadWork();
+				}
+								
+				final BackgroundRendering job = getNextJob();
+				if(job == null){
+					break;
+				}
+				drawOneImageInBackground(job.image, job.box);
+				if(abortCurrentJob){
+					abortCurrentJob = false;
+					continue;
+				}
+			}
+
+			if(! abortCurrentJob){
+				viewport.repaint();
+			}
+			
+			return null;
+		}
+		
+		// called by main swing thread: 
+		@Override
+		protected void process(List<Void> chunks) {
+			// redraw from manufactured objects is cheap:
+			viewport.repaint();
+		}
+	}
+	
+	/**
+	 * Called by the background Thread
+	 * @return
+	 */
+	private synchronized BackgroundRendering getNextJob(){
+		if(renderingJobs.isEmpty()){
+			backgroundThread = null;
+		}
+		currentTask = renderingJobs.pollLast(); 
+		return currentTask;
+	}
+	
+	/**
+	 * Cancel redrawing of the image with the given position
+	 * @param imagePos
+	 */
+	private synchronized void cancelRedrawing(int imagePos){
+		renderingJobs.remove( new BackgroundRendering(imagePos, null, null));
+
+		if(backgroundThread != null && (currentTask == null || currentTask.imagePos == imagePos)){
+			backgroundThread.abortCurrentJob = true;
+			backgroundThread = null;
+		}
+	}
+	
+	/**
+	 * Cancel redrawing of all pending jobs
+	 */
+	public synchronized void cancelRedrawing(){
+		renderingJobs.clear();
+		
+		if(backgroundThread != null)
+			backgroundThread.abortCurrentJob = true;
+	}
+
+	private synchronized void scheduleToDrawOneImageInBackground( int imagePos, final TimeBoundingBox  image_endtimes ){
+		final Image image = offscreenImages[imagePos];
+		
+		cancelRedrawing(imagePos);
+	
+		renderingJobs.push(new BackgroundRendering(imagePos, image, image_endtimes));
+		
+		if(backgroundThread == null || backgroundThread.isDone() ){
+			// create background thread:
+			backgroundThread = new BackgroundThread(); 
+			backgroundThread.execute();
+		}
+	}
 
 	public void paintComponent( Graphics g )
 	{		
@@ -453,13 +584,7 @@ implements ScrollableView, IAutoRefreshable
 			Debug.println( "ScrollableObject : paintComponent() "
 					+ "this = " + this );
 		}
-		/*
-        //  These statements are moved to componentResized()
-        // if ( offscreenImage == null ) {
-        //     offscreenImage = this.createImage( null );
-        //     drawOneOffImage( offscreenImage );
-        // }
-		 */
+		
 		int img_idx, screen_img_pos;
 		int side_idx, side_bit, side_offset;
 
@@ -537,8 +662,10 @@ implements ScrollableView, IAutoRefreshable
 			int h = image_size.height;
 			int type = BufferedImage.TYPE_4BYTE_ABGR;  // see api for options
 
+			if(offscreenImages[img_idx] != null) // free it:
+				offscreenImages[img_idx].getGraphics().dispose();
+			
 			offscreenImages[ img_idx ] = new BufferedImage(w, h, type);
-			this.createImage( image_size );
 
 			if ( offscreenImages[ img_idx ] != null )
 				NumOKImages += 1;
@@ -567,17 +694,17 @@ implements ScrollableView, IAutoRefreshable
 
 		// compute the last image index in the image buffer
 		int img_idx = getValidImageIndex( cur_img_idx + half_NumImages + 1 );
+		
+		cancelRedrawing();
+		
 		for ( int idx = 0; idx < NumImages; idx++ ) {
-			drawOneOffImage( offscreenImages[ img_idx ],
-					tImages[ img_idx ] );
+			scheduleToDrawOneImageInBackground( img_idx , tImages[ img_idx ] );
 			// img_idx = getNearPastImageIndex( img_idx );
 			img_idx = getNearFutureImageIndex( img_idx );
 		}
 
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: componentResized()'s END: " );
-
-		repaint();
 	}
 
 	/*

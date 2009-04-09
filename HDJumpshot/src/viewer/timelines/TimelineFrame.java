@@ -53,6 +53,7 @@ import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
 import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableObject;
+import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.TraceObject;
 
 public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
@@ -114,7 +115,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 	}
 
 	@Override
-	protected ScrollableObject createCanvasArea() {
-		return new CanvasTimeline(  getModelTime(), getReader(),  getYModel(), getTopologyManager());
+	protected ScrollableObject createCanvasArea(ViewportTimeYaxis viewport) {
+		return new CanvasTimeline(  getModelTime(), getReader(),  getYModel(), getTopologyManager(), viewport);
 	}
 }
