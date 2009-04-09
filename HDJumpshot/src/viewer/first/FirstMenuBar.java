@@ -47,7 +47,6 @@ public class FirstMenuBar extends JMenuBar
 {
 	private static final long serialVersionUID = -7909027107571610938L;
 	
-	private        boolean         isApplet;
 	private        FirstPanel      first_panel;
 
 	private        JMenuItem       file_select_item;
@@ -59,12 +58,11 @@ public class FirstMenuBar extends JMenuBar
 	private        JMenuItem       help_manual_item;
 	private        JMenuItem       help_about_item;
 
-	public FirstMenuBar( boolean isTopApplet, FirstPanel in_panel )
+	public FirstMenuBar(  FirstPanel in_panel )
 	{
 		super();
 		super.setBorder( new EtchedBorder() );
 
-		isApplet       = isTopApplet;
 		first_panel    = in_panel;
 
 		JMenu      menu, submenu;
@@ -96,10 +94,7 @@ public class FirstMenuBar extends JMenuBar
 		file_exit_item   = new JMenuItem( "Exit" );
 		file_exit_item.addActionListener( new ActionListener() {
 			public void actionPerformed( ActionEvent evt ) {
-				if ( isApplet )
-					TopWindow.Legend.disposeAll();
-				else
-					TopWindow.First.disposeAll();
+				MainManager.exitJumpshot();
 			}
 		} );
 		menu.add( file_exit_item );
@@ -109,7 +104,7 @@ public class FirstMenuBar extends JMenuBar
 		edit_prefer_item = new JMenuItem( "Preferences ..." );
 		edit_prefer_item.addActionListener( new ActionListener() {
 			public void actionPerformed( ActionEvent evt ) {
-				first_panel.getEditPreferenceButton().doClick();
+				first_panel.getShowPreferenceButton().doClick();
 			}
 		} );
 		menu.add( edit_prefer_item );

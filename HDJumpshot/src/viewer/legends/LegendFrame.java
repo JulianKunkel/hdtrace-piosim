@@ -37,29 +37,32 @@ package viewer.legends;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
-import javax.swing.JFrame;
 import javax.swing.JSplitPane;
-import javax.swing.WindowConstants;
 
 import viewer.first.TopWindow;
 
 
-public class LegendFrame extends JFrame
+public class LegendFrame extends TopWindow
 {
-    private        LegendTracePanel        trace_panel;
+	private static final long serialVersionUID = -935855888445611813L;
+	
+	private        LegendTracePanel        trace_panel;
     private        LegendStatisticPanel    statistic_panel;
-    
 
+    @Override
+    protected void windowGetsInvisible() {
+    	
+    }
+    
+    @Override
+    protected void windowGetsVisible() {
+    	
+    }
+    
     public LegendFrame( final TraceFormatBufferedFileReader  reader )
     {
-        super( "Legend: " + reader.getCombinedProjectFilename() );
-        super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
-        TopWindow.Legend.disposeAll();
-        TopWindow.Legend.setWindow( this );
+        setTitle( "Legend: " + reader.getCombinedProjectFilename() );
 
         trace_panel = new LegendTracePanel( reader );
         statistic_panel = new LegendStatisticPanel(reader);
@@ -70,31 +73,10 @@ public class LegendFrame extends JFrame
         final Dimension minimumSize = new Dimension(100, 50);
         trace_panel.setMinimumSize(minimumSize);
         statistic_panel.setMinimumSize(minimumSize);
-                
-        //panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );        
+                     
         split.add(trace_panel);
         split.add(statistic_panel);     
         
-        super.setContentPane( split );
-        
-        // set a nice height:
-
-        // determine real width/height:
-        this.pack();      
-        final Dimension maxSize = Toolkit.getDefaultToolkit().getScreenSize();          
-        this.setPreferredSize(new Dimension(getWidth(), maxSize.height / 9 * 8));                
-
-        // do not really close upon close:
-        addWindowListener( new WindowAdapter() {
-            public void windowClosing( WindowEvent e ) {
-                LegendFrame.this.setVisible( false );
-            }
-        } );
-    }
-
-    public void setVisible( boolean val )
-    {
-        super.setVisible( val );
-        TopWindow.Control.setShowLegendButtonEnabled( !val );
+        getFrame().setContentPane( split );                
     }
 }

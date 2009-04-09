@@ -52,7 +52,6 @@ public class PreferencePanel extends JPanel
 
     // Options: Zoomable window reinitialization (requires window restart)
     private        LabeledTextField       fld_Y_AXIS_ROOT_LABEL;
-    private        LabeledTextField       fld_INIT_SLOG2_LEVEL_READ;
     private        LabeledComboBox        lst_AUTO_WINDOWS_LOCATION;
     private        LabeledFloatSlider     sdr_SCREEN_HEIGHT_RATIO;
     private        LabeledFloatSlider     sdr_TIME_SCROLL_UNIT_RATIO;
@@ -115,19 +114,6 @@ public class PreferencePanel extends JPanel
         fld_Y_AXIS_ROOT_LABEL.addSelfDocumentListener();
         fld_Y_AXIS_ROOT_LABEL.setEditable( true );
         super.add( fld_Y_AXIS_ROOT_LABEL );
-
-        fld_INIT_SLOG2_LEVEL_READ = new LabeledTextField( true,
-                                        "INIT_SLOG2_LEVEL_READ",
-                                        Const.SHORT_FORMAT );
-        fld_INIT_SLOG2_LEVEL_READ.setToolTipText(
-          "The number of SLOG-2 levels being read into memory when "
-        + "timeline window is initialized, the number affects the "
-        + "zooming and scrolling performance exponentially (in a "
-        + "asymptotical sense)." );
-        fld_INIT_SLOG2_LEVEL_READ.setHorizontalAlignment( JTextField.CENTER );
-        fld_INIT_SLOG2_LEVEL_READ.addSelfDocumentListener();
-        fld_INIT_SLOG2_LEVEL_READ.setEditable( true );
-        super.add( fld_INIT_SLOG2_LEVEL_READ );
 
         lst_AUTO_WINDOWS_LOCATION = new LabeledComboBox(
                                         "AUTO_WINDOWS_LOCATION" );
@@ -420,7 +406,6 @@ public class PreferencePanel extends JPanel
     {
         // Options: Zoomable window reinitialization (requires window restart)
         fld_Y_AXIS_ROOT_LABEL.setText( Parameters.Y_AXIS_ROOT_LABEL );
-        fld_INIT_SLOG2_LEVEL_READ.setShort( Parameters.INIT_SLOG2_LEVEL_READ );
         lst_AUTO_WINDOWS_LOCATION.setSelectedBooleanItem(
                                   Parameters.AUTO_WINDOWS_LOCATION );
         sdr_SCREEN_HEIGHT_RATIO.setFloat( Parameters.SCREEN_HEIGHT_RATIO );
@@ -468,8 +453,6 @@ public class PreferencePanel extends JPanel
         // Options: Zoomable window reinitialization (requires window restart)
         Parameters.Y_AXIS_ROOT_LABEL
                   = fld_Y_AXIS_ROOT_LABEL.getText();
-        Parameters.INIT_SLOG2_LEVEL_READ
-                  = fld_INIT_SLOG2_LEVEL_READ.getShort();
         Parameters.AUTO_WINDOWS_LOCATION
                   = lst_AUTO_WINDOWS_LOCATION.getSelectedBooleanItem();
         Parameters.SCREEN_HEIGHT_RATIO

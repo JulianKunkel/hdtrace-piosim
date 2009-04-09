@@ -39,7 +39,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
-import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -415,13 +414,16 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	
 	
 	@Override
-	protected void windowIsClosing() {
+	protected void windowGetsInvisible() {
+		super.windowGetsInvisible();
+		
 		realModelTime.removeTimeListener(timeUpdateListener);
 		getReader().getLegendTraceModel().removeCategoryUpdateListener(categoryVisibleListener);
 	}
 	
 	@Override
 	protected void gotVisibleTheFirstTime() {
+		super.gotVisibleTheFirstTime();
 		recomputeTraceProfile();		
 	}
 	
@@ -435,8 +437,6 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		super.init(virtualTime);
 		
 		getTopologyManager().setTopologyManagerContents(TopologyManagerContents.TRACE_ONLY);							
-		
-		getFrame().setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
 		getFrame().setPreferredSize(new Dimension(950, 600)); /* JK-SIZE */
 		
 		realModelTime.addTimeListener(timeUpdateListener);

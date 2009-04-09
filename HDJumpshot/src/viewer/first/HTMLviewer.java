@@ -49,7 +49,6 @@ import java.util.Stack;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
@@ -63,7 +62,6 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.Document;
 
-import viewer.common.Const;
 import viewer.common.Dialogs;
 import viewer.common.IconManager;
 import viewer.common.IconManager.IconType;
@@ -71,6 +69,8 @@ import viewer.common.IconManager.IconType;
 public class HTMLviewer extends JDialog
 implements HyperlinkListener
 {
+	private static final long serialVersionUID = 8816631783449977320L;
+	
 	private JTextField   input_fld;
 	private JEditorPane  html_panel;
 
@@ -85,7 +85,7 @@ implements HyperlinkListener
 
 	public HTMLviewer( String title_str )
 	{
-		super( TopWindow.First.getWindow() );
+		super( MainManager.getJumpshotWindow() );
 		if ( title_str != null )
 			setTitle( title_str );
 		else
@@ -175,7 +175,7 @@ implements HyperlinkListener
 		medium_spacer_size  = new Dimension( 10, 5 );
 		big_spacer_size     = new Dimension( 20, 5 );
 		
-		final IconManager icons = Jumpshot.getIconManager();
+		final IconManager icons = MainManager.getIconManager();
 		
 		backward_btn = new JButton( icons.getActiveToolbarIcon(IconType.Left));
 		backward_btn.setMargin( btn_insets );

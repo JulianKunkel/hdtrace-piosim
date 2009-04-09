@@ -36,49 +36,17 @@ package viewer.common;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
-import java.awt.Insets;
 import java.awt.Toolkit;
-
-import javax.swing.JComponent;
 
 public class Routines
 {
     private static final String UnitIndentStr = "   ";
-    public static void listAllComponents( Component comp, int ilevel )
-    {
-        if ( comp == null ) return;
-        StringBuffer rep = new StringBuffer();
-        for ( int ii = 0; ii < ilevel; ii++ )
-            rep.append( UnitIndentStr );
-        rep.append( comp.toString() );
-        if ( comp instanceof Container ) {
-            Component [] child_comps = ( (Container) comp ).getComponents();
-            for ( int idx = 0; idx < child_comps.length; idx++)
-                listAllComponents( child_comps[ idx ], ilevel+1 );
-        }
-    }
-
 
     public static Dimension getScreenSize()
     {
         return Toolkit.getDefaultToolkit().getScreenSize();
-    }
-
-    public static Dimension correctSize( Dimension size, final Insets insets )
-    {
-        if ( insets != null ) {
-            size.width  += insets.left + insets.right;
-            if ( size.width > Short.MAX_VALUE )
-                size.width  = Short.MAX_VALUE;
-            size.height += insets.top + insets.bottom;
-            if ( size.height > Short.MAX_VALUE )
-                size.height = Short.MAX_VALUE;
-        }
-        return size;
     }
 
     //  JTextField.getColumnWidth() uses char('m') defines column width

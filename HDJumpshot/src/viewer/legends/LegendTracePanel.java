@@ -45,6 +45,8 @@ import javax.swing.border.Border;
 
 public class LegendTracePanel extends JPanel
 {
+	private static final long serialVersionUID = -3333521394333510573L;
+	
 	private LegendTable  legend_table;
 
 	public LegendTracePanel( final TraceFormatBufferedFileReader  reader )

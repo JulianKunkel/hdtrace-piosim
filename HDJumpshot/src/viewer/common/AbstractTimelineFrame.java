@@ -27,14 +27,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -47,7 +44,8 @@ import javax.swing.UIManager;
 
 import topology.TopologyManager;
 import viewer.common.IconManager.IconType;
-import viewer.first.Jumpshot;
+import viewer.first.MainManager;
+import viewer.first.TopWindow;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.ModelTime;
 import viewer.zoomable.ModelTimePanel;
@@ -66,10 +64,9 @@ import viewer.zoomable.ViewportTimeYaxis;
  * 
  * @author Julian M. Kunkel
  */
-public abstract class AbstractTimelineFrame<InfoModelType>{
+public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	private static final long serialVersionUID = 7857561458577391709L;
 
-	final private JFrame frame;
 	private TraceFormatBufferedFileReader reader;
 	private ModelTime modelTime;
 	
@@ -102,8 +99,6 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	private   JRadioButton          zoom_btn;
 	private   JRadioButton          hand_btn;
 	
-	private boolean visibleTheFirstTime = true;
-	
 
 	/**
 	 * Subclass can create its own menu panel.
@@ -130,13 +125,6 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	 */
 	abstract protected ScrollableObject createCanvasArea();
 	
-	/**
-	 * Called after it got visible the first time
-	 */
-	protected void gotVisibleTheFirstTime(){
-		
-	}
-	
 	/** 
 	 * This listener is invoked if the zoomlevel changes
 	 */
@@ -148,26 +136,6 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		}
 	};
 
-	private class MyWindowClosedListener extends WindowAdapter{
-		@Override
-		public void windowClosed(WindowEvent e) {
-			// don't forget to remove modelTime listener (if autoupdate), otherwise ressources are wasted
-			modelTime.removeTimeListener( timeCanvasVport );
-			modelTime.removeTimeListener( time_ruler_vport );		
-			modelTime.removeTimeListener( timeUpdateListener);
-			modelTime.removeTimeListener( time_display_panel );
-			windowIsClosing();
-			
-			super.windowClosed(e);
-		}		
-	}
-	
-	/**
-	 * Override to perform own cleanup:
-	 */
-	protected void windowIsClosing(){
-		
-	}
 	
 	private class MyNumberOfRowsChangedListener implements RowNumberChangedListener{
 		@Override
@@ -245,7 +213,7 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		
 		JPanel canvas_lmouse;
 		
-		final IconManager icons = Jumpshot.getIconManager();
+		final IconManager icons = MainManager.getIconManager();
 		// allow only one button to be set:
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		
@@ -366,7 +334,7 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		right_splitter.setResizeWeight( 1.0d );
 
 		/* The ToolBar for various user controls */
-		final IconManager iconManager = Jumpshot.getIconManager(); 
+		final IconManager iconManager = MainManager.getIconManager(); 
 		
 		toolbar = new TimelineToolBar( canvasArea, time_ruler , timeCanvasVport,
 				y_scrollbar, topologyManager, time_scrollbar, modelTime, row_adjs, iconManager );
@@ -380,12 +348,6 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		top_panel.add( time_display_panel);
 		addOwnPanelsOrToolbars(top_panel);
 		top_panel.add( info_model.getPanel() );
-
-		/* Inform "time_canvas_vport" time has been changed */
-		modelTime.addTimeListener( timeCanvasVport );
-		modelTime.addTimeListener( time_ruler_vport );		
-		modelTime.addTimeListener( timeUpdateListener);
-		modelTime.addTimeListener( time_display_panel );
 
 		// Initialize toolbar after creation of YaxisTree view
 		toolbar.init();
@@ -417,26 +379,35 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		}
 	}
 	
+	@Override
+	protected void windowGetsVisible() {
+		/* Inform "time_canvas_vport" time has been changed */
+		modelTime.addTimeListener( timeCanvasVport );
+		modelTime.addTimeListener( time_ruler_vport );		
+		modelTime.addTimeListener( timeUpdateListener);
+		modelTime.addTimeListener( time_display_panel );	
+	}
+	
+	@Override
+	protected void windowGetsInvisible() {
+		// don't forget to remove modelTime listener (if autoupdate), otherwise ressources are wasted
+		modelTime.removeTimeListener( timeCanvasVport );
+		modelTime.removeTimeListener( time_ruler_vport );		
+		modelTime.removeTimeListener( timeUpdateListener);
+		modelTime.removeTimeListener( time_display_panel );	
+	}
+	
 	public AbstractTimelineFrame(final TraceFormatBufferedFileReader reader) {
-		this.reader = reader;
-		
-		frame = new JFrame();
-		
-		// default on close operation:
-		frame.addWindowListener(new MyWindowClosedListener());		
+		this.reader = reader;				
 
 		this.topologyManager = new TopologyManager(reader);		
 	}
 	
 	public void init(final ModelTime modelTime) {		
 		this.modelTime = modelTime;	
-		frame.setContentPane( createContentPane());		
+		getFrame().setContentPane( createContentPane());		
 	}
-	
-	protected JFrame getFrame(){
-		return frame;
-	}
-	
+		
 	protected ModelTime getModelTime() {
 		return modelTime;
 	}
@@ -445,19 +416,9 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 		return reader;
 	}	
 
-	public void setVisible( boolean val )
-	{		
-		frame.pack();
-		
-		frame.setVisible( val );	
-
-		if(val == true && visibleTheFirstTime){
-			visibleTheFirstTime = false;
-			
-			getTopologyManager().init(modelTime);
-			
-			gotVisibleTheFirstTime();
-		}
+	@Override
+	protected void gotVisibleTheFirstTime() {
+		getTopologyManager().init(modelTime);
 	}
 	
 	protected TopologyManager getTopologyManager() {
@@ -487,11 +448,7 @@ public abstract class AbstractTimelineFrame<InfoModelType>{
 	protected JLabel getYColarea() {
 		return yColarea;
 	}
-	
-	protected void setTitle(String text){
-		frame.setTitle(text);
-	}
-	
+
 	public boolean isAutoRefresh(){
 		return canvasArea.isAutoRefresh();
 	}

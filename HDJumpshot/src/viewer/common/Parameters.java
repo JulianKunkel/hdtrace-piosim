@@ -54,7 +54,6 @@ public class Parameters
 
     // Options: Zoomable window reinitialization (requires window restart)
     public  static       String       Y_AXIS_ROOT_LABEL        = "HD-Trace";
-    public  static       short        INIT_SLOG2_LEVEL_READ    = 4;
     public  static       boolean      AUTO_WINDOWS_LOCATION    = true;
     public  static       float        SCREEN_HEIGHT_RATIO      = 0.5f;
     public  static       float        TIME_SCROLL_UNIT_RATIO   = 0.01f;
@@ -131,8 +130,6 @@ public class Parameters
 
         // Options: Zoomable window reinitialization (requires window restart)
         pptys.setProperty( "Y_AXIS_ROOT_LABEL", Y_AXIS_ROOT_LABEL );
-        pptys.setProperty( "INIT_SLOG2_LEVEL_READ",
-                           String.valueOf( INIT_SLOG2_LEVEL_READ ) );
         pptys.setProperty( "AUTO_WINDOWS_LOCATION",
                            String.valueOf( AUTO_WINDOWS_LOCATION ) );
         pptys.setProperty( "SCREEN_HEIGHT_RATIO",
@@ -244,9 +241,6 @@ public class Parameters
         ppty_val = pptys.getProperty( "Y_AXIS_ROOT_LABEL" );
         if ( ppty_val != null )
             Y_AXIS_ROOT_LABEL = ppty_val;
-        ppty_val = pptys.getProperty( "INIT_SLOG2_LEVEL_READ" );
-        if ( ppty_val != null )
-            INIT_SLOG2_LEVEL_READ = Short.parseShort( ppty_val );
         ppty_val = pptys.getProperty( "AUTO_WINDOWS_LOCATION" );
         if ( ppty_val != null )
             AUTO_WINDOWS_LOCATION =    ppty_val.equalsIgnoreCase( "true" )
@@ -358,7 +352,6 @@ public class Parameters
         StringBuffer rep;
         rep = new StringBuffer();
         rep.append( "Y_AXIS_ROOT_LABEL = "     + Y_AXIS_ROOT_LABEL     + "\n" );
-        rep.append( "INIT_SLOG2_LEVEL_READ = " + INIT_SLOG2_LEVEL_READ + "\n" );
         rep.append( "AUTO_WINDOWS_LOCATION = " + AUTO_WINDOWS_LOCATION + "\n" );
         rep.append( "SCREEN_HEIGHT_RATIO = "   + SCREEN_HEIGHT_RATIO   + "\n" );
         rep.append( "TIME_SCROLL_UNIT_RATIO = "+ TIME_SCROLL_UNIT_RATIO+ "\n" );

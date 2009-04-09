@@ -1,10 +1,3 @@
-
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
-
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
 //	This file is part of HDJumpshot.
@@ -22,23 +15,17 @@
 //	You should have received a copy of the GNU General Public License
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
+package viewer.first;
 
-/*
- *  (C) 2001 by Argonne National Laboratory
- *      See COPYRIGHT in top-level directory.
- */
+import java.util.EventListener;
 
-/*
- *  @author Anthony Chan (Jumpshot 4), Julian M. Kunkel
- */
-
-package viewer.common;
-
-public interface TopControl
-{
-     public void setEditPreferenceButtonEnabled( boolean val );
-
-     public void setShowLegendButtonEnabled( boolean val );
-
-     public void setShowTimelineButtonEnabled( boolean val );
+abstract public class VisibilityListenerAdapter implements EventListener{
+	
+	public void getsVisible(){
+		
+	}
+	
+	public void getsInvisible(){
+		
+	}
 }

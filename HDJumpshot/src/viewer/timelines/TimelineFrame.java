@@ -39,19 +39,15 @@ import hdTraceInput.TraceFormatBufferedFileReader;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
-import javax.swing.WindowConstants;
 
 import viewer.common.AbstractTimelineFrame;
 import viewer.common.IconManager;
 import viewer.common.ModelInfoPanel;
 import viewer.common.IconManager.IconType;
-import viewer.first.TopWindow;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
@@ -74,18 +70,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 		super.init( modelTime );
 		setTitle("TimeLine: " + reader.getCombinedProjectFilename());
 
-
-		getFrame().setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
-		TopWindow.Timeline.disposeAll();
-		TopWindow.Timeline.setWindow( getFrame() );
-
 		getFrame().setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
-
-		getFrame().addWindowListener( new WindowAdapter() {
-			public void windowClosing( WindowEvent e ) {
-				TopWindow.Timeline.disposeAll();
-			}
-		} );
 	}
 
 	@Override

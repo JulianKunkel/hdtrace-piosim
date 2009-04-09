@@ -109,7 +109,7 @@ public class LegendTableTraceModel extends AbstractTableModel
 	//  Sorting into various order
 	private void initIconListFromCategoryList()
 	{
-		icon_list    = new ArrayList( categories.size() );
+		icon_list    = new ArrayList<CategoryIcon>( categories.size() );
 
 		CategoryIcon icon;
 		Category  objdef;
@@ -132,26 +132,26 @@ public class LegendTableTraceModel extends AbstractTableModel
 		}
 	}
 
-	private void sortNormally( Comparator comparator )
+	private void sortNormally( Comparator<Category> comparator )
 	{
 		Collections.sort( categories, comparator );
 		this.initIconListFromCategoryList();        
 	}
 
-	private void sortReversely( Comparator comparator )
+	private void sortReversely( Comparator<Category> comparator )
 	{
 		Collections.sort( categories, comparator );
 		Collections.reverse( categories );
 		this.initIconListFromCategoryList();        
 	}
 
-	public void arrangeOrder( Comparator comparator )
+	public void arrangeOrder( Comparator<Category> comparator )
 	{
 		this.sortNormally( comparator );
 		super.fireTableDataChanged(); 
 	}
 
-	public void reverseOrder( Comparator comparator )
+	public void reverseOrder( Comparator<Category> comparator )
 	{
 		this.sortReversely( comparator );
 		super.fireTableDataChanged(); 

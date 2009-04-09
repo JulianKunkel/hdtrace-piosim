@@ -43,7 +43,7 @@ import javax.swing.JTable;
 
 import viewer.common.IconManager;
 import viewer.common.IconManager.IconType;
-import viewer.first.Jumpshot;
+import viewer.first.MainManager;
 
 /*
  Class to simulate a JMenuBar header editor for a JTable with boolean value
@@ -68,7 +68,7 @@ public class OperationBooleanMenu extends JPopupMenu {
 	}
 
 	private void addMenuItems() {		
-		final IconManager icons = Jumpshot.getIconManager();
+		final IconManager icons = MainManager.getIconManager();
 		
 		JMenuItem menu_item;
 		menu_item = new JMenuItem("Toggle Selected", icons.getActiveMenuItemIcon(IconType.ToggleSelected));

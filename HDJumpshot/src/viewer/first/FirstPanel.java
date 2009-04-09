@@ -78,16 +78,15 @@ public class FirstPanel extends JPanel {
 	private JButton show_timeline_btn;
 	private JButton show_trace_profile_btn;
 	private JButton show_legend_btn;
-	private JButton edit_prefer_btn;
+	private JButton show_prefer_btn;
 	private JButton help_manual_btn;
 	private JButton help_about_btn;
 
 	private HTMLviewer manual_viewer;
 
-	private LogFileOperations file_ops;
 	private String logfile_name;
 
-	public FirstPanel(boolean isApplet, String filename, int view_idx) {
+	public FirstPanel(String filename) {		
 		super();
 		super.setLayout(new BorderLayout());
 
@@ -95,7 +94,6 @@ public class FirstPanel extends JPanel {
 		lowered_border = BorderFactory.createLoweredBevelBorder();
 		etched_border = BorderFactory.createEtchedBorder();
 
-		file_ops = new LogFileOperations(isApplet);
 		logfile_name = filename;
 
 		// layout, main panel:
@@ -135,6 +133,10 @@ public class FirstPanel extends JPanel {
 		JToolBar toolbar;
 		toolbar = createToolBarAndButtons(JToolBar.HORIZONTAL);
 		super.add(toolbar, BorderLayout.SOUTH);
+		
+		show_legend_btn.setEnabled(false);
+		show_timeline_btn.setEnabled(false);
+		show_trace_profile_btn.setEnabled(false);		
 	}
 
 	private JToolBar createToolBarAndButtons(int orientation) {
@@ -145,7 +147,7 @@ public class FirstPanel extends JPanel {
 		Insets btn_insets;
 		btn_insets = new Insets(1, 1, 1, 1);
 
-		final IconManager icons = Jumpshot.getIconManager();
+		final IconManager icons = MainManager.getIconManager();
 
 		file_open_btn = new JButton( icons.getActiveToolbarIcon(IconType.Open));
 		file_open_btn.setToolTipText("Open a new project file");
@@ -174,7 +176,7 @@ public class FirstPanel extends JPanel {
 		show_timeline_btn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				file_ops.showTimelineWindow();
+				MainManager.showTimelineWindow();
 			}
 		});
 		toolbar.add(show_timeline_btn);
@@ -185,20 +187,20 @@ public class FirstPanel extends JPanel {
 		show_trace_profile_btn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				file_ops.showTraceProfileFrame();
+				MainManager.showTraceProfileFrame();
 			}
 		});
 		toolbar.add(show_trace_profile_btn);
 
 		toolbar.addSeparator();
 
-		edit_prefer_btn = new JButton(icons.getActiveToolbarIcon(IconType.FramePreferences));
+		show_prefer_btn = new JButton(icons.getActiveToolbarIcon(IconType.FramePreferences));
 
-		edit_prefer_btn.setToolTipText("Open the Preference window");
+		show_prefer_btn.setToolTipText("Open the Preference window");
 		// edit_prefer_btn.setBorder( empty_border );
-		edit_prefer_btn.setMargin(btn_insets);
-		edit_prefer_btn.addActionListener(new EditPreferButtonListener());
-		toolbar.add(edit_prefer_btn);
+		show_prefer_btn.setMargin(btn_insets);
+		show_prefer_btn.addActionListener(new EditPreferButtonListener());
+		toolbar.add(show_prefer_btn);
 
 		toolbar.addSeparator();
 
@@ -232,12 +234,6 @@ public class FirstPanel extends JPanel {
 		return toolbar;
 	}
 
-	public void init() {
-		file_ops.init();
-		if (logfile_name != null)
-			logname_fld.fireActionPerformed();
-	}
-
 	public JButton getLogFileSelectButton() {
 		return file_open_btn;
 	}
@@ -262,8 +258,12 @@ public class FirstPanel extends JPanel {
 		return show_timeline_btn;
 	}
 
-	public JButton getEditPreferenceButton() {
-		return edit_prefer_btn;
+	public JButton getShowTraceProfileButton() {
+		return show_trace_profile_btn;
+	}
+
+	public JButton getShowPreferenceButton() {
+		return show_prefer_btn;
 	}
 
 	public JButton getHelpManualButton() {
@@ -276,9 +276,9 @@ public class FirstPanel extends JPanel {
 
 	private class FileSelectButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			final String filename = file_ops.selectLogFile();
+			final String filename = MainManager.getFileOperations().selectTraceProject();
 			if (filename != null && filename.length() > 0) {
-				file_ops.disposeLogFileAndResources();
+				MainManager.closeAllChildWindows();
 
 				logname_fld.setText(filename);
 				logname_fld.fireActionPerformed();		
@@ -288,20 +288,20 @@ public class FirstPanel extends JPanel {
 
 	private class FileAddButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			final String filename = file_ops.selectLogFile();
+			final String filename = MainManager.getFileOperations().selectTraceProject();
 			if (filename != null && filename.length() > 0) {
 				if(loadedFiles.contains(filename)){
-					Dialogs.info( TopWindow.First.getWindow(), "File is already loaded: " + filename, null);
+					Dialogs.info( MainManager.getJumpshotWindow(), "File is already loaded: " + filename, null);
 					return;
 				}
 
 				try{
-					file_ops.addLogFile(filename);
+					MainManager.addTraceProject(filename);
 					loadedFiles.add(filename);
 					additionalLoadedFilesBox.setSelectedItem(filename);
 
 				}catch(Exception e){
-					Dialogs.info( TopWindow.First.getWindow(), "Error while loading file: " + filename + "\n" +
+					Dialogs.info( MainManager.getJumpshotWindow(), "Error while loading file: " + filename + "\n" +
 							"Cause: " + e.getMessage(), null );
 				}
 			}
@@ -311,25 +311,28 @@ public class FirstPanel extends JPanel {
 	private class LogNameTextFieldListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
 			final String filename = logname_fld.getText();
-			file_ops.disposeLogFileAndResources();
 			loadedFiles.clear();
-			file_ops.openLogFile(filename);
+			try{
+				MainManager.openTraceProject(filename);
 
-
-			loadedFiles.add(filename);
-			additionalLoadedFilesBox.setSelectedItem(filename);		
+				loadedFiles.add(filename);
+				additionalLoadedFilesBox.setSelectedItem(filename);
+			}catch (Exception e){
+				Dialogs.error(MainManager.getJumpshotWindow(), "Error when initializing " + filename + "!\n" +	e.getMessage() );
+				return;
+			}
 		}
 	}
 
 	private class ShowLegendButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			file_ops.showLegendWindow();
+			MainManager.showLegendWindow();
 		}
 	}
 
 	private class EditPreferButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			file_ops.showPreferenceWindow();
+			MainManager.showPreferenceWindow();
 		}
 	}
 
@@ -340,7 +343,7 @@ public class FirstPanel extends JPanel {
 
 				manual_viewer.setVisible(true);
 			}catch(Exception e){
-				Dialogs.warn(TopWindow.First.getWindow(), "Cannot locate "
+				Dialogs.warn(MainManager.getJumpshotWindow(), "Cannot locate "
 						+ manual_path + ".");
 			}
 		}
@@ -353,22 +356,21 @@ public class FirstPanel extends JPanel {
 
 				manual_viewer.setVisible(true);
 			}catch(Exception e){
-				Dialogs.warn(TopWindow.First.getWindow(), "Cannot locate "
-						+ faq_path + ".");
+				Dialogs.warn(MainManager.getJumpshotWindow(), "Cannot locate " + faq_path + ".");
 			}
 		}
 	}
 
 	private class HelpAboutButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			ImageIcon js_icon = Jumpshot.getIconManager().getActiveToolbarIcon(IconType.FrameHelp);
-			Dialogs.info(TopWindow.First.getWindow(), about_str, js_icon);
+			ImageIcon js_icon = MainManager.getIconManager().getActiveToolbarIcon(IconType.FrameHelp);
+			Dialogs.info(MainManager.getJumpshotWindow(), about_str, js_icon);
 		}
 	}
 
 	private class FileCloseButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			file_ops.disposeLogFileAndResources();
+			MainManager.closeAllChildWindows();
 			additionalLoadedFilesBox.removeAllItems();
 			loadedFiles.clear();
 		}

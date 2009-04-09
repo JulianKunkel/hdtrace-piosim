@@ -536,4 +536,9 @@ public class ModelTime extends DefaultBoundedRangeModel implements AdjustmentLis
 
 		 return getClass().getName() + "{" + str_rep + "}";
 	 }
+
+	public void adjustGlobalTime(Epoch globalMinTime, Epoch globalMaxTime) {
+		setTimeGlobalMinimum(globalMinTime);
+		setTimeGlobalMaximum(globalMaxTime);
+	}
 }

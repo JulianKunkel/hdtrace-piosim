@@ -54,13 +54,14 @@ import javax.swing.text.Document;
 
 public class LabeledTextField extends JPanel
 {
-    private   static final   int     TEXT_HEIGHT = 20;
+	private static final long serialVersionUID = 8486031160051542133L;
+	
+	private   static final   int     TEXT_HEIGHT = 20;
     protected static         Font    FONT        = null;
 
     private   JLabel                 tag;
     private   ActableTextField       fld;
     protected DecimalFormat          fmt;
-    // private int                    preferred_height;
 
     private FieldDocumentListener  self_listener;
 
@@ -279,13 +280,9 @@ public class LabeledTextField extends JPanel
         fld.getDocument().addDocumentListener( self_listener );
     }
 
-    // BoxLayout respects component's maximum size
     public Dimension getMaximumSize()
     {
-        // return new Dimension( Short.MAX_VALUE, preferred_height );
-        return new Dimension( Short.MAX_VALUE,
-                              fld.getPreferredSize().height
-                            + this.TEXT_HEIGHT );
+        return new Dimension( Short.MAX_VALUE, fld.getPreferredSize().height + this.TEXT_HEIGHT );
     }
 
     public void setLabel(String label){
@@ -296,9 +293,6 @@ public class LabeledTextField extends JPanel
     {
         fld.fireActionPerformed();
     }
-
-
-
 
     /*  DocumentListener Interface  */
     private class FieldDocumentListener implements DocumentListener

@@ -37,7 +37,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 
 import viewer.common.IconManager.IconType;
-import viewer.first.Jumpshot;
+import viewer.first.MainManager;
 
 /**
  * This button is for triggering auto refresh in any form, it shows its state.
@@ -52,7 +52,7 @@ public class ButtonAutoRefresh extends JButton implements ActionListener
 
 	public ButtonAutoRefresh(IAutoRefreshable autoRefreshable)
 	{
-		super(Jumpshot.getIconManager().getActiveToolbarIcon(IconType.AutoRefresh));
+		super(MainManager.getIconManager().getActiveToolbarIcon(IconType.AutoRefresh));
 		this.setToolTipText( "Automatically redraw" );
 		this.setMnemonic( KeyEvent.VK_A );
 

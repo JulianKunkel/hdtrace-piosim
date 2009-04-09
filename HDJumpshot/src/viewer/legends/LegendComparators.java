@@ -46,12 +46,10 @@ public class LegendComparators
 	public  static final Comparator<Category> CASE_INSENSITIVE_ORDER	= new CaseInsensitiveOrder();
 
 
-	public static class TopologyNameOrder implements Comparator
+	public static class TopologyNameOrder implements Comparator<Category>
 	{
-		public int compare( Object o1, Object o2 )
+		public int compare( Category type1, Category type2 )
 		{
-			Category type1      = (Category) o1;
-			Category type2      = (Category) o2;
 			int      diff       = 0;
 			diff = TOPOLOGY_ORDER.compare( type1, type2 );
 			if ( diff != 0 )
@@ -61,34 +59,28 @@ public class LegendComparators
 	}
 
 
-	public static class TopologyOrder implements Comparator
+	public static class TopologyOrder implements Comparator<Category>
 	{
-		public int compare( Object o1, Object o2 )
+		public int compare( Category o1, Category o2 )
 		{
-			Category type1      = (Category) o1;
-			Category type2      = (Category) o2;
-			return type1.getTopologyType().ordinal() - type2.getTopologyType().ordinal(); 
+			return o1.getTopologyType().ordinal() - o2.getTopologyType().ordinal(); 
 			// intentionally reversed, so arrow < state < event
 		}
 	}
 
-	public static class CaseSensitiveOrder implements Comparator
+	public static class CaseSensitiveOrder implements Comparator<Category>
 	{
-		public int compare( Object o1, Object o2 )
+		public int compare( Category o1, Category o2 )
 		{
-			Category type1      = (Category) o1;
-			Category type2      = (Category) o2;
-			return type1.getName().compareTo( type2.getName() );
+			return o1.getName().compareTo( o2.getName() );
 		}
 	}
 
-	public static class CaseInsensitiveOrder implements Comparator
+	public static class CaseInsensitiveOrder implements Comparator<Category>
 	{
-		public int compare( Object o1, Object o2 )
+		public int compare( Category o1, Category o2 )
 		{
-			Category type1      = (Category) o1;
-			Category type2      = (Category) o2;
-			return type1.getName().compareToIgnoreCase( type2.getName() );
+			return o1.getName().compareToIgnoreCase( o2.getName() );
 		}
 	}
 }

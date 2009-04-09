@@ -37,10 +37,6 @@ package viewer.zoomable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import viewer.common.Parameters;
-import viewer.common.PreferenceFrame;
-import viewer.first.TopWindow;
-
 public class ActionPptyRefresh implements ActionListener
 {
 	  final private ScrollableObject     timelines;
@@ -52,12 +48,6 @@ public class ActionPptyRefresh implements ActionListener
 
     public void actionPerformed( ActionEvent event )
     {
-    	PreferenceFrame pptys_frame = (PreferenceFrame) TopWindow.Preference.getWindow();
-        if ( pptys_frame != null )
-            pptys_frame.updateAllParametersFromFields();
-                
-        Parameters.initStaticClasses();
-                        
         timelines.forceRedraw();
     }
 }

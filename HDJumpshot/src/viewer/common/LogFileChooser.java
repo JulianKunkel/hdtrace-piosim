@@ -35,37 +35,22 @@
 
 package viewer.common;
 
-import java.io.File;
-
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
 public class LogFileChooser extends JFileChooser
 {
-	private boolean  isApplet;
+	private static final long serialVersionUID = 2291243194312596269L;
 
-	public LogFileChooser( boolean isTopApplet )
+	public LogFileChooser(  )
 	{
 		super( System.getProperty( "user.dir" ) );
 		super.setDialogTitle( "Select HDTraceProject file" );
-
-		isApplet = isTopApplet;
 
 		FileFilter  filter;
 
 		filter = new LogPermitDirFilter( new String[]{ "xml" } );
 		super.addChoosableFileFilter( filter );
 
-	}
-
-	public boolean isTraversable( File file )
-	{
-		if ( isApplet )
-			if ( file != null )
-				return ! file.isDirectory();
-			else
-				return false;
-		else
-			return super.isTraversable( file );
 	}
 }
