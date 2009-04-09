@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -35,7 +35,6 @@
 package viewer.first;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -61,7 +60,7 @@ import viewer.common.IconManager.IconType;
 
 public class FirstPanel extends JPanel {
 	private static final long serialVersionUID = 8085293176219056520L;
-	
+
 	private static String about_str = "HDJumpshot.\n"	+ "bug-reports/questions:\n" + "            julian.kunkel@gmx.de";
 	private static String manual_path = Const.DOC_PATH + "usersguide.html";
 	private static String faq_path = Const.DOC_PATH + "faq_index.html";
@@ -73,7 +72,7 @@ public class FirstPanel extends JPanel {
 	/* some of these are hidden buttons */
 	private JButton file_open_btn;
 	private JButton file_add_btn;
-	
+
 	private JButton file_convert_btn;
 	private JButton file_close_btn;
 	private JButton show_timeline_btn;
@@ -87,7 +86,7 @@ public class FirstPanel extends JPanel {
 
 	private LogFileOperations file_ops;
 	private String logfile_name;
-	
+
 	public FirstPanel(boolean isApplet, String filename, int view_idx) {
 		super();
 		super.setLayout(new BorderLayout());
@@ -99,18 +98,10 @@ public class FirstPanel extends JPanel {
 		file_ops = new LogFileOperations(isApplet);
 		logfile_name = filename;
 
-		Dimension row_pref_sz;
-		Dimension lbl_pref_sz;
-		Dimension fld_pref_sz;
-		row_pref_sz = new Dimension(410, 27);
-		lbl_pref_sz = new Dimension(110, 25);
-		fld_pref_sz = new Dimension(row_pref_sz.width - lbl_pref_sz.width,
-				lbl_pref_sz.height);
-
 		// layout, main panel:
-    final GridBagLayout gridbag = new GridBagLayout();
-    final GridBagConstraints gConstraints = new GridBagConstraints();
-    
+		final GridBagLayout gridbag = new GridBagLayout();
+		final GridBagConstraints gConstraints = new GridBagConstraints();
+
 		JPanel ctr_panel;
 		ctr_panel = new JPanel();
 		ctr_panel.setLayout(gridbag);
@@ -118,7 +109,7 @@ public class FirstPanel extends JPanel {
 		JLabel label;
 		gConstraints.fill = GridBagConstraints.BOTH;
 		gConstraints.weightx = 1.0;
-		
+
 		label = new JLabel(" ProjectFile: ");
 		ctr_panel.add(label);
 		logname_fld = new ActableTextField(logfile_name, 40);
@@ -127,16 +118,16 @@ public class FirstPanel extends JPanel {
 		logname_fld.addActionListener(new LogNameTextFieldListener());
 
 		ctr_panel.add(logname_fld);
-		
+
 		gConstraints.gridwidth = GridBagConstraints.REMAINDER;
 		gridbag.setConstraints(logname_fld, gConstraints); 
-		
+
 		JLabel label2 = new JLabel(" Loaded projects: ");
 		ctr_panel.add(label2);
 		additionalLoadedFilesBox = new JComboBox(new DefaultComboBoxModel(loadedFiles));		
 		ctr_panel.add(additionalLoadedFilesBox);		
 		gridbag.setConstraints(additionalLoadedFilesBox,  gConstraints);
-		
+
 		ctr_panel.setBorder(etched_border);
 
 		super.add(ctr_panel, BorderLayout.CENTER);
@@ -144,7 +135,6 @@ public class FirstPanel extends JPanel {
 		JToolBar toolbar;
 		toolbar = createToolBarAndButtons(JToolBar.HORIZONTAL);
 		super.add(toolbar, BorderLayout.SOUTH);
-
 	}
 
 	private JToolBar createToolBarAndButtons(int orientation) {
@@ -154,9 +144,9 @@ public class FirstPanel extends JPanel {
 
 		Insets btn_insets;
 		btn_insets = new Insets(1, 1, 1, 1);
-		
+
 		final IconManager icons = Jumpshot.getIconManager();
-		
+
 		file_open_btn = new JButton( icons.getActiveToolbarIcon(IconType.Open));
 		file_open_btn.setToolTipText("Open a new project file");
 		file_open_btn.setMargin(btn_insets);
@@ -169,7 +159,7 @@ public class FirstPanel extends JPanel {
 		file_add_btn.setMargin(btn_insets);
 		file_add_btn.addActionListener(new FileAddButtonListener());
 		toolbar.add(file_add_btn);
-		
+
 		toolbar.addSeparator();
 		show_legend_btn = new JButton(icons.getActiveToolbarIcon(IconType.FrameLegend));
 		show_legend_btn.setToolTipText("Display the Legend window");
@@ -188,7 +178,7 @@ public class FirstPanel extends JPanel {
 			}
 		});
 		toolbar.add(show_timeline_btn);
-		
+
 		show_trace_profile_btn = new JButton(icons.getActiveToolbarIcon(IconType.FrameTimelineProfile));
 		show_trace_profile_btn.setToolTipText("Display the trace profile window");
 		show_trace_profile_btn.setMargin(btn_insets);
@@ -199,11 +189,11 @@ public class FirstPanel extends JPanel {
 			}
 		});
 		toolbar.add(show_trace_profile_btn);
-		
+
 		toolbar.addSeparator();
 
 		edit_prefer_btn = new JButton(icons.getActiveToolbarIcon(IconType.FramePreferences));
-	
+
 		edit_prefer_btn.setToolTipText("Open the Preference window");
 		// edit_prefer_btn.setBorder( empty_border );
 		edit_prefer_btn.setMargin(btn_insets);
@@ -229,9 +219,9 @@ public class FirstPanel extends JPanel {
 		help_about_btn.addActionListener(new HelpAboutButtonListener());
 
 		/* file_close_btn is a hidden button */
-		
+
 		file_close_btn = new JButton(icons.getActiveToolbarIcon(IconType.Close));
-		
+
 		file_close_btn.setToolTipText("Close the logfile");
 		// file_close_btn.setBorder( empty_border );
 		file_close_btn.setMargin(btn_insets);
@@ -241,7 +231,7 @@ public class FirstPanel extends JPanel {
 
 		return toolbar;
 	}
-	
+
 	public void init() {
 		file_ops.init();
 		if (logfile_name != null)
@@ -251,7 +241,7 @@ public class FirstPanel extends JPanel {
 	public JButton getLogFileSelectButton() {
 		return file_open_btn;
 	}
-	
+
 	public JButton getFileaddButton() {
 		return file_add_btn;
 	}
@@ -295,7 +285,7 @@ public class FirstPanel extends JPanel {
 			}
 		}
 	}
-	
+
 	private class FileAddButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
 			final String filename = file_ops.selectLogFile();
@@ -304,12 +294,12 @@ public class FirstPanel extends JPanel {
 					Dialogs.info( TopWindow.First.getWindow(), "File is already loaded: " + filename, null);
 					return;
 				}
-				
+
 				try{
 					file_ops.addLogFile(filename);
 					loadedFiles.add(filename);
 					additionalLoadedFilesBox.setSelectedItem(filename);
-					
+
 				}catch(Exception e){
 					Dialogs.info( TopWindow.First.getWindow(), "Error while loading file: " + filename + "\n" +
 							"Cause: " + e.getMessage(), null );
@@ -324,7 +314,7 @@ public class FirstPanel extends JPanel {
 			file_ops.disposeLogFileAndResources();
 			loadedFiles.clear();
 			file_ops.openLogFile(filename);
-			
+
 
 			loadedFiles.add(filename);
 			additionalLoadedFilesBox.setSelectedItem(filename);		
@@ -347,7 +337,7 @@ public class FirstPanel extends JPanel {
 		public void actionPerformed(ActionEvent evt) {
 			try{
 				manual_viewer.init(manual_path);
-			
+
 				manual_viewer.setVisible(true);
 			}catch(Exception e){
 				Dialogs.warn(TopWindow.First.getWindow(), "Cannot locate "
@@ -360,7 +350,7 @@ public class FirstPanel extends JPanel {
 		public void actionPerformed(ActionEvent evt) {
 			try{
 				manual_viewer.init(faq_path);
-			
+
 				manual_viewer.setVisible(true);
 			}catch(Exception e){
 				Dialogs.warn(TopWindow.First.getWindow(), "Cannot locate "

@@ -50,14 +50,13 @@ public class Jumpshot extends JFrame
                         implements TopControl
 {
     private static boolean        isApplet = false;
-    private static String         filename = null;
     private static int            view_ID  = -1;
 
     private        FirstPanel     top_panel;
     private        FirstMenuBar   top_menubar;
     private static IconManager    iconManager;
 
-    public Jumpshot()
+    public Jumpshot(String filename)
     {    	
         super( "HDJumpshot" );
         super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
@@ -85,6 +84,8 @@ public class Jumpshot extends JFrame
                 }
             }
         } );
+        
+        this.pack();        
     }
 
     public static IconManager getIconManager(){
@@ -114,7 +115,7 @@ public class Jumpshot extends JFrame
     public static void main( String[] args )
     {
         Jumpshot     frame;
-        parseCmdLineArgs( args );
+        String filename = parseCmdLineArgs( args );
 
         SimpleConsoleLogger.setDebugEverything(true);
         //Debug.setActive(true);
@@ -123,7 +124,7 @@ public class Jumpshot extends JFrame
         // viewer.zoomable.Profile.initTextArea();
 
         System.out.println( "Starting HDJumpshot" );
-        frame     = new Jumpshot();
+        frame     = new Jumpshot(filename);
         frame.pack();
         TopWindow.layoutIdealLocations();
         frame.setVisible( true );
@@ -143,11 +144,12 @@ public class Jumpshot extends JFrame
                                    + "\t [-v view_ID ]                     "
                                    + "\t Default value is -1.\n" ;
 
-    private static void parseCmdLineArgs( String argv[] )
+    private static String parseCmdLineArgs( String argv[] )
     {
         String        arg_str;
         StringBuffer  err_msg = new StringBuffer();
         int idx = 0;
+        String filename = null;
         try {  // Unnecessary try block
             while ( idx < argv.length ) {
                 if ( argv[ idx ].startsWith( "-" ) ) {
@@ -195,6 +197,8 @@ public class Jumpshot extends JFrame
                               + " command line argument.  It needs a number." );            // System.err.println( help_msg );
             numerr.printStackTrace();
         }
+        
+        return filename;
     }
 
     private static String indexOrderStr( int idx )

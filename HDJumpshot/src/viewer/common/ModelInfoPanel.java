@@ -47,6 +47,16 @@ abstract public class ModelInfoPanel<InfoType>
 	 */
 	protected abstract void addControlsToPanel(JPanel panel);
 	
+	/**
+	 *  add a textField to the panel which is not editable
+	 */
+	protected void addTextField(LabeledTextField field, String tooltip){
+		field.setToolTipText(tooltip);
+		field.setEditable(false);
+		panel.add(field);
+	}
+	
+	// the real panel containing all the labels:
 	private JPanel panel = new JPanel();
 	
 	public ModelInfoPanel(  )

@@ -262,6 +262,12 @@ public class LabeledTextField extends JPanel
         fld.setEnabled( flag );
     }
 
+    @Override
+    public void setToolTipText(String text) {    
+    	super.setToolTipText(text);
+    	fld.setToolTipText(text);
+    }
+    
     public void addActionListener( ActionListener listener )
     {
         fld.addActionListener( listener );

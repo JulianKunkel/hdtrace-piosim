@@ -1,3 +1,20 @@
+//	Copyright (C) 2009 Julian M. Kunkel
+//	
+//	This file is part of HDJumpshot.
+//	
+//	HDJumpshot is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+//	
+//	HDJumpshot is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+
 package viewer.profile;
 
 import java.awt.Color;
@@ -12,49 +29,44 @@ import drawable.Category;
 public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProfile> {
 	
 	final private LabeledTextField  fld_category_name = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
+	final private LabeledTextField  fld_metricPercent = new LabeledTextField( "Metric [%]", Const.FLOAT_FORMAT );
+				
 	final private LabeledTextField  fld_numberOfCalls = new LabeledTextField( "# calls", Const.INTEGER_FORMAT );	
+
 	final private LabeledTextField  fld_exclusiveTime = new LabeledTextField( "Excl. [t]", Const.PANEL_TIME_FORMAT );
+	final private LabeledTextField  fld_exclTimePercent = new LabeledTextField( "Excl. Time [%]", Const.FLOAT_FORMAT );
+
 	final private LabeledTextField  fld_inclusiveTime = new LabeledTextField( "Incl. [t]", Const.PANEL_TIME_FORMAT );
+	final private LabeledTextField  fld_inclTimePercent = new LabeledTextField( "Incl. Time [%]", Const.FLOAT_FORMAT );
+
 	final private LabeledTextField  fld_maxExclusiveTime  = new LabeledTextField( "Max Excl[t]", Const.PANEL_TIME_FORMAT );
 	final private LabeledTextField  fld_minExclusiveTime = new LabeledTextField( "Min Excl[t]", Const.PANEL_TIME_FORMAT );
 	final private LabeledTextField  fld_maxInclusiveTime = new LabeledTextField( "Max Incl[t]", Const.PANEL_TIME_FORMAT );
 	final private LabeledTextField  fld_minInclusiveTime = new LabeledTextField( "Min Incl[t]", Const.PANEL_TIME_FORMAT );
+	
 	final private LabeledTextField  fld_avgExclusiveTime = new LabeledTextField( "Avg. Excl[t]", Const.PANEL_TIME_FORMAT );
 	final private LabeledTextField  fld_avgInclusiveTime = new LabeledTextField( "Avg. Incl[t]", Const.PANEL_TIME_FORMAT );
 	
 	@Override
 	protected void addControlsToPanel(JPanel panel) {
-		fld_category_name.setEditable( false );
 		fld_category_name.setBackground( Color.black );
+
+		addTextField(fld_category_name, "The category name the profile information belongs to");
+
+		addTextField(fld_numberOfCalls, "Number of times a TraceObject of the category is visible");
+		addTextField(fld_metricPercent, "Percent of the profile line the current TraceObject occupies with the selected Metric");
 		
-		panel.add(fld_category_name);
+		addTextField(fld_exclusiveTime, "Sum of the exclusive time for all visible TraceObjects of this category");
+		addTextField(fld_exclTimePercent, "(Sum exclusive time) / (Extend of time)");
+		addTextField(fld_minExclusiveTime, "Minimum time needed for a single state of this category");
+		addTextField(fld_maxExclusiveTime, "Maximum time needed for a single state of this category");
+		addTextField(fld_avgExclusiveTime, "Average time needed for a single state of this category");
 		
-		fld_numberOfCalls.setEditable( false );
-		panel.add(fld_numberOfCalls);
-		
-		fld_exclusiveTime.setEditable( false );
-		panel.add(fld_exclusiveTime);
-		
-		fld_inclusiveTime.setEditable( false );
-		panel.add(fld_inclusiveTime);
-		
-		fld_minExclusiveTime.setEditable( false );
-		panel.add(fld_minExclusiveTime);
-		
-		fld_maxExclusiveTime.setEditable( false );
-		panel.add(fld_maxExclusiveTime);
-		
-		fld_minInclusiveTime.setEditable( false );
-		panel.add(fld_minInclusiveTime);
-		
-		fld_maxInclusiveTime.setEditable( false );
-		panel.add(fld_maxInclusiveTime);
-		
-		fld_avgInclusiveTime.setEditable( false );
-		panel.add(fld_avgInclusiveTime);
-		
-		fld_avgInclusiveTime.setEditable( false );
-		panel.add(fld_avgInclusiveTime);
+		addTextField(fld_inclusiveTime, "Sum of the inclusive time for all visible TraceObjects of this category");
+		addTextField(fld_inclTimePercent, "(Sum inclusive time) / (Extend of time)");
+		addTextField(fld_minInclusiveTime, "Minimum time needed for a single state of this category");
+		addTextField(fld_maxInclusiveTime, "Maximum time needed for a single state of this category");
+		addTextField(fld_avgInclusiveTime, "Average time needed for a single state of this category");
 	}
 	
 	@Override
@@ -64,14 +76,23 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProf
 		}
 		
 		
-		final Category cat = obj.getCategory(); 
+		final Category cat = obj.getCategory();
+		final TraceProfileFrame frame = obj.getProfileFrame();
+		
 		fld_category_name.setText(cat.getName() );    
 		fld_category_name.setBackground( cat.getColor() );
+		
+		fld_metricPercent.setDouble( frame.getMetricHandler().getInterestingValue(obj) / frame.getMaxMetricValue() );
 		
 		fld_numberOfCalls.setInteger(obj.getNumberOfCalls());
 		
 		fld_inclusiveTime.setDouble(obj.getInclusiveTime());
 		fld_exclusiveTime.setDouble(obj.getExclusiveTime());
+		
+		fld_inclTimePercent.setDouble(obj.getInclusiveTime() / frame.getRealModelTimeExtend());
+		
+		fld_exclTimePercent.setDouble(obj.getExclusiveTime() / frame.getRealModelTimeExtend());		
+
 		
 		fld_minExclusiveTime.setDouble(obj.getMinDurationExclusive());
 		fld_minInclusiveTime.setDouble(obj.getMinDurationInclusive());

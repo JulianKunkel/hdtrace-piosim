@@ -1,10 +1,27 @@
+//	Copyright (C) 2009 Julian M. Kunkel
+//	
+//	This file is part of HDJumpshot.
+//	
+//	HDJumpshot is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+//	
+//	HDJumpshot is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+
 package viewer.profile;
 
 import java.util.Comparator;
 
 /**
  * Provides comparators to sort the trace profile list
- * @author julian
+ * @author Julian M. Kunkel
  *
  */
 abstract public class TraceProfileComparator implements Comparator<TraceCategoryStateProfile> {
@@ -12,9 +29,9 @@ abstract public class TraceProfileComparator implements Comparator<TraceCategory
 	abstract public int compare(TraceCategoryStateProfile o1, TraceCategoryStateProfile o2);
 	
 	static public class Normal extends TraceProfileComparator{
-		final TraceProfileValueHandler handler;
+		final TraceProfileMetricHandler handler;
 		
-		public Normal(TraceProfileValueHandler handler) {
+		public Normal(TraceProfileMetricHandler handler) {
 			this.handler = handler;
 		}
 		
@@ -26,9 +43,9 @@ abstract public class TraceProfileComparator implements Comparator<TraceCategory
 	}
 	
 	static public class Reversed extends TraceProfileComparator{
-		final TraceProfileValueHandler handler;
+		final TraceProfileMetricHandler handler;
 		
-		public Reversed(TraceProfileValueHandler handler) {
+		public Reversed(TraceProfileMetricHandler handler) {
 			this.handler = handler;
 		}
 		

@@ -1,3 +1,20 @@
+//	Copyright (C) 2009 Julian M. Kunkel
+//	
+//	This file is part of HDJumpshot.
+//	
+//	HDJumpshot is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+//	
+//	HDJumpshot is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+
 package viewer.profile;
 
 import hdTraceInput.BufferedTraceFileReader;
@@ -53,17 +70,18 @@ import drawable.TimeBoundingBox;
 
 /**
  * Show a profile of the trace.
- * @author julian
+ * @author Julian M. Kunkel
  */
 public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateProfile>{
 	
 	// the real model's time
 	final ModelTime realModelTime;
 	
-	JButton timeRefreshBtn;
-	
 	// real profiling data
 	TraceObjectProfile profile;
+	
+	// the selected metric handler
+	TraceProfileMetricHandler metricHandler;
 	
 	// mapping from TraceObjectProfile to visible information:
 	HashMap<Integer, TraceObjectProfileMap> timelineMap = new HashMap<Integer, TraceObjectProfileMap>();		
@@ -80,13 +98,19 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	enum VisualizedMetric {
 		INCLUSIVE_TIME,
 		EXCLUSIVE_TIME,
+		MAX_INCLUSIVE_TIME,
+		MAX_EXCLUSIVE_TIME,
 		NUMBER_OF_CALLS
 	}
 	
 	VisualizedMetric visualizedMetric = VisualizedMetric.INCLUSIVE_TIME;
 	
+	// additional controls:
+
+	JButton timeRefreshBtn;
+	
 	final JComboBox visualizedMetricBox = new JComboBox(VisualizedMetric.values());
-	final JCheckBox processNestedChkbox = new JCheckBox("Nested");
+	final JCheckBox processNestedChkbox = new JCheckBox("Nested");	
 	
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
@@ -138,31 +162,36 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	}
 	
 	private void updateVisualizedMetric(){
-		final TopologyManager topologyManager = getTopologyManager();
+		final TopologyManager topologyManager = getTopologyManager();		
 		
-		final TraceProfileValueHandler handler;
 		switch(visualizedMetric){
 		case EXCLUSIVE_TIME:
-			handler = new TraceProfileValueHandler.ExclusiveTimeHandler();
+			metricHandler = new TraceProfileMetricHandler.ExclusiveTimeHandler();
 			break;
 		case INCLUSIVE_TIME:
-			handler = new TraceProfileValueHandler.InclusiveTimeHandler();
+			metricHandler = new TraceProfileMetricHandler.InclusiveTimeHandler();
 			break;
 		case NUMBER_OF_CALLS:
-			handler = new TraceProfileValueHandler.NumberOfCallsHandler();
+			metricHandler = new TraceProfileMetricHandler.NumberOfCallsHandler();
 			break;
+		case MAX_EXCLUSIVE_TIME:
+			metricHandler = new TraceProfileMetricHandler.MaxExclusiveTimeHandler();
+			break;
+		case MAX_INCLUSIVE_TIME:
+			metricHandler = new TraceProfileMetricHandler.MaxInclusiveTimeHandler();
+			break;			
 		default:
-			handler = null;
+			metricHandler = null;
 		}
 		
 		final TraceProfileComparator comparator;
 		
 		if(normalSorting)
-			comparator = new TraceProfileComparator.Normal(handler);
+			comparator = new TraceProfileComparator.Normal(metricHandler);
 		else 
-			comparator = new TraceProfileComparator.Reversed(handler);
+			comparator = new TraceProfileComparator.Reversed(metricHandler);
 		
-		double maxValue = 0.1; // initalize to something
+		double maxValue = 0.1; // Initialize to something
 		
 		for ( int timeline = 0 ; timeline < topologyManager.getRowCount() ; timeline++ ) {
 			//  Select only non-expanded row
@@ -171,7 +200,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			}
 			final ArrayList<TraceCategoryStateProfile> list = getProfile().getProfileSortedBy(timeline, comparator);
 		
-			final TraceObjectProfileMap tlMap = new TraceObjectProfileMap(list, handler);
+			final TraceObjectProfileMap tlMap = new TraceObjectProfileMap(list, metricHandler);
 			timelineMap.put(timeline, tlMap);		
 			
 			// adapt max value
@@ -236,7 +265,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 					
 					TraceCategoryStateProfile stateProfil = catMap.get(category);
 					if(stateProfil == null){
-						stateProfil = new TraceCategoryStateProfile(category);
+						stateProfil = new TraceCategoryStateProfile(category, this);
 						catMap.put(category, stateProfil);
 					}
 
@@ -523,5 +552,17 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			// TODO Auto-generated method stub
 			return null;
 		}
+	}
+	
+	public TraceProfileMetricHandler getMetricHandler() {
+		return metricHandler;
+	}
+	
+	public double getMaxMetricValue() {
+		return super.getModelTime().getTimeGlobalMaximum().getDouble();
+	}
+	
+	public double getRealModelTimeExtend(){
+		return realModelTime.getTimeViewExtent();
 	}
 }
