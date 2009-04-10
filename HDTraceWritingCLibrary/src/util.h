@@ -1,11 +1,11 @@
 /**
  * @file util.h
  *
- * Declarations of common utility functions and types
+ * Declarations of general utility functions and types
  *
- * @date 25.03.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 1
  */
 
 #ifndef UTIL_H_
@@ -17,7 +17,7 @@
 /**
  * Define boolean type
  */
-typedef int8_t BOOL;
+typedef uint8_t BOOL;
 
 #ifndef TRUE
 /**
@@ -40,11 +40,16 @@ BOOL isValidString(const char *string);
 /**
  * Check if the given string is a valid XML tag name
  */
-BOOL isValidTagString(const char *string);
+BOOL isValidXMLTagString(const char *string);
 
 /**
  * Returns minimum of the two size arguments.
  */
 size_t minSize(size_t a, size_t b);
+
+/**
+ * Returns maximum of the two size arguments.
+ */
+size_t maxSize(size_t a, size_t b);
 
 #endif /* UTIL_H_ */

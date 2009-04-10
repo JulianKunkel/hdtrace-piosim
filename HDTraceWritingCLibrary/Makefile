@@ -41,7 +41,7 @@ $(LIB_DIR)/libhdStats.a: $(SRC_DIR)/hdStats.o $(SRC_DIR)/hdTopo.o $(SRC_DIR)/com
 $(SRC_DIR)/%o: force
 	$(MAKE) -C $(SRC_DIR) $(notdir $@)
 	
-tests: force all
+tests: force
 	$(MAKE) -C $(TESTS_DIR)
 
 doc: devdoc apidoc

@@ -1,9 +1,9 @@
 /**
  * @file hdTopoTest.c
  *
- * @date 01.0o.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 0.5
  */
 
 #include <stdlib.h>
@@ -20,14 +20,14 @@
 /**
  * Test hdT_createTopology.
  */
-void Test_createTopology()
+static void Test_createTopology_C1(void)
 {
 	hdTopology myTopology;
 
-	/* Test correct usage with string literals */
-	TEST_BEGIN("Correct usage (using string literals)")
+	/* Test correct usage (with string literals) */
+	TEST_BEGIN("Correct usage")
 
-	char *levels1[] = {"Host","Process"};
+	const char *levels1[] = {"Host","Process"};
 
 	myTopology = hdT_createTopology("MyProject", levels1, 2);
 
@@ -43,28 +43,40 @@ void Test_createTopology()
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopology(myTopology);
+}
 
-	/* Test correct usage with dynamically allocates strings */
-	TEST_BEGIN("Correct usage (dynamic strings)")
+/**
+ * Test hdT_createTopology.
+ */
+static void Test_createTopology_T1(void)
+{
+	hdTopology myTopology;
+
+	/* Test tolerated usage with dynamically allocates strings */
+	TEST_BEGIN("Tolerated usage (dynamic strings)")
 
 
-	char **levels2 = malloc(2 * sizeof(**levels2));
-	levels2[0] = strdup("Host");
-	levels2[1] = strdup("Process");
+	char **levels = malloc(2 * sizeof(**levels));
+	levels[0] = strdup("Host");
+	levels[1] = strdup("Process");
 
 	char *project = strdup("MyProject");
 
 	/* create topology */
-	myTopology = hdT_createTopology(project, levels2, 2);
+	myTopology = hdT_createTopology((const char *) project,
+			(const char **) levels, 2);
+
 
 	/* destroy all strings */
 	memcpy(project, "x", 2);
-	memcpy(levels2[0], "x", 2);
-	memcpy(levels2[1], "x", 2);
+	memcpy(levels[0], "x", 2);
+	memcpy(levels[1], "x", 2);
+
 	free(project);
-	free(levels2[0]);
-	free(levels2[1]);
-	free(levels2);
+	free(levels[0]);
+	free(levels[1]);
+	free(levels);
+
 
 	/* levels must have the number of levels without root */
 	assert(myTopology->nlevels == 2);
@@ -80,10 +92,10 @@ void Test_createTopology()
 /**
  * Test hdT_getTopoDepth
  */
-void Test_getTopoDepth()
+static void Test_getTopoDepth_C1(void)
 {
 	/* create topology */
-	char *names[] = {"Host","Process"};
+	const char *names[] = {"Host","Process"};
 	hdTopology myTopology =	hdT_createTopology("MyProject", names, 2);
 
 	/* Test correct usage */
@@ -97,11 +109,10 @@ void Test_getTopoDepth()
 
 }
 
-
 /**
  * Test hdT_destroyTopology
  */
-void Test_destroyTopology()
+static void Test_destroyTopology_E1(void)
 {
 	/* cannot test corret call here */
 
@@ -120,14 +131,14 @@ void Test_destroyTopology()
 /**
  * Test hdT_createTopoNode
  */
-void Test_createTopoNode()
+static void Test_createTopoNode_C1(void)
 {
 	hdTopoNode myTopoNode;
 
 	/* Test correct usage with string literals */
-	TEST_BEGIN("Correct usage (using string literals)")
+	TEST_BEGIN("Correct usage")
 
-	char *path1[] = {"host0","process0"};
+	const char *path1[] = {"host0","process0"};
 
 	myTopoNode = hdT_createTopoNode(path1, 2);
 
@@ -143,24 +154,31 @@ void Test_createTopoNode()
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopoNode(myTopoNode);
+}
 
-	/* Test correct usage with dynamically allocates strings */
-	TEST_BEGIN("Correct usage (dynamic strings)")
+/**
+ * Test hdT_createTopoNode
+ */
+static void Test_createTopoNode_T1(void)
+{
+	hdTopoNode myTopoNode;
 
+	/* Test tolerated usage with dynamically allocates strings */
+	TEST_BEGIN("Tolerated usage (dynamic strings)")
 
-	char **path2 = malloc(2 * sizeof(**path2));
-	path2[0] = strdup("host0");
-	path2[1] = strdup("process0");
+	char **path = malloc(2 * sizeof(**path));
+	path[0] = strdup("host0");
+	path[1] = strdup("process0");
 
 	/* create topology */
-	myTopoNode = hdT_createTopoNode(path2, 2);
+	myTopoNode = hdT_createTopoNode((const char **)path, 2);
 
 	/* destroy all strings */
-	memcpy(path2[0],"x", 2);
-	memcpy(path2[1],"x", 2);
-	free(path2[0]);
-	free(path2[1]);
-	free(path2);
+	memcpy(path[0],"x", 2);
+	memcpy(path[1],"x", 2);
+	free(path[0]);
+	free(path[1]);
+	free(path);
 
 	/* length must have the number of path elements */
 	assert(myTopoNode->length == 2);
@@ -176,10 +194,10 @@ void Test_createTopoNode()
 /**
  * Test hdT_getTopoNodeLevel
  */
-void Test_getTopoNodeLevel()
+static void Test_getTopoNodeLevel_C1(void)
 {
 	/* create topology node */
-	char *path[] = {"host0","process0"};
+	const char *path[] = {"host0","process0"};
 	hdTopoNode myTopoNode =	hdT_createTopoNode(path, 2);
 
 	/* Test correct usage */
@@ -196,10 +214,10 @@ void Test_getTopoNodeLevel()
 /**
  * Test hdT_getTopoPathString
  */
-void Test_getTopoPathString()
+static void Test_getTopoPathString_C1(void)
 {
 	/* create topology node */
-	char *path[] = {"host0","process0"};
+	const char *path[] = {"host0","process0"};
 	hdTopoNode myTopoNode = hdT_createTopoNode(path, 2);
 
 	/* Test correct usage */
@@ -216,10 +234,10 @@ void Test_getTopoPathString()
 /**
  * Test hdT_getTopoPathLabel
  */
-void Test_getTopoPathLabel()
+static void Test_getTopoPathLabel_C1(void)
 {
 	/* create topology node */
-	char *path[] = {"host0","process0"};
+	const char *path[] = {"host0","process0"};
 	hdTopoNode myTopoNode =	hdT_createTopoNode(path, 2);
 
 	/* Test correct usage */
@@ -237,14 +255,12 @@ void Test_getTopoPathLabel()
 
 }
 
-
-
 /**
  * Test hdT_destroyTopoNode
  */
-void Test_destroyTopoNode()
+static void Test_destroyTopoNode_E1(void)
 {
-	/* cannot test corret call here */
+	/* cannot test correct call here */
 
 	/* Test call with NULL argument */
 	TEST_BEGIN("Error handling (NULL argument)")
@@ -258,15 +274,20 @@ void Test_destroyTopoNode()
 }
 
 
-int main(int argc, char **argv)
+int main(void)
 {
 	/* run all tests */
-	Test_createTopology();
-	Test_getTopoDepth();
-	Test_destroyTopology();
-	Test_createTopoNode();
-	Test_getTopoNodeLevel();
-	Test_getTopoPathString();
-	Test_getTopoPathLabel();
-	Test_destroyTopoNode();
+	Test_createTopology_C1();
+	Test_createTopology_T1();
+	Test_getTopoDepth_C1();
+	Test_destroyTopology_E1();
+
+	Test_createTopoNode_C1();
+	Test_createTopoNode_T1();
+	Test_getTopoNodeLevel_C1();
+	Test_getTopoPathString_C1();
+	Test_getTopoPathLabel_C1();
+	Test_destroyTopoNode_E1();
+
+	puts("hdTopoTest: All tests passed!");
 }

@@ -7,9 +7,9 @@
  *  @ingroup hdStats
  * @endif
  *
- * @date 25.03.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 0.5
  */
 
 #include "hdStats.h"
@@ -262,7 +262,7 @@ hdStatsGroup hdS_createGroup (
         )
 {
 	/* check input */
-	if (!isValidTagString(groupName) || topology == NULL
+	if (!isValidXMLTagString(groupName) || topology == NULL
 			|| hdT_getTopoNodeLevel(topoNode) < topoLevel)
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
@@ -300,12 +300,12 @@ hdStatsGroup hdS_createGroup (
 	group->name = strdup(groupName);
 	group->fd = fd;
 	group->tracefile = filename;
-    group->hasString = 0;
+    group->hasString = FALSE;
     group->entryLength = 0;
     hd_malloc(group->valueTypes, HDS_MAX_VALUES_PER_GROUP, NULL)
     group->nextValueIdx = 0;
-    group->isCommitted = 0;
-    group->isEnabled = 0;
+    group->isCommitted = FALSE;
+    group->isEnabled = FALSE;
 
 
 	/*
@@ -451,7 +451,7 @@ int hdS_addValue (
 	}
 
 	/* check group commit state */
-	if (group->isCommitted == 1)
+	if (group->isCommitted)
 	{
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
@@ -462,7 +462,7 @@ int hdS_addValue (
 	group->valueTypes[group->nextValueIdx] = type;
 
 	/* if there is a string value, checking the entry length is impossible */
-	if(group->hasString == 0)
+	if(!group->hasString)
 	{
 		size_t valueLength = getValueLength(type);
 		if (valueLength > 0)
@@ -472,7 +472,7 @@ int hdS_addValue (
 		else
 		{
 			/* mark entry length check as disabled */
-			group->hasString = 1;
+			group->hasString = TRUE;
 		}
 	}
 
@@ -546,7 +546,7 @@ int hdS_commitGroup (
 	}
 
 	/* check group commit state */
-	if (group->isCommitted == 1)
+	if (group->isCommitted)
 	{
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
@@ -594,7 +594,7 @@ int hdS_commitGroup (
 	group->nextValueIdx = 0;
 
 	/* mark group as committed */
-	group->isCommitted = 1;
+	group->isCommitted = TRUE;
 
 	return 0;
 }
@@ -625,13 +625,13 @@ int hdS_enableGroup(hdStatsGroup group)
 	if (group == NULL)
 		return -2;
 
-	if (group->isCommitted == 0)
+	if (!group->isCommitted)
 		return -1;
 
-	if (group->isEnabled == 1)
+	if (group->isEnabled)
 		return 1;
 
-	group->isEnabled = 1;
+	group->isEnabled = TRUE;
 	return 0;
 }
 
@@ -661,13 +661,13 @@ int hdS_disableGroup(hdStatsGroup group)
 	if (group == NULL)
 		return -2;
 
-	if (group->isCommitted == 0)
+	if (!group->isCommitted)
 		return -1;
 
-	if (group->isEnabled == 0)
+	if (!group->isEnabled)
 		return 1;
 
-	group->isEnabled = 0;
+	group->isEnabled = FALSE;
 	return 0;
 }
 
@@ -741,13 +741,13 @@ int hdS_writeEntry (
 	}
 
 	/* check group commit state */
-	if (group->isCommitted == 0)
+	if (!group->isCommitted)
 	{
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
 
 	/* check if the entry length is correct */
-	if (group->hasString == 0 && entryLength != group->entryLength)
+	if (!group->hasString && entryLength != group->entryLength)
 	{
 		hd_error_return(HDS_ERR_UNEXPECTED_ARGVALUE, -1);
 	}
@@ -987,7 +987,7 @@ int hdS_writeString (
 	}
 
 	/* check group commit state */
-	if (group->isCommitted == 0)
+	if (!group->isCommitted)
 	{
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
@@ -1028,7 +1028,7 @@ int hdS_finalize(
 	}
 
 	/* check group commit state */
-	if (group->isCommitted == 0)
+	if (!group->isCommitted)
 	{
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
@@ -1311,7 +1311,7 @@ static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsV
 	}
 
 	/* check group commit state */
-	if (group->isCommitted == 0)
+	if (!group->isCommitted)
 	{
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}

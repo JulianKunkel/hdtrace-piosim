@@ -7,9 +7,9 @@
  *  @ingroup hdTopo
  * @endif
  *
- * @date 25.03.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 0.5
  */
 
 #ifndef HDTOPO_H_

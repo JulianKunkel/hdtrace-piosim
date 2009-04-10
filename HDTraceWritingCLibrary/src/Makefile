@@ -5,12 +5,13 @@ MAKEDEPEND=gcc -MM
 
 #CPPFLAGS=-DDEBUG
 CPPFLAGS=
-CFLAGS=-g -O -std=c99 -pedantic -Wall -Wextra -Wformat=2 \
-	-Wold-style-definition -Wmissing-declarations -Wmissing-prototypes \
-	-Wredundant-decls -Wmissing-noreturn -Wshadow -Wcast-align -Wwrite-strings \
-	-Winline -Wswitch-enum -Wswitch-default -Winit-self -Wmissing-include-dirs \
-	-Wundef -Waggregate-return -Wmissing-format-attribute -Wnested-externs \
-	-Wstrict-prototypes -Wconversion \
+CFLAGS=-g -O -std=c99 -pedantic -Wall -Wextra \
+	-Waggregate-return -Wcast-align -Wcast-qual -Wconversion -Wfloat-equal \
+	-Wformat=2 -Winit-self -Winline -Wmissing-declarations \
+	-Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn \
+	-Wmissing-prototypes -Wnested-externs -Wold-style-definition \
+	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wswitch-default \
+	-Wswitch-enum -Wundef -Wwrite-strings \
 	-D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
 
 # use large file compilation environment

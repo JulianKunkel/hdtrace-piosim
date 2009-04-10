@@ -1,19 +1,17 @@
 /**
  * @file util.c
  *
- * Implementations of common utility functions
+ * Implementations of general utility functions
  *
- * @date 25.03.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 1
  */
 
 #include "util.h"
 
 #include <string.h>
 #include <ctype.h>
-
-/* TODO: Consistent naming scheme for util functions */
 
 /**
  * Check if the given string is valid.
@@ -49,7 +47,7 @@ BOOL isValidString(const char *string) {
  * @retval TRUE  \a string is valid tag
  * @retval FALSE \a string not valid tag
  */
-BOOL isValidTagString(const char *string)
+BOOL isValidXMLTagString(const char *string)
 {
 	if (!isValidString(string))
 		return FALSE;
@@ -77,7 +75,18 @@ BOOL isValidTagString(const char *string)
  */
 size_t minSize(size_t a, size_t b)
 {
-	if(a < b)
-		return a;
-	return b;
+	return a < b ? a : b;
+}
+
+/**
+ * Returns maximum of the two size arguments.
+ *
+ * @param a First size
+ * @param b Second size
+ *
+ * @return Maximum out of @a a and @a b
+ */
+size_t maxSize(size_t a, size_t b)
+{
+	return a > b ? a : b;
 }

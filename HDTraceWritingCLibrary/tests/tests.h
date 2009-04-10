@@ -1,8 +1,9 @@
 /**
  * @file tests.h
  *
- *  Created on: 08.04.2009
- *      Author: Stephan Krempel <stephan.krempel@gmx.de>
+ * @date 10.04.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version 0.5
  */
 
 #ifndef TESTS_H_

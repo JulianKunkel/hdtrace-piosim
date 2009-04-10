@@ -1,9 +1,9 @@
 /**
  * @file hdStatsTest.c
  *
- * @date 08.04.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 0.5
  */
 
 #include <stdlib.h>
@@ -590,8 +590,8 @@ static void Test_writeEntry_C1(void)
 	assert(myGroup->nextValueIdx == 0);
 
 	/* persistence checks */
-	assert(myGroup->isEnabled);
-	assert(myGroup->isCommitted);
+	assert(myGroup->isEnabled == 1);
+	assert(myGroup->isCommitted == 1);
 
 	/* save filename */
 	char *filename = strdup(myGroup->tracefile);
@@ -650,7 +650,7 @@ static void Test_writeEntry_W1(void)
 	/* check result */
 	assert(ret < 0 && errno == HD_ERR_TRACE_DISABLED);
 
-	assert(!myGroup->isEnabled);
+	assert(myGroup->isEnabled == 0);
 
 	TEST_PASSED
 
@@ -698,8 +698,8 @@ static void Test_writeXValue_C1(void)
 #define ASSERTS \
 	assert(myGroup->nextValueIdx == nextIdx); \
 	assert(myGroup->offset == offset); \
-	assert(myGroup->isCommitted); \
-	assert(myGroup->isEnabled);
+	assert(myGroup->isCommitted == 1); \
+	assert(myGroup->isEnabled == 1);
 
 	ASSERTS
 
@@ -811,4 +811,6 @@ int main(void)
 	Test_writeEntry_C1();
 	Test_writeEntry_W1();
 	Test_writeXValue_C1();
+
+	puts("hdStatsTest: All tests passed!");
 }

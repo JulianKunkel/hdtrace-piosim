@@ -3,9 +3,9 @@
  *
  * Definition of some common constants
  *
- * @date 30.03.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 0.5
  */
 
 #ifndef CONFIG_H_

@@ -3,9 +3,9 @@
  *
  * Declarations of functions used by hdTrace and hdStats in common
  *
- * @date 28.03.2009
+ * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version 0.5
  */
 
 #ifndef COMMON_H_
