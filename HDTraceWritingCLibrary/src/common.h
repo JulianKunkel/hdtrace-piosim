@@ -57,7 +57,7 @@
  * Allocate memory and check for error
  */
 #define	hd_malloc(var, num, fail) \
-	var = malloc(num * sizeof(*(var))); \
+	var = malloc((num) * sizeof(*(var))); \
 	if (var == NULL) { hd_error_return(HD_ERR_MALLOC,fail) }
 
 /**

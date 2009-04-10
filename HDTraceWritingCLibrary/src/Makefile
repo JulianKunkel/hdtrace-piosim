@@ -5,7 +5,13 @@ MAKEDEPEND=gcc -MM
 
 #CPPFLAGS=-DDEBUG
 CPPFLAGS=
-CFLAGS=-Wall -Wextra -Wformat=2 -g -std=c99 -pedantic -D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
+CFLAGS=-g -O -std=c99 -pedantic -Wall -Wextra -Wformat=2 \
+	-Wold-style-definition -Wmissing-declarations -Wmissing-prototypes \
+	-Wredundant-decls -Wmissing-noreturn -Wshadow -Wcast-align -Wwrite-strings \
+	-Winline -Wswitch-enum -Wswitch-default -Winit-self -Wmissing-include-dirs \
+	-Wundef -Waggregate-return -Wmissing-format-attribute -Wnested-externs \
+	-Wstrict-prototypes -Wconversion \
+	-D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
 
 # use large file compilation environment
 CFLAGS+=$(shell getconf LFS_CFLAGS)

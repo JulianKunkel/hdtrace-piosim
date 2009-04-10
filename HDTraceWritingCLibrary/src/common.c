@@ -84,8 +84,8 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 		hd_error_return(HD_ERR_MALLOC, NULL);
 	}
 
-	size_t pos = 0;
-	size_t ret;
+	size_t pos;
+	int ret;
 
 #define ERROR_MSG \
 	hd_error_msg("Overflow of HD_MAX_FILENAME_LENGTH buffer during" \
@@ -101,7 +101,7 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	pos = strlen(filename);
 
 #define ERROR_CHECK \
-	if (ret >= HD_MAX_FILENAME_LENGTH - pos) \
+	if (ret >= HD_MAX_FILENAME_LENGTH - (int) pos) \
 	{ \
 		ERROR_MSG \
 		free(filename); \
@@ -111,20 +111,21 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	/* append "_level" for each topology level */
 	for (int i = 1; i <= level; ++i)
 	{
-		ret = snprintf(filename+pos, HD_MAX_FILENAME_LENGTH - pos, "_%s",
-				hdT_getTopoPathLabel(toponode, i));
+		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+				"_%s", hdT_getTopoPathLabel(toponode, i));
 		ERROR_CHECK
 		pos = strlen(filename);
 	}
 
 	if (group == NULL)
 	{
-		ret = snprintf(filename+pos, HD_MAX_FILENAME_LENGTH - pos, "%s", affix);
+		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+				"%s", affix);
 		ERROR_CHECK
 	}
 	else
 	{
-		ret = snprintf(filename+pos, HD_MAX_FILENAME_LENGTH - pos,
+		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
 				"_%s%s", group, affix);
 		ERROR_CHECK
 	}
@@ -246,7 +247,7 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		}
 
 		/* update number of bytes to write and pointer to next data */
-		count -= wret;
+		count -= (size_t) wret;
 		buffer += wret;
 
 		/* update number of bytes written */
@@ -279,11 +280,11 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 /* NOT USED --- REMOVE IF YOU DESIDE TO */
 int snprintIndent(char* string, size_t size, int num)
 {
-	int off;
+	int off = 0;
 	for (int i = 0; i < num; ++i)
 	{
-		int sret = snprintf(string+off, size - off, HD_INDENT_STRING);
-		if ((size_t) sret >= size - off)
+		int sret = snprintf(string+off, size - (size_t) off, HD_INDENT_STRING);
+		if (sret >= (int) size - off)
 			return off + sret;  // snprintf like return value
 		if (sret < 0)
 			return sret;  // should never happen

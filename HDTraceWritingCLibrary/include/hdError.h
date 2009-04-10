@@ -42,6 +42,8 @@ enum hdCommonError {
 	HD_ERR_CLOSE_FILE,
 	/** Timeout occurred */
 	HD_ERR_TIMEOUT,
+	/** Trace is disabled */
+	HD_ERR_TRACE_DISABLED,
 	/** Error with unknown cause */
 	HD_ERR_UNKNOWN
 };

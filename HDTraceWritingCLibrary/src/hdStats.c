@@ -133,12 +133,12 @@ struct _hdStatsGroup {
      * True if string values are defined
      * => reduced error checking
      */
-    int hasString;
+    unsigned int hasString : 1;
 
     /**
      * Length that an entry should have
      */
-    int entryLength;
+    size_t entryLength;
 
     /**
      * Types of the defined values (for error checking)
@@ -154,29 +154,29 @@ struct _hdStatsGroup {
     /**
      * True if the group is committed (for error checking)
      */
-    int isCommitted;
+    unsigned int isCommitted : 1;
 
     /**
      * True if the group is enabled to trace
      */
-    int isEnabled;
+    unsigned int isEnabled : 1;
 };
 
 /**
  * Get the length a value type
  */
-static int getValueLength(hdStatsValueType type);
+static size_t getValueLength(hdStatsValueType type);
 
 /**
  * Get the string representation of a type
  */
-static char * getTypeString(hdStatsValueType type);
+static const char * getTypeString(hdStatsValueType type);
 
 /**
  * Append formated string to group buffer.
  */
-static int appendFormatToGroupBuffer(hdStatsGroup group, const char *format, ...);
-
+static int appendFormatToGroupBuffer(hdStatsGroup group,
+		const char *format, ...) __attribute__((format(printf,2,3)));
 /**
  * Append indentations to group buffer.
  */
@@ -242,10 +242,10 @@ static int flushGroupBuffer(hdStatsGroup group);
  *
  * @errno
  * @if api_only
- *  - HD_ERR_INVALID_ARGUMENT
- *  - HD_ERR_MALLOC
- *  - HD_ERR_BUFFER_OVERFLOW
- *  - HD_ERR_CREATE_FILE
+ *  - \ref HD_ERR_INVALID_ARGUMENT
+ *  - \ref HD_ERR_MALLOC
+ *  - \ref HD_ERR_BUFFER_OVERFLOW
+ *  - \ref HD_ERR_CREATE_FILE
  * @else
  *  - HD_ERR_INVALID_ARGUMENT
  *  - HD_ERR_CREATE_FILE
@@ -369,8 +369,7 @@ hdStatsGroup hdS_createGroup (
 	}
 
 	/* write TopologyNode end tag to buffer */
-	ret = appendFormatToGroupBuffer(group, "</TopologyNode>\n",
-			hdT_getTopoPathLabel(topoNode,topoLevel));
+	ret = appendFormatToGroupBuffer(group, "</TopologyNode>\n");
 	if (ret < 0)
 		return NULL;
 
@@ -425,9 +424,9 @@ hdStatsGroup hdS_createGroup (
  * @retval -1 Error, setting errno
  *
  * @errno
- * - HD_ERR_INVALID_ARGUMENT
- * - HD_ERR_BUFFER_OVERFLOW
- * - HDS_ERR_GROUP_COMMIT_STATE
+ * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_BUFFER_OVERFLOW
+ * - \ref HDS_ERR_GROUP_COMMIT_STATE
  */
 int hdS_addValue (
         hdStatsGroup group,      /* Statistics Group */
@@ -465,7 +464,7 @@ int hdS_addValue (
 	/* if there is a string value, checking the entry length is impossible */
 	if(group->hasString == 0)
 	{
-		int valueLength = getValueLength(type);
+		size_t valueLength = getValueLength(type);
 		if (valueLength > 0)
 		{
 			group->entryLength += valueLength;
@@ -474,7 +473,6 @@ int hdS_addValue (
 		{
 			/* mark entry length check as disabled */
 			group->hasString = 1;
-			group->entryLength = -1;
 		}
 	}
 
@@ -533,9 +531,9 @@ int hdS_addValue (
  * @retval -1 Error, setting errno
  *
  * @errno
- * - HD_ERR_INVALID_ARGUMENT
- * - HDS_ERR_GROUP_COMMIT_STATE
- * - HD_ERR_UNKNOWN
+ * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HDS_ERR_GROUP_COMMIT_STATE
+ * - \ref HD_ERR_UNKNOWN
  */
 int hdS_commitGroup (
         hdStatsGroup group       /* Statistics Group */
@@ -567,7 +565,7 @@ int hdS_commitGroup (
 	/* write header length */
 	int hlen = group->offset - HDS_HEADER_SIZE_LENGTH -1;
 
-	sret = snprintf(group->buffer, HDS_HEADER_SIZE_LENGTH + 1, "%05d", hlen);
+	sret = snprintf(group->buffer, HDS_HEADER_SIZE_LENGTH + 1, "%05u", hlen);
 	/* since we have already written behind, this cannot happen */
 	assert(sret <= HDS_HEADER_BUF_SIZE - group->offset);
 	if (sret < 0)
@@ -591,6 +589,9 @@ int hdS_commitGroup (
 	hd_malloc(group->buffer, HDS_ENTRY_BUF_SIZE, -1);
 	group->btype = HDS_ENTRY_BUFFER;
 	group->offset = 0;
+
+	/* mark first value as next expected */
+	group->nextValueIdx = 0;
 
 	/* mark group as committed */
 	group->isCommitted = 1;
@@ -715,21 +716,28 @@ int hdS_isEnabled(hdStatsGroup group)
  * @retval -1  Error, setting errno
  *
  * @errno
- * - HD_ERR_INVALID_ARGUMENT
- * - HDS_ERR_GROUP_COMMIT_STATE
- * - HDS_ERR_UNEXPECTED_ARGVALUE
- * - HDS_ERR_ENTRY_STATE
+ * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_TRACE_DISABLED
+ * - \ref HDS_ERR_GROUP_COMMIT_STATE
+ * - \ref HDS_ERR_UNEXPECTED_ARGVALUE
+ * - \ref HDS_ERR_ENTRY_STATE
  */
 int hdS_writeEntry (
         hdStatsGroup group,      /* Statistics Group */
         void * entry,            /* Pointer to the entry to write */
-        int entryLength          /* Length of the entry to write */
+        size_t entryLength          /* Length of the entry to write */
         )
 {
 	/* check input */
-	if(group == NULL || entry == NULL || entryLength < 0)
+	if(group == NULL || entry == NULL )
 	{
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+	}
+
+	/* check enable state */
+	if (!group->isEnabled)
+	{
+		hd_error_return(HD_ERR_TRACE_DISABLED, -1);
 	}
 
 	/* check group commit state */
@@ -738,7 +746,7 @@ int hdS_writeEntry (
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
 
-	/* check if the entry length is corrent */
+	/* check if the entry length is correct */
 	if (group->hasString == 0 && entryLength != group->entryLength)
 	{
 		hd_error_return(HDS_ERR_UNEXPECTED_ARGVALUE, -1);
@@ -759,7 +767,7 @@ int hdS_writeEntry (
 
 	/* write entry to buffer behind timestamp */
 	memcpy(group->buffer + group->offset, entry, entryLength);
-	group->offset += entryLength;
+	group->offset += (int) entryLength;
 
 	/* write entry to file */
 	int wret = flushGroupBuffer(group);
@@ -794,6 +802,7 @@ int hdS_writeEntry (
  * @errno
  * @if api_only
  * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_TRACE_DISABLED
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  * - \ref HDS_ERR_ENTRY_STATE
  * @else
@@ -837,6 +846,7 @@ int hdS_writeInt32Value (
  * @errno
  * @if api_only
  * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_TRACE_DISABLED
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  * - \ref HDS_ERR_ENTRY_STATE
  * @else
@@ -880,6 +890,7 @@ int hdS_writeInt64Value (
  * @errno
  * @if api_only
  * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_TRACE_DISABLED
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  * - \ref HDS_ERR_ENTRY_STATE
  * @else
@@ -923,6 +934,7 @@ int hdS_writeFloatValue (
  * @errno
  * @if api_only
  * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_TRACE_DISABLED
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  * - \ref HDS_ERR_ENTRY_STATE
  * @else
@@ -980,7 +992,7 @@ int hdS_writeString (
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
 
-	/* TODO: implement function */
+	/* TODO: Implement hdS_writeString function */
 	return 0;
 }
 
@@ -1042,7 +1054,7 @@ int hdS_finalize(
  *
  * @return Length of type in byte
  */
-static int getValueLength(hdStatsValueType type)
+static size_t getValueLength(hdStatsValueType type)
 {
 	switch (type)
 	{
@@ -1055,7 +1067,7 @@ static int getValueLength(hdStatsValueType type)
 	case DOUBLE:
 		return sizeof(double);
 	case STRING:
-		return -1;
+		return 0;
 	default:
 		assert(0);
 	}
@@ -1069,7 +1081,7 @@ static int getValueLength(hdStatsValueType type)
  *
  * @return String representation of \a type
  */
-static char * getTypeString(hdStatsValueType type)
+static const char * getTypeString(hdStatsValueType type)
 {
 	switch (type)
 	{
@@ -1107,14 +1119,15 @@ static char * getTypeString(hdStatsValueType type)
  * - \ref HD_ERR_BUFFER_OVERFLOW
  * - \ref HD_ERR_UNKNOWN
  */
-static int appendFormatToGroupBuffer(hdStatsGroup group, const char *format, ...)
+static int appendFormatToGroupBuffer(hdStatsGroup group,
+		const char *format, ...)
 {
 	assert(group != NULL);
 	assert(format != NULL);
 
 	/* switch buffer size and error message depending on buffer usage type */
-	size_t bsize;
-	const char *errmsg;
+	size_t bsize = 0;
+	const char *errmsg = NULL;
 	switch (group->btype)
 	{
 	case HDS_HEADER_BUFFER:
@@ -1135,11 +1148,11 @@ static int appendFormatToGroupBuffer(hdStatsGroup group, const char *format, ...
 	/* use vsnprintf to actually write to the buffer */
 	va_list ap;
 	va_start(ap, format);
-	int sret = vsnprintf(group->buffer + group->offset,	bsize - group->offset,
-			format, ap);
+	int sret = vsnprintf(group->buffer + group->offset,
+			bsize - (size_t) group->offset,	format, ap);
 	va_end(ap);
 	/* check for errors and set errno */
-	if ((size_t) sret >= bsize - group->offset)
+	if (sret >= (int) bsize - group->offset)
 	{
 		hd_error_msg("%s for group '%s' (%s)", errmsg, group->name, group->tracefile);
 		hd_error_return(HD_ERR_BUFFER_OVERFLOW, -1);
@@ -1242,16 +1255,19 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
 	int32_t sec = tv.tv_sec;
 	int32_t nsec = tv.tv_usec * 1000;
 
+	/* assure the timestamp will have the correct length */
+	assert(sizeof(sec) + sizeof(nsec) == HDS_TIMESTAMP_LENGTH);
+
 	/* do byte ordering */
 	order_bytes32ip(&sec);
 	order_bytes32ip(&nsec);
 
 	/* write to buffer */
 	memcpy(group->buffer, &(sec), sizeof(sec));
-	group->offset = sizeof(sec);
+	group->offset = (int) sizeof(sec);
 
 	memcpy(group->buffer, &(nsec), sizeof(nsec));
-	group->offset += sizeof(nsec);
+	group->offset += (int) sizeof(nsec);
 
 	return 0;
 }
@@ -1273,6 +1289,7 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
  *
  * @errno
  * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_TRACE_DISABLED
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  * - \ref HDS_ERR_ENTRY_STATE
  */
@@ -1287,6 +1304,12 @@ static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsV
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 	}
 
+	/* check enable state */
+	if (!group->isEnabled)
+	{
+		hd_error_return(HD_ERR_TRACE_DISABLED, -1);
+	}
+
 	/* check group commit state */
 	if (group->isCommitted == 0)
 	{
@@ -1299,11 +1322,13 @@ static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsV
 		hd_error_return(HDS_ERR_ENTRY_STATE, -1);
 	}
 
-	int vlength = getValueLength(type);
+	size_t vlength = getValueLength(type);
 
-	/* write timestamp if this is the first value of a new entry */
+	/* assure current entry is in a consistent state */
 	assert((group->nextValueIdx == 0 && group->offset == 0)
 			|| (!(group->nextValueIdx == 0) && !(group->offset == 0)));
+
+	/* write timestamp if this is the first value of a new entry */
 	if (group->nextValueIdx == 0)
 	{
 		writeTimestampToGroupBuffer(group);
@@ -1311,7 +1336,15 @@ static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsV
 
 	/* write entry to buffer */
 	memcpy(group->buffer + group->offset, value_p, vlength);
-	group->offset = vlength;
+	group->offset += (int) vlength;
+	group->nextValueIdx++;
+
+	/* flush buffer if an entry is complete */
+	if (group->offset == (int) group->entryLength + HDS_TIMESTAMP_LENGTH)
+	{
+		flushGroupBuffer(group);
+		group->nextValueIdx = 0;
+	}
 
 	return 0;
 }
@@ -1338,7 +1371,7 @@ static int flushGroupBuffer(hdStatsGroup group)
 	assert(group != NULL);
 
 	ssize_t written = writeToFile(group->fd, group->buffer,
-			group->offset, group->tracefile);
+			(size_t) group->offset, group->tracefile);
 	if (written < 0)
 	{
 		switch (errno)
@@ -1359,6 +1392,8 @@ static int flushGroupBuffer(hdStatsGroup group)
 			hd_error_msg("Unknown error during writing header to %s."
 					" Stop tracing statistics group '%s'.",
 					group->tracefile, group->name);
+		default:
+			assert(written >= 0);
 		}
 		/* disable current group (does not touch errno) */
 		hdS_disableGroup(group);

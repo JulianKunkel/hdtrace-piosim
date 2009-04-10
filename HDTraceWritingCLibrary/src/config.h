@@ -11,6 +11,16 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+/* ************************************************************************* *
+ *                        USER CONFIGURABLE VALUES                           *
+ * ************************************************************************* */
+
+/**
+ * Verbosity level
+ * TODO: Make this controlled by environment
+ */
+#define VLEVEL 5
+
 /**
  * Maximal length of trace file names.
  */
@@ -22,15 +32,31 @@
 #define HD_WRITE_TIMEOUT  10
 
 /**
- * Verbosity level
- * TODO: Make this controlled by environment
- */
-#define VLEVEL 5
-
-/**
  * Maximum of statistics values per group
  */
 #define HDS_MAX_VALUES_PER_GROUP 256
+
+/**
+ * Size of buffer to use for collecting entry values
+ */
+#define HDS_ENTRY_BUF_SIZE 1024
+
+
+/* ************************************************************************* *
+ *                   HDTRACE PROTOCOL SPECIFIED VALUES                       *
+ *                                                                           *
+ *       !!! DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING !!!            *
+ * ************************************************************************* */
+
+/**
+ * String to use for indentation
+ */
+#define HD_INDENT_STRING  "  "
+
+/**
+ * Length of one timestamp in bytes
+ */
+#define HDS_TIMESTAMP_LENGTH 8
 
 /**
  * Length of the header size in bytes
@@ -46,17 +72,6 @@
  * separating newline.
  */
 #define HDS_HEADER_BUF_SIZE (10000 -1 + 5 + 1)
-
-/**
- * String to use for indentation
- */
-#define HD_INDENT_STRING  "  "
-
-/**
- * Size of buffer to use for collecting entry values
- */
-#define HDS_ENTRY_BUF_SIZE 1024
-
 
 
 #endif /* CONFIG_H_ */

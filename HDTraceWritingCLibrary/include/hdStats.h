@@ -185,7 +185,7 @@ int hdS_isEnabled(hdStatsGroup group);
 int hdS_writeEntry (
         hdStatsGroup group,      /* Statistics Group */
         void * entry,            /* Pointer to the entry to write */
-        int entryLength          /* Length of the entry to write */
+        size_t entryLength          /* Length of the entry to write */
         );
 
 /**
@@ -239,8 +239,8 @@ int hdS_finalize(
 #include <endian.h>
 #include <byteswap.h>
 
-#define __order_bytes32p(x) bswap_32(*((uint32_t *)x))
-#define __order_bytes64p(x) bswap_64(*((uint64_t *)x))
+#define order_bytes32_p(x) *((uint32_t *) x) = bswap_32(*((uint32_t *) x));
+#define order_bytes64_p(x) *((uint64_t *) x) = bswap_64(*((uint64_t *) x));
 
 /**
  * @def order_bytes32ip
@@ -255,8 +255,8 @@ int hdS_finalize(
  *  place.
  */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-# define order_bytes32ip(x) __order_bytes32p(x)
-# define order_bytes64ip(x) __order_bytes64p(x)
+# define order_bytes32ip(x) order_bytes32_p(x)
+# define order_bytes64ip(x) order_bytes64_p(x)
 #elif __BYTE_ORDER == __BIG_ENDIAN
 # define order_bytes32ip(x) (x)
 # define order_bytes64ip(x) (x)
@@ -276,8 +276,8 @@ int hdS_finalize(
  *  place.
  */
 #if __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
-# define order_bytes32fp(x) __order_bytes32p(x)
-# define order_bytes64fp(x) __order_bytes64p(x)
+# define order_bytes32fp(x) order_bytes32_p(x)
+# define order_bytes64fp(x) order_bytes64_p(x)
 #elif __FLOAT_WORD_ORDER == __BIG_ENDIAN
 # define order_bytes32f(x) (x)
 # define order_bytes64f(x) (x)

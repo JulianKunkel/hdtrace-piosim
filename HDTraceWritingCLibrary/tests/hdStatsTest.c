@@ -23,73 +23,22 @@
  * Copies from hdStats.c for direct access while testing
  */
 enum _hdStatsBufferType {
-	/** Buffer for creating group header */
-	HDS_HEADER_BUFFER,//!< HDS_HEADER_BUFFER
-	/** Buffer for collection values for entry */
-	HDS_ENTRY_BUFFER  //!< HDS_ENTRY_BUFFER
+	HDS_HEADER_BUFFER,
+	HDS_ENTRY_BUFFER
 };
 struct _hdStatsGroup {
-	/**
-	 * Name of the group
-	 */
 	char *name;
-
-    /**
-     * File descriptor of the statistics group file
-     */
 	int fd;
-
-    /**
-     * Filename of the statistics group file (for error output only)
-     */
     char *tracefile;
-
-    /**
-     * Buffer for creating header and collecting entries
-     */
     char *buffer;
-
-    /**
-     * Current type of \a buffer
-     */
     enum _hdStatsBufferType btype;
-
-    /**
-     * Offset for buffer to write next byte
-     */
     int offset;
-
-    /**
-     * True if string values are defined
-     * => reduced error checking
-     */
-    int hasString;
-
-    /**
-     * Length that an entry should have
-     */
-    int entryLength;
-
-    /**
-     * Types of the defined values (for error checking)
-     * '-1' terminated in @ref hdS_commitGroup
-     */
+    unsigned int hasString : 1;
+    size_t entryLength;
     hdStatsValueType *valueTypes;
-
-    /**
-     * Index of the next value to write (for error checking)
-     */
     int nextValueIdx;
-
-    /**
-     * True if the group is committed (for error checking)
-     */
-    int isCommitted;
-
-    /**
-     * True if the group is enabled to trace
-     */
-    int isEnabled;
+    unsigned int isCommitted : 1;
+    unsigned int isEnabled : 1;
 };
 
 /**
@@ -98,11 +47,11 @@ struct _hdStatsGroup {
 static hdStatsGroup getGroup(void)
 {
 	/* create topology */
-	char *levels[] = {"Host","Process"};
+	const char *levels[] = {"Host","Process"};
 	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
 
 	/* create topology node */
-	char *path[] = {"host0","process0"};
+	const char *path[] = {"host0","process0"};
 	hdTopoNode myTopoNode = hdT_createTopoNode(path, 2);
 
 	return hdS_createGroup("MyGroup", myTopology, myTopoNode, 1);
@@ -141,16 +90,16 @@ static void destroyGroup(hdStatsGroup myGroup)
 /**
  * Test_createGroup: Correct usage (leaf node of topology)
  */
-static void Test_createGroup1()
+static void Test_createGroup_C1(void)
 {
 	hdStatsGroup myGroup;
 
 	/* create topology */
-	char *levels[] = {"Host","Process"};
+	const char *levels[] = {"Host","Process"};
 	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
 
 	/* create topology node */
-	char *path[] = {"host0","process0"};
+	const char *path[] = {"host0","process0"};
 	hdTopoNode myTopoNode = hdT_createTopoNode(path, 2);
 
 	/* Test correct usage with leaf node of a topology */
@@ -166,13 +115,15 @@ static void Test_createGroup1()
 	/* check buffer type */
 	assert(myGroup->btype == HDS_HEADER_BUFFER);
 	/* check buffer content */
-	assert(strcmp(myGroup->buffer + HDS_HEADER_SIZE_LENGTH,
+	int strcmp_result = strcmp(myGroup->buffer + HDS_HEADER_SIZE_LENGTH,
 			"\n<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\">\n"
 			HD_INDENT_STRING HD_INDENT_STRING "<Label value=\"process0\" />\n"
 			HD_INDENT_STRING "</Label>\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\">\n") == 0);
+			"<MyGroup timestampDatatype=\"EPOCH\">\n");
+	assert(strcmp_result == 0);
+
 	/* check offset */
 	assert(myGroup->offset == HDS_HEADER_SIZE_LENGTH
 			+ 16 + 22 + 27 + 9 + 16 + 36 + 4 * (int) strlen(HD_INDENT_STRING));
@@ -185,16 +136,16 @@ static void Test_createGroup1()
 /**
  * Test_createGroup: Correct usage (inner node of topology)
  */
-static void Test_createGroup2()
+static void Test_createGroup_C2(void)
 {
 	hdStatsGroup myGroup;
 
 	/* create topology */
-	char *levels[] = {"Host","Process"};
+	const char *levels[] = {"Host","Process"};
 	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
 
 	/* create topology node */
-	char *path[] = {"host0","process0"};
+	const char *path[] = {"host0","process0"};
 	hdTopoNode myTopoNode = hdT_createTopoNode(path, 2);
 
 	/* Test correct usage with inner node of a topology */
@@ -210,11 +161,12 @@ static void Test_createGroup2()
 	/* check buffer type */
 	assert(myGroup->btype == HDS_HEADER_BUFFER);
 	/* check buffer content */
-	assert(strcmp(myGroup->buffer + HDS_HEADER_SIZE_LENGTH,
+	int strcmp_result = strcmp(myGroup->buffer + HDS_HEADER_SIZE_LENGTH,
 			"\n<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\" />\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\">\n") == 0);
+			"<MyGroup timestampDatatype=\"EPOCH\">\n");
+	assert(strcmp_result == 0);
 	/* check offset */
 	assert(myGroup->offset == HDS_HEADER_SIZE_LENGTH
 			+ 16 + 24 + 16 + 36 + (int) strlen(HD_INDENT_STRING));
@@ -241,12 +193,12 @@ static void Test_createGroup2()
 		case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
 		case HD_ERR_BUFFER_OVERFLOW: assert(!"HD_ERR_BUFFER_OVERFLOW"); \
 		case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE"); \
-		default: assert(myGroup != NULL); \
+		default: assert(ret == 0); \
 		}
 /**
  * Test hdS_addValue: Correct usage
  */
-void Test_addValue1()
+static void Test_addValue_C1(void)
 {
 
 	hdStatsGroup myGroup = getGroup();
@@ -274,12 +226,13 @@ void Test_addValue1()
 	assert(myGroup->valueTypes[3] == DOUBLE);
 	assert(myGroup->nextValueIdx == 4);
 	/* check buffer content */
-	assert(strcmp(myGroup->buffer + offset,
+	int strcmp_result = strcmp(myGroup->buffer + offset,
 			HD_INDENT_STRING "<Int32Value type=\"INT32\" unit=\"unit0\" />\n"
 			HD_INDENT_STRING "<Int64Value type=\"INT64\" unit=\"unit1\" />\n"
 			HD_INDENT_STRING "<FloatValue type=\"FLOAT\" unit=\"unit2\" />\n"
 			HD_INDENT_STRING
-				"<DoubleValue type=\"DOUBLE\" unit=\"unit3\" />\n") == 0);
+				"<DoubleValue type=\"DOUBLE\" unit=\"unit3\" />\n");
+	assert(strcmp_result == 0);
 	/* check offset */
 	assert(myGroup->offset
 			== offset + 41 + 41 + 41 + 43
@@ -304,7 +257,7 @@ void Test_addValue1()
 /**
  * Test hdS_commitGroup: Correct usage
  */
-void Test_commitGroup1()
+static void Test_commitGroup_C1(void)
 {
 
 	hdStatsGroup myGroup = getGroup();
@@ -321,7 +274,7 @@ void Test_commitGroup1()
 		case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT");
 		case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE");
 		case HD_ERR_UNKNOWN: assert(!"HD_ERR_UNKNOWN");
-		default: assert(myGroup != NULL); \
+		default: assert(ret == 0); \
 		}
 
 	/* check buffer type */
@@ -342,12 +295,12 @@ void Test_commitGroup1()
 	/* read data from file */
 	char buffer[HDS_HEADER_BUF_SIZE];
 	char reference[HDS_HEADER_BUF_SIZE];
-	FILE *file = fopen(filename, "r");
-	assert(file != NULL);
-	size_t boff = 0;
+	FILE *file;
+	assert((file = fopen(filename, "r")) != NULL);
+	int boff = 0;
 	while(fgets(buffer + boff, HDS_HEADER_BUF_SIZE - boff, file))
 	{
-		boff = strlen(buffer);
+		boff = (int) strlen(buffer);
 	}
 	fclose(file);
 
@@ -398,7 +351,7 @@ static hdStatsGroup getCommitedGroup(void)
 /**
  * Test hdS_enableGroup: Correct usage (disabled before)
  */
-void Test_enableGroup1()
+static void Test_enableGroup_C1(void)
 {
 	hdStatsGroup myGroup = getCommitedGroup();
 
@@ -424,11 +377,11 @@ void Test_enableGroup1()
 /**
  * Test hdS_enableGroup: Correct usage (enabled before)
  */
-void Test_enableGroup2()
+static void Test_enableGroup_C2(void)
 {
 	hdStatsGroup myGroup = getCommitedGroup();
 
-	/* disable group */
+	/* enable group */
 	myGroup->isEnabled = 1;
 
 	/* Test correct usage with inner node of a topology */
@@ -456,11 +409,11 @@ void Test_enableGroup2()
 /**
  * Test hdS_disableGroup: Correct usage (enabled before)
  */
-void Test_disableGroup1()
+static void Test_disableGroup_C1(void)
 {
 	hdStatsGroup myGroup = getCommitedGroup();
 
-	/* disable group */
+	/* enable group */
 	myGroup->isEnabled = 1;
 
 	/* Test correct usage with inner node of a topology */
@@ -482,7 +435,7 @@ void Test_disableGroup1()
 /**
  * Test hdS_disableGroup: Correct usage (disabled before)
  */
-void Test_disableGroup2()
+static void Test_disableGroup_C2(void)
 {
 	hdStatsGroup myGroup = getCommitedGroup();
 
@@ -514,11 +467,11 @@ void Test_disableGroup2()
 /**
  * Test hdS_isEnabled: Correct usage (enabled)
  */
-void Test_isEnabled1()
+static void Test_isEnabled_C1(void)
 {
 	hdStatsGroup myGroup = getCommitedGroup();
 
-	/* disable group */
+	/* enable group */
 	myGroup->isEnabled = 1;
 
 	/* Test correct usage with inner node of a topology */
@@ -540,7 +493,7 @@ void Test_isEnabled1()
 /**
  * Test hdS_isEnabled: Correct usage (disabled)
  */
-void Test_isEnabled2()
+static void Test_isEnabled_C2(void)
 {
 	hdStatsGroup myGroup = getCommitedGroup();
 
@@ -567,55 +520,295 @@ void Test_isEnabled2()
  *                     END  Tests of hdS_disableGroup                        *
  * ************************************************************************* */
 
-int main(int argc, char **argv)
+/* ************************************************************************* *
+ *                      BEGIN Tests of hdS_writeEntry                        *
+ * ************************************************************************* */
+/**
+ * Test hdS_writeEntry: Correct usage
+ */
+static void Test_writeEntry_C1(void)
 {
-	/* run all tests */
-	Test_createGroup1();
-	Test_createGroup2();
-	Test_addValue1();
-	Test_commitGroup1();
-	Test_enableGroup1();
-	Test_enableGroup2();
-	Test_disableGroup1();
-	Test_disableGroup2();
-	Test_isEnabled1();
-	Test_isEnabled2();
+	hdStatsGroup myGroup = getCommitedGroup();
+
+	/* enable group */
+	hdS_enableGroup(myGroup);
+
+	/* prepare entry (see committed standard test group creation) */
+	char *entry = malloc(64 * sizeof(*entry));
+	size_t length = 0;
+
+	                 // mem offset: 0x00 0x01 0x02 0x04 0x05 0x06 0x07 0x08
+	int32_t value0 = 12345;      // 0x39 0x30 0x00 0x00
+	int64_t value1 = 67890l;     // 0x32 0x09 0x01 0x00 0x00 0x00 0x00 0x00
+	float value2 = 12345.67890f; // 0xb7 0xe6 0x40 0x46
+	double value3 = 67890.12345; // 0x0b 0xb5 0xa6 0xf9 0x21 0x93 0xf0 0x40
+
+	               // mem offset: 0x00 0x01 0x02 0x04 0x05 0x06 0x07 0x08
+	order_bytes32ip(&value0);  // 0x00 0x00 0x30 0x39
+	order_bytes64ip(&value1);  // 0x00 0x00 0x00 0x00 0x00 0x01 0x09 0x32
+	order_bytes32fp(&value2);  // 0x46 0x40 0xe6 0xb7
+	order_bytes64fp(&value3);  // 0x40 0xf0 0x93 0x21 0xf9 0xa6 0xb5 0x0b
+
+	*((int32_t *) (entry + length)) = value0;
+	length += sizeof(value0);
+	*((int64_t *) (entry + length)) = value1;
+	length += sizeof(value1);
+	*((float *) (entry + length)) = value2;
+	length += sizeof(value2);
+	*((double *) (entry + length)) = value3;
+	length += sizeof(value3);
+
+	assert(length == 24);
+
+	unsigned char ref[24] = {
+			0x00, 0x00, 0x30, 0x39,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x09, 0x32,
+			0x46, 0x40, 0xE6, 0xB7,
+			0x40, 0xf0, 0x93, 0x21, 0xf9, 0xa6, 0xb5, 0x0b
+			};
+
+	/* check entry */
+	assert(memcmp(entry, ref, 24) == 0);
+
+	/* Test correct usage with inner node of a topology */
+	TEST_BEGIN("Correct usage")
+
+	int ret = hdS_writeEntry (myGroup, entry, length);
+	if (ret < 0)
+		switch (errno)
+		{
+		case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT");
+		case HD_ERR_TRACE_DISABLED: assert(!"HD_ERR_TRACE_DISABLED");
+		case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE");
+		case HDS_ERR_UNEXPECTED_ARGVALUE: assert(!"HDS_ERR_UNEXPECTED_ARGVALUE");
+		case HDS_ERR_ENTRY_STATE: assert(!"HDS_ERR_ENTRY_STATE");
+		default: assert(ret == 0);
+		}
+
+	/* check if entry is complete */
+	assert(myGroup->offset == 0);
+	assert(myGroup->nextValueIdx == 0);
+
+	/* persistence checks */
+	assert(myGroup->isEnabled);
+	assert(myGroup->isCommitted);
+
+	/* save filename */
+	char *filename = strdup(myGroup->tracefile);
+
+	/* finalize group */
+	hdS_finalize(myGroup);
+
+	/*
+	 * read data back from file
+	 */
+	/* open file */
+	FILE *file;
+	assert((file = fopen(filename, "r")) != NULL);
+	/* read header length */
+	int header_length;
+	assert(fscanf(file, "%05d\n", &header_length) == 1);
+	/* seek behind header */
+	assert(fseek(file, header_length, SEEK_CUR) == 0);
+	/* read the entry back */
+	char buffer[100];
+	assert(fread(buffer, HDS_TIMESTAMP_LENGTH + length, 1, file) == 1);
+	/* check entry */
+	assert(memcmp(buffer + HDS_TIMESTAMP_LENGTH, entry, length) == 0);
+
+	TEST_PASSED
+
+	/* close file */
+	fclose(file);
+
+	/* remove group trace file */
+	assert(remove(filename) == 0);
+
+	free(entry);
+	free(filename);
 }
+
+/**
+ * Test hdS_writeEntry: Wrong usage (Group disabled)
+ */
+static void Test_writeEntry_W1(void)
+{
+	hdStatsGroup myGroup = getCommitedGroup();
+
+	/* disable group (should already be) */
+	hdS_disableGroup(myGroup);
+
+	/* prepare entry (see committed standard test group creation) */
+	char *entry = malloc(64 * sizeof(*entry));
+	size_t length = 24;
+
+	/* Test correct usage with inner node of a topology */
+	TEST_BEGIN("Wrong usage (Group disabled)")
+
+	int ret = hdS_writeEntry (myGroup, entry, length);
+
+	/* check result */
+	assert(ret < 0 && errno == HD_ERR_TRACE_DISABLED);
+
+	assert(!myGroup->isEnabled);
+
+	TEST_PASSED
+
+	destroyGroup(myGroup);
+	free(entry);
+}
+
+
+/* ************************************************************************* *
+ *                       END Tests of hdS_writeEntry                         *
+ * ************************************************************************* */
+
+/* ************************************************************************* *
+ *                      BEGIN Tests of hdS_write*Value                       *
+ * ************************************************************************* */
+/**
+ * Test hdS_write*Value: Correct usage
+ */
+static void Test_writeXValue_C1(void)
+{
+	hdStatsGroup myGroup = getCommitedGroup();
+
+	/* enable group */
+	hdS_enableGroup(myGroup);
+
+	                 // mem offset: 0x00 0x01 0x02 0x04 0x05 0x06 0x07 0x08
+	int32_t value0 = 12345;      // 0x39 0x30 0x00 0x00
+	int64_t value1 = 67890l;     // 0x32 0x09 0x01 0x00 0x00 0x00 0x00 0x00
+	float value2 = 12345.67890f; // 0xb7 0xe6 0x40 0x46
+	double value3 = 67890.12345; // 0x0b 0xb5 0xa6 0xf9 0x21 0x93 0xf0 0x40
+
+	int ret;
+#define ERROR_CHECK \
+	if (ret < 0) \
+		switch (errno)	{ \
+		case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
+		case HD_ERR_TRACE_DISABLED: assert(!"HD_ERR_TRACE_DISABLED"); \
+		case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE"); \
+		case HDS_ERR_ENTRY_STATE: assert(!"HDS_ERR_ENTRY_STATE"); \
+		default: assert(ret == 0);	}
+
+	int nextIdx = 0;
+	int offset = 0;
+
+#define ASSERTS \
+	assert(myGroup->nextValueIdx == nextIdx); \
+	assert(myGroup->offset == offset); \
+	assert(myGroup->isCommitted); \
+	assert(myGroup->isEnabled);
+
+	ASSERTS
+
+	/* Test correct usage */
+	TEST_BEGIN("Correct usage")
+
+	ret = hdS_writeInt32Value(myGroup, value0);
+	ERROR_CHECK
+	nextIdx++;
+	offset += HDS_TIMESTAMP_LENGTH + (int) sizeof(value0);
+	ASSERTS
+
+	ret = hdS_writeInt64Value(myGroup, value1);
+	ERROR_CHECK
+	nextIdx++;
+	offset += (int) sizeof(value1);
+	ASSERTS
+
+	ret = hdS_writeFloatValue(myGroup, value2);
+	ERROR_CHECK
+	nextIdx++;
+	offset += (int) sizeof(value2);
+	ASSERTS
+
+	ret = hdS_writeDoubleValue(myGroup, value3);
+	ERROR_CHECK
+	nextIdx = 0;  // entry should be flushed
+	offset = 0;
+	ASSERTS
+
+#undef ERROR_CHECK
+#undef ASSERTS
+
+	size_t ref_length = 24;
+
+
+	unsigned char ref_entry[24] = {
+			0x00, 0x00, 0x30, 0x39,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x09, 0x32,
+			0x46, 0x40, 0xE6, 0xB7,
+			0x40, 0xf0, 0x93, 0x21, 0xf9, 0xa6, 0xb5, 0x0b
+			};
+
+	/* save filename */
+	char *filename = strdup(myGroup->tracefile);
+
+	/* finalize group */
+	hdS_finalize(myGroup);
+
+	/*
+	 * read data back from file
+	 */
+	/* open file */
+	FILE *file;
+	assert((file = fopen(filename, "r")) != NULL);
+	/* read header length */
+	int header_length;
+	assert(fscanf(file, "%05d\n", &header_length) == 1);
+	/* seek behind header */
+	assert(fseek(file, header_length, SEEK_CUR) == 0);
+	/* read the entry back */
+	char buffer[100];
+	assert(fread(buffer, HDS_TIMESTAMP_LENGTH + ref_length, 1, file) == 1);
+	/* check entry */
+	assert(memcmp(buffer + HDS_TIMESTAMP_LENGTH, ref_entry, ref_length) == 0);
+
+	TEST_PASSED
+
+	/* close file */
+	fclose(file);
+
+	/* remove group trace file */
+	assert(remove(filename) == 0);
+
+	free(filename);
+
+}
+/* ************************************************************************* *
+ *                       END Tests of hdS_write*Value                        *
+ * ************************************************************************* */
 
 #if 0
 
-int hdS_writeEntry (
-        hdStatsGroup group,      /* Statistics Group */
-        void * entry,            /* Pointer to the entry to write */
-        int entryLength          /* Length of the entry to write */
-        );
-
-int hdS_writeInt32Value (
-        hdStatsGroup group,      /* Statistics Group */
-        int32_t value            /* INT32 value to write */
-        );
-
-int hdS_writeInt64Value (
-        hdStatsGroup group,      /* Statistics Group */
-        int64_t value            /* INT64 value to write */
-        );
-
-int hdS_writeFloatValue (
-        hdStatsGroup group,      /* Statistics Group */
-        float value              /* FLOAT value to write */
-        );
-
-int hdS_writeDoubleValue (
-        hdStatsGroup group,      /* Statistics Group */
-        double value             /* DOUBLE value to write */
-        );
-
+/* TODO: Write test for hdS_writeString */
 int hdS_writeString (
         hdStatsGroup group,      /* Statistics Group */
         const char * str         /* STRING value to write */
         );
 
+/* TODO: Evaluate if test hdS_finalize would make sense */
 int hdS_finalize(
         hdStatsGroup group      /* Statistics Group */
         );
 #endif
+
+int main(void)
+{
+	/* run all tests */
+	Test_createGroup_C1();
+	Test_createGroup_C2();
+	Test_addValue_C1();
+	Test_commitGroup_C1();
+	Test_enableGroup_C1();
+	Test_enableGroup_C2();
+	Test_disableGroup_C1();
+	Test_disableGroup_C2();
+	Test_isEnabled_C1();
+	Test_isEnabled_C2();
+	Test_writeEntry_C1();
+	Test_writeEntry_W1();
+	Test_writeXValue_C1();
+}

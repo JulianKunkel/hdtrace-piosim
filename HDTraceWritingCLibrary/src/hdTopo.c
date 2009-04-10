@@ -21,6 +21,7 @@
 #include <assert.h>
 
 #include "hdError.h"
+#include "common.h"
 #include "util.h"
 
 /******* @cond api_only *******/
@@ -71,13 +72,14 @@
  * @retval NULL     on error, setting errno
  *
  * @errno
- * - HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_MALLOC
  *
  * @sa hdT_destroyTopology
  */
 hdTopology hdT_createTopology(
 		const char *project,
-		char **levels,
+		const char **levels,
 		int nlevels
         )
 {
@@ -90,13 +92,14 @@ hdTopology hdT_createTopology(
 	}
 
 	/* create new topology */
-	hdTopology topology = malloc(sizeof(*topology));
+	hdTopology topology;
+	hd_malloc(topology, 1, NULL)
 
 	/* copy project name into topology */
 	topology->project = strdup(project);
 
 	/* allocate memory for names */
-	topology->levels = malloc(nlevels * sizeof(*(topology->levels)));
+	hd_malloc(topology->levels, (size_t) nlevels, NULL)
 
 	/* copy each path element */
 	for (int i = 0; i < nlevels; ++i)
@@ -236,12 +239,13 @@ int hdT_destroyTopology(
  * @retval NULL  on error, setting errno
  *
  * @errno
- * - HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_MALLOC
  *
  * @sa hdT_destroyTopoNode
  */
 hdTopoNode hdT_createTopoNode(
-		char **path,
+		const char **path,
 		int length
 		)
 {
@@ -254,20 +258,21 @@ hdTopoNode hdT_createTopoNode(
 	}
 
 	/* create new topology node */
-	hdTopoNode node = malloc(sizeof(*node));
+	hdTopoNode node;
+	hd_malloc(node, 1, NULL);
 
 	/* allocate memory for path */
-	node->path = malloc(length * sizeof(*(node->path)));
+	hd_malloc(node->path, (size_t) length, NULL);
 
 	/* copy each path element and get their lengths */
-	int lengths[length];
-	int sum = 0;
+	size_t lengths[length];
+	size_t sum = 0;
 	for (int i = 0; i < length; ++i)
 	{
 		lengths[i] = strlen(path[i]);
 		sum += lengths[i];
 
-		node->path[i] = malloc((lengths[i]+1)*sizeof(*(node->path[i])));
+		hd_malloc(node->path[i], lengths[i]+1, NULL);
 		memcpy(node->path[i], path[i], lengths[i]+1);
 	}
 
@@ -275,19 +280,19 @@ hdTopoNode hdT_createTopoNode(
 	node->length = length;
 
 	/* create string representation of path */
-	node->string = malloc((sum + length) * sizeof(*(node->string)));
+	hd_malloc(node->string, sum + (size_t) length, NULL);
 
 	int offset = 0;
 	for (int i = 0; i < length; ++i)
 	{
 		memcpy(node->string + offset, path[i], lengths[i]);
-		offset += lengths[i];
+		offset += (int) lengths[i];
 		/* write level delimiter */
 		node->string[offset++] = '.';
 	}
 	/* mark end of string, should override last delimiter */
-	assert(node->string[sum + length - 1] == '.');
-	node->string[sum + length - 1] = '\0';
+	assert(node->string[(int)sum + length - 1] == '.');
+	node->string[(int)sum + length - 1] = '\0';
 
 	/* return new node */
 	return node;

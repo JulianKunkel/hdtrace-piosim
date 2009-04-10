@@ -80,7 +80,7 @@ typedef struct _hdTopoNode * hdTopoNode;
  */
 hdTopology hdT_createTopology(
 		const char *project,
-		char **levels,
+		const char **levels,
 		int nlevels
 		);
 
@@ -100,7 +100,7 @@ int hdT_destroyTopology(
  * Create new topology node.
  */
 hdTopoNode hdT_createTopoNode(
-		char **path,
+		const char **path,
 		int length
 		);
 
