@@ -32,7 +32,6 @@
 
 package viewer.first;
 
-import java.awt.Dimension;
 import java.awt.Rectangle;
 
 import javax.swing.WindowConstants;
@@ -41,7 +40,6 @@ import viewer.common.Dialogs;
 import viewer.common.IconManager;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
-import viewer.common.Routines;
 import viewer.legends.LegendFrame;
 import viewer.profile.TraceProfileFrame;
 import viewer.timelines.TimelineFrame;
@@ -220,21 +218,19 @@ public class MainManager{
 		if (!Parameters.AUTO_WINDOWS_LOCATION)
 			return;
 
-		final Dimension screenSize = Routines.getScreenSize();
+		//final Dimension screenSize = Routines.getScreenSize();
 
 		Rectangle bounds = new Rectangle();
 		if(legendWindow != null){
-		}
-		
-		if (legendWindow != null && timelineWindow != null) {
-			timelineWindow.getFrame().setLocation(bounds.getLocation());
 			bounds = legendWindow.getFrame().getBounds();
 		}
+		
 		if (jumpshotWindow != null) {
 			bounds.x += bounds.width;
 			jumpshotWindow.setLocation(bounds.getLocation());
 			bounds = jumpshotWindow.getBounds();
 		}
+		
 		if (timelineWindow != null) {
 			if (jumpshotWindow != null)
 				bounds.y += bounds.height;

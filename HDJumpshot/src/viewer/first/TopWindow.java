@@ -86,8 +86,6 @@ public abstract class TopWindow {
 			frame.setVisible( val );	
 
 			gotVisibleTheFirstTime();
-		}else{			
-			frame.setVisible( val );	
 		}
 		
 		if(val == true){
@@ -101,6 +99,8 @@ public abstract class TopWindow {
 			
 			windowGetsInvisible();		
 		}
+		
+		frame.setVisible( val );
 	}
 	
 	/**

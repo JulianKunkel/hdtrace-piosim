@@ -361,7 +361,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		JPanel contentPanel = new JPanel(new BorderLayout());
 		contentPanel.add( top_panel, BorderLayout.NORTH );
 		contentPanel.add( right_splitter, BorderLayout.CENTER );
-
+		
 		return contentPanel;
 	}
 
@@ -392,7 +392,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	
 	@Override
 	protected void windowGetsInvisible() {
-		// don't forget to remove modelTime listener (if autoupdate), otherwise ressources are wasted
+		// don't forget to remove modelTime listener (if autoupdate), otherwise resources are wasted
 		modelTime.removeTimeListener( timeCanvasVport );
 		modelTime.removeTimeListener( time_ruler_vport );		
 		modelTime.removeTimeListener( timeUpdateListener);

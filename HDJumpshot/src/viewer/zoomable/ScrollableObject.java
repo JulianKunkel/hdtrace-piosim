@@ -43,7 +43,6 @@ import java.awt.Point;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.DebugGraphics;
 import javax.swing.JComponent;
@@ -100,9 +99,18 @@ implements ScrollableView, IAutoRefreshable
 	// The size of this JCompoent in pixel coordinates
 	private   Dimension          component_size;
 
-	// desides whether a call of redrawIfAutoRedraw refreshes
+	// decides whether a call of redrawIfAutoRedraw refreshes
 	boolean autoRefresh = true;
 
+	// contains the pending rendering jobs and process with FIFO order.
+	private LinkedList<BackgroundRendering> renderingJobs =  new LinkedList<BackgroundRendering>();
+	
+	private BackgroundRendering currentTask = null;
+	private BackgroundThread backgroundThread = null;
+	
+	private boolean doAdditionalBackgroundProcessing = false;
+	
+	
 	/**
 	 * Get an object of a given type from the clicked position:
 	 * @param view_click
@@ -176,15 +184,6 @@ implements ScrollableView, IAutoRefreshable
 		cur_img_idx = half_NumImages;
 	}
 
-	public String getStringforTimesOfImages()
-	{
-		StringBuffer rep = new StringBuffer();
-		for ( int img_idx = 0; img_idx < NumImages; img_idx++ )
-			rep.append( "tImages[ " + img_idx + " ] = "
-					+ tImages[ img_idx ] + "\n" );
-		return rep.toString();
-	}
-
 	public TimeBoundingBox getTimeBoundsOfImages()
 	{
 		return new TimeBoundingBox( tImages_all );
@@ -207,26 +206,12 @@ implements ScrollableView, IAutoRefreshable
 	// getPrevImageIndex() and getNextImageIndex() implement circular buffer[]
 	private int getNearPastImageIndex( int img_idx )
 	{
-		if ( img_idx == 0 )
-			return NumImages - 1;
-		else
-			return img_idx - 1;
+		return (img_idx - 1) % NumImages;
 	}
 
 	private int getNearFutureImageIndex( int img_idx )
 	{
-		if ( img_idx == NumImages - 1 )
-			return 0 ;
-		else
-			return img_idx + 1;
-	}
-
-	private int getNearImageIndex( int img_idx, int dir )
-	{
-		if ( dir < 0 )
-			return getNearPastImageIndex( img_idx );
-		else
-			return getNearFutureImageIndex( img_idx );
+		return (img_idx + 1) % NumImages;
 	}
 
 	private int getNumImagesMoved()
@@ -292,8 +277,7 @@ implements ScrollableView, IAutoRefreshable
 			setImagesInitTimeBounds();
 
 			for ( int img_idx = 0; img_idx < NumImages; img_idx++ )
-				// for ( int img_idx = NumImages-1 ; img_idx >= 0 ; img_idx-- )
-				scheduleToDrawOneImageInBackground(  img_idx , tImages[ img_idx ] );
+				scheduleToDrawOneImageInBackground(  img_idx);
 			
 			return true;
 		}
@@ -370,7 +354,7 @@ implements ScrollableView, IAutoRefreshable
 					for ( idx = Math.abs( Nimages_moved ); idx >=1; idx-- ) {
 						img_idx = getValidImageIndex( start_idx	+ img_mv_dir * idx );
 						if ( offscreenImages[ img_idx ] != null ){
-							scheduleToDrawOneImageInBackground( img_idx, tImages[ img_idx ] );
+							scheduleToDrawOneImageInBackground( img_idx );
 						}
 					}
 				}else{
@@ -378,7 +362,7 @@ implements ScrollableView, IAutoRefreshable
 						img_idx = getValidImageIndex( start_idx
 								+ img_mv_dir * idx );
 						if ( offscreenImages[ img_idx ] != null )
-							scheduleToDrawOneImageInBackground( img_idx , tImages[ img_idx ] );
+							scheduleToDrawOneImageInBackground( img_idx );
 					}
 				}
 
@@ -397,7 +381,7 @@ implements ScrollableView, IAutoRefreshable
 				
 				cancelRedrawing();
 				for ( img_idx = 0; img_idx < NumImages; img_idx++ )
-					scheduleToDrawOneImageInBackground( img_idx,	tImages[ img_idx ] );
+					scheduleToDrawOneImageInBackground( img_idx );
 				
 				return true;
 			}
@@ -452,14 +436,6 @@ implements ScrollableView, IAutoRefreshable
 			this.image = image;
 		}
 	}
-	
-	// contains the pending rendering jobs and process with FIFO order.
-	LinkedList<BackgroundRendering> renderingJobs =  new LinkedList<BackgroundRendering>();
-	
-	BackgroundRendering currentTask = null;
-	BackgroundThread backgroundThread = null;
-	
-	boolean doAdditionalBackgroundProcessing = false;
 	
 	/**
 	 * Overload this method to perform some background computation needed to draw an image
@@ -517,15 +493,14 @@ implements ScrollableView, IAutoRefreshable
 			
 			return null;
 		}
-		
-		// called by main swing thread: 
-		@Override
-		protected void process(List<Void> chunks) {
-			// redraw from manufactured objects is cheap:
-			viewport.repaint();
-		}
 	}
 	
+	
+	private synchronized boolean isBackgroundThreadFinished(){
+		if(backgroundThread == null)
+			return true;
+		return renderingJobs.isEmpty() && currentTask == null;
+	}
 	/**
 	 * Called by the background Thread
 	 * @return
@@ -561,12 +536,12 @@ implements ScrollableView, IAutoRefreshable
 			backgroundThread.abortCurrentJob = true;
 	}
 
-	private synchronized void scheduleToDrawOneImageInBackground( int imagePos, final TimeBoundingBox  image_endtimes ){
+	private synchronized void scheduleToDrawOneImageInBackground( int imagePos ){
 		final Image image = offscreenImages[imagePos];
 		
 		cancelRedrawing(imagePos);
 	
-		renderingJobs.push(new BackgroundRendering(imagePos, image, image_endtimes));
+		renderingJobs.push(new BackgroundRendering(imagePos, image, tImages[ imagePos ]));
 		
 		if(backgroundThread == null || backgroundThread.isDone() ){
 			// create background thread:
@@ -574,9 +549,13 @@ implements ScrollableView, IAutoRefreshable
 			backgroundThread.execute();
 		}
 	}
-
+ 
+	@Override
 	public void paintComponent( Graphics g )
-	{		
+	{	
+		// stop if the background thread has to do more work, LEADS to even more flickering  
+		//if(! isBackgroundThreadFinished()) return;
+		
 		if ( Debug.isActive() ) {
 			Debug.println( "ScrollableObject : paintComponent()'s START : " );
 			Debug.println( "ScrollableObject : paintComponent() "
@@ -698,31 +677,29 @@ implements ScrollableView, IAutoRefreshable
 		cancelRedrawing();
 		
 		for ( int idx = 0; idx < NumImages; idx++ ) {
-			scheduleToDrawOneImageInBackground( img_idx , tImages[ img_idx ] );
-			// img_idx = getNearPastImageIndex( img_idx );
+			scheduleToDrawOneImageInBackground( img_idx );
 			img_idx = getNearFutureImageIndex( img_idx );
 		}
 
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: componentResized()'s END: " );
 	}
-
+	
 	/*
         Defining getPreferredSize() seems to make HierarchyBoundsListener
         for ViewportTime unnecessary.
 	 */
+	@Override
 	public Dimension getPreferredSize()
 	{
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: pref_size = " + component_size );
 		return component_size;
 	}
-
-	public Dimension getSize()
-	{
-		if ( Debug.isActive() )
-			Debug.println( "ScrollableObject: size = " + component_size );
-		return component_size;
+	
+	@Override
+	public Dimension getMinimumSize() {	
+		return new Dimension(0, getJComponentHeight());
 	}
 
 	protected InfoDialog getTimePropertyAt( Epoch realTime )

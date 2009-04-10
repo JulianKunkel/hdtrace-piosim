@@ -147,7 +147,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	                  ( (Component) view_img ).repaint();
 	               -- JViewport.setViewPosition() may have invoked super.repaint()
 				 */
-				getMe().repaint();
+				//getMe().repaint();
 			}
 		}
 	};	

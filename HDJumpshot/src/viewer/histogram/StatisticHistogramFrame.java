@@ -38,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -88,7 +89,7 @@ public class StatisticHistogramFrame {
 	private class MyTimeModifiedListener implements TimeListener{
 		@Override
 		public void timeChanged(TimeEvent evt) {
-			refreshHistogramData();
+			triggerRefreshHistogramData();
 		}
 	}
 	
@@ -125,7 +126,7 @@ public class StatisticHistogramFrame {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				numberOfBins = (Integer) binNumberSpinner.getValue();								
-				refreshHistogramData();		
+				triggerRefreshHistogramData();		
 			}
 		});
 
@@ -165,8 +166,8 @@ public class StatisticHistogramFrame {
 		frame.addWindowListener(new MyWindowClosedListener());
 	}
 
-	public void refreshHistogramData(){
-		histogramPanel.refreshHistogramData();
+	public void triggerRefreshHistogramData(){
+		histogramPanel.triggerRefreshHistogramData();
 	}
 
 	private class HistogramImagePanel extends JPanel implements IAutoRefreshable{
@@ -187,15 +188,41 @@ public class StatisticHistogramFrame {
 		// automatically redraw on time modification:
 		boolean isAutoRefresh = false;
 		
+		BackgroundThread backgroundThread = null;
+		
+		// background thread computing the histogram data:
+		/**
+		 * At most one of this thread is executed.  
+		 * @author julian
+		 */
+		class BackgroundThread extends SwingWorker<Void, Void>{
+			
+			@Override
+			protected Void doInBackground() throws Exception {
+				histogramData = computeHistogram();
+				if(isCancelled()){
+					return null;
+				}
+				
+				repaint();
+				
+				return null;
+			}
+		}
+
+		
 		public HistogramImagePanel() {						
 			// double buffering.
 			super(true);
-			histogramData = computeHistogram();
+			triggerRefreshHistogramData();
 
 			// add a mouse listener which shows information about the selected statistic bin:
 			this.addMouseMotionListener(new MouseMotionAdapter(){
 				@Override
-				public void mouseMoved(MouseEvent e) {					
+				public void mouseMoved(MouseEvent e) {
+					if(histogramData == null) // maybe computed in background
+						return;
+					
 					if(e.getX() > xOffsetByLabels){
 						int bin =(int) ((e.getX() - xOffsetByLabels) / widthPerBin);		
 
@@ -234,11 +261,15 @@ public class StatisticHistogramFrame {
 		/**
 		 * Call it when the number of bins change or the time interval.
 		 */
-		public void refreshHistogramData(){
-			histogramData = computeHistogram();			
+		public void triggerRefreshHistogramData(){
 			oldMouseOverBin = -1;
 			
-			this.repaint();
+			if( backgroundThread != null ){
+				backgroundThread.cancel(true);
+			}
+			
+			backgroundThread = new BackgroundThread();
+			backgroundThread.execute();
 		}
 
 		/**
@@ -405,7 +436,7 @@ public class StatisticHistogramFrame {
 			
 			if(autoRefresh == true){
 				modelTime.addTimeListener(timeModifiedListener);
-				refreshHistogramData();
+				triggerRefreshHistogramData();
 			}else{
 				modelTime.removeTimeListener(timeModifiedListener);
 			}

@@ -106,6 +106,8 @@ public class ModelTimePanel extends JPanel
         fld_tZoom_focus.addActionListener(new ViewFokusActionListener());
         
         fld_tView_init.addActionListener(new ViewInitActionListener());
+        
+        timeChanged(null);
     }
 
     public class ViewInitActionListener implements ActionListener{
