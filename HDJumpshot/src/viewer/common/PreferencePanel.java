@@ -51,7 +51,6 @@ public class PreferencePanel extends JPanel
     private static int                    VERTICAL_GAP_HEIGHT = 10;
 
     // Options: Zoomable window reinitialization (requires window restart)
-    private        LabeledTextField       fld_Y_AXIS_ROOT_LABEL;
     private        LabeledComboBox        lst_AUTO_WINDOWS_LOCATION;
     private        LabeledFloatSlider     sdr_SCREEN_HEIGHT_RATIO;
     private        LabeledFloatSlider     sdr_TIME_SCROLL_UNIT_RATIO;
@@ -60,7 +59,6 @@ public class PreferencePanel extends JPanel
     private        LabeledComboBox        lst_Y_AXIS_ROOT_VISIBLE;
     private        LabeledComboBox        lst_ACTIVE_REFRESH;
     private        LabeledComboBox        lst_BACKGROUND_COLOR;
-    // private        LabeledTextField       fld_Y_AXIS_ROW_HEIGHT;
 
     private        LabeledFloatSlider     sdr_STATE_HEIGHT_FACTOR;
     private        LabeledFloatSlider     sdr_NESTING_HEIGHT_FACTOR;
@@ -79,9 +77,7 @@ public class PreferencePanel extends JPanel
     private        LabeledComboBox        lst_SEARCHED_OBJECT_ON_TOP;
 
     // Options: Histogram zoomable window
-    private        LabeledComboBox        lst_HISTOGRAM_ZERO_ORIGIN;
-    private        LabeledComboBox        lst_SUMMARY_STATE_BORDER;
-    private        LabeledTextField       fld_SUMMARY_ARROW_LOG_BASE;
+    private        LabeledComboBox        lst_PROFILE_STATE_BORDER;
 
 
     public PreferencePanel()
@@ -104,16 +100,6 @@ public class PreferencePanel extends JPanel
         label_panel.add( Box.createHorizontalGlue() );
         label_panel.setAlignmentX( Component.LEFT_ALIGNMENT );
         super.add( label_panel );
-
-        fld_Y_AXIS_ROOT_LABEL = new LabeledTextField( true,
-                                    "Y_AXIS_ROOT_LABEL",
-                                    Const.STRING_FORMAT );
-        fld_Y_AXIS_ROOT_LABEL.setToolTipText(
-        "Label for the root node of the Y-axis tree label in the left panel" );
-        fld_Y_AXIS_ROOT_LABEL.setHorizontalAlignment( JTextField.CENTER );
-        fld_Y_AXIS_ROOT_LABEL.addSelfDocumentListener();
-        fld_Y_AXIS_ROOT_LABEL.setEditable( true );
-        super.add( fld_Y_AXIS_ROOT_LABEL );
 
         lst_AUTO_WINDOWS_LOCATION = new LabeledComboBox(
                                         "AUTO_WINDOWS_LOCATION" );
@@ -171,9 +157,9 @@ public class PreferencePanel extends JPanel
         lst_ACTIVE_REFRESH.addItem( Boolean.TRUE );
         lst_ACTIVE_REFRESH.addItem( Boolean.FALSE );
         lst_ACTIVE_REFRESH.setToolTipText(
-        "Whether to let Jumpshot-4 actively update the timeline canvas." );
+        "Whether to let Jumpshot-HD actively update the timeline canvas." );
         super.add( lst_ACTIVE_REFRESH );
-        lst_ACTIVE_REFRESH.setEnabled( false );
+        lst_ACTIVE_REFRESH.setEnabled( true );
 
         lst_BACKGROUND_COLOR = new LabeledComboBox( "BACKGROUND_COLOR" );
         lst_BACKGROUND_COLOR.addItem( Const.COLOR_BLACK );
@@ -341,46 +327,25 @@ public class PreferencePanel extends JPanel
 
         label_panel = new JPanel();
         label_panel.setLayout( new BoxLayout( label_panel, BoxLayout.X_AXIS ) );
-            label = new JLabel( "Histogram zoomable window" );
+            label = new JLabel( "Profile zoomable window" );
             label.setToolTipText( "Options become effective after return "
-                                + "and the Histogram window is redrawn" );
+                                + "and the Profile window is redrawn" );
         label_panel.add( Box.createHorizontalStrut( Const.LABEL_INDENTATION ) );
         label_panel.add( label );
         label_panel.add( Box.createHorizontalGlue() );
         label_panel.setAlignmentX( Component.LEFT_ALIGNMENT );
         super.add( label_panel );
 
-        lst_HISTOGRAM_ZERO_ORIGIN = new LabeledComboBox(
-                                        "HISTOGRAM_ZERO_ORIGIN" );
-        lst_HISTOGRAM_ZERO_ORIGIN.addItem( Boolean.TRUE );
-        lst_HISTOGRAM_ZERO_ORIGIN.addItem( Boolean.FALSE );
-        lst_HISTOGRAM_ZERO_ORIGIN.setToolTipText(
-        "Whether to the time ruler is in duration, i.e. starts with 0.0." );
-        super.add( lst_HISTOGRAM_ZERO_ORIGIN );
-
-        lst_SUMMARY_STATE_BORDER = new LabeledComboBox(
-                                       "SUMMARY_STATE_BORDER" );
-        lst_SUMMARY_STATE_BORDER.addItem( StateBorder.COLOR_XOR_BORDER );
-        lst_SUMMARY_STATE_BORDER.addItem( StateBorder.COLOR_RAISED_BORDER );
-        lst_SUMMARY_STATE_BORDER.addItem( StateBorder.COLOR_LOWERED_BORDER );
-        lst_SUMMARY_STATE_BORDER.addItem( StateBorder.WHITE_RAISED_BORDER );
-        lst_SUMMARY_STATE_BORDER.addItem( StateBorder.WHITE_LOWERED_BORDER );
-        lst_SUMMARY_STATE_BORDER.addItem( StateBorder.WHITE_PLAIN_BORDER );
-        lst_SUMMARY_STATE_BORDER.addItem( StateBorder.EMPTY_BORDER );
-        lst_SUMMARY_STATE_BORDER.setToolTipText(
-        "Border style of the Summary state in the histogram window." );
-        super.add( lst_SUMMARY_STATE_BORDER );
-
-        fld_SUMMARY_ARROW_LOG_BASE = new LabeledTextField( true,
-                                         "SUMMARY_ARROW_LOG_BASE",
-                                         Const.INTEGER_FORMAT );
-        fld_SUMMARY_ARROW_LOG_BASE.setToolTipText(
-          "The logarithmic base of the number of arrows in Summary arrow.\n"
-        + "This determines the Summary arrow's width." );
-        fld_SUMMARY_ARROW_LOG_BASE.setHorizontalAlignment( JTextField.CENTER );
-        fld_SUMMARY_ARROW_LOG_BASE.addSelfDocumentListener();
-        fld_SUMMARY_ARROW_LOG_BASE.setEditable( true );
-        super.add( fld_SUMMARY_ARROW_LOG_BASE );
+        lst_PROFILE_STATE_BORDER = new LabeledComboBox("SUMMARY_STATE_BORDER" );
+        lst_PROFILE_STATE_BORDER.addItem( StateBorder.COLOR_XOR_BORDER );
+        lst_PROFILE_STATE_BORDER.addItem( StateBorder.COLOR_RAISED_BORDER );
+        lst_PROFILE_STATE_BORDER.addItem( StateBorder.COLOR_LOWERED_BORDER );
+        lst_PROFILE_STATE_BORDER.addItem( StateBorder.WHITE_RAISED_BORDER );
+        lst_PROFILE_STATE_BORDER.addItem( StateBorder.WHITE_LOWERED_BORDER );
+        lst_PROFILE_STATE_BORDER.addItem( StateBorder.WHITE_PLAIN_BORDER );
+        lst_PROFILE_STATE_BORDER.addItem( StateBorder.EMPTY_BORDER );
+        lst_PROFILE_STATE_BORDER.setToolTipText( "Border style of the Summary state in the Profile window." );
+        super.add( lst_PROFILE_STATE_BORDER );
 
         super.add( Box.createVerticalStrut( 2 * VERTICAL_GAP_HEIGHT ) );
 
@@ -405,7 +370,6 @@ public class PreferencePanel extends JPanel
     public void updateAllFieldsFromParameters()
     {
         // Options: Zoomable window reinitialization (requires window restart)
-        fld_Y_AXIS_ROOT_LABEL.setText( Parameters.Y_AXIS_ROOT_LABEL );
         lst_AUTO_WINDOWS_LOCATION.setSelectedBooleanItem(
                                   Parameters.AUTO_WINDOWS_LOCATION );
         sdr_SCREEN_HEIGHT_RATIO.setFloat( Parameters.SCREEN_HEIGHT_RATIO );
@@ -439,20 +403,14 @@ public class PreferencePanel extends JPanel
                                    Parameters.SEARCHED_OBJECT_ON_TOP );
 
         // Options: Histogram zoomable window
-        lst_HISTOGRAM_ZERO_ORIGIN.setSelectedBooleanItem(
-                                  Parameters.HISTOGRAM_ZERO_ORIGIN );
-        lst_SUMMARY_STATE_BORDER.setSelectedItem(
-                                 Parameters.SUMMARY_STATE_BORDER );
-        fld_SUMMARY_ARROW_LOG_BASE.setInteger(
-                                   Parameters.SUMMARY_ARROW_LOG_BASE );
+        lst_PROFILE_STATE_BORDER.setSelectedItem(
+                                 Parameters.PROFILE_STATE_BORDER );
 
     }
 
     public void updateAllParametersFromFields()
     {
         // Options: Zoomable window reinitialization (requires window restart)
-        Parameters.Y_AXIS_ROOT_LABEL
-                  = fld_Y_AXIS_ROOT_LABEL.getText();
         Parameters.AUTO_WINDOWS_LOCATION
                   = lst_AUTO_WINDOWS_LOCATION.getSelectedBooleanItem();
         Parameters.SCREEN_HEIGHT_RATIO
@@ -499,11 +457,6 @@ public class PreferencePanel extends JPanel
                   = lst_SEARCHED_OBJECT_ON_TOP.getSelectedBooleanItem();
 
         // Options: Histogram zoomable window
-        Parameters.HISTOGRAM_ZERO_ORIGIN
-                  = lst_HISTOGRAM_ZERO_ORIGIN.getSelectedBooleanItem();
-        Parameters.SUMMARY_STATE_BORDER
-                  = (StateBorder) lst_SUMMARY_STATE_BORDER.getSelectedItem();
-        Parameters.SUMMARY_ARROW_LOG_BASE
-                  = fld_SUMMARY_ARROW_LOG_BASE.getInteger();
+        Parameters.PROFILE_STATE_BORDER = (StateBorder) lst_PROFILE_STATE_BORDER.getSelectedItem();
     }
 }

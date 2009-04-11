@@ -48,6 +48,7 @@ import viewer.common.Const;
 import viewer.common.IAutoRefreshable;
 import viewer.common.LabeledSpinner;
 import viewer.common.LabeledTextField;
+import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
 import viewer.zoomable.ModelTime;
@@ -186,7 +187,7 @@ public class StatisticHistogramFrame {
 		private int oldMouseOverBin = -1;
 
 		// automatically redraw on time modification:
-		boolean isAutoRefresh = false;
+		boolean isAutoRefresh = Parameters.ACTIVE_REFRESH;
 		
 		BackgroundThread backgroundThread = null;
 		

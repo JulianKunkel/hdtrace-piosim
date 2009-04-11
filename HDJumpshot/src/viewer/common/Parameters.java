@@ -53,17 +53,14 @@ public class Parameters
     private static       String       setupfile_path           = null;
 
     // Options: Zoomable window reinitialization (requires window restart)
-    public  static       String       Y_AXIS_ROOT_LABEL        = "HD-Trace";
     public  static       boolean      AUTO_WINDOWS_LOCATION    = true;
     public  static       float        SCREEN_HEIGHT_RATIO      = 0.5f;
     public  static       float        TIME_SCROLL_UNIT_RATIO   = 0.01f;
 
     // Options: All zoomable windows
     public  static       boolean      Y_AXIS_ROOT_VISIBLE      = true;
-    public  static       boolean      ACTIVE_REFRESH           = false;
-    public  static       String       ROW_RESIZE_MODE          = "Row";
-    public  static       Alias        BACKGROUND_COLOR
-                                      = Const.COLOR_BLACK;
+    public  static       boolean      ACTIVE_REFRESH           = true;
+    public  static       Alias        BACKGROUND_COLOR         = Const.COLOR_BLACK;
 
     public  static       float        STATE_HEIGHT_FACTOR      = 0.90f;
     public  static       float        NESTING_HEIGHT_FACTOR    = 0.80f;
@@ -79,22 +76,12 @@ public class Parameters
     public  static       int          ARROW_HEAD_WIDTH         = 6;
     public  static       int          EVENT_BASE_WIDTH         = 8;
 
-    public  static       StateBorder  PREVIEW_STATE_BORDER
-                                      = StateBorder.COLOR_XOR_BORDER;
-    public  static       int          PREVIEW_STATE_BORDER_W   = 3;
-    public  static       int          PREVIEW_STATE_BORDER_H   = 0;
-    public  static       int          PREVIEW_STATE_LEGEND_H   = 2;
-    public  static       int          PREVIEW_ARROW_LOG_BASE   = 5;
-
     public  static       int          SEARCH_ARROW_LENGTH      = 20;
     public  static       int          SEARCH_FRAME_THICKNESS   = 3;
     public  static       boolean      SEARCHED_OBJECT_ON_TOP   = false;
 
     // Options: Histogram zoomable window
-    public  static       boolean      HISTOGRAM_ZERO_ORIGIN    = true;
-    public  static       StateBorder  SUMMARY_STATE_BORDER
-                                      = StateBorder.COLOR_RAISED_BORDER;
-    public  static       int          SUMMARY_ARROW_LOG_BASE   = 5;
+    public  static       StateBorder  PROFILE_STATE_BORDER     = StateBorder.COLOR_RAISED_BORDER;
 
     public static final void initSetupFile()
     {
@@ -129,7 +116,6 @@ public class Parameters
         pptys.setProperty( "VERSION_INFO", VERSION_INFO );
 
         // Options: Zoomable window reinitialization (requires window restart)
-        pptys.setProperty( "Y_AXIS_ROOT_LABEL", Y_AXIS_ROOT_LABEL );
         pptys.setProperty( "AUTO_WINDOWS_LOCATION",
                            String.valueOf( AUTO_WINDOWS_LOCATION ) );
         pptys.setProperty( "SCREEN_HEIGHT_RATIO",
@@ -142,7 +128,6 @@ public class Parameters
                            String.valueOf( Y_AXIS_ROOT_VISIBLE ) );
         pptys.setProperty( "ACTIVE_REFRESH",
                            String.valueOf( ACTIVE_REFRESH ) );
-        pptys.setProperty( "ROW_RESIZE_MODE", ROW_RESIZE_MODE );
         pptys.setProperty( "BACKGROUND_COLOR",
                            String.valueOf( BACKGROUND_COLOR ) );
 
@@ -166,17 +151,6 @@ public class Parameters
                            String.valueOf( ARROW_HEAD_WIDTH ) );
         pptys.setProperty( "EVENT_BASE_WIDTH",
                            String.valueOf( EVENT_BASE_WIDTH ) );
-        
-        pptys.setProperty( "PREVIEW_STATE_BORDER",
-                           String.valueOf( PREVIEW_STATE_BORDER ) );
-        pptys.setProperty( "PREVIEW_STATE_BORDER_W",
-                           String.valueOf( PREVIEW_STATE_BORDER_W ) );
-        pptys.setProperty( "PREVIEW_STATE_BORDER_H",
-                           String.valueOf( PREVIEW_STATE_BORDER_H ) );
-        pptys.setProperty( "PREVIEW_STATE_LEGEND_H",
-                           String.valueOf( PREVIEW_STATE_LEGEND_H ) );
-        pptys.setProperty( "PREVIEW_ARROW_LOG_BASE",
-                           String.valueOf( PREVIEW_ARROW_LOG_BASE ) );
 
         pptys.setProperty( "SEARCH_ARROW_LENGTH",
                            String.valueOf( SEARCH_ARROW_LENGTH ) );
@@ -185,13 +159,8 @@ public class Parameters
         pptys.setProperty( "SEARCHED_OBJECT_ON_TOP",
                            String.valueOf( SEARCHED_OBJECT_ON_TOP ) );
 
-        // Options: Histogram zoomable window
-        pptys.setProperty( "HISTOGRAM_ZERO_ORIGIN",
-                           String.valueOf( HISTOGRAM_ZERO_ORIGIN ) );
-        pptys.setProperty( "SUMMARY_STATE_BORDER",
-                           String.valueOf( SUMMARY_STATE_BORDER ) );
-        pptys.setProperty( "SUMMARY_ARROW_LOG_BASE",
-                           String.valueOf( SUMMARY_ARROW_LOG_BASE ) );
+        pptys.setProperty( "PROFILE_STATE_BORDER",
+                           String.valueOf( PROFILE_STATE_BORDER ) );
 
 
         try {
@@ -239,8 +208,6 @@ public class Parameters
 
         // Options: Zoomable window reinitialization (requires window restart)
         ppty_val = pptys.getProperty( "Y_AXIS_ROOT_LABEL" );
-        if ( ppty_val != null )
-            Y_AXIS_ROOT_LABEL = ppty_val;
         ppty_val = pptys.getProperty( "AUTO_WINDOWS_LOCATION" );
         if ( ppty_val != null )
             AUTO_WINDOWS_LOCATION =    ppty_val.equalsIgnoreCase( "true" )
@@ -258,15 +225,13 @@ public class Parameters
         if ( ppty_val != null ) 
             Y_AXIS_ROOT_VISIBLE =    ppty_val.equalsIgnoreCase( "true" )
                                   || ppty_val.equalsIgnoreCase( "yes" );
-        /*
+        
         ppty_val = pptys.getProperty( "ACTIVE_REFRESH" );
         if ( ppty_val != null )
             ACTIVE_REFRESH =    ppty_val.equalsIgnoreCase( "true" )
                              || ppty_val.equalsIgnoreCase( "yes" );
-        */
+        
         ppty_val = pptys.getProperty( "ROW_RESIZE_MODE" );
-        if ( ppty_val != null )
-            ROW_RESIZE_MODE = ppty_val;
         ppty_val = pptys.getProperty( "BACKGROUND_COLOR" );
         if ( ppty_val != null )
             BACKGROUND_COLOR = Const.parseBackgroundColor( ppty_val );
@@ -308,21 +273,7 @@ public class Parameters
             EVENT_BASE_WIDTH = Integer.parseInt( ppty_val );
 
         ppty_val = pptys.getProperty( "PREVIEW_STATE_BORDER" );
-        if ( ppty_val != null )
-            PREVIEW_STATE_BORDER = StateBorder.parseString( ppty_val );
-        ppty_val = pptys.getProperty( "PREVIEW_STATE_BORDER_W" );
-        if ( ppty_val != null )
-            PREVIEW_STATE_BORDER_W = Integer.parseInt( ppty_val );
-        ppty_val = pptys.getProperty( "PREVIEW_STATE_BORDER_H" );
-        if ( ppty_val != null )
-            PREVIEW_STATE_BORDER_H = Integer.parseInt( ppty_val );
-        ppty_val = pptys.getProperty( "PREVIEW_STATE_LEGEND_H" );
-        if ( ppty_val != null )
-            PREVIEW_STATE_LEGEND_H = Integer.parseInt( ppty_val );
-        ppty_val = pptys.getProperty( "PREVIEW_ARROW_LOG_BASE" );
-        if ( ppty_val != null )
-            PREVIEW_ARROW_LOG_BASE = Integer.parseInt( ppty_val );
-
+        
         ppty_val = pptys.getProperty( "SEARCH_ARROW_LENGTH" );
         if ( ppty_val != null )
             SEARCH_ARROW_LENGTH = Integer.parseInt( ppty_val );
@@ -336,57 +287,8 @@ public class Parameters
 
         // Options: Histogram zoomable window
         ppty_val = pptys.getProperty( "HISTOGRAM_ZERO_ORIGIN" );
+        ppty_val = pptys.getProperty( "PROFILE_STATE_BORDER" );
         if ( ppty_val != null )
-            HISTOGRAM_ZERO_ORIGIN =    ppty_val.equalsIgnoreCase( "true" )
-                                    || ppty_val.equalsIgnoreCase( "yes" );
-        ppty_val = pptys.getProperty( "SUMMARY_STATE_BORDER" );
-        if ( ppty_val != null )
-            SUMMARY_STATE_BORDER = StateBorder.parseString( ppty_val );
-        ppty_val = pptys.getProperty( "SUMMARY_ARROW_LOG_BASE" );
-        if ( ppty_val != null )
-            SUMMARY_ARROW_LOG_BASE = Integer.parseInt( ppty_val );
-    }
-
-    public static String toInOutString()
-    {
-        StringBuffer rep;
-        rep = new StringBuffer();
-        rep.append( "Y_AXIS_ROOT_LABEL = "     + Y_AXIS_ROOT_LABEL     + "\n" );
-        rep.append( "AUTO_WINDOWS_LOCATION = " + AUTO_WINDOWS_LOCATION + "\n" );
-        rep.append( "SCREEN_HEIGHT_RATIO = "   + SCREEN_HEIGHT_RATIO   + "\n" );
-        rep.append( "TIME_SCROLL_UNIT_RATIO = "+ TIME_SCROLL_UNIT_RATIO+ "\n" );
-
-        rep.append( "Y_AXIS_ROOT_VISIBLE = "   + Y_AXIS_ROOT_VISIBLE   + "\n" );
-        rep.append( "ACTIVE_REFRESH = "        + ACTIVE_REFRESH        + "\n" );
-        rep.append( "ROW_RESIZE_MODE = "       + ROW_RESIZE_MODE       + "\n" );
-        rep.append( "BACKGROUND_COLOR = "      + BACKGROUND_COLOR      + "\n" );
-    //  rep.append( "Y_AXIS_ROW_HEIGHT = "     + Y_AXIS_ROW_HEIGHT     + "\n" );
-
-        rep.append( "STATE_HEIGHT_FACTOR = "   + STATE_HEIGHT_FACTOR   + "\n" );
-        rep.append( "NESTING_HEIGHT_FACTOR = " + NESTING_HEIGHT_FACTOR + "\n" );
-        rep.append( "ARROW_ANTIALIASING = "    + ARROW_ANTIALIASING    + "\n" );
-        rep.append( "MIN_WIDTH_TO_DRAG = "     + MIN_WIDTH_TO_DRAG     + "\n" );
-        rep.append( "LEFTCLICK_INSTANT_ZOOM = "+ LEFTCLICK_INSTANT_ZOOM+ "\n" );
-
-        rep.append( "STATE_BORDER = "          + STATE_BORDER          + "\n" );
-        rep.append( "ARROW_HEAD_LENGTH = "     + ARROW_HEAD_LENGTH     + "\n" );
-        rep.append( "ARROW_HEAD_WIDTH = "      + ARROW_HEAD_WIDTH      + "\n" );
-        rep.append( "EVENT_BASE_WIDTH = "      + EVENT_BASE_WIDTH      + "\n" );
-        //
-        rep.append( "PREVIEW_STATE_BORDER = "  + PREVIEW_STATE_BORDER  + "\n" );
-        rep.append( "PREVIEW_STATE_BORDER_W = "+ PREVIEW_STATE_BORDER_W+ "\n" );
-        rep.append( "PREVIEW_STATE_BORDER_H = "+ PREVIEW_STATE_BORDER_H+ "\n" );
-        rep.append( "PREVIEW_STATE_LEGEND_H = "+ PREVIEW_STATE_LEGEND_H+ "\n" );
-        rep.append( "PREVIEW_ARROW_LOG_BASE = "+ PREVIEW_ARROW_LOG_BASE+ "\n" );
-        //
-        rep.append( "SEARCH_ARROW_LENGTH = "   + SEARCH_ARROW_LENGTH   + "\n" );
-        rep.append( "SEARCH_FRAME_THICKNESS = "+ SEARCH_FRAME_THICKNESS+ "\n" );
-        rep.append( "SEARCHED_OBJECT_ON_TOP = "+ SEARCHED_OBJECT_ON_TOP+ "\n" );
-
-        rep.append( "HISTOGRAM_ZERO_ORIGIN = " + HISTOGRAM_ZERO_ORIGIN + "\n" );
-        rep.append( "SUMMARY_STATE_BORDER = "  + SUMMARY_STATE_BORDER  + "\n" );
-        rep.append( "SUMMARY_ARROW_LOG_BASE = "+ SUMMARY_ARROW_LOG_BASE+ "\n" );
-
-        return rep.toString();
+            PROFILE_STATE_BORDER = StateBorder.parseString( ppty_val );
     }
 }

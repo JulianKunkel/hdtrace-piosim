@@ -51,6 +51,7 @@ import javax.swing.SwingWorker;
 
 import viewer.common.Debug;
 import viewer.common.IAutoRefreshable;
+import viewer.common.Parameters;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTime;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -100,7 +101,7 @@ implements ScrollableView, IAutoRefreshable
 	private   Dimension          component_size;
 
 	// decides whether a call of redrawIfAutoRedraw refreshes
-	boolean autoRefresh = true;
+	boolean autoRefresh = Parameters.ACTIVE_REFRESH;
 
 	// contains the pending rendering jobs and process with FIFO order.
 	private LinkedList<BackgroundRendering> renderingJobs =  new LinkedList<BackgroundRendering>();

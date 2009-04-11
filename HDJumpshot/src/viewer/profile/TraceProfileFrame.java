@@ -67,6 +67,7 @@ import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.CategoryState;
+import drawable.StateBorder;
 import drawable.TimeBoundingBox;
 
 /**
@@ -449,7 +450,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 
 
-	private class ProfileImagePanel extends ScrollableTimeline{
+	public class ProfileImagePanel extends ScrollableTimeline{
 		private static final long serialVersionUID = 1L;
 
 		@Override
@@ -552,6 +553,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 			double lastValue = 0;
 
+			final StateBorder border = Parameters.PROFILE_STATE_BORDER;
+			
 			for(int i=0 ; i < values.length ; i++){
 				final TraceCategoryStateProfile profile = profiles[i];
 
@@ -566,10 +569,13 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				if(! profile.getCategory().isVisible())
 					continue;
 
-				g.setColor( profile.getCategory().getColor() );											
+				final Color color = profile.getCategory().getColor(); 
+				
+				g.setColor( color );											
 
 				g.fillRect( x1, yPos, x2-x1, height );
-
+				
+				border.paintStateBorder( g, color,	x1, yPos, true, x2, yPos + height, true );
 			}
 		}
 
