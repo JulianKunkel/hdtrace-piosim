@@ -62,6 +62,7 @@ import javax.swing.event.MouseInputListener;
 import viewer.common.CustomCursor;
 import viewer.common.Debug;
 import viewer.common.ModelInfoPanel;
+import viewer.common.ModelTime;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
@@ -83,7 +84,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private   Point                     view_pt;
 	// view_img is both a Component and ScrollableView object
 	private   ScrollableView            view_img      = null;
-	private   ModelTime                 time_model    = null;
+	final private   ModelTime                 modelTime;
+	final private   ScrollbarTimeModel        scrollbarTimeModel;
 	
 	// show information about the object the mouse is moved over
 	private   ModelInfoPanel            info_model    = null;    
@@ -122,7 +124,11 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	               This also means the "view" does NOT need to implement
 	               ComponentListener interface.
 				 */
-				view_img.forceRedraw(getSize().width, getSize().height);
+
+				view_img.resized(getSize().width, getSize().height);
+
+				scrollbarTimeModel.setViewPixelsPerUnitTime( getSize().width );
+				
 				/*
 	               It is very IMPORTANT to do setPreferredSize() for JViewport
 	               with custom JComponent view.  If PreferredSize is NOT set,
@@ -147,7 +153,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	                  ( (Component) view_img ).repaint();
 	               -- JViewport.setViewPosition() may have invoked super.repaint()
 				 */
-				//getMe().repaint();
+				getMe().repaint();
 			}
 		}
 	};	
@@ -156,9 +162,10 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		return this;
 	}
 
-	public ViewportTime( final ModelTime in_model )
+	public ViewportTime( ScrollbarTimeModel scrollbarTimeModel)
 	{
-		time_model             = in_model;
+		this.scrollbarTimeModel = scrollbarTimeModel;
+		this.modelTime          = scrollbarTimeModel.getModelTime();
 		view_pt                = new Point( 0, 0 );
 		isLeftMouseClick4Zoom  = false;   // default to Scroll with left mouse
 		/*
@@ -346,13 +353,13 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		super.paint( g );
 
 		/*  Initialization  */
-		vport_timebox.setEarliestTime( time_model.getTimeViewPosition() );
-		vport_timebox.setLatestFromEarliest( time_model.getTimeViewExtent() );
+		vport_timebox.setEarliestTime( modelTime.getViewPosition() );
+		vport_timebox.setLatestFromEarliest( modelTime.getViewExtent() );
 		coord_xform.resetTimeBounds( vport_timebox );
 
 		// Draw a line at time_model.getTimeZoomFocus() 
 		if ( ! Parameters.LEFTCLICK_INSTANT_ZOOM ) {
-			focus_time = time_model.getTimeZoomFocus();
+			focus_time = modelTime.getTimeZoomFocus();
 			if ( coord_xform.contains( focus_time ) ) {
 				x_pos = coord_xform.convertTimeToPixel( focus_time );
 				g.setColor( FOCUS_LINE_COLOR );
@@ -480,11 +487,11 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 					// Left click with Shift to Zoom Out,
 					// Left click to Zoom In.
 					if ( mouse_evt.isShiftDown() ) {						
-						time_model.zoomOut();
+						modelTime.zoomOut();
 						super.setCursor( CustomCursor.ZoomMinus );
 					}
 					else {
-						time_model.zoomIn(focus_time);
+						modelTime.zoomIn(focus_time);
 						super.setCursor( CustomCursor.ZoomPlus );
 					}
 					super.requestFocus();
@@ -516,9 +523,9 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			return;
 		}
 
-		vport_timebox.setEarliestTime( time_model.getTimeViewPosition() );
+		vport_timebox.setEarliestTime( modelTime.getViewPosition() );
 		vport_timebox.setLatestFromEarliest(
-				time_model.getTimeViewExtent() );
+				modelTime.getViewExtent() );
 		coord_xform.resetTimeBounds( vport_timebox );
 		vport_click = mouse_evt.getPoint();
 		click_time  = coord_xform.convertPixelToTime( vport_click.x );
@@ -569,7 +576,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			}
 			else {  // Hand Mode
 				if ( vport_click.x != mouse_last_Xloc ) {
-					time_model.scroll( mouse_last_Xloc - vport_click.x );
+					getModelTime().scroll( mouse_last_Xloc - vport_click.x );
 					mouse_last_Xloc = vport_click.x;
 					super.setCursor( CustomCursor.HandClose );
 				}
@@ -612,7 +619,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 					// if ( zoom_timebox.getDuration() > 0.0d ) {
 					if (    Math.abs(vport_click.x - mouse_pressed_Xloc)
 							>= Parameters.MIN_WIDTH_TO_DRAG ) {
-						time_model.zoomRapidly(
+						modelTime.zoomRapidly(
 								zoom_timebox.getEarliestTime(),
 								zoom_timebox.getDuration() );
 					}
@@ -623,7 +630,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			}
 			else {  // Hand Mode
 				if ( vport_click.x != mouse_last_Xloc ) {
-					time_model.scroll( mouse_last_Xloc - vport_click.x );
+					getModelTime().scroll( mouse_last_Xloc - vport_click.x );
 					mouse_last_Xloc = vport_click.x;
 				}
 				super.setCursor( CustomCursor.HandOpen );
@@ -642,12 +649,12 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 				if ( window instanceof Frame )
 					info_popup = new InfoDialogForDuration( (Frame) window,
 							info_timebox,
-							time_model.getTimeGlobalMinimum().add(info_timebox.getEarliestTime()),
+							modelTime.getGlobalMinimum().add(info_timebox.getEarliestTime()),
 							scrollable );
 				else // if ( window instanceof Dialog )
 					info_popup = new InfoDialogForDuration( (Dialog) window,
 							info_timebox,
-							time_model.getTimeGlobalMinimum().add(info_timebox.getEarliestTime()),
+							modelTime.getGlobalMinimum().add(info_timebox.getEarliestTime()),
 							scrollable );
 			}
 			else {
@@ -761,4 +768,12 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		}
 	}   // Class InfoDialogWindowListener
 
+	
+	protected ModelTime getModelTime() {
+		return modelTime;
+	}
+	
+	protected ScrollbarTimeModel getScrollbarTimeModel() {
+		return scrollbarTimeModel;
+	}
 }

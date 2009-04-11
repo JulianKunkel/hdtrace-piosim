@@ -47,13 +47,13 @@ import viewer.common.IconManager.IconType;
 import viewer.first.MainManager;
 import viewer.first.TopWindow;
 import viewer.legends.CategoryUpdatedListener;
-import viewer.zoomable.ModelTime;
 import viewer.zoomable.ModelTimePanel;
 import viewer.zoomable.RowAdjustments;
 import viewer.zoomable.RowNumberChangedListener;
 import viewer.zoomable.RulerTime;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ScrollbarTime;
+import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimeYaxis;
 
@@ -81,10 +81,12 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	private JScrollPane             y_scroller;
 	private JScrollBar              y_scrollbar;
 
-	private ScrollbarTime           time_scrollbar;
+	private ScrollbarTime           scrollbarTime;
+	private ScrollbarTimeModel   		scrollbarTimeModel;
+	
 	private ModelTimePanel          time_display_panel;
 	private ModelInfoPanel<InfoModelType> info_model;
-	private RulerTime               time_ruler;
+	private RulerTime               timeRuler;
 	private ViewportTime            time_ruler_vport;
 	private JLabel                  yColarea   = new JLabel(); //below the topology manager 
 
@@ -173,13 +175,14 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		JPanel center_panel = new JPanel();
 		center_panel.setLayout( new BoxLayout( center_panel,	BoxLayout.Y_AXIS ) );
 
+		scrollbarTimeModel = new ScrollbarTimeModel(modelTime);
 
-		timeCanvasVport = new ViewportTimeYaxis( modelTime, y_model, topologyManager );
+		timeCanvasVport = new ViewportTimeYaxis( scrollbarTimeModel, y_model, topologyManager );
 		
 		/* The Time Ruler */
-		time_ruler        = new RulerTime( modelTime, timeCanvasVport );
-		time_ruler_vport  = new ViewportTime( modelTime );
-		time_ruler_vport.setView( time_ruler );
+		timeRuler        = new RulerTime( scrollbarTimeModel, timeCanvasVport );
+		time_ruler_vport  = new ViewportTime( scrollbarTimeModel );
+		time_ruler_vport.setView( timeRuler );
 		
 		time_ruler_vport.setLeftMouseToZoom( true );
 		/*
@@ -200,7 +203,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
                    Preferred Height of RulerTime's ViewportTimePanel equal
                    to its Minimum Height and Maximum Height.
 		 */
-		int      ruler_panel_height = time_ruler.getJComponentHeight();
+		int      ruler_panel_height = timeRuler.getJComponentHeight();
 
 		/* The TimeLine Canvas */
 
@@ -210,7 +213,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		timeCanvasVport.setLeftMouseToZoom( true );
 
 		/* The View's Time Display Panel */
-		time_display_panel = new ModelTimePanel( modelTime );
+		time_display_panel = new ModelTimePanel( scrollbarTimeModel );
 		
 		
 		JPanel canvas_lmouse;
@@ -259,9 +262,8 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		time_display_panel.add( canvas_lmouse );
 
 		/* The Horizontal "Time" ScrollBar */
-		time_scrollbar = new ScrollbarTime( modelTime );
-		time_scrollbar.setEnabled( true );
-		modelTime.setScrollBar( time_scrollbar );
+		scrollbarTime = new ScrollbarTime( scrollbarTimeModel );
+		scrollbarTime.setEnabled( true );
 
 		info_model     = createModelInfoPanel();
 		info_model.init();
@@ -269,7 +271,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 
 		center_panel.add( timeCanvasVport );
-		center_panel.add( time_scrollbar );
+		center_panel.add( scrollbarTime );
 		
 		time_ruler_vport.setMinimumSize(		new Dimension( 0, ruler_panel_height ) );
 		time_ruler_vport.setMaximumSize(		new Dimension( Short.MAX_VALUE, ruler_panel_height ) );
@@ -338,8 +340,8 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		/* The ToolBar for various user controls */
 		final IconManager iconManager = MainManager.getIconManager(); 
 		
-		toolbar = new TimelineToolBar( canvasArea, time_ruler , timeCanvasVport,
-				y_scrollbar, topologyManager, time_scrollbar, modelTime, row_adjs, iconManager );
+		toolbar = new TimelineToolBar( canvasArea, timeRuler , timeCanvasVport,
+				y_scrollbar, topologyManager, scrollbarTime, modelTime, row_adjs, iconManager );
 		
 		addToToolbarMenu(toolbar, iconManager, toolbar.getInsets());
 		toolbar.addRightButtons(iconManager);
@@ -383,7 +385,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	
 	@Override
 	protected void windowGetsVisible() {
-		/* Inform "time_canvas_vport" time has been changed */
+		modelTime.addTimeListener( scrollbarTime );
 		modelTime.addTimeListener( timeCanvasVport );
 		modelTime.addTimeListener( time_ruler_vport );		
 		modelTime.addTimeListener( timeUpdateListener);
@@ -393,10 +395,11 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	@Override
 	protected void windowGetsInvisible() {
 		// don't forget to remove modelTime listener (if autoupdate), otherwise resources are wasted
+		modelTime.removeTimeListener( scrollbarTime );
 		modelTime.removeTimeListener( timeCanvasVport );
 		modelTime.removeTimeListener( time_ruler_vport );		
 		modelTime.removeTimeListener( timeUpdateListener);
-		modelTime.removeTimeListener( time_display_panel );	
+		modelTime.removeTimeListener( time_display_panel );
 	}
 	
 	public AbstractTimelineFrame(final TraceFormatBufferedFileReader reader) {
@@ -413,7 +416,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	protected ModelTime getModelTime() {
 		return modelTime;
 	}
-	
+		
 	protected TraceFormatBufferedFileReader getReader() {
 		return reader;
 	}	
@@ -453,5 +456,13 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 	public boolean isAutoRefresh(){
 		return canvasArea.isAutoRefresh();
+	}
+	
+	public ScrollbarTimeModel getScrollbarTimeModel() {
+		return scrollbarTimeModel;
+	}
+	
+	public RulerTime getTimeRuler() {
+		return timeRuler;
 	}
 }

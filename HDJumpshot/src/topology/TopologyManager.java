@@ -51,9 +51,9 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import viewer.common.Const;
+import viewer.common.ModelTime;
 import viewer.histogram.StatisticHistogramFrame;
 import viewer.timelines.TimelineType;
-import viewer.zoomable.ModelTime;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 

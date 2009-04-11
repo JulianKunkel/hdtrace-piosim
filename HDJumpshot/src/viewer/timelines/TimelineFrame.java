@@ -47,11 +47,11 @@ import javax.swing.JToolBar;
 import viewer.common.AbstractTimelineFrame;
 import viewer.common.IconManager;
 import viewer.common.ModelInfoPanel;
+import viewer.common.ModelTime;
 import viewer.common.IconManager.IconType;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
-import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.TraceObject;
@@ -116,6 +116,14 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 
 	@Override
 	protected ScrollableObject createCanvasArea(ViewportTimeYaxis viewport) {
-		return new CanvasTimeline(  getModelTime(), getReader(),  getYModel(), getTopologyManager(), viewport);
+		return new CanvasTimeline( getScrollbarTimeModel(), getReader(),  getYModel(), getTopologyManager(), viewport);
+	}
+	
+	@Override
+	protected void gotVisibleTheFirstTime() {
+		super.gotVisibleTheFirstTime();
+
+		getCanvasArea().forceRedraw();
+		getTimeRuler().forceRedraw();
 	}
 }

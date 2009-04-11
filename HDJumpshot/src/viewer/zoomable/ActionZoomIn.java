@@ -42,6 +42,7 @@ import javax.swing.*;
 import viewer.common.Const;
 import viewer.common.Debug;
 import viewer.common.Dialogs;
+import viewer.common.ModelTime;
 
 public class ActionZoomIn implements ActionListener
 {

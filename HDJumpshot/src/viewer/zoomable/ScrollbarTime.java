@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -34,45 +34,83 @@
 
 package viewer.zoomable;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.Dimension;
+
+import javax.swing.JScrollBar;
 
 import viewer.common.Const;
+import viewer.common.TimeEvent;
+import viewer.common.TimeListener;
 
-public class ScrollbarTime extends JScrollBar
+/**
+ * X-Axis Scrollbar for the time.
+ *
+ */
+public class ScrollbarTime extends JScrollBar implements TimeListener
 {
-    private ModelTime   model;
-    private Dimension   min_size;
+	private static final long serialVersionUID = 1L;
+	final private ScrollbarTimeModel   model;
+	final private Dimension            min_size;
 
-    public ScrollbarTime( ModelTime model )
-    {
-        super( JScrollBar.HORIZONTAL );
-        this.model = model;
+	public ScrollbarTime( ScrollbarTimeModel   model )
+	{
+		super( JScrollBar.HORIZONTAL );
+		this.model = model;		
 
-        setModel( model );
-        this.addAdjustmentListener( model );
+		setModel( model );
+		this.addAdjustmentListener( model );
 
-        super.setUnitIncrement( Const.TIME_SCROLL_UNIT_INIT );
+		super.setUnitIncrement( Const.TIME_SCROLL_UNIT_INIT );
 
-        min_size = super.getMinimumSize();
-        if ( min_size.height <= 0 )
-            min_size.height = 20;
-    }
+		min_size = super.getMinimumSize();
+		if ( min_size.height <= 0 )
+			min_size.height = 20;
+	}
 
-    public void setBlockIncrementToModelExtent()
-    {
-        if ( model != null ) {
-            int model_extent = model.getExtent();
-            if ( model_extent > 1 )
-                super.setBlockIncrement( model_extent );
-        }
-    }
+	@Override
+	public void timeChanged(TimeEvent evt) {
+		// update scroll position because model time changed.
+		model.setDisableAdjustmentListener(true);
+		model.updateScrollRange();
+		setScrollBarIncrements();
+		model.setDisableAdjustmentListener(false);
+	}
 
-    public Dimension getMinimumSize()
-    {
-        return min_size;
-    }
+	private void setScrollBarIncrements() throws IllegalStateException
+	{
+		/*
+            This needs to be called after updatePixelCoords()
+		 */
+		int sb_block_incre, sb_unit_incre;
+		sb_block_incre = model.getExtent();
+		if ( sb_block_incre <= 0 ) {
+			throw new IllegalStateException(
+					"You have reached the Zoom limit! "
+					+ "Time ScrollBar has 0 BLOCK Increment. "
+					+ "Zoom out or risk crashing the viewer." );
+		}
+		this.setBlockIncrement( sb_block_incre );
+		sb_unit_incre  =  model.getScrollbarIncrement();
+		if ( sb_unit_incre <= 0 ) {
+			throw new IllegalStateException( "You have reached the Zoom limit! "
+					+ "Time ScrollBar has 0 UNIT Increment. "
+					+ "Zoom out or risk crashing the viewer." );
+		}
+
+		this.setUnitIncrement( sb_unit_incre );
+	}
+
+
+	public void setBlockIncrementToModelExtent()
+	{
+		int model_extent = model.getExtent();
+		if ( model_extent > 1 )
+			super.setBlockIncrement( model_extent );
+	}
+
+	public Dimension getMinimumSize()
+	{
+		return min_size;
+	}
 
 }

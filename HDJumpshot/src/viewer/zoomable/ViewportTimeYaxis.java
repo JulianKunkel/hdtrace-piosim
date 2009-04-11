@@ -57,10 +57,9 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 
 	private static final Color    SEARCH_LINE_COLOR       = Color.yellow;
 
-	private ModelTime             time_model      = null;
 	private BoundedRangeModel     y_model         = null;
 	private TopologyManager       topologyManager       = null;
-
+	
 	private Point                 view_pt         = null;
 
 	private int     mouse_last_Yloc;
@@ -71,11 +70,10 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 	private Epoch                 searchingTime  = Epoch.ZERO;        
 	private SearchResults         searchResults   = null;
 
-	public ViewportTimeYaxis( final ModelTime time_axis_model, 
+	public ViewportTimeYaxis( ScrollbarTimeModel   scrollbarTimemodel, 
 			BoundedRangeModel yaxis_model, TopologyManager y_tree )
 	{
-		super( time_axis_model );
-		time_model  = time_axis_model;
+		super( scrollbarTimemodel );
 		y_model     = yaxis_model;
 		topologyManager   = y_tree;
 		view_pt     = new Point( 0, 0 );
@@ -125,7 +123,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		super.paint( g );
 
 		// Draw a line at searching_time
-		final double virtTime = searchingTime.subtract(time_model.getTimeGlobalMinimum()).getDouble();
+		final double virtTime = searchingTime.subtract(getModelTime().getGlobalMinimum()).getDouble();
 		if ( super.coord_xform.contains( virtTime ) ) {
 			x_pos = super.coord_xform.convertTimeToPixel( virtTime );
 			g.setColor( SEARCH_LINE_COLOR );
@@ -148,7 +146,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		if(searchResults.wasSucessfull()){
 			searchingTime = searchResults.getObject().getEarliestTime();
 			
-			time_model.scroll( searchingTime.subtract(oldTime).getDouble() );	
+			getModelTime().scroll( searchingTime.subtract(oldTime).getDouble() );	
 			
 			// Scroll the Y-axis as well so searchResults becomes visible			
 			topologyManager.scrollRowToVisible( searchResults.getTimeline() );
@@ -166,7 +164,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		if(searchResults.wasSucessfull()){
 			searchingTime = searchResults.getObject().getLatestTime();
 
-			time_model.scroll(  searchingTime.subtract(oldTime).getDouble() );
+			getModelTime().scroll(  searchingTime.subtract(oldTime).getDouble() );
 			// Scroll the Y-axis as well so searchResults becomes visible			
 			topologyManager.scrollRowToVisible( searchResults.getTimeline() );			
 		}else{
@@ -214,7 +212,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( ! super.isLeftMouseClick4Zoom ) {  // Hand Mode
 				vport_click    = mouse_evt.getPoint();
-				searchInit( time_model.getTimeGlobalMinimum().add(super.coord_xform.convertPixelToTime(vport_click.x )) );
+				searchInit( getModelTime().getGlobalMinimum().add(super.coord_xform.convertPixelToTime(vport_click.x )) );
 								
 				// SCHUH this.repaint();
 			}
@@ -238,8 +236,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 			if ( ! super.isLeftMouseClick4Zoom ) {  // Hand Mode
 				vport_click          = mouse_evt.getPoint();
 				mouse_last_Yloc      = vport_click.y;
-				ratio_ymodel2vportH  = (double) y_model.getExtent()
-				/ this.getHeight();
+				ratio_ymodel2vportH  = (double) y_model.getExtent()	/ this.getHeight();
 			}
 		}
 	}

@@ -38,12 +38,12 @@ import javax.swing.WindowConstants;
 
 import viewer.common.Dialogs;
 import viewer.common.IconManager;
+import viewer.common.ModelTime;
 import viewer.common.Parameters;
 import viewer.common.PreferenceFrame;
 import viewer.legends.LegendFrame;
 import viewer.profile.TraceProfileFrame;
 import viewer.timelines.TimelineFrame;
-import viewer.zoomable.ModelTime;
 import drawable.Category;
 
 public class MainManager{	

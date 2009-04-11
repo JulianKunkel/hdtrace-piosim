@@ -51,6 +51,7 @@ import javax.swing.SwingWorker;
 
 import viewer.common.Debug;
 import viewer.common.IAutoRefreshable;
+import viewer.common.ModelTime;
 import viewer.common.Parameters;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTime;
@@ -70,11 +71,12 @@ implements ScrollableView, IAutoRefreshable
 
 	//  The least number of images for this class to work is "3"
 	public    static final int   NumImages = 3;
-	protected static final int   NumViewsPerImage = 2;
+	protected static final int   NumViewsPerImage = 1;
 	protected static final int   NumViewsTotal = NumImages * NumViewsPerImage;
 
 	final private ViewportTimeYaxis viewport;
-	private   ModelTime          modelTime = null;
+	final private   ModelTime          modelTime;
+	final private   ScrollbarTimeModel scrollbarTimeModel;
 	private   BufferedImage      offscreenImages[ /* NumImages */ ];
 
 	// The start and end of the image(s) in the user time coordinates
@@ -105,13 +107,13 @@ implements ScrollableView, IAutoRefreshable
 
 	// contains the pending rendering jobs and process with FIFO order.
 	private LinkedList<BackgroundRendering> renderingJobs =  new LinkedList<BackgroundRendering>();
-	
+
 	private BackgroundRendering currentTask = null;
 	private BackgroundThread backgroundThread = null;
-	
+
 	private boolean doAdditionalBackgroundProcessing = false;
-	
-	
+
+
 	/**
 	 * Get an object of a given type from the clicked position:
 	 * @param view_click
@@ -122,16 +124,17 @@ implements ScrollableView, IAutoRefreshable
 	public InfoDialog getPropertyAt( final Point  view_click){
 		final CoordPixelImage coord_xform;  // Local Coordinate Transform
 		coord_xform = new CoordPixelImage( this );
-		final Epoch realTime =  getModelTime().getTimeGlobalMinimum().add(coord_xform.convertPixelToTime( view_click.x ));
+		final Epoch realTime =  getModelTime().getGlobalMinimum().add(coord_xform.convertPixelToTime( view_click.x ));
 		return getTimePropertyAt(realTime);
 	}
 
 
 	//  The following constructor is NOT meant to be called.
-	public ScrollableObject( ModelTime model, ViewportTimeYaxis viewport )
+	public ScrollableObject(ScrollbarTimeModel scrollbarTimeModel, ViewportTimeYaxis viewport )
 	{
 		this.viewport = viewport;
-		
+		this.scrollbarTimeModel = scrollbarTimeModel;
+
 		// Check if the number of images is an ODD number
 		if ( NumImages % 2 == 0 || NumImages < 3 ) {
 			String err_msg = "ScrollableObject(): NumImages = "
@@ -141,12 +144,12 @@ implements ScrollableView, IAutoRefreshable
 			// System.exit( 1 );
 		}
 
-		this.modelTime = model;
+		this.modelTime = scrollbarTimeModel.getModelTime();
 		offscreenImages = new BufferedImage[ NumImages ];
 		tImages         = new TimeBoundingBox[ NumImages ];
 		for ( int idx = 0; idx < NumImages; idx++ )
 			tImages[ idx ] = new TimeBoundingBox();
-		
+
 		tImages_all     = new TimeBoundingBox();
 		super.setDoubleBuffered( false );
 
@@ -166,12 +169,12 @@ implements ScrollableView, IAutoRefreshable
 	// tImages_all needs to be synchronized with tImages[]
 	private void setImagesInitTimeBounds()
 	{
-		double model_view_extent = modelTime.getTimeViewExtent();
+		double model_view_extent = modelTime.getViewExtent();
 		tImage_extent            = NumViewsPerImage * model_view_extent;
 		tImages_all.reinitialize();
 
 		int img_idx = 0;
-		tImages[ img_idx ].setEarliestTime( modelTime.getTimeViewPosition()
+		tImages[ img_idx ].setEarliestTime( modelTime.getViewPosition()
 				- 0.5 * model_view_extent * (NumViewsTotal - 1) );
 		tImages[ img_idx ].setLatestFromEarliest( tImage_extent );
 		tImages_all.affectTimeBounds( tImages[ img_idx ] );
@@ -207,7 +210,10 @@ implements ScrollableView, IAutoRefreshable
 	// getPrevImageIndex() and getNextImageIndex() implement circular buffer[]
 	private int getNearPastImageIndex( int img_idx )
 	{
-		return (img_idx - 1) % NumImages;
+		if(img_idx - 1 < 0){
+			return NumImages -1;
+		}
+		return img_idx - 1;
 	}
 
 	private int getNearFutureImageIndex( int img_idx )
@@ -217,8 +223,8 @@ implements ScrollableView, IAutoRefreshable
 
 	private int getNumImagesMoved()
 	{
-		double cur_tView_init   = modelTime.getTimeViewPosition();
-		double cur_tView_extent = modelTime.getTimeViewExtent();
+		double cur_tView_init   = modelTime.getViewPosition();
+		double cur_tView_extent = modelTime.getViewExtent();
 		double cur_tView_final  = cur_tView_init + cur_tView_extent;
 
 		if ( Debug.isActive() ) {
@@ -273,16 +279,17 @@ implements ScrollableView, IAutoRefreshable
 	{
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: checkToZoomView()'s START: " );
-		double cur_tView_extent = modelTime.getTimeViewExtent();
+		double cur_tView_extent = modelTime.getViewExtent();
 		if ( cur_tView_extent * NumViewsPerImage != tImage_extent ) {
 			setImagesInitTimeBounds();
 
 			for ( int img_idx = 0; img_idx < NumImages; img_idx++ )
 				scheduleToDrawOneImageInBackground(  img_idx);
 			
+			executeBackgroundThread();
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -307,14 +314,12 @@ implements ScrollableView, IAutoRefreshable
 				img_mv_dir = Nimages_moved / Math.abs( Nimages_moved );
 
 				// locate the end image index in same direction as img_mv_dir
-				start_idx = getValidImageIndex( cur_img_idx
-						+ img_mv_dir * half_NumImages);
+				start_idx = getValidImageIndex( cur_img_idx	+ img_mv_dir * half_NumImages);
 
 				// Determine tImages_all first before invoking
 				// initializeAllOffImages() and finalizeAllOffImages()
 				for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
-					img_idx = getValidImageIndex( start_idx
-							+ img_mv_dir * idx );
+					img_idx = getValidImageIndex( start_idx	+ img_mv_dir * idx );
 					if ( Debug.isActive() )
 						Debug.println( "ScrollableObject: checkToScrollView() "
 								+ "cur_img_idx = " + cur_img_idx + ", "
@@ -354,21 +359,20 @@ implements ScrollableView, IAutoRefreshable
 					//for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
 					for ( idx = Math.abs( Nimages_moved ); idx >=1; idx-- ) {
 						img_idx = getValidImageIndex( start_idx	+ img_mv_dir * idx );
-						if ( offscreenImages[ img_idx ] != null ){
-							scheduleToDrawOneImageInBackground( img_idx );
-						}
+						scheduleToDrawOneImageInBackground( img_idx );
 					}
 				}else{
 					for ( idx = 1; idx <= Math.abs( Nimages_moved ); idx++ ) {
 						img_idx = getValidImageIndex( start_idx
 								+ img_mv_dir * idx );
-						if ( offscreenImages[ img_idx ] != null )
-							scheduleToDrawOneImageInBackground( img_idx );
+						scheduleToDrawOneImageInBackground( img_idx );
 					}
 				}
 
 				// Update cur_img_idx in the offscreenImages[]
 				cur_img_idx = getValidImageIndex( cur_img_idx + Nimages_moved );
+				
+				executeBackgroundThread();
 				return true;
 			}
 			else {  // Math.abs( Nimages_moved ) > NumImages
@@ -379,10 +383,12 @@ implements ScrollableView, IAutoRefreshable
 							+ " ) | >= NumImages( " + NumImages + " )" );
 				}
 				setImagesInitTimeBounds();
-				
+
 				cancelRedrawing();
 				for ( img_idx = 0; img_idx < NumImages; img_idx++ )
 					scheduleToDrawOneImageInBackground( img_idx );
+
+				executeBackgroundThread();
 				
 				return true;
 			}
@@ -395,16 +401,16 @@ implements ScrollableView, IAutoRefreshable
 	protected int time2pixel( double time_coord )
 	{
 		return (int) Math.round( ( time_coord - tImages_all.getEarliestTime() )
-				* modelTime.getViewPixelsPerUnitTime() );
+				* scrollbarTimeModel.getViewPixelsPerUnitTime() );
 	}
 
 	public double getViewPixelsPerUnitTime(){
-		return modelTime.getViewPixelsPerUnitTime();
+		return scrollbarTimeModel.getViewPixelsPerUnitTime();
 	}
 
 	protected double pixel2time( int pixel_coord )
 	{
-		return (double) pixel_coord / modelTime.getViewPixelsPerUnitTime()
+		return (double) pixel_coord / scrollbarTimeModel.getViewPixelsPerUnitTime()
 		+ tImages_all.getEarliestTime();
 	}
 
@@ -415,68 +421,68 @@ implements ScrollableView, IAutoRefreshable
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject: getViewPosition() : "
 					+ "model.getTimeViewPosition()="
-					+ modelTime.getTimeViewPosition() );
+					+ modelTime.getViewPosition() );
 		//System.out.println(tImages_all.getEarliestTime());
-		return time2pixel( modelTime.getTimeViewPosition()  );
+		return time2pixel( modelTime.getViewPosition()  );
 	}
 
 	/**
-      * image_endtimes:  endtimes of the OffScreenImage, image
-      * This function is called by a worker thread.
+	 * image_endtimes:  endtimes of the OffScreenImage, image
+	 * This function is called by a worker thread.
 	 */
 	protected abstract void drawOneImageInBackground( Image image, final TimeBoundingBox  image_endtimes );
-	
+
 	static class BackgroundRendering{
 		final int imagePos;
 		final TimeBoundingBox box;
 		final Image image;
-		
+
 		public BackgroundRendering(int imagePos, Image image, TimeBoundingBox box) {
 			this.box = box;
 			this.imagePos = imagePos;
 			this.image = image;
 		}
 	}
-	
+
 	/**
 	 * Overload this method to perform some background computation needed to draw an image
 	 * This function is called by a worker thread and might NEVER call any non-threadsafe
 	 * Swing functions.
 	 */
 	protected void doAdditionalBackgroundThreadWork(){
-		
+
 	}
-	
+
 	public synchronized void triggerAdditionalBackgroundThreadWork(){
 		doAdditionalBackgroundProcessing = true;
-		
+
 		if(backgroundThread == null || backgroundThread.isDone() ){
 			// create background thread:
 			backgroundThread = new BackgroundThread(); 
 			backgroundThread.execute();
 		}		
 	}
-	
+
 	private synchronized boolean isAdditionalBackgroundProcessing(){
 		boolean val = doAdditionalBackgroundProcessing;
 		doAdditionalBackgroundProcessing = false;
 		return val;
 	}
-	
+
 	/**
 	 * At most one of this thread is executed.  
 	 * @author julian
 	 */
 	class BackgroundThread extends SwingWorker<Void, Void>{
 		boolean abortCurrentJob = false;
-		
+
 		@Override
 		protected Void doInBackground() throws Exception {
 			while (true) {
 				if (isAdditionalBackgroundProcessing()){
 					doAdditionalBackgroundThreadWork();
 				}
-								
+
 				final BackgroundRendering job = getNextJob();
 				if(job == null){
 					break;
@@ -489,19 +495,21 @@ implements ScrollableView, IAutoRefreshable
 			}
 
 			if(! abortCurrentJob){
-				viewport.repaint();
+				repaint();
+				//viewport.repaint();
 			}
-			
+
 			return null;
 		}
 	}
-	
-	
+
+
 	private synchronized boolean isBackgroundThreadFinished(){
 		if(backgroundThread == null)
 			return true;
 		return renderingJobs.isEmpty() && currentTask == null;
 	}
+	
 	/**
 	 * Called by the background Thread
 	 * @return
@@ -513,7 +521,7 @@ implements ScrollableView, IAutoRefreshable
 		currentTask = renderingJobs.pollLast(); 
 		return currentTask;
 	}
-	
+
 	/**
 	 * Cancel redrawing of the image with the given position
 	 * @param imagePos
@@ -526,37 +534,42 @@ implements ScrollableView, IAutoRefreshable
 			backgroundThread = null;
 		}
 	}
-	
+
 	/**
 	 * Cancel redrawing of all pending jobs
 	 */
 	public synchronized void cancelRedrawing(){
 		renderingJobs.clear();
-		
+
 		if(backgroundThread != null)
 			backgroundThread.abortCurrentJob = true;
 	}
 
 	private synchronized void scheduleToDrawOneImageInBackground( int imagePos ){
 		final Image image = offscreenImages[imagePos];
-		
+
 		cancelRedrawing(imagePos);
-	
+
 		renderingJobs.push(new BackgroundRendering(imagePos, image, tImages[ imagePos ]));
-		
+	}
+	
+	/**
+	 * Activate the background thread if necessary to redraw the pending jobs.
+	 */
+	private void executeBackgroundThread(){
 		if(backgroundThread == null || backgroundThread.isDone() ){
 			// create background thread:
 			backgroundThread = new BackgroundThread(); 
 			backgroundThread.execute();
 		}
 	}
- 
+
 	@Override
 	public void paintComponent( Graphics g )
 	{	
 		// stop if the background thread has to do more work, LEADS to even more flickering  
 		//if(! isBackgroundThreadFinished()) return;
-		
+
 		if ( Debug.isActive() ) {
 			Debug.println( "ScrollableObject : paintComponent()'s START : " );
 			Debug.println( "ScrollableObject : paintComponent() "
@@ -564,7 +577,7 @@ implements ScrollableView, IAutoRefreshable
 			Debug.println( "ScrollableObject : paintComponent() "
 					+ "this = " + this );
 		}
-		
+
 		int img_idx, screen_img_pos;
 		int side_idx, side_bit, side_offset;
 
@@ -611,32 +624,47 @@ implements ScrollableView, IAutoRefreshable
 	}
 
 	/**
-	 * force to redraw the timelines
+	 * force to redraw the scrollable object
 	 */
-
 	final public void forceRedraw(){
-		Dimension visible_size = getVisibleRect().getSize();
-		forceRedraw(visible_size.width, visible_size.height);
+		// compute the last image index in the image buffer
+		int img_idx = getValidImageIndex( cur_img_idx + half_NumImages + 1 );
+
+		cancelRedrawing();
+
+		for ( int idx = 0; idx < NumImages; idx++ ) {
+			scheduleToDrawOneImageInBackground( img_idx );
+			img_idx = getNearFutureImageIndex( img_idx );
+		}
+		
+		executeBackgroundThread();
 	}
 
 	@Override
-	final public void forceRedraw(final int visWidth, final int visHeight) {		
-		/*
-           The offscreenImage cannot be created inside the constructor,
-           because image size cannot be determined before the object
-           is created
-		 */
-
-
-		if ( Debug.isActive() ) {
-			Debug.println( "ScrollableObject: componentResized()'s START: " );
+	final public void resized(final int visWidth, final int visHeight) {
+		final int newWidth = visWidth * NumViewsPerImage;
+		final int newHeight = getJComponentHeight();
+		
+		if(image_size.getSize().width == newWidth && image_size.getSize().height == newHeight ){
+			// not resized at all
+			return;
 		}
+		
+		image_size.setSize( newWidth, newHeight );
 
-		image_size.setSize( visWidth * NumViewsPerImage, getJComponentHeight() );
-
-		int NumOKImages = 0;
-
-
+		/*
+     It is very IMPORTANT to setSize() to indicate the width
+     of this JComponent is longer than the viewport size, so
+     the JViewport.setViewPosition() will work when it scrolls
+     to position wider than the viewport size, i.e. without
+     cutoff.  Defining getSize() for this class does NOT seem
+     to help during initialization.  setSize() is a must here
+     in componentResize()
+		 */
+		component_size.setSize( newWidth * NumImages,	newHeight );
+		setSize( component_size );
+		
+		
 		for ( int img_idx = 0; img_idx < NumImages; img_idx++ ) {
 			int w = image_size.width;
 			int h = image_size.height;
@@ -644,48 +672,11 @@ implements ScrollableView, IAutoRefreshable
 
 			if(offscreenImages[img_idx] != null) // free it:
 				offscreenImages[img_idx].getGraphics().dispose();
-			
+
 			offscreenImages[ img_idx ] = new BufferedImage(w, h, type);
-
-			if ( offscreenImages[ img_idx ] != null )
-				NumOKImages += 1;
 		}
-		/*
-           Init. of Time Model: Update the model's pixel coordinates.
-           of time model during startup requires existence of offscreen
-           image for its to do fireTimeChanged() to ViewportTime.
-           i.e. model.updatePixelCoords() does model.fireTimeChanged()
-		 */
-		if ( NumOKImages == NumImages && visWidth > 0 ) {
-			modelTime.setViewPixelsPerUnitTime( visWidth );
-			modelTime.updatePixelCoords();
-		}
-		/*
-            It is very IMPORTANT to setSize() to indicate the width
-            of this JComponent is longer than the viewport size, so
-            the JViewport.setViewPosition() will work when it scrolls
-            to position wider than the viewport size, i.e. without
-            cutoff.  Defining getSize() for this class does NOT seem
-            to help during initialization.  setSize() is a must here
-            in componentResize()
-		 */
-		component_size.setSize( image_size.width * NumImages,	image_size.height );
-		setSize( component_size );
-
-		// compute the last image index in the image buffer
-		int img_idx = getValidImageIndex( cur_img_idx + half_NumImages + 1 );
-		
-		cancelRedrawing();
-		
-		for ( int idx = 0; idx < NumImages; idx++ ) {
-			scheduleToDrawOneImageInBackground( img_idx );
-			img_idx = getNearFutureImageIndex( img_idx );
-		}
-
-		if ( Debug.isActive() )
-			Debug.println( "ScrollableObject: componentResized()'s END: " );
 	}
-	
+
 	/*
         Defining getPreferredSize() seems to make HierarchyBoundsListener
         for ViewportTime unnecessary.
@@ -697,7 +688,7 @@ implements ScrollableView, IAutoRefreshable
 			Debug.println( "ScrollableObject: pref_size = " + component_size );
 		return component_size;
 	}
-	
+
 	@Override
 	public Dimension getMinimumSize() {	
 		return new Dimension(0, getJComponentHeight());
@@ -705,7 +696,7 @@ implements ScrollableView, IAutoRefreshable
 
 	protected InfoDialog getTimePropertyAt( Epoch realTime )
 	{
-		final Epoch clickedTime = realTime.subtract(modelTime.getTimeGlobalMinimum());
+		final Epoch clickedTime = realTime.subtract(modelTime.getGlobalMinimum());
 		Window          window;
 		window = SwingUtilities.windowForComponent( this );
 		if ( window instanceof Frame )

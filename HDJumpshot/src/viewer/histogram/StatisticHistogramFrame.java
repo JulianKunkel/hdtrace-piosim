@@ -48,10 +48,10 @@ import viewer.common.Const;
 import viewer.common.IAutoRefreshable;
 import viewer.common.LabeledSpinner;
 import viewer.common.LabeledTextField;
+import viewer.common.ModelTime;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
-import viewer.zoomable.ModelTime;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -287,8 +287,8 @@ public class StatisticHistogramFrame {
 			final int whichEntry = description.getNumberInGroup();
 
 			final Enumeration<StatisticGroupEntry> entries = reader.enumerateStatistics(	
-					new Epoch(modelTime.getTimeViewPosition()), 
-					new Epoch(modelTime.getTimeViewExtent() + modelTime.getTimeViewPosition()));
+					new Epoch(modelTime.getViewPosition()), 
+					new Epoch(modelTime.getViewExtent() + modelTime.getViewPosition()));
 
 			while(entries.hasMoreElements()){
 				double value = entries.nextElement().getNumeric(whichEntry);
@@ -308,8 +308,8 @@ public class StatisticHistogramFrame {
 		public void paint(Graphics graphics) {
 			// automatically adapt the title.
 			frame.setTitle(reader.getGroup().getName() + ":" + description.getName() + " (" +
-					String.format("%.4f", modelTime.getTimeViewPosition()) + "-" + 
-					String.format("%.4f",(modelTime.getTimeViewExtent() + modelTime.getTimeViewPosition()))
+					String.format("%.4f", modelTime.getViewPosition()) + "-" + 
+					String.format("%.4f",(modelTime.getViewExtent() + modelTime.getViewPosition()))
 					+ ")"
 					);
 			

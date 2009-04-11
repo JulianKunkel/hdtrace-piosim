@@ -60,7 +60,6 @@ import viewer.zoomable.ActionZoomIn;
 import viewer.zoomable.ActionZoomOut;
 import viewer.zoomable.ActionZoomRedo;
 import viewer.zoomable.ActionZoomUndo;
-import viewer.zoomable.ModelTime;
 import viewer.zoomable.RowAdjustments;
 import viewer.zoomable.RulerTime;
 import viewer.zoomable.ScrollableObject;
@@ -100,7 +99,7 @@ implements ToolBarStatus
 	private JButton                 refresh_btn;
 	private JButton                 print_btn;
 	private final ScrollableObject  cnvas_timeline;
-	private RulerTime	 			time_ruler = null;
+	private RulerTime	 							time_ruler = null;
 	
 	private ButtonAutoRefresh autoRefresh_btn;
 
@@ -156,7 +155,7 @@ implements ToolBarStatus
 		refresh_btn.setMargin( btn_insets );
 		refresh_btn.setToolTipText(	"Redraw canvas to synchronize changes from Preference/Legend window or Yaxis label panel" );
 		refresh_btn.setMnemonic( KeyEvent.VK_D );
-		refresh_btn.addActionListener( new ActionPptyRefresh( cnvas_timeline ) );
+		refresh_btn.addActionListener( new ActionPptyRefresh( cnvas_timeline, time_ruler ) );
 		
 		refresh_btn.setEnabled(! autoRefresh_btn.isAutoRefresh());
 		

@@ -40,14 +40,17 @@ import java.awt.event.ActionListener;
 public class ActionPptyRefresh implements ActionListener
 {
 	  final private ScrollableObject     timelines;
+	  final private RulerTime            ruler;
 
-    public ActionPptyRefresh( ScrollableObject timelines)
+    public ActionPptyRefresh( ScrollableObject timelines, RulerTime ruler)
     {
         this.timelines = timelines;
+        this.ruler = ruler;
     }
 
     public void actionPerformed( ActionEvent event )
     {
         timelines.forceRedraw();
+        ruler.forceRedraw();
     }
 }

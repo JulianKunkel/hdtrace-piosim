@@ -27,15 +27,21 @@ import viewer.common.Debug;
 import viewer.dialog.InfoDialog;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
+/**
+ * This class divides the scrollable object into different timelins. 
+ * @author julian
+ *
+ */
 abstract public class ScrollableTimeline extends ScrollableObject{
+	private static final long serialVersionUID = -143673729707606813L;
+	
 	final private TopologyManager    topologyManager;
 	final private BoundedRangeModel  y_model;
 	
-	public ScrollableTimeline(ModelTime modelTime, 
+	public ScrollableTimeline(ScrollbarTimeModel scrollbarTimeModel,
 			BoundedRangeModel   yaxis_model,
 			TopologyManager topologyManager, ViewportTimeYaxis viewport) {
-		super(modelTime, viewport);
-		
+		super(scrollbarTimeModel, viewport);		
 
 		this.topologyManager       = topologyManager;
 		this.y_model         = yaxis_model;
@@ -56,7 +62,7 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 			return null;
 		}
 
-		final Epoch realTime =  getModelTime().getTimeGlobalMinimum().add(
+		final Epoch realTime =  getModelTime().getGlobalMinimum().add(
 				coord_xform.convertPixelToTime( local_click.x ));
 
 		return getTraceObjectAt(timeline, realTime, local_click.y - coord_xform.convertTimelineToPixel(timeline));
@@ -73,7 +79,7 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 			return null;
 		}
 		
-		final Epoch clickedTime =  getModelTime().getTimeGlobalMinimum().add(
+		final Epoch clickedTime =  getModelTime().getGlobalMinimum().add(
 				coord_xform.convertPixelToTime( view_click.x ));
 
 		return getPropertyAt(timeline, clickedTime, view_click.y - coord_xform.convertTimelineToPixel(timeline) );

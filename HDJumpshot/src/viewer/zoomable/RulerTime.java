@@ -36,7 +36,6 @@ package viewer.zoomable;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
@@ -53,21 +52,15 @@ public class RulerTime extends ScrollableObject
 {
 	private static final long serialVersionUID = -3385219672039152225L;
 
-	private static final   Font  FONT              = Const.FONT;
-	private static final   int   FONT_SIZE         = FONT.getSize();
 	private static final   int   TICKMARK_HEIGHT   = 10;
-	private static final   int   I_FONT_BASELINE   = TICKMARK_HEIGHT + FONT_SIZE + 5;
+	private static final   int   I_FONT_BASELINE   = TICKMARK_HEIGHT + Const.FONT_SIZE + 5;
 	private static final   int   VIEW_HEIGHT       = I_FONT_BASELINE + 5;
 
-	private double         tRange;
-	private double         tIncrement;
 	private DecimalFormat  fmt;
 
-	public RulerTime( ModelTime model, ViewportTimeYaxis viewport )
+	public RulerTime( ScrollbarTimeModel   model, ViewportTimeYaxis viewport )
 	{
 		super( model, viewport );
-		tRange      = 0.0d;
-		tIncrement  = 0.0d;
 		fmt         = (DecimalFormat) NumberFormat.getInstance();
 		fmt.applyPattern( Const.RULER_TIME_FORMAT );
 	}
@@ -95,7 +88,8 @@ public class RulerTime extends ScrollableObject
 	}
 
 	@Override
-	protected void drawOneImageInBackground(       Image            offImage,
+	protected void drawOneImageInBackground(       
+			Image offImage,
 			final TimeBoundingBox  timebounds )
 	{
 		if ( Debug.isActive() )
@@ -113,15 +107,15 @@ public class RulerTime extends ScrollableObject
 			// Do the ruler labels in a small font that's black.
 			offGraphics.setColor( Color.white );
 			offGraphics.fillRect( 0, 0, offImage_width, offImage_height );
-			offGraphics.setFont( FONT );
+			offGraphics.setFont( Const.FONT );
 			offGraphics.setColor( Color.black );
 
-			if ( timebounds.getDuration() != tRange ) {
-				tRange     = timebounds.getDuration();
-				tIncrement = tRange / ( NumViewsPerImage * 10.0 );
-				tIncrement = Routines.getTimeRulerIncrement( tIncrement );
-			}
 
+			final double   tRange = timebounds.getDuration();
+			double         tIncrement;
+			tIncrement = tRange / ( NumViewsPerImage * 10.0 );
+			tIncrement = Routines.getTimeRulerIncrement( tIncrement );
+			
 			double time, tInitMark, tFinalMark;
 			int    i_X, i_X_0;
 			String text = null;
@@ -134,9 +128,6 @@ public class RulerTime extends ScrollableObject
 			tFinalMark = timebounds.getLatestTime() + tIncrement;
 			for ( time = tInitMark; time < tFinalMark; time += tIncrement ) {
 				i_X = super.time2pixel( time ) - i_X_0;
-				// offGraphics.drawLine( i_X, offImage_height-1,
-				//                       i_X, 
-				//                       offImage_height-TICKMARK_HEIGHT-1 );
 				offGraphics.drawLine( i_X, 1, i_X, TICKMARK_HEIGHT );
 				text = fmt.format( time );
 				offGraphics.drawString( text, i_X - 3, I_FONT_BASELINE );

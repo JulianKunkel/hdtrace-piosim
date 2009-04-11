@@ -29,6 +29,8 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +43,6 @@ import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import topology.TopologyManager;
 import topology.TopologyManagerContents;
@@ -49,6 +50,7 @@ import viewer.common.AbstractTimelineFrame;
 import viewer.common.Const;
 import viewer.common.IconManager;
 import viewer.common.ModelInfoPanel;
+import viewer.common.ModelTime;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
@@ -57,9 +59,9 @@ import viewer.dialog.InfoDialog;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.timelines.TimelineType;
 import viewer.zoomable.CoordPixelImage;
-import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ScrollableTimeline;
+import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -163,7 +165,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		double maxValue = updateVisualizedMetric();
 
 		// adjust time:		
-		getModelTime().setTimeGlobalMaximum(new Epoch(maxValue));
+		getModelTime().setGlobalMaximum(new Epoch(maxValue));
 	}
 
 	/**
@@ -222,8 +224,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	public void triggerRecomputeTraceProfile(){
 		// automatically adapt the title.
 		setTitle("Trace Profile " + " (" +
-				String.format("%.4f", realModelTime.getTimeViewPosition()) + "-" + 
-				String.format("%.4f",(realModelTime.getTimeViewExtent() + realModelTime.getTimeViewPosition()))
+				String.format("%.4f", realModelTime.getViewPosition()) + "-" + 
+				String.format("%.4f",(realModelTime.getViewExtent() + realModelTime.getViewPosition()))
 				+ ") " + getReader().getCombinedProjectFilename()
 		);		
 
@@ -396,9 +398,9 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		processNestedChkbox.setSelected(true);
 
 		processNestedChkbox.setToolTipText("Are nested states used for the computation of the values?");
-		processNestedChkbox.addChangeListener(new ChangeListener(){
+		processNestedChkbox.addItemListener(new ItemListener(){
 			@Override
-			public void stateChanged(ChangeEvent e) {				
+			public void itemStateChanged(ItemEvent e) {				
 				triggerRecomputeTraceProfile();
 			}
 		});
@@ -414,7 +416,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	@Override
 	protected ScrollableObject createCanvasArea(ViewportTimeYaxis viewport) {
-		return new ProfileImagePanel(getModelTime(), getYModel(), getTopologyManager(), viewport);		
+		return new ProfileImagePanel(getScrollbarTimeModel(), getYModel(), getTopologyManager(), viewport);		
 	}
 
 
@@ -426,6 +428,15 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		getReader().getLegendTraceModel().removeCategoryUpdateListener(categoryVisibleListener);
 	}
 
+	@Override
+	protected void windowGetsVisible() {
+		super.windowGetsVisible();
+
+		realModelTime.addTimeListener(timeUpdateListener);
+
+		getReader().getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
+	}
+	
 	@Override
 	protected void gotVisibleTheFirstTime() {
 		super.gotVisibleTheFirstTime();
@@ -443,10 +454,9 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 		getTopologyManager().setTopologyManagerContents(TopologyManagerContents.TRACE_ONLY);							
 		getFrame().setPreferredSize(new Dimension(950, 600)); /* JK-SIZE */
-
-		realModelTime.addTimeListener(timeUpdateListener);
-		reader.getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
 	}
+
+	
 
 
 
@@ -455,8 +465,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 		@Override
 		protected void doAdditionalBackgroundThreadWork() {
-			final Epoch startTime = new Epoch(realModelTime.getTimeViewPosition()).add(realModelTime.getTimeGlobalMinimum());
-			final Epoch endTime = startTime.add(realModelTime.getTimeViewExtent());
+			final Epoch startTime = new Epoch(realModelTime.getViewPosition()).add(realModelTime.getGlobalMinimum());
+			final Epoch endTime = startTime.add(realModelTime.getViewExtent());
 
 			SimpleConsoleLogger.DebugWithStackTrace("recomputeTraceProfile()", 2);
 
@@ -473,8 +483,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				public void run() {
 					// adjust time:		
 					getModelTime().setEnableFireTimeUpdate(false);
-					getModelTime().setTimeGlobalMaximum(new Epoch(maxValue));			
-				
+					getModelTime().setGlobalMaximum(new Epoch(maxValue));			
+
 					getModelTime().clearStacks();
 					getModelTime().zoomHomeWithoutStacking();
 					getModelTime().setEnableFireTimeUpdate(true);
@@ -483,10 +493,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			});
 		}
 
-		public ProfileImagePanel(ModelTime modelTime, 
+		public ProfileImagePanel(	ScrollbarTimeModel scrollbarTimeModel,
 				BoundedRangeModel   yaxis_model,
 				TopologyManager topologyManager, ViewportTimeYaxis viewport) {
-			super(modelTime, yaxis_model, topologyManager, viewport);			
+			super(scrollbarTimeModel, yaxis_model, topologyManager, viewport);			
 		}
 
 		@Override
@@ -500,7 +510,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 			// check if the timebounds are valid:
 			if ( image == null || timebounds.getLatestTime() <= 0 || 
-					timebounds.getEarliestTime() >= getModelTime().getTimeGlobalMaximum().getDouble()) {
+					timebounds.getEarliestTime() >= getModelTime().getGlobalMaximum().getDouble()) {
 				return;
 			}
 			final long startTime = System.currentTimeMillis();
@@ -554,7 +564,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			double lastValue = 0;
 
 			final StateBorder border = Parameters.PROFILE_STATE_BORDER;
-			
+
 			for(int i=0 ; i < values.length ; i++){
 				final TraceCategoryStateProfile profile = profiles[i];
 
@@ -570,11 +580,11 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 					continue;
 
 				final Color color = profile.getCategory().getColor(); 
-				
+
 				g.setColor( color );											
 
 				g.fillRect( x1, yPos, x2-x1, height );
-				
+
 				border.paintStateBorder( g, color,	x1, yPos, true, x2, yPos + height, true );
 			}
 		}
@@ -601,10 +611,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	}
 
 	public double getMaxMetricValue() {
-		return super.getModelTime().getTimeGlobalMaximum().getDouble();
+		return super.getModelTime().getGlobalMaximum().getDouble();
 	}
 
 	public double getRealModelTimeExtend(){
-		return realModelTime.getTimeViewExtent();
+		return realModelTime.getViewExtent();
 	}
 }

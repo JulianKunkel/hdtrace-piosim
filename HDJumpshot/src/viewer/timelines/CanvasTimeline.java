@@ -61,8 +61,8 @@ import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTraceObjects;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.CoordPixelImage;
-import viewer.zoomable.ModelTime;
 import viewer.zoomable.ScrollableTimeline;
+import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
 import viewer.zoomable.ViewportTimeYaxis;
@@ -124,13 +124,13 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	};
 
 
-	public CanvasTimeline( ModelTime time_model,
+	public CanvasTimeline( ScrollbarTimeModel scrollbarTimeModel,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
 			TopologyManager topologyManager,
 			ViewportTimeYaxis viewport)
 	{
-		super( time_model, yaxis_model, topologyManager, viewport);
+		super( scrollbarTimeModel, yaxis_model, topologyManager, viewport);
 
 		this.reader = reader;
 
@@ -152,7 +152,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					+ offImage );
 		// check if the timebounds are valid:
 		if ( offImage == null || timebounds.getLatestTime() <= 0 || 
-				timebounds.getEarliestTime() >= getModelTime().getTimeGlobalMaximum().getDouble()) {
+				timebounds.getEarliestTime() >= getModelTime().getGlobalMaximum().getDouble()) {
 			return;
 		}
 		final long startTime = System.currentTimeMillis();
@@ -243,7 +243,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			TopologyStatisticTreeNode node,  Graphics2D offGraphics,
 			Epoch vStartTime, Epoch vEndTime, CoordPixelImage coord_xform)
 	{
-		final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
+		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
 		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
 
@@ -313,8 +313,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		final int statNumber = statDesc.getNumberInGroup();
 
 		final Enumeration<StatisticGroupEntry> entries = sReader.enumerateStatistics(
-				vStartTime.add(getModelTime().getTimeGlobalMinimum()),
-				vEndTime.add(getModelTime().getTimeGlobalMinimum()));
+				vStartTime.add(getModelTime().getGlobalMinimum()),
+				vEndTime.add(getModelTime().getGlobalMinimum()));
 
 		while(entries.hasMoreElements()){			
 			final StatisticGroupEntry entry = entries.nextElement();
@@ -387,8 +387,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	)
 	{
 		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntryLaterThan(true, 
-				startTime.add(getModelTime().getTimeGlobalMinimum()), 
-				endTime.add(getModelTime().getTimeGlobalMinimum())) ;
+				startTime.add(getModelTime().getGlobalMinimum()), 
+				endTime.add(getModelTime().getGlobalMinimum())) ;
 
 		int drawedTraceObjects = 0;
 
@@ -399,7 +399,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 			TraceEntry entry = elements.nextElement();
 
-			final Epoch globalMinTime = getModelTime().getTimeGlobalMinimum();
+			final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
 			if(entry.getType() == TraceObjectType.EVENT){          
 				final EventTraceEntry event = (EventTraceEntry) entry;
@@ -523,7 +523,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			Window          window;
 			window = SwingUtilities.windowForComponent( this );
 			return new InfoDialogForTraceObjects((Frame) window, realTime.subtract(
-					getModelTime().getTimeGlobalMinimum()), realTime, obj);
+					getModelTime().getGlobalMinimum()), realTime, obj);
 		}
 
 		return super.getTimePropertyAt(realTime);

@@ -55,5 +55,5 @@ public interface ScrollableView
 
     public void forceRedraw();
     
-    public void forceRedraw(int width, int height);
+    public void resized(int width, int height);
 }

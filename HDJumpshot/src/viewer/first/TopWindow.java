@@ -21,6 +21,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import viewer.common.Routines;
 
@@ -83,9 +84,15 @@ public abstract class TopWindow {
 
 			visibleTheFirstTime = false;
 
-			frame.setVisible( val );	
+			frame.setVisible( true );	
 
-			gotVisibleTheFirstTime();
+			// trigger the following code AFTER it got visible.
+			SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run() {
+					gotVisibleTheFirstTime();
+				}
+			});			
 		}
 		
 		if(val == true){
