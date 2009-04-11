@@ -48,6 +48,7 @@ import javax.swing.SwingUtilities;
 import topology.TopologyManager;
 import viewer.common.Debug;
 import viewer.common.Dialogs;
+import viewer.common.ModelTime;
 import viewer.dialog.InfoDialog;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -70,12 +71,12 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 	private Epoch                 searchingTime  = Epoch.ZERO;        
 	private SearchResults         searchResults   = null;
 
-	public ViewportTimeYaxis( ScrollbarTimeModel   scrollbarTimemodel, 
-			BoundedRangeModel yaxis_model, TopologyManager y_tree )
+	public ViewportTimeYaxis( ModelTime modelTime, 
+			BoundedRangeModel yaxis_model, TopologyManager topologyManager )
 	{
-		super( scrollbarTimemodel );
+		super( modelTime );
 		y_model     = yaxis_model;
-		topologyManager   = y_tree;
+		this.topologyManager   = topologyManager;
 		view_pt     = new Point( 0, 0 );
 	}
 
@@ -214,7 +215,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 				vport_click    = mouse_evt.getPoint();
 				searchInit( getModelTime().getGlobalMinimum().add(super.coord_xform.convertPixelToTime(vport_click.x )) );
 								
-				// SCHUH this.repaint();
+				this.repaint();
 			}
 		}
 	}

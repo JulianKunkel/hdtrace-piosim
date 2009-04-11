@@ -22,7 +22,6 @@ import hdTraceInput.ReaderTraceElementEnumerator;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
@@ -42,7 +41,6 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
 
 import topology.TopologyManager;
 import topology.TopologyManagerContents;
@@ -57,12 +55,11 @@ import viewer.common.TimeListener;
 import viewer.common.IconManager.IconType;
 import viewer.dialog.InfoDialog;
 import viewer.legends.CategoryUpdatedListener;
+import viewer.timelines.ScrollableTimeline;
 import viewer.timelines.TimelineType;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ScrollableObject;
-import viewer.zoomable.ScrollableTimeline;
 import viewer.zoomable.ScrollbarTimeModel;
-import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -113,8 +110,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	JButton timeRefreshBtn;
 
-	final JComboBox visualizedMetricBox = new JComboBox(VisualizedMetric.values());
-	final JCheckBox processNestedChkbox = new JCheckBox("Nested");	
+	JComboBox visualizedMetricBox ;
+	JCheckBox processNestedChkbox;	
 
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
@@ -141,8 +138,6 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			if(isAutoRefresh() ){
 				updateTimeInformation();
 				getModelTime().zoomHomeWithoutStacking();
-
-				getCanvasArea().repaint();
 			}
 		}
 	};
@@ -354,6 +349,11 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	}
 
 	@Override
+	protected TopologyManagerContents getTopologyManagerType() {
+		return TopologyManagerContents.TRACE_ONLY;
+	}
+
+	@Override
 	protected void addOwnPanelsOrToolbars(JPanel menuPanel) {
 
 	}
@@ -383,6 +383,9 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		timeRefreshBtn.setEnabled(! isAutoRefresh());
 
 		toolbar.add( timeRefreshBtn );
+
+		visualizedMetricBox = new JComboBox(VisualizedMetric.values());
+		processNestedChkbox = new JCheckBox("Nested");	
 
 		visualizedMetricBox.setFont(Const.FONT);
 
@@ -415,8 +418,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	}
 
 	@Override
-	protected ScrollableObject createCanvasArea(ViewportTimeYaxis viewport) {
-		return new ProfileImagePanel(getScrollbarTimeModel(), getYModel(), getTopologyManager(), viewport);		
+	protected ScrollableObject createCanvasArea() {
+		return new ProfileImagePanel(getScrollbarTimeModel(), getYModel(), getTopologyManager());		
 	}
 
 
@@ -436,7 +439,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 		getReader().getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
 	}
-	
+
 	@Override
 	protected void gotVisibleTheFirstTime() {
 		super.gotVisibleTheFirstTime();
@@ -445,19 +448,11 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	public TraceProfileFrame(TraceFormatBufferedFileReader reader, ModelTime modelTime) 
 	{		
-		super(reader);
+		super(reader, new ModelTime(Epoch.ZERO, new Epoch(1.0)));
 		this.realModelTime = modelTime;
-
-
-		final ModelTime virtualTime = new ModelTime(Epoch.ZERO, new Epoch(1.0));
-		super.init(virtualTime);
-
-		getTopologyManager().setTopologyManagerContents(TopologyManagerContents.TRACE_ONLY);							
-		getFrame().setPreferredSize(new Dimension(950, 600)); /* JK-SIZE */
+				
+		//getFrame().setPreferredSize(new Dimension(950, 600)); /* JK-SIZE */
 	}
-
-	
-
 
 
 	public class ProfileImagePanel extends ScrollableTimeline{
@@ -495,8 +490,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 		public ProfileImagePanel(	ScrollbarTimeModel scrollbarTimeModel,
 				BoundedRangeModel   yaxis_model,
-				TopologyManager topologyManager, ViewportTimeYaxis viewport) {
-			super(scrollbarTimeModel, yaxis_model, topologyManager, viewport);			
+				TopologyManager topologyManager) {
+			super(scrollbarTimeModel, yaxis_model, topologyManager);			
 		}
 
 		@Override

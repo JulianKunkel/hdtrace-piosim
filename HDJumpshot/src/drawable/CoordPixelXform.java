@@ -34,6 +34,7 @@
 
 package drawable;
 
+
 public interface CoordPixelXform
 {
     public int     convertTimeToPixel( double time_coord );

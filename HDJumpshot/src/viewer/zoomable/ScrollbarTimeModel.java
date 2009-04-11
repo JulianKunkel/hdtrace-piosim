@@ -78,7 +78,7 @@ public class ScrollbarTimeModel extends DefaultBoundedRangeModel implements Adju
        Set the Number of Pixels in the Viewport window.
        if iView_width is NOT set, pixel coordinates cannot be updated.
 	 */
-	public void setViewPixelsPerUnitTime( int width )
+	public void setViewWidth( int width )
 	{
 		iViewWidth = width;
 		

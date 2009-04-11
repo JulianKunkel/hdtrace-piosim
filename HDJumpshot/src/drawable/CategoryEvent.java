@@ -25,6 +25,8 @@
 
 package drawable;
 
+import topology.TopologyType;
+
 public class CategoryEvent extends Category {
 
     private boolean         isSearchable = true;

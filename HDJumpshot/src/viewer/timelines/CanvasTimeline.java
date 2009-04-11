@@ -54,6 +54,7 @@ import javax.swing.SwingUtilities;
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import topology.TopologyStatisticTreeNode;
+import topology.TopologyType;
 import viewer.common.Debug;
 import viewer.common.Parameters;
 import viewer.common.Profile;
@@ -61,11 +62,9 @@ import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForTraceObjects;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.CoordPixelImage;
-import viewer.zoomable.ScrollableTimeline;
 import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
-import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -80,7 +79,6 @@ import drawable.Category;
 import drawable.CategoryStatistic;
 import drawable.DrawObjects;
 import drawable.TimeBoundingBox;
-import drawable.TopologyType;
 import drawable.CategoryStatistic.MaxAdjustment;
 import drawable.CategoryStatistic.Scaling;
 
@@ -127,10 +125,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	public CanvasTimeline( ScrollbarTimeModel scrollbarTimeModel,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
-			TopologyManager topologyManager,
-			ViewportTimeYaxis viewport)
+			TopologyManager topologyManager)
 	{
-		super( scrollbarTimeModel, yaxis_model, topologyManager, viewport);
+		super( scrollbarTimeModel, yaxis_model, topologyManager);
 
 		this.reader = reader;
 

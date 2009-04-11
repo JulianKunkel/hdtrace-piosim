@@ -36,7 +36,6 @@ package viewer.timelines;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
 
-import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
 
@@ -53,7 +52,6 @@ import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
 import viewer.zoomable.ScrollableObject;
-import viewer.zoomable.ViewportTimeYaxis;
 import de.hd.pvs.TraceFormat.TraceObject;
 
 public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
@@ -67,11 +65,10 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 
 	public TimelineFrame( final TraceFormatBufferedFileReader reader, final ModelTime modelTime )
 	{		
-		super(reader);
-		super.init( modelTime );
+		super(reader, modelTime);
 		setTitle("TimeLine: " + reader.getCombinedProjectFilename());
 
-		getFrame().setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
+		//getFrame().setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
 	}
 
 	@Override
@@ -115,15 +112,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 	}
 
 	@Override
-	protected ScrollableObject createCanvasArea(ViewportTimeYaxis viewport) {
-		return new CanvasTimeline( getScrollbarTimeModel(), getReader(),  getYModel(), getTopologyManager(), viewport);
-	}
-	
-	@Override
-	protected void gotVisibleTheFirstTime() {
-		super.gotVisibleTheFirstTime();
-
-		getCanvasArea().forceRedraw();
-		getTimeRuler().forceRedraw();
+	protected ScrollableObject createCanvasArea() {
+		return new CanvasTimeline( getScrollbarTimeModel(), getReader(),  getYModel(), getTopologyManager());
 	}
 }

@@ -15,7 +15,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
-package viewer.zoomable;
+package viewer.timelines;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -25,6 +25,9 @@ import javax.swing.BoundedRangeModel;
 import topology.TopologyManager;
 import viewer.common.Debug;
 import viewer.dialog.InfoDialog;
+import viewer.zoomable.CoordPixelImage;
+import viewer.zoomable.ScrollableObject;
+import viewer.zoomable.ScrollbarTimeModel;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -40,8 +43,8 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 	
 	public ScrollableTimeline(ScrollbarTimeModel scrollbarTimeModel,
 			BoundedRangeModel   yaxis_model,
-			TopologyManager topologyManager, ViewportTimeYaxis viewport) {
-		super(scrollbarTimeModel, viewport);		
+			TopologyManager topologyManager) {
+		super(scrollbarTimeModel);		
 
 		this.topologyManager       = topologyManager;
 		this.y_model         = yaxis_model;

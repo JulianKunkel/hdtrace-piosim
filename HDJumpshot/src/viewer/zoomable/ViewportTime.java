@@ -34,6 +34,7 @@
 
 package viewer.zoomable;
 
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -85,7 +86,6 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	// view_img is both a Component and ScrollableView object
 	private   ScrollableView            view_img      = null;
 	final private   ModelTime                 modelTime;
-	final private   ScrollbarTimeModel        scrollbarTimeModel;
 	
 	// show information about the object the mouse is moved over
 	private   ModelInfoPanel            info_model    = null;    
@@ -112,7 +112,6 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private class MyComponentResizeListener extends ComponentAdapter{		
 		@Override
 		public void componentResized(ComponentEvent e) {
-
 			if ( view_img != null && getSize().width > 30) {
 				/*
 	               Instead of informing the view by ComponentEvent, i.e.
@@ -124,23 +123,22 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	               This also means the "view" does NOT need to implement
 	               ComponentListener interface.
 				 */
-
 				view_img.resized(getSize().width, getSize().height);
 
-				scrollbarTimeModel.setViewPixelsPerUnitTime( getSize().width );
-				
+
 				/*
-	               It is very IMPORTANT to do setPreferredSize() for JViewport
-	               with custom JComponent view.  If PreferredSize is NOT set,
-	               the top-level container, JFrame, will have difficulty to
-	               compute the size final display window when calling
-	               Window.pack().  The consequence will be the initial
-	               view of JViewport has its getViewPosition() set to (0,0)
-	               in view coordinates during program starts up.
-	               Apparently, Window.pack() uses PreferredSize to compute
-	               window size.
+        It is very IMPORTANT to do setPreferredSize() for JViewport
+        with custom JComponent view.  If PreferredSize is NOT set,
+        the top-level container, JFrame, will have difficulty to
+        compute the size final display window when calling
+        Window.pack().  The consequence will be the initial
+        view of JViewport has its getViewPosition() set to (0,0)
+        in view coordinates during program starts up.
+        Apparently, Window.pack() uses PreferredSize to compute
+        window size.
 				 */
 				getMe().setPreferredSize( getSize() );
+				
 				if ( Debug.isActive() )
 					Debug.println( "ViewportTime: componentResized()'s view_img = "
 							+ view_img );
@@ -162,10 +160,9 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		return this;
 	}
 
-	public ViewportTime( ScrollbarTimeModel scrollbarTimeModel)
+	public ViewportTime( ModelTime modelTime)
 	{
-		this.scrollbarTimeModel = scrollbarTimeModel;
-		this.modelTime          = scrollbarTimeModel.getModelTime();
+		this.modelTime         = modelTime;
 		view_pt                = new Point( 0, 0 );
 		isLeftMouseClick4Zoom  = false;   // default to Scroll with left mouse
 		/*
@@ -771,9 +768,5 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	
 	protected ModelTime getModelTime() {
 		return modelTime;
-	}
-	
-	protected ScrollbarTimeModel getScrollbarTimeModel() {
-		return scrollbarTimeModel;
 	}
 }

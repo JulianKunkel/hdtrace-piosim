@@ -43,6 +43,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 
 import topology.TopologyManager;
+import topology.TopologyManagerContents;
 import viewer.common.IconManager.IconType;
 import viewer.first.MainManager;
 import viewer.first.TopWindow;
@@ -125,7 +126,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	 * Creates the main drawing area (which is scrollable).
 	 * @return
 	 */
-	abstract protected ScrollableObject createCanvasArea(ViewportTimeYaxis viewport);
+	abstract protected ScrollableObject createCanvasArea();
 	
 	/** 
 	 * This listener is invoked if the zoomlevel changes
@@ -177,11 +178,11 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 		scrollbarTimeModel = new ScrollbarTimeModel(modelTime);
 
-		timeCanvasVport = new ViewportTimeYaxis( scrollbarTimeModel, y_model, topologyManager );
+		timeCanvasVport = new ViewportTimeYaxis( modelTime, y_model, topologyManager );
 		
 		/* The Time Ruler */
-		timeRuler        = new RulerTime( scrollbarTimeModel, timeCanvasVport );
-		time_ruler_vport  = new ViewportTime( scrollbarTimeModel );
+		timeRuler        = new RulerTime( scrollbarTimeModel );
+		time_ruler_vport  = new ViewportTime( modelTime );
 		time_ruler_vport.setView( timeRuler );
 		
 		time_ruler_vport.setLeftMouseToZoom( true );
@@ -207,7 +208,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 		/* The TimeLine Canvas */
 
-		canvasArea       = createCanvasArea(timeCanvasVport);
+		canvasArea       = createCanvasArea();
 		timeCanvasVport.setView( canvasArea );
 
 		timeCanvasVport.setLeftMouseToZoom( true );
@@ -402,15 +403,17 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		modelTime.removeTimeListener( time_display_panel );
 	}
 	
-	public AbstractTimelineFrame(final TraceFormatBufferedFileReader reader) {
+	public AbstractTimelineFrame(final TraceFormatBufferedFileReader reader,  ModelTime modelTime) {
 		this.reader = reader;				
 
-		this.topologyManager = new TopologyManager(reader);		
+		this.modelTime = modelTime;
+		this.topologyManager = new TopologyManager(reader, modelTime, getTopologyManagerType());		
+		
+		getFrame().setContentPane( createContentPane());		
 	}
 	
-	public void init(final ModelTime modelTime) {		
-		this.modelTime = modelTime;	
-		getFrame().setContentPane( createContentPane());		
+	protected TopologyManagerContents getTopologyManagerType(){
+		return TopologyManagerContents.EVERYTHING;
 	}
 		
 	protected ModelTime getModelTime() {
@@ -421,9 +424,13 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		return reader;
 	}	
 
+	/**
+	 * Override this method to invoke special actions performed after/during the frame gets visible the
+	 * first time. 
+	 */
 	@Override
 	protected void gotVisibleTheFirstTime() {
-		getTopologyManager().init(modelTime);
+				
 	}
 	
 	protected TopologyManager getTopologyManager() {

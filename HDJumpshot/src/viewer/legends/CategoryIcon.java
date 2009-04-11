@@ -41,9 +41,9 @@ import java.awt.Graphics2D;
 
 import javax.swing.Icon;
 
+import topology.TopologyType;
 import viewer.common.Parameters;
 import drawable.Category;
-import drawable.TopologyType;
 
 public class CategoryIcon implements Icon
 {

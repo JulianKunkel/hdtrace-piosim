@@ -34,6 +34,7 @@
 
 package viewer.zoomable;
 
+
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -74,7 +75,6 @@ implements ScrollableView, IAutoRefreshable
 	protected static final int   NumViewsPerImage = 1;
 	protected static final int   NumViewsTotal = NumImages * NumViewsPerImage;
 
-	final private ViewportTimeYaxis viewport;
 	final private   ModelTime          modelTime;
 	final private   ScrollbarTimeModel scrollbarTimeModel;
 	private   BufferedImage      offscreenImages[ /* NumImages */ ];
@@ -130,9 +130,8 @@ implements ScrollableView, IAutoRefreshable
 
 
 	//  The following constructor is NOT meant to be called.
-	public ScrollableObject(ScrollbarTimeModel scrollbarTimeModel, ViewportTimeYaxis viewport )
+	public ScrollableObject(ScrollbarTimeModel scrollbarTimeModel )
 	{
-		this.viewport = viewport;
 		this.scrollbarTimeModel = scrollbarTimeModel;
 
 		// Check if the number of images is an ODD number
@@ -650,6 +649,8 @@ implements ScrollableView, IAutoRefreshable
 			return;
 		}
 		
+		scrollbarTimeModel.setViewWidth(visWidth);
+		
 		image_size.setSize( newWidth, newHeight );
 
 		/*
@@ -675,6 +676,8 @@ implements ScrollableView, IAutoRefreshable
 
 			offscreenImages[ img_idx ] = new BufferedImage(w, h, type);
 		}
+		
+		forceRedraw();
 	}
 
 	/*

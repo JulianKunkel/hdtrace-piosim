@@ -23,7 +23,7 @@
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package drawable;
+package topology;
 
 public enum TopologyType
 {

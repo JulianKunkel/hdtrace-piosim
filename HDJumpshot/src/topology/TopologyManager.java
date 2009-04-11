@@ -323,14 +323,6 @@ public class TopologyManager
 	}
 	
 	/**
-	 * Call it once.
-	 */
-	public void init(ModelTime modelTime){
-		this.modelTime = modelTime;
-		restoreTopology();
-	}
-	
-	/**
 	 * restore the timelines to the normal / selected topology 
 	 */
 	public void restoreTopology(){
@@ -441,8 +433,14 @@ public class TopologyManager
 		return topoToTimelineMapping.get(timeline);
 	}
 
-
-	public TopologyManager( final TraceFormatBufferedFileReader  reader )
+	/**
+	 *  
+	 * @param reader
+	 * @param modelTime
+	 * @param topologyManagerContents The initial topologies to show.
+	 */
+	public TopologyManager( final TraceFormatBufferedFileReader  reader, ModelTime modelTime,
+			TopologyManagerContents topologyManagerContents)
 	{		
 		this.reader = reader;
 		tree.setEditable( true );		
@@ -450,7 +448,10 @@ public class TopologyManager
 		
 		tree.addMouseListener(treeMouseListener);
 		tree.setFont(Const.FONT);
-		
+
+		this.modelTime = modelTime;
+		this.topologyManagerType = topologyManagerContents;
+		restoreTopology();		
 	}
 
 	public void expandTree()

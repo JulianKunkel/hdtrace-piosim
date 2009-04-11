@@ -25,6 +25,7 @@
 
 package drawable;
 
+import topology.TopologyType;
 import viewer.legends.IPopupType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 

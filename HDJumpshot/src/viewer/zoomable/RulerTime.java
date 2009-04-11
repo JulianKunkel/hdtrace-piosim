@@ -34,6 +34,7 @@
 
 package viewer.zoomable;
 
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -58,9 +59,9 @@ public class RulerTime extends ScrollableObject
 
 	private DecimalFormat  fmt;
 
-	public RulerTime( ScrollbarTimeModel   model, ViewportTimeYaxis viewport )
+	public RulerTime( ScrollbarTimeModel   model )
 	{
-		super( model, viewport );
+		super( model );
 		fmt         = (DecimalFormat) NumberFormat.getInstance();
 		fmt.applyPattern( Const.RULER_TIME_FORMAT );
 	}

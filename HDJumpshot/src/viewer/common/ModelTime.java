@@ -34,6 +34,7 @@
 
 package viewer.common;
 
+
 import java.util.LinkedList;
 import java.util.Stack;
 
@@ -75,6 +76,9 @@ public class ModelTime
 	public ModelTime( Epoch  init_global_time, Epoch  final_global_time )
 	{
 		adjustGlobalTime(init_global_time, final_global_time);
+
+		viewInit     = 0;
+		viewExtent   = getGlobalDuration();
 	}
 	
 	/*
@@ -83,7 +87,6 @@ public class ModelTime
 	 public void setGlobalMinimum( Epoch init_global_time )
 	 {
 		 globalMin    = init_global_time;
-		 viewInit     = 0;
 		
 		 globalDuration = globalMax.subtract(globalMin).getDouble();
 	 }
@@ -91,7 +94,6 @@ public class ModelTime
 	 public void setGlobalMaximum( Epoch final_global_time )
 	 {
 		 globalMax    = final_global_time;
-		 viewExtent   = getGlobalDuration();
 		 
 		 globalDuration = globalMax.subtract(globalMin).getDouble();
 	 }
@@ -330,6 +332,9 @@ public class ModelTime
 
 	 private void zoom( double new_tView_init, double new_tView_extent ) throws IllegalStateException
 	 {
+		 if(new_tView_extent == viewExtent && new_tView_init == viewInit)
+			 return;
+		 
 		 if(new_tView_init < 0){
 			 new_tView_init = 0; 
 		 }
