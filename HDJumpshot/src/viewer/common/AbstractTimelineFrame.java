@@ -143,7 +143,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	private class MyNumberOfRowsChangedListener implements RowNumberChangedListener{
 		@Override
 		public void rowNumberChanged() {
-			canvasArea.redrawIfAutoRedraw();
+			canvasArea.resized();
 		}
 	}
 
@@ -159,7 +159,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	private JPanel createContentPane()
 	{		
 		reader.getLegendTraceModel().addCategoryUpdateListener(myTableLegendChangeListener);
-
+		
 		Dimension sb_minThumbSz = (Dimension)
 		UIManager.get( "ScrollBar.minimumThumbSize" );
 		sb_minThumbSz.width = 4;
@@ -181,11 +181,11 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		timeCanvasVport = new ViewportTimeYaxis( modelTime, y_model, topologyManager );
 		
 		/* The Time Ruler */
-		timeRuler        = new RulerTime( scrollbarTimeModel );
+		timeRuler        = new RulerTime( scrollbarTimeModel, timeCanvasVport );
 		time_ruler_vport  = new ViewportTime( modelTime );
 		time_ruler_vport.setView( timeRuler );
 		
-		time_ruler_vport.setLeftMouseToZoom( true );
+		time_ruler_vport.setLeftMouseToZoom( Parameters.LEFTCLICK_INSTANT_ZOOM );
 		/*
                    Propagation of AdjustmentEvent originating from scroller:
 
@@ -194,17 +194,6 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
                    viewport is between time_model and view because
                    viewport is what user sees.
 		 */
-		/*
-                   Since there is NOT a specific ViewportTime/ViewTimePanel
-                   for RulerTime, so we need to set PreferredSize of RulerTime
-                   here.  Since CanvasTimeline's has its MaximumSize set to MAX,
-                   CanvasTimeline's ViewportTimePanel will become space hungary.
-                   As we want RulerTime to be fixed height during resize
-                   of the top level window, So it becomes CRUCIAL to set
-                   Preferred Height of RulerTime's ViewportTimePanel equal
-                   to its Minimum Height and Maximum Height.
-		 */
-		int      ruler_panel_height = timeRuler.getJComponentHeight();
 
 		/* The TimeLine Canvas */
 
@@ -270,11 +259,21 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		info_model.init();
 		timeCanvasVport.setInfoModel( info_model );
 
-
 		center_panel.add( timeCanvasVport );
 		center_panel.add( scrollbarTime );
 		
-		time_ruler_vport.setMinimumSize(		new Dimension( 0, ruler_panel_height ) );
+		/*
+    Since there is NOT a specific ViewportTime/ViewTimePanel
+    for RulerTime, so we need to set PreferredSize of RulerTime
+    here.  Since CanvasTimeline's has its MaximumSize set to MAX,
+    CanvasTimeline's ViewportTimePanel will become space hungary.
+    As we want RulerTime to be fixed height during resize
+    of the top level window, So it becomes CRUCIAL to set
+    Preferred Height of RulerTime's ViewportTimePanel equal
+    to its Minimum Height and Maximum Height.
+		 */
+		final int      ruler_panel_height = timeRuler.getRealImageHeight();
+		time_ruler_vport.setMinimumSize(		new Dimension( 20, ruler_panel_height ) );
 		time_ruler_vport.setMaximumSize(		new Dimension( Short.MAX_VALUE, ruler_panel_height ) );
 		time_ruler_vport.setPreferredSize(		new Dimension( 20, ruler_panel_height ) );
 		
@@ -345,7 +344,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 				y_scrollbar, topologyManager, scrollbarTime, modelTime, row_adjs, iconManager );
 		
 		addToToolbarMenu(toolbar, iconManager, toolbar.getInsets());
-		toolbar.addRightButtons(iconManager);
+		toolbar.addRightButtons(iconManager, getFrame());
 
 		final JPanel top_panel = new JPanel();
 		top_panel.setLayout( new BoxLayout( top_panel, BoxLayout.Y_AXIS ) );
@@ -364,7 +363,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		JPanel contentPanel = new JPanel(new BorderLayout());
 		contentPanel.add( top_panel, BorderLayout.NORTH );
 		contentPanel.add( right_splitter, BorderLayout.CENTER );
-		
+			
 		return contentPanel;
 	}
 

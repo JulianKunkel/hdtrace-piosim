@@ -35,25 +35,41 @@
 package viewer.zoomable;
 
 
-/*
+/**
    Define the interface to be implemented by the view object within
    the viewport.  The interface defines the operations of view object
    to be used by the viewport.
 */
-
 public interface ScrollableView
 {
 	/**
+	 * Check and redraw the view after a zoom (if necessary).
 	 * Returns whether it is redrawn or not.
 	 * @return
 	 */
     public boolean checkToZoomView();
 
+  	/**
+  	 * Check and redraw the view after the view has been scrolled.
+  	 * It is likely that only a subset of the image must be redrawn.
+  	 * Returns whether it is redrawn or not.
+  	 * @return
+  	 */
     public boolean checkToScrollView();
 
+    /**
+     * Get the XaxisViewPosition relative with the time.
+     * @return
+     */
     public int  getXaxisViewPosition();
 
+    /**
+     * Enforce to redraw the view
+     */
     public void forceRedraw();
     
-    public void resized(int width, int height);
+    /**
+     * Notifies the view that it got resized
+     */
+    public void resized();
 }

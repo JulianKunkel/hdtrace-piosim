@@ -32,26 +32,29 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
 
 import viewer.common.Debug;
 
 /**
- * Create a screenshot
+ * Create a screenshot to /tmp by copying timeline and ruler together
  * @author Julian M. Kunkel
  *
  */
 public class ActionPptyScreenshot implements ActionListener
 {
 	private final ScrollableObject timelines;
-	private final RulerTime	 time_ruler;
+	private final RulerTime	 timeRuler;
+	private final JFrame     frame;
 
 	private static int screenshotNumber = 0;
 
 
-	public ActionPptyScreenshot( ScrollableObject scrl, RulerTime	 time_ruler )
+	public ActionPptyScreenshot( ScrollableObject scrl, RulerTime	 time_ruler, JFrame parentFrame )
 	{
 		this.timelines = scrl;
-		this.time_ruler = time_ruler;
+		this.timeRuler = time_ruler;
+		this.frame = parentFrame;
 	}
 
 
@@ -61,10 +64,10 @@ public class ActionPptyScreenshot implements ActionListener
 			Debug.println( "Action for Print Property button" );
 
 
-		final Rectangle rectRuler = time_ruler.getVisibleRect();
+		final Rectangle rectRuler = timeRuler.getVisibleRect();
 		final Rectangle rect = timelines.getVisibleRect();
 		
-		final int offset = time_ruler.getXaxisViewPosition();
+		final int offset = timeRuler.getXaxisViewPosition();
 		
 		final int outWidth = rect.width;
 		final int outHeight = rect.height;
@@ -75,20 +78,24 @@ public class ActionPptyScreenshot implements ActionListener
 		BufferedImage outR = new BufferedImage(outWidth + offset,
 				rectRuler.height, BufferedImage.TYPE_4BYTE_ABGR);
 		
+		final String title = frame.getTitle().replaceAll("[^a-zA-Z_0-9-.]", "");
+		
 		try{
-			File file = new File("/tmp/jumpshot-screenshot-" + screenshotNumber +  ".png"); // Calendar.getInstance().getTimeInMillis() +
+			final File file = new File("/tmp/jumpshot-" + screenshotNumber + "-" + title + ".png"); 
 			
-			timelines.paintComponent(outTl.getGraphics());
-			time_ruler.paint(outR.getGraphics());
+			timelines.paint(outTl.getGraphics());
+			timeRuler.paint(outR.getGraphics());
 			
 			/* copy both pictures into one */
 			outTl.getRaster().setRect(0, outHeight, outR.getRaster());
 
 			ImageIO.write(outTl.getSubimage(offset, 0, 
 					outWidth, outTl.getHeight()), "png", file);
+			
+			System.out.println("Wrote screenshot to " + file.getAbsolutePath());
 		
 		}catch(Exception e){
-			System.err.println("Error during ActionPptyPrint:" + e.getMessage());
+			System.err.println("Error during creation of screenshot:" + e.getMessage());
 		}
 	}
 

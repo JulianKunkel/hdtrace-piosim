@@ -36,7 +36,6 @@ package viewer.zoomable;
 
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -82,14 +81,15 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private static final Color   ZOOM_AREA_COLOR  = new Color(132,112,255,96);
 	private static final Color   FOCUS_LINE_COLOR = Color.red;
 
+	// Current view position
 	private   Point                     view_pt;
 	// view_img is both a Component and ScrollableView object
-	private   ScrollableView            view_img      = null;
+	private   ScrollableObject            viewImage      = null;
 	final private   ModelTime                 modelTime;
-	
+
 	// show information about the object the mouse is moved over
 	private   ModelInfoPanel            info_model    = null;    
-	
+
 	// store the last object the mouse is moved over to avoid multiple invocations of the info_model
 	private   Object                  lastMouseMoveObject = null;
 	private   ToolBarStatus             toolbar       = null;
@@ -97,22 +97,32 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private   TimeBoundingBox           vport_timebox = null;
 	protected CoordPixelImage           coord_xform   = null;
 
-	private   TimeBoundingBox           zoom_timebox  = null;
-	private   TimeBoundingBox           info_timebox  = null;
+	private   TimeBoundingBox           zoomTimebox  = null;
+	private   TimeBoundingBox           infoTimebox  = null;
+	// in which direction should the box (zoom or info) be modified on mouse move:
+	private   boolean                   boxExtensionRight = true;
 
+	/* 
+            mouse_press_time is a temporary variable among
+            mousePressed(), mouseDragged() & mouseReleased()
+	 */
+	private double                    mouse_pressed_time;
+	private int                       mouse_pressed_Xloc;
+	private int                       mouse_last_Xloc;
+	private boolean                   hasControlKeyBeenPressed = false; 
+	
 	// info_dialogs list is used to keep track of all InfoDialog boxes.
 	private   ArrayList<InfoDialog>          info_dialogs;
 
 	private   InfoDialogActionListener  info_action_listener;
 	private   InfoDialogWindowListener  info_window_listener;
- 
 
 	protected boolean                   isLeftMouseClick4Zoom;
-
+	
 	private class MyComponentResizeListener extends ComponentAdapter{		
 		@Override
 		public void componentResized(ComponentEvent e) {
-			if ( view_img != null && getSize().width > 30) {
+			if ( viewImage != null && getSize().width > 30) {
 				/*
 	               Instead of informing the view by ComponentEvent, i.e.
 	               doing addComponentListener( (ComponentListener) view ),
@@ -123,9 +133,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	               This also means the "view" does NOT need to implement
 	               ComponentListener interface.
 				 */
-				view_img.resized(getSize().width, getSize().height);
-
-
+				viewImage.resized();
+				
 				/*
         It is very IMPORTANT to do setPreferredSize() for JViewport
         with custom JComponent view.  If PreferredSize is NOT set,
@@ -136,21 +145,14 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
         in view coordinates during program starts up.
         Apparently, Window.pack() uses PreferredSize to compute
         window size.
-				 */
+				 */				
 				getMe().setPreferredSize( getSize() );
-				
+
 				if ( Debug.isActive() )
 					Debug.println( "ViewportTime: componentResized()'s view_img = "
-							+ view_img );
-				view_pt.x = view_img.getXaxisViewPosition();
+							+ viewImage );
+				view_pt.x = viewImage.getXaxisViewPosition();
 				getMe().setViewPosition( view_pt );
-				/*
-	               calling view.repaint() to ensure the view is repainted
-	               after setViewPosition is called.
-	               -- apparently, this.repaint(), the RepaintManager, has invoked 
-	                  ( (Component) view_img ).repaint();
-	               -- JViewport.setViewPosition() may have invoked super.repaint()
-				 */
 				getMe().repaint();
 			}
 		}
@@ -165,29 +167,18 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		this.modelTime         = modelTime;
 		view_pt                = new Point( 0, 0 );
 		isLeftMouseClick4Zoom  = false;   // default to Scroll with left mouse
-		/*
-            HierarchyBoundsListener is for the case when this class
-            is moved but NOT resized.  That it checks for situation
-            to reinitialize the size of ScrollableView when the 
-            scrollable image's size is reset for some obscure reason.
 
-            However, defining getPreferredSize() of ScrollableView
-            seems to make HierarchyBoundsListener of this class
-            unnecessary.
-		 */
-		// addHierarchyBoundsListener( this );
-
-		// setDebugGraphicsOptions( DebugGraphics.LOG_OPTION );
 		vport_timebox       = new TimeBoundingBox();
 		this.addComponentListener( new MyComponentResizeListener());
+
+		setOpaque(false);
 	}
 
 	public void setInfoModel( ModelInfoPanel in_model ) {
 		this.info_model = in_model;
 	}
 
-
-	public void setView( Component view )
+	public void setView( ScrollableObject view )
 	{
 		super.setView( view );
 		// Assume "view" has implemented the ComponentListener interface
@@ -200,9 +191,9 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		Dimension pref_sz = view.getPreferredSize();
 		if ( pref_sz != null )
 			setPreferredSize( pref_sz );
-		view_img     = (ScrollableView) view;
+		viewImage     = view;
 
-		coord_xform  = new CoordPixelImage( (ScrollableObject) view_img );
+		coord_xform  = new CoordPixelImage( viewImage );
 		super.addMouseListener( this );
 		super.addMouseMotionListener( this );
 		super.addKeyListener( this );
@@ -218,6 +209,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	}
 
 	//  For Debugging Profiling
+	@Override
 	public Dimension getMinimumSize()
 	{
 		Dimension min_sz = super.getMinimumSize();
@@ -226,7 +218,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		return min_sz;
 	}
 
-	//  For Debugging Profiling
+	@Override
 	public Dimension getMaximumSize()
 	{
 		Dimension max_sz = super.getMaximumSize();
@@ -235,7 +227,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		return max_sz;
 	}
 
-	//  For Debugging Profiling
+	@Override
 	public Dimension getPreferredSize()
 	{
 		Dimension pref_sz = super.getPreferredSize();
@@ -260,6 +252,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
         Since ModelTime is the Model for the scroll_bar, timeChanged()
         will be called everytime when scroll_bar is moved/changed. 
 	 */
+	@Override
 	public void timeChanged( TimeEvent evt )
 	{
 		if ( Debug.isActive() ) {
@@ -267,15 +260,15 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			Debug.println( "time_evt = " + evt );
 		}
 
-		if ( view_img != null ) {
+		if ( viewImage != null ) {
 			// view_img.checkToXXXXView() assumes constant image size
-			view_img.checkToZoomView();
-			view_img.checkToScrollView();
-			
+			viewImage.checkToZoomView();
+			viewImage.checkToScrollView();
+
 			if ( Debug.isActive() )
 				Debug.println( "ViewportTime:timeChanged()'s view_img = "
-						+ view_img );
-			view_pt.x = view_img.getXaxisViewPosition();
+						+ viewImage );
+			view_pt.x = viewImage.getXaxisViewPosition();
 			super.setViewPosition( view_pt );
 			/*
                calling view.repaint() to ensure the view is repainted
@@ -287,7 +280,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			this.repaint();
 		}
 		if ( Debug.isActive() ) {
-			if ( view_img != null ) {
+			if ( viewImage != null ) {
 				Debug.println( "ViewportTime: "
 						+ "view_img.getXaxisViewPosition() = "
 						+ view_pt.x );
@@ -331,23 +324,18 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		}
 	}
 
-	public void paint( Graphics g )
-	{
+	@Override
+	public void paint(Graphics g) {		
 		Iterator<InfoDialog>    itr;
 		InfoDialog  info_popup;
 		double      popup_time;
 		double      focus_time;
 		int         x_pos;
 
+		super.paint(g);
+
 		if ( Debug.isActive() )
 			Debug.println( "ViewportTime: paint()'s START: " );
-
-		// Need to get the FOCUS so KeyListener will respond.
-		// requestFocus();
-
-		//  "( (Component) view_img ).repaint()" may have been invoked
-		//  in JComponent's paint() method's paintChildren() ?!
-		super.paint( g );
 
 		/*  Initialization  */
 		vport_timebox.setEarliestTime( modelTime.getViewPosition() );
@@ -365,28 +353,27 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		}
 
 		/*  Draw zoom boundary  */
-		if ( zoom_timebox != null )
-			this.drawShadyTimeBoundingBox( g, zoom_timebox,
-					ZOOM_LINE_COLOR,
-					ZOOM_AREA_COLOR );
+		if ( zoomTimebox != null ){
+			this.drawShadyTimeBoundingBox( g, zoomTimebox,
+					ZOOM_LINE_COLOR,	ZOOM_AREA_COLOR );
+		}
 
-		if ( info_timebox != null )
-			this.drawShadyTimeBoundingBox( g, info_timebox,
-					INFO_LINE_COLOR,
-					INFO_AREA_COLOR );
+		if ( infoTimebox != null ){
+			this.drawShadyTimeBoundingBox( g, infoTimebox,
+					INFO_LINE_COLOR, INFO_AREA_COLOR );
+		}
 
 		/*  Draw the InfoDialog marker  */
 		itr = info_dialogs.iterator();
 		while ( itr.hasNext() ) {
-			info_popup = (InfoDialog) itr.next();
+			info_popup = itr.next();
 			if ( info_popup instanceof InfoDialogForDuration ) {
 				InfoDialogForDuration  popup;
 				popup = (InfoDialogForDuration) info_popup;
 				this.drawShadyTimeBoundingBox( g, popup.getTimeBoundingBox(),
 						INFO_LINE_COLOR,
 						INFO_AREA_COLOR );
-			}
-			else {
+			}	else {
 				popup_time = info_popup.getClickedTime().getDouble();
 				if ( coord_xform.contains( popup_time ) ) {
 					x_pos = coord_xform.convertTimeToPixel( popup_time );
@@ -411,7 +398,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	}
 
 
-	// Override the Component.setCursor()
+	@Override
 	public void setCursor( Cursor new_cursor )
 	{
 		/*
@@ -430,10 +417,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		}
 	}
 
-	/*
-            Interface to fulfill MouseInputListener()
-	 */
-
+	@Override
 	public void mouseMoved( MouseEvent mouse_evt ) {
 		ScrollableObject  scrollable;
 		Point             vport_click, view_click;
@@ -441,18 +425,19 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 		vport_click = mouse_evt.getPoint();
 
-		scrollable = (ScrollableObject) view_img;
+		scrollable = (ScrollableObject) viewImage;
 
 		view_click = SwingUtilities.convertPoint( this,	vport_click, scrollable );
 		dobj = scrollable.getObjectAt( view_click  );
 
 		if( dobj != lastMouseMoveObject ){
-				info_model.showInfo(dobj);
+			info_model.showInfo(dobj);
 		}
-		
+
 		lastMouseMoveObject = dobj;
 	}    
-
+	
+	@Override
 	public void mouseEntered( MouseEvent mouse_evt )
 	{
 		super.requestFocus();
@@ -461,16 +446,13 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		else
 			super.setCursor( CustomCursor.HandOpen );
 	}
-
+	
+	@Override
 	public void mouseExited( MouseEvent mouse_evt )
 	{
-		/*
-               useless to reset cursor here because of similarity of the
-               overriden this.setCursor() above and mouseEntered().
-		 */
-		// super.setCursor( CustomCursor.Normal );
 	}
 
+	@Override
 	public void mouseClicked( MouseEvent mouse_evt )
 	{
 
@@ -500,15 +482,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		super.requestFocus();
 	}
 
-	/* 
-            mouse_press_time is a temporary variable among
-            mousePressed(), mouseDragged() & mouseReleased()
-	 */
-	private double                    mouse_pressed_time;
-	private int                       mouse_pressed_Xloc;
-	private int                       mouse_last_Xloc;
-	private boolean                   hasControlKeyBeenPressed = false; 
 
+	@Override
 	public void mousePressed( MouseEvent mouse_evt )
 	{
 		Point  vport_click;
@@ -526,15 +501,17 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		coord_xform.resetTimeBounds( vport_timebox );
 		vport_click = mouse_evt.getPoint();
 		click_time  = coord_xform.convertPixelToTime( vport_click.x );
+
+		boxExtensionRight = true;
+
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( isLeftMouseClick4Zoom ) {  // Zoom Mode
-				zoom_timebox = new TimeBoundingBox();
-				zoom_timebox.setZeroDuration( click_time );
+				zoomTimebox = new TimeBoundingBox();
+				zoomTimebox.setZeroDuration( click_time );
 			}
-		}
-		else if ( SwingUtilities.isRightMouseButton( mouse_evt ) ) {
-			info_timebox = new TimeBoundingBox();
-			info_timebox.setZeroDuration( click_time );
+		}	else if ( SwingUtilities.isRightMouseButton( mouse_evt ) ) {
+			infoTimebox = new TimeBoundingBox();
+			infoTimebox.setZeroDuration( click_time );
 			this.repaint();
 		}
 		mouse_pressed_time = click_time;
@@ -542,6 +519,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		mouse_last_Xloc    = vport_click.x;
 	}
 
+	@Override
 	public void mouseDragged( MouseEvent mouse_evt )
 	{
 		Point  vport_click;
@@ -559,35 +537,53 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 		vport_click = mouse_evt.getPoint();
 		click_time  = coord_xform.convertPixelToTime( vport_click.x );
+
+		TimeBoundingBox currentBox = null;;
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( isLeftMouseClick4Zoom ) {  // Zoom Mode
-				if ( zoom_timebox != null ) { 
-					// i.e., Zoom has NOT been cancelled yet
-					if ( click_time > mouse_pressed_time )
-						zoom_timebox.setLatestTime( click_time );
-					else
-						zoom_timebox.setEarliestTime( click_time );
-					this.repaint();
-					// super.setCursor( CustomCursor.ZoomPlus );
-				}
-			}
-			else {  // Hand Mode
+				currentBox = zoomTimebox;
+				super.setCursor( CustomCursor.ZoomPlus );
+			}else { // Hand Mode
 				if ( vport_click.x != mouse_last_Xloc ) {
 					getModelTime().scroll( mouse_last_Xloc - vport_click.x );
 					mouse_last_Xloc = vport_click.x;
 					super.setCursor( CustomCursor.HandClose );
+
+					return;
 				}
 			}
+		}else if ( SwingUtilities.isRightMouseButton( mouse_evt ) ) {
+			currentBox = infoTimebox;
 		}
-		else if ( SwingUtilities.isRightMouseButton( mouse_evt ) ) {
-			if ( click_time > mouse_pressed_time )
-				info_timebox.setLatestTime( click_time );
-			else
-				info_timebox.setEarliestTime( click_time );
+
+		if ( currentBox != null ) { 
+			// i.e., Zoom has NOT been canceled yet, the following code 
+			// ensures that the first clicked point is always the start or end.
+			if ( click_time > currentBox.getLatestTime() ){
+				if(! boxExtensionRight){							
+					currentBox.setEarliestTime(currentBox.getLatestTime());
+					boxExtensionRight = true;
+				}					
+				currentBox.setLatestTime( click_time );
+
+			}else if(click_time < currentBox.getEarliestTime() ){
+				if(boxExtensionRight){
+					currentBox.setLatestTime(currentBox.getEarliestTime());
+					boxExtensionRight = false;
+				}
+				currentBox.setEarliestTime( click_time );
+
+			}else if(boxExtensionRight){
+				currentBox.setLatestTime( click_time );
+			}else{ // boxExtension Left
+				currentBox.setEarliestTime( click_time );
+			}
 			this.repaint();
 		}
 	}
 
+
+	@Override
 	public void mouseReleased( MouseEvent mouse_evt )
 	{
 		ScrollableObject  scrollable;
@@ -606,21 +602,14 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		click_time  = coord_xform.convertPixelToTime( vport_click.x );
 		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
 			if ( isLeftMouseClick4Zoom ) {  // Zoom Mode
-				if ( zoom_timebox != null ) {
+				if ( zoomTimebox != null ) {
 					// i.e., Zoom has NOT been cancelled yet
-					if ( click_time > mouse_pressed_time )
-						zoom_timebox.setLatestTime( click_time );
-					else
-						zoom_timebox.setEarliestTime( click_time );
-					this.repaint();
-					// if ( zoom_timebox.getDuration() > 0.0d ) {
-					if (    Math.abs(vport_click.x - mouse_pressed_Xloc)
-							>= Parameters.MIN_WIDTH_TO_DRAG ) {
+					if (    Math.abs(vport_click.x - mouse_pressed_Xloc) >= Parameters.MIN_WIDTH_TO_DRAG ) {
 						modelTime.zoomRapidly(
-								zoom_timebox.getEarliestTime(),
-								zoom_timebox.getDuration() );
+								zoomTimebox.getEarliestTime(),
+								zoomTimebox.getDuration() );
 					}
-					zoom_timebox = null;
+					zoomTimebox = null;
 					this.repaint();
 					super.setCursor( CustomCursor.ZoomPlus );
 				}
@@ -635,23 +624,23 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		}
 		else if ( SwingUtilities.isRightMouseButton( mouse_evt ) ) {
 			if ( click_time > mouse_pressed_time )
-				info_timebox.setLatestTime( click_time );
+				infoTimebox.setLatestTime( click_time );
 			else
-				info_timebox.setEarliestTime( click_time );
-			scrollable = (ScrollableObject) view_img;
+				infoTimebox.setEarliestTime( click_time );
+			scrollable = (ScrollableObject) viewImage;
 			// if ( info_timebox.getDuration() > 0.0d ) {
 			if (    Math.abs(vport_click.x - mouse_pressed_Xloc)
 					>= Parameters.MIN_WIDTH_TO_DRAG ) {
 				window = SwingUtilities.windowForComponent( this );
 				if ( window instanceof Frame )
 					info_popup = new InfoDialogForDuration( (Frame) window,
-							info_timebox,
-							modelTime.getGlobalMinimum().add(info_timebox.getEarliestTime()),
+							infoTimebox,
+							modelTime.getGlobalMinimum().add(infoTimebox.getEarliestTime()),
 							scrollable );
 				else // if ( window instanceof Dialog )
 					info_popup = new InfoDialogForDuration( (Dialog) window,
-							info_timebox,
-							modelTime.getGlobalMinimum().add(info_timebox.getEarliestTime()),
+							infoTimebox,
+							modelTime.getGlobalMinimum().add(infoTimebox.getEarliestTime()),
 							scrollable );
 			}
 			else {
@@ -667,20 +656,19 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 					info_action_listener );
 			info_popup.addWindowListener( info_window_listener );
 			info_dialogs.add( info_popup );
-			info_timebox = null;  // remove to avoid redundant drawing
+			infoTimebox = null;  // remove to avoid redundant drawing
 			this.repaint();
 		}
 	}
 
 
-
-
 	/*
             Interface to fulfill KeyListener()
 	 */
-
+	@Override
 	public void keyTyped( KeyEvent evt ) {}
 
+	@Override
 	public void keyReleased( KeyEvent evt )
 	{
 		if ( evt.getKeyCode() == KeyEvent.VK_SHIFT ) {
@@ -689,6 +677,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		}
 	}
 
+	@Override
 	public void keyPressed( KeyEvent evt )
 	{
 		if ( evt.getKeyCode() == KeyEvent.VK_SHIFT ) {
@@ -696,14 +685,12 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 				super.setCursor( CustomCursor.ZoomMinus );
 		}
 		else if ( evt.getKeyCode() == KeyEvent.VK_ESCAPE ) {
-			if ( zoom_timebox != null ) {
-				zoom_timebox = null;
+			if ( zoomTimebox != null ) {
+				zoomTimebox = null;
 				this.repaint();
 			}
 		}
 	}
-
-
 
 	public void resetToolBarZoomButtons()
 	{
@@ -728,7 +715,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 	private class InfoDialogActionListener implements ActionListener
 	{
-
+		@Override
 		public void actionPerformed( ActionEvent evt )
 		{
 			InfoDialog  info_popup;
@@ -748,6 +735,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 	private class InfoDialogWindowListener extends WindowAdapter
 	{
+		@Override
 		public void windowClosing( WindowEvent evt )
 		{
 			InfoDialog  info_popup;
@@ -765,7 +753,6 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		}
 	}   // Class InfoDialogWindowListener
 
-	
 	protected ModelTime getModelTime() {
 		return modelTime;
 	}

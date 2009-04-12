@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -46,37 +46,39 @@ import viewer.first.TopWindow;
 public class LegendFrame extends TopWindow
 {
 	private static final long serialVersionUID = -935855888445611813L;
-	
+
 	private        LegendTracePanel        trace_panel;
-    private        LegendStatisticPanel    statistic_panel;
+	private        LegendStatisticPanel    statistic_panel;
 
-    @Override
-    protected void windowGetsInvisible() {
-    	
-    }
-    
-    @Override
-    protected void windowGetsVisible() {
-    	
-    }
-    
-    public LegendFrame( final TraceFormatBufferedFileReader  reader )
-    {
-        setTitle( "Legend: " + reader.getCombinedProjectFilename() );
+	@Override
+	protected void windowGetsInvisible() {
 
-        trace_panel = new LegendTracePanel( reader );
-        statistic_panel = new LegendStatisticPanel(reader);
-        
-        final JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);        
-        split.setOneTouchExpandable(true);
-        
-        final Dimension minimumSize = new Dimension(100, 50);
-        trace_panel.setMinimumSize(minimumSize);
-        statistic_panel.setMinimumSize(minimumSize);
-                     
-        split.add(trace_panel);
-        split.add(statistic_panel);     
-        
-        getFrame().setContentPane( split );                
-    }
+	}
+
+	@Override
+	protected void windowGetsVisible() {
+
+	}
+
+	public LegendFrame( final TraceFormatBufferedFileReader  reader )
+	{
+		setTitle( "Legend: " + reader.getCombinedProjectFilename() );
+
+		trace_panel = new LegendTracePanel( reader );
+		statistic_panel = new LegendStatisticPanel(reader);
+
+		final JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);        
+		split.setOneTouchExpandable(true);
+
+		final Dimension minimumSize = new Dimension(250, 75);
+		trace_panel.setMinimumSize(minimumSize);
+		statistic_panel.setMinimumSize(minimumSize);
+
+		getFrame().setMinimumSize(new Dimension(250, 500));
+		
+		split.add(trace_panel);
+		split.add(statistic_panel);     
+
+		getFrame().setContentPane( split );                
+	}
 }

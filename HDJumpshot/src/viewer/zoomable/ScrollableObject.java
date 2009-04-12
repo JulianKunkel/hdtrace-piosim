@@ -45,7 +45,6 @@ import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 
-import javax.swing.DebugGraphics;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -61,7 +60,9 @@ import drawable.TimeBoundingBox;
 
 /**
  * Realizes a object which can be zoomed and scrolled.
- * The drawing of complex content is done by a worker thread.
+ * The drawing of complex content is by default done by a worker thread.
+ * Also additional computation to prepare the drawing can be done by the worker thread.
+ * 
  * @author julian
  *
  */
@@ -86,6 +87,11 @@ implements ScrollableView, IAutoRefreshable
 
 	// shorthand for some convenient constant
 	private   int                half_NumImages;
+	
+	/**
+	 * The viewport this object is added to.
+	 */
+	final private ViewportTime viewport;
 
 	// There are 2 kinds of indexes to label the image in the array buffer.
 	// Both of the indexes are in the range of {0 : NumImages-1}.
@@ -105,6 +111,9 @@ implements ScrollableView, IAutoRefreshable
 	// decides whether a call of redrawIfAutoRedraw refreshes
 	boolean autoRefresh = Parameters.ACTIVE_REFRESH;
 
+	// if enabled then a background thread is used to prepare the images and to compute additional work
+	boolean useBackgroundThread = true;
+
 	// contains the pending rendering jobs and process with FIFO order.
 	private LinkedList<BackgroundRendering> renderingJobs =  new LinkedList<BackgroundRendering>();
 
@@ -114,6 +123,11 @@ implements ScrollableView, IAutoRefreshable
 	private boolean doAdditionalBackgroundProcessing = false;
 
 
+	/**
+	 * Return the real height the image has (not the viewport height).
+	 */
+	public abstract int getRealImageHeight();
+	
 	/**
 	 * Get an object of a given type from the clicked position:
 	 * @param view_click
@@ -129,28 +143,22 @@ implements ScrollableView, IAutoRefreshable
 	}
 
 
-	//  The following constructor is NOT meant to be called.
-	public ScrollableObject(ScrollbarTimeModel scrollbarTimeModel )
+	public ScrollableObject(ScrollbarTimeModel scrollbarTimeModel, ViewportTime viewport )
 	{
 		this.scrollbarTimeModel = scrollbarTimeModel;
-
-		// Check if the number of images is an ODD number
-		if ( NumImages % 2 == 0 || NumImages < 3 ) {
-			String err_msg = "ScrollableObject(): NumImages = "
-				+ NumImages + " which is invalid, "
-				+ "i.e. either an EVEN number or < 3.";
-			throw new IllegalStateException( err_msg );
-			// System.exit( 1 );
-		}
+		this.viewport = viewport;
 
 		this.modelTime = scrollbarTimeModel.getModelTime();
 		offscreenImages = new BufferedImage[ NumImages ];
+
 		tImages         = new TimeBoundingBox[ NumImages ];
 		for ( int idx = 0; idx < NumImages; idx++ )
 			tImages[ idx ] = new TimeBoundingBox();
 
-		tImages_all     = new TimeBoundingBox();
+		tImages_all     = new TimeBoundingBox();		
+
 		super.setDoubleBuffered( false );
+		setOpaque(true);
 
 		// Initialize the current image index and each image's time bound
 		half_NumImages = NumImages / 2;
@@ -160,9 +168,18 @@ implements ScrollableView, IAutoRefreshable
 		component_size = super.getSize();
 
 		// Enable debugging graphics option
-		setDebugGraphicsOptions( DebugGraphics.LOG_OPTION
-				| DebugGraphics.BUFFERED_OPTION
-				| DebugGraphics.FLASH_OPTION );		
+		//setDebugGraphicsOptions( DebugGraphics.LOG_OPTION
+		//		| DebugGraphics.BUFFERED_OPTION
+		//		| DebugGraphics.FLASH_OPTION );		
+
+		// Check if the number of images is an ODD number
+		if ( NumImages % 2 == 0 || NumImages < 3 ) {
+			String err_msg = "ScrollableObject(): NumImages = "
+				+ NumImages + " which is invalid, "
+				+ "i.e. either an EVEN number or < 3.";
+			throw new IllegalStateException( err_msg );
+			// System.exit( 1 );
+		}
 	}
 
 	// tImages_all needs to be synchronized with tImages[]
@@ -284,7 +301,7 @@ implements ScrollableView, IAutoRefreshable
 
 			for ( int img_idx = 0; img_idx < NumImages; img_idx++ )
 				scheduleToDrawOneImageInBackground(  img_idx);
-			
+
 			executeBackgroundThread();
 			return true;
 		}
@@ -370,7 +387,7 @@ implements ScrollableView, IAutoRefreshable
 
 				// Update cur_img_idx in the offscreenImages[]
 				cur_img_idx = getValidImageIndex( cur_img_idx + Nimages_moved );
-				
+
 				executeBackgroundThread();
 				return true;
 			}
@@ -388,7 +405,7 @@ implements ScrollableView, IAutoRefreshable
 					scheduleToDrawOneImageInBackground( img_idx );
 
 				executeBackgroundThread();
-				
+
 				return true;
 			}
 
@@ -452,6 +469,10 @@ implements ScrollableView, IAutoRefreshable
 
 	}
 
+	/**
+	 * Enable additional computation to be done by the worker thread.
+	 * (thread-safe) 
+	 */
 	public synchronized void triggerAdditionalBackgroundThreadWork(){
 		doAdditionalBackgroundProcessing = true;
 
@@ -470,6 +491,8 @@ implements ScrollableView, IAutoRefreshable
 
 	/**
 	 * At most one of this thread is executed.  
+	 * Prepares the images and does additional computation.
+	 * 
 	 * @author julian
 	 */
 	class BackgroundThread extends SwingWorker<Void, Void>{
@@ -486,16 +509,18 @@ implements ScrollableView, IAutoRefreshable
 				if(job == null){
 					break;
 				}
+
+				// for testing:
+				//try{Thread.sleep(1000);}catch(Exception e){}
+
 				drawOneImageInBackground(job.image, job.box);
 				if(abortCurrentJob){
 					abortCurrentJob = false;
 					continue;
 				}
-			}
 
-			if(! abortCurrentJob){
-				repaint();
-				//viewport.repaint();
+				// repaint viewport to show marks (added by viewport) correctly.
+				viewport.repaint();
 			}
 
 			return null;
@@ -508,7 +533,7 @@ implements ScrollableView, IAutoRefreshable
 			return true;
 		return renderingJobs.isEmpty() && currentTask == null;
 	}
-	
+
 	/**
 	 * Called by the background Thread
 	 * @return
@@ -528,6 +553,10 @@ implements ScrollableView, IAutoRefreshable
 	private synchronized void cancelRedrawing(int imagePos){
 		renderingJobs.remove( new BackgroundRendering(imagePos, null, null));
 
+		// clear the images to ensure the user sees correct information:
+		offscreenImages[imagePos].getGraphics().clearRect(0, 0, 
+				offscreenImages[imagePos].getWidth(), offscreenImages[imagePos].getHeight());
+
 		if(backgroundThread != null && (currentTask == null || currentTask.imagePos == imagePos)){
 			backgroundThread.abortCurrentJob = true;
 			backgroundThread = null;
@@ -540,6 +569,12 @@ implements ScrollableView, IAutoRefreshable
 	public synchronized void cancelRedrawing(){
 		renderingJobs.clear();
 
+		// clear the images to ensure the user sees correct information:
+		for(int i=0; i < NumImages; i++){
+			offscreenImages[i].getGraphics().clearRect(0, 0, 
+					offscreenImages[i].getWidth(), offscreenImages[i].getHeight());
+		}
+
 		if(backgroundThread != null)
 			backgroundThread.abortCurrentJob = true;
 	}
@@ -551,23 +586,37 @@ implements ScrollableView, IAutoRefreshable
 
 		renderingJobs.push(new BackgroundRendering(imagePos, image, tImages[ imagePos ]));
 	}
-	
+
 	/**
 	 * Activate the background thread if necessary to redraw the pending jobs.
 	 */
 	private void executeBackgroundThread(){
-		if(backgroundThread == null || backgroundThread.isDone() ){
-			// create background thread:
-			backgroundThread = new BackgroundThread(); 
-			backgroundThread.execute();
-		}
-	}
+		if( isUseBackgroundThread()){
+			if(backgroundThread == null || backgroundThread.isDone() ){
+				// create background thread:
+				backgroundThread = new BackgroundThread(); 
+				backgroundThread.execute();
+			}
 
+		}else{ // do not start background thread:
+			if (isAdditionalBackgroundProcessing()){
+				doAdditionalBackgroundThreadWork();
+			}
+
+			for(BackgroundRendering task: renderingJobs){
+				drawOneImageInBackground(task.image, task.box);
+			}
+		}		
+	}
+	
 	@Override
-	public void paintComponent( Graphics g )
+	protected void paintComponent(Graphics g)
 	{	
-		// stop if the background thread has to do more work, LEADS to even more flickering  
-		//if(! isBackgroundThreadFinished()) return;
+		final BufferedImage images[] = offscreenImages;
+		//final boolean isThreadFinished = isBackgroundThreadFinished(); 
+
+		if(images[ 0 ] == null)
+			return;
 
 		if ( Debug.isActive() ) {
 			Debug.println( "ScrollableObject : paintComponent()'s START : " );
@@ -578,14 +627,14 @@ implements ScrollableView, IAutoRefreshable
 		}
 
 		int img_idx, screen_img_pos;
-		int side_idx, side_bit, side_offset;
+		int side_idx, side_bit, side_offset;		
 
 
 		// draw Image in the middle of offscreenImages[]
 		img_idx = cur_img_idx;
 		screen_img_pos =  half_NumImages * image_size.width;
-		if ( offscreenImages[ img_idx ] != null )
-			g.drawImage( offscreenImages[ img_idx ], screen_img_pos, 0, this );
+
+		g.drawImage( images[ img_idx ], screen_img_pos, 0, this );
 
 		// Images are drawn alternatively around the middle of
 		// offscreenImages[].  The drawing starts with image in the
@@ -606,19 +655,16 @@ implements ScrollableView, IAutoRefreshable
 				img_idx = getValidImageIndex( cur_img_idx + side_offset );
 
 				screen_img_pos = ( half_NumImages + side_offset ) * image_size.width;
-				if ( offscreenImages[ img_idx ] != null )
-					g.drawImage( offscreenImages[ img_idx ],
-							screen_img_pos, 0, this );
+
+				g.drawImage( images[ img_idx ],	screen_img_pos, 0, this );
 			}
 		}
 		if ( Debug.isActive() )
 			Debug.println( "ScrollableObject : paintComponent()'s END : " );
 	}
 
-	public abstract int getJComponentHeight();
-
 	final public void redrawIfAutoRedraw(){
-		if(autoRefresh)
+		if(isAutoRefresh())
 			forceRedraw();
 	}
 
@@ -635,22 +681,23 @@ implements ScrollableView, IAutoRefreshable
 			scheduleToDrawOneImageInBackground( img_idx );
 			img_idx = getNearFutureImageIndex( img_idx );
 		}
-		
+
 		executeBackgroundThread();
 	}
 
 	@Override
-	final public void resized(final int visWidth, final int visHeight) {
+	final public void resized() {
+		final int visWidth = viewport.getWidth();
 		final int newWidth = visWidth * NumViewsPerImage;
-		final int newHeight = getJComponentHeight();
+		final int newHeight = getRealImageHeight();
 		
 		if(image_size.getSize().width == newWidth && image_size.getSize().height == newHeight ){
 			// not resized at all
 			return;
 		}
-		
+
 		scrollbarTimeModel.setViewWidth(visWidth);
-		
+
 		image_size.setSize( newWidth, newHeight );
 
 		/*
@@ -664,19 +711,19 @@ implements ScrollableView, IAutoRefreshable
 		 */
 		component_size.setSize( newWidth * NumImages,	newHeight );
 		setSize( component_size );
-		
-		
+
+
 		for ( int img_idx = 0; img_idx < NumImages; img_idx++ ) {
-			int w = image_size.width;
-			int h = image_size.height;
 			int type = BufferedImage.TYPE_4BYTE_ABGR;  // see api for options
 
-			if(offscreenImages[img_idx] != null) // free it:
+			if(offscreenImages[img_idx] != null){ // free it:
 				offscreenImages[img_idx].getGraphics().dispose();
+			}
 
-			offscreenImages[ img_idx ] = new BufferedImage(w, h, type);
+
+			offscreenImages[ img_idx ] = new BufferedImage(newWidth, newHeight, type);
 		}
-		
+
 		forceRedraw();
 	}
 
@@ -694,7 +741,7 @@ implements ScrollableView, IAutoRefreshable
 
 	@Override
 	public Dimension getMinimumSize() {	
-		return new Dimension(0, getJComponentHeight());
+		return new Dimension(0, getRealImageHeight());
 	}
 
 	protected InfoDialog getTimePropertyAt( Epoch realTime )
@@ -712,12 +759,24 @@ implements ScrollableView, IAutoRefreshable
 		return modelTime;
 	}
 
-
 	public boolean isAutoRefresh() {
 		return autoRefresh;
 	}
 
 	public void setAutoRefresh(boolean autoRefresh) {
 		this.autoRefresh = autoRefresh;
+	}
+
+	public boolean isUseBackgroundThread() {
+		return useBackgroundThread;
+	}
+
+	/**
+	 * Enable or disable the usage of a background thread for rendering and processing of 
+	 * additional work.
+	 * @param useBackgroundThread
+	 */
+	public void setUseBackgroundThread(boolean useBackgroundThread) {
+		this.useBackgroundThread = useBackgroundThread;
 	}
 }

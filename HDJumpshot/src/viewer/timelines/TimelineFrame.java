@@ -36,6 +36,7 @@ package viewer.timelines;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
 
+import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
 
@@ -68,7 +69,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 		super(reader, modelTime);
 		setTitle("TimeLine: " + reader.getCombinedProjectFilename());
 
-		//getFrame().setPreferredSize(new Dimension(1220, 700)); /* JK-SIZE */
+		getFrame().setMinimumSize(new Dimension(700, 500));		
 	}
 
 	@Override
@@ -113,6 +114,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 
 	@Override
 	protected ScrollableObject createCanvasArea() {
-		return new CanvasTimeline( getScrollbarTimeModel(), getReader(),  getYModel(), getTopologyManager());
+		return new CanvasTimeline( getScrollbarTimeModel(), getTimeCanvasVport(), 
+				getReader(),  getYModel(), getTopologyManager());
 	}
 }

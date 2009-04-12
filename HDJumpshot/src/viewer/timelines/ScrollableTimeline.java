@@ -28,6 +28,7 @@ import viewer.dialog.InfoDialog;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ScrollbarTimeModel;
+import viewer.zoomable.ViewportTime;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -42,9 +43,10 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 	final private BoundedRangeModel  y_model;
 	
 	public ScrollableTimeline(ScrollbarTimeModel scrollbarTimeModel,
+			ViewportTime viewport,
 			BoundedRangeModel   yaxis_model,
 			TopologyManager topologyManager) {
-		super(scrollbarTimeModel);		
+		super(scrollbarTimeModel, viewport);		
 
 		this.topologyManager       = topologyManager;
 		this.y_model         = yaxis_model;
@@ -107,7 +109,7 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 		return new Dimension( Short.MAX_VALUE, Short.MAX_VALUE );
 	}
 
-	final public int getJComponentHeight()
+	final public int getRealImageHeight()
 	{
 		int rows_size = topologyManager.getRowCount() * topologyManager.getRowHeight();
 		int view_size = y_model.getMaximum() - y_model.getMinimum() + 1;

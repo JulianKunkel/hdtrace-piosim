@@ -65,6 +65,7 @@ import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
+import viewer.zoomable.ViewportTime;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -123,11 +124,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 
 	public CanvasTimeline( ScrollbarTimeModel scrollbarTimeModel,
+			ViewportTime viewport,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
 			TopologyManager topologyManager)
 	{
-		super( scrollbarTimeModel, yaxis_model, topologyManager);
+		super( scrollbarTimeModel, viewport, yaxis_model, topologyManager);
 
 		this.reader = reader;
 

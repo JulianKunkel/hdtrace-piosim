@@ -22,6 +22,7 @@ import hdTraceInput.ReaderTraceElementEnumerator;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
@@ -60,6 +61,7 @@ import viewer.timelines.TimelineType;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ScrollbarTimeModel;
+import viewer.zoomable.ViewportTime;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -419,7 +421,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	@Override
 	protected ScrollableObject createCanvasArea() {
-		return new ProfileImagePanel(getScrollbarTimeModel(), getYModel(), getTopologyManager());		
+		return new ProfileImagePanel(getScrollbarTimeModel(), getTimeCanvasVport(), 
+				getYModel(), getTopologyManager());		
 	}
 
 
@@ -450,8 +453,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	{		
 		super(reader, new ModelTime(Epoch.ZERO, new Epoch(1.0)));
 		this.realModelTime = modelTime;
-				
-		//getFrame().setPreferredSize(new Dimension(950, 600)); /* JK-SIZE */
+		
+		getFrame().setMinimumSize(new Dimension(700, 500));		
 	}
 
 
@@ -489,9 +492,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		}
 
 		public ProfileImagePanel(	ScrollbarTimeModel scrollbarTimeModel,
+				ViewportTime viewport,
 				BoundedRangeModel   yaxis_model,
 				TopologyManager topologyManager) {
-			super(scrollbarTimeModel, yaxis_model, topologyManager);			
+			super(scrollbarTimeModel, viewport, yaxis_model, topologyManager);			
 		}
 
 		@Override

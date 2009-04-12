@@ -23,8 +23,6 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import viewer.common.Routines;
-
 public abstract class TopWindow {
 	private JFrame frame;	
 
@@ -32,6 +30,12 @@ public abstract class TopWindow {
 	
 	private VisibilityListenerAdapter listener;
 	
+	/**
+	 * Only one visibility listener can be set. Be careful to free pointers to a frame or components
+	 * in the frame that it can be cleaned up by garbage collection. 
+	 * @param listener
+	 * @param defaultCloseOperation
+	 */
 	public void setVisibilityListener(VisibilityListenerAdapter listener, int defaultCloseOperation){
 		this.listener = listener;
 		frame.setDefaultCloseOperation(defaultCloseOperation);
@@ -42,12 +46,9 @@ public abstract class TopWindow {
 
 		frame.addWindowListener( new WindowAdapter() {
 			public void windowClosing( WindowEvent e ) {
-				setVisible(false);
-			
+				setVisible(false);			
 			}
 		} );
-		
-		frame.setMaximumSize(Routines.getScreenSize());
 	}
 	
 	abstract protected void windowGetsVisible();
@@ -111,7 +112,7 @@ public abstract class TopWindow {
 	}
 	
 	/**
-	 * Free all ressources, before doing so it will be invisible
+	 * Free all resources, before doing so it will be invisible
 	 */
 	final public void dispose(){
 		setVisible(false);

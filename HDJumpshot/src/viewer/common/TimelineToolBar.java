@@ -41,6 +41,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JScrollBar;
 import javax.swing.JToolBar;
 
@@ -139,7 +140,7 @@ implements ToolBarStatus
 	/**
 	 * Add all buttons which are on the right
 	 */
-	 public void addRightButtons(IconManager iconManager){
+	 public void addRightButtons(IconManager iconManager, JFrame frame){
 		Insets btn_insets          = getInsets();		
 		btn_insets          = new Insets( 2, 2, 2, 2 );
 
@@ -166,7 +167,7 @@ implements ToolBarStatus
 
 		print_btn.setMargin( btn_insets );
 		print_btn.setToolTipText( "Screenshot the Timeline window to /tmp/jumpshot*" );
-		print_btn.addActionListener( new ActionPptyScreenshot(cnvas_timeline, time_ruler) );
+		print_btn.addActionListener( new ActionPptyScreenshot(cnvas_timeline, time_ruler, frame) );
 		super.add( print_btn );        
 
 		super.addSeparator();

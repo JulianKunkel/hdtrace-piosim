@@ -82,6 +82,9 @@ public class StatisticHistogramFrame {
 
 	final Font              drawFont = new Font( "Monospaced", Font.PLAIN, 10 );
 
+	/**
+	 * The number of bins of the histogram to put the elements in.
+	 */
 	int numberOfBins = 20;
 
 	/**

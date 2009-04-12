@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -35,7 +35,6 @@
 package viewer.zoomable;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.AdjustmentEvent;
@@ -49,6 +48,7 @@ import topology.TopologyManager;
 import viewer.common.Debug;
 import viewer.common.Dialogs;
 import viewer.common.ModelTime;
+import viewer.common.TimeEvent;
 import viewer.dialog.InfoDialog;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -60,12 +60,10 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 
 	private BoundedRangeModel     y_model         = null;
 	private TopologyManager       topologyManager       = null;
-	
-	private Point                 view_pt         = null;
 
 	private int     mouse_last_Yloc;
 	private double  ratio_ymodel2vportH;
-	
+
 	// searchable = view_img is both a Component and ScrollableView object
 	private SearchableView        searchable      = null;
 	private Epoch                 searchingTime  = Epoch.ZERO;        
@@ -77,10 +75,10 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		super( modelTime );
 		y_model     = yaxis_model;
 		this.topologyManager   = topologyManager;
-		view_pt     = new Point( 0, 0 );
 	}
 
-	public void setView( Component view )
+	@Override
+	public void setView( ScrollableObject view )
 	{
 		super.setView( view );
 		if ( view instanceof SearchableView )
@@ -90,12 +88,15 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 			searchable  = null;
 	}
 
+	@Override
 	public void adjustmentValueChanged( AdjustmentEvent evt )
 	{
 		if ( Debug.isActive() ) {
 			Debug.println( "ViewportTimeYaxis: adjChanged()'s START: " );
 			Debug.println( "adj_evt = " + evt );
 		}
+		Point                 view_pt = new Point();
+
 		view_pt.x  = super.getXaxisViewPosition();
 		view_pt.y  = evt.getValue();
 		super.setYaxisViewPosition( view_pt.y );
@@ -109,19 +110,19 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 
                calling the ViewortTime.paint() to avoid redrawing in this class
 		 */
-		//SCHUH super.repaint();
+		super.repaint();
 		if ( Debug.isActive() )
 			Debug.println( "ViewportTimeYaxis: adjChanged()'s END: " );
 	}
-	
-	public void paint( Graphics g )
-	{
+
+	@Override
+	public void paint(Graphics g) {
 		int   x_pos;
+
+		super.paint(g);
 
 		if ( Debug.isActive() )
 			Debug.println( "ViewportTimeYaxis: paint()'s START: " );
-
-		super.paint( g );
 
 		// Draw a line at searching_time
 		final double virtTime = searchingTime.subtract(getModelTime().getGlobalMinimum()).getDouble();
@@ -140,25 +141,25 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		searchResults = null;
 		searchingTime = Epoch.ZERO;
 	}
-	
+
 	public void searchForward(){
 		final Epoch oldTime = searchingTime;
 		searchResults = searchable.searchNextComponent(searchingTime);
 		if(searchResults.wasSucessfull()){
 			searchingTime = searchResults.getObject().getEarliestTime();
-			
+
 			getModelTime().scroll( searchingTime.subtract(oldTime).getDouble() );	
-			
+
 			// Scroll the Y-axis as well so searchResults becomes visible			
 			topologyManager.scrollRowToVisible( searchResults.getTimeline() );
 		}else{
 			clearSearchResults();
-			
+
 			Dialogs.info( SwingUtilities.windowForComponent( this ), "Search forward has no more TraceObject to return.\n", null );
 		}
 		this.repaint();
 	}
-	
+
 	public void searchBackward(){
 		final Epoch oldTime = searchingTime;
 		searchResults = searchable.searchPreviousComponent(searchingTime);
@@ -170,20 +171,19 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 			topologyManager.scrollRowToVisible( searchResults.getTimeline() );			
 		}else{
 			clearSearchResults();
-			
+
 			Dialogs.info( SwingUtilities.windowForComponent( this ), "Search backward has no more TraceObject to return.\n", null );
 		}
 		this.repaint();
 	}	
 
-	
 	public boolean searchInitFromDialogPosition()
 	{
 		clearSearchResults();
-		
+
 		InfoDialog  info_popup = super.getLastInfoDialog();
 		if ( info_popup != null ) {
-			searchInit( info_popup.getClickedTime() );
+			searchInit( info_popup.getModelTime() );
 			info_popup.getCloseButton().doClick();
 			this.repaint();
 			return true;
@@ -195,29 +195,23 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 			return false;
 		}
 	}
-	
+
+	/**
+	 * Start search at given time.
+	 * @param visTime
+	 */
 	public void searchInit(Epoch visTime){
 		searchingTime = visTime;
 	}
 
-
-
-	/*
-            Interface to Overload MouseInputListener()
-	 */
-	public void mouseClicked( MouseEvent mouse_evt )
-	{
-		Point  vport_click;
-
-		super.mouseClicked( mouse_evt );
-		if ( SwingUtilities.isLeftMouseButton( mouse_evt ) ) {
-			if ( ! super.isLeftMouseClick4Zoom ) {  // Hand Mode
-				vport_click    = mouse_evt.getPoint();
-				searchInit( getModelTime().getGlobalMinimum().add(super.coord_xform.convertPixelToTime(vport_click.x )) );
-								
-				this.repaint();
-			}
+	@Override
+	public void timeChanged(TimeEvent evt) {
+		if(searchResults == null){
+			// reinitialize searching time.			
+			searchInit( new Epoch(getModelTime().getViewPosition()) );
 		}
+		// call parent to update and repaint view. 
+		super.timeChanged(evt);
 	}
 
 
@@ -228,6 +222,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
             that the "extent" of Yaxis scrollbar's model should be mapped
             to the viewport height in pixel.
 	 */
+	@Override
 	public void mousePressed( MouseEvent mouse_evt )
 	{
 		Point  vport_click;
@@ -242,6 +237,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		}
 	}
 
+	@Override
 	public void mouseDragged( MouseEvent mouse_evt )
 	{
 		Point  vport_click;
@@ -252,8 +248,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 			if ( ! super.isLeftMouseClick4Zoom ) {  // Hand Mode
 				vport_click = mouse_evt.getPoint();
 				y_change    = mouse_last_Yloc - vport_click.y; 
-				sb_change   = (int) Math.round( ratio_ymodel2vportH
-						* y_change );
+				sb_change   = (int) Math.round( ratio_ymodel2vportH		* y_change );
 				// y_model.setValue() invokes adjustmentValueChanged() above
 				y_model.setValue( y_model.getValue() + sb_change );
 				mouse_last_Yloc = vport_click.y;
@@ -261,6 +256,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 		}
 	}
 
+	@Override
 	public void mouseReleased( MouseEvent mouse_evt )
 	{
 		Point  vport_click;

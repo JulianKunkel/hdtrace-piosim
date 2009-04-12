@@ -231,11 +231,16 @@ public class MainManager{
 			bounds = jumpshotWindow.getBounds();
 		}
 		
+		if(traceProfileWindow != null){
+			traceProfileWindow.getFrame().setLocation(0, 0);
+			bounds = traceProfileWindow.getFrame().getBounds();
+		}
+		
 		if (timelineWindow != null) {
+			bounds.x = 0;
+			
 			if (jumpshotWindow != null)
 				bounds.y += bounds.height;
-			else
-				bounds.x += bounds.width;
 			timelineWindow.getFrame().setLocation(bounds.getLocation());
 			bounds = timelineWindow.getFrame().getBounds();
 		}

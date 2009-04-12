@@ -59,11 +59,13 @@ public class RulerTime extends ScrollableObject
 
 	private DecimalFormat  fmt;
 
-	public RulerTime( ScrollbarTimeModel   model )
+	public RulerTime( ScrollbarTimeModel   model, ViewportTime viewport )
 	{
-		super( model );
+		super( model, viewport );
 		fmt         = (DecimalFormat) NumberFormat.getInstance();
 		fmt.applyPattern( Const.RULER_TIME_FORMAT );
+		
+		setUseBackgroundThread(false);
 	}
 
 	public Dimension getMinimumSize()
@@ -83,7 +85,7 @@ public class RulerTime extends ScrollableObject
 
 	@Override
 	//  Function defined the height of the JComponent.
-	public int getJComponentHeight()
+	public int getRealImageHeight()
 	{
 		return VIEW_HEIGHT;
 	}
@@ -141,7 +143,7 @@ public class RulerTime extends ScrollableObject
 			offGraphics.dispose();
 		}
 	}
-
+	
 	@Override
 	public TraceObject getObjectAt(Point view_click) {
 		return null;
