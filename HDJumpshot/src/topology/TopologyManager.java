@@ -52,6 +52,7 @@ import javax.swing.tree.TreePath;
 
 import viewer.common.Const;
 import viewer.common.ModelTime;
+import viewer.first.MainManager;
 import viewer.histogram.StatisticHistogramFrame;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
@@ -443,12 +444,16 @@ public class TopologyManager
 			TopologyManagerContents topologyManagerContents)
 	{		
 		this.reader = reader;
-		tree.setEditable( true );		
-		tree.putClientProperty("JTree.lineStyle", "Angled");
+		tree.setEditable( false );
+		
+		tree.setToolTipText("Real topology, right click enables special options.");
+		//tree.putClientProperty("JTree.lineStyle", "Angled");
 		
 		tree.addMouseListener(treeMouseListener);
 		tree.setFont(Const.FONT);
 
+		tree.setCellRenderer(new TopologyTreeRenderer(MainManager.getIconManager()));
+		
 		this.modelTime = modelTime;
 		this.topologyManagerType = topologyManagerContents;
 		restoreTopology();		
