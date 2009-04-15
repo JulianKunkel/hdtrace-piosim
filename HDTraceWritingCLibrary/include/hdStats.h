@@ -44,6 +44,19 @@
 #include "hdError.h" /* error definitions */
 #include "hdTopo.h" /* topology stuff */
 
+/* ************************************************************************* *
+ *                        FIXED VALUES DEFINITIONS                           *
+ * ************************************************************************* */
+
+/**
+ * Maximum of statistics values per group
+ */
+#define HDS_MAX_VALUES_PER_GROUP 256
+
+
+/* ************************************************************************* *
+ *                            TYPE DEFINITIONS                               *
+ * ************************************************************************* */
 
 /**
  * Enumeration of value types for statistics groups.
@@ -86,6 +99,11 @@ struct _hdStatsGroup;
  * Type to use for statistics groups.
  */
 typedef struct _hdStatsGroup * hdStatsGroup;
+
+
+/* ************************************************************************* *
+ *                      PUBLIC FUNCTION DECLARATIONS                         *
+ * ************************************************************************* */
 
 /**
  * @addtogroup hdStats
@@ -234,6 +252,11 @@ int hdS_writeString (
 int hdS_finalize(
         hdStatsGroup group      /* Statistics Group */
         );
+
+
+/* ************************************************************************* *
+ *                        PUBLIC MACRO DEFINITIONS                           *
+ * ************************************************************************* */
 
 /* Defines for byte order conversion */
 #include <endian.h>

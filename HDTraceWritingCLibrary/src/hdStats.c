@@ -31,6 +31,10 @@
 #include "util.h"
 #include "hdError.h"
 
+/* ************************************************************************* *
+ *                        DOCUMENTATION STRUCTURING                          *
+ * ************************************************************************* */
+
 /** @cond api_only */
 /**
  * @enum _hdStatsValueType
@@ -81,6 +85,11 @@
  * @ingroup hdStats
  */
 /** @endcond */
+
+
+/* ************************************************************************* *
+ *                            TYPE DEFINITIONS                               *
+ * ************************************************************************* */
 
 /**
  * Type of usage for the group buffer
@@ -162,6 +171,11 @@ struct _hdStatsGroup {
     unsigned int isEnabled : 1;
 };
 
+
+/* ************************************************************************* *
+ *                     STATIC FUNCTION DECLARATIONS                          *
+ * ************************************************************************* */
+
 /**
  * Get the length a value type
  */
@@ -196,6 +210,11 @@ static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsV
  * Append group buffer to group file and reset offset.
  */
 static int flushGroupBuffer(hdStatsGroup group);
+
+
+/* ************************************************************************* *
+ *                    PUBLIC FUNCTION IMPLEMENTATIONS                        *
+ * ************************************************************************* */
 
 /**
  * Create a new statistics group.
@@ -261,6 +280,12 @@ hdStatsGroup hdS_createGroup (
         int topoLevel          /* Topology level the group shell belong to */
         )
 {
+	/* get debug level */
+	verbosity = VLEVEL;
+	char *vlvl = getenv("HDS_VERBOSITY");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", &verbosity);
+
 	/* check input */
 	if (!isValidXMLTagString(groupName) || topology == NULL
 			|| hdT_getTopoNodeLevel(topoNode) < topoLevel)
@@ -1046,6 +1071,11 @@ int hdS_finalize(
 
 	return 0;
 }
+
+
+/* ************************************************************************* *
+ *                    STATIC FUNCTION IMPLEMENTATIONS                        *
+ * ************************************************************************* */
 
 /**
  * Get the length a value type

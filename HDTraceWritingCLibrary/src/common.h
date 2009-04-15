@@ -32,19 +32,19 @@
  * Print a formated error message prefixed by "E:" and code position
  */
 #define hd_error_msg(format, ...) \
-	if (VLEVEL >= V_ERROR) hd_X_msg("E", format, __VA_ARGS__)
+	if (verbosity >= V_ERROR) hd_X_msg("E", format, __VA_ARGS__)
 
 /**
  * Print a formated info message prefixed by "I:" and the code position
  */
 #define hd_info_msg(format, ...) \
-	if (VLEVEL >= V_INFO) hd_X_msg("I", format, __VA_ARGS__)
+	if (verbosity >= V_INFO) hd_X_msg("I", format, __VA_ARGS__)
 
 /**
  * Print a formated debug message prefixed by "D:" and the code position
  */
 #define hd_debug_msg(format, ...) \
-	if (VLEVEL >= V_DEBUG) hd_X_msg("D", format, __VA_ARGS__)
+	if (verbosity >= V_DEBUG) hd_X_msg("D", format, __VA_ARGS__)
 
 /**
  * Set errno to \a eno and return \a ret
@@ -64,7 +64,7 @@
  * Free memory and set pointer to null for easier debugging
  */
 #define	hd_free(var) \
-	free(var); \
+	(var) ? (void)(0) : free(var); \
 	var = NULL;
 
 /**

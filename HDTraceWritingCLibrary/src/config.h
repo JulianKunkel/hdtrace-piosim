@@ -20,6 +20,7 @@
  * TODO: Make this controlled by environment
  */
 #define VLEVEL 5
+int verbosity;
 
 /**
  * Maximal length of trace file names.
@@ -30,11 +31,6 @@
  * Timeout for writing files in seconds.
  */
 #define HD_WRITE_TIMEOUT  10
-
-/**
- * Maximum of statistics values per group
- */
-#define HDS_MAX_VALUES_PER_GROUP 256
 
 /**
  * Size of buffer to use for collecting entry values
