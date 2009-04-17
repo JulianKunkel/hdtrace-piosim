@@ -38,7 +38,7 @@
  */
 
 #include <mpi.h>
-#include <mpio.h>
+//#include <mpio.h>
 #include <pthread.h>
 
 #include <limits.h>
@@ -326,8 +326,8 @@ static void after_Init(int *argc, char ***argv)
 	snprintf(rankname, NAME_LEN, "%d", rank);
 	snprintf(threadname, NAME_LEN, "%d", thread);
 
-	char *toponames[3] = {"Host", "Rank", "Thread"};
-	char *levels[3] = {hostname, rankname, threadname};
+	const char *toponames[3] = {"Host", "Rank", "Thread"};
+	const char *levels[3] = {hostname, rankname, threadname};
 
 	//hdTopology topology = hdT_createTopology(hostname, rankname, "0");
 	hdTopology topology = hdT_createTopology(basename, toponames, 3);
@@ -336,14 +336,12 @@ static void after_Init(int *argc, char ***argv)
 
 	tracefile = hdT_createTrace(topo_names, topology);
 
-	//if(tracefile == NULL)
-	//     printf("tracefile == NULL, errno=%d\n", errno);
-
 	readEnvVars();
 
 
-	hdT_TraceNested(tracefile, trace_nested_operations);
-	hdT_ForceFlush(tracefile, trace_force_flush);
+
+	// hdT_TraceNested(tracefile, trace_nested_operations);
+	hdT_setForceFlush(tracefile, trace_force_flush);
 
 #undef NAME_LEN
 }
@@ -355,7 +353,7 @@ static void after_Init(int *argc, char ***argv)
  */
 static void after_Finalize(void)
 {
-	hdT_Finalize(tracefile);
+	hdT_finalize(tracefile);
 	tracefile = NULL;
 	destroyHashTables();
 }
@@ -370,7 +368,7 @@ static void after_Finalize(void)
  */
 static void before_Abort(MPI_Comm comm, int code)
 {
-	hdT_Finalize(tracefile);
+	hdT_finalize(tracefile);
 	tracefile = NULL;
 	destroyHashTables();
 }

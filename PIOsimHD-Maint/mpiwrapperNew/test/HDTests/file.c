@@ -21,6 +21,11 @@
 int rank;
 int size;
 
+char mpi_errstring[MPI_MAX_ERROR_STRING];
+int resultlen;
+int ret;
+#define CHECK(f) ret = f; if(ret != MPI_SUCCESS) {MPI_Error_string(ret, mpi_errstring, &resultlen); printf("mpi error: %s\n", mpi_errstring); MPI_Abort(MPI_COMM_WORLD, ret);}
+
 int MPI_hdT_Test_nested(int);
 
 int main (int argc, char** argv)
@@ -35,35 +40,35 @@ int main (int argc, char** argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	MPI_Info info;
-	MPI_Info_create(&info);
-	MPI_File_delete("filetest_01.tmp", info);
+	CHECK(MPI_Info_create(&info));
+	CHECK(MPI_File_delete("filetest_01.tmp", info));
 
 	MPI_File fh;
-	MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_RDONLY, info, &fh);
+	CHECK(MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_WRONLY, info, &fh));
 
 	MPI_Status status;
 	char buf[] = "r";
-	MPI_File_write_at_all(fh, sizeof(char)*rank, buf, 1, MPI_CHAR, &status);
-	MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR);
-	MPI_File_write_at_all_end(fh, "r", &status);
-	MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR);
-	MPI_File_write_at_all_end(fh, "r", &status);
-	MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR);
-	MPI_File_write_at_all_end(fh, "r", &status);
-	MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR);
-	MPI_File_write_at_all_end(fh, "r", &status);
+	CHECK(MPI_File_write_at_all(fh, sizeof(char)*rank, buf, 1, MPI_CHAR, &status));
+	CHECK(MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR));
+	CHECK(MPI_File_write_at_all_end(fh, "r", &status));
+	CHECK(MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR));
+	CHECK(MPI_File_write_at_all_end(fh, "r", &status));
+	CHECK(MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR));
+	CHECK(MPI_File_write_at_all_end(fh, "r", &status));
+	CHECK(MPI_File_write_at_all_begin(fh, sizeof(char)*rank, buf, 1, MPI_CHAR));
+    CHECK(MPI_File_write_at_all_end(fh, "r", &status));
 
 
-	MPI_File_close(&fh);
+	CHECK(MPI_File_close(&fh));
 
-	MPI_File_open(MPI_COMM_WORLD, "filetest_02.tmp", MPI_MODE_RDONLY, info, &fh);
-	MPI_File_close(&fh);
+	CHECK(MPI_File_open(MPI_COMM_WORLD, "filetest_03.tmp", MPI_MODE_RDONLY, info, &fh));
+	CHECK(MPI_File_close(&fh));
 
-	MPI_File_delete("filetest_02.tmp", info);
-	MPI_File_delete("filetest_03.tmp", info);
+	CHECK(MPI_File_delete("filetest_02.tmp", info));
+	CHECK(MPI_File_delete("filetest_03.tmp", info));
 
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	CHECK(MPI_Barrier(MPI_COMM_WORLD));
 
 	MPI_Finalize();
 

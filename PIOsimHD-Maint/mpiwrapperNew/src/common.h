@@ -18,5 +18,7 @@ static void printDebugMessage(const char * format, ...);
 		return return_value; \
 	}
 
+#define TMP_BUF_LEN 1024 * 16
+
 
 #endif

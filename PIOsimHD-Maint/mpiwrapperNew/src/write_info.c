@@ -48,7 +48,7 @@ size_t min(size_t a, size_t b)
  */
 static void writeFileInfo(const char * name, int size, gint id)
 {
-	hdT_LogInfo(tracefile,
+	hdT_writeInfo(tracefile,
 			"File name=\"%s\" Size=%d id=%lld\n",
 			name, size, (long long int)id);
 }
@@ -103,7 +103,7 @@ static void writeCommInfo(MPI_Comm comm, gint comm_id)
 	position += snprintf(buffer + position, TMP_BUF_LEN - position, "' id=%d name='%s'\n", comm_id, getCommName(comm));
 	position = min(position, TMP_BUF_LEN);
 
-	hdT_LogInfo(tracefile, buffer);
+	hdT_writeInfo(tracefile, buffer);
 }
 
 
@@ -128,7 +128,7 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 
 	if(combiner == MPI_COMBINER_NAMED) 	// cannot call get_contents on this
 	{
-		hdT_LogInfo(tracefile, "Type id='%d' combiner='%s' name='%s'\n",
+		hdT_writeInfo(tracefile, "Type id='%d' combiner='%s' name='%s'\n",
 				  (int)id, getCombinerName(combiner), typename);
 	}
 	else
@@ -205,7 +205,7 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 						"'\n");
 		pos = min(pos, TMP_BUF_LEN);
 
-		hdT_LogInfo(tracefile, buffer);
+		hdT_writeInfo(tracefile, buffer);
 
 		free(integers);
 		free(addresses);

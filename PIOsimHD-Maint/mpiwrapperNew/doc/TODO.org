@@ -390,9 +390,12 @@ Per HashMap Communicator ID speichern
 ** DONE create_sim-wrapper formatieren
 ** DONE create_sim-wrapper: split collecve *_end funktionen: attribute schreiben!
 ** DONE Verzeichnisstruktur umstellen
-** TODO trace_ vor dem tracefile weglassen
+** DONE trace_ vor dem tracefile weglassen
+** TODO openmpi + mpich besser trennen
+** TODO hdT_TraceNested (afterInit(...)) umschreiben
+** TODO openmpi + mpich header auslagern, makefile anpassen
 ** TODO clean getFileIdEx
-** TODO set_view loggen -> datentyp
+** DONE set_view loggen -> datentyp
 ** DONE Endtags!
 ** DONE Datei-Dupletten beseitigen
 ** DONE stephans filewriter verwenden

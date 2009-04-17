@@ -324,6 +324,8 @@ __thread gint type_table_result = 1; // what is returned when the type is found 
  */
 static gint getTypeId(MPI_Datatype type)
 {
+	assert(sizeof(gint) >= sizeof(MPI_Datatype));
+
 	if(type_table == NULL)
 	{
 		type_table = g_hash_table_new_full(g_int_hash, g_int_equal, free, NULL);
@@ -337,7 +339,7 @@ static gint getTypeId(MPI_Datatype type)
 
 		writeTypeInfo(type, (gint)type);
 	}
-	return type;
+	return (gint)type;
 }
 
 /**

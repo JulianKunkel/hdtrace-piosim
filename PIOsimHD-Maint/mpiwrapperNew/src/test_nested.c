@@ -47,12 +47,12 @@ static int PMPI_hdT_Test_nested(int rec, int max)
 int MPI_hdT_Test_nested(int v1,  int v2){
   int ret;
 
-  hdT_StateStart(tracefile, "hdT_Test_nested");
+  hdT_logStateStart(tracefile, "hdT_Test_nested");
 
   ret = PMPI_hdT_Test_nested( v1,  v2);
 
-  hdT_LogAttributes(tracefile, "depth='%d'", v1);
-  hdT_StateEnd(tracefile);
+  hdT_logAttributes(tracefile, "depth='%d'", v1);
+  hdT_logStateEnd(tracefile);
 
   return ret;
 }

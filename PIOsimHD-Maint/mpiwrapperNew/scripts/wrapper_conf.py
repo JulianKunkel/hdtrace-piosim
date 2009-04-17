@@ -44,18 +44,18 @@ def info_elements(arg):
     for(i = 0; i < nkeys; ++i)
     {
       MPI_Info_get_nthkey((___ARG___), i, key);
-      hdT_LogElement(tracefile, "Info", "value='%s'", key);
+      hdT_logElement(tracefile, "Info", "value='%s'", key);
     }
     }
   }
   """.replace("___ARG___", arg)
 write_at_elements = """
-    hdT_LogElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
                  (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5));
 """
 write_elements = """
   {
-    hdT_LogElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
                  (long long int)getByteOffset(v1), getTypeSize(v3, v4), v3, getTypeId(v4));
   }
 """
@@ -64,13 +64,13 @@ wait_elements = """
     int i;
     for(i = 0; i < v1; ++i)
     {
-      hdT_LogElement(tracefile, "For", "request='%d'", getRequestId(v2[i]));
+      hdT_logElement(tracefile, "For", "request='%d'", getRequestId(v2[i]));
     }
   }
 """
 split_end_element = """
   {
-    hdT_LogElement(tracefile, "For", "request='%d'", getRequestIdForSplit(v1));
+    hdT_logElement(tracefile, "For", "request='%d'", getRequestIdForSplit(v1));
   }
 """
 
@@ -83,7 +83,7 @@ split_end_element = """
 # corresponding PMPI call.                                                         #
 #                                                                                  #
 # The main purpose is to log information about the function by calling             #
-# hdT_LogElement(...)                                                              #
+# hdT_logElement(...)                                                              #
 # """                                                                              #
 ####################################################################################
 beforeMpi = {
@@ -120,13 +120,13 @@ beforeMpi = {
 
   "Wait": """
   {
-    hdT_LogElement(tracefile, "For", "request='%d'", getRequestId(*v1));
+    hdT_logElement(tracefile, "For", "request='%d'", getRequestId(*v1));
   }
 """,
 
   "Test" : """
   {
-    hdT_LogElement(tracefile, "For", "request='%d'", getRequestId(*v1));
+    hdT_logElement(tracefile, "For", "request='%d'", getRequestId(*v1));
   }
 """,
   "Testall" : wait_elements,
@@ -148,7 +148,7 @@ beforeMpi = {
 # corresponding PMPI call.                                                         #
 #                                                                                  #
 # The main purpose is to log information about the function by calling             #
-# hdT_LogElement(...)                                                              #
+# hdT_logElement(...)                                                              #
 # """                                                                              #
 ####################################################################################
 afterMpi = {
@@ -160,7 +160,7 @@ afterMpi = {
 """ + info_elements("v4"),
 
   "File_read_all_begin" : """
-      hdT_LogElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
@@ -175,21 +175,21 @@ afterMpi = {
   "File_write_at_all_end" : split_end_element,
 
   "File_write_all_begin" : """
-      hdT_LogElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
   "File_write_all_end" : split_end_element,
 
   "File_read_ordered_begin" : """
-      hdT_LogElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
   "File_read_ordered_end" : split_end_element,
 
   "File_write_ordered_begin" : """
-      hdT_LogElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
@@ -198,15 +198,15 @@ afterMpi = {
   "Pcontrol" : """
   {
     if(v1 == 0) {
-      hdT_Enable(tracefile, 0);
+      hdT_disableTrace(tracefile);
     }
     else if(v1 == 1) {
-      hdT_Enable(tracefile, 1);
-      hdT_ForceFlush(tracefile, 0);
+      hdT_enableTrace(tracefile);
+      hdT_setForceFlush(tracefile, 0);
     }
     else {
-      hdT_Enable(tracefile, 1);
-      hdT_ForceFlush(tracefile, 1);
+      hdT_enableTrace(tracefile);
+      hdT_setForceFlush(tracefile, 1);
     }
   }
 """,
@@ -217,7 +217,7 @@ afterMpi = {
     MPI_Comm_size(v9, &size);
     for(i = 0; i < size; ++i)
     {
-      hdT_LogElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' type='%d'",
+      hdT_logElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' type='%d'",
                    getWorldRank(i, v9), getTypeSize(v2[i], v4), v2[i], getTypeId(v4));
     }
   }
@@ -229,7 +229,7 @@ afterMpi = {
     MPI_Comm_size(v6, &size);
     for(i = 0; i < size; ++i)
     {
-      hdT_LogElement(tracefile, "Recv", "rank='%d' size='%lld' count='%d' type='%d'",
+      hdT_logElement(tracefile, "Recv", "rank='%d' size='%lld' count='%d' type='%d'",
                    getWorldRank(i, v6), getTypeSize(v3[i], v4), v3[i], v4);
     }             
   }

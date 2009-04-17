@@ -53,7 +53,7 @@ Illustration: The produced C functions have the following form:
 --------------------------------------------------------------------------------
 int MPI_<Function>(<type 1> v1, <type 2> v2, ..., <type n> vn)
 {
-    <Begin logging using hdT_StateStart, unless <Function> is in wrapper_conf.noLog>
+    <Begin logging using hdT_logStateStart, unless <Function> is in wrapper_conf.noLog>
 
     <Insert code from wrapper_conf.beforeMpi>
 
@@ -63,7 +63,7 @@ int MPI_<Function>(<type 1> v1, <type 2> v2, ..., <type n> vn)
 
     <Insert code from wrapper_conf.afterMpi>
 
-    <End logging using hdT_StateStart, unless <Function> is in wrapper_conf.noLog>
+    <End logging using hdT_logStateEnd, unless <Function> is in wrapper_conf.noLog>
 
     <Insert code from wrapper_conf.afterLog>
 }
@@ -133,7 +133,7 @@ for i in xrange(0, len(funcs)):
         logname = logAttributes[fkt][2]
       else:
         logname = fkt
-      print '  hdT_StateStart(tracefile, "%s");' % logname
+      print '  hdT_logStateStart(tracefile, "%s");' % logname
       print
 
     if fkt in beforeMpi:
@@ -148,11 +148,11 @@ for i in xrange(0, len(funcs)):
     if not fkt in noLog:
       if fkt in logAttributes:
         if logAttributes[fkt][1] == "":
-          print '  hdT_LogAttributes(tracefile, "' + logAttributes[fkt][0] + '");'
+          print '  hdT_logAttributes(tracefile, "' + logAttributes[fkt][0] + '");'
         else:
-          print '  hdT_LogAttributes(tracefile, "' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');'
+          print '  hdT_logAttributes(tracefile, "' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');'
       
-      print '  hdT_StateEnd(tracefile);'
+      print '  hdT_logStateEnd(tracefile);'
       print
 
     if fkt in afterLog:
