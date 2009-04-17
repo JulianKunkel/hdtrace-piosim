@@ -412,11 +412,9 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 /**
  * Log Element
  *
- * Can be called after \ref hdT_logStateStart or \ref hdT_logEventStart to
- *  write elements to the state/event.
- * Affects the last state for which \ref hdT_logStateEnd has not been called
- *
- * TODO: Better description
+ * Logs an element for the latest open state. A state is open
+ * if \a hdT_logStateStart without a corresponding \a hdT_logStateEnd
+ * has been called.
  *
  * @param trace        Trace to use
  * @param name         Name of the element
@@ -501,11 +499,9 @@ int hdT_logElement(hdTrace trace, const char * name,
 /**
  * Log Attributes
  *
- * Can be called after \ref hdT_logStateStart or \ref hdT_logEventStart to
- *  write attributes to the state/event.
- * Affects the last State for which \ref hdT_logStateEnd has not been called.
- *
- * TODO: Better description
+ * Logs an element for the latest open state. A state is open
+ * if \a hdT_logStateStart without a corresponding \a hdT_logStateEnd
+ * has been called.
  *
  * @param trace        Trace to use
  * @param valueFormat  Format string for attributes (printf style)
