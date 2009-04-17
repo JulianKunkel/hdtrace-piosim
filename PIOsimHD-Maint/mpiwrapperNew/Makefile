@@ -38,10 +38,13 @@ clean:
 	rm -f src/HDTraceMPIWrapper.c
 	rm -rf doc/doxygen/html
 	rm -rf doc/doxygen/latex
+	cd doc ; rm -rf mpiwrapper.aux mpiwrapper.bbl mpiwrapper.blg mpiwrapper.log mpiwrapper.pdf mpiwrapper.toc 
+	rm scripts/*.pyc
 
 .PHONY: doc
 
 doc:
 	doxygen Doxyfile
+	cd doc; latex mpiwrapper
 
 ### libglib2.0-0
