@@ -432,7 +432,7 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 int hdT_logElement(hdTrace trace, const char * name,
 		const char * valueFormat, ...)
 {
-	if (trace == NULL || isValidString(name) || isValidString(valueFormat)
+	if (trace == NULL || !isValidString(name) || !isValidString(valueFormat)
 			|| strlen(name) >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;

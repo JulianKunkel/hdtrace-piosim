@@ -4,7 +4,7 @@ else
 	DIST_CFLAGS = -Iinclude/mpich
 endif
 
-CFLAGS  += -Wall -pedantic -std=gnu99 -ggdb  $(DIST_CFLAGS) -I../../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS` -DHDTRACE_INCLUDE_NESTED_TEST
+CFLAGS  += -Wall -pedantic -std=gnu99 -ggdb  $(DIST_CFLAGS) -I../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS` -DHDTRACE_INCLUDE_NESTED_TEST
 LDFLAGS += $(shell pkg-config --libs glib-2.0)
 
 .PHONY: all
