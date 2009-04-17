@@ -372,7 +372,7 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 	char *buf = buffer;
 
 	va_start(argptr, format);
-	count = (size_t) vsnprintf(buffer, HD_TMP_BUF_SIZE, format, argptr);
+	count = vsnprintf(buffer, HD_TMP_BUF_SIZE, format, argptr);
 	if (count >= HD_TMP_BUF_SIZE)
 	{
 		hdt_debug(trace, "Temporary buffer too small for message.");
@@ -398,10 +398,7 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 		case HD_ERR_UNKNOWN:
 			hdt_info(trace, "Unknown error during writing of trace info,"
 					" stop logging");
-		default:
-			assert(written >= 0);
 		}
-
 		/* disable further traceing (does not touch errno) */
 		hdT_disableTrace(trace);
 
@@ -450,13 +447,13 @@ int hdT_logElement(hdTrace trace, const char * name,
 
 	va_list valist;
 	va_start(valist, valueFormat);
-	int written;
-	written = snprintf(trace->elements[trace->function_depth]
+	int write;
+	write = snprintf(trace->elements[trace->function_depth]
 			+ trace->elements_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- (trace->elements_pos[trace->function_depth]),
 			"<%s ", name);
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
+	if (write >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing element name.");
@@ -464,14 +461,14 @@ int hdT_logElement(hdTrace trace, const char * name,
 		return -1;
 	}
 	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + written,
+			trace->elements_pos[trace->function_depth] + write,
 			HD_LOG_COMMAND_BUF_SIZE);
-	written = vsnprintf(trace->elements[trace->function_depth]
+	write = vsnprintf(trace->elements[trace->function_depth]
 			+ trace->elements_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->elements_pos[trace->function_depth],
 			valueFormat, valist);
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
+	if (write >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing element.");
@@ -479,14 +476,14 @@ int hdT_logElement(hdTrace trace, const char * name,
 		return -1;
 	}
 	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + written,
+			trace->elements_pos[trace->function_depth] + write,
 			HD_LOG_COMMAND_BUF_SIZE);
-	written = snprintf(trace->elements[trace->function_depth]
+	write = snprintf(trace->elements[trace->function_depth]
 			+ trace->elements_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->elements_pos[trace->function_depth],
 			" />\n");
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
+	if (write >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing element.");
@@ -494,7 +491,7 @@ int hdT_logElement(hdTrace trace, const char * name,
 		return -1;
 	}
 	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + written,
+			trace->elements_pos[trace->function_depth] + write,
 			HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 
@@ -539,14 +536,14 @@ int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
 
 	va_list valist;
 	va_start(valist, valueFormat);
-	int written;
+	int write;
 
-	written = vsnprintf(trace->attributes[trace->function_depth]
+	write = vsnprintf(trace->attributes[trace->function_depth]
 			+ trace->attributes_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->attributes_pos[trace->function_depth],
 			valueFormat, valist);
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
+	if (write >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing attributes.");
@@ -554,14 +551,14 @@ int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
 		return -1;
 	}
 	trace->attributes_pos[trace->function_depth] = minSize(
-			trace->attributes_pos[trace->function_depth] + written,
+			trace->attributes_pos[trace->function_depth] + write,
 			HD_LOG_COMMAND_BUF_SIZE);
-	written = snprintf(trace->attributes[trace->function_depth]
+	write = snprintf(trace->attributes[trace->function_depth]
 			+ trace->attributes_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->attributes_pos[trace->function_depth],
 			" ");
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
+	if (write >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing attributes.");
@@ -569,7 +566,7 @@ int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
 		return -1;
 	}
 	trace->attributes_pos[trace->function_depth] = minSize(
-			trace->attributes_pos[trace->function_depth] + written,
+			trace->attributes_pos[trace->function_depth] + write,
 			HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 
@@ -914,7 +911,7 @@ static int writeLog(hdTrace trace, const char * message)
 
 	if (!hdT_isEnabled(trace))
 		return 0;
-	size_t len = strlen(message);
+	int len = strlen(message);
 	if (trace->buffer_pos + len >= HD_LOG_BUF_SIZE)
 	{
 		if (flushLog(trace) != 0)
