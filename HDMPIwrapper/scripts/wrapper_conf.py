@@ -268,9 +268,9 @@ afterLog = {
 # Attribute - value pairs, which are shared by all send / isend - style functions. #
 # """                                                                              #
 ####################################################################################
-send_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' tag='%d' comm='%d'", 
+send_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' comm='%d'", 
                    "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6)")
-isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' tag='%d' comm='%d' request='%d'", 
+isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' comm='%d' request='%d'", 
                     "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6), getRequestId(*v7)")
 
 
@@ -358,19 +358,19 @@ logAttributes = {
   "Exscan" : ("size='%lld' comm='%d' count='%d' type='%d'",
             "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
-  "Recv" : ("fromRank='%d' tag='%d' comm='%d'", 
+  "Recv" : ("fromRank='%d' fromTag='%d' comm='%d'", 
             "getWorldRank(v4, v6), v5, getCommId(v6)"),
 
-  "Irecv" : ("fromRank='%d' tag='%d' comm='%d'", 
+  "Irecv" : ("fromRank='%d' fromTag='%d' comm='%d'", 
              "getWorldRank(v4, v6), v5, getCommId(v6)"),
 
   "Barrier" : ("comm='%d'", 
                "getCommId(v1)"),
 
-  "Sendrecv" : ("size='%lld' toRank='%d' to-tag='%d' fromRank='%d' fromTag='%d' comm='%d' count='%d' type='%d'", 
+  "Sendrecv" : ("size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' comm='%d' count='%d' type='%d'", 
                 "getTypeSize(v2, v3), getWorldRank(v4, v11), v5, getWorldRank(v9, v11), v10, getCommId(v11), v2, getTypeId(v3)"),
 
-  "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' to-tag='%d' fromRank='%d' fromTag='%d' comm='%d' count='%d' type='%d'", 
+  "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' comm='%d' count='%d' type='%d'", 
                         "getTypeSize(v2, v3), getWorldRank(v4, v8), v5, getWorldRank(v6, v8), v7, getCommId(v8), v2, getTypeId(v3)"),
 
   "Allreduce" : ("size='%lld' comm='%d' count='%d' type='%d'", 
