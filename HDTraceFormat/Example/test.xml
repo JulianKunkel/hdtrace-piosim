@@ -61,9 +61,16 @@
 				<Current type="float" multiplier="1000" unit="mA"/>				
 				<Power type="float" multiplier="1000" unit="mW"/>				
 			</Energy>
-			<Kernel timestampDatatype="EPOCH" timeOffset="30.001s">
-				<Load type="float" multiplier="1000"/>
-			</Kernel>
+<Performance timestampDatatype="EPOCH">
+  <CPU_TOTAL type="FLOAT" unit="%" />
+  <CPU_TOTAL_0 type="FLOAT" unit="%" />
+  <CPU_TOTAL_1 type="FLOAT" unit="%" />
+  <MEM_USED type="FLOAT" unit="MB" />
+  <MEM_FREE type="FLOAT" unit="MB" />
+  <MEM_SHARED type="FLOAT" unit="MB" />
+  <MEM_BUFFER type="FLOAT" unit="MB" />
+  <MEM_CACHED type="FLOAT" unit="MB" />
+</Performance>   
 </ExternalStatistics>
 
 </Application>

@@ -75,6 +75,8 @@ public class TraceFormatFileOpener {
 		// load statistics:
 		for(StatisticsGroupDescription group: projectDescription.getExternalStatisticGroups()){
 			String filename = filePath + currentTopo.getStatisticFileName(group.getName());
+			
+			SimpleConsoleLogger.Debug("Checking stat file for existence: " + filename);
 			if( fileExists(filename) ){
 				// read it
 				SimpleConsoleLogger.Debug("Stat file exists: " + filename);				

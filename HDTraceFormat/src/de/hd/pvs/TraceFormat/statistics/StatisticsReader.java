@@ -43,6 +43,11 @@ public class StatisticsReader implements StatisticSource{
 	public StatisticsReader(String filename, StatisticsGroupDescription group) throws Exception {
 		this.group = group;
 		this.file = new RandomAccessFile(filename, "r");
+		
+		// parse XML header of file:
+		final String headerSizeStr = file.readLine();
+		final int headerSize = Integer.parseInt(headerSizeStr);
+		file.skipBytes(headerSize);
 	}
 	
 	public StatisticGroupEntry getNextInputEntry() throws Exception{

@@ -301,8 +301,9 @@ public class FirstPanel extends JPanel {
 					additionalLoadedFilesBox.setSelectedItem(filename);
 
 				}catch(Exception e){
-					Dialogs.info( MainManager.getJumpshotWindow(), "Error while loading file: " + filename + "\n" +
-							"Cause: " + e.getMessage(), null );
+					e.printStackTrace();
+					Dialogs.error( MainManager.getJumpshotWindow(), "Error while loading file: " + filename + "\n" +
+							"Cause: " + e.getMessage() );
 				}
 			}
 		}
@@ -318,7 +319,8 @@ public class FirstPanel extends JPanel {
 				loadedFiles.add(filename);
 				additionalLoadedFilesBox.setSelectedItem(filename);
 			}catch (Exception e){
-				Dialogs.error(MainManager.getJumpshotWindow(), "Error when initializing " + filename + "!\n" +	e.getMessage() );
+				e.printStackTrace();						
+				Dialogs.error(MainManager.getJumpshotWindow(), "Error when initializing " + filename + "!\n" +	e.getMessage() );		
 				return;
 			}
 		}

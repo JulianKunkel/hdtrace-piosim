@@ -159,7 +159,8 @@ public class ProjectDescriptionXMLReader {
 		int currentNumberInGroup = 0;
 		for(XMLTag child: children){
 			int multiplier = 1;
-			if(child.getAttribute("multiplier").length() > 0){
+			final String multiplierStr = child.getAttribute("multiplier");
+			if(multiplierStr != null && multiplierStr.length() > 0){
 				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
 			}
 			StatisticDescription desc = new StatisticDescription(stat,
