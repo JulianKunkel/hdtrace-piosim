@@ -25,7 +25,6 @@
 
 package drawable;
 
-import topology.TopologyType;
 import viewer.legends.IPopupType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 
@@ -132,8 +131,8 @@ public class CategoryStatistic extends Category {
 	}
 	
 	@Override
-	public TopologyType getTopologyType() {
-		return TopologyType.STATISTIC;
+	public VisualizedObjectType getTopologyType() {
+		return VisualizedObjectType.STATISTIC;
 	}
 	
 	public boolean isShowAverageLine() {

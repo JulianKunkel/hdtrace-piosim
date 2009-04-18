@@ -23,9 +23,9 @@
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package topology;
+package drawable;
 
-public enum TopologyType
+public enum VisualizedObjectType
 {
 	EVENT, STATE, ARROW, STATISTIC
 }

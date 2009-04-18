@@ -87,7 +87,7 @@ implements ScrollableView, IAutoRefreshable
 
 	// shorthand for some convenient constant
 	private   int                half_NumImages;
-	
+
 	/**
 	 * The viewport this object is added to.
 	 */
@@ -127,7 +127,7 @@ implements ScrollableView, IAutoRefreshable
 	 * Return the real height the image has (not the viewport height).
 	 */
 	public abstract int getRealImageHeight();
-	
+
 	/**
 	 * Get an object of a given type from the clicked position:
 	 * @param view_click
@@ -451,9 +451,9 @@ implements ScrollableView, IAutoRefreshable
 	static class BackgroundRendering{
 		final int imagePos;
 		final TimeBoundingBox box;
-		final Image image;
+		final BufferedImage image;
 
-		public BackgroundRendering(int imagePos, Image image, TimeBoundingBox box) {
+		public BackgroundRendering(int imagePos, BufferedImage image, TimeBoundingBox box) {
 			this.box = box;
 			this.imagePos = imagePos;
 			this.image = image;
@@ -499,7 +499,7 @@ implements ScrollableView, IAutoRefreshable
 		boolean abortCurrentJob = false;
 
 		@Override
-		protected Void doInBackground() throws Exception {
+		protected Void doInBackground() {
 			while (true) {
 				if (isAdditionalBackgroundProcessing()){
 					doAdditionalBackgroundThreadWork();
@@ -513,7 +513,11 @@ implements ScrollableView, IAutoRefreshable
 				// for testing:
 				//try{Thread.sleep(1000);}catch(Exception e){}
 
-				drawOneImageInBackground(job.image, job.box);
+				try{
+					drawOneImageInBackground(job.image, job.box);
+				}catch(Throwable e){
+					e.printStackTrace();
+				}
 				if(abortCurrentJob){
 					abortCurrentJob = false;
 					continue;
@@ -539,8 +543,14 @@ implements ScrollableView, IAutoRefreshable
 	 * @return
 	 */
 	private synchronized BackgroundRendering getNextJob(){
-		if(renderingJobs.isEmpty()){
-			backgroundThread = null;
+		while(renderingJobs.isEmpty()){
+			try{
+				wait();
+			}catch(InterruptedException e){
+				System.out.println("Thread interrupted");
+				backgroundThread = null;
+				return null;
+			}
 		}
 		currentTask = renderingJobs.pollLast(); 
 		return currentTask;
@@ -553,14 +563,14 @@ implements ScrollableView, IAutoRefreshable
 	private synchronized void cancelRedrawing(int imagePos){
 		renderingJobs.remove( new BackgroundRendering(imagePos, null, null));
 
-		// clear the images to ensure the user sees correct information:
-		offscreenImages[imagePos].getGraphics().clearRect(0, 0, 
-				offscreenImages[imagePos].getWidth(), offscreenImages[imagePos].getHeight());
-
 		if(backgroundThread != null && (currentTask == null || currentTask.imagePos == imagePos)){
 			backgroundThread.abortCurrentJob = true;
 			backgroundThread = null;
 		}
+
+		// clear the image to ensure the user sees correct information:
+		offscreenImages[imagePos].getGraphics().clearRect(0, 0, 
+				offscreenImages[imagePos].getWidth(), offscreenImages[imagePos].getHeight());
 	}
 
 	/**
@@ -569,10 +579,10 @@ implements ScrollableView, IAutoRefreshable
 	public synchronized void cancelRedrawing(){
 		renderingJobs.clear();
 
-		// clear the images to ensure the user sees correct information:
-		for(int i=0; i < NumImages; i++){
-			offscreenImages[i].getGraphics().clearRect(0, 0, 
-					offscreenImages[i].getWidth(), offscreenImages[i].getHeight());
+		for(int imagePos = 0; imagePos < NumImages; imagePos++){
+			// clear the image to ensure the user sees correct information:
+			offscreenImages[imagePos].getGraphics().clearRect(0, 0, 
+					offscreenImages[imagePos].getWidth(), offscreenImages[imagePos].getHeight());
 		}
 
 		if(backgroundThread != null)
@@ -580,11 +590,12 @@ implements ScrollableView, IAutoRefreshable
 	}
 
 	private synchronized void scheduleToDrawOneImageInBackground( int imagePos ){
-		final Image image = offscreenImages[imagePos];
+		final BufferedImage image = offscreenImages[imagePos];
 
 		cancelRedrawing(imagePos);
 
 		renderingJobs.push(new BackgroundRendering(imagePos, image, tImages[ imagePos ]));
+		notify();
 	}
 
 	/**
@@ -608,7 +619,7 @@ implements ScrollableView, IAutoRefreshable
 			}
 		}		
 	}
-	
+
 	@Override
 	protected void paintComponent(Graphics g)
 	{	
@@ -690,7 +701,7 @@ implements ScrollableView, IAutoRefreshable
 		final int visWidth = viewport.getWidth();
 		final int newWidth = visWidth * NumViewsPerImage;
 		final int newHeight = getRealImageHeight();
-		
+
 		if(image_size.getSize().width == newWidth && image_size.getSize().height == newHeight ){
 			// not resized at all
 			return;

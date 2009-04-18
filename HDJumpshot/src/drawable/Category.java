@@ -44,7 +44,6 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import topology.TopologyType;
 
 
 public abstract class Category
@@ -121,7 +120,7 @@ public abstract class Category
 
     abstract public void setSearchable( boolean new_value );
     abstract public boolean isSearchable();
-    abstract public TopologyType getTopologyType();
+    abstract public VisualizedObjectType getTopologyType();
     
 
     public final boolean isVisiblySearchable(){

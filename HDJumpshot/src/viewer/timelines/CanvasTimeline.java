@@ -54,7 +54,6 @@ import javax.swing.SwingUtilities;
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import topology.TopologyStatisticTreeNode;
-import topology.TopologyType;
 import viewer.common.Debug;
 import viewer.common.Parameters;
 import viewer.common.Profile;
@@ -66,6 +65,9 @@ import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
 import viewer.zoomable.ViewportTime;
+import arrow.Arrow;
+import arrow.ArrowManager;
+import arrow.ClientMPICommunicationArrowComputer;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -78,8 +80,10 @@ import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
 import drawable.CategoryStatistic;
+import drawable.ColorAlpha;
 import drawable.DrawObjects;
 import drawable.TimeBoundingBox;
+import drawable.VisualizedObjectType;
 import drawable.CategoryStatistic.MaxAdjustment;
 import drawable.CategoryStatistic.Scaling;
 
@@ -113,7 +117,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		
 		@Override
 		public void categoryVisibilityModified(Category category, boolean value) {
-			if(category.getTopologyType() == TopologyType.STATISTIC){
+			if(category.getTopologyType() == VisualizedObjectType.STATISTIC){
 				final CategoryStatistic statCat = (CategoryStatistic) category;
 				
 				getTopologyManager().setStatisticVisiblity(statCat.getStatisticDescription(), value);
@@ -139,7 +143,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		topologyManager.addTopologyChangedListener(topologyChangeListener); 
 	}
 
-
+	@Override
 	final protected void drawOneImageInBackground(Image offImage, final TimeBoundingBox  timebounds )
 	{
 		final int num_rows   = getRowCount();
@@ -207,9 +211,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		long drawedStatistics = 0;
 		long drawedTraceElements = 0;
 
-		// Draw all drawables            
-		//DrawObjects.drawArrow(offGraphics, coord_xform, new Epoch(4.5), new Epoch(2.0), 1, 2, new ColorAlpha(ColorAlpha.PINK));
-
+		// Draw all drawables
 		final Epoch vStartTime = new Epoch(timebounds.getEarliestTime() );
 		final Epoch vEndTime = new Epoch(timebounds.getLatestTime() );
 
@@ -225,18 +227,58 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				break;
 			}
 		}
+		
+		final int arrowsCnt = drawArrows( offGraphics,	vStartTime,  vEndTime, coord_xform);
 
 		if(SimpleConsoleLogger.isDebugEverything()){			
 			SimpleConsoleLogger.DebugWithStackTrace( (System.currentTimeMillis() - startTime) +  "ms Draw Canvas [t] "  
 					+ timebounds.getEarliestTime() +" - " + timebounds.getLatestTime()  
-					+	" drawn trace: " + drawedTraceElements +" stat:"  +	drawedStatistics + "",
+					+	" drawn trace: " + drawedTraceElements +" stat:"  +	drawedStatistics  + " arrows: "+ arrowsCnt ,
 					2);
-
 		}
-
-		offGraphics.dispose();
 	}   // endof drawOneOffImage()
 
+	/**
+	 * Draw all the arrows.
+	 */
+	private int drawArrows( Graphics2D offGraphics,	Epoch vStartTime, Epoch vEndTime, CoordPixelImage coord_xform){
+		int cnt = 0;		
+		ArrowManager arrowManager = new ArrowManager();
+		ClientMPICommunicationArrowComputer comp = new ClientMPICommunicationArrowComputer(); 
+		arrowManager.setGroup(comp.computeArrows(reader));
+		
+		
+		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
+		final TopologyManager topologyManager = getTopologyManager();
+
+		final Enumeration<Arrow> arrowEnum = arrowManager.getArrowEnumerator(
+				vStartTime.add(globalMinTime), 
+				vEndTime.add(globalMinTime));
+		
+		while(arrowEnum.hasMoreElements()){
+			final Arrow arrow = arrowEnum.nextElement();
+			
+			cnt++;
+			
+			final Integer startTimeline = topologyManager.getTimelineForTopology(arrow.getStartTopology());
+			final Integer endTimeline = topologyManager.getTimelineForTopology(arrow.getEndTopology());
+			if(startTimeline == null || endTimeline == null){
+				continue;
+			}			
+			
+			DrawObjects.drawArrow(offGraphics, coord_xform, 
+					arrow.getStartTime().subtract(globalMinTime),
+					arrow.getEndTime().subtract(globalMinTime), 					
+					startTimeline, 
+					endTimeline, 
+					new ColorAlpha(ColorAlpha.PINK));
+		}
+
+		
+		return cnt;
+	}
+	
+	
 	public int drawStatisticTimeline(
 			int timeline,
 			TopologyStatisticTreeNode node,  Graphics2D offGraphics,

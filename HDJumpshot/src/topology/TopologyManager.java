@@ -57,6 +57,7 @@ import viewer.histogram.StatisticHistogramFrame;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 public class TopologyManager 
 {
@@ -68,7 +69,15 @@ public class TopologyManager
 	final TraceFormatBufferedFileReader  reader;
 	ModelTime                      modelTime;
 
-	private ArrayList<TopologyTreeNode> topoToTimelineMapping = new ArrayList<TopologyTreeNode>();
+	/**
+	 * Stores for each timeline the corresponding topology
+	 */
+	private ArrayList<TopologyTreeNode>      timelines = new ArrayList<TopologyTreeNode>();
+	
+	/**
+	 * Stores for each topology entry the corresponding timeline
+	 */
+	private HashMap<TopologyEntry, Integer>  topoToTimelineMapping = new HashMap<TopologyEntry, Integer>();
 	
 	
 	/**
@@ -203,15 +212,18 @@ public class TopologyManager
 	 * Recreate topology based on tree, i.e. not expanded nodes are not shown as timelines.
 	 */
 	private void reloadTopologyMappingFromTree(){
+		timelines.clear();
 		topoToTimelineMapping.clear();
 		for(int timeline = 0; timeline < tree.getRowCount(); timeline++){
 			final TreePath path = tree.getPathForRow(timeline);
 			final TreeNode node = (TreeNode) path.getLastPathComponent();
 
 			if(TopologyTreeNode.class.isInstance(node)){
-				topoToTimelineMapping.add((TopologyTreeNode) node);
+				timelines.add((TopologyTreeNode) node);
+				
+				topoToTimelineMapping.put(((TopologyTreeNode) node).getTopology(), timeline);
 			}else{
-				topoToTimelineMapping.add(null);
+				timelines.add(null);
 			}
 		}
 	}
@@ -223,7 +235,7 @@ public class TopologyManager
 	 * @return
 	 */
 	public BufferedTraceFileReader getTraceReaderForTimeline(int timeline){
-		return (BufferedTraceFileReader) ((TopologyTraceTreeNode) topoToTimelineMapping.get(timeline)).getTraceSource();
+		return (BufferedTraceFileReader) ((TopologyTraceTreeNode) timelines.get(timeline)).getTraceSource();
 	}
 
 	/**
@@ -232,11 +244,11 @@ public class TopologyManager
 	 * @return
 	 */
 	public BufferedStatisticFileReader getStatisticReaderForTimeline(int timeline){
-		return (BufferedStatisticFileReader) ((TopologyStatisticTreeNode) topoToTimelineMapping.get(timeline)).getStatisticSource();
+		return (BufferedStatisticFileReader) ((TopologyStatisticTreeNode) timelines.get(timeline)).getStatisticSource();
 	}
 
 	public TopologyStatisticTreeNode getStatisticNodeForTimeline(int timeline){
-		return ((TopologyStatisticTreeNode) topoToTimelineMapping.get(timeline));
+		return ((TopologyStatisticTreeNode) timelines.get(timeline));
 	}
 
 
@@ -248,19 +260,19 @@ public class TopologyManager
 	 * @return
 	 */
 	public int getStatisticNumberForTimeline(int timeline){
-		return ((TopologyStatisticTreeNode) topoToTimelineMapping.get(timeline)).getNumberInGroup();
+		return ((TopologyStatisticTreeNode) timelines.get(timeline)).getNumberInGroup();
 	}
 
 	public int getTimelineNumber(){
-		return topoToTimelineMapping.size();
+		return timelines.size();
 	}    
 
 	public TimelineType getType(int timeline){    	
-		if(topoToTimelineMapping.size() <= timeline)
+		if(timelines.size() <= timeline)
 			return TimelineType.INVALID_TIMELINE;
-		if(topoToTimelineMapping.get(timeline) == null)
+		if(timelines.get(timeline) == null)
 			return TimelineType.INNER_NODE;    	
-		return topoToTimelineMapping.get(timeline).getType();
+		return timelines.get(timeline).getType();
 	}
 
 	public String getTopologyLabels(){
@@ -328,8 +340,6 @@ public class TopologyManager
 	 */
 	public void restoreTopology(){
 		final boolean old = setChangeListenerDisabled(true);
-		topoToTimelineMapping.clear();
-
 		this.tree_root = (new DefaultTopologyTreeMapping(topologyManagerType)).loadTopology(reader);
 
 		tree.setModel(new DefaultTreeModel(tree_root));
@@ -431,7 +441,7 @@ public class TopologyManager
 
 
 	public TopologyTreeNode getTreeNodeForTimeline(int timeline){
-		return topoToTimelineMapping.get(timeline);
+		return timelines.get(timeline);
 	}
 
 	/**
@@ -511,5 +521,14 @@ public class TopologyManager
 	
 	public void setTopologyManagerContents(TopologyManagerContents topologyManagerContents) {
 		this.topologyManagerType = topologyManagerContents;
+	}
+	
+	/**
+	 * Return the timeline for this topology or NULL if the topology is not mapped right now.
+	 * @param entry
+	 * @return
+	 */
+	public Integer getTimelineForTopology(TopologyEntry entry){
+		return topoToTimelineMapping.get(entry);		
 	}
 }

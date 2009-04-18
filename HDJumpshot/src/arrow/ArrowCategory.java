@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id: CategoryEvent.java 205 2009-04-11 15:33:40Z kunkel $
+ * @lastmodified    $Date: 2009-04-11 17:33:40 +0200 (Sa, 11 Apr 2009) $
+ * @modifiedby      $LastChangedBy: kunkel $
+ * @version         $Revision: 205 $ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -23,16 +23,38 @@
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package drawable;
+package arrow;
+
+import drawable.Category;
+import drawable.ColorAlpha;
+import drawable.VisualizedObjectType;
 
 
-public class CategoryState extends CategoryEvent{
-	public CategoryState(String in_name, ColorAlpha in_color ) {
+public class ArrowCategory extends Category {
+	
+	final ArrowGroup group;
+
+	public ArrowCategory(String in_name, ColorAlpha in_color, ArrowGroup group ) {
 		super(in_name, in_color);
+		this.group = group;
+	}
+	
+	public ArrowGroup getGroup() {
+		return group;
 	}
 	
 	@Override
+	public void setSearchable(boolean new_value) {
+		
+	}
+	
+	@Override
+	public boolean isSearchable() {		
+		return false;
+	}
+
+	@Override
 	public VisualizedObjectType getTopologyType() {
-		return VisualizedObjectType.STATE;
+		return VisualizedObjectType.ARROW;
 	}
 }
