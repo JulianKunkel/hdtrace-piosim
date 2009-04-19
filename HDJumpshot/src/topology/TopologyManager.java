@@ -39,6 +39,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -50,8 +52,11 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import topology.mappings.ExistingTopologyMappings;
+import topology.mappings.TopologyTreeMapping;
 import viewer.common.Const;
 import viewer.common.ModelTime;
+import viewer.common.SortedJTreeNode;
 import viewer.first.MainManager;
 import viewer.histogram.StatisticHistogramFrame;
 import viewer.timelines.TimelineType;
@@ -69,17 +74,19 @@ public class TopologyManager
 	final TraceFormatBufferedFileReader  reader;
 	ModelTime                      modelTime;
 
+	ExistingTopologyMappings       usedTopologyMapping = ExistingTopologyMappings.TopologyDefault;
+
 	/**
 	 * Stores for each timeline the corresponding topology
 	 */
 	private ArrayList<TopologyTreeNode>      timelines = new ArrayList<TopologyTreeNode>();
-	
+
 	/**
 	 * Stores for each topology entry the corresponding timeline
 	 */
 	private HashMap<TopologyEntry, Integer>  topoToTimelineMapping = new HashMap<TopologyEntry, Integer>();
-	
-	
+
+
 	/**
 	 * If set to true then listeners are not notified on a topology change, this allows mass update of topology
 	 */
@@ -87,30 +94,61 @@ public class TopologyManager
 	private LinkedList<TopologyChangeListener> changeListener = new LinkedList<TopologyChangeListener>();
 
 	private TreeExpansionListener treeExpansionListener = new TopologyTreeExpansionListener();
-	
-  private TopologyManagerContents topologyManagerType = TopologyManagerContents.EVERYTHING;
 
-  /**
-   * The following class allows to store information about removed nodes.
-   * @author julian
-   */
+	private TopologyManagerContents topologyManagerType = TopologyManagerContents.EVERYTHING;
+
+	/**
+	 * The following class allows to store information about removed nodes.
+	 * @author julian
+	 */
 	private class RemovedNode{
-		final DefaultMutableTreeNode parent;
-		final DefaultMutableTreeNode child;
-		
-		public RemovedNode(DefaultMutableTreeNode child) {
-			this.parent = (DefaultMutableTreeNode) child.getParent();
+		final SortedJTreeNode parent;
+		final SortedJTreeNode child;
+
+		public RemovedNode(SortedJTreeNode child) {
+			this.parent = (SortedJTreeNode) child.getParent();
 			this.child = child;
 		}
 	}
-	
+
 	/**
 	 * Stores information per StatisticDescription to allow to remove timelines if a statistic is visible
 	 * and to restore them if made visible.
 	 */
 	private HashMap<StatisticDescription, LinkedList<RemovedNode>> removedNodesMap = new HashMap<StatisticDescription, LinkedList<RemovedNode>>(); 
-	
-  
+
+
+	private SortedJTreeNode clickedNode;
+
+	private void addTopologyMenu(JPopupMenu popupMenu){
+		// show available topologies:
+		for(final ExistingTopologyMappings mapping: ExistingTopologyMappings.values()){
+
+			if(! mapping.getInstance().isAvailable(reader)){
+				continue;
+			}
+
+			final JMenuItem item = new JMenuItem(new AbstractAction(){
+				private static final long serialVersionUID = 1L;
+
+				{ // instance initalizer
+					putValue(Action.NAME, mapping.toString()); 
+				}
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setTopologyMapping(ExistingTopologyMappings.valueOf(e.getActionCommand()));
+				}
+			});
+
+
+			if(usedTopologyMapping == mapping){
+				item.setEnabled(false);
+			}
+			popupMenu.add(item);						
+		}
+	}
+
 	/**
 	 * used to detect clicks on the tree i.e. for expanding the menus
 	 */
@@ -118,43 +156,55 @@ public class TopologyManager
 		public void mouseClicked(java.awt.event.MouseEvent evt) {
 			if (SwingUtilities.isRightMouseButton( evt )){
 				final TreePath path = tree.getClosestPathForLocation(evt.getX(), evt.getY());
-				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-				
+				clickedNode = (SortedJTreeNode) path.getLastPathComponent();
+
+				JPopupMenu popupMenu = new JPopupMenu();
+
 				// return if we are not in the Boundrary of the current path (i.e. not really clicked inside the path).
 				if(! tree.getPathBounds(path).contains(evt.getPoint())){
+					addTopologyMenu(popupMenu);
+					popupMenu.show( evt.getComponent(), evt.getX(), evt.getY() );
 					return;
 				}
-				
-				if( TopologyStatisticTreeNode.class.isInstance(node) ){
-					final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) node;
 
-					JPopupMenu statisticPopupMenu = new JPopupMenu();
-					statisticPopupMenu.add(new ShowStatisticHistogramAction(statNode));					
-					statisticPopupMenu.show( evt.getComponent(), evt.getX(), evt.getY() );					
+				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){					
+					// Show statistic histogram:			
+					popupMenu.add(new AbstractAction(){
+						private static final long serialVersionUID = 1L;
+
+						{
+							putValue(Action.NAME, "Show statistic histogram");
+						}
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) clickedNode;
+
+							StatisticHistogramFrame frame = new StatisticHistogramFrame(
+									(BufferedStatisticFileReader) statNode.getStatisticSource(), 
+									statNode.getStatisticDescription(), modelTime, 
+									reader.getCategory(((BufferedStatisticFileReader) statNode.getStatisticSource()).getGroup(), statNode.getStatisticDescription().getName()));
+							frame.show();
+						}
+					});						
 				}
+
+				if(popupMenu.getComponentCount() == 0){
+					addTopologyMenu(popupMenu);
+				}
+				popupMenu.show( evt.getComponent(), evt.getX(), evt.getY() );
 			}
 		};	
 	};
-	
-	private class ShowStatisticHistogramAction extends AbstractAction {
-		private static final long serialVersionUID = 1L;
-		
-		final TopologyStatisticTreeNode statNode;
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			StatisticHistogramFrame frame = new StatisticHistogramFrame(
-					(BufferedStatisticFileReader) statNode.getStatisticSource(), 
-					statNode.getStatisticDescription(), modelTime, 
-					reader.getCategory(((BufferedStatisticFileReader) statNode.getStatisticSource()).getGroup(), statNode.getStatisticDescription().getName()));
-			frame.show();
-		}
-		
-		public ShowStatisticHistogramAction(TopologyStatisticTreeNode statNode) {
-			super("Show statistics for " + statNode.getStatisticName());
-			this.statNode = statNode;
-	        //putValue(SHORT_DESCRIPTION, desc);
-		}
+
+	/**
+	 * Change the current topology mapping, i.e. the mapping from topology to timelines.
+	 * @param mapping
+	 */
+	public void setTopologyMapping(ExistingTopologyMappings mapping){
+		this.usedTopologyMapping = mapping;
+
+		restoreTopology();
 	}
 
 	private class TopologyTreeExpansionListener implements TreeExpansionListener{    
@@ -192,7 +242,7 @@ public class TopologyManager
 		boolean old = this.changeListenerDisabled;
 		if(old == changeListenerDisabled)
 			return old;
-		
+
 		this.changeListenerDisabled = changeListenerDisabled;
 
 		if(changeListenerDisabled == true){
@@ -200,7 +250,7 @@ public class TopologyManager
 		}else{
 			tree.addTreeExpansionListener( treeExpansionListener);			
 		}
-		
+
 		return old;
 	}
 
@@ -220,7 +270,7 @@ public class TopologyManager
 
 			if(TopologyTreeNode.class.isInstance(node)){
 				timelines.add((TopologyTreeNode) node);
-				
+
 				topoToTimelineMapping.put(((TopologyTreeNode) node).getTopology(), timeline);
 			}else{
 				timelines.add(null);
@@ -312,7 +362,7 @@ public class TopologyManager
 
 					if( TopologyTreeNode.class.isInstance(node) ){
 						final TopologyTreeNode topNode = (TopologyTreeNode) node;
-						
+
 						//System.out.println( depth + " " + node.toString() + " " + topNode.getType());
 
 						if(topNode.getType() == TimelineType.INNER_NODE) {
@@ -334,28 +384,34 @@ public class TopologyManager
 			tree.clearSelection();
 		}
 	}
-	
+
 	/**
 	 * restore the timelines to the normal / selected topology 
 	 */
 	public void restoreTopology(){
 		final boolean old = setChangeListenerDisabled(true);
-		this.tree_root = (new DefaultTopologyTreeMapping(topologyManagerType)).loadTopology(reader);
+		try{
+			TopologyTreeMapping mapping = usedTopologyMapping.getInstance();
+			mapping.setTopologyManagerContents(topologyManagerType);
+			this.tree_root = mapping.createTopology(reader);
 
-		tree.setModel(new DefaultTreeModel(tree_root));
-		
-		expandTreeInternal();
+			tree.setModel(new DefaultTreeModel(tree_root));
 
-		removeEmptyTopologies();
+			expandTreeInternal();
 
-		setChangeListenerDisabled(old);
+			removeEmptyTopologies();
 
-		fireTopologyChanged();
+			setChangeListenerDisabled(old);
+
+			fireTopologyChanged();
+		}catch(Exception e){
+			throw new IllegalArgumentException(e);
+		}
 	}
-	
+
 	public void setStatisticVisiblity(StatisticDescription statistic, boolean visible){
 		final DefaultTreeModel model = getTreeModel();
-		
+
 		if(visible == true){
 			final LinkedList<RemovedNode> removedNodes = removedNodesMap.remove(statistic);
 			if(removedNodes == null || removedNodes.size() == 0){
@@ -365,29 +421,29 @@ public class TopologyManager
 			for(RemovedNode rmNode: removedNodes){
 				model.insertNodeInto(rmNode.child, rmNode.parent, 0);
 			}
-			
+
 			return;
 		}
-		
+
 		// walk through tree:
 		final Enumeration<DefaultMutableTreeNode> nodes = tree_root.depthFirstEnumeration();
 		final LinkedList<RemovedNode> removedNodes = new LinkedList<RemovedNode>();
-		
+
 		while(nodes.hasMoreElements()){
 			final DefaultMutableTreeNode node = nodes.nextElement();
-			
+
 			if( TopologyStatisticTreeNode.class.isInstance(node) ){
 				final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) node;
 				if(statNode.getStatisticGroup() == statistic.getGroup() && statistic == statNode.getStatisticDescription()){
 					// remove that node:
 					removedNodes.add( new RemovedNode(statNode));
-					
+
 					model.removeNodeFromParent(statNode);
 				}
 			}
 		}
 		removedNodesMap.put(statistic, removedNodes);
-		
+
 		reloadTopologyMappingFromTree();
 	}
 
@@ -434,7 +490,6 @@ public class TopologyManager
 			// TODO unload loaded file if pathCount == 1!!!
 		}
 
-		reloadTopologyMappingFromTree();	
 		fireTopologyChanged();
 	}
 
@@ -455,15 +510,15 @@ public class TopologyManager
 	{		
 		this.reader = reader;
 		tree.setEditable( false );
-		
+
 		tree.setToolTipText("Real topology, right click enables special options.");
 		//tree.putClientProperty("JTree.lineStyle", "Angled");
-		
+
 		tree.addMouseListener(treeMouseListener);
 		tree.setFont(Const.FONT);
 
 		tree.setCellRenderer(new TopologyTreeRenderer(MainManager.getIconManager()));
-		
+
 		this.modelTime = modelTime;
 		this.topologyManagerType = topologyManagerContents;
 		restoreTopology();		
@@ -490,11 +545,11 @@ public class TopologyManager
 			}
 		}
 	}
-	
+
 	public JTree getTree() {
 		return tree;
 	}
-	
+
 	private DefaultTreeModel getTreeModel(){
 		return (DefaultTreeModel) tree.getModel();
 	}
@@ -514,15 +569,15 @@ public class TopologyManager
 	public void setRowHeight(int rowHeight) {
 		tree.setRowHeight(rowHeight);
 	}
-	
+
 	public TopologyManagerContents getTopologyManagerContents() {
 		return topologyManagerType;
 	}
-	
+
 	public void setTopologyManagerContents(TopologyManagerContents topologyManagerContents) {
 		this.topologyManagerType = topologyManagerContents;
 	}
-	
+
 	/**
 	 * Return the timeline for this topology or NULL if the topology is not mapped right now.
 	 * @param entry

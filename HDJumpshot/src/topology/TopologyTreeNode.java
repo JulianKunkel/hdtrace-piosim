@@ -25,8 +25,7 @@
 
 package topology;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import viewer.common.SortedJTreeNode;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
@@ -37,7 +36,7 @@ import de.hd.pvs.TraceFormat.topology.TopologyEntry;
  * 
  * @author Julian M. Kunkel
  */
-abstract public class TopologyTreeNode extends DefaultMutableTreeNode{
+abstract public class TopologyTreeNode extends SortedJTreeNode{
 	private static final long serialVersionUID = -5708766035964911422L;
 	
 	// topology belonging to this node:

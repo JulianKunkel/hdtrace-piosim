@@ -15,31 +15,26 @@
 //	You should have received a copy of the GNU General Public License
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
-package topology;
+package topology.mappings;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.util.Collection;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import topology.TopologyInnerNode;
+import topology.TopologyTraceTreeNode;
+import topology.TopologyTreeNode;
+import viewer.common.SortedJTreeNode;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 
 /**
  * Load a default topology, filename => hierarchically print the children 
  */
-public class DefaultTopologyTreeMapping {
-	final boolean addStatistics;
-	
-	public DefaultTopologyTreeMapping(TopologyManagerContents type) {
-		this.addStatistics = !(type == TopologyManagerContents.TRACE_ONLY);
-	}
-	
-	public DefaultMutableTreeNode loadTopology(TraceFormatBufferedFileReader reader){
-		DefaultMutableTreeNode tree_root = new DefaultMutableTreeNode("HDTrace");
+public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
+
+	public SortedJTreeNode createTopology(TraceFormatBufferedFileReader reader){
+		SortedJTreeNode tree_root = new SortedJTreeNode("HDTrace");
 
 		for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
 			recursivlyAddTopology(1, tree_root, reader.getLoadedFile(f).getTopology(), reader.getLoadedFile(f));
@@ -48,7 +43,7 @@ public class DefaultTopologyTreeMapping {
 		return tree_root;
 	}
 
-	protected void recursivlyAddTopology(int level, DefaultMutableTreeNode parentNode, TopologyEntry topology, 
+	protected void recursivlyAddTopology(int level, SortedJTreeNode parentNode, TopologyEntry topology, 
 			TraceFormatFileOpener file){
 		final TopologyTreeNode node = new TopologyInnerNode(topology, file);
 
@@ -69,7 +64,7 @@ public class DefaultTopologyTreeMapping {
 					// TODO remove this child!
 					return;
 
-				final DefaultMutableTreeNode traceParent = addDummyTreeNode("Trace", node);
+				final SortedJTreeNode traceParent = addDummyTreeNode("Trace", node);
 
 				for(TopologyEntry child: topology.getChildElements().values()){					
 					if (child.getStatisticSources().size() == 0){
@@ -80,13 +75,12 @@ public class DefaultTopologyTreeMapping {
 						}else{
 							// TODO remove this child from topology
 						}
-					}else if(addStatistics){
+					}else if(isAddStatistics()){
 						// handles statistics on the leaf level:
-						final DefaultMutableTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
+						final SortedJTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
 
 						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file);
 						addTopologyTreeNode(childNode, extra);
-
 						addStatisticsInTopology(level, extra, child, file);
 					}
 				}								
@@ -96,40 +90,12 @@ public class DefaultTopologyTreeMapping {
 				}
 			}
 		}
-
-		addStatisticsInTopology(level, node, topology, file);
+		if( isAddStatistics() )
+			addStatisticsInTopology(level, node, topology, file);
 	}
 	
-
-	protected void addTopologyTreeNode(TopologyTreeNode node, DefaultMutableTreeNode parent){
-		if(parent != null)
-			parent.add(node);
+	@Override
+	public boolean isAvailable(TraceFormatBufferedFileReader reader) {		
+		return true;
 	}
-
-	protected DefaultMutableTreeNode addDummyTreeNode(String name, DefaultMutableTreeNode parent){
-		DefaultMutableTreeNode node = new DefaultMutableTreeNode(name);
-		parent.add(node);
-
-		return node;
-	}
-
-
-	protected void addStatisticsInTopology(int level, DefaultMutableTreeNode node, TopologyEntry topology, TraceFormatFileOpener file){
-		if(!  addStatistics)
-			return;
-		
-		// add statistic nodes:
-		for(String groupName: topology.getStatisticSources().keySet()){    		
-			StatisticsGroupDescription group = file.getProjectDescription().getExternalStatisticsGroup(groupName);
-
-			DefaultMutableTreeNode statGroupNode = addDummyTreeNode(groupName, node);
-
-			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
-				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file );
-
-				addTopologyTreeNode(statNode, statGroupNode);
-			}
-		}
-	}
-
 }

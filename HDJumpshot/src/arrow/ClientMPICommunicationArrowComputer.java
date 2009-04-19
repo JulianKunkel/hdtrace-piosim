@@ -129,17 +129,8 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			}
 
 			// drill down to the rank topology level with a BFS
-			LinkedList<TopologyEntry> rankTopos = new LinkedList<TopologyEntry>();
-
-			rankTopos.add(file.getTopology());
-			for(int curDepth = 0; curDepth <= rankDepth; curDepth++){
-				final LinkedList<TopologyEntry> tmp = new LinkedList<TopologyEntry>();
-
-				for(TopologyEntry cur: rankTopos){
-					tmp.addAll(cur.getChildElements().values());
-				}
-				rankTopos = tmp;
-			}
+			
+			final LinkedList<TopologyEntry> rankTopos = file.getTopology().getChildrenOfDepth(rankDepth);
 
 			// maps a sender rank to the msg matcher.
 			final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlySends = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();

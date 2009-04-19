@@ -10,4 +10,9 @@ import hdTraceInput.TraceFormatBufferedFileReader;
 public interface ArrowComputer {
 	public ArrowsOrdered computeArrows(TraceFormatBufferedFileReader reader);
 	public ArrowCategory getResponsibleCategory();
+	
+	/**
+	 * Could be implemented to hide categories which are not applicable to the current reader.
+	 */
+	// public boolean isUseful(TraceFormatBufferedFileReader reader); 
 }

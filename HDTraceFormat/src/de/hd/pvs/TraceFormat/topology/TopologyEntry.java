@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -33,18 +33,18 @@ import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 public class TopologyEntry {	
-	
+
 	String label;
 	final int positionInParent;
-	
+
 	final HashMap<String, StatisticSource> statisticSources = new HashMap<String, StatisticSource>();
-	
+
 	final HashMap<String, TopologyEntry>    childElements = new HashMap<String, TopologyEntry>();
-	
+
 	final TopologyEntry parent;
-	
+
 	private TraceSource traceSource = null;
-		
+
 	/**
 	 * Create a node as child of a parent. Also add this node to the parent if necessary.
 	 * @param label
@@ -60,20 +60,20 @@ public class TopologyEntry {
 			positionInParent = -1;
 		}
 	}
-	
+
 	public int getPositionInParent() {
 		return positionInParent;
 	}
-	
+
 	public HashMap<String, StatisticSource> getStatisticSources() {
 		return statisticSources;
 	}
-	
+
 	public StatisticSource getStatisticSource(String groupName) {
 		return statisticSources.get(groupName);
 	}
-	
-	
+
+
 	public void setStatisticReader(String group, StatisticSource reader){
 		statisticSources.put(group, reader);
 	}
@@ -83,23 +83,23 @@ public class TopologyEntry {
 			throw new IllegalArgumentException("Child element already present in topology");
 		childElements.put(name, child);
 	}
-	
+
 	public HashMap<String, TopologyEntry> getChildElements() {
 		return childElements;
 	}
-	
+
 	public TopologyEntry getChild(String name){
 		return childElements.get(name);
 	}
-	
+
 	public int getSize(){
 		return childElements.size();
 	}
-	
+
 	public TopologyEntry getParent() {
 		return parent;
 	}
-	
+
 	/**
 	 * Return the label but remove invalid characters in the label
 	 * @return 
@@ -107,7 +107,7 @@ public class TopologyEntry {
 	private String getUnifiedLabel(){		
 		return label.toLowerCase().replaceAll("[^a-zA-Z0-9-]", "");
 	}
-	
+
 	/**
 	 * Construct the file prefix of this topology entry.
 	 * This does not include the directory the files are located. 
@@ -117,7 +117,7 @@ public class TopologyEntry {
 		if (parent != null){
 			return parent.getFilePrefix() + "_" + getUnifiedLabel();
 		}
-		
+
 		return getUnifiedLabel();
 	}
 
@@ -129,7 +129,7 @@ public class TopologyEntry {
 	public String getTraceFileName(){
 		return getFilePrefix() + ".xml";
 	}
-	
+
 	/**
 	 * Construct the static group file name of a particular group 
 	 * located under this topology entry.
@@ -139,30 +139,30 @@ public class TopologyEntry {
 	public String getStatisticFileName(String group){
 		return getFilePrefix() + "_stat_" + group + ".dat";
 	}
-	
+
 	public String getLabel() {
 		return label;
 	}
-	
+
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	
+
 	/**
 	 * @return true if no other children exist
 	 */
 	public boolean isLeaf(){
 		return childElements.size() == 0;
 	}
-	
+
 	final public String toRecursiveString() {
 		if (parent != null){
 			return parent.toRecursiveString() + "-" + label; 
 		}
 		return label; 
 	}
-	
-	
+
+
 	/**
 	 * Recursively get all child topology including this topology.
 	 * TODO: could be done with an enumeration.
@@ -174,10 +174,10 @@ public class TopologyEntry {
 		for(TopologyEntry child: childElements.values()){
 			sub.addAll(child.getSubTopologies());
 		}
-		
+
 		return sub;
 	}
-	
+
 	/**
 	 * Return the parent topologies up to root, the first element is a child of root.
 	 *  
@@ -198,11 +198,11 @@ public class TopologyEntry {
 	public TraceSource getTraceSource() {
 		return traceSource;
 	}
-	
+
 	public void setTraceSource(TraceSource traceSource) {
 		this.traceSource = traceSource;
 	}
-	
+
 	/**
 	 * Check if this topology entry has a parent entry. 
 	 * @return true if yes.
@@ -210,5 +210,24 @@ public class TopologyEntry {
 	public boolean hasParent(){
 		return parent != null;
 	}
+
+	public LinkedList<TopologyEntry> getChildrenOfDepth(int depth){
+		// drill down to the rank topology level with a BFS
+		LinkedList<TopologyEntry> bfsTopos = new LinkedList<TopologyEntry>();
+
+		bfsTopos.add(this);
+		for(int curDepth = 0; curDepth <= depth; curDepth++){
+			final LinkedList<TopologyEntry> tmp = new LinkedList<TopologyEntry>();
+
+			for(TopologyEntry cur: bfsTopos){
+				tmp.addAll(cur.getChildElements().values());
+			}
+			bfsTopos = tmp;
+		}
+		
+		return bfsTopos;
+	}
+
+
 }
 
