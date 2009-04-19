@@ -34,6 +34,8 @@ import topology.GlobalStatisticStatsPerGroup;
 import topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
 import viewer.legends.LegendTableStatisticModel;
 import viewer.legends.LegendTableTraceModel;
+import arrow.ArrowManager;
+import arrow.ManagedArrowGroup;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.TraceObject;
@@ -77,7 +79,12 @@ public class TraceFormatBufferedFileReader {
 
 	HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
+	ArrowManager arrowManager = new ArrowManager(this);
 
+	public TraceFormatBufferedFileReader() {
+		legendTraceModel.addCategoryUpdateListener(arrowManager);
+	}
+	
 	public double subtractGlobalMinTimeOffset(Epoch time){
 		return time.subtract(globalMinTime).getDouble();
 	}
@@ -226,12 +233,19 @@ public class TraceFormatBufferedFileReader {
 		legendTraceModel.clearCategories();
 		legendStatisticModel.clearCategories();
 
-		for(Category cat: getCategoriesEvents().values())
+		for(Category cat: getCategoriesEvents().values()){
 			legendTraceModel.addCategory(cat);
-		for(Category cat: getCategoriesStates().values())
-			legendTraceModel.addCategory(cat);
-		for(Category cat: getCategoriesStatistics().values())
+		}
+		for(Category cat: getCategoriesStates().values()){
+			legendTraceModel.addCategory(cat);		
+		}
+		for(ManagedArrowGroup group: arrowManager.getManagedGroups()){
+			legendTraceModel.addCategory(group.getCategory());
+		}
+		
+		for(Category cat: getCategoriesStatistics().values()){
 			legendStatisticModel.addCategory(cat);
+		}
 
 		legendTraceModel.commitModel();
 		legendStatisticModel.commitModel();
@@ -318,5 +332,9 @@ public class TraceFormatBufferedFileReader {
 	
 	public LegendTableStatisticModel getLegendStatisticModel() {
 		return legendStatisticModel;
+	}	
+
+	public ArrowManager getArrowManager() {
+		return arrowManager;
 	}
 }

@@ -7,25 +7,31 @@ import java.util.Iterator;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
- * Iterates through all existing arrows between a start and end time.
+ * Iterates through all existing arrows between a start and a end time which are visible.
  * Right now walks through all first group arrows, then next group.
  * 
  * @author julian
  */
-public class ArrowEnumerator implements Enumeration<Arrow>{
-	final Iterator<ArrowGroup> groupIter;
+public class VisibleArrowEnumerator implements Enumeration<Arrow>{
+	final Iterator<ManagedArrowGroup> groupIter;
 	
 	final Epoch startTime;
 	final Epoch endTime;
 
-	ArrowGroup currentGroup = null;
+	ArrowsOrdered currentGroup = null;
 	int        currentGroupPos = 0;
 	Arrow      currentArrow = null;	
 
 	private void loadNextGroup(){
 		while(groupIter.hasNext()){
-			currentGroup = groupIter.next();
-			currentGroupPos = currentGroup.searchArrowPositionWithLargerTimeThan(startTime);
+			final ManagedArrowGroup currentComputeState = groupIter.next();	
+			currentGroup = currentComputeState.getArrowsOrdered();
+			
+			if(! currentComputeState.getCategory().isVisible() || ! currentComputeState.isComputed()){
+				continue;
+			}
+			
+			currentGroupPos = currentGroup.searchArrowPositionWithLargerEndTimeThan(startTime);
 			if(currentGroupPos >= 0){
 				// check time
 				currentArrow = currentGroup.getSortedArrows().get(currentGroupPos);
@@ -56,7 +62,7 @@ public class ArrowEnumerator implements Enumeration<Arrow>{
 		}
 	}
 
-	public ArrowEnumerator(Iterator<ArrowGroup> groupIter, Epoch startTime, Epoch endTime) {
+	VisibleArrowEnumerator(Iterator<ManagedArrowGroup> groupIter, Epoch startTime, Epoch endTime) {
 		this.groupIter = groupIter;
 		this.endTime = endTime;
 		this.startTime = startTime;

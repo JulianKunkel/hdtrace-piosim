@@ -8,5 +8,6 @@ import hdTraceInput.TraceFormatBufferedFileReader;
  * @author julian
  */
 public interface ArrowComputer {
-	public ArrowGroup computeArrows(TraceFormatBufferedFileReader reader); 	
+	public ArrowsOrdered computeArrows(TraceFormatBufferedFileReader reader);
+	public ArrowCategory getResponsibleCategory();
 }

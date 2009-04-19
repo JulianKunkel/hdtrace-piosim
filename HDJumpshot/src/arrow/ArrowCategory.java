@@ -32,15 +32,18 @@ import drawable.VisualizedObjectType;
 
 public class ArrowCategory extends Category {
 	
-	final ArrowGroup group;
+	ManagedArrowGroup managedGroup;
 
-	public ArrowCategory(String in_name, ColorAlpha in_color, ArrowGroup group ) {
+	public ArrowCategory(String in_name, ColorAlpha in_color ) {
 		super(in_name, in_color);
-		this.group = group;
 	}
 	
-	public ArrowGroup getGroup() {
-		return group;
+	void setManagedGroup(ManagedArrowGroup group) {
+		this.managedGroup = group;
+	}
+	
+	public ManagedArrowGroup getManagedGroup() {
+		return managedGroup;
 	}
 	
 	@Override

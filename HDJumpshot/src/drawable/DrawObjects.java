@@ -37,7 +37,6 @@ package drawable;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -120,13 +119,13 @@ public class DrawObjects{
 			CoordPixelXform  coord_xform,
 			Epoch startTime, Epoch endTime,
 			int startTimeLine, int endTimeline,
-			ColorAlpha color )
+			Color color )
 	{
 		int iStart   = coord_xform.convertTimeToPixel( startTime.getDouble() );
 		int iFinal   = coord_xform.convertTimeToPixel( endTime.getDouble() );
 
-		int jStart   = coord_xform.convertTimelineToPixel( startTimeLine );
-		int jFinal   = coord_xform.convertTimelineToPixel( endTimeline );
+		int jStart   = coord_xform.convertTimelineToPixel( startTimeLine ) + coord_xform.getTimelineHeight() / 2;
+		int jFinal   = coord_xform.convertTimelineToPixel( endTimeline )  + coord_xform.getTimelineHeight() / 2;
 
 		return ArrowDrawer.draw( g, color, null, iStart, jStart, iFinal, jFinal );
 	}

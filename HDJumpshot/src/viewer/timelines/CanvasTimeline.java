@@ -66,8 +66,6 @@ import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
 import viewer.zoomable.ViewportTime;
 import arrow.Arrow;
-import arrow.ArrowManager;
-import arrow.ClientMPICommunicationArrowComputer;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
@@ -80,7 +78,6 @@ import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
 import drawable.CategoryStatistic;
-import drawable.ColorAlpha;
 import drawable.DrawObjects;
 import drawable.TimeBoundingBox;
 import drawable.VisualizedObjectType;
@@ -243,15 +240,11 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	 */
 	private int drawArrows( Graphics2D offGraphics,	Epoch vStartTime, Epoch vEndTime, CoordPixelImage coord_xform){
 		int cnt = 0;		
-		ArrowManager arrowManager = new ArrowManager();
-		ClientMPICommunicationArrowComputer comp = new ClientMPICommunicationArrowComputer(); 
-		arrowManager.setGroup(comp.computeArrows(reader));
-		
 		
 		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 		final TopologyManager topologyManager = getTopologyManager();
 
-		final Enumeration<Arrow> arrowEnum = arrowManager.getArrowEnumerator(
+		final Enumeration<Arrow> arrowEnum = reader.getArrowManager().getArrowEnumeratorVisible(
 				vStartTime.add(globalMinTime), 
 				vEndTime.add(globalMinTime));
 		
@@ -271,7 +264,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					arrow.getEndTime().subtract(globalMinTime), 					
 					startTimeline, 
 					endTimeline, 
-					new ColorAlpha(ColorAlpha.PINK));
+					arrow.getCategory().getColor());
 		}
 
 		
