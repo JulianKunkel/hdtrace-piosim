@@ -196,7 +196,9 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 
 	trace->always_flush = 0;
 	trace->isEnabled = 1;
-	trace->trace_nested_operations = 1;
+	trace->trace_nested_operations = 0;
+
+
 	int i;
 	for (i = 0; i < HD_LOG_MAX_DEPTH; ++i)
 	{
@@ -215,16 +217,24 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 }
 
 /**
- * Set depth of nested operations to log into trace
+ * Set depth of nested operations to log into trace. 
+ * \a depth = 0 means, only the top level calls are logged.
+ * This function may only be called at the lowest nesting depth. 
+ * Calls between \a hdT_logStateStart(...) and \a hdT_logStateEnd(...)
+ * are erroneous, will fail and set \a HD_ERR_INVALID_CONTEXT.
+ * If \a depth is greater or equal to \a HD_LOG_MAX_DEPTH, the 
+ * maximum depth is set to
+ * \a HD_LOG_MAX_DEPTH - 1
  *
  * @param trace  Trace to use
- * @param depth   Depth to set for logging
+ * @param depth   Depth to set for logging. 
  *
  * @retval  0  Success
  * @retval -1  Error, setting \a errno
  *
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
+ * - HD_ERR_INVALID_CONTEXT
  */
 int hdT_setNestedDepth(hdTrace trace, int depth)
 {
@@ -233,6 +243,15 @@ int hdT_setNestedDepth(hdTrace trace, int depth)
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return -1;
 	}
+
+	if (trace -> function_depth != -1)
+	{
+		errno = HD_ERR_INVALID_CONTEXT;
+		return -1;
+	}
+
+	if(depth >= HD_LOG_MAX_DEPTH)
+		depth = HD_LOG_MAX_DEPTH - 1;
 
 	trace->trace_nested_operations = depth;
 	return 0;
@@ -396,6 +415,7 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 			hdt_info(trace, "Write error during writing of trace info,"
 					" stop logging");
 		case HD_ERR_UNKNOWN:
+		default:
 			hdt_info(trace, "Unknown error during writing of trace info,"
 					" stop logging");
 		}
@@ -437,7 +457,8 @@ int hdT_logElement(hdTrace trace, const char * name,
 		return -1;
 	}
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
+	if (trace->function_depth > trace->trace_nested_operations || 
+		trace->function_depth > HD_LOG_MAX_DEPTH)
 	{
 		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d", trace->function_depth );
 		return 0;
@@ -445,13 +466,13 @@ int hdT_logElement(hdTrace trace, const char * name,
 
 	va_list valist;
 	va_start(valist, valueFormat);
-	int write;
-	write = snprintf(trace->elements[trace->function_depth]
+	int written;
+	written = snprintf(trace->elements[trace->function_depth]
 			+ trace->elements_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- (trace->elements_pos[trace->function_depth]),
 			"<%s ", name);
-	if (write >= HD_LOG_COMMAND_BUF_SIZE)
+	if (written >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing element name.");
@@ -459,14 +480,14 @@ int hdT_logElement(hdTrace trace, const char * name,
 		return -1;
 	}
 	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + write,
+			trace->elements_pos[trace->function_depth] + written,
 			HD_LOG_COMMAND_BUF_SIZE);
-	write = vsnprintf(trace->elements[trace->function_depth]
+	written = vsnprintf(trace->elements[trace->function_depth]
 			+ trace->elements_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->elements_pos[trace->function_depth],
 			valueFormat, valist);
-	if (write >= HD_LOG_COMMAND_BUF_SIZE)
+	if (written >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing element.");
@@ -474,14 +495,14 @@ int hdT_logElement(hdTrace trace, const char * name,
 		return -1;
 	}
 	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + write,
+			trace->elements_pos[trace->function_depth] + written,
 			HD_LOG_COMMAND_BUF_SIZE);
-	write = snprintf(trace->elements[trace->function_depth]
+	written = snprintf(trace->elements[trace->function_depth]
 			+ trace->elements_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->elements_pos[trace->function_depth],
 			" />\n");
-	if (write >= HD_LOG_COMMAND_BUF_SIZE)
+	if (written >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing element.");
@@ -489,7 +510,7 @@ int hdT_logElement(hdTrace trace, const char * name,
 		return -1;
 	}
 	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + write,
+			trace->elements_pos[trace->function_depth] + written,
 			HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 
@@ -532,14 +553,14 @@ int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
 
 	va_list valist;
 	va_start(valist, valueFormat);
-	int write;
+	int written;
 
-	write = vsnprintf(trace->attributes[trace->function_depth]
+	written = vsnprintf(trace->attributes[trace->function_depth]
 			+ trace->attributes_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->attributes_pos[trace->function_depth],
 			valueFormat, valist);
-	if (write >= HD_LOG_COMMAND_BUF_SIZE)
+	if (written >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing attributes.");
@@ -547,14 +568,14 @@ int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
 		return -1;
 	}
 	trace->attributes_pos[trace->function_depth] = minSize(
-			trace->attributes_pos[trace->function_depth] + write,
+			trace->attributes_pos[trace->function_depth] + written,
 			HD_LOG_COMMAND_BUF_SIZE);
-	write = snprintf(trace->attributes[trace->function_depth]
+	written = snprintf(trace->attributes[trace->function_depth]
 			+ trace->attributes_pos[trace->function_depth],
 			HD_LOG_COMMAND_BUF_SIZE
 					- trace->attributes_pos[trace->function_depth],
 			" ");
-	if (write >= HD_LOG_COMMAND_BUF_SIZE)
+	if (written >= HD_LOG_COMMAND_BUF_SIZE)
 	{
 		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
 				"while writing attributes.");
@@ -562,7 +583,7 @@ int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
 		return -1;
 	}
 	trace->attributes_pos[trace->function_depth] = minSize(
-			trace->attributes_pos[trace->function_depth] + write,
+			trace->attributes_pos[trace->function_depth] + written,
 			HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 
@@ -594,7 +615,7 @@ int hdT_logStateStart(hdTrace trace, const char * stateName)
 	}
 
 	trace->function_depth++;
-	if (!trace->trace_nested_operations && trace->function_depth > 0)
+	if (trace->trace_nested_operations < trace->function_depth)
 	{
 		return 0;
 	}
@@ -665,8 +686,7 @@ int hdT_logStateEnd(hdTrace trace)
 		return -1;
 	}
 
-	if (trace->function_depth > 0
-			&& !trace->trace_nested_operations)
+	if (trace->function_depth > trace->trace_nested_operations)
 	{
 		trace->function_depth--;
 		return 0;
@@ -966,6 +986,7 @@ static int flushLog(hdTrace trace)
 			hdt_info(trace, "Write error during flushing of trace log,"
 					" stop logging");
 		case HD_ERR_UNKNOWN:
+		default:
 			hdt_info(trace, "Unknown error during flushing of trace log,"
 					" stop logging");
 		}

@@ -44,6 +44,8 @@ enum hdCommonError {
 	HD_ERR_TIMEOUT,
 	/** Trace is disabled */
 	HD_ERR_TRACE_DISABLED,
+	/** function may not be called in this context */
+	HD_ERR_INVALID_CONTEXT,
 	/** Error with unknown cause */
 	HD_ERR_UNKNOWN
 };

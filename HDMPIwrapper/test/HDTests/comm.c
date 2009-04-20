@@ -38,6 +38,7 @@ int main (int argc, char** argv)
 
 	if(size < 5)
 	{
+		MPI_Barrier(MPI_COMM_WORLD); // ensure that all ranks are started, so each produces a log 
 		perror("This test requires a group size of at least 5\n");
 		MPI_Abort(MPI_COMM_WORLD, -1);
 	}
@@ -54,7 +55,6 @@ int main (int argc, char** argv)
 
 	MPI_Comm_group(MPI_COMM_WORLD, & worldGroup);
 
-	/* for testing */
 	int testRanks [] = {2, 4};
 	MPI_Group_incl( worldGroup, 2, testRanks, & group ) ;
 

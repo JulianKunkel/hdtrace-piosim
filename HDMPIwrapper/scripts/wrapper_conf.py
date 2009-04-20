@@ -87,7 +87,9 @@ split_end_element = """
 # """                                                                              #
 ####################################################################################
 beforeMpi = {
-  "Abort" : "before_Abort(v1, v2)",
+  "Abort" : """hdT_logStateStart(tracefile, "Abort"); 
+               hdT_logAttributes(tracefile, "comm='%d'", getCommId(v1)); 
+               hdT_logStateEnd(tracefile); before_Abort(v1, v2)""",
   "File_delete" : info_elements("v2"),
   "File_write_at" : write_at_elements,
   "File_read_at" : write_at_elements,
@@ -255,7 +257,7 @@ afterMpi = {
 # """                                                                              #
 ####################################################################################
 afterLog = {
-  "Init" : "after_Init(v1, v2)",
+  "Init" : "after_Init(v1, v2); hdT_logStateStart(tracefile, \"Init\"); hdT_logStateEnd(tracefile)",
 
   "Init_thread" : "after_Init(v1, v2)",
 
@@ -301,10 +303,12 @@ isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' com
 #                                                                                                 #
 # may produce the output                                                                          #
 #                                                                                                 #
-#     <BARR comm='0' time='0.23' end='0.24' />                                                    #
+#     <BARR comm='0' time='0.230000' end='0.240000' />                                            #
 #                                                                                                 #
 # in the xml log. The time=... and end=... attributes are added automatically by the              #
 # log writer library.                                                                             #
+#                                                                                                 #
+# It is discouraged to use custom tag names without a good reason.                                #
 # """                                                                                             #
 ###################################################################################################
 logAttributes = {
@@ -387,32 +391,26 @@ logAttributes = {
                    "getFileIdFromName(v1)"),
 
   "File_write" :        ("file='%d'", 
-                         "getFileId(v1)", 
-                         "File_write"),
+                         "getFileId(v1)"),
 
   "File_write_all" :    ("file='%d'", 
-                         "getFileId(v1)", 
-                         "File_write_all"),
+                         "getFileId(v1)"),
 
   "File_write_all_begin" : ("file='%d' aid='%d'", 
-                            "getFileId(v1), getRequestIdForSplit(v1)", 
-                            "File_write_all"),
+                            "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_write_all_end" : ("", 
                           "", 
                           "Wait"),
 
   "File_write_at" :     ("file='%d'", 
-                         "getFileId(v1)", 
-                         "File_write"),
+                         "getFileId(v1)"),
 
   "File_write_at_all" : ("file='%d'", 
-                         "getFileId(v1)", 
-                         "File_write_all"),
+                         "getFileId(v1)"),
 
   "File_write_at_all_begin" : ("file='%d' aid='%d'", 
-                               "getFileId(v1), getRequestIdForSplit(v1)", 
-                               "File_write"),
+                               "getFileId(v1), getRequestIdForSplit(v1)"),
   "File_write_at_all_end" : ("", 
                              "",
                              "Wait"),
@@ -421,42 +419,35 @@ logAttributes = {
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_write_ordered_begin" : ("file='%d' aid='%d'", 
-                                "getFileId(v1), getRequestIdForSplit(v1)", 
-                                "FileWrite"),
+                                "getFileId(v1), getRequestIdForSplit(v1)"),
   "File_write_ordered_end" : ("", 
-                              "", 
+                              "",
                               "Wait"),
 
   "File_write_shared" : ("file='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_read" :        ("file='%d'", 
-                        "getFileId(v1)", 
-                        "FileRead"),
+                        "getFileId(v1)"),
 
   "File_read_all" :    ("file='%d'", 
-                        "getFileId(v1)", 
-                        "FileRead"),
+                        "getFileId(v1)"),
 
   "File_read_all_begin" : ("file='%d' aid='%d'", 
-                           "getFileId(v1), getRequestIdForSplit(v1)", 
-                           "FileRead"),
+                           "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_all_end" : ("", 
                          "", 
                          "Wait"),
 
   "File_read_at" :     ("file='%d'", 
-                        "getFileId(v1)", 
-                        "FileRead"),
+                        "getFileId(v1)"),
 
   "File_read_at_all" : ("file='%d'", 
-                        "getFileId(v1)", 
-                        "FileRead"),
+                        "getFileId(v1)"),
 
   "File_read_at_all_begin" : ("file='%d' aid='%d'", 
-                              "getFileId(v1), getRequestIdForSplit(v1)", 
-                              "FileRead"),
+                              "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_at_all_end" : ("", 
                             "", 
@@ -466,8 +457,7 @@ logAttributes = {
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
   
   "File_read_ordered_begin" : ("file='%d' aid='%d'", 
-                               "getFileId(v1), getRequestIdForSplit(v1)", 
-                               "FileWrite"),
+                               "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_ordered_end" : ("", 
                              "", 
@@ -477,28 +467,22 @@ logAttributes = {
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_iread" : ("file='%d' request='%d'", 
-                  "getFileId(v1), getRequestId(*v5)", 
-                  "FileIread"),
+                  "getFileId(v1), getRequestId(*v5)"),
 
   "File_iread_at" : ("file='%d' request='%d'", 
-                     "getFileId(v1), getRequestId(*v6)", 
-                     "FileIread"),
+                     "getFileId(v1), getRequestId(*v6)"),
 
   "File_iread_shared" : ("file='%d' request='%d'", 
-                         "getFileId(v1), getRequestId(*v5)", 
-                         "FileIread"),
+                         "getFileId(v1), getRequestId(*v5)"),
 
   "File_iwrite" : ("file='%d' request='%d'", 
-                   "getFileId(v1), getRequestId(*v5)", 
-                   "FileIwrite"),
+                   "getFileId(v1), getRequestId(*v5)"),
 
   "File_iwrite_at" : ("file='%d' request='%d'", 
-                      "getFileId(v1), getRequestId(*v6)", 
-                      "FileIwrite"),
+                      "getFileId(v1), getRequestId(*v6)"),
 
   "File_iwrite_shared" : ("file='%d' request='%d'", 
-                          "getFileId(v1), getRequestId(*v5)", 
-                          "FileIwrite"),
+                          "getFileId(v1), getRequestId(*v5)"),
 
   "File_set_size" : ("file='%d' size='%lld'", 
                      "getFileId(v1), (long long int)v2"),

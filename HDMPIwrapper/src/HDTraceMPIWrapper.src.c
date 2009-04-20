@@ -338,9 +338,7 @@ static void after_Init(int *argc, char ***argv)
 
 	readEnvVars();
 
-
-
-	// hdT_TraceNested(tracefile, trace_nested_operations);
+ 	hdT_setNestedDepth(tracefile, trace_nested_operations * HD_LOG_MAX_DEPTH); 
 	hdT_setForceFlush(tracefile, trace_force_flush);
 
 #undef NAME_LEN
