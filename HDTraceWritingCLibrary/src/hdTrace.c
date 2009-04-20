@@ -907,7 +907,7 @@ static int writeLog(hdTrace trace, const char * message)
 
 	if (!hdT_isEnabled(trace))
 		return 0;
-	int len = strlen(message);
+	size_t len = strlen(message);
 	if (trace->buffer_pos + len >= HD_LOG_BUF_SIZE)
 	{
 		if (flushLog(trace) != 0)
