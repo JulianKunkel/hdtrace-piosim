@@ -702,10 +702,12 @@ implements ScrollableView, IAutoRefreshable
 		final int newWidth = visWidth * NumViewsPerImage;
 		final int newHeight = getRealImageHeight();
 
+		
 		if(image_size.getSize().width == newWidth && image_size.getSize().height == newHeight ){
-			// not resized at all
-			return;
+			// not resized at all, but does not work for some cases
+			//return;
 		}
+		
 
 		scrollbarTimeModel.setViewWidth(visWidth);
 

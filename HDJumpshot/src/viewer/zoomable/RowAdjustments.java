@@ -141,12 +141,10 @@ public class RowAdjustments
 		slider_VIS_ROW_COUNT.setMinimum( row_count < 2 ? 1 : 2 );
 		slider_VIS_ROW_COUNT.setMaximum( row_count );
 
-
+		slider_VIS_ROW_COUNT.setValue(row_count);				
 		fld_VIS_ROW_COUNT.setInteger( row_count );
-
-		slider_VIS_ROW_COUNT.setValue(row_count);
-		oldRowCount = row_count;
-
+		
+		adjustRowCount(row_count, true);
 	}
 
 
@@ -189,7 +187,7 @@ public class RowAdjustments
 		}
 	}
 
-	private void adjustRowCount(int row_count, boolean notifyListeners){    	
+	private void adjustRowCount(int row_count, boolean notifyListeners){    		
 		int min_vis_row_count, max_vis_row_count;
 		min_vis_row_count = (int) slider_VIS_ROW_COUNT.getMinimum();
 		max_vis_row_count = (int) slider_VIS_ROW_COUNT.getMaximum();
@@ -215,7 +213,7 @@ public class RowAdjustments
 
 		double row_height     = (double) canvas_vport.getHeight() /  irow_count ;
 		topologyManager.setRowHeight( (int) row_height );
-
+		
 		if(notifyListeners){
 			for(RowNumberChangedListener list: rowChangedListener){
 				list.rowNumberChanged();

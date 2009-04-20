@@ -5,7 +5,7 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 
 /**
- * Sorts the node children alphabetically
+ * Sorts the node children alphabetically, use it together with SortedJTreeModel
  * 
  * @author julian
  */

@@ -47,7 +47,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -56,6 +55,7 @@ import topology.mappings.ExistingTopologyMappings;
 import topology.mappings.TopologyTreeMapping;
 import viewer.common.Const;
 import viewer.common.ModelTime;
+import viewer.common.SortedJTreeModel;
 import viewer.common.SortedJTreeNode;
 import viewer.first.MainManager;
 import viewer.histogram.StatisticHistogramFrame;
@@ -343,7 +343,7 @@ public class TopologyManager
 	 * remove all topologies from the tree which have empty leafs.
 	 */
 	public void removeEmptyTopologies(){
-		final DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+		final SortedJTreeModel model = (SortedJTreeModel) tree.getModel();
 
 		tree.clearSelection();
 		for(int row = 0 ; row < tree.getRowCount() ; row++){
@@ -389,13 +389,14 @@ public class TopologyManager
 	 * restore the timelines to the normal / selected topology 
 	 */
 	public void restoreTopology(){
+		removedNodesMap.clear();
 		final boolean old = setChangeListenerDisabled(true);
 		try{
 			TopologyTreeMapping mapping = usedTopologyMapping.getInstance();
 			mapping.setTopologyManagerContents(topologyManagerType);
 			this.tree_root = mapping.createTopology(reader);
 
-			tree.setModel(new DefaultTreeModel(tree_root));
+			tree.setModel(new SortedJTreeModel(tree_root));
 
 			expandTreeInternal();
 
@@ -403,14 +404,14 @@ public class TopologyManager
 
 			setChangeListenerDisabled(old);
 
-			fireTopologyChanged();
+			fireTopologyChanged();			
 		}catch(Exception e){
 			throw new IllegalArgumentException(e);
 		}
 	}
 
 	public void setStatisticVisiblity(StatisticDescription statistic, boolean visible){
-		final DefaultTreeModel model = getTreeModel();
+		final SortedJTreeModel model = getTreeModel();
 
 		if(visible == true){
 			final LinkedList<RemovedNode> removedNodes = removedNodesMap.remove(statistic);
@@ -419,7 +420,7 @@ public class TopologyManager
 			}
 			// now add the old values:
 			for(RemovedNode rmNode: removedNodes){
-				model.insertNodeInto(rmNode.child, rmNode.parent, 0);
+				model.insertNodeInto(rmNode.child, rmNode.parent);
 			}
 
 			return;
@@ -434,10 +435,10 @@ public class TopologyManager
 
 			if( TopologyStatisticTreeNode.class.isInstance(node) ){
 				final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) node;
-				if(statNode.getStatisticGroup() == statistic.getGroup() && statistic == statNode.getStatisticDescription()){
+				if(statistic == statNode.getStatisticDescription()){
 					// remove that node:
 					removedNodes.add( new RemovedNode(statNode));
-
+					
 					model.removeNodeFromParent(statNode);
 				}
 			}
@@ -455,7 +456,7 @@ public class TopologyManager
 		if(paths == null || paths.length == 0)
 			return;
 
-		final DefaultTreeModel model = getTreeModel();
+		final SortedJTreeModel model = getTreeModel();
 
 		for(TreePath path: paths){
 			int depth = path.getPathCount(); 
@@ -550,8 +551,8 @@ public class TopologyManager
 		return tree;
 	}
 
-	private DefaultTreeModel getTreeModel(){
-		return (DefaultTreeModel) tree.getModel();
+	private SortedJTreeModel getTreeModel(){
+		return (SortedJTreeModel) tree.getModel();
 	}
 
 	public void scrollRowToVisible(int timeline) {

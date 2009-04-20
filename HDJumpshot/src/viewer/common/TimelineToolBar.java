@@ -135,6 +135,8 @@ implements ToolBarStatus
 		canvas_vport.setToolBarStatus( this );
 
 		this.setFloatable(false);
+		
+		this.setAlignmentX(RIGHT_ALIGNMENT);
 	}
 
 	/**
@@ -173,9 +175,6 @@ implements ToolBarStatus
 		super.addSeparator();
 		
 		super.add( autoRefresh_btn );      
-
-		// orientate the toolbar left:
-		addSeparator(new Dimension(1000,10));
 	 }
 	 
 	 public Insets getInsets(){
