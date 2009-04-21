@@ -258,7 +258,7 @@ int hdT_logElement(
 		const char * name,
 		const char* valueFormat,
 		...
-		);
+		) __attribute__ ((format (printf, 3, 4)));
 
 /**
  * Write info message to trace (printf like).
@@ -267,7 +267,7 @@ int hdT_writeInfo(
 		hdTrace trace,
 		const char * message,
 		...
-		);
+	) __attribute__ ((format (printf, 2, 3)));
 
 /**
  * Log Attributes
@@ -276,7 +276,7 @@ int hdT_logAttributes(
 		hdTrace trace,
 		const char* valueFormat,
 		...
-		);
+		) __attribute__ ((format (printf, 2, 3)));
 
 /**
  * Mark the start of a new state
@@ -307,7 +307,7 @@ int hdT_logEventEnd(
 		hdTrace trace,
 		char* sprinhdStringForFurtherValues,
 		...
-		);
+		) __attribute__ ((format (printf, 2, 3)));
 
 /*
  * Finalize and close trace.

@@ -152,6 +152,11 @@ static int * controlled_vars[] = { &trace_all_functions,
 								   NULL };
 
 
+/*
+ * We include *.c files so there is only one object file.
+ * This is desireable because then, all but the MPI_* functions
+ * can be declared static.
+ */ 
 #include "mpi_names.c"
 #include "hash_tables.c"
 #include "write_info.c"
