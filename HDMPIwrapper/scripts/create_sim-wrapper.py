@@ -147,7 +147,9 @@ for i in xrange(0, len(funcs)):
 
     if not fkt in noLog:
       if fkt in logAttributes:
-        if logAttributes[fkt][1] == "":
+        if logAttributes[fkt][0] == "":
+          pass
+        elif logAttributes[fkt][1] == "":
           print '  hdT_logAttributes(tracefile, "' + logAttributes[fkt][0] + '");'
         else:
           print '  hdT_logAttributes(tracefile, "' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');'
