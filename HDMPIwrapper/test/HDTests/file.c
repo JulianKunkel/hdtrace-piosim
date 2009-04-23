@@ -64,6 +64,13 @@ int main (int argc, char** argv)
 	CHECK(MPI_File_open(MPI_COMM_WORLD, "filetest_03.tmp", MPI_MODE_RDONLY, info, &fh));
 	CHECK(MPI_File_close(&fh));
 
+	MPI_File fh2, fh3;
+	CHECK(MPI_File_open(MPI_COMM_WORLD, "filetest_03.tmp", MPI_MODE_RDONLY, info, &fh2));
+	CHECK(MPI_File_close(&fh2));
+
+	CHECK(MPI_File_open(MPI_COMM_WORLD, "filetest_03.tmp", MPI_MODE_RDONLY, info, &fh3));
+	CHECK(MPI_File_close(&fh3));
+
 	CHECK(MPI_File_delete("filetest_02.tmp", info));
 	CHECK(MPI_File_delete("filetest_03.tmp", info));
 

@@ -64,13 +64,13 @@ wait_elements = """
     int i;
     for(i = 0; i < v1; ++i)
     {
-      hdT_logElement(tracefile, "For", "request='%d'", getRequestId(v2[i]));
+      hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(v2[i]));
     }
   }
 """
 split_end_element = """
   {
-    hdT_logElement(tracefile, "For", "request='%d'", getRequestIdForSplit(v1));
+    hdT_logElement(tracefile, "For", "rid='%d'", getRequestIdForSplit(v1));
   }
 """
 
@@ -122,13 +122,13 @@ beforeMpi = {
 
   "Wait": """
   {
-    hdT_logElement(tracefile, "For", "request='%d'", getRequestId(*v1));
+    hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));
   }
 """,
 
   "Test" : """
   {
-    hdT_logElement(tracefile, "For", "request='%d'", getRequestId(*v1));
+    hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));
   }
 """,
   "Testall" : wait_elements,
@@ -237,15 +237,15 @@ afterMpi = {
   }
 """,
 
-   "Init_thread" : """
-   {
-     if(v3 != MPI_THREAD_SINGLE )
-     {
-       printDebugMessage("Init_thread: multithreading currently not supported by HDTrace\\n");
-       return -1;
-     }
-   }
-"""
+#    "Init_thread" : """
+#    {
+#      if(v3 != MPI_THREAD_SINGLE )
+#      {
+#        printDebugMessage("Init_thread: multithreading currently not supported by HDTrace\\n");
+#        return -1;
+#      }
+#    }
+# """,
 }
 
 
@@ -259,7 +259,7 @@ afterMpi = {
 afterLog = {
   "Init" : "after_Init(v1, v2); hdT_logStateStart(tracefile, \"Init\"); hdT_logStateEnd(tracefile)",
 
-  "Init_thread" : "after_Init(v1, v2)",
+  "Init_thread" : "after_Init(v1, v2); hdT_logStateStart(tracefile, \"Init_thread\"); hdT_logStateEnd(tracefile)",
 
   "Finalize" : "after_Finalize()",
 }
@@ -272,7 +272,7 @@ afterLog = {
 ####################################################################################
 send_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d'", 
                    "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6)")
-isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' request='%d'", 
+isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' rid='%d'", 
                     "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6), getRequestId(*v7)")
 
 
@@ -293,6 +293,9 @@ isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid
 # and <format parameters> a comma separated list of c expressions. The arguments that are passed  #
 # to the MPI function can be accessed via the variables v1, v2... . All functions that are        #
 # declared in or included by HDTraceMPIWrapper.src.c may be called.                               #
+#                                                                                                 #
+# The attributes are logged after the call to the PMPI_ function. This must be considered, when   #
+# MPI changes the values of the parameters.                                                       #
 #                                                                                                 #
 # <tag name> (optional) is the name which is used in the xml file to log the MPI function.        #
 # If <tag name> is omitted, the name of the MPI function without "MPI_" prefix is used.           #
@@ -365,8 +368,8 @@ logAttributes = {
   "Recv" : ("fromRank='%d' fromTag='%d' cid='%d'", 
             "getWorldRank(v4, v6), v5, getCommId(v6)"),
 
-  "Irecv" : ("fromRank='%d' fromTag='%d' cid='%d'", 
-             "getWorldRank(v4, v6), v5, getCommId(v6)"),
+  "Irecv" : ("fromRank='%d' fromTag='%d' cid='%d' rid='%d'", 
+             "getWorldRank(v4, v6), v5, getCommId(v6), getRequestId(*v7)"),
 
   "Barrier" : ("cid='%d'", 
                "getCommId(v1)"),
@@ -396,7 +399,7 @@ logAttributes = {
   "File_write_all" :    ("fid='%d'", 
                          "getFileId(v1)"),
 
-  "File_write_all_begin" : ("fid='%d' aid='%d'", 
+  "File_write_all_begin" : ("fid='%d' rid='%d'", 
                             "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_write_all_end" : ("", 
@@ -409,7 +412,7 @@ logAttributes = {
   "File_write_at_all" : ("fid='%d'", 
                          "getFileId(v1)"),
 
-  "File_write_at_all_begin" : ("fid='%d' aid='%d'", 
+  "File_write_at_all_begin" : ("fid='%d' rid='%d'", 
                                "getFileId(v1), getRequestIdForSplit(v1)"),
   "File_write_at_all_end" : ("", 
                              "",
@@ -418,7 +421,7 @@ logAttributes = {
   "File_write_ordered" : ("fid='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_write_ordered_begin" : ("fid='%d' aid='%d'", 
+  "File_write_ordered_begin" : ("fid='%d' rid='%d'", 
                                 "getFileId(v1), getRequestIdForSplit(v1)"),
   "File_write_ordered_end" : ("", 
                               "",
@@ -433,7 +436,7 @@ logAttributes = {
   "File_read_all" :    ("fid='%d'", 
                         "getFileId(v1)"),
 
-  "File_read_all_begin" : ("fid='%d' aid='%d'", 
+  "File_read_all_begin" : ("fid='%d' rid='%d'", 
                            "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_all_end" : ("", 
@@ -446,7 +449,7 @@ logAttributes = {
   "File_read_at_all" : ("fid='%d'", 
                         "getFileId(v1)"),
 
-  "File_read_at_all_begin" : ("fid='%d' aid='%d'", 
+  "File_read_at_all_begin" : ("fid='%d' rid='%d'", 
                               "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_at_all_end" : ("", 
@@ -456,7 +459,7 @@ logAttributes = {
   "File_read_ordered" : ("fid='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
   
-  "File_read_ordered_begin" : ("fid='%d' aid='%d'", 
+  "File_read_ordered_begin" : ("fid='%d' rid='%d'", 
                                "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_ordered_end" : ("", 
@@ -466,22 +469,22 @@ logAttributes = {
   "File_read_shared" : ("fid='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_iread" : ("fid='%d' request='%d'", 
+  "File_iread" : ("fid='%d' rid='%d'", 
                   "getFileId(v1), getRequestId(*v5)"),
 
-  "File_iread_at" : ("fid='%d' request='%d'", 
+  "File_iread_at" : ("fid='%d' rid='%d'", 
                      "getFileId(v1), getRequestId(*v6)"),
 
-  "File_iread_shared" : ("fid='%d' request='%d'", 
+  "File_iread_shared" : ("fid='%d' rid='%d'", 
                          "getFileId(v1), getRequestId(*v5)"),
 
-  "File_iwrite" : ("fid='%d' request='%d'", 
+  "File_iwrite" : ("fid='%d' rid='%d'", 
                    "getFileId(v1), getRequestId(*v5)"),
 
-  "File_iwrite_at" : ("fid='%d' request='%d'", 
+  "File_iwrite_at" : ("fid='%d' rid='%d'", 
                       "getFileId(v1), getRequestId(*v6)"),
 
-  "File_iwrite_shared" : ("fid='%d' request='%d'", 
+  "File_iwrite_shared" : ("fid='%d' rid='%d'", 
                           "getFileId(v1), getRequestId(*v5)"),
 
   "File_set_size" : ("fid='%d' size='%lld'", 

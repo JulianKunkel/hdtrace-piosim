@@ -103,7 +103,7 @@ static void writeCommInfo(MPI_Comm comm, gint comm_id)
 	position += snprintf(buffer + position, TMP_BUF_LEN - position, "' id=%d name='%s'\n", comm_id, getCommName(comm));
 	position = min(position, TMP_BUF_LEN);
 
-	hdT_writeInfo(tracefile, buffer);
+	hdT_writeInfo(tracefile, "%s", buffer);
 }
 
 
@@ -205,7 +205,7 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 						"'\n");
 		pos = min(pos, TMP_BUF_LEN);
 
-		hdT_writeInfo(tracefile, buffer);
+		hdT_writeInfo(tracefile, "%s", buffer);
 
 		free(integers);
 		free(addresses);

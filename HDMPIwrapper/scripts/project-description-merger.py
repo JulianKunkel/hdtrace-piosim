@@ -377,8 +377,11 @@ def comm_string(comms):
    """
    result = ""
    result +=  " <CommunicatorList>\n"
+
    for i in comms:
       for c in comms[i]:
+         if not c:
+            continue
          current_map = c.map
          result +=  '  <Communicator name="%s">\n' % c.name
 
@@ -386,17 +389,20 @@ def comm_string(comms):
          # remove the comm from the list
          for filename in comms:
             for cc in xrange(0, len(comms[filename])):
-
                # only search in files of participating ranks
                if not split_filename(filename)[2] in current_map:
                   continue
-            
-               # if maps match
+
+               if not comms[filename][cc]:
+                  continue
+               
+               # if maps match, search no further, delete this map
                if comms[filename][cc].map == current_map:
                   rank_nr = split_filename(filename)[2]
-                  result +=  '   <Rank name="%s" cid="%s" />\n' % (rank_nr, current_map[rank_nr])
-               del comms[filename][cc]
-               break
+                  result +=  '   <Rank global="%s" local="%s" cid="%s" />\n' % (rank_nr, current_map[rank_nr], comms[filename][cc].id)
+                  comms[filename][cc] = None
+                  break
+
          result +=  '  </Communicator>\n'
    result +=  " </CommunicatorList>\n\n"
    return result
@@ -590,7 +596,7 @@ def type_string(id, combiner, name, integers = [], addresses = [], types = []):
 ###############################################################################
 out.write(" <Datatypes>\n")
 for i in types:
-   out.write('  <Rank name="%s">\n' % (split_filename(i)[2]) )
+   out.write('  <Rank name="%s" thread="%s">\n' % (split_filename(i)[2], split_filename(i)[3]) )
    for type in types[i]:
       out.write(type_string(type.id,
                             type.combiner,
