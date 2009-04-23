@@ -88,7 +88,7 @@ split_end_element = """
 ####################################################################################
 beforeMpi = {
   "Abort" : """hdT_logStateStart(tracefile, "Abort"); 
-               hdT_logAttributes(tracefile, "comm='%d'", getCommId(v1)); 
+               hdT_logAttributes(tracefile, "cid='%d'", getCommId(v1)); 
                hdT_logStateEnd(tracefile); before_Abort(v1, v2)""",
   "File_delete" : info_elements("v2"),
   "File_write_at" : write_at_elements,
@@ -270,9 +270,9 @@ afterLog = {
 # Attribute - value pairs, which are shared by all send / isend - style functions. #
 # """                                                                              #
 ####################################################################################
-send_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' comm='%d'", 
+send_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d'", 
                    "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6)")
-isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' comm='%d' request='%d'", 
+isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' request='%d'", 
                     "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6), getRequestId(*v7)")
 
 
@@ -299,11 +299,11 @@ isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' com
 #                                                                                                 #
 # Example: the entry                                                                              #
 #                                                                                                 #
-#     "Barrier" : ("comm='%d'", "getCommId(v1)", "BARR")                                          #
+#     "Barrier" : ("cid='%d'", "getCommId(v1)", "BARR")                                          #
 #                                                                                                 #
 # may produce the output                                                                          #
 #                                                                                                 #
-#     <BARR comm='0' time='0.230000' end='0.240000' />                                            #
+#     <BARR cid='0' time='0.230000' end='0.240000' />                                            #
 #                                                                                                 #
 # in the xml log. The time=... and end=... attributes are added automatically by the              #
 # log writer library.                                                                             #
@@ -323,195 +323,195 @@ logAttributes = {
   "Issend" : isend_attributes, 
   "Irsend" : isend_attributes, 
 
-  "Bcast" : ("size='%lld' rootRank='%d' comm='%d' count='%d' type='%d'", 
+  "Bcast" : ("size='%lld' rootRank='%d' cid='%d' count='%d' type='%d'", 
              "getTypeSize(v2, v3), getWorldRank(v4, v5), getCommId(v5), v2, getTypeId(v3)"),
 
-  "Gather" : ("size='%lld' recvSize='%lld' root='%d' comm='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
+  "Gather" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
               "getTypeSize(v2, v3), getTypeSize(v5, v6), getWorldRank(v7, v8), getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)" ),
 
-  "Gatherv" : ("size='%lld' root='%d' comm='%d' count='%d' type='%d'",
+  "Gatherv" : ("size='%lld' root='%d' cid='%d' count='%d' type='%d'",
                "getTypeSize(v2, v3), getWorldRank(v8, v9), getCommId(v9), v2, getTypeId(v3)"), 
   
-  "Scatter" : ("size='%lld' recvSize='%lld' root='%d' comm='%d' count='%d' type='%d' recvCount'%d' recvType='%d'",
+  "Scatter" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' type='%d' recvCount'%d' recvType='%d'",
                "getTypeSize(v2, v3), getTypeSize(v5, v6), getWorldRank(v7, v8), getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)"),
 
-  "Scatterv" : ("recvSize='%lld' root='%d' comm='%d' recvCount='%d' recvType='%d'",
+  "Scatterv" : ("recvSize='%lld' root='%d' cid='%d' recvCount='%d' recvType='%d'",
                 "getTypeSize(v6, v7), getWorldRank(v8, v9), getCommId(v9), v6, getTypeId(v7)"),
 
-  "Allgather" : ("size='%lld' recvSize='%lld' comm='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
+  "Allgather" : ("size='%lld' recvSize='%lld' cid='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
                  "getTypeSize(v2, v3), getTypeSize(v5, v6), getCommId(v7), v2, getTypeId(v3), v5, getTypeId(v6)"),
 
-  "Allgatherv" : ("size='%lld' comm='%d' count='%d' type='%d'",
+  "Allgatherv" : ("size='%lld' cid='%d' count='%d' type='%d'",
                   "getTypeSize(v2, v3), getCommId(v8), v2, getTypeId(v3)"),
   
-  "Alltoall" : ("size='%lld' comm='%d' count='%d' type='%d'",
+  "Alltoall" : ("size='%lld' cid='%d' count='%d' type='%d'",
                 "getTypeSize(v2, v3), v7, v2, getTypeId(v3)"),
 
-  "Alltoallv" : ("comm='%d'", 
+  "Alltoallv" : ("cid='%d'", 
                  "getCommId(v9)"), 
 
-  "Reduce" : ("size='%lld' rootRank='%d' comm='%d' count='%d' type='%d'",
+  "Reduce" : ("size='%lld' rootRank='%d' cid='%d' count='%d' type='%d'",
               "getTypeSize(v3, v4), getWorldRank(v6, v7), getCommId(v7), v3, getTypeId(v4)"),
 
-  "Reduce_scatter" : ("comm='%d'", 
+  "Reduce_scatter" : ("cid='%d'", 
                       "getCommId(v6)"),
 
-  "Scan" : ("size='%lld' comm='%d' count='%d' type='%d'",
+  "Scan" : ("size='%lld' cid='%d' count='%d' type='%d'",
             "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
-  "Exscan" : ("size='%lld' comm='%d' count='%d' type='%d'",
+  "Exscan" : ("size='%lld' cid='%d' count='%d' type='%d'",
             "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
-  "Recv" : ("fromRank='%d' fromTag='%d' comm='%d'", 
+  "Recv" : ("fromRank='%d' fromTag='%d' cid='%d'", 
             "getWorldRank(v4, v6), v5, getCommId(v6)"),
 
-  "Irecv" : ("fromRank='%d' fromTag='%d' comm='%d'", 
+  "Irecv" : ("fromRank='%d' fromTag='%d' cid='%d'", 
              "getWorldRank(v4, v6), v5, getCommId(v6)"),
 
-  "Barrier" : ("comm='%d'", 
+  "Barrier" : ("cid='%d'", 
                "getCommId(v1)"),
 
-  "Sendrecv" : ("size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' comm='%d' count='%d' type='%d'", 
+  "Sendrecv" : ("size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' type='%d'", 
                 "getTypeSize(v2, v3), getWorldRank(v4, v11), v5, getWorldRank(v9, v11), v10, getCommId(v11), v2, getTypeId(v3)"),
 
-  "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' comm='%d' count='%d' type='%d'", 
+  "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' type='%d'", 
                         "getTypeSize(v2, v3), getWorldRank(v4, v8), v5, getWorldRank(v6, v8), v7, getCommId(v8), v2, getTypeId(v3)"),
 
-  "Allreduce" : ("size='%lld' comm='%d' count='%d' type='%d'", 
+  "Allreduce" : ("size='%lld' cid='%d' count='%d' type='%d'", 
                  "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
-  "File_open" : ("comm='%d' name='%s' flags='%d' file='%d'", 
+  "File_open" : ("cid='%d' name='%s' flags='%d' fid='%d'", 
                  "getCommId(v1), v2, v3, getFileIdEx(*v5, v2)"),
 
-  "File_close" : ("file='%d'", 
+  "File_close" : ("fid='%d'", 
                   "pre_close_id"),
 
    
-  "File_delete" : ("file='%d'", 
+  "File_delete" : ("fid='%d'", 
                    "getFileIdFromName(v1)"),
 
-  "File_write" :        ("file='%d'", 
+  "File_write" :        ("fid='%d'", 
                          "getFileId(v1)"),
 
-  "File_write_all" :    ("file='%d'", 
+  "File_write_all" :    ("fid='%d'", 
                          "getFileId(v1)"),
 
-  "File_write_all_begin" : ("file='%d' aid='%d'", 
+  "File_write_all_begin" : ("fid='%d' aid='%d'", 
                             "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_write_all_end" : ("", 
                           "", 
                           "Wait"),
 
-  "File_write_at" :     ("file='%d'", 
+  "File_write_at" :     ("fid='%d'", 
                          "getFileId(v1)"),
 
-  "File_write_at_all" : ("file='%d'", 
+  "File_write_at_all" : ("fid='%d'", 
                          "getFileId(v1)"),
 
-  "File_write_at_all_begin" : ("file='%d' aid='%d'", 
+  "File_write_at_all_begin" : ("fid='%d' aid='%d'", 
                                "getFileId(v1), getRequestIdForSplit(v1)"),
   "File_write_at_all_end" : ("", 
                              "",
                              "Wait"),
 
-  "File_write_ordered" : ("file='%d' size='%lld' count='%d' type='%d'",
+  "File_write_ordered" : ("fid='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_write_ordered_begin" : ("file='%d' aid='%d'", 
+  "File_write_ordered_begin" : ("fid='%d' aid='%d'", 
                                 "getFileId(v1), getRequestIdForSplit(v1)"),
   "File_write_ordered_end" : ("", 
                               "",
                               "Wait"),
 
-  "File_write_shared" : ("file='%d' size='%lld' count='%d' type='%d'",
+  "File_write_shared" : ("fid='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_read" :        ("file='%d'", 
+  "File_read" :        ("fid='%d'", 
                         "getFileId(v1)"),
 
-  "File_read_all" :    ("file='%d'", 
+  "File_read_all" :    ("fid='%d'", 
                         "getFileId(v1)"),
 
-  "File_read_all_begin" : ("file='%d' aid='%d'", 
+  "File_read_all_begin" : ("fid='%d' aid='%d'", 
                            "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_all_end" : ("", 
                          "", 
                          "Wait"),
 
-  "File_read_at" :     ("file='%d'", 
+  "File_read_at" :     ("fid='%d'", 
                         "getFileId(v1)"),
 
-  "File_read_at_all" : ("file='%d'", 
+  "File_read_at_all" : ("fid='%d'", 
                         "getFileId(v1)"),
 
-  "File_read_at_all_begin" : ("file='%d' aid='%d'", 
+  "File_read_at_all_begin" : ("fid='%d' aid='%d'", 
                               "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_at_all_end" : ("", 
                             "", 
                             "Wait"),
 
-  "File_read_ordered" : ("file='%d' size='%lld' count='%d' type='%d'",
+  "File_read_ordered" : ("fid='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
   
-  "File_read_ordered_begin" : ("file='%d' aid='%d'", 
+  "File_read_ordered_begin" : ("fid='%d' aid='%d'", 
                                "getFileId(v1), getRequestIdForSplit(v1)"),
 
   "File_read_ordered_end" : ("", 
                              "", 
                              "Wait"),
 
-  "File_read_shared" : ("file='%d' size='%lld' count='%d' type='%d'",
+  "File_read_shared" : ("fid='%d' size='%lld' count='%d' type='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_iread" : ("file='%d' request='%d'", 
+  "File_iread" : ("fid='%d' request='%d'", 
                   "getFileId(v1), getRequestId(*v5)"),
 
-  "File_iread_at" : ("file='%d' request='%d'", 
+  "File_iread_at" : ("fid='%d' request='%d'", 
                      "getFileId(v1), getRequestId(*v6)"),
 
-  "File_iread_shared" : ("file='%d' request='%d'", 
+  "File_iread_shared" : ("fid='%d' request='%d'", 
                          "getFileId(v1), getRequestId(*v5)"),
 
-  "File_iwrite" : ("file='%d' request='%d'", 
+  "File_iwrite" : ("fid='%d' request='%d'", 
                    "getFileId(v1), getRequestId(*v5)"),
 
-  "File_iwrite_at" : ("file='%d' request='%d'", 
+  "File_iwrite_at" : ("fid='%d' request='%d'", 
                       "getFileId(v1), getRequestId(*v6)"),
 
-  "File_iwrite_shared" : ("file='%d' request='%d'", 
+  "File_iwrite_shared" : ("fid='%d' request='%d'", 
                           "getFileId(v1), getRequestId(*v5)"),
 
-  "File_set_size" : ("file='%d' size='%lld'", 
+  "File_set_size" : ("fid='%d' size='%lld'", 
                      "getFileId(v1), (long long int)v2"),
 
-  "File_preallocate" : ("file='%d' size='%lld'", 
+  "File_preallocate" : ("fid='%d' size='%lld'", 
                         "getFileId(v1), (long long int)v2"),
 
-  "File_get_size" : ("file='%d' size='%lld'", 
+  "File_get_size" : ("fid='%d' size='%lld'", 
                      "getFileId(v1), (long long int)*v2"),
 
-  "File_set_info" : ("file='%d'", 
+  "File_set_info" : ("fid='%d'", 
                      "getFileId(v1)"),
 
-  "File_set_atomicity" : ("file='%d' flag='%d'", 
+  "File_set_atomicity" : ("fid='%d' flag='%d'", 
                           "getFileId(v1), v2"),
   
-  "File_sync" : ("file='%d'", 
+  "File_sync" : ("fid='%d'", 
                  "getFileId(v1)"),
 
-  "File_seek_shared" : ("file='%d' relative-offset='%lld' whence='%s' offset='%lld'",
+  "File_seek_shared" : ("fid='%d' relative-offset='%lld' whence='%s' offset='%lld'",
                         "getFileId(v1), (long long int)v2, getWhenceString(v3), getByteOffset(v1)"),
 
-  "File_seek" : ("file='%d' relative-offset='%lld' whence='%s' offset='%lld'",
+  "File_seek" : ("fid='%d' relative-offset='%lld' whence='%s' offset='%lld'",
                         "getFileId(v1), (long long int)v2, getWhenceString(v3), getByteOffset(v1)"),
 
-  "File_set_view" : ("file='%d' offset='%lld' etype='%d' filetype='%d' representation='%s'", 
+  "File_set_view" : ("fid='%d' offset='%lld' etype='%d' filetype='%d' representation='%s'", 
                      "getFileId(v1), (long long int)v2, getTypeId(v3), getTypeId(v4), v5"),
 
-  "Iprobe" : ("source='%d' tag='%d' comm='%d'", 
+  "Iprobe" : ("source='%d' tag='%d' cid='%d'", 
               "getWorldRank(v1, v3), v2, getCommId(v3)"),
 
   "Type_vector" : ("from_type='%d'", 
