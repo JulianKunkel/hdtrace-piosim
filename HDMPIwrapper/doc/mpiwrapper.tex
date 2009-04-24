@@ -1,22 +1,18 @@
-%\documentclass[a4paper,12pt,pdftex,draft]{scrartcl}
 \documentclass[a4paper,12pt,pdftex]{scrartcl}
-%\documentclass[a4paper,12pt,pdftex,draft]{scrartcl}
 
 \usepackage[american]{babel}
 \usepackage[latin1]{inputenc}
-%\usepackage{amsmath}
-%\usepackage{amsfonts}
-
 
 \usepackage{listings}
-%\lstset{numbers=left, numberstyle=\tiny, numbersep=5pt}
 \lstset{
   basicstyle=\ttfamily \scriptsize,
   showstringspaces=false
 }
 \lstset{xleftmargin=0cm}
 \lstset{language=bash}
-\lstset{frame=trBL}
+\lstset{frame=single}
+
+\lstset{breaklines=true}
 
 \usepackage{graphicx}
 %\usepackage{cmbright}   
@@ -53,7 +49,7 @@ cd PIOsimHD/HDTraceWritingCLibrary/
 make
 \end{lstlisting}
 
-{\verb libglib} is also needed.
+\verb/libglib/ is also needed.
 
 \subsection{Building the wrapper}
 
@@ -87,7 +83,7 @@ make hdtest
 \subsection{Example: Producing a trace}
 In this example, the PIOsim project tree is located in the home
 folder, and the necessary libraries have been built as described
-above. I am going to compile and trace the {\verb mpi-io-test } program
+above. I am going to compile and trace the \verb/mpi-io-test/ program
 \cite{mpi-io-test}.
 \begin{lstlisting}
 cd $HOME
@@ -115,17 +111,18 @@ D: [TRACER][node01.0.0] flushLog (hdTrace.c:955): flushing log length: 2130
 D: [TRACER][node01.2.0] flushLog (hdTrace.c:955): flushing log length: 2172
 \end{lstlisting}
 This means everything went well and each of the three processes wrote
-their own log files. The directory now contains three {\verb .xml } and
-three {\verb .info } files. The latter need to be converted in order to
+their own log files. The directory now contains three \verb/.xml/ and
+three \verb/.info/ files. The latter need to be converted in order to
 provide a format that is compatible with the simulator software and
 other tools. The conversion is done via
 \begin{lstlisting}
 $HOME/PIOsimHD/PIOsimHD-Maint/mpiwrapperNew\
 /scripts/project-description-merger.py \
-  -o mpi-io-test.xml mpi-io-test_*.xml
+  -o mpi-io-test.proj.xml mpi-io-test_*.xml
 \end{lstlisting} %$
-The resulting four xml files can now be processed by other tools. Here
-is an example of loading them into HDJumpshot:
+The resulting four xml files can now be processed by other tools. 
+The result of loading the files into HDJumpshot is shown in 
+(\ref{fig:jumpshot-open}), (\ref{fig:jumpshot})
 \begin{figure}[h]
   \centering
   \includegraphics[scale=2]{img/jumpshot-open}
@@ -139,6 +136,538 @@ is an example of loading them into HDJumpshot:
   \caption{mpi-io-test as displayed by Jumpshot}
   \label{fig:jumpshot}
 \end{figure}
+
+
+\section{Functionality}
+
+\subsection{Goals}
+The main goal of the MPI wrapper is to log the MPI interaction of a
+parallel program. The log must contain the necessary information to
+simulate the program at the MPI level and to meaningfully compare the
+simulation results with the real program execution.  
+
+When simulating the execution of traced programs, the simulator
+assumes the program's logical execution to be independent of the
+performance of individual MPI functions. It also assumes that the time
+spent outside of the \emph{important} (i.e. communication and
+input/output performing) functions does not depend on the performance
+of those functions. Therefore it suffices to log every call of an
+\emph{important} function combined with its start time (time of the
+call), end time (time of the return) and the relevant function
+arguments. Relevant arguments are those that indicate which ranks are
+taking part in a communication, how much data is transferred and which
+resources are being used.
+
+The use of the following resources must be logged:
+\begin{enumerate}
+\item Files: Every file access via an MPI function must identify,
+  which file is being accessed.
+\item Communicators: The communicator indicates, which processes are
+  taking part in a particular collective call and is needed to
+  reconstruct, to which group an MPI call belongs to.
+\item Types: Usually, transmission of data is performed on a number of
+  instances of an MPI datatype. Because datatypes can contain holes
+  and there are different strategies to transmit such complex
+  datatypes, it is necessary to log the compositions of the datatypes
+  that are used.
+\item Requests: MPI allows the user to use nonblocking calls by
+  returning an \verb MPI_Request  structure that can be used to poll the
+  state of the call, or, for example, to use a blocking 
+  \verb MPI_Wait . The latter is relevant for the simulation, because
+  it halts the execution until the corresponding nonblocking call is
+  finished, which must be simulated. 
+\item Split collective function calls: There are also split collective
+  function calls, that represent a nonblocking, collective access to a
+  file. They are separated into a {\verb *_begin }  and an 
+  {\verb *_end } routine, where the latter is equivalent to a 
+  blocking wait. 
+\end{enumerate}
+
+There are two main kinds of data that should be logged: Data that
+references only the local process such as the time and order of MPI
+function calls, or the request structures that are used to keep track
+of nonblocking function calls. The other kind has a global meaning,
+such as files that are seen by all processes and communicators that
+are created in collective calls and must be equal for all members of
+the communicator. 
+
+Logging of the process-local data can be done in a straightforward
+fashion where each process writes to its own log file. There are
+several possibilities to log the global data:
+\begin{itemize}
+\item Create a unique identifier for each global resource on its first
+  use and communicate this identifier to all other processes. 
+\item Create a process internal identifier and store, to which process
+  it refers. Unify the different identifiers in a post-processing
+  step.
+\end{itemize}
+Because it is our goal to disturb the program's behaviour as little as
+possible we choose the second approach. Every process writes two
+files, an \verb *.xml  and an \verb *.info  file. The latter holds the
+mapping from process-identifiers to the actual global objects (files,
+communicators). As a minor drawback, the trace must be processed by a
+script to bring it in a simulator-compatible form. 
+
+\subsubsection{Tracing method}
+There are two main requirements that the wrapper library must fulfill:
+\begin{itemize}
+\item It must be easy usable with different MPI implementations, at least
+  with Open MPI and MPICH
+\item The use of the wrapper must be as easy as possible. 
+\end{itemize}
+For these reasons, the wrapper is implemented by creating an object
+file that contains wrapper functions with the same name as the
+important MPI functions. These functions perform the necessary logging
+routines, pass the arguments to the underlying MPI library and pass
+its return value back to the calling program. When the object file is
+linked to a program, the wrapper functions hide the original MPI
+functions. 
+
+This is reasonably easy and the wrapper is mostly
+independent of the used MPI implementation. (The \verb mpi.h  and 
+\verb mpio.h  headers that are used to compile the MPI wrapper must be
+the same that are used to compile the traced program.) Also, the
+\verb/mpicc/ compiler can be used as usual.
+
+One disadvantage of the approach is that we need to compile the
+program that needs to be traced. That means we need to have its source
+code (which is usually the case). Another problem could occur due to
+an implementation detail of the wrapper: The wrapper functions need to
+pass every call to the MPI library. This can easily be done because
+the library provides every MPI function once using the \verb MPI_ and
+once using the \verb/PMPI_/ prefix. Thus, passing the function call to
+the MPI library is done by calling the corresponding PMPI
+function. This means, the wrapper won't function correctly if the
+program it is tracing makes use of the \verb/PMPI_/ names.
+
+\subsection{Components}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width = 0.8 \textwidth]{img/building}
+  \caption{Building the MPI wrapper library from source files.}
+  \label{fig:building}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6 \textwidth]{img/trace}
+  \caption{Creating and processing a trace}
+\end{figure}
+
+\subsubsection{HDTraceWritingCLibrary}
+The HDTraceWritingCLibrary is a component that has been split from the
+MPI wrapper for better reusability. It offers an interface for writing
+xml logs. It is possible to log xml tags including attributes and
+elements, and it supports nesting of xml tags up to a certain
+(defined) depth.
+
+The main logging item is the \emph{state}, which is indicated by
+\verb/hdT_logStateStart()/ and \verb/hdT_logStateEnd()/
+\begin{lstlisting}
+// trace is the structure that indicates the files to which data
+// is being written. It is created by hdT_createTrace(...)
+hdT_logStateStart(trace, "StateName");
+// execution of the MPI calls, 
+// logging of elements and attributes that belong to the state
+hdT_logStateEnd(trace)
+\end{lstlisting}
+
+It also uses \verb/gettimeofday/ to log the time at which the state
+has been started and finished.
+
+There are two files that are created for each trace. One is the xml
+file that holds data about the states that were logged. This file is
+compatible with the logging format that is expected by other
+tools. The second file is a plaintext (\verb/.info/) file that can be
+used to store additional information.
+
+\subsubsection{HDTraceMPIWrapper}
+The mpi wrapper is the component that actually intercepts the MPI
+calls and that determines which data is being logged. 
+
+\subsubsection{Project Description Merger}
+The script \verb/project-description-merger.py/ converts the trace of
+a program into a form that is compliant with other PIOsim tools. More
+precise, it uses data from the \verb/.info/-files to create a project
+description xml file. The collection of xml files -- the xml files
+created by all processes and the new description xml -- constitute a complete
+trace. The \verb/.info/ files are then no longer needed.
+
+% \subsubsection{HDTraceMPIWrapper.src.c}
+% Because the structure of the wrapper functions is largely redundant,
+% they are automatically generated by a script
+% (\verb/create_sim-wrapper.py/). 
+
+% The file
+% \verb/HDTraceMPIWrapper.src.c/ contains the global variables and
+% functions that are used by the generated wrapper methods.
+
+% \subsubsection{create\_sim-wrapper.py}
+% This script generates the wrapper functions by using the function
+% declarations in \verb|include/interesting_funcs.h|. The configuration
+% (i.e., which function arguments should be logged, and how) is found in 
+% \verb|scripts/wrapper_conf.py|.
+
+% \subsubsection{wrapper\_conf.py}
+% This file contains the configuration for the script 
+
+% \subsubsection{HDTraceMPIWrapper.c}
+% The file \verb/HDTraceMPIWrapper.c/ is generated by concatenating the
+% file \verb/HDTraceMPIWrapper.src.c/ with the output of
+% \verb/create_sim-wrapper.py/.
+
+
+% \subsubsection{HDTraceWritingCLibrary}
+
+\subsection{Design}
+This section describes some decisions that were made
+concerning the design of the MPI wrapper.
+
+\subsubsection{Automatic code generation}
+The wrapper functions that constitute the vital part of the MPI
+wrapper are very similar in their structure. Because of that, they are
+automatically generated by a script. This approach, while adding
+another layer of complexity, greatly reduces possible mistakes that
+would occur otherwise. The script obtains a list of functions from the
+file \verb|interesting_funcs.h|. The connections -- which function
+arguments are recorded with which attribute name -- are stored in the
+file \verb|scripts/wrapper_conf.py|.
+
+\subsubsection{Log format}
+It is necessary that the output of the trace library must be
+compatible with the tracing format that is used by the simulator,
+HDJumpshot etc. This means a set of xml files that contain the MPI
+function calls and their arguments, and one single project description
+file that contains the information about the names of the other xml
+files and miscellaneous information. The naming of the process files
+must fulfill the naming convention
+\begin{lstlisting}
+<base name>_<level 1>_..._<level K>.xml
+\end{lstlisting}
+\verb/<base name>/ is the name of the project and \verb/<level 1>/
+... \verb/<level K>/ constitute the representation of the file in a tree
+structure.
+
+The MPI wrapper uses the following topology and naming convention:
+\begin{itemize}
+\item \verb/<base name>/ is the name of the executable that is being
+  traced. (It is extracted from \verb/*argv[0]/ of the arguments to
+  \verb/MPI_Init()/
+\item \verb/<level 1>/ is the hostname of the machine on which the
+  process is running. It is obtained by a call to \verb/gethostname()/
+\item \verb/<level 2>/ is the MPI rank of the
+  process. (\verb/MPI_Comm_rank()/)
+\item \verb/<level 3>/ is the number of the thread that belongs to the
+  current process. The enumeration of threads depends on the order in
+  which \verb/MPI_Init_thread()/ or \verb/MPI_Init/ is called and is
+  usually arbitrary.
+\end{itemize}
+
+As discussed earlier, the project description file is not generated at
+runtime because it would require communication between the
+processes. Because we do not want to disrupt the program's original
+MPI communication, the description file has to be created in a
+postprocessing step. The postprocessing is done by the script
+\verb/project-description-merger.py/. 
+
+The project description file is an xml file with the root element
+\verb/Application/. 
+
+It contains the following sections: 
+\begin{itemize}
+\item \emph{FileList} This section contains the files that have been
+  accessed by the program and their initial sizes. 
+\begin{lstlisting}[caption=FileList section]
+<FileList>
+<File name="test.out">
+ <InitialSize>16777216</InitialSize>
+ <Distribution 
+class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe" />
+ <ChunkSize>64K</ChunkSize>
+</File>
+</FileList>
+\end{lstlisting}
+The \verb/Distribution/ and \verb/ChukSize/ elements are not derived
+from the trace file. They are relevant for the MPI simulator and can
+be set by passing the corresponding command line arguments to the
+merger script.
+\item \emph{Topology} The topology section holds the information about
+  the files that constitute the complete trace file. The \verb/Level/
+  entries determine the names of the different levels. Those are fixed
+  for program traces, with the values \emph{Hostname}, \emph{Rank},
+  \emph{Thread}.
+
+\begin{lstlisting}
+ <Topology>
+  <Level name="Hostname">
+   <Level name="Rank">
+    <Level name="Thread">
+    </Level>
+   </Level>
+  </Level>
+\end{lstlisting}
+
+  The \emph{Label} section determines the names of the single xml
+  trace files. If, for example, the Label section contains the
+  following entries, the folder must also contain the files named
+  \verb/<programname>_node01_0_0.xml/ and
+  \verb/<programname>_node01_1_0.xml/.
+\begin{lstlisting}
+  <Label value="node01">
+   <Label value="1">
+    <Label value="0" />
+   </Label>
+   <Label value="0">
+    <Label value="0" />
+   </Label>
+  </Label>
+ </Topology>
+\end{lstlisting}
+
+\item \emph{CommunicatorList} This section lists all the communicators
+  that are used in any traced call. The communicator's name, the
+  participating ranks (\verb/global/, relative to
+  \verb/MPI_COMM_WORLD/), the ID that this rank has relative to the
+  new communicator (\verb/local/) and the ID that the communicator has
+  in the tracefile (\verb/cid/).
+
+  In the following example there are five ranks that each refer to the
+  world communicator by the ID 0, and a second communicator where rank
+  1 has the id one and rank 2 has the id 0. Rank 1 refers to the
+  custom communicator by 1 and rank 2 by 2.
+\begin{lstlisting}
+<CommunicatorList>
+  <Communicator name="WORLD">
+   <Rank global="1" local="1" cid="0" />
+   <Rank global="0" local="0" cid="0" />
+   <Rank global="4" local="4" cid="0" />
+   <Rank global="3" local="3" cid="0" />
+   <Rank global="2" local="2" cid="0" />
+  </Communicator>
+  <Communicator name="">
+   <Rank global="1" local="1" cid="1" />
+   <Rank global="2" local="0" cid="2" />
+  </Communicator>
+\end{lstlisting}
+\item \emph{Datatypes} The Datatypes section lists the datatypes that
+  are used by each rank. In the following example, rank 1 uses the
+  predefined, named datatype \verb/MPI_INT/ while rank 0 does not use
+  any datatypes. The xml log of rank 1 refers to the datatype by the
+  numerical id 1275069445.
+\begin{lstlisting}
+ <Datatypes>
+  <Rank name="1" thread="0">
+  <NAMED id="1275069445" name="MPI_INT"  />
+  </Rank>
+  <Rank name="0" thread="0">
+  </Rank>
+ </Datatypes>
+\end{lstlisting}
+  The name of the tag that represents a datatype is the name of the
+  constant that is returned by \verb/MPI_Type_get_envelope/, without
+  the \verb/MPI_/ prefix.
+
+  The datatypes are stored per process, so it would have been
+  reasonable to put this section into the individual xml traces. This
+  has not been done because the xml traces should remain unchanged in
+  the postprocessing step.
+\end{itemize}
+
+\subsubsection{Files}
+An MPI function can access a file by using an MPI file handle, a file
+name or both. An example for the first one would be
+\verb/MPI_File_write/, \verb/MPI_File_delete/ for the second and
+\verb/MPI_File_open/ for the last one.  Independent on the method we
+need to log, which file is being accessed.  This is implemented by
+assigning an id to each file that is used. When the file is opened via
+\verb/MPI_File_open/ for the first time, the id is stored in one hash
+map where the file name as the key and in a second map where the key
+is the file handle. When the file is closed, the handle is removed
+from the second hash map. On any consecutive openinig, the new file
+handle can be associated with the original identifier via the file
+name to id map.
+
+The mapping and assigning of identifiers is carried out by the
+functions
+\begin{lstlisting}
+static gint getFileId(MPI_File fh);
+static gint getFileIdFromName(const char * name);
+static gint getFileIdEx(MPI_File fh, const char * name);
+\end{lstlisting}
+
+Whenever a new identifier is assigned, these functions write the file
+name, the id and the original size to the info file:
+\begin{lstlisting}
+File name="filetest_03.tmp" Size=0 id=2
+\end{lstlisting}
+
+In the xml trace, the file is refered to by the id (attribute \verb/file/) and the file name
+on opening:
+\begin{lstlisting}
+<File_write_at_all_begin file='2' aid='0' 
+      time='1240424724.531647' end='1240424724.531654' >
+  <Data offset='0' size='1' count='1' type='1275068673' />
+</File_write_at_all_begin>
+\end{lstlisting}
+
+\subsubsection{Time}
+The hdTrace library sets a time stamp on the beginning and end of
+every state. The time is obtained by \verb/gettimeofday/. It is
+represented by the attributes \verb/time/ for the start of the state
+and \verb/end/ for its end.
+\begin{lstlisting}
+<Init  time='1240424724.508182' end='1240424724.508183'  />
+\end{lstlisting}
+
+When the trace is run on different machines, the time must be properly
+synchronised (via . 
+
+\subsubsection{Data types}
+
+MPI offers the possibility to create and use custom datatypes to
+optimize access and transmission of complex structures. 
+Datatypes are also used to set the visibility of certain parts of a
+file.
+
+Because of that it is necessary to identify data types and to log
+their structure so access to a file can be reconstructed
+correctly. The exact composition of a datatype is also needed for
+performance analysis.
+
+% how is an mpi datatype made
+An MPI datatype can be created by a number of different functions that
+take a different number of arguments. Fortunately, it offers a way of
+reconstructing the call that was used to create a type: First,
+\verb/MPI_Type_get_envelope/ has to be called to get the number of
+arguments that were passed to the type-creating function, and the
+\emph{combiner} that identifies the creating function. A second call
+to \verb/MPI_Type_get_contents/ can be used to obtain the arguments
+themselves. This mechanism is used to log the datatypes to the info
+file.
+
+Similar to other structures, MPI datatypes are assigned an identifier
+on their first use by a logging routine. This happens by calling the
+function \verb/getTypeId(MPI_Datatype type)/. \verb/getTypeId/ looks
+up in a hashmap, if the datatype already has an identifier. If not, it
+assigns a new id and calls \verb/writeTypeInfo(...)/ which writes the
+creation arguments to the info file. If the datatype is a composet
+datatype that consists of other datatypes, those are referenced while
+writing the info file, which causes them to be logged as well. In the
+end, all the information that is needed to reconstruct the datatype
+will be recursively logged.
+
+For example, creating a struct consisting of four \verb/MPI_INT/s and
+five \verb/MPI_DOUBLE/s will produce the following output. 
+\verb/id/ is the integer by which the datatype is refered to in the
+log file. \verb/combiner/ is the name of the MPI constant that
+identifies by which function the type has been
+created. \verb/integers/, \verb/addresses/ and \verb/types/ are the
+parameters that have been passed to that function. \verb/types/ uses
+the trace-intern identifiers to refer to the types.
+\begin{lstlisting}
+Type id='1275069445' combiner='MPI_COMBINER_NAMED' name='MPI_INT'
+Type id='1275070475' combiner='MPI_COMBINER_NAMED' name='MPI_DOUBLE'
+Type id='-1946157050' combiner='MPI_COMBINER_STRUCT' name='' \
+  integers='2;4;5;' addresses='6;7;' types='1275069445;1275070475;'
+\end{lstlisting}
+
+This is the code segment that would produce the above output.
+\begin{lstlisting}
+int blens[2] = {4, 5};
+MPI_Aint inds[2] = {6, 7};
+MPI_Datatype oldtypes[2] = {MPI_INT, MPI_DOUBLE};
+MPI_Type_struct(2, blens, inds, oldtypes, &type6);
+// use type6 in a transmission that is logged
+\end{lstlisting}
+
+\subsubsection{Communicators}
+There are two main issues with communicators: We need to know who is
+participating in a transmission, and the translation between global
+ranks to the ranks that are assigned relative to the communicator.
+
+The logging takes place in a straightforward fashion: Every
+communicator gets an identifier on the first access and this
+identifier and the translation map is written to the info file.
+The name of the communicator is also written, albeit it is rarely
+useful in cases other than the world and the self communicators.
+
+In the following example the program used three communicators, the
+world communicator, one communicator with the global ranks 1 and 2 and
+one with the global ranks 1 and three.
+\begin{lstlisting}
+Comm map='0->0;1->1;2->2;3->3;4->4;' id=0 name='WORLD'
+Comm map='1->1;2->0;' id=1 name=''
+Comm map='1->1;3->0;' id=2 name=''
+\end{lstlisting}
+
+\subsubsection{Non-blocking communication}
+
+There are two types of non-blocking communication provided by MPI.
+\begin{itemize}
+\item \verb/MPI_I/ non-blocking function calls that return an
+  \verb/MPI_Request/ structure that can be used to query the state of
+  the call.
+\item Collective I/O operations can be performed using a split
+  collective call. This means that the function,
+  e.g. \verb/MPI_File_read_all/ is split into
+  \verb/MPI_File_read_all_begin/ and \verb/MPI_File_read_all_end/.
+  Only one split collective call may be active for each file.
+\end{itemize}
+
+Because of semantic similarities between the two mechanisms they share
+the logging representation. Similar to the logging of files,
+communicators and datatypes, each \verb/MPI_Request/ is assigned an id
+by which it is refered to when logging related calls. 
+
+The first version is logged like this:
+\begin{lstlisting}
+<Isend size='1' count='1' type='1275068673' toRank='1' toTag='0' \
+  cid='0' rid='1'\  time='1240497420.078912' end='1240497420.078981'  />
+<Isend size='1' count='1' type='1275068673' toRank='2' toTag='0' \
+  cid='0' rid='2'  time='1240497420.078987' end='1240497420.079006'  />
+<Wait  time='1240497420.079011' end='1240497420.079028' >
+  <For rid='1' />
+</Wait>
+<Wait  time='1240497420.079034' end='1240497420.079037' >
+  <For rid='2' />
+</Wait>
+\end{lstlisting}
+Here, two non-blocking \verb/Isend/s are issued with the request
+identifiers (\verb/rid/) 1 and 2. Then the program watis for the first
+and second sending to complete.
+
+The split collective calls are also assigned an \verb/rid/, which is
+bound to the file handle. This works because each file may have at
+most one open split collective call. The \verb/_end/ part of the call
+is then logged exactly like a \verb/Wait/.
+
+This is, for example, how a \verb/MPI_File_write_at_all_begin/ -
+\verb/MPI_File_write_at_all_end/ pair is logged:
+
+\begin{lstlisting}
+<File_write_at_all_begin fid='0' rid='0'  time='1240497420.073870' end='1240497420.076409' >
+  <Data offset='0' size='1' count='1' type='1275068673' />
+</File_write_at_all_begin>
+<Wait  time='1240497420.076415' end='1240497420.076418' >
+  <For rid='0' />
+</Wait>
+\end{lstlisting}
+
+\subsubsection{Threading}
+
+The wrapper has been programmed with threading in mind. The TLS
+(thread local storage) mechanism of the gcc compiler is used to ensure
+that global variables are limited to the current thread. Also,
+\verb/MPI_Init/ (or \verb/MPI_Init_thread/) are using a counter to
+keep track, how often they have been called. This is used to give each
+thread a separate tracefile. The thread number is the last number in
+the log file names.
+
+It must be noted that thread support has not been carefully
+tested. Also, the project description merger handles trace files from
+different ranks and trace files from different threads in the same
+way. 
 
 \section{Environment variables and command line options} 
 \subsection{HDTraceMPIWrapper.a}
@@ -215,157 +744,776 @@ trace files are { \verb <program-name>_<hostname>_<rank>_<thread>.xml }.
 { \verb -d  \verb <description> } (optional): The description of the
 project. This can be anything. 
 
-\section{Extending the wrapper}
+\section{Future Work}
 
-The MPI wrapper redefines some of the functions that are provided by
-the MPI library. These functions hide the original MPI functions when
-the wrapper library (\verb libHDTraceMPIWrapper.a ) is linked to a
-program. Thus, every call to an MPI function within the program is 
-passed to a wrapper function. The wrapper function logs data about the
-call to a log file (using the \verb HDTraceWritingCLibrary ) and
-forwards the call to the corresponding PMPI function. mpich and
-openmpi provide each function twice, once with the prefix {\verb MPI_ }
-and once with the prefix \verb PMPI_  for exactly this purpose.
+% \section{List of all attributes and elements (standardization)}
+% test thread safety
+% hdT_logEventStart nicht implementiert
+% different file names -> different files
+% log usable for c++?
 
-The wrapper functions have mostly the following shape:
+\subsection{Packaging}
+% - configure script to decide, which include files to use
+% - thread safety issues
+
+
+\appendix
+
+\section{Appendix: logged attributes and elements}
+
+This section lists the format of the xml log file. Each xml tag has
+the name of the logged function without \verb/MPI_/ prefix. 
+The type of the values is given in printf-compatible notation.
+
+\subsection{Common attributes}
+
+\begin{itemize}
+\item[size] An approximation of the size of the data that is accessed,
+  in bytes. It is calculated by taking the product of the element
+  count and the type size as returned by \verb/MPI_Type_size/.
+\item[cid] The id of the communicator that is used
+\item[type] The id of the type that is used.
+\item[time] The time at which the MPI function is called.
+\item[end] The time at which the MPI function returned.
+\item[fid] The id of the file that is referenced.
+\item[rid] The id of the request that is used.
+\end{itemize}
+
+\subsection{List of logged attributes}
+
+\subsubsection{MPI\_Abort}
 \begin{lstlisting}
-int MPI_<function>(<type 1> v1, ..., <type N> vN)
-{
-  int ret;
-
-  hdT_StateStart(tracefile, "<function>");
-
-  ret = PMPI_<function>( v1, ..., vN );
-
-  <Eventually log elements using hdT_logElement(...)>
-
-  <Eventually log attributes using hdT_logAttributes(...)>
-
-  hdT_StateEnd(tracefile);
-  return ret;
-}
+<Abort cid='%d' time='%f' end='%f' />
 \end{lstlisting}
 
-Because the wrapper functions have so much in common, they are
-generated by a script instead of being written manually. The script
-called is \verb scripts/create_sim-wrapper.py . It uses the
-configuration file \verb scripts/wrapper_conf.py . The configuration
-file is used to list the code parts that are inserted at certain
-points into the wrapper function. 
-
-The following example demonstrates,
-what needs to be done to create a custom trace for an MPI function.
-
-\subsection{Example: Tracing an MPI function}
-Assume that you want to log every call to the \lstinline/MPI_Error_string/
-function and the argument being passed to the function. 
-\begin{enumerate}
-\item Make sure that the function definition of {\lstinline[]/MPI_Error_string/} is
-  listed in the file {\verb include/interesting_funcs.h }:
-\begin{lstlisting}[title={include/interesting\_funcs.h}]
-int MPI_Error_string(int, char *, int *);
-\end{lstlisting}
-\item Modify the \verb logAttributes  dictionary in 
-{\verb scripts\wrapper_conf.py }. If you want to log the first
-(\verb errorcode ) and the second (\verb errorstring ) arguments, you
-have to enter the following
+\subsubsection{MPI\_Allgather}
 \begin{lstlisting}
-logAttributes = {
-  "Error_string" : ("code='%d' string='%s'",
-                    "v1, v2"),
+<Allgather size='%lld' recvSize='%lld' cid='%d' count='%d' type='%d' recvCount='%d' recvType='%d' time='%f' end='%f' />
 \end{lstlisting}
-The key of the dictionary corresponds to the name of the function
-without the \verb MPI_  prefix. The value is a tuple. The tuple's
-first entry denotes the formatting of the attributes in printf-like
-notation. It should have the form \verb key='value'  to produce a
-valid xml file. The value should be enclosed in quotation marks.
 
-The tuple's second entry is a comma separated list of parameters that
-are used as arguments for the format string.
-
-Building the wrapper will automatically produce the following wrapper
-function:
+\subsubsection{MPI\_Allgatherv}
 \begin{lstlisting}
-int MPI_Error_string(int v1,  char * v2,  int * v3){
-  int ret;
-
-  hdT_logStateStart(tracefile, "Error_string");
-
-  ret = PMPI_Error_string( v1,  v2,  v3);
-
-  hdT_logAttributes(tracefile, "code='%d' value='%s'", v1, v2);
-  hdT_logStateEnd(tracefile);
-
-  return ret;
-}
+<Allgatherv size='%lld' cid='%d' count='%d' type='%d' time='%f' end='%f' />
 \end{lstlisting}
 
-\item
-Now, you can compile and run the following test program. Make sure
-to link the libraries \verb libHDTraceMPIWrapper.a , 
-\verb libhdTrace  and \verb libglib-2.0  .
+\subsubsection{MPI\_Allreduce}
 \begin{lstlisting}
-#include <mpi.h>
-
-char ecode[MPI_MAX_ERROR_STRING];
-int len;
-
-int main(int argc, char *argv[])
-{
-    MPI_Init(&argc, &argv);
-    MPI_Error_string(0, ecode, &len);
-    MPI_Finalize();
-}
+<Allreduce size='%lld' cid='%d' count='%d' type='%d' time='%f' end='%f' />
 \end{lstlisting}
 
-\end{enumerate}
-
-\subsection{Logging an unspecified number of elements}
-
-If you want to log an arbitrary number of items, using 
-attributes won't do the trick. The answer is to log xml elements by
-calling \verb hdT_logElement  before or after the call to the PMPI
-function, depending on which parameters you want to log. This can be
-accomplished by using the dictionaries \verb beforeMpi  and 
-\verb afterMpi . An example is the logging of {\verb Alltoallv }
-that has to write the size of each block that is sent to the other ranks.
-This is the entry in the dictionary \verb afterMpi . It maps the
-function's basename to a code snippet that is inserted after the 
-\verb PMPI_Alltoallv  call.
+\subsubsection{MPI\_Alltoall}
 \begin{lstlisting}
-afterMpi = {
-[...]
-"Alltoallv" : """
-  {
-    int size, i;
-    MPI_Comm_size(v9, &size);
-    for(i = 0; i < size; ++i)
-    {
-      hdT_LogElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' type='%d'",
-                   getWorldRank(i, v9), getTypeSize(v2[i], v4), v2[i], getTypeId(v4));
-    }
-  }
-""",
+<Alltoall size='%lld' cid='%d' count='%d' type='%d' time='%f' end='%f' />
 \end{lstlisting}
-As you can see, the functions's arguments \verb v1 ...\verb v9  are
-passed to \verb hdT_LogElement  which formats its arguments similar to
-printf.
 
-All functions that are defined in or included from 
-\verb HDTraceMPIWrapper.src.c  can be used.
+\subsubsection{MPI\_Alltoallv}
+\begin{lstlisting}
+<Alltoallv cid='%d' time='%f' end='%f'>
+  <Send rank='%d' size='%lld' count='%d' type='%d' />
+  <Send rank='%d' size='%lld' count='%d' type='%d' />
+</Alltoallv>
+\end{lstlisting}
 
-\subsection{Logging MPI\_File, MPI\_Comm, MPI\_Datatype and MPI\_Request datatypes}
-It is necessary to log certain MPI structures such as \verb MPI_File , 
-\verb MPI_Comm ,
-\verb MPI_Datatype and
-\verb MPI_Request . The file \verb hash_tables.c  provides an
-interface to log these functions. When you need to log an MPI
-datatype, you can call \verb getTypeId(datatype)  which will return an
-integer ID that can be logged. The function
- \verb getTypeId()  accesses an internal hash map and associates a new
- ID with 
-\verb datatype . If the datatype has already been accessed, the
-previously associated ID is returned. 
+\subsubsection{MPI\_Barrier}
+\begin{lstlisting}
+<Barrier cid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Bcast}
+\begin{lstlisting}
+<Bcast size='%lld' rootRank='%d' cid='%d' count='%d' 
+   type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Bsend}
+\begin{lstlisting}
+<Bsend size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Exscan}
+\begin{lstlisting}
+<Exscan size='%lld' cid='%d' count='%d' type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_close}
+\begin{lstlisting}
+<File_close fid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_delete}
+\begin{lstlisting}
+<File_delete fid='%d' time='%f' end='%f'>
+  <Info value='%s' />
+  <Info value='%s' />
+</File_delete>
+\end{lstlisting}
+When the environment variable \verb/HDTRACE_FILE_INFO/ is set to 1,
+this tag logs the file info that is passed to the function. The file
+info is represented as a number of \verb/<Info>/ tags that list the
+info keys in their \verb/value/ attributes.
+
+\subsubsection{MPI\_File\_get\_size}
+\begin{lstlisting}
+<File_get_size fid='%d' size='%lld' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_iread}
+\begin{lstlisting}
+<File_iread fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_iread>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_iread\_at}
+\begin{lstlisting}
+<File_iread_at fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_iread_at>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_iread\_shared}
+\begin{lstlisting}
+<File_iread_shared fid='%d' rid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_iwrite}
+\begin{lstlisting}
+<File_iwrite fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_iwrite>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_iwrite\_at}
+\begin{lstlisting}
+<File_iwrite_at fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_iwrite_at>
+\end{lstlisting}
+
+
+\subsubsection{MPI\_File\_iwrite\_shared}
+\begin{lstlisting}
+<File_iwrite_shared fid='%d' rid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_open}
+\begin{lstlisting}
+<File_open cid='%d' name='%s' flags='%d' fid='%d' time='%f' end='%f'>
+  <Info key='%s' />
+  <Info key='%s' />
+</File_open>
+\end{lstlisting}
+The info is only saved if the environment variable
+\verb/HDTRACE_FILE_INFO/ is set to 1.
+
+
+\subsubsection{MPI\_File\_preallocate}
+\begin{lstlisting}
+<File_preallocate fid='%d' size='%lld' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read}
+\begin{lstlisting}
+<File_read fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_read>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_all}
+\begin{lstlisting}
+<File_read_all fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_read_all>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_all\_begin}
+\begin{lstlisting}
+<File_read_all_begin fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_read_all_begin>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_all\_end}
+\begin{lstlisting}
+<Wait  time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_at}
+\begin{lstlisting}
+<File_read_at fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_read_at>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_at\_all}
+\begin{lstlisting}
+<File_read_at_all fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_read_at_all>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_at\_all\_begin}
+\begin{lstlisting}
+<File_read_at_all_begin fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_read_at_all_begin>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_at\_all\_end}
+\begin{lstlisting}
+<Wait time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_ordered}
+\begin{lstlisting}
+<File_read_ordered fid='%d' size='%lld' count='%d' type='%d' 
+   time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_ordered\_begin}
+\begin{lstlisting}
+<File_read_ordered_begin fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_read_ordered_begin>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_ordered\_end}
+\begin{lstlisting}
+<Wait  time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_read\_shared}
+\begin{lstlisting}
+<File_read_shared fid='%d' size='%lld' count='%d' type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_seek}
+\begin{lstlisting}
+<File_seek fid='%d' relative-offset='%lld' whence='%s' 
+   offset='%lld' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_seek\_shared}
+\begin{lstlisting}
+<File_seek_shared fid='%d' relative-offset='%lld' whence='%s' offset='%lld' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_set\_atomicity}
+\begin{lstlisting}
+<File_set_atomicity fid='%d' flag='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_set\_info}
+\begin{lstlisting}
+<File_set_info fid='%d' time='%f' end='%f'>
+  <Info value='%s' />
+</File_set_info>
+\end{lstlisting}
+The info is only saved if the environment variable
+\verb/HDTRACE_FILE_INFO/ is set to 1.
+
+\subsubsection{MPI\_File\_set\_size}
+\begin{lstlisting}
+<File_set_size fid='%d' size='%lld' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_set\_view}
+\begin{lstlisting}
+<File_set_view fid='%d' offset='%lld' etype='%d' filetype='%d' representation='%s' time='%f' end='%f'>
+  <Info value='%s' />
+</File_set_view>
+\end{lstlisting}
+The info is only saved if the environment variable
+\verb/HDTRACE_FILE_INFO/ is set to 1.
+
+\subsubsection{MPI\_File\_sync}
+\begin{lstlisting}
+<File_sync fid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write}
+\begin{lstlisting}
+<File_write fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_all}
+\begin{lstlisting}
+<File_write_all fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write_all>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_all\_begin}
+\begin{lstlisting}
+<File_write_all_begin fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write_all_begin>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_all\_end}
+\begin{lstlisting}
+<Wait  time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_at}
+\begin{lstlisting}
+<File_write_at fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write_at>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_at\_all}
+\begin{lstlisting}
+<File_write_at_all fid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write_at_all>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_at\_all\_begin}
+\begin{lstlisting}
+<File_write_at_all_begin fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write_at_all_begin>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_at\_all\_end}
+\begin{lstlisting}
+<Wait  time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_ordered}
+\begin{lstlisting}
+<File_write_ordered fid='%d' size='%lld' count='%d' type='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write_ordered>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_ordered\_begin}
+\begin{lstlisting}
+<File_write_ordered_begin fid='%d' rid='%d' time='%f' end='%f'>
+  <Data offset='%lld' size='%lld' count='%d' type='%d' />
+</File_write_ordered_begin>
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_ordered\_end}
+\begin{lstlisting}
+<Wait time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_File\_write\_shared}
+\begin{lstlisting}
+<File_write_shared fid='%d' size='%lld' count='%d' type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Gather}
+\begin{lstlisting}
+<Gather size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' type='%d' recvCount='%d' recvType='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Gatherv}
+\begin{lstlisting}
+<Gatherv size='%lld' root='%d' cid='%d' count='%d' type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Ibsend}
+\begin{lstlisting}
+<Ibsend size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' rid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Iprobe}
+\begin{lstlisting}
+<Iprobe source='%d' tag='%d' cid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Irecv}
+\begin{lstlisting}
+<Irecv fromRank='%d' fromTag='%d' cid='%d' rid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Irsend}
+\begin{lstlisting}
+<Irsend size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' rid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Isend}
+\begin{lstlisting}
+<Isend size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' rid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Issend}
+\begin{lstlisting}
+<Issend size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' rid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Recv}
+\begin{lstlisting}
+<Recv fromRank='%d' fromTag='%d' cid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Reduce}
+\begin{lstlisting}
+<Reduce size='%lld' rootRank='%d' cid='%d' count='%d' 
+  type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Reduce\_scatter}
+\begin{lstlisting}
+<Reduce_scatter cid='%d' time='%f' end='%f'>
+  <Recv rank='%d' size='%lld' count='%d' type='%d' />
+  <Recv rank='%d' size='%lld' count='%d' type='%d' />
+</Reduce_scatter>
+\end{lstlisting}
+
+\subsubsection{MPI\_Rsend}
+\begin{lstlisting}
+<Rsend size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Scan}
+\begin{lstlisting}
+<Scan size='%lld' cid='%d' count='%d' type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Scatter}
+\begin{lstlisting}
+<Scatter size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' type='%d' recvCount'%d' recvType='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Scatterv}
+\begin{lstlisting}
+<Scatterv recvSize='%lld' root='%d' cid='%d' recvCount='%d' recvType='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Send}
+\begin{lstlisting}
+<Send size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Sendrecv}
+\begin{lstlisting}
+<Sendrecv size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Sendrecv\_replace}
+\begin{lstlisting}
+<Sendrecv_replace sendSize='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Ssend}
+\begin{lstlisting}
+<Ssend size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' 
+  cid='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Test}
+\begin{lstlisting}
+<Test time='%f' end='%f'>
+  <For rid='%d' />
+</Test>
+\end{lstlisting}
+
+\subsubsection{MPI\_Testall}
+\begin{lstlisting}
+<Testall time='%f' for='%f>
+  <For rid='%d' />
+  <For rid='%d' />
+</Testall>
+\end{lstlisting}
+
+\subsubsection{MPI\_Testany}
+\begin{lstlisting}
+<Testany time='%f' for='%f>
+  <For rid='%d' />
+  <For rid='%d' />
+</Testany>
+\end{lstlisting}
+
+\subsubsection{MPI\_Testsome}
+\begin{lstlisting}
+<Testsome time='%f' for='%f>
+  <For rid='%d' />
+  <For rid='%d' />
+</Testsome>
+\end{lstlisting}
+
+
+
+\subsubsection{MPI\_Type\_commit}
+\begin{lstlisting}
+<Type_commit type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Type\_vector}
+\begin{lstlisting}
+<Type_vector from_type='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+\subsubsection{MPI\_Wait}
+\begin{lstlisting}
+<Wait time='%f' for='%f>
+  <For rid='%d' />
+</Wait>
+\end{lstlisting}
+
+\subsubsection{MPI\_Waitall}
+\begin{lstlisting}
+<Waitall time='%f' for='%f>
+  <For rid='%d' />
+  <For rid='%d' />
+</Waitall>
+\end{lstlisting}
+
+\subsubsection{MPI\_Waitany}
+\begin{lstlisting}
+<Waitany time='%f' for='%f>
+  <For rid='%d' />
+  <For rid='%d' />
+</Waitany>
+\end{lstlisting}
+
+\subsubsection{MPI\_Waitsome}
+\begin{lstlisting}
+<Waitsome time='%f' for='%f>
+  <For rid='%d' />
+  <For rid='%d' />
+</Waitsome>
+\end{lstlisting}
+
+
+\subsubsection{MPI\_hdT\_Test\_nested}
+\begin{lstlisting}
+<hdT_Test_nested depth='%d' time='%f' end='%f' />
+\end{lstlisting}
+
+This function is not an MPI function. It has been inserted into the
+MPI wrapper to test the logging of nested function calls. It is only
+included in the compilation if the macro
+\verb/HDTRACE_INCLUDE_NESTED_TEST/ is defined.
+
+
+%%TODO \subsection{notation used in this reference}
+%% time='[start time]' end='[end time]'  is an attribute in every tag
+
+% \newcommand{\sizeItem}{}
+
+
+% \subsubsection{MPI\_Abort}
+% \begin{lstlisting}
+% <Abort cid='[communicator id]' />
+% \end{lstlisting}
+
+% \subsubsection{MPI\_Send, MPI\_Bsend, MPI\_Ssend, MPI\_Rsend}
+
+% \subsubsection*{Example}
+% \begin{lstlisting}
+% <Send size='10' count='1' type='255934' toRank='2' toTag='0' cid='0' />
+% \end{lstlisting}
+
+% \subsubsection*{Attributes}
+% \begin{itemize}
+% \sizeItem
+ 
+% \item[count] The number of items that are sent.
+% \item[type] The type identifier of the datatype which is sent.
+% \item[toRank] The target of the send operation.
+% \item[toTag] The tag that is passed along with the message.
+% \item[cid] The communicator id of the communicator that is used.
+% \end{itemize}
+
+% \subsubsection{MPI\_Isend, MPI\_Ibsend, MPI\_Issend, MPI\_Irsend}
+
+% \subsubsection*{Example}
+% \begin{lstlisting}
+% <Isend size='10' count='1' type='255934' toRank='2' toTag='0' cid='0' rid='5'/>
+% \end{lstlisting}
+
+% \subsubsection*{Attributes}
+% \begin{itemize}
+% \item[size] An approximation of the size that is sent, in bytes. It is
+%   calculated by taking the product of the element count and the type
+%   size as returned by \verb/MPI_Type_size/.
+% \item[count] The number of items that are sent.
+% \item[type] The type identifier of the datatype which is sent.
+% \item[toRank] The target of the send operation.
+% \item[toTag] The tag that is passed along with the message.
+% \item[cid] The id of the communicator that is used.
+% \item[rid] The id of the request.
+% \end{itemize}
+
+% \subsubsection{MPI\_Bcast}
+
+% \subsection*{Example}
+% \begin{lstlisting}
+% <Bcast size='6384' rootRank='0' cid='0' count='1' type='-872415230'/>
+% \end{lstlisting}
+
+% \subsection*{Attributes}
+% \begin{itemize}
+% \item[size]
+% \item[rootRank]
+% \item[cid]
+% \item[count]
+% \item[type]
+% \end{itemize}
+
+% Appendix 2 : datatype representations in the project description
+
+
+
+
+% \section{Extending the wrapper}
+
+% The MPI wrapper redefines some of the functions that are provided by
+% the MPI library. These functions hide the original MPI functions when
+% the wrapper library (\verb libHDTraceMPIWrapper.a ) is linked to a
+% program. Thus, every call to an MPI function within the program is 
+% passed to a wrapper function. The wrapper function logs data about the
+% call to a log file (using the \verb HDTraceWritingCLibrary ) and
+% forwards the call to the corresponding PMPI function. mpich and
+% openmpi provide each function twice, once with the prefix {\verb MPI_ }
+% and once with the prefix \verb PMPI_  for exactly this purpose.
+
+% The wrapper functions have mostly the following shape:
+% \begin{lstlisting}
+% int MPI_<function>(<type 1> v1, ..., <type N> vN)
+% {
+%   int ret;
+
+%   hdT_StateStart(tracefile, "<function>");
+
+%   ret = PMPI_<function>( v1, ..., vN );
+
+%   <Eventually log elements using hdT_logElement(...)>
+
+%   <Eventually log attributes using hdT_logAttributes(...)>
+
+%   hdT_StateEnd(tracefile);
+%   return ret;
+% }
+% \end{lstlisting}
+
+% Because the wrapper functions have so much in common, they are
+% generated by a script instead of being written manually. The script
+% called is \verb scripts/create_sim-wrapper.py . It uses the
+% configuration file \verb scripts/wrapper_conf.py . The configuration
+% file is used to list the code parts that are inserted at certain
+% points into the wrapper function. 
+
+% The following example demonstrates,
+% what needs to be done to create a custom trace for an MPI function.
+
+% \subsection{Example: Tracing an MPI function}
+% Assume that you want to log every call to the \lstinline/MPI_Error_string/
+% function and the argument being passed to the function. 
+% \begin{enumerate}
+% \item Make sure that the function definition of {\lstinline[]/MPI_Error_string/} is
+%   listed in the file {\verb include/interesting_funcs.h }:
+% \begin{lstlisting}[title={include/interesting\_funcs.h}]
+% int MPI_Error_string(int, char *, int *);
+% \end{lstlisting}
+% \item Modify the \verb logAttributes  dictionary in 
+% {\verb scripts\wrapper_conf.py }. If you want to log the first
+% (\verb errorcode ) and the second (\verb errorstring ) arguments, you
+% have to enter the following
+% \begin{lstlisting}
+% logAttributes = {
+%   "Error_string" : ("code='%d' string='%s'",
+%                     "v1, v2"),
+% \end{lstlisting}
+% The key of the dictionary corresponds to the name of the function
+% without the \verb MPI_  prefix. The value is a tuple. The tuple's
+% first entry denotes the formatting of the attributes in printf-like
+% notation. It should have the form \verb key='value'  to produce a
+% valid xml file. The value should be enclosed in quotation marks.
+
+% The tuple's second entry is a comma separated list of parameters that
+% are used as arguments for the format string.
+
+% Building the wrapper will automatically produce the following wrapper
+% function:
+% \begin{lstlisting}
+% int MPI_Error_string(int v1,  char * v2,  int * v3){
+%   int ret;
+
+%   hdT_logStateStart(tracefile, "Error_string");
+
+%   ret = PMPI_Error_string( v1,  v2,  v3);
+
+%   hdT_logAttributes(tracefile, "code='%d' value='%s'", v1, v2);
+%   hdT_logStateEnd(tracefile);
+
+%   return ret;
+% }
+% \end{lstlisting}
+
+% \item
+% Now, you can compile and run the following test program. Make sure
+% to link the libraries \verb libHDTraceMPIWrapper.a , 
+% \verb libhdTrace  and \verb libglib-2.0  .
+% \begin{lstlisting}
+% #include <mpi.h>
+
+% char ecode[MPI_MAX_ERROR_STRING];
+% int len;
+
+% int main(int argc, char *argv[])
+% {
+%     MPI_Init(&argc, &argv);
+%     MPI_Error_string(0, ecode, &len);
+%     MPI_Finalize();
+% }
+% \end{lstlisting}
+
+% \end{enumerate}
+
+% \subsection{Logging an unspecified number of elements}
+
+% If you want to log an arbitrary number of items, using 
+% attributes won't do the trick. The answer is to log xml elements by
+% calling \verb hdT_logElement  before or after the call to the PMPI
+% function, depending on which parameters you want to log. This can be
+% accomplished by using the dictionaries \verb beforeMpi  and 
+% \verb afterMpi . An example is the logging of {\verb Alltoallv }
+% that has to write the size of each block that is sent to the other ranks.
+% This is the entry in the dictionary \verb afterMpi . It maps the
+% function's basename to a code snippet that is inserted after the 
+% \verb PMPI_Alltoallv  call.
+% \begin{lstlisting}
+% afterMpi = {
+% [...]
+% "Alltoallv" : """
+%   {
+%     int size, i;
+%     MPI_Comm_size(v9, &size);
+%     for(i = 0; i < size; ++i)
+%     {
+%       hdT_LogElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' type='%d'",
+%                    getWorldRank(i, v9), getTypeSize(v2[i], v4), v2[i], getTypeId(v4));
+%     }
+%   }
+% """,
+% \end{lstlisting}
+% As you can see, the functions's arguments \verb v1 ...\verb v9  are
+% passed to \verb hdT_LogElement  which formats its arguments similar to
+% printf.
+
+% All functions that are defined in or included from 
+% \verb HDTraceMPIWrapper.src.c  can be used.
+
+% \subsection{Logging MPI\_File, MPI\_Comm, MPI\_Datatype and MPI\_Request datatypes}
+% It is necessary to log certain MPI structures such as \verb MPI_File , 
+% \verb MPI_Comm ,
+% \verb MPI_Datatype and
+% \verb MPI_Request . The file \verb hash_tables.c  provides an
+% interface to log these functions. When you need to log an MPI
+% datatype, you can call \verb getTypeId(datatype)  which will return an
+% integer ID that can be logged. The function
+%  \verb getTypeId()  accesses an internal hash map and associates a new
+%  ID with 
+% \verb datatype . If the datatype has already been accessed, the
+% previously associated ID is returned. 
 
 \bibliography{references}
 \bibliographystyle{alpha}
