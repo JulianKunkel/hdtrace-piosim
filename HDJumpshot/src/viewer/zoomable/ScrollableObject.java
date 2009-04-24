@@ -120,8 +120,6 @@ implements ScrollableView, IAutoRefreshable
 	private BackgroundRendering currentTask = null;
 	private BackgroundThread backgroundThread = null;
 
-	private boolean doAdditionalBackgroundProcessing = false;
-
 
 	/**
 	 * Return the real height the image has (not the viewport height).
@@ -461,35 +459,6 @@ implements ScrollableView, IAutoRefreshable
 	}
 
 	/**
-	 * Overload this method to perform some background computation needed to draw an image
-	 * This function is called by a worker thread and might NEVER call any non-threadsafe
-	 * Swing functions.
-	 */
-	protected void doAdditionalBackgroundThreadWork(){
-
-	}
-
-	/**
-	 * Enable additional computation to be done by the worker thread.
-	 * (thread-safe) 
-	 */
-	public synchronized void triggerAdditionalBackgroundThreadWork(){
-		doAdditionalBackgroundProcessing = true;
-
-		if(backgroundThread == null || backgroundThread.isDone() ){
-			// create background thread:
-			backgroundThread = new BackgroundThread(); 
-			backgroundThread.execute();
-		}		
-	}
-
-	private synchronized boolean isAdditionalBackgroundProcessing(){
-		boolean val = doAdditionalBackgroundProcessing;
-		doAdditionalBackgroundProcessing = false;
-		return val;
-	}
-
-	/**
 	 * At most one of this thread is executed.  
 	 * Prepares the images and does additional computation.
 	 * 
@@ -501,10 +470,6 @@ implements ScrollableView, IAutoRefreshable
 		@Override
 		protected Void doInBackground() {
 			while (true) {
-				if (isAdditionalBackgroundProcessing()){
-					doAdditionalBackgroundThreadWork();
-				}
-
 				final BackgroundRendering job = getNextJob();
 				if(job == null){
 					break;
@@ -540,7 +505,7 @@ implements ScrollableView, IAutoRefreshable
 
 	/**
 	 * Called by the background Thread
-	 * @return
+	 * @return 
 	 */
 	private synchronized BackgroundRendering getNextJob(){
 		while(renderingJobs.isEmpty()){
@@ -610,10 +575,6 @@ implements ScrollableView, IAutoRefreshable
 			}
 
 		}else{ // do not start background thread:
-			if (isAdditionalBackgroundProcessing()){
-				doAdditionalBackgroundThreadWork();
-			}
-
 			for(BackgroundRendering task: renderingJobs){
 				drawOneImageInBackground(task.image, task.box);
 			}
@@ -702,12 +663,12 @@ implements ScrollableView, IAutoRefreshable
 		final int newWidth = visWidth * NumViewsPerImage;
 		final int newHeight = getRealImageHeight();
 
-		
+
 		if(image_size.getSize().width == newWidth && image_size.getSize().height == newHeight ){
 			// not resized at all, but does not work for some cases
 			//return;
 		}
-		
+
 
 		scrollbarTimeModel.setViewWidth(visWidth);
 

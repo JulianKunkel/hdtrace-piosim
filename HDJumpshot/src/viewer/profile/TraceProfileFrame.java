@@ -199,7 +199,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		else 
 			comparator = new TraceProfileComparator.Reversed(metricHandler);
 
-		double maxValue = 0.1; // Initialize to something
+		double maxValue = 0.000000001; // Initialize to something
 
 		for ( int timeline = 0 ; timeline < topologyManager.getRowCount() ; timeline++ ) {
 			//  Select only non-expanded row
@@ -225,8 +225,30 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				String.format("%.4f",(realModelTime.getViewExtent() + realModelTime.getViewPosition()))
 				+ ") " + getReader().getCombinedProjectFilename()
 		);		
+		
+		final Epoch startTime = new Epoch(realModelTime.getViewPosition()).add(realModelTime.getGlobalMinimum());
+		final Epoch endTime = startTime.add(realModelTime.getViewExtent());
 
-		getCanvasArea().triggerAdditionalBackgroundThreadWork();
+		SimpleConsoleLogger.DebugWithStackTrace("recomputeTraceProfile()", 2);
+
+		profile = ComputeTraceProfile(startTime, endTime);		
+
+		// update visible time
+		final double maxValue = updateVisualizedMetric();
+
+		// Code modifies Swing, therefore must be run in Swing Thread:
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				// adjust time:		
+				getModelTime().setEnableFireTimeUpdate(false);
+				getModelTime().setGlobalMaximum(new Epoch(maxValue));			
+
+				getModelTime().clearStacks();
+				getModelTime().zoomHomeWithoutStacking();
+				getModelTime().setEnableFireTimeUpdate(true);
+				getModelTime().fireTimeChanged();
+			}
+		});
 	}
 
 	/**
@@ -461,36 +483,6 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	public class ProfileImagePanel extends ScrollableTimeline{
 		private static final long serialVersionUID = 1L;
 
-		@Override
-		protected void doAdditionalBackgroundThreadWork() {
-			final Epoch startTime = new Epoch(realModelTime.getViewPosition()).add(realModelTime.getGlobalMinimum());
-			final Epoch endTime = startTime.add(realModelTime.getViewExtent());
-
-			SimpleConsoleLogger.DebugWithStackTrace("recomputeTraceProfile()", 2);
-
-			profile = ComputeTraceProfile(startTime, endTime);		
-
-			// update visible time
-			final double maxValue = updateVisualizedMetric();
-
-			// stop pending redrawing
-			cancelRedrawing();
-
-			// Code modifies Swing, therefore must be run in Swing Thread:
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					// adjust time:		
-					getModelTime().setEnableFireTimeUpdate(false);
-					getModelTime().setGlobalMaximum(new Epoch(maxValue));			
-
-					getModelTime().clearStacks();
-					getModelTime().zoomHomeWithoutStacking();
-					getModelTime().setEnableFireTimeUpdate(true);
-					getModelTime().fireTimeChanged();
-				}
-			});
-		}
-
 		public ProfileImagePanel(	ScrollbarTimeModel scrollbarTimeModel,
 				ViewportTime viewport,
 				BoundedRangeModel   yaxis_model,
@@ -551,7 +543,9 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 		private void drawTimeline(Graphics2D g, int timeline, CoordPixelImage coordXform){			
 			final TraceObjectProfileMap map = timelineMap.get(timeline);
-
+			if(map == null){
+				return; // may happen if background computation is slower but redraw is enforced
+			}
 
 			final int height = coordXform.getTimelineHeight(); 			
 			final int yPos = coordXform.convertTimelineToPixel(timeline);

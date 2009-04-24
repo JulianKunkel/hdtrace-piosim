@@ -50,9 +50,19 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 
 		minTime = current.getEarliestTime();
 
+		// verify correct ordering of time in statistic trace file:
+		Epoch lastTimeStamp = Epoch.ZERO;
+		
 		while(current != null){
 			statEntries.add(current);
 
+			if(current.getEarliestTime().compareTo(lastTimeStamp) < 0){
+				throw new IllegalArgumentException("Statistic entry " + statEntries.size() + 
+						" time " + current.getEarliestTime() + " is earlier than last entry time: " + lastTimeStamp);
+			}
+			
+			lastTimeStamp = current.getEarliestTime();
+			
 			current = getNextInputEntry();
 		}
 
@@ -76,6 +86,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			
 			for(StatisticGroupEntry entry: statEntries){
 				double value = entry.getNumeric(groupNumber);
+				
 				if( value > max ) max = value;
 				if( value < min ) min = value;
 				

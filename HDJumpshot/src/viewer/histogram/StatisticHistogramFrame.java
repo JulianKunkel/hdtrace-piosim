@@ -49,7 +49,6 @@ import viewer.common.IAutoRefreshable;
 import viewer.common.LabeledSpinner;
 import viewer.common.LabeledTextField;
 import viewer.common.ModelTime;
-import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
@@ -96,9 +95,9 @@ public class StatisticHistogramFrame {
 			triggerRefreshHistogramData();
 		}
 	}
-	
+
 	private MyTimeModifiedListener timeModifiedListener = new MyTimeModifiedListener();
-	
+
 	private class MyWindowClosedListener extends WindowAdapter{
 		@Override
 		public void windowClosed(WindowEvent e) {
@@ -120,11 +119,12 @@ public class StatisticHistogramFrame {
 		frame = new JFrame();
 		frame.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
 		frame.setMinimumSize(new Dimension(400, 250));
+		frame.setPreferredSize(new Dimension(400, 250));
 		frame.setResizable(true);
 
 		JPanel xPanel = new JPanel();
 		xPanel.setLayout(new BoxLayout( xPanel, BoxLayout.X_AXIS));
-
+		
 		binNumberSpinner = new LabeledSpinner("Number of bins", new SpinnerNumberModel(numberOfBins, 10, 1000, 10), 
 				new ChangeListener(){
 			@Override
@@ -135,7 +135,7 @@ public class StatisticHistogramFrame {
 		});
 
 		xPanel.add(binNumberSpinner);
-
+		
 		labelBin    = new LabeledTextField( "Bin", Const.INTEGER_FORMAT );
 		labelBin.setEditable( false );		
 		xPanel.add(labelBin);		
@@ -151,21 +151,21 @@ public class StatisticHistogramFrame {
 		labelMaxValue    = new LabeledTextField( "MaxValue", Const.FLOAT_FORMAT );
 		labelMaxValue.setEditable( false );		
 		xPanel.add(labelMaxValue);		
-		
-    JButton autoRefresh_btn = new ButtonAutoRefresh(histogramPanel);
-    xPanel.add( autoRefresh_btn );        
-		
+
+		JButton autoRefresh_btn = new ButtonAutoRefresh(histogramPanel);
+		xPanel.add( autoRefresh_btn );        
+
 
 		final JPanel yPanel = new JPanel();
 		yPanel.setLayout(new BoxLayout( yPanel, BoxLayout.Y_AXIS));		
 		yPanel.setMinimumSize(frame.getPreferredSize());
-		
+
 
 		yPanel.add(xPanel);
 		yPanel.add(histogramPanel);
 
-		frame.add(yPanel);
-		
+		frame.setContentPane(yPanel);
+
 		// default on close operation:
 		frame.addWindowListener(new MyWindowClosedListener());
 	}
@@ -190,31 +190,31 @@ public class StatisticHistogramFrame {
 		private int oldMouseOverBin = -1;
 
 		// automatically redraw on time modification:
-		boolean isAutoRefresh = Parameters.ACTIVE_REFRESH;
-		
+		boolean isAutoRefresh;
+
 		BackgroundThread backgroundThread = null;
-		
+
 		// background thread computing the histogram data:
 		/**
 		 * At most one of this thread is executed.  
 		 * @author julian
 		 */
 		class BackgroundThread extends SwingWorker<Void, Void>{
-			
+
 			@Override
 			protected Void doInBackground() throws Exception {
 				histogramData = computeHistogram();
 				if(isCancelled()){
 					return null;
 				}
-				
+
 				repaint();
-				
+
 				return null;
 			}
 		}
 
-		
+
 		public HistogramImagePanel() {						
 			// double buffering.
 			super(true);
@@ -226,7 +226,7 @@ public class StatisticHistogramFrame {
 				public void mouseMoved(MouseEvent e) {
 					if(histogramData == null) // maybe computed in background
 						return;
-					
+
 					if(e.getX() > xOffsetByLabels){
 						int bin =(int) ((e.getX() - xOffsetByLabels) / widthPerBin);		
 
@@ -246,6 +246,8 @@ public class StatisticHistogramFrame {
 					}
 				}
 			});
+			
+			setAutoRefresh(viewer.common.Parameters.ACTIVE_REFRESH);
 		}
 
 		/**
@@ -267,11 +269,11 @@ public class StatisticHistogramFrame {
 		 */
 		public void triggerRefreshHistogramData(){
 			oldMouseOverBin = -1;
-			
+
 			if( backgroundThread != null ){
 				backgroundThread.cancel(true);
 			}
-			
+
 			backgroundThread = new BackgroundThread();
 			backgroundThread.execute();
 		}
@@ -314,9 +316,9 @@ public class StatisticHistogramFrame {
 					String.format("%.4f", modelTime.getViewPosition()) + "-" + 
 					String.format("%.4f",(modelTime.getViewExtent() + modelTime.getViewPosition()))
 					+ ")"
-					);
-			
-			
+			);
+
+
 			final Graphics2D g = (Graphics2D) graphics;
 
 			g.setFont(drawFont);
@@ -334,7 +336,7 @@ public class StatisticHistogramFrame {
 
 			final int width = vis.width - xOffsetByLabels;
 			final int height = vis.height - fontSize * 2;
-			
+
 			vis.y += fontSize;
 
 			widthPerBin = (double) width / numberOfBins;
@@ -348,6 +350,9 @@ public class StatisticHistogramFrame {
 
 			// draw Y axis
 			final int yLabelCount = (vis.height / fontSize) - 1;
+
+			if(histogramData == null) // due to some background computation, data might not be available
+				return;
 
 			for(int i=0 ; i <= yLabelCount; i++){
 				str = String.format("%d", Math.round((float) histogramData.maxNumber/ yLabelCount * i));
@@ -414,7 +419,7 @@ public class StatisticHistogramFrame {
 			g.setColor(Color.PINK);
 			final double widthPerValue =  width / (max - min) ;
 			int x = vis.x + (int) ((statistics.getAverageValue() - min) * widthPerValue) ;
-			
+
 			drawVerticalLine(g, vis, x, vis.y, height);
 
 			// draw stddevs
@@ -428,16 +433,16 @@ public class StatisticHistogramFrame {
 				drawVerticalLine(g, vis, x, vis.y, height);
 			}
 		}
-		
+
 		@Override
 		public boolean isAutoRefresh() {			
 			return isAutoRefresh;
 		}
-		
+
 		@Override
 		public void setAutoRefresh(boolean autoRefresh) {
 			isAutoRefresh = autoRefresh;
-			
+
 			if(autoRefresh == true){
 				modelTime.addTimeListener(timeModifiedListener);
 				triggerRefreshHistogramData();
@@ -446,7 +451,7 @@ public class StatisticHistogramFrame {
 			}
 		}
 	}
-	
+
 	private void drawVerticalLine(Graphics g, Rectangle vis, int x, int y, int height){
 		if (x <= vis.x || x >= vis.x + vis.width)
 			return;

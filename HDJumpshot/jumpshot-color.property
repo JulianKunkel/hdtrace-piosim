@@ -1,5 +1,5 @@
 #
-#Sun Apr 19 11:10:10 CEST 2009
+#Fri Apr 24 14:42:37 CEST 2009
 ReceiveRendezvousRcv=RGB(187,29,29)
 Performance\:MEM_BUFFER=RGB(186,73,96)
 Energy\:Voltage=RGB(0,102,153)
@@ -33,6 +33,7 @@ FileOpen=RGB(102,0,102)
 File_write=RGB(88,113,116)
 Energy\:Power=RGB(204,255,102)
 Request=RGB(255,153,0)
+WRITE=RGB(197,54,43)
 WRITENOSEEK=RGB(69,251,141)
 FileRead=RGB(120,164,123)
 Compute/Time\ end=RGB(197,172,117)

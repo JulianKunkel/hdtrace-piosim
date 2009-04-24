@@ -30,9 +30,7 @@ package viewer.common;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.util.prefs.Preferences;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -43,7 +41,7 @@ import javax.swing.event.ChangeListener;
 public class LabeledSpinner extends JPanel
 {
 	private static final long serialVersionUID = -2098447219602678782L;
-	
+
 	final private JSpinner spinner;
 	final private JLabel   label;
 
@@ -52,23 +50,20 @@ public class LabeledSpinner extends JPanel
 		super.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 		label = new JLabel( " " + text + " " );
 		label.setAlignmentX( Component.LEFT_ALIGNMENT );
+		label.setFont(Const.FONT);
 
-		super.add( this.label);
-				
 		spinner =  new JSpinner(model);
 		spinner.setAlignmentX(Component.LEFT_ALIGNMENT);
-		add(spinner);
-		
+		spinner.setFont(Const.FONT);	
+
 		label.setLabelFor(spinner);
-		label.setFont(Const.FONT);
-		
-		spinner.setFont(Const.FONT);		
-		
+
 		spinner.addChangeListener(listener);
-		
-		this.setMaximumSize( getPreferredSize());
+
+		super.add( this.label);
+		super.add(spinner);
 	}
-	
+
 	public Object getValue(){
 		return spinner.getValue();
 	}
@@ -76,10 +71,10 @@ public class LabeledSpinner extends JPanel
 	public void setValue(Object val){
 		spinner.setValue(val);
 	}
-	
-  public Dimension getMaximumSize()
-  {  
-      return new Dimension( Short.MAX_VALUE,
-                            spinner.getPreferredSize().height + label.getHeight() );
-  }
+
+	public Dimension getMaximumSize()
+	{  
+		return new Dimension( Short.MAX_VALUE,
+				spinner.getPreferredSize().height + label.getHeight() );
+	}
 }
