@@ -37,8 +37,12 @@ BOOL isValidString(const char *string) {
 /**
  * Check if the given string is a valid XML tag name
  *
- * Valid tag string must not contain other characters than alphanumeric ascii.
- * We do not allow special characters and Unicode in out Tags.
+ * Valid tag name must only contain graphical characters, not start with a
+ *  number and must not contain one of the characters '$', '§', '%', '&', ';'.
+ * In addition we do not accept ':' since it could be used as namespace
+ * separator.
+ * For simplicity currently we do only allow ASCII characters to avoid all
+ * conflicts with different codepages, unicode and so on.
  *
  * @param string String to check
  *
@@ -49,17 +53,37 @@ BOOL isValidString(const char *string) {
  */
 BOOL isValidXMLTagString(const char *string)
 {
+	/* must not be empty */
 	if (!isValidString(string))
 		return FALSE;
 
+	/* must not start with a number */
+	if (isdigit(string[0]))
+		return FALSE;
+
+	/* check each character */
 	for (size_t i = 0; i < strlen(string); ++i)
 	{
-		/* must be ascii */
+		/* must be graphical */
+		if (!isgraph(string[i]))
+			return FALSE;
+
+		/* must be ASCII */
 		if (!isascii(string[i]))
 			return FALSE;
-		/* must be alphanumeric */
-		if (!isalnum(string[i]))
+
+		/* must not be one of those ('§' missing since not ASCII) */
+		switch (string[i])
+		{
+		case '$':
+		case '%':
+		case '&':
+		case ';':
+		case ':':
 			return FALSE;
+		default:
+			break;
+		}
 	}
 
 	return TRUE;
