@@ -47,11 +47,12 @@ public class LabeledSpinner extends JPanel
 
 	public LabeledSpinner( String text, SpinnerModel model, ChangeListener listener)
 	{
-		super.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+		final BoxLayout box = new BoxLayout( this, BoxLayout.Y_AXIS );
+		super.setLayout(box);
 		label = new JLabel( " " + text + " " );
 		label.setAlignmentX( Component.LEFT_ALIGNMENT );
 		label.setFont(Const.FONT);
-
+		
 		spinner =  new JSpinner(model);
 		spinner.setAlignmentX(Component.LEFT_ALIGNMENT);
 		spinner.setFont(Const.FONT);	
@@ -59,9 +60,12 @@ public class LabeledSpinner extends JPanel
 		label.setLabelFor(spinner);
 
 		spinner.addChangeListener(listener);
-
+		
 		super.add( this.label);
 		super.add(spinner);
+		
+		// kind of hack, don't know why the spinner got not laid out correctly after the frame gets visible:
+		box.layoutContainer(this);
 	}
 
 	public Object getValue(){

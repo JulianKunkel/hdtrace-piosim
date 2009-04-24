@@ -468,6 +468,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	@Override
 	protected void gotVisibleTheFirstTime() {
 		super.gotVisibleTheFirstTime();
+		
+		// start it after it got visible the first time, otherwise zoom will return an error !
 		triggerRecomputeTraceProfile();		
 	}
 
