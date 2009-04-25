@@ -25,7 +25,7 @@ import java.util.Stack;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -41,10 +41,10 @@ public class SHDTraceWriter extends STraceWriter {
 	final ProjectDescription desc;
 
 	private static class ComponentTraceInfo{
-		final TopologyEntry topology;
+		final TopologyNode topology;
 		final Stack<StateTraceEntry> stackedStates = new Stack<StateTraceEntry>();
 		
-		public ComponentTraceInfo(TopologyEntry top) {
+		public ComponentTraceInfo(TopologyNode top) {
 			this.topology = top;
 		}
 	}
@@ -89,7 +89,7 @@ public class SHDTraceWriter extends STraceWriter {
 			pos++;
 		}
 		
-		final TopologyEntry newTopo = out.createInitalizeTopology(strPath);
+		final TopologyNode newTopo = out.createInitalizeTopology(strPath);
 		topMap.put(component, new ComponentTraceInfo(newTopo));
 	}
 

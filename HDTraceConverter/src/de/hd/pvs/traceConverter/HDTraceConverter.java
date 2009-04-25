@@ -31,7 +31,7 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
@@ -120,7 +120,7 @@ public class HDTraceConverter {
 	}
 
 	private void recursivlyInstantiateProcessors(TraceOutputWriter outputConverter, 
-			TopologyEntry topo, RunParameters param, 
+			TopologyNode topo, RunParameters param, 
 			PriorityQueue<AbstractTraceProcessor> pendingReaders) throws Exception{
 
 		if(param.isProcessStatistics()){
@@ -159,7 +159,7 @@ public class HDTraceConverter {
 			}
 		}
 
-		for(TopologyEntry child: topo.getChildElements().values()){
+		for(TopologyNode child: topo.getChildElements().values()){
 			recursivlyInstantiateProcessors(outputConverter, child, param, pendingReaders);
 		}
 	}

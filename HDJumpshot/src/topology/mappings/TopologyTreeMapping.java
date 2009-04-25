@@ -8,7 +8,7 @@ import viewer.common.SortedJTreeNode;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 /**
  * Parent for all topology orders.
@@ -37,7 +37,7 @@ abstract public class TopologyTreeMapping {
 	}
 
 
-	protected void addStatisticsInTopology(int level, SortedJTreeNode node, TopologyEntry topology, TraceFormatFileOpener file){	
+	protected void addStatisticsInTopology(int level, SortedJTreeNode node, TopologyNode topology, TraceFormatFileOpener file){	
 		// add statistic nodes:
 		for(String groupName: topology.getStatisticSources().keySet()){    		
 			StatisticsGroupDescription group = file.getProjectDescription().getExternalStatisticsGroup(groupName);

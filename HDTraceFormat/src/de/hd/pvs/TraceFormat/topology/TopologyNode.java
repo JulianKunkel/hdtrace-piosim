@@ -32,29 +32,33 @@ import java.util.LinkedList;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
-public class TopologyEntry {	
+public class TopologyNode {	
 
-	String label;
+	String text;
+	
+	final int depth;
+	
 	final int positionInParent;
 
 	final HashMap<String, StatisticSource> statisticSources = new HashMap<String, StatisticSource>();
 
-	final HashMap<String, TopologyEntry>    childElements = new HashMap<String, TopologyEntry>();
+	final HashMap<String, TopologyNode>    childElements = new HashMap<String, TopologyNode>();
 
-	final TopologyEntry parent;
+	final TopologyNode parent;
 
 	private TraceSource traceSource = null;
 
 	/**
 	 * Create a node as child of a parent. Also add this node to the parent if necessary.
-	 * @param label
+	 * @param text
 	 * @param parent
 	 */
-	public TopologyEntry(String label, TopologyEntry parent) {
-		this.label = label;
+	public TopologyNode(String text, int depth, TopologyNode parent) {
+		this.text = text;
 		this.parent = parent;
+		this.depth = depth;
 		if(parent != null){
-			parent.setChild(label, this);
+			parent.setChild(text, this);
 			positionInParent = parent.getSize();
 		}else{
 			positionInParent = -1;
@@ -78,17 +82,17 @@ public class TopologyEntry {
 		statisticSources.put(group, reader);
 	}
 
-	private void setChild(String name, TopologyEntry child){
+	private void setChild(String name, TopologyNode child){
 		if(childElements.containsKey(name))
 			throw new IllegalArgumentException("Child element already present in topology");
 		childElements.put(name, child);
 	}
 
-	public HashMap<String, TopologyEntry> getChildElements() {
+	public HashMap<String, TopologyNode> getChildElements() {
 		return childElements;
 	}
 
-	public TopologyEntry getChild(String name){
+	public TopologyNode getChild(String name){
 		return childElements.get(name);
 	}
 
@@ -96,7 +100,7 @@ public class TopologyEntry {
 		return childElements.size();
 	}
 
-	public TopologyEntry getParent() {
+	public TopologyNode getParent() {
 		return parent;
 	}
 
@@ -105,7 +109,7 @@ public class TopologyEntry {
 	 * @return 
 	 */
 	private String getUnifiedLabel(){		
-		return label.toLowerCase().replaceAll("[^a-zA-Z0-9-]", "");
+		return text.toLowerCase().replaceAll("[^a-zA-Z0-9-.]", "");
 	}
 
 	/**
@@ -140,12 +144,12 @@ public class TopologyEntry {
 		return getFilePrefix() + "_stat_" + group + ".dat";
 	}
 
-	public String getLabel() {
-		return label;
+	public String getText() {
+		return text;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
+	public void setText(String text) {
+		this.text = text;
 	}
 
 	/**
@@ -157,9 +161,9 @@ public class TopologyEntry {
 
 	final public String toRecursiveString() {
 		if (parent != null){
-			return parent.toRecursiveString() + "-" + label; 
+			return parent.toRecursiveString() + "-" + text; 
 		}
-		return label; 
+		return text; 
 	}
 
 
@@ -168,10 +172,10 @@ public class TopologyEntry {
 	 * TODO: could be done with an enumeration.
 	 * @return
 	 */
-	public ArrayList<TopologyEntry> getSubTopologies(){
-		ArrayList<TopologyEntry> sub = new ArrayList<TopologyEntry>();
+	public ArrayList<TopologyNode> getSubTopologies(){
+		ArrayList<TopologyNode> sub = new ArrayList<TopologyNode>();
 		sub.add(this);
-		for(TopologyEntry child: childElements.values()){
+		for(TopologyNode child: childElements.values()){
 			sub.addAll(child.getSubTopologies());
 		}
 
@@ -183,9 +187,9 @@ public class TopologyEntry {
 	 *  
 	 * @return
 	 */
-	public LinkedList<TopologyEntry> getParentTopologies(){
-		LinkedList<TopologyEntry> list = new LinkedList<TopologyEntry>();
-		TopologyEntry par = parent;
+	public LinkedList<TopologyNode> getParentTopologies(){
+		LinkedList<TopologyNode> list = new LinkedList<TopologyNode>();
+		TopologyNode par = parent;
 		if(par == null)
 			return list;
 		while(par.parent != null){
@@ -211,15 +215,15 @@ public class TopologyEntry {
 		return parent != null;
 	}
 
-	public LinkedList<TopologyEntry> getChildrenOfDepth(int depth){
+	public LinkedList<TopologyNode> getChildrenOfDepth(int depth){
 		// drill down to the rank topology level with a BFS
-		LinkedList<TopologyEntry> bfsTopos = new LinkedList<TopologyEntry>();
+		LinkedList<TopologyNode> bfsTopos = new LinkedList<TopologyNode>();
 
 		bfsTopos.add(this);
 		for(int curDepth = 0; curDepth <= depth; curDepth++){
-			final LinkedList<TopologyEntry> tmp = new LinkedList<TopologyEntry>();
+			final LinkedList<TopologyNode> tmp = new LinkedList<TopologyNode>();
 
-			for(TopologyEntry cur: bfsTopos){
+			for(TopologyNode cur: bfsTopos){
 				tmp.addAll(cur.getChildElements().values());
 			}
 			bfsTopos = tmp;
@@ -228,6 +232,8 @@ public class TopologyEntry {
 		return bfsTopos;
 	}
 
-
+	public int getDepth() {
+		return depth;
+	}
 }
 

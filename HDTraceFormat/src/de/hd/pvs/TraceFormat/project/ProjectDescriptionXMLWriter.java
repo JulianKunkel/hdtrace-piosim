@@ -31,7 +31,7 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.xml.XMLHelper;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -67,7 +67,7 @@ public class ProjectDescriptionXMLWriter {
 		}
 		
 		if(desc.getTopologyRoot() != null){
-			for(TopologyEntry topo: desc.getTopologyRoot().getChildElements().values()){
+			for(TopologyNode topo: desc.getTopologyRoot().getChildElements().values()){
 				writeTopologyRecursive(buff, topo);
 			}
 		}
@@ -110,16 +110,16 @@ public class ProjectDescriptionXMLWriter {
 		writeToFile(desc.getAbsoluteFilenameOfProject(), buff);
 	}
 	
-	private void writeTopologyRecursive(StringBuffer buff, TopologyEntry topologyInternalLevel){		
+	private void writeTopologyRecursive(StringBuffer buff, TopologyNode topologyInternalLevel){		
 		if(! topologyInternalLevel.isLeaf()){
 			buff.append("<Label value='" + 
-					XMLHelper.escapeAttribute(topologyInternalLevel.getLabel()) + "'>\n");
-			for(TopologyEntry child: topologyInternalLevel.getChildElements().values()){
+					XMLHelper.escapeAttribute(topologyInternalLevel.getText()) + "'>\n");
+			for(TopologyNode child: topologyInternalLevel.getChildElements().values()){
 				writeTopologyRecursive(buff, child);
 			}
 			buff.append("</Label>\n");
 		}else{ // add close tag ...
-			buff.append("<Label value='" + XMLHelper.escapeAttribute(topologyInternalLevel.getLabel())
+			buff.append("<Label value='" + XMLHelper.escapeAttribute(topologyInternalLevel.getText())
 					+ "'/>\n");
 		}
 	}

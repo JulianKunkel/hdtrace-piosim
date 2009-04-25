@@ -1,6 +1,6 @@
 package arrow;
 
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -9,8 +9,8 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  *
  */
 public class Arrow{
-	final private TopologyEntry startTopology;
-	final private TopologyEntry endTopology;
+	final private TopologyNode startTopology;
+	final private TopologyNode endTopology;
 
 	final private Epoch startTime;
 	final private Epoch endTime;
@@ -23,7 +23,7 @@ public class Arrow{
 	 * @param scndTime The absolute time (not viewer time) for the end topology
 	 * @param category
 	 */
-	public Arrow(TopologyEntry firstTopology, Epoch firstTime, TopologyEntry scndTopology , 
+	public Arrow(TopologyNode firstTopology, Epoch firstTime, TopologyNode scndTopology , 
 			Epoch scndTime, ArrowCategory category) {
 		if(firstTime.compareTo(scndTime) <= 0){
 			this.endTime = scndTime;
@@ -47,11 +47,11 @@ public class Arrow{
 		return startTime;
 	}
 
-	public TopologyEntry getEndTopology() {
+	public TopologyNode getEndTopology() {
 		return endTopology;
 	}
 
-	public TopologyEntry getStartTopology() {
+	public TopologyNode getStartTopology() {
 		return startTopology;
 	}
 

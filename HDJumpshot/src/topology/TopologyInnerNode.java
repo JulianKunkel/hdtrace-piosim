@@ -27,12 +27,12 @@ package topology;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 public class TopologyInnerNode extends TopologyTreeNode{
 	private static final long serialVersionUID = 8019988454872650120L;
 
-	public TopologyInnerNode(TopologyEntry topNode,	TraceFormatFileOpener file) {
+	public TopologyInnerNode(TopologyNode topNode,	TraceFormatFileOpener file) {
 		super(topNode, file);
 	}
 

@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -49,7 +49,7 @@ public class TextWriter extends TraceOutputWriter {
 	private BufferedWriter writer;
 
 	@Override
-	public void Event(TopologyEntry topology, EventTraceEntry traceEntry) {
+	public void Event(TopologyNode topology, EventTraceEntry traceEntry) {
 		try {
 			writer.append(traceEntry.getEarliestTime().getFullDigitString() + 
 					" E " + topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
@@ -69,7 +69,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyEntry topology, StateTraceEntry traceEntry) {
+	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry) {
 		try {
 			writer.append(traceEntry.getLatestTime().getFullDigitString() + " > " + 
 					topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
@@ -80,7 +80,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateStart(TopologyEntry topology,
+	public void StateStart(TopologyNode topology,
 			StateTraceEntry traceEntry) {
 		try {
 			writer.append(traceEntry.getEarliestTime().getFullDigitString() + " < " + topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
@@ -97,7 +97,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyEntry topology, Epoch time, String name,
+	public void Statistics(TopologyNode topology, Epoch time, String name,
 			StatisticsGroupDescription group, Object value) {
 		String unit = "";
 		if(group.getStatistic(name).getUnit() != null){
@@ -112,7 +112,7 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void initalizeForTopology(TopologyEntry topology) {
+	public void initalizeForTopology(TopologyNode topology) {
 	}
 
 	@Override

@@ -31,7 +31,7 @@ package de.hd.pvs.piosim.model.program;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 
 /**
@@ -60,7 +60,7 @@ public class Application extends ProjectDescription{
 	}
 
 
-	public HashMap<String, Communicator> getCommunicators() {
+	public HashMap<String, Communicator> getCommunicatorsSim() {
 		return communicators;
 	}
 
@@ -94,10 +94,10 @@ public class Application extends ProjectDescription{
 	public int getRank(String topoName){
 		// lookup rank:
 		int curRank = -1;
-		for(TopologyEntry host: getTopologyRoot().getChildElements().values() ){
-			for(TopologyEntry ranks: host.getChildElements().values() ){
+		for(TopologyNode host: getTopologyRoot().getChildElements().values() ){
+			for(TopologyNode ranks: host.getChildElements().values() ){
 				curRank++;
-				if( ranks.getLabel().equals(topoName)){
+				if( ranks.getText().equals(topoName)){
 					return curRank;
 				}
 			}

@@ -31,7 +31,7 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	private static final long serialVersionUID = 7893694713193686328L;
@@ -39,7 +39,7 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	final StatisticSource statisticSource;
 	final StatisticDescription statisticDescription;
 	
-	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyEntry topNode, TraceFormatFileOpener file) {
+	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyNode topNode, TraceFormatFileOpener file) {
 		super(topNode, file);
 		
 		this.statisticSource = topNode.getStatisticSource(group.getName());

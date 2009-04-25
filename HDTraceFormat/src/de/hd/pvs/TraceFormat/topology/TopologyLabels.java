@@ -52,4 +52,8 @@ public class TopologyLabels {
 	public ArrayList<String> getLabels() {
 		return labels;
 	}
+	
+	public String getLabel(int depth){
+		return labels.get(depth);
+	}
 }

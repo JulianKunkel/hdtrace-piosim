@@ -26,7 +26,7 @@ import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 /**
  * Load a default topology, filename => hierarchically print the children 
@@ -43,7 +43,7 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 		return tree_root;
 	}
 
-	protected void recursivlyAddTopology(int level, SortedJTreeNode parentNode, TopologyEntry topology, 
+	protected void recursivlyAddTopology(int level, SortedJTreeNode parentNode, TopologyNode topology, 
 			TraceFormatFileOpener file){
 		final TopologyTreeNode node = new TopologyInnerNode(topology, file);
 
@@ -57,7 +57,7 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 		if(topology.getChildElements().size() != 0){
 			// handle leaf level == trace nodes differently:
 
-			Collection<TopologyEntry> children = topology.getChildElements().values();
+			Collection<TopologyNode> children = topology.getChildElements().values();
 			boolean leafLevel = children.iterator().next().isLeaf();
 			if(leafLevel){
 				if(topology.getChildElements().size() == 0)
@@ -66,26 +66,26 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 
 				final SortedJTreeNode traceParent = addDummyTreeNode("Trace", node);
 
-				for(TopologyEntry child: topology.getChildElements().values()){					
+				for(TopologyNode child: topology.getChildElements().values()){					
 					if (child.getStatisticSources().size() == 0){
 						if(child.getTraceSource() != null){
 							// only if the file really exists
-							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file);
+							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getText(), child, file);
 							addTopologyTreeNode(childNode, traceParent);
 						}else{
 							// TODO remove this child from topology
 						}
 					}else if(isAddStatistics()){
 						// handles statistics on the leaf level:
-						final SortedJTreeNode extra = addDummyTreeNode(child.getLabel(), traceParent);
+						final SortedJTreeNode extra = addDummyTreeNode(child.getText(), traceParent);
 
-						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getLabel(), child, file);
+						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getText(), child, file);
 						addTopologyTreeNode(childNode, extra);
 						addStatisticsInTopology(level, extra, child, file);
 					}
 				}								
 			}else{
-				for(TopologyEntry child: topology.getChildElements().values()){
+				for(TopologyNode child: topology.getChildElements().values()){
 					recursivlyAddTopology(level +1, node, child, file);
 				}
 			}

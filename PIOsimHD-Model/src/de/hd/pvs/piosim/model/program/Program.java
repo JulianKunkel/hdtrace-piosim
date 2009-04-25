@@ -120,7 +120,7 @@ abstract public class Program {
 			return comm;
 		}
 		// try to lookup communicator in application.
-		for(Communicator pCom: parentApplication.getCommunicators().values()){
+		for(Communicator pCom: parentApplication.getCommunicatorsSim().values()){
 			Integer scid = pCom.getParticipiants().get(getRank());
 			if(scid != null && scid == cid){
 				communicatorMap.put(cid, pCom);

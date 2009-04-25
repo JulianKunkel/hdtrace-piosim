@@ -31,7 +31,7 @@ import java.util.List;
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -66,10 +66,10 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void initalizeForTopology(TopologyEntry topology) {
+	public void initalizeForTopology(TopologyNode topology) {
 		// check existence of parent topology in registered topology.		
 
-		for(TopologyEntry parent: topology.getParentTopologies()){
+		for(TopologyNode parent: topology.getParentTopologies()){
 			try{
 				writer.initalizeTopology(parent);
 			}catch(IllegalArgumentException e){
@@ -80,7 +80,7 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Event(TopologyEntry topology,	EventTraceEntry traceEntry) {
+	public void Event(TopologyNode topology,	EventTraceEntry traceEntry) {
 		writer.Event(topology, traceEntry);
 	}
 
@@ -90,17 +90,17 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyEntry topology, StateTraceEntry traceEntry) {
+	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry) {
 		writer.StateEnd(topology, traceEntry);
 	}
 
 	@Override
-	public void StateStart(TopologyEntry topology, StateTraceEntry traceEntry) {
+	public void StateStart(TopologyNode topology, StateTraceEntry traceEntry) {
 		writer.StateStart(topology, traceEntry);
 	}
 
 	@Override
-	public void Statistics(TopologyEntry topology, Epoch time, String statistic,
+	public void Statistics(TopologyNode topology, Epoch time, String statistic,
 			StatisticsGroupDescription group, Object value) {
 		if(writer.getProjectDescription().getExternalStatisticsGroup(group.getName()) == null){
 			writer.addStatisticGroup(group);

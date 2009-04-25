@@ -10,7 +10,7 @@ import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 /**
  * Shows ranks first, then threads, levels above are removed.
@@ -27,7 +27,7 @@ public class RankTopologyMapping extends DefaultTopologyTreeMapping{
 
 		outer: for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
 			final TraceFormatFileOpener file = reader.getLoadedFile(f);
-			final TopologyEntry topoRoot = file.getTopology();
+			final TopologyNode topoRoot = file.getTopology();
 			final ArrayList<String> list = file.getTopologyLabels().getLabels();
 			
 			for(int i=0 ; i < list.size() ; i++){
@@ -55,8 +55,8 @@ public class RankTopologyMapping extends DefaultTopologyTreeMapping{
 	private void loadRankTopology(int rankPos, SortedJTreeNode parent, TraceFormatFileOpener file)
 	{
 		// bfs:
-		final LinkedList<TopologyEntry> rankTopos = file.getTopology().getChildrenOfDepth(rankPos);
-		for(TopologyEntry topo: rankTopos){
+		final LinkedList<TopologyNode> rankTopos = file.getTopology().getChildrenOfDepth(rankPos);
+		for(TopologyNode topo: rankTopos){
 			recursivlyAddTopology(1, parent, topo, file);
 		}
 	}

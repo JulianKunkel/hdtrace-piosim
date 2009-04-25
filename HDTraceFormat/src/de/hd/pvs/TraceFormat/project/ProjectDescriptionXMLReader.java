@@ -1,27 +1,27 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
-//	This file is part of PIOsimHD.
-//	
-//	PIOsimHD is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	PIOsimHD is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
+//Copyright (C) 2008, 2009 Julian M. Kunkel
+
+//This file is part of PIOsimHD.
+
+//PIOsimHD is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//PIOsimHD is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 package de.hd.pvs.TraceFormat.project;
 
@@ -29,13 +29,20 @@ import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
+import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
+import de.hd.pvs.TraceFormat.project.datatypes.DatatypeEnum;
+import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
+import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -49,17 +56,17 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
 public class ProjectDescriptionXMLReader {
 
 	protected XMLTag rootTag;
-	
+
 	public void readProjectDescription(ProjectDescription descriptionInOut, String projectFilename) throws IOException{
-		File XMLFile = new File(projectFilename);
+		final File XMLFile = new File(projectFilename);
 		if (! XMLFile.canRead()) {
 			throw new IllegalArgumentException("Project file not readable: " + XMLFile.getAbsolutePath());
 		}
 		descriptionInOut.setProjectFilename(XMLFile.getAbsolutePath());
-		
+
 		final XMLReaderToRAM reader = new XMLReaderToRAM();
 		rootTag = reader.readXML(projectFilename);
-		
+
 		// read standard descriptions:
 		descriptionInOut.setApplicationName( rootTag.getAttribute("name"));
 
@@ -67,7 +74,7 @@ public class ProjectDescriptionXMLReader {
 		if(desc != null){
 			descriptionInOut.setDescription( desc.getContainedText());
 		}
-		
+
 		try {
 			String val = rootTag.getAttribute("processCount");
 			descriptionInOut.setProcessCount(Integer.parseInt(val));
@@ -78,16 +85,16 @@ public class ProjectDescriptionXMLReader {
 
 		final XMLTag xmlTopology = rootTag.getAndRemoveFirstNestedXMLTagWithName("Topology");
 		TopologyLabels labels = new TopologyLabels();
-		
+
 		if(xmlTopology == null){
 			throw new IllegalArgumentException("Topology Tag not found! Invalid XML!");
 		}
-		
+
 		parseTopologyLabel(xmlTopology, labels);
-		
+
 		descriptionInOut.setTopologyLabels(labels);
-		
-		descriptionInOut.setTopologyRoot( parseTopology(xmlTopology, descriptionInOut.getFilesPrefix(), null) );
+
+		descriptionInOut.setTopologyRoot( parseTopology(-1, xmlTopology, descriptionInOut.getFilesPrefix(), null) );
 
 		// parse the descriptions of the external statistics:
 		XMLTag element = rootTag.getAndRemoveFirstNestedXMLTagWithName("ExternalStatistics");
@@ -98,8 +105,130 @@ public class ProjectDescriptionXMLReader {
 				descriptionInOut.addExternalStatisticsGroup(out);
 			}
 		}
+
+		LinkedList<XMLTag>  elements;
+
+		/* read communicator list */
+		elements =  rootTag.getNestedXMLTagsWithName("CommunicatorList");
+		if (elements.size() == 1) {
+			// MPI trace file.
+			elements = elements.get(0).getNestedXMLTagsWithName("Communicator");
+			for (int i = 0; i < elements.size(); i++) {
+				MPICommunicator c = readCommunicator(elements.get(i), descriptionInOut);
+				descriptionInOut.addCommunicator(c);
+			}
+
+
+		}
+
+		/* read datatypes */
+		elements =  rootTag.getNestedXMLTagsWithName("Datatypes");
+		if (elements.size() == 1) {
+			// Datatype mapping is stored per rank:
+			for(XMLTag rankXML: elements.get(0).getNestedXMLTagsWithName("Rank")){
+				final int rank = Integer.parseInt(rankXML.getAttribute("name"));
+
+				if(rankXML.getNestedXMLTags() == null)
+					continue;
+
+				// DatatypeID to datatype mapping
+				HashMap<Long, Datatype> datatypeMapping = new HashMap<Long, Datatype>();
+
+				for(XMLTag datatype: rankXML.getNestedXMLTags()){
+					final Datatype newType = readDatatype(datatype, datatypeMapping);
+					SimpleConsoleLogger.Debug(rank + ": found datatype " + newType);
+					datatypeMapping.put(newType.getTid(), newType);
+				}
+				
+				descriptionInOut.setDatatypeMap(rank, datatypeMapping);
+			}		
+		}
 	}
-	
+
+	/**
+	 * Factory method, create the appropriate datatype from XML 
+	 * @param xml XMLRepresentation of datatype.
+	 * @return
+	 */
+	private Datatype readDatatype(XMLTag xml, HashMap<Long, Datatype> datatypeMapping){
+		final DatatypeEnum type = DatatypeEnum.valueOf(xml.getName());
+
+		Datatype datatype = null;
+
+		switch(type){		
+		//case CONTIGUOUS:{
+		//	int prev = xml.getAttribute(")
+		//	datatype = new ContiguousDatatype();
+		//	break;
+		case NAMED:{
+			String name = xml.getAttribute("name").replace("MPI_", "");
+			
+			datatype = new NamedDatatype(NamedDatatype.NamedDatatypeType.valueOf(name));
+			break;
+		}case STRUCT:{
+			StructDatatype struct = new StructDatatype(); 
+			for(XMLTag child: xml.getNestedXMLTags()){
+				long id = Long.parseLong(child.getAttribute("id"));
+				int displacement = Integer.parseInt(child.getAttribute("displacement"));
+				int blockLen = Integer.parseInt(child.getAttribute("blocklen"));
+				
+				final Datatype old = datatypeMapping.get(id);
+				assert(old != null);
+				struct.appendType(old, displacement, blockLen);
+			}			
+			datatype = struct;
+			break;
+		//}case VECTOR:{
+		//	datatype = new VectorDatatype();			
+		//	break;
+		}default:
+			throw new IllegalArgumentException("Datatype " + type + " not implemented, yet");
+		}		
+
+
+		final long tid = Long.parseLong(xml.getAttribute("id"));
+		datatype.setTid(tid);
+		return datatype;
+	}
+
+	private MPICommunicator readCommunicator(XMLTag xml, ProjectDescription desc){
+		final LinkedList<XMLTag>  elements = xml.getNestedXMLTagsWithName("Rank");
+
+		Iterator<XMLTag> it = elements.iterator();
+		final String name = xml.getAttribute("name");
+
+		final MPICommunicator comm = new MPICommunicator(name);
+
+		for(int i=0; i < elements.size(); i++){
+			XMLTag tag = it.next();
+
+			final String rank = tag.getAttribute("global");
+			if (rank == null){
+				throw new InvalidParameterException("Invalid XML, no global rank specified !");
+			}
+			final String localRank = tag.getAttribute("local");
+			if (localRank == null){
+				throw new InvalidParameterException("Invalid XML, no local rank specified !");
+			}
+			final String cid = tag.getAttribute("cid");
+			if (rank == null){
+				throw new InvalidParameterException("Invalid XML, no communicator ID specified !");
+			}						
+
+			try{
+				final int cidi = Integer.parseInt(cid);
+				final int ranki = Integer.parseInt(rank);
+				final int locali = Integer.parseInt(localRank);
+				comm.addRank(ranki, locali, cidi);				
+			}catch(NumberFormatException e){
+				throw new InvalidParameterException("Invalid XML, communicator attribute is not an integer");
+			}	
+		}
+
+		return comm;
+	}
+
+
 	/**
 	 * Recursivly read topology labels
 	 * @param topologyTag
@@ -112,49 +241,49 @@ public class ProjectDescriptionXMLReader {
 		}
 		final String name = curLabel.getAttribute("name");		
 		labels.addLabelOfNextDepth(name);
-		
+
 		parseTopologyLabel(curLabel, labels);
 	}
-	
-	
-	private TopologyEntry parseTopology(XMLTag xmlTopology, String name, TopologyEntry parent){		
-		LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label"); 		
-		
-		TopologyEntry level = new TopologyEntry(name, parent);
-		
+
+
+	private TopologyNode parseTopology(int depth, XMLTag xmlTopology, String name, TopologyNode parent){		
+		final LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label");
+
+		TopologyNode level = new TopologyNode(name, depth , parent);
+
 		for(XMLTag tag: children){
 			String childName = tag.getAttribute("value");
-			
-			parseTopology(tag,  childName, level);			
+
+			parseTopology(depth + 1, tag,  childName, level);			
 		}
-		
-        return level;
+
+		return level;
 	}
-	
-		
+
+
 	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
 		StatisticsGroupDescription stat = new StatisticsGroupDescription();
 		stat.setName(root.getName());
 		//System.out.println("Statistics: " + root.getNodeName());
-		
+
 		final String tT = root.getAttribute("timestampDatatype");		
 		if(tT != null  && ! tT.isEmpty()){
 			StatisticType type = StatisticType.valueOf(tT);
 			stat.setTimestampDatatype(type);
 		}
-		
+
 		final String tR = root.getAttribute("timeResulution");		
 		if (tR != null && ! tR.isEmpty()){
 			stat.setTimeResolutionMultiplier(tR);
 		}
-		
+
 		final String toffset = root.getAttribute("timeOffset");
 		if (toffset != null && ! toffset.isEmpty()){
 			stat.setTimeOffset(Epoch.parseTime(toffset));
 		}
-		
+
 		final ArrayList<XMLTag> children = root.getNestedXMLTags();
-		
+
 		// the next number of the statistic group:
 		int currentNumberInGroup = 0;
 		for(XMLTag child: children){
@@ -169,15 +298,15 @@ public class ProjectDescriptionXMLReader {
 					currentNumberInGroup,
 					child.getAttribute("unit"),
 					multiplier);
-			
+
 			stat.addStatistic(desc);
-			
+
 			currentNumberInGroup++;
 		}
-		
+
 		return stat;
 	}	
-	
+
 	public ArrayList<XMLTag> getUnparsedChildTags() {
 		return rootTag.getNestedXMLTags();
 	}

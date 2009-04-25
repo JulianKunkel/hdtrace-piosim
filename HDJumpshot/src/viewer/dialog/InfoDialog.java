@@ -41,6 +41,7 @@ import java.awt.Frame;
 import java.awt.Point;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
@@ -90,6 +91,8 @@ public class InfoDialog extends JDialog
         panel_max_size        = btn_panel.getPreferredSize();
         panel_max_size.width  = Short.MAX_VALUE;
         btn_panel.setMaximumSize( panel_max_size );
+        
+        btn_panel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
     }
 
     public JButton getCloseButton()

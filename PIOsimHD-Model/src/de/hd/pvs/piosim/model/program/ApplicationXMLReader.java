@@ -33,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
@@ -93,7 +93,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		elements = elements.get(0).getNestedXMLTagsWithName("Communicator");
 		for (int i = 0; i < elements.size(); i++) {
 			Communicator c = readCommunicator(elements.get(i), app);
-			app.getCommunicators().put(c.getName(), c);
+			app.getCommunicatorsSim().put(c.getName(), c);
 		}
 
 		// now read Programs:
@@ -102,8 +102,8 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		final XMLReaderToRAM reader = new XMLReaderToRAM();
 
 		int rank = -1;
-		for (TopologyEntry host: app.getTopologyRoot().getChildElements().values()) {			
-			for (TopologyEntry topoRanks: host.getChildElements().values()) {
+		for (TopologyNode host: app.getTopologyRoot().getChildElements().values()) {			
+			for (TopologyNode topoRanks: host.getChildElements().values()) {
 				
 				rank++;
 				
@@ -111,7 +111,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 				programs[rank] = new Program[threadCnt]; 
 				int thread = -1;
-				for(TopologyEntry topoThread : topoRanks.getChildElements().values() ){
+				for(TopologyNode topoThread : topoRanks.getChildElements().values() ){
 					thread++;
 					
 					// for each program open the corresponding file				

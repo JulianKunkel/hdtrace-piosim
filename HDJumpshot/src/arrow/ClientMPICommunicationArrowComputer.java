@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 
 /**
@@ -55,10 +55,10 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 	}
 
 	private static class PreviousEntry{
-		final TopologyEntry topo;
+		final TopologyNode topo;
 		final TraceEntry    entry;
 
-		public PreviousEntry(TopologyEntry topo, TraceEntry entry) {
+		public PreviousEntry(TopologyNode topo, TraceEntry entry) {
 			this.topo = topo;
 			this.entry = entry;
 		}
@@ -69,7 +69,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyMSGs, 
 			HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> unmatched,
 			TraceEntry entry,
-			TopologyEntry topology,
+			TopologyNode topology,
 			String targetRankStr, String tagStr, String commStr)
 	{
 		final int tag = Integer.parseInt(tagStr);
@@ -130,7 +130,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 
 			// drill down to the rank topology level with a BFS
 			
-			final LinkedList<TopologyEntry> rankTopos = file.getTopology().getChildrenOfDepth(rankDepth);
+			final LinkedList<TopologyNode> rankTopos = file.getTopology().getChildrenOfDepth(rankDepth);
 
 			// maps a sender rank to the msg matcher.
 			final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlySends = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();
@@ -138,8 +138,8 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			// maps a receiver rank to the msg matcher.
 			final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlyRcvs = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();
 
-			for(final TopologyEntry rankTopo: rankTopos){
-				final int rank = Integer.parseInt(rankTopo.getLabel());				
+			for(final TopologyNode rankTopo: rankTopos){
+				final int rank = Integer.parseInt(rankTopo.getText());				
 				
 				// unmatched sends and receives of the current rank:
 				final HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyRankSends = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();
@@ -149,7 +149,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 				earlyRcvs.put(rank, earlyRankRcvs);
 								
 				// scan children, i.e. threads 
-				for(final TopologyEntry topology: rankTopo.getSubTopologies()){
+				for(final TopologyNode topology: rankTopo.getSubTopologies()){
 
 					if(topology.getTraceSource() != null){
 						// found one trace file.

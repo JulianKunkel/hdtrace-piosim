@@ -27,7 +27,7 @@ package topology;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 public class TopologyTraceTreeNode extends TopologyTreeNode
@@ -36,7 +36,7 @@ public class TopologyTraceTreeNode extends TopologyTreeNode
 	
 	private final String label;
 	
-	public TopologyTraceTreeNode(String label, TopologyEntry topNode,
+	public TopologyTraceTreeNode(String label, TopologyNode topNode,
 			TraceFormatFileOpener file) {
 		super(topNode, file);
 		this.label = label;

@@ -62,7 +62,7 @@ import viewer.histogram.StatisticHistogramFrame;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 public class TopologyManager 
 {
@@ -84,7 +84,7 @@ public class TopologyManager
 	/**
 	 * Stores for each topology entry the corresponding timeline
 	 */
-	private HashMap<TopologyEntry, Integer>  topoToTimelineMapping = new HashMap<TopologyEntry, Integer>();
+	private HashMap<TopologyNode, Integer>  topoToTimelineMapping = new HashMap<TopologyNode, Integer>();
 
 
 	/**
@@ -300,9 +300,6 @@ public class TopologyManager
 	public TopologyStatisticTreeNode getStatisticNodeForTimeline(int timeline){
 		return ((TopologyStatisticTreeNode) timelines.get(timeline));
 	}
-
-
-
 
 	/**
 	 * Return the number of a statistic within a group
@@ -584,7 +581,7 @@ public class TopologyManager
 	 * @param entry
 	 * @return
 	 */
-	public Integer getTimelineForTopology(TopologyEntry entry){
+	public Integer getTimelineForTopology(TopologyNode entry){
 		return topoToTimelineMapping.get(entry);		
 	}
 }

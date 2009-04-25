@@ -112,7 +112,7 @@ public class ApplicationBuilder {
 		
 		lastUsedCommID++;
 		
-		HashMap<String, Communicator> appComms = app.getCommunicators();
+		HashMap<String, Communicator> appComms = app.getCommunicatorsSim();
 		
 		if (appComms.containsKey(name)){
 			throw new IllegalArgumentException("Communicator " + name + " already exists in application " + app.getName());
@@ -148,7 +148,7 @@ public class ApplicationBuilder {
 	}	
 	
 	public void addCommand(Communicator comm, ICommunicatorCommand cmd){
-		if(! app.getCommunicators().values().contains(comm)){
+		if(! app.getCommunicatorsSim().values().contains(comm)){
 			throw new IllegalArgumentException("Communicator " + comm + " not contained in application");
 		}
 		

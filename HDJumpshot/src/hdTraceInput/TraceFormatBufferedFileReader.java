@@ -44,7 +44,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
@@ -212,9 +212,9 @@ public class TraceFormatBufferedFileReader {
 		updateStatisticCategories(fileOpener);
 
 		// determine global min/maxtime
-		TopologyEntry rootTopology = fileOpener.getTopology();
+		TopologyNode rootTopology = fileOpener.getTopology();
 
-		for(TopologyEntry topology: rootTopology.getSubTopologies()){
+		for(TopologyNode topology: rootTopology.getSubTopologies()){
 			setGlobalValuesOnStatistics(topology.getStatisticSources().values());
 
 			final TraceSource traceSource = topology.getTraceSource();

@@ -31,7 +31,7 @@ import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
@@ -64,7 +64,7 @@ public class TraceFormatFileOpener {
 		return file.exists();
 	}
 
-	private void recursivlyCreateTraceSources(TopologyEntry currentTopo, 
+	private void recursivlyCreateTraceSources(TopologyNode currentTopo, 
 			Class<? extends StatisticSource> statCls, 
 			Class<? extends TraceSource> traceCls, 
 			boolean readNested
@@ -104,7 +104,7 @@ public class TraceFormatFileOpener {
 			}		
 		}
 
-		for(TopologyEntry child: currentTopo.getChildElements().values()){
+		for(TopologyNode child: currentTopo.getChildElements().values()){
 			recursivlyCreateTraceSources(child, statCls, traceCls, readNested);
 		}
 
@@ -121,12 +121,12 @@ public class TraceFormatFileOpener {
 		// start parsing of the trace files:
 		// trace files: rank + thread id are defined in the file name
 
-		TopologyEntry root = projectDescription.getTopologyRoot();
+		TopologyNode root = projectDescription.getTopologyRoot();
 
 		recursivlyCreateTraceSources(root, statCls, traceCls, readNested );
 	}	
 
-	public TopologyEntry getTopology(){
+	public TopologyNode getTopology(){
 		return projectDescription.getTopologyRoot();
 	}
 

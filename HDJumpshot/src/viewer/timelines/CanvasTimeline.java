@@ -54,11 +54,13 @@ import javax.swing.SwingUtilities;
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import topology.TopologyStatisticTreeNode;
+import topology.TopologyTraceTreeNode;
 import viewer.common.Debug;
 import viewer.common.Parameters;
 import viewer.common.Profile;
 import viewer.dialog.InfoDialog;
-import viewer.dialog.InfoDialogForTraceObjects;
+import viewer.dialog.InfoDialogForStatisticEntries;
+import viewer.dialog.InfoDialogForTraceEntries;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ScrollbarTimeModel;
@@ -70,6 +72,7 @@ import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -556,8 +559,20 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		if( obj != null ){
 			Window          window;
 			window = SwingUtilities.windowForComponent( this );
-			return new InfoDialogForTraceObjects((Frame) window, realTime.subtract(
-					getModelTime().getGlobalMinimum()), realTime, obj);
+			
+			switch(obj.getType()){
+			case STATISTICENTRY:
+				return new InfoDialogForStatisticEntries((Frame) window,  realTime.subtract(
+						getModelTime().getGlobalMinimum()), realTime, 
+						getTopologyManager().getStatisticNodeForTimeline(timeline),
+						(StatisticEntry) obj);	
+			case EVENT:
+			case STATE:				
+				return new InfoDialogForTraceEntries((Frame) window,  realTime.subtract(
+						getModelTime().getGlobalMinimum()), realTime, 
+						(TopologyTraceTreeNode) getTopologyManager().getTreeNodeForTimeline(timeline) ,
+						(TraceEntry) obj);	
+			}
 		}
 
 		return super.getTimePropertyAt(realTime);

@@ -25,10 +25,14 @@
 
 package topology;
 
+import java.util.ArrayList;
+
+import javax.swing.tree.TreeNode;
+
 import viewer.common.SortedJTreeNode;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 /**
  * 
@@ -40,17 +44,17 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 	private static final long serialVersionUID = -5708766035964911422L;
 	
 	// topology belonging to this node:
-	final TopologyEntry topology;
+	final TopologyNode topology;
 	final TraceFormatFileOpener file;	
 	
 	abstract public TimelineType getType();
 	
-	public TopologyTreeNode(TopologyEntry topNode,  TraceFormatFileOpener file) {
+	public TopologyTreeNode(TopologyNode topNode,  TraceFormatFileOpener file) {
 		this.topology = topNode;
 		this.file = file;
 	}
 	
-	public TopologyEntry getTopology() {
+	public TopologyNode getTopology() {
 		return topology;
 	}
 
@@ -58,9 +62,38 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 		return file;
 	}
 	
-	
 	@Override
 	public String toString() {
-		return topology.getLabel();
+		return topology.getText();
+	}
+	
+	/**
+	 * Search parent nodes to find the topology node which is labeled with
+	 * the given text.
+	 * @param text
+	 * @return
+	 */
+	public TopologyTreeNode getParentTreeNodeWithTopologyLabel(String text){
+		// try to parse communicator:
+		final ArrayList<String> labels = file.getTopologyLabels().getLabels();
+		
+		TopologyTreeNode cur = this;
+		
+		// lookup rank up to parent.		
+		while(cur != null){			
+			if(labels.get(cur.getTopology().getDepth()).equalsIgnoreCase(text)){
+				// found correct node:
+				return cur;
+			}
+			
+			TreeNode p = cur.getParent();
+			while(p != null && ! TopologyTreeNode.class.isInstance(p)){
+				p = p.getParent();
+			}
+			
+			cur = (TopologyTreeNode) p;
+		}
+		
+		return null;
 	}
 }
