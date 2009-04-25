@@ -50,12 +50,12 @@ def info_elements(arg):
   }
   """.replace("___ARG___", arg)
 write_at_elements = """
-    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
                  (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5));
 """
 write_elements = """
   {
-    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
                  (long long int)getByteOffset(v1), getTypeSize(v3, v4), v3, getTypeId(v4));
   }
 """
@@ -162,7 +162,7 @@ afterMpi = {
 """ + info_elements("v4"),
 
   "File_read_all_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
@@ -177,21 +177,21 @@ afterMpi = {
   "File_write_at_all_end" : split_end_element,
 
   "File_write_all_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
   "File_write_all_end" : split_end_element,
 
   "File_read_ordered_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
   "File_read_ordered_end" : split_end_element,
 
   "File_write_ordered_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' type='%d'", 
+      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
@@ -219,7 +219,7 @@ afterMpi = {
     MPI_Comm_size(v9, &size);
     for(i = 0; i < size; ++i)
     {
-      hdT_logElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' type='%d'",
+      hdT_logElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' tid='%d'",
                    getWorldRank(i, v9), getTypeSize(v2[i], v4), v2[i], getTypeId(v4));
     }
   }
@@ -231,7 +231,7 @@ afterMpi = {
     MPI_Comm_size(v6, &size);
     for(i = 0; i < size; ++i)
     {
-      hdT_logElement(tracefile, "Recv", "rank='%d' size='%lld' count='%d' type='%d'",
+      hdT_logElement(tracefile, "Recv", "rank='%d' size='%lld' count='%d' tid='%d'",
                    getWorldRank(i, v6), getTypeSize(v3[i], v4), v3[i], v4);
     }             
   }
@@ -270,9 +270,9 @@ afterLog = {
 # Attribute - value pairs, which are shared by all send / isend - style functions. #
 # """                                                                              #
 ####################################################################################
-send_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d'", 
+send_attributes = ("size='%lld' count='%d' tid='%d' toRank='%d' toTag='%d' cid='%d'", 
                    "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6)")
-isend_attributes = ("size='%lld' count='%d' type='%d' toRank='%d' toTag='%d' cid='%d' rid='%d'", 
+isend_attributes = ("size='%lld' count='%d' tid='%d' toRank='%d' toTag='%d' cid='%d' rid='%d'", 
                     "getTypeSize(v2, v3), v2, getTypeId(v3), getWorldRank(v4, v6), v5, getCommId(v6), getRequestId(*v7)")
 
 
@@ -326,43 +326,43 @@ logAttributes = {
   "Issend" : isend_attributes, 
   "Irsend" : isend_attributes, 
 
-  "Bcast" : ("size='%lld' rootRank='%d' cid='%d' count='%d' type='%d'", 
+  "Bcast" : ("size='%lld' rootRank='%d' cid='%d' count='%d' tid='%d'", 
              "getTypeSize(v2, v3), getWorldRank(v4, v5), getCommId(v5), v2, getTypeId(v3)"),
 
-  "Gather" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
+  "Gather" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' tid='%d' recvCount='%d' recvtid='%d'",
               "getTypeSize(v2, v3), getTypeSize(v5, v6), getWorldRank(v7, v8), getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)" ),
 
-  "Gatherv" : ("size='%lld' root='%d' cid='%d' count='%d' type='%d'",
+  "Gatherv" : ("size='%lld' root='%d' cid='%d' count='%d' tid='%d'",
                "getTypeSize(v2, v3), getWorldRank(v8, v9), getCommId(v9), v2, getTypeId(v3)"), 
   
-  "Scatter" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' type='%d' recvCount'%d' recvType='%d'",
+  "Scatter" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' tid='%d' recvCount'%d' recvtid='%d'",
                "getTypeSize(v2, v3), getTypeSize(v5, v6), getWorldRank(v7, v8), getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)"),
 
-  "Scatterv" : ("recvSize='%lld' root='%d' cid='%d' recvCount='%d' recvType='%d'",
+  "Scatterv" : ("recvSize='%lld' root='%d' cid='%d' recvCount='%d' recvtid='%d'",
                 "getTypeSize(v6, v7), getWorldRank(v8, v9), getCommId(v9), v6, getTypeId(v7)"),
 
-  "Allgather" : ("size='%lld' recvSize='%lld' cid='%d' count='%d' type='%d' recvCount='%d' recvType='%d'",
+  "Allgather" : ("size='%lld' recvSize='%lld' cid='%d' count='%d' tid='%d' recvCount='%d' recvtid='%d'",
                  "getTypeSize(v2, v3), getTypeSize(v5, v6), getCommId(v7), v2, getTypeId(v3), v5, getTypeId(v6)"),
 
-  "Allgatherv" : ("size='%lld' cid='%d' count='%d' type='%d'",
+  "Allgatherv" : ("size='%lld' cid='%d' count='%d' tid='%d'",
                   "getTypeSize(v2, v3), getCommId(v8), v2, getTypeId(v3)"),
   
-  "Alltoall" : ("size='%lld' cid='%d' count='%d' type='%d'",
+  "Alltoall" : ("size='%lld' cid='%d' count='%d' tid='%d'",
                 "getTypeSize(v2, v3), v7, v2, getTypeId(v3)"),
 
   "Alltoallv" : ("cid='%d'", 
                  "getCommId(v9)"), 
 
-  "Reduce" : ("size='%lld' rootRank='%d' cid='%d' count='%d' type='%d'",
+  "Reduce" : ("size='%lld' rootRank='%d' cid='%d' count='%d' tid='%d'",
               "getTypeSize(v3, v4), getWorldRank(v6, v7), getCommId(v7), v3, getTypeId(v4)"),
 
   "Reduce_scatter" : ("cid='%d'", 
                       "getCommId(v6)"),
 
-  "Scan" : ("size='%lld' cid='%d' count='%d' type='%d'",
+  "Scan" : ("size='%lld' cid='%d' count='%d' tid='%d'",
             "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
-  "Exscan" : ("size='%lld' cid='%d' count='%d' type='%d'",
+  "Exscan" : ("size='%lld' cid='%d' count='%d' tid='%d'",
             "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
   "Recv" : ("fromRank='%d' fromTag='%d' cid='%d'", 
@@ -374,13 +374,13 @@ logAttributes = {
   "Barrier" : ("cid='%d'", 
                "getCommId(v1)"),
 
-  "Sendrecv" : ("size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' type='%d'", 
+  "Sendrecv" : ("size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' tid='%d'", 
                 "getTypeSize(v2, v3), getWorldRank(v4, v11), v5, getWorldRank(v9, v11), v10, getCommId(v11), v2, getTypeId(v3)"),
 
-  "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' type='%d'", 
+  "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' tid='%d'", 
                         "getTypeSize(v2, v3), getWorldRank(v4, v8), v5, getWorldRank(v6, v8), v7, getCommId(v8), v2, getTypeId(v3)"),
 
-  "Allreduce" : ("size='%lld' cid='%d' count='%d' type='%d'", 
+  "Allreduce" : ("size='%lld' cid='%d' count='%d' tid='%d'", 
                  "getTypeSize(v3, v4), getCommId(v6), v3, getTypeId(v4)"),
 
   "File_open" : ("cid='%d' name='%s' flags='%d' fid='%d'", 
@@ -418,7 +418,7 @@ logAttributes = {
                              "",
                              "Wait"),
 
-  "File_write_ordered" : ("fid='%d' size='%lld' count='%d' type='%d'",
+  "File_write_ordered" : ("fid='%d' size='%lld' count='%d' tid='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_write_ordered_begin" : ("fid='%d' rid='%d'", 
@@ -427,7 +427,7 @@ logAttributes = {
                               "",
                               "Wait"),
 
-  "File_write_shared" : ("fid='%d' size='%lld' count='%d' type='%d'",
+  "File_write_shared" : ("fid='%d' size='%lld' count='%d' tid='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_read" :        ("fid='%d'", 
@@ -456,7 +456,7 @@ logAttributes = {
                             "", 
                             "Wait"),
 
-  "File_read_ordered" : ("fid='%d' size='%lld' count='%d' type='%d'",
+  "File_read_ordered" : ("fid='%d' size='%lld' count='%d' tid='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
   
   "File_read_ordered_begin" : ("fid='%d' rid='%d'", 
@@ -466,7 +466,7 @@ logAttributes = {
                              "", 
                              "Wait"),
 
-  "File_read_shared" : ("fid='%d' size='%lld' count='%d' type='%d'",
+  "File_read_shared" : ("fid='%d' size='%lld' count='%d' tid='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_iread" : ("fid='%d' rid='%d'", 
@@ -511,19 +511,19 @@ logAttributes = {
   "File_seek" : ("fid='%d' relative-offset='%lld' whence='%s' offset='%lld'",
                         "getFileId(v1), (long long int)v2, getWhenceString(v3), getByteOffset(v1)"),
 
-  "File_set_view" : ("fid='%d' offset='%lld' etype='%d' filetype='%d' representation='%s'", 
+  "File_set_view" : ("fid='%d' offset='%lld' etid='%d' filetid='%d' representation='%s'", 
                      "getFileId(v1), (long long int)v2, getTypeId(v3), getTypeId(v4), v5"),
 
   "Iprobe" : ("source='%d' tag='%d' cid='%d'", 
               "getWorldRank(v1, v3), v2, getCommId(v3)"),
 
-  "Type_vector" : ("from_type='%d'", 
+  "Type_vector" : ("from_tid='%d'", 
                    "getTypeId(v4)"),
 
   "hdT_Test_nested" : ("depth='%d'", 
                        "v1"),
 
-  "Type_commit" : ("type='%d'", 
+  "Type_commit" : ("tid='%d'", 
                    "getTypeId(*v1)"),
 }
 
