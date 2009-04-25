@@ -841,13 +841,15 @@ int hdS_writeInt32Value (
 {
 	assert(sizeof(value) == getValueLength(INT32));
 
+	int32_t v = value;
+
 	order_bytes32ip(&value);
 
 	int ret = appendValueToGroupBuffer(group, &value, INT32);
 
 	/* print debug output */
 	hd_debug_msg("Group '%s': type=%s value=%d",
-			group->name, getTypeString(INT32), value);
+			group->name, getTypeString(INT32), v);
 
 	return ret;
 }
@@ -891,13 +893,15 @@ int hdS_writeInt64Value (
 {
 	assert(sizeof(value) == getValueLength(INT64));
 
+	int64_t v = value;
+
 	order_bytes64ip(&value);
 
 	int ret = appendValueToGroupBuffer(group, &value, INT64);
 
 	/* print debug output */
 	hd_debug_msg("Group '%s': type=%s value=%lld",
-			group->name, getTypeString(INT64), value);
+			group->name, getTypeString(INT64), v);
 
 	return ret;
 }
@@ -941,13 +945,15 @@ int hdS_writeFloatValue (
 {
 	assert(sizeof(value) == getValueLength(FLOAT));
 
+	float v = value;
+
 	order_bytes32fp(&value);
 
 	int ret = appendValueToGroupBuffer(group, &value, FLOAT);
 
 	/* print debug output */
 	hd_debug_msg("Group '%s': type=%s value=%f",
-			group->name, getTypeString(FLOAT), value);
+			group->name, getTypeString(FLOAT), v);
 
 	return ret;
 }
@@ -991,13 +997,15 @@ int hdS_writeDoubleValue (
 {
 	assert(sizeof(value) == getValueLength(DOUBLE));
 
+	double v = value;
+
 	order_bytes64fp(&value);
 
 	int ret = appendValueToGroupBuffer(group, &value, DOUBLE);
 
 	/* print debug output */
 	hd_debug_msg("Group '%s': type=%s value=%f",
-			group->name, getTypeString(DOUBLE), value);
+			group->name, getTypeString(DOUBLE), v);
 
 	return ret;
 }
@@ -1325,10 +1333,10 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
 	order_bytes32ip(&nsec);
 
 	/* write to buffer */
-	memcpy(group->buffer, &(sec), sizeof(sec));
+	memcpy(group->buffer + group->offset, &(sec), sizeof(sec));
 	group->offset = (int) sizeof(sec);
 
-	memcpy(group->buffer, &(nsec), sizeof(nsec));
+	memcpy(group->buffer + group->offset, &(nsec), sizeof(nsec));
 	group->offset += (int) sizeof(nsec);
 
 	return 0;
