@@ -39,6 +39,9 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 
 	ArrayList<TraceEntry> traceEntries = new ArrayList<TraceEntry>();
 	
+	
+
+	
 	/**
 	 * Return an enumeration of the contained trace entries not finishing earlier than start and not
 	 * starting after endTime (an overlapping of end or start is possible and must be checked by hand).

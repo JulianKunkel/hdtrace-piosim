@@ -68,4 +68,13 @@ public class StructDatatype extends Datatype{
 	public DatatypeEnum getType() {	
 		return DatatypeEnum.STRUCT;
 	}
+	
+	@Override
+	public ArrayList<Datatype> getChildDataTypes() {
+		final ArrayList<Datatype> children = new ArrayList<Datatype>();
+		for(StructType type: types){
+			children.add(type.type);
+		}
+		return children;
+	}
 }

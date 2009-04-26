@@ -1,5 +1,7 @@
 package de.hd.pvs.TraceFormat.project.datatypes;
 
+import java.util.ArrayList;
+
 public class ContiguousDatatype extends Datatype{
 	final int count;
 	
@@ -33,5 +35,12 @@ public class ContiguousDatatype extends Datatype{
 	
 	public Datatype getPrevious() {
 		return previous;
+	}
+	
+	@Override
+	public ArrayList<Datatype> getChildDataTypes() {
+		final ArrayList<Datatype> children = new ArrayList<Datatype>();
+		children.add(previous);
+		return children;
 	}
 }

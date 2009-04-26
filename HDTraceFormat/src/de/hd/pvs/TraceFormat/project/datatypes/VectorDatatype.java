@@ -1,5 +1,7 @@
 package de.hd.pvs.TraceFormat.project.datatypes;
 
+import java.util.ArrayList;
+
 public class VectorDatatype extends Datatype{
 	final int count;  
 	final int blocklen; 
@@ -51,5 +53,16 @@ public class VectorDatatype extends Datatype{
 	
 	public int getStride() {
 		return stride;
+	}
+	
+	public Datatype getPrevious() {
+		return previous;
+	}
+	
+	@Override
+	public ArrayList<Datatype> getChildDataTypes() {
+		final ArrayList<Datatype> children = new ArrayList<Datatype>();
+		children.add(previous);
+		return children;
 	}
 }

@@ -1,5 +1,7 @@
 package de.hd.pvs.TraceFormat.project.datatypes;
 
+import java.util.ArrayList;
+
 /**
  * Basic MPI datatype which can be combined to complex patterns.
  *  
@@ -51,5 +53,10 @@ public class NamedDatatype extends Datatype{
 	@Override
 	public DatatypeEnum getType() {
 		return DatatypeEnum.NAMED;
+	}
+	
+	@Override
+	public ArrayList<Datatype> getChildDataTypes() {
+		return new ArrayList<Datatype>();
 	}
 }

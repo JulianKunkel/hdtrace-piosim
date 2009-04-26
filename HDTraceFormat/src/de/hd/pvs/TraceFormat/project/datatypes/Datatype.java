@@ -1,5 +1,7 @@
 package de.hd.pvs.TraceFormat.project.datatypes;
 
+import java.util.ArrayList;
+
 /**
  * Datatype, useful for MPI memory structures and file access patterns.
  * @author julian
@@ -14,6 +16,7 @@ public abstract class Datatype implements IDatatype{
 	
 	abstract public int getSize();
 	
+	abstract public ArrayList<Datatype> getChildDataTypes();
 	
 	final public void setTid(long tid) {
 		this.tid = tid;

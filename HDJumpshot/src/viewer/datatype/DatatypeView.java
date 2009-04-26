@@ -1,10 +1,17 @@
 package viewer.datatype;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.LayoutManager2;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -30,47 +37,227 @@ import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype.StructType;
  * @author julian
  */
 public class DatatypeView {
-	final HashMap<Long, Datatype> typeMap;
-
 	final DatatypePanel    rootPanel = new DatatypePanel();
-	final JScrollPane 	   viewPane = new JScrollPane(rootPanel);
+	final JScrollPane 	   scrollPane = new JScrollPane(rootPanel);
 
 	static Color holeColor = Color.LIGHT_GRAY; 
 
 	/**
-	 * Draw each datatype only once, then use labels to refer to it.
+	 * Draw/Create each datatype only once, then use labels to refer to it.
 	 */
-	final HashMap<Datatype, JDatattype> drawnDatatypes = new HashMap<Datatype, JDatattype>();
+	final HashMap<Datatype, JDatatype> createdDatatypes = new HashMap<Datatype, JDatatype>();
 
 	final Border border = BorderFactory.createBevelBorder(BevelBorder.RAISED);
 
 	Datatype root = null;
 
-	public DatatypeView(HashMap<Long, Datatype> typeMap) {
-		viewPane.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-
-		this.typeMap = typeMap;
+	public DatatypeView() {
+		scrollPane.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);		
 	}	
 
 	public void setRootDatatype(Datatype root){
-		drawnDatatypes.clear();
+		createdDatatypes.clear();
 		rootPanel.removeAll();
 
 		this.root = root;
 
-		new JDatattype(root);
+		new JDatatype(root);
 	}
 
 	public JComponent getRootComponent(){
-		return viewPane;
+		return scrollPane;
 	}
 
+	private class DatatypeLayoutManager implements LayoutManager2{
+		final Dimension currentSize = new Dimension(20, 100);
+
+		@Override
+		public void addLayoutComponent(Component comp, Object constraints) {}
+		
+		@Override
+		public void addLayoutComponent(String name, Component comp) {}
+		
+		@Override
+		public float getLayoutAlignmentX(Container target) {
+			return 0;
+		}
+		
+		@Override
+		public float getLayoutAlignmentY(Container target) {
+			return 0;
+		}
+		
+		@Override
+		public Dimension maximumLayoutSize(Container target) {
+			return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		}
+
+		@Override
+		public void invalidateLayout(Container target) {
+			
+		}		
+		
+		@Override
+		public void layoutContainer(Container parent) {			
+			// datatype and referring datatypes
+			final HashMap<Datatype, HashSet<Datatype>> dependency = new HashMap<Datatype, HashSet<Datatype>>();
+
+			// create a dependency graph
+			// no dependencies for root datatype: 
+			dependency.put(root, new HashSet<Datatype>());
+
+			for(int i = 0; i < parent.getComponentCount(); i++){
+				//  update dependency graph
+				final Datatype cur = ((JDatatype) parent.getComponent(i)).datatype;
+
+				//System.out.println("ADDING " + cur);
+
+				for(Datatype usedType: cur.getChildDataTypes()){
+					HashSet<Datatype> isUsedByList = dependency.get(usedType);
+					if(isUsedByList == null){
+						isUsedByList = new HashSet<Datatype>();
+						dependency.put(usedType, isUsedByList);
+					}
+					isUsedByList.add(cur);
+
+					//System.out.println("DEPENDS on " + usedType);
+				}
+			}
+
+			// update positions of all components according to dependency:
+
+			// right now use a N² algorithm, could use a priority queue / heap, though
+			final HashSet<Datatype> curDrawn = new HashSet<Datatype>();
+
+			// first add the ones which do not have any dependency. Then the ones which refer only
+			// to drawn and so forth.
+			int row = 0;
+			int maxWidth = 0;
+			int curY = 2;
+
+			while(true){
+				// Datatypes which shall be drawn in this row:
+				final LinkedList<Datatype> toDraw = new LinkedList<Datatype>();
+
+				// determine the components which can be drawn:
+				for(Datatype typ: dependency.keySet()){
+					if(curDrawn.contains(typ)){
+						continue;
+					}
+
+					HashSet<Datatype> isUsedByList = dependency.get(typ);
+					//System.out.println("CHECKING typ: " + typ);
+
+					boolean hasDependencies = false;
+					for(Datatype usedBy: isUsedByList){
+						if(! createdDatatypes.containsKey(usedBy)){
+							continue;
+						}
+						if( ! curDrawn.contains(usedBy)){
+							hasDependencies = true;
+							break;
+						}
+					}
+					if(! hasDependencies){
+						toDraw.add(typ);
+					}
+				}
+
+				int rowX = 2;
+				int maxRowHeight = 0; 
+
+				// exit criterion
+				if(toDraw.size() == 0){
+					break;
+				}
+
+				// align and draw components:
+				for(Datatype typ: toDraw){
+					curDrawn.add(typ);
+					final JDatatype jType = createdDatatypes.get(typ);
+					if(jType != null){
+						//System.out.println("DRAWING " + typ);
+
+						final Dimension prefSize = jType.getPreferredSize();
+
+						jType.setBounds(rowX, curY, prefSize.width, prefSize.height);
+						if (prefSize.height > maxRowHeight)
+							maxRowHeight = prefSize.height;
+
+						rowX += prefSize.width + 20;
+					}
+				}
+
+
+				if(rowX > maxWidth){
+					maxWidth = rowX;
+				}
+
+				curY += maxRowHeight + 20;
+
+				row++;
+			}
+
+			final Insets insets = parent.getInsets();
+			currentSize.height = curY + insets.bottom + insets.top - 20 + 2;
+			currentSize.width = maxWidth + insets.left + insets.right - 20 + 2;
+
+			parent.setSize(currentSize);
+			scrollPane.setPreferredSize(currentSize);
+			scrollPane.invalidate();
+		}
+
+
+		@Override
+		public Dimension minimumLayoutSize(Container parent) { 
+			return currentSize;
+		}
+
+		@Override
+		public Dimension preferredLayoutSize(Container parent) {
+			return currentSize;
+		}
+
+		@Override
+		public void removeLayoutComponent(Component comp) {
+
+		}
+	}
+
+	/**
+	 * Layouts components correctly and draw arcs between them.
+	 * @author julian
+	 */
 	private class DatatypePanel extends JPanel{
 		private static final long serialVersionUID = 2L;
 
 		public DatatypePanel() {
-			Dimension dim = new Dimension(150, 150); 
-			setMinimumSize(dim);
+			setLayout(new DatatypeLayoutManager()); // we layout ourselves
+		}
+
+		@Override
+		public void paint(Graphics g) {
+			// draw container:
+			super.paint(g);
+
+			// draw arrows between dependencies:
+			for(JDatatype jType: createdDatatypes.values()){
+				// scan for datatype referene position
+				for(final JDatatypeReference ref: jType.getReferencedTypes()){
+					final JDatatype referencedType = createdDatatypes.get(ref.datatype);
+					if(referencedType == null)
+						continue;
+
+					// draw an line:
+					g.drawLine(
+							referencedType.getX() + referencedType.getWidth() / 2, 
+							referencedType.getY(), 
+							jType.getX() + ref.getX() + ref.getWidth() / 2, 
+							jType.getY() + jType.getHeight());
+				}					
+			}
 		}
 	}
 
@@ -132,19 +319,19 @@ public class DatatypeView {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if(isExpandable){
-				final JDatattype drawn;
+				final JDatatype drawn;
 
-				if(drawnDatatypes.containsKey(datatype)){
-					drawn = drawnDatatypes.get(datatype);
+				if(createdDatatypes.containsKey(datatype)){
+					drawn = createdDatatypes.get(datatype);
 				}else{
-					drawn = new JDatattype(datatype);
+					drawn = new JDatatype(datatype);
 				}
 
 				// already expanded, therefore scroll to it.
 				SwingUtilities.invokeLater(new Runnable(){
 					@Override
 					public void run() {
-						viewPane.getViewport().scrollRectToVisible(drawn.getBounds());		
+						scrollPane.getViewport().scrollRectToVisible(drawn.getBounds());		
 					}
 				});
 			}
@@ -181,15 +368,46 @@ public class DatatypeView {
 	/**
 	 * Lightweight component representing a datatype:
 	 */
-	private class JDatattype extends JPanel{
+	private class JDatatype extends JPanel{
 		private static final long serialVersionUID = 1L;
 
 		final Datatype datatype;
 
-		public JDatattype(Datatype datatype) {
-			drawnDatatypes.put(datatype, this);
-			rootPanel.add(this);
+		final LinkedList<JDatatypeReference> referencedTypes = new LinkedList<JDatatypeReference>();
 
+		JPanel panel = null;
+
+		public void addReferenceType(JDatatypeReference comp) {
+			referencedTypes.add(comp);
+
+			if(panel == null){
+				panel = new JPanel();
+				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+				panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+
+				this.add(panel);
+			}
+
+			panel.add(comp);
+		}
+
+		public void addHole(long size) {	
+			if(panel == null){
+				panel = new JPanel();
+				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+				panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+
+				this.add(panel);
+			}
+
+			panel.add(new JDatatypeHole(size));
+		}
+
+		public LinkedList<JDatatypeReference> getReferencedTypes() {
+			return referencedTypes;
+		}
+
+		public JDatatype(Datatype datatype) {
 			this.setBorder(border);
 			this.datatype = datatype;
 			this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -203,10 +421,8 @@ public class DatatypeView {
 			switch(datatype.getType()){
 			case CONTIGUOUS:{
 				ContiguousDatatype type = (ContiguousDatatype) datatype;
-				final JPanel panel = new JPanel();
-				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-				panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);				
-				panel.add(new JDatatypeReference(type.getPrevious(), type.getCount()));				
+
+				addReferenceType(new JDatatypeReference(type.getPrevious(), type.getCount()));				
 
 				break;								
 			}case NAMED:{
@@ -216,9 +432,6 @@ public class DatatypeView {
 				break;
 			}case STRUCT:{
 				StructDatatype type = (StructDatatype) datatype;
-				final JPanel panel = new JPanel();
-				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-				panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
 				int lastPos = 0;
 				for(int i=0; i < type.getCount(); i++){
@@ -227,13 +440,11 @@ public class DatatypeView {
 					if(childType.getDisplacement() != lastPos){
 						// add a hole
 						final long length = childType.getDisplacement() - lastPos;
-						panel.add(new JDatatypeHole(length));
+						addHole(length);
 					}
 					lastPos = childType.getDisplacement() + childType.getType().getExtend() * childType.getBlocklen();
-					panel.add(new JDatatypeReference(childType.getType(), childType.getBlocklen()));
+					addReferenceType(new JDatatypeReference(childType.getType(), childType.getBlocklen()));
 				}
-
-				this.add(panel);
 
 				break;
 			}case VECTOR:{
@@ -242,6 +453,10 @@ public class DatatypeView {
 				break;								
 			}
 			}
+
+
+			createdDatatypes.put(datatype, this);
+			rootPanel.add(this);
 		}
 	}
 }

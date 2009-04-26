@@ -86,6 +86,7 @@ public class InfoDialogForTraceEntries extends InfoDialog
 		panel.setLayout( new BoxLayout( panel,  BoxLayout.Y_AXIS ) );
 
 		JLabel label = new JLabel(obj.getType().toString());
+		label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 		panel.add(label);        
 
 		final JTable table = new JTable();
@@ -128,6 +129,8 @@ public class InfoDialogForTraceEntries extends InfoDialog
 
 		if(tableData.size() > 0){
 			table.setModel(new AbstractTableModel() {
+				private static final long serialVersionUID = -3419029365708534895L;
+				
 				public String getColumnName(int column) { return null; }
 				public int getRowCount() { return tableData.size(); }
 				public int getColumnCount() { return 2; }
@@ -164,7 +167,7 @@ public class InfoDialogForTraceEntries extends InfoDialog
 	private void addDatatypeView(String forWhat, int rank, ProjectDescription desc, String xmlStr, Container panel){
 		if(xmlStr != null){
 			final JLabel label = new JLabel(forWhat);
-			label.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+			label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 			panel.add(label);
 
 			final HashMap<Long, Datatype> typeMap = desc.getDatatypeMap(rank);  
@@ -174,7 +177,7 @@ public class InfoDialogForTraceEntries extends InfoDialog
 			final long tid = Long.parseLong(xmlStr);
 
 			Datatype type = typeMap.get(tid);
-			DatatypeView view = new DatatypeView(typeMap);
+			DatatypeView view = new DatatypeView();
 			view.setRootDatatype(type);
 
 			panel.add(view.getRootComponent());
