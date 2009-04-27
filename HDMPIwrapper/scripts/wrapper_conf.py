@@ -38,14 +38,21 @@ def info_elements(arg):
   {
     int nkeys, i;
     char key[MPI_MAX_INFO_KEY];
+    int MAX_INFO_VALUE_LEN = 1024;
+    char value[MAX_INFO_VALUE_LEN];
+    int flag;
     if(trace_file_info && !((___ARG___) == MPI_INFO_NULL))
     {
-    PMPI_Info_get_nkeys((___ARG___), &nkeys);
-    for(i = 0; i < nkeys; ++i)
-    {
-      MPI_Info_get_nthkey((___ARG___), i, key);
-      hdT_logElement(tracefile, "Info", "value='%s'", key);
-    }
+      PMPI_Info_get_nkeys((___ARG___), &nkeys);
+      for(i = 0; i < nkeys; ++i)
+      {
+        PMPI_Info_get_nthkey((___ARG___), i, key);
+        PMPI_Info_get((___ARG___), key, MAX_INFO_VALUE_LEN - 1, value, &flag);
+        if(flag)
+          hdT_logElement(tracefile, "Info", "key='%s' value='%s'", key, value);
+        else
+          hdT_logElement(tracefile, "EmptyInfo", "key='%s'", key);
+      }
     }
   }
   """.replace("___ARG___", arg)
