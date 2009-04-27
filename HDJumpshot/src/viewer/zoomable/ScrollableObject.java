@@ -496,13 +496,6 @@ implements ScrollableView, IAutoRefreshable
 		}
 	}
 
-
-	private synchronized boolean isBackgroundThreadFinished(){
-		if(backgroundThread == null)
-			return true;
-		return renderingJobs.isEmpty() && currentTask == null;
-	}
-
 	/**
 	 * Called by the background Thread
 	 * @return 
@@ -530,7 +523,6 @@ implements ScrollableView, IAutoRefreshable
 
 		if(backgroundThread != null && (currentTask == null || currentTask.imagePos == imagePos)){
 			backgroundThread.abortCurrentJob = true;
-			backgroundThread = null;
 		}
 
 		// clear the image to ensure the user sees correct information:
@@ -549,9 +541,6 @@ implements ScrollableView, IAutoRefreshable
 			offscreenImages[imagePos].getGraphics().clearRect(0, 0, 
 					offscreenImages[imagePos].getWidth(), offscreenImages[imagePos].getHeight());
 		}
-
-		if(backgroundThread != null)
-			backgroundThread.abortCurrentJob = true;
 	}
 
 	private synchronized void scheduleToDrawOneImageInBackground( int imagePos ){
@@ -560,6 +549,7 @@ implements ScrollableView, IAutoRefreshable
 		cancelRedrawing(imagePos);
 
 		renderingJobs.push(new BackgroundRendering(imagePos, image, tImages[ imagePos ]));
+
 		notify();
 	}
 
@@ -572,8 +562,7 @@ implements ScrollableView, IAutoRefreshable
 				// create background thread:
 				backgroundThread = new BackgroundThread(); 
 				backgroundThread.execute();
-			}
-
+			}			
 		}else{ // do not start background thread:
 			for(BackgroundRendering task: renderingJobs){
 				drawOneImageInBackground(task.image, task.box);

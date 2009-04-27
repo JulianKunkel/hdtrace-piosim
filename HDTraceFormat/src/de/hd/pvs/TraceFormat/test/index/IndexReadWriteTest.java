@@ -112,13 +112,13 @@ public class IndexReadWriteTest{
 	public void CreateTraceFileIndex() throws Exception{
 		IndexCreator creator = new IndexCreator();
 		
-		creator.createIndexForTraceFile("../HDTraceConverter/Example/test_0_0.xml");
+		creator.createIndexForTraceFile("../HDTraceConverter/Example/test_0_0.trc");
 	}
 	
 	@Test
 	public void CreateTraceStatisticFileIndex() throws Exception{
 		IndexCreator creator = new IndexCreator();
 	
-		//creator.createIndexForStatisticFile("../HDTraceConverter/Example/test.xml", "Energy", 0, 0);
+		//creator.createIndexForStatisticFile("../HDTraceConverter/Example/test.proj", "Energy", 0, 0);
 	}
 }

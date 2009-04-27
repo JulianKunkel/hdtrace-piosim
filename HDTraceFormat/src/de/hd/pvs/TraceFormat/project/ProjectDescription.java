@@ -98,7 +98,7 @@ public class ProjectDescription {
 	}
 
 	public String getAbsoluteFilenameOfProject(){
-		return getAbsoluteFilesPrefix() + ".xml";
+		return getAbsoluteFilesPrefix() + ".proj";
 	}	
 
 	public String getFilesPrefix() {
@@ -123,8 +123,8 @@ public class ProjectDescription {
 	}
 
 	public void setProjectFilename(String projectFileName) {
-		if (projectFileName.lastIndexOf(".xml") < 1){
-			projectFileName = projectFileName + ".xml";
+		if (projectFileName.lastIndexOf(".proj") < 1){
+			projectFileName = projectFileName + ".proj";
 		}
 
 		File projectFile = new File(projectFileName);

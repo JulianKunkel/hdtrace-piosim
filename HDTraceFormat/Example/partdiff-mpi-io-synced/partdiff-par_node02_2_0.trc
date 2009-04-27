@@ -1,0 +1,912 @@
+<Program rank='2' thread='0'>
+<File_open comm='0' name='pvfs2://pvfs2//visualization.dat' flags='5' file='0'  time='1240128674.776577' end='1240128674.801067'  />
+<Type_vector from_tid='1275070475'  time='1240128674.801081' end='1240128674.801127'  />
+<Type_commit tid='-1946157051'  time='1240128674.801132' end='1240128674.801159'  />
+<Bcast size='4' rootRank='0' comm='0' count='1' tid='1275069445'  time='1240128674.801168' end='1240128674.804827'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.804841' end='1240128674.805255'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.825970' end='1240128674.826890'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.845461' end='1240128674.846606'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.864923' end='1240128674.865628'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.884139' end='1240128674.885099'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.903560' end='1240128674.904222'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.922562' end='1240128674.923746'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.942047' end='1240128674.942806'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.961201' end='1240128674.962290'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128674.980601' end='1240128674.981348'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128674.999703' end='1240128675.002871'  />
+<File_write file='1'  time='1240128675.002892' end='1240128675.026149' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128675.026161' end='1240128675.026194'  />
+<File_write file='0'  time='1240128675.026200' end='1240128675.029756' >
+  <Data offset='4364' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.029766' end='1240128675.029863'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.048245' end='1240128675.049330'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.067829' end='1240128675.069089'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.087382' end='1240128675.088271'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.106617' end='1240128675.107911'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.126212' end='1240128675.126951'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.145434' end='1240128675.146522'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.164844' end='1240128675.165745'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.184087' end='1240128675.185356'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.203697' end='1240128675.204474'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128675.222816' end='1240128675.226611'  />
+<File_write file='2'  time='1240128675.226619' end='1240128675.248859' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128675.248870' end='1240128675.248891'  />
+<File_write file='0'  time='1240128675.248896' end='1240128675.252323' >
+  <Data offset='10840' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.252333' end='1240128675.252673'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.270985' end='1240128675.271713'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.291193' end='1240128675.291931'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.310267' end='1240128675.311106'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.329892' end='1240128675.330878'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.349220' end='1240128675.350139'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.368481' end='1240128675.369667'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.387980' end='1240128675.388789'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.407148' end='1240128675.408450'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.426767' end='1240128675.427574'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128675.445934' end='1240128675.448517'  />
+<File_write file='1'  time='1240128675.448540' end='1240128675.470620' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128675.470637' end='1240128675.470674'  />
+<File_write file='0'  time='1240128675.470681' end='1240128675.475571' >
+  <Data offset='17316' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.475580' end='1240128675.478949'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.497278' end='1240128675.498046'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.516559' end='1240128675.517623'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.535934' end='1240128675.536644'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.554982' end='1240128675.556607'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.574906' end='1240128675.575625'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.593966' end='1240128675.595145'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.613475' end='1240128675.614367'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.632776' end='1240128675.633847'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.652174' end='1240128675.653311'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128675.671826' end='1240128675.674186'  />
+<File_write file='2'  time='1240128675.674195' end='1240128675.698719' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128675.698729' end='1240128675.698750'  />
+<File_write file='0'  time='1240128675.698755' end='1240128675.703432' >
+  <Data offset='23792' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.703441' end='1240128675.703819'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.722175' end='1240128675.722707'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.741287' end='1240128675.742135'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.760448' end='1240128675.761052'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.779720' end='1240128675.780426'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.798730' end='1240128675.799296'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.817641' end='1240128675.818679'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.837005' end='1240128675.837585'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.855923' end='1240128675.856956'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.875261' end='1240128675.875831'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128675.894177' end='1240128675.896558'  />
+<File_write file='1'  time='1240128675.896566' end='1240128675.919881' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128675.919892' end='1240128675.919913'  />
+<File_write file='0'  time='1240128675.919918' end='1240128675.926041' >
+  <Data offset='30268' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.926053' end='1240128675.927980'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.946337' end='1240128675.947204'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.965754' end='1240128675.967136'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128675.985475' end='1240128675.986406'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.004763' end='1240128676.006308'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.024748' end='1240128676.025496'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.043863' end='1240128676.045221'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.063540' end='1240128676.064430'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.082931' end='1240128676.084351'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.102655' end='1240128676.103615'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128676.121967' end='1240128676.124863'  />
+<File_write file='2'  time='1240128676.124872' end='1240128676.148579' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128676.148590' end='1240128676.148612'  />
+<File_write file='0'  time='1240128676.148617' end='1240128676.154586' >
+  <Data offset='36744' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.154595' end='1240128676.154699'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.173075' end='1240128676.174781'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.193302' end='1240128676.194633'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.212968' end='1240128676.213956'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.232308' end='1240128676.233687'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.252411' end='1240128676.253044'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.271383' end='1240128676.272821'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.291221' end='1240128676.292087'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.310445' end='1240128676.311802'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.330219' end='1240128676.331168'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128676.349529' end='1240128676.352204'  />
+<File_write file='1'  time='1240128676.352213' end='1240128676.372747' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128676.372762' end='1240128676.372792'  />
+<File_write file='0'  time='1240128676.372799' end='1240128676.378503' >
+  <Data offset='43220' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.378513' end='1240128676.379816'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.398179' end='1240128676.400085'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.418638' end='1240128676.420054'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.438385' end='1240128676.439074'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.457435' end='1240128676.458637'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.477219' end='1240128676.477867'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.496203' end='1240128676.497481'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.515795' end='1240128676.516551'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.534888' end='1240128676.536408'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.554716' end='1240128676.555482'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128676.573851' end='1240128676.576740'  />
+<File_write file='2'  time='1240128676.576749' end='1240128676.598445' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128676.598457' end='1240128676.598480'  />
+<File_write file='0'  time='1240128676.598485' end='1240128676.603506' >
+  <Data offset='49696' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.603515' end='1240128676.603615'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.622103' end='1240128676.623382'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.641946' end='1240128676.643101'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.661414' end='1240128676.662133'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.680580' end='1240128676.681645'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.700035' end='1240128676.700628'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.718978' end='1240128676.720239'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.738550' end='1240128676.739302'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.757652' end='1240128676.758788'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.777115' end='1240128676.782086'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128676.800502' end='1240128676.803157'  />
+<File_write file='1'  time='1240128676.803166' end='1240128676.826280' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128676.826293' end='1240128676.826321'  />
+<File_write file='0'  time='1240128676.826328' end='1240128676.832423' >
+  <Data offset='56172' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.832433' end='1240128676.833641'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.852031' end='1240128676.852728'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.871425' end='1240128676.872375'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.890751' end='1240128676.891400'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.909760' end='1240128676.910954'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.929337' end='1240128676.930025'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.948606' end='1240128676.949593'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.967911' end='1240128676.968612'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128676.987397' end='1240128676.988094'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.006532' end='1240128677.007021'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128677.025392' end='1240128677.028812'  />
+<File_write file='2'  time='1240128677.028822' end='1240128677.055797' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128677.055809' end='1240128677.055832'  />
+<File_write file='0'  time='1240128677.055838' end='1240128677.059943' >
+  <Data offset='62648' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.059956' end='1240128677.060062'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.078581' end='1240128677.079600'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.098158' end='1240128677.099534'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.117844' end='1240128677.118663'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.137064' end='1240128677.138278'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.156678' end='1240128677.157400'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.175748' end='1240128677.177013'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.195319' end='1240128677.196137'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.214482' end='1240128677.215762'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.234077' end='1240128677.234857'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128677.253222' end='1240128677.255984'  />
+<File_write file='1'  time='1240128677.255993' end='1240128677.278051' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128677.278065' end='1240128677.278116'  />
+<File_write file='0'  time='1240128677.278123' end='1240128677.283926' >
+  <Data offset='69124' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.283939' end='1240128677.284444'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.303056' end='1240128677.303945'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.322521' end='1240128677.323911'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.342312' end='1240128677.342952'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.361314' end='1240128677.362508'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.380824' end='1240128677.381532'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.399879' end='1240128677.401048'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.419377' end='1240128677.420079'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.438446' end='1240128677.439670'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.458001' end='1240128677.458661'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128677.477012' end='1240128677.479590'  />
+<File_write file='2'  time='1240128677.479599' end='1240128677.503618' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128677.503629' end='1240128677.503653'  />
+<File_write file='0'  time='1240128677.503658' end='1240128677.507671' >
+  <Data offset='75600' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.507680' end='1240128677.508263'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.526632' end='1240128677.527687'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.546285' end='1240128677.547377'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.565698' end='1240128677.566403'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.584757' end='1240128677.585918'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.604234' end='1240128677.604846'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.623365' end='1240128677.624852'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.643173' end='1240128677.643821'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.662180' end='1240128677.663394'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.681709' end='1240128677.682323'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128677.700686' end='1240128677.703284'  />
+<File_write file='1'  time='1240128677.703292' end='1240128677.723733' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128677.723745' end='1240128677.723769'  />
+<File_write file='0'  time='1240128677.723774' end='1240128677.727788' >
+  <Data offset='82076' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.727813' end='1240128677.730218'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.748596' end='1240128677.749228'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.767787' end='1240128677.768874'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.787195' end='1240128677.788000'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.806356' end='1240128677.807521'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.825838' end='1240128677.826547'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.844920' end='1240128677.846108'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.864424' end='1240128677.865130'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.883480' end='1240128677.884657'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.903141' end='1240128677.903819'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128677.922177' end='1240128677.924637'  />
+<File_write file='2'  time='1240128677.924646' end='1240128677.948158' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128677.948169' end='1240128677.948192'  />
+<File_write file='0'  time='1240128677.948198' end='1240128677.952068' >
+  <Data offset='88552' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.952078' end='1240128677.952174'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.970566' end='1240128677.971620'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128677.990184' end='1240128677.991313'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.009743' end='1240128678.010285'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.028638' end='1240128678.029813'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.048143' end='1240128678.048880'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.067804' end='1240128678.068399'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.086709' end='1240128678.087516'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.105869' end='1240128678.107128'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.125448' end='1240128678.126164'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128678.144552' end='1240128678.147028'  />
+<File_write file='1'  time='1240128678.147038' end='1240128678.172234' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128678.172272' end='1240128678.172303'  />
+<File_write file='0'  time='1240128678.172309' end='1240128678.176327' >
+  <Data offset='95028' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.176336' end='1240128678.177402'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.195873' end='1240128678.197057'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.215567' end='1240128678.216808'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.236005' end='1240128678.236166'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.254540' end='1240128678.255722'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.274041' end='1240128678.274784'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.293410' end='1240128678.294308'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.312640' end='1240128678.313432'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.331878' end='1240128678.333045'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.351356' end='1240128678.352057'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128678.370410' end='1240128678.372977'  />
+<File_write file='2'  time='1240128678.372986' end='1240128678.400719' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128678.400731' end='1240128678.400754'  />
+<File_write file='0'  time='1240128678.400759' end='1240128678.404529' >
+  <Data offset='101504' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.404537' end='1240128678.404638'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.423032' end='1240128678.424567'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.443433' end='1240128678.444429'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.462754' end='1240128678.463449'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.481916' end='1240128678.483125'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.502399' end='1240128678.502567'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.520950' end='1240128678.522562'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.540888' end='1240128678.541637'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.559985' end='1240128678.561148'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.579475' end='1240128678.580122'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128678.598534' end='1240128678.600977'  />
+<File_write file='1'  time='1240128678.600986' end='1240128678.623282' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128678.623293' end='1240128678.623316'  />
+<File_write file='0'  time='1240128678.623321' end='1240128678.627914' >
+  <Data offset='107980' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.627926' end='1240128678.629130'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.647481' end='1240128678.648738'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.667552' end='1240128678.668504'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.686846' end='1240128678.687674'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.706024' end='1240128678.707254'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.725592' end='1240128678.726269'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.744617' end='1240128678.746299'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.764632' end='1240128678.765314'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.783661' end='1240128678.784985'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.803324' end='1240128678.803993'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128678.822356' end='1240128678.824840'  />
+<File_write file='2'  time='1240128678.824848' end='1240128678.851047' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128678.851058' end='1240128678.851082'  />
+<File_write file='0'  time='1240128678.851088' end='1240128678.854765' >
+  <Data offset='114456' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.854782' end='1240128678.858315'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.876808' end='1240128678.878357'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.897142' end='1240128678.898084'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.916402' end='1240128678.917157'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.935502' end='1240128678.936718'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.955051' end='1240128678.955697'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.974070' end='1240128678.975709'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128678.994037' end='1240128678.994731'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.013213' end='1240128679.014300'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.032648' end='1240128679.033321'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128679.051674' end='1240128679.054142'  />
+<File_write file='1'  time='1240128679.054152' end='1240128679.073638' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128679.073650' end='1240128679.073677'  />
+<File_write file='0'  time='1240128679.073683' end='1240128679.079107' >
+  <Data offset='120932' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.079119' end='1240128679.080183'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.098555' end='1240128679.099187'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.117712' end='1240128679.118946'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.137456' end='1240128679.138022'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.156368' end='1240128679.157548'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.175867' end='1240128679.181566'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.199934' end='1240128679.201122'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.219447' end='1240128679.220148'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.238503' end='1240128679.239703'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.258029' end='1240128679.258725'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128679.277071' end='1240128679.279580'  />
+<File_write file='2'  time='1240128679.279589' end='1240128679.307552' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128679.307564' end='1240128679.307586'  />
+<File_write file='0'  time='1240128679.307591' end='1240128679.311166' >
+  <Data offset='127408' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.311175' end='1240128679.311292'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.330086' end='1240128679.332015'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.350548' end='1240128679.351750'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.370070' end='1240128679.370748'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.389102' end='1240128679.390313'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.408643' end='1240128679.409334'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.427687' end='1240128679.428845'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.447179' end='1240128679.447865'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.466223' end='1240128679.467381'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.485715' end='1240128679.486457'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128679.504820' end='1240128679.507228'  />
+<File_write file='1'  time='1240128679.507237' end='1240128679.530112' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128679.530124' end='1240128679.530148'  />
+<File_write file='0'  time='1240128679.530153' end='1240128679.535170' >
+  <Data offset='133884' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.535184' end='1240128679.536085'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.554468' end='1240128679.555410'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.573897' end='1240128679.575148'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.593483' end='1240128679.594169'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.612530' end='1240128679.613926'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.632250' end='1240128679.632944'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.651287' end='1240128679.652509'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.670994' end='1240128679.672488'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.690850' end='1240128679.692100'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.710420' end='1240128679.711077'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128679.729437' end='1240128679.732265'  />
+<File_write file='2'  time='1240128679.732290' end='1240128679.757582' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128679.757594' end='1240128679.757618'  />
+<File_write file='0'  time='1240128679.757623' end='1240128679.760975' >
+  <Data offset='140360' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.760985' end='1240128679.761094'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.779686' end='1240128679.785081'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.803553' end='1240128679.804957'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.823278' end='1240128679.824015'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.842365' end='1240128679.843547'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.861873' end='1240128679.862603'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.881012' end='1240128679.882136'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.900458' end='1240128679.901153'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.919504' end='1240128679.920779'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.939945' end='1240128679.940118'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128679.958549' end='1240128679.961091'  />
+<File_write file='1'  time='1240128679.961100' end='1240128679.982166' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128679.982184' end='1240128679.982217'  />
+<File_write file='0'  time='1240128679.982223' end='1240128679.987201' >
+  <Data offset='146836' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128679.987211' end='1240128679.987977'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.006530' end='1240128680.008481'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.027052' end='1240128680.030504'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.048935' end='1240128680.049573'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.067987' end='1240128680.069133'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.087555' end='1240128680.088205'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.106620' end='1240128680.107818'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.126322' end='1240128680.126938'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.145401' end='1240128680.146561'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.164947' end='1240128680.165534'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128680.184099' end='1240128680.187631'  />
+<File_write file='2'  time='1240128680.187703' end='1240128680.216197' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128680.216209' end='1240128680.216233'  />
+<File_write file='0'  time='1240128680.216239' end='1240128680.220304' >
+  <Data offset='153312' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.220317' end='1240128680.220428'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.238809' end='1240128680.239569'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.258245' end='1240128680.259272'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.277818' end='1240128680.278287'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.297208' end='1240128680.297829'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.316445' end='1240128680.316922'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.335617' end='1240128680.336443'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.354946' end='1240128680.355467'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.374022' end='1240128680.374982'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.393504' end='1240128680.394007'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128680.412582' end='1240128680.415577'  />
+<File_write file='1'  time='1240128680.415586' end='1240128680.437164' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128680.437198' end='1240128680.437223'  />
+<File_write file='0'  time='1240128680.437229' end='1240128680.443336' >
+  <Data offset='159788' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.443349' end='1240128680.444985'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.463772' end='1240128680.484359'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.502795' end='1240128680.504028'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.522342' end='1240128680.523042'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.541398' end='1240128680.542607'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.560930' end='1240128680.561641'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.580052' end='1240128680.581227'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.599559' end='1240128680.600279'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.618650' end='1240128680.619847'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.638275' end='1240128680.639014'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128680.657387' end='1240128680.660598'  />
+<File_write file='2'  time='1240128680.660610' end='1240128680.683000' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128680.683011' end='1240128680.683035'  />
+<File_write file='0'  time='1240128680.683040' end='1240128680.688369' >
+  <Data offset='166264' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.688381' end='1240128680.689063'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.707440' end='1240128680.708312'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.726902' end='1240128680.728035'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.746496' end='1240128680.747063'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.765445' end='1240128680.766621'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.784936' end='1240128680.785743'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.804499' end='1240128680.805272'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.823592' end='1240128680.824239'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.842756' end='1240128680.844005'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.862320' end='1240128680.862988'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128680.881492' end='1240128680.884102'  />
+<File_write file='1'  time='1240128680.884111' end='1240128680.906008' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128680.906023' end='1240128680.906056'  />
+<File_write file='0'  time='1240128680.906063' end='1240128680.911629' >
+  <Data offset='172740' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.911641' end='1240128680.913499'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.931850' end='1240128680.933248'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.951734' end='1240128680.952893'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.971222' end='1240128680.972038'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128680.990392' end='1240128680.991602'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.010054' end='1240128681.010773'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.029142' end='1240128681.030348'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.048675' end='1240128681.049408'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.067764' end='1240128681.068979'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.087453' end='1240128681.088205'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128681.106563' end='1240128681.109128'  />
+<File_write file='2'  time='1240128681.109137' end='1240128681.137026' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128681.137037' end='1240128681.137061'  />
+<File_write file='0'  time='1240128681.137067' end='1240128681.140994' >
+  <Data offset='179216' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.141004' end='1240128681.141113'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.159653' end='1240128681.160160'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.178624' end='1240128681.179830'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.198325' end='1240128681.199093'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.217516' end='1240128681.218620'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.237046' end='1240128681.237640'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.256061' end='1240128681.257216'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.275627' end='1240128681.276719'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.295302' end='1240128681.296242'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.314620' end='1240128681.315359'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128681.333917' end='1240128681.336321'  />
+<File_write file='1'  time='1240128681.336330' end='1240128681.357671' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128681.357687' end='1240128681.357718'  />
+<File_write file='0'  time='1240128681.357725' end='1240128681.361941' >
+  <Data offset='185692' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.361951' end='1240128681.362774'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.381168' end='1240128681.390683'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.409187' end='1240128681.410698'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.429018' end='1240128681.429719'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.448074' end='1240128681.449299'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.467620' end='1240128681.468313'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.486669' end='1240128681.487882'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.506869' end='1240128681.507018'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.525403' end='1240128681.526576'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.544909' end='1240128681.545587'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128681.564025' end='1240128681.566546'  />
+<File_write file='2'  time='1240128681.566555' end='1240128681.594804' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128681.594815' end='1240128681.594839'  />
+<File_write file='0'  time='1240128681.594844' end='1240128681.597978' >
+  <Data offset='192168' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.598022' end='1240128681.599030'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.617392' end='1240128681.618180'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.636817' end='1240128681.637907'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.656334' end='1240128681.656881'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.675413' end='1240128681.676486'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.694917' end='1240128681.695498'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.713969' end='1240128681.714994'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.733418' end='1240128681.734006'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.752468' end='1240128681.753573'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.771952' end='1240128681.772697'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128681.791402' end='1240128681.793745'  />
+<File_write file='1'  time='1240128681.793754' end='1240128681.816072' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128681.816083' end='1240128681.816109'  />
+<File_write file='0'  time='1240128681.816114' end='1240128681.822203' >
+  <Data offset='198644' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.822214' end='1240128681.823137'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.841592' end='1240128681.846313'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.864839' end='1240128681.866073'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.884402' end='1240128681.885098'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.903471' end='1240128681.904665'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.922994' end='1240128681.923641'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.942015' end='1240128681.943348'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.961672' end='1240128681.962327'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128681.980696' end='1240128681.981996'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.000313' end='1240128682.000963'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128682.023765' end='1240128682.025465'  />
+<File_write file='2'  time='1240128682.025474' end='1240128682.050083' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128682.050118' end='1240128682.050143'  />
+<File_write file='0'  time='1240128682.050149' end='1240128682.053376' >
+  <Data offset='205120' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.053385' end='1240128682.053958'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.072301' end='1240128682.073508'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.092015' end='1240128682.093512'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.111834' end='1240128682.112538'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.130925' end='1240128682.132115'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.150431' end='1240128682.151124'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.169493' end='1240128682.170744'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.189070' end='1240128682.189715'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.208067' end='1240128682.209293'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.227609' end='1240128682.228266'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128682.246636' end='1240128682.249228'  />
+<File_write file='1'  time='1240128682.249237' end='1240128682.266773' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128682.266785' end='1240128682.266810'  />
+<File_write file='0'  time='1240128682.266815' end='1240128682.271607' >
+  <Data offset='211596' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.271619' end='1240128682.274188'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.292626' end='1240128682.293221'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.311682' end='1240128682.312951'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.331375' end='1240128682.332125'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.350498' end='1240128682.351694'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.370025' end='1240128682.370709'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.389069' end='1240128682.390291'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.408620' end='1240128682.409351'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.427712' end='1240128682.428977'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.447306' end='1240128682.448033'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128682.466422' end='1240128682.468933'  />
+<File_write file='2'  time='1240128682.468942' end='1240128682.494877' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128682.494888' end='1240128682.494913'  />
+<File_write file='0'  time='1240128682.494919' end='1240128682.497984' >
+  <Data offset='218072' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.497994' end='1240128682.499906'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.518278' end='1240128682.519170'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.537768' end='1240128682.538930'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.557917' end='1240128682.558077'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.576462' end='1240128682.577680'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.595994' end='1240128682.596686'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.615038' end='1240128682.616259'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.634575' end='1240128682.635275'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.653638' end='1240128682.654848'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.673318' end='1240128682.673881'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128682.692350' end='1240128682.695283'  />
+<File_write file='1'  time='1240128682.695293' end='1240128682.719141' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128682.719153' end='1240128682.719177'  />
+<File_write file='0'  time='1240128682.719183' end='1240128682.722084' >
+  <Data offset='224548' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.722093' end='1240128682.723406'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.741783' end='1240128682.742410'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.760943' end='1240128682.762141'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.780453' end='1240128682.781354'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.799711' end='1240128682.800928'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.819240' end='1240128682.819946'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.838469' end='1240128682.839770'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.858089' end='1240128682.858788'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.877301' end='1240128682.878411'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.896912' end='1240128682.897522'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128682.915877' end='1240128682.918452'  />
+<File_write file='2'  time='1240128682.918461' end='1240128682.940785' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128682.940796' end='1240128682.940820'  />
+<File_write file='0'  time='1240128682.940826' end='1240128682.943793' >
+  <Data offset='231024' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.943802' end='1240128682.943901'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.962259' end='1240128682.963278'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128682.981817' end='1240128682.983102'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.001430' end='1240128683.002166'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.020655' end='1240128683.021739'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.040061' end='1240128683.040707'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.059061' end='1240128683.060425'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.078907' end='1240128683.079846'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.098207' end='1240128683.099459'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.117779' end='1240128683.118495'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128683.136920' end='1240128683.139909'  />
+<File_write file='1'  time='1240128683.139917' end='1240128683.162723' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128683.162736' end='1240128683.162762'  />
+<File_write file='0'  time='1240128683.162768' end='1240128683.165975' >
+  <Data offset='237500' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.165993' end='1240128683.170287'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.189168' end='1240128683.189557'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.208108' end='1240128683.209304'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.227630' end='1240128683.228810'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.247159' end='1240128683.248375'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.266689' end='1240128683.267318'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.285930' end='1240128683.287433'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.305797' end='1240128683.306703'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.325069' end='1240128683.326415'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.344797' end='1240128683.345480'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128683.363837' end='1240128683.366365'  />
+<File_write file='2'  time='1240128683.366374' end='1240128683.394708' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128683.394719' end='1240128683.394744'  />
+<File_write file='0'  time='1240128683.394750' end='1240128683.397508' >
+  <Data offset='243976' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.397517' end='1240128683.399696'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.418049' end='1240128683.418685'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.437150' end='1240128683.438357'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.456684' end='1240128683.457421'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.475924' end='1240128683.477142'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.495455' end='1240128683.496122'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.514490' end='1240128683.516086'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.534400' end='1240128683.535007'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.553522' end='1240128683.555275'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.573616' end='1240128683.574239'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128683.592590' end='1240128683.595204'  />
+<File_write file='1'  time='1240128683.595213' end='1240128683.612582' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128683.612594' end='1240128683.612696'  />
+<File_write file='0'  time='1240128683.612702' end='1240128683.616877' >
+  <Data offset='250452' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.616889' end='1240128683.619706'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.638174' end='1240128683.640019'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.658543' end='1240128683.659786'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.678750' end='1240128683.678916'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.697325' end='1240128683.698529'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.716842' end='1240128683.717512'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.735893' end='1240128683.737118'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.755442' end='1240128683.756182'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.774535' end='1240128683.775905'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.794216' end='1240128683.794916'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128683.814807' end='1240128683.816516'  />
+<File_write file='2'  time='1240128683.816533' end='1240128683.846069' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128683.846080' end='1240128683.846104'  />
+<File_write file='0'  time='1240128683.846109' end='1240128683.849532' >
+  <Data offset='256928' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.849541' end='1240128683.849953'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.868313' end='1240128683.869661'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.888273' end='1240128683.889359'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.907737' end='1240128683.908398'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.926756' end='1240128683.927966'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.946275' end='1240128683.946997'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.965377' end='1240128683.967015'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128683.985367' end='1240128683.986079'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.004437' end='1240128684.005705'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.024157' end='1240128684.024708'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128684.043060' end='1240128684.045671'  />
+<File_write file='1'  time='1240128684.045681' end='1240128684.072321' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128684.072334' end='1240128684.072365'  />
+<File_write file='0'  time='1240128684.072372' end='1240128684.075739' >
+  <Data offset='263404' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.075752' end='1240128684.076617'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.094995' end='1240128684.095664'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.114217' end='1240128684.115462'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.133851' end='1240128684.134456'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.153093' end='1240128684.154028'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.172363' end='1240128684.173249'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.191757' end='1240128684.193010'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.211329' end='1240128684.212033'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.230386' end='1240128684.231648'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.249961' end='1240128684.250726'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128684.269088' end='1240128684.271648'  />
+<File_write file='2'  time='1240128684.271657' end='1240128684.296169' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128684.296180' end='1240128684.296206'  />
+<File_write file='0'  time='1240128684.296212' end='1240128684.301119' >
+  <Data offset='269880' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.301128' end='1240128684.301542'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.319903' end='1240128684.321513'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.340146' end='1240128684.341270'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.359590' end='1240128684.360249'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.378606' end='1240128684.379821'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.398159' end='1240128684.398789'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.417155' end='1240128684.418404'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.436734' end='1240128684.437375'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.455733' end='1240128684.456946'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.475270' end='1240128684.475966'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128684.494333' end='1240128684.496962'  />
+<File_write file='1'  time='1240128684.496971' end='1240128684.520288' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128684.520299' end='1240128684.520323'  />
+<File_write file='0'  time='1240128684.520328' end='1240128684.523574' >
+  <Data offset='276356' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.523591' end='1240128684.526930'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.545315' end='1240128684.548044'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.566634' end='1240128684.567808'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.586159' end='1240128684.586826'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.605198' end='1240128684.606397'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.624731' end='1240128684.625418'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.643777' end='1240128684.645083'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.663518' end='1240128684.664094'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.682474' end='1240128684.683717'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.702047' end='1240128684.702689'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128684.721053' end='1240128684.723652'  />
+<File_write file='2'  time='1240128684.723660' end='1240128684.746297' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128684.746308' end='1240128684.746333'  />
+<File_write file='0'  time='1240128684.746339' end='1240128684.750203' >
+  <Data offset='282832' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.750212' end='1240128684.751578'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.769921' end='1240128684.770584'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.789417' end='1240128684.791116'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.809473' end='1240128684.810127'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.828493' end='1240128684.829752'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.848076' end='1240128684.848768'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.867121' end='1240128684.868341'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.887440' end='1240128684.887615'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.906000' end='1240128684.907227'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.925569' end='1240128684.926200'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128684.944569' end='1240128684.947092'  />
+<File_write file='1'  time='1240128684.947118' end='1240128684.970989' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128684.971000' end='1240128684.971024'  />
+<File_write file='0'  time='1240128684.971030' end='1240128684.977201' >
+  <Data offset='289308' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.977212' end='1240128684.978027'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128684.996653' end='1240128684.999203'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.017910' end='1240128685.018924'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.037269' end='1240128685.039197'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.057559' end='1240128685.058761'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.077089' end='1240128685.077838'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.096204' end='1240128685.097701'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.116023' end='1240128685.116776'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.135363' end='1240128685.136542'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.154864' end='1240128685.155567'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128685.173947' end='1240128685.176519'  />
+<File_write file='2'  time='1240128685.176528' end='1240128685.204339' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128685.204350' end='1240128685.204373'  />
+<File_write file='0'  time='1240128685.204379' end='1240128685.208287' >
+  <Data offset='295784' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.208300' end='1240128685.208407'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.227988' end='1240128685.228151'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.246944' end='1240128685.247931'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.266256' end='1240128685.267010'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.285456' end='1240128685.286685'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.305011' end='1240128685.305835'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.324549' end='1240128685.325659'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.344056' end='1240128685.344975'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.363351' end='1240128685.364648'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.382975' end='1240128685.383728'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128685.402106' end='1240128685.404655'  />
+<File_write file='1'  time='1240128685.404663' end='1240128685.427455' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128685.427470' end='1240128685.427528'  />
+<File_write file='0'  time='1240128685.427534' end='1240128685.431092' >
+  <Data offset='302260' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.431123' end='1240128685.435966'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.454330' end='1240128685.454942'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.473601' end='1240128685.474810'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.493136' end='1240128685.493923'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.512277' end='1240128685.513700'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.532016' end='1240128685.532719'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.551074' end='1240128685.552333'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.570644' end='1240128685.571314'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.589682' end='1240128685.590887'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.609240' end='1240128685.609962'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128685.628330' end='1240128685.630984'  />
+<File_write file='2'  time='1240128685.630993' end='1240128685.655927' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128685.655939' end='1240128685.655965'  />
+<File_write file='0'  time='1240128685.655970' end='1240128685.659816' >
+  <Data offset='308736' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.659828' end='1240128685.662990'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.681429' end='1240128685.682037'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.700622' end='1240128685.701766'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.720093' end='1240128685.720734'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.739094' end='1240128685.740548'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.758860' end='1240128685.759571'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.777932' end='1240128685.779294'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.797636' end='1240128685.798309'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.816664' end='1240128685.817888'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.836210' end='1240128685.837356'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.1' flags='5' file='1'  time='1240128685.855716' end='1240128685.858179'  />
+<File_write file='1'  time='1240128685.858188' end='1240128685.875892' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='1'  time='1240128685.875926' end='1240128685.875966'  />
+<File_write file='0'  time='1240128685.875972' end='1240128685.881883' >
+  <Data offset='315212' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.881896' end='1240128685.884697'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.903060' end='1240128685.903784'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.922341' end='1240128685.923651'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.941969' end='1240128685.942667'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.961018' end='1240128685.962239'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.980566' end='1240128685.981358'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128685.999720' end='1240128686.000924'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128686.019389' end='1240128686.019989'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128686.038346' end='1240128686.039916'  />
+<Sendrecv size='6472' toRank='1' toTag='111' fromRank='1' fromTag='111' comm='0' count='809' tid='1275070475'  time='1240128686.058239' end='1240128686.058941'  />
+<File_open comm='0' name='pvfs2://pvfs2//checkpoint.2' flags='5' file='2'  time='1240128686.077315' end='1240128686.081496'  />
+<File_write file='2'  time='1240128686.081507' end='1240128686.105524' >
+  <Data offset='3494880' size='1740968' count='217621' tid='1275070475' />
+</File_write>
+<File_close file='2'  time='1240128686.105537' end='1240128686.105562'  />
+<File_write file='0'  time='1240128686.105567' end='1240128686.109495' >
+  <Data offset='321688' size='2152' count='1' tid='-1946157051' />
+</File_write>
+<Reduce size='8' rootRank='0' comm='0' count='1' tid='1275070475'  time='1240128686.109504' end='1240128686.109560'  />
+<File_close file='0'  time='1240128686.109566' end='1240128686.109579'  />
+<Send size='1740968' count='217621' tid='1275070475' toRank='0' toTag='555' comm='0'  time='1240128686.109585' end='1240128686.148775'  />
+<Barrier comm='0'  time='1240128686.149685' end='1240128686.163877'  />
+<Finalize  time='1240128686.163883' end='1240128686.165312'  />
+</Program>
+

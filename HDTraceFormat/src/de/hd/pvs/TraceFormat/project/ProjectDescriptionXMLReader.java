@@ -38,6 +38,7 @@ import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.project.datatypes.DatatypeEnum;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
+import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
@@ -140,6 +141,9 @@ public class ProjectDescriptionXMLReader {
 					datatypeMapping.put(newType.getTid(), newType);
 				}
 				
+				if(descriptionInOut.getDatatypeMap(rank) != null){
+					throw new IllegalArgumentException("Error: type map already set for rank " + rank);
+				}
 				descriptionInOut.setDatatypeMap(rank, datatypeMapping);
 			}		
 		}
@@ -178,9 +182,15 @@ public class ProjectDescriptionXMLReader {
 			}			
 			datatype = struct;
 			break;
-		//}case VECTOR:{
-		//	datatype = new VectorDatatype();			
-		//	break;
+		}case VECTOR:{
+			int count = Integer.parseInt(xml.getAttribute("count"));
+			int blocklength = Integer.parseInt(xml.getAttribute("blocklength"));
+			int stride = Integer.parseInt(xml.getAttribute("stride"));
+			long oldType = Long.parseLong(xml.getAttribute("oldType"));
+			final Datatype old = datatypeMapping.get(oldType);
+			
+			datatype = new VectorDatatype(old, count, blocklength, stride);
+			break;
 		}default:
 			throw new IllegalArgumentException("Datatype " + type + " not implemented, yet");
 		}		

@@ -53,9 +53,9 @@ public class CategoryIconEditor implements TableCellEditor, ActionListener
 	private JButton      delegate_btn;
 	private CellEditorListener listener;
 	
-    final private JColorChooser colorChooser = new JColorChooser();    
-    
-    private JDialog      colorDialog;
+
+    private JColorChooser colorChooser = null;    
+    private JDialog      colorDialog = null;
     private ColorListener colorListener = new ColorListener();
     
     private class ColorListener implements ActionListener{
@@ -69,7 +69,6 @@ public class CategoryIconEditor implements TableCellEditor, ActionListener
     {
         delegate_btn  = new JButton();
         delegate_btn.addActionListener( this );
-        colorDialog = JColorChooser.createDialog(null, "Pick a Color", false, colorChooser, colorListener, null);
     }
 
     // Called 1st
@@ -81,7 +80,14 @@ public class CategoryIconEditor implements TableCellEditor, ActionListener
     {    	
         CategoryIcon icon;
         icon        = (CategoryIcon) value;
+        
+        if( colorChooser == null){
+        	colorChooser = new JColorChooser();
+        }
         colorChooser.setColor(icon.getCategory().getColor());
+        
+        // TODO a bug hung up application while creation of JColorChooser
+        colorDialog = JColorChooser.createDialog(table, "Pick a Color", false, colorChooser, colorListener, null);
         delegate_btn.setIcon( icon );
         
         return delegate_btn;

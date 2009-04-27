@@ -131,7 +131,7 @@ public class TopologyNode {
 	 * @return
 	 */
 	public String getTraceFileName(){
-		return getFilePrefix() + ".xml";
+		return getFilePrefix() + ".trc";
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class TopologyNode {
 	 * @return
 	 */
 	public String getStatisticFileName(String group){
-		return getFilePrefix() + "_stat_" + group + ".dat";
+		return getFilePrefix() + "_" + group + ".stat";
 	}
 
 	public String getText() {

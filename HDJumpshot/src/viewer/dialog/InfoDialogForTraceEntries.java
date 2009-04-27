@@ -107,7 +107,7 @@ public class InfoDialogForTraceEntries extends InfoDialog
 		final TopologyTreeNode rankNode = topologyTreeNode.getParentTreeNodeWithTopologyLabel("rank");
 		if(rankNode != null){
 			// got a rank:
-			final Integer rank = Integer.parseInt(rankNode.getTopology().getText());
+			final Integer rank = Integer.parseInt(rankNode.getTopology().getText());						
 			if (rank != null){
 				addTableData("Rank" , rank);
 				final ProjectDescription desc = rankNode.getFile().getProjectDescription();
@@ -173,10 +173,16 @@ public class InfoDialogForTraceEntries extends InfoDialog
 			final HashMap<Long, Datatype> typeMap = desc.getDatatypeMap(rank);  
 			if(typeMap == null){
 				System.err.println("Type map not available for rank: " + rank);
+				return;
 			}
-			final long tid = Long.parseLong(xmlStr);
+			final long tid = Long.parseLong(xmlStr);			
 
 			Datatype type = typeMap.get(tid);
+			
+			if(type == null){
+				System.err.println("Warning: type: " + tid + " not found for rank: " + rank);
+				return;
+			}
 			DatatypeView view = new DatatypeView();
 			view.setRootDatatype(type);
 

@@ -92,10 +92,10 @@ public class FileOperations
 
 	void openTraceProject( String filename ) throws Exception
 	{
-			reader = new TraceFormatBufferedFileReader( );
-			addTraceProject( filename );
+		reader = new TraceFormatBufferedFileReader( );
+		addTraceProject( filename );
 	}
-	
+
 	TraceFormatBufferedFileReader getReader() {
 		return reader;
 	}

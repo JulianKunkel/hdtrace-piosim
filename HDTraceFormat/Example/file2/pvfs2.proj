@@ -16,9 +16,6 @@
 </Topology>
 
 <CommunicatorList> 
-<Communicator name="WORLD">
-<Rank name="Rank 0" cid="1"/>
-</Communicator>
 </CommunicatorList>
 
 <ExternalStatistics>

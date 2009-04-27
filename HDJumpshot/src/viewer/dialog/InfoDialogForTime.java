@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -51,57 +51,56 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class InfoDialogForTime extends InfoDialog
 {
-    private static final String         FORMAT = Const.INFOBOX_TIME_FORMAT;
-    private static       DecimalFormat  fmt = null;
+	private static final String         FORMAT = Const.INFOBOX_TIME_FORMAT;
+	private static       DecimalFormat  fmt = null;
 
-    public InfoDialogForTime( final Frame            frame,
-                              final Epoch           time,
-                              final Epoch realModelTimeStart)
-       
-    {
-        super( frame, "Time Info Box", time, realModelTimeStart );
-        this.init();
-    }
+	public InfoDialogForTime( final Frame            frame,
+			final Epoch           time,
+			final Epoch realModelTimeStart)
 
-    public InfoDialogForTime( final Dialog           dialog,
-                              final Epoch           time,
-                              final Epoch realModelTimeStart)
+	{
+		super( frame, "Time Info Box", time, realModelTimeStart );
+		this.init();
+	}
 
-    {
-        super( dialog, "Time Info Box", time, realModelTimeStart );
-        this.init();
-    }
+	public InfoDialogForTime( final Dialog           dialog,
+			final Epoch           time,
+			final Epoch realModelTimeStart)
 
-    private void init()
-    {
-        /* Define DecialFormat for the displayed time */
-        if ( fmt == null ) {
-            fmt = (DecimalFormat) NumberFormat.getInstance();
-            fmt.applyPattern( FORMAT );
-        }
-        
-        Container root_panel = this.getContentPane();
-        root_panel.setLayout( new BoxLayout( root_panel, BoxLayout.Y_AXIS ) );
+	{
+		super( dialog, "Time Info Box", time, realModelTimeStart );
+		this.init();
+	}
 
-            StringBuffer textbuf = new StringBuffer();
-            int          num_cols = 0, num_rows = 1;
+	private void init()
+	{
+		/* Define DecialFormat for the displayed time */
+		if ( fmt == null ) {
+			fmt = (DecimalFormat) NumberFormat.getInstance();
+			fmt.applyPattern( FORMAT );
+		}
 
-            StringBuffer linebuf = new StringBuffer();
-            linebuf.append( "time = " + fmt.format(getClickedTime().getDouble()) );
-            num_cols = linebuf.length();
-            textbuf.append( linebuf.toString() );
-            
-            JTextArea text_area = new JTextArea( textbuf.toString() );
-            int adj_num_cols    = Routines.getAdjNumOfTextColumns( text_area,
-                                                                   num_cols );
-            text_area.setColumns( adj_num_cols );
-            text_area.setRows( num_rows );
-            text_area.setEditable( false );
-            text_area.setLineWrap( true );
-        JScrollPane scroller = new JScrollPane( text_area );
-        scroller.setAlignmentX( Component.LEFT_ALIGNMENT );
-        root_panel.add( scroller );
+		Container root_panel = this.getContentPane();
+		root_panel.setLayout( new BoxLayout( root_panel, BoxLayout.Y_AXIS ) );
 
-        root_panel.add( super.getCloseButtonPanel() );
-    }
+		StringBuffer textbuf = new StringBuffer();
+		int          num_cols = 0, num_rows = 1;
+
+		StringBuffer linebuf = new StringBuffer();
+		linebuf.append( "time = " + fmt.format(getClickedTime().getDouble()) );
+		num_cols = linebuf.length();
+		textbuf.append( linebuf.toString() );
+
+		JTextArea text_area = new JTextArea( textbuf.toString() );
+		int adj_num_cols    = Routines.getAdjNumOfTextColumns( text_area, num_cols );
+		text_area.setColumns( adj_num_cols );
+		text_area.setRows( num_rows );
+		text_area.setEditable( false );
+		text_area.setLineWrap( true );
+		JScrollPane scroller = new JScrollPane( text_area );
+		scroller.setAlignmentX( Component.CENTER_ALIGNMENT );
+		root_panel.add( scroller );
+
+		root_panel.add( super.getCloseButtonPanel() );
+	}
 }

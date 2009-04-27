@@ -73,13 +73,13 @@ public class TraceFormatBufferedFileReader {
 	final ArrayList<TraceFormatFileOpener> loadedFiles = new ArrayList<TraceFormatFileOpener>();
 
 	// map category names to the category:
-	HashMap<String, CategoryState> categoriesStates = new HashMap<String, CategoryState>();	
-	HashMap<String, CategoryEvent> categoriesEvents = new HashMap<String, CategoryEvent>();
-	HashMap<String, CategoryStatistic> categoriesStatistics = new HashMap<String, CategoryStatistic>();
+	final HashMap<String, CategoryState> categoriesStates = new HashMap<String, CategoryState>();	
+	final HashMap<String, CategoryEvent> categoriesEvents = new HashMap<String, CategoryEvent>();
+	final HashMap<String, CategoryStatistic> categoriesStatistics = new HashMap<String, CategoryStatistic>();
 
-	HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
+	final HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
-	ArrowManager arrowManager = new ArrowManager(this);
+	final ArrowManager arrowManager = new ArrowManager(this);
 
 	public TraceFormatBufferedFileReader() {
 		legendTraceModel.addCategoryUpdateListener(arrowManager);

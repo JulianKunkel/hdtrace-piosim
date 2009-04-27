@@ -45,9 +45,9 @@
 
  <CommunicatorList>
   <Communicator name="WORLD">
-   <Rank name="0" cid="0" />
-   <Rank name="2" cid="2" />
-   <Rank name="1" cid="1" />
+   <Rank global="0" local="0" cid="0" />
+   <Rank global="2" local="2" cid="2" />
+   <Rank global="1" local="1" cid="1" />
   </Communicator>
  </CommunicatorList>
 

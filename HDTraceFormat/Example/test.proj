@@ -32,18 +32,18 @@
         </Level> 
 
         <Label value="node01">
-        <Label value="Rank 0">
+        <Label value="0">
                 <Label value="main"/>
                 <Label value="background"/>
         </Label>
         
-        <Label value="Rank 1">
+        <Label value="1">
                 <Label value="main"/>
         </Label>
         </Label>  
         
         <Label value="node02">
-        <Label value="Rank 2">
+        <Label value="2">
                 <Label value="main"/>
         </Label>
         </Label>              
@@ -51,7 +51,7 @@
 
 <CommunicatorList> 
 <Communicator name="WORLD">
-<Rank name="Rank 0" cid="1"/>
+<Rank global="0" local="0" cid="1"/>
 </Communicator>
 </CommunicatorList>
 

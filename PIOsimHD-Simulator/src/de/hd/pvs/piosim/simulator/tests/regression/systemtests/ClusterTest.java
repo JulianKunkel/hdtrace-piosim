@@ -38,12 +38,13 @@ import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelSortIDbySubcomponents;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Connection.Connection;
-import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
+import de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
@@ -116,14 +117,16 @@ public class ClusterTest {
 		node.setInternalDataTransferSpeed(1000 * MBYTE);
 		node.setMemorySize(1000*1024*1024);
 		
-		//SimpleDisk iosub = new SimpleDisk();
+		SimpleDisk iosub = new SimpleDisk();
+		iosub.setAvgAccessTime(new Epoch(0.005));
+		iosub.setMaxThroughput(((int) 50 * MBYTE));
 		
-		RefinedDiskModel iosub = new RefinedDiskModel();
-		iosub.setAverageSeekTime(new Epoch(0.005));
-		iosub.setTrackToTrackSeekTime(new Epoch(0.001));
-		iosub.setRPM(7200);
-		iosub.setPositionDifferenceConsideredToBeClose(MBYTE * 5);
-		iosub.setSequentialTransferRate(((int) 50 * MBYTE));
+		//RefinedDiskModel iosub = new RefinedDiskModel();
+		//iosub.setAverageSeekTime(new Epoch(0.005));
+//		iosub.setTrackToTrackSeekTime(new Epoch(0.001));
+//		iosub.setRPM(7200);
+//		iosub.setPositionDifferenceConsideredToBeClose(MBYTE * 5);
+//		iosub.setSequentialTransferRate(((int) 50 * MBYTE));
 				
 		iosub.setName("IBM");
 		//iosub.setAvgAccessTime(new Epoch(0.002));
@@ -184,8 +187,9 @@ public class ClusterTest {
 		serverTemplate.setName("Server");
 		serverTemplate.setIOsubsystem(iosub);
 		
-		AggregationCache cacheImpl = new AggregationCache(); //NoCache()
-		cacheImpl.setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
+		//AggregationCache cacheImpl = new AggregationCache(); //NoCache()
+		//cacheImpl.setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
+		NoCache cacheImpl = new NoCache();
 		cacheImpl.setMaxNumberOfConcurrentIOOps(1);		
 		serverTemplate.setCacheImplementation(cacheImpl);
 		

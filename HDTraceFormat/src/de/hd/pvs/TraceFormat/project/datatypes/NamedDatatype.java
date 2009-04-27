@@ -14,6 +14,8 @@ public class NamedDatatype extends Datatype{
 		BYTE (1),
 		FLOAT (4),
 		DOUBLE (8),
+		CHAR(1),
+		INT (4),
 		INTEGER (4),
 		LONG (4),
 		LONG_LONG (8)

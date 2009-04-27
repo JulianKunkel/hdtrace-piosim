@@ -37,10 +37,8 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	private Epoch minTime;
 	private Epoch maxTime;
 
-	ArrayList<TraceEntry> traceEntries = new ArrayList<TraceEntry>();
+	final ArrayList<TraceEntry> traceEntries = new ArrayList<TraceEntry>();
 	
-	
-
 	
 	/**
 	 * Return an enumeration of the contained trace entries not finishing earlier than start and not

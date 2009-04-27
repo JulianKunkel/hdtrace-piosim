@@ -1,0 +1,40 @@
+<Program rank='0' thread='0'>
+<Init  time='1240651036.309884' end='1240651036.309885'  />
+<Barrier cid='0'  time='1240651036.309894' end='1240651036.309980'  />
+<Type_commit tid='-1946157051'  time='1240651036.310117' end='1240651036.310168'  />
+<Barrier cid='0'  time='1240651036.310175' end='1240651036.310178'  />
+<Barrier cid='0'  time='1240651036.310196' end='1240651036.310198'  />
+<File_open cid='1' name='/tmp/test-test' flags='9' fid='0'  time='1240651036.319075' end='1240651036.319399' >
+  <Info value='CREATE_SET_DATAFILE_NODES' />
+<Info value='striping_unit' />
+</File_open>
+<File_close fid='0'  time='1240651036.319403' end='1240651036.319416'  />
+<Barrier cid='0'  time='1240651036.322689' end='1240651036.322694'  />
+<File_open cid='2' name='/tmp/test-test' flags='8' fid='0'  time='1240651036.322703' end='1240651036.322779' >
+  <Info value='CREATE_SET_DATAFILE_NODES' />
+<Info value='striping_unit' />
+</File_open>
+<File_set_view fid='0' offset='0' etid='1275068685' filetid='-1946157051' representation='native'  time='1240651036.322782' end='1240651036.322811' >
+  <Info value='CREATE_SET_DATAFILE_NODES' />
+<Info value='striping_unit' />
+</File_set_view>
+<Barrier cid='0'  time='1240651036.322814' end='1240651036.322816'  />
+<Barrier cid='0'  time='1240651036.322818' end='1240651036.322820'  />
+<File_write_at fid='0'  time='1240651036.331526' end='1240651036.332355' >
+  <Data offset='0' size='501760' count='501760' tid='1275068685' />
+</File_write_at>
+<File_write_at fid='0'  time='1240651036.332362' end='1240651036.332986' >
+  <Data offset='501760' size='501760' count='501760' tid='1275068685' />
+</File_write_at>
+<File_close fid='0'  time='1240651036.336273' end='1240651036.336296'  />
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='1275070475'  time='1240651036.336303' end='1240651036.336341'  />
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='1275070475'  time='1240651036.336344' end='1240651036.336347'  />
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='1275070475'  time='1240651036.336349' end='1240651036.336352'  />
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='1275070473'  time='1240651036.336354' end='1240651036.336363'  />
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='1275070473'  time='1240651036.336365' end='1240651036.336368'  />
+<Type_commit tid='-1946157050'  time='1240651036.336373' end='1240651036.336402'  />
+<Gatherv size='172' root='0' cid='0' count='1' tid='-1946157050'  time='1240651036.336405' end='1240651036.336409'  />
+<Barrier cid='0'  time='1240651036.336488' end='1240651036.336490'  />
+<Finalize  time='1240651036.336492' end='1240651036.336530'  />
+</Program>
+

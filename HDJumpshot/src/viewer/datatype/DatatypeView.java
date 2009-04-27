@@ -71,7 +71,7 @@ public class DatatypeView {
 	}
 
 	private class DatatypeLayoutManager implements LayoutManager2{
-		final Dimension currentSize = new Dimension(20, 100);
+		final Dimension currentSize = new Dimension(200, 200);
 
 		@Override
 		public void addLayoutComponent(Component comp, Object constraints) {}
@@ -128,7 +128,7 @@ public class DatatypeView {
 
 			// update positions of all components according to dependency:
 
-			// right now use a N² algorithm, could use a priority queue / heap, though
+			// right now use a Nï¿½ algorithm, could use a priority queue / heap, though
 			final HashSet<Datatype> curDrawn = new HashSet<Datatype>();
 
 			// first add the ones which do not have any dependency. Then the ones which refer only
@@ -205,8 +205,15 @@ public class DatatypeView {
 			currentSize.width = maxWidth + insets.left + insets.right - 20 + 2;
 
 			parent.setSize(currentSize);
-			scrollPane.setPreferredSize(currentSize);
-			scrollPane.invalidate();
+
+			//final Dimension hScrollDim = scrollPane.getHorizontalScrollBar().getPreferredSize();
+			//final Dimension vScrollDim = scrollPane.getVerticalScrollBar().getPreferredSize();
+			//final Dimension scrollPaneDim = new Dimension(currentSize);
+			//scrollPaneDim.width += hScrollDim.width;
+			//scrollPaneDim.height += vScrollDim.height;
+			
+			//scrollPane.setPreferredSize(scrollPaneDim);
+			//scrollPane.invalidate();
 		}
 
 
@@ -254,7 +261,7 @@ public class DatatypeView {
 					g.drawLine(
 							referencedType.getX() + referencedType.getWidth() / 2, 
 							referencedType.getY(), 
-							jType.getX() + ref.getX() + ref.getWidth() / 2, 
+							jType.getPanel().getX() + jType.getX() + ref.getX() + ref.getWidth() / 2, 
 							jType.getY() + jType.getHeight());
 				}					
 			}
@@ -376,29 +383,34 @@ public class DatatypeView {
 		final LinkedList<JDatatypeReference> referencedTypes = new LinkedList<JDatatypeReference>();
 
 		JPanel panel = null;
-
-		public void addReferenceType(JDatatypeReference comp) {
-			referencedTypes.add(comp);
-
+		
+		public JPanel getPanel() {
+			return panel;
+		}
+		
+		private void setHorizontalTypePanel(Component parent){
 			if(panel == null){
 				panel = new JPanel();
 				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-				panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+				panel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 
 				this.add(panel);
 			}
+		}
+
+		private void addReferenceType(JDatatypeReference comp) {
+			referencedTypes.add(comp);
+
+			setHorizontalTypePanel(this);
 
 			panel.add(comp);
 		}
 
-		public void addHole(long size) {	
-			if(panel == null){
-				panel = new JPanel();
-				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-				panel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-
-				this.add(panel);
-			}
+		private void addHole(long size) {
+			if(size == 0)
+				return;
+			
+			setHorizontalTypePanel(this);
 
 			panel.add(new JDatatypeHole(size));
 		}
@@ -411,11 +423,11 @@ public class DatatypeView {
 			this.setBorder(border);
 			this.datatype = datatype;
 			this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-			JLabel label = new JLabel(datatype.getType().toString() + " <" + datatype.getSize() + ", " + datatype.getExtend() + ">");
+			JLabel label = new JLabel( datatype.getType().toString() + " <" + datatype.getSize() + ", " + datatype.getExtend() + ">");
 			label.setToolTipText("Type name <size of datatype, size of extend>");
-			label.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+			label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 			this.add(label);
-
+			
 			this.setBackground(getBackgroundColor(datatype));
 
 			switch(datatype.getType()){
@@ -437,11 +449,9 @@ public class DatatypeView {
 				for(int i=0; i < type.getCount(); i++){
 					final StructType childType = type.getType(i);
 
-					if(childType.getDisplacement() != lastPos){
-						// add a hole
-						final long length = childType.getDisplacement() - lastPos;
-						addHole(length);
-					}
+					// add a hole if needed
+					final long length = childType.getDisplacement() - lastPos;
+					addHole(length);
 					lastPos = childType.getDisplacement() + childType.getType().getExtend() * childType.getBlocklen();
 					addReferenceType(new JDatatypeReference(childType.getType(), childType.getBlocklen()));
 				}
@@ -449,7 +459,15 @@ public class DatatypeView {
 				break;
 			}case VECTOR:{
 				VectorDatatype type = (VectorDatatype) datatype;
-
+				
+				label = new JLabel( type.getCount() + " x");
+				label.setToolTipText("Number of iterations");
+				label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+				this.add(label);
+				
+				addReferenceType(new JDatatypeReference(type.getPrevious(), type.getBlocklen()));
+				addHole(type.getStride() - type.getPrevious().getExtend());				
+				 
 				break;								
 			}
 			}

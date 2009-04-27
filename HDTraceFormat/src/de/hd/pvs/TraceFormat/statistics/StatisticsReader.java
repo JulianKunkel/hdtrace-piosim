@@ -39,7 +39,6 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class StatisticsReader implements StatisticSource{
 	final RandomAccessFile file;	
 	final StatisticsGroupDescription group;
-
 	public StatisticsReader(String filename, StatisticsGroupDescription group) throws Exception {
 		this.group = group;
 		this.file = new RandomAccessFile(filename, "r");
@@ -66,13 +65,16 @@ public class StatisticsReader implements StatisticSource{
 				timeStamp = new Epoch(tstamp);								
 				break;
 			case EPOCH:
-				timeStamp = new Epoch(file.readInt(), file.readInt());
-				break;				
+				int s, us;
+				s = file.readInt();
+				us = file.readInt();
+				timeStamp = new Epoch(s, us);
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
 		}
 		timeStamp = timeStamp.add(group.getTimeOffset());
-
+		
 		int pos = 0;
 		for(StatisticDescription statDesc: group.getStatisticsOrdered()){
 			final String statName = statDesc.getName();
