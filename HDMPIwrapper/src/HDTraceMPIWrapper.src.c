@@ -175,18 +175,39 @@ static int * controlled_vars[] = { &trace_all_functions,
  * \param rank the rank to be translated
  * \param comm the communicator of which \a rank is a member
  *
- * \return the world rank of the process
+ * \return the world rank of the process or -1 on error.
+ * 
+ * If an error occurs, \a errno holds the MPI error code.
  */
 static int getWorldRank(int rank, MPI_Comm comm)
 {
+	int ret;
 	if(comm == MPI_COMM_WORLD)
 		return rank;
 
 	MPI_Group group, worldgroup;
-	MPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
-	MPI_Comm_group(comm, &group);
+	ret = PMPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
+	if(ret != MPI_SUCCESS)
+	{
+		errno = ret;
+		return -1;
+	}
+
+	ret = PMPI_Comm_group(comm, &group);
+	if(ret != MPI_SUCCESS)
+	{
+		errno = ret;
+		return -1;
+	}
 	int out;
-	MPI_Group_translate_ranks(group, 1, &rank, worldgroup, &out);
+
+	ret = PMPI_Group_translate_ranks(group, 1, &rank, worldgroup, &out);
+	if(ret != MPI_SUCCESS)
+	{
+		errno = ret;
+		return -1;
+	}
+
 	return out;
 }
 
@@ -198,11 +219,21 @@ static int getWorldRank(int rank, MPI_Comm comm)
  *
  * \param count the number of items in a message
  * \param type the MPI Datatype of a message
+ * 
+ * \return the estimated type size or -1 on error
+ * 
+ * If an error occurs, \a errno holds the MPI error code.
  */
 static long long getTypeSize(int count, MPI_Datatype type)
 {
   int t_size;
-  MPI_Type_size(type, & t_size);
+  int ret;
+  ret = PMPI_Type_size(type, & t_size);
+  if(ret != MPI_SUCCESS)
+  {
+	  errno = ret;
+	  return -1;
+  }
   return (count * (long long) t_size );
 }
 
@@ -212,16 +243,32 @@ static long long getTypeSize(int count, MPI_Datatype type)
  * The position is calculated using \a PMPI_File_get_byte_offset(...)
  *
  * \param v1 the file in which the offset is queried.
+ * 
+ * \return position of the file pointer or -1 if an error occured.
+ * 
+ * If an error occurs, \a errno holds the MPI error code.
  */
 static long long int getByteOffset(MPI_File v1)
 {
 	assert(sizeof(long long int) >= sizeof(MPI_Offset));
     MPI_Offset view_offset;
+	int ret;
     // view dependent offset:
-    PMPI_File_get_position(v1, & view_offset);
+    ret = PMPI_File_get_position(v1, & view_offset);
+	if(ret != MPI_SUCCESS)
+	{
+		errno = ret;
+		return -1;
+	}
+
     // real offset:
     MPI_Offset real_offset;
-    PMPI_File_get_byte_offset(v1, view_offset, & real_offset);
+    ret = PMPI_File_get_byte_offset(v1, view_offset, & real_offset);
+	if(ret != MPI_SUCCESS)
+	{
+		errno = ret;
+		return -1;
+	}
 	return (long long int)real_offset;
 }
 
@@ -256,7 +303,8 @@ static void readEnvVars()
 				}
 				else
 				{
-					printDebugMessage("environment variable %s has unrecognised value of %s",
+					printDebugMessage("environment variable %s has unrecognised value of %s. "
+									  "0 and 1 are valid values" ,
 									control_vars[ii], env_var );
 				}
 			}
@@ -286,7 +334,8 @@ static const char trace_file_prefix[] = "";
  * This function is called after a call to \a MPI_Init(...) or \a MPI_Init_thread(...).
  * It initializes the global variable \a tracefile by calling
  * \a hdT_createTrace(...). It also calls \a readEnvVars(...).
- * Thus, \a tracefile and the array \a controlled_vars are valid
+ * After this call the global variable \a tracefile and the configuration variables
+ * \a trace_* (that are listed in \a controlled_vars) by may be used.
  *
  * \param argc the argument count parameter that was passed to MPI_Init
  * \param argv the arguments that were passed to MPI_Init
@@ -308,24 +357,35 @@ static void after_Init(int *argc, char ***argv)
 
 	char basename[TMP_BUF_LEN];
 
-	char * lastSlash = strrchr(**argv , '/');
-	if( lastSlash != NULL)
+	if(*argc < 1)
 	{
-		snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, lastSlash+1 );
+		//we don't know what the program's name is, so call this "trace"
+		snprintf(basename, TMP_BUF_LEN, "%strace", trace_file_prefix);
 	}
 	else
 	{
-		snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, (*argv)[0] );
+		char * lastSlash = strrchr(**argv , '/');
+		if( lastSlash != NULL)
+		{
+			snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, lastSlash+1 );
+		}
+		else
+		{
+			snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, (*argv)[0] );
+		}
 	}
 
 	PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	// find out, which thread we're in
+
+	// find out which thread we are in
     pthread_mutex_lock(&thread_counter_mutex);
     int thread = thread_counter;
     ++thread_counter;
     pthread_mutex_unlock(&thread_counter_mutex);
 
+
+	// create labels and values for the project topology
 	gethostname(hostname, HOST_NAME_MAX);
 
 	snprintf(rankname, NAME_LEN, "%d", rank);
@@ -334,9 +394,9 @@ static void after_Init(int *argc, char ***argv)
 	const char *toponames[3] = {"Host", "Rank", "Thread"};
 	const char *levels[3] = {hostname, rankname, threadname};
 
-	//hdTopology topology = hdT_createTopology(hostname, rankname, "0");
 	hdTopology topology = hdT_createTopology(basename, toponames, 3);
 	hdTopoNode topo_names = hdT_createTopoNode(levels, 3);
+
 
 
 	tracefile = hdT_createTrace(topo_names, topology);
@@ -369,7 +429,7 @@ static void after_Finalize(void)
  * \param comm The comm parameter that is passed to \a MPI_Abort(...)
  * \param code The code parameter that is passed to \a MPI_Abort(...)
  */
-static void before_Abort(MPI_Comm comm, int code)
+static void before_Abort()
 {
 	hdT_finalize(tracefile);
 	tracefile = NULL;

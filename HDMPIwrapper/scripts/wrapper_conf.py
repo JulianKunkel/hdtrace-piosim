@@ -56,16 +56,7 @@ def info_elements(arg):
     }
   }
   """.replace("___ARG___", arg)
-write_at_elements = """
-    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
-                 (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5));
-"""
-write_elements = """
-  {
-    hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
-                 (long long int)getByteOffset(v1), getTypeSize(v3, v4), v3, getTypeId(v4));
-  }
-"""
+
 wait_elements = """
   {
     int i;
@@ -75,6 +66,7 @@ wait_elements = """
     }
   }
 """
+
 split_end_element = """
   {
     hdT_logElement(tracefile, "For", "rid='%d'", getRequestIdForSplit(v1));
@@ -96,23 +88,8 @@ split_end_element = """
 beforeMpi = {
   "Abort" : """hdT_logStateStart(tracefile, "Abort"); 
                hdT_logAttributes(tracefile, "cid='%d'", getCommId(v1)); 
-               hdT_logStateEnd(tracefile); before_Abort(v1, v2)""",
+               hdT_logStateEnd(tracefile); before_Abort()""",
   "File_delete" : info_elements("v2"),
-  "File_write_at" : write_at_elements,
-  "File_read_at" : write_at_elements,
-  "File_read_at_all" : write_at_elements,
-  "File_write_at_all" : write_at_elements,
-  "File_iread_at" : write_at_elements,
-  "File_iwrite_at" : write_at_elements, 
-
-  "File_write_ordered" : write_elements,
-  
-  "File_write" : write_elements,
-  "File_write_all" : write_elements,
-  "File_read" : write_elements,
-  "File_read_all" : write_elements,
-  "File_iread" : write_elements,
-  "File_iwrite" : write_elements, 
 
   "File_set_info" : info_elements("v2"),
 
@@ -122,22 +99,20 @@ beforeMpi = {
   "File_write_all_begin" : "  long long int byte_offset = getByteOffset(v1);",
   "File_read_ordered_begin" : "  long long int byte_offset = getByteOffset(v1);",
   "File_write_ordered_begin" : "  long long int byte_offset = getByteOffset(v1);",
+  
+  "File_read" : "  long long int byte_offset = getByteOffset(v1);",
+  "File_read_all" : "  long long int byte_offset = getByteOffset(v1);",
+  "File_write" : "  long long int byte_offset = getByteOffset(v1);",
+  "File_write_all" : "  long long int byte_offset = getByteOffset(v1);",
+  "File_iread" : "  long long int byte_offset = getByteOffset(v1);",
+  "File_iwrite" : "  long long int byte_offset = getByteOffset(v1);",
 
+  "Wait": """hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));""",
   "Waitany" : wait_elements,
   "Waitsome" : wait_elements,
   "Waitall" : wait_elements,
 
-  "Wait": """
-  {
-    hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));
-  }
-""",
-
-  "Test" : """
-  {
-    hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));
-  }
-""",
+  "Test" : """hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));""",
   "Testall" : wait_elements,
   "Testany" : wait_elements,
   "Testsome" : wait_elements,
@@ -174,13 +149,7 @@ afterMpi = {
   """,
 
   "File_read_all_end" : split_end_element,
-
-  "File_read_at_all_begin" : write_at_elements,
-
   "File_read_at_all_end" : split_end_element,
-
-  "File_write_at_all_begin" : write_at_elements, 
-
   "File_write_at_all_end" : split_end_element,
 
   "File_write_all_begin" : """
@@ -400,11 +369,11 @@ logAttributes = {
   "File_delete" : ("fid='%d'", 
                    "getFileIdFromName(v1)"),
 
-  "File_write" :        ("fid='%d'", 
-                         "getFileId(v1)"),
+  "File_write" :        ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                         "getFileId(v1), byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_write_all" :    ("fid='%d'", 
-                         "getFileId(v1)"),
+  "File_write_all" :    ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                         "getFileId(v1), byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_write_all_begin" : ("fid='%d' rid='%d'", 
                             "getFileId(v1), getRequestIdForSplit(v1)"),
@@ -413,11 +382,11 @@ logAttributes = {
                           "", 
                           "Wait"),
 
-  "File_write_at" :     ("fid='%d'", 
-                         "getFileId(v1)"),
+  "File_write_at" :     ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                         "getFileId(v1), (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5)"),
 
-  "File_write_at_all" : ("fid='%d'", 
-                         "getFileId(v1)"),
+  "File_write_at_all" : ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                         "getFileId(v1), (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5)"),
 
   "File_write_at_all_begin" : ("fid='%d' rid='%d'", 
                                "getFileId(v1), getRequestIdForSplit(v1)"),
@@ -425,7 +394,7 @@ logAttributes = {
                              "",
                              "Wait"),
 
-  "File_write_ordered" : ("fid='%d' size='%lld' count='%d' tid='%d'",
+  "File_write_ordered" : ("fid='%d' size='%lld' count='%d' tid='%d' ",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_write_ordered_begin" : ("fid='%d' rid='%d'", 
@@ -437,11 +406,11 @@ logAttributes = {
   "File_write_shared" : ("fid='%d' size='%lld' count='%d' tid='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_read" :        ("fid='%d'", 
-                        "getFileId(v1)"),
+  "File_read" :        ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                        "getFileId(v1), byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_read_all" :    ("fid='%d'", 
-                        "getFileId(v1)"),
+  "File_read_all" :    ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                        "getFileId(v1), byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
   "File_read_all_begin" : ("fid='%d' rid='%d'", 
                            "getFileId(v1), getRequestIdForSplit(v1)"),
@@ -450,14 +419,14 @@ logAttributes = {
                          "", 
                          "Wait"),
 
-  "File_read_at" :     ("fid='%d'", 
-                        "getFileId(v1)"),
+  "File_read_at" :     ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                        "getFileId(v1), (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5)"),
 
-  "File_read_at_all" : ("fid='%d'", 
-                        "getFileId(v1)"),
+  "File_read_at_all" : ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                        "getFileId(v1), (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5)"),
 
-  "File_read_at_all_begin" : ("fid='%d' rid='%d'", 
-                              "getFileId(v1), getRequestIdForSplit(v1)"),
+  "File_read_at_all_begin" : ("fid='%d' rid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                              "getFileId(v1), getRequestIdForSplit(v1), (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5)"),
 
   "File_read_at_all_end" : ("", 
                             "", 
@@ -476,20 +445,20 @@ logAttributes = {
   "File_read_shared" : ("fid='%d' size='%lld' count='%d' tid='%d'",
                         "getFileId(v1), getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_iread" : ("fid='%d' rid='%d'", 
-                  "getFileId(v1), getRequestId(*v5)"),
+  "File_iread" : ("fid='%d' rid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                  "getFileId(v1), getRequestId(*v5), byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_iread_at" : ("fid='%d' rid='%d'", 
+  "File_iread_at" : ("fid='%d' rid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
                      "getFileId(v1), getRequestId(*v6)"),
 
   "File_iread_shared" : ("fid='%d' rid='%d'", 
                          "getFileId(v1), getRequestId(*v5)"),
 
-  "File_iwrite" : ("fid='%d' rid='%d'", 
-                   "getFileId(v1), getRequestId(*v5)"),
+  "File_iwrite" : ("fid='%d' rid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                   "getFileId(v1), getRequestId(*v5), byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4)"),
 
-  "File_iwrite_at" : ("fid='%d' rid='%d'", 
-                      "getFileId(v1), getRequestId(*v6)"),
+  "File_iwrite_at" : ("fid='%d' rid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
+                      "getFileId(v1), getRequestId(*v6), (long long int)v2, getTypeSize(v4, v5), v4, getTypeId(v5)"),
 
   "File_iwrite_shared" : ("fid='%d' rid='%d'", 
                           "getFileId(v1), getRequestId(*v5)"),
@@ -524,7 +493,7 @@ logAttributes = {
   "Iprobe" : ("source='%d' tag='%d' cid='%d'", 
               "getWorldRank(v1, v3), v2, getCommId(v3)"),
 
-  "Type_vector" : ("from_tid='%d'", 
+  "Type_vector" : ("oldTid='%d'", 
                    "getTypeId(v4)"),
 
   "hdT_Test_nested" : ("depth='%d'", 

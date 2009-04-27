@@ -114,7 +114,7 @@ static int writeState(hdTrace trace);
  * hdT_createTrace(myTopo, myTopoNames);
  * @endcode
  * creates the following files:
- * - \c Project_myhost_myrank_mythread.xml as trace log file
+ * - \c Project_myhost_myrank_mythread.trc as trace log file
  * - \c Project_myhost_myrank_mythread.info as trace info file
  * - \c ... (TODO)
  *
@@ -157,7 +157,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 
 	// generate filename
 	trace->logfile = generateFilename(topology->project, topoNode,
-			hdT_getTopoNodeLevel(topoNode), NULL, ".xml");
+			hdT_getTopoNodeLevel(topoNode), NULL, ".trc");
 	assert(isValidString(trace->logfile));
 
 	// create and open file
