@@ -527,27 +527,38 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 			// Draw the center TimeLines.
 			g.setColor( Color.cyan );
+			int totalDrawn = 0;
 			for ( int irow = 0 ; irow < num_rows ; irow++ ) {
 				//  Select only non-expanded row
 				if ( topologyManager.getType(irow) == TimelineType.TRACE  ) {
 					//i_Y = coord_xform.convertTimelineToPixel(irow ) + row_height / 2;
 					//g.drawLine( 0, i_Y, offImage_width-1, i_Y );
-					drawTimeline(g, irow, coord_xform);
+					totalDrawn += drawTimeline(g, irow, coord_xform);
 				}
+			}
+			
+			if( totalDrawn == 0 ){
+				g.setColor(Color.BLACK);
+				final String str = "No profiles for the selected time interval";
+				// draw string in middle
+				g.drawChars(str.toCharArray(), 0, str.length() , 
+						coord_xform.convertTimeToPixel(0.5 * (timebounds.getEarliestTime() + timebounds.getLatestTime()))  , num_rows / 2 * row_height);
 			}
 
 			if(SimpleConsoleLogger.isDebugEverything()){			
-				SimpleConsoleLogger.DebugWithStackTrace( (System.currentTimeMillis() - startTime) +  "ms Draw TraceProfile [t] "  
+				SimpleConsoleLogger.DebugWithStackTrace( (System.currentTimeMillis() - startTime) +  "ms Draw TraceProfile [t] with " + totalDrawn + " profiles "  
 						+ timebounds.getEarliestTime() +" - " + timebounds.getLatestTime(), 0);
 
 			}			
 		}
 
-		private void drawTimeline(Graphics2D g, int timeline, CoordPixelImage coordXform){			
+		private int drawTimeline(Graphics2D g, int timeline, CoordPixelImage coordXform){			
 			final TraceObjectProfileMap map = timelineMap.get(timeline);
 			if(map == null){
-				return; // may happen if background computation is slower but redraw is enforced
+				return 0; // may happen if background computation is slower but redraw is enforced
 			}
+			
+			int totalDrawn = 0;
 
 			final int height = coordXform.getTimelineHeight(); 			
 			final int yPos = coordXform.convertTimelineToPixel(timeline);
@@ -581,7 +592,11 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				g.fillRect( x1, yPos, x2-x1, height );
 
 				border.paintStateBorder( g, color,	x1, yPos, true, x2, yPos + height, true );
+				
+				totalDrawn++;
 			}
+			
+			return totalDrawn;
 		}
 
 		@Override

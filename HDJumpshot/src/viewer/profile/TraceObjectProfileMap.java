@@ -69,6 +69,11 @@ public class TraceObjectProfileMap {
 		int min = 0; 
 		int max = values.length - 1;
 		
+		if(max == -1){
+			// if no profile entry.
+			return null;
+		}
+		
 		while(true){						
 			final int cur = (min + max) / 2;
 			final double entry = values[cur];
