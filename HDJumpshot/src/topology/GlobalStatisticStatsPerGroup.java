@@ -27,8 +27,8 @@ package topology;
 
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 
 /**
  * Stores global values per statistic group, i.e. the global max value, the max value per file,
@@ -39,41 +39,6 @@ import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 public class GlobalStatisticStatsPerGroup {
 	
 	/**
-	 * Statistics for a single statistic 
-	 */
-	public static class GlobalStatisticsPerStatistic{
-		
-		private final StatisticDescription statisticDescription;
-		
-		private double maxValue = Double.MIN_NORMAL;
-		private double minValue = Double.MAX_VALUE;
-		
-		public GlobalStatisticsPerStatistic(StatisticDescription statisticDescription) {
-			this.statisticDescription = statisticDescription;
-		}
-		
-		public void setGlobalMaxValue(double globalMaxValue) {
-			this.maxValue = globalMaxValue;
-		}
-
-		public void setGlobalMinValue(double globalMinValue) {
-			this.minValue = globalMinValue;
-		}
-
-		public double getGlobalMaxValue() {
-			return maxValue;
-		}
-
-		public double getGlobalMinValue() {
-			return minValue;
-		}
-		
-		public StatisticDescription getStatisticDescription() {
-			return statisticDescription;
-		}
-	}
-	
-	/**
 	 * The group we are storing stats for:
 	 */
 	final StatisticsGroupDescription group;
@@ -81,17 +46,34 @@ public class GlobalStatisticStatsPerGroup {
 	/**
 	 * Individual statistics of each statistic
 	 */
-	final HashMap<String, GlobalStatisticsPerStatistic> statsPerStatistic = new HashMap<String, GlobalStatisticsPerStatistic>();
+	final HashMap<StatisticDescription, GlobalStatisticsPerStatistic> statsPerStatistic = new HashMap<StatisticDescription, GlobalStatisticsPerStatistic>();
+	
+	/**
+	 * Individual statistics of each statistic grouping (if more than one statstic per grouping)
+	 * A grouping might contain multiple statistics of this group
+	 */
+	final HashMap<String, MinMax> groupingStatistic = new HashMap<String, MinMax>();
 	
 	public GlobalStatisticStatsPerGroup(StatisticsGroupDescription group) {
 		this.group = group;
 	}
 	
-	public GlobalStatisticsPerStatistic getStatsForStatistic(String name) {
-		return statsPerStatistic.get(name);
+	public GlobalStatisticsPerStatistic getStatsForStatistic(StatisticDescription desc) {
+		return statsPerStatistic.get(desc);
 	}
 	
-	public void setStatsForStatistic(String name, GlobalStatisticsPerStatistic stats) {
-		statsPerStatistic.put(name, stats);
+	public MinMax getStatsForStatisticGrouping(String grouping){
+		return groupingStatistic.get(grouping);
+	}
+	
+	public void setStatsForStatistic(StatisticDescription desc, GlobalStatisticsPerStatistic stats) {
+		if(statsPerStatistic.containsKey(desc)){
+			throw new IllegalArgumentException("Already contained statistic: " + desc);
+		}
+		statsPerStatistic.put(desc, stats);
+	}
+	
+	public void setStatsForGrouping(String grouping, MinMax stats) {
+		groupingStatistic.put(grouping, stats);
 	}
 }

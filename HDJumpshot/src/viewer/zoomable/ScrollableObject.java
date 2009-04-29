@@ -657,10 +657,8 @@ implements ScrollableView, IAutoRefreshable
 			// not resized at all, but does not work for some cases
 			//return;
 		}
-
-
 		scrollbarTimeModel.setViewWidth(visWidth);
-
+		
 		image_size.setSize( newWidth, newHeight );
 
 		/*
@@ -686,7 +684,7 @@ implements ScrollableView, IAutoRefreshable
 
 			offscreenImages[ img_idx ] = new BufferedImage(newWidth, newHeight, type);
 		}
-
+		
 		forceRedraw();
 	}
 

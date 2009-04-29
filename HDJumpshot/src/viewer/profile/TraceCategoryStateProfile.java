@@ -29,7 +29,7 @@ public class TraceCategoryStateProfile {
 	final CategoryState category;
 	
 	//of all calls:
-	int numberOfCalls = 0;
+	int numberOfOccurences = 0;
 	
 	// exclusive, means nested states are not counted. 
 	double exclusiveTime = 0; 
@@ -52,7 +52,7 @@ public class TraceCategoryStateProfile {
 	
 	public void addCall(double exclusiveTime, double inclusiveTime){
 
-		this.numberOfCalls++;
+		this.numberOfOccurences++;
 		this.exclusiveTime += exclusiveTime;
 		this.inclusiveTime += inclusiveTime;
 		
@@ -64,8 +64,8 @@ public class TraceCategoryStateProfile {
 		maxDurationInclusive = (inclusiveTime > maxDurationInclusive) ?  inclusiveTime : maxDurationInclusive;
 	}
 	
-	public int getNumberOfCalls() {
-		return numberOfCalls;
+	public int getNumberOfOccurrences() {
+		return numberOfOccurences;
 	}
 	
 	public double getExclusiveTime() {

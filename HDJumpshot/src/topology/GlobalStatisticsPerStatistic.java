@@ -15,21 +15,23 @@
 //	You should have received a copy of the GNU General Public License
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
-package arrow;
+package topology;
 
-import hdTraceInput.TraceFormatBufferedFileReader;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 
 /**
- * Abstract interface providing methods to compute a group of arrows with an dedicated task. 
- * 
- * @author Julian M. Kunkel
+ * Statistics for a single statistic across ALL topologies of this file
  */
-public interface ArrowComputer {
-	public ArrowsOrdered computeArrows(TraceFormatBufferedFileReader reader);
-	public ArrowCategory getResponsibleCategory();
+public class GlobalStatisticsPerStatistic extends MinMax{
 	
-	/**
-	 * Could be implemented to hide categories which are not applicable to the current reader.
-	 */
-	// public boolean isUseful(TraceFormatBufferedFileReader reader); 
+	private final StatisticDescription statisticDescription;
+		
+	public GlobalStatisticsPerStatistic(StatisticDescription statisticDescription) {
+		this.statisticDescription = statisticDescription;
+	}
+	
+	
+	public StatisticDescription getStatisticDescription() {
+		return statisticDescription;
+	}
 }

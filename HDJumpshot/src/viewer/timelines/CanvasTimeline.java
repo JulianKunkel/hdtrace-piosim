@@ -51,6 +51,8 @@ import java.util.Enumeration;
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
 
+import topology.GlobalStatisticStatsPerGroup;
+import topology.MinMax;
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import topology.TopologyStatisticTreeNode;
@@ -84,7 +86,6 @@ import drawable.CategoryStatistic;
 import drawable.DrawObjects;
 import drawable.TimeBoundingBox;
 import drawable.VisualizedObjectType;
-import drawable.CategoryStatistic.MaxAdjustment;
 import drawable.CategoryStatistic.Scaling;
 
 public class CanvasTimeline extends ScrollableTimeline implements SearchableView
@@ -284,12 +285,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
 
-		final String statName = node.getStatisticName();
-		final StatisticsGroupDescription group = sReader.getGroup();
+		final StatisticsGroupDescription groupDescr = sReader.getGroup();
+		final StatisticDescription desc = node.getStatisticDescription();
 
 		double lastTime = vStartTime.getDouble();
 
-		final CategoryStatistic cat = reader.getCategory(group, statName);
+		final CategoryStatistic cat = reader.getCategory(groupDescr, desc);
 
 		final int statNumberInGroup = node.getNumberInGroup();
 
@@ -320,17 +321,41 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		double minValue;
 		final Scaling scale = cat.getScaling();
 		final StatisticStatistics statStat = sReader.getStatisticsFor(statNumberInGroup);
+		final GlobalStatisticStatsPerGroup statsPerGroup =  reader.getGlobalStatStats(groupDescr);
 
-
-		if( cat.getMaxAdjustment() == MaxAdjustment.GLOBAL_MAX ){
-			maxValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMaxValue();
-		}else{
+		switch( cat.getMaxAdjustment()){
+		case GLOBAL_MAX:{
+			maxValue = statsPerGroup.getStatsForStatistic(desc).getMaxValue();
+			break;
+		}case GLOBAL_GROUP_MAX:{
+			final MinMax myGroupingStat = statsPerGroup.getStatsForStatisticGrouping(desc.getGrouping());
+			if(myGroupingStat == null){
+				// use global value
+				maxValue = statsPerGroup.getStatsForStatistic(desc).getMaxValue();
+				break;
+			}else{
+				// use grouping 
+				maxValue = myGroupingStat.getMaxValue();
+				break;
+			}
+		}default:
 			maxValue = statStat.getMaxValue();
 		}
 
 		switch(cat.getMinAdjustment()){
-		case GLOBAL_MIN:
-			minValue = reader.getGlobalStatStats(group).getStatsForStatistic(statName).getGlobalMinValue();
+		case GLOBAL_GROUP_MIN:{
+			final MinMax myGroupingStat = statsPerGroup.getStatsForStatisticGrouping(desc.getGrouping());
+			if(myGroupingStat == null){
+				// use global value
+				minValue = statsPerGroup.getStatsForStatistic(desc).getMinValue();
+				break;
+			}else{
+				// use grouping 
+				minValue = myGroupingStat.getMinValue();
+				break;
+			}
+		}case GLOBAL_MIN:
+			minValue = reader.getGlobalStatStats(groupDescr).getStatsForStatistic(desc).getMinValue();
 			break;
 		case TIMELINE_MIN:
 			minValue = statStat.getMinValue();
@@ -346,8 +371,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		}
 
 
-		final StatisticDescription statDesc =  group.getStatistic(statName);
-		final int statNumber = statDesc.getNumberInGroup();
+		final int statNumber = desc.getNumberInGroup();
 
 		final Enumeration<StatisticGroupEntry> entries = sReader.enumerateStatistics(
 				vStartTime.add(getModelTime().getGlobalMinimum()),

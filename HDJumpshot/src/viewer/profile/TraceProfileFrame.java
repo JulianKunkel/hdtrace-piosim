@@ -103,7 +103,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		EXCLUSIVE_TIME,
 		MAX_INCLUSIVE_TIME,
 		MAX_EXCLUSIVE_TIME,
-		NUMBER_OF_CALLS
+		NUMBER_OF_OCCURRENCES
 	}
 
 	VisualizedMetric visualizedMetric = VisualizedMetric.INCLUSIVE_TIME;
@@ -179,8 +179,8 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		case INCLUSIVE_TIME:
 			metricHandler = new TraceProfileMetricHandler.InclusiveTimeHandler();
 			break;
-		case NUMBER_OF_CALLS:
-			metricHandler = new TraceProfileMetricHandler.NumberOfCallsHandler();
+		case NUMBER_OF_OCCURRENCES:
+			metricHandler = new TraceProfileMetricHandler.NumberOfOccurrenceHandler();
 			break;
 		case MAX_EXCLUSIVE_TIME:
 			metricHandler = new TraceProfileMetricHandler.MaxExclusiveTimeHandler();

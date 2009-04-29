@@ -29,23 +29,37 @@
 package de.hd.pvs.TraceFormat.statistics;
 
 
-
+/**
+ * Describes a single statistic of a group.
+ * @author julian
+ */
 public class StatisticDescription{
 	final StatisticType type;
 	final String name;
 	
 	final String unit;
+	/**
+	 * Several statistics of a group might be grouped by function, for instance CPU utilization
+	 */
+	final String grouping;
 	final int multiplier;
 	
 	final int numberInGroup;
 	
 	final StatisticsGroupDescription group;
 	
-	public StatisticDescription(StatisticsGroupDescription group, String name, StatisticType type, int numberInGroup, String unit, int multiplier) {
+	public StatisticDescription(StatisticsGroupDescription group, String name, StatisticType type, int numberInGroup, String unit, int multiplier, String grouping) {
 		this.name = name;
 		this.type = type;
 		this.multiplier = multiplier;
-		this.unit = unit;		
+		this.unit = unit;
+		
+		if( grouping == null || grouping.length() == 0){
+			this.grouping = null;
+		}else{
+			this.grouping = grouping;
+		}
+		
 		this.numberInGroup = numberInGroup;
 		this.group = group;
 	}
@@ -84,5 +98,9 @@ public class StatisticDescription{
 	
 	public StatisticsGroupDescription getGroup() {
 		return group;
+	}
+	
+	public String getGrouping() {
+		return grouping;
 	}
 }

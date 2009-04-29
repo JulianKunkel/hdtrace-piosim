@@ -31,7 +31,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 
 import topology.GlobalStatisticStatsPerGroup;
-import topology.GlobalStatisticStatsPerGroup.GlobalStatisticsPerStatistic;
+import topology.GlobalStatisticsPerStatistic;
+import topology.MinMax;
 import viewer.legends.LegendTableStatisticModel;
 import viewer.legends.LegendTableTraceModel;
 import arrow.ArrowManager;
@@ -133,28 +134,35 @@ public class TraceFormatBufferedFileReader {
 			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
 				groupNumber++;
 
-				final String stat = statDesc.getName();
-				GlobalStatisticsPerStatistic statsPerStatistic = globalStats.getStatsForStatistic(stat);				
+				GlobalStatisticsPerStatistic statsPerStatistic = globalStats.getStatsForStatistic(statDesc);				
 
 				if (statsPerStatistic == null){
 					// no such statistic exists so far.
 					statsPerStatistic = new GlobalStatisticsPerStatistic(statDesc);
-					globalStats.setStatsForStatistic(stat, statsPerStatistic);					
+					globalStats.setStatsForStatistic(statDesc, statsPerStatistic);					
 				}
 
 				// compute statistic if possible:
 				if(statDesc.isNumeric()){
-					// update globals:
-					double globalMaxValue = statsPerStatistic.getGlobalMaxValue();
-					double globalMinValue = statsPerStatistic.getGlobalMinValue();
-					
+					// update globals:					
 					final StatisticStatistics statsForFile = reader.getStatisticsFor(groupNumber);
 
-					if( statsForFile.getMaxValue() > globalMaxValue ) globalMaxValue =  statsForFile.getMaxValue();
-					if( statsForFile.getMinValue() < globalMinValue ) globalMinValue =  statsForFile.getMinValue();
+					statsPerStatistic.updateMaxValue(statsForFile.getMaxValue() );
+					statsPerStatistic.updateMinValue(statsForFile.getMinValue() );
 
-					statsPerStatistic.setGlobalMaxValue(globalMaxValue);
-					statsPerStatistic.setGlobalMinValue(globalMinValue);
+					// modify grouping:
+					final String grouping = statDesc.getGrouping(); 
+					if(grouping != null){
+						MinMax statistics  = globalStats.getStatsForStatisticGrouping(statDesc.getGrouping());
+						if(statistics == null){
+							statistics = new MinMax();
+							globalStats.setStatsForGrouping(statDesc.getGrouping(), statistics);
+						}
+						
+						// update min/max if necessary:		
+						statistics.updateMaxValue(statsForFile.getMaxValue());
+						statistics.updateMinValue(statsForFile.getMinValue());
+					}
 
 					//System.out.println(stat + " " + globalMaxValue +"  min " + globalMinValue + " file-max: " + reader.getMaxNumericValue(groupNumber));
 				}				
@@ -191,7 +199,7 @@ public class TraceFormatBufferedFileReader {
 	private void updateStatisticCategories(TraceFormatFileOpener fileOpener){
 		for(StatisticsGroupDescription group: fileOpener.getProjectDescription().getExternalStatisticGroups()){
 			for(StatisticDescription desc: group.getStatisticsOrdered()){
-				final String name = group.getName() + ":" + desc.getName(); 
+				final String name = group.getName().substring(0, 6) + ":" + desc.getName(); 
 				if(!categoriesStatistics.containsKey(name)){
 					categoriesStatistics.put(name, new CategoryStatistic(desc, null));
 				}
@@ -309,13 +317,14 @@ public class TraceFormatBufferedFileReader {
 			return getCategory((StateTraceEntry) object);
 		case STATISTICENTRY:
 			StatisticEntry entry = (StatisticEntry) object;
-			return getCategory(entry.getParentGroupEntry().getGroup(), entry.getDescription().getName());
+			return getCategory(entry.getParentGroupEntry().getGroup(), entry.getDescription());
 		}
 		return null;	
 	}
 
-	public CategoryStatistic getCategory(StatisticsGroupDescription group, String statistic){
-		return categoriesStatistics.get(group.getName() + ":" + statistic);
+	public CategoryStatistic getCategory(StatisticsGroupDescription group, StatisticDescription statistic){
+		// TODO, figure out nicer abbreviation for groupname
+		return categoriesStatistics.get(group.getName().substring(0, 6) + ":" + statistic.getName());
 	}
 
 	public Collection<String> getGroupNames(int fileNumber){

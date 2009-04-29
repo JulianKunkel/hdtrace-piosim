@@ -29,7 +29,7 @@ import viewer.legends.IPopupType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 
 public class CategoryStatistic extends Category {		
-	public enum Scaling implements IPopupType{
+	public static enum Scaling implements IPopupType{
 		DECIMAL('D'),
 		LOGARITHMIC('L');
 		
@@ -45,8 +45,9 @@ public class CategoryStatistic extends Category {
 		}
 	}
 	
-	public enum MaxAdjustment implements IPopupType{
+	public static enum MaxAdjustment implements IPopupType{
 		GLOBAL_MAX('G'),
+		GLOBAL_GROUP_MAX('g'),
 		TIMELINE_MAX('L');
 		
 		final private char abreviationLetter;
@@ -61,9 +62,10 @@ public class CategoryStatistic extends Category {
 		}
 	}		
 	
-	public enum MinAdjustment implements IPopupType{
+	public static enum MinAdjustment implements IPopupType{
 		ZERO('-'),
 		GLOBAL_MIN('G'),
+		GLOBAL_GROUP_MIN('g'),
 		TIMELINE_MIN('L');
 		
 		final private char abreviationLetter;
@@ -80,14 +82,14 @@ public class CategoryStatistic extends Category {
 	
 	private Scaling scaling = Scaling.DECIMAL;
 	private MinAdjustment minAdjustment = MinAdjustment.ZERO;
-	private MaxAdjustment maxAdjustment = MaxAdjustment.GLOBAL_MAX;
+	private MaxAdjustment maxAdjustment = MaxAdjustment.GLOBAL_GROUP_MAX;
 	
 	private boolean showAverageLine = true;
 	
 	final private StatisticDescription statisticDescription;
 	
 	public CategoryStatistic( StatisticDescription statistic, ColorAlpha in_color ) {
-		super(statistic.getGroup().getName() + ":" + statistic.getName(), in_color);
+		super(statistic.getGroup().getName().substring(0, 6) + ":" + statistic.getName(), in_color);
 		
 		this.statisticDescription = statistic;
 	}	

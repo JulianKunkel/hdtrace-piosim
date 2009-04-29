@@ -183,7 +183,7 @@ public class TopologyManager
 							StatisticHistogramFrame frame = new StatisticHistogramFrame(
 									(BufferedStatisticFileReader) statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
-									reader.getCategory(((BufferedStatisticFileReader) statNode.getStatisticSource()).getGroup(), statNode.getStatisticDescription().getName()));
+									reader.getCategory(((BufferedStatisticFileReader) statNode.getStatisticSource()).getGroup(), statNode.getStatisticDescription()));
 							frame.show();
 						}
 					});						

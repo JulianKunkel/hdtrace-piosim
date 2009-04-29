@@ -50,11 +50,7 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	public StatisticsGroupDescription getStatisticGroup(){
 		return ((BufferedStatisticFileReader) statisticSource).getGroup();
 	}
-	
-	public String getStatisticName() {
-		return statisticDescription.getName();
-	}
-	
+		
 	public StatisticDescription getStatisticDescription() {
 		return statisticDescription;
 	}
@@ -70,7 +66,7 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	
 	@Override
 	public String toString() {
-		return getStatisticName();
+		return statisticDescription.getName();
 	}
 	
 	public int getNumberInGroup() {

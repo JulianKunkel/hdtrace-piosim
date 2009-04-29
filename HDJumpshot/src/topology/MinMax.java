@@ -15,21 +15,31 @@
 //	You should have received a copy of the GNU General Public License
 //	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
-package arrow;
-
-import hdTraceInput.TraceFormatBufferedFileReader;
+package topology;
 
 /**
- * Abstract interface providing methods to compute a group of arrows with an dedicated task. 
- * 
- * @author Julian M. Kunkel
+ * Manages just a min and a maximum value.
+ * @author julian
  */
-public interface ArrowComputer {
-	public ArrowsOrdered computeArrows(TraceFormatBufferedFileReader reader);
-	public ArrowCategory getResponsibleCategory();
+public class MinMax {
+	private double maxValue = Double.MIN_NORMAL;
+	private double minValue = Double.MAX_VALUE;
 	
-	/**
-	 * Could be implemented to hide categories which are not applicable to the current reader.
-	 */
-	// public boolean isUseful(TraceFormatBufferedFileReader reader); 
+	public void updateMaxValue(double newValue) {
+		if(newValue > this.maxValue)
+			this.maxValue = newValue;
+	}
+
+	public void updateMinValue(double newValue) {
+		if(newValue < this.minValue)
+			this.minValue = newValue;
+	}
+
+	public double getMaxValue() {
+		return maxValue;
+	}
+
+	public double getMinValue() {
+		return minValue;
+	}
 }

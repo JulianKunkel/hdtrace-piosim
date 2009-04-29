@@ -298,6 +298,18 @@ public class ModelTime
 			 return;
 		 }
 	 }
+
+	 /**
+	  * Can be used internally, throws a IllegalStateException if a too deep zoom occurred.
+	  *  
+	  * @param new_tView_init
+	  * @param new_tView_extent
+	  * @throws IllegalStateException
+	  */
+	 public void zoomRapidlyInternal( double new_tView_init, double new_tView_extent ) throws IllegalStateException
+	 {	 
+		 zoom(new_tView_init, new_tView_extent);
+	 }
 	 
 	 /**
 	  * Scroll the time, i.e. move the view time if necessary.

@@ -1,3 +1,20 @@
+//	Copyright (C) 2009 Julian M. Kunkel
+//	
+//	This file is part of HDJumpshot.
+//	
+//	HDJumpshot is free software: you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation, either version 3 of the License, or
+//	(at your option) any later version.
+//	
+//	HDJumpshot is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+
 package viewer.datatype;
 
 import java.awt.Color;
@@ -34,7 +51,7 @@ import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype.StructType;
 /**
  * View an datatype hierarchically.
  * 
- * @author julian
+ * @author Julian M. Kunkel
  */
 public class DatatypeView {
 	final DatatypePanel    rootPanel = new DatatypePanel();
@@ -235,7 +252,7 @@ public class DatatypeView {
 
 	/**
 	 * Layouts components correctly and draw arcs between them.
-	 * @author julian
+	 * @author Julian M. Kunkel
 	 */
 	private class DatatypePanel extends JPanel{
 		private static final long serialVersionUID = 2L;
@@ -284,7 +301,7 @@ public class DatatypeView {
 	 * A reference to a datatype.
 	 * If a user clicks on a reference then the datatype gets expanded or the link is followed. 
 	 * 
-	 * @author julian
+	 * @author Julian M. Kunkel
 	 */
 	private class JDatatypeReference extends JPanel implements MouseListener{
 		private static final long serialVersionUID = 1L;

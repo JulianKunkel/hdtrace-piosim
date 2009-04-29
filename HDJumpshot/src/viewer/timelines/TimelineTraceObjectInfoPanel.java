@@ -133,7 +133,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 
 		
 		this.setDuration( fmt.format( 0 ) );
-		final Category cat = reader.getCategory(groupEntry.getGroup(), desc.getName()); 
+		final Category cat = reader.getCategory(groupEntry.getGroup(), desc); 
 		this.setCategoryName( desc.getName() );    
 		this.setCategoryColor( (Color) cat.getColor() );
 		

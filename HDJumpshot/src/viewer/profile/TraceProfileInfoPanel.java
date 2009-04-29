@@ -31,7 +31,7 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProf
 	final private LabeledTextField  fld_category_name = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
 	final private LabeledTextField  fld_metricPercent = new LabeledTextField( "Metric [%]", Const.FLOAT_FORMAT );
 				
-	final private LabeledTextField  fld_numberOfCalls = new LabeledTextField( "# calls", Const.INTEGER_FORMAT );	
+	final private LabeledTextField  fld_numberOfOccurrences = new LabeledTextField( "# occurr", Const.INTEGER_FORMAT );	
 
 	final private LabeledTextField  fld_exclusiveTime = new LabeledTextField( "Excl. [t]", Const.PANEL_TIME_FORMAT );
 	final private LabeledTextField  fld_exclTimePercent = new LabeledTextField( "Excl. Time [%]", Const.FLOAT_FORMAT );
@@ -53,7 +53,7 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProf
 
 		addTextField(fld_category_name, "The category name the profile information belongs to");
 
-		addTextField(fld_numberOfCalls, "Number of times a TraceObject of the category is visible");
+		addTextField(fld_numberOfOccurrences, "Number of times a TraceObject of the category is visible");
 		addTextField(fld_metricPercent, "Percent of the profile line the current TraceObject occupies with the selected Metric");
 		
 		addTextField(fld_exclusiveTime, "Sum of the exclusive time for all visible TraceObjects of this category");
@@ -84,7 +84,7 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProf
 		
 		fld_metricPercent.setDouble( frame.getMetricHandler().getInterestingValue(obj) / frame.getMaxMetricValue() );
 		
-		fld_numberOfCalls.setInteger(obj.getNumberOfCalls());
+		fld_numberOfOccurrences.setInteger(obj.getNumberOfOccurrences());
 		
 		fld_inclusiveTime.setDouble(obj.getInclusiveTime());
 		fld_exclusiveTime.setDouble(obj.getExclusiveTime());
@@ -99,7 +99,7 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProf
 		fld_maxExclusiveTime.setDouble(obj.getMaxDurationExclusive());
 		fld_maxInclusiveTime.setDouble(obj.getMaxDurationInclusive());
 		
-		fld_avgExclusiveTime.setDouble(obj.getExclusiveTime() / obj.getNumberOfCalls());
-		fld_avgInclusiveTime.setDouble(obj.getInclusiveTime() / obj.getNumberOfCalls());
+		fld_avgExclusiveTime.setDouble(obj.getExclusiveTime() / obj.getNumberOfOccurrences());
+		fld_avgInclusiveTime.setDouble(obj.getInclusiveTime() / obj.getNumberOfOccurrences());
 	}
 }

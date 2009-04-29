@@ -307,7 +307,7 @@ public class ProjectDescriptionXMLReader {
 					StatisticType.valueOf( child.getAttribute("type").toUpperCase() ),
 					currentNumberInGroup,
 					child.getAttribute("unit"),
-					multiplier);
+					multiplier, child.getAttribute("grouping"));
 
 			stat.addStatistic(desc);
 

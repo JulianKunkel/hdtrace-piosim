@@ -48,10 +48,10 @@ abstract public class TraceProfileMetricHandler {
 		}
 	}
 	
-	static public class NumberOfCallsHandler extends TraceProfileMetricHandler{
+	static public class NumberOfOccurrenceHandler extends TraceProfileMetricHandler{
 		@Override
 		public double getInterestingValue(TraceCategoryStateProfile profile) {		
-			return profile.numberOfCalls;
+			return profile.numberOfOccurences;
 		}
 	}
 	
