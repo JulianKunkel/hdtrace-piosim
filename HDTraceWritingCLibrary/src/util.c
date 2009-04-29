@@ -12,6 +12,7 @@
 
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 /**
  * Check if the given string is valid.
@@ -85,6 +86,80 @@ BOOL isValidXMLTagString(const char *string)
 			break;
 		}
 	}
+
+	return TRUE;
+}
+
+/**
+ * Escape all characters not to be used in XML attribute values.
+ *
+ * Writes the input string to the output string escaping all characters
+ * that should not appear in XML attribute values ('"', '<', '>', '&')
+ *
+ * @param dest Pointer to the memory for the resulting string
+ * @param olen Maximum length of the resulting string including '\0'
+ * @param src  String to use as input
+ *
+ * @return Success state
+ *
+ * @retval TRUE  Success
+ * @retval FALSE Not enough space for resulting string
+ */
+BOOL escapeXMLString(char *dest, size_t dlen, const char *src)
+{
+	if (!isValidString(src) || strlen(src) > dlen - 1)
+		return FALSE;
+
+	/* clean output string */
+	memset(dest, '\0', dlen);
+
+	size_t o = 0;
+	for (size_t i = 0; i < strlen(src); ++i)
+	{
+		switch(src[i])
+		{
+		case '"':
+			if ( o + 6 > dlen )
+				return FALSE;
+			dest[o++] = '&';
+			dest[o++] = 'q';
+			dest[o++] = 'u';
+			dest[o++] = 'o';
+			dest[o++] = 't';
+			dest[o++] = ';';
+			break;
+		case '<':
+			if ( o + 4 > dlen )
+				return FALSE;
+			dest[o++] = '&';
+			dest[o++] = 'l';
+			dest[o++] = 't';
+			dest[o++] = ';';
+			break;
+		case '>':
+			if ( o + 4 > dlen )
+				return FALSE;
+			dest[o++] = '&';
+			dest[o++] = 'g';
+			dest[o++] = 't';
+			dest[o++] = ';';
+			break;
+		case '&':
+			if ( o + 4 > dlen )
+				return FALSE;
+			dest[o++] = '&';
+			dest[o++] = 'a';
+			dest[o++] = 'm';
+			dest[o++] = 'p';
+			dest[o++] = ';';
+			break;
+		default:
+			dest[o++] = src[i];
+		}
+	}
+
+	/* assure output string is '\0' terminated */
+	assert (dest[dlen-1] == '\0');
 
 	return TRUE;
 }

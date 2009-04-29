@@ -43,6 +43,11 @@ BOOL isValidString(const char *string);
 BOOL isValidXMLTagString(const char *string);
 
 /**
+ * Escape all characters not to be used in XML attribute values.
+ */
+BOOL escapeXMLString(char *dest, size_t dlen, const char *src);
+
+/**
  * Returns minimum of the two size arguments.
  */
 size_t minSize(size_t a, size_t b);

@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <regex.h>
 #undef NDEBUG /* all tests depend on working assert */
 #include <assert.h>
 #include <errno.h>
@@ -33,10 +35,10 @@ struct _hdStatsGroup {
     char *buffer;
     enum _hdStatsBufferType btype;
     int offset;
-    unsigned int hasString : 1;
     size_t entryLength;
     hdStatsValueType *valueTypes;
     int nextValueIdx;
+    unsigned int hasString : 1;
     unsigned int isCommitted : 1;
     unsigned int isEnabled : 1;
 };
@@ -115,18 +117,29 @@ static void Test_createGroup_C1(void)
 	/* check buffer type */
 	assert(myGroup->btype == HDS_HEADER_BUFFER);
 	/* check buffer content */
-	int strcmp_result = strcmp(myGroup->buffer + HDS_HEADER_SIZE_LENGTH,
+	int offset;
+	int strcmp_result;
+	offset = HDS_HEADER_SIZE_LENGTH;
+	strcmp_result = strcmp(myGroup->buffer + offset,
 			"\n<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\">\n"
 			HD_INDENT_STRING HD_INDENT_STRING "<Label value=\"process0\" />\n"
 			HD_INDENT_STRING "</Label>\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\">\n");
+			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"");
+	assert(strcmp_result > 0);
+#define TIME_OFFSET_LENGTH 20 /* %010d.%09d */
+	offset += 16 + 22 + 27 + 9 + 16 + 47
+			+ 4 * (int) strlen(HD_INDENT_STRING) + TIME_OFFSET_LENGTH;
+#undef TIME_OFFSET_LENGTH
+
+	strcmp_result = strcmp(myGroup->buffer + offset,
+			"\">\n");
 	assert(strcmp_result == 0);
+	offset += 3;
 
 	/* check offset */
-	assert(myGroup->offset == HDS_HEADER_SIZE_LENGTH
-			+ 16 + 22 + 27 + 9 + 16 + 36 + 4 * (int) strlen(HD_INDENT_STRING));
+	assert(myGroup->offset == offset);
 
 	TEST_PASSED
 
@@ -161,15 +174,27 @@ static void Test_createGroup_C2(void)
 	/* check buffer type */
 	assert(myGroup->btype == HDS_HEADER_BUFFER);
 	/* check buffer content */
-	int strcmp_result = strcmp(myGroup->buffer + HDS_HEADER_SIZE_LENGTH,
+	int offset;
+	int strcmp_result;
+	offset = HDS_HEADER_SIZE_LENGTH;
+	strcmp_result = strcmp(myGroup->buffer + offset,
 			"\n<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\" />\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\">\n");
+			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"");
+	assert(strcmp_result > 0);
+#define TIME_OFFSET_LENGTH 20 /* %010d.%09d */
+	offset += 16 + 24 + 16 + 47
+			+ (int) strlen(HD_INDENT_STRING) + TIME_OFFSET_LENGTH;
+#undef TIME_OFFSET_LENGTH
+	strcmp_result = strcmp(myGroup->buffer + offset,
+			"\">\n");
 	assert(strcmp_result == 0);
+	offset += 3;
+
 	/* check offset */
-	assert(myGroup->offset == HDS_HEADER_SIZE_LENGTH
-			+ 16 + 24 + 16 + 36 + (int) strlen(HD_INDENT_STRING));
+	assert(myGroup->offset == offset);
+
 	/* check enable state */
 	assert(myGroup->isEnabled == 0);
 	/* check commit state */
@@ -210,13 +235,13 @@ static void Test_addValue_C1(void)
 	/* Test correct usage with inner node of a topology */
 	TEST_BEGIN("Correct usage")
 
-	ret = hdS_addValue(myGroup, "Int32Value", INT32, "unit0");
+	ret = hdS_addValue(myGroup, "Int32Value", INT32, "unit0", NULL);
 	ERROR_CHECK
-	ret = hdS_addValue(myGroup, "Int64Value", INT64, "unit1");
+	ret = hdS_addValue(myGroup, "Int64Value", INT64, "unit1", NULL);
 	ERROR_CHECK
-	ret = hdS_addValue(myGroup, "FloatValue", FLOAT, "unit2");
+	ret = hdS_addValue(myGroup, "FloatValue", FLOAT, "unit2", NULL);
 	ERROR_CHECK
-	ret = hdS_addValue(myGroup, "DoubleValue", DOUBLE, "unit3");
+	ret = hdS_addValue(myGroup, "DoubleValue", DOUBLE, "unit3", NULL);
 	ERROR_CHECK
 
 	/* check value types array */
@@ -310,11 +335,20 @@ static void Test_commitGroup_C1(void)
 			"<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\" />\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\">\n"
+			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"[0-9]{10}\\.[0-9]{9}\">\n"
 			"</MyGroup>\n",
-			15 + 24 + 16 + 36 + 11 + strlen(HD_INDENT_STRING));
+			15 + 24 + 16 + 70 + 11 + strlen(HD_INDENT_STRING));
+
+	/* create reference header regexp */
+	regex_t refregexp;
+	ret = regcomp(&refregexp, reference, REG_EXTENDED | REG_NOSUB);
+	assert(ret == 0);
+
 	/* check data read from file */
-	assert(strncmp(buffer, reference, HDS_HEADER_BUF_SIZE) == 0);
+	ret = regexec(&refregexp, buffer, 0, NULL, 0);
+	assert(ret == 0);
+
+	regfree(&refregexp);
 
 	TEST_PASSED
 
@@ -335,10 +369,10 @@ static hdStatsGroup getCommitedGroup(void)
 {
 	hdStatsGroup myGroup = getGroup();
 
-	hdS_addValue(myGroup, "Int32Value", INT32, "unit0");
-	hdS_addValue(myGroup, "Int64Value", INT64, "unit1");
-	hdS_addValue(myGroup, "FloatValue", FLOAT, "unit2");
-	hdS_addValue(myGroup, "DoubleValue", DOUBLE, "unit3");
+	hdS_addValue(myGroup, "Int32Value", INT32, "unit0", NULL);
+	hdS_addValue(myGroup, "Int64Value", INT64, "unit1", NULL);
+	hdS_addValue(myGroup, "FloatValue", FLOAT, "unit2", NULL);
+	hdS_addValue(myGroup, "DoubleValue", DOUBLE, "unit3", NULL);
 
 	hdS_commitGroup (myGroup);
 

@@ -33,6 +33,16 @@ int verbosity;
 #define HD_WRITE_TIMEOUT  10
 
 /**
+ * Maximal length of units
+ */
+#define HDS_MAX_UNIT_NAME_LENGTH  10
+
+/**
+ * Maximal length of grouping names
+ */
+#define HDS_MAX_GROUPING_NAME_LENGTH  20
+
+/**
  * Size of buffer to use for collecting entry values
  */
 #define HDS_ENTRY_BUF_SIZE 1024

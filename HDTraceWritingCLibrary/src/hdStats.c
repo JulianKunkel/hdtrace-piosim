@@ -139,12 +139,6 @@ struct _hdStatsGroup {
     int offset;
 
     /**
-     * True if string values are defined
-     * => reduced error checking
-     */
-    unsigned int hasString : 1;
-
-    /**
      * Length that an entry should have
      */
     size_t entryLength;
@@ -159,6 +153,12 @@ struct _hdStatsGroup {
      * Index of the next value to write (for error checking)
      */
     int nextValueIdx;
+
+    /**
+     * True if string values are defined
+     * => reduced error checking
+     */
+    unsigned int hasString : 1;
 
     /**
      * True if the group is committed (for error checking)
@@ -399,8 +399,11 @@ hdStatsGroup hdS_createGroup (
 		return NULL;
 
 	/* write statistics group start tag to buffer */
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
 	ret = appendFormatToGroupBuffer(group,
-			"<%s timestampDatatype=\"EPOCH\">\n", groupName);
+			"<%s timestampDatatype=\"EPOCH\" timeOffset=\"%010d.%09d\">\n",
+			groupName, (int32_t) tv.tv_sec, (int32_t) tv.tv_usec * 1000);
 	if (ret < 0)
 		return NULL;
 
@@ -438,10 +441,15 @@ hdStatsGroup hdS_createGroup (
  *  @ingroup hdStats
  * @endif
  *
- * @param group              Statistics group to modify
- * @param name               Name of the new value
- * @param type               Type of the new value
- * @param unit               Unit string of the new value
+ * @param group      Statistics group to modify
+ * @param name       Name of the new value
+ * @param type       Type of the new value
+ * @param unit       Unit string of the new value.
+ *                   (NULL or not more than \ref HDS_MAX_UNIT_NAME_LENGTH
+ *                    characters including XML escapes done automatically)
+ * @param grouping   Grouping string of the new value
+ *                   (NULL or not more than \ref HDS_MAX_GROUPING_NAME_LENGTH
+ *                    characters including XML escapes done automatically)
  *
  * @return Error state
  *
@@ -454,16 +462,31 @@ hdStatsGroup hdS_createGroup (
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  */
 int hdS_addValue (
-        hdStatsGroup group,      /* Statistics Group */
-        const char* name,        /* Name of the new value */
-        hdStatsValueType type,   /* Type of the new value */
-        const char* unit         /* Unit string of the new value */
+        hdStatsGroup group,    /* Statistics Group */
+        const char* name,      /* Name of the new value */
+        hdStatsValueType type, /* Type of the new value */
+        const char* unit,      /* Unit string of the new value */
+        const char* grouping   /* Grouping string for the new value */
         )
 {
 	/* check input */
 	if(group == NULL || !isValidXMLTagString(name))
 	{
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+	}
+
+	char unitString[HDS_MAX_UNIT_NAME_LENGTH];
+	if (unit != NULL)
+	{
+		if (!escapeXMLString(unitString, HDS_MAX_UNIT_NAME_LENGTH, unit))
+			hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+	}
+
+	char groupingString[HDS_MAX_GROUPING_NAME_LENGTH];
+	if (grouping != NULL)
+	{
+		if (!escapeXMLString(groupingString, HDS_MAX_GROUPING_NAME_LENGTH, grouping))
+			hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 	}
 
 	/* check if maximum is already reached */
@@ -515,9 +538,25 @@ int hdS_addValue (
 	if (ret < 0)
 		return ret;
 
+	char ubuff[8+HDS_MAX_UNIT_NAME_LENGTH];
+	if (unit != NULL)
+	{
+		ret = snprintf(ubuff, 8+HDS_MAX_UNIT_NAME_LENGTH,
+				"unit=\"%s\" ", unitString);
+		assert(ret < 8+HDS_MAX_UNIT_NAME_LENGTH);
+	}
+
+	char gbuff[12+HDS_MAX_GROUPING_NAME_LENGTH];
+	if (grouping != NULL)
+	{
+		ret = snprintf(gbuff, 12+HDS_MAX_GROUPING_NAME_LENGTH,
+				"grouping=\"%s\" ",	groupingString);
+		assert(ret < 12+HDS_MAX_GROUPING_NAME_LENGTH);
+	}
+
 	/* write tag for value */
-	ret = appendFormatToGroupBuffer(group, "<%s type=\"%s\" unit=\"%s\" />\n",
-			name, getTypeString(type), unit);
+	ret = appendFormatToGroupBuffer(group, "<%s type=\"%s\" %s%s/>\n",
+			name, getTypeString(type), ubuff, gbuff);
 	if (ret < 0)
 		return ret;
 
@@ -1227,9 +1266,6 @@ static int appendFormatToGroupBuffer(hdStatsGroup group,
 	{
 		hd_error_return(HD_ERR_UNKNOWN, -1);
 	}
-
-	/* assure the buffer is '\0' terminated (see vsnprintf(3)) */
-	assert(group->buffer[bsize-1] == '\0');
 
 	/* print info output */
 	hd_info_msg("Appended to %s group buffer: \"%s\"",

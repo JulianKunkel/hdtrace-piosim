@@ -132,10 +132,11 @@ hdStatsGroup hdS_createGroup (
  * Add a new value to the entry structure of a statistics group.
  */
 int hdS_addValue (
-        hdStatsGroup group,      /* Statistics Group */
-        const char* name,        /* Name of the new value */
-        hdStatsValueType type,   /* Type of the new value */
-        const char* unit         /* Unit string of the new value */
+        hdStatsGroup group,     /* Statistics Group */
+        const char* name,       /* Name of the new value */
+        hdStatsValueType type,  /* Type of the new value */
+        const char* unit,       /* Unit string of the new value */
+        const char* grouping    /* Grouping string for the new value */
         );
 
 /**
