@@ -489,6 +489,27 @@ AC_ARG_WITH(tau,
 AC_SUBST(TAU_INCS)
 AC_SUBST(BUILD_TAU)
 
+
+
+BUILD_HDTRACE=
+dnl use the hdtrace library
+AC_ARG_WITH(hdtrace,
+[  --with-hdtrace=path         Use HDTrace library installed in "path"],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-hdtrace must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="$LIBS -lhdStats -lhdTrace"
+       AC_DEFINE(HAVE_HDTRACE, 1, [Define if HDTrace library is used])
+       BUILD_HDTRACE=1
+    fi
+)
+
+AC_SUBST(BUILD_HDTRACE)
+
+
+
 BUILD_KERNEL=
 
 dnl
@@ -1197,6 +1218,13 @@ if test "x$LINUX_KERNEL_SRC" = "x" -a "x$BUILD_BMI_ONLY" != "x1"; then
 else
    AC_MSG_RESULT([PVFS2 configured for the 2.6.x kernel module      : yes])
 fi
+
+if test "x$BUILD_HDTRACE" = "x" ; then
+   AC_MSG_RESULT([PVFS2 configured for hdtrace module               :  no])
+else
+   AC_MSG_RESULT([PVFS2 configured for hdtrace module               : yes])
+fi
+
 
 if test "x$LINUX24_KERNEL_SRC" = "x" -a "x$BUILD_BMI_ONLY" != "x1"; then
    AC_MSG_RESULT([PVFS2 configured for the 2.4.x kernel module      :  no])

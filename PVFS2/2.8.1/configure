@@ -699,6 +699,7 @@ NPTL_WORKAROUND
 MISC_TROVE_FLAGS
 TAU_INCS
 BUILD_TAU
+BUILD_HDTRACE
 BUILD_KERNEL
 THREADED_KMOD_HELPER
 LINUX_KERNEL_SRC
@@ -1374,6 +1375,7 @@ Optional Packages:
   --with-mtrace           Use mtrace (must set MALLOC_TRACE to output file)
   --with-berkdb-debug     Use berkeley db error reporting (if detected).
   --with-tau=path         Use TAU trace library installed in "path"
+  --with-hdtrace=path         Use HDTrace library installed in "path"
   --with-kernel=srcpath   Build pvfs2 kernel module against 2.6.x src
   --with-kernel24=srcpath Build pvfs2 kernel module against 2.4.x src
   --with-efence=<path>    Use electric fence for malloc debugging.
@@ -7924,6 +7926,35 @@ _ACEOF
     fi
 
 fi
+
+
+
+
+
+
+
+BUILD_HDTRACE=
+
+# Check whether --with-hdtrace was given.
+if test "${with_hdtrace+set}" = set; then
+  withval=$with_hdtrace; if test "x$withval" = "xyes" ; then
+           { { echo "$as_me:$LINENO: error: --with-hdtrace must be given a pathname" >&5
+echo "$as_me: error: --with-hdtrace must be given a pathname" >&2;}
+   { (exit 1); exit 1; }; }
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="$LIBS -lhdStats -lhdTrace"
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_HDTRACE 1
+_ACEOF
+
+       BUILD_HDTRACE=1
+    fi
+
+fi
+
 
 
 
@@ -19376,6 +19407,7 @@ NPTL_WORKAROUND!$NPTL_WORKAROUND$ac_delim
 MISC_TROVE_FLAGS!$MISC_TROVE_FLAGS$ac_delim
 TAU_INCS!$TAU_INCS$ac_delim
 BUILD_TAU!$BUILD_TAU$ac_delim
+BUILD_HDTRACE!$BUILD_HDTRACE$ac_delim
 BUILD_KERNEL!$BUILD_KERNEL$ac_delim
 THREADED_KMOD_HELPER!$THREADED_KMOD_HELPER$ac_delim
 LINUX_KERNEL_SRC!$LINUX_KERNEL_SRC$ac_delim
@@ -19386,7 +19418,6 @@ SRC_RELATIVE_TOP!$SRC_RELATIVE_TOP$ac_delim
 SRC_ABSOLUTE_TOP!$SRC_ABSOLUTE_TOP$ac_delim
 FUSE_LDFLAGS!$FUSE_LDFLAGS$ac_delim
 FUSE_CFLAGS!$FUSE_CFLAGS$ac_delim
-BUILD_FUSE!$BUILD_FUSE$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -19428,6 +19459,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+BUILD_FUSE!$BUILD_FUSE$ac_delim
 ENABLE_COVERAGE!$ENABLE_COVERAGE$ac_delim
 STRICT_CFLAGS!$STRICT_CFLAGS$ac_delim
 QUIET_COMPILE!$QUIET_COMPILE$ac_delim
@@ -19466,7 +19498,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 36; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 37; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -19959,6 +19991,15 @@ else
    { echo "$as_me:$LINENO: result: PVFS2 configured for the 2.6.x kernel module      : yes" >&5
 echo "${ECHO_T}PVFS2 configured for the 2.6.x kernel module      : yes" >&6; }
 fi
+
+if test "x$BUILD_HDTRACE" = "x" ; then
+   { echo "$as_me:$LINENO: result: PVFS2 configured for hdtrace module               :  no" >&5
+echo "${ECHO_T}PVFS2 configured for hdtrace module               :  no" >&6; }
+else
+   { echo "$as_me:$LINENO: result: PVFS2 configured for hdtrace module               : yes" >&5
+echo "${ECHO_T}PVFS2 configured for hdtrace module               : yes" >&6; }
+fi
+
 
 if test "x$LINUX24_KERNEL_SRC" = "x" -a "x$BUILD_BMI_ONLY" != "x1"; then
    { echo "$as_me:$LINENO: result: PVFS2 configured for the 2.4.x kernel module      :  no" >&5
