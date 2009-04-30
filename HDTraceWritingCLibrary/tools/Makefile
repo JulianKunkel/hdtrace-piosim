@@ -49,3 +49,12 @@ dist-clean: clean
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
 -include $(SRCS:%.c=$(DEPDIR)/%.P)
+
+######################
+# Run configurations #
+######################
+
+STATS_EXAMPLE=../../PerformanceTracingLibrary/examples/MyProject_host0_Performance.stat
+
+run_hdStatsPrint: hdStatsPrint hdStatsReadHeader.pl
+	./hdStatsPrint $(shell ./hdStatsReadHeader.pl $(STATS_EXAMPLE))

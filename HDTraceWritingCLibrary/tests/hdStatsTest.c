@@ -113,7 +113,7 @@ static void Test_createGroup_C1(void)
 	/* check name */
 	assert(strcmp(myGroup->name, "MyGroup") == 0);
 	/* check filename */
-	assert(strcmp(myGroup->tracefile, "MyProject_host0_process0_MyGroup.dat") == 0);
+	assert(strcmp(myGroup->tracefile, "MyProject_host0_process0_MyGroup.stat") == 0);
 	/* check buffer type */
 	assert(myGroup->btype == HDS_HEADER_BUFFER);
 	/* check buffer content */
@@ -170,7 +170,7 @@ static void Test_createGroup_C2(void)
 	/* check name */
 	assert(strcmp(myGroup->name, "MyGroup") == 0);
 	/* check filename */
-	assert(strcmp(myGroup->tracefile, "MyProject_host0_MyGroup.dat") == 0);
+	assert(strcmp(myGroup->tracefile, "MyProject_host0_MyGroup.stat") == 0);
 	/* check buffer type */
 	assert(myGroup->btype == HDS_HEADER_BUFFER);
 	/* check buffer content */

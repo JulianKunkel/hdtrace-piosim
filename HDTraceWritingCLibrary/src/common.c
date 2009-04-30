@@ -49,7 +49,7 @@
  *         // error
  * @endcode
  * @code
- * char * filename = generateFilename(toponode, topoLevel, groupName, ".dat");
+ * char * filename = generateFilename(toponode, topoLevel, groupName, ".stat");
  * if (filename == NULL)
  *         // error
  * @endcode
