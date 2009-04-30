@@ -31,12 +31,12 @@ import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 /**
- * This class opens all files belonging to a particular project.
+ * This class opens all files belonging to a particular project and sets the provided reader class to the contained topology nodes.
  * 
  * @author Julian M. Kunkel
  *
@@ -68,21 +68,23 @@ public class TraceFormatFileOpener {
 			Class<? extends StatisticSource> statCls, 
 			Class<? extends TraceSource> traceCls, 
 			boolean readNested
-		) throws Exception
-{		
+	) throws Exception
+	{		
 		final String filePath = projectDescription.getParentDir() + "/"; 
 
 		// load statistics:
-		for(StatisticsGroupDescription group: projectDescription.getExternalStatisticGroups()){
-			String filename = filePath + currentTopo.getStatisticFileName(group.getName());
-			
-			SimpleConsoleLogger.Debug("Checking stat file for existence: " + filename);
-			if( fileExists(filename) ){
-				// read it
-				SimpleConsoleLogger.Debug("Stat file exists: " + filename);				
+		if(statCls != null){
+			for(StatisticsGroupDescription group: projectDescription.getExternalStatisticGroups()){
+				String filename = filePath + currentTopo.getStatisticFileName(group.getName());
 
-				final StatisticSource statReader = statCls.getConstructor(new Class<?>[]{String.class, StatisticsGroupDescription.class}).newInstance(new Object[]{filename, group});
-				currentTopo.setStatisticReader(group.getName(), statReader);
+				SimpleConsoleLogger.Debug("Checking stat file for existence: " + filename);
+				if( fileExists(filename) ){
+					// read it
+					SimpleConsoleLogger.Debug("Stat file exists: " + filename);				
+
+					final StatisticSource statReader = statCls.getConstructor(new Class<?>[]{String.class, StatisticsGroupDescription.class}).newInstance(new Object[]{filename, group});
+					currentTopo.setStatisticReader(group.getName(), statReader);
+				}
 			}
 		}
 
@@ -98,7 +100,7 @@ public class TraceFormatFileOpener {
 					SimpleConsoleLogger.Debug("Topology leaf should contain a trace file: " + currentTopo.toRecursiveString() );					
 				}
 				currentTopo.setTraceSource(null);
-			}else{
+			}else if (traceCls != null){
 				TraceSource staxReader = traceCls.getConstructor(new Class<?>[]{String.class, boolean.class}).newInstance(new Object[]{traceFile, readNested});			
 				currentTopo.setTraceSource(staxReader);
 			}		
@@ -107,10 +109,17 @@ public class TraceFormatFileOpener {
 		for(TopologyNode child: currentTopo.getChildElements().values()){
 			recursivlyCreateTraceSources(child, statCls, traceCls, readNested);
 		}
-
-
 	}
 
+	/**
+	 * Open a trace project file.
+	 * 
+	 * @param filename
+	 * @param readNested
+	 * @param statCls Instantiate this statistical reader (if null, no statistics are read), if unsure use the on demand reader "StatisticsReader"
+	 * @param traceCls Instantiate this trace reader (if null, no traces are read), if unsure use the on demand reader "StAXTraceFileReader"
+	 * @throws Exception
+	 */
 	public TraceFormatFileOpener(String filename, boolean readNested, Class<? extends StatisticSource> statCls, Class<? extends TraceSource> traceCls) throws Exception{
 		// scan for all the XML files which must be opened during conversion:
 		// general description
