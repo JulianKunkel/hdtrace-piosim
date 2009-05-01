@@ -54,7 +54,7 @@ public class ModelTimePanel extends JPanel implements TimeListener
 	private static final long serialVersionUID = -7851480632675797787L;
 
 	private final ModelTime         model;
-	private final ScrollbarTimeModel scrollbarModel;
+	private final ScrollableObject scrollableObject;
 
 	private LabeledTextField  fld_iZoom_faktor;
 	private LabeledTextField  fld_tGlobal_min;
@@ -64,11 +64,11 @@ public class ModelTimePanel extends JPanel implements TimeListener
 	private LabeledTextField  fld_tZoom_focus;
 	private LabeledTextField  fld_time_per_pixel;
 
-	public ModelTimePanel( ScrollbarTimeModel scrollbarModel )
+	public ModelTimePanel( ScrollableObject scrollableObject )
 	{
 		super();
-		this.scrollbarModel = scrollbarModel;
-		this.model         = scrollbarModel.getModelTime();
+		this.scrollableObject = scrollableObject;
+		this.model         = scrollableObject.getModelTime();
 		setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
 
 		fld_iZoom_faktor    = new LabeledTextField( "Zoom faktor ", Const.INTEGER_FORMAT );
@@ -161,7 +161,7 @@ public class ModelTimePanel extends JPanel implements TimeListener
 		fld_tView_final.setDouble( model.getViewPosition()
 				+ model.getViewExtent() );
 		fld_tGlobal_max.setDouble( model.getGlobalDuration() );
-		fld_time_per_pixel.setDouble( 1.0d/scrollbarModel.getViewPixelsPerUnitTime() );
+		fld_time_per_pixel.setDouble( 1.0d/scrollableObject.getViewPixelsPerUnitTime() );
 		if ( Debug.isActive() )
 			Debug.println( "ModelTimePanel: timeChanged()'s END: " );
 	}

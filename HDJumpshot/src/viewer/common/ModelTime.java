@@ -358,6 +358,15 @@ public class ModelTime
 		 if(new_tView_extent + new_tView_init > getGlobalDuration()){
 			 new_tView_extent = getGlobalDuration() - new_tView_init;
 		 }
+		 
+		 // allow a minimum view extend:
+		 final double MINIMUM_VIEW_EXTEND = 0.000001;
+		 if (new_tView_extent < MINIMUM_VIEW_EXTEND){
+			 new_tView_extent = MINIMUM_VIEW_EXTEND;
+			 if (new_tView_extent + new_tView_init > getGlobalDuration()){
+				 new_tView_init = getGlobalDuration() - new_tView_extent;
+			 }
+		 }
 
 		 // disable multiple triggers:		 
 		 this.setViewExtent( new_tView_extent );

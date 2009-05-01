@@ -44,7 +44,8 @@ import viewer.common.ModelTime;
 import viewer.common.Parameters;
 
 /**
- * Model for the scrollbar.
+ * Model for the time (X-axis) scrollbar. By default the maximum value is Integer.MAX_Value.
+ * Internally the value gets converted to time coordinates.
  */
 public class ScrollbarTimeModel extends DefaultBoundedRangeModel implements AdjustmentListener
 {
@@ -54,65 +55,43 @@ public class ScrollbarTimeModel extends DefaultBoundedRangeModel implements Adju
 
 	public ScrollbarTimeModel(ModelTime modelTime) {
 		this.modelTime = modelTime;
+		super.setRangeProperties(0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, super.getValueIsAdjusting());
 	}	
 
-	// screen properties
-	private int iViewWidth;// No. of View pixel per unit time
-	
 	private int oldValue = 0;
 	
 	private boolean disableAdjustmentListener = false;
 
-	void updateScrollRange(){		
-		super.setRangeProperties( 
-				time2pixel( modelTime.getViewPosition() ),
-				time2pixel( modelTime.getViewExtent() ), 
-				0, 
-				time2pixel( modelTime.getGlobalDuration() ),
-				super.getValueIsAdjusting() );
+	private int convertTimeToScrollbarValue(double time){
+		return (int)( time / modelTime.getGlobalDuration() * Integer.MAX_VALUE);
+	}
+	
+	private double convertScrollbarValueToTime(int val){
+		return modelTime.getGlobalDuration() / Integer.MAX_VALUE * val;
+	}
+	
+	void updateScrollPosition(){
+		int pos = convertTimeToScrollbarValue(modelTime.getViewPosition());
+		int extend = convertTimeToScrollbarValue(modelTime.getViewExtent());
+		
+		if(extend <= 0){
+			System.err.println("WARNING: scrollbar extend is getting invalid!" + extend);
+		}	
+		
+		super.setRangeProperties(pos, extend, 0, Integer.MAX_VALUE, super.getValueIsAdjusting());
 		
 		oldValue = getValue();
 	}
 	
-	/*
-       Set the Number of Pixels in the Viewport window.
-       if iView_width is NOT set, pixel coordinates cannot be updated.
-	 */
-	public void setViewWidth( int width )
-	{
-		iViewWidth = width;
-		
-		updateScrollRange();
-	}
-
-
-	public double getViewPixelsPerUnitTime(){
-		return iViewWidth / modelTime.getViewExtent();
-	}
-
-	/*
-       time2pixel() and pixel2time() are local to this object.
-       They have nothing to do the ones in ScrollableObject
-       (i.e. RulerTime/CanvasXXXXline).  In general, no one but
-       this object and possibly ScrollbarTime needs to access
-       the following time2pixel() and pixel2time() because the
-       ratio to flip between pixel and time is related to scrollbar.
-	 */
-	private int time2pixel( double time_coord )
-	{
-		return (int) Math.round( time_coord * getViewPixelsPerUnitTime() );
-	}
-
-	private double pixel2time( int pixel_coord )
-	{
-		return (double) pixel_coord / getViewPixelsPerUnitTime();
-	}
-
 	/**
 	 * Return the desired current scrollbar increment
 	 */
 	public int getScrollbarIncrement(){
-		return  time2pixel(modelTime.getViewExtent() * Parameters.TIME_SCROLL_UNIT_RATIO); 
+		int scrollbarIncr =  (int) (convertTimeToScrollbarValue(modelTime.getViewExtent()) * Parameters.TIME_SCROLL_UNIT_RATIO);
+		if(scrollbarIncr <= 0){
+			System.err.println("WARNING: scrollbar incr is getting invalid!" + scrollbarIncr);
+		}
+		return scrollbarIncr;
 	}
 
 	@Override
@@ -130,7 +109,7 @@ public class ScrollbarTimeModel extends DefaultBoundedRangeModel implements Adju
 			Debug.println( "adj_evt = " + evt );
 		}
 		
-		modelTime.scroll( pixel2time( super.getValue() - oldValue) );
+		modelTime.scroll( convertScrollbarValueToTime( super.getValue() - oldValue) );
 		
 		oldValue = super.getValue();
 

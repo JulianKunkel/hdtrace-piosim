@@ -71,16 +71,13 @@ public class ScrollbarTime extends JScrollBar implements TimeListener
 	public void timeChanged(TimeEvent evt) {
 		// update scroll position because model time changed.
 		model.setDisableAdjustmentListener(true);
-		model.updateScrollRange();
+		model.updateScrollPosition();
 		setScrollBarIncrements();
 		model.setDisableAdjustmentListener(false);
 	}
 
 	private void setScrollBarIncrements() throws IllegalStateException
 	{
-		/*
-            This needs to be called after updatePixelCoords()
-		 */
 		int sb_block_incre, sb_unit_incre;
 		sb_block_incre = model.getExtent();
 		if ( sb_block_incre <= 0 ) {
@@ -90,6 +87,7 @@ public class ScrollbarTime extends JScrollBar implements TimeListener
 					+ "Zoom out or risk crashing the viewer." );
 		}
 		this.setBlockIncrement( sb_block_incre );
+		
 		sb_unit_incre  =  model.getScrollbarIncrement();
 		if ( sb_unit_incre <= 0 ) {
 			throw new IllegalStateException( "You have reached the Zoom limit! "
@@ -100,14 +98,7 @@ public class ScrollbarTime extends JScrollBar implements TimeListener
 		this.setUnitIncrement( sb_unit_incre );
 	}
 
-
-	public void setBlockIncrementToModelExtent()
-	{
-		int model_extent = model.getExtent();
-		if ( model_extent > 1 )
-			super.setBlockIncrement( model_extent );
-	}
-
+	@Override
 	public Dimension getMinimumSize()
 	{
 		return min_size;

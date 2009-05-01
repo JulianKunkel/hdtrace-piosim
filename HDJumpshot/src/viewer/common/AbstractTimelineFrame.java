@@ -202,7 +202,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		timeCanvasVport.setLeftMouseToZoom( true );
 
 		/* The View's Time Display Panel */
-		time_display_panel = new ModelTimePanel( scrollbarTimeModel );
+		time_display_panel = new ModelTimePanel( canvasArea );
 		
 		
 		JPanel canvas_lmouse;

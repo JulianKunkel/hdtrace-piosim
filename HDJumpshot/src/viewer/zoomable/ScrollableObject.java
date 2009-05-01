@@ -107,6 +107,10 @@ implements ScrollableView, IAutoRefreshable
 	private   Dimension          image_size;
 	// The size of this JCompoent in pixel coordinates
 	private   Dimension          component_size;
+	
+	// screen properties
+	private int iViewWidth;// No. of View pixel per unit time
+	
 
 	// decides whether a call of redrawIfAutoRedraw refreshes
 	boolean autoRefresh = Parameters.ACTIVE_REFRESH;
@@ -415,17 +419,16 @@ implements ScrollableView, IAutoRefreshable
 	protected int time2pixel( double time_coord )
 	{
 		return (int) Math.round( ( time_coord - tImages_all.getEarliestTime() )
-				* scrollbarTimeModel.getViewPixelsPerUnitTime() );
+				* getViewPixelsPerUnitTime() );
 	}
-
+	
 	public double getViewPixelsPerUnitTime(){
-		return scrollbarTimeModel.getViewPixelsPerUnitTime();
+		return iViewWidth / modelTime.getViewExtent();
 	}
 
 	protected double pixel2time( int pixel_coord )
 	{
-		return (double) pixel_coord / scrollbarTimeModel.getViewPixelsPerUnitTime()
-		+ tImages_all.getEarliestTime();
+		return (double) pixel_coord / getViewPixelsPerUnitTime() + tImages_all.getEarliestTime();
 	}
 
 	// scrollable_image interface. This returns pixel coordinate in the image
@@ -657,7 +660,9 @@ implements ScrollableView, IAutoRefreshable
 			// not resized at all, but does not work for some cases
 			//return;
 		}
-		scrollbarTimeModel.setViewWidth(visWidth);
+		
+		// update local visible width
+		this.iViewWidth = visWidth;
 		
 		image_size.setSize( newWidth, newHeight );
 
