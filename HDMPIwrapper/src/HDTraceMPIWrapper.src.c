@@ -407,6 +407,52 @@ static void after_Init(int *argc, char ***argv)
 	hdT_setForceFlush(tracefile, trace_force_flush);
 
 #undef NAME_LEN
+
+#ifdef USE_POWERTRACE
+	/* JK: use the powertracer, the powertracer must be started only once per node */
+	/* therefore determine full qualified hostname and send it to all other ranks */
+	/* the rank with the lowest number on each host starts the powertrace */
+        int size;
+        int ret;
+        int rankForThisHost;
+
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+        char hostname[255];
+        ret = gethostname(hostname, 255);
+        if( ret != 0){
+                printf("Error while determine hostname in rank: %d\n", rank);
+                PMPI_Abort(MPI_COMM_WORLD, 2);
+        }
+
+        /* send hostname to each process */
+        char * recvBuff = malloc(size * 255);
+        if (recvBuff == 0){
+                printf("Error while reserving memory for recv buffer: %d\n", rank);
+                PMPI_Abort(MPI_COMM_WORLD, 2);
+        }
+
+        MPI_Allgather(hostname, 255, MPI_CHAR, recvBuff, 255, MPI_CHAR, MPI_COMM_WORLD);
+
+        /* Scan results to lookup first occurence of hostname */
+        int i;
+        for (i=0; i < size; i++){
+            char * cur =  & recvBuff[255*i];
+            /* printf("got %s \n", cur); */
+            if (strcmp(cur, hostname) == 0){
+                rankForThisHost = i;
+                break;
+            }
+        }
+
+
+        free(recvBuff);
+
+        if(rankForThisHost == rank){
+            printf("Start powertop on host %s by rank: %d\n", hostname, rank);
+            /* TODO fill powertop startup here */
+        }
+#endif
 }
 
 /**
