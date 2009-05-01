@@ -31,7 +31,7 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
-import de.hd.pvs.TraceFormat.statistics.StatisticWriter;
+import de.hd.pvs.TraceFormat.statistics.StatisticsWriter;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -51,7 +51,7 @@ public class TraceFormatWriter {
 
 	static class OutFiles{
 		TraceWriter traceWriter;
-		HashMap<StatisticsGroupDescription, StatisticWriter> registeredStatisticWriter = new HashMap<StatisticsGroupDescription, StatisticWriter>();
+		HashMap<StatisticsGroupDescription, StatisticsWriter> registeredStatisticWriter = new HashMap<StatisticsGroupDescription, StatisticsWriter>();
 	}
 
 	// map a single process id to the corresponding trace writer.
@@ -185,16 +185,16 @@ public class TraceFormatWriter {
 
 	public void Statistics(TopologyNode topology, Epoch time, String statistic,
 			StatisticsGroupDescription group, Object value) {
-		final HashMap<StatisticsGroupDescription, StatisticWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
+		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
 
-		StatisticWriter outWriter = stats.get(group);
+		StatisticsWriter outWriter = stats.get(group);
 
 		if (outWriter == null) {			
 			final String file = outProject.getParentDir() + "/" + topology.getStatisticFileName(group.getName());
 
 			try {
 				// generate a new output writer
-				outWriter = new StatisticWriter(file, group);
+				outWriter = new StatisticsWriter(file, group);
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
 						"Statistic file could not be created: " + file);
@@ -216,7 +216,7 @@ public class TraceFormatWriter {
 			if(files.traceWriter != null)
 				files.traceWriter.finalize();
 
-			for (StatisticWriter writer : files.registeredStatisticWriter.values()) {
+			for (StatisticsWriter writer : files.registeredStatisticWriter.values()) {
 				writer.finalize();
 			}				
 		}

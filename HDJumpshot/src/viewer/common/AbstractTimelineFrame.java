@@ -38,7 +38,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 
@@ -108,7 +107,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	 * 
 	 * @return
 	 */
-	abstract protected void addToToolbarMenu(JToolBar toolbar, IconManager iconManager, Insets insets);
+	abstract protected void addToToolbarMenu(TimelineToolBar toolbar, IconManager iconManager, Insets insets);
 	
 	/**
 	 * Create your own model info panel.
@@ -346,6 +345,8 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		addToToolbarMenu(toolbar, iconManager, toolbar.getInsets());
 		toolbar.addRightButtons(iconManager, getFrame());
 
+		toolbar.init();
+		
 		final JPanel top_panel = new JPanel();
 		top_panel.setLayout( new BoxLayout( top_panel, BoxLayout.Y_AXIS ) );
 		top_panel.add(toolbar);
@@ -354,7 +355,6 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		top_panel.add( info_model.getPanel() );
 
 		// Initialize toolbar after creation of YaxisTree view
-		toolbar.init();
 		row_adjs.refreshSlidersAndTextFields();
 		
 		row_adjs.addRowChangedListener(new MyNumberOfRowsChangedListener());
@@ -447,11 +447,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	protected ViewportTimeYaxis getTimeCanvasVport() {
 		return timeCanvasVport;
 	}
-	
-	protected TimelineToolBar getToolbar() {
-		return toolbar;
-	}
-	
+		
 	/**
 	 * Leftmost down area, below topology manager.
 	 * @return

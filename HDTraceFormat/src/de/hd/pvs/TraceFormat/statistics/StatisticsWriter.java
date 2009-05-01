@@ -38,7 +38,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author Julian M. Kunkel
  *
  */
-public class StatisticWriter {
+public class StatisticsWriter {
 	private final DataOutputStream file;	
 	private final StatisticsGroupDescription group;
 	
@@ -46,7 +46,7 @@ public class StatisticWriter {
 
 	private Iterator<StatisticDescription> nextExpectedStatisticIter = null;
 	
-	public StatisticWriter(String filename, StatisticsGroupDescription newGroup) throws Exception {
+	public StatisticsWriter(String filename, StatisticsGroupDescription newGroup) throws Exception {
 		this.group = newGroup;
 		this.file = new DataOutputStream(new FileOutputStream(filename));
 	}
@@ -84,7 +84,7 @@ public class StatisticWriter {
 		}
 		
 		// write data:
-		final StatisticType type = expectedStat.getType();
+		final StatisticsEntryType type = expectedStat.getType();
 		switch(type){
 		case LONG:
 			file.writeLong((Long) value / expectedStat.getMultiplier());

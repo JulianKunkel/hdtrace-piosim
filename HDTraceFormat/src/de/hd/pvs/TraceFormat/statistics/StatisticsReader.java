@@ -36,7 +36,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author Julian M. Kunkel
  *
  */
-public class StatisticsReader implements StatisticSource{
+public class StatisticsReader implements StatisticsSource{
 	final RandomAccessFile file;	
 	final StatisticsGroupDescription group;
 	public StatisticsReader(String filename, StatisticsGroupDescription group) throws Exception {
@@ -80,7 +80,7 @@ public class StatisticsReader implements StatisticSource{
 			final String statName = statDesc.getName();
 			
 			// read data depending on type:
-			final StatisticType type = statDesc.getType();
+			final StatisticsEntryType type = statDesc.getType();
 			Object value;
 			switch(type){
 			case LONG:

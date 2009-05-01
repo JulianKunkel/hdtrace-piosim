@@ -36,7 +36,7 @@ public class StatisticsGroupDescription{
 	/**
 	 * Describes the format of the Timestamp.
 	 */
-	StatisticType timestampDatatype = StatisticType.EPOCH;
+	StatisticsEntryType timestampDatatype = StatisticsEntryType.EPOCH;
 
 	/**
 	 * Multiplies the read value with this value.
@@ -83,7 +83,7 @@ public class StatisticsGroupDescription{
 		return statisticTypeMap.keySet();
 	}
 
-	public StatisticType getType(String statistic){
+	public StatisticsEntryType getType(String statistic){
 		return statisticTypeMap.get(statistic).type;
 	}
 
@@ -124,7 +124,7 @@ public class StatisticsGroupDescription{
 		this.timeResolutionMultiplierName = name;
 	}
 
-	public void setTimestampDatatype(StatisticType timestampDatatype) {
+	public void setTimestampDatatype(StatisticsEntryType timestampDatatype) {
 		this.timestampDatatype = timestampDatatype;
 	}
 
@@ -140,7 +140,7 @@ public class StatisticsGroupDescription{
 		return timeResolutionMultiplierName;
 	}
 
-	public StatisticType getTimestampDatatype() {
+	public StatisticsEntryType getTimestampDatatype() {
 		return timestampDatatype;
 	}
 

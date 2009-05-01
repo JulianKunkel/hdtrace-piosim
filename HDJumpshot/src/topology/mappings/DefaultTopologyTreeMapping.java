@@ -67,7 +67,7 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 				final SortedJTreeNode traceParent = addDummyTreeNode("Trace", node);
 
 				for(TopologyNode child: topology.getChildElements().values()){					
-					if (child.getStatisticSources().size() == 0){
+					if (child.getStatisticsSources().size() == 0){
 						if(child.getTraceSource() != null){
 							// only if the file really exists
 							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getText(), child, file);

@@ -72,10 +72,15 @@ public class FileOperations
 		}
 	}
 
-	public String selectTraceProject()
+	public String selectTraceProject(String oldFile)
 	{
 		int   istat;
-		LogFileChooser file_chooser = new LogFileChooser();
+
+		
+		if(oldFile == null || oldFile.length() < 4)
+			oldFile =  System.getProperty( "user.dir" );
+				
+		LogFileChooser file_chooser = new LogFileChooser(oldFile);
 		istat = file_chooser.showOpenDialog( MainManager.getJumpshotWindow() );
 		if ( istat == LogFileChooser.APPROVE_OPTION ) {
 			File   selected_file, selected_dir;

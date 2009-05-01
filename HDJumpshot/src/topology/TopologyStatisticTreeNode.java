@@ -29,20 +29,20 @@ import hdTraceInput.BufferedStatisticFileReader;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	private static final long serialVersionUID = 7893694713193686328L;
 	
-	final StatisticSource statisticSource;
+	final StatisticsSource statisticSource;
 	final StatisticDescription statisticDescription;
 	
 	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyNode topNode, TraceFormatFileOpener file) {
 		super(topNode, file);
 		
-		this.statisticSource = topNode.getStatisticSource(group.getName());
+		this.statisticSource = topNode.getStatisticsSource(group);
 		this.statisticDescription = statDesc;
 		
 	}
@@ -55,7 +55,7 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 		return statisticDescription;
 	}
 	
-	public StatisticSource getStatisticSource() {
+	public StatisticsSource getStatisticSource() {
 		return statisticSource;
 	}
 	

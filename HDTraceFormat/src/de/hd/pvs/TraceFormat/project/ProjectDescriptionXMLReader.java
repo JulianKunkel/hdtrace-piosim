@@ -40,7 +40,7 @@ import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticType;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -278,7 +278,7 @@ public class ProjectDescriptionXMLReader {
 
 		final String tT = root.getAttribute("timestampDatatype");		
 		if(tT != null  && ! tT.isEmpty()){
-			StatisticType type = StatisticType.valueOf(tT);
+			StatisticsEntryType type = StatisticsEntryType.valueOf(tT);
 			stat.setTimestampDatatype(type);
 		}
 
@@ -304,7 +304,7 @@ public class ProjectDescriptionXMLReader {
 			}
 			StatisticDescription desc = new StatisticDescription(stat,
 					child.getName(), 
-					StatisticType.valueOf( child.getAttribute("type").toUpperCase() ),
+					StatisticsEntryType.valueOf( child.getAttribute("type").toUpperCase() ),
 					currentNumberInGroup,
 					child.getAttribute("unit"),
 					multiplier, child.getAttribute("grouping"));

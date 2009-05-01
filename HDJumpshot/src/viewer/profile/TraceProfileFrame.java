@@ -40,7 +40,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
 import topology.TopologyManager;
@@ -53,6 +52,7 @@ import viewer.common.ModelTime;
 import viewer.common.Parameters;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
+import viewer.common.TimelineToolBar;
 import viewer.common.IconManager.IconType;
 import viewer.dialog.InfoDialog;
 import viewer.legends.CategoryUpdatedListener;
@@ -383,7 +383,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	}
 
 	@Override
-	protected void addToToolbarMenu(JToolBar toolbar, IconManager iconManager,
+	protected void addToToolbarMenu(TimelineToolBar toolbar, IconManager iconManager,
 			Insets insets) {		
 		toolbar.addSeparator();
 		timeRefreshBtn = new JButton( iconManager.getActiveToolbarIcon(IconType.Refresh) );
@@ -398,7 +398,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		});		
 
 		// disable update if autorefresh is active:
-		getToolbar().getAutoRefreshBtn().addActionListener( new ActionListener(){
+		toolbar.getAutoRefreshBtn().addActionListener( new ActionListener(){
 			public void actionPerformed(ActionEvent event) {
 				timeRefreshBtn.setEnabled(isAutoRefresh());				
 			}
@@ -420,7 +420,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			}
 		});
 		visualizedMetricBox.setToolTipText("Select the visualized metric");
-		toolbar.add(visualizedMetricBox);		
+		toolbar.add(visualizedMetricBox);
 
 		processNestedChkbox.setSelected(true);
 
@@ -540,9 +540,14 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			if( totalDrawn == 0 ){
 				g.setColor(Color.BLACK);
 				final String str = "No profiles for the selected time interval";
+				final int xpos = coord_xform.convertTimeToPixel(0.5 * (timebounds.getEarliestTime() + timebounds.getLatestTime()));
+				final int ypos = num_rows / 2 * row_height;
 				// draw string in middle
-				g.drawChars(str.toCharArray(), 0, str.length() , 
-						coord_xform.convertTimeToPixel(0.5 * (timebounds.getEarliestTime() + timebounds.getLatestTime()))  , num_rows / 2 * row_height);
+				g.drawChars(str.toCharArray(), 0, str.length(), xpos, ypos - 10);
+				
+				g.setColor(Color.WHITE);
+				// draw string in middle
+				g.drawChars(str.toCharArray(), 0, str.length() ,xpos, ypos + 10);
 			}
 
 			if(SimpleConsoleLogger.isDebugEverything()){			

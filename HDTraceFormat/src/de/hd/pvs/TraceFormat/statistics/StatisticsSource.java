@@ -5,8 +5,7 @@
   * @version         $Revision$ 
   */
 
-
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	Copyright (C) 2009 Julian M. Kunkel
 //	
 //	This file is part of PIOsimHD.
 //	
@@ -23,18 +22,11 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
+
 package de.hd.pvs.TraceFormat.statistics;
 
-/**
- * Data types a statistic value might have.
- * @author Julian M. Kunkel
- *
- */
-public enum StatisticType{
-	FLOAT,
-	INT,
-	LONG,
-	DOUBLE,
-	STRING,
-	EPOCH
+import de.hd.pvs.TraceFormat.TraceObject;
+
+public interface StatisticsSource {
+	public TraceObject getNextInputEntry() throws Exception;
 }

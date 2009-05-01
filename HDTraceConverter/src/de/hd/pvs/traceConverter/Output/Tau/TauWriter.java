@@ -28,7 +28,7 @@ package de.hd.pvs.traceConverter.Output.Tau;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticType;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -166,7 +166,7 @@ public class TauWriter extends TraceOutputWriter {
 	public void Statistics(TopologyNode topology, Epoch time, String name,
 			StatisticsGroupDescription group, Object value) {
 		long convertedValue;
-		final StatisticType type = group.getType(name);
+		final StatisticsEntryType type = group.getType(name);
 		
 		switch(type){
 		case LONG:

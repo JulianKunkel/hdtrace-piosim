@@ -42,9 +42,9 @@ public class LogFileChooser extends JFileChooser
 {
 	private static final long serialVersionUID = 2291243194312596269L;
 
-	public LogFileChooser(  )
+	public LogFileChooser( String olddir )
 	{
-		super( System.getProperty( "user.dir" ) );
+		super(olddir);
 		super.setDialogTitle( "Select HDTraceProject file" );
 
 		FileFilter  filter;

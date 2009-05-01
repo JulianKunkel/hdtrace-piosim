@@ -56,10 +56,9 @@ abstract public class TopologyTreeMapping {
 
 	protected void addStatisticsInTopology(int level, SortedJTreeNode node, TopologyNode topology, TraceFormatFileOpener file){	
 		// add statistic nodes:
-		for(String groupName: topology.getStatisticSources().keySet()){    		
-			StatisticsGroupDescription group = file.getProjectDescription().getExternalStatisticsGroup(groupName);
+		for(StatisticsGroupDescription group: topology.getStatisticsSources().keySet()){
 
-			SortedJTreeNode statGroupNode = addDummyTreeNode(groupName, node);
+			SortedJTreeNode statGroupNode = addDummyTreeNode(group.getName(), node);
 
 			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
 				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file );

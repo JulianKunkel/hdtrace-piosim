@@ -29,8 +29,8 @@ import java.io.File;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.statistics.StatisticSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
@@ -65,7 +65,7 @@ public class TraceFormatFileOpener {
 	}
 
 	private void recursivlyCreateTraceSources(TopologyNode currentTopo, 
-			Class<? extends StatisticSource> statCls, 
+			Class<? extends StatisticsSource> statCls, 
 			Class<? extends TraceSource> traceCls, 
 			boolean readNested
 	) throws Exception
@@ -82,8 +82,8 @@ public class TraceFormatFileOpener {
 					// read it
 					SimpleConsoleLogger.Debug("Stat file exists: " + filename);				
 
-					final StatisticSource statReader = statCls.getConstructor(new Class<?>[]{String.class, StatisticsGroupDescription.class}).newInstance(new Object[]{filename, group});
-					currentTopo.setStatisticReader(group.getName(), statReader);
+					final StatisticsSource statReader = statCls.getConstructor(new Class<?>[]{String.class, StatisticsGroupDescription.class}).newInstance(new Object[]{filename, group});
+					currentTopo.setStatisticsReader(group, statReader);
 				}
 			}
 		}
@@ -120,7 +120,7 @@ public class TraceFormatFileOpener {
 	 * @param traceCls Instantiate this trace reader (if null, no traces are read), if unsure use the on demand reader "StAXTraceFileReader"
 	 * @throws Exception
 	 */
-	public TraceFormatFileOpener(String filename, boolean readNested, Class<? extends StatisticSource> statCls, Class<? extends TraceSource> traceCls) throws Exception{
+	public TraceFormatFileOpener(String filename, boolean readNested, Class<? extends StatisticsSource> statCls, Class<? extends TraceSource> traceCls) throws Exception{
 		// scan for all the XML files which must be opened during conversion:
 		// general description
 		projectDescrReader = new ProjectDescriptionXMLReader();

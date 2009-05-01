@@ -221,16 +221,10 @@ public class DatatypeView {
 			currentSize.height = curY + insets.bottom + insets.top - 20 + 2;
 			currentSize.width = maxWidth + insets.left + insets.right - 20 + 2;
 
+			parent.setPreferredSize(currentSize);
 			parent.setSize(currentSize);
-
-			//final Dimension hScrollDim = scrollPane.getHorizontalScrollBar().getPreferredSize();
-			//final Dimension vScrollDim = scrollPane.getVerticalScrollBar().getPreferredSize();
-			//final Dimension scrollPaneDim = new Dimension(currentSize);
-			//scrollPaneDim.width += hScrollDim.width;
-			//scrollPaneDim.height += vScrollDim.height;
-			
-			//scrollPane.setPreferredSize(scrollPaneDim);
-			//scrollPane.invalidate();
+			((JComponent) parent).revalidate();
+			((JComponent) scrollPane.getParent()).revalidate();
 		}
 
 

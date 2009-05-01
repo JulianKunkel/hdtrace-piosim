@@ -29,7 +29,7 @@ import java.util.PriorityQueue;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticSource;
+import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
@@ -124,7 +124,7 @@ public class HDTraceConverter {
 			PriorityQueue<AbstractTraceProcessor> pendingReaders) throws Exception{
 
 		if(param.isProcessStatistics()){
-			for(StatisticSource ssource: topo.getStatisticSources().values()){
+			for(StatisticsSource ssource: topo.getStatisticsSources().values()){
 				StatisticsReader reader = (StatisticsReader)  ssource;
 
 				StatisticProcessor processor = new StatisticProcessor(reader);

@@ -42,12 +42,12 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JToolBar;
 
 import viewer.common.AbstractTimelineFrame;
 import viewer.common.IconManager;
 import viewer.common.ModelInfoPanel;
 import viewer.common.ModelTime;
+import viewer.common.TimelineToolBar;
 import viewer.common.IconManager.IconType;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
@@ -78,7 +78,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 	}
 
 	@Override
-	protected void addToToolbarMenu(JToolBar toolbar, IconManager iconManager, Insets insets) {
+	protected void addToToolbarMenu(TimelineToolBar toolbar, IconManager iconManager, Insets insets) {
 		searchBack_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchLeft) );
 		searchBack_btn.setMargin( insets );
 		searchBack_btn.setToolTipText( "Search Backward in time" );

@@ -34,7 +34,7 @@ package de.hd.pvs.TraceFormat.statistics;
  * @author julian
  */
 public class StatisticDescription{
-	final StatisticType type;
+	final StatisticsEntryType type;
 	final String name;
 	
 	final String unit;
@@ -48,7 +48,7 @@ public class StatisticDescription{
 	
 	final StatisticsGroupDescription group;
 	
-	public StatisticDescription(StatisticsGroupDescription group, String name, StatisticType type, int numberInGroup, String unit, int multiplier, String grouping) {
+	public StatisticDescription(StatisticsGroupDescription group, String name, StatisticsEntryType type, int numberInGroup, String unit, int multiplier, String grouping) {
 		this.name = name;
 		this.type = type;
 		this.multiplier = multiplier;
@@ -68,7 +68,7 @@ public class StatisticDescription{
 		return name;
 	}
 	
-	public StatisticType getType() {
+	public StatisticsEntryType getType() {
 		return type;
 	}
 	
@@ -85,7 +85,7 @@ public class StatisticDescription{
 	 * @return
 	 */
 	public boolean isNumeric() {
-		return ! type.equals(StatisticType.STRING);
+		return ! type.equals(StatisticsEntryType.STRING);
 	}
 	
 	/**

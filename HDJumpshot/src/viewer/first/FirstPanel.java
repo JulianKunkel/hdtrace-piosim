@@ -276,7 +276,8 @@ public class FirstPanel extends JPanel {
 
 	private class FileSelectButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			final String filename = MainManager.getFileOperations().selectTraceProject();
+			
+			final String filename = MainManager.getFileOperations().selectTraceProject(logname_fld.getText());
 			if (filename != null && filename.length() > 0) {
 				MainManager.closeAllChildWindows();
 
@@ -288,7 +289,7 @@ public class FirstPanel extends JPanel {
 
 	private class FileAddButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent evt) {
-			final String filename = MainManager.getFileOperations().selectTraceProject();
+			final String filename = MainManager.getFileOperations().selectTraceProject(logname_fld.getText());
 			if (filename != null && filename.length() > 0) {
 				if(loadedFiles.contains(filename)){
 					Dialogs.info( MainManager.getJumpshotWindow(), "File is already loaded: " + filename, null);

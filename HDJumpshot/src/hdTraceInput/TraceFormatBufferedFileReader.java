@@ -43,7 +43,7 @@ import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticSource;
+import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -115,8 +115,8 @@ public class TraceFormatBufferedFileReader {
 	 * Also set/create global statistics about statistics *g*
 	 * @param stats
 	 */
-	private void setGlobalValuesOnStatistics(Collection<StatisticSource> stats){
-		for(StatisticSource statReader: stats){			
+	private void setGlobalValuesOnStatistics(Collection<StatisticsSource> stats){
+		for(StatisticsSource statReader: stats){			
 			final BufferedStatisticFileReader reader = ((BufferedStatisticFileReader) statReader);
 			updateMinMaxTime(reader);
 
@@ -223,7 +223,7 @@ public class TraceFormatBufferedFileReader {
 		TopologyNode rootTopology = fileOpener.getTopology();
 
 		for(TopologyNode topology: rootTopology.getSubTopologies()){
-			setGlobalValuesOnStatistics(topology.getStatisticSources().values());
+			setGlobalValuesOnStatistics(topology.getStatisticsSources().values());
 
 			final TraceSource traceSource = topology.getTraceSource();
 			if(traceSource != null){

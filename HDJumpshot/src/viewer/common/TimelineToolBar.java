@@ -299,7 +299,15 @@ implements ToolBarStatus
 		 
 		 autoRefresh_btn = new ButtonAutoRefresh(cnvas_timeline);
 	 }
-
+	 
+	 @Override
+	public void setBounds(int x, int y, int width, int height) {
+		// somehow in the TraceProfileFrame the boxlayout sets a smaller width as expected.
+		// happens in some older java6 versions
+		width = getPreferredSize().width;
+		super.setBounds(x, y, width, height);
+	}
+	 
 	 protected void initAllButtons()
 	 {
 		 up_btn.setEnabled( true );
