@@ -53,10 +53,10 @@ import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
-public class InfoDialogForTraceEntries extends InfoDialog
+public class InfoDialogForTraceEntries extends InfoDialog implements ResizeListener
 {
 	private static final long serialVersionUID = 1L;
-
+	
 	public InfoDialogForTraceEntries( final Frame     frame,
 			final Epoch clickedTime,			
 			final Epoch modelTimeDiff,
@@ -83,7 +83,7 @@ public class InfoDialogForTraceEntries extends InfoDialog
 
 		// scan and activate plugins:
 		for(IInfoDialogPlugin plugin: IInfoDialogPlugin.availablePlugins){
-			plugin.ManufactureUI(obj, manager, modelTimeDiff, topologyTreeNode, panel, tableData);
+			plugin.ManufactureUI(obj, manager, modelTimeDiff, topologyTreeNode, this, panel, tableData);
 		}
 
 		if(tableData.getTableData().size() > 0){
@@ -138,12 +138,20 @@ public class InfoDialogForTraceEntries extends InfoDialog
 		addXMLTextRecursivly(textPane, sc, obj, 0);        
 
 		textPane.setEditable(false);
-		panel.add(new JScrollPane(textPane));
+		final JScrollPane scroller = new JScrollPane(textPane);
+		scroller.setMinimumSize(new Dimension(150, 50));
+		panel.add(scroller);
 
 		panel.add( super.getCloseButtonPanel() );		
 	}
 
-
+	@Override
+	public void layoutRefreshed() {
+		if(this.isVisible()){
+			this.setSize(getPreferredSize());
+		}
+	}
+	
 	private static void addXMLTextRecursivly(JTextPane pane, StyleContext sc,
 			XMLTag tag, int nesting) 
 	{

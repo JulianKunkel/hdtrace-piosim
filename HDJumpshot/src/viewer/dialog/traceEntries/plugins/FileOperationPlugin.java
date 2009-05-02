@@ -5,6 +5,7 @@ import java.awt.Color;
 import javax.swing.JPanel;
 
 import viewer.dialog.traceEntries.InfoTableData;
+import viewer.dialog.traceEntries.ResizeListener;
 import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
 import viewer.timelines.topologyPlugins.MPIThreadInputPlugin.MPIThreadObject;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
@@ -24,21 +25,25 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 
 	@Override
 	protected void ManufactureUI(TraceEntry obj, MPIThreadObject pluginData,
-			ProjectDescription desc, Epoch realModelTimeStart,
-			JPanel panel, InfoTableData textData) {
+			ProjectDescription desc, Epoch modelTimeOffsetToView,
+			ResizeListener resizeListener, JPanel panel, InfoTableData textData) {
 		// got a rank:
 		final MPIRankObject rankObj = pluginData.getParentRankObject();
 		final Integer rank = rankObj.getRank();
 
 		// parse type information:				
-		addDatatypeView("File datatype", rank, desc, obj.getAttribute("filetid"), panel);
-		addDatatypeView("Elementary file datatype", rank, desc, obj.getAttribute("etid"), panel);				
-
+		addDatatypeView("File datatype", rank, desc, obj.getAttribute("filetid"), resizeListener, panel);
+		addDatatypeView("Elementary file datatype", rank, desc, obj.getAttribute("etid"),resizeListener, panel);				
+		
 		final String fidStr = obj.getAttribute("fid");
+				
 		if(fidStr != null){
 			// it might be a file command.					
-			final TraceEntry fopen = rankObj.getPreviousFileOpen(realModelTimeStart, fidStr);
+			final TraceEntry fopen = rankObj.getPreviousFileOpen(obj.getEarliestTime(), fidStr);
+			
 			if(fopen == null){
+				System.err.println("Warning no previous open found for fid: " + fidStr +  " t: " + obj.getEarliestTime());
+				
 				return;
 			}
 			
@@ -49,9 +54,9 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 			if(sizeStr != null){
 				textData.addData("size: ", sizeStr);
 
-				final TraceEntry fview = rankObj.getPreviousFileSetView(realModelTimeStart, fidStr);
+				final TraceEntry fview = rankObj.getPreviousFileSetView(obj.getEarliestTime(), fidStr);
 				if(fview != null){
-					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"), panel);	
+					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"),resizeListener, panel);	
 				}
 			}
 		}

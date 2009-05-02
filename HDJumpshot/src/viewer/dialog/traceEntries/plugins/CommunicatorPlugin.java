@@ -5,6 +5,7 @@ import java.awt.Color;
 import javax.swing.JPanel;
 
 import viewer.dialog.traceEntries.InfoTableData;
+import viewer.dialog.traceEntries.ResizeListener;
 import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
 import viewer.timelines.topologyPlugins.MPIThreadInputPlugin.MPIThreadObject;
 import de.hd.pvs.TraceFormat.project.CommunicatorInformation;
@@ -26,7 +27,7 @@ public class CommunicatorPlugin extends TopologyDependingPlugin<MPIThreadObject>
 	@Override
 	protected void ManufactureUI(TraceEntry obj, MPIThreadObject pluginData,
 			ProjectDescription description, Epoch realModelTimeStart,
-			JPanel panel, InfoTableData textData) {	
+			ResizeListener resizeListener, JPanel panel, InfoTableData textData) {	
 		// got a rank:
 		final MPIRankObject rankObj = pluginData.getParentRankObject();
 		final Integer rank = rankObj.getRank();

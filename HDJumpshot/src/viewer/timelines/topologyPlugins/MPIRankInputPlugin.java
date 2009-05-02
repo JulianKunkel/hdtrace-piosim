@@ -93,7 +93,9 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 		}
 		
 		private int binSearchBefore(ArrayList<TraceEntry> list, Epoch earlierThan, String fid){
+			
 			checkOperationsSorted();
+			
 			int min = 0;
 			int max = list.size() -1;
 
@@ -104,10 +106,11 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 			while(true){
 				final int cur = (min + max) / 2;
 				final TraceEntry entry = list.get(cur);
-
+				
 				if(min == max){ // found entry or stopped.
+					
 					final String fidStr = entry.getAttribute("fid");
-					if(fidStr.compareTo(fid) != 0 || list.get(cur).getEarliestTime().compareTo(earlierThan) > 0)
+					if(fidStr.compareTo(fid) != 0 || entry.getEarliestTime().compareTo(earlierThan) > 0)
 						return -1;
 					
 					return cur;

@@ -54,6 +54,8 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputListener;
@@ -646,6 +648,16 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 			SwingUtilities.convertPointToScreen( global_click, this );
 
+			info_popup.getCloseButton().addActionListener( info_action_listener );
+			info_popup.addWindowListener( info_window_listener );
+
+			// update sizes:
+			info_popup.pack();
+			
+			// revalidate sizes, otherwise some components have the wrong size:
+			((JComponent)info_popup.getContentPane()).revalidate();
+			
+			
 			// try to visualize it at the clicked position, however, adjust for the object size:
 			final Dimension prefSize = info_popup.getPreferredSize();
 			final Dimension screenSize = Routines.getScreenSize();
@@ -655,11 +667,9 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 					(int) ((prefSize.height + global_click.y) > screenSize.height ? screenSize.height - prefSize.getHeight() : global_click.y));
 
 			info_popup.setVisibleAtLocation( position );
-
-			info_popup.getCloseButton().addActionListener( 
-					info_action_listener );
-			info_popup.addWindowListener( info_window_listener );
+						
 			info_dialogs.add( info_popup );
+			
 			infoTimebox = null;  // remove to avoid redundant drawing
 			this.repaint();
 		}
