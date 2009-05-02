@@ -84,7 +84,20 @@ static const char * getDistributeConstantName(int constant)
 		return "MPI_DISTRIBUTE_DFLT_DARG";
 	else
 	{
-		// TODO: this is an error
+		// TODO: this is an error either in the wrapper or in the traced program
+		printDebugMessage("%s: unknown constant constant requested: %d", __FUNCTION__, constant);
+		return "UNKNOWN";
+	}
+}
+
+static const char * getOrderConstantName(int constant)
+{
+	if(constant == MPI_ORDER_FORTRAN)
+		return "MPI_ORDER_FORTRAN";
+	else if(constant == MPI_ORDER_C)
+		return "MPI_ORDER_C";
+	else
+	{
 		printDebugMessage("%s: unknown constant constant requested: %d", __FUNCTION__, constant);
 		return "UNKNOWN";
 	}

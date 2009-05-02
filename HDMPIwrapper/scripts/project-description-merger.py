@@ -512,7 +512,7 @@ def darray_string(id, combiner, name, integers, addresses, types):
    dims = int(integers[2])
 
    for i in range(0, dims):
-      result += '   <Dim gsize="%s" distrib="%s" darg="%s" psize="%s"  />\n' % (integers[3 + i], integers[3 + dims + i], integers[3 + dims*2 + i], integers[3 + dims*3 + i])
+      result += '   <Dimension gsize="%s" distrib="%s" darg="%s" psize="%s"  />\n' % (integers[3 + i], integers[3 + dims + i], integers[3 + dims*2 + i], integers[3 + dims*3 + i])
 
    result += '  </%s>\n' % combiner
 

@@ -165,12 +165,25 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 								"%s;", getDistributeConstantName(integers[i]) );
 				pos = min(pos, TMP_BUF_LEN);
 			}
-			for(i = integers[2]*3 + 3; i < max_integers; ++i)
+			for(i = integers[2]*3 + 3; i < max_integers-1; ++i)
 			{
 				pos += snprintf(buffer + pos, TMP_BUF_LEN - pos,
 								"%d;", integers[i] );
 				pos = min(pos, TMP_BUF_LEN);
 			}
+			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+							"%s;", getOrderConstantName(integers[max_integers - 1]));
+		}
+		else if(combiner == MPI_COMBINER_SUBARRAY)
+		{
+			for(i = 0; i < max_integers - 1; ++i)
+			{
+				pos += snprintf(buffer + pos, TMP_BUF_LEN - pos,
+								"%d;", integers[i] );
+				pos = min(pos, TMP_BUF_LEN);
+			}
+			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+							"%s;", getOrderConstantName(integers[max_integers - 1]));
 		}
 		else
 		{
