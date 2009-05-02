@@ -5,22 +5,22 @@
  * @version         $Revision$ 
  */
 
-//	Copyright (C) 2009 Julian M. Kunkel
-//	
-//	This file is part of HDJumpshot.
-//	
-//	HDJumpshot is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	HDJumpshot is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
+//Copyright (C) 2009 Julian M. Kunkel
+
+//This file is part of HDJumpshot.
+
+//HDJumpshot is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//HDJumpshot is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with HDJumpshot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 /*
@@ -37,7 +37,6 @@ package viewer.zoomable;
 
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -111,7 +110,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private int                       mouse_pressed_Xloc;
 	private int                       mouse_last_Xloc;
 	private boolean                   hasControlKeyBeenPressed = false; 
-	
+
 	// info_dialogs list is used to keep track of all InfoDialog boxes.
 	private   ArrayList<InfoDialog>          info_dialogs;
 
@@ -119,7 +118,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	private   InfoDialogWindowListener  info_window_listener;
 
 	protected boolean                   isLeftMouseClick4Zoom;
-	
+
 	private class MyComponentResizeListener extends ComponentAdapter{		
 		@Override
 		public void componentResized(ComponentEvent e) {
@@ -135,7 +134,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 	               ComponentListener interface.
 				 */
 				viewImage.resized();
-				
+
 				/*
         It is very IMPORTANT to do setPreferredSize() for JViewport
         with custom JComponent view.  If PreferredSize is NOT set,
@@ -437,7 +436,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 		lastMouseMoveObject = dobj;
 	}    
-	
+
 	@Override
 	public void mouseEntered( MouseEvent mouse_evt )
 	{
@@ -447,7 +446,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		else
 			super.setCursor( CustomCursor.HandOpen );
 	}
-	
+
 	@Override
 	public void mouseExited( MouseEvent mouse_evt )
 	{
@@ -633,16 +632,9 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			if (    Math.abs(vport_click.x - mouse_pressed_Xloc)
 					>= Parameters.MIN_WIDTH_TO_DRAG ) {
 				window = SwingUtilities.windowForComponent( this );
-				if ( window instanceof Frame )
-					info_popup = new InfoDialogForDuration( (Frame) window,
-							infoTimebox,
-							modelTime.getGlobalMinimum().add(infoTimebox.getEarliestTime()),
-							scrollable );
-				else // if ( window instanceof Dialog )
-					info_popup = new InfoDialogForDuration( (Dialog) window,
-							infoTimebox,
-							modelTime.getGlobalMinimum().add(infoTimebox.getEarliestTime()),
-							scrollable );
+				info_popup = new InfoDialogForDuration( (Frame) window,
+						infoTimebox,
+						modelTime.getGlobalMinimum().add(infoTimebox.getEarliestTime()));
 			}
 			else {
 				view_click = SwingUtilities.convertPoint( this,
@@ -651,19 +643,19 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 				info_popup = scrollable.getPropertyAt( view_click );
 			}
 			global_click = new Point( vport_click );
-			
+
 			SwingUtilities.convertPointToScreen( global_click, this );
-			
+
 			// try to visualize it at the clicked position, however, adjust for the object size:
 			final Dimension prefSize = info_popup.getPreferredSize();
 			final Dimension screenSize = Routines.getScreenSize();
-			
+
 			final Point position = new Point( 
 					(int) ((prefSize.width + global_click.x) > screenSize.width ? screenSize.width - prefSize.getWidth() : global_click.x),
 					(int) ((prefSize.height + global_click.y) > screenSize.height ? screenSize.height - prefSize.getHeight() : global_click.y));
-			
+
 			info_popup.setVisibleAtLocation( position );
-			
+
 			info_popup.getCloseButton().addActionListener( 
 					info_action_listener );
 			info_popup.addWindowListener( info_window_listener );

@@ -35,7 +35,6 @@
 package viewer.zoomable;
 
 
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -715,10 +714,7 @@ implements ScrollableView, IAutoRefreshable
 		final Epoch clickedTime = realTime.subtract(modelTime.getGlobalMinimum());
 		Window          window;
 		window = SwingUtilities.windowForComponent( this );
-		if ( window instanceof Frame )
-			return new InfoDialogForTime( (Frame) window, clickedTime, realTime);
-		else // if ( window instanceof Dialog )
-			return new InfoDialogForTime( (Dialog) window, clickedTime, realTime );
+		return new InfoDialogForTime( (Frame) window, clickedTime, realTime);
 	}
 
 	public ModelTime getModelTime() {

@@ -35,7 +35,6 @@
 package viewer.dialog;
 
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
@@ -54,28 +53,17 @@ public class InfoDialog extends JDialog
     private JButton  close_btn;
 
     private Epoch   clicked_time;
-    private Epoch   realModelTime;
+    private Epoch   modelTimeDiff;
 
 
     public InfoDialog( final Frame   ancestor_frame,
                              String  title_str,
-                             Epoch  clickedTime,
-                             Epoch realModelTime)
+                             Epoch clickedTime,
+                             Epoch modelTimeDiff)
     {
         super( ancestor_frame, title_str );
         clicked_time = clickedTime;
-        this.realModelTime = realModelTime;
-        this.init();
-    }
-
-    public InfoDialog( final Dialog  ancestor_dialog,
-                             String  title_str,
-                             Epoch  clickedTime,
-                             Epoch realModelTime)
-    {
-        super( ancestor_dialog, title_str );
-        clicked_time = clickedTime;
-        this.realModelTime = realModelTime;
+        this.modelTimeDiff = modelTimeDiff;
         this.init();
     }
 
@@ -110,8 +98,8 @@ public class InfoDialog extends JDialog
         return clicked_time;
     }
     
-    public Epoch getModelTime() {
-			return realModelTime;
+    public Epoch getModelTimeDiff() {
+			return modelTimeDiff;
 		}
 
     public void setVisibleAtLocation( final Point global_pt )

@@ -183,7 +183,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 
 		InfoDialog  info_popup = super.getLastInfoDialog();
 		if ( info_popup != null ) {
-			searchInit( info_popup.getModelTime() );
+			searchInit( info_popup.getClickedTime().subtract(info_popup.getModelTimeDiff()) );
 			info_popup.getCloseButton().doClick();
 			this.repaint();
 			return true;

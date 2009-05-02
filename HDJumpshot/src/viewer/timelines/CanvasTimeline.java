@@ -45,7 +45,6 @@ import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
-import java.awt.Window;
 import java.util.Enumeration;
 
 import javax.swing.BoundedRangeModel;
@@ -62,7 +61,7 @@ import viewer.common.Parameters;
 import viewer.common.Profile;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.InfoDialogForStatisticEntries;
-import viewer.dialog.InfoDialogForTraceEntries;
+import viewer.dialog.traceEntries.InfoDialogForTraceEntries;
 import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.CoordPixelImage;
 import viewer.zoomable.ScrollbarTimeModel;
@@ -581,19 +580,20 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	public InfoDialog getPropertyAt(int timeline, Epoch realTime, int y) {
 		TraceObject obj = getTraceObjectAt(timeline, realTime, y);
 		if( obj != null ){
-			Window          window;
-			window = SwingUtilities.windowForComponent( this );
+			Frame          window;
+			window = (Frame) SwingUtilities.windowForComponent( this );
 			
 			switch(obj.getType()){
 			case STATISTICENTRY:
-				return new InfoDialogForStatisticEntries((Frame) window,  realTime.subtract(
-						getModelTime().getGlobalMinimum()), realTime, 
+				return new InfoDialogForStatisticEntries(window,  realTime,
+						getModelTime().getGlobalMinimum(), 
 						getTopologyManager().getStatisticNodeForTimeline(timeline),
 						(StatisticEntry) obj);	
 			case EVENT:
-			case STATE:				
-				return new InfoDialogForTraceEntries((Frame) window,  realTime.subtract(
-						getModelTime().getGlobalMinimum()), realTime, 
+			case STATE:			
+				return new InfoDialogForTraceEntries(window,
+						realTime,
+						getModelTime().getGlobalMinimum(),						
 						(TopologyTraceTreeNode) getTopologyManager().getTreeNodeForTimeline(timeline),
 						getTopologyManager() ,
 						(TraceEntry) obj);	

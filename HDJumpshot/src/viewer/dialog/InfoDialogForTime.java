@@ -36,7 +36,6 @@ package viewer.dialog;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dialog;
 import java.awt.Frame;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -60,15 +59,6 @@ public class InfoDialogForTime extends InfoDialog
 
 	{
 		super( frame, "Time Info Box", time, realModelTimeStart );
-		this.init();
-	}
-
-	public InfoDialogForTime( final Dialog           dialog,
-			final Epoch           time,
-			final Epoch realModelTimeStart)
-
-	{
-		super( dialog, "Time Info Box", time, realModelTimeStart );
 		this.init();
 	}
 

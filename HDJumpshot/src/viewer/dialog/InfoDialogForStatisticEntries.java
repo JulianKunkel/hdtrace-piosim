@@ -42,12 +42,12 @@ public class InfoDialogForStatisticEntries extends InfoDialog
 	private static final long serialVersionUID = 1L;
 
 	public InfoDialogForStatisticEntries( final Frame     frame, 
-			final Epoch    clicked_time,
-			final Epoch realModelTimeStart,
+			final Epoch modelTimeOffset,
+			final Epoch clicked_time,
 			TopologyStatisticTreeNode topologyTreeNode, 
 			StatisticEntry obj)
 	{
-		super( frame, "Traceable Object Info Box", clicked_time, realModelTimeStart);
+		super( frame, "Traceable Object Info Box", clicked_time, modelTimeOffset);
 
 		Container root_panel = this.getContentPane();
 		root_panel.setLayout( new BoxLayout( root_panel, BoxLayout.Y_AXIS ) );

@@ -263,7 +263,7 @@ public class DatatypeView {
 		public void paint(Graphics g) {
 			// draw container:
 			super.paint(g);
-
+			
 			// draw arrows between dependencies:
 			for(JDatatype jType: createdDatatypes.values()){
 				// scan for datatype referene position
