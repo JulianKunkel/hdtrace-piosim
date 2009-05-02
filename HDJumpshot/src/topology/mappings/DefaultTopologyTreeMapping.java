@@ -70,16 +70,16 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 					if (child.getStatisticsSources().size() == 0){
 						if(child.getTraceSource() != null){
 							// only if the file really exists
-							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getText(), child, file);
+							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getName(), child, file);
 							addTopologyTreeNode(childNode, traceParent);
 						}else{
 							// TODO remove this child from topology
 						}
 					}else if(isAddStatistics()){
 						// handles statistics on the leaf level:
-						final SortedJTreeNode extra = addDummyTreeNode(child.getText(), traceParent);
+						final SortedJTreeNode extra = addDummyTreeNode(child.getName(), traceParent);
 
-						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getText(), child, file);
+						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getName(), child, file);
 						addTopologyTreeNode(childNode, extra);
 						addStatisticsInTopology(level, extra, child, file);
 					}

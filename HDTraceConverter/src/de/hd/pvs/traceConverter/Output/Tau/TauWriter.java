@@ -27,8 +27,8 @@ package de.hd.pvs.traceConverter.Output.Tau;
 
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -89,17 +89,11 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	private int getThread(TopologyNode topology){
-		if(topology.isLeaf()){
-			return topology.getPositionInParent();
-		}
-		return 0;
+		return Integer.parseInt(topology.getNodeWithTopologyLabelRecursivly("thread").getName());
 	}
 	
 	private int getRank(TopologyNode topology){
-		if(topology.isLeaf()){
-			return topology.getParent().getPositionInParent();
-		}
-		return topology.getPositionInParent();
+		return Integer.parseInt(topology.getNodeWithTopologyLabelRecursivly("rank").getName());
 	}
 	
 	@Override

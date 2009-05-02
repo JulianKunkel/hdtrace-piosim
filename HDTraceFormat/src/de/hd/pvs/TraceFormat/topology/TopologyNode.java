@@ -35,17 +35,18 @@ import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 public class TopologyNode {	
 
-	String text;
+	private String name;
+
+	/**
+	 * Real label of this topology node
+	 */
+	private String label;
+
+	private final HashMap<StatisticsGroupDescription, StatisticsSource> statisticsSources = new HashMap<StatisticsGroupDescription, StatisticsSource>();
+
+	private final HashMap<String, TopologyNode>    childElements = new HashMap<String, TopologyNode>();
 	
-	final int depth;
-	
-	final int positionInParent;
-
-	final HashMap<StatisticsGroupDescription, StatisticsSource> statisticsSources = new HashMap<StatisticsGroupDescription, StatisticsSource>();
-
-	final HashMap<String, TopologyNode>    childElements = new HashMap<String, TopologyNode>();
-
-	final TopologyNode parent;
+	private final TopologyNode parent;
 
 	private TraceSource traceSource = null;
 
@@ -54,20 +55,17 @@ public class TopologyNode {
 	 * @param text
 	 * @param parent
 	 */
-	public TopologyNode(String text, int depth, TopologyNode parent) {
-		this.text = text;
+	public TopologyNode(String text, TopologyNode parent, String label) {
+		this.name = text;
 		this.parent = parent;
-		this.depth = depth;
+		this.label = label;
+		
+		assert(label != null);
+		assert(name != null);
+		
 		if(parent != null){
 			parent.setChild(text, this);
-			positionInParent = parent.getSize();
-		}else{
-			positionInParent = -1;
 		}
-	}
-
-	public int getPositionInParent() {
-		return positionInParent;
 	}
 
 	public HashMap<StatisticsGroupDescription, StatisticsSource> getStatisticsSources() {
@@ -110,7 +108,7 @@ public class TopologyNode {
 	 * @return 
 	 */
 	private String getUnifiedLabel(){		
-		return text.toLowerCase().replaceAll("[^a-zA-Z0-9-.]", "");
+		return name.toLowerCase().replaceAll("[^a-zA-Z0-9-.]", "");
 	}
 
 	/**
@@ -145,12 +143,12 @@ public class TopologyNode {
 		return getFilePrefix() + "_" + group + ".stat";
 	}
 
-	public String getText() {
-		return text;
+	public String getName() {
+		return name;
 	}
 
 	public void setText(String text) {
-		this.text = text;
+		this.name = text;
 	}
 
 	/**
@@ -162,9 +160,9 @@ public class TopologyNode {
 
 	final public String toRecursiveString() {
 		if (parent != null){
-			return parent.toRecursiveString() + "-" + text; 
+			return parent.toRecursiveString() + "-" + name; 
 		}
-		return text; 
+		return name; 
 	}
 
 
@@ -232,9 +230,30 @@ public class TopologyNode {
 		
 		return bfsTopos;
 	}
-
-	public int getDepth() {
-		return depth;
+	
+	 /* Search node and parent nodes recursively to find the topology node which is labeled with
+	 * the given text.
+	 * @param text
+	 * @return
+	 */
+	public TopologyNode getNodeWithTopologyLabelRecursivly(String text){		
+		TopologyNode cur = this;
+		
+		// lookup parents until label is found		
+		while(cur != null){
+			if(label.equalsIgnoreCase(text)){
+				// found correct node:
+				return cur;
+			}
+			
+			cur = cur.getParent();
+		}
+		
+		return null;
 	}
+
+	public String getLabel() {
+		return label;
+	}	
 }
 

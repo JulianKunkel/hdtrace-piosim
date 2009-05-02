@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -96,6 +97,24 @@ public class TopologyManager
 	private TreeExpansionListener treeExpansionListener = new TopologyTreeExpansionListener();
 
 	private TopologyManagerContents topologyManagerType = TopologyManagerContents.EVERYTHING;
+
+	/**
+	 * Manage plugins for the contained topology, some plugins might be applicable only
+	 * on a subset of loaded files, so be careful!
+	 */
+	private static class TopoPluginStruct{
+		final private TopologyInputPlugin plugin;
+		final private HashMap<TopologyNode, ITopologyInputPluginObject> objsPerTopo = new HashMap<TopologyNode, ITopologyInputPluginObject>();
+
+		public TopoPluginStruct(TopologyInputPlugin plugin) {
+			this.plugin = plugin;
+		}
+	}
+
+	/**
+	 * Per plugin type and topology level enabled plugin.
+	 */
+	private HashMap<Class<? extends ITopologyInputPluginObject>, TopoPluginStruct> topoPlugins = new HashMap<Class<? extends ITopologyInputPluginObject>, TopoPluginStruct>();
 
 	/**
 	 * The following class allows to store information about removed nodes.
@@ -401,10 +420,16 @@ public class TopologyManager
 
 			setChangeListenerDisabled(old);
 
+			updateTopologyPluginsIfNecessary();
+
 			fireTopologyChanged();			
 		}catch(Exception e){
 			throw new IllegalArgumentException(e);
 		}
+	}
+
+	private void updateTopologyPluginsIfNecessary(){
+
 	}
 
 	public void setStatisticVisiblity(StatisticDescription statistic, boolean visible){
@@ -435,7 +460,7 @@ public class TopologyManager
 				if(statistic == statNode.getStatisticDescription()){
 					// remove that node:
 					removedNodes.add( new RemovedNode(statNode));
-					
+
 					model.removeNodeFromParent(statNode);
 				}
 			}
@@ -519,7 +544,6 @@ public class TopologyManager
 
 		this.modelTime = modelTime;
 		this.topologyManagerType = topologyManagerContents;
-		restoreTopology();		
 	}
 
 	public void expandTree()
@@ -583,5 +607,88 @@ public class TopologyManager
 	 */
 	public Integer getTimelineForTopology(TopologyNode entry){
 		return topoToTimelineMapping.get(entry);		
+	}
+
+	/**
+	 * Check new topologies if plugins can be applied to them.
+	 * It applies the plugins only to currently visible topologies !!!
+	 * 
+	 * If a topology already exists, do not modify it. 
+	 * @param pluginsToCheck
+	 */
+	public void tryToLoadPlugins(List<Class<? extends TopologyInputPlugin>> pluginsToCheck){
+		for(Class<? extends TopologyInputPlugin> cls: pluginsToCheck){
+			TopoPluginStruct handlerStruct = topoPlugins.get(cls);
+			final TopologyInputPlugin plugin;
+
+			final boolean isNew;
+
+			if(handlerStruct != null){
+				isNew = false;
+				plugin = handlerStruct.plugin;			
+			}else{
+				isNew = true;
+				// instantiate it temporarily			
+				try{
+					plugin = cls.newInstance();
+					plugin.setTopologyManager(this);
+					
+					handlerStruct = new TopoPluginStruct(plugin);
+				}catch(Exception e){
+					System.err.println("Error on loading topology plugin " + cls.getCanonicalName());
+					e.printStackTrace();
+					continue;
+				}
+
+				boolean canBeEnabled = false;
+
+				// check if it can be applied	
+				for(int fileNum = 0 ; fileNum < reader.getNumberOfFilesLoaded() ; fileNum++){
+					if( plugin.tryToActivate(reader.getLoadedFile(fileNum))){ 
+						canBeEnabled = true;					
+					}
+				}
+				if(! canBeEnabled){
+					continue;
+				}
+			}
+
+
+			// try to apply the plugin to each currently visible topology.
+			final Enumeration<TreeNode> nodeEnum = tree_root.depthFirstEnumeration();
+			while(nodeEnum.hasMoreElements()){ 
+				final TreeNode node = nodeEnum.nextElement();
+
+				if( TopologyTreeNode.class.isInstance(node) ){
+					final TopologyTreeNode topNode = (TopologyTreeNode) node;
+
+					// check if the object got already created:
+					if(! handlerStruct.objsPerTopo.containsKey(topNode.topology)){					
+						ITopologyInputPluginObject pluginObj = plugin.tryToInstantiateObjectFor(topNode.topology);
+						if(pluginObj != null){
+							handlerStruct.objsPerTopo.put(topNode.topology, pluginObj);
+						}
+					}
+				}
+			}
+
+
+			if(isNew && ! handlerStruct.objsPerTopo.isEmpty()){
+				topoPlugins.put(handlerStruct.plugin.getInstanciatedObjectsType(), handlerStruct);
+			}
+		}
+	}
+
+	/**
+	 * Try to get the instantiated topology input plugin for a given topology.
+	 * @param topology
+	 * @param cls
+	 * @return
+	 */
+	public <Type extends ITopologyInputPluginObject> Type getPluginObjectForTopology(TopologyNode topology, Class<Type> cls) {
+		final TopoPluginStruct handlerStruct = topoPlugins.get(cls);
+		if(handlerStruct == null)
+			return null;
+		return (Type) handlerStruct.objsPerTopo.get(topology);
 	}
 }

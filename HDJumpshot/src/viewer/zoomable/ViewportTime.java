@@ -64,6 +64,7 @@ import viewer.common.Debug;
 import viewer.common.ModelInfoPanel;
 import viewer.common.ModelTime;
 import viewer.common.Parameters;
+import viewer.common.Routines;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
 import viewer.dialog.InfoDialog;
@@ -622,7 +623,7 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 				super.setCursor( CustomCursor.HandOpen );
 			}
 		}
-		else if ( SwingUtilities.isRightMouseButton( mouse_evt ) ) {
+		else if ( SwingUtilities.isRightMouseButton( mouse_evt ) && infoTimebox != null ) {			
 			if ( click_time > mouse_pressed_time )
 				infoTimebox.setLatestTime( click_time );
 			else
@@ -650,8 +651,19 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 				info_popup = scrollable.getPropertyAt( view_click );
 			}
 			global_click = new Point( vport_click );
+			
 			SwingUtilities.convertPointToScreen( global_click, this );
-			info_popup.setVisibleAtLocation( global_click );
+			
+			// try to visualize it at the clicked position, however, adjust for the object size:
+			final Dimension prefSize = info_popup.getPreferredSize();
+			final Dimension screenSize = Routines.getScreenSize();
+			
+			final Point position = new Point( 
+					(int) ((prefSize.width + global_click.x) > screenSize.width ? screenSize.width - prefSize.getWidth() : global_click.x),
+					(int) ((prefSize.height + global_click.y) > screenSize.height ? screenSize.height - prefSize.getHeight() : global_click.y));
+			
+			info_popup.setVisibleAtLocation( position );
+			
 			info_popup.getCloseButton().addActionListener( 
 					info_action_listener );
 			info_popup.addWindowListener( info_window_listener );

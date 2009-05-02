@@ -97,7 +97,7 @@ public class Application extends ProjectDescription{
 		for(TopologyNode host: getTopologyRoot().getChildElements().values() ){
 			for(TopologyNode ranks: host.getChildElements().values() ){
 				curRank++;
-				if( ranks.getText().equals(topoName)){
+				if( ranks.getName().equals(topoName)){
 					return curRank;
 				}
 			}

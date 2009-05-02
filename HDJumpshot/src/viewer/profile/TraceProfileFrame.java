@@ -34,6 +34,8 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JButton;
@@ -42,6 +44,7 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import topology.TopologyInputPlugin;
 import topology.TopologyManager;
 import topology.TopologyManagerContents;
 import viewer.common.AbstractTimelineFrame;
@@ -632,4 +635,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	public double getRealModelTimeExtend(){
 		return realModelTime.getViewExtent();
 	}
+	
+	@Override
+	protected List<Class<? extends TopologyInputPlugin>> getAvailablePlugins() {
+		return new LinkedList<Class<? extends TopologyInputPlugin>>();
+	}
+	
 }

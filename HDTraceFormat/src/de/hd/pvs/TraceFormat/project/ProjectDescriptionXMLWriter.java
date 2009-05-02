@@ -113,13 +113,13 @@ public class ProjectDescriptionXMLWriter {
 	private void writeTopologyRecursive(StringBuffer buff, TopologyNode topologyInternalLevel){		
 		if(! topologyInternalLevel.isLeaf()){
 			buff.append("<Label value='" + 
-					XMLHelper.escapeAttribute(topologyInternalLevel.getText()) + "'>\n");
+					XMLHelper.escapeAttribute(topologyInternalLevel.getName()) + "'>\n");
 			for(TopologyNode child: topologyInternalLevel.getChildElements().values()){
 				writeTopologyRecursive(buff, child);
 			}
 			buff.append("</Label>\n");
 		}else{ // add close tag ...
-			buff.append("<Label value='" + XMLHelper.escapeAttribute(topologyInternalLevel.getText())
+			buff.append("<Label value='" + XMLHelper.escapeAttribute(topologyInternalLevel.getName())
 					+ "'/>\n");
 		}
 	}

@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
@@ -41,6 +42,7 @@ import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 
+import topology.TopologyInputPlugin;
 import topology.TopologyManager;
 import topology.TopologyManagerContents;
 import viewer.common.IconManager.IconType;
@@ -126,6 +128,11 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	 * @return
 	 */
 	abstract protected ScrollableObject createCanvasArea();
+	
+	/**
+	 * Return the available plugins for this view.
+	 */
+	abstract protected List<Class<? extends TopologyInputPlugin>> getAvailablePlugins();
 	
 	/** 
 	 * This listener is invoked if the zoomlevel changes
@@ -406,9 +413,20 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		this.reader = reader;				
 
 		this.modelTime = modelTime;
-		this.topologyManager = new TopologyManager(reader, modelTime, getTopologyManagerType());		
+		this.topologyManager = new TopologyManager(reader, modelTime, getTopologyManagerType());
+		
+		fileLoadedNotification();
 		
 		getFrame().setContentPane( createContentPane());		
+	}
+	
+	/**
+	 * When a file gets loaded this function shall be called:
+	 * TODO create a listener for that reason.
+	 */
+	public void fileLoadedNotification(){
+		this.topologyManager.restoreTopology();
+		this.topologyManager.tryToLoadPlugins(getAvailablePlugins());		
 	}
 	
 	protected TopologyManagerContents getTopologyManagerType(){

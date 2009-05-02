@@ -60,6 +60,10 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		return new ReaderTraceElementNestedEnumerator(this);
 	}
 	
+	public ReaderTraceElementEnumerator enumerateTraceEntry(){
+		return new ReaderTraceElementEnumerator(this);
+	}
+	
 	public BufferedTraceFileReader(String filename, boolean nested) throws Exception {
 		super(filename, nested);
 

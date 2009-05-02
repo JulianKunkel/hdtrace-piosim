@@ -594,7 +594,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			case STATE:				
 				return new InfoDialogForTraceEntries((Frame) window,  realTime.subtract(
 						getModelTime().getGlobalMinimum()), realTime, 
-						(TopologyTraceTreeNode) getTopologyManager().getTreeNodeForTimeline(timeline) ,
+						(TopologyTraceTreeNode) getTopologyManager().getTreeNodeForTimeline(timeline),
+						getTopologyManager() ,
 						(TraceEntry) obj);	
 			}
 		}

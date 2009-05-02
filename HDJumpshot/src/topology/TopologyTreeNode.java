@@ -25,7 +25,7 @@
 
 package topology;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.tree.TreeNode;
 
@@ -47,11 +47,19 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 	final TopologyNode topology;
 	final TraceFormatFileOpener file;	
 	
+	/**
+	 * Topology plugins, on each node of each type only one plugin can be active.
+	 */
+	final HashMap<Class<? extends ITopologyInputPluginObject>, ITopologyInputPluginObject> plugins = new HashMap<Class<? extends ITopologyInputPluginObject>, ITopologyInputPluginObject>();
+	
 	abstract public TimelineType getType();
 	
 	public TopologyTreeNode(TopologyNode topNode,  TraceFormatFileOpener file) {
 		this.topology = topNode;
 		this.file = file;
+		
+		// try to apply each topology plugin:
+		
 	}
 	
 	public TopologyNode getTopology() {
@@ -64,7 +72,7 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 	
 	@Override
 	public String toString() {
-		return topology.getText();
+		return topology.getName();
 	}
 	
 	/**
@@ -75,13 +83,11 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 	 */
 	public TopologyTreeNode getParentTreeNodeWithTopologyLabel(String text){
 		// try to parse communicator:
-		final ArrayList<String> labels = file.getTopologyLabels().getLabels();
-		
 		TopologyTreeNode cur = this;
 		
 		// lookup rank up to parent.		
 		while(cur != null){			
-			if(labels.get(cur.getTopology().getDepth()).equalsIgnoreCase(text)){
+			if(cur.getTopology().getLabel().equalsIgnoreCase(text)){
 				// found correct node:
 				return cur;
 			}

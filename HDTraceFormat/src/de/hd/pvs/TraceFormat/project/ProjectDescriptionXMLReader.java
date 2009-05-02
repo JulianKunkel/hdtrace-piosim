@@ -95,7 +95,10 @@ public class ProjectDescriptionXMLReader {
 
 		descriptionInOut.setTopologyLabels(labels);
 
-		descriptionInOut.setTopologyRoot( parseTopology(-1, xmlTopology, descriptionInOut.getFilesPrefix(), null) );
+		descriptionInOut.setTopologyRoot( 
+				parseTopology(0, xmlTopology,
+						new TopologyNode(descriptionInOut.getFilesPrefix(), null, "File"), 
+						descriptionInOut) );
 
 		// parse the descriptions of the external statistics:
 		XMLTag element = rootTag.getAndRemoveFirstNestedXMLTagWithName("ExternalStatistics");
@@ -256,18 +259,23 @@ public class ProjectDescriptionXMLReader {
 	}
 
 
-	private TopologyNode parseTopology(int depth, XMLTag xmlTopology, String name, TopologyNode parent){		
-		final LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label");
-
-		TopologyNode level = new TopologyNode(name, depth , parent);
-
+	private TopologyNode parseTopology(int depth, XMLTag xmlTopology, TopologyNode topoNode, ProjectDescription desc){		
+		final LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label");		
+		
 		for(XMLTag tag: children){
-			String childName = tag.getAttribute("value");
+			final String childName = tag.getAttribute("value");
 
-			parseTopology(depth + 1, tag,  childName, level);			
+			String label = xmlTopology.getAttribute("label");
+			if( label == null ){
+				label = desc.getTopologyLabel(depth);
+			}
+
+			TopologyNode childNode = new TopologyNode(childName, topoNode, label);
+			
+			parseTopology(depth + 1, tag, childNode, desc);			
 		}
 
-		return level;
+		return topoNode;
 	}
 
 

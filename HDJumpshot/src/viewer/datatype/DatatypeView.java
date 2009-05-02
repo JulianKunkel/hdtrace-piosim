@@ -224,7 +224,11 @@ public class DatatypeView {
 			parent.setPreferredSize(currentSize);
 			parent.setSize(currentSize);
 			((JComponent) parent).revalidate();
-			((JComponent) scrollPane.getParent()).revalidate();
+			
+			if(scrollPane.getParent() != null){
+				// adjust size of scrollPane
+				((JComponent) scrollPane.getParent()).revalidate();
+			}
 		}
 
 

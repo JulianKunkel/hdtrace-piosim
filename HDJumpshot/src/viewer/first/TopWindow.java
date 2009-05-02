@@ -29,7 +29,6 @@ public abstract class TopWindow {
 	private boolean visibleTheFirstTime = true;
 	
 	private VisibilityListenerAdapter listener;
-	
 	/**
 	 * Only one visibility listener can be set. Be careful to free pointers to a frame or components
 	 * in the frame that it can be cleaned up by garbage collection. 

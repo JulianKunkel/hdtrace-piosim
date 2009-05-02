@@ -31,8 +31,8 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
-import de.hd.pvs.TraceFormat.statistics.StatisticsWriter;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -68,12 +68,12 @@ public class TraceFormatWriter {
 	public TraceFormatWriter(String resultFile, TopologyLabels labels) {
 		outProject.setProjectFilename(resultFile);
 		
-		outProject.setTopologyRoot( new TopologyNode(outProject.getFilesPrefix(), -1, null));
+		outProject.setTopologyRoot( new TopologyNode(outProject.getFilesPrefix(), null, null));
 		outProject.setTopologyLabels(labels);
 	}
 	
 	/**
-	 * Create the topology in the project description. 
+	 * Create the topology in the project description. Uses the default labels for each topology node.
 	 * All parent topologies required are created.
 	 * @param topology
 	 * @return
@@ -92,7 +92,7 @@ public class TraceFormatWriter {
 			if( child == null){
 				// create all the next ones.
 				for(int n = p ; n < topology.length; n++){
-					cur = new TopologyNode(topology[n], p, cur);
+					cur = new TopologyNode(topology[n], cur, outProject.getTopologyLabel(p));
 					initalizeTopologyInternal(cur);
 				}
 				return cur;

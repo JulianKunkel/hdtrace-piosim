@@ -26,6 +26,7 @@ import topology.TopologyInnerNode;
 import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
+import viewer.timelines.topologyPlugins.MPIConstants;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
@@ -35,9 +36,6 @@ import de.hd.pvs.TraceFormat.topology.TopologyNode;
  * @author Julian M. Kunkel
  */
 public class RankTopologyMapping extends DefaultTopologyTreeMapping{
-	
-	static final String RANKTOPO="rank";
-
 	@Override
 	public SortedJTreeNode createTopology(TraceFormatBufferedFileReader reader) {
 		final SortedJTreeNode treeRoot = new SortedJTreeNode("HDTrace");		
@@ -48,7 +46,7 @@ public class RankTopologyMapping extends DefaultTopologyTreeMapping{
 			final ArrayList<String> list = file.getTopologyLabels().getLabels();
 			
 			for(int i=0 ; i < list.size() ; i++){
-				if(list.get(i).compareToIgnoreCase(RANKTOPO) == 0){
+				if(list.get(i).compareToIgnoreCase(MPIConstants.RANK_TOPOLOGY) == 0){
 					
 					final TopologyTreeNode fileNode = new TopologyInnerNode(file.getTopology(), file);
 					addTopologyTreeNode(fileNode, treeRoot);    	
@@ -84,7 +82,7 @@ public class RankTopologyMapping extends DefaultTopologyTreeMapping{
 		for(int f = 0 ; f < reader.getNumberOfFilesLoaded(); f++){
 			final TraceFormatFileOpener file=reader.getLoadedFile(f);
 			for(String label: file.getTopologyLabels().getLabels()){
-				if(label.compareToIgnoreCase(RANKTOPO) == 0){
+				if(label.compareToIgnoreCase(MPIConstants.RANK_TOPOLOGY) == 0){
 					return true;
 				}
 			}

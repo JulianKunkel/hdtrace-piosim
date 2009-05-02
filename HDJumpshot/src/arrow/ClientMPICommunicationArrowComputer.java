@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import viewer.timelines.topologyPlugins.MPIConstants;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
@@ -135,7 +136,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			for(final String label: file.getTopologyLabels().getLabels()){
 				rankDepth++;
 
-				if(label.equals("Rank")){
+				if(label.equals(MPIConstants.RANK_TOPOLOGY)){
 					break;
 				}				
 			}
@@ -156,7 +157,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlyRcvs = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();
 
 			for(final TopologyNode rankTopo: rankTopos){
-				final int rank = Integer.parseInt(rankTopo.getText());				
+				final int rank = Integer.parseInt(rankTopo.getName());				
 				
 				// unmatched sends and receives of the current rank:
 				final HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyRankSends = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();

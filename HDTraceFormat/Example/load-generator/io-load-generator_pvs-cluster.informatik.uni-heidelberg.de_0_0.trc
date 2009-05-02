@@ -20,12 +20,8 @@
 </File_set_view>
 <Barrier cid='0'  time='1240651036.322814' end='1240651036.322816'  />
 <Barrier cid='0'  time='1240651036.322818' end='1240651036.322820'  />
-<File_write_at fid='0'  time='1240651036.331526' end='1240651036.332355' >
-  <Data offset='0' size='501760' count='501760' tid='1275068685' />
-</File_write_at>
-<File_write_at fid='0'  time='1240651036.332362' end='1240651036.332986' >
-  <Data offset='501760' size='501760' count='501760' tid='1275068685' />
-</File_write_at>
+<File_write_at fid='0'  time='1240651036.331526' end='1240651036.332355' offset='0' size='501760' count='501760' tid='1275068685' />
+<File_write_at fid='0'  time='1240651036.332362' end='1240651036.332986' offset='501760' size='501760' count='501760' tid='1275068685' />
 <File_close fid='0'  time='1240651036.336273' end='1240651036.336296'  />
 <Reduce size='8' rootRank='0' cid='0' count='1' tid='1275070475'  time='1240651036.336303' end='1240651036.336341'  />
 <Reduce size='8' rootRank='0' cid='0' count='1' tid='1275070475'  time='1240651036.336344' end='1240651036.336347'  />

@@ -40,9 +40,11 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.AbstractTableModel;
 
+import topology.TopologyManager;
 import topology.TopologyTraceTreeNode;
-import topology.TopologyTreeNode;
 import viewer.datatype.DatatypeView;
+import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
+import viewer.timelines.topologyPlugins.MPIThreadInputPlugin.MPIThreadObject;
 import de.hd.pvs.TraceFormat.project.CommunicatorInformation;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
@@ -69,15 +71,16 @@ public class InfoDialogForTraceEntries extends InfoDialog
 	private void addTableData(String key, Object value){
 		tableData.add(new InfoTableData(key, value));
 	}
-	
+
 	private void addTableDataNested(String key, Object value){
 		addTableData("  " + key, value);
 	}
 
 	public InfoDialogForTraceEntries( final Frame     frame, 
-			final Epoch    clicked_time,
+			final Epoch clicked_time,
 			final Epoch realModelTimeStart,
-			TopologyTraceTreeNode topologyTreeNode, 
+			TopologyTraceTreeNode topologyTreeNode,
+			TopologyManager manager,
 			TraceEntry obj)
 	{
 		super( frame, "TraceEntry Info Box", clicked_time, realModelTimeStart);
@@ -103,14 +106,18 @@ public class InfoDialogForTraceEntries extends InfoDialog
 			break;
 		}
 
-		// try to parse communicator:
-		final TopologyTreeNode rankNode = topologyTreeNode.getParentTreeNodeWithTopologyLabel("rank");
-		if(rankNode != null){
+		// scan for plugins:
+		MPIThreadObject threadObj = manager.getPluginObjectForTopology(topologyTreeNode.getTopology(), 
+				MPIThreadObject.class);
+
+		if(threadObj != null){
 			// got a rank:
-			final Integer rank = Integer.parseInt(rankNode.getTopology().getText());						
+			final MPIRankObject rankObj = threadObj.getParentRankObject();
+			final Integer rank = rankObj.getRank();
+
 			if (rank != null){
 				addTableData("Rank" , rank);
-				final ProjectDescription desc = rankNode.getFile().getProjectDescription();
+				final ProjectDescription desc = topologyTreeNode.getFile().getProjectDescription();
 
 				final String cids = obj.getAttribute("cid");
 				if(cids != null){			
@@ -121,27 +128,47 @@ public class InfoDialogForTraceEntries extends InfoDialog
 				}
 
 				// parse type information:				
-				addDatatypeView("Datatype", rank, desc, obj.getAttribute("tid"), panel);
+				addDatatypeView("Memory Datatype", rank, desc, obj.getAttribute("tid"), panel);
 				addDatatypeView("File datatype", rank, desc, obj.getAttribute("filetid"), panel);
-				addDatatypeView("Elementary file datatype", rank, desc, obj.getAttribute("etid"), panel);
-			}
+				addDatatypeView("Elementary file datatype", rank, desc, obj.getAttribute("etid"), panel);				
+
+				final String fidStr = obj.getAttribute("fid");
+				if(fidStr != null){
+					// it might be a file command.					
+					final TraceEntry fopen = rankObj.getPreviousFileOpen(realModelTimeStart, fidStr);
+					if(fopen != null){
+						addTableData("Filename", fopen.getAttribute("name"));
+					}
+
+					final String sizeStr = obj.getAttribute("size");
+					if(sizeStr != null){
+						addTableDataNested("size: ", sizeStr);
+						
+						final TraceEntry fview = rankObj.getPreviousFileSetView(realModelTimeStart, fidStr);
+						if(fview != null){
+							addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"), panel);
+							addDatatypeView("Elementary file datatype", rank, desc, fview.getAttribute("etid"), panel);	
+						}
+					}
+				}
+			}		
 		}
 
 		if(tableData.size() > 0){
 			table.setModel(new AbstractTableModel() {
 				private static final long serialVersionUID = -3419029365708534895L;
-				
+
 				public String getColumnName(int column) { return null; }
 				public int getRowCount() { return tableData.size(); }
 				public int getColumnCount() { return 2; }
-				
+
 				public Object getValueAt(int row, int col) { 
 					if(col == 0)
 						return tableData.get(row).key;
 					else
 						return tableData.get(row).value;
 				}
-				
+
 				public boolean isCellEditable(int row, int column) { return false; }
 				public void setValueAt(Object value, int row, int col) {}
 			});
@@ -161,7 +188,7 @@ public class InfoDialogForTraceEntries extends InfoDialog
 
 		panel.add(jtxt);
 
-		panel.add( super.getCloseButtonPanel() );
+		panel.add( super.getCloseButtonPanel() );		
 	}
 
 	private void addDatatypeView(String forWhat, int rank, ProjectDescription desc, String xmlStr, Container panel){
@@ -178,7 +205,7 @@ public class InfoDialogForTraceEntries extends InfoDialog
 			final long tid = Long.parseLong(xmlStr);			
 
 			Datatype type = typeMap.get(tid);
-			
+
 			if(type == null){
 				System.err.println("Warning: type: " + tid + " not found for rank: " + rank);
 				return;

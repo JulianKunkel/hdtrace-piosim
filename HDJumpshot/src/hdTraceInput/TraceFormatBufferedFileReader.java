@@ -43,8 +43,8 @@ import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -64,7 +64,6 @@ import drawable.CategoryStatistic;
  *
  */
 public class TraceFormatBufferedFileReader {
-
 	private Epoch globalMinTime = new Epoch(Integer.MAX_VALUE, 0);
 	private Epoch globalMaxTime = new Epoch(Integer.MIN_VALUE, -1);
 
@@ -221,7 +220,8 @@ public class TraceFormatBufferedFileReader {
 
 		// determine global min/maxtime
 		TopologyNode rootTopology = fileOpener.getTopology();
-
+		
+		// update global values & categories
 		for(TopologyNode topology: rootTopology.getSubTopologies()){
 			setGlobalValuesOnStatistics(topology.getStatisticsSources().values());
 

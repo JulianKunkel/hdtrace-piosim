@@ -39,16 +39,21 @@ import hdTraceInput.TraceFormatBufferedFileReader;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import topology.TopologyInputPlugin;
 import viewer.common.AbstractTimelineFrame;
 import viewer.common.IconManager;
 import viewer.common.ModelInfoPanel;
 import viewer.common.ModelTime;
 import viewer.common.TimelineToolBar;
 import viewer.common.IconManager.IconType;
+import viewer.timelines.topologyPlugins.MPIRankInputPlugin;
+import viewer.timelines.topologyPlugins.MPIThreadInputPlugin;
 import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
@@ -116,5 +121,15 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 	protected ScrollableObject createCanvasArea() {
 		return new CanvasTimeline( getScrollbarTimeModel(), getTimeCanvasVport(), 
 				getReader(),  getYModel(), getTopologyManager());
+	}
+	
+	@Override
+	protected List<Class<? extends TopologyInputPlugin>> getAvailablePlugins() {
+		LinkedList<Class<? extends TopologyInputPlugin>> plugins = new LinkedList<Class<? extends TopologyInputPlugin>>();
+		
+		plugins.add(MPIRankInputPlugin.class);
+		plugins.add(MPIThreadInputPlugin.class);
+		
+		return plugins;
 	}
 }

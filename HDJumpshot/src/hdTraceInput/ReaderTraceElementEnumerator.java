@@ -43,6 +43,15 @@ public class ReaderTraceElementEnumerator implements Enumeration<TraceEntry>{
 	final protected ArrayList<TraceEntry> entries;	
 	final protected Epoch endTime;
 	
+	/**
+	 * Read all trace elements
+	 * @param reader
+	 */
+	public ReaderTraceElementEnumerator(BufferedTraceFileReader reader) {
+		this.endTime = new Epoch(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		this.curPos = 0;
+		this.entries = reader.getTraceEntries();
+	}
 	
 	public ReaderTraceElementEnumerator(BufferedTraceFileReader reader, Epoch startTime, Epoch endTime) {
 		this.curPos = reader.getFirstTraceEntryPositionOverlappingOrLaterThan(startTime);
