@@ -135,3 +135,6 @@ int MPI_Type_vector(int, int, int, MPI_Datatype, MPI_Datatype *);
 int MPI_Type_commit(MPI_Datatype *);
 
 int MPI_File_set_view(MPI_File, MPI_Offset, MPI_Datatype, MPI_Datatype, char *, MPI_Info);
+
+int MPI_Type_free(MPI_Datatype *);
+int MPI_Comm_free(MPI_Comm *);

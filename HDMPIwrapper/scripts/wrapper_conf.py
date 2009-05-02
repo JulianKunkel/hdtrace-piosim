@@ -121,6 +121,10 @@ beforeMpi = {
   gint pre_close_id = getFileId(*v1);
   removeFileHandle(*v1);
 """,
+
+  "Type_free" : """gint old_tid = getTypeId(*v1); removeType(*v1)""",
+
+  "Comm_free" : """gint old_cid = getCommId(*v1); removeComm(*v1)""",
 }
 
 
@@ -222,6 +226,8 @@ afterMpi = {
 #      }
 #    }
 # """,
+
+
 }
 
 
@@ -366,8 +372,8 @@ logAttributes = {
                   "pre_close_id"),
 
    
-  "File_delete" : ("fid='%d'", 
-                   "getFileIdFromName(v1)"),
+  "File_delete" : ("fid='%d' name='%s'", 
+                   "getFileIdFromName(v1), v1"),
 
   "File_write" :        ("fid='%d' offset='%lld' size='%lld' count='%d' tid='%d'", 
                          "getFileId(v1), byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4)"),
@@ -501,6 +507,12 @@ logAttributes = {
 
   "Type_commit" : ("tid='%d'", 
                    "getTypeId(*v1)"),
+
+  "Type_free" : ("tid='%d'", 
+                 "old_tid"),
+
+  "Comm_free" : ("cid='%d'",
+                 "old_cid")
 }
 
 

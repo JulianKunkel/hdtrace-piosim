@@ -121,11 +121,20 @@ int main (int argc, char** argv)
 	MPI_Type_vector(5, 6, 7, type2, &type1);
 	MPI_Type_commit(&type1);
 
+	MPI_Type_free(&type1);
+	MPI_Type_vector(5, 6, 7, type2, &type1);
+	MPI_Type_commit(&type1);
+
+	MPI_Type_free(&type1);
+	MPI_Type_vector(5, 6, 7, type2, &type1);
+	MPI_Type_commit(&type1);
+
+
 	MPI_Type_size(type1, &size);
 	printf("size=%d\n", size);
 	//size = 10000;
 	char *send = malloc(size);
-	MPI_Bcast(send, 1, type2, 0, MPI_COMM_WORLD);
+	MPI_Bcast(send, 1, type1, 0, MPI_COMM_WORLD);
 
 	MPI_Finalize();
 

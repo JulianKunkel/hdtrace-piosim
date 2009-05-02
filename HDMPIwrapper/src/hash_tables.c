@@ -93,6 +93,14 @@ static gint getCommId(MPI_Comm comm)
 }
 
 /**
+ * remove \a comm from the communicator lookup table
+ */
+static void removeComm(MPI_Comm comm)
+{
+	g_hash_table_remove(comm_to_id, &comm);
+}
+
+/**
  * This variable holds a pointer to a hash table that maps
  * an MPI file handle to an ID that has been assigned to the
  * file handle.
@@ -119,6 +127,8 @@ __thread GHashTable *file_name_to_id = NULL;
  * \a file_id_counter is taken as id and \a file_id_counter is incremented.
  */
 __thread gint file_id_counter = 0;
+
+
 
 /**
  * This function returns the unique ID that has been assigned to the
@@ -310,12 +320,20 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 __thread GHashTable *type_table = NULL;
 
 /**
- * This is the value that is saved in \a type_table for every
- * type that is listed in the map. We don't need to create
- * new IDs because we can cast the MPI_Datatype to an int and
- * use that as ID.
+ * counter for type IDs. Incremented on each ID assignment in
+ * \a getTypeId()
  */
-__thread gint type_table_result = 1; // what is returned when the type is found in type_table
+__thread gint type_id_counter = 0;
+
+guint hash_MPI_Type(gconstpointer key)
+{
+	return (guint)*(MPI_Datatype*)key;
+}
+
+gboolean equal_MPI_Type(gconstpointer a, gconstpointer b)
+{
+	return *(MPI_Datatype*)a == *(MPI_Datatype*)b;
+}
 
 /**
  * This function returns the ID that is associated with the
@@ -328,18 +346,30 @@ static gint getTypeId(MPI_Datatype type)
 
 	if(type_table == NULL)
 	{
-		type_table = g_hash_table_new_full(g_int_hash, g_int_equal, free, NULL);
+		// TODO: use datatype hash, implement == for datatypes
+		type_table = g_hash_table_new_full(hash_MPI_Type, equal_MPI_Type, free, free);
 	}
 	gpointer result = g_hash_table_lookup(type_table, &type);
 	if(result == NULL)
 	{
-		gint * g_type = malloc(sizeof(gint));
-		*g_type = (gint)type;
-		g_hash_table_insert(type_table, g_type, &type_table_result);
+		MPI_Datatype * m_type = malloc(sizeof(MPI_Datatype));
+		*m_type = type;
+		gint * g_id = malloc(sizeof(gint));
+		*g_id = type_id_counter;
+		type_id_counter++;
 
-		writeTypeInfo(type, (gint)type);
+		g_hash_table_insert(type_table, m_type, g_id);
+
+		writeTypeInfo(type, *g_id);
+		
+		return *g_id;
 	}
-	return (gint)type;
+	return *(gint*)result;
+}
+
+static void removeType(MPI_Datatype type)
+{
+	g_hash_table_remove(type_table, &type);
 }
 
 /**

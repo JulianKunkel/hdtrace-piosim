@@ -41,15 +41,15 @@ the output file.
 $ mpiexec -n 5 ./mpi-io-test
 $ ls -1 mpi-io-test*
 mpi-io-test_node01_0_0.info
-mpi-io-test_node01_0_0.xml
+mpi-io-test_node01_0_0.trc
 mpi-io-test_node01_2_0.info
-mpi-io-test_node01_2_0.xml
+mpi-io-test_node01_2_0.trc
 mpi-io-test_node01_4_0.info
-mpi-io-test_node01_4_0.xml
+mpi-io-test_node01_4_0.trc
 mpi-io-test_node02_1_0.info
-mpi-io-test_node02_1_0.xml
+mpi-io-test_node02_1_0.trc
 mpi-io-test_node02_3_0.info
-mpi-io-test_node02_3_0.xml
+mpi-io-test_node02_3_0.trc
 
 #
 # to process the output, call this script:
@@ -290,12 +290,12 @@ def topology_string(logfiles):
    """
    out = ""
    out += (" <Topology>\n")
-   out += ('  <Level name="Hostname">\n')
-   out += ('   <Level name="Rank">\n')
-   out += ('    <Level name="Thread">\n')
-   out += ('    </Level>\n')
-   out += ('   </Level>\n')
-   out += ('  </Level>\n\n')
+   out += ('  <Label name="Hostname">\n')
+   out += ('   <Label name="Rank">\n')
+   out += ('    <Label name="Thread">\n')
+   out += ('    </Label>\n')
+   out += ('   </Label>\n')
+   out += ('  </Label>\n\n')
 
    description2 = logfiles
    description2.sort()
@@ -313,13 +313,13 @@ def topology_string(logfiles):
             level_1[names[1]][names[2]].append(names[3])
 
    for l1 in level_1:
-      out += ('  <Label value="%s">\n' % l1 )
+      out += ('  <Node name="%s">\n' % l1 )
       for l2 in level_1[l1]:
-         out += ('   <Label value="%s">\n' % l2 )
+         out += ('   <Node name="%s">\n' % l2 )
          for l3 in level_1[l1][l2]:
-            out += ('    <Label value="%s" />\n' % l3)
-         out += ('   </Label>\n')
-      out += ('  </Label>\n')
+            out += ('    <Node name="%s" />\n' % l3)
+         out += ('   </Node>\n')
+      out += ('  </Node>\n')
 
    out += (" </Topology>\n\n")
 
