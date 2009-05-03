@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
+import de.hd.pvs.TraceFormat.project.datatypes.ContiguousDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.project.datatypes.DatatypeEnum;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
@@ -163,11 +164,15 @@ public class ProjectDescriptionXMLReader {
 		Datatype datatype = null;
 
 		switch(type){		
-		//case CONTIGUOUS:{
-		//	int prev = xml.getAttribute(")
-		//	datatype = new ContiguousDatatype();
-		//	break;
-		case NAMED:{
+		case CONTIGUOUS:{						
+			long oldType = Long.parseLong(xml.getAttribute("oldType"));
+			final Datatype old = datatypeMapping.get(oldType);
+			int count = Integer.parseInt(xml.getAttribute("count"));
+			
+			datatype = new ContiguousDatatype(old, count);			
+			
+			break;
+		}case NAMED:{
 			String name = xml.getAttribute("name").replace("MPI_", "");
 			
 			datatype = new NamedDatatype(NamedDatatype.NamedDatatypeType.valueOf(name));

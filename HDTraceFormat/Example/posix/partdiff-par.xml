@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><Application name="partdiff-par" processCount="0">
+<Description></Description>
+ <FileList>
+ </FileList>
+
+ <Topology>
+  <Level name="Hostname">
+   <Level name="Rank">
+    <Level name="Thread">
+    </Level>
+   </Level>
+  </Level>
+
+  <Label value="node08">
+   <Label value="1">
+    <Label value="0" />
+   </Label>
+  </Label>
+  <Label value="node09">
+   <Label value="0">
+    <Label value="0" />
+   </Label>
+  </Label>
+  <Label value="node07">
+   <Label value="2">
+    <Label value="0" />
+   </Label>
+  </Label>
+ </Topology>
+
+ <CommunicatorList>
+  <Communicator name="WORLD">
+   <Rank name="0" cid="0" />
+   <Rank name="1" cid="1" />
+   <Rank name="2" cid="2" />
+  </Communicator>
+ </CommunicatorList>
+
+ <Datatypes>
+  <Rank name="0">
+  <NAMED id="1275070475" name="MPI_DOUBLE"  />
+  <VECTOR id="-1946157051" name="" count="270" blocklength="1" stride="810" oldType="1275070475"  />
+  </Rank>
+  <Rank name="1">
+  <NAMED id="1275070475" name="MPI_DOUBLE"  />
+  <VECTOR id="-1946157051" name="" count="270" blocklength="1" stride="810" oldType="1275070475"  />
+  </Rank>
+  <Rank name="2">
+  <NAMED id="1275070475" name="MPI_DOUBLE"  />
+  <VECTOR id="-1946157051" name="" count="269" blocklength="1" stride="810" oldType="1275070475"  />
+  </Rank>
+ </Datatypes>
+</Application>

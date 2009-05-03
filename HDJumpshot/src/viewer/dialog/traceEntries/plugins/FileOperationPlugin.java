@@ -1,14 +1,19 @@
 package viewer.dialog.traceEntries.plugins;
 
 import java.awt.Color;
+import java.util.HashMap;
 
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import viewer.datatype.UnrolledDatatypeView;
 import viewer.dialog.traceEntries.InfoTableData;
 import viewer.dialog.traceEntries.ResizeListener;
 import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
 import viewer.timelines.topologyPlugins.MPIThreadInputPlugin.MPIThreadObject;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
+import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -34,29 +39,59 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 		// parse type information:				
 		addDatatypeView("File datatype", rank, desc, obj.getAttribute("filetid"), resizeListener, panel);
 		addDatatypeView("Elementary file datatype", rank, desc, obj.getAttribute("etid"),resizeListener, panel);				
-		
+
 		final String fidStr = obj.getAttribute("fid");
-				
+
 		if(fidStr != null){
 			// it might be a file command.					
 			final TraceEntry fopen = rankObj.getPreviousFileOpen(obj.getEarliestTime(), fidStr);
-			
+
 			if(fopen == null){
 				System.err.println("Warning no previous open found for fid: " + fidStr +  " t: " + obj.getEarliestTime());
-				
+
 				return;
 			}
-			
+
 			textData.addSection("File operation", getColor());
 			textData.addData("file name", fopen.getAttribute("name"));			
 
-			final String sizeStr = obj.getAttribute("size");
+			final String sizeStr = obj.getAttribute("size");			
 			if(sizeStr != null){
 				textData.addData("size: ", sizeStr);
+				final long size = Long.parseLong(sizeStr);
+				final String offsetStr = obj.getAttribute("offset");
+				final long offset = Long.parseLong(offsetStr);
+				
+				textData.addData("offset", offset);
 
 				final TraceEntry fview = rankObj.getPreviousFileSetView(obj.getEarliestTime(), fidStr);
 				if(fview != null){
-					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"),resizeListener, panel);	
+					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"), resizeListener, panel);	
+				}
+
+				if(offsetStr != null){
+					final JLabel label = new JLabel("Accessed bytes:");
+					label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+					panel.add(label);
+					
+					if(fview != null){
+						final HashMap<Long, Datatype> typeMap = desc.getDatatypeMap(rank);  
+						if(typeMap == null){
+							System.err.println("Type map not available for rank: " + rank);
+							return;
+						}
+						final long tid = Long.parseLong(fview.getAttribute("filetid"));			
+
+						final Datatype ftype = typeMap.get(tid);
+						final Datatype etype = typeMap.get(Long.parseLong(fview.getAttribute("etid")));
+					//final long viewOffset = Long.parseLong(fview.getAttribute("offset"));
+
+						panel.add(new UnrolledDatatypeView(ftype, size,  
+								offset * etype.getExtend()).getScrollPane());
+					}else{
+						// no view set, therefore use null						
+						panel.add(new UnrolledDatatypeView(null, size, offset).getScrollPane());
+					}
 				}
 			}
 		}

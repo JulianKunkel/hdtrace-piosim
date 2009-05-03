@@ -1,0 +1,27 @@
+<Program rank='0' thread='0'>
+<File_open comm='0' name='pvfs2://pvfs2/testfile' flags='9' file='0'  time='1240059588.249851' end='1240059588.282639'  />
+<File_seek file='0' relative-offset='0' whence='Set' offset='0'  time='1240059588.282653' end='1240059588.282678'  />
+<Barrier comm='0'  time='1240059588.282683' end='1240059588.283825'  />
+<File_write_all file='0'  time='1240059588.283833' end='1240059588.532479' >
+  <Data offset='0' size='16777216' count='16777216' type='1275068673' />
+</File_write_all>
+<File_close file='0'  time='1240059588.532494' end='1240059588.532539'  />
+<Barrier comm='0'  time='1240059588.532544' end='1240059588.569195'  />
+<File_open comm='0' name='pvfs2://pvfs2/testfile' flags='9' file='0'  time='1240059588.569200' end='1240059588.570883'  />
+<File_seek file='0' relative-offset='0' whence='Set' offset='0'  time='1240059588.570892' end='1240059588.570902'  />
+<Barrier comm='0'  time='1240059588.570906' end='1240059588.571027'  />
+<FileRead file='0'  time='1240059588.571034' end='1240059588.915982' >
+  <Data offset='0' size='16777216' count='16777216' type='1275068673' />
+</FileRead>
+<File_close file='0'  time='1240059588.915997' end='1240059588.916020'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.916025' end='1240059588.916405'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.916410' end='1240059588.916593'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.916597' end='1240059588.916770'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.916776' end='1240059588.916922'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.916927' end='1240059588.917072'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.917076' end='1240059588.917221'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.917226' end='1240059588.917371'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.917377' end='1240059588.917521'  />
+<Finalize  time='1240059588.921099' end='1240059588.922227'  />
+</Program>
+

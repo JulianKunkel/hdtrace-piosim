@@ -107,7 +107,7 @@ class JDatatype extends JPanel{
 		}case STRUCT:{
 			StructDatatype type = (StructDatatype) datatype;
 
-			int lastPos = 0;
+			long lastPos = 0;
 			for(int i=0; i < type.getCount(); i++){
 				final StructType childType = type.getType(i);
 

@@ -1,0 +1,27 @@
+<Program rank='1' thread='0'>
+<File_open comm='0' name='pvfs2://pvfs2/testfile' flags='9' file='0'  time='1240059588.302145' end='1240059588.331207'  />
+<File_seek file='0' relative-offset='16777216' whence='Set' offset='16777216'  time='1240059588.331222' end='1240059588.331247'  />
+<Barrier comm='0'  time='1240059588.331252' end='1240059588.331433'  />
+<File_write_all file='0'  time='1240059588.331443' end='1240059588.544860' >
+  <Data offset='16777216' size='16777216' count='16777216' type='1275068673' />
+</File_write_all>
+<File_close file='0'  time='1240059588.544875' end='1240059588.544907'  />
+<Barrier comm='0'  time='1240059588.544912' end='1240059588.616819'  />
+<File_open comm='0' name='pvfs2://pvfs2/testfile' flags='9' file='0'  time='1240059588.616825' end='1240059588.618429'  />
+<File_seek file='0' relative-offset='16777216' whence='Set' offset='16777216'  time='1240059588.618438' end='1240059588.618448'  />
+<Barrier comm='0'  time='1240059588.618452' end='1240059588.618609'  />
+<FileRead file='0'  time='1240059588.618616' end='1240059588.914741' >
+  <Data offset='16777216' size='16777216' count='16777216' type='1275068673' />
+</FileRead>
+<File_close file='0'  time='1240059588.914756' end='1240059588.914780'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.914785' end='1240059588.963960'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.963966' end='1240059588.964156'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.964161' end='1240059588.964318'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.964331' end='1240059588.964469'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.964474' end='1240059588.964618'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.964631' end='1240059588.964767'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.964772' end='1240059588.964916'  />
+<Allreduce size='8' comm='0' count='1' type='1275070475'  time='1240059588.964929' end='1240059588.965066'  />
+<Finalize  time='1240059588.968179' end='1240059588.969583'  />
+</Program>
+
