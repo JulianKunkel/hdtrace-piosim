@@ -43,7 +43,6 @@ class UnrolledJDatatype extends JPanel{
 	private void addSimpleReferenceType(JPanel panel, Datatype type, long unrollSize, long offset){
 		final UnrolledJDatatype jdataType = new UnrolledJDatatype(view, type);		
 		jdataType.createIt(unrollSize, offset);
-
 		panel.add(jdataType);
 	}
 
@@ -71,33 +70,35 @@ class UnrolledJDatatype extends JPanel{
 		// now we know there aint any offset
 
 		if(repeats != 1){
+			
+			// try to compress named datatypes into view:
 			if(type.getType() == DatatypeEnum.NAMED){
 				JLabel label = new JLabel("" + (type.getSize() * repeats));
 				label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 				label.setToolTipText("Datatype " + ((NamedDatatype) type).getPrimitiveType() + " repeats: " + repeats);								
 				panel.add(label);
+				label.setBackground(JDatatype.getBackgroundColor(type));
+				label.setOpaque(true);
+				
 				return;
 			}
-			final UnrolledJDatatype jdataType = new UnrolledJDatatype(view, type);		
-			jdataType.createIt(unrollSize, offset);
-
 			final JPanel refPanel = new JPanel(); 
 			refPanel.setLayout(new BoxLayout(refPanel, BoxLayout.Y_AXIS));
 
 			JLabel label = new JLabel(repeats + " x");
 			label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 			label.setToolTipText("Number of repeats");
+			label.setOpaque(false);
 
 			refPanel.add(label);
 
-			refPanel.add(jdataType);
+			addSimpleReferenceType(refPanel, type, unrollSize, offset);
+			
+			refPanel.setOpaque(false);
 
 			panel.add(refPanel);
 		}else{
-			final UnrolledJDatatype jdataType = new UnrolledJDatatype(view, type);		
-			jdataType.createIt(unrollSize, offset);
-
-			panel.add(jdataType);
+			addSimpleReferenceType(panel, type, unrollSize, offset);
 		}
 
 		return;
@@ -109,11 +110,7 @@ class UnrolledJDatatype extends JPanel{
 
 		setHorizontalTypePanel(this);
 
-		final UnrolledJDatatypeHole hole = new UnrolledJDatatypeHole(size); 
-
-		panel.add(hole);
-
-		view.addHole(hole);
+		addSimpleHole(panel, size);
 	}
 
 	/**
@@ -168,7 +165,7 @@ class UnrolledJDatatype extends JPanel{
 			final JLabel label = new JLabel( );
 			label.setBackground(Color.BLACK);
 			label.setOpaque(true);
-
+			
 			if(unrollSize < size){
 				label.setText("" + unrollSize);
 				label.setBackground(Color.PINK);
@@ -267,8 +264,6 @@ class UnrolledJDatatype extends JPanel{
 
 				maxFullRepeats = maxFullRepeats <= childType.getBlocklen() ? maxFullRepeats : childType.getBlocklen();  
 
-				System.out.println(" STRUCT " + maxFullRepeats);
-
 				if(maxFullRepeats > 0 ){
 					addReferenceType(childType.getType(), maxFullRepeats, typeSize, 0);
 
@@ -317,11 +312,16 @@ class UnrolledJDatatype extends JPanel{
 					final JLabel label = new JLabel( fullRepeats + " x");
 					label.setToolTipText("Number of iterations");
 					label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+					label.setOpaque(false);
+					
 					yPanel.add(label);					
-					yPanel.setBorder(view.getDatatypeBorder());
+					yPanel.setBorder(view.getDatatypeBorder());		
 				}
 
+				yPanel.setOpaque(false);			
+				
 				final JPanel xPanel = new JPanel();
+				xPanel.setOpaque(false);
 				xPanel.setLayout(new BoxLayout(xPanel,  BoxLayout.X_AXIS));
 
 				addSimpleReferenceType(xPanel, type.getPrevious(), typeSize, 0);
@@ -353,6 +353,7 @@ class UnrolledJDatatype extends JPanel{
 		this.datatype = datatype;
 		this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));		
 
+		this.setBackground(JDatatype.getBackgroundColor(datatype));
 		this.setBorder(view.getDatatypeBorder());
 	}
 

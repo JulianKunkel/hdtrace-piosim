@@ -28,7 +28,6 @@ public class UnrolledDatatypePanel extends JPanel{
 
 	final private UnrolledDatatypeView view;
 
-
 	public UnrolledDatatypePanel(UnrolledDatatypeView view) {
 		this.view = view;
 	}

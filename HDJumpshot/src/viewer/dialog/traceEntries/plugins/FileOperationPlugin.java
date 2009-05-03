@@ -69,10 +69,12 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"), resizeListener, panel);	
 				}
 
-				if(offsetStr != null){
+				if(offsetStr != null){					
 					final JLabel label = new JLabel("Accessed bytes:");
 					label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 					panel.add(label);
+					
+					UnrolledDatatypeView unrolledView;
 					
 					if(fview != null){
 						final HashMap<Long, Datatype> typeMap = desc.getDatatypeMap(rank);  
@@ -86,12 +88,13 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 						final Datatype etype = typeMap.get(Long.parseLong(fview.getAttribute("etid")));
 					//final long viewOffset = Long.parseLong(fview.getAttribute("offset"));
 
-						panel.add(new UnrolledDatatypeView(ftype, size,  
-								offset * etype.getExtend()).getScrollPane());
+						unrolledView = new UnrolledDatatypeView(ftype, size,	offset * etype.getExtend()); 
+						
 					}else{
 						// no view set, therefore use null						
-						panel.add(new UnrolledDatatypeView(null, size, offset).getScrollPane());
+						unrolledView = new UnrolledDatatypeView(null, size, offset);
 					}
+					panel.add(unrolledView.getScrollPane());
 				}
 			}
 		}

@@ -20,11 +20,25 @@ public class UnrolledDatatypeView {
 	private final UnrolledDatatypePanel    rootPanel = new UnrolledDatatypePanel(this);
 	private final JScrollPane 	           scrollPane = new JScrollPane(rootPanel); 
 
-	/* contains holes used to color them correctly */
+	/* contains holes used to color them correctly */	
 	final private LinkedList<UnrolledJDatatypeHole> holes = new LinkedList<UnrolledJDatatypeHole>();
+	
+	/*
+	 * Cached value
+	 */
+	long sumHolesSpace = -1;
+	
 	
 	public UnrolledDatatypeView(Datatype datatype, long size, long offset) {
 		rootPanel.setDatatype(datatype, size, offset);
+		
+		// load hole length
+		sumHolesSpace = 0;
+		for(UnrolledJDatatypeHole hole: holes){
+			sumHolesSpace += hole.getSpace();
+		}
+		
+		// color holes TODO
 	}
 	
 	public JScrollPane getScrollPane() {
