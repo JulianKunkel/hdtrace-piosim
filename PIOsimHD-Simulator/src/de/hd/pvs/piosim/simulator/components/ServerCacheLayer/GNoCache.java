@@ -135,7 +135,7 @@ IIOSubsystemCaller
 	 */
 	HashMap<IOJob, RequestRead> pendingReadRequestMap = new HashMap<IOJob, RequestRead>();
 	
-	private void scheduleNextIOJobIfPossible() {
+	protected void scheduleNextIOJobIfPossible() {
 		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps() 
 				&& getNumberOfQueuedOperations() > 0)
 		{

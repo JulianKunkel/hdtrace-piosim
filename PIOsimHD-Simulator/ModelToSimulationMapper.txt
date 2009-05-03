@@ -23,6 +23,7 @@ de.hd.pvs.piosim.model.components.Server.Server = de.hd.pvs.piosim.simulator.com
 de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GNoCache
 de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GSimpleWriteBehind
 de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GAggregationCache
+de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GServerDirectedIO
 
 +Switch
 de.hd.pvs.piosim.model.components.Switch.SimpleSwitch = de.hd.pvs.piosim.simulator.components.Switch.GSwitch
