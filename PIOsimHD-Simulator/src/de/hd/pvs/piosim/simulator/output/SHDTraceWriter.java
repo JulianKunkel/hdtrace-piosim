@@ -25,8 +25,8 @@ import java.util.Stack;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;

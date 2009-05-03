@@ -68,7 +68,7 @@ public class TraceFormatWriter {
 	public TraceFormatWriter(String resultFile, TopologyLabels labels) {
 		outProject.setProjectFilename(resultFile);
 		
-		outProject.setTopologyRoot( new TopologyNode(outProject.getFilesPrefix(), null, null));
+		outProject.setTopologyRoot( new TopologyNode(outProject.getFilesPrefix(), null, "root"));
 		outProject.setTopologyLabels(labels);
 	}
 	
