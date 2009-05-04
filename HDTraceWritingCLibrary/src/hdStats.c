@@ -252,6 +252,8 @@ static int flushGroupBuffer(hdStatsGroup group);
  * @endif
  *
  * @param groupName  Name of the new statistics group
+ *                   (Not more than \ref HDS_MAX_GROUP_NAME_LENGTH
+ *                    characters including XML escapes done automatically)
  * @param topology   Topology to use (for project name)
  * @param topoNode   Topology node to use
  * @param topoLevel  Topology level the group shell belong to
@@ -269,6 +271,8 @@ static int flushGroupBuffer(hdStatsGroup group);
  *  - HD_ERR_INVALID_ARGUMENT
  *  - HD_ERR_CREATE_FILE
  *  - all from \ref generateFilename
+ *  - all from \ref appendFormatToGroupBuffer
+ *  - all from \ref appendIndentToGroupBuffer
  * @endif
  *
  *  @sa hdT_createTopoNode, hdT_createTopology
@@ -287,12 +291,12 @@ hdStatsGroup hdS_createGroup (
 		sscanf(vlvl, "%d", &verbosity);
 
 	/* check input */
-	if (!isValidXMLTagString(groupName) || topology == NULL
-			|| hdT_getTopoNodeLevel(topoNode) < topoLevel)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return NULL;
-	}
+	char groupNameString[HDS_MAX_GROUP_NAME_LENGTH];
+	if (!escapeXMLString(groupNameString, HDS_MAX_GROUP_NAME_LENGTH, groupName))
+		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL)
+
+	if (topology == NULL || hdT_getTopoNodeLevel(topoNode) < topoLevel)
+		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL);
 
 	/* generate filename of the form Project_Level1_Level2..._Group.stat */
 	char *filename = generateFilename(topology->project,
@@ -350,9 +354,16 @@ hdStatsGroup hdS_createGroup (
 
 	int ret;
 
+	/* append statistics start tag to buffer */
+	ret = appendFormatToGroupBuffer(group, "<Statistics>\n");
+	if (ret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
+		return NULL;
+
 	/* append TopologyNode start tag to buffer */
 	ret = appendFormatToGroupBuffer(group, "<TopologyNode>\n");
 	if (ret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 		return NULL;
 
 	for (int i = 1; i < topoLevel; ++i)
@@ -360,24 +371,28 @@ hdStatsGroup hdS_createGroup (
 		/* append Indentation for i-th Label start tag to buffer */
 		ret = appendIndentToGroupBuffer(group, i);
 		if (ret < 0)
+			/* errno set by appendIndentToGroupBuffer(): BUFFER_OVERFLOW */
 			return NULL;
 
 		/* append i-th Label start tag to buffer */
 		ret = appendFormatToGroupBuffer(group, "<Label value=\"%s\">\n",
 				hdT_getTopoPathLabel(topoNode,i));
 		if (ret < 0)
+			/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 			return NULL;
 	}
 
 	/* append Indentation for last Label tag to buffer */
 	ret = appendIndentToGroupBuffer(group, topoLevel);
 	if (ret < 0)
+		/* errno set by appendIndentToGroupBuffer(): BUFFER_OVERFLOW */
 		return NULL;
 
 	/* append last Label tag to buffer */
 	ret = appendFormatToGroupBuffer(group, "<Label value=\"%s\" />\n",
 			hdT_getTopoPathLabel(topoNode,topoLevel));
 	if (ret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 		return NULL;
 
 	for (int i = topoLevel - 1; i >= 1; --i)
@@ -385,26 +400,31 @@ hdStatsGroup hdS_createGroup (
 		/* append Indentation for i-th Label end tag to buffer */
 		ret = appendIndentToGroupBuffer(group, i);
 		if (ret < 0)
+			/* errno set by appendIndentToGroupBuffer(): BUFFER_OVERFLOW */
 			return NULL;
 
 		/* append i-th Label end tag to buffer */
 		ret = appendFormatToGroupBuffer(group, "</Label>\n");
 		if (ret < 0)
+			/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 			return NULL;
 	}
 
 	/* write TopologyNode end tag to buffer */
 	ret = appendFormatToGroupBuffer(group, "</TopologyNode>\n");
 	if (ret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 		return NULL;
 
 	/* write statistics group start tag to buffer */
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	ret = appendFormatToGroupBuffer(group,
-			"<%s timestampDatatype=\"EPOCH\" timeOffset=\"-%010d.%09d\">\n",
-			groupName, (int32_t) tv.tv_sec, (int32_t) tv.tv_usec * 1000);
+			"<Group name=\"%s\" timestampDatatype=\"EPOCH\""
+			" timeAdjustment=\"%010d.%09d\">\n", groupNameString,
+			(int32_t) tv.tv_sec, (int32_t) tv.tv_usec * 1000);
 	if (ret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 		return NULL;
 
     return group;
@@ -443,6 +463,8 @@ hdStatsGroup hdS_createGroup (
  *
  * @param group      Statistics group to modify
  * @param name       Name of the new value
+ *                   (Not more than \ref HDS_MAX_VALUE_NAME_LENGTH
+ *                    characters including XML escapes done automatically)
  * @param type       Type of the new value
  * @param unit       Unit string of the new value.
  *                   (NULL or not more than \ref HDS_MAX_UNIT_NAME_LENGTH
@@ -470,10 +492,14 @@ int hdS_addValue (
         )
 {
 	/* check input */
-	if(group == NULL || !isValidXMLTagString(name))
+	if(group == NULL)
 	{
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 	}
+
+	char nameString[HDS_MAX_VALUE_NAME_LENGTH];
+	if (!escapeXMLString(nameString, HDS_MAX_VALUE_NAME_LENGTH, name))
+		hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 
 	char unitString[HDS_MAX_UNIT_NAME_LENGTH];
 	if (unit != NULL)
@@ -545,6 +571,8 @@ int hdS_addValue (
 				"unit=\"%s\" ", unitString);
 		assert(ret < 8+HDS_MAX_UNIT_NAME_LENGTH);
 	}
+	else
+		ubuff[0] = '\0';
 
 	char gbuff[12+HDS_MAX_GROUPING_NAME_LENGTH];
 	if (grouping != NULL)
@@ -553,11 +581,14 @@ int hdS_addValue (
 				"grouping=\"%s\" ",	groupingString);
 		assert(ret < 12+HDS_MAX_GROUPING_NAME_LENGTH);
 	}
+	else
+		gbuff[0] = '\0';
 
 	/* write tag for value */
-	ret = appendFormatToGroupBuffer(group, "<%s type=\"%s\" %s%s/>\n",
-			name, getTypeString(type), ubuff, gbuff);
+	ret = appendFormatToGroupBuffer(group, "<Value name=\"%s\" type=\"%s\" %s%s/>\n",
+			nameString, getTypeString(type), ubuff, gbuff);
 	if (ret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 		return ret;
 
 	/* assure group->buffer is '\0' terminated with length group->offset */
@@ -622,8 +653,14 @@ int hdS_commitGroup (
 	int sret; // return value of snprintf calls
 
 	/* write group end tag */
-	sret = appendFormatToGroupBuffer(group, "</%s>\n", group->name);
+	sret = appendFormatToGroupBuffer(group, "</Group>\n");
 	if (sret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
+		return sret;
+
+	sret = appendFormatToGroupBuffer(group, "</Statistics>\n");
+	if (sret < 0)
+		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 		return sret;
 
 	/* write header length */
@@ -1222,7 +1259,6 @@ static const char * getTypeString(hdStatsValueType type)
  *
  * @errno
  * - \ref HD_ERR_BUFFER_OVERFLOW
- * - \ref HD_ERR_UNKNOWN
  */
 static int appendFormatToGroupBuffer(hdStatsGroup group,
 		const char *format, ...)
@@ -1256,15 +1292,13 @@ static int appendFormatToGroupBuffer(hdStatsGroup group,
 	int sret = vsnprintf(group->buffer + group->offset,
 			bsize - (size_t) group->offset,	format, ap);
 	va_end(ap);
+	/* vsnprintf should never return a negative value */
+	assert(sret >= 0);
 	/* check for errors and set errno */
 	if (sret >= (int) bsize - group->offset)
 	{
 		hd_error_msg("%s for group '%s' (%s)", errmsg, group->name, group->tracefile);
 		hd_error_return(HD_ERR_BUFFER_OVERFLOW, -1);
-	}
-	if (sret < 0)
-	{
-		hd_error_return(HD_ERR_UNKNOWN, -1);
 	}
 
 	/* print info output */
@@ -1308,6 +1342,7 @@ static int appendIndentToGroupBuffer(hdStatsGroup group, int num)
 	{
 		ret = appendFormatToGroupBuffer(group, "%s", HD_INDENT_STRING);
 		if (ret < 0)
+			/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */
 			return -1;
 	}
 

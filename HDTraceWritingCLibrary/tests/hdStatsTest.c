@@ -118,25 +118,28 @@ static void Test_createGroup_C1(void)
 	assert(myGroup->btype == HDS_HEADER_BUFFER);
 	/* check buffer content */
 	int offset;
+	const char *refstring;
 	int strcmp_result;
 	offset = HDS_HEADER_SIZE_LENGTH;
-	strcmp_result = strcmp(myGroup->buffer + offset,
-			"\n<TopologyNode>\n"
+	refstring = "\n"
+			"<Statistics>\n"
+			"<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\">\n"
 			HD_INDENT_STRING HD_INDENT_STRING "<Label value=\"process0\" />\n"
 			HD_INDENT_STRING "</Label>\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"");
+			"<Group name=\"MyGroup\" timestampDatatype=\"EPOCH\" timeAdjustment=\"";
+	strcmp_result = strcmp(myGroup->buffer + offset, refstring);
 	assert(strcmp_result > 0);
-#define TIME_OFFSET_LENGTH 21 /* -%010d.%09d */
-	offset += 16 + 22 + 27 + 9 + 16 + 47
-			+ 4 * (int) strlen(HD_INDENT_STRING) + TIME_OFFSET_LENGTH;
-#undef TIME_OFFSET_LENGTH
+	offset += (int) strlen(refstring);
 
-	strcmp_result = strcmp(myGroup->buffer + offset,
-			"\">\n");
+	/* jump over timeAdjustment value (%010d.%09d) */
+	offset += 20;
+
+	refstring = "\">\n";
+	strcmp_result = strcmp(myGroup->buffer + offset, refstring);
 	assert(strcmp_result == 0);
-	offset += 3;
+	offset += (int) strlen(refstring);
 
 	/* check offset */
 	assert(myGroup->offset == offset);
@@ -176,21 +179,25 @@ static void Test_createGroup_C2(void)
 	/* check buffer content */
 	int offset;
 	int strcmp_result;
+	const char *refstring;
 	offset = HDS_HEADER_SIZE_LENGTH;
-	strcmp_result = strcmp(myGroup->buffer + offset,
-			"\n<TopologyNode>\n"
+	refstring = "\n"
+			"<Statistics>\n"
+			"<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\" />\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"");
+			"<Group name=\"MyGroup\" timestampDatatype=\"EPOCH\" timeAdjustment=\"";
+	strcmp_result = strcmp(myGroup->buffer + offset, refstring);
 	assert(strcmp_result > 0);
-#define TIME_OFFSET_LENGTH 21 /* -%010d.%09d */
-	offset += 16 + 24 + 16 + 47
-			+ (int) strlen(HD_INDENT_STRING) + TIME_OFFSET_LENGTH;
-#undef TIME_OFFSET_LENGTH
-	strcmp_result = strcmp(myGroup->buffer + offset,
-			"\">\n");
+	offset += (int) strlen(refstring);
+
+	/* jump over timeAdjustment value (%010d.%09d) */
+	offset += 20;
+
+	refstring = "\">\n";
+	strcmp_result = strcmp(myGroup->buffer + offset, refstring);
 	assert(strcmp_result == 0);
-	offset += 3;
+	offset += (int) strlen(refstring);
 
 	/* check offset */
 	assert(myGroup->offset == offset);
@@ -251,17 +258,17 @@ static void Test_addValue_C1(void)
 	assert(myGroup->valueTypes[3] == DOUBLE);
 	assert(myGroup->nextValueIdx == 4);
 	/* check buffer content */
-	int strcmp_result = strcmp(myGroup->buffer + offset,
-			HD_INDENT_STRING "<Int32Value type=\"INT32\" unit=\"unit0\" />\n"
-			HD_INDENT_STRING "<Int64Value type=\"INT64\" unit=\"unit1\" />\n"
-			HD_INDENT_STRING "<FloatValue type=\"FLOAT\" unit=\"unit2\" />\n"
-			HD_INDENT_STRING
-				"<DoubleValue type=\"DOUBLE\" unit=\"unit3\" />\n");
+	int strcmp_result;
+	const char *refstring;
+	refstring =
+		HD_INDENT_STRING "<Value name=\"Int32Value\" type=\"INT32\" unit=\"unit0\" />\n"
+		HD_INDENT_STRING "<Value name=\"Int64Value\" type=\"INT64\" unit=\"unit1\" />\n"
+		HD_INDENT_STRING "<Value name=\"FloatValue\" type=\"FLOAT\" unit=\"unit2\" />\n"
+		HD_INDENT_STRING "<Value name=\"DoubleValue\" type=\"DOUBLE\" unit=\"unit3\" />\n";
+	strcmp_result = strcmp(myGroup->buffer + offset, refstring);
 	assert(strcmp_result == 0);
 	/* check offset */
-	assert(myGroup->offset
-			== offset + 41 + 41 + 41 + 43
-			+ 4 * (int) strlen(HD_INDENT_STRING));
+	assert(myGroup->offset == offset + (int) strlen(refstring));
 	/* check enable state */
 	assert(myGroup->isEnabled == 0);
 	/* check commit state */
@@ -332,12 +339,15 @@ static void Test_commitGroup_C1(void)
 	/* create reference header */
 	snprintf(reference, HDS_HEADER_BUF_SIZE,
 			"%05d\n"
+			"<Statistics>\n"
 			"<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\" />\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"-[0-9]{10}\\.[0-9]{9}\">\n"
-			"</MyGroup>\n",
-			15 + 24 + 16 + 71 + 11 + strlen(HD_INDENT_STRING));
+			"<Group name=\"MyGroup\" timestampDatatype=\"EPOCH\""
+					" timeAdjustment=\"[0-9]{10}\\.[0-9]{9}\">\n"
+			"</Group>\n"
+			"</Statistics>\n",
+			13 + 15 + strlen(HD_INDENT_STRING) + 24 + 16 + 87 + 9 + 14);
 
 	/* create reference header regexp */
 	regex_t refregexp;

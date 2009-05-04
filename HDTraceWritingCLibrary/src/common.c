@@ -72,6 +72,7 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	/* check input */
 	assert(isValidString(project));
 	assert(hdT_getTopoNodeLevel(toponode) >= level);
+	assert(isValidString(group));
 	assert(isValidString(affix));
 
 	/* generate filename */
@@ -125,6 +126,7 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	}
 	else
 	{
+		/* TODO: Convert all non-alphanum chars to '_' */
 		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
 				"_%s%s", group, affix);
 		ERROR_CHECK

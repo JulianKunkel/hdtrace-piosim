@@ -33,6 +33,16 @@ int verbosity;
 #define HD_WRITE_TIMEOUT  10
 
 /**
+ * Maximal length of group names
+ */
+#define HDS_MAX_GROUP_NAME_LENGTH  20
+
+/**
+ * Maximal length of value names
+ */
+#define HDS_MAX_VALUE_NAME_LENGTH  20
+
+/**
  * Maximal length of units
  */
 #define HDS_MAX_UNIT_NAME_LENGTH  10
