@@ -63,7 +63,6 @@
 			</Energy>
 <Performance timestampDatatype="EPOCH" timeOffset="-1241368558.454466000">
   <CPU_TOTAL type="FLOAT" unit="%" grouping="CPU" />
-  <NET_OUT type="INT64" unit="B" grouping="NET" />
   <CPU_TOTAL0 type="FLOAT" unit="%" grouping="CPU" />
   <CPU_TOTAL1 type="FLOAT" unit="%" grouping="CPU" />
   <MEM_USED type="FLOAT" unit="MB" grouping="MEM" />
@@ -79,7 +78,8 @@
   <NET_OUTwmaster0 type="INT64" unit="B" grouping="NET" />
   <NET_INwlan0 type="INT64" unit="B" grouping="NET" />
   <NET_OUTwlan0 type="INT64" unit="B" grouping="NET" />
-  <NET_IN type="INT64" unit="B" grouping="NET" />
+  <NET_IN type="INT64" unit="B" grouping="NETAGGREGATE" />
+  <NET_OUT type="INT64" unit="B" grouping="NETAGGREGATE" />
 </Performance>
 
 </ExternalStatistics>
