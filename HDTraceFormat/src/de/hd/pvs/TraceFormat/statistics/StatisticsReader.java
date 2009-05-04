@@ -59,7 +59,7 @@ public class StatisticsReader implements StatisticsSource{
 			
 		// read timestamp:
 		switch(group.getTimestampDatatype()){
-			case INT:
+			case INT32:
 				long tstamp = file.readInt() *  (long) group.getTimeResolutionMultiplier();				
 				
 				timeStamp = new Epoch(tstamp);								
@@ -83,10 +83,10 @@ public class StatisticsReader implements StatisticsSource{
 			final StatisticsEntryType type = statDesc.getType();
 			Object value;
 			switch(type){
-			case LONG:
+			case INT64:
 				value = new Long(file.readLong()) * statDesc.getMultiplier();
 				break;
-			case INT:
+			case INT32:
 				value = new Integer(file.readInt())* statDesc.getMultiplier();
 				break;
 			case DOUBLE:

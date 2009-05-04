@@ -63,7 +63,7 @@ public class StatisticsWriter {
 			
 			// write timestamp:
 			switch(group.getTimestampDatatype()){
-				case INT:
+				case INT32:
 					int realVal = (int) (realTime.getDoubleInNS() / group.getTimeResolutionMultiplier());
 					file.writeInt( realVal );						
 					break;
@@ -86,10 +86,10 @@ public class StatisticsWriter {
 		// write data:
 		final StatisticsEntryType type = expectedStat.getType();
 		switch(type){
-		case LONG:
+		case INT64:
 			file.writeLong((Long) value / expectedStat.getMultiplier());
 			break;
-		case INT:
+		case INT32:
 			file.writeInt((Integer) value/ expectedStat.getMultiplier());
 			break;
 		case DOUBLE:

@@ -32,8 +32,8 @@ package de.hd.pvs.TraceFormat.statistics;
  */
 public enum StatisticsEntryType{
 	FLOAT,
-	INT,
-	LONG,
+	INT32,
+	INT64,
 	DOUBLE,
 	STRING,
 	EPOCH

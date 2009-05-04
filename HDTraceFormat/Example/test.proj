@@ -56,21 +56,32 @@
 </CommunicatorList>
 
 <ExternalStatistics>
-			<Energy timeResulution="Milliseconds" timestampDatatype="INT" timeOffset="-5.02ms"> <!-- implizit stored in a file stat_Energy -->
+			<Energy timeResulution="Milliseconds" timestampDatatype="INT32" timeOffset="-5.02ms"> <!-- implizit stored in a file stat_Energy -->
 				<Voltage type="float" multiplier="1000" unit="mV"/>
 				<Current type="float" multiplier="1000" unit="mA"/>				
 				<Power type="float" multiplier="1000" unit="mW"/>				
 			</Energy>
-<Performance timestampDatatype="EPOCH" timeOffset="-1241010300">
-  <CPU_TOTAL type="FLOAT" unit="%" grouping="CPU"/>
-  <CPU_TOTAL_0 type="FLOAT" unit="%" grouping="CPU"/>
-  <CPU_TOTAL_1 type="FLOAT" unit="%" grouping="CPU"/>
-  <MEM_USED type="FLOAT" unit="MB"/>
-  <MEM_FREE type="FLOAT" unit="MB" grouping="MEM"/>
-  <MEM_SHARED type="FLOAT" unit="MB" grouping="MEM"/>
-  <MEM_BUFFER type="FLOAT" unit="MB" grouping="MEM"/>
-  <MEM_CACHED type="FLOAT" unit="MB" grouping="MEM"/>
-</Performance>   
+<Performance timestampDatatype="EPOCH" timeOffset="-1241368558.454466000">
+  <CPU_TOTAL type="FLOAT" unit="%" grouping="CPU" />
+  <NET_OUT type="INT64" unit="B" grouping="NET" />
+  <CPU_TOTAL0 type="FLOAT" unit="%" grouping="CPU" />
+  <CPU_TOTAL1 type="FLOAT" unit="%" grouping="CPU" />
+  <MEM_USED type="FLOAT" unit="MB" grouping="MEM" />
+  <MEM_FREE type="FLOAT" unit="MB" grouping="MEM" />
+  <MEM_SHARED type="FLOAT" unit="MB" grouping="MEM" />
+  <MEM_BUFFER type="FLOAT" unit="MB" grouping="MEM" />
+  <MEM_CACHED type="FLOAT" unit="MB" grouping="MEM" />
+  <NET_INlo type="INT64" unit="B" grouping="NET" />
+  <NET_OUTlo type="INT64" unit="B" grouping="NET" />
+  <NET_INeth0 type="INT64" unit="B" grouping="NET" />
+  <NET_OUTeth0 type="INT64" unit="B" grouping="NET" />
+  <NET_INwmaster0 type="INT64" unit="B" grouping="NET" />
+  <NET_OUTwmaster0 type="INT64" unit="B" grouping="NET" />
+  <NET_INwlan0 type="INT64" unit="B" grouping="NET" />
+  <NET_OUTwlan0 type="INT64" unit="B" grouping="NET" />
+  <NET_IN type="INT64" unit="B" grouping="NET" />
+</Performance>
+
 </ExternalStatistics>
 
 </Application>
