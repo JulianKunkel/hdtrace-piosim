@@ -25,13 +25,15 @@
  * \endcode
  */
 
+/* this unit is optional */
 #ifdef HDTRACE_INCLUDE_NESTED_TEST
 
 int MPI_hdT_Test_nested(int rec, int max);
 
 /**
  * This function calls itself recursively with the
- * recursion depth \a max. It is used
+ * recursion depth \a max. 
+ * It is used to test the logging of nested tags.
  */
 static int PMPI_hdT_Test_nested(int rec, int max)
 {
@@ -44,6 +46,9 @@ static int PMPI_hdT_Test_nested(int rec, int max)
 	return 0;
 }
 
+/**
+ * The wrapper function for \a PMPI_hdT_Test_nested().
+ */ 
 int MPI_hdT_Test_nested(int v1,  int v2){
   int ret;
 

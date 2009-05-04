@@ -71,7 +71,7 @@ static void writeFileInfo(const char * name, int size, gint id)
 static void writeCommInfo(MPI_Comm comm, gint comm_id)
 {
 	int size;
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	PMPI_Comm_size(MPI_COMM_WORLD, &size);
 	int *ranks_world = malloc(size * sizeof(int));
 	int i;
 
@@ -82,10 +82,10 @@ static void writeCommInfo(MPI_Comm comm, gint comm_id)
 	int *ranks_comm = malloc(size * sizeof(int));
 
 	MPI_Group world_group, comm_group;
-	MPI_Comm_group(MPI_COMM_WORLD, &world_group);
-	MPI_Comm_group(comm, &comm_group);
+	PMPI_Comm_group(MPI_COMM_WORLD, &world_group);
+	PMPI_Comm_group(comm, &comm_group);
 
-	MPI_Group_translate_ranks(world_group, size, ranks_world, comm_group, ranks_comm);
+	PMPI_Group_translate_ranks(world_group, size, ranks_world, comm_group, ranks_comm);
 
 	char buffer[TMP_BUF_LEN];
 	size_t position = 0;
@@ -120,11 +120,11 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 		max_datatypes,
 		combiner;
 
-	MPI_Type_get_envelope(type, &max_integers, &max_addresses, &max_datatypes, &combiner);
+	PMPI_Type_get_envelope(type, &max_integers, &max_addresses, &max_datatypes, &combiner);
 
 	char typename[MPI_MAX_OBJECT_NAME];
 	int resultlen;
-	MPI_Type_get_name(type, typename, &resultlen);
+	PMPI_Type_get_name(type, typename, &resultlen);
 
 	if(combiner == MPI_COMBINER_NAMED) 	// cannot call get_contents on this
 	{

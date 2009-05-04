@@ -188,7 +188,8 @@ static gint getFileIdFromName(const char * name)
 		file_name_to_id = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 	}
 
-	/* NOTE: it would be nice to canonicalize the file name, e.g. with
+	/* TODO
+     * NOTE: it would be nice to canonicalize the file name, e.g. with
 	 * realpath(name, NULL);. Unfortunately, this doesn't work with names
      * beginning with "pvfs://"
 	 */
@@ -229,7 +230,8 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 		file_handle_to_id = g_hash_table_new_full(hash_MPI_File, equal_MPI_File, free, free);
 	}
 
-	/* NOTE: it would be nice to canonicalize the file name, e.g. with
+	/* TODO
+     * NOTE: it would be nice to canonicalize the file name, e.g. with
 	 * nrealpath(name, NULL);. Unfortunately, this doesn't work with names
      * beginning with "pvfs://"
 	 */
@@ -242,6 +244,7 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 		{
 			//the file has a handle without us knowing the name. this is bad
 			//hdt_debug(tracefile, "getFileIdEx(...): file handle without matching filename");
+			printDebugMessage("%s: broken file handle hash map.", __FUNCTION__);
 			return -1;
 		}
 		else
