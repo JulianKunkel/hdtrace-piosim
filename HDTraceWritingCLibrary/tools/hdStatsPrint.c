@@ -16,6 +16,17 @@
 /* for byte order functions only */
 #include "hdStats.h"
 
+/**
+ * Printf format specifier for printing int64_t.
+ * On 64bit it is long int, on 32bit long long int.
+ */
+#if __WORDSIZE == 64
+# define INT64_FORMAT "ld"
+#else
+# define INT64_FORMAT "lld"
+#endif
+
+
 static void printUsage(void);
 
 static void readTimestamp(FILE *file, void *value);
@@ -192,7 +203,7 @@ int main(int argc, char **argv)
 				printf("%d", *((int32_t *) value));
 				break;
 			case INT64:
-				printf("%lld", *((int64_t *) value));
+				printf("%" INT64_FORMAT, *((int64_t *) value));
 				break;
 			case FLOAT:
 				printf("%f", *((float *) value));

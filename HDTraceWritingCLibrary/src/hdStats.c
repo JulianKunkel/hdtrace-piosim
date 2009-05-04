@@ -402,7 +402,7 @@ hdStatsGroup hdS_createGroup (
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	ret = appendFormatToGroupBuffer(group,
-			"<%s timestampDatatype=\"EPOCH\" timeOffset=\"%010d.%09d\">\n",
+			"<%s timestampDatatype=\"EPOCH\" timeOffset=\"-%010d.%09d\">\n",
 			groupName, (int32_t) tv.tv_sec, (int32_t) tv.tv_usec * 1000);
 	if (ret < 0)
 		return NULL;
@@ -880,7 +880,7 @@ int hdS_writeInt32Value (
 {
 	assert(sizeof(value) == getValueLength(INT32));
 
-	int32_t v = value;
+	int32_t v = value; /* for debugging output */
 
 	order_bytes32ip(&value);
 
@@ -932,14 +932,14 @@ int hdS_writeInt64Value (
 {
 	assert(sizeof(value) == getValueLength(INT64));
 
-	int64_t v = value;
+	int64_t v = value; /* for debugging output */
 
 	order_bytes64ip(&value);
 
 	int ret = appendValueToGroupBuffer(group, &value, INT64);
 
 	/* print debug output */
-	hd_debug_msg("Group '%s': type=%s value=%lld",
+	hd_debug_msg("Group '%s': type=%s value=%" INT64_FORMAT,
 			group->name, getTypeString(INT64), v);
 
 	return ret;
@@ -984,7 +984,7 @@ int hdS_writeFloatValue (
 {
 	assert(sizeof(value) == getValueLength(FLOAT));
 
-	float v = value;
+	float v = value; /* for debugging output */
 
 	order_bytes32fp(&value);
 
@@ -1036,7 +1036,7 @@ int hdS_writeDoubleValue (
 {
 	assert(sizeof(value) == getValueLength(DOUBLE));
 
-	double v = value;
+	double v = value; /* for debugging output */
 
 	order_bytes64fp(&value);
 
@@ -1354,8 +1354,8 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
 		}
 
 	/* convert to seconds and nanoseconds */
-	int32_t sec = tv.tv_sec;
-	int32_t nsec = tv.tv_usec * 1000;
+	int32_t sec = (int32_t) tv.tv_sec;
+	int32_t nsec = (int32_t) tv.tv_usec * 1000;
 
 	/* assure the timestamp will have the correct length */
 	assert(sizeof(sec) + sizeof(nsec) == HDS_TIMESTAMP_LENGTH);

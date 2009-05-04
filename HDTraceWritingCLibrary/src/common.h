@@ -17,6 +17,16 @@
 #include "config.h"
 
 /**
+ * Printf format specifier for printing int64_t.
+ * On 64bit it is long int, on 32bit long long int.
+ */
+#if __WORDSIZE == 64
+# define INT64_FORMAT "ld"
+#else
+# define INT64_FORMAT "lld"
+#endif
+
+/**
  * Print X followed by the code position followed by formated message
  * Do not use directly, use hd_(info|debug|error)_msg instead.
  */

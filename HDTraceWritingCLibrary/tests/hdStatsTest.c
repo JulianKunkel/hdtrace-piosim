@@ -128,7 +128,7 @@ static void Test_createGroup_C1(void)
 			"</TopologyNode>\n"
 			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"");
 	assert(strcmp_result > 0);
-#define TIME_OFFSET_LENGTH 20 /* %010d.%09d */
+#define TIME_OFFSET_LENGTH 21 /* -%010d.%09d */
 	offset += 16 + 22 + 27 + 9 + 16 + 47
 			+ 4 * (int) strlen(HD_INDENT_STRING) + TIME_OFFSET_LENGTH;
 #undef TIME_OFFSET_LENGTH
@@ -183,7 +183,7 @@ static void Test_createGroup_C2(void)
 			"</TopologyNode>\n"
 			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"");
 	assert(strcmp_result > 0);
-#define TIME_OFFSET_LENGTH 20 /* %010d.%09d */
+#define TIME_OFFSET_LENGTH 21 /* -%010d.%09d */
 	offset += 16 + 24 + 16 + 47
 			+ (int) strlen(HD_INDENT_STRING) + TIME_OFFSET_LENGTH;
 #undef TIME_OFFSET_LENGTH
@@ -335,9 +335,9 @@ static void Test_commitGroup_C1(void)
 			"<TopologyNode>\n"
 			HD_INDENT_STRING "<Label value=\"host0\" />\n"
 			"</TopologyNode>\n"
-			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"[0-9]{10}\\.[0-9]{9}\">\n"
+			"<MyGroup timestampDatatype=\"EPOCH\" timeOffset=\"-[0-9]{10}\\.[0-9]{9}\">\n"
 			"</MyGroup>\n",
-			15 + 24 + 16 + 70 + 11 + strlen(HD_INDENT_STRING));
+			15 + 24 + 16 + 71 + 11 + strlen(HD_INDENT_STRING));
 
 	/* create reference header regexp */
 	regex_t refregexp;
