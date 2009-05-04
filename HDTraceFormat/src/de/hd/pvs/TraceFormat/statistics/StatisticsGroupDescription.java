@@ -128,8 +128,8 @@ public class StatisticsGroupDescription{
 		this.timestampDatatype = timestampDatatype;
 	}
 
-	public void setTimeAdjustment(Epoch timeOffset) {
-		this.timeAdjustment = timeOffset;
+	public void setTimeAdjustment(Epoch timeAdjustment) {
+		this.timeAdjustment = timeAdjustment;
 	}
 
 	public int getTimeResolutionMultiplier() {
@@ -148,4 +148,16 @@ public class StatisticsGroupDescription{
 		return timeAdjustment;
 	}
 
+	/**
+	 * Two statistic group descriptions are considered to be equal if the name equals. 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		return groupName.equals(((StatisticsGroupDescription) obj).groupName);
+	}
+	
+	@Override
+	public int hashCode() {	
+		return groupName.hashCode();
+	}
 }

@@ -29,7 +29,6 @@ import java.io.File;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -74,15 +73,15 @@ public class TraceFormatFileOpener {
 
 		// load statistics:
 		if(statCls != null){
-			for(StatisticsGroupDescription group: projectDescription.getExternalStatisticGroups()){
-				String filename = filePath + currentTopo.getStatisticFileName(group.getName());
+			for(String group: projectDescription.getStatisticsGroupNames()){
+				String filename = filePath + currentTopo.getStatisticFileName(group);
 
 				SimpleConsoleLogger.Debug("Checking stat file for existence: " + filename);
 				if( fileExists(filename) ){
 					// read it
 					SimpleConsoleLogger.Debug("Stat file exists: " + filename);				
 
-					final StatisticsSource statReader = statCls.getConstructor(new Class<?>[]{String.class, StatisticsGroupDescription.class}).newInstance(new Object[]{filename, group});
+					final StatisticsSource statReader = statCls.getConstructor(new Class<?>[]{String.class, String.class}).newInstance(new Object[]{filename, group});
 					currentTopo.setStatisticsReader(group, statReader);
 				}
 			}

@@ -17,6 +17,7 @@
 
 package topology.mappings;
 
+import hdTraceInput.BufferedStatisticFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
 import topology.TopologyManagerContents;
 import topology.TopologyStatisticTreeNode;
@@ -24,7 +25,6 @@ import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 /**
@@ -56,11 +56,13 @@ abstract public class TopologyTreeMapping {
 
 	protected void addStatisticsInTopology(int level, SortedJTreeNode node, TopologyNode topology, TraceFormatFileOpener file){	
 		// add statistic nodes:
-		for(StatisticsGroupDescription group: topology.getStatisticsSources().keySet()){
+		for(String group: topology.getStatisticsSources().keySet()){
 
-			SortedJTreeNode statGroupNode = addDummyTreeNode(group.getName(), node);
+			SortedJTreeNode statGroupNode = addDummyTreeNode(group, node);
 
-			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
+			BufferedStatisticFileReader statSource = (BufferedStatisticFileReader) topology.getStatisticsSource(group);
+			
+			for(StatisticDescription statDesc: statSource.getGroup().getStatisticsOrdered()){
 				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file );
 
 				addTopologyTreeNode(statNode, statGroupNode);

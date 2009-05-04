@@ -27,8 +27,11 @@ package de.hd.pvs.TraceFormat.statistics;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 
 /**
@@ -39,14 +42,41 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class StatisticsReader implements StatisticsSource{
 	final RandomAccessFile file;	
 	final StatisticsGroupDescription group;
-	public StatisticsReader(String filename, StatisticsGroupDescription group) throws Exception {
-		this.group = group;
+	
+	public StatisticsReader(String filename) throws Exception {
+		this(filename, null);
+	}
+	
+	public StatisticsReader(String filename, String expectedGroup) throws Exception {
 		this.file = new RandomAccessFile(filename, "r");
 		
 		// parse XML header of file:
 		final String headerSizeStr = file.readLine();
 		final int headerSize = Integer.parseInt(headerSizeStr);
-		file.skipBytes(headerSize);
+		
+		final byte [] headerXML = new byte[headerSize];
+		
+		file.readFully(headerXML);
+		final String str = new String(headerXML); 
+		
+		// parse header to DOM
+		final XMLReaderToRAM headerReader = new XMLReaderToRAM();
+		XMLTag root;
+		
+		try{
+			root = headerReader.convertXMLToXMLTag(str);
+		}catch(Exception e){
+			System.err.println("XML was: "  + str);
+			throw e;
+		}
+		
+		final XMLTag groupDefinition = root.getFirstNestedXMLTagWithName("Group");
+
+		if(groupDefinition == null || (expectedGroup != null && ! groupDefinition.getName().equals(expectedGroup)) ){
+			throw new IllegalArgumentException("Expected group: " + expectedGroup + " however did not find group");
+		}
+		
+		this.group = parseStatisticGroupInXML(groupDefinition);	
 	}
 	
 	public StatisticGroupEntry getNextInputEntry() throws Exception{
@@ -139,4 +169,51 @@ public class StatisticsReader implements StatisticsSource{
 	public long getFilePosition() throws IOException{
 		return file.getFilePointer();
 	}
+	
+
+	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
+		StatisticsGroupDescription stat = new StatisticsGroupDescription();
+		stat.setName(root.getAttribute("Group"));
+		//System.out.println("Statistics: " + root.getNodeName());
+
+		final String tT = root.getAttribute("timestampDatatype");		
+		if(tT != null  && ! tT.isEmpty()){
+			StatisticsEntryType type = StatisticsEntryType.valueOf(tT);
+			stat.setTimestampDatatype(type);
+		}
+
+		final String tR = root.getAttribute("timeResulution");		
+		if (tR != null && ! tR.isEmpty()){
+			stat.setTimeResolutionMultiplier(tR);
+		}
+
+		final String timeAdjustment = root.getAttribute("timeAdjustment");
+		if (timeAdjustment != null && ! timeAdjustment.isEmpty()){
+			stat.setTimeAdjustment(Epoch.parseTime(timeAdjustment));
+		}
+
+		final ArrayList<XMLTag> children = root.getNestedXMLTags();
+
+		// the next number of the statistic group:
+		int currentNumberInGroup = 0;
+		for(XMLTag child: children){
+			int multiplier = 1;
+			final String multiplierStr = child.getAttribute("multiplier");
+			if(multiplierStr != null && multiplierStr.length() > 0){
+				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
+			}
+			StatisticDescription desc = new StatisticDescription(stat,
+					child.getName(), 
+					StatisticsEntryType.valueOf( child.getAttribute("type").toUpperCase() ),
+					currentNumberInGroup,
+					child.getAttribute("unit"),
+					multiplier, child.getAttribute("grouping"));
+
+			stat.addStatistic(desc);
+
+			currentNumberInGroup++;
+		}
+
+		return stat;
+	}	
 }

@@ -29,8 +29,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.xml.XMLHelper;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -76,26 +74,8 @@ public class ProjectDescriptionXMLWriter {
 		
 		buff.append("<ExternalStatistics>\n");
 		
-		for(String groupName: desc.getExternalStatisticGroupNames()){
-			final StatisticsGroupDescription group = desc.getExternalStatisticsGroup(groupName);
-			buff.append("<" + group.getName() + " timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeOffset=\"" +
-					group.getTimeAdjustment()  + "\"");
-			if(group.getTimeResolutionMultiplierName() != null){
-				buff.append(" timeResulution=\"" + group.getTimeResolutionMultiplierName() + "\"");
-			}
-			buff.append(">\n");
-			
-			for(StatisticDescription stat: group.getStatisticsOrdered()){								
-				buff.append("<" + stat.getName());
-				
-				if(stat.getUnit() != null){
-					buff.append(" unit=\"" + stat.getUnit()  + "\"");
-				}
-				
-				buff.append(" multiplier=\"" + stat.getMultiplier() + "\" type=\"" + stat.getType()  + "\"/>\n");
-			}
-			
-			buff.append("</" + group.getName() + ">\n");
+		for(final String groupName: desc.getStatisticsGroupNames()){
+			buff.append("<" + groupName + "/>");			
 		}
 		
 		buff.append("</ExternalStatistics>\n");

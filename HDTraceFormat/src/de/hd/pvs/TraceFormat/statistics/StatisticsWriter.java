@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -41,48 +41,73 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class StatisticsWriter {
 	private final DataOutputStream file;	
 	private final StatisticsGroupDescription group;
-	
+
 	private Epoch lastTimeStamp = null;
 
 	private Iterator<StatisticDescription> nextExpectedStatisticIter = null;
-	
+
 	public StatisticsWriter(String filename, StatisticsGroupDescription newGroup) throws Exception {
 		this.group = newGroup;
 		this.file = new DataOutputStream(new FileOutputStream(filename));
+
+		// create XML header
+		final StringBuffer xmlHeader = new StringBuffer();
+		xmlHeader.append("<" + group.getName() + " timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeAdjustment=\"" +
+				group.getTimeAdjustment()  + "\"");
+		if(group.getTimeResolutionMultiplierName() != null){
+			xmlHeader.append(" timeResulution=\"" + group.getTimeResolutionMultiplierName() + "\"");
+		}
+		xmlHeader.append(">\n");
+		
+		for(StatisticDescription stat: group.getStatisticsOrdered()){								
+			xmlHeader.append("<" + stat.getName());
+
+			if(stat.getUnit() != null){
+				xmlHeader.append(" unit=\"" + stat.getUnit()  + "\"");
+			}
+
+			xmlHeader.append(" multiplier=\"" + stat.getMultiplier() + "\" type=\"" + stat.getType()  + "\"/>\n");
+		}
+
+		xmlHeader.append("</" + group.getName() + ">\n");
+		
+		// write XML header length and XML header
+		file.writeChars( Integer.toString(xmlHeader.length() ) + "\n" );
+		file.writeChars(xmlHeader.toString());		
 	}
 
 	public void writeStatisticEntry(Epoch time, String statistic, Object value) throws IOException{
 		if(lastTimeStamp != null && lastTimeStamp.compareTo(time) > 0){
 			throw new IllegalArgumentException("New timestamp is before old timestamp! " + lastTimeStamp + " new: " + time);
 		}
-				
+
 		// write timestamp, if necessary
 		if(nextExpectedStatisticIter == null || ! nextExpectedStatisticIter.hasNext()){
 			nextExpectedStatisticIter = group.getStatisticsOrdered().iterator();
 			final Epoch realTime = time.subtract(group.getTimeAdjustment());
-			
+
 			// write timestamp:
 			switch(group.getTimestampDatatype()){
-				case INT32:
-					int realVal = (int) (realTime.getDoubleInNS() / group.getTimeResolutionMultiplier());
-					file.writeInt( realVal );						
-					break;
-				case EPOCH:
-					file.writeInt(realTime.getSeconds());
-					file.writeInt(realTime.getNanoSeconds());
-					break;				
-				default:
-					throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
+			case INT32:
+				int realVal = (int) (realTime.getDoubleInNS() / group.getTimeResolutionMultiplier());
+				file.writeInt( realVal );						
+				break;
+			case EPOCH:
+				file.writeInt(realTime.getSeconds());
+				file.writeInt(realTime.getNanoSeconds());
+				break;				
+			default:
+				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
 			}
 		}
-		
+
 		final StatisticDescription expectedStat = nextExpectedStatisticIter.next();
-		
+
 		if(expectedStat == null || !expectedStat.getName().equals(statistic)){
 			throw new IllegalArgumentException("Expected to get statistics in the correct order! Expected: \"" + expectedStat.getName() + 
 					"\", but got \"" + statistic + "\"");
 		}
-		
+
 		// write data:
 		final StatisticsEntryType type = expectedStat.getType();
 		switch(type){
@@ -98,7 +123,7 @@ public class StatisticsWriter {
 		case FLOAT:
 			file.writeFloat((Float) value/ expectedStat.getMultiplier());
 			//System.out.println("VAL " + (Float) value/ expectedStat.getMultiplier());
-						
+
 			break;
 		case STRING:
 			final String str = (String) value;
@@ -109,10 +134,10 @@ public class StatisticsWriter {
 			throw new IllegalArgumentException("Unknown type: " + type +" in value " + statistic);
 		}
 
-		
+
 		lastTimeStamp = time;
 	}
-	
+
 	public void finalize(){
 		try{
 			file.close();
@@ -120,7 +145,7 @@ public class StatisticsWriter {
 			throw new IllegalArgumentException(e);
 		}
 	}
-	
+
 	public StatisticsGroupDescription getOutputGroup() {
 		return group;
 	}

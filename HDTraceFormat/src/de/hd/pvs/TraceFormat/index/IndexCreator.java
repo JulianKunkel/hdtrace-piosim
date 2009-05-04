@@ -27,7 +27,6 @@ package de.hd.pvs.TraceFormat.index;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -85,12 +84,8 @@ public class IndexCreator {
 		preader.readProjectDescription(desc, projectFile);
 				
 		final String inputFile = topology.getStatisticFileName(group);
-		final StatisticsGroupDescription realGroup = desc.getExternalStatisticsGroup(group);
-		if(realGroup == null){
-			throw new IllegalArgumentException("Group \"" + group + "\" does not exisist");
-		}
-		
-		createIndexForStatisticFile(inputFile, realGroup);
+
+		createIndexForStatisticFile(inputFile);
 	}
 	
 
@@ -101,11 +96,11 @@ public class IndexCreator {
 	 * @param group
 	 * @throws Exception
 	 */
-	public void createIndexForStatisticFile(String inputFile, StatisticsGroupDescription group) throws Exception{
+	public void createIndexForStatisticFile(String inputFile) throws Exception{
 		final int dotPos = inputFile.lastIndexOf('.');		
 		final String outFileName = inputFile.substring(0, dotPos) + ".idx";
 		
-		final StatisticsReader reader = new StatisticsReader(inputFile, group);
+		final StatisticsReader reader = new StatisticsReader(inputFile);
 	
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		

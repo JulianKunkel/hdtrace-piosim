@@ -142,8 +142,8 @@ public class TraceFormatWriter {
 	 * Add a statistic group for output. 
 	 * @param group
 	 */
-	public void addStatisticGroup(StatisticsGroupDescription group){
-		outProject.addExternalStatisticsGroup(group);
+	public void addStatisticGroup(String group){
+		outProject.addStatisticsGroup(group);
 	}
 
 

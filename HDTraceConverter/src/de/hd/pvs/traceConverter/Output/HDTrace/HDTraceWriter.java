@@ -102,8 +102,9 @@ public class HDTraceWriter extends TraceOutputWriter {
 	@Override
 	public void Statistics(TopologyNode topology, Epoch time, String statistic,
 			StatisticsGroupDescription group, Object value) {
-		if(writer.getProjectDescription().getExternalStatisticsGroup(group.getName()) == null){
-			writer.addStatisticGroup(group);
+		
+		if(! writer.getProjectDescription().getStatisticsGroupNames().contains(group.getName())){
+			writer.addStatisticGroup(group.getName());
 		}
 
 		writer.Statistics(topology, time, statistic, group, value);

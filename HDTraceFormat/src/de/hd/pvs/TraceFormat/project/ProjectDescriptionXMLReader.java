@@ -40,12 +40,8 @@ import de.hd.pvs.TraceFormat.project.datatypes.DatatypeEnum;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -106,13 +102,11 @@ public class ProjectDescriptionXMLReader {
 		if(element != null && element.getNestedXMLTags() != null){
 			final ArrayList<XMLTag> children = element.getNestedXMLTags(); 
 			for(XMLTag stat: children){
-				StatisticsGroupDescription out = parseStatisticGroupInXML(stat);
-				descriptionInOut.addExternalStatisticsGroup(out);
+				descriptionInOut.addStatisticsGroup(stat.getName());
 			}
 		}
 
 		LinkedList<XMLTag>  elements;
-
 		/* read communicator list */
 		elements =  rootTag.getNestedXMLTagsWithName("CommunicatorList");
 		if (elements.size() == 1) {
@@ -284,51 +278,6 @@ public class ProjectDescriptionXMLReader {
 	}
 
 
-	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
-		StatisticsGroupDescription stat = new StatisticsGroupDescription();
-		stat.setName(root.getName());
-		//System.out.println("Statistics: " + root.getNodeName());
-
-		final String tT = root.getAttribute("timestampDatatype");		
-		if(tT != null  && ! tT.isEmpty()){
-			StatisticsEntryType type = StatisticsEntryType.valueOf(tT);
-			stat.setTimestampDatatype(type);
-		}
-
-		final String tR = root.getAttribute("timeResulution");		
-		if (tR != null && ! tR.isEmpty()){
-			stat.setTimeResolutionMultiplier(tR);
-		}
-
-		final String timeAdjustment = root.getAttribute("timeAdjustment");
-		if (timeAdjustment != null && ! timeAdjustment.isEmpty()){
-			stat.setTimeAdjustment(Epoch.parseTime(timeAdjustment));
-		}
-
-		final ArrayList<XMLTag> children = root.getNestedXMLTags();
-
-		// the next number of the statistic group:
-		int currentNumberInGroup = 0;
-		for(XMLTag child: children){
-			int multiplier = 1;
-			final String multiplierStr = child.getAttribute("multiplier");
-			if(multiplierStr != null && multiplierStr.length() > 0){
-				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
-			}
-			StatisticDescription desc = new StatisticDescription(stat,
-					child.getName(), 
-					StatisticsEntryType.valueOf( child.getAttribute("type").toUpperCase() ),
-					currentNumberInGroup,
-					child.getAttribute("unit"),
-					multiplier, child.getAttribute("grouping"));
-
-			stat.addStatistic(desc);
-
-			currentNumberInGroup++;
-		}
-
-		return stat;
-	}	
 
 	public ArrayList<XMLTag> getUnparsedChildTags() {
 		return rootTag.getNestedXMLTags();

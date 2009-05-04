@@ -30,7 +30,6 @@ import java.util.Enumeration;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -43,7 +42,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 
 	ArrayList<StatisticGroupEntry> statEntries = new ArrayList<StatisticGroupEntry>();
 
-	public BufferedStatisticFileReader(String filename, StatisticsGroupDescription group) throws Exception{
+	public BufferedStatisticFileReader(String filename, String group) throws Exception{
 		super(filename, group);
 
 		StatisticGroupEntry current = getNextInputEntry();
@@ -71,9 +70,9 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		//  update local min/max value
 		// check file:
 
-		statistics = new StatisticStatistics [group.getSize()];
+		statistics = new StatisticStatistics [getGroup().getSize()];
 
-		for(StatisticDescription desc: group.getStatisticsOrdered()){
+		for(StatisticDescription desc: getGroup().getStatisticsOrdered()){
 			if(! desc.isNumeric())
 				continue;
 			

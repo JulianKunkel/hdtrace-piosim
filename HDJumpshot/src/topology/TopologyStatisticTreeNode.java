@@ -39,12 +39,11 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	final StatisticsSource statisticSource;
 	final StatisticDescription statisticDescription;
 	
-	public TopologyStatisticTreeNode(StatisticDescription statDesc, StatisticsGroupDescription group, TopologyNode topNode, TraceFormatFileOpener file) {
+	public TopologyStatisticTreeNode(StatisticDescription statDesc, String group, TopologyNode topNode, TraceFormatFileOpener file) {
 		super(topNode, file);
 		
 		this.statisticSource = topNode.getStatisticsSource(group);
-		this.statisticDescription = statDesc;
-		
+		this.statisticDescription = statDesc;		
 	}
 	
 	public StatisticsGroupDescription getStatisticGroup(){

@@ -84,7 +84,7 @@ public class TraceFormatBufferedFileReader {
 	public TraceFormatBufferedFileReader() {
 		legendTraceModel.addCategoryUpdateListener(arrowManager);
 	}
-	
+
 	public double subtractGlobalMinTimeOffset(Epoch time){
 		return time.subtract(globalMinTime).getDouble();
 	}
@@ -122,12 +122,12 @@ public class TraceFormatBufferedFileReader {
 			final StatisticsGroupDescription group = reader.getGroup();
 
 			GlobalStatisticStatsPerGroup globalStats = globalStatStats.get(group);
-			
+
 			if (globalStats == null){
 				globalStats = new GlobalStatisticStatsPerGroup(group);
 				globalStatStats.put(group, globalStats);				
 			}
-			
+
 			// for each member, update global statistic information TODO put into a file
 			int groupNumber = -1;
 			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
@@ -157,7 +157,7 @@ public class TraceFormatBufferedFileReader {
 							statistics = new MinMax();
 							globalStats.setStatsForGrouping(statDesc.getGrouping(), statistics);
 						}
-						
+
 						// update min/max if necessary:		
 						statistics.updateMaxValue(statsForFile.getMaxValue());
 						statistics.updateMinValue(statsForFile.getMinValue());
@@ -172,17 +172,17 @@ public class TraceFormatBufferedFileReader {
 	// TODO read from category index file.
 	private void updateVisibleCategories(BufferedTraceFileReader reader){
 		Enumeration<TraceEntry> enu = reader.enumerateNestedTraceEntry(); //reader.enumerateTraceEntry(true, new Epoch(-1),new Epoch(300000000));
-		
+
 		while(enu.hasMoreElements()){
-			
+
 			final TraceEntry entry = enu.nextElement();
 			final String catName = entry.getName();		
-						
+
 			if(entry.getType() == TraceObjectType.STATE){		
 				if(! categoriesStates.containsKey(catName)){
 					categoriesStates.put( catName, new CategoryState(catName, null));
 				}
-				
+
 			}if(entry.getType() == TraceObjectType.EVENT){
 				if(! categoriesEvents.containsKey(catName))
 					categoriesEvents.put( catName, new CategoryEvent(catName, null));
@@ -196,14 +196,19 @@ public class TraceFormatBufferedFileReader {
 	 * @param fileOpener
 	 */
 	private void updateStatisticCategories(TraceFormatFileOpener fileOpener){
-		for(StatisticsGroupDescription group: fileOpener.getProjectDescription().getExternalStatisticGroups()){
-			for(StatisticDescription desc: group.getStatisticsOrdered()){
-				final String name = group.getName().substring(0, 6) + ":" + desc.getName(); 
-				if(!categoriesStatistics.containsKey(name)){
-					categoriesStatistics.put(name, new CategoryStatistic(desc, null));
+		// walk through the complete topology and check each statistic
+		for(TopologyNode topo: fileOpener.getTopology().getSubTopologies()){
+			for(StatisticsSource statSource: topo.getStatisticsSources().values()) {
+				StatisticsGroupDescription group = ((BufferedStatisticFileReader) statSource).getGroup();
+				
+				for(StatisticDescription desc: group.getStatisticsOrdered()){
+					final String name = group.getName().substring(0, 6) + ":" + desc.getName(); 
+					if(!categoriesStatistics.containsKey(name)){
+						categoriesStatistics.put(name, new CategoryStatistic(desc, null));
+					}
 				}
 			}
-		}        	
+		}
 	}
 
 	/**
@@ -220,7 +225,7 @@ public class TraceFormatBufferedFileReader {
 
 		// determine global min/maxtime
 		TopologyNode rootTopology = fileOpener.getTopology();
-		
+
 		// update global values & categories
 		for(TopologyNode topology: rootTopology.getSubTopologies()){
 			setGlobalValuesOnStatistics(topology.getStatisticsSources().values());
@@ -250,7 +255,7 @@ public class TraceFormatBufferedFileReader {
 		for(ManagedArrowGroup group: arrowManager.getManagedGroups()){
 			legendTraceModel.addCategory(group.getCategory());
 		}
-		
+
 		for(Category cat: getCategoriesStatistics().values()){
 			legendStatisticModel.addCategory(cat);
 		}
@@ -328,7 +333,7 @@ public class TraceFormatBufferedFileReader {
 	}
 
 	public Collection<String> getGroupNames(int fileNumber){
-		return loadedFiles.get(fileNumber).getProjectDescription().getExternalStatisticGroupNames();
+		return loadedFiles.get(fileNumber).getProjectDescription().getStatisticsGroupNames();
 	}
 
 	public GlobalStatisticStatsPerGroup getGlobalStatStats(StatisticsGroupDescription group) {
@@ -338,7 +343,7 @@ public class TraceFormatBufferedFileReader {
 	public LegendTableTraceModel getLegendTraceModel() {
 		return legendTraceModel;
 	}
-	
+
 	public LegendTableStatisticModel getLegendStatisticModel() {
 		return legendStatisticModel;
 	}	

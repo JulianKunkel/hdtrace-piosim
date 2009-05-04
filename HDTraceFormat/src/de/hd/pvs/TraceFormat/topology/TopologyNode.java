@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
@@ -42,7 +41,7 @@ public class TopologyNode {
 	 */
 	private String label;
 
-	private final HashMap<StatisticsGroupDescription, StatisticsSource> statisticsSources = new HashMap<StatisticsGroupDescription, StatisticsSource>();
+	private final HashMap<String, StatisticsSource> statisticsSources = new HashMap<String, StatisticsSource>();
 
 	private final HashMap<String, TopologyNode>    childElements = new HashMap<String, TopologyNode>();
 	
@@ -68,16 +67,16 @@ public class TopologyNode {
 		}
 	}
 
-	public HashMap<StatisticsGroupDescription, StatisticsSource> getStatisticsSources() {
+	public HashMap<String, StatisticsSource> getStatisticsSources() {
 		return statisticsSources;
 	}
 
-	public StatisticsSource getStatisticsSource(StatisticsGroupDescription group) {
+	public StatisticsSource getStatisticsSource(String group) {
 		return statisticsSources.get(group);
 	}
 
 
-	public void setStatisticsReader(StatisticsGroupDescription group, StatisticsSource reader){
+	public void setStatisticsReader(String group, StatisticsSource reader){
 		statisticsSources.put(group, reader);
 	}
 

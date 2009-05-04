@@ -28,11 +28,11 @@ package de.hd.pvs.TraceFormat.project;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
@@ -66,24 +66,15 @@ public class ProjectDescription {
 	final private HashMap<Integer, HashMap<Long, Datatype>> datatypeMap = new HashMap<Integer, HashMap<Long,Datatype>>();
 
 	// available statistics
-	final HashMap<String, StatisticsGroupDescription> statisticGroupDescriptions = new HashMap<String, StatisticsGroupDescription>();
+	final HashSet<String> statisticsGroupDescriptions = new HashSet<String>();
 
-	public void addExternalStatisticsGroup(StatisticsGroupDescription group){
-		statisticGroupDescriptions.put(group.getName(), group);
+	public void addStatisticsGroup(String name){
+		statisticsGroupDescriptions.add(name);
 	}
 
-	public Collection<String> getExternalStatisticGroupNames(){
-		return statisticGroupDescriptions.keySet();
+	public Collection<String> getStatisticsGroupNames(){
+		return statisticsGroupDescriptions;
 	}
-
-	public Collection<StatisticsGroupDescription> getExternalStatisticGroups(){
-		return statisticGroupDescriptions.values();
-	}
-
-	public StatisticsGroupDescription getExternalStatisticsGroup(String groupName){
-		return statisticGroupDescriptions.get(groupName);
-	}
-
 
 	public String getName() {
 		return applicationName;
