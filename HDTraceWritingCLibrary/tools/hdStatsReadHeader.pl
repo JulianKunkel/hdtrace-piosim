@@ -52,9 +52,10 @@ sub readTags($)
 #		print "C:" . $content . "\n\n";
 #		print "H:" . $str . "\n\n";
 
-		if ($attribs =~ / type="([A-Z0-9]+)"/)
+		if ($tag =~ /Value/
+				&& $attribs =~ / name="(.*)".* type="([A-Z0-9]+)"/)
 		{
-			print $tag . "=" . $1 . " ";
+			print $1 . "=" . $2 . " ";
 		}
 		
 		readTags($content) if defined($content);
