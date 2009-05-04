@@ -60,13 +60,13 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 				textData.addData("size: ", sizeStr);
 				final long size = Long.parseLong(sizeStr);
 				final String offsetStr = obj.getAttribute("offset");
+				
 				final long offset = Long.parseLong(offsetStr);
 				
-				textData.addData("offset", offset);
-
 				final TraceEntry fview = rankObj.getPreviousFileSetView(obj.getEarliestTime(), fidStr);
 				if(fview != null){
-					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"), resizeListener, panel);	
+					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"), resizeListener, panel);
+					
 				}
 
 				if(offsetStr != null){					
@@ -86,13 +86,17 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 
 						final Datatype ftype = typeMap.get(tid);
 						final Datatype etype = typeMap.get(Long.parseLong(fview.getAttribute("etid")));
-					//final long viewOffset = Long.parseLong(fview.getAttribute("offset"));
+												
+						final long viewOffset = Long.parseLong(fview.getAttribute("offset"));
 
 						unrolledView = new UnrolledDatatypeView(ftype, size,	offset * etype.getExtend()); 
 						
+						textData.addData("offset (after view)", offset * etype.getExtend() + viewOffset);				
+						textData.addData("etype size, extend", etype.getSize() + ", " + etype.getExtend());
 					}else{
 						// no view set, therefore use null						
 						unrolledView = new UnrolledDatatypeView(null, size, offset);
+						textData.addData("offset", offset);						
 					}
 					panel.add(unrolledView.getScrollPane());
 				}

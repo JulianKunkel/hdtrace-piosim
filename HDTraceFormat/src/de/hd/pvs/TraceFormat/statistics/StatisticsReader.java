@@ -73,7 +73,7 @@ public class StatisticsReader implements StatisticsSource{
 			default:
 				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
 		}
-		timeStamp = timeStamp.add(group.getTimeOffset());
+		timeStamp = timeStamp.add(group.getTimeAdjustment());
 		
 		int pos = 0;
 		for(StatisticDescription statDesc: group.getStatisticsOrdered()){

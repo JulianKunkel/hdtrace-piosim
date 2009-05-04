@@ -163,10 +163,10 @@ public class TauWriter extends TraceOutputWriter {
 		final StatisticsEntryType type = group.getType(name);
 		
 		switch(type){
-		case LONG:
+		case INT64:
 			convertedValue = (Long) value;		
 			break;
-		case INT:
+		case INT32:
 			convertedValue = (Integer) value;
 			break;
 		case DOUBLE:

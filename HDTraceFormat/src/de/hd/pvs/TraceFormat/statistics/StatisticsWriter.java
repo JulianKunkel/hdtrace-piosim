@@ -59,7 +59,7 @@ public class StatisticsWriter {
 		// write timestamp, if necessary
 		if(nextExpectedStatisticIter == null || ! nextExpectedStatisticIter.hasNext()){
 			nextExpectedStatisticIter = group.getStatisticsOrdered().iterator();
-			final Epoch realTime = time.subtract(group.getTimeOffset());
+			final Epoch realTime = time.subtract(group.getTimeAdjustment());
 			
 			// write timestamp:
 			switch(group.getTimestampDatatype()){

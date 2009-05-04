@@ -79,7 +79,7 @@ public class ProjectDescriptionXMLWriter {
 		for(String groupName: desc.getExternalStatisticGroupNames()){
 			final StatisticsGroupDescription group = desc.getExternalStatisticsGroup(groupName);
 			buff.append("<" + group.getName() + " timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeOffset=\"" +
-					group.getTimeOffset()  + "\"");
+					group.getTimeAdjustment()  + "\"");
 			if(group.getTimeResolutionMultiplierName() != null){
 				buff.append(" timeResulution=\"" + group.getTimeResolutionMultiplierName() + "\"");
 			}

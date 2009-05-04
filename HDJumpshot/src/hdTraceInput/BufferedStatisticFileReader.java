@@ -57,7 +57,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			statEntries.add(current);
 
 			if(current.getEarliestTime().compareTo(lastTimeStamp) < 0){
-				throw new IllegalArgumentException("Statistic entry " + statEntries.size() + 
+				throw new IllegalArgumentException("File " + filename + " statistic entry " + statEntries.size() + 
 						" time " + current.getEarliestTime() + " is earlier than last entry time: " + lastTimeStamp);
 			}
 			

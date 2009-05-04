@@ -49,7 +49,7 @@ public class StatisticsGroupDescription{
 	/**
 	 * Offset applied to all timestamps
 	 */
-	Epoch timeOffset = Epoch.ZERO;
+	Epoch timeAdjustment = Epoch.ZERO;
 
 	/**
 	 * Name of this statistic group
@@ -128,8 +128,8 @@ public class StatisticsGroupDescription{
 		this.timestampDatatype = timestampDatatype;
 	}
 
-	public void setTimeOffset(Epoch timeOffset) {
-		this.timeOffset = timeOffset;
+	public void setTimeAdjustment(Epoch timeOffset) {
+		this.timeAdjustment = timeOffset;
 	}
 
 	public int getTimeResolutionMultiplier() {
@@ -144,8 +144,8 @@ public class StatisticsGroupDescription{
 		return timestampDatatype;
 	}
 
-	public Epoch getTimeOffset() {
-		return timeOffset;
+	public Epoch getTimeAdjustment() {
+		return timeAdjustment;
 	}
 
 }

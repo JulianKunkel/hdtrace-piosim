@@ -300,9 +300,9 @@ public class ProjectDescriptionXMLReader {
 			stat.setTimeResolutionMultiplier(tR);
 		}
 
-		final String toffset = root.getAttribute("timeOffset");
-		if (toffset != null && ! toffset.isEmpty()){
-			stat.setTimeOffset(Epoch.parseTime(toffset));
+		final String timeAdjustment = root.getAttribute("timeAdjustment");
+		if (timeAdjustment != null && ! timeAdjustment.isEmpty()){
+			stat.setTimeAdjustment(Epoch.parseTime(timeAdjustment));
 		}
 
 		final ArrayList<XMLTag> children = root.getNestedXMLTags();

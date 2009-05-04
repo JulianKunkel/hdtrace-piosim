@@ -56,12 +56,12 @@
 </CommunicatorList>
 
 <ExternalStatistics>
-			<Energy timeResulution="Milliseconds" timestampDatatype="INT32" timeOffset="-5.02ms"> <!-- implizit stored in a file stat_Energy -->
+			<Energy timeResulution="Milliseconds" timestampDatatype="INT32" timeAdjustment="-5.02ms"> <!-- implizit stored in a file stat_Energy -->
 				<Voltage type="float" multiplier="1000" unit="mV"/>
 				<Current type="float" multiplier="1000" unit="mA"/>				
 				<Power type="float" multiplier="1000" unit="mW"/>				
 			</Energy>
-<Performance timestampDatatype="EPOCH" timeOffset="-1241368558.454466000">
+<Performance timestampDatatype="EPOCH" timeAdjustment="-1241368558.454466000">
   <CPU_TOTAL type="FLOAT" unit="%" grouping="CPU" />
   <CPU_TOTAL0 type="FLOAT" unit="%" grouping="CPU" />
   <CPU_TOTAL1 type="FLOAT" unit="%" grouping="CPU" />
