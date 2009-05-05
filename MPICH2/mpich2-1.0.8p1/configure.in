@@ -378,6 +378,25 @@ if test "$with_mpe" = "default" ; then
     [--enable-mpe - Build the MPE (MPI Parallel Environment) routines],
     with_mpe=$enableval,with_mpe=default)
 fi
+
+
+BUILD_HDTRACE=
+dnl use the hdtrace library
+AC_ARG_WITH(hdtrace,       
+[--with-hdtrace=path         Use HDTrace library installed in "path"],
+    if test "x$withval" = "xyes" ; then                                 
+           AC_MSG_ERROR(--with-hdtrace must be given a pathname)        
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="$LIBS -lhdStats -lhdTrace"
+       AC_DEFINE(HAVE_HDTRACE, 1, [Define if HDTrace library is used])
+       BUILD_HDTRACE=1
+    fi
+)
+
+AC_SUBST(BUILD_HDTRACE)
+
 dnl
 AC_ARG_ENABLE(threads,
 [--enable-threads=level - Control the level of thread support in the 
@@ -6271,5 +6290,11 @@ AC_OUTPUT(Makefile src/Makefile src/include/Makefile \
 	  doc/design/Makefile \
 	  doc/smpd/Makefile \
 	  doc/windev/Makefile )
+
+if test "x$BUILD_HDTRACE" = "x" ; then
+   AC_MSG_RESULT([MPICH2 configured for hdtrace module               :  no])
+else
+   AC_MSG_RESULT([MPICH2 configured for hdtrace module               : yes])
+fi
 
 echo 'Configuration completed.'
