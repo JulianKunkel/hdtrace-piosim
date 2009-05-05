@@ -1,0 +1,187 @@
+# This Makefile.in created by simplemake.  Do not edit
+
+# @configure_input@
+
+# --------------------------------------------------------------------------
+all: all-redirect
+
+SHELL           = @SHELL@
+VERBOSE         = 1
+AR              = @AR@
+RANLIB          = @RANLIB@
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+MKDIR_P         = @MKDIR_P@
+top_builddir    = @master_top_builddir@
+abs_builddir    = @abs_builddir@
+srcdir          = @srcdir@
+abs_srcdir      = @abs_srcdir@
+top_srcdir      = @top_srcdir@
+prefix          = @prefix@
+includedir      = @includedir@
+DEFS            = @DEFS@ -I. -I${srcdir}
+CPPFLAGS        = @CPPFLAGS@
+MAKE            = @MAKE@
+MPILIBNAME      = @MPILIBNAME@
+PMPILIBNAME     = @PMPILIBNAME@
+
+CC              = @CC@
+CFLAGS          = @CFLAGS@
+C_COMPILE       = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
+LIBTOOL         = @LIBTOOL@
+CC_SHL          = @CC_SHL@
+C_COMPILE_SHL   = $(CC_SHL) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
+
+VPATH = .:@srcdir@
+MPE_THREAD_LIB_NAME=@MPE_THREAD_LIB_NAME@
+INCLUDES = -I../../include -I${top_srcdir}/src/include
+
+.SUFFIXES:
+.SUFFIXES: .o .lo .c .txt 
+.c.o:
+	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	  echo "  CC              $<" ; \
+	else \
+	  echo $(C_COMPILE) -c $< ; \
+	fi
+	@$(C_COMPILE) -c $<
+.c.lo:
+	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	  echo "  CC              $<" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c $< -o _s$*.o ; \
+	echo mv -f _s$*.o $*.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c $< -o _s$*.o
+	@mv -f _s$*.o $*.lo
+.c.txt:
+	$(CPP) $(INCLUDES) $(CPPFLAGS) $< >$*.txt
+.c:
+	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	  echo "  CC              $<" ; \
+	else \
+	  echo $(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS) ; \
+	fi
+	@$(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS)
+
+# --------------------------------------------------------------------------
+${srcdir}/Makefile.in: ${srcdir}/Makefile.sm
+	( cd ${srcdir} && ${master_top_srcdir}/maint/simplemake \
+	-rootdir=../../../ \
+	-configdir=. \
+	-common=${master_top_srcdir}/maint/makedefs \
+	-docnamedefs=${master_top_srcdir}/maint/docnotes \
+	"-autoconf=-I ROOTDIR/confdb" \
+	-libdir='$${MPILIBNAME}=ROOTDIR/lib' \
+	-smroot=${master_top_srcdir}/maint \
+	-distcleanfiles="Makefile" \
+	-smvar_doc_attop=0 \
+		Makefile.sm )
+Makefile: ${srcdir}/Makefile.in
+	-cd ../../../ && \
+	if [ -x config.status ] ; then CONFIG_FILES=src/util/thread/Makefile CONFIG_HEADERS= ${SHELL} ./config.status ; fi
+# --------------------------------------------------------------------------
+apply: 
+	$(ACTION) $(ACTION_INPUT)
+clean: 
+	-@rm -f *.o ${srcdir}/*.o 
+	-@rm -f .libstamp0 .libstamp1 
+	-@rm -f *.lo ${srcdir}/*.lo
+	-@rm -f ${srcdir}/*.bb ${srcdir}/*.bbg ${srcdir}/*.da
+	-@rm -f ${srcdir}/*.gcda ${srcdir}/*.gcno
+	-@rm -f *.gcov *.bb *.bbg *.da *.gcda *.gcno
+distclean:  clean distclean-local distclean-xxx remove-makefile
+distclean-xxx:
+	-@rm -f Makefile mpe_thread.h
+	-@rm -rf autom4te*.cache
+	-@rm -rf $(DEPS_DIR)
+	-@rm -f TAGS
+maintainer-clean:  distclean-xxx remove-genmakefiles
+remove-makefile:
+	rm -f Makefile
+remove-genmakefiles:
+	rm -f  Makefile.in Makefile
+all-redirect: .libstamp0 ../../../lib/lib${MPE_THREAD_LIB_NAME}.a
+	@if [ "@ENABLE_SHLIB@" != "none" ] ; then \
+	    ${MAKE} .libstamp1 ; \
+	fi
+
+.libstamp0 ../../../lib/lib${MPE_THREAD_LIB_NAME}.a: mpe_thread.o 
+	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	  echo "  AR cr ../../../lib/lib${MPE_THREAD_LIB_NAME}.a $?" ; \
+	else \
+	  echo ${AR} cr ../../../lib/lib${MPE_THREAD_LIB_NAME}.a $? ; \
+	fi
+	@${AR} cr ../../../lib/lib${MPE_THREAD_LIB_NAME}.a $?
+	${RANLIB} ../../../lib/lib${MPE_THREAD_LIB_NAME}.a
+	date > .libstamp0
+.libstamp1 ../../../lib/lib${MPE_THREAD_LIB_NAME}.la: mpe_thread.lo 
+	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	  echo "  AR cr ../../../lib/lib${MPE_THREAD_LIB_NAME}.la $?" ; \
+	else \
+	  echo ${AR} cr ../../../lib/lib${MPE_THREAD_LIB_NAME}.la $? ; \
+	fi
+	@${AR} cr ../../../lib/lib${MPE_THREAD_LIB_NAME}.la $?
+	date > .libstamp1
+coverage: 
+	-@for file in mpe_thread.c ; do \
+		gcov -b -f $$file ; done
+# --------------------------------------------------------------------------
+htmldoc:
+mandoc:
+latexdoc:
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# Install target
+install:  FORCE_TARGET 
+	if [ ! -d ${DESTDIR}${prefix} ] ; then $(MKDIR_P) ${DESTDIR}${prefix} ; fi
+	if [ ! -d ${DESTDIR}${includedir} ] ; then $(MKDIR_P) ${DESTDIR}${includedir} ; fi
+	$(INSTALL_DATA) ../../include/mpe_thread.h ${DESTDIR}${includedir}/mpe_thread.h
+
+install-strip:
+	$(MAKE) INSTALL_STRIP_FLAG=-s install
+uninstall: 
+	-rm -f ${DESTDIR}${includedir}/mpe_thread.h
+installcheck: 
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# Dependencies
+DEPS_DIR = .deps
+MAKE_DEPEND_C   = @MAKE_DEPEND_C@ $(DEFS) $(INCLUDES) $(CPPFLAGS)
+
+dependencies: $(DEPS_DIR)/timestamp
+$(DEPS_DIR)/mpe_thread.d: mpe_thread.c
+	$(MAKE_DEPEND_C)  mpe_thread.c >$(DEPS_DIR)/mpe_thread.d
+$(DEPS_DIR)/timestamp: mpe_thread.c Makefile
+	rm -f $(DEPS_DIR)/newalldeps
+	$(MAKE_DEPEND_C)  mpe_thread.c >$(DEPS_DIR)/mpe_thread.d
+	echo "include $(DEPS_DIR)/mpe_thread.d" >>$(DEPS_DIR)/newalldeps
+	if [ -s $(DEPS_DIR)/newalldeps ] ; then mv -f $(DEPS_DIR)/newalldeps $(DEPS_DIR)/alldeps ; fi
+	date >$(DEPS_DIR)/timestamp
+include $(DEPS_DIR)/alldeps
+# End of Dependencies
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+SOURCES         =  mpe_thread.c
+ETAGS           = @ETAGS@ @ETAGSADD@
+HEADERFILES     = $(HEADERS)
+SOURCEFILES     = $(SOURCES)
+tags: TAGS
+TAGS: Makefile${HEADERFILES} ${SOURCEFILES}
+	here=`cd ../../.. && pwd` ; cd ${srcdir} && $(ETAGS) -o $$here/TAGS --append ${HEADERFILES} ${SOURCEFILES}
+# --------------------------------------------------------------------------
+
+mpe_thread.c: mpe_thread_posix.c mpe_thread_none.c mpe_thread_solaris.c \
+	      mpe_thread_win.c 
+	      (cd ../../.. && CONFIG_FILES= && export CONFIG_FILES \
+	      CONFIG_HEADERS= && export CONFIG_HEADERS \
+	      && ./config.status)
+
+distclean-local:
+	-@rm -f mpe_thread.h ../../include/mpe_thread.h
+	-@rm -f mpe_thread.c
+
+
+FORCE_TARGET:
+

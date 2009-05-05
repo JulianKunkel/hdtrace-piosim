@@ -103,7 +103,7 @@ public class StatisticsReader implements StatisticsSource{
 				int s, us;
 				s = file.readInt();
 				us = file.readInt();
-				System.out.println(s + " " + us);
+				
 				timeStamp = new Epoch(s, us);
 				break;
 			default:
