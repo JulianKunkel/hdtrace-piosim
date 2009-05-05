@@ -1,7 +1,7 @@
 \documentclass[a4paper,12pt,pdftex]{scrartcl}
 
 \usepackage[american]{babel}
-\usepackage[latin1]{inputenc}
+\usepackage[utf8]{inputenc}
 
 \usepackage{listings}
 \lstset{
@@ -21,7 +21,7 @@
 \parskip2.5mm
 
 \title{PIOSim MPIwrapper}
-\author{Paul Müller}
+\author{Paul MÃ¼ller}
 
 \begin{document}
 
@@ -111,16 +111,16 @@ D: [TRACER][node01.0.0] flushLog (hdTrace.c:955): flushing log length: 2130
 D: [TRACER][node01.2.0] flushLog (hdTrace.c:955): flushing log length: 2172
 \end{lstlisting}
 This means everything went well and each of the three processes wrote
-their own log files. The directory now contains three \verb/.xml/ and
+their own log files. The directory now contains three \verb/.trc/ and
 three \verb/.info/ files. The latter need to be converted in order to
 provide a format that is compatible with the simulator software and
 other tools. The conversion is done via
 \begin{lstlisting}
 $HOME/PIOsimHD/PIOsimHD-Maint/mpiwrapperNew\
 /scripts/project-description-merger.py \
-  -o mpi-io-test.proj.xml mpi-io-test_*.xml
+  -o mpi-io-test.proj mpi-io-test_*.trc
 \end{lstlisting} %$
-The resulting four xml files can now be processed by other tools. 
+The resulting four xml trace files can now be processed by other tools. 
 The result of loading the files into HDJumpshot is shown in 
 (\ref{fig:jumpshot-open}), (\ref{fig:jumpshot})
 \begin{figure}[h]
@@ -203,7 +203,7 @@ several possibilities to log the global data:
 \end{itemize}
 Because it is our goal to disturb the program's behaviour as little as
 possible we choose the second approach. Every process writes two
-files, an \verb *.xml  and an \verb *.info  file. The latter holds the
+files, an \verb *.trc  and an \verb *.info  file. The latter holds the
 mapping from process-identifiers to the actual global objects (files,
 communicators). As a minor drawback, the trace must be processed by a
 script to bring it in a simulator-compatible form. 
@@ -290,7 +290,7 @@ calls and that determines which data is being logged.
 The script \verb/project-description-merger.py/ converts the trace of
 a program into a form that is compliant with other PIOsim tools. More
 precise, it uses data from the \verb/.info/-files to create a project
-description xml file. The collection of xml files -- the xml files
+description xml file. The collection of xml files -- the xml trace files
 created by all processes and the new description xml -- constitute a complete
 trace. The \verb/.info/ files are then no longer needed.
 
@@ -317,7 +317,7 @@ file that contains the information about the names of the other xml
 files and miscellaneous information. The naming of the process files
 must fulfill the naming convention
 \begin{lstlisting}
-<base name>_<level 1>_..._<level K>.xml
+<base name>_<level 1>_..._<level K>.trc
 \end{lstlisting}
 \verb/<base name>/ is the name of the project and \verb/<level 1>/
 ... \verb/<level K>/ constitute the representation of the file in a tree
@@ -385,8 +385,8 @@ merger script.
   The \emph{Label} section determines the names of the single xml
   trace files. If, for example, the Label section contains the
   following entries, the folder must also contain the files named
-  \verb/<programname>_node01_0_0.xml/ and
-  \verb/<programname>_node01_1_0.xml/.
+  \verb/<programname>_node01_0_0.trc/ and
+  \verb/<programname>_node01_1_0.trc/.
 \begin{lstlisting}
   <Label value="node01">
    <Label value="1">
@@ -703,16 +703,16 @@ processes.
 
 \subsubsection{Usage}
 \begin{lstlisting}
-project-description-merger.py -o <outfile.xml> [-d <description>] \
+project-description-merger.py -o <outfile.trc> [-d <description>] \
 [--distribution-class=<class>] \
 [--chunk-size=<size>] \
 <log1>.info <log2>.info ... <logN>.info
 \end{lstlisting}
 
 \verb -o  \verb <outfile>  (required): The output file. The naming conventions for the
-trace files are { \verb <program-name>_<hostname>_<rank>_<thread>.xml }. 
+trace files are { \verb <program-name>_<hostname>_<rank>_<thread>.trc }. 
 
- It is advised to use { \verb <program-name>.xml } as output
+ It is advised to use { \verb <program-name>.trc } as output
  filename. This is expected by other PIOsim applications.
 
 { \verb -d  \verb <description> } (optional): The description of the
