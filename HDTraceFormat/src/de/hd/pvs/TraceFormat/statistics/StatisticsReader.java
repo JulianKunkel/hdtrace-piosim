@@ -72,11 +72,16 @@ public class StatisticsReader implements StatisticsSource{
 		
 		final XMLTag groupDefinition = root.getFirstNestedXMLTagWithName("Group");
 
-		if(groupDefinition == null || (expectedGroup != null && ! groupDefinition.getName().equals(expectedGroup)) ){
-			throw new IllegalArgumentException("Expected group: " + expectedGroup + " however did not find group");
+		if(groupDefinition == null ){
+			throw new IllegalArgumentException("Did not find group definition in XML " + str);
 		}
 		
 		this.group = parseStatisticGroupInXML(groupDefinition);	
+
+		if(expectedGroup != null && ! group.getName().equals(expectedGroup)){
+			throw new IllegalArgumentException("Expected group: " + expectedGroup + " however found group: " + group.getName());
+		}
+		
 	}
 	
 	public StatisticGroupEntry getNextInputEntry() throws Exception{
@@ -85,8 +90,8 @@ public class StatisticsReader implements StatisticsSource{
 		}
 		Epoch timeStamp;
 		
-		Object [] values = new Object[group.getSize()];
-			
+		final Object [] values = new Object[group.getSize()];
+					
 		// read timestamp:
 		switch(group.getTimestampDatatype()){
 			case INT32:
@@ -98,6 +103,7 @@ public class StatisticsReader implements StatisticsSource{
 				int s, us;
 				s = file.readInt();
 				us = file.readInt();
+				System.out.println(s + " " + us);
 				timeStamp = new Epoch(s, us);
 				break;
 			default:
@@ -173,7 +179,7 @@ public class StatisticsReader implements StatisticsSource{
 
 	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
 		StatisticsGroupDescription stat = new StatisticsGroupDescription();
-		stat.setName(root.getAttribute("Group"));
+		stat.setName(root.getAttribute("name"));
 		//System.out.println("Statistics: " + root.getNodeName());
 
 		final String tT = root.getAttribute("timestampDatatype");		
@@ -203,7 +209,7 @@ public class StatisticsReader implements StatisticsSource{
 				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
 			}
 			StatisticDescription desc = new StatisticDescription(stat,
-					child.getName(), 
+					child.getAttribute("name"), 
 					StatisticsEntryType.valueOf( child.getAttribute("type").toUpperCase() ),
 					currentNumberInGroup,
 					child.getAttribute("unit"),

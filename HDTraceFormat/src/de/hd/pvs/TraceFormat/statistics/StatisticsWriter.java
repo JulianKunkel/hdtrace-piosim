@@ -60,7 +60,7 @@ public class StatisticsWriter {
 		xmlHeader.append(">\n");
 		
 		for(StatisticDescription stat: group.getStatisticsOrdered()){								
-			xmlHeader.append("<" + stat.getName());
+			xmlHeader.append("<Statistics name=\"" + stat.getName() + "\"" );
 
 			if(stat.getUnit() != null){
 				xmlHeader.append(" unit=\"" + stat.getUnit()  + "\"");
