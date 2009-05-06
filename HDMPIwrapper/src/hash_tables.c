@@ -24,7 +24,7 @@
  */
 guint hash_MPI_File(gconstpointer key)
 {
-	return (guint)*(MPI_File*)key;
+	return (guint) (*(MPI_File*)key);
 }
 
 /**
@@ -79,8 +79,9 @@ static gint getCommId(MPI_Comm comm)
 	gpointer result = g_hash_table_lookup(comm_to_id, &comm);
 	if(result == NULL)
 	{
-		gint * g_comm = malloc(sizeof(gint));
-		*g_comm = (gint)comm;
+		void * g_comm = malloc(sizeof(MPI_Comm));
+		memcpy(g_comm, & comm, sizeof(MPI_Comm));
+
 		gint * g_id = malloc(sizeof(gint));
 		*g_id = (gint)comm_id_counter;
 		g_hash_table_insert(comm_to_id, g_comm, g_id);
@@ -253,7 +254,10 @@ static gint getFileIdEx(MPI_File fh, const char * name)
 			gint *g_id = malloc(sizeof(gint));
 			gint *g_id2 = malloc(sizeof(gint)); // this makes it easier to automatically free the memory
 			MPI_File *g_fh = malloc(sizeof(MPI_File));
-			assert(sizeof(gint) >= sizeof(MPI_File));
+
+			assert(sizeof(void *) == sizeof(MPI_File));
+
+
 
 			*g_fh = fh;
 			*g_id = file_id_counter;

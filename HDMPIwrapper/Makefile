@@ -1,10 +1,6 @@
-ifeq ($(MPIIMP),openmpi)
-	DIST_CFLAGS = -Iinclude/openmpi
-else
-	DIST_CFLAGS = -Iinclude/mpich
-endif
+MPINC=$(MPI)/include
 
-CFLAGS  += -Wall -Wextra -pedantic -std=gnu99 -ggdb  $(DIST_CFLAGS) -I../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS` -DhdTrace_INCLUDE_NESTED_TEST
+CFLAGS  += -Wall -Wextra -pedantic -std=gnu99 -ggdb  -I$(MPINC) -I../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS` -DhdTrace_INCLUDE_NESTED_TEST -D HDTRACE_INCLUDE_NESTED_TEST
 LDFLAGS += $(shell pkg-config --libs glib-2.0)
 
 .PHONY: all
@@ -13,12 +9,12 @@ all: lib/libhdTraceMPIWrapper.a
 lib/libhdTraceMPIWrapper.a: src/hdTraceMPIWrapper.o $(LDFLAGS)
 	ar rcs lib/libhdTraceMPIWrapper.a src/hdTraceMPIWrapper.o 
 
-src/hdTraceMPIWrapper.o: src/hdTraceMPIWrapper.src.c
+src/hdTraceMPIWrapper.o: src/hdTraceMPIWrapper.src.c	
 
-src/hdTraceMPIWrapper.c: src/hdTraceMPIWrapper.src.c scripts/create_sim-wrapper.py scripts/wrapper_conf.py include/interesting_funcs.h include/hdMPITracer.h.in src/hdMPITracer.c 
-	cat src/hdTraceMPIWrapper.src.c > src/hdTraceMPIWrapper.c
-	cat include/hdMPITracer.h.in > include/hdMPITracer.h 
-	scripts/create_sim-wrapper.py include/interesting_funcs.h src/hdTraceMPIWrapper.c include/hdMPITracer.h 
+src/hdTraceMPIWrapper.c: src/hdTraceMPIWrapper.src.c scripts/create_sim-wrapper.py scripts/wrapper_conf.py include/interesting_funcs.h include/hdMPITracer.h.in src/hdMPITracer.c
+	@cat src/hdTraceMPIWrapper.src.c > src/hdTraceMPIWrapper.c
+	@cat include/hdMPITracer.h.in > include/hdMPITracer.h 
+	@scripts/create_sim-wrapper.py include/interesting_funcs.h src/hdTraceMPIWrapper.c include/hdMPITracer.h 
 
 .PHONY: test
 

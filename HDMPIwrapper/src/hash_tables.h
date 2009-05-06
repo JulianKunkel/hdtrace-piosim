@@ -1,6 +1,7 @@
 #ifndef HASH_TABLE_H_
 #define HASH_TABLE_H_
 
+
 guint hash_MPI_File(gconstpointer key);
 gboolean equal_MPI_File(gconstpointer a, gconstpointer b);
 static gint getCommId(MPI_Comm comm);
