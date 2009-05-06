@@ -364,7 +364,7 @@ static gint getTypeId(MPI_Datatype type)
 		g_hash_table_insert(type_table, m_type, g_id);
 
 		writeTypeInfo(type, *g_id);
-		
+
 		return *g_id;
 	}
 	return *(gint*)result;

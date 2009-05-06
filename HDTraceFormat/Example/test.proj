@@ -24,29 +24,29 @@
 </FileList>  
   
 <Topology>
-        <Level name="Hostname">
-        <Level name="Rank">
-        <Level name="Thread">
+        <Level type="Hostname">
+        <Level type="Rank">
+        <Level type="Thread">
         </Level>
         </Level>
         </Level> 
 
-        <Label value="node01">
-        <Label value="0">
-                <Label value="main"/>
-                <Label value="background"/>
-        </Label>
+        <Node name="node01">
+        <Node name="0">
+                <Label name="main"/>
+                <Label name="background"/>
+        </Node>
         
-        <Label value="1">
-                <Label value="main"/>
-        </Label>
-        </Label>  
+        <Node name="1">
+                <Label name="main"/>
+        </Node>
+        </Node>  
         
-        <Label value="node02">
-        <Label value="2">
-                <Label value="main"/>
-        </Label>
-        </Label>              
+        <Node name="node02">
+        <Node name="2">
+                <Node name="main"/>
+        </Node>
+        </Node>              
 </Topology>
 
 <CommunicatorList> 

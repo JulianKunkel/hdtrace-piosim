@@ -48,7 +48,7 @@ size_t min(size_t a, size_t b)
  */
 static void writeFileInfo(const char * name, int size, gint id)
 {
-	hdT_writeInfo(tracefile,
+	hdMPI_threadWriteInfo(
 			"File name=\"%s\" Size=%d id=%lld\n",
 			name, size, (long long int)id);
 }
@@ -103,7 +103,7 @@ static void writeCommInfo(MPI_Comm comm, gint comm_id)
 	position += snprintf(buffer + position, TMP_BUF_LEN - position, "' id=%d name='%s'\n", comm_id, getCommName(comm));
 	position = min(position, TMP_BUF_LEN);
 
-	hdT_writeInfo(tracefile, "%s", buffer);
+	hdMPI_threadWriteInfo("%s", buffer);
 }
 
 
@@ -128,7 +128,7 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 
 	if(combiner == MPI_COMBINER_NAMED) 	// cannot call get_contents on this
 	{
-		hdT_writeInfo(tracefile, "Type id='%d' combiner='%s' name='%s'\n",
+		hdMPI_threadWriteInfo( "Type id='%d' combiner='%s' name='%s'\n",
 				  (int)id, getCombinerName(combiner), typename);
 	}
 	else
@@ -171,7 +171,7 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 								"%d;", integers[i] );
 				pos = min(pos, TMP_BUF_LEN);
 			}
-			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos,
 							"%s;", getOrderConstantName(integers[max_integers - 1]));
 		}
 		else if(combiner == MPI_COMBINER_SUBARRAY)
@@ -182,7 +182,7 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 								"%d;", integers[i] );
 				pos = min(pos, TMP_BUF_LEN);
 			}
-			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos, 
+			pos += snprintf(buffer + pos, TMP_BUF_LEN - pos,
 							"%s;", getOrderConstantName(integers[max_integers - 1]));
 		}
 		else
@@ -218,7 +218,7 @@ static void writeTypeInfo(MPI_Datatype type, gint id)
 						"'\n");
 		pos = min(pos, TMP_BUF_LEN);
 
-		hdT_writeInfo(tracefile, "%s", buffer);
+		hdMPI_threadWriteInfo( "%s", buffer);
 
 		free(integers);
 		free(addresses);

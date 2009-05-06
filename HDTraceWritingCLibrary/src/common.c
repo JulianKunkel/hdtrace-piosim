@@ -72,7 +72,6 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	/* check input */
 	assert(isValidString(project));
 	assert(hdT_getTopoNodeLevel(toponode) >= level);
-	assert(isValidString(group));
 	assert(isValidString(affix));
 
 	/* generate filename */

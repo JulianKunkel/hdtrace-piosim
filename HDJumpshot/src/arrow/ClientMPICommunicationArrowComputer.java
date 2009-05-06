@@ -31,6 +31,7 @@ import viewer.timelines.topologyPlugins.MPIConstants;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
  * Compute arrows for client MPI communication.
@@ -88,7 +89,8 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> unmatched,
 			TraceEntry entry,
 			TopologyNode topology,
-			String targetRankStr, String tagStr, String commStr)
+			String targetRankStr, String tagStr, String commStr,
+			boolean useEarliestTime)
 	{
 		final int tag = Integer.parseInt(tagStr);
 		final int comm = Integer.parseInt(commStr);
@@ -106,8 +108,19 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			// found a matching tag.
 			final PreviousEntry oldEntry = old.pollLast();
 			// matches already
-			arrows.add( new Arrow(oldEntry.topo, oldEntry.entry.getEarliestTime(), 
-					topology, entry.getEarliestTime(), category) );
+			final Epoch startTime;
+			final Epoch endTime;
+			
+			if(useEarliestTime ){
+				startTime = oldEntry.entry.getEarliestTime();
+				endTime = entry.getLatestTime();
+			}else{
+				startTime = oldEntry.entry.getLatestTime();
+				endTime = entry.getEarliestTime();
+			}
+				
+			arrows.add( new Arrow(oldEntry.topo, startTime, 
+					topology, endTime, category) );
 
 			if(old.size() == 0){
 				rankMatching.remove(matcher);
@@ -177,14 +190,14 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 							final TraceEntry entry = traceEntries.nextElement();
 							final String name = entry.getName();
 							final HashMap<String, String> attributes = entry.getAttributes();
-							final String comm = attributes.get("comm");
+							final String comm = attributes.get("cid");
 
 							if(name.contains("Send")){							
 								final String rankStr = attributes.get("toRank");
 								final String tagStr = attributes.get("toTag");
 
 								if(rankStr != null && tagStr != null && comm != null){
-									addArrow(arrows, rank, earlyRankSends, earlyRcvs, entry, topology, rankStr, tagStr, comm);
+									addArrow(arrows, rank, earlyRankSends, earlyRcvs, entry, topology, rankStr, tagStr, comm, true);
 								}
 							}
 
@@ -193,7 +206,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 								final String tagStr = attributes.get("fromTag");
 
 								if(rankStr != null && tagStr != null && comm != null){
-									addArrow(arrows, rank, earlyRankRcvs, earlySends, entry, topology, rankStr, tagStr, comm);								
+									addArrow(arrows, rank, earlyRankRcvs, earlySends, entry, topology, rankStr, tagStr, comm, false);								
 								}
 							}
 						}

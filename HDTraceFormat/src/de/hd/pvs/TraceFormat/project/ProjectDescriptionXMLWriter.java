@@ -53,7 +53,7 @@ public class ProjectDescriptionXMLWriter {
 		
 		buff.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		
-		buff.append("<Application name=\"" + desc.getApplicationName() + "\" processCount=\"" + desc.getProcessCount() + "\">\n");
+		buff.append("<Application name=\"" + desc.getApplicationName() + "\">\n");
 
 		// topology labels:
 		buff.append("<Topology>\n");

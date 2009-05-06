@@ -32,7 +32,7 @@ int MPI_hdT_Test_nested(int rec, int max);
 
 /**
  * This function calls itself recursively with the
- * recursion depth \a max. 
+ * recursion depth \a max.
  * It is used to test the logging of nested tags.
  */
 static int PMPI_hdT_Test_nested(int rec, int max)
@@ -48,16 +48,16 @@ static int PMPI_hdT_Test_nested(int rec, int max)
 
 /**
  * The wrapper function for \a PMPI_hdT_Test_nested().
- */ 
+ */
 int MPI_hdT_Test_nested(int v1,  int v2){
   int ret;
 
-  hdT_logStateStart(tracefile, "hdT_Test_nested");
+  hdMPI_threadLogStateStart( "hdT_Test_nested");
 
   ret = PMPI_hdT_Test_nested( v1,  v2);
 
-  hdT_logAttributes(tracefile, "depth='%d'", v1);
-  hdT_logStateEnd(tracefile);
+  hdMPI_threadLogAttributes("depth='%d'", v1);
+  hdMPI_threadLogStateEnd();
 
   return ret;
 }

@@ -107,7 +107,7 @@ public class TopologyNode {
 	 * @return 
 	 */
 	private String getUnifiedLabel(){		
-		return name.toLowerCase().replaceAll("[^a-zA-Z0-9-.]", "");
+		return name.replaceAll("[^a-zA-Z0-9-.]", "");
 	}
 
 	/**

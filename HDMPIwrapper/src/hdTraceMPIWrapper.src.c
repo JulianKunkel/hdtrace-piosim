@@ -56,25 +56,8 @@
 
 #include "hdTrace.h"
 #include "hdTopo.h"
+#include "hdMPITracer.h"
 
-/**
- * This global (per thread) variable holds the \a hdTrace structure that the logging
- * functions are writing to.
- */
-static __thread hdTrace tracefile = NULL;
-
-/**
- * This mutex is used to guarantee, that only one thread reads the
- * environment variables in the function \a readEnvVars()
- */
-static pthread_mutex_t envvar_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-/**
- * This variable is set to 0 as long as the environment variables have not been read.
- * When the first thread enters \a readEnvVars(), it sets \a envvar_read to 1 so any
- * following thread does not read the variables again.
- */
-static int envvar_read = 0;
 
 /**
  * This is a global variable that regulates whether all functions listed in
@@ -151,15 +134,33 @@ static int * controlled_vars[] = { &trace_all_functions,
 								   &trace_force_flush,
 								   NULL };
 
+/**
+ * This is the length of the temporary buffer that is used to
+ * create the basename of the log files. The basename usually consists
+ * of the \a trace_file_prefix and the name of the executable that
+ * is passed to MPI_Init(int *argc, char ***argv) as *argv[0].
+ */
+#define TMP_BUF_LEN 1024 * 16
+
+/**
+ * This string is prepended to the name of every trace file.
+ * Please note that it should not contain any underscores, because
+ * this character is separating different topology levels.
+ *
+ * It consists of the program name + rank
+ */
+static char trace_file_prefix[256];
+
 
 /*
  * We include *.c files so there is only one object file.
  * This is desireable because then, all but the MPI_* functions
  * can be declared static.
- */ 
+ */
 #include "mpi_names.c"
 #include "hash_tables.c"
 #include "write_info.c"
+#include "hdMPITracer.c"
 
 #ifdef  HDTRACE_INCLUDE_NESTED_TEST
 #include "test_nested.c"
@@ -176,7 +177,7 @@ static int * controlled_vars[] = { &trace_all_functions,
  * \param comm the communicator of which \a rank is a member
  *
  * \return the world rank of the process or -1 on error.
- * 
+ *
  * If an error occurs, \a errno holds the MPI error code.
  */
 static int getWorldRank(int rank, MPI_Comm comm)
@@ -219,9 +220,9 @@ static int getWorldRank(int rank, MPI_Comm comm)
  *
  * \param count the number of items in a message
  * \param type the MPI Datatype of a message
- * 
+ *
  * \return the estimated type size or -1 on error
- * 
+ *
  * If an error occurs, \a errno holds the MPI error code.
  */
 static long long getTypeSize(int count, MPI_Datatype type)
@@ -243,9 +244,9 @@ static long long getTypeSize(int count, MPI_Datatype type)
  * The position is calculated using \a PMPI_File_get_byte_offset(...)
  *
  * \param v1 the file in which the offset is queried.
- * 
+ *
  * \return position of the file pointer or -1 if an error occured.
- * 
+ *
  * If an error occurs, \a errno holds the MPI error code.
  */
 static long long int getByteOffset(MPI_File v1)
@@ -273,64 +274,6 @@ static long long int getByteOffset(MPI_File v1)
 }
 
 /**
- * This functions reads the environment variables that control the
- * MPI wrapper. Which variables are read is defined in the global
- * variable \a control_vars[]. The values are stored in global variables
- * as defined in \a controlled_vars[].
- *
- * If the value of an environment variable can not be processed,
- * a message is printed via \a printDebugMessage()
- */
-static void readEnvVars()
-{
-	pthread_mutex_lock(&envvar_mutex);
-	if(envvar_read == 0)
-	{
-		// read environment variables and set corresponding control values
-		char *env_var, *getenv();
-		int ii = 0;
-		while(control_vars[ii] && controlled_vars[ii])
-		{
-			if((env_var = getenv(control_vars[ii])) != NULL)
-			{
-				if(strcmp(env_var, "0") == 0)
-				{
-					*controlled_vars[ii] = 0;
-				}
-				else if(strcmp(env_var, "1") == 0)
-				{
-					*controlled_vars[ii] = 1;
-				}
-				else
-				{
-					printDebugMessage("environment variable %s has unrecognised value of %s. "
-									  "0 and 1 are valid values" ,
-									control_vars[ii], env_var );
-				}
-			}
-			ii++;
-		}
-		envvar_read = 1;
-	}
-	pthread_mutex_unlock(&envvar_mutex);
-}
-
-/**
- * This is the length of the temporary buffer that is used to
- * create the basename of the log files. The basename usually consists
- * of the \a trace_file_prefix and the name of the executable that
- * is passed to MPI_Init(int *argc, char ***argv) as *argv[0].
- */
-#define TMP_BUF_LEN 1024 * 16
-
-/**
- * This string is prepended to the name of every trace file.
- * Please note that it should not contain any underscores, because
- * this character is separating different topology levels.
- */
-static const char trace_file_prefix[] = "";
-
-/**
  * This function is called after a call to \a MPI_Init(...) or \a MPI_Init_thread(...).
  * It initializes the global variable \a tracefile by calling
  * \a hdT_createTrace(...). It also calls \a readEnvVars(...).
@@ -342,71 +285,27 @@ static const char trace_file_prefix[] = "";
  */
 static void after_Init(int *argc, char ***argv)
 {
-	/* NAME_LEN is the length of the strings that hold the rank- and threadnames.
-	 * The names are integers, starting at 0, which means a small \a NAME_LEN shoult suffice.
-	 */
-#define NAME_LEN 10
-	static __thread char hostname[HOST_NAME_MAX];
-	static __thread char rankname[NAME_LEN];
-	static __thread char threadname[NAME_LEN];
-
-	static int thread_counter = 0;
-	static pthread_mutex_t thread_counter_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-	int rank;
-
-	char basename[TMP_BUF_LEN];
 
 	if(*argc < 1)
 	{
 		//we don't know what the program's name is, so call this "trace"
-		snprintf(basename, TMP_BUF_LEN, "%strace", trace_file_prefix);
+		snprintf(trace_file_prefix, TMP_BUF_LEN, "trace");
 	}
 	else
 	{
 		char * lastSlash = strrchr(**argv , '/');
 		if( lastSlash != NULL)
 		{
-			snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, lastSlash+1 );
+			snprintf(trace_file_prefix, TMP_BUF_LEN, "%s", lastSlash+1 );
 		}
 		else
 		{
-			snprintf(basename, TMP_BUF_LEN, "%s%s", trace_file_prefix, (*argv)[0] );
+			snprintf(trace_file_prefix, TMP_BUF_LEN, "%s", (*argv)[0] );
 		}
 	}
 
-	PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-
-	// find out which thread we are in
-    pthread_mutex_lock(&thread_counter_mutex);
-    int thread = thread_counter;
-    ++thread_counter;
-    pthread_mutex_unlock(&thread_counter_mutex);
-
-
-	// create labels and values for the project topology
-	gethostname(hostname, HOST_NAME_MAX);
-
-	snprintf(rankname, NAME_LEN, "%d", rank);
-	snprintf(threadname, NAME_LEN, "%d", thread);
-
-	const char *toponames[3] = {"Host", "Rank", "Thread"};
-	const char *levels[3] = {hostname, rankname, threadname};
-
-	hdTopology topology = hdT_createTopology(basename, toponames, 3);
-	hdTopoNode topo_names = hdT_createTopoNode(levels, 3);
-
-
-
-	tracefile = hdT_createTrace(topo_names, topology);
-
-	readEnvVars();
-
- 	hdT_setNestedDepth(tracefile, trace_nested_operations * HD_LOG_MAX_DEPTH); 
-	hdT_setForceFlush(tracefile, trace_force_flush);
-
-#undef NAME_LEN
+	/* initalize MPI main thread */
+	hdMPI_threadInitTracing();
 
 #ifdef USE_POWERTRACE
 	/* JK: use the powertracer, the powertracer must be started only once per node */
@@ -462,9 +361,7 @@ static void after_Init(int *argc, char ***argv)
  */
 static void after_Finalize(void)
 {
-	hdT_finalize(tracefile);
-	tracefile = NULL;
-	destroyHashTables();
+	hdMPI_threadFinalizeTracing();
 }
 
 /**
@@ -477,8 +374,6 @@ static void after_Finalize(void)
  */
 static void before_Abort()
 {
-	hdT_finalize(tracefile);
-	tracefile = NULL;
-	destroyHashTables();
+	hdMPI_threadFinalizeTracing();
 }
 

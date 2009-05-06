@@ -77,8 +77,8 @@ public class ProjectDescriptionXMLReader {
 			String val = rootTag.getAttribute("processCount");
 			descriptionInOut.setProcessCount(Integer.parseInt(val));
 		} catch (NumberFormatException e) {
-			throw new InvalidParameterException(
-			"Invalid XML, \"processCount\" missing in project description");
+			// TODO CLEANUP HERE
+			System.err.print("WARNING \"processCount\" missing in project description, therefore won't work with simulator");
 		}
 
 		final XMLTag xmlTopology = rootTag.getAndRemoveFirstNestedXMLTagWithName("Topology");
@@ -251,7 +251,7 @@ public class ProjectDescriptionXMLReader {
 		if(curLabel == null){
 			return;
 		}
-		final String name = curLabel.getAttribute("name");		
+		final String name = curLabel.getAttribute("type");		
 		labels.addLabelOfNextDepth(name);
 
 		parseTopologyLabel(curLabel, labels);
@@ -259,12 +259,12 @@ public class ProjectDescriptionXMLReader {
 
 
 	private TopologyNode parseTopology(int depth, XMLTag xmlTopology, TopologyNode topoNode, ProjectDescription desc){		
-		final LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Label");		
+		final LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Node");		
 		
 		for(XMLTag tag: children){
-			final String childName = tag.getAttribute("value");
+			final String childName = tag.getAttribute("name");
 
-			String label = xmlTopology.getAttribute("label");
+			String label = xmlTopology.getAttribute("type");
 			if( label == null ){
 				label = desc.getTopologyLabel(depth);
 			}

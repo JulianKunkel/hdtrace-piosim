@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 
 #/*
@@ -290,12 +291,12 @@ def topology_string(logfiles):
    """
    out = ""
    out += (" <Topology>\n")
-   out += ('  <Label name="Hostname">\n')
-   out += ('   <Label name="Rank">\n')
-   out += ('    <Label name="Thread">\n')
-   out += ('    </Label>\n')
-   out += ('   </Label>\n')
-   out += ('  </Label>\n\n')
+   out += ('  <Level type="Hostname">\n')
+   out += ('   <Level type="Rank">\n')
+   out += ('    <Level type="Thread">\n')
+   out += ('    </Level>\n')
+   out += ('   </Level>\n')
+   out += ('  </Level>\n\n')
 
    description2 = logfiles
    description2.sort()
@@ -349,7 +350,7 @@ out = open(output, "w")
 # write header
 ###############################################################################
 out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-out.write("<Application name=\"" + project_name  +  "\" processCount=\"" + str(len(files)) +  "\">\n")
+out.write("<Application name=\"" + project_name  +  "\">\n")
 out.write("<Description>")
 out.write(description)
 out.write("</Description>\n")

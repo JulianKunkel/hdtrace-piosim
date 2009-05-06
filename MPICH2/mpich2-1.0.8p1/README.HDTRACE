@@ -1,0 +1,4 @@
+Note that for a build with hdtrace it is mandatory to build romio (at least with UFS support).
+
+An example configure looks like:
+./configure --with-hdtrace=path --with-hdtraceWrapper=path --prefix=path --enable-g=meminit -enable-romio --with-file-system=ufs 

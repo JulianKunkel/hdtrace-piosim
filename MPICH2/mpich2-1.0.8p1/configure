@@ -881,6 +881,7 @@ FWRAPNAME
 PMPIFLIBNAME
 MPIFLIBNAME
 BUILD_HDTRACE
+BUILD_HDTRACE_WRAPPER
 CONFIGURE_ARGUMENTS
 ABIVERSION
 VERSION
@@ -951,6 +952,7 @@ with_pm
 with_logging
 with_mpe
 enable_mpe
+with_hdtraceWrapper
 with_hdtrace
 enable_threads
 enable_weak_symbols
@@ -1723,6 +1725,7 @@ Optional Packages:
       is installed into the bin directory.
 --with-logging=name - Specify the logging library for MPICH.
 --with-mpe - Build the MPE (MPI Parallel Environment) routines
+--with-hdtraceWrapper=path         Use HDTrace wrapper installed in "path"
 --with-hdtrace=path         Use HDTrace library installed in "path"
 --with-cross=file - Specify the values of variables that configure cannot
 determine in a cross-compilation environment
@@ -2615,6 +2618,47 @@ else
 fi
 
 fi
+
+
+BUILD_HDTRACE_WRAPPER=
+
+# Check whether --with-hdtraceWrapper was given.
+if test "${with_hdtraceWrapper+set}" = set; then
+  withval=$with_hdtraceWrapper; if test "x$withval" = "xyes" ; then
+           { { $as_echo "$as_me:$LINENO: error: --with-hdtraceWrapper must be given a pathname" >&5
+$as_echo "$as_me: error: --with-hdtraceWrapper must be given a pathname" >&2;}
+   { (exit 1); exit 1; }; }
+    else
+       CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) "
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="$LIBS -lhdTraceMPIWrapper $(pkg-config --libs glib-2.0)"
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_HDTRACE_WRAPPER 1
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_MPI_VERSIONS 1
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define HDTRACE_ROMIO 1
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define HDTRACE_MPI_COLLECTIVE 1
+_ACEOF
+
+       BUILD_HDTRACE_WRAPPER=1
+    fi
+
+fi
+
+
+
 
 
 BUILD_HDTRACE=
@@ -8561,7 +8605,7 @@ $as_echo "unknown!" >&6; }
     rm -f conftest*
 fi
 # Provide some information about the compiler.
-echo "$as_me:8564:" \
+echo "$as_me:8608:" \
      "checking for Fortran 90 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -10021,7 +10065,7 @@ $as_echo "unknown!" >&6; }
     rm -f conftest*
 fi
 # Provide some information about the compiler.
-echo "$as_me:10024:" \
+echo "$as_me:10068:" \
      "checking for Fortran 90 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -13804,7 +13848,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 13807 "configure"
+#line 13851 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -15614,7 +15658,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 15617 "configure"
+#line 15661 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -22634,7 +22678,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 22637 "configure"
+#line 22681 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -23608,7 +23652,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 23611 "configure"
+#line 23655 "configure"
 #include "confdefs.h"
 #include <sys/bitypes.h>
 int conftest() {return 0;}
@@ -23698,7 +23742,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 23701 "configure"
+#line 23745 "configure"
 #include "confdefs.h"
 #include <inttypes.h>
 int conftest() {return 0;}
@@ -26633,7 +26677,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     else
         cat > conftest.$ac_ext <<EOF
 
-#line 26636 "configure"
+#line 26680 "configure"
 #include "confdefs.h"
 
 main(){return(0);}
@@ -26726,7 +26770,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
         else
             cat > conftest.$ac_ext <<EOF
 
-#line 26729 "configure"
+#line 26773 "configure"
 #include "confdefs.h"
 
 int main(){return(0);}
@@ -27877,7 +27921,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 27880 "configure"
+#line 27924 "configure"
 #include "confdefs.h"
 #include <complex>
 int conftest() {return 0;}
@@ -30231,7 +30275,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 30234 "configure"
+#line 30278 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -31751,7 +31795,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 31754 "configure"
+#line 31798 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -33472,7 +33516,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 33475 "configure"
+#line 33519 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -34071,7 +34115,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 34074 "configure"
+#line 34118 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -35218,7 +35262,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     else
         cat > conftest.$ac_ext <<EOF
 
-#line 35221 "configure"
+#line 35265 "configure"
 #include "confdefs.h"
 
 main(){return(0);}
@@ -35309,7 +35353,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
         else
             cat > conftest.$ac_ext <<EOF
 
-#line 35312 "configure"
+#line 35356 "configure"
 #include "confdefs.h"
 
 int main(){return(0);}
@@ -37407,11 +37451,19 @@ fi
 
 
 if test "x$BUILD_HDTRACE" = "x" ; then
-   { $as_echo "$as_me:$LINENO: result: MPICH2 configured for hdtrace module               :  no" >&5
-$as_echo "MPICH2 configured for hdtrace module               :  no" >&6; }
+   { $as_echo "$as_me:$LINENO: result: MPICH2 configured for hdtrace                      :  no" >&5
+$as_echo "MPICH2 configured for hdtrace                      :  no" >&6; }
 else
-   { $as_echo "$as_me:$LINENO: result: MPICH2 configured for hdtrace module               : yes" >&5
-$as_echo "MPICH2 configured for hdtrace module               : yes" >&6; }
+   { $as_echo "$as_me:$LINENO: result: MPICH2 configured for hdtrace                      : yes" >&5
+$as_echo "MPICH2 configured for hdtrace                      : yes" >&6; }
+fi
+
+if test "x$BUILD_HDTRACE_WRAPPER" = "x" ; then
+   { $as_echo "$as_me:$LINENO: result: MPICH2 configured for hdtrace MPI-wrapper          :  no" >&5
+$as_echo "MPICH2 configured for hdtrace MPI-wrapper          :  no" >&6; }
+else
+   { $as_echo "$as_me:$LINENO: result: MPICH2 configured for hdtrace MPI-wrapper          : yes" >&5
+$as_echo "MPICH2 configured for hdtrace MPI-wrapper          : yes" >&6; }
 fi
 
 echo 'Configuration completed.'

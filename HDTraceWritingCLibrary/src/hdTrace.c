@@ -393,12 +393,13 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
 
 	va_start(argptr, format);
 	count = (size_t) vsnprintf(buffer, HD_TMP_BUF_SIZE, format, argptr);
+	va_end( argptr );
+
 	if (count >= HD_TMP_BUF_SIZE)
 	{
 		hdt_debug(trace, "Temporary buffer too small for message.");
 		return HD_ERR_BUFFER_OVERFLOW;
 	}
-	va_end( argptr );
 
 	ssize_t written = writeToFile(trace->info_fd, buf, count, trace->infofile);
 	if (written < 0)

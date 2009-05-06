@@ -151,6 +151,9 @@
 /* Define if HDTrace library is used */
 #undef HAVE_HDTRACE
 
+/* Define if HDTrace MPI Wrapper is used */
+#undef HAVE_HDTRACE_WRAPPER
+
 /* Define if int16_t is supported by the C compiler */
 #undef HAVE_INT16_T
 
@@ -341,6 +344,12 @@
 
 /* Define if we have __va_copy */
 #undef HAVE___VA_COPY
+
+/* Define if MPI collective call internals shall be traced */
+#undef HDTRACE_MPI_COLLECTIVE
+
+/* Define if more ROMIO internals shall be traced */
+#undef HDTRACE_ROMIO
 
 /* Define which x86 cycle counter to use */
 #undef LINUX86_CYCLE_CPUID_RDTSC
@@ -570,6 +579,9 @@
 
 /* Define if the NMPI names should use MPI instead of PMPI */
 #undef USE_MPI_FOR_NMPI
+
+/* Define if ROMIO shall use MPI calls for the wrapper */
+#undef USE_MPI_VERSIONS
 
 /* Multi-threaded implementation selected at compile time */
 #undef USE_THREAD_IMPL

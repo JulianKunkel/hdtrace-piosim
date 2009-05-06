@@ -380,8 +380,29 @@ if test "$with_mpe" = "default" ; then
 fi
 
 
+BUILD_HDTRACE_WRAPPER=
+dnl use the hdtrace MPI wrapper (use it together with the hdTraceLibrary)
+AC_ARG_WITH(hdtraceWrapper,       
+[--with-hdtraceWrapper=path         Use HDTrace wrapper installed in "path"],
+    if test "x$withval" = "xyes" ; then                                 
+           AC_MSG_ERROR(--with-hdtraceWrapper must be given a pathname)        
+    else
+       CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) "
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="$LIBS -lhdTraceMPIWrapper $(pkg-config --libs glib-2.0)"
+       AC_DEFINE(HAVE_HDTRACE_WRAPPER, 1, [Define if HDTrace MPI Wrapper is used])
+       AC_DEFINE(USE_MPI_VERSIONS, 1, [Define if ROMIO shall use MPI calls for the wrapper])
+       AC_DEFINE(HDTRACE_ROMIO, 1, [Define if more ROMIO internals shall be traced])
+       AC_DEFINE(HDTRACE_MPI_COLLECTIVE, 1, [Define if MPI collective call internals shall be traced])
+       BUILD_HDTRACE_WRAPPER=1
+    fi
+)
+
+AC_SUBST(BUILD_HDTRACE_WRAPPER)
+
+
 BUILD_HDTRACE=
-dnl use the hdtrace library
+dnl use the hdtrace library for traceing (use it together with the hdtrace MPI wrapper)
 AC_ARG_WITH(hdtrace,       
 [--with-hdtrace=path         Use HDTrace library installed in "path"],
     if test "x$withval" = "xyes" ; then                                 
@@ -6292,9 +6313,15 @@ AC_OUTPUT(Makefile src/Makefile src/include/Makefile \
 	  doc/windev/Makefile )
 
 if test "x$BUILD_HDTRACE" = "x" ; then
-   AC_MSG_RESULT([MPICH2 configured for hdtrace module               :  no])
+   AC_MSG_RESULT([MPICH2 configured for hdtrace                      :  no])
 else
-   AC_MSG_RESULT([MPICH2 configured for hdtrace module               : yes])
+   AC_MSG_RESULT([MPICH2 configured for hdtrace                      : yes])
+fi
+
+if test "x$BUILD_HDTRACE_WRAPPER" = "x" ; then
+   AC_MSG_RESULT([MPICH2 configured for hdtrace MPI-wrapper          :  no])
+else
+   AC_MSG_RESULT([MPICH2 configured for hdtrace MPI-wrapper          : yes])
 fi
 
 echo 'Configuration completed.'

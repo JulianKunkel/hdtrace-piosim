@@ -75,16 +75,22 @@ int MPI_<Function>(<type 1> v1, <type 2> v2, ..., <type n> vn)
 
 import re
 import sys
-from wrapper_conf import noLog, beforeMpi, afterMpi, afterLog, logAttributes
+import StringIO
 
-if len(sys.argv) != 2:
-  print "usage: %s <function_declarations.h>"
+from wrapper_conf import noLog, beforeMpi, afterMpi, afterLog, logAttributes, createFktHeaders
+
+if len(sys.argv) != 4:
+  print "usage: %s <function_declarations.h> <output_c_file> <output_header_file>"
   print "\tthe file <function_declarations.h> must contain c-style function"
   print "\tdeclarations."
   print
   sys.exit()
 
 funcs = open(sys.argv[1]).readlines()
+
+# open for append:
+outputC = open(sys.argv[2], "a")
+outputHeader = open(sys.argv[3] ,"a")
 
 # print all function definitions
 for i in xrange(0, len(funcs)):
@@ -123,9 +129,8 @@ for i in xrange(0, len(funcs)):
     argString = argString.rstrip(", ")
     callString = callString.rstrip(", ")
 
-    print "int MPI_" + fkt + "(" + argString + "){"
-    print "  int ret;"
-    print
+    outputC.write("int MPI_" + fkt + "(" + argString + "){\n")
+    outputC.write("  int ret;\n\n")
 
     if not fkt in noLog:
       logname = ""
@@ -133,33 +138,54 @@ for i in xrange(0, len(funcs)):
         logname = logAttributes[fkt][2]
       else:
         logname = fkt
-      print '  hdT_logStateStart(tracefile, "%s");' % logname
-      print
+      outputC.write('  hdMPI_threadLogStateStart("' + logname + '");\n\n')
 
     if fkt in beforeMpi:
-      print '  ' + beforeMpi[fkt] + ';'
+      outputC.write( '  ' + beforeMpi[fkt] + ';\n')
 
-    print "  ret = PMPI_" + fkt + "(" + callString + ");"
-    print
+    outputC.write("  ret = PMPI_" + fkt + "(" + callString + ");\n\n")
 
     if fkt in afterMpi:
-      print '  ' + afterMpi[fkt] + ';'
+      outputC.write( '  ' + afterMpi[fkt] + ';\n\n')
 
-    if not fkt in noLog:
+    # buffer for delayed writting to C file:
+    delayedBuffer = StringIO.StringIO()
+    if not fkt in noLog:      
+      fktName = "hdMPI_logInternalsMPI_" + fkt;
+      if fkt in createFktHeaders:
+          delayedBuffer.write("void " + fktName + "(" + argString + "){\n")
+
       if fkt in logAttributes:
         if logAttributes[fkt][0] == "":
           pass
         elif logAttributes[fkt][1] == "":
-          print '  hdT_logAttributes(tracefile, "' + logAttributes[fkt][0] + '");'
+          delayedBuffer.write( '  hdMPI_threadLogAttributes("' + logAttributes[fkt][0] + '");\n')
         else:
-          print '  hdT_logAttributes(tracefile, "' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');'
-      
-      print '  hdT_logStateEnd(tracefile);'
-      print
+          delayedBuffer.write( '  hdMPI_threadLogAttributes("' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');\n')
+
+      # write indirect call:
+      if fkt in createFktHeaders:
+          outputC.write("  " + fktName + "(" + callString + ");\n")
+          # generate header for fkt in header file:
+          outputHeader.write("void " + fktName + "(" + argString + ");\n")
+          # write function finalize down:
+          delayedBuffer.write("}\n\n")
+      else:
+          outputC.write(delayedBuffer.getvalue())
+          delayedBuffer = StringIO.StringIO()
+      outputC.write( '  hdMPI_threadLogStateEnd();\n')        
+
 
     if fkt in afterLog:
-      print '  ' + afterLog[fkt] + ';'
+      outputC.write( '  ' + afterLog[fkt] + ';\n')
 
-    print "  return ret;"
-    print "}"
-    print
+    outputC.write( "  return ret;\n")
+    outputC.write( "}\n\n")
+
+    outputC.write(delayedBuffer.getvalue())
+
+
+outputC.close()
+
+outputHeader.write("#endif\n\n")
+outputHeader.close()

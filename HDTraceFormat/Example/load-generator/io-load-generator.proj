@@ -9,18 +9,18 @@
  </FileList>
 
  <Topology>
-  <Level name="Hostname">
-   <Level name="Rank">
-    <Level name="Thread">
+  <Level type="Hostname">
+   <Level type="Rank">
+    <Level type="Thread">
     </Level>
    </Level>
   </Level>
 
-  <Label value="pvs-cluster.informatik.uni-heidelberg.de">
-   <Label value="0">
-    <Label value="0" />
-   </Label>
-  </Label>
+  <Node name="pvs-cluster.informatik.uni-heidelberg.de">
+   <Node name="0">
+    <Node name="0" />
+   </Node>
+  </Node>
  </Topology>
 
  <CommunicatorList>

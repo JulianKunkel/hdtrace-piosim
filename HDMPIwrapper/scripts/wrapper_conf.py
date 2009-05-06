@@ -49,9 +49,9 @@ def info_elements(arg):
         PMPI_Info_get_nthkey((___ARG___), i, key);
         PMPI_Info_get((___ARG___), key, MAX_INFO_VALUE_LEN - 1, value, &flag);
         if(flag)
-          hdT_logElement(tracefile, "Info", "key='%s' value='%s'", key, value);
+          hdMPI_threadLogElement("Info", "key='%s' value='%s'", key, value);
         else
-          hdT_logElement(tracefile, "EmptyInfo", "key='%s'", key);
+          hdMPI_threadLogElement("EmptyInfo", "key='%s'", key);
       }
     }
   }
@@ -62,18 +62,23 @@ wait_elements = """
     int i;
     for(i = 0; i < v1; ++i)
     {
-      hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(v2[i]));
+     hdMPI_threadLogElement("For", "rid='%d'", getRequestId(v2[i]));
     }
   }
 """
 
 split_end_element = """
   {
-    hdT_logElement(tracefile, "For", "rid='%d'", getRequestIdForSplit(v1));
+    hdMPI_threadLogElement("For", "rid='%d'", getRequestIdForSplit(v1));
   }
 """
 
+####################################################################################
+# """                                                                              #
+# The following array contains fkts which header fkts shall be created             #
+####################################################################################
 
+createFktHeaders = {"Send":"", "Recv":"", "Sendrecv":"", "Isend":"", "Irecv":""}
 
 ####################################################################################
 # """                                                                              #
@@ -86,9 +91,9 @@ split_end_element = """
 # """                                                                              #
 ####################################################################################
 beforeMpi = {
-  "Abort" : """hdT_logStateStart(tracefile, "Abort"); 
-               hdT_logAttributes(tracefile, "cid='%d'", getCommId(v1)); 
-               hdT_logStateEnd(tracefile); before_Abort()""",
+  "Abort" : """hdMPI_threadLogStateStart("Abort"); 
+               hdMPI_threadLogAttributes("cid='%d'", getCommId(v1)); 
+               hdMPI_threadLogStateEnd(); before_Abort()""",
   "File_delete" : info_elements("v2"),
 
   "File_set_info" : info_elements("v2"),
@@ -107,12 +112,12 @@ beforeMpi = {
   "File_iread" : "  long long int byte_offset = getByteOffset(v1);",
   "File_iwrite" : "  long long int byte_offset = getByteOffset(v1);",
 
-  "Wait": """hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));""",
+  "Wait": """hdMPI_threadLogElement("For", "rid='%d'", getRequestId(*v1));""",
   "Waitany" : wait_elements,
   "Waitsome" : wait_elements,
   "Waitall" : wait_elements,
 
-  "Test" : """hdT_logElement(tracefile, "For", "rid='%d'", getRequestId(*v1));""",
+  "Test" : """hdMPI_threadLogElement("For", "rid='%d'", getRequestId(*v1));""",
   "Testall" : wait_elements,
   "Testany" : wait_elements,
   "Testsome" : wait_elements,
@@ -148,7 +153,7 @@ afterMpi = {
 """ + info_elements("v4"),
 
   "File_read_all_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
+      hdMPI_threadLogElement("Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
@@ -157,21 +162,21 @@ afterMpi = {
   "File_write_at_all_end" : split_end_element,
 
   "File_write_all_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
+      hdMPI_threadLogElement("Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
   "File_write_all_end" : split_end_element,
 
   "File_read_ordered_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
+      hdMPI_threadLogElement("Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
   "File_read_ordered_end" : split_end_element,
 
   "File_write_ordered_begin" : """
-      hdT_logElement(tracefile, "Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
+      hdMPI_threadLogElement("Data", "offset='%lld' size='%lld' count='%d' tid='%d'", 
       byte_offset, getTypeSize(v3, v4), v3, getTypeId(v4));
   """,
 
@@ -180,15 +185,15 @@ afterMpi = {
   "Pcontrol" : """
   {
     if(v1 == 0) {
-      hdT_disableTrace(tracefile);
+      hdMPI_threadDisableTracing();
     }
     else if(v1 == 1) {
-      hdT_enableTrace(tracefile);
-      hdT_setForceFlush(tracefile, 0);
+      hdMPI_threadEnableTracing();
+      hdT_setForceFlush(hdMPI_getThreadTracefile(), 0);
     }
     else {
-      hdT_enableTrace(tracefile);
-      hdT_setForceFlush(tracefile, 1);
+      hdMPI_threadEnableTracing();
+      hdT_setForceFlush(hdMPI_getThreadTracefile(), 1);
     }
   }
 """,
@@ -199,7 +204,7 @@ afterMpi = {
     MPI_Comm_size(v9, &size);
     for(i = 0; i < size; ++i)
     {
-      hdT_logElement(tracefile, "Send", "rank='%d' size='%lld' count='%d' tid='%d'",
+      hdMPI_threadLogElement("Send", "rank='%d' size='%lld' count='%d' tid='%d'",
                    getWorldRank(i, v9), getTypeSize(v2[i], v4), v2[i], getTypeId(v4));
     }
   }
@@ -211,7 +216,7 @@ afterMpi = {
     MPI_Comm_size(v6, &size);
     for(i = 0; i < size; ++i)
     {
-      hdT_logElement(tracefile, "Recv", "rank='%d' size='%lld' count='%d' tid='%d'",
+      hdMPI_threadLogElement("Recv", "rank='%d' size='%lld' count='%d' tid='%d'",
                    getWorldRank(i, v6), getTypeSize(v3[i], v4), v3[i], v4);
     }             
   }
@@ -239,9 +244,9 @@ afterMpi = {
 # """                                                                              #
 ####################################################################################
 afterLog = {
-  "Init" : "after_Init(v1, v2); hdT_logStateStart(tracefile, \"Init\"); hdT_logStateEnd(tracefile)",
+  "Init" : "after_Init(v1, v2); hdMPI_threadLogStateStart(\"Init\"); hdMPI_threadLogStateEnd()",
 
-  "Init_thread" : "after_Init(v1, v2); hdT_logStateStart(tracefile, \"Init_thread\"); hdT_logStateEnd(tracefile)",
+  "Init_thread" : "after_Init(v1, v2); hdMPI_threadLogStateStart(\"Init_thread\"); hdMPI_threadLogStateEnd()",
 
   "Finalize" : "after_Finalize()",
 }
@@ -356,8 +361,8 @@ logAttributes = {
   "Barrier" : ("cid='%d'", 
                "getCommId(v1)"),
 
-  "Sendrecv" : ("size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' tid='%d'", 
-                "getTypeSize(v2, v3), getWorldRank(v4, v11), v5, getWorldRank(v9, v11), v10, getCommId(v11), v2, getTypeId(v3)"),
+  "Sendrecv" : ("size='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' sendTid='%d' recvTid='%d'", 
+                "getTypeSize(v2, v3), getWorldRank(v4, v11), v5, getWorldRank(v9, v11), v10, getCommId(v11), v2, getTypeId(v3), getTypeId(v8)"),
 
   "Sendrecv_replace" : ("sendSize='%lld' toRank='%d' toTag='%d' fromRank='%d' fromTag='%d' cid='%d' count='%d' tid='%d'", 
                         "getTypeSize(v2, v3), getWorldRank(v4, v8), v5, getWorldRank(v6, v8), v7, getCommId(v8), v2, getTypeId(v3)"),

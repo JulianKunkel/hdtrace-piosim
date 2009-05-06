@@ -133,21 +133,21 @@ static char * getCommName(MPI_Comm comm)
   int len = MPI_MAX_OBJECT_NAME + 1;
   int cmp = 0;
   int ret;
-  ret = MPI_Comm_compare(comm, MPI_COMM_WORLD, & cmp);
+  ret = PMPI_Comm_compare(comm, MPI_COMM_WORLD, & cmp);
   CHECK_MPI_ERROR(ret, NULL, "MPI_Comm_compare() failed");
 
   if(cmp == MPI_IDENT)
   {
 	  return "WORLD";
   }
-  ret = MPI_Comm_compare(comm, MPI_COMM_SELF, & cmp);
+  ret = PMPI_Comm_compare(comm, MPI_COMM_SELF, & cmp);
   CHECK_MPI_ERROR(ret, NULL, "MPI_Comm_compare() failed");
 
   if(cmp == MPI_IDENT)
   {
 	  return "SELF";
   }
-  ret = MPI_Comm_get_name(comm, comm_name_buffer, & len);
+  ret = PMPI_Comm_get_name(comm, comm_name_buffer, & len);
   CHECK_MPI_ERROR(ret, NULL, "MPI_Comm_get_name() failed")
   return comm_name_buffer;
 }
