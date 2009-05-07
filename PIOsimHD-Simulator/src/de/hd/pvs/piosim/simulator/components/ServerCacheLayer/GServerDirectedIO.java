@@ -92,10 +92,16 @@ public class GServerDirectedIO extends GAggregationCache {
 				continue;
 			}
 
-			if (size + offset == cur.getOffset()) {
+			if (offset >= cur.getOffset() && offset + size <= cur.getOffset() + cur.getSize()) {
+				// forget operation
+				io = cur;
+				size = io.getSize();
+				offset = io.getOffset();
+				it.remove();
+				continue;
+			} else if (size + offset == cur.getOffset()) {
 				// forward combination
-				if (size + cur.getSize() > getSimulator().getModel()
-						.getGlobalSettings().getIOGranularity()) {
+				if (size + cur.getSize() > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
 					nl.add(new IOJob(io.getFile(), size, offset, io.getType()));
 
 					io = cur;
@@ -109,8 +115,7 @@ public class GServerDirectedIO extends GAggregationCache {
 				it.remove();
 			} else if (cur.getOffset() + cur.getSize() == offset) {
 				// backwards combination
-				if (size + cur.getSize() > getSimulator().getModel()
-						.getGlobalSettings().getIOGranularity()) {
+				if (size + cur.getSize() > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
 					nl.add(new IOJob(io.getFile(), size, offset, io.getType()));
 
 					io = cur;
@@ -203,9 +208,7 @@ public class GServerDirectedIO extends GAggregationCache {
 			if (lastOffset >= 0 && cur.getOffset() == lastOffset) {
 				io = cur;
 				break;
-			} else if (ioClose == null
-					|| Math.abs(cur.getOffset() - lastOffset) < Math
-							.abs(ioClose.getOffset() - lastOffset)) {
+			} else if (ioClose == null || Math.abs(cur.getOffset() - lastOffset) < Math.abs(ioClose.getOffset() - lastOffset)) {
 				ioClose = cur;
 			} else if (ioLarge == null || cur.getSize() > ioLarge.getSize()) {
 				ioLarge = cur;
@@ -245,9 +248,7 @@ public class GServerDirectedIO extends GAggregationCache {
 		// prefer read requests for write requests
 		IOJob io = null;
 
-		if (!queuedReadJobs.isEmpty()
-				&& parentNode.isEnoughFreeMemory(queuedReadJobs.peek()
-						.getSize())) {
+		if (!queuedReadJobs.isEmpty() && parentNode.isEnoughFreeMemory(queuedReadJobs.peek().getSize())) {
 			// reserve memory for READ requests
 			// io = combineOperation(queuedReadJobs);
 			io = queuedReadJobs.poll();
@@ -277,8 +278,7 @@ public class GServerDirectedIO extends GAggregationCache {
 			queuedWriteJobs.put(req.getFile(), new LinkedList<IOJob>());
 		}
 
-		queuedWriteJobs.get(req.getFile()).add(
-				new IOJob(req.getFile(), size, offset, IOOperation.WRITE));
+		queuedWriteJobs.get(req.getFile()).add(new IOJob(req.getFile(), size, offset, IOOperation.WRITE));
 
 		scheduleNextIOJobIfPossible();
 	}

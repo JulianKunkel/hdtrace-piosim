@@ -24,6 +24,7 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 import org.junit.Test;
 
@@ -66,10 +67,22 @@ public class ClusterIOTest extends ClusterTest {
 				Collections.shuffle(files);
 
 				for (MPIFile f : files) {
-					pb.addWriteSequential(j, f, ((i * clientNum) + j)
-							* elementSize, elementSize);
+					pb.addWriteSequential(j, f, ((i * clientNum) + j) * elementSize, elementSize);
 				}
 			}
+		}
+
+		for (MPIFile file : files) {
+			HashMap<Integer, Long> offsets = new HashMap<Integer, Long>();
+			HashMap<Integer, Long> sizes = new HashMap<Integer, Long>();
+
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingtRanks()) {
+				offsets.put(rank, (long) rank * elementSize);
+				sizes.put(rank, (long) elementSize);
+			}
+
+//			pb.addWriteCollective(aB.getWorldCommunicator(), file, offsets, sizes);
+//			pb.addReadCollective(aB.getWorldCommunicator(), file, offsets, sizes);
 		}
 
 		runSimulationAllExpectedToFinish();
