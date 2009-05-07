@@ -33,8 +33,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
-import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 
 public class ProjectDescription {
 	// describes the project file:
@@ -43,7 +43,7 @@ public class ProjectDescription {
 	private String projectFilename;
 
 	private TopologyNode topologyRoot;
-	private TopologyLabels topologyLabels;
+	private TopologyTypes topologyTypes;
 
 	private String applicationName = "";
 
@@ -133,8 +133,9 @@ public class ProjectDescription {
 		this.projectFilename = projectFile.getName();
 		this.filePrefix = prefix;
 
-		if(topologyRoot != null)
-			topologyRoot.setText(this.projectFilename);
+		if(topologyRoot != null){
+			topologyRoot.setText(this.projectFilename.substring(0, projectFilename.length() - (".proj").length()));
+		}
 	}
 
 	public void setApplicationName(String applicationName) {
@@ -157,20 +158,20 @@ public class ProjectDescription {
 		this.processCount = processCount;
 	}
 
-	public void setTopologyLabels(TopologyLabels topologyLabels) {
-		this.topologyLabels = topologyLabels;
+	public void setTopologyTypes(TopologyTypes topologyLabels) {
+		this.topologyTypes = topologyLabels;
 	}
 
 	public void setTopologyRoot(TopologyNode topologyRoot) {
 		this.topologyRoot = topologyRoot;
 	}
 
-	public TopologyLabels getTopologyLabels() {
-		return topologyLabels;
+	public TopologyTypes getTopologyTypes() {
+		return topologyTypes;
 	}
 	
-	public String getTopologyLabel(int depth) {
-		return topologyLabels.getLabel(depth);
+	public String getTopologyType(int depth) {
+		return topologyTypes.getTypeFor(depth);
 	}	
 
 	public TopologyNode getTopologyRoot() {

@@ -43,7 +43,7 @@ public class RankTopologyMapping extends DefaultTopologyTreeMapping{
 		outer: for(int f = 0 ; f < reader.getNumberOfFilesLoaded() ; f++){
 			final TraceFormatFileOpener file = reader.getLoadedFile(f);
 			final TopologyNode topoRoot = file.getTopology();
-			final ArrayList<String> list = file.getTopologyLabels().getLabels();
+			final ArrayList<String> list = file.getTopologyLabels().getTypes();
 			
 			for(int i=0 ; i < list.size() ; i++){
 				if(list.get(i).compareToIgnoreCase(MPIConstants.RANK_TOPOLOGY) == 0){
@@ -81,7 +81,7 @@ public class RankTopologyMapping extends DefaultTopologyTreeMapping{
 		// check labels:
 		for(int f = 0 ; f < reader.getNumberOfFilesLoaded(); f++){
 			final TraceFormatFileOpener file=reader.getLoadedFile(f);
-			for(String label: file.getTopologyLabels().getLabels()){
+			for(String label: file.getTopologyLabels().getTypes()){
 				if(label.compareToIgnoreCase(MPIConstants.RANK_TOPOLOGY) == 0){
 					return true;
 				}

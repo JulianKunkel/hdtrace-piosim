@@ -2,7 +2,7 @@ package topology;
 
 import plugins.FilePlugin;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 abstract public class TopologyInputPlugin extends FilePlugin{
@@ -24,7 +24,7 @@ abstract public class TopologyInputPlugin extends FilePlugin{
 	 */
 	abstract public Class<? extends ITopologyInputPluginObject> getInstanciatedObjectsType();
 
-	abstract public boolean tryToActivate(TopologyLabels labels); 
+	abstract public boolean tryToActivate(TopologyTypes labels); 
 	
 	@Override
 	final public boolean tryToActivate(TraceFormatFileOpener file) {

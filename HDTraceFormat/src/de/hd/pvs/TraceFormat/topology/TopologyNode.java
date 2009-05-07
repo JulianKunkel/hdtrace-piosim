@@ -39,7 +39,7 @@ public class TopologyNode {
 	/**
 	 * Real label of this topology node
 	 */
-	private String label;
+	private String type;
 
 	private final HashMap<String, StatisticsSource> statisticsSources = new HashMap<String, StatisticsSource>();
 
@@ -54,12 +54,12 @@ public class TopologyNode {
 	 * @param text
 	 * @param parent
 	 */
-	public TopologyNode(String text, TopologyNode parent, String label) {
+	public TopologyNode(String text, TopologyNode parent, String type) {
 		this.name = text;
 		this.parent = parent;
-		this.label = label;
+		this.type = type;
 		
-		assert(label != null);
+		assert(type != null);
 		assert(name != null);
 		
 		if(parent != null){
@@ -106,8 +106,8 @@ public class TopologyNode {
 	 * Return the label but remove invalid characters in the label
 	 * @return 
 	 */
-	private String getUnifiedLabel(){		
-		return name.replaceAll("[^a-zA-Z0-9-.]", "");
+	private String createValidFilename(String what){
+		return what.replaceAll("[^a-zA-Z0-9-.]", "");
 	}
 
 	/**
@@ -117,10 +117,10 @@ public class TopologyNode {
 	 */
 	public String getFilePrefix(){
 		if (parent != null){
-			return parent.getFilePrefix() + "_" + getUnifiedLabel();
+			return parent.getFilePrefix() + "_" + createValidFilename(name);
 		}
 
-		return getUnifiedLabel();
+		return createValidFilename(name);
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class TopologyNode {
 	 * @return
 	 */
 	public String getStatisticFileName(String group){
-		return getFilePrefix() + "_" + group + ".stat";
+		return getFilePrefix() + "_" + createValidFilename(group) + ".stat";
 	}
 
 	public String getName() {
@@ -235,12 +235,12 @@ public class TopologyNode {
 	 * @param text
 	 * @return
 	 */
-	public TopologyNode getNodeWithTopologyLabelRecursivly(String text){		
+	public TopologyNode getNodeWithTopologyTypeRecursivly(String searchType){		
 		TopologyNode cur = this;
 		
 		// lookup parents until label is found		
 		while(cur != null){
-			if(label.equalsIgnoreCase(text)){
+			if(type.equalsIgnoreCase(searchType)){
 				// found correct node:
 				return cur;
 			}
@@ -251,8 +251,19 @@ public class TopologyNode {
 		return null;
 	}
 
-	public String getLabel() {
-		return label;
-	}	
+	public String getType() {
+		return type;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		TopologyNode topNode = (TopologyNode) obj; 
+		return this.name.equals(topNode.name) && topNode.parent.equals(this.parent) ;
+	}
+	
+	@Override
+	public int hashCode() {	
+		return this.name.hashCode();
+	}
 }
 

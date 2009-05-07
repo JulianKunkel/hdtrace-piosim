@@ -8,7 +8,7 @@ import topology.ITopologyInputPluginObject;
 import topology.TopologyInputPlugin;
 import topology.TopologyManager;
 import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
-import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 
@@ -82,8 +82,8 @@ public class MPIThreadInputPlugin extends TopologyInputPlugin{
 	}
 	
 	@Override
-	public boolean tryToActivate(TopologyLabels labels) {		
-		for(String label: labels.getLabels()){
+	public boolean tryToActivate(TopologyTypes labels) {		
+		for(String label: labels.getTypes()){
 			if(label.toLowerCase().contains("thread")){
 				return true;
 			}
@@ -93,7 +93,7 @@ public class MPIThreadInputPlugin extends TopologyInputPlugin{
 
 	@Override
 	public ITopologyInputPluginObject tryToInstantiateObjectFor(TopologyNode topo) {
-		if(topo.getLabel().compareToIgnoreCase("thread") == 0){
+		if(topo.getType().compareToIgnoreCase("thread") == 0){
 			// matches, return rank plugin
 			return new MPIThreadObject(topo);
 		}

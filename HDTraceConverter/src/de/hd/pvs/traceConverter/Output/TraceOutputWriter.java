@@ -27,7 +27,7 @@ package de.hd.pvs.traceConverter.Output;
 
 import java.io.IOException;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -84,5 +84,5 @@ abstract public class TraceOutputWriter {
 	abstract public void Event(TopologyNode topology, EventTraceEntry traceEntry);
 	
 	// handle statistics
-	abstract public void Statistics(TopologyNode topology, Epoch time, String statistic, StatisticsGroupDescription group, Object value);	
+	abstract public void Statistics(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value);	
 }

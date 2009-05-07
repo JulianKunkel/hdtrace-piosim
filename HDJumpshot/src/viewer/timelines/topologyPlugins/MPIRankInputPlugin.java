@@ -6,7 +6,7 @@ import java.util.Comparator;
 
 import topology.ITopologyInputPluginObject;
 import topology.TopologyInputPlugin;
-import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -177,8 +177,8 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 	}
 
 	@Override
-	public boolean tryToActivate(TopologyLabels labels) {		
-		for(String label: labels.getLabels()){
+	public boolean tryToActivate(TopologyTypes labels) {		
+		for(String label: labels.getTypes()){
 			if(label.toLowerCase().contains("rank")){
 				return true;
 			}
@@ -188,7 +188,7 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 
 	@Override
 	public ITopologyInputPluginObject tryToInstantiateObjectFor(TopologyNode topo) {
-		if(topo.getLabel().compareToIgnoreCase("rank") == 0){
+		if(topo.getType().compareToIgnoreCase("rank") == 0){
 			// matches, return rank plugin
 			return new MPIRankObject(topo);
 		}

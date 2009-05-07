@@ -54,19 +54,20 @@ public class ProjectDescriptionXMLWriter {
 		buff.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		
 		buff.append("<Application name=\"" + desc.getApplicationName() + "\">\n");
+		buff.append("<Description>" + desc.getDescription() +  "</Description>\n");
 
 		// topology labels:
 		buff.append("<Topology>\n");
-		for(String label: desc.getTopologyLabels().getLabels()){
-			 buff.append("<Level name=\"" + XMLHelper.escapeAttribute(label) + "\">\n");
+		for(String label: desc.getTopologyTypes().getTypes()){
+			 buff.append("<Level type=\"" + XMLHelper.escapeAttribute(label) + "\">\n");
 		}
-		for(String label: desc.getTopologyLabels().getLabels()){
+		for(String label: desc.getTopologyTypes().getTypes()){
 			buff.append("</Level>\n");
 		}
 		
 		if(desc.getTopologyRoot() != null){
 			for(TopologyNode topo: desc.getTopologyRoot().getChildElements().values()){
-				writeTopologyRecursive(buff, topo);
+				writeTopologyRecursive(buff, desc, topo);
 			}
 		}
 		
@@ -90,17 +91,23 @@ public class ProjectDescriptionXMLWriter {
 		writeToFile(desc.getAbsoluteFilenameOfProject(), buff);
 	}
 	
-	private void writeTopologyRecursive(StringBuffer buff, TopologyNode topologyInternalLevel){		
-		if(! topologyInternalLevel.isLeaf()){
-			buff.append("<Label value='" + 
-					XMLHelper.escapeAttribute(topologyInternalLevel.getName()) + "'>\n");
+	private void writeTopologyRecursive(StringBuffer buff, ProjectDescription desc, TopologyNode topologyInternalLevel){
+		buff.append("<Node name='" + 
+				XMLHelper.escapeAttribute(topologyInternalLevel.getName()) + "'");
+		
+		if(topologyInternalLevel.getType() != null){
+			buff.append(" type=\"" + XMLHelper.escapeAttribute(topologyInternalLevel.getType()) + "\"");
+		}
+			
+		
+		if(! topologyInternalLevel.isLeaf()){			
+			buff.append(">\n");
 			for(TopologyNode child: topologyInternalLevel.getChildElements().values()){
-				writeTopologyRecursive(buff, child);
+				writeTopologyRecursive(buff, desc, child);
 			}
-			buff.append("</Label>\n");
+			buff.append("</Node>\n");
 		}else{ // add close tag ...
-			buff.append("<Label value='" + XMLHelper.escapeAttribute(topologyInternalLevel.getName())
-					+ "'/>\n");
+			buff.append("/>\n");
 		}
 	}
 	

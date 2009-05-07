@@ -26,8 +26,6 @@
 package de.hd.pvs.TraceFormat.statistics;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -54,55 +52,27 @@ public class StatisticsGroupDescription{
 	/**
 	 * Name of this statistic group
 	 */
-	String groupName;
+	final String groupName;
 
 	// maps contained statistics to type
-	final HashMap<String, StatisticDescription> statisticTypeMap;
 	final ArrayList<StatisticDescription>      statisticOrder;
 
-	public StatisticsGroupDescription() {
-		statisticTypeMap = new HashMap<String, StatisticDescription>();
+	public StatisticsGroupDescription(String name) {
 		statisticOrder = new ArrayList<StatisticDescription>();
-	}
-
-	public StatisticsGroupDescription(ArrayList<StatisticDescription> statisticOrder,
-			HashMap<String, StatisticDescription> statisticTypeMap){
-		this.statisticOrder = statisticOrder;
-		this.statisticTypeMap = statisticTypeMap;
+		this.groupName = name;		
 	}
 
 	/**
 	 * Add a statistic description, the order defines the order in which it is stored in the binary file.
 	 */
-	public void addStatistic(StatisticDescription desc){		
-		statisticTypeMap.put(desc.getName(), desc);
+	public void addStatistic(StatisticDescription desc){	
 		statisticOrder.add(desc);
-	}
-
-	public Collection<String> getStatistics() {
-		return statisticTypeMap.keySet();
-	}
-
-	public StatisticsEntryType getType(String statistic){
-		return statisticTypeMap.get(statistic).type;
-	}
-
-	public StatisticDescription getStatistic(String stat){
-		return statisticTypeMap.get(stat);
 	}
 
 	public ArrayList<StatisticDescription> getStatisticsOrdered() {
 		return statisticOrder;
 	}
 	
-	public HashMap<String, StatisticDescription> getStatisticTypeMap() {
-		return statisticTypeMap;
-	}
-
-	public void setName(String name) {
-		this.groupName = name;
-	}
-
 	public String getName() {
 		return groupName;
 	}

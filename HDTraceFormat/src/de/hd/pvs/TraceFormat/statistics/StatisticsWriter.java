@@ -52,7 +52,8 @@ public class StatisticsWriter {
 
 		// create XML header
 		final StringBuffer xmlHeader = new StringBuffer();
-		xmlHeader.append("<" + group.getName() + " timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeAdjustment=\"" +
+		xmlHeader.append("<Header>");
+		xmlHeader.append("<Group name=\"" + group.getName() + "\" timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeAdjustment=\"" +
 				group.getTimeAdjustment()  + "\"");
 		if(group.getTimeResolutionMultiplierName() != null){
 			xmlHeader.append(" timeResulution=\"" + group.getTimeResolutionMultiplierName() + "\"");
@@ -69,14 +70,15 @@ public class StatisticsWriter {
 			xmlHeader.append(" multiplier=\"" + stat.getMultiplier() + "\" type=\"" + stat.getType()  + "\"/>\n");
 		}
 
-		xmlHeader.append("</" + group.getName() + ">\n");
+		xmlHeader.append("</Group>\n");
+		xmlHeader.append("</Header>\n");		
 		
 		// write XML header length and XML header
-		file.writeChars( Integer.toString(xmlHeader.length() ) + "\n" );
-		file.writeChars(xmlHeader.toString());		
+		file.write( (Integer.toString(xmlHeader.length() ) + "\n").getBytes() );
+		file.write(xmlHeader.toString().getBytes());		
 	}
 
-	public void writeStatisticEntry(Epoch time, String statistic, Object value) throws IOException{
+	public void writeStatisticEntry(Epoch time, StatisticDescription statistic, Object value) throws IOException{
 		if(lastTimeStamp != null && lastTimeStamp.compareTo(time) > 0){
 			throw new IllegalArgumentException("New timestamp is before old timestamp! " + lastTimeStamp + " new: " + time);
 		}
@@ -103,7 +105,7 @@ public class StatisticsWriter {
 
 		final StatisticDescription expectedStat = nextExpectedStatisticIter.next();
 
-		if(expectedStat == null || !expectedStat.getName().equals(statistic)){
+		if(expectedStat == null || expectedStat != statistic){
 			throw new IllegalArgumentException("Expected to get statistics in the correct order! Expected: \"" + expectedStat.getName() + 
 					"\", but got \"" + statistic + "\"");
 		}

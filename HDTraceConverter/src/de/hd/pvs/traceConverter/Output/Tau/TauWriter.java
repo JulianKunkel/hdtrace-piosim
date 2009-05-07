@@ -27,8 +27,8 @@ package de.hd.pvs.traceConverter.Output.Tau;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -89,11 +89,11 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	private int getThread(TopologyNode topology){
-		return Integer.parseInt(topology.getNodeWithTopologyLabelRecursivly("thread").getName());
+		return Integer.parseInt(topology.getNodeWithTopologyTypeRecursivly("thread").getName());
 	}
 	
 	private int getRank(TopologyNode topology){
-		return Integer.parseInt(topology.getNodeWithTopologyLabelRecursivly("rank").getName());
+		return Integer.parseInt(topology.getNodeWithTopologyTypeRecursivly("rank").getName());
 	}
 	
 	@Override
@@ -157,10 +157,9 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyNode topology, Epoch time, String name,
-			StatisticsGroupDescription group, Object value) {
+	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription stat, Object value) {
 		long convertedValue;
-		final StatisticsEntryType type = group.getType(name);
+		final StatisticsEntryType type = stat.getType();
 		
 		switch(type){
 		case INT64:
@@ -182,7 +181,7 @@ public class TauWriter extends TraceOutputWriter {
 			throw new IllegalArgumentException("Unknown type: " + type +" in value " + value);
 		}
 		
-		final String eventName = group.getName() + ":" + name;
+		final String eventName = stat.getGroup().getName() + ":" + stat.getName();
 		
 		Integer categoryID = tauCategoryMap.get(eventName);
 		if (categoryID == null){

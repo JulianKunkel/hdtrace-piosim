@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+ /** Version Control Information $Id: TopologyLabels.java 242 2009-04-25 19:25:34Z kunkel $
+  * @lastmodified    $Date: 2009-04-25 21:25:34 +0200 (Sa, 25. Apr 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 242 $ 
   */
 
 //	Copyright (C) 2009 Julian M. Kunkel
@@ -27,33 +27,33 @@ package de.hd.pvs.TraceFormat.topology;
 
 import java.util.ArrayList;
 
-public class TopologyLabels {
-	private final ArrayList<String> labels = new ArrayList<String>();
+public class TopologyTypes {
+	private final ArrayList<String> types = new ArrayList<String>();
 
 	/**
 	 * Set all topology labels at once. (Additional could be added with addLabel...) 
 	 * @param labels
 	 */
-	public void setTopologyLabels(String [] labels){
-		this.labels.clear();
+	public void setTopologyTypes(String [] labels){
+		this.types.clear();
 		for(int i=0; i < labels.length; i++){
-			addLabelOfNextDepth(labels[i]);
+			addTypeForNextLevel(labels[i]);
 		}
 	}
 	
 	/**
 	 * Add a label i.e. the next depth. 
-	 * @param label
+	 * @param type
 	 */
-	public void addLabelOfNextDepth(String label) {
-		labels.add(label);
+	public void addTypeForNextLevel(String type) {
+		types.add(type);
 	}
 	
-	public ArrayList<String> getLabels() {
-		return labels;
+	public ArrayList<String> getTypes() {
+		return types;
 	}
 	
-	public String getLabel(int depth){
-		return labels.get(depth);
+	public String getTypeFor(int depth){
+		return types.get(depth);
 	}
 }

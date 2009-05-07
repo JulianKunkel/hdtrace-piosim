@@ -87,7 +87,7 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 		
 		// lookup rank up to parent.		
 		while(cur != null){			
-			if(cur.getTopology().getLabel().equalsIgnoreCase(text)){
+			if(cur.getTopology().getType().equalsIgnoreCase(text)){
 				// found correct node:
 				return cur;
 			}

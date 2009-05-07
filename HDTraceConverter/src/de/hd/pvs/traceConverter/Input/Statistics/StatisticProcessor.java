@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
@@ -66,7 +67,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	/**
 	 * Record the last read value of a given statistic
 	 */
-	HashMap<String, StatisticWritten> lastUpdatedStatistic = new HashMap<String, StatisticWritten>();
+	HashMap<StatisticDescription, StatisticWritten> lastUpdatedStatistic = new HashMap<StatisticDescription, StatisticWritten>();
 
 	private void getNextStatistic() throws Exception{
 		if(! isFinished){
@@ -93,12 +94,13 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 		for(int pos = 0; pos < group.getSize() ; pos ++){
 			Object val = lastRead.getValues()[pos];
-			final String stat = group.getStatisticsOrdered().get(pos).getName();
+			
+			final StatisticDescription statDesc = group.getStatisticsOrdered().get(pos); 
 
 			if(getRunParameters().isUpdateStatisticsOnlyIfTheyChangeTooMuch()){
 				// check if the statistic changed enough from the last written stamp.
 
-				StatisticWritten lastWritten = lastUpdatedStatistic.get(stat); 
+				StatisticWritten lastWritten = lastUpdatedStatistic.get(statDesc); 
 
 				if(lastWritten != null){
 					if(val.equals(lastWritten.lastValue)){
@@ -148,21 +150,21 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 							}
 						}
 
-						SimpleConsoleLogger.Debug(now + " "  + getTopologyEntryResponsibleFor() + " " + stat + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
+						SimpleConsoleLogger.Debug(now + " "  + getTopologyEntryResponsibleFor() + " " + statDesc + " avg: " + averageValue + " sum: " + lastWritten.sum + " count: " + lastWritten.numberOfValues +" lastVal: " + lastWritten.lastValue);						
 
 						// put in current average value as a new "old value"
-						lastUpdatedStatistic.put(stat, new StatisticWritten(val));
-						getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, stat, group, val );
+						lastUpdatedStatistic.put(statDesc, new StatisticWritten(val));
+						getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, statDesc, val );
 						continue;
 
 					}
 				}
 				// put in the first value:
-				lastUpdatedStatistic.put(stat, new StatisticWritten(val));
+				lastUpdatedStatistic.put(statDesc, new StatisticWritten(val));
 			}		
 
 			// write the value as it is:						
-			getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, stat, group, val );
+			getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, statDesc, val );
 
 		}
 

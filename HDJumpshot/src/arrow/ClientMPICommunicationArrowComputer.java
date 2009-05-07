@@ -146,7 +146,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			// scan for rank label
 			final TraceFormatFileOpener file = reader.getLoadedFile(i);
 			int rankDepth = -1;
-			for(final String label: file.getTopologyLabels().getLabels()){
+			for(final String label: file.getTopologyLabels().getTypes()){
 				rankDepth++;
 
 				if(label.equals(MPIConstants.RANK_TOPOLOGY)){

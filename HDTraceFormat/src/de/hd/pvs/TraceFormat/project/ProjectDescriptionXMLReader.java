@@ -40,7 +40,7 @@ import de.hd.pvs.TraceFormat.project.datatypes.DatatypeEnum;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
-import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -82,7 +82,7 @@ public class ProjectDescriptionXMLReader {
 		}
 
 		final XMLTag xmlTopology = rootTag.getAndRemoveFirstNestedXMLTagWithName("Topology");
-		TopologyLabels labels = new TopologyLabels();
+		TopologyTypes labels = new TopologyTypes();
 
 		if(xmlTopology == null){
 			throw new IllegalArgumentException("Topology Tag not found! Invalid XML!");
@@ -90,7 +90,7 @@ public class ProjectDescriptionXMLReader {
 
 		parseTopologyLabel(xmlTopology, labels);
 
-		descriptionInOut.setTopologyLabels(labels);
+		descriptionInOut.setTopologyTypes(labels);
 
 		descriptionInOut.setTopologyRoot( 
 				parseTopology(0, xmlTopology,
@@ -246,13 +246,13 @@ public class ProjectDescriptionXMLReader {
 	 * @param topologyTag
 	 * @param labels
 	 */
-	private void parseTopologyLabel(XMLTag topologyTag, TopologyLabels labels){
+	private void parseTopologyLabel(XMLTag topologyTag, TopologyTypes labels){
 		final XMLTag curLabel = topologyTag.getFirstNestedXMLTagWithName("Level");
 		if(curLabel == null){
 			return;
 		}
 		final String name = curLabel.getAttribute("type");		
-		labels.addLabelOfNextDepth(name);
+		labels.addTypeForNextLevel(name);
 
 		parseTopologyLabel(curLabel, labels);
 	}
@@ -266,7 +266,7 @@ public class ProjectDescriptionXMLReader {
 
 			String label = xmlTopology.getAttribute("type");
 			if( label == null ){
-				label = desc.getTopologyLabel(depth);
+				label = desc.getTopologyType(depth);
 			}
 
 			TopologyNode childNode = new TopologyNode(childName, topoNode, label);

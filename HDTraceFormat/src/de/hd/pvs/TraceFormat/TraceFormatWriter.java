@@ -31,10 +31,11 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsWriter;
-import de.hd.pvs.TraceFormat.topology.TopologyLabels;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceWriter;
@@ -65,11 +66,11 @@ public class TraceFormatWriter {
 		this.unparsedTagsToWrite = unparsedTagsToWrite;
 	}
 
-	public TraceFormatWriter(String resultFile, TopologyLabels labels) {
+	public TraceFormatWriter(String resultFile, TopologyTypes labels) {
 		outProject.setProjectFilename(resultFile);
 		
 		outProject.setTopologyRoot( new TopologyNode(outProject.getFilesPrefix(), null, "root"));
-		outProject.setTopologyLabels(labels);
+		outProject.setTopologyTypes(labels);
 	}
 	
 	/**
@@ -81,10 +82,10 @@ public class TraceFormatWriter {
 	public TopologyNode createInitalizeTopology(String [] topology){
 		TopologyNode cur = outProject.getTopologyRoot();
 		
-		if (topology.length > outProject.getTopologyLabels().getLabels().size()){
+		if (topology.length > outProject.getTopologyTypes().getTypes().size()){
 			throw new IllegalArgumentException("Topology labels are not as deep as the topology " +
 					"you want to create: " + topology.length + " labels: " + 
-					outProject.getTopologyLabels().getLabels().size() );
+					outProject.getTopologyTypes().getTypes().size() );
 		}
 		for(int p = 0 ; p < topology.length; p++){
 			// check if parents exist
@@ -92,7 +93,7 @@ public class TraceFormatWriter {
 			if( child == null){
 				// create all the next ones.
 				for(int n = p ; n < topology.length; n++){
-					cur = new TopologyNode(topology[n], cur, outProject.getTopologyLabel(p));
+					cur = new TopologyNode(topology[n], cur, outProject.getTopologyType(p));
 					initalizeTopologyInternal(cur);
 				}
 				return cur;
@@ -102,7 +103,7 @@ public class TraceFormatWriter {
 		return cur;
 	}
 
-	public void initalizeTopologyInternal(TopologyNode topology) {
+	void initalizeTopologyInternal(TopologyNode topology) {
 		//lookup topology in project description and create missing topologies				
 		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
 
@@ -121,6 +122,14 @@ public class TraceFormatWriter {
 					"Trace file could not be created: " + file);
 		}
 	}
+	
+	void initalizeTopologyIfNeeded(TopologyNode topology) {
+		if(traceWriterMap.containsKey(topology)){
+			return;
+		}
+		initalizeTopologyInternal(topology);
+	}
+
 	
 	/**
 	 * Announce that an already existing topology will create some statistics or a trace.
@@ -183,10 +192,10 @@ public class TraceFormatWriter {
 		}
 	}
 
-	public void Statistics(TopologyNode topology, Epoch time, String statistic,
-			StatisticsGroupDescription group, Object value) {
+	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value) {
 		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
 
+		final StatisticsGroupDescription group = statistic.getGroup();
 		StatisticsWriter outWriter = stats.get(group);
 
 		if (outWriter == null) {			

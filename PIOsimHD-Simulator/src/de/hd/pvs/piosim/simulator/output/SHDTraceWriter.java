@@ -25,7 +25,7 @@ import java.util.Stack;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyLabels;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -61,8 +61,8 @@ public class SHDTraceWriter extends STraceWriter {
 	public SHDTraceWriter(String filename, Simulator sim) {
 		super(filename, sim);
 		
-		final TopologyLabels labels = new TopologyLabels();
-		labels.setTopologyLabels(new String []{ "Root Component", "Component", "Component", "Component", "Component"});
+		final TopologyTypes labels = new TopologyTypes();
+		labels.setTopologyTypes(new String []{ "Root Component", "Component", "Component", "Component", "Component"});
 		
 		out = new TraceFormatWriter(filename, labels);
 		desc = out.getProjectDescription();

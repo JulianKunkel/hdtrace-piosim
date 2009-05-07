@@ -30,7 +30,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -97,14 +97,13 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyNode topology, Epoch time, String name,
-			StatisticsGroupDescription group, Object value) {
+	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription stat, Object value) {
 		String unit = "";
-		if(group.getStatistic(name).getUnit() != null){
-			unit = " " + group.getStatistic(name).getUnit(); 
+		if(stat.getUnit() != null){
+			unit = " " + stat.getUnit(); 
 		}
 		try {
-			writer.append(time.getFullDigitString() + " S " + topology.toRecursiveString() + " " + group.getName() + " " + name + " " + value + unit + "\n");
+			writer.append(time.getFullDigitString() + " S " + topology.toRecursiveString() + " " + stat.getGroup().getName() + " " + stat.getName() + " " + value + unit + "\n");
 		} catch (IOException e) {			
 			e.printStackTrace();
 			System.exit(1);

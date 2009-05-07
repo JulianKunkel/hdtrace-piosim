@@ -178,8 +178,7 @@ public class StatisticsReader implements StatisticsSource{
 	
 
 	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
-		StatisticsGroupDescription stat = new StatisticsGroupDescription();
-		stat.setName(root.getAttribute("name"));
+		StatisticsGroupDescription stat = new StatisticsGroupDescription(root.getAttribute("name"));
 		//System.out.println("Statistics: " + root.getNodeName());
 
 		final String tT = root.getAttribute("timestampDatatype");		

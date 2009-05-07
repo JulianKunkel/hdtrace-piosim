@@ -346,7 +346,7 @@ public class TopologyManager
 		for(int i=0; i < reader.getNumberOfFilesLoaded(); i++ ){
 			TraceFormatFileOpener file = reader.getLoadedFile(i);
 			buff.append(file.getProjectDescription().getProjectFilename() + ": ");
-			for(String label: file.getTopologyLabels().getLabels()){
+			for(String label: file.getTopologyLabels().getTypes()){
 				buff.append(label + " ");
 			}
 			buff.append("\n");
