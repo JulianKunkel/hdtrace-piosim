@@ -192,7 +192,38 @@ public class TraceFormatWriter {
 		}
 	}
 
-	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value) {
+	public void writeStatisticsTimestamp(TopologyNode topology, StatisticsGroupDescription group, Epoch time) throws IOException{
+		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
+
+		StatisticsWriter outWriter = stats.get(group);
+
+		if (outWriter == null) {			
+			final String file = outProject.getParentDir() + "/" + topology.getStatisticFileName(group.getName());
+
+			try {
+				// generate a new output writer
+				outWriter = new StatisticsWriter(file, group);
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+						"Statistic file could not be created: " + file);
+			}
+
+			stats.put(group, outWriter);
+		}
+
+		outWriter.writeStatisticsTimestamp(topology, time);
+	}
+	
+	public void Statistics(TopologyNode topology, StatisticDescription statistic, Object value) throws IOException{
+		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
+
+		final StatisticsGroupDescription group = statistic.getGroup();
+		StatisticsWriter outWriter = stats.get(group);
+
+		outWriter.writeStatisticEntry(statistic, value);
+	}
+	
+	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value) throws IOException{
 		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
 
 		final StatisticsGroupDescription group = statistic.getGroup();
@@ -211,13 +242,12 @@ public class TraceFormatWriter {
 
 			stats.put(group, outWriter);
 		}
-
-		try {
-			outWriter.writeStatisticEntry(time, statistic, value);
-		} catch (IOException e) {
-			throw new IllegalArgumentException(
-					"Error during write in statistic file", e);
+		
+		if(outWriter.isStatisticIntervalFinished()){
+			outWriter.writeStatisticsTimestamp(topology, time);
 		}
+		
+		outWriter.writeStatisticEntry(statistic, value);
 	}
 
 	public void finalizeTrace() throws IOException{

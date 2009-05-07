@@ -106,6 +106,10 @@ public class HDTraceWriter extends TraceOutputWriter {
 			writer.addStatisticGroup(statistic.getGroup().getName());
 		}
 
-		writer.Statistics(topology, time, statistic, value);
+		try{
+			writer.Statistics(topology, time, statistic, value);
+		}catch(IOException e){
+			throw new IllegalArgumentException(e);
+		}
 	}	
 }

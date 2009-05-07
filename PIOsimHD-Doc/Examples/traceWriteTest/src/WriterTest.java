@@ -40,14 +40,17 @@ public class WriterTest {
 		estimatedEnergy.addStatistic(statEstimatedSimple);
 			
 		
-		writer.Statistics(host1, new Epoch(2.0), statEstimatedLookAhead, new Float(2.0));
-		writer.Statistics(host1, new Epoch(2.0), statEstimatedSimple, new Float(2.0));
+		writer.writeStatisticsTimestamp(host1, estimatedEnergy, new Epoch(2.0));
+		writer.writeStatistics(host1, statEstimatedLookAhead, new Float(2.0));
+		writer.writeStatistics(host1, statEstimatedSimple, new Float(2.0));
+
+		writer.writeStatisticsTimestamp(host1, estimatedEnergy, new Epoch(3.0));
+		writer.writeStatistics(host1, statEstimatedLookAhead, new Float(3.0));
+		writer.writeStatistics(host1, statEstimatedSimple, new Float(1.0));
 		
-		writer.Statistics(host1, new Epoch(3.0), statEstimatedLookAhead, new Float(3.0));
-		writer.Statistics(host1, new Epoch(3.0), statEstimatedSimple, new Float(1.0));
-		
-		writer.Statistics(host1, new Epoch(4.0), statEstimatedLookAhead, new Float(2.0));
-		writer.Statistics(host1, new Epoch(4.0), statEstimatedSimple, new Float(2.6));
+		writer.writeStatisticsTimestamp(host1, estimatedEnergy, new Epoch(4.0));
+		writer.writeStatistics(host1, statEstimatedLookAhead, new Float(2.0));
+		writer.writeStatistics(host1, statEstimatedSimple, new Float(2.6));
 		
 		writer.finalizeTrace();
 	}

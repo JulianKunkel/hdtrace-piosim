@@ -30,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -59,7 +60,7 @@ public class StatisticsWriter {
 			xmlHeader.append(" timeResulution=\"" + group.getTimeResolutionMultiplierName() + "\"");
 		}
 		xmlHeader.append(">\n");
-		
+
 		for(StatisticDescription stat: group.getStatisticsOrdered()){								
 			xmlHeader.append("<Statistics name=\"" + stat.getName() + "\"" );
 
@@ -72,37 +73,49 @@ public class StatisticsWriter {
 
 		xmlHeader.append("</Group>\n");
 		xmlHeader.append("</Header>\n");		
-		
+
 		// write XML header length and XML header
 		file.write( (Integer.toString(xmlHeader.length() ) + "\n").getBytes() );
 		file.write(xmlHeader.toString().getBytes());		
 	}
 
-	public void writeStatisticEntry(Epoch time, StatisticDescription statistic, Object value) throws IOException{
+	public boolean isStatisticIntervalFinished(){
+		return nextExpectedStatisticIter == null || ! nextExpectedStatisticIter.hasNext();
+	}
+	
+	public void writeStatisticsTimestamp(TopologyNode topology, Epoch time) throws IOException{
 		if(lastTimeStamp != null && lastTimeStamp.compareTo(time) > 0){
 			throw new IllegalArgumentException("New timestamp is before old timestamp! " + lastTimeStamp + " new: " + time);
 		}
 
 		// write timestamp, if necessary
-		if(nextExpectedStatisticIter == null || ! nextExpectedStatisticIter.hasNext()){
-			nextExpectedStatisticIter = group.getStatisticsOrdered().iterator();
-			final Epoch realTime = time.subtract(group.getTimeAdjustment());
-
-			// write timestamp:
-			switch(group.getTimestampDatatype()){
-			case INT32:
-				int realVal = (int) (realTime.getDoubleInNS() / group.getTimeResolutionMultiplier());
-				file.writeInt( realVal );						
-				break;
-			case EPOCH:
-				file.writeInt(realTime.getSeconds());
-				file.writeInt(realTime.getNanoSeconds());
-				break;				
-			default:
-				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
-			}
+		if(nextExpectedStatisticIter != null && nextExpectedStatisticIter.hasNext() ){
+			throw new IllegalArgumentException("Current statistic interval is not finished yet!");
 		}
 
+		nextExpectedStatisticIter = group.getStatisticsOrdered().iterator();
+		final Epoch realTime = time.subtract(group.getTimeAdjustment());
+
+		// write timestamp:
+		switch(group.getTimestampDatatype()){
+		case INT32:
+			int realVal = (int) (realTime.getDoubleInNS() / group.getTimeResolutionMultiplier());
+			file.writeInt( realVal );						
+			break;
+		case EPOCH:
+			file.writeInt(realTime.getSeconds());
+			file.writeInt(realTime.getNanoSeconds());
+			break;				
+		default:
+			throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
+		}
+		
+		lastTimeStamp = time;
+	}
+
+	public void writeStatisticEntry(StatisticDescription statistic, Object value) throws IOException{
+		assert(nextExpectedStatisticIter != null);
+		
 		final StatisticDescription expectedStat = nextExpectedStatisticIter.next();
 
 		if(expectedStat == null || expectedStat != statistic){
@@ -135,9 +148,6 @@ public class StatisticsWriter {
 		default:
 			throw new IllegalArgumentException("Unknown type: " + type +" in value " + statistic);
 		}
-
-
-		lastTimeStamp = time;
 	}
 
 	public void finalize(){

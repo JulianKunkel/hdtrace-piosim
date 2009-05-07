@@ -30,6 +30,7 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
@@ -156,12 +157,16 @@ public class SimpleTraceWriter {
 		writer.StateEnd(topology, traceEntry);
 	}
 	
-	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value) {
+	public void writeStatisticsTimestamp(TopologyNode topology, StatisticsGroupDescription group, Epoch time) throws IOException{
+		writer.writeStatisticsTimestamp(topology, group, time);
+	}
+	
+	public void writeStatistics(TopologyNode topology, StatisticDescription statistic, Object value) throws IOException {
 		
 		if(! writer.getProjectDescription().getStatisticsGroupNames().contains(statistic.getGroup().getName())){
 			writer.addStatisticGroup(statistic.getGroup().getName());
 		}
 
-		writer.Statistics(topology, time, statistic, value);
+		writer.Statistics(topology, statistic, value);
 	}	
 }
