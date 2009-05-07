@@ -73,7 +73,7 @@ public class GServerDirectedIO extends GAggregationCache {
 
 		Collections.sort(l, new IOJobComparator());
 
-		System.out.print("old: " + l.size());
+		System.out.print("MERGE old: " + l.size());
 
 		it = l.iterator();
 
@@ -150,16 +150,36 @@ public class GServerDirectedIO extends GAggregationCache {
 	}
 
 	private IOJob getJob() {
-		boolean foundShort = false;
+		long size = 0;
 
 		LinkedList<IOJob> list = null;
 		LinkedList<IOJob> lastFileList = null;
 
 		IOJob io = null;
+		IOJob ioClose = null;
+		IOJob ioLarge = null;
+
 		Iterator<IOJob> it = null;
 
+		if (lastFile != null) {
+			lastFileList = queuedWriteJobs.get(lastFile);
+		}
+
 		for (LinkedList<IOJob> l : queuedWriteJobs.values()) {
-			if (list == null || list.size() < l.size()) {
+			long tmp = 0;
+
+			it = l.iterator();
+
+			while (it.hasNext()) {
+				tmp += it.next().getSize();
+			}
+
+			if (l == lastFileList) {
+				tmp *= 10;
+			}
+
+			if (tmp > size) {
+				size = tmp;
 				list = l;
 			}
 		}
@@ -168,49 +188,44 @@ public class GServerDirectedIO extends GAggregationCache {
 			return null;
 		}
 
-		if (lastFile != null) {
-			lastFileList = queuedWriteJobs.get(lastFile);
-
-			if (lastFileList != null) {
-				System.out.println("cur: " + list.size() + " last: "
-						+ lastFileList.size());
-
-				if (lastFileList.size() > (list.size() / 10)) {
-					list = lastFileList;
-				} else {
-					lastFile = null;
-					lastOffset = -1;
-				}
-			} else {
-				lastFile = null;
-				lastOffset = -1;
-			}
+		if (list != lastFileList) {
+			lastFile = null;
+			lastOffset = -1;
 		}
 
 		list = mergeIOJobs(list);
 
 		it = list.iterator();
 
-		// IDEA: use largest IOJob
 		while (it.hasNext()) {
 			IOJob cur = it.next();
 
 			if (lastOffset >= 0 && cur.getOffset() == lastOffset) {
 				io = cur;
 				break;
-			} else if (io == null || cur.getOffset() < io.getOffset()) {
-				if (lastOffset >= 0
-						&& Math.abs(cur.getOffset() - lastOffset) <= 1024 * 1024) {
-					foundShort = true;
-					io = cur;
-				} else if (!foundShort) {
-					io = cur;
-				}
+			} else if (ioClose == null
+					|| Math.abs(cur.getOffset() - lastOffset) < Math
+							.abs(ioClose.getOffset() - lastOffset)) {
+				ioClose = cur;
+			} else if (ioLarge == null || cur.getSize() > ioLarge.getSize()) {
+				ioLarge = cur;
 			}
 		}
 
 		if (io == null) {
-			io = list.peek();
+			if (ioClose != null && ioLarge == null) {
+				io = ioClose;
+			} else if (ioClose == null && ioLarge != null) {
+				io = ioLarge;
+			} else if (ioClose != null && ioLarge != null) {
+				if (ioLarge.getSize() > ioClose.getSize() * 10) {
+					io = ioLarge;
+				} else {
+					io = ioClose;
+				}
+			} else {
+				io = list.peek();
+			}
 		}
 
 		if (io == null) {
