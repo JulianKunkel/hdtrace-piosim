@@ -36,7 +36,9 @@ import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Fileopen;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
+import de.hd.pvs.piosim.model.program.commands.Filereadall;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
+import de.hd.pvs.piosim.model.program.commands.Filewriteall;
 import de.hd.pvs.piosim.model.program.commands.Receive;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.model.program.commands.Send;
@@ -98,6 +100,28 @@ public class ProgramBuilder {
 		lio.addIOOperation(offset, seqSize);
 		com.setListIO(lio);
 		appBuilder.addCommand(rank, com);
+	}
+
+	public void addReadCollective(Communicator comm, MPIFile file, HashMap<Integer,Long> offsets, HashMap<Integer,Long> sizes) {
+		Filereadall com = new Filereadall(comm);
+		com.setFile(file);
+		for (Integer rank : comm.getParticipatingtRanks()) {
+			ListIO lio = new ListIO();
+			lio.addIOOperation(offsets.get(rank), sizes.get(rank));
+			com.setListIO(rank, lio);
+			appBuilder.addCommand(rank, com);
+		}
+	}
+
+	public void addWriteCollective(Communicator comm, MPIFile file, HashMap<Integer,Long> offsets, HashMap<Integer,Long> sizes) {
+		Filewriteall com = new Filewriteall(comm);
+		com.setFile(file);
+		for (Integer rank : comm.getParticipatingtRanks()) {
+			ListIO lio = new ListIO();
+			lio.addIOOperation(offsets.get(rank), sizes.get(rank));
+			com.setListIO(rank, lio);
+			appBuilder.addCommand(rank, com);
+		}
 	}
 
 	public void addSend(Communicator communicator, int srcRank, int tgtRank, long size, int tag){
