@@ -6,6 +6,8 @@ AC_PREREQ(2.61)
 AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
 #AC_CONFIG_SRCDIR([src/common.c])
 
+AS_BOURNE_COMPATIBLE
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
@@ -99,5 +101,11 @@ AC_TRY_LINK([
 
 
 CFLAGS+=" $(getconf LFS_CFLAGS)"
+
+# create sub directories in build folder:
+AS_MKDIR_P(doc/doxygen)
+AS_MKDIR_P(src)
+AS_MKDIR_P(include)
+AS_MKDIR_P(lib)
 
 AC_OUTPUT
