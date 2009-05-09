@@ -79,8 +79,8 @@ import StringIO
 
 from wrapper_conf import noLog, beforeMpi, afterMpi, afterLog, logAttributes, createFktHeaders
 
-if len(sys.argv) != 4:
-  print "usage: %s <function_declarations.h> <output_c_file> <output_header_file>"
+if len(sys.argv) != 5:
+  print "usage: %s <function_declarations.h> <output_c_file> <output_header_file> <line_generator_header>"
   print "\tthe file <function_declarations.h> must contain c-style function"
   print "\tdeclarations."
   print
@@ -91,6 +91,15 @@ funcs = open(sys.argv[1]).readlines()
 # open for append:
 outputC = open(sys.argv[2], "a")
 outputHeader = open(sys.argv[3] ,"a")
+
+# Output header and scripts to incorporate line numbers into trace:
+codeLocatorHeader = open(sys.argv[4] ,"w")
+codeLocatorHeader.write("/* include this file to add source file and line to the trace */ \n#ifndef HDMPITRACER_CODELOCATOR_H_\n#define HDMPITRACER_CODELOCATOR_H_\n\n\n")
+
+# MPI function decls with file & name
+extendedMPIDecl = StringIO.StringIO()
+
+outputHeader.write("/* The following functions just log the attributes of the corresponding MPI calls */\n")
 
 # print all function definitions
 for i in xrange(0, len(funcs)):
@@ -129,8 +138,34 @@ for i in xrange(0, len(funcs)):
     argString = argString.rstrip(", ")
     callString = callString.rstrip(", ")
 
-    outputC.write("int MPI_" + fkt + "(" + argString + "){\n")
-    outputC.write("  int ret;\n\n")
+    #buffer which contains the normal MPI func implementation (without line & file)
+    mpiFunc = StringIO.StringIO()
+    eMpiFunc = StringIO.StringIO()
+    internalFunc = StringIO.StringIO()
+    
+    createeMPIFunc = True
+    
+    # take MPI funcs into account which have any number of arguments ("..."), PControl for MPICH2
+    if argString.find("...") >= 0:
+      createeMPIFunc = False
+      
+    mpiFunc.write("int MPI_" + fkt + "(" + argString + "){\n")
+    mpiFunc.write("  int ret;\n\n")
+    
+    if argString == "void":
+      eMpiFuncDecl = "int eMPI_" + fkt + "(const char * file, unsigned int line)";
+    else:
+      eMpiFuncDecl = "int eMPI_" + fkt + "(" + argString + ", const char * file, unsigned int line)";
+    eMpiFunc.write(eMpiFuncDecl + "{\n")
+    eMpiFunc.write("  int ret;\n\n")
+
+    # write extended MPI function declaration to header file
+    if createeMPIFunc:
+      extendedMPIDecl.write(eMpiFuncDecl + ";\n")
+      comma=""
+      if len(callString) > 1:
+        comma=", "
+      codeLocatorHeader.write("#define MPI_" + fkt + "(" + callString + ") eMPI_" + fkt + "(" + callString + comma + " __FILE__, __LINE__);\n")
 
     if not fkt in noLog:
       logname = ""
@@ -138,54 +173,80 @@ for i in xrange(0, len(funcs)):
         logname = logAttributes[fkt][2]
       else:
         logname = fkt
-      outputC.write('  hdMPI_threadLogStateStart("' + logname + '");\n\n')
+      eMpiFunc.write('  hdMPI_threadLogStateStart("' + logname + '");\n\n')
+      mpiFunc.write('  hdMPI_threadLogStateStart("' + logname + '");\n\n')
 
     if fkt in beforeMpi:
-      outputC.write( '  ' + beforeMpi[fkt] + ';\n')
+      eMpiFunc.write( '  ' + beforeMpi[fkt] + ';\n')
+      mpiFunc.write( '  ' + beforeMpi[fkt] + ';\n')
 
-    outputC.write("  ret = PMPI_" + fkt + "(" + callString + ");\n\n")
+    eMpiFunc.write("  ret = PMPI_" + fkt + "(" + callString + ");\n\n")
+    mpiFunc.write("  ret = PMPI_" + fkt + "(" + callString + ");\n\n")
 
     if fkt in afterMpi:
-      outputC.write( '  ' + afterMpi[fkt] + ';\n\n')
+      eMpiFunc.write( '  ' + afterMpi[fkt] + ';\n\n')
+      mpiFunc.write( '  ' + afterMpi[fkt] + ';\n\n')
 
     # buffer for delayed writting to C file:
     delayedBuffer = StringIO.StringIO()
-    if not fkt in noLog:      
+    if not fkt in noLog:
       fktName = "hdMPI_logInternalsMPI_" + fkt;
       if fkt in createFktHeaders:
-          delayedBuffer.write("void " + fktName + "(" + argString + "){\n")
+          internalFunc.write("void " + fktName + "(" + argString + "){\n")
 
+      # log attribute string
+      logString = ""
+      
       if fkt in logAttributes:
         if logAttributes[fkt][0] == "":
           pass
         elif logAttributes[fkt][1] == "":
-          delayedBuffer.write( '  hdMPI_threadLogAttributes("' + logAttributes[fkt][0] + '");\n')
+          logString = '  hdMPI_threadLogAttributes("' + logAttributes[fkt][0] + '");\n'
         else:
-          delayedBuffer.write( '  hdMPI_threadLogAttributes("' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');\n')
+          logString = '  hdMPI_threadLogAttributes("' + logAttributes[fkt][0] + '", ' + logAttributes[fkt][1] + ');\n'
+
+      eMpiFunc.write("  hdMPI_threadLogAttributes(\"cFile='%s' cLine='%u'\", file, line);\n")
 
       # write indirect call:
       if fkt in createFktHeaders:
-          outputC.write("  " + fktName + "(" + callString + ");\n")
+          eMpiFunc.write("  " + fktName + "(" + callString + ");\n")
+          mpiFunc.write("  " + fktName + "(" + callString + ");\n")
           # generate header for fkt in header file:
           outputHeader.write("void " + fktName + "(" + argString + ");\n")
           # write function finalize down:
-          delayedBuffer.write("}\n\n")
+          internalFunc.write(logString +"\n")
+          internalFunc.write("}\n\n")
       else:
-          outputC.write(delayedBuffer.getvalue())
-          delayedBuffer = StringIO.StringIO()
-      outputC.write( '  hdMPI_threadLogStateEnd();\n')        
+          eMpiFunc.write(logString + "\n")
+          mpiFunc.write(logString + "\n")
+          
+
+      eMpiFunc.write( '  hdMPI_threadLogStateEnd();\n')
+      mpiFunc.write( '  hdMPI_threadLogStateEnd();\n')
+      #outputHeader.write("#pragma weak EMPI_" + fkt + " = MPI_" + fkt + "\n")
 
 
     if fkt in afterLog:
-      outputC.write( '  ' + afterLog[fkt] + ';\n')
+      eMpiFunc.write( '  ' + afterLog[fkt] + ';\n')
+      mpiFunc.write( '  ' + afterLog[fkt] + ';\n')
 
-    outputC.write( "  return ret;\n")
-    outputC.write( "}\n\n")
+    eMpiFunc.write( "  return ret;\n}\n\n")
+    mpiFunc.write( "  return ret;\n}\n\n")
 
-    outputC.write(delayedBuffer.getvalue())
+    outputC.write(internalFunc.getvalue())
+    outputC.write(mpiFunc.getvalue())
+    
+    if createeMPIFunc:
+      outputC.write(eMpiFunc.getvalue())
 
 
 outputC.close()
+
+codeLocatorHeader.write("\n\n /* Extended MPI header, calls func & stores file & line */\n")
+codeLocatorHeader.write(extendedMPIDecl.getvalue())
+codeLocatorHeader.write("#endif\n")
+codeLocatorHeader.close()
+
 
 outputHeader.write("#endif\n\n")
 outputHeader.close()

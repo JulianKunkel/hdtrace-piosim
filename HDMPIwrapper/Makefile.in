@@ -1,0 +1,66 @@
+DESTDIR =
+srcdir = @srcdir@
+prefix = @prefix@
+datarootdir = @datarootdir@
+exec_prefix = @exec_prefix@
+includedir = $(DESTDIR)@includedir@
+mandir = $(DESTDIR)@mandir@
+sbindir = $(DESTDIR)@sbindir@
+bindir = $(DESTDIR)@bindir@
+libdir = $(DESTDIR)@libdir@
+
+VPATH = $(srcdir)
+SHELL = @SHELL@
+
+CC = @CC@
+LD = @CC@
+# make sure the srcdir include gets included first
+CFLAGS += -I$(srcdir)/include @CFLAGS@ @CPPFLAGS@
+LDFLAGS += @LDFLAGS@
+
+#CFLAGS  += -Wall -Wextra -pedantic -std=gnu99 -ggdb  -I$(MPINC) -I../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS` -D HDTRACE_INCLUDE_NESTED_TEST
+#LDFLAGS += $(shell pkg-config --libs glib-2.0)
+
+.PHONY: all
+all: lib/libhdTraceMPIWrapper.a
+
+lib/libhdTraceMPIWrapper.a: src/hdTraceMPIWrapper.o
+	@echo "[ar] libhdTraceMPIWrapper.a"
+	@ar rcs lib/libhdTraceMPIWrapper.a src/hdTraceMPIWrapper.o 
+
+src/hdTraceMPIWrapper.o: src/hdTraceMPIWrapper.src.c	
+
+src/hdTraceMPIWrapper.c: src/hdTraceMPIWrapper.src.c scripts/create_sim-wrapper.py scripts/wrapper_conf.py include/interesting_funcs.h include/hdMPITracer.h.in src/hdMPITracer.c
+	@echo "[PY] create"
+	@cat src/hdTraceMPIWrapper.src.c > src/hdTraceMPIWrapper.c
+	@cat include/hdMPITracer.h.in > include/hdMPITracer.h 
+	@scripts/create_sim-wrapper.py include/interesting_funcs.h src/hdTraceMPIWrapper.c include/hdMPITracer.h include/hdMPITracerCodeLocator.h
+
+.PHONY: test
+
+test:
+	cd test ; make
+
+.PHONY: hdtest
+
+hdtest: all
+	cd test ; make hdtest
+
+.PHONY: clean
+
+clean:
+	cd test ; make clean
+	rm -f src/*.o lib/*.a
+	rm -f src/hdTraceMPIWrapper.c
+	rm -rf doc/doxygen/html
+	rm -rf doc/doxygen/latex
+	cd doc ; rm -rf mpiwrapper.aux mpiwrapper.bbl mpiwrapper.blg mpiwrapper.log mpiwrapper.pdf mpiwrapper.toc 
+	rm scripts/*.pyc
+
+.PHONY: doc
+
+doc:
+	doxygen Doxyfile
+	cd doc; latex mpiwrapper
+
+### libglib2.0-0

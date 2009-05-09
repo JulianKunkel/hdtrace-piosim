@@ -1,3 +1,25 @@
+DESTDIR =
+srcdir = @srcdir@
+prefix = @prefix@
+datarootdir = @datarootdir@
+exec_prefix = @exec_prefix@
+includedir = $(DESTDIR)@includedir@
+mandir = $(DESTDIR)@mandir@
+sbindir = $(DESTDIR)@sbindir@
+bindir = $(DESTDIR)@bindir@
+libdir = $(DESTDIR)@libdir@
+
+VPATH = $(srcdir)
+SHELL = @SHELL@
+
+CC = @CC@
+LD = @CC@
+# make sure the srcdir include gets included first
+CFLAGS += -I$(srcdir)/include @CFLAGS@ @CPPFLAGS@
+LDFLAGS += @LDFLAGS@
+
+##############
+
 WRAPPER_MPI = $(shell pwd)
 WRAPPER_CC = $(shell pwd)/bin/mpicc
 WRAPPER_LIB = " $(shell pkg-config --libs glib-2.0) $(shell pwd)/../lib/libhdTraceMPIWrapper.a  $(shell pwd)/../../HDTraceWritingCLibrary/lib/libhdTrace.a"
