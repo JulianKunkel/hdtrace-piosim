@@ -38,8 +38,8 @@ public class EventTraceEntry extends TraceEntry{
 	 * @param name
 	 * @param attributes
 	 */
-	public EventTraceEntry(String name, final HashMap<String, String> attributes) {
-		super(name, attributes);		
+	public EventTraceEntry(String name, final HashMap<String, String> attributes, final Epoch time) {
+		super(name, attributes, time);		
 	}
 	
 	public EventTraceEntry(String name, Epoch time){

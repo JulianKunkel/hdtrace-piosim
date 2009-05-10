@@ -31,6 +31,7 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class XMLTraceEntryFactory {
 	private static TraceObjectType getType(String name){
@@ -48,8 +49,8 @@ public class XMLTraceEntryFactory {
 	 * @param nestedData
 	 * @return
 	 */
-	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, XMLTag nestedData){		
-		final TraceEntry traceObject = manufactureXMLTraceObject(data, parent);
+	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, XMLTag nestedData, Epoch timeAdjustment){		
+		final TraceEntry traceObject = manufactureXMLTraceObject(data, parent, timeAdjustment);
 		
 		if(nestedData != null){
 			// type must be state:
@@ -60,7 +61,7 @@ public class XMLTraceEntryFactory {
 				if(child.getName().equals("Nested")){
 					newNestedData = child;
 				}else{					
-					TraceEntry childTraceEntry = manufactureXMLTraceObject(child, traceObj, newNestedData);
+					TraceEntry childTraceEntry = manufactureXMLTraceObject(child, traceObj, newNestedData, timeAdjustment);
 					newNestedData = null;
 					traceObj.addTraceChild(childTraceEntry);
 				}
@@ -75,23 +76,44 @@ public class XMLTraceEntryFactory {
 	}
 	 
 
-	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent){
+	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, Epoch timeAdjustment){
 		// determine type
 		final TraceObjectType type = getType(data.getName());
 
+		final HashMap<String, String>  attributes = data.getAttributes();
+
+		// parse common time value
+		final String timeStr = attributes.get("time");
+		final Epoch time;
+		if(timeStr != null){
+			time = Epoch.parseTime(timeStr).add(timeAdjustment);
+		}else{
+			throw new IllegalArgumentException("Trace invalid, no time given");
+		}
+
 		if(type == TraceObjectType.STATE ){
-			final HashMap<String, String>  attributes = data.getAttributes();
-			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes);
+			// parse common time value
+			final String endTimeStr = attributes.get("end");
+			final Epoch endTime;
+			if(endTimeStr != null){
+				endTime = Epoch.parseTime(endTimeStr).add(timeAdjustment);
+			}else{
+				throw new IllegalArgumentException("Trace invalid, no end time given");
+			}
+			
+			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes, time, endTime);
 			traceObj.setNestedXMLTags(data.getNestedXMLTags());
 			
 			return traceObj;
+			
 		}else if (type == TraceObjectType.EVENT){
+			
 			// strip of the real name
 			String name = data.getAttributes().remove("name");
 			if( name == null || name.length() < 2){
 				throw new IllegalArgumentException("Event invalid");
 			}
-			EventTraceEntry traceObj= new EventTraceEntry(name, data.getAttributes());
+			EventTraceEntry traceObj= new EventTraceEntry(name, attributes, time);
 			traceObj.setNestedXMLTags(data.getNestedXMLTags());
 			return traceObj;
 		}else{

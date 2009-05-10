@@ -1,4 +1,4 @@
-<Program rank='0' thread='0'>
+<Program timeAdjustment="3">
 <Init  time='1240651036.309884' end='1240651036.309885'  />
 <Barrier cid='0'  time='1240651036.309894' end='1240651036.309980'  />
 <Type_commit tid='-1946157051'  time='1240651036.310117' end='1240651036.310168'  />

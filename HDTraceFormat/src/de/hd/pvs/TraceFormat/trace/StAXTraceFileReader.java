@@ -35,6 +35,7 @@ import javax.xml.stream.XMLStreamReader;
 
 import com.sun.xml.internal.stream.XMLInputFactoryImpl;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.TraceFormat.xml.XMLTraceEntryFactory;
 
@@ -57,6 +58,8 @@ public class StAXTraceFileReader implements TraceSource{
 	 * is the trace file read completely
 	 */
 	boolean finishedReading = false;
+	
+	private Epoch timeAdjustment = Epoch.ZERO;
 
 
 	/**
@@ -113,10 +116,7 @@ public class StAXTraceFileReader implements TraceSource{
 				case(XMLStreamConstants.START_ELEMENT):{
 					final String name =  reader.getName().getLocalPart();
 					nesting_depth++;		
-
-					if (name.equals("Program") && nesting_depth == 1){
-						continue;
-					}
+					
 					final HashMap<String, String> attributes = new HashMap<String, String>();
 
 					// generate attributes
@@ -124,6 +124,14 @@ public class StAXTraceFileReader implements TraceSource{
 						attributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
 					}
 
+
+					if (name.equals("Program") && nesting_depth == 1){
+						if(attributes.containsKey("timeAdjustment")){
+							timeAdjustment = Epoch.parseTime(attributes.get("timeAdjustment"));
+						}
+						continue;
+					}
+					
 					// check if there are nested XMLTrace stats
 					XMLTag parent = currentData;
 					currentData = new XMLTag(name, attributes, parent);
@@ -148,7 +156,7 @@ public class StAXTraceFileReader implements TraceSource{
 					}else if(! currentData.isChild()){
 						TraceEntry newTraceEntry;
 						try{
-							newTraceEntry = XMLTraceEntryFactory.manufactureXMLTraceObject(currentData, null, nestedData);
+							newTraceEntry = XMLTraceEntryFactory.manufactureXMLTraceObject(currentData, null, nestedData, timeAdjustment);
 						}catch(IllegalArgumentException e){			
 							throw new IllegalArgumentException("Invalid XML object: " + currentData + " at: " + getPosition(), e);
 						}

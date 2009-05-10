@@ -72,16 +72,9 @@ public class StateTraceEntry extends TraceEntry{
 	 * @param name
 	 * @param attributes
 	 */
-	public StateTraceEntry(String name, final HashMap<String, String> attributes) {
-		super(name, attributes);
-
-		// parse common time value
-		String value = attributes.remove("end");
-		if(value != null){
-			endTime = Epoch.parseTime(value);
-		}else{
-			throw new IllegalArgumentException("Trace invalid, no time given");
-		}
+	public StateTraceEntry(String name, final HashMap<String, String> attributes, Epoch start, Epoch end) {
+		super(name, attributes, start);
+		this.endTime = end;
 	}
 	
 	public StateTraceEntry(String name, Epoch start){

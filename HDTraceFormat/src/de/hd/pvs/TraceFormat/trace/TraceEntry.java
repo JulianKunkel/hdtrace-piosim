@@ -47,16 +47,9 @@ public abstract class TraceEntry extends XMLTag implements TraceObject{
 	 * @param name
 	 * @param attributes
 	 */
-	public TraceEntry(final String name, final HashMap<String, String> attributes) {
-		super(name, attributes, null);		
-
-		// parse common time value
-		String value = attributes.remove("time");
-		if(value != null){
-			time = Epoch.parseTime(value);
-		}else{
-			throw new IllegalArgumentException("Trace invalid, no time given");
-		}
+	public TraceEntry(final String name, final HashMap<String, String> attributes, final Epoch time) {
+		super(name, attributes, null);
+		this.time = time;
 	}
 	
 	/**
