@@ -207,11 +207,18 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 		trace->state_name[i][0] = '\0';
 	}
 
-	// TODO: Adjust to new topology concept
+	if (gettimeofday(& trace->init_time, NULL) != 0)
+	{
+		hdt_debugf(trace,
+				"Problems getting time, stop logging: %s", strerror(errno));
+		hdT_disableTrace(trace);
+		errno = HD_ERR_GET_TIME;
+		return -1;
+	}
+
 	writeLogf(trace,
-			"<Program rank='%s' thread='%s'>\n",
-			hdT_getTopoPathLabel(topoNode, 2),
-			hdT_getTopoPathLabel(topoNode, 3)
+			"<Program timeAdjustment='%u'>\n",
+			(unsigned) trace->init_time.tv_sec
 			);
 
 	return trace;
@@ -1073,14 +1080,14 @@ static int writeState(hdTrace trace)
 	if (writeLogf(
 			trace,
 			" time='%d.%.6d'",
-			(unsigned) trace->start_time[trace->function_depth].tv_sec,
+			(unsigned) trace->start_time[trace->function_depth].tv_sec - trace->init_time.tv_sec,
 			(unsigned) trace->start_time[trace->function_depth].tv_usec) != 0)
 		return -1;
 
 	if (writeLogf(
 			trace,
 			" end='%d.%.6d' ",
-			(unsigned) trace->end_time[trace->function_depth].tv_sec,
+			(unsigned) trace->end_time[trace->function_depth].tv_sec - trace->init_time.tv_sec,
 			(unsigned) trace->end_time[trace->function_depth].tv_usec) != 0)
 		return -1;
 

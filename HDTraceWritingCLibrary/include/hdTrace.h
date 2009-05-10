@@ -83,6 +83,11 @@ struct _hdTrace {
 	int info_fd;
 
 	/**
+     * the initial time when the trace file was opened
+     */
+	struct timeval init_time;
+
+	/**
 	 * Name of the log file (for error output)
 	 */
 	char *logfile;
