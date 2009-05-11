@@ -880,6 +880,7 @@ master_top_builddir
 FWRAPNAME
 PMPIFLIBNAME
 MPIFLIBNAME
+MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO
 MPI_INCLUDE_HDTRACE_CODE_LOCATOR
 BUILD_HDTRACE
 BUILD_HDTRACE_WRAPPER
@@ -956,6 +957,8 @@ enable_mpe
 with_hdtraceWrapper
 with_hdtrace
 enable_hdTraceSourceLine
+enable_hdTraceSourceLineROMIO
+enable_hdTraceMoreROMIOInternals
 enable_threads
 enable_weak_symbols
 with_cross
@@ -1669,6 +1672,8 @@ implementation.   option is a list of comma separated names including
  routines
 --enable-mpe - Build the MPE (MPI Parallel Environment) routines
 --enable-hdTraceSourceLine - Add source code line to each traced MPI call (MPI wrapper)
+--enable-hdTraceSourceLineROMIO - Add source code line to each traced MPI call (MPI wrapper) AND to ROMIO
+--enable-hdTraceMoreROMIOInternals - Trace more ROMIO internal states with HDTrace
 --enable-threads=level - Control the level of thread support in the
 MPICH implementation.  The following levels are supported.
     single - No threads (MPI_THREAD_SINGLE)
@@ -2632,7 +2637,8 @@ if test "${with_hdtraceWrapper+set}" = set; then
 $as_echo "$as_me: error: --with-hdtraceWrapper must be given a pathname" >&2;}
    { (exit 1); exit 1; }; }
     else
-       CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) "
+       CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) -DUSE_MPI_VERSIONS"
+       CPPFLAGS+="-DUSE_MPI_VERSIONS"
        LDFLAGS="$LDFLAGS -L$withval/lib"
        LIBS="$LIBS -lhdTraceMPIWrapper $(pkg-config --libs glib-2.0)"
 
@@ -2656,7 +2662,9 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
        BUILD_HDTRACE_WRAPPER=1
-       cp $withval/include/hdMPITracerCodeLocator.h src/include/
+       # copy extended source code wrapper
+       mkdir -p src/include/
+       cp $withval/include/hdMPITracerCodeLocator.h src/include/ || exit 1
     fi
 
 fi
@@ -2707,6 +2715,37 @@ fi
 
 
 export MPI_INCLUDE_HDTRACE_CODE_LOCATOR
+
+MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO=
+# Check whether --enable-hdTraceSourceLineROMIO was given.
+if test "${enable_hdTraceSourceLineROMIO+set}" = set; then
+  enableval=$enable_hdTraceSourceLineROMIO; if test "x$enable_hdTraceSourceLineROMIO" = "xyes" ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HDTRACE_TRACE_SOURCECODE_POSITION 1
+_ACEOF
+
+	HDTRACE_TRACE_SOURCECODE_POSITION=yes
+	MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO="#include \"hdMPITracerCodeLocator.h\""
+fi
+
+fi
+
+
+export MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO
+
+# Check whether --enable-hdTraceMoreROMIOInternals was given.
+if test "${enable_hdTraceMoreROMIOInternals+set}" = set; then
+  enableval=$enable_hdTraceMoreROMIOInternals; if test "x$enable_hdTraceMoreROMIOInternals" = "xyes" ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HDTRACE_DETAILED_ROMIO_INTERNALS 1
+_ACEOF
+
+fi
+
+fi
+
 
 # Check whether --enable-threads was given.
 if test "${enable_threads+set}" = set; then
@@ -8627,7 +8666,7 @@ $as_echo "unknown!" >&6; }
     rm -f conftest*
 fi
 # Provide some information about the compiler.
-echo "$as_me:8630:" \
+echo "$as_me:8669:" \
      "checking for Fortran 90 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -10087,7 +10126,7 @@ $as_echo "unknown!" >&6; }
     rm -f conftest*
 fi
 # Provide some information about the compiler.
-echo "$as_me:10090:" \
+echo "$as_me:10129:" \
      "checking for Fortran 90 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -13870,7 +13909,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 13873 "configure"
+#line 13912 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -15680,7 +15719,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 15683 "configure"
+#line 15722 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -22700,7 +22739,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 22703 "configure"
+#line 22742 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -23674,7 +23713,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 23677 "configure"
+#line 23716 "configure"
 #include "confdefs.h"
 #include <sys/bitypes.h>
 int conftest() {return 0;}
@@ -23764,7 +23803,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 23767 "configure"
+#line 23806 "configure"
 #include "confdefs.h"
 #include <inttypes.h>
 int conftest() {return 0;}
@@ -26699,7 +26738,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     else
         cat > conftest.$ac_ext <<EOF
 
-#line 26702 "configure"
+#line 26741 "configure"
 #include "confdefs.h"
 
 main(){return(0);}
@@ -26792,7 +26831,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
         else
             cat > conftest.$ac_ext <<EOF
 
-#line 26795 "configure"
+#line 26834 "configure"
 #include "confdefs.h"
 
 int main(){return(0);}
@@ -27943,7 +27982,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 27946 "configure"
+#line 27985 "configure"
 #include "confdefs.h"
 #include <complex>
 int conftest() {return 0;}
@@ -30297,7 +30336,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 30300 "configure"
+#line 30339 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -31817,7 +31856,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 31820 "configure"
+#line 31859 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -33538,7 +33577,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 33541 "configure"
+#line 33580 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -34137,7 +34176,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 34140 "configure"
+#line 34179 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -35284,7 +35323,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     else
         cat > conftest.$ac_ext <<EOF
 
-#line 35287 "configure"
+#line 35326 "configure"
 #include "confdefs.h"
 
 main(){return(0);}
@@ -35375,7 +35414,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
         else
             cat > conftest.$ac_ext <<EOF
 
-#line 35378 "configure"
+#line 35417 "configure"
 #include "confdefs.h"
 
 int main(){return(0);}

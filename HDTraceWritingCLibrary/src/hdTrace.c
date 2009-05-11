@@ -213,7 +213,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 				"Problems getting time, stop logging: %s", strerror(errno));
 		hdT_disableTrace(trace);
 		errno = HD_ERR_GET_TIME;
-		return -1;
+		return trace;
 	}
 
 	writeLogf(trace,
@@ -1086,7 +1086,7 @@ static int writeState(hdTrace trace)
 
 	if (writeLogf(
 			trace,
-			" end='%d.%.6d' ",
+			" end='%d.%.6d'",
 			(unsigned) (trace->end_time[trace->function_depth].tv_sec - trace->init_time.tv_sec),
 			(unsigned) trace->end_time[trace->function_depth].tv_usec) != 0)
 		return -1;
@@ -1113,7 +1113,7 @@ static int writeState(hdTrace trace)
 	}
 	else
 	{
-		if (writeLog(trace, " />\n") != 0)
+		if (writeLog(trace, "/>\n") != 0)
 			return -1;
 	}
 	return 0;

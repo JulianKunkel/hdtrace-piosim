@@ -345,6 +345,9 @@
 /* Define if we have __va_copy */
 #undef HAVE___VA_COPY
 
+/* Define if more ROMIO internals shall be traced */
+#undef HDTRACE_DETAILED_ROMIO_INTERNALS
+
 /* Define if MPI collective call internals shall be traced */
 #undef HDTRACE_MPI_COLLECTIVE
 

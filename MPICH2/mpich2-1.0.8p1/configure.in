@@ -387,15 +387,18 @@ AC_ARG_WITH(hdtraceWrapper,
     if test "x$withval" = "xyes" ; then                                 
            AC_MSG_ERROR(--with-hdtraceWrapper must be given a pathname)        
     else
-       CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) "
+       CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) -DUSE_MPI_VERSIONS"
+       CPPFLAGS+="-DUSE_MPI_VERSIONS"
        LDFLAGS="$LDFLAGS -L$withval/lib"
        LIBS="$LIBS -lhdTraceMPIWrapper $(pkg-config --libs glib-2.0)"
        AC_DEFINE(HAVE_HDTRACE_WRAPPER, 1, [Define if HDTrace MPI Wrapper is used])
        AC_DEFINE(USE_MPI_VERSIONS, 1, [Define if ROMIO shall use MPI calls for the wrapper])
-       AC_DEFINE(HDTRACE_ROMIO, 1, [Define if more ROMIO internals shall be traced])
+       AC_DEFINE(HDTRACE_ROMIO, 1, [Define if more ROMIO internals shall be traced])       
        AC_DEFINE(HDTRACE_MPI_COLLECTIVE, 1, [Define if MPI collective call internals shall be traced])
-       BUILD_HDTRACE_WRAPPER=1
-       cp $withval/include/hdMPITracerCodeLocator.h src/include/
+       BUILD_HDTRACE_WRAPPER=1       
+       # copy extended source code wrapper
+       mkdir -p src/include/
+       cp $withval/include/hdMPITracerCodeLocator.h src/include/ || exit 1
     fi
 )
 
@@ -432,6 +435,28 @@ fi
 dnl
 AC_SUBST(MPI_INCLUDE_HDTRACE_CODE_LOCATOR)
 export MPI_INCLUDE_HDTRACE_CODE_LOCATOR
+
+MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO=
+AC_ARG_ENABLE(hdTraceSourceLineROMIO,
+[--enable-hdTraceSourceLineROMIO - Add source code line to each traced MPI call (MPI wrapper) AND to ROMIO],
+if test "x$enable_hdTraceSourceLineROMIO" = "xyes" ; then
+	AC_DEFINE(HDTRACE_TRACE_SOURCECODE_POSITION, 1, [Define if HDTrace wrapper should include source code line in each call]) 
+	HDTRACE_TRACE_SOURCECODE_POSITION=yes
+	MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO="#include \"hdMPITracerCodeLocator.h\""
+fi
+,
+)
+dnl
+AC_SUBST(MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO)
+export MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO
+
+AC_ARG_ENABLE(hdTraceMoreROMIOInternals,
+[--enable-hdTraceMoreROMIOInternals - Trace more ROMIO internal states with HDTrace],
+if test "x$enable_hdTraceMoreROMIOInternals" = "xyes" ; then
+AC_DEFINE(HDTRACE_DETAILED_ROMIO_INTERNALS, 1, [Define if more ROMIO internals shall be traced])
+fi
+,
+)
 
 dnl
 AC_ARG_ENABLE(threads,
