@@ -2,3 +2,28 @@ Note that for a build with hdtrace it is mandatory to build romio (at least with
 
 An example configure looks like:
 ./configure --with-hdtrace=path --with-hdtraceWrapper=path --prefix=path --enable-g=meminit -enable-romio --with-file-system=ufs 
+
+Issues of the trace environment:
+
+MPI_Comm_Dup in ROMIO:
+in several LOC in ROMIO the communicator gets duplicated. 
+However, this is not favourable, because it will create new communicator descriptions each time a communicator gets duplicated.
+Therefore, these calles should be restricted. 
+
+Q: Why is there a Comm_Dup during open in ROMIO?
+A: Internally, ROMIO uses MPI calls for communication, therefore the communication from ROMIO shall not interfere with the MPI program.
+   An example might be some ranks call Allreduce, while others call a collective_write, however, internally the Allreduces between both
+   domains could match. With a duplicated communicator the program will hald, revealing the error.
+   While this case could be tolerated, how to avoid message matching between ROMIO irecv/isend calls and the applications calls?
+   (irecv/isend is used in ad_aggregate.c, ad_read_coll.c and ad_write_coll.c)
+   
+   In addition the communicator can get split into groups for the I/O aggregators (if selected). Therfore, this adds another communicator. 
+
+Communicators are created/modified in:
+mpi-io/open.c
+adio/common/ad_[g|s]et_sh_fp.c, same in ad_nfs and ad_bgl.
+
+Therefore, for each file only a limited set of communicators are created. 
+In PIOviz with MPE it was a problem if many files get opened (or reopened), because it created a new timeline.
+Here we will get only new communicators, which means this information must be stored in the project file. 
+This is tolerable. Therefore no modifications are made.

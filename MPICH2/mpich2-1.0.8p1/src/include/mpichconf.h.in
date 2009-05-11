@@ -351,6 +351,9 @@
 /* Define if more ROMIO internals shall be traced */
 #undef HDTRACE_ROMIO
 
+/* Define if HDTrace wrapper should include source code line in each call */
+#undef HDTRACE_TRACE_SOURCECODE_POSITION
+
 /* Define which x86 cycle counter to use */
 #undef LINUX86_CYCLE_CPUID_RDTSC
 

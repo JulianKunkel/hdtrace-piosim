@@ -1184,6 +1184,10 @@ int PMPIX_Grequest_start(MPI_Grequest_query_function *,
                        MPI_Grequest_cancel_function *, 
 		       MPIX_Grequest_poll_function *,
 		       MPIX_Grequest_wait_function *, void *, MPI_Request *);
+		       
+
+@MPI_INCLUDE_HDTRACE_CODE_LOCATOR@
+
 #endif
 /* END: non-standard but public extensions to MPI */
 

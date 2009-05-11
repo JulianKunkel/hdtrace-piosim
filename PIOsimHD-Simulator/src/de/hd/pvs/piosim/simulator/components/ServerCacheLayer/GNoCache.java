@@ -255,6 +255,7 @@ IIOSubsystemCaller
 	@Override
 	public void dataReadCompletelyFromDisk(IOJob job) {
 		RequestRead req = pendingReadRequestMap.remove(job);
+		
 		Message msg = pendingReadJobs.get(req);
 
 		assert(msg != null);

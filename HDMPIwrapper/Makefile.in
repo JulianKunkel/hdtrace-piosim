@@ -14,7 +14,7 @@ SHELL = @SHELL@
 CC = @CC@
 LD = @CC@
 # make sure the srcdir include gets included first
-CFLAGS += -Iinclude -I$(srcdir)/src @CFLAGS@ @CPPFLAGS@
+CFLAGS += -Wall -Wextra -pedantic -std=gnu99 -ggdb  -Iinclude -I$(srcdir)/src @CFLAGS@ @CPPFLAGS@
 LDFLAGS += @LDFLAGS@
 
 #CFLAGS  += -Wall -Wextra -pedantic -std=gnu99 -ggdb  -I$(MPINC) -I../HDTraceWritingCLibrary/include  -Iinclude/ $(shell pkg-config --cflags glib-2.0)  `getconf LFS_CFLAGS` -D HDTRACE_INCLUDE_NESTED_TEST

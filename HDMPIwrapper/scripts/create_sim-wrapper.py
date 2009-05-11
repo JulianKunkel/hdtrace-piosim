@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 
 """
@@ -165,7 +166,7 @@ for i in xrange(0, len(funcs)):
       comma=""
       if len(callString) > 1:
         comma=", "
-      codeLocatorHeader.write("#define MPI_" + fkt + "(" + callString + ") eMPI_" + fkt + "(" + callString + comma + " __FILE__, __LINE__);\n")
+      codeLocatorHeader.write("#define MPI_" + fkt + "(" + callString + ") eMPI_" + fkt + "(" + callString + comma + " __FILE__, __LINE__)\n")
 
     if not fkt in noLog:
       logname = ""

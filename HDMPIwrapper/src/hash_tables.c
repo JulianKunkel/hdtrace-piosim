@@ -24,7 +24,8 @@
  */
 guint hash_MPI_File(gconstpointer key)
 {
-	return (guint) (*(MPI_File*)key);
+	long f = (long) (*(MPI_File*)key);
+	return (guint) f;
 }
 
 /**

@@ -135,21 +135,13 @@ static int * controlled_vars[] = { &trace_all_functions,
 								   NULL };
 
 /**
- * This is the length of the temporary buffer that is used to
- * create the basename of the log files. The basename usually consists
- * of the \a trace_file_prefix and the name of the executable that
- * is passed to MPI_Init(int *argc, char ***argv) as *argv[0].
- */
-#define TMP_BUF_LEN 1024 * 16
-
-/**
  * This string is prepended to the name of every trace file.
  * Please note that it should not contain any underscores, because
  * this character is separating different topology levels.
  *
- * It consists of the program name + rank
+ * It consists of the program name
  */
-static char trace_file_prefix[256];
+static char * trace_file_prefix;
 
 
 /*
@@ -289,18 +281,21 @@ static void after_Init(int *argc, char ***argv)
 	if(*argc < 1)
 	{
 		//we don't know what the program's name is, so call this "trace"
-		snprintf(trace_file_prefix, TMP_BUF_LEN, "trace");
+		trace_file_prefix = malloc(6);
+		strcpy(trace_file_prefix, "trace");
 	}
 	else
 	{
 		char * lastSlash = strrchr(**argv , '/');
 		if( lastSlash != NULL)
 		{
-			snprintf(trace_file_prefix, TMP_BUF_LEN, "%s", lastSlash+1 );
+			trace_file_prefix = malloc(strlen(lastSlash+1) + 1 );
+			sprintf(trace_file_prefix,  "%s", lastSlash+1 );
 		}
 		else
 		{
-			snprintf(trace_file_prefix, TMP_BUF_LEN, "%s", (*argv)[0] );
+			trace_file_prefix = malloc(strlen( (*argv)[0]) + 1 );
+			sprintf(trace_file_prefix, "%s", (*argv)[0] );
 		}
 	}
 

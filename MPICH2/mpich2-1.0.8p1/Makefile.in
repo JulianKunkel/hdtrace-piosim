@@ -191,6 +191,7 @@ install:  install-preamble FORCE_TARGET
 	if [ ! -d ${DESTDIR}${libdir} ] ; then $(MKDIR_P) ${DESTDIR}${libdir} ; fi
 	${MAKE} install-local
 	$(INSTALL_DATA) src/include/mpi.h ${DESTDIR}${includedir}/mpi.h
+	@$(INSTALL_DATA) src/include/hdMPITracerCodeLocator.h ${DESTDIR}${includedir}/hdMPITracerCodeLocator.h || echo -n ""
 	$(INSTALL_DATA) lib/lib${MPILIBNAME}.a ${DESTDIR}${libdir}/lib${MPILIBNAME}.a
 	if [ ! -d ${DESTDIR}${docdir} ] ; then $(MKDIR_P) ${DESTDIR}${docdir} ; fi
 	@if test -d $(srcdir)/www && cd $(srcdir)/www ; then \

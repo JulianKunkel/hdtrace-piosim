@@ -1080,14 +1080,14 @@ static int writeState(hdTrace trace)
 	if (writeLogf(
 			trace,
 			" time='%d.%.6d'",
-			(unsigned) trace->start_time[trace->function_depth].tv_sec - trace->init_time.tv_sec,
+			(unsigned) (trace->start_time[trace->function_depth].tv_sec - trace->init_time.tv_sec),
 			(unsigned) trace->start_time[trace->function_depth].tv_usec) != 0)
 		return -1;
 
 	if (writeLogf(
 			trace,
 			" end='%d.%.6d' ",
-			(unsigned) trace->end_time[trace->function_depth].tv_sec - trace->init_time.tv_sec,
+			(unsigned) (trace->end_time[trace->function_depth].tv_sec - trace->init_time.tv_sec),
 			(unsigned) trace->end_time[trace->function_depth].tv_usec) != 0)
 		return -1;
 

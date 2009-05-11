@@ -103,9 +103,10 @@ public class ProgramBuilder {
 	}
 
 	public void addReadCollective(Communicator comm, MPIFile file, HashMap<Integer,Long> offsets, HashMap<Integer,Long> sizes) {
-		Filereadall com = new Filereadall(comm);
-		com.setFile(file);
 		for (Integer rank : comm.getParticipatingtRanks()) {
+			Filereadall com = new Filereadall(comm);
+			com.setFile(file);
+
 			ListIO lio = new ListIO();
 			lio.addIOOperation(offsets.get(rank), sizes.get(rank));
 			com.setListIO(rank, lio);
@@ -113,10 +114,11 @@ public class ProgramBuilder {
 		}
 	}
 
-	public void addWriteCollective(Communicator comm, MPIFile file, HashMap<Integer,Long> offsets, HashMap<Integer,Long> sizes) {
-		Filewriteall com = new Filewriteall(comm);
-		com.setFile(file);
+	public void addWriteCollective(Communicator comm, MPIFile file, HashMap<Integer,Long> offsets, HashMap<Integer,Long> sizes) {		
 		for (Integer rank : comm.getParticipatingtRanks()) {
+			Filewriteall com = new Filewriteall(comm);
+			com.setFile(file);
+			
 			ListIO lio = new ListIO();
 			lio.addIOOperation(offsets.get(rank), sizes.get(rank));
 			com.setListIO(rank, lio);

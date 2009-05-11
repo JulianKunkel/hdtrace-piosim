@@ -395,6 +395,7 @@ AC_ARG_WITH(hdtraceWrapper,
        AC_DEFINE(HDTRACE_ROMIO, 1, [Define if more ROMIO internals shall be traced])
        AC_DEFINE(HDTRACE_MPI_COLLECTIVE, 1, [Define if MPI collective call internals shall be traced])
        BUILD_HDTRACE_WRAPPER=1
+       cp $withval/include/hdMPITracerCodeLocator.h src/include/
     fi
 )
 
@@ -417,6 +418,20 @@ AC_ARG_WITH(hdtrace,
 )
 
 AC_SUBST(BUILD_HDTRACE)
+
+MPI_INCLUDE_HDTRACE_CODE_LOCATOR=
+AC_ARG_ENABLE(hdTraceSourceLine,
+[--enable-hdTraceSourceLine - Add source code line to each traced MPI call (MPI wrapper)],
+if test "x$enable_hdTraceSourceLine" = "xyes" ; then
+	AC_DEFINE(HDTRACE_TRACE_SOURCECODE_POSITION, 1, [Define if HDTrace wrapper should include source code line in each call]) 
+	HDTRACE_TRACE_SOURCECODE_POSITION=yes
+	MPI_INCLUDE_HDTRACE_CODE_LOCATOR="#include \"hdMPITracerCodeLocator.h\""
+fi
+,
+)
+dnl
+AC_SUBST(MPI_INCLUDE_HDTRACE_CODE_LOCATOR)
+export MPI_INCLUDE_HDTRACE_CODE_LOCATOR
 
 dnl
 AC_ARG_ENABLE(threads,
@@ -6322,6 +6337,12 @@ if test "x$BUILD_HDTRACE_WRAPPER" = "x" ; then
    AC_MSG_RESULT([MPICH2 configured for hdtrace MPI-wrapper          :  no])
 else
    AC_MSG_RESULT([MPICH2 configured for hdtrace MPI-wrapper          : yes])
+fi
+
+if test "x$HDTRACE_TRACE_SOURCECODE_POSITION" = "x" ; then
+   AC_MSG_RESULT([MPICH2 configured to always include source code pos:  no])
+else
+   AC_MSG_RESULT([MPICH2 configured to always include source code pos: yes])
 fi
 
 echo 'Configuration completed.'
