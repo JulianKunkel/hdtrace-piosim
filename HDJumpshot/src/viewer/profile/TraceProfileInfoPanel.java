@@ -86,12 +86,12 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProf
 		
 		fld_numberOfOccurrences.setInteger(obj.getNumberOfOccurrences());
 		
-		fld_inclusiveTime.setDouble(obj.getInclusiveTime());
-		fld_exclusiveTime.setDouble(obj.getExclusiveTime());
+		fld_inclusiveTime.setDouble(obj.getInclusiveTimeDouble());
+		fld_exclusiveTime.setDouble(obj.getExclusiveTimeDouble());
 		
-		fld_inclTimePercent.setDouble(obj.getInclusiveTime() / frame.getRealModelTimeExtend());
+		fld_inclTimePercent.setDouble(obj.getInclusiveTimeDouble() / frame.getRealModelTimeExtend());
 		
-		fld_exclTimePercent.setDouble(obj.getExclusiveTime() / frame.getRealModelTimeExtend());		
+		fld_exclTimePercent.setDouble(obj.getExclusiveTimeDouble() / frame.getRealModelTimeExtend());		
 
 		
 		fld_minExclusiveTime.setDouble(obj.getMinDurationExclusive());
@@ -99,7 +99,7 @@ public class TraceProfileInfoPanel extends ModelInfoPanel<TraceCategoryStateProf
 		fld_maxExclusiveTime.setDouble(obj.getMaxDurationExclusive());
 		fld_maxInclusiveTime.setDouble(obj.getMaxDurationInclusive());
 		
-		fld_avgExclusiveTime.setDouble(obj.getExclusiveTime() / obj.getNumberOfOccurrences());
-		fld_avgInclusiveTime.setDouble(obj.getInclusiveTime() / obj.getNumberOfOccurrences());
+		fld_avgExclusiveTime.setDouble(obj.getExclusiveTimeDouble() / obj.getNumberOfOccurrences());
+		fld_avgInclusiveTime.setDouble(obj.getInclusiveTimeDouble() / obj.getNumberOfOccurrences());
 	}
 }

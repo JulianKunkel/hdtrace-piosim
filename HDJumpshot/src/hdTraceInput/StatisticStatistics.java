@@ -17,6 +17,8 @@
 
 package hdTraceInput;
 
+import java.math.BigDecimal;
+
 /**
  * Statistics for a single statistic
  * @author Julian M. Kunkel
@@ -27,12 +29,14 @@ public class StatisticStatistics {
 	final double minValue;
 	final double averageValue;
 	final double stddevValue;
+	final BigDecimal sum;
 	
-	public StatisticStatistics( double maxNumericValue, double minNumericValue, double averageNumericValue, double stddev) {
+	public StatisticStatistics( double maxNumericValue, double minNumericValue, double averageNumericValue, double stddev, BigDecimal sum) {
 		this.maxValue = maxNumericValue;
 		this.minValue = minNumericValue;
 		this.averageValue = averageNumericValue;
-		this.stddevValue = stddev;
+		this.stddevValue = stddev;		
+		this.sum = sum;
 	}	
 	
 	public double getAverageValue() {
@@ -49,5 +53,9 @@ public class StatisticStatistics {
 	
 	public double getStddevValue() {
 		return stddevValue;
+	}
+	
+	public BigDecimal getSum() {
+		return sum;
 	}
 }

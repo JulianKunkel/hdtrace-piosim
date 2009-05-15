@@ -17,6 +17,8 @@
 
 package viewer.profile;
 
+import java.math.BigDecimal;
+
 import drawable.CategoryState;
 
 /**
@@ -32,9 +34,9 @@ public class TraceCategoryStateProfile {
 	int numberOfOccurences = 0;
 	
 	// exclusive, means nested states are not counted. 
-	double exclusiveTime = 0; 
+	BigDecimal exclusiveTime = new BigDecimal(0); 
 	// inclusive, means nested states are counted.
-	double inclusiveTime = 0;
+	BigDecimal inclusiveTime = new BigDecimal(0);
 	
 	//of one call
 	double minDurationExclusive = Double.MAX_VALUE; 
@@ -53,8 +55,8 @@ public class TraceCategoryStateProfile {
 	public void addCall(double exclusiveTime, double inclusiveTime){
 
 		this.numberOfOccurences++;
-		this.exclusiveTime += exclusiveTime;
-		this.inclusiveTime += inclusiveTime;
+		this.exclusiveTime = this.exclusiveTime.add(new BigDecimal(exclusiveTime));
+		this.inclusiveTime = this.inclusiveTime.add(new BigDecimal(inclusiveTime));
 		
 		// adapt min/max values:
 		minDurationExclusive = (exclusiveTime < minDurationExclusive) ?  exclusiveTime : minDurationExclusive;
@@ -68,12 +70,12 @@ public class TraceCategoryStateProfile {
 		return numberOfOccurences;
 	}
 	
-	public double getExclusiveTime() {
-		return exclusiveTime;
+	public double getExclusiveTimeDouble() {
+		return exclusiveTime.doubleValue();
 	}
 	
-	public double getInclusiveTime() {
-		return inclusiveTime;
+	public double getInclusiveTimeDouble() {
+		return inclusiveTime.doubleValue();
 	}
 	
 	public CategoryState getCategory() {

@@ -37,14 +37,14 @@ abstract public class TraceProfileMetricHandler {
 	static public class InclusiveTimeHandler extends TraceProfileMetricHandler{
 		@Override
 		public double getInterestingValue(TraceCategoryStateProfile profile) {		
-			return profile.inclusiveTime;
+			return profile.getInclusiveTimeDouble();
 		}
 	}
 	
 	static public class ExclusiveTimeHandler extends TraceProfileMetricHandler{
 		@Override
 		public double getInterestingValue(TraceCategoryStateProfile profile) {		
-			return profile.exclusiveTime;
+			return profile.getExclusiveTimeDouble();
 		}
 	}
 	

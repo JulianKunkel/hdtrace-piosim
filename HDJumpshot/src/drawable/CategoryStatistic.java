@@ -81,10 +81,12 @@ public class CategoryStatistic extends Category {
 	}		
 	
 	private Scaling scaling = Scaling.DECIMAL;
+	
 	private MinAdjustment minAdjustment = MinAdjustment.ZERO;
+	
 	private MaxAdjustment maxAdjustment = MaxAdjustment.GLOBAL_GROUP_MAX;
 	
-	private boolean showAverageLine = true;
+	private boolean showAverageLine = false;
 	
 	final private StatisticDescription statisticDescription;
 	
