@@ -540,17 +540,17 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				}
 			}
 			
-			if( totalDrawn == 0 ){
-				g.setColor(Color.BLACK);
+			if( totalDrawn == 0 ){								
 				final String str = "No profiles for the selected time interval";
-				final int xpos = coord_xform.convertTimeToPixel(0.5 * (timebounds.getEarliestTime() + timebounds.getLatestTime()));
-				final int ypos = num_rows / 2 * row_height;
+				final int xpos = image.getWidth(null) / 2- 50;
+				final int ypos = image.getHeight(null) / 2 ; //num_rows / 2 * row_height;
+								
 				// draw string in middle
-				g.drawChars(str.toCharArray(), 0, str.length(), xpos, ypos - 10);
+				g.setColor(Color.CYAN);
+				g.fillRect(0, 0, image.getWidth(null), image.getHeight(null));
 				
-				g.setColor(Color.WHITE);
-				// draw string in middle
-				g.drawChars(str.toCharArray(), 0, str.length() ,xpos, ypos + 10);
+				g.setColor(Color.BLACK);
+				g.drawChars(str.toCharArray(), 0, str.length(), xpos, ypos - 10);
 			}
 
 			if(SimpleConsoleLogger.isDebugEverything()){			

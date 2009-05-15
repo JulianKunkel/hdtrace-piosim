@@ -18,9 +18,6 @@
 package topology.mappings;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
-
-import java.util.Collection;
-
 import topology.TopologyInnerNode;
 import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
@@ -44,56 +41,27 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 	}
 
 	protected void recursivlyAddTopology(int level, SortedJTreeNode parentNode, TopologyNode topology, 
-			TraceFormatFileOpener file){
-		final TopologyTreeNode node = new TopologyInnerNode(topology, file);
+			TraceFormatFileOpener file){		
 
-		addTopologyTreeNode(node, parentNode);    	
-
+		final TopologyTreeNode node;
+		
 		if(topology.getTraceSource() != null){
-			TopologyTreeNode childNode = new TopologyTraceTreeNode("Trace", topology, file);
-			addTopologyTreeNode(childNode, node);						
+			node = new TopologyTraceTreeNode(topology.getName(), topology, file);				
+		}else{
+			node = new TopologyInnerNode(topology, file);			
 		}
+		
+		addTopologyTreeNode(node, parentNode);
 
 		if(topology.getChildElements().size() != 0){
-			// handle leaf level == trace nodes differently:
-
-			Collection<TopologyNode> children = topology.getChildElements().values();
-			boolean leafLevel = children.iterator().next().isLeaf();
-			if(leafLevel){
-				if(topology.getChildElements().size() == 0)
-					// TODO remove this child!
-					return;
-
-				final SortedJTreeNode traceParent = addDummyTreeNode("Trace", node);
-
-				for(TopologyNode child: topology.getChildElements().values()){					
-					if (child.getStatisticsSources().size() == 0){
-						if(child.getTraceSource() != null){
-							// only if the file really exists
-							TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getName(), child, file);
-							addTopologyTreeNode(childNode, traceParent);
-						}else{
-							// TODO remove this child from topology
-						}
-					}else if(isAddStatistics()){
-						// handles statistics on the leaf level:
-						final SortedJTreeNode extra = addDummyTreeNode(child.getName(), traceParent);
-
-						TopologyTreeNode childNode = new TopologyTraceTreeNode(child.getName(), child, file);
-						addTopologyTreeNode(childNode, extra);
-						addStatisticsInTopology(level, extra, child, file);
-					}
-				}								
-			}else{
-				for(TopologyNode child: topology.getChildElements().values()){
-					recursivlyAddTopology(level +1, node, child, file);
-				}
+			for(TopologyNode child: topology.getChildElements().values()){
+				recursivlyAddTopology(level +1, node, child, file);
 			}
 		}
 		if( isAddStatistics() )
 			addStatisticsInTopology(level, node, topology, file);
 	}
-	
+
 	@Override
 	public boolean isAvailable(TraceFormatBufferedFileReader reader) {		
 		return true;

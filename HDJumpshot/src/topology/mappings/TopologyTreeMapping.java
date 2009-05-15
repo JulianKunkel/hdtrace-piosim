@@ -42,8 +42,9 @@ abstract public class TopologyTreeMapping {
 	}
 	
 	protected void addTopologyTreeNode(TopologyTreeNode node, SortedJTreeNode parent){
-		if(parent != null)
+		if(parent != null){
 			parent.add(node);
+		}
 	}
 
 	protected SortedJTreeNode addDummyTreeNode(String name, SortedJTreeNode parent){

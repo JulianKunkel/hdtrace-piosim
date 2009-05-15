@@ -151,19 +151,21 @@ public class TopologyManager
 				private static final long serialVersionUID = 1L;
 
 				{ // instance initalizer
-					putValue(Action.NAME, mapping.toString()); 
+					putValue(Action.NAME, mapping.toString()); 					
+
+					if(usedTopologyMapping == mapping){
+						// is selected right now
+						putValue(Action.NAME, mapping.toString() + " [Selected]");						
+					}
 				}
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					setTopologyMapping(ExistingTopologyMappings.valueOf(e.getActionCommand()));
+					setTopologyMapping(ExistingTopologyMappings.valueOf(e.getActionCommand().split(" \\[Selected\\]")[0]));
 				}
 			});
 
 
-			if(usedTopologyMapping == mapping){
-				item.setEnabled(false);
-			}
 			popupMenu.add(item);						
 		}
 	}
