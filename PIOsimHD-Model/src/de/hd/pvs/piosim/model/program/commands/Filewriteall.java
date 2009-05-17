@@ -40,12 +40,4 @@ public class Filewriteall extends FileIOCommand {
 	public Communicator getCommunicator() {
 		return this.comm;
 	}
-
-	public ListIO getIOList(Integer rank) {
-		return this.io.get(rank);
-	}
-
-	public void setListIO(Integer rank, ListIO io) {
-		this.io.put(rank, io);
-	}
 }

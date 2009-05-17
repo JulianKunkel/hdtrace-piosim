@@ -109,7 +109,7 @@ public class ProgramBuilder {
 
 			ListIO lio = new ListIO();
 			lio.addIOOperation(offsets.get(rank), sizes.get(rank));
-			com.setListIO(rank, lio);
+			com.setListIO(lio);
 			appBuilder.addCommand(rank, com);
 		}
 	}
@@ -121,7 +121,7 @@ public class ProgramBuilder {
 			
 			ListIO lio = new ListIO();
 			lio.addIOOperation(offsets.get(rank), sizes.get(rank));
-			com.setListIO(rank, lio);
+			com.setListIO(lio);
 			appBuilder.addCommand(rank, com);
 		}
 	}
