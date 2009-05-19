@@ -421,7 +421,7 @@ hdStatsGroup hdS_createGroup (
 	gettimeofday(&tv, NULL);
 	ret = appendFormatToGroupBuffer(group,
 			"<Group name=\"%s\" timestampDatatype=\"EPOCH\""
-			" timeAdjustment=\"%010d.%09d\">\n", groupNameString,
+			" timeAdjustment=\"-%010d.%09d\">\n", groupNameString,
 			(int32_t) tv.tv_sec, (int32_t) tv.tv_usec * 1000);
 	if (ret < 0)
 		/* errno set by appendFormatToGroupBuffer(): BUFFER_OVERFLOW */

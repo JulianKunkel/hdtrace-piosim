@@ -91,7 +91,7 @@ public class CategoryStatistic extends Category {
 	final private StatisticDescription statisticDescription;
 	
 	public CategoryStatistic( StatisticDescription statistic, ColorAlpha in_color ) {
-		super(statistic.getGroup().getName().substring(0, 6) + ":" + statistic.getName(), in_color);
+		super(statistic.getGroup().getName() + ":" + statistic.getName(), in_color);
 		
 		this.statisticDescription = statistic;
 	}	

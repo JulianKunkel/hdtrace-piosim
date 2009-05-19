@@ -201,8 +201,8 @@ public class TraceFormatBufferedFileReader {
 			for(StatisticsSource statSource: topo.getStatisticsSources().values()) {
 				StatisticsGroupDescription group = ((BufferedStatisticFileReader) statSource).getGroup();
 				
-				for(StatisticDescription desc: group.getStatisticsOrdered()){
-					final String name = group.getName().substring(0, 6) + ":" + desc.getName(); 
+				for(StatisticDescription desc: group.getStatisticsOrdered()){										
+					final String name = group.getName()+ ":" + desc.getName(); 
 					if(!categoriesStatistics.containsKey(name)){
 						categoriesStatistics.put(name, new CategoryStatistic(desc, null));
 					}
@@ -329,7 +329,7 @@ public class TraceFormatBufferedFileReader {
 
 	public CategoryStatistic getCategory(StatisticsGroupDescription group, StatisticDescription statistic){
 		// TODO, figure out nicer abbreviation for groupname
-		return categoriesStatistics.get(group.getName().substring(0, 6) + ":" + statistic.getName());
+		return categoriesStatistics.get(group.getName() + ":" + statistic.getName());
 	}
 
 	public Collection<String> getGroupNames(int fileNumber){
