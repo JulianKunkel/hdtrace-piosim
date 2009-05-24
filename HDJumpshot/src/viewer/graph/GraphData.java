@@ -8,7 +8,7 @@ import java.awt.Color;
  * @author julian
  *
  */
-abstract class GraphData{
+abstract public class GraphData{
 	final String title;
 	final Color color;
 	

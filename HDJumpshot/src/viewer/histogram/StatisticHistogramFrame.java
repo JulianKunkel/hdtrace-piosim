@@ -23,12 +23,7 @@ import hdTraceInput.StatisticStatistics;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Enumeration;
@@ -51,6 +46,10 @@ import viewer.common.LabeledTextField;
 import viewer.common.ModelTime;
 import viewer.common.TimeEvent;
 import viewer.common.TimeListener;
+import viewer.graph.GraphAxis;
+import viewer.graph.GraphData;
+import viewer.graph.Histogram2D;
+import viewer.graph.HistogramData;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -69,7 +68,7 @@ public class StatisticHistogramFrame {
 	final BufferedStatisticFileReader reader;
 	final StatisticDescription description;
 
-	final HistogramImagePanel histogramPanel;
+	final HistogramGraph histogramGraph;
 	final LabeledSpinner binNumberSpinner;
 	final LabeledTextField labelBin;
 	final LabeledTextField labelNumberOfElements;
@@ -78,8 +77,6 @@ public class StatisticHistogramFrame {
 
 	final StatisticStatistics statistics;
 	final CategoryStatistic category;
-
-	final Font              drawFont = new Font( "Monospaced", Font.PLAIN, 10 );
 
 	/**
 	 * The number of bins of the histogram to put the elements in.
@@ -114,7 +111,7 @@ public class StatisticHistogramFrame {
 		this.statistics = reader.getStatisticsFor(description.getNumberInGroup());
 		this.category = category;
 		// now all important fields are set:
-		this.histogramPanel = new HistogramImagePanel();
+		this.histogramGraph = new HistogramGraph();
 
 		frame = new JFrame();
 		frame.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
@@ -124,7 +121,7 @@ public class StatisticHistogramFrame {
 
 		JPanel xPanel = new JPanel();
 		xPanel.setLayout(new BoxLayout( xPanel, BoxLayout.X_AXIS));
-		
+
 		binNumberSpinner = new LabeledSpinner("Number of bins", new SpinnerNumberModel(numberOfBins, 10, 1000, 10), 
 				new ChangeListener(){
 			@Override
@@ -135,7 +132,7 @@ public class StatisticHistogramFrame {
 		});
 
 		xPanel.add(binNumberSpinner);
-		
+
 		labelBin    = new LabeledTextField( "Bin", Const.INTEGER_FORMAT );
 		labelBin.setEditable( false );		
 		xPanel.add(labelBin);		
@@ -152,7 +149,7 @@ public class StatisticHistogramFrame {
 		labelMaxValue.setEditable( false );		
 		xPanel.add(labelMaxValue);		
 
-		JButton autoRefresh_btn = new ButtonAutoRefresh(histogramPanel);
+		JButton autoRefresh_btn = new ButtonAutoRefresh(histogramGraph);
 		xPanel.add( autoRefresh_btn );        
 
 
@@ -162,7 +159,7 @@ public class StatisticHistogramFrame {
 
 
 		yPanel.add(xPanel);
-		yPanel.add(histogramPanel);
+		yPanel.add(histogramGraph.getDrawingArea());
 
 		frame.setContentPane(yPanel);
 
@@ -171,23 +168,19 @@ public class StatisticHistogramFrame {
 	}
 
 	public void triggerRefreshHistogramData(){
-		histogramPanel.triggerRefreshHistogramData();
+		histogramGraph.triggerRefreshHistogramData();
 	}
 
-	private class HistogramImagePanel extends JPanel implements IAutoRefreshable{
+	private class HistogramGraph extends Histogram2D implements IAutoRefreshable{
 		private static final long serialVersionUID = 1L;
 
 		// real data of the histogram:
 		private HistogramData histogramData;
 		// position of the first real histogram pixel:
-		private int           xOffsetByLabels;
-		// pixel width per bin:
-		private double        widthPerBin;		
+		private int   xOffsetByLabels;
+		
 		// value of bin increases per bin
 		private double deltaPerBin;
-
-		// # bin which was mouse over the last time
-		private int oldMouseOverBin = -1;
 
 		// automatically redraw on time modification:
 		boolean isAutoRefresh;
@@ -208,68 +201,40 @@ public class StatisticHistogramFrame {
 					return null;
 				}
 
-				repaint();
+				// automatically adapt the title.
+				frame.setTitle(reader.getGroup().getName() + ":" + description.getName() + " (" +
+						String.format("%.4f", modelTime.getViewPosition()) + "-" + 
+						String.format("%.4f",(modelTime.getViewExtent() + modelTime.getViewPosition()))
+						+ ")"
+				);
+
+				histogramGraph.removeAllLines();
+				histogramGraph.addLine(histogramData);
+
+				reloadData();
 
 				return null;
 			}
 		}
 
-
-		public HistogramImagePanel() {						
-			// double buffering.
-			super(true);
-			triggerRefreshHistogramData();
-
-			// add a mouse listener which shows information about the selected statistic bin:
-			this.addMouseMotionListener(new MouseMotionAdapter(){
-				@Override
-				public void mouseMoved(MouseEvent e) {
-					if(histogramData == null) // maybe computed in background
-						return;
-
-					if(e.getX() > xOffsetByLabels){
-						int bin =(int) ((e.getX() - xOffsetByLabels) / widthPerBin);		
-
-						if (bin > numberOfBins){
-							bin = numberOfBins - 1;
-						}
-
-						if ( bin == oldMouseOverBin)
-							return;
-
-						labelBin.setInteger(bin + 1);						
-						labelMaxValue.setDouble( (bin +1) * deltaPerBin + statistics.getMinValue()  );
-						labelMinValue.setDouble(bin * deltaPerBin + statistics.getMinValue());
-						labelNumberOfElements.setInteger(histogramData.values[bin]);
-
-						oldMouseOverBin = bin;
-					}
-				}
-			});
-			
-			setAutoRefresh(viewer.common.Parameters.ACTIVE_REFRESH);
+		@Override
+		protected void binMouseOver(int bin) {
+			labelBin.setInteger(bin + 1);						
+			labelMaxValue.setDouble( (bin +1) * deltaPerBin + statistics.getMinValue()  );
+			labelMinValue.setDouble(bin * deltaPerBin + statistics.getMinValue());
+			labelNumberOfElements.setInteger(histogramData.getBins()[bin]);
 		}
 
-		/**
-		 * Contains the input data for the histogram 
-		 * @author Julian M. Kunkel
-		 */
-		private class HistogramData{
-			final int maxNumber;
-			final int [] values;
+		public HistogramGraph() {						
+			triggerRefreshHistogramData();
 
-			public HistogramData(int maxValue, int[] values) {
-				this.values = values;
-				this.maxNumber = maxValue;
-			}
+			setAutoRefresh(viewer.common.Parameters.ACTIVE_REFRESH);
 		}
 
 		/**
 		 * Call it when the number of bins change or the time interval.
 		 */
 		public void triggerRefreshHistogramData(){
-			oldMouseOverBin = -1;
-
 			if( backgroundThread != null ){
 				backgroundThread.cancel(true);
 			}
@@ -288,6 +253,7 @@ public class StatisticHistogramFrame {
 
 			final double min = statistics.getMinValue();
 			final double max = statistics.getMaxValue();
+			
 			deltaPerBin = (max - min) / numberOfBins;
 			final int whichEntry = description.getNumberInGroup();
 
@@ -306,110 +272,26 @@ public class StatisticHistogramFrame {
 				maxNumber = (values[bin] > maxNumber) ? values[bin] : maxNumber;  
 			}
 
-			return new HistogramData(maxNumber, values);
+			return new HistogramData("", category.getColor(),  values, min, max - min);
 		}
 
 		@Override
-		public void paint(Graphics graphics) {
-			// automatically adapt the title.
-			frame.setTitle(reader.getGroup().getName() + ":" + description.getName() + " (" +
-					String.format("%.4f", modelTime.getViewPosition()) + "-" + 
-					String.format("%.4f",(modelTime.getViewExtent() + modelTime.getViewPosition()))
-					+ ")"
-			);
+		protected void drawGraph(Graphics2D g, GraphData line, GraphAxis xaxis, GraphAxis yaxis, int curGraph,
+				int graphCount) 
+		{			
+			if(getNumberOfLines() == 0) // due to some background computation, data might not be available
+				return;
 
+			final int width = xaxis.getDrawSize();
 
-			final Graphics2D g = (Graphics2D) graphics;
-
-			g.setFont(drawFont);
-
-			final Rectangle vis = getVisibleRect(); 
-			// clear screen:
-			g.clearRect(vis.x, vis.y, vis.width, vis.height);
-
-			final int fontSize = drawFont.getSize();
-
-			String str;
-			str = numberOfBins + "."; 
-
-			xOffsetByLabels = fontSize * str.length();
-
-			final int width = vis.width - xOffsetByLabels;
-			final int height = vis.height - fontSize * 2;
-
-			vis.y += fontSize;
-
-			widthPerBin = (double) width / numberOfBins;
+			final double widthPerBin = getBarWidth() * xaxis.getPixelPerValue();
 			if(widthPerBin < 1.0){
 				binNumberSpinner.setValue(width);
 				return;
 			}
 
-			final double min = statistics.getMinValue();
-			final double max = statistics.getMaxValue();
-
-			// draw Y axis
-			final int yLabelCount = (vis.height / fontSize) - 1;
-
-			if(histogramData == null) // due to some background computation, data might not be available
-				return;
-
-			for(int i=0 ; i <= yLabelCount; i++){
-				str = String.format("%d", Math.round((float) histogramData.maxNumber/ yLabelCount * i));
-				g.drawChars( str.toCharArray(), 0, str.length(), vis.x , vis.y + vis.height - fontSize - i * fontSize);
-			}
-
-			g.drawLine(vis.x + xOffsetByLabels, vis.y, vis.x + xOffsetByLabels , vis.y + vis.height - fontSize);
-
-
-			// draw X axis
-			str = String.format("%.4f", min).toString();
-
-			g.drawChars( str.toCharArray(), 0, str.length(), 
-					vis.x + xOffsetByLabels + 2, vis.y + vis.height - fontSize);
-
-			str =  String.format("%.4f",max).toString();
-
-			g.drawChars( str.toCharArray(), 0, str.length(), vis.x + 
-					vis.width - str.length() * fontSize, vis.y + vis.height - fontSize);
-
-			g.drawLine(vis.x, vis.y + vis.height - 2 *  fontSize, vis.x + vis.width, vis.y + vis.height - 2 * fontSize);
-
-			// draw bins:			
-			g.setColor(category.getColor());			
-
-			vis.x = vis.x + xOffsetByLabels;
-
-			for(int i=0; i < numberOfBins; i++){
-				final int xOffset = (int) (widthPerBin * i) + vis.x;
-
-				final int binHeight = (int) ((float) height * histogramData.values[i] / histogramData.maxNumber);
-				g.fillRect(xOffset, vis.y + height - binHeight, 	(int) widthPerBin, binHeight);
-			}
-
-			// draw darker border
-			g.setColor(category.getColor().darker());						
-			for(int i=0; i < numberOfBins; i++){
-				final int xOffset = (int) (widthPerBin * i) + vis.x;
-
-				final int binHeight = (int) ((float) height * histogramData.values[i] / histogramData.maxNumber);
-				g.drawRect(xOffset, vis.y + height - binHeight, 	(int) widthPerBin, binHeight);
-			}
-
-
-			// draw additional helper lines with a dashed line
-			float dash[] = { 5.0f };
-			g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
-					BasicStroke.JOIN_MITER, 5.0f, dash, 0.0f));
-
-			// one fifth of the screen.
-
-			g.setColor(Color.DARK_GRAY);
-
-			for(int i=1; i < 5 ; i++){
-				int y = (int) (0.2 * i * height) + vis.y;
-				g.drawLine(vis.x + 1,  y,	vis.x + vis.width, y);
-			}
+			super.drawGraph(g, line, xaxis, yaxis, curGraph,
+					graphCount);
 
 			// draw average:
 			float [] newdash = { 2.0f };
@@ -417,20 +299,20 @@ public class StatisticHistogramFrame {
 					BasicStroke.JOIN_MITER, 2.0f, newdash, 0.0f));
 
 			g.setColor(Color.PINK);
-			final double widthPerValue =  width / (max - min) ;
-			int x = vis.x + (int) ((statistics.getAverageValue() - min) * widthPerValue) ;
+			int x = getXAxis().convertValueToPixel(statistics.getAverageValue()) ;
 
-			drawVerticalLine(g, vis, x, vis.y, height);
+			g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 
 			// draw stddevs
 			g.setColor(Color.WHITE);
 			for (int i=1; i <= 3; i++){
 				g.setColor(g.getColor().darker());
-				x = vis.x + (int) ((i * statistics.getStddevValue() + statistics.getAverageValue() - min) * widthPerValue) ;
-				drawVerticalLine(g, vis, x, vis.y, height);
+				x = getXAxis().convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
+				g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 
-				x = vis.x + (int) ((-i * statistics.getStddevValue() + statistics.getAverageValue() - min) * widthPerValue) ;
-				drawVerticalLine(g, vis, x, vis.y, height);
+				x = getXAxis().convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
+
+				g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 			}
 		}
 
@@ -451,13 +333,6 @@ public class StatisticHistogramFrame {
 			}
 		}
 	}
-
-	private void drawVerticalLine(Graphics g, Rectangle vis, int x, int y, int height){
-		if (x <= vis.x || x >= vis.x + vis.width)
-			return;
-		g.drawLine(x, vis.y, x, vis.y + height);
-	}
-
 
 	public void show(){
 		frame.setVisible(true);

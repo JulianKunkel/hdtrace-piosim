@@ -1,7 +1,5 @@
 package viewer.graph;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Point;
 
 
 /**
@@ -10,7 +8,7 @@ import java.awt.Point;
  * @author julian
  */
 public class LineGraph2DStatic extends Graph2DStatic {
-	protected void drawGraph(Graphics2D g, GraphData line, Dimension drawSize, Point drawOffset, GraphAxis xaxis, GraphAxis yaxis, int curGraph, int graphCount){		
+	protected void drawGraph(Graphics2D g, GraphData line, GraphAxis xaxis, GraphAxis yaxis, int curGraph, int graphCount){		
 		g.setColor(line.color);
 				
 		// draw objects:
@@ -23,9 +21,9 @@ public class LineGraph2DStatic extends Graph2DStatic {
 		while(xEnum.hasMoreElements()){
 			final double xval = xEnum.nextElement();
 			final double yval = yEnum.nextElement();
-
-			int pointPosX = (int) ((xval - xaxis.getMin()) * xaxis.getPixelPerValue()) + drawOffset.x;
-			int pointPosY = drawSize.height - (int) ((yval - yaxis.getMin()) * yaxis.getPixelPerValue()) + drawOffset.y;
+			
+			int pointPosX = xaxis.convertValueToPixel(xval);
+			int pointPosY = yaxis.convertValueToPixel(yval);
 
 			g.drawRect(pointPosX - 3, pointPosY - 3, 6, 6);
 
@@ -39,7 +37,7 @@ public class LineGraph2DStatic extends Graph2DStatic {
 	}
 	
 	@Override
-	void positionMouseOver(double x, double y) {
+	protected void positionMouseOver(double x, double y) {
 		getDrawingArea().setToolTipText("(X | Y) = " + String.format("%f", x) + " | " + String.format("%f", y) );	
 	}
 	

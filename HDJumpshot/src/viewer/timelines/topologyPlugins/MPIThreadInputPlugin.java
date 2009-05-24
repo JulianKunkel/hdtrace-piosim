@@ -8,8 +8,8 @@ import topology.ITopologyInputPluginObject;
 import topology.TopologyInputPlugin;
 import topology.TopologyManager;
 import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
-import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 
 
@@ -39,7 +39,10 @@ public class MPIThreadInputPlugin extends TopologyInputPlugin{
 				}
 			}
 			
-			assert(rankObject != null);
+			if(rankObject == null){
+				System.err.println("Error did not find rank for thread topology: " + node.toRecursiveString());
+				return;
+			}
 			
 			parseTraceFile( (BufferedTraceFileReader) node.getTraceSource() );
 		}

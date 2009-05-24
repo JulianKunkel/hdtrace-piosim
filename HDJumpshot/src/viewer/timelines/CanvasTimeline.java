@@ -282,12 +282,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	{
 		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
-		BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
+		final BufferedStatisticFileReader sReader = (BufferedStatisticFileReader) node.getStatisticSource();
 
 		final StatisticsGroupDescription groupDescr = sReader.getGroup();
 		final StatisticDescription desc = node.getStatisticDescription();
-
-		double lastTime = vStartTime.getDouble();
 
 		final CategoryStatistic cat = reader.getCategory(groupDescr, desc);
 
@@ -309,7 +307,23 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					color.getAlpha());
 		}
 
-		DrawObjects.drawStatisticBackground(offGraphics, coord_xform, vStartTime.getDouble(), vEndTime.getDouble(), backGroundColor, color, timeline);
+		double minTime = sReader.getMinTime().subtract(globalMinTime).getDouble();
+		double maxTime = sReader.getMaxTime().subtract(globalMinTime).getDouble();
+		
+		if(minTime < vStartTime.getDouble()){
+			minTime = vStartTime.getDouble();
+		}
+		
+		if(maxTime > vEndTime.getDouble()){
+			maxTime = vEndTime.getDouble();
+		}
+		
+		if(minTime >= maxTime){
+			return 0;
+		}
+		DrawObjects.drawStatisticBackground(offGraphics, coord_xform, minTime, maxTime, backGroundColor, color, timeline);
+		
+		double lastTime = minTime;
 
 		int drawedStatistics = 0;
 

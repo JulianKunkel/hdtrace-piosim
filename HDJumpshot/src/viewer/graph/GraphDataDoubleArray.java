@@ -1,9 +1,15 @@
 package viewer.graph;
 import java.awt.Color;
 
-class GraphDataDoubleArray extends GraphData{
+public class GraphDataDoubleArray extends GraphData{
 	final double [] x;
 	final double [] y;
+	
+	final double minX;
+	final double maxX;
+
+	final double minY;
+	final double maxY;
 	
 	private static class ArrayEnumeration implements ElementEnumeration {
 		final double [] array;
@@ -23,7 +29,7 @@ class GraphDataDoubleArray extends GraphData{
 			return array[curPos++];
 		}
 	}
-	
+		
 	public GraphDataDoubleArray(String title, Color color, double [] x, double [] y) {
 		super(title, color);
 		this.x = x;
@@ -31,6 +37,26 @@ class GraphDataDoubleArray extends GraphData{
 		
 		if(x.length != y.length)
 			throw new IllegalArgumentException("x.length != y.length");
+		
+		// determine min / max:
+		double min = Double.MAX_VALUE;
+		double max = Double.MIN_VALUE;
+		for(double cur: x){
+			min = cur < min ? cur : min;
+			max = cur > max ? cur : max;
+		}
+		minX = min;
+		maxX = max;
+		
+		min = Double.MAX_VALUE;
+		max = Double.MIN_VALUE;
+		for(double cur: y){
+			min = cur < min ? cur : min;
+			max = cur > max ? cur : max;
+		}
+		minY = min;
+		maxY = max;
+
 	}
 	
 	@Override
@@ -50,21 +76,21 @@ class GraphDataDoubleArray extends GraphData{
 	
 	@Override
 	public double getMaxX() {
-		return x[x.length -1];
+		return maxX;
 	}
 	
 	@Override
 	public double getMaxY() {
-		return y[y.length -1];
+		return maxY;
 	}
 	
 	@Override
 	public double getMinX() {
-		return x[0];
+		return minX;
 	}
 	
 	@Override
 	public double getMinY() {
-		return y[0];
+		return minY;
 	}
 }

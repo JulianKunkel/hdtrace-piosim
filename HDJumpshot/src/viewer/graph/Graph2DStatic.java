@@ -25,69 +25,78 @@ public abstract class Graph2DStatic {
 
 	private boolean connectPoints = true;
 
-	private Dimension drawSize = new Dimension(); 
-	private Point     drawOffset = new Point(0,0);
-
-	private GraphAxis xAxis = new GraphAxis();
-	private GraphAxis yAxis = new GraphAxis();
+	private GraphAxis xAxis = new GraphAxis(false);
+	private GraphAxis yAxis = new GraphAxis(true);
 
 
 	public void addLine(GraphData data){
 		linesToDraw.add( data );
 	}
+	
+	public void removeAllLines(){
+		linesToDraw.clear();
+	}
 
 	/**
 	 * User moves the mouse over the object in the graph 
 	 */
-	abstract void positionMouseOver(double x, double y);
+	abstract protected void positionMouseOver(double x, double y);
 
-	abstract void drawGraph(Graphics2D g, GraphData line, Dimension drawSize, Point drawOffset, GraphAxis xaxis, GraphAxis yaxis, int curGraph, int graphCount);
+	abstract protected void drawGraph(Graphics2D g, GraphData line, GraphAxis xaxis, GraphAxis yaxis, int curGraph, int graphCount);
 
-	private void drawXAxisLabelDouble(Graphics2D g, int posY, int posX){
+	private void drawXAxisLabelDouble(Graphics2D g, GraphAxis xAxis, GraphAxis yAxis){
 		final FontMetrics metric = g.getFontMetrics();
 
+		int posX = xAxis.getDrawOffset() + 10;
+		final int posY = yAxis.getDrawSize() + 2*yAxis.getDrawOffset();
+		
+		
 		while(true){			
-			double val = posX / xAxis.getPixelPerValue() + xAxis.getMin();
-			String str = String.format("%f", val);
+			assert(posX >= 0);
+			
+			double val = xAxis.convertPixelToValue(posX);
+			String str = String.format("%f ", val);
 			final int plotLabelSize = metric.stringWidth(str);
 
-			if(posX + plotLabelSize > drawSize.width )
+			if(posX > xAxis.getDrawSize() )
 				break;			
 
-			posX = (int)( (val - xAxis.getMin()) * xAxis.getPixelPerValue() ); 
-			g.drawChars( str.toCharArray(), 0, str.length(), drawOffset.x + posX - plotLabelSize / 2, posY);
+			
+			posX = xAxis.convertValueToPixel(val);		
+			
+			g.drawChars( str.toCharArray(), 0, str.length(), posX - plotLabelSize / 2, posY + metric.getAscent() + 2);
 
-			int x = (int) Math.round(drawOffset.x + posX );
-			g.drawLine(x, drawSize.height +3, x, drawSize.height - 3);
+			int x = (int) Math.round(posX );
+			g.drawLine(x, posY+1, x, posY - 3);
 
 			posX += plotLabelSize + 5;
 		}  		
 	}
 
-	private void drawXAxisLabelInteger(Graphics2D g, int posY){
+	private void drawXAxisLabelInteger(Graphics2D g, GraphAxis xAxis, GraphAxis yAxis){
 		final FontMetrics metric = g.getFontMetrics();
 
-		int posX = 0;
+		int posX = xAxis.getDrawOffset() + 10;
+		final int posY = yAxis.getDrawSize() + 2* yAxis.getDrawOffset();
 		int lastValue = Integer.MIN_VALUE;
 		while(true){			
-			int val = (int) Math.round(posX / xAxis.getPixelPerValue() + xAxis.getMin());
-			String str = String.format("%d", val);
+			int val = (int) Math.round(xAxis.convertPixelToValue(posX));
+			String str = String.format("%d ", val);
 			final int plotLabelSize = metric.stringWidth(str);
 
-			if(posX + plotLabelSize > drawSize.width )
+			if(posX > xAxis.getDrawSize() )
 				break;			
 
 			if(val != lastValue){
-				posX = (int)( (val - xAxis.getMin()) * xAxis.getPixelPerValue() ); 
-				g.drawChars( str.toCharArray(), 0, str.length(), drawOffset.x + posX - plotLabelSize / 2, posY);
+				posX = xAxis.convertValueToPixel(val); 
+				g.drawChars( str.toCharArray(), 0, str.length(), posX - plotLabelSize / 2, posY + metric.getAscent() +2);
 
-				int x = (int) Math.round(drawOffset.x + posX );
-				g.drawLine(x, drawSize.height +3, x, drawSize.height - 3);
+				g.drawLine(posX, posY +1, posX, posY - 3);
 				lastValue = val;
 
 				posX += plotLabelSize + 5;
 			}else{
-				posX = (int)( (val + 1 - xAxis.getMin()) * xAxis.getPixelPerValue() );
+				posX = xAxis.convertValueToPixel(val + 1);
 			}
 		}  		
 	}
@@ -99,7 +108,7 @@ public abstract class Graph2DStatic {
 
 		// draw coordinates
 		// draw Y axis
-		final int yLabelCount = (drawSize.height / fontHeight) / 2;
+		final int yLabelCount = (yAxis.getDrawSize() / fontHeight) / 2;
 
 		final double plotYAxisLabelValue = fontHeight / yAxis.getPixelPerValue() * 0.5;
 
@@ -107,17 +116,17 @@ public abstract class Graph2DStatic {
 
 		// determine maximum label width:
 		for(int i=0 ; i <= yLabelCount; i++){
-			String str = String.format("%f",  yAxis.getExtend() * i * 2.0/ drawSize.height * fontHeight + yAxis.getMin() + plotYAxisLabelValue);
+			String str = String.format("%f ",  yAxis.getValExtend() * i * 2.0/ yAxis.getDrawSize() * fontHeight + yAxis.getMin() + plotYAxisLabelValue);
 			int strSize = fontMetrics.stringWidth(str);
 			labelWidth = strSize > labelWidth ? strSize : labelWidth;  
 		}
 
 
 		for(int i=0 ; i <= yLabelCount; i++){
-			String str = String.format("%f",  yAxis.getExtend() * i * 2.0/ drawSize.height * fontHeight + yAxis.getMin() + plotYAxisLabelValue);
+			String str = String.format("%f ",  yAxis.getValExtend() * i * 2.0/ yAxis.getDrawSize() * fontHeight + yAxis.getMin() + plotYAxisLabelValue);
 
-			int y = drawSize.height - i * 2 * fontHeight; 
-			g.drawChars( str.toCharArray(), 0, str.length(), fontMetrics.stringWidth(str) - drawOffset.x, y );
+			int y = yAxis.getDrawSize() - i * 2 * fontHeight; 
+			g.drawChars( str.toCharArray(), 0, str.length(), labelWidth - fontMetrics.stringWidth(str), y );
 			g.drawLine(labelWidth -1, y - fontMetrics.getAscent()/ 2, labelWidth + 4, y - fontMetrics.getAscent() / 2);
 		}
 
@@ -129,14 +138,17 @@ public abstract class Graph2DStatic {
 		final int fontHeight = fontMetrics.getHeight();
 
 		// draw coordinates
-		final int yLabelCount = (drawSize.height / fontHeight) / 2;
+		final int yLabelCount = (yAxis.getDrawSize() / fontHeight) / 2;
 
 		final double plotYAxisLabelValue = fontHeight / yAxis.getPixelPerValue() * 0.5;
 		int labelWidth = 0;
 
 		// determine maximum label width:
 		for(int i=0 ; i <= yLabelCount; i++){
-			String str = String.format("%d", (int) (yAxis.getExtend() * i * 2/ drawSize.height * fontHeight + yAxis.getMin() + plotYAxisLabelValue));
+		
+			int val = (int) Math.round(( yAxis.getValExtend() * i * 2.0 / yAxis.getDrawSize() * fontHeight + yAxis.getMin() + plotYAxisLabelValue));
+
+			String str = String.format("%d ", val);
 			int strSize = fontMetrics.stringWidth(str);
 			// maximum label width:
 			labelWidth = strSize > labelWidth ? strSize : labelWidth;  
@@ -147,11 +159,11 @@ public abstract class Graph2DStatic {
 		int lastYPos = -1;
 
 		for(int i=0 ; i <= yLabelCount; i++){
-			int val = (int) Math.round(( yAxis.getExtend() * i * 2.0 / drawSize.height * fontHeight + yAxis.getMin() + plotYAxisLabelValue));
+			int val = (int) Math.round(( yAxis.getValExtend() * i * 2.0 / yAxis.getDrawSize() * fontHeight + yAxis.getMin() + plotYAxisLabelValue));
 
-			String str = String.format("%d", val);
+			String str = String.format("%d ", val);
 
-			int y = (int) (drawSize.height - yAxis.getPixelPerValue() * (val - yAxis.getMin()));
+			int y = yAxis.convertValueToPixel(val);
 			if(lastYPos == y || lastVal == val){
 				continue;
 			}
@@ -159,7 +171,7 @@ public abstract class Graph2DStatic {
 			lastYPos = y;
 			lastVal = val;
 
-			g.drawChars( str.toCharArray(), 0, str.length(), fontMetrics.stringWidth(str) - drawOffset.x, y +  fontMetrics.getAscent() / 2);
+			g.drawChars( str.toCharArray(), 0, str.length(), labelWidth - fontMetrics.stringWidth(str), y +  fontMetrics.getAscent() / 2);
 			g.drawLine(labelWidth -1, y , labelWidth + 4, y );
 		}
 
@@ -168,11 +180,11 @@ public abstract class Graph2DStatic {
 
 	protected void drawGraph(Graphics2D g){
 		final Dimension size = panel.getSize();
-
+		
+		if(linesToDraw.isEmpty())
+			return;
 	
-		//g.setColor(Color.YELLOW);
-		//g.fillRect(0, 0, size.width, size.height);
-
+		g.clearRect(0, 0, size.width, size.height);
 
 		// determine key position
 		int maxKeySize = 0;
@@ -208,6 +220,9 @@ public abstract class Graph2DStatic {
 		int keyY = fontMetrics.getHeight(); //size.height - fontMetrics.getHeight();		
 		
 		for(GraphData line: linesToDraw){
+			if(line.title.length() == 0)
+				continue;
+			
 			g.setColor(line.color);
 
 			g.drawChars(line.title.toCharArray(), 0, line.title.length(), keyX, keyY);
@@ -217,38 +232,40 @@ public abstract class Graph2DStatic {
 		g.setFont(oldFont);
 		g.setColor(Color.BLACK);
 
-		//
+		final Dimension drawSize = panel.getSize();
 		
+		// draw Y-axis
 		fontMetrics = g.getFontMetrics();
-		drawSize.height = size.height - fontMetrics.getHeight();
-		yAxis.fixate(drawSize.height);
+		drawSize.height = size.height - fontMetrics.getHeight() - 10;
+		yAxis.setDrawSize(drawSize.height, 5);
 
+		int drawOffsetX;
 		if(yAxis.isIntegerType()){
-			drawOffset.x = drawYAxisLabelInteger(g, yAxis);
+			drawOffsetX = drawYAxisLabelInteger(g, yAxis) +5;
 		}else{
-			drawOffset.x = drawYAxisLabelDouble(g, yAxis);
+			drawOffsetX = drawYAxisLabelDouble(g, yAxis) +5;
 		}
 
-		g.drawLine(drawOffset.x, drawOffset.y, drawOffset.x , drawOffset.y + drawSize.height);
+		g.drawLine(drawOffsetX, 0, drawOffsetX , yAxis.getDrawOffset() * 2 + drawSize.height);
 
-		drawSize.width = size.width - drawOffset.x;
-		xAxis.fixate(drawSize.width);
+		drawSize.width = size.width - drawOffsetX - 5;
+		xAxis.setDrawSize(drawSize.width, drawOffsetX);
 
-		// draw X axis
+		// draw X-axis
 		if(xAxis.isIntegerType()){
-			drawXAxisLabelInteger(g, size.height);
+			drawXAxisLabelInteger(g, xAxis, yAxis);
 		}else{
-			drawXAxisLabelDouble(g, size.height, drawOffset.x);
+			drawXAxisLabelDouble(g, xAxis, yAxis);
 		}
 
-		g.drawLine(drawOffset.x, drawSize.height, drawOffset.x + drawSize.width, drawSize.height);
+		g.drawLine(drawOffsetX, drawSize.height + yAxis.getDrawOffset() * 2, drawOffsetX + drawSize.width, drawSize.height + yAxis.getDrawOffset() * 2);
 
 		// End axis
 
 		int curGraph = 0;
 		for(GraphData line: linesToDraw){
 			curGraph++;
-			drawGraph(g, line, drawSize, drawOffset, xAxis, yAxis, curGraph, linesToDraw.size());
+			drawGraph(g, line, xAxis, yAxis, curGraph, linesToDraw.size());
 		}
 	}
 
@@ -256,7 +273,7 @@ public abstract class Graph2DStatic {
 		private static final long serialVersionUID = 2136968262477009294L;
 
 		public DrawingArea() {
-			final Dimension min = new Dimension(500, 200);
+			final Dimension min = new Dimension(200, 100);
 			this.setMinimumSize(min);
 			this.setPreferredSize(min);
 
@@ -264,9 +281,9 @@ public abstract class Graph2DStatic {
 				@Override
 				public void mouseMoved(MouseEvent e) {
 					final Point p = e.getPoint();
-					double x = (p.getX() - drawOffset.x) / xAxis.getPixelPerValue() + xAxis.getMin();
-					double y = (drawSize.getHeight() - p.getY() + drawOffset.y) / yAxis.getPixelPerValue() + yAxis.getMin();
-
+					double x = xAxis.convertPixelToValue(p.x);
+					double y = yAxis.convertPixelToValue(p.y);
+					
 					if ( x < xAxis.getMin() || x > xAxis.getMax() || y > yAxis.getMax() || y < yAxis.getMin() ){
 						setToolTipText(null);
 						return;
@@ -275,6 +292,8 @@ public abstract class Graph2DStatic {
 					positionMouseOver(x, y);
 				}
 			});
+			
+			this.setOpaque(true);
 		}
 
 		@Override
@@ -308,5 +327,9 @@ public abstract class Graph2DStatic {
 
 	public GraphAxis getYAxis() {
 		return yAxis;
+	}
+	
+	public int getNumberOfLines(){
+		return linesToDraw.size();
 	}
 }
