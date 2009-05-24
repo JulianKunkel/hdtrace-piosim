@@ -54,8 +54,8 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 		return statisticDescription;
 	}
 	
-	public StatisticsSource getStatisticSource() {
-		return statisticSource;
+	public BufferedStatisticFileReader getStatisticSource() {
+		return (BufferedStatisticFileReader) statisticSource;
 	}
 	
 	@Override

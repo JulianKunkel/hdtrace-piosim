@@ -56,6 +56,7 @@ import topology.TopologyChangeListener;
 import topology.TopologyManager;
 import topology.TopologyStatisticTreeNode;
 import topology.TopologyTraceTreeNode;
+import topology.TopologyTreeNode;
 import viewer.common.Debug;
 import viewer.common.Parameters;
 import viewer.common.Profile;
@@ -323,8 +324,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		}
 		DrawObjects.drawStatisticBackground(offGraphics, coord_xform, minTime, maxTime, backGroundColor, color, timeline);
 		
-		double lastTime = minTime;
-
 		int drawedStatistics = 0;
 
 		/** 
@@ -411,11 +410,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				value = 1.0f;
 			}
 
-			final Epoch adaptedTime = entry.getEarliestTime().subtract(globalMinTime) ;
+			final Epoch adaptedTime = entry.getLatestTime().subtract(globalMinTime) ;
 
-			DrawObjects.drawStatistic(offGraphics, coord_xform, adaptedTime, lastTime, (float) value , timeline);
-
-			lastTime = adaptedTime.getDouble();
+			DrawObjects.drawStatistic(offGraphics, coord_xform, entry.getEarliestTime().subtract(globalMinTime),  
+					adaptedTime,	(float) value , timeline);
 
 			drawedStatistics++;
 		}
@@ -497,10 +495,15 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	}
 	
 	@Override
-	public TraceObject getTraceObjectAt(int timeline, Epoch realTime, int y) {
+	public TraceObjectInformation getTraceObjectAt(int timeline, Epoch realTime, int y) {
 		final TopologyManager topologyManager = getTopologyManager();
 
 		final double eventRadius = 2.0 / getViewPixelsPerUnitTime();
+		
+		if(topologyManager.getRowCount() <= timeline)
+			return null;
+		
+		final TopologyTreeNode treeNode = topologyManager.getTreeNodeForTimeline(timeline);
 
 		switch(topologyManager.getType(timeline)){
 		case TRACE:
@@ -514,7 +517,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				if(curDist != 0){
 					// mouse is not inside the state.
 					if( curDist < eventRadius)
-						return state;
+						return new TraceObjectInformation(treeNode, state);
 
 					return null;
 				}
@@ -573,14 +576,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				}
 			}
 
-			//SimpleConsoleLogger.Debug("Mouse over " + objMouse.getName());
-
-			return objMouse;
+			return new TraceObjectInformation(treeNode, objMouse);
 		case STATISTIC:
 			final BufferedStatisticFileReader sreader = topologyManager.getStatisticReaderForTimeline(timeline);
 			StatisticGroupEntry entry = sreader.getTraceEntryClosestToTime(realTime);
 			int which = topologyManager.getStatisticNumberForTimeline(timeline);			
-			return entry.createStatisticEntry(which);
+			return new TraceObjectInformation(treeNode, entry.createStatisticEntry(which));
 		default:
 
 		}
@@ -592,25 +593,25 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	
 	@Override
 	public InfoDialog getPropertyAt(int timeline, Epoch realTime, int y) {
-		TraceObject obj = getTraceObjectAt(timeline, realTime, y);
-		if( obj != null ){
+		TraceObjectInformation infoObj = getTraceObjectAt(timeline, realTime, y);
+		if( infoObj != null ){
 			Frame          window;
 			window = (Frame) SwingUtilities.windowForComponent( this );
 			
-			switch(obj.getType()){
+			switch(infoObj.getObject().getType()){
 			case STATISTICENTRY:
 				return new InfoDialogForStatisticEntries(window,  realTime,
 						getModelTime().getGlobalMinimum(), 
-						getTopologyManager().getStatisticNodeForTimeline(timeline),
-						(StatisticEntry) obj);	
+						(TopologyStatisticTreeNode) infoObj.getTopologyTreeNode(),
+						(StatisticEntry) infoObj.getObject());	
 			case EVENT:
 			case STATE:			
 				return new InfoDialogForTraceEntries(window,
 						realTime,
 						getModelTime().getGlobalMinimum(),						
-						(TopologyTraceTreeNode) getTopologyManager().getTreeNodeForTimeline(timeline),
+						(TopologyTraceTreeNode) infoObj.getTopologyTreeNode(),
 						getTopologyManager() ,
-						(TraceEntry) obj);	
+						(TraceEntry) infoObj.getObject());	
 			}
 		}
 

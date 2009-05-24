@@ -44,12 +44,14 @@ public class StatisticGroupEntry implements TraceObject{
 	 */
 	private final Object [] values;
 	
-	private final Epoch timeStamp; 
+	private final Epoch endTime;
+	private final Epoch startTime; 
 		
-	public StatisticGroupEntry(Object [] values, Epoch timeStamp, StatisticsGroupDescription group) {
+	public StatisticGroupEntry(Object [] values, Epoch startTime, Epoch endTime, StatisticsGroupDescription group) {
 		this.group = group;
 		this.values = values;
-		this.timeStamp = timeStamp;
+		this.endTime = endTime;
+		this.startTime = startTime;
 	}
 	
 	public Object[] getValues() {
@@ -73,12 +75,12 @@ public class StatisticGroupEntry implements TraceObject{
 	}
 	
 	public Epoch getEarliestTime() {
-		return timeStamp;
+		return startTime;
 	}
 	
 	@Override
 	public Epoch getLatestTime() {
-		return timeStamp;
+		return endTime;
 	}
 	
 	@Override

@@ -49,25 +49,14 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 
 		StatisticGroupEntry current = getNextInputEntry();
 
-		minTime = current.getEarliestTime();
-
-		// verify correct ordering of time in statistic trace file:
-		Epoch lastTimeStamp = Epoch.ZERO;
+		minTime = current.getEarliestTime();		
 		
 		while(current != null){
 			statEntries.add(current);
-
-			if(current.getEarliestTime().compareTo(lastTimeStamp) < 0){
-				throw new IllegalArgumentException("File " + filename + " statistic entry " + statEntries.size() + 
-						" time " + current.getEarliestTime() + " is earlier than last entry time: " + lastTimeStamp);
-			}
-			
-			lastTimeStamp = current.getEarliestTime();
-			
 			current = getNextInputEntry();
 		}
 
-		maxTime = statEntries.get(statEntries.size()-1).getEarliestTime();
+		maxTime = statEntries.get(statEntries.size()-1).getLatestTime();
 
 		//  update local min/max value
 		// check file:
@@ -84,6 +73,8 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 
 			// use bigdecimal to increase accuracy.			
 			BigDecimal sum = new BigDecimal(0);			
+			BigDecimal integratedSum = new BigDecimal(0);
+			
 			final int cnt = statEntries.size();
 			
 			final int groupNumber = desc.getNumberInGroup();
@@ -95,6 +86,11 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 				if( value < min ) min = value;
 				
 				sum = sum.add(new BigDecimal(value) );  
+				
+				integratedSum = integratedSum.add(
+						new BigDecimal(value).multiply(	
+								entry.getLatestTime().subtract(entry.getEarliestTime()).getBigDecimal())
+						);
 			}
 			
 			final double avg = sum.doubleValue() / cnt;
@@ -110,7 +106,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 				stddevd = Math.sqrt(stddev.divide( new BigDecimal (cnt - 1), RoundingMode.HALF_DOWN ).doubleValue());
 			}
 			
-			statistics[groupNumber] = new StatisticStatistics(max, min, avg, stddevd, sum);
+			statistics[groupNumber] = new StatisticStatistics(max, min, avg, stddevd, sum, integratedSum);
 		}
 	}
 

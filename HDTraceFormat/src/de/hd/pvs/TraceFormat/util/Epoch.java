@@ -25,6 +25,7 @@
 
 package de.hd.pvs.TraceFormat.util;
 
+import java.math.BigDecimal;
 import java.util.Formatter;
 
 /**
@@ -296,6 +297,13 @@ public class Epoch implements Comparable<Epoch> {
 	public double getDouble(){
 		return this.seconds + ((double) this.nanoSeconds) / MULTIPLIER;
 	}	
+	
+	/**
+	 * Return the accurate Epoch as BigDecimal:
+	 */
+	public BigDecimal getBigDecimal(){
+		return new BigDecimal(this.seconds).add(new BigDecimal(this.nanoSeconds).divide(new BigDecimal(MULTIPLIER)));
+	}
 
 	/**
 	 * This method returns the smallest possible time which is really bigger than this time.

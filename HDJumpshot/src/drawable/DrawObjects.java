@@ -93,14 +93,14 @@ public class DrawObjects{
 	public static int  drawStatistic( 
 			Graphics2D g,
 			CoordPixelXform  coord_xform,
-			Epoch timeStamp,
-			double lastTimeStamp,
+			Epoch startTime,
+			Epoch endTime,
 			float normalizedHeight,
 			int timeline)
 	{
 
-		int x1   = coord_xform.convertTimeToPixel( lastTimeStamp );
-		int x2   = coord_xform.convertTimeToPixel( timeStamp.getDouble() );
+		int x1   = coord_xform.convertTimeToPixel( startTime.getDouble() );
+		int x2   = coord_xform.convertTimeToPixel( endTime.getDouble() );
 
 		int height = (coord_xform.getTimelineHeight() );
 

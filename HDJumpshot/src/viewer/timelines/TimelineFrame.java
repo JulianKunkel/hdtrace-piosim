@@ -58,9 +58,8 @@ import viewer.zoomable.ActionSearchBackward;
 import viewer.zoomable.ActionSearchForward;
 import viewer.zoomable.ActionSearchInit;
 import viewer.zoomable.ScrollableObject;
-import de.hd.pvs.TraceFormat.TraceObject;
 
-public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
+public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 {
 	private static final long serialVersionUID = -496973267971206572L;
 
@@ -113,7 +112,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObject>
 	}
 
 	@Override
-	protected ModelInfoPanel<TraceObject> createModelInfoPanel() {
+	protected ModelInfoPanel<TraceObjectInformation> createModelInfoPanel() {
 		return new TimelineTraceObjectInfoPanel(getReader());
 	}
 

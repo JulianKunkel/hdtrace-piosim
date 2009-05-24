@@ -29,14 +29,25 @@ public class StatisticStatistics {
 	final double minValue;
 	final double averageValue;
 	final double stddevValue;
+	
+	/**
+	 * Sum of multiplication of statistic entry duration * statistic entry value
+	 */
+	final BigDecimal integratedSum;
 	final BigDecimal sum;
 	
-	public StatisticStatistics( double maxNumericValue, double minNumericValue, double averageNumericValue, double stddev, BigDecimal sum) {
+	public StatisticStatistics( double maxNumericValue, 
+			double minNumericValue, 
+			double averageNumericValue, 
+			double stddev, 
+			BigDecimal sum,
+			BigDecimal integratedSum) {
 		this.maxValue = maxNumericValue;
 		this.minValue = minNumericValue;
 		this.averageValue = averageNumericValue;
 		this.stddevValue = stddev;		
 		this.sum = sum;
+		this.integratedSum = integratedSum;
 	}	
 	
 	public double getAverageValue() {
@@ -57,5 +68,9 @@ public class StatisticStatistics {
 	
 	public BigDecimal getSum() {
 		return sum;
+	}
+	
+	public BigDecimal getIntegratedSum() {
+		return integratedSum;
 	}
 }

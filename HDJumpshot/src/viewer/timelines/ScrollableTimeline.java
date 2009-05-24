@@ -41,7 +41,7 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 	
 	final private TopologyManager    topologyManager;
 	final private BoundedRangeModel  y_model;
-	
+		
 	public ScrollableTimeline(ScrollbarTimeModel scrollbarTimeModel,
 			ViewportTime viewport,
 			BoundedRangeModel   yaxis_model,

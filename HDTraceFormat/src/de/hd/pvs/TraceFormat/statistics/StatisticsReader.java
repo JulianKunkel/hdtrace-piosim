@@ -43,6 +43,8 @@ public class StatisticsReader implements StatisticsSource{
 	final RandomAccessFile file;	
 	final StatisticsGroupDescription group;
 	
+	Epoch lastTimeStamp;
+	
 	public StatisticsReader(String filename) throws Exception {
 		this(filename, null);
 	}
@@ -84,6 +86,7 @@ public class StatisticsReader implements StatisticsSource{
 		
 	}
 	
+	@Override
 	public StatisticGroupEntry getNextInputEntry() throws Exception{
 		if(isFinished()){
 			return null;
@@ -110,6 +113,11 @@ public class StatisticsReader implements StatisticsSource{
 				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
 		}
 		timeStamp = timeStamp.add(group.getTimeAdjustment());
+		
+		// throw away first entry:
+		if ( lastTimeStamp == null){
+			lastTimeStamp = timeStamp;
+		}
 		
 		int pos = 0;
 		for(StatisticDescription statDesc: group.getStatisticsOrdered()){
@@ -148,8 +156,19 @@ public class StatisticsReader implements StatisticsSource{
 
 			values[pos++] = value;
 		}
+		
 
-		return new StatisticGroupEntry(values, timeStamp, group);
+		// verify correct ordering of time in statistic trace file:
+
+		if(lastTimeStamp.compareTo(timeStamp) > 0){
+			throw new IllegalArgumentException("Time " + timeStamp + " is earlier than last entry time: " + lastTimeStamp);
+		}
+		
+		StatisticGroupEntry entry = new StatisticGroupEntry(values, lastTimeStamp, timeStamp, group);
+		
+		lastTimeStamp = timeStamp;
+		
+		return entry;
 	}
 
 	public boolean isFinished(){

@@ -55,7 +55,7 @@ public class ReaderStatisticGroupEnumerator implements Enumeration<StatisticGrou
 		current = entries.get(currentPos);
 		currentPos++;
 		
-		if(current.getEarliestTime().compareTo(endTime) > 0){
+		if(current.getLatestTime().compareTo(endTime) > 0){
 			if(currentPos <= entries.size()){
 				isFinalOne = true;
 			}else{
@@ -80,7 +80,7 @@ public class ReaderStatisticGroupEnumerator implements Enumeration<StatisticGrou
 			
 			if(isFinalOne){
 				current = null;
-			}else if(current.getEarliestTime().compareTo(endTime) > 0){
+			}else if(current.getLatestTime().compareTo(endTime) > 0){
 				isFinalOne = true;
 			}
 		}else{

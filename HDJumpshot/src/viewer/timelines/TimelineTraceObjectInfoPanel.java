@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -34,11 +34,14 @@
 
 package viewer.timelines;
 
+import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.StatisticStatistics;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Properties;
@@ -47,6 +50,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.JPanel;
 
+import topology.TopologyStatisticTreeNode;
 import viewer.common.Const;
 import viewer.common.LabeledTextField;
 import viewer.common.ModelInfoPanel;
@@ -54,21 +58,33 @@ import viewer.common.TimeFormat;
 import viewer.pvfs2.PVFS2OpTypeParser;
 import viewer.pvfs2.PVFS2SMParser;
 import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import drawable.Category;
 
 
-public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
+public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInformation>
 {
-	
+
+	// general purpose fields
 	private LabeledTextField  fld_time_start;
 	private LabeledTextField  fld_time_end;
 	private LabeledTextField  fld_time_duration;
 	private LabeledTextField  fld_category_name;
+
+	// for the statistics:
+	private LabeledTextField  fld_stat_sum;
+	private LabeledTextField  fld_stat_average;
+
+	// integrated means integrated over the time:
+	private LabeledTextField  fld_stat_integrated_sum;
+	private LabeledTextField  fld_stat_integrated_avg;
+
 	private LabeledTextField  fld_operation_type;
 	private LabeledTextField  fld_callID;
 	private LabeledTextField  fld_jobID;
@@ -98,55 +114,75 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 	 * contains the categories which could be mapped to PVFS2 operation types directly
 	 */
 	static final String decodeOperationType = "Request decode";
-	
+
 	final private TraceFormatBufferedFileReader reader;
 
 	@Override
-	public void showInfo(TraceObject obj) {
-		if(obj == null)
+	public void showInfo(TraceObjectInformation infoObj) {
+		if(infoObj == null)
 			return;
-		
+
+		final TraceObject obj = infoObj.getObject();
+
 		switch(obj.getType()){
 		case EVENT:
-			showInfo((EventTraceEntry) obj);
+			showInfo((EventTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
 			return;
 		case STATE:
-			showInfo((StateTraceEntry) obj);
+			showInfo((StateTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
 			return;
 		case STATISTICENTRY:
-			showInfo((StatisticEntry) obj);
+			showInfo((StatisticEntry) obj, infoObj.getTopologyTreeNode().getTopology(), 
+					((TopologyStatisticTreeNode) infoObj.getTopologyTreeNode()).getStatisticSource());
 			return;
 		default:
 			throw new IllegalArgumentException("Unexpected object of trace type: " + obj.getType());
 		}
 	}
-	
-	public void showInfo( StatisticEntry statistic ) {
-		reset();		
-		
-		StatisticGroupEntry groupEntry = statistic.getParentGroupEntry();
-		StatisticDescription desc = statistic.getDescription();
-		final double time = reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime());
-		
-		this.setStartTime( "" );
-		this.setEndTime( "" + time);
 
-		
-		this.setDuration( fmt.format( 0 ) );
+	public void showInfo( StatisticEntry statistic, 
+			TopologyNode topology, 
+			BufferedStatisticFileReader sReader) {
+
+		setVisibleControls(TraceObjectType.STATISTICENTRY);		
+
+		final StatisticGroupEntry groupEntry = statistic.getParentGroupEntry();
+		final StatisticDescription desc = statistic.getDescription();
 		final Category cat = reader.getCategory(groupEntry.getGroup(), desc); 
+
+		this.setStartTime( "" +  reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime()));
+		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(groupEntry.getLatestTime()));
+
+
+		this.setDuration( fmt.format( 0 ) );
 		this.setCategoryName( desc.getName() );    
 		this.setCategoryColor( (Color) cat.getColor() );
 		
-		if(desc.getUnit() != null)
-			this.setInfoString(statistic.getValue().toString() + " " + desc.getUnit());
-		else
-			this.setInfoString(statistic.getValue().toString());
+		final String descUnit;
+
+		if(desc.getUnit() != null){
+			descUnit = " " + statistic.getDescription().getUnit();
+		}else{
+			descUnit = "";
+		}
+			
+		this.setInfoString(statistic.getValue().toString() + descUnit);
+		
+		final StatisticStatistics stat = sReader.getStatisticsFor(desc.getNumberInGroup());
+
+		fld_stat_average.setDouble(stat.getAverageValue());
+		fld_stat_sum.setDouble(stat.getSum().doubleValue());
+		fld_stat_integrated_sum.setDouble(stat.getIntegratedSum().doubleValue());
+		
+		fld_stat_integrated_avg.setDouble(stat.getIntegratedSum().divide( 
+			sReader.getMaxTime().subtract(sReader.getMinTime()).getBigDecimal(), BigDecimal.ROUND_HALF_UP	
+			).doubleValue());
 	}
 
 
-	public void showInfo( StateTraceEntry state ) {
-		reset();
-		
+	public void showInfo( StateTraceEntry state, TopologyNode topology ) {
+		setVisibleControls(TraceObjectType.STATE);
+
 		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
 		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(state.getLatestTime()) );
 
@@ -156,11 +192,11 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 		this.setCategoryColor( (Color) cat.getColor() );
 	}
 
-	public void showInfo( EventTraceEntry event ) {
-		reset();
-		
+	public void showInfo( EventTraceEntry event, TopologyNode topology) {
+		setVisibleControls(TraceObjectType.EVENT);
+
 		final double time = reader.subtractGlobalMinTimeOffset(event.getEarliestTime());
-		
+
 		this.setStartTime( "" + time  );
 		this.setEndTime( "" + time );
 
@@ -170,8 +206,8 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 		this.setCategoryColor( (Color) cat.getColor() );
 	}
 
-	
-	
+
+
 	@Override
 	protected void addControlsToPanel(JPanel panel) {
 		if ( fmt == null ) {
@@ -180,7 +216,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 		}
 		if ( tfmt == null )
 			tfmt = new TimeFormat();
-		
+
 		fld_category_name    = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
 		fld_category_name.setEditable( false );
 		fld_category_name.setBackground( Color.black );
@@ -205,7 +241,20 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 
 		fld_value = new LabeledTextField( "Value", Const.PANEL_TIME_FORMAT );
 		fld_value.setEditable( false );
+
+		fld_stat_integrated_sum = new LabeledTextField( "Integrated Sum", Const.FLOAT_FORMAT );
+		fld_stat_integrated_sum.setEditable( false );
 		
+		fld_stat_integrated_avg = new LabeledTextField( "Integrated Avg", Const.FLOAT_FORMAT );
+		fld_stat_integrated_avg.setEditable( false );
+		
+		
+		fld_stat_sum = new LabeledTextField( "Sum", Const.FLOAT_FORMAT );
+		fld_stat_sum.setEditable( false );
+
+		fld_stat_average = new LabeledTextField( "Average", Const.FLOAT_FORMAT );
+		fld_stat_average.setEditable( false );
+
 		panel.add( fld_category_name );
 		panel.add( fld_time_start );
 		panel.add( fld_time_end );
@@ -214,21 +263,56 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 		panel.add( fld_operation_type );
 		panel.add( fld_jobID );		
 		panel.add( fld_value );
+		panel.add( fld_stat_sum );		
+		panel.add( fld_stat_average );
+		panel.add( fld_stat_integrated_sum);
+		panel.add( fld_stat_integrated_avg);
 
+		setVisibleControls(TraceObjectType.EVENT);
 	}
-	
+
 	public TimelineTraceObjectInfoPanel( TraceFormatBufferedFileReader reader )
 	{
 		this.reader = reader;
 	}
 
+	/**
+	 * Reset visible fields and 
+	 * load the visible fields (and further controls if necessary) for a given object type.
+	 * 
+	 * @param forType
+	 */
+	private void setVisibleControls(TraceObjectType forType) {
+		fld_time_start.setVisible(false);
+		fld_time_duration.setVisible(false);
+		fld_stat_average.setVisible(false);
+		fld_stat_sum.setVisible(false);
+		fld_stat_integrated_sum.setVisible(false);
+		fld_stat_integrated_avg.setVisible(false);
+		fld_callID.setVisible(false);
+		fld_jobID.setVisible(false);
+		fld_operation_type.setVisible(false);
+		fld_value.setVisible(false);
 
-	private void reset() {
-		fld_time_start.setText("");
-		fld_time_end.setText("");
-		fld_time_duration.setText("");
+		switch(forType){
+		case STATE:
+			fld_time_start.setVisible(true);
+			fld_time_duration.setVisible(true);
+			break;
+		case EVENT:
+			break;
+		case STATISTICENTRY:
+			fld_time_start.setVisible(true);
+			fld_value.setVisible(true);
+			fld_stat_integrated_sum.setVisible(true);
+			fld_stat_integrated_avg.setVisible(true);
+			fld_stat_average.setVisible(true);
+			fld_stat_sum.setVisible(true);			
+		}
+
 		fld_category_name.setText("");
 		fld_category_name.setBackground( Color.black );
+
 		setInfoString("");
 	}
 
@@ -263,7 +347,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObject>
 			fld_value.setText(info);
 			return;
 		}
-		
+
 		fld_callID.setLabel("CallID");
 		fld_operation_type.setLabel("Operation type");
 		fld_value.setLabel("Value");
