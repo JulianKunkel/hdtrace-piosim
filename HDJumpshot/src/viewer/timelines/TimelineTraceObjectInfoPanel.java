@@ -166,17 +166,21 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 			descUnit = "";
 		}
 			
-		this.setInfoString(statistic.getValue().toString() + descUnit);
+		fld_value.setDouble(statistic.getNumericValue().doubleValue());
+		fld_value.addText(descUnit);
 		
 		final StatisticStatistics stat = sReader.getStatisticsFor(desc.getNumberInGroup());
 
 		fld_stat_average.setDouble(stat.getAverageValue());
-		fld_stat_sum.setDouble(stat.getSum().doubleValue());
+		fld_stat_average.addText(descUnit);
+		
+		fld_stat_sum.setDouble(stat.getSum().doubleValue());		
 		fld_stat_integrated_sum.setDouble(stat.getIntegratedSum().doubleValue());
 		
 		fld_stat_integrated_avg.setDouble(stat.getIntegratedSum().divide( 
 			sReader.getMaxTime().subtract(sReader.getMinTime()).getBigDecimal(), BigDecimal.ROUND_HALF_UP	
 			).doubleValue());
+		fld_stat_integrated_avg.addText(descUnit);
 	}
 
 
@@ -242,18 +246,26 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		fld_value = new LabeledTextField( "Value", Const.PANEL_TIME_FORMAT );
 		fld_value.setEditable( false );
 
+		// special fields for statistics:
 		fld_stat_integrated_sum = new LabeledTextField( "Integrated Sum", Const.FLOAT_FORMAT );
 		fld_stat_integrated_sum.setEditable( false );
+		fld_stat_integrated_sum.setToolTipText("Show the sum of the statistic entries multiplied by their length");
 		
 		fld_stat_integrated_avg = new LabeledTextField( "Integrated Avg", Const.FLOAT_FORMAT );
 		fld_stat_integrated_avg.setEditable( false );
+		fld_stat_integrated_avg.setToolTipText("Show the sum of the statistic entries multiplied by their " +
+				"length divided by the total time duration");
 		
 		
 		fld_stat_sum = new LabeledTextField( "Sum", Const.FLOAT_FORMAT );
 		fld_stat_sum.setEditable( false );
+		fld_stat_integrated_avg.setToolTipText("Show the numeric sum of the statistic values");
+		
 
 		fld_stat_average = new LabeledTextField( "Average", Const.FLOAT_FORMAT );
 		fld_stat_average.setEditable( false );
+		fld_stat_integrated_avg.setToolTipText("Show the numeric average of the statistic values");		
+		//
 
 		panel.add( fld_category_name );
 		panel.add( fld_time_start );

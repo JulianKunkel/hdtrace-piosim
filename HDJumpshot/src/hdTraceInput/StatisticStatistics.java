@@ -36,7 +36,8 @@ public class StatisticStatistics {
 	final BigDecimal integratedSum;
 	final BigDecimal sum;
 	
-	public StatisticStatistics( double maxNumericValue, 
+	public StatisticStatistics( 
+			double maxNumericValue, 
 			double minNumericValue, 
 			double averageNumericValue, 
 			double stddev, 

@@ -181,34 +181,67 @@ public class TopologyManager
 
 				JPopupMenu popupMenu = new JPopupMenu();
 
-				// return if we are not in the Boundrary of the current path (i.e. not really clicked inside the path).
+				// return if we are not in the Boundary of the current path (i.e. not really clicked inside the path).
 				if(! tree.getPathBounds(path).contains(evt.getPoint())){
 					addTopologyMenu(popupMenu);
 					popupMenu.show( evt.getComponent(), evt.getX(), evt.getY() );
 					return;
 				}
 
-				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){					
+				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){
+					final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) clickedNode);
+					
 					// Show statistic histogram:			
 					popupMenu.add(new AbstractAction(){
 						private static final long serialVersionUID = 1L;
 
 						{
-							putValue(Action.NAME, "Show statistic histogram");
+							putValue(Action.NAME, "Show statistic histogram for " + clickedNode.toString());							
 						}
 
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) clickedNode;
-
 							StatisticHistogramFrame frame = new StatisticHistogramFrame(
 									(BufferedStatisticFileReader) statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
 									reader.getCategory(((BufferedStatisticFileReader) statNode.getStatisticSource()).getGroup(), statNode.getStatisticDescription()));
 							frame.show();
 						}
-					});						
+					});				
+					
+					// allow to show aggregated histogram for the selected nodes with the same group(ing).
+					final ArrayList<TopologyStatisticTreeNode> selectedStatNodes = new ArrayList<TopologyStatisticTreeNode>();  
+					for(TreePath curPath: tree.getSelectionPaths()){
+						if( TopologyStatisticTreeNode.class.isInstance(curPath.getLastPathComponent()) ){
+							final TopologyStatisticTreeNode selStatNode = (TopologyStatisticTreeNode) curPath.getLastPathComponent();
+							if(	statNode.getStatisticGroup().equals(selStatNode.getStatisticGroup()) && 
+									statNode.getStatisticDescription().getGrouping().equals(selStatNode.getStatisticDescription().getGrouping())){
+								if(statNode.getStatisticDescription().getGrouping().length() > 0 || 
+										statNode.getStatisticDescription().getName().equals(selStatNode.getStatisticDescription().getName())){
+									selectedStatNodes.add(selStatNode);
+								}
+							}
+						}
+					}
+
+					if(selectedStatNodes.size() > 1){
+						popupMenu.add(new AbstractAction(){
+							private static final long serialVersionUID = 1L;
+
+							{
+								putValue(Action.NAME, "Show aggregated histogram for " + selectedStatNodes.size() + " stats");
+							}
+
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								for(TopologyStatisticTreeNode node: selectedStatNodes){
+									System.out.println("Selected: " + node.getStatisticDescription().getName());
+								}
+							}
+						});			
+					}
 				}
+
 
 				if(popupMenu.getComponentCount() == 0){
 					addTopologyMenu(popupMenu);
@@ -634,7 +667,7 @@ public class TopologyManager
 				try{
 					plugin = cls.newInstance();
 					plugin.setTopologyManager(this);
-					
+
 					handlerStruct = new TopoPluginStruct(plugin);
 				}catch(Exception e){
 					System.err.println("Error on loading topology plugin " + cls.getCanonicalName());

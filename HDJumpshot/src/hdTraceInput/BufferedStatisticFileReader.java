@@ -25,8 +25,6 @@
 
 package hdTraceInput;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -67,46 +65,9 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 			if(! desc.isNumeric())
 				continue;
 			
-			double min = Double.MAX_VALUE;
-			double max = Double.MIN_VALUE;
-			
-
-			// use bigdecimal to increase accuracy.			
-			BigDecimal sum = new BigDecimal(0);			
-			BigDecimal integratedSum = new BigDecimal(0);
-			
-			final int cnt = statEntries.size();
-			
-			final int groupNumber = desc.getNumberInGroup();
-			
-			for(StatisticGroupEntry entry: statEntries){
-				double value = entry.getNumeric(groupNumber);
-				
-				if( value > max ) max = value;
-				if( value < min ) min = value;
-				
-				sum = sum.add(new BigDecimal(value) );  
-				
-				integratedSum = integratedSum.add(
-						new BigDecimal(value).multiply(	
-								entry.getLatestTime().subtract(entry.getEarliestTime()).getBigDecimal())
-						);
-			}
-			
-			final double avg = sum.doubleValue() / cnt;
-			
-			BigDecimal stddev = new BigDecimal(0);
-			for(StatisticGroupEntry entry: statEntries){
-				double value = entry.getNumeric(groupNumber);
-				stddev = stddev.add(new BigDecimal((value - avg) * (value - avg)));				
-			}
-				
-			double stddevd = 0;
-			if( cnt > 1){
-				stddevd = Math.sqrt(stddev.divide( new BigDecimal (cnt - 1), RoundingMode.HALF_DOWN ).doubleValue());
-			}
-			
-			statistics[groupNumber] = new StatisticStatistics(max, min, avg, stddevd, sum, integratedSum);
+			statistics[desc.getNumberInGroup()] = StatisticsComputer.computeStatistics(
+					this, desc, minTime, maxTime
+					);
 		}
 	}
 

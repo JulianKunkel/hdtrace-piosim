@@ -236,6 +236,10 @@ public class LabeledTextField extends JPanel
     {
         fld.setText( fmt.format( dval ) );
     }
+    
+    public void addText(String txt){
+    	fld.setText(fld.getText() + txt);
+    }
 
     public double getDouble()
     {

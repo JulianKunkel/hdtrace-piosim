@@ -257,9 +257,11 @@ public class StatisticHistogramFrame {
 			deltaPerBin = (max - min) / numberOfBins;
 			final int whichEntry = description.getNumberInGroup();
 
+			final Epoch startTime = new Epoch(modelTime.getViewPosition());
+			final Epoch endTime = new Epoch(modelTime.getViewExtent() + modelTime.getViewPosition());
+			
 			final Enumeration<StatisticGroupEntry> entries = reader.enumerateStatistics(	
-					new Epoch(modelTime.getViewPosition()), 
-					new Epoch(modelTime.getViewExtent() + modelTime.getViewPosition()));
+					startTime, endTime);
 
 			while(entries.hasMoreElements()){
 				double value = entries.nextElement().getNumeric(whichEntry);
