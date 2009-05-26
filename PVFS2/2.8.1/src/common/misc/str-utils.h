@@ -52,8 +52,6 @@ char *PINT_merge_handle_range_strs(
     char *range1,
     char *range2);
 
-int PINT_split_string_list(char ***tokens, const char *comma_list);
-
 #ifndef HAVE_STRNLEN
 size_t strnlen(const char *s, size_t limit);
 #endif

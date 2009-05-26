@@ -98,10 +98,10 @@ int PINT_eventHD_initalize(char * traceWhat){
 
 int PINT_eventHD_finalize(void)
 {
-//	hdS_finalize(hd_facilityTrace[BMI]);
-//	hdS_finalize(hd_facilityTrace[TROVE]);
-//	hdS_finalize(hd_facilityTrace[FLOW]);
-//	hdS_finalize(hd_facilityTrace[SM]);
+	hdS_finalize(hd_facilityTrace[BMI]);
+	hdS_finalize(hd_facilityTrace[TROVE]);
+	hdS_finalize(hd_facilityTrace[FLOW]);
+	hdS_finalize(hd_facilityTrace[SM]);
 	return 0;
 }
 
