@@ -444,7 +444,6 @@ int job_bmi_send(PVFS_BMI_addr_t addr,
      */
     *id = jd->job_id;
     bmi_pending_count++;
-    printf("BMI los\n");
     PINT_hdS_writeInt32Value(hd_facilityTrace[BMI], bmi_pending_count);
 
     return(job_time_mgr_add(jd, timeout_sec));

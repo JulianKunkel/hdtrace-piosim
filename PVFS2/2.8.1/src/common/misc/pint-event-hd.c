@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <string.h>
 
-hdStatsGroup * hd_facilityTrace[ALL_FACILITIES];
+hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
 
 int PINT_eventHD_initalize(char * traceWhat){	
 	char hostname[255];
@@ -50,47 +50,47 @@ int PINT_eventHD_initalize(char * traceWhat){
 		{	
 			if (!hd_facilityTrace[BMI])
 			{	
-				*hd_facilityTrace[BMI] = hdS_createGroup("BMI", topology, topoNode, 1);
-				hdS_addValue(*hd_facilityTrace[BMI],"Concurrent ops", INT32, "#", NULL);
-				hdS_commitGroup(*hd_facilityTrace[BMI]);
-				hdS_enableGroup(*hd_facilityTrace[BMI]);
+				hd_facilityTrace[BMI] = hdS_createGroup("BMI", topology, topoNode, 1);
+				hdS_addValue(hd_facilityTrace[BMI],"Concurrent ops", INT32, "#", NULL);
+				hdS_commitGroup(hd_facilityTrace[BMI]);
+				hdS_enableGroup(hd_facilityTrace[BMI]);
 			}
 			else
 				printf("no BMI\n");
 		}
 		
-//		if (strcasecmp(event_list[i],"trove") == 0)
-//		{	
-//			if (!hd_facilityTrace[TROVE])
-//			{	
-//				hd_facilityTrace[TROVE] = hdS_createGroup("TROVE", topology, topoNode, 1);
-//				hdS_addValue(hd_facilityTrace[TROVE],"Concurrent ops", INT32, "#", NULL);
-//				hdS_commitGroup(hd_facilityTrace[TROVE]);
-//				hdS_enableGroup(hd_facilityTrace[TROVE]);
-//			}
-//		}
-//	
-//		if (strcasecmp(event_list[i],"flow") == 0)
-//		{	
-//			if (!hd_facilityTrace[FLOW])
-//			{	
-//				hd_facilityTrace[FLOW] = hdS_createGroup("FLOW", topology, topoNode, 1);
-//				hdS_addValue(hd_facilityTrace[FLOW],"Concurrent ops", INT32, "#", NULL);
-//				hdS_commitGroup(hd_facilityTrace[FLOW]);
-//				hdS_enableGroup(hd_facilityTrace[FLOW]);
-//			}
-//		}
-//	
-//		if (strcasecmp(event_list[i],"sm") == 0)
-//		{	
-//			if (!hd_facilityTrace[SM])
-//			{	
-//				hd_facilityTrace[SM] = hdS_createGroup("SM", topology, topoNode, 1);
-//				hdS_addValue(hd_facilityTrace[SM],"Concurrent ops", INT32, "#", NULL);
-//				hdS_commitGroup(hd_facilityTrace[SM]);
-//				hdS_enableGroup(hd_facilityTrace[SM]);
-//			}
-//		}
+		if (strcasecmp(event_list[i],"trove") == 0)
+		{	
+			if (!hd_facilityTrace[TROVE])
+			{	
+				hd_facilityTrace[TROVE] = hdS_createGroup("TROVE", topology, topoNode, 1);
+				hdS_addValue(hd_facilityTrace[TROVE],"Concurrent ops", INT32, "#", NULL);
+				hdS_commitGroup(hd_facilityTrace[TROVE]);
+				hdS_enableGroup(hd_facilityTrace[TROVE]);
+			}
+		}
+	
+		if (strcasecmp(event_list[i],"flow") == 0)
+		{	
+			if (!hd_facilityTrace[FLOW])
+			{	
+				hd_facilityTrace[FLOW] = hdS_createGroup("FLOW", topology, topoNode, 1);
+				hdS_addValue(hd_facilityTrace[FLOW],"Concurrent ops", INT32, "#", NULL);
+				hdS_commitGroup(hd_facilityTrace[FLOW]);
+				hdS_enableGroup(hd_facilityTrace[FLOW]);
+			}
+		}
+	
+		if (strcasecmp(event_list[i],"sm") == 0)
+		{	
+			if (!hd_facilityTrace[SM])
+			{	
+				hd_facilityTrace[SM] = hdS_createGroup("SM", topology, topoNode, 1);
+				hdS_addValue(hd_facilityTrace[SM],"Concurrent ops", INT32, "#", NULL);
+				hdS_commitGroup(hd_facilityTrace[SM]);
+				hdS_enableGroup(hd_facilityTrace[SM]);
+			}
+		}
 	}
 	
 	return 0;
@@ -107,15 +107,15 @@ int PINT_eventHD_finalize(void)
 
 
 
-int PINT_hdS_writeInt32Value(hdStatsGroup * name, int value)
-{
-   	hdS_writeInt32Value(*name, value);
-   	if (!name)
-   	{
-   		printf("count = %d\n",value);
-   	}
+int PINT_hdS_writeInt32Value(hdStatsGroup name, int value)
+{	
+	if (name)
+	{
+		hdS_writeInt32Value(name, value);
+	}
    	else
    	{
+   		printf("count = %d\n",value);
    		printf("BMI instance not existed\n");
    	}
 	return 0;

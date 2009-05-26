@@ -30,9 +30,9 @@ typedef enum {
  */
 //extern int hd_facilityState[ALL_FACILITIES];
 
-extern hdStatsGroup * hd_facilityTrace[ALL_FACILITIES]; 
+extern hdStatsGroup hd_facilityTrace[ALL_FACILITIES]; 
 
-int PINT_hdS_writeInt32Value(hdStatsGroup * name, int value);
+int PINT_hdS_writeInt32Value(hdStatsGroup name, int value);
 
 #endif /* __HAVE_HDTRACE__ */
 
