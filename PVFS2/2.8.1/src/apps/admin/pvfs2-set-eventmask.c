@@ -29,6 +29,7 @@ struct options
     int mnt_point_set;
     char *event_string;
     int events_set;
+    int events_disable;
 };
 
 static struct options* parse_args(int argc, char* argv[]);
@@ -72,19 +73,23 @@ int main(int argc, char **argv)
     PVFS_util_gen_credentials(&creds);
 
     param_value.type = PVFS_MGMT_PARAM_TYPE_STRING;
-    if(!user_opts->event_string)
+    if(user_opts->events_disable)
     {
         param_value.u.string_value = "none";
+        ret = PVFS_mgmt_setparam_all(
+            cur_fs, &creds,
+            PVFS_SERV_PARAM_EVENT_DISABLE,
+            &param_value, NULL, NULL);
     }
     else
     {
         param_value.u.string_value = user_opts->event_string;
+        ret = PVFS_mgmt_setparam_all(
+            cur_fs, &creds,
+            PVFS_SERV_PARAM_EVENT_ENABLE,
+            &param_value, NULL, NULL);
     }
 
-    ret = PVFS_mgmt_setparam_all(
-        cur_fs, &creds,
-        PVFS_SERV_PARAM_EVENT_ENABLE,
-        &param_value, NULL, NULL);
     if(ret < 0)
     {
         PVFS_perror("PVFS_mgmt_setparam_all", ret);
@@ -105,7 +110,7 @@ int main(int argc, char **argv)
  */
 static struct options* parse_args(int argc, char* argv[])
 {
-    char flags[] = "vm:e:";
+    char flags[] = "vm:e:d";
     int one_opt = 0;
     int len = 0;
 
@@ -156,17 +161,15 @@ static struct options* parse_args(int argc, char* argv[])
 		}
                 tmp_opts->events_set = 1;
 		break;
+		/* deactivate for tracing */
+	    case('d'):
+		// an event mask must be activated before deactivated            
+		tmp_opts->events_disable = 1;
+		break;		
 	    case('?'):
 		usage(argc, argv);
 		exit(EXIT_FAILURE);
 	}
-    }
-
-    if(!tmp_opts->mnt_point_set || !tmp_opts->events_set)
-    {
-	if(tmp_opts->mnt_point) free(tmp_opts->mnt_point);
-	free(tmp_opts);
-	return(NULL);
     }
 
     return(tmp_opts);
@@ -177,7 +180,7 @@ static void usage(int argc, char** argv)
 {
     fprintf(stderr, "\n");
     fprintf(stderr, "Usage  : %s [-m fs_mount_point] "
-            "[-e events]\n", argv[0]);
+            "[-e events (e.g. bmi,trove,flow,sm] [-d <disable>] \n", argv[0]);
     fprintf(stderr, "Example: %s -m /mnt/pvfs2 -e bmi-send,dbpf-write\n",
             argv[0]);
     return;

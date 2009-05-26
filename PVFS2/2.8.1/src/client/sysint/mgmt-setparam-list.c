@@ -186,7 +186,9 @@ PVFS_error PVFS_mgmt_setparam_list(
     PVFS_sys_op_id op_id;
 
     gossip_debug(GOSSIP_CLIENT_DEBUG, "%s entered\n", __func__);
-
+    printf("PVFS_mgmt_setparam_all / PVFS_mgmt_setparam_list / PVFS_imgmt_setparam_list("
+        "fs_id, credentials, param, value, addr_array,"
+        "count, details, hints, &op_id, NULL)\n"); //Duc
     ret = PVFS_imgmt_setparam_list(
         fs_id, credentials, param, value, addr_array,
         count, details, hints, &op_id, NULL);
@@ -207,7 +209,7 @@ PVFS_error PVFS_mgmt_setparam_list(
     }
 
     gossip_debug(GOSSIP_CLIENT_DEBUG, "%s completed\n", __func__);
-
+    printf("PVFS_mgmt_setparam_all / PVFS_mgmt_setparam_list / PINT_mgmt_release(op_id)\n"); //Duc
     PINT_mgmt_release(op_id);
     return error;
 }

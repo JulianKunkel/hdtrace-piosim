@@ -186,7 +186,8 @@ SERVER_LDFLAGS += @SERVER_LDFLAGS@
 DB_CFLAGS = @DB_CFLAGS@
 LDSHARED = $(CC) -shared
 PICFLAGS = -fPIC
-LIBS += -lpvfs2 @LIBS@ 
+#LIBS += -lpvfs2 @LIBS@ 
+LIBS += -lpvfs2 @LIBS@ -L../../HDTraceWritingCLibrary/lib
 LIBS_THREADED += -lpvfs2-threaded @LIBS@
 # need to include external dependency libs when building shared libraries
 DEPLIBS := @LIBS@
