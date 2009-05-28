@@ -28,11 +28,12 @@ typedef enum {
 /**
  * Array: State of each facility i.e. is it enabled or not
  */
-//extern int hd_facilityState[ALL_FACILITIES];
 
 extern hdStatsGroup hd_facilityTrace[ALL_FACILITIES]; 
 
-int PINT_hdS_writeInt32Value(hdStatsGroup name, int value);
+extern int hd_facilityTraceStatus[ALL_FACILITIES]; 
+
+#define PINT_HD_UPDATE_COUNTER(facility, value) if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], value);
 
 #endif /* __HAVE_HDTRACE__ */
 
