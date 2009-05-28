@@ -12,10 +12,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <stdlib.h>
-
 hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
 
 int hd_facilityTraceStatus[ALL_FACILITIES];
