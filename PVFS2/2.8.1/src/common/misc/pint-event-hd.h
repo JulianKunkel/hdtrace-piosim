@@ -15,8 +15,9 @@
 #include "pint-event.h"
 
 
-int PINT_eventHD_finalize(void);
 int PINT_eventHD_initalize(char * traceWhat);
+
+int PINT_eventHD_finalize(void);
 
 /**
  * Traceable facilities
@@ -33,7 +34,8 @@ extern hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
 
 extern int hd_facilityTraceStatus[ALL_FACILITIES]; 
 
-#define PINT_HD_UPDATE_COUNTER(facility, value) if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], value);
+#define PINT_HD_UPDATE_COUNTER(facility, value) \
+	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], value);
 
 #endif /* __HAVE_HDTRACE__ */
 

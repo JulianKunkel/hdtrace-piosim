@@ -29,7 +29,7 @@ int PINT_eventHD_initalize(char * traceWhat)
 	
 	if (ret != 0)
 	{
-		// error handling
+		/* error handling */
 		fprintf(stderr, "Problem with hostname !\n");
 		return 1;
 	}
@@ -82,7 +82,6 @@ int PINT_eventHD_initalize(char * traceWhat)
 			hdS_commitGroup(hd_facilityTrace[FLOW]);
 			hdS_enableGroup(hd_facilityTrace[FLOW]);
 		}
-		
 	}
 	
 	return 0;
@@ -104,7 +103,7 @@ int PINT_eventHD_initalize(void){
 	return 0;
 }
 
-int PINT_eventHD_initalize(void){
+int PINT_eventHD_finalize(void){
 	return 0;
 }
 
