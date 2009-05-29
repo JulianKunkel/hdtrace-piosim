@@ -197,14 +197,11 @@ public class StatisticHistogramFrame {
 			@Override
 			protected Void doInBackground() throws Exception {
 				histogramData = computeHistogram();
-				if(isCancelled()){
-					return null;
-				}
 
 				// automatically adapt the title.
 				frame.setTitle(reader.getGroup().getName() + ":" + description.getName() + " (" +
 						String.format("%.4f", modelTime.getViewPosition()) + "-" + 
-						String.format("%.4f",(modelTime.getViewExtent() + modelTime.getViewPosition()))
+						String.format("%.4f",(modelTime.getViewEnd()))
 						+ ")"
 				);
 
@@ -225,9 +222,7 @@ public class StatisticHistogramFrame {
 			labelNumberOfElements.setInteger(histogramData.getBins()[bin]);
 		}
 
-		public HistogramGraph() {						
-			triggerRefreshHistogramData();
-
+		public HistogramGraph() {			
 			setAutoRefresh(viewer.common.Parameters.ACTIVE_REFRESH);
 		}
 
@@ -235,10 +230,6 @@ public class StatisticHistogramFrame {
 		 * Call it when the number of bins change or the time interval.
 		 */
 		public void triggerRefreshHistogramData(){
-			if( backgroundThread != null ){
-				backgroundThread.cancel(true);
-			}
-
 			backgroundThread = new BackgroundThread();
 			backgroundThread.execute();
 		}
@@ -325,14 +316,15 @@ public class StatisticHistogramFrame {
 
 		@Override
 		public void setAutoRefresh(boolean autoRefresh) {
-			isAutoRefresh = autoRefresh;
-
 			if(autoRefresh == true){
 				modelTime.addTimeListener(timeModifiedListener);
+				
 				triggerRefreshHistogramData();
 			}else{
 				modelTime.removeTimeListener(timeModifiedListener);
 			}
+
+			isAutoRefresh = autoRefresh;
 		}
 	}
 

@@ -60,11 +60,6 @@ public class GraphDataDoubleArray extends GraphData{
 	}
 	
 	@Override
-	int getCount() {	
-		return x.length;
-	}
-	
-	@Override
 	public ElementEnumeration getXValues() {
 		return new ArrayEnumeration(x);
 	}

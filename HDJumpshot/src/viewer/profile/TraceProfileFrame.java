@@ -225,7 +225,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		// automatically adapt the title.
 		setTitle("Trace Profile " + " (" +
 				String.format("%.4f", realModelTime.getViewPosition()) + "-" + 
-				String.format("%.4f",(realModelTime.getViewExtent() + realModelTime.getViewPosition()))
+				String.format("%.4f",(realModelTime.getViewEnd()))
 				+ ") " + getReader().getCombinedProjectFilename()
 		);		
 		

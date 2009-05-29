@@ -103,4 +103,10 @@ public class StatisticDescription{
 	public String getGrouping() {
 		return grouping;
 	}
+	
+	// two stat descriptions are considered to be equal if the name and group name is equal 
+	@Override
+	public boolean equals(Object obj) {	
+		return ((StatisticDescription) obj).getName().equals(getName()) && ((StatisticDescription) obj).getGroup().getName().equals(getGroup().getName());
+	}
 }

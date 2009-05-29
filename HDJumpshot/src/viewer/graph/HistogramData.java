@@ -37,8 +37,7 @@ public class HistogramData extends GraphData{
 		this.xExtend = xExtend;
 	}
 	
-	@Override
-	int getCount() {			
+	public int getCount() {			
 		return bins.length;
 	}
 	

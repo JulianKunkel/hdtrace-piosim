@@ -18,12 +18,6 @@ abstract public class GraphData{
 	}
 	
 	/**
-	 * Return the number of elements
-	 * @return
-	 */
-	abstract int getCount();
-	
-	/**
 	 * Return an enumeration of the X-axis values
 	 * @return
 	 */

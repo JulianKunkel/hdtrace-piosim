@@ -75,7 +75,7 @@ public class TraceFormatBufferedFileReader {
 	// map category names to the category:
 	final HashMap<String, CategoryState> categoriesStates = new HashMap<String, CategoryState>();	
 	final HashMap<String, CategoryEvent> categoriesEvents = new HashMap<String, CategoryEvent>();
-	final HashMap<String, CategoryStatistic> categoriesStatistics = new HashMap<String, CategoryStatistic>();
+	final HashMap<StatisticDescription, CategoryStatistic> categoriesStatistics = new HashMap<StatisticDescription, CategoryStatistic>();
 
 	final HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
@@ -201,10 +201,9 @@ public class TraceFormatBufferedFileReader {
 			for(StatisticsSource statSource: topo.getStatisticsSources().values()) {
 				StatisticsGroupDescription group = ((BufferedStatisticFileReader) statSource).getGroup();
 				
-				for(StatisticDescription desc: group.getStatisticsOrdered()){										
-					final String name = group.getName()+ ":" + desc.getName(); 
-					if(!categoriesStatistics.containsKey(name)){
-						categoriesStatistics.put(name, new CategoryStatistic(desc, null));
+				for(StatisticDescription desc: group.getStatisticsOrdered()){										 
+					if(!categoriesStatistics.containsKey(desc)){
+						categoriesStatistics.put(desc, new CategoryStatistic(desc, null));
 					}
 				}
 			}
@@ -300,7 +299,7 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStates;
 	}
 
-	public HashMap<String, CategoryStatistic> getCategoriesStatistics() {
+	public HashMap<StatisticDescription, CategoryStatistic> getCategoriesStatistics() {
 		return categoriesStatistics;
 	}
 
@@ -322,14 +321,13 @@ public class TraceFormatBufferedFileReader {
 			return getCategory((StateTraceEntry) object);
 		case STATISTICENTRY:
 			StatisticEntry entry = (StatisticEntry) object;
-			return getCategory(entry.getParentGroupEntry().getGroup(), entry.getDescription());
+			return getCategory(entry.getDescription());
 		}
 		return null;	
 	}
 
-	public CategoryStatistic getCategory(StatisticsGroupDescription group, StatisticDescription statistic){
-		// TODO, figure out nicer abbreviation for groupname
-		return categoriesStatistics.get(group.getName() + ":" + statistic.getName());
+	public CategoryStatistic getCategory(StatisticDescription statistic){
+		return categoriesStatistics.get(statistic);
 	}
 
 	public Collection<String> getGroupNames(int fileNumber){

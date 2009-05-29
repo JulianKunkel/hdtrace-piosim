@@ -154,7 +154,7 @@ public abstract class Graph2DStatic {
 			labelWidth = strSize > labelWidth ? strSize : labelWidth;  
 		}
 
-		// avoid to draw the same int twice:
+		// avoid to draw the same integer twice:
 		int lastVal = Integer.MIN_VALUE;
 		int lastYPos = -1;
 
@@ -195,7 +195,7 @@ public abstract class Graph2DStatic {
 
 
 		final Font oldFont = g.getFont();
-		g.setFont(g.getFont().deriveFont(Font.BOLD, 16));
+		g.setFont(g.getFont().deriveFont(Font.BOLD));
 		FontMetrics fontMetrics = g.getFontMetrics();
 		
 		for(GraphData line: linesToDraw){

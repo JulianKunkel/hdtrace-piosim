@@ -60,6 +60,7 @@ import viewer.common.SortedJTreeModel;
 import viewer.common.SortedJTreeNode;
 import viewer.first.MainManager;
 import viewer.histogram.StatisticHistogramFrame;
+import viewer.linegraph.StatisticLineGraphFrame;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
@@ -204,13 +205,13 @@ public class TopologyManager
 							StatisticHistogramFrame frame = new StatisticHistogramFrame(
 									(BufferedStatisticFileReader) statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
-									reader.getCategory(((BufferedStatisticFileReader) statNode.getStatisticSource()).getGroup(), statNode.getStatisticDescription()));
+									reader.getCategory(statNode.getStatisticDescription()));
 							frame.show();
 						}
 					});				
 					
 					// allow to show aggregated histogram for the selected nodes with the same group(ing).
-					final ArrayList<TopologyStatisticTreeNode> selectedStatNodes = new ArrayList<TopologyStatisticTreeNode>();  
+					final ArrayList<TopologyStatisticTreeNode> selectedStatNodes = new ArrayList<TopologyStatisticTreeNode>();
 					for(TreePath curPath: tree.getSelectionPaths()){
 						if( TopologyStatisticTreeNode.class.isInstance(curPath.getLastPathComponent()) ){
 							final TopologyStatisticTreeNode selStatNode = (TopologyStatisticTreeNode) curPath.getLastPathComponent();
@@ -229,14 +230,17 @@ public class TopologyManager
 							private static final long serialVersionUID = 1L;
 
 							{
-								putValue(Action.NAME, "Show aggregated histogram for " + selectedStatNodes.size() + " stats");
+								putValue(Action.NAME, "Show line graph for " + selectedStatNodes.size() + " stats");
 							}
 
 							@Override
 							public void actionPerformed(ActionEvent e) {
-								for(TopologyStatisticTreeNode node: selectedStatNodes){
-									System.out.println("Selected: " + node.getStatisticDescription().getName());
-								}
+								//for(TopologyStatisticTreeNode node: selectedStatNodes){
+									//System.out.println("Selected: " + node.getStatisticDescription().getName());
+								//}
+								
+								StatisticLineGraphFrame frame = new StatisticLineGraphFrame(selectedStatNodes, reader, modelTime);
+								frame.show();
 							}
 						});			
 					}

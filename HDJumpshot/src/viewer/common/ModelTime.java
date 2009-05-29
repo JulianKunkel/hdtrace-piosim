@@ -147,6 +147,10 @@ public class ModelTime
 	 {
 		 return viewInit;
 	 }
+	 
+	 public double getViewEnd(){
+		 return viewInit + viewExtent;
+	 }
 
 	 public double getViewExtent()
 	 {

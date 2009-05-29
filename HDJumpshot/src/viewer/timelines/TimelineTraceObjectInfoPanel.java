@@ -148,7 +148,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 
 		final StatisticGroupEntry groupEntry = statistic.getParentGroupEntry();
 		final StatisticDescription desc = statistic.getDescription();
-		final Category cat = reader.getCategory(groupEntry.getGroup(), desc); 
+		final Category cat = reader.getCategory(desc); 
 
 		this.setStartTime( "" +  reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime()));
 		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(groupEntry.getLatestTime()));
