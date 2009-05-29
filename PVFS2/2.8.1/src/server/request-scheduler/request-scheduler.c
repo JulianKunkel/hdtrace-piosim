@@ -3,7 +3,7 @@
  *
  * Changes by Acxiom Corporation to allow concurrency on operations that are
  * either read-only or do not modify specific objects
- * Copyright © Acxiom Corporation, 2005.
+ * Copyright ï¿½ Acxiom Corporation, 2005.
  *
  * See COPYING in top-level directory.
  */
@@ -36,6 +36,7 @@
 #include "gossip.h"
 #include "id-generator.h"
 #include "pvfs2-internal.h"
+#include "pint-event-hd.h"
 
 /* we need the server header because it defines the operations that
  * we use to determine whether to schedule or queue.  
@@ -527,6 +528,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
 		     llu(handle), tmp_element);
     }
     sched_count++;
+    pint_hd_update_counter(REQ,sched_count);
     return (ret);
 }
 
@@ -708,6 +710,7 @@ int PINT_req_sched_unpost(
 	    }
 	}
 	sched_count--;
+	pint_hd_update_counter(REQ,sched_count);
     }
 
     /* destroy the unposted element */
@@ -843,6 +846,7 @@ int PINT_req_sched_release(
 	    }
 	}
 	sched_count--;
+	pint_hd_update_counter(REQ,sched_count);
     }
 
     gossip_debug(GOSSIP_REQ_SCHED_DEBUG,

@@ -23,19 +23,17 @@ int PINT_eventHD_finalize(void);
  * Traceable facilities
  */
 typedef enum {
-	BMI, TROVE, FLOW, SM, ALL_FACILITIES
+	BMI, TROVE, FLOW, REQ, BLOCK_REQ, ALL_FACILITIES
 } HD_Trace_Facility;
 
-/**
- * Array: State of each facility i.e. is it enabled or not
- */
 
-extern hdStatsGroup hd_facilityTrace[ALL_FACILITIES]; 
+//#define PINT_HD_UPDATE_COUNTER_INC(facility, value) \
+//	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], ++hdStatsGroupValue[facility]));
+//
+//#define PINT_HD_UPDATE_COUNTER_DEC(facility, value) \
+//	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], --hdStatsGroupValue[facility]));
 
-extern int hd_facilityTraceStatus[ALL_FACILITIES]; 
-
-#define PINT_HD_UPDATE_COUNTER(facility, value) \
-	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], value);
+int pint_hd_update_counter(HD_Trace_Facility facility, int value) ;
 
 #endif /* __HAVE_HDTRACE__ */
 

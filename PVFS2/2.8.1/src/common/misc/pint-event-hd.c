@@ -6,6 +6,7 @@
 #include "hdError.h"
 #include "pint-event.h"
 #include "pint-event-hd.h"
+#include  "str-utils.h"
 
 #include <sys/time.h>
 #include <stdio.h>
@@ -15,6 +16,8 @@
 hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
 
 int hd_facilityTraceStatus[ALL_FACILITIES];
+
+//int hdStatsGroupValue[ALL_FACILITIES];
 
 int PINT_eventHD_initalize(char * traceWhat)
 {	
@@ -78,6 +81,24 @@ int PINT_eventHD_initalize(char * traceWhat)
 			hdS_commitGroup(hd_facilityTrace[FLOW]);
 			hdS_enableGroup(hd_facilityTrace[FLOW]);
 		}
+		
+		if ((strcasecmp(event_list[i],"req") == 0) && !hd_facilityTrace[REQ])
+		{	
+			hd_facilityTraceStatus[REQ] = 1;
+			hd_facilityTrace[REQ] = hdS_createGroup("REQ", topology, topoNode, 1);
+			hdS_addValue(hd_facilityTrace[REQ],"Concurrent ops", INT32, "#", NULL);
+			hdS_commitGroup(hd_facilityTrace[REQ]);
+			hdS_enableGroup(hd_facilityTrace[REQ]);
+		}
+		
+		if ((strcasecmp(event_list[i],"breq") == 0) && !hd_facilityTrace[BLOCK_REQ])
+		{	
+			hd_facilityTraceStatus[BLOCK_REQ] = 1;
+			hd_facilityTrace[BLOCK_REQ] = hdS_createGroup("BLOCK_REQ", topology, topoNode, 1);
+			hdS_addValue(hd_facilityTrace[BLOCK_REQ],"Concurrent ops", INT32, "#", NULL);
+			hdS_commitGroup(hd_facilityTrace[BLOCK_REQ]);
+			hdS_enableGroup(hd_facilityTrace[BLOCK_REQ]);
+		}
 	}
 	
 	return 0;
@@ -85,11 +106,23 @@ int PINT_eventHD_initalize(char * traceWhat)
 
 int PINT_eventHD_finalize(void)
 {
-	hdS_finalize(hd_facilityTrace[BMI]);
-	hdS_finalize(hd_facilityTrace[TROVE]);
-	hdS_finalize(hd_facilityTrace[FLOW]);
+	int i;
+	for (i= 0 ; i < ALL_FACILITIES; i++){
+		if(hd_facilityTraceStatus[i]){
+			hdS_finalize(hd_facilityTrace[i]);
+			hd_facilityTraceStatus[i] = 0;
+		}
+	}
 	return 0;
 }
+
+int pint_hd_update_counter(HD_Trace_Facility facility, int value) 
+{
+	if (hd_facilityTraceStatus[facility]) 
+		hdS_writeInt32Value(hd_facilityTrace[facility], value);
+}
+
+
 
 #else
 
