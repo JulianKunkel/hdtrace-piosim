@@ -116,7 +116,7 @@ int PINT_HD_event_finalize(void)
 	return 0;
 }
 
-int PINT_HD_update_counter(HD_Trace_Facility facility, int value) 
+void PINT_HD_update_counter(HD_Trace_Facility facility, int value) 
 {
 	if (hd_facilityTraceStatus[facility]) 
 		hdS_writeInt32Value(hd_facilityTrace[facility], value);

@@ -33,7 +33,7 @@ typedef enum {
 //#define PINT_HD_UPDATE_COUNTER_DEC(facility, value) \
 //	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], --hdStatsGroupValue[facility]));
 
-int PINT_HD_update_counter(HD_Trace_Facility facility, int value) ;
+void PINT_HD_update_counter(HD_Trace_Facility facility, int value) ;
 
 #endif /* __HAVE_HDTRACE__ */
 
