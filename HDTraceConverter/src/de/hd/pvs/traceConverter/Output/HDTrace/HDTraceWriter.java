@@ -30,11 +30,10 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -62,7 +61,7 @@ public class HDTraceWriter extends TraceOutputWriter {
 
 	@Override
 	public void initializeTrace(RunParameters parameters, String resultFile) {
-		parameters.setProcessAlsoComputeEvents(true);
+
 	}
 
 	@Override
@@ -100,14 +99,13 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value) {
-		
-		if(! writer.getProjectDescription().getStatisticsGroupNames().contains(statistic.getGroup().getName())){
-			writer.addStatisticGroup(statistic.getGroup().getName());
+	public void Statistics(TopologyNode topology, StatisticGroupEntry entry) {		
+		if(! writer.getProjectDescription().getStatisticsGroupNames().contains(entry.getGroup().getName())){
+			writer.addStatisticGroup(entry.getGroup().getName());
 		}
 
 		try{
-			writer.Statistics(topology, time, statistic, value);
+			writer.writeStatistics(topology, entry);
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}

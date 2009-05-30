@@ -84,17 +84,12 @@ public class StatisticsReader implements StatisticsSource{
 			throw new IllegalArgumentException("Expected group: " + expectedGroup + " however found group: " + group.getName());
 		}
 		
+		lastTimeStamp = readTimeStamp();
 	}
 	
-	@Override
-	public StatisticGroupEntry getNextInputEntry() throws Exception{
-		if(isFinished()){
-			return null;
-		}
+	private Epoch readTimeStamp() throws Exception{
 		Epoch timeStamp;
-		
-		final Object [] values = new Object[group.getSize()];
-					
+
 		// read timestamp:
 		switch(group.getTimestampDatatype()){
 			case INT32:
@@ -113,12 +108,18 @@ public class StatisticsReader implements StatisticsSource{
 				throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
 		}
 		timeStamp = timeStamp.add(group.getTimeAdjustment());
-		
-		// throw away first entry:
-		if ( lastTimeStamp == null){
-			lastTimeStamp = timeStamp;
+		return timeStamp;
+	}
+	
+	@Override
+	public StatisticGroupEntry getNextInputEntry() throws Exception{
+		if(isFinished()){
+			return null;
 		}
+		final Epoch timeStamp = readTimeStamp();
 		
+		final Object [] values = new Object[group.getSize()];
+	
 		int pos = 0;
 		for(StatisticDescription statDesc: group.getStatisticsOrdered()){
 			final String statName = statDesc.getName();
@@ -128,18 +129,17 @@ public class StatisticsReader implements StatisticsSource{
 			Object value;
 			switch(type){
 			case INT64:
-				value = new Long(file.readLong()) * statDesc.getMultiplier();
+				value = new Long(file.readLong() * statDesc.getMultiplier());
 				break;
 			case INT32:
-				value = new Integer(file.readInt())* statDesc.getMultiplier();
+				value = new Integer(file.readInt()* statDesc.getMultiplier());
 				break;
 			case DOUBLE:
-				value = new Double(file.readDouble())* statDesc.getMultiplier();
+				value = new Double(file.readDouble()* statDesc.getMultiplier());
 								
 				break;
 			case FLOAT:
-				value = new Float(file.readFloat())* statDesc.getMultiplier();			
-				
+				value = new Float(file.readFloat()* statDesc.getMultiplier());		
 				break;
 			case STRING:
 				final int length = file.readShort();

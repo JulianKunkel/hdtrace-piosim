@@ -27,6 +27,8 @@
  */
 package de.hd.pvs.traceConverter;
 
+import java.util.HashSet;
+
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 
 /**
@@ -37,6 +39,14 @@ import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
  */
 public class CommandLineInterface {
 
+	HashSet<String> knownOutputFormats = new HashSet<String>();
+	
+	public CommandLineInterface() {
+		knownOutputFormats.add("HDTrace");
+		knownOutputFormats.add("Tau");
+		knownOutputFormats.add("Text");
+	}
+	
 	private void printHelpText(RunParameters runParameters) {
 		System.out
 				.println("Syntax: \n"
@@ -50,11 +60,8 @@ public class CommandLineInterface {
 						+ " -a Compute average statistics for omited values (otherwise latest value), (-l will be activated \n"
 						+ "    with current value: " +	runParameters.getStatisticModificationUntilUpdate() + "%, change with -l \n"
 						+ " -S [true|false] decide to process statistics \n" 
-						+ " -C [true|false] Process trace-events for compute \n"
 						+ " -h show help\n"
 						+ "\nBoolean values can be set 0 or 1\n");
-
-		System.exit(1);
 	}
 	
 	/**
@@ -107,9 +114,6 @@ public class CommandLineInterface {
 			case('S'):
 				runParameters.setProcessStatistics(boolArgument);
 				break;
-			case('C'):
-				runParameters.setProcessAlsoComputeEvents(boolArgument);
-				break;
 			case('a'):
 				runParameters.setUpdateStatisticsOnlyIfTheyChangeTooMuch(true);
 				runParameters.setComputeAverageFromStatistics(true);
@@ -129,20 +133,26 @@ public class CommandLineInterface {
 				break;
 			case('F'):	
 				runParameters.setOutputFormat(stringArgument);
+				if(! knownOutputFormats.contains(stringArgument)){
+					printHelpText(runParameters);
+					throw new IllegalArgumentException("Unknown output format: " + stringArgument);
+				}			
 				break;
 			case('-'):
 				startOutputSpecificOptions = true;
 				break;
 			case('h'):
 				printHelpText(runParameters);
+				return;
 			default:
-				System.err.println("Unknown parameter \"" + param + "\"");
 				printHelpText(runParameters);
+				throw new IllegalArgumentException("Unknown parameter \"" + param + "\"");
 			}
 		}
 
 		if (runParameters.getInputTraceFile().length() < 3) {
 			printHelpText(runParameters);
+			throw new IllegalArgumentException("Invalid parameters!");
 		}
 
 		HDTraceConverter converter = new HDTraceConverter();
@@ -154,8 +164,14 @@ public class CommandLineInterface {
 	 * 
 	 * @param args
 	 */
-	public static void main(String[] args) throws Exception {
-		CommandLineInterface cli = new CommandLineInterface();
-		cli.run(args);
+	public static void main(String[] args){
+		try{
+			CommandLineInterface cli = new CommandLineInterface();
+			cli.run(args);
+		}catch (Exception e){
+			System.err.println(e.getMessage());
+			
+			e.printStackTrace();
+		}
 	}
 }

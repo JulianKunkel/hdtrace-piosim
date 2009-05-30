@@ -47,13 +47,14 @@ public class StatisticsWriter {
 
 	private Iterator<StatisticDescription> nextExpectedStatisticIter = null;
 
-	public StatisticsWriter(String filename, StatisticsGroupDescription newGroup) throws Exception {
+	public StatisticsWriter(String filename, TopologyNode topology, 
+			StatisticsGroupDescription newGroup, Epoch startTime) throws Exception {
 		this.group = newGroup;
 		this.file = new DataOutputStream(new FileOutputStream(filename));
 
 		// create XML header
 		final StringBuffer xmlHeader = new StringBuffer();
-		xmlHeader.append("<Header>");
+		xmlHeader.append("<Statistics version=\"1\">");
 		xmlHeader.append("<Group name=\"" + group.getName() + "\" timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeAdjustment=\"" +
 				group.getTimeAdjustment()  + "\"");
 		if(group.getTimeResolutionMultiplierName() != null){
@@ -72,28 +73,20 @@ public class StatisticsWriter {
 		}
 
 		xmlHeader.append("</Group>\n");
-		xmlHeader.append("</Header>\n");		
+		xmlHeader.append("</Statistics>\n");		
 
 		// write XML header length and XML header
 		file.write( (Integer.toString(xmlHeader.length() ) + "\n").getBytes() );
 		file.write(xmlHeader.toString().getBytes());		
+
+		writeStatisticsTimestampInternal(startTime);
 	}
 
 	public boolean isStatisticIntervalFinished(){
 		return nextExpectedStatisticIter == null || ! nextExpectedStatisticIter.hasNext();
 	}
 	
-	public void writeStatisticsTimestamp(TopologyNode topology, Epoch time) throws IOException{
-		if(lastTimeStamp != null && lastTimeStamp.compareTo(time) > 0){
-			throw new IllegalArgumentException("New timestamp is before old timestamp! " + lastTimeStamp + " new: " + time);
-		}
-
-		// write timestamp, if necessary
-		if(nextExpectedStatisticIter != null && nextExpectedStatisticIter.hasNext() ){
-			throw new IllegalArgumentException("Current statistic interval is not finished yet!");
-		}
-
-		nextExpectedStatisticIter = group.getStatisticsOrdered().iterator();
+	private void writeStatisticsTimestampInternal(Epoch time) throws IOException{
 		final Epoch realTime = time.subtract(group.getTimeAdjustment());
 
 		// write timestamp:
@@ -112,6 +105,20 @@ public class StatisticsWriter {
 		
 		lastTimeStamp = time;
 	}
+	
+	public void writeStatisticsTimestamp(Epoch time) throws IOException{
+		if(lastTimeStamp != null && lastTimeStamp.compareTo(time) > 0){
+			throw new IllegalArgumentException("New timestamp is before old timestamp! " + lastTimeStamp + " new: " + time);
+		}
+
+		// write timestamp, if necessary
+		if(nextExpectedStatisticIter != null && nextExpectedStatisticIter.hasNext() ){
+			throw new IllegalArgumentException("Current statistic interval is not finished yet!");
+		}
+
+		nextExpectedStatisticIter = group.getStatisticsOrdered().iterator();
+		writeStatisticsTimestampInternal(time);
+	}
 
 	public void writeStatisticEntry(StatisticDescription statistic, Object value) throws IOException{
 		assert(nextExpectedStatisticIter != null);
@@ -122,7 +129,7 @@ public class StatisticsWriter {
 			throw new IllegalArgumentException("Expected to get statistics in the correct order! Expected: \"" + expectedStat.getName() + 
 					"\", but got \"" + statistic + "\"");
 		}
-
+		
 		// write data:
 		final StatisticsEntryType type = expectedStat.getType();
 		switch(type){
@@ -133,12 +140,10 @@ public class StatisticsWriter {
 			file.writeInt((Integer) value/ expectedStat.getMultiplier());
 			break;
 		case DOUBLE:
-			file.writeDouble((Double) value/ expectedStat.getMultiplier());
+			file.writeDouble((Double) value / expectedStat.getMultiplier());
 			break;
 		case FLOAT:
-			file.writeFloat((Float) value/ expectedStat.getMultiplier());
-			//System.out.println("VAL " + (Float) value/ expectedStat.getMultiplier());
-
+			file.writeFloat((Float) value / expectedStat.getMultiplier());
 			break;
 		case STRING:
 			final String str = (String) value;

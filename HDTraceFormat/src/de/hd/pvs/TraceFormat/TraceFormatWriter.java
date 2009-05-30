@@ -26,12 +26,14 @@
 package de.hd.pvs.TraceFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -43,7 +45,8 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
- * Exports the XML data to a HDTrace project.
+ * Allows to write to HDTraceFormat via a central API.
+ * The project description is not explicitly managed. 
  * 
  * @author Julian M. Kunkel
  * 
@@ -104,9 +107,6 @@ public class TraceFormatWriter {
 	}
 
 	void initalizeTopologyInternal(TopologyNode topology) {
-		//lookup topology in project description and create missing topologies				
-		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
-
 		OutFiles files = traceWriterMap.get(topology);
 		if(files != null){
 			throw new IllegalArgumentException("Topology already initalized! " + topology.toRecursiveString() );
@@ -114,13 +114,23 @@ public class TraceFormatWriter {
 
 		files = new OutFiles();
 		traceWriterMap.put(topology, files);
+	}
+	
+	private TraceWriter getOrCreateTraceTopology(TopologyNode topology, Epoch time){
+		//lookup topology in project description and create missing topologies				
+		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
 
+		OutFiles files = traceWriterMap.get(topology);
+		if(files.traceWriter != null){
+			return files.traceWriter;
+		}
 		try {
-			files.traceWriter =  new TraceWriter(file);
+			files.traceWriter =  new TraceWriter(file, time);
+			return files.traceWriter;
 		} catch (Exception e) {
 			throw new IllegalArgumentException(
 					"Trace file could not be created: " + file);
-		}
+		}		
 	}
 	
 	void initalizeTopologyIfNeeded(TopologyNode topology) {
@@ -157,7 +167,7 @@ public class TraceFormatWriter {
 
 
 	public void Event(TopologyNode topology, EventTraceEntry traceEntry) {
-		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
+		final TraceWriter writer = getOrCreateTraceTopology(topology, traceEntry.getEarliestTime());
 		try {
 			writer.Event(traceEntry);
 		} catch (IOException e) {
@@ -183,7 +193,7 @@ public class TraceFormatWriter {
 
 	public void StateStart(TopologyNode topology, 
 			StateTraceEntry traceEntry) {
-		TraceWriter writer = traceWriterMap.get(topology).traceWriter;
+		final TraceWriter writer = getOrCreateTraceTopology(topology, traceEntry.getEarliestTime());
 		
 		try {
 			writer.StateStart(traceEntry);
@@ -192,64 +202,95 @@ public class TraceFormatWriter {
 		}
 	}
 
-	public void writeStatisticsTimestamp(TopologyNode topology, StatisticsGroupDescription group, Epoch time) throws IOException{
+	/**
+	 * Optional function, initializes the statistics file. If this function is not used 
+	 * then the first statistic gets removed during the write process.  
+	 * 
+	 * @param topology
+	 * @param group
+	 * @param time
+	 */
+	public void initStatisticsTopology(TopologyNode topology, StatisticsGroupDescription group, Epoch time){
 		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
-
 		StatisticsWriter outWriter = stats.get(group);
 
-		if (outWriter == null) {			
-			final String file = outProject.getParentDir() + "/" + topology.getStatisticFileName(group.getName());
-
-			try {
-				// generate a new output writer
-				outWriter = new StatisticsWriter(file, group);
-			} catch (Exception e) {
-				throw new IllegalArgumentException(
-						"Statistic file could not be created: " + file);
-			}
-
-			stats.put(group, outWriter);
+		if (outWriter == null) {
+			getOrCreateStatisticsTopologyInternal(topology, group, time);
+		}else{
+			throw new IllegalArgumentException("Statistic already initalized " + topology + " " + group );
 		}
-
-		outWriter.writeStatisticsTimestamp(topology, time);
 	}
 	
-	public void Statistics(TopologyNode topology, StatisticDescription statistic, Object value) throws IOException{
+	private StatisticsWriter getOrCreateStatisticsTopologyInternal(TopologyNode topology, StatisticsGroupDescription group, Epoch time){
 		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
+		
 
-		final StatisticsGroupDescription group = statistic.getGroup();
 		StatisticsWriter outWriter = stats.get(group);
 
+		if (outWriter != null){
+			return outWriter;
+		}
+		
+		final String file = outProject.getParentDir() + "/" + topology.getStatisticFileName(group.getName());
+		
+		if(time == null){
+			throw new IllegalArgumentException("Invalid argument, should not be called with null time");
+		}
+		
+		try {
+			// generate a new output writer			
+			outWriter = new StatisticsWriter(file, topology, group, time);
+			stats.put(group, outWriter);
+			return outWriter;
+		} catch (Exception e) {
+			throw new IllegalArgumentException(
+					"Statistic file could not be created: " + file);
+		}
+	}
+	
+	public void writeStatisticsTimestamp(TopologyNode topology, StatisticsGroupDescription group, Epoch time) throws IOException{
+		StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, time);
+		outWriter.writeStatisticsTimestamp(time);
+	}
+	
+	public void writeStatisticValue(TopologyNode topology, StatisticDescription statistic, Object value) throws IOException{
+		final StatisticsGroupDescription group = statistic.getGroup();
+		StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, null);
 		outWriter.writeStatisticEntry(statistic, value);
 	}
 	
-	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value) throws IOException{
-		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
-
+	public void writeStatisticValue(TopologyNode topology, Epoch time, StatisticDescription statistic, Object value) throws IOException{
 		final StatisticsGroupDescription group = statistic.getGroup();
-		StatisticsWriter outWriter = stats.get(group);
-
-		if (outWriter == null) {			
-			final String file = outProject.getParentDir() + "/" + topology.getStatisticFileName(group.getName());
-
-			try {
-				// generate a new output writer
-				outWriter = new StatisticsWriter(file, group);
-			} catch (Exception e) {
-				throw new IllegalArgumentException(
-						"Statistic file could not be created: " + file);
-			}
-
-			stats.put(group, outWriter);
-		}
+		StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, time);
 		
 		if(outWriter.isStatisticIntervalFinished()){
-			outWriter.writeStatisticsTimestamp(topology, time);
+			outWriter.writeStatisticsTimestamp(time);
 		}
 		
 		outWriter.writeStatisticEntry(statistic, value);
 	}
 
+	/**
+	 * Write a complete statistic entry.
+	 * @param topology The topology the entry belongs to.
+	 * @param entry Actual data.
+	 * @throws IOException
+	 */
+	public void writeStatistics(TopologyNode topology, StatisticGroupEntry entry) throws IOException{
+		final StatisticsGroupDescription group = entry.getGroup();
+		writeStatisticsTimestamp(topology, group, entry.getLatestTime());
+		
+		final StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, entry.getEarliestTime());
+		
+		// use output group and NOT input group for checking.
+		final ArrayList<StatisticDescription> descs = outWriter.getOutputGroup().getStatisticsOrdered();		
+		int cur = 0;
+		for(Object val: entry.getValues()){
+			outWriter.writeStatisticEntry(descs.get(cur), val);
+			cur++;
+		}
+	}
+	
 	public void finalizeTrace() throws IOException{
 		for (OutFiles files : traceWriterMap.values()) {
 			if(files.traceWriter != null)

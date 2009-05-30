@@ -1,27 +1,27 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
-//	This file is part of PIOsimHD.
-//	
-//	PIOsimHD is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	PIOsimHD is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
+//Copyright (C) 2008, 2009 Julian M. Kunkel
+
+//This file is part of PIOsimHD.
+
+//PIOsimHD is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//PIOsimHD is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 package de.hd.pvs.traceConverter.Output.Text;
 
@@ -31,10 +31,10 @@ import java.io.IOException;
 import java.util.Properties;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -97,16 +97,20 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription stat, Object value) {
-		String unit = "";
-		if(stat.getUnit() != null){
-			unit = " " + stat.getUnit(); 
-		}
-		try {
-			writer.append(time.getFullDigitString() + " S " + topology.toRecursiveString() + " " + stat.getGroup().getName() + " " + stat.getName() + " " + value + unit + "\n");
-		} catch (IOException e) {			
-			e.printStackTrace();
-			System.exit(1);
+	public void Statistics(TopologyNode topology, StatisticGroupEntry entry) {
+		for(StatisticDescription desc: entry.getGroup().getStatisticsOrdered()){						
+			String unit = "";
+			if(desc.getUnit() != null){
+				unit = " " + desc.getUnit(); 
+			}
+			try {
+				writer.append(entry.getLatestTime() + " S ("+ entry.getEarliestTime() + ") " + 
+						topology.toRecursiveString() + " " + entry.getGroup().getName() + " " + 
+						desc.getName() + " " + entry.getValues()[desc.getNumberInGroup()] + unit + "\n");
+			} catch (IOException e) {			
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
 	}
 

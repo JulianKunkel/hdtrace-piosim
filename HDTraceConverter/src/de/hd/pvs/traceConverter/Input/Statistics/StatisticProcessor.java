@@ -50,6 +50,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	private long           currentOffset = 0;
 
 	private Epoch nextTimeStamp;
+	private Epoch startTime;
 
 	private StatisticsGroupDescription group;
 
@@ -75,6 +76,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			lastRead = reader.getNextInputEntry();
 			if(! reader.isFinished()){
 				nextTimeStamp = lastRead.getLatestTime();
+				startTime = lastRead.getEarliestTime();
 			}
 		}
 	}
@@ -92,6 +94,8 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	public void processEarliestEvent(Epoch now) {
 		isFinished = reader.isFinished();
 
+		final Object [] values = new Object[group.getSize()];
+		
 		for(int pos = 0; pos < group.getSize() ; pos ++){
 			Object val = lastRead.getValues()[pos];
 			
@@ -154,19 +158,20 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 						// put in current average value as a new "old value"
 						lastUpdatedStatistic.put(statDesc, new StatisticWritten(val));
-						getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, statDesc, val );
+						values[pos] = val;
 						continue;
-
 					}
 				}
 				// put in the first value:
 				lastUpdatedStatistic.put(statDesc, new StatisticWritten(val));
 			}		
 
-			// write the value as it is:						
-			getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), now, statDesc, val );
-
+			// write the value as it is:
+			values[pos] = val;
 		}
+		
+		final StatisticGroupEntry newEntry = new StatisticGroupEntry(values, startTime , now, group);		
+		getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), newEntry );
 
 		try{
 			getNextStatistic();

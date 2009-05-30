@@ -25,11 +25,10 @@
 
 package de.hd.pvs.TraceFormat.trace;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -42,37 +41,39 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
  * 
  */
 public class TraceWriter {
-
-	private final FileWriter file;
-	private final String filename;
 	
-	// tag length <program> + </program>, allows to remove empty files
-	private final int EMPTY_FILE_LENGTH = 21; 
+	static private final HashSet<String> reservedAttributeKeys = new HashSet<String>();
+
+	static{
+		reservedAttributeKeys.add("time");
+		reservedAttributeKeys.add("end");
+	}
+	
+	private final FileWriter file;
 	
 	// stack the states to produce nested entries.
 	LinkedList<StateTraceEntry> stackedEntries = new LinkedList<StateTraceEntry>();
 	
 	StateTraceEntry lastOpenedStateTraceEntry = null; 
 	
-	public TraceWriter(String filename) throws IOException {
-		file = new FileWriter(filename);
-		
-		file.write("<Program>\n");
+	final Epoch timeAdjustment;
 	
-		this.filename = filename;
+	public TraceWriter(String filename, Epoch timeAdjustment) throws IOException {
+		file = new FileWriter(filename);
+				
+		if(timeAdjustment != null){
+			file.write("<Program timeAdjustment=\"" + timeAdjustment + "\">\n");
+			this.timeAdjustment = timeAdjustment;
+		}else{
+			file.write("<Program>\n");
+			this.timeAdjustment = Epoch.ZERO;
+		}
 	}
 
 	public void finalize() {
 		try {
 			file.write("</Program>\n");
 			file.close();
-
-			// test if the file is empty:
-			long size = new RandomAccessFile(filename, "r").length();
-			if (size <= EMPTY_FILE_LENGTH){
-				// nothing got written, thus remove file
-				new File(filename).delete();
-			}
 		} catch (IOException e) { 
 			throw new IllegalArgumentException(e);
 		}
@@ -87,7 +88,9 @@ public class TraceWriter {
 			return;
 		
 		for(String key: attr.keySet()){
-			file.write(" " + key + "=\"" + attr.get(key) + "\"");
+			if(! reservedAttributeKeys.contains(key)){
+				file.write(" " + key + "=\"" + attr.get(key) + "\"");
+			}
 		}
 	}
 
@@ -101,11 +104,15 @@ public class TraceWriter {
 		lastOpenedStateTraceEntry = null;
 	}
 	
+	private String getAdaptedTime(Epoch time){
+		return time.subtract(timeAdjustment).toNormalizedString();
+	}
+	
 	public void Event(EventTraceEntry traceEntry) throws IOException{
 		updateNestedObjectsOnEnter();
 		
 		file.write("<Event name=\"" + traceEntry.getName() + "\" time=\"" + 
-				traceEntry.getEarliestTime().toNormalizedString() + "\"");
+				getAdaptedTime(traceEntry.getEarliestTime()) + "\"");
 
 		writeAttributes(traceEntry);
 		
@@ -150,8 +157,9 @@ public class TraceWriter {
 	}
 	
 	private void writeState(StateTraceEntry traceEntry) throws IOException{
-		file.write("<" + traceEntry.getName() + " time=\"" + traceEntry.getEarliestTime().toNormalizedString() + "\" end=\"" 
-				+ traceEntry.getLatestTime().toNormalizedString() + "\"");
+		file.write("<" + traceEntry.getName() + " time=\"" + 
+				getAdaptedTime(traceEntry.getEarliestTime()) + "\" end=\"" 
+				+ getAdaptedTime(traceEntry.getLatestTime()) + "\"");
 			writeAttributes(traceEntry);			
 
 			if(traceEntry.getNestedXMLTags() != null && traceEntry.getNestedXMLTags().size() != 0 ){

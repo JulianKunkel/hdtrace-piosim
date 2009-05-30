@@ -33,12 +33,12 @@
 
         <Node name="node01">
         <Node name="0">
-                <Label name="main"/>
-                <Label name="background"/>
+                <Node name="main"/>
+                <Node name="background"/>
         </Node>
         
         <Node name="1">
-                <Label name="main"/>
+                <Node name="main"/>
         </Node>
         </Node>  
         

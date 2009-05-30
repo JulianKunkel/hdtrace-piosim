@@ -30,6 +30,7 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
@@ -44,8 +45,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author Julian M. Kunkel
  * 
  */
-public class SimpleTraceWriter {	
-	TraceFormatWriter writer;
+public class SimpleTraceWriter extends TraceFormatWriter {	
 
 	/**
 	 * Initialize the trace writer.
@@ -56,70 +56,38 @@ public class SimpleTraceWriter {
 	 * @param labels
 	 */
 	public SimpleTraceWriter(String resultFile, String description, String applicationName, TopologyTypes topoType) {
-		init(resultFile, description, applicationName, topoType);
+		super(resultFile, topoType);
+		init(resultFile, description, applicationName);
 	}
 	
 	public SimpleTraceWriter(String resultFile, String description, String applicationName, String [] types) {
-		final TopologyTypes topoType = new TopologyTypes();
-		topoType.setTopologyTypes(types);
-		init(resultFile, description, applicationName, topoType);
+		super(resultFile, null);
+		final TopologyTypes topoTypes = new TopologyTypes();
+		topoTypes.setTopologyTypes(types);
+		init(resultFile, description, applicationName);
 	}
 	
-	private void init(String resultFile, String description, String applicationName, TopologyTypes types){
-		writer = new TraceFormatWriter(resultFile, types);
-
-		ProjectDescription outProject = writer.getProjectDescription();		
+	private void init(String resultFile, String description, String applicationName){
+		ProjectDescription outProject = getProjectDescription();		
 		outProject.setDescription(description);
 		outProject.setApplicationName(applicationName);
-		
-		outProject.setTopologyTypes(types);
 		
 		outProject.setTopologyRoot(new TopologyNode("" ,null, "File"));
 		outProject.setProjectFilename(resultFile);
 	}
 
-	/**
-	 * Announce the existence of a topology, this must be done before the topology can be used.
-	 *  
-	 * @param topology
-	 */
+	@Override
 	public void initalizeTopology(TopologyNode topology) {
 		// check existence of parent topology in registered topology.		
 
 		for(TopologyNode parent: topology.getParentTopologies()){
 			try{
-				writer.initalizeTopology(parent);
+				super.initalizeTopology(parent);
 			}catch(IllegalArgumentException e){
 				// 
 			}
 		}
-		writer.initalizeTopology(topology);
-	}
-	
-	/**
-	 * Create the topology and return the TopologyNode for the last level
-	 * 
-	 * @param topology, hierarchy
-	 * @return
-	 */
-	public TopologyNode initializeTopology(String [] topology){
-		return writer.createInitalizeTopology(topology);
-	}
-
-	public void finalizeTrace() throws IOException {
-		writer.finalizeTrace();
-	}
-
-	public void Event(TopologyNode topology, EventTraceEntry traceEntry) {
-		writer.Event(topology, traceEntry);
-	}
-	
-	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry) {
-		writer.StateEnd(topology, traceEntry);
-	}
-
-	public void StateStart(TopologyNode topology, StateTraceEntry traceEntry) {
-		writer.StateStart(topology, traceEntry);
+		super.initalizeTopology(topology);
 	}
 	
 	public void Event(TopologyNode topology, String name, Epoch time) {
@@ -133,7 +101,7 @@ public class SimpleTraceWriter {
 				traceEntry.addAttribute(key, attributes.get(key));
 			}
 		}
-		writer.Event(topology, traceEntry);
+		super.Event(topology, traceEntry);
 	}
 
 	public StateTraceEntry StateStart(TopologyNode topology, String name, Epoch startTime) {
@@ -148,25 +116,33 @@ public class SimpleTraceWriter {
 			}
 		}
 		
-		writer.StateStart(topology, state);
+		super.StateStart(topology, state);
 		return state;
 	}
 	
 	public void StateEnd(TopologyNode topology, Epoch endTime, StateTraceEntry traceEntry) {
 		traceEntry.setEndTime(endTime);
-		writer.StateEnd(topology, traceEntry);
+		super.StateEnd(topology, traceEntry);
 	}
-	
-	public void writeStatisticsTimestamp(TopologyNode topology, StatisticsGroupDescription group, Epoch time) throws IOException{
-		writer.writeStatisticsTimestamp(topology, group, time);
-	}
-	
-	public void writeStatistics(TopologyNode topology, StatisticDescription statistic, Object value) throws IOException {
+
+	@Override
+	public void writeStatisticValue(TopologyNode topology, StatisticDescription statistic, Object value) throws IOException {
 		
-		if(! writer.getProjectDescription().getStatisticsGroupNames().contains(statistic.getGroup().getName())){
-			writer.addStatisticGroup(statistic.getGroup().getName());
+		if(!getProjectDescription().getStatisticsGroupNames().contains(statistic.getGroup().getName())){
+			super.addStatisticGroup(statistic.getGroup().getName());
 		}
 
-		writer.Statistics(topology, statistic, value);
-	}	
+		super.writeStatisticValue(topology, statistic, value);
+	}
+	
+
+	@Override
+	public void writeStatistics(TopologyNode topology, StatisticGroupEntry entry) throws IOException{
+		final StatisticsGroupDescription group = entry.getGroup();
+		if(! getProjectDescription().getStatisticsGroupNames().contains(group.getName())){
+			super.addStatisticGroup(group.getName());
+		}
+		
+		super.writeStatistics(topology, entry);
+	}
 }

@@ -81,20 +81,7 @@ public class RunParameters {
 	 * Are nested elements inside a trace file processed / read?
 	 */
 	boolean readNestedTraceEntries = true;
-	
-	/**
-	 * Determines whether compute events are processed or ignored.
-	 */
-	boolean processAlsoComputeEvents = false;
-	
-	public void setProcessAlsoComputeEvents(boolean processAlsoComputeEvents) {
-		this.processAlsoComputeEvents = processAlsoComputeEvents;
-	}
-	
-	public boolean isProcessAlsoComputeEvents() {
-		return processAlsoComputeEvents;
-	}
-	
+		
 	public Properties getOutputFileSpecificOptions() {
 		return outputFileSpecificOptions;
 	}

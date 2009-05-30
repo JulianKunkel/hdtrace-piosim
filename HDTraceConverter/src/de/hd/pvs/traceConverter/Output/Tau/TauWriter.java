@@ -27,8 +27,7 @@ package de.hd.pvs.traceConverter.Output.Tau;
 
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
+import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -157,44 +156,44 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyNode topology, Epoch time, StatisticDescription stat, Object value) {
-		long convertedValue;
-		final StatisticsEntryType type = stat.getType();
-		
-		switch(type){
-		case INT64:
-			convertedValue = (Long) value;		
-			break;
-		case INT32:
-			convertedValue = (Integer) value;
-			break;
-		case DOUBLE:
-			convertedValue = (long)(((double)(Double) value));
-			break;
-		case FLOAT:
-			convertedValue = (long)((float)((Float) value));
-			break;
-		case STRING:
-			// not supported:
-			return;
-		default:
-			throw new IllegalArgumentException("Unknown type: " + type +" in value " + value);
-		}
-		
-		final String eventName = stat.getGroup().getName() + ":" + stat.getName();
-		
-		Integer categoryID = tauCategoryMap.get(eventName);
-		if (categoryID == null){
-			categoryID = ++nextCatID;
-
-			tauWriter.defUserEvent(categoryID, eventName, STATISTICS_GROUP_ID);
-			tauCategoryMap.put(eventName, categoryID);
-		}
-
-		final int rank = getRank(topology);
-		final int thread = getThread(topology);
-
-		tauWriter.eventTrigger(getTimeMikro(time), rank, thread, categoryID, convertedValue);
+	public void Statistics(TopologyNode topology, StatisticGroupEntry entry) {
+//		long convertedValue;
+//		final StatisticsEntryType type = stat.getType();
+//		
+//		switch(type){
+//		case INT64:
+//			convertedValue = (Long) value;		
+//			break;
+//		case INT32:
+//			convertedValue = (Integer) value;
+//			break;
+//		case DOUBLE:
+//			convertedValue = (long)(((double)(Double) value));
+//			break;
+//		case FLOAT:
+//			convertedValue = (long)((float)((Float) value));
+//			break;
+//		case STRING:
+//			// not supported:
+//			return;
+//		default:
+//			throw new IllegalArgumentException("Unknown type: " + type +" in value " + value);
+//		}
+//		
+//		final String eventName = stat.getGroup().getName() + ":" + stat.getName();
+//		
+//		Integer categoryID = tauCategoryMap.get(eventName);
+//		if (categoryID == null){
+//			categoryID = ++nextCatID;
+//
+//			tauWriter.defUserEvent(categoryID, eventName, STATISTICS_GROUP_ID);
+//			tauCategoryMap.put(eventName, categoryID);
+//		}
+//
+//		final int rank = getRank(topology);
+//		final int thread = getThread(topology);
+//
+//		tauWriter.eventTrigger(getTimeMikro(time), rank, thread, categoryID, convertedValue);
 	}
 
 

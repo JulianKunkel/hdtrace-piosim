@@ -29,8 +29,8 @@ import java.util.PriorityQueue;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
+import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -60,8 +60,12 @@ public class HDTraceConverter {
 
 		// init trace converter to make it ready:
 		outputConverter.initializeTrace(param, param.getOutputFilePrefix());
-
-		final TraceFormatFileOpener traceReader = new TraceFormatFileOpener(param.getInputTraceFile(), param.isReadNestedTrace(), StatisticsReader.class, StAXTraceFileReader.class);
+		
+		final TraceFormatFileOpener traceReader = new TraceFormatFileOpener(
+				param.getInputTraceFile(), 
+				param.isReadNestedTrace(), 
+				StatisticsReader.class, 
+				StAXTraceFileReader.class);
 
 		final ProjectDescription projectDescription = traceReader.getProjectDescription();
 
@@ -140,13 +144,8 @@ public class HDTraceConverter {
 			}
 		}
 
-
 		StAXTraceFileReader reader = (StAXTraceFileReader) topo.getTraceSource();
-		if( reader == null){
-			if( topo.isLeaf() ){
-				throw new IllegalArgumentException("Trace reader is not initialized for topology: " + topo);
-			}
-		}else{
+		if( reader != null){
 			TraceProcessor processor = new TraceProcessor(reader);
 			processor.setOutputConverter(outputConverter);
 			processor.setTopologyEntryResponsibleFor(topo);
