@@ -79,7 +79,7 @@ int PINT_eventHD_initalize(char * traceWhat)
 			hd_facilityTrace[FLOW] = hdS_createGroup("FLOW", topology, topoNode, 1);
 			hdS_addValue(hd_facilityTrace[FLOW],"Concurrent ops", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[FLOW]);
-			hdS_enableGroup(hd_facilityTrace[FLOW]);
+			hdS_enableGroup(hd_facd i lityTrace[FLOW]);
 		}
 		
 		if ((strcasecmp(event_list[i],"req") == 0) && !hd_facilityTrace[REQ])

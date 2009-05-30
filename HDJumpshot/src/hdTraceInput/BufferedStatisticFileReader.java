@@ -46,7 +46,7 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		super(filename, group);
 
 		StatisticGroupEntry current = getNextInputEntry();
-
+		
 		minTime = current.getEarliestTime();		
 		
 		while(current != null){
