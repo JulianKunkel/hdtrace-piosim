@@ -19,7 +19,7 @@ int hd_facilityTraceStatus[ALL_FACILITIES];
 
 //int hdStatsGroupValue[ALL_FACILITIES];
 
-int PINT_eventHD_initalize(char * traceWhat)
+int PINT_HD_event_initalize(char * traceWhat)
 {	
 	char hostname[255];
 	int len;
@@ -79,7 +79,7 @@ int PINT_eventHD_initalize(char * traceWhat)
 			hd_facilityTrace[FLOW] = hdS_createGroup("FLOW", topology, topoNode, 1);
 			hdS_addValue(hd_facilityTrace[FLOW],"Concurrent ops", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[FLOW]);
-			hdS_enableGroup(hd_facd i lityTrace[FLOW]);
+			hdS_enableGroup(hd_facilityTrace[FLOW]);
 		}
 		
 		if ((strcasecmp(event_list[i],"req") == 0) && !hd_facilityTrace[REQ])
@@ -104,7 +104,7 @@ int PINT_eventHD_initalize(char * traceWhat)
 	return 0;
 }
 
-int PINT_eventHD_finalize(void)
+int PINT_HD_event_finalize(void)
 {
 	int i;
 	for (i= 0 ; i < ALL_FACILITIES; i++){
@@ -116,7 +116,7 @@ int PINT_eventHD_finalize(void)
 	return 0;
 }
 
-int pint_hd_update_counter(HD_Trace_Facility facility, int value) 
+int PINT_HD_update_counter(HD_Trace_Facility facility, int value) 
 {
 	if (hd_facilityTraceStatus[facility]) 
 		hdS_writeInt32Value(hd_facilityTrace[facility], value);
@@ -128,11 +128,11 @@ int pint_hd_update_counter(HD_Trace_Facility facility, int value)
 
 /* NO HDTRACE AVAILABLE */
 
-int PINT_eventHD_initalize(void){
+int PINT_HD_event_initalize(void){
 	return 0;
 }
 
-int PINT_eventHD_finalize(void){
+int PINT_HD_event_finalize(void){
 	return 0;
 }
 

@@ -528,7 +528,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
 		     llu(handle), tmp_element);
     }
     sched_count++;
-    pint_hd_update_counter(REQ,sched_count);
+    PINT_HD_update_counter(REQ,sched_count);
     return (ret);
 }
 
@@ -710,7 +710,7 @@ int PINT_req_sched_unpost(
 	    }
 	}
 	sched_count--;
-	pint_hd_update_counter(REQ,sched_count);
+	PINT_HD_update_counter(REQ,sched_count);
     }
 
     /* destroy the unposted element */
@@ -846,7 +846,7 @@ int PINT_req_sched_release(
 	    }
 	}
 	sched_count--;
-	pint_hd_update_counter(REQ,sched_count);
+	PINT_HD_update_counter(REQ,sched_count);
     }
 
     gossip_debug(GOSSIP_REQ_SCHED_DEBUG,

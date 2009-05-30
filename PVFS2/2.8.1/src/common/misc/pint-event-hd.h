@@ -15,9 +15,9 @@
 #include "pint-event.h"
 
 
-int PINT_eventHD_initalize(char * traceWhat);
+int PINT_HD_event_initalize(char * traceWhat);
 
-int PINT_eventHD_finalize(void);
+int PINT_HD_event_finalize(void);
 
 /**
  * Traceable facilities
@@ -33,7 +33,7 @@ typedef enum {
 //#define PINT_HD_UPDATE_COUNTER_DEC(facility, value) \
 //	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], --hdStatsGroupValue[facility]));
 
-int pint_hd_update_counter(HD_Trace_Facility facility, int value) ;
+int PINT_HD_update_counter(HD_Trace_Facility facility, int value) ;
 
 #endif /* __HAVE_HDTRACE__ */
 

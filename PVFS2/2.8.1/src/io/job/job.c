@@ -444,7 +444,7 @@ int job_bmi_send(PVFS_BMI_addr_t addr,
      */
     *id = jd->job_id;
     bmi_pending_count++;
-    pint_hd_update_counter(BMI, bmi_pending_count);
+    PINT_HD_update_counter(BMI, bmi_pending_count);
 
     return(job_time_mgr_add(jd, timeout_sec));
 }
@@ -544,7 +544,7 @@ int job_bmi_send_list(PVFS_BMI_addr_t addr,
      */
     *id = jd->job_id;
     bmi_pending_count++;
-    pint_hd_update_counter(BMI, bmi_pending_count);
+    PINT_HD_update_counter(BMI, bmi_pending_count);
 
     return(job_time_mgr_add(jd, timeout_sec));
 }
@@ -626,7 +626,7 @@ int job_bmi_recv(PVFS_BMI_addr_t addr,
      */
     *id = jd->job_id;
     bmi_pending_count++;
-    pint_hd_update_counter(BMI, bmi_pending_count);
+    PINT_HD_update_counter(BMI, bmi_pending_count);
 
     return(job_time_mgr_add(jd, timeout_sec));
 }
@@ -712,7 +712,7 @@ int job_bmi_recv_list(PVFS_BMI_addr_t addr,
      */
     *id = jd->job_id;
     bmi_pending_count++;
-    pint_hd_update_counter(BMI, bmi_pending_count);
+    PINT_HD_update_counter(BMI, bmi_pending_count);
 
     return(job_time_mgr_add(jd, timeout_sec));
 }
@@ -1363,6 +1363,7 @@ int job_flow(flow_descriptor * flow_d,
     /* queue up the job desc. for later completion */
     *id = jd->job_id;
     flow_pending_count++;
+    PINT_HD_update_counter(FLOW, flow_pending_count);
     gossip_debug(GOSSIP_FLOW_DEBUG, "Job flows in progress (post time): %d\n",
             flow_pending_count);
 
@@ -1491,7 +1492,7 @@ int job_trove_bstream_write_at(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -1583,7 +1584,7 @@ int job_trove_bstream_write_list(TROVE_coll_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 } 
 
@@ -1674,7 +1675,7 @@ int job_trove_bstream_read_at(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -1764,7 +1765,7 @@ int job_trove_bstream_read_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -1837,7 +1838,7 @@ int job_trove_bstream_flush(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -1922,7 +1923,7 @@ int job_trove_keyval_read(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2010,7 +2011,7 @@ int job_trove_keyval_read_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
 
     return (0);
 }
@@ -2097,7 +2098,7 @@ int job_trove_keyval_write(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2187,7 +2188,7 @@ int job_trove_keyval_write_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2266,7 +2267,7 @@ int job_trove_keyval_remove_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2341,7 +2342,7 @@ int job_trove_keyval_flush(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2423,7 +2424,7 @@ int job_trove_keyval_get_handle_info(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2508,7 +2509,7 @@ int job_trove_dspace_getattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2598,7 +2599,7 @@ int job_trove_dspace_getattr_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2681,7 +2682,7 @@ int job_trove_dspace_setattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2765,7 +2766,7 @@ int job_trove_bstream_resize(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2872,7 +2873,7 @@ int job_trove_keyval_remove(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -2987,7 +2988,7 @@ int job_trove_keyval_iterate(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3079,7 +3080,7 @@ int job_trove_keyval_iterate_keys(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3167,7 +3168,7 @@ int job_trove_dspace_iterate_handles(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3258,7 +3259,7 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
 
     return (0);
 }
@@ -3349,7 +3350,7 @@ int job_trove_dspace_create_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3435,7 +3436,7 @@ int job_trove_dspace_remove_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3519,7 +3520,7 @@ int job_trove_dspace_remove(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3603,7 +3604,7 @@ int job_trove_dspace_verify(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3714,7 +3715,7 @@ int job_trove_fs_create(char *collname,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3890,7 +3891,7 @@ int job_trove_fs_seteattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -3970,7 +3971,7 @@ int job_trove_fs_geteattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     return (0);
 }
 
@@ -4895,7 +4896,7 @@ static void precreate_pool_fill_thread_mgr_callback(
                             jd->hints);
     
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     if(ret < 0)
     {
         gossip_err("Error: unable to write all precreated handles to pool.\n");
@@ -4963,7 +4964,7 @@ static void trove_thread_mgr_callback(
         tmp_desc->completed_flag = 1;
 
         trove_pending_count--;
-        pint_hd_update_counter(TROVE, trove_pending_count);
+        PINT_HD_update_counter(TROVE, trove_pending_count);
 
 #ifdef __PVFS2_JOB_THREADED__
         /* wake up anyone waiting for completion */
@@ -5009,7 +5010,7 @@ static void bmi_thread_mgr_callback(
         tmp_desc->completed_flag = 1;
 
         bmi_pending_count--;
-        pint_hd_update_counter(BMI, bmi_pending_count);
+        PINT_HD_update_counter(BMI, bmi_pending_count);
 
 #ifdef __PVFS2_JOB_THREADED__
         /* wake up anyone waiting for completion */
@@ -5474,6 +5475,7 @@ static void flow_callback(flow_descriptor* flow_d)
     tmp_desc->completed_flag = 1;
 
     flow_pending_count--;
+    PINT_HD_update_counter(FLOW, flow_pending_count);
     gossip_debug(GOSSIP_FLOW_DEBUG, "Job flows in progress (callback time): %d\n",
             flow_pending_count);
 
@@ -6109,7 +6111,7 @@ static void precreate_pool_get_handles_try_post(struct job_desc* jd)
         {
             /* callback will be triggered later */
             trove_pending_count++;
-            pint_hd_update_counter(TROVE, trove_pending_count);
+            PINT_HD_update_counter(TROVE, trove_pending_count);
             jd->u.precreate_pool.trove_pending++;
         }
     }
@@ -6298,7 +6300,7 @@ int job_precreate_pool_iterate_handles(
      */
     *id = jd->job_id;
     trove_pending_count++;
-    pint_hd_update_counter(TROVE, trove_pending_count);
+    PINT_HD_update_counter(TROVE, trove_pending_count);
     gen_mutex_unlock(&precreate_pool_mutex);
 
     return (0);
