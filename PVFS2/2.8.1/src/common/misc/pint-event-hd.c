@@ -139,8 +139,8 @@ int PINT_HD_update_counter(HD_Trace_Facility facility, char * sign)
 		gen_mutex_lock(&hdStatsGroupMutex[facility]);
 		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
 		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
-		return 0;
 	}
+	return 0;
 }
 
 
