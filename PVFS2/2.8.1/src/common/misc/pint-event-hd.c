@@ -7,17 +7,20 @@
 #include "pint-event.h"
 #include "pint-event-hd.h"
 #include  "str-utils.h"
+#include "gen-locks.h"
 
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 
-hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
-
-int hd_facilityTraceStatus[ALL_FACILITIES];
-
-//int hdStatsGroupValue[ALL_FACILITIES];
+static hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
+static int hd_facilityTraceStatus[ALL_FACILITIES];
+static int hdStatsGroupValue[ALL_FACILITIES];
+static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES];
+//hdStatsGroupMutex[ALL_FACILITIES] = GEN_MUTEX_INITIALIZER;
+//{ GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER,
+//  GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER };
 
 int PINT_HD_event_initalize(char * traceWhat)
 {	
@@ -116,11 +119,30 @@ int PINT_HD_event_finalize(void)
 	return 0;
 }
 
-void PINT_HD_update_counter(HD_Trace_Facility facility, int value) 
+int PINT_HD_update_counter(HD_Trace_Facility facility, char * sign) 
 {
 	if (hd_facilityTraceStatus[facility]) 
-		hdS_writeInt32Value(hd_facilityTrace[facility], value);
+	{	
+		if (strcasecmp(sign,"+") == 0)
+		{
+			hdStatsGroupValue[facility]++;
+		}
+		else if (strcasecmp(sign,"-") == 0)
+		{
+			hdStatsGroupValue[facility]--;
+		}
+		else
+		{	
+			fprintf(stderr, "Problem with sign [+|-] !\n");
+			return 1;
+		}
+		gen_mutex_lock(&hdStatsGroupMutex[facility]);
+		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
+		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
+		return 0;
+	}
 }
+
 
 
 

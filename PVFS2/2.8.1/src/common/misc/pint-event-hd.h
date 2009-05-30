@@ -26,14 +26,7 @@ typedef enum {
 	BMI, TROVE, FLOW, REQ, BLOCK_REQ, ALL_FACILITIES
 } HD_Trace_Facility;
 
-
-//#define PINT_HD_UPDATE_COUNTER_INC(facility, value) \
-//	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], ++hdStatsGroupValue[facility]));
-//
-//#define PINT_HD_UPDATE_COUNTER_DEC(facility, value) \
-//	if (hd_facilityTraceStatus[facility]) hdS_writeInt32Value(hd_facilityTrace[facility], --hdStatsGroupValue[facility]));
-
-void PINT_HD_update_counter(HD_Trace_Facility facility, int value) ;
+int PINT_HD_update_counter(HD_Trace_Facility facility, char * sign) ;
 
 #endif /* __HAVE_HDTRACE__ */
 
