@@ -698,6 +698,9 @@ int hdS_commitGroup (
 	/* mark group as committed */
 	group->isCommitted = TRUE;
 
+	/* write the starttime for the first statistic entry */
+    writeTimestampToGroupBuffer(group);
+
 	return 0;
 }
 
