@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 //	Copyright (C) 2009 Julian M. Kunkel
 //	
@@ -49,88 +49,91 @@ import javax.swing.table.TableCellEditor;
 public class CategoryIconEditor implements TableCellEditor, ActionListener                                           
 {
 	private static final long serialVersionUID = -2487506394326350488L;
-	
+
 	private JButton      delegate_btn;
 	private CellEditorListener listener;
+
+	private ColorListener colorListener = new ColorListener();
+
+	/**
+	 * Allow only one dialog for all icons
+	 */
+	private static JColorChooser colorChooser = null;    
+	private static JDialog      colorDialog = null;
 	
+	private class ColorListener implements ActionListener{
+		@Override
+		public void actionPerformed(ActionEvent e) {     
+			listener.editingStopped(null);	
+		}
+	}
 
-    private JColorChooser colorChooser = null;    
-    private JDialog      colorDialog = null;
-    private ColorListener colorListener = new ColorListener();
-    
-    private class ColorListener implements ActionListener{
-    	@Override
-    	public void actionPerformed(ActionEvent e) {     
-            listener.editingStopped(null);	
-    	}
-    }
+	public CategoryIconEditor()
+	{
+		delegate_btn  = new JButton();
+		delegate_btn.addActionListener( this );
+	}
 
-    public CategoryIconEditor()
-    {
-        delegate_btn  = new JButton();
-        delegate_btn.addActionListener( this );
-    }
+	// Called 1st
+	public Component getTableCellEditorComponent( JTable   table,
+			Object   value,
+			boolean  isSelected,
+			int      irow,
+			int      icolumn )
+	{    	
+		CategoryIcon icon;
+		icon        = (CategoryIcon) value;
 
-    // Called 1st
-    public Component getTableCellEditorComponent( JTable   table,
-                                                  Object   value,
-                                                  boolean  isSelected,
-                                                  int      irow,
-                                                  int      icolumn )
-    {    	
-        CategoryIcon icon;
-        icon        = (CategoryIcon) value;
-        
-        if( colorChooser == null){
-        	colorChooser = new JColorChooser();
-        }
-        colorChooser.setColor(icon.getCategory().getColor());
-        
-        // TODO a bug hung up application while creation of JColorChooser
-        colorDialog = JColorChooser.createDialog(table, "Pick a Color", false, colorChooser, colorListener, null);
-        delegate_btn.setIcon( icon );
-        
-        return delegate_btn;
-    }
+		if( colorChooser == null){
+			colorChooser = new JColorChooser();
+		}
+		colorChooser.setColor(icon.getCategory().getColor());
 
-    @Override
-    public void actionPerformed( ActionEvent evt )
-    {
-    	// called upon click on the table:
-    	colorDialog.setVisible(true);
-    }
-    
-    @Override
-    public Object getCellEditorValue()
-    {      
-    	return colorChooser.getColor();    
-    }
-    
-    @Override
-    public void addCellEditorListener(CellEditorListener l) {
-    	listener = l;
-    }
-    
-    @Override
-    public void cancelCellEditing() {
-    }
-    
-    @Override
-    public boolean isCellEditable(EventObject anEvent) {
-    	return true;
-    }
-    
-    @Override
-    public void removeCellEditorListener(CellEditorListener l) {
-    }
-    
-    @Override
-    public boolean shouldSelectCell(EventObject anEvent) {
-    	return true;
-    }
-    
-    @Override
-    public boolean stopCellEditing() {
-    	return true;
-    }
+		// TODO a bug hung up application while creation of JColorChooser in some java version!
+		colorDialog = JColorChooser.createDialog(table, "Pick a Color", true, colorChooser, colorListener, null);
+		delegate_btn.setIcon( icon );
+		
+		return delegate_btn;
+	}
+
+	@Override
+	public void actionPerformed( ActionEvent evt )
+	{
+		// called upon click on the table:
+		colorDialog.setVisible(true);
+	}
+
+	@Override
+	public Object getCellEditorValue()
+	{      
+		return colorChooser.getColor();    
+	}
+
+	@Override
+	public void addCellEditorListener(CellEditorListener l) {
+		listener = l;
+	}
+
+	@Override
+	public void cancelCellEditing() {
+	}
+
+	@Override
+	public boolean isCellEditable(EventObject anEvent) {
+		return true;
+	}
+
+	@Override
+	public void removeCellEditorListener(CellEditorListener l) {
+	}
+
+	@Override
+	public boolean shouldSelectCell(EventObject anEvent) {
+		return true;
+	}
+
+	@Override
+	public boolean stopCellEditing() {
+		return true;
+	}
 }
