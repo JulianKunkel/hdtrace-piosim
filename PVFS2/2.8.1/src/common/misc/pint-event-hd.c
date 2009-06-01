@@ -17,7 +17,7 @@
 static hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
 static int hd_facilityTraceStatus[ALL_FACILITIES];
 static int hdStatsGroupValue[ALL_FACILITIES];
-static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES];
+static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES] ;
 
 int PINT_HD_event_initalize(char * traceWhat)
 {	
@@ -119,7 +119,9 @@ int PINT_HD_update_counter_inc(HD_Trace_Facility facility)
 {
 	if (hd_facilityTraceStatus[facility]) 
 	{	
+		gen_mutex_lock(&hdStatsGroupMutex[facility]);
 		hdS_writeInt32Value(hd_facilityTrace[facility], ++hdStatsGroupValue[facility]);
+		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	}
 	return 0;
 }
@@ -128,7 +130,9 @@ int PINT_HD_update_counter_dec(HD_Trace_Facility facility)
 {
 	if (hd_facilityTraceStatus[facility]) 
 	{	
+		gen_mutex_lock(&hdStatsGroupMutex[facility]);
 		hdS_writeInt32Value(hd_facilityTrace[facility], --hdStatsGroupValue[facility]);
+		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	}
 	return 0;
 }
