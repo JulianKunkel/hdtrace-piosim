@@ -28,7 +28,6 @@ int PINT_HD_event_initalize(char * traceWhat)
 	
 	if (ret != 0)
 	{
-		/* error handling */
 		fprintf(stderr, "Problem with hostname !\n");
 		return 1;
 	}
@@ -90,13 +89,13 @@ int PINT_HD_event_initalize(char * traceWhat)
 			hdS_enableGroup(hd_facilityTrace[REQ]);
 		}
 		
-		if ((strcasecmp(event_list[i],"breq") == 0) && !hd_facilityTrace[BLOCK_REQ])
+		if ((strcasecmp(event_list[i],"breq") == 0) && !hd_facilityTrace[BREQ])
 		{	
-			hd_facilityTraceStatus[BLOCK_REQ] = 1;
-			hd_facilityTrace[BLOCK_REQ] = hdS_createGroup("BLOCK_REQ", topology, topoNode, 1);
-			hdS_addValue(hd_facilityTrace[BLOCK_REQ],"Concurrent ops", INT32, "#", NULL);
-			hdS_commitGroup(hd_facilityTrace[BLOCK_REQ]);
-			hdS_enableGroup(hd_facilityTrace[BLOCK_REQ]);
+			hd_facilityTraceStatus[BREQ] = 1;
+			hd_facilityTrace[BREQ] = hdS_createGroup("BREQ", topology, topoNode, 1);
+			hdS_addValue(hd_facilityTrace[BREQ],"Concurrent ops", INT32, "#", NULL);
+			hdS_commitGroup(hd_facilityTrace[BREQ]);
+			hdS_enableGroup(hd_facilityTrace[BREQ]);
 		}
 	}
 	

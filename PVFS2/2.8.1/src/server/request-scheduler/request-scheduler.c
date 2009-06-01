@@ -455,7 +455,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
             {
                 tmp_element->state = REQ_QUEUED;
                 ret = 0;
-                PINT_HD_update_counter_inc(BLOCK_REQ); 
+                PINT_HD_update_counter_inc(BREQ); 
             }
 	}
 	else if (access_type == PINT_SERVER_REQ_READONLY &&
@@ -489,7 +489,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
             {
                 tmp_element->state = REQ_QUEUED;
                 ret = 0;
-                PINT_HD_update_counter_inc(BLOCK_REQ); 
+                PINT_HD_update_counter_inc(BREQ); 
             }
         }
         else if((op == PVFS_SERV_CRDIRENT || op == PVFS_SERV_RMDIRENT) &&
@@ -512,7 +512,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
 	{
 	    tmp_element->state = REQ_QUEUED;
 	    ret = 0;
-	    PINT_HD_update_counter_inc(BLOCK_REQ); 
+	    PINT_HD_update_counter_inc(BREQ); 
 	}
     }
 
@@ -714,7 +714,7 @@ int PINT_req_sched_unpost(
 	}
 	sched_count--;
 	PINT_HD_update_counter_dec(REQ);
-	PINT_HD_update_counter_dec(BLOCK_REQ); 
+	PINT_HD_update_counter_dec(BREQ); 
     }
 
     /* destroy the unposted element */
