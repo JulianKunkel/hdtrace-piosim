@@ -18,9 +18,6 @@ static hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
 static int hd_facilityTraceStatus[ALL_FACILITIES];
 static int hdStatsGroupValue[ALL_FACILITIES];
 static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES];
-//hdStatsGroupMutex[ALL_FACILITIES] = GEN_MUTEX_INITIALIZER;
-//{ GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER,
-//  GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER, GEN_MUTEX_INITIALIZER };
 
 int PINT_HD_event_initalize(char * traceWhat)
 {	
@@ -64,7 +61,6 @@ int PINT_HD_event_initalize(char * traceWhat)
 			hdS_addValue(hd_facilityTrace[BMI],"Concurrent ops", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[BMI]);
 			hdS_enableGroup(hd_facilityTrace[BMI]);
-			printf("hd_facilityTrace[BMI] = %p\n",&hd_facilityTrace[BMI]);
 		}
 		
 		if ((strcasecmp(event_list[i],"trove") == 0) && !hd_facilityTrace[TROVE])
@@ -114,36 +110,29 @@ int PINT_HD_event_finalize(void)
 		if(hd_facilityTraceStatus[i]){
 			hdS_finalize(hd_facilityTrace[i]);
 			hd_facilityTraceStatus[i] = 0;
+			hd_facilityTrace[i] = NULL; 
 		}
 	}
 	return 0;
 }
 
-int PINT_HD_update_counter(HD_Trace_Facility facility, char * sign) 
+int PINT_HD_update_counter_inc(HD_Trace_Facility facility) 
 {
 	if (hd_facilityTraceStatus[facility]) 
 	{	
-		if (strcasecmp(sign,"+") == 0)
-		{
-			hdStatsGroupValue[facility]++;
-		}
-		else if (strcasecmp(sign,"-") == 0)
-		{
-			hdStatsGroupValue[facility]--;
-		}
-		else
-		{	
-			fprintf(stderr, "Problem with sign [+|-] !\n");
-			return 1;
-		}
-		gen_mutex_lock(&hdStatsGroupMutex[facility]);
-		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
-		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
+		hdS_writeInt32Value(hd_facilityTrace[facility], ++hdStatsGroupValue[facility]);
 	}
 	return 0;
 }
 
-
+int PINT_HD_update_counter_dec(HD_Trace_Facility facility) 
+{
+	if (hd_facilityTraceStatus[facility]) 
+	{	
+		hdS_writeInt32Value(hd_facilityTrace[facility], --hdStatsGroupValue[facility]);
+	}
+	return 0;
+}
 
 
 #else

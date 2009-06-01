@@ -26,7 +26,9 @@ typedef enum {
 	BMI, TROVE, FLOW, REQ, BLOCK_REQ, ALL_FACILITIES
 } HD_Trace_Facility;
 
-int PINT_HD_update_counter(HD_Trace_Facility facility, char * sign) ;
+int PINT_HD_update_counter_inc(HD_Trace_Facility facility);
+
+int PINT_HD_update_counter_dec(HD_Trace_Facility facility);
 
 #endif /* __HAVE_HDTRACE__ */
 

@@ -455,6 +455,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
             {
                 tmp_element->state = REQ_QUEUED;
                 ret = 0;
+                PINT_HD_update_counter_inc(BLOCK_REQ); 
             }
 	}
 	else if (access_type == PINT_SERVER_REQ_READONLY &&
@@ -488,6 +489,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
             {
                 tmp_element->state = REQ_QUEUED;
                 ret = 0;
+                PINT_HD_update_counter_inc(BLOCK_REQ); 
             }
         }
         else if((op == PVFS_SERV_CRDIRENT || op == PVFS_SERV_RMDIRENT) &&
@@ -510,6 +512,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
 	{
 	    tmp_element->state = REQ_QUEUED;
 	    ret = 0;
+	    PINT_HD_update_counter_inc(BLOCK_REQ); 
 	}
     }
 
@@ -528,7 +531,7 @@ int PINT_req_sched_post(enum PVFS_server_op op,
 		     llu(handle), tmp_element);
     }
     sched_count++;
-    PINT_HD_update_counter(REQ, "+");
+    PINT_HD_update_counter_inc(REQ); 
     return (ret);
 }
 
@@ -710,7 +713,8 @@ int PINT_req_sched_unpost(
 	    }
 	}
 	sched_count--;
-	PINT_HD_update_counter(REQ, "-");
+	PINT_HD_update_counter_dec(REQ);
+	PINT_HD_update_counter_dec(BLOCK_REQ); 
     }
 
     /* destroy the unposted element */
@@ -846,7 +850,7 @@ int PINT_req_sched_release(
 	    }
 	}
 	sched_count--;
-	PINT_HD_update_counter(REQ, "-");
+	PINT_HD_update_counter_dec(REQ); 
     }
 
     gossip_debug(GOSSIP_REQ_SCHED_DEBUG,

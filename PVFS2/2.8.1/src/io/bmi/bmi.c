@@ -654,7 +654,6 @@ int BMI_post_recv(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-
     ret = tmp_ref->interface->post_recv(
         id, tmp_ref->method_addr, buffer, expected_size, actual_size,
         buffer_type, tag, user_ptr, context_id, (PVFS_hint)hints);
@@ -693,7 +692,6 @@ int BMI_post_send(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-
     ret = tmp_ref->interface->post_send(
         id, tmp_ref->method_addr, buffer, size, buffer_type, tag,
         user_ptr, context_id, (PVFS_hint)hints);
@@ -732,7 +730,6 @@ int BMI_post_sendunexpected(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-
     ret = tmp_ref->interface->post_sendunexpected(
         id, tmp_ref->method_addr, buffer, size, buffer_type, tag,
         user_ptr, context_id, (PVFS_hint)hints);

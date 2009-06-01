@@ -404,15 +404,16 @@ int job_bmi_send(PVFS_BMI_addr_t addr,
     jd->hints = hints;
 
     /* post appropriate type of send */
-    PINT_HD_update_counter(BMI, "+");
     if (!send_unexpected)
     {
+    	PINT_HD_update_counter_inc(BMI);
         ret = BMI_post_send(&(jd->u.bmi.id), addr, buffer, size,
                             buffer_type, tag, user_ptr_internal,
                             global_bmi_context, jd->hints);
     }
     else
     {
+    	PINT_HD_update_counter_inc(BMI);
         ret = BMI_post_sendunexpected(&(jd->u.bmi.id), addr,
                                       buffer, size, buffer_type, tag,
                                       user_ptr_internal, global_bmi_context,
@@ -426,6 +427,7 @@ int job_bmi_send(PVFS_BMI_addr_t addr,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
+        PINT_HD_update_counter_dec(BMI);
         return (1);
     }
 
@@ -437,7 +439,7 @@ int job_bmi_send(PVFS_BMI_addr_t addr,
         out_status_p->actual_size = size;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(BMI, "-");
+        PINT_HD_update_counter_dec(BMI);
         return (ret);
     }
 
@@ -503,16 +505,17 @@ int job_bmi_send_list(PVFS_BMI_addr_t addr,
     jd->hints = hints;
 
     /* post appropriate type of send */
-    PINT_HD_update_counter(BMI, "+");
     if (!send_unexpected)
-    {
+    {	
+    	PINT_HD_update_counter_inc(BMI);
         ret = BMI_post_send_list(&(jd->u.bmi.id), addr,
                                  (const void **) buffer_list, size_list,
                                  list_count, total_size, buffer_type,
                                  tag, user_ptr_internal, global_bmi_context, hints);
     }
     else
-    {
+    {	
+    	PINT_HD_update_counter_inc(BMI);
         ret = BMI_post_sendunexpected_list(&(jd->u.bmi.id), addr,
                                            (const void **) buffer_list,
                                            size_list, list_count,
@@ -527,6 +530,7 @@ int job_bmi_send_list(PVFS_BMI_addr_t addr,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
+        PINT_HD_update_counter_dec(BMI);
         return (1);
     }
 
@@ -538,7 +542,7 @@ int job_bmi_send_list(PVFS_BMI_addr_t addr,
         out_status_p->actual_size = total_size;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(BMI, "-");
+        PINT_HD_update_counter_dec(BMI);
         return (ret);
     }
 
@@ -596,7 +600,7 @@ int job_bmi_recv(PVFS_BMI_addr_t addr,
     jd->bmi_callback.data = (void*)jd;
     user_ptr_internal = &jd->bmi_callback;
 
-    PINT_HD_update_counter(BMI, "+");
+    PINT_HD_update_counter_inc(BMI);
     ret = BMI_post_recv(&(jd->u.bmi.id), addr, buffer, size,
                         &(jd->u.bmi.actual_size), buffer_type, tag,
                         user_ptr_internal,
@@ -609,6 +613,7 @@ int job_bmi_recv(PVFS_BMI_addr_t addr,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
+        PINT_HD_update_counter_dec(BMI);
         return (1);
     }
 
@@ -620,7 +625,7 @@ int job_bmi_recv(PVFS_BMI_addr_t addr,
         out_status_p->actual_size = jd->u.bmi.actual_size;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(BMI, "-");
+        PINT_HD_update_counter_dec(BMI);
         return (ret);
     }
 
@@ -683,7 +688,7 @@ int job_bmi_recv_list(PVFS_BMI_addr_t addr,
     jd->bmi_callback.data = (void*)jd;
     user_ptr_internal = &jd->bmi_callback;
     
-    PINT_HD_update_counter(BMI, "+");
+    PINT_HD_update_counter_inc(BMI);
     ret = BMI_post_recv_list(&(jd->u.bmi.id), addr, buffer_list,
                              size_list, list_count, total_expected_size,
                              &(jd->u.bmi.actual_size), buffer_type, tag,
@@ -696,6 +701,7 @@ int job_bmi_recv_list(PVFS_BMI_addr_t addr,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
+        PINT_HD_update_counter_dec(BMI);
         return (1);
     }
 
@@ -707,7 +713,7 @@ int job_bmi_recv_list(PVFS_BMI_addr_t addr,
         out_status_p->actual_size = jd->u.bmi.actual_size;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(BMI, "-");
+        PINT_HD_update_counter_dec(BMI);
         return (ret);
     }
 
@@ -1343,7 +1349,7 @@ int job_flow(flow_descriptor * flow_d,
     flow_d->callback = flow_callback;
 
     /* post the flow */
-    PINT_HD_update_counter(FLOW, "+");
+    PINT_HD_update_counter_inc(FLOW);
     ret = PINT_flow_post(flow_d);
     if (ret < 0)
     {
@@ -1351,6 +1357,7 @@ int job_flow(flow_descriptor * flow_d,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
+        PINT_HD_update_counter_dec(FLOW);
         return (1);
     }
     if (ret == 1)
@@ -1361,7 +1368,7 @@ int job_flow(flow_descriptor * flow_d,
         out_status_p->actual_size = flow_d->total_transferred;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(FLOW, "-");
+        PINT_HD_update_counter_dec(FLOW);
         return (1);
     }
 
@@ -1459,7 +1466,7 @@ int job_trove_bstream_write_at(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_bstream_write_at(coll_id, handle, buffer,
                                  &jd->u.trove.actual_size, offset, flags,
                                  jd->u.trove.vtag, user_ptr_internal,
@@ -1477,6 +1484,7 @@ int job_trove_bstream_write_at(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -1489,7 +1497,7 @@ int job_trove_bstream_write_at(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -1546,7 +1554,7 @@ int job_trove_bstream_write_list(TROVE_coll_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_bstream_write_list(coll_id, handle,
                                    mem_offset_array, mem_size_array,
                                    mem_count,
@@ -1570,6 +1578,7 @@ int job_trove_bstream_write_list(TROVE_coll_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -1582,7 +1591,7 @@ int job_trove_bstream_write_list(TROVE_coll_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -1644,7 +1653,7 @@ int job_trove_bstream_read_at(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_bstream_read_at(coll_id, handle, buffer,
                                 &jd->u.trove.actual_size, offset, flags,
                                 jd->u.trove.vtag, user_ptr_internal,
@@ -1662,6 +1671,7 @@ int job_trove_bstream_read_at(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -1674,7 +1684,7 @@ int job_trove_bstream_read_at(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -1731,7 +1741,7 @@ int job_trove_bstream_read_list(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_bstream_read_list(coll_id, handle,
                                   mem_offset_array, mem_size_array,
                                   mem_count,
@@ -1753,6 +1763,7 @@ int job_trove_bstream_read_list(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -1765,7 +1776,7 @@ int job_trove_bstream_read_list(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -1816,7 +1827,7 @@ int job_trove_bstream_flush(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_bstream_flush(coll_id, handle, flags, user_ptr_internal,
                               global_trove_context, &(jd->u.trove.id), hints);
 #else
@@ -1831,6 +1842,7 @@ int job_trove_bstream_flush(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
     if (ret == 1)
@@ -1840,7 +1852,7 @@ int job_trove_bstream_flush(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
     /* if we fall through to this point, the job did not
@@ -1898,7 +1910,7 @@ int job_trove_keyval_read(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_read(coll_id, handle, key_p, val_p, flags,
                             jd->u.trove.vtag, user_ptr_internal,
                             global_trove_context, &(jd->u.trove.id), hints);
@@ -1914,6 +1926,7 @@ int job_trove_keyval_read(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -1925,7 +1938,7 @@ int job_trove_keyval_read(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -1986,7 +1999,7 @@ int job_trove_keyval_read_list(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_read_list(coll_id, handle, key_array, val_array,
                                  err_array, count, flags, jd->u.trove.vtag,
                                  user_ptr_internal,
@@ -2003,6 +2016,7 @@ int job_trove_keyval_read_list(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2014,7 +2028,7 @@ int job_trove_keyval_read_list(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2074,7 +2088,7 @@ int job_trove_keyval_write(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_write(coll_id, handle, key_p, val_p, flags,
                              jd->u.trove.vtag, user_ptr_internal,
                              global_trove_context,
@@ -2091,6 +2105,7 @@ int job_trove_keyval_write(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2102,7 +2117,7 @@ int job_trove_keyval_write(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2162,7 +2177,7 @@ int job_trove_keyval_write_list(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     gossip_debug(GOSSIP_JOB_DEBUG, "job_trove_keyval_write_list() posting trove_keyval_write_list()\n");
     ret = trove_keyval_write_list(coll_id, handle,
                              key_array, val_array,
@@ -2182,6 +2197,7 @@ int job_trove_keyval_write_list(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2193,7 +2209,7 @@ int job_trove_keyval_write_list(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2242,7 +2258,7 @@ int job_trove_keyval_remove_list(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_remove_list(coll_id, handle,
                              key_array, val_array, error_array,
                              count, flags,
@@ -2262,6 +2278,7 @@ int job_trove_keyval_remove_list(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2273,7 +2290,7 @@ int job_trove_keyval_remove_list(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2324,7 +2341,7 @@ int job_trove_keyval_flush(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_flush(coll_id, handle, flags, user_ptr_internal,
                              global_trove_context, &(jd->u.trove.id), hints);
 #else
@@ -2339,6 +2356,7 @@ int job_trove_keyval_flush(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2349,7 +2367,7 @@ int job_trove_keyval_flush(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2402,7 +2420,7 @@ int job_trove_keyval_get_handle_info(PVFS_fs_id coll_id,
 
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_get_handle_info(
         coll_id,
         handle,
@@ -2422,6 +2440,7 @@ int job_trove_keyval_get_handle_info(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2432,7 +2451,7 @@ int job_trove_keyval_get_handle_info(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2491,7 +2510,7 @@ int job_trove_dspace_getattr(PVFS_fs_id coll_id,
 
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_getattr(coll_id,
                                handle, out_ds_attr_ptr, 0 /* flags */ ,
                                user_ptr_internal,
@@ -2508,6 +2527,7 @@ int job_trove_dspace_getattr(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2518,7 +2538,7 @@ int job_trove_dspace_getattr(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2579,7 +2599,7 @@ int job_trove_dspace_getattr_list(PVFS_fs_id coll_id,
 
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_getattr_list(coll_id,
                                nhandles,
                                handle_array, out_ds_attr_ptr,
@@ -2599,6 +2619,7 @@ int job_trove_dspace_getattr_list(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2609,7 +2630,7 @@ int job_trove_dspace_getattr_list(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2666,7 +2687,7 @@ int job_trove_dspace_setattr(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_setattr(coll_id, handle, ds_attr_p,
                                flags,
                                user_ptr_internal, global_trove_context,
@@ -2683,6 +2704,7 @@ int job_trove_dspace_setattr(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2693,7 +2715,7 @@ int job_trove_dspace_setattr(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2751,7 +2773,7 @@ int job_trove_bstream_resize(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_bstream_resize(coll_id, handle, &size,
                                flags,
                                vtag, user_ptr_internal, global_trove_context,
@@ -2768,6 +2790,7 @@ int job_trove_bstream_resize(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2778,7 +2801,7 @@ int job_trove_bstream_resize(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2859,7 +2882,7 @@ int job_trove_keyval_remove(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_remove(coll_id, handle, key_p, val_p, flags,
                               jd->u.trove.vtag, user_ptr_internal,
                               global_trove_context, &(jd->u.trove.id), hints);
@@ -2875,6 +2898,7 @@ int job_trove_keyval_remove(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -2886,7 +2910,7 @@ int job_trove_keyval_remove(PVFS_fs_id coll_id,
         out_status_p->vtag = jd->u.trove.vtag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -2971,7 +2995,7 @@ int job_trove_keyval_iterate(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_iterate(coll_id, handle,
                                &(jd->u.trove.position), key_array, val_array,
                                &(jd->u.trove.count), flags, jd->u.trove.vtag,
@@ -2989,6 +3013,7 @@ int job_trove_keyval_iterate(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3002,7 +3027,7 @@ int job_trove_keyval_iterate(PVFS_fs_id coll_id,
         out_status_p->count = jd->u.trove.count;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3064,7 +3089,7 @@ int job_trove_keyval_iterate_keys(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_iterate_keys(coll_id, handle,
                                &(jd->u.trove.position), key_array,
                                &(jd->u.trove.count), flags, jd->u.trove.vtag,
@@ -3082,6 +3107,7 @@ int job_trove_keyval_iterate_keys(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3095,7 +3121,7 @@ int job_trove_keyval_iterate_keys(PVFS_fs_id coll_id,
         out_status_p->count = jd->u.trove.count;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3153,7 +3179,7 @@ int job_trove_dspace_iterate_handles(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_iterate_handles(coll_id,
                                &(jd->u.trove.position), handle_array,
                                &(jd->u.trove.count), flags, jd->u.trove.vtag,
@@ -3171,6 +3197,7 @@ int job_trove_dspace_iterate_handles(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3184,7 +3211,7 @@ int job_trove_dspace_iterate_handles(PVFS_fs_id coll_id,
         out_status_p->count = jd->u.trove.count;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3245,7 +3272,7 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
 
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_create(coll_id,
                               handle_extent_array,
                               &(jd->u.trove.handle),
@@ -3265,6 +3292,7 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3276,7 +3304,7 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
         out_status_p->handle = jd->u.trove.handle;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3336,7 +3364,7 @@ int job_trove_dspace_create_list(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_create_list(coll_id,
                               handle_extent_array,
                               out_handle_array,
@@ -3358,6 +3386,7 @@ int job_trove_dspace_create_list(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3368,7 +3397,7 @@ int job_trove_dspace_create_list(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3424,7 +3453,7 @@ int job_trove_dspace_remove_list(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_remove_list(coll_id,
                               handle_array, 
                               out_error_array,
@@ -3445,6 +3474,7 @@ int job_trove_dspace_remove_list(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3455,7 +3485,7 @@ int job_trove_dspace_remove_list(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3513,7 +3543,7 @@ int job_trove_dspace_remove(PVFS_fs_id coll_id,
 
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_remove(coll_id,
                               handle, flags,
                               user_ptr_internal,
@@ -3530,6 +3560,7 @@ int job_trove_dspace_remove(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3540,7 +3571,7 @@ int job_trove_dspace_remove(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3596,7 +3627,7 @@ int job_trove_dspace_verify(PVFS_fs_id coll_id,
 
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_dspace_verify(coll_id,
                               handle, &jd->u.trove.type,
                               flags,
@@ -3615,6 +3646,7 @@ int job_trove_dspace_verify(PVFS_fs_id coll_id,
          * completion case */
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3625,7 +3657,7 @@ int job_trove_dspace_verify(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3712,7 +3744,7 @@ int job_trove_fs_create(char *collname,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_collection_create(collname, new_coll_id, user_ptr_internal,
         &(jd->u.trove.id));
 #else
@@ -3727,6 +3759,7 @@ int job_trove_fs_create(char *collname,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3737,7 +3770,7 @@ int job_trove_fs_create(char *collname,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3888,7 +3921,7 @@ int job_trove_fs_seteattr(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_collection_seteattr(coll_id, key_p, val_p, flags,
                                     user_ptr_internal, global_trove_context,
                                     &(jd->u.trove.id));
@@ -3904,6 +3937,7 @@ int job_trove_fs_seteattr(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3914,7 +3948,7 @@ int job_trove_fs_seteattr(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -3969,7 +4003,7 @@ int job_trove_fs_geteattr(PVFS_fs_id coll_id,
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_collection_geteattr(coll_id, key_p, val_p, flags,
                                     user_ptr_internal, global_trove_context,
                                     &(jd->u.trove.id));
@@ -3985,6 +4019,7 @@ int job_trove_fs_geteattr(PVFS_fs_id coll_id,
         jd = NULL;
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -3995,7 +4030,7 @@ int job_trove_fs_geteattr(PVFS_fs_id coll_id,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
@@ -4646,7 +4681,7 @@ static void precreate_pool_get_thread_mgr_callback_unlocked(
     }
 
     trove_pending_count--;
-    PINT_HD_update_counter(TROVE, "-");
+    PINT_HD_update_counter_dec(TROVE);
     tmp_trove->jd->u.precreate_pool.trove_pending--;
 
     /* don't overwrite error codes from other trove ops */
@@ -4714,7 +4749,7 @@ static void precreate_pool_iterate_callback(
         tmp_desc->completed_flag = 1;
 
         trove_pending_count--;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
 
 #ifdef __PVFS2_JOB_THREADED__
         /* wake up anyone waiting for completion */
@@ -4811,7 +4846,7 @@ static void precreate_pool_fill_thread_mgr_callback(
         jd->u.precreate_pool.precreate_handle_index += 
             jd->u.precreate_pool.posted_count;
         trove_pending_count--;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
 
         /* increment in-memory count for this pool */
         gen_mutex_lock(&precreate_pool_mutex);
@@ -4917,7 +4952,7 @@ static void precreate_pool_fill_thread_mgr_callback(
     }
 
     gossip_debug(GOSSIP_JOB_DEBUG, "job_precreate_pool_fill() posting trove_keyval_write_list()\n");
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_write_list(jd->u.precreate_pool.fsid, 
                             jd->u.precreate_pool.precreate_pool,
                             jd->u.precreate_pool.key_array, 
@@ -4948,16 +4983,19 @@ static void precreate_pool_fill_thread_mgr_callback(
         pthread_cond_signal(&completion_cond);
 #endif
         gen_mutex_unlock(&completion_mutex);
+        PINT_HD_update_counter_dec(TROVE);
         return;
     }
     else if(ret == 1)
     {
         gossip_debug(GOSSIP_JOB_DEBUG, "trove_keyval_write_list() immediate completion\n");
         precreate_pool_fill_thread_mgr_callback(jd, 0);
+        PINT_HD_update_counter_dec(TROVE);
     }
     else
     {
         gossip_debug(GOSSIP_JOB_DEBUG, "trove_keyval_write_list() returned zero\n");
+        PINT_HD_update_counter_dec(TROVE);
     }
 
     return;
@@ -4999,7 +5037,7 @@ static void trove_thread_mgr_callback(
         tmp_desc->completed_flag = 1;
 
         trove_pending_count--;
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
 
 #ifdef __PVFS2_JOB_THREADED__
         /* wake up anyone waiting for completion */
@@ -5045,7 +5083,7 @@ static void bmi_thread_mgr_callback(
         tmp_desc->completed_flag = 1;
 
         bmi_pending_count--;
-        PINT_HD_update_counter(BMI, "-");
+        PINT_HD_update_counter_dec(BMI);
 
 #ifdef __PVFS2_JOB_THREADED__
         /* wake up anyone waiting for completion */
@@ -5510,7 +5548,7 @@ static void flow_callback(flow_descriptor* flow_d)
     tmp_desc->completed_flag = 1;
 
     flow_pending_count--;
-    PINT_HD_update_counter(FLOW, "-");
+    PINT_HD_update_counter_dec(FLOW);
     gossip_debug(GOSSIP_FLOW_DEBUG, "Job flows in progress (callback time): %d\n",
             flow_pending_count);
 
@@ -6117,7 +6155,7 @@ static void precreate_pool_get_handles_try_post(struct job_desc* jd)
         }
 
         /* post trove operation to pull out a handle */
-        PINT_HD_update_counter(TROVE, "+");
+        PINT_HD_update_counter_inc(TROVE);
         ret = trove_keyval_iterate_keys(
             fs->fsid, 
             tmp_trove_array[i].pool->pool_handle,
@@ -6137,12 +6175,13 @@ static void precreate_pool_get_handles_try_post(struct job_desc* jd)
         {
             precreate_pool_get_thread_mgr_callback_unlocked(
                 &tmp_trove_array[i], ret);
+            PINT_HD_update_counter_dec(TROVE);
         }
         else if(ret == 1)
         {
             precreate_pool_get_thread_mgr_callback_unlocked(
                 &tmp_trove_array[i], 0);
-            PINT_HD_update_counter(TROVE, "-");
+            PINT_HD_update_counter_dec(TROVE);
         }
         else
         {
@@ -6293,7 +6332,7 @@ int job_precreate_pool_iterate_handles(
     user_ptr_internal = &jd->trove_callback;
 
 #ifdef __PVFS2_TROVE_SUPPORT__
-    PINT_HD_update_counter(TROVE, "+");
+    PINT_HD_update_counter_inc(TROVE);
     ret = trove_keyval_iterate_keys(fsid, pool->pool_handle,
                                &(jd->u.precreate_pool.position), 
                                jd->u.precreate_pool.key_array, 
@@ -6314,6 +6353,7 @@ int job_precreate_pool_iterate_handles(
         out_status_p->error_code = ret;
         out_status_p->status_user_tag = status_user_tag;
         gen_mutex_unlock(&precreate_pool_mutex);
+        PINT_HD_update_counter_dec(TROVE);
         return (1);
     }
 
@@ -6329,7 +6369,7 @@ int job_precreate_pool_iterate_handles(
         dealloc_job_desc(jd);
         jd = NULL;
         gen_mutex_unlock(&precreate_pool_mutex);
-        PINT_HD_update_counter(TROVE, "-");
+        PINT_HD_update_counter_dec(TROVE);
         return (ret);
     }
 
