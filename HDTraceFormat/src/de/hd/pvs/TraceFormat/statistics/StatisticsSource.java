@@ -25,8 +25,12 @@
 
 package de.hd.pvs.TraceFormat.statistics;
 
-import de.hd.pvs.TraceFormat.TraceObject;
 
+/**
+ * Interface describing an statistic reader.
+ * 
+ * @author julian
+ */
 public interface StatisticsSource {
-	public TraceObject getNextInputEntry() throws Exception;
+
 }

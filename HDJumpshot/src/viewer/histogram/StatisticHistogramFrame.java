@@ -17,7 +17,7 @@
 
 package viewer.histogram;
 
-import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.StatisticStatistics;
 
 import java.awt.BasicStroke;
@@ -50,8 +50,8 @@ import viewer.graph.GraphAxis;
 import viewer.graph.GraphData;
 import viewer.graph.Histogram2D;
 import viewer.graph.HistogramData;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.CategoryStatistic;
 
@@ -65,8 +65,8 @@ public class StatisticHistogramFrame {
 	final ModelTime modelTime;
 	final JFrame frame;
 
-	final BufferedStatisticFileReader reader;
-	final StatisticDescription description;
+	final BufferedStatisticsFileReader reader;
+	final StatisticsDescription description;
 
 	final HistogramGraph histogramGraph;
 	final LabeledSpinner binNumberSpinner;
@@ -104,7 +104,7 @@ public class StatisticHistogramFrame {
 		}		
 	}
 
-	public StatisticHistogramFrame(BufferedStatisticFileReader reader, StatisticDescription description, ModelTime modelTime, CategoryStatistic category ) {
+	public StatisticHistogramFrame(BufferedStatisticsFileReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
 		this.modelTime = modelTime;
 		this.reader = reader;
 		this.description = description;
@@ -251,7 +251,7 @@ public class StatisticHistogramFrame {
 			final Epoch startTime = new Epoch(modelTime.getViewPosition());
 			final Epoch endTime = new Epoch(modelTime.getViewExtent() + modelTime.getViewPosition());
 			
-			final Enumeration<StatisticGroupEntry> entries = reader.enumerateStatistics(	
+			final Enumeration<StatisticsGroupEntry> entries = reader.enumerateStatistics(	
 					startTime, endTime);
 
 			while(entries.hasMoreElements()){

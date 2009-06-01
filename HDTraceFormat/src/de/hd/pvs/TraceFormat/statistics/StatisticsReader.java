@@ -35,20 +35,43 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 
 /**
- * Read statistics of a single group on demand
+ * Read statistics of a single group on demand.
+ * 
  * @author Julian M. Kunkel
  *
  */
 public class StatisticsReader implements StatisticsSource{
-	final RandomAccessFile file;	
+	/**
+	 * The input file, null if empty
+	 */
+	RandomAccessFile file;
+	
+	/**
+	 * The group we are reading.
+	 */
 	final StatisticsGroupDescription group;
 	
+	/**
+	 * The timestamp on which the last interval ended. Therefore it is the start of the next interval.
+	 */
 	Epoch lastTimeStamp;
 	
+	/**
+	 * Create a new statistics reader.
+	 * 
+	 * @param filename
+	 * @throws Exception
+	 */
 	public StatisticsReader(String filename) throws Exception {
 		this(filename, null);
 	}
 	
+	/**
+	 * Create a new statistics reader, check, if the group name in the file matches the expectations.
+	 * @param filename
+	 * @param expectedGroup
+	 * @throws Exception
+	 */
 	public StatisticsReader(String filename, String expectedGroup) throws Exception {
 		this.file = new RandomAccessFile(filename, "r");
 		
@@ -61,7 +84,7 @@ public class StatisticsReader implements StatisticsSource{
 		file.readFully(headerXML);
 		final String str = new String(headerXML); 
 		
-		// parse header to DOM
+		// parse header via DOM
 		final XMLReaderToRAM headerReader = new XMLReaderToRAM();
 		XMLTag root;
 		
@@ -72,6 +95,7 @@ public class StatisticsReader implements StatisticsSource{
 			throw e;
 		}
 		
+		// use the group definition as specified in the XML header of the file
 		final XMLTag groupDefinition = root.getFirstNestedXMLTagWithName("Group");
 
 		if(groupDefinition == null ){
@@ -87,7 +111,12 @@ public class StatisticsReader implements StatisticsSource{
 		lastTimeStamp = readTimeStamp();
 	}
 	
-	private Epoch readTimeStamp() throws Exception{
+	/**
+	 * Read a single timestamp in the appropriate format.
+	 * @return
+	 * @throws IOException
+	 */
+	private Epoch readTimeStamp() throws IOException{
 		Epoch timeStamp;
 
 		// read timestamp:
@@ -111,8 +140,13 @@ public class StatisticsReader implements StatisticsSource{
 		return timeStamp;
 	}
 	
-	@Override
-	public StatisticGroupEntry getNextInputEntry() throws Exception{
+	/**
+	 * Return the statistics for the next interval.
+	 * 
+	 * @return null, if there is no further entry!
+	 * @throws Exception
+	 */
+	public StatisticsGroupEntry getNextInputEntry() throws IOException{
 		if(isFinished()){
 			return null;
 		}
@@ -121,25 +155,25 @@ public class StatisticsReader implements StatisticsSource{
 		final Object [] values = new Object[group.getSize()];
 	
 		int pos = 0;
-		for(StatisticDescription statDesc: group.getStatisticsOrdered()){
+		for(StatisticsDescription statDesc: group.getStatisticsOrdered()){
 			final String statName = statDesc.getName();
 			
 			// read data depending on type:
-			final StatisticsEntryType type = statDesc.getType();
+			final StatisticsEntryType type = statDesc.getDatatype();
 			Object value;
 			switch(type){
 			case INT64:
-				value = new Long(file.readLong() * statDesc.getMultiplier());
+				value = new Long(file.readLong());
 				break;
 			case INT32:
-				value = new Integer(file.readInt()* statDesc.getMultiplier());
+				value = new Integer(file.readInt());
 				break;
 			case DOUBLE:
-				value = new Double(file.readDouble()* statDesc.getMultiplier());
+				value = new Double(file.readDouble());
 								
 				break;
 			case FLOAT:
-				value = new Float(file.readFloat()* statDesc.getMultiplier());		
+				value = new Float(file.readFloat());		
 				break;
 			case STRING:
 				final int length = file.readShort();
@@ -164,24 +198,27 @@ public class StatisticsReader implements StatisticsSource{
 			throw new IllegalArgumentException("Time " + timeStamp + " is earlier than last entry time: " + lastTimeStamp);
 		}
 		
-		StatisticGroupEntry entry = new StatisticGroupEntry(values, lastTimeStamp, timeStamp, group);
+		StatisticsGroupEntry entry = new StatisticsGroupEntry(values, lastTimeStamp, timeStamp, group);
 		
 		lastTimeStamp = timeStamp;
 		
 		return entry;
 	}
 
+	/**
+	 * @return true if there is no further entry which can be read.
+	 */
 	public boolean isFinished(){
-		try{
-			return file.getFilePointer() == file.length();
-		}catch(IOException e){
-			throw new IllegalArgumentException(e);
-		}
-	}
-
-	public void close(){
-		try{
-			file.close();
+		if(file == null)
+			return true;
+		try{			
+			boolean ret = (file.getFilePointer() == file.length());
+			
+			if(ret == true){
+				file.close();
+				this.file = null;
+			}
+			return ret;
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}
@@ -196,6 +233,11 @@ public class StatisticsReader implements StatisticsSource{
 	}
 	
 
+	/**
+	 * Parse the actual XML header.
+	 * @param root
+	 * @return
+	 */
 	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
 		StatisticsGroupDescription stat = new StatisticsGroupDescription(root.getAttribute("name"));
 		//System.out.println("Statistics: " + root.getNodeName());
@@ -221,17 +263,12 @@ public class StatisticsReader implements StatisticsSource{
 		// the next number of the statistic group:
 		int currentNumberInGroup = 0;
 		for(XMLTag child: children){
-			int multiplier = 1;
-			final String multiplierStr = child.getAttribute("multiplier");
-			if(multiplierStr != null && multiplierStr.length() > 0){
-				multiplier = Integer.parseInt(child.getAttribute("multiplier"));			
-			}
-			StatisticDescription desc = new StatisticDescription(stat,
+			StatisticsDescription desc = new StatisticsDescription(stat,
 					child.getAttribute("name"), 
 					StatisticsEntryType.valueOf( child.getAttribute("type").toUpperCase() ),
 					currentNumberInGroup,
 					child.getAttribute("unit"),
-					multiplier, child.getAttribute("grouping"));
+					 child.getAttribute("grouping"));
 
 			stat.addStatistic(desc);
 

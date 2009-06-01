@@ -32,7 +32,7 @@ import java.util.Stack;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 
 /**
- * Enumerate the children in correct time order. 
+ * Enumerate the nested elements of a state in correct time order. 
  * 
  * @author Julian M. Kunkel
  */
@@ -93,7 +93,10 @@ public class ForwardStateEnumeration implements Enumeration<TraceEntry>{
 		return obj;
 	}
 
-	
+	/**
+	 * Return the nesting depth of the element which will be returned next by <code>nextElement()</code> 
+	 * @return
+	 */
 	public int getNestingDepthOfNextElement() {
 		return nestedChildren.size();
 	}

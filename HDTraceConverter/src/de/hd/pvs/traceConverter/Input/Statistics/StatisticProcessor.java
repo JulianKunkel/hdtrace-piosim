@@ -29,9 +29,9 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
@@ -46,7 +46,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 
 	private boolean isFinished;
 
-	private StatisticGroupEntry lastRead;
+	private StatisticsGroupEntry lastRead;
 	private long           currentOffset = 0;
 
 	private Epoch nextTimeStamp;
@@ -68,7 +68,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	/**
 	 * Record the last read value of a given statistic
 	 */
-	HashMap<StatisticDescription, StatisticWritten> lastUpdatedStatistic = new HashMap<StatisticDescription, StatisticWritten>();
+	HashMap<StatisticsDescription, StatisticWritten> lastUpdatedStatistic = new HashMap<StatisticsDescription, StatisticWritten>();
 
 	private void getNextStatistic() throws Exception{
 		if(! isFinished){
@@ -91,7 +91,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 	}
 
 	@Override
-	public void processEarliestEvent(Epoch now) {
+	public void processEarliestEvent(Epoch now) throws IOException{
 		isFinished = reader.isFinished();
 
 		final Object [] values = new Object[group.getSize()];
@@ -99,7 +99,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 		for(int pos = 0; pos < group.getSize() ; pos ++){
 			Object val = lastRead.getValues()[pos];
 			
-			final StatisticDescription statDesc = group.getStatisticsOrdered().get(pos); 
+			final StatisticsDescription statDesc = group.getStatisticsOrdered().get(pos); 
 
 			if(getRunParameters().isUpdateStatisticsOnlyIfTheyChangeTooMuch()){
 				// check if the statistic changed enough from the last written stamp.
@@ -170,7 +170,7 @@ public class StatisticProcessor  extends AbstractTraceProcessor{
 			values[pos] = val;
 		}
 		
-		final StatisticGroupEntry newEntry = new StatisticGroupEntry(values, startTime , now, group);		
+		final StatisticsGroupEntry newEntry = new StatisticsGroupEntry(values, startTime , now, group);		
 		getOutputConverter().Statistics(getTopologyEntryResponsibleFor(), newEntry );
 
 		try{

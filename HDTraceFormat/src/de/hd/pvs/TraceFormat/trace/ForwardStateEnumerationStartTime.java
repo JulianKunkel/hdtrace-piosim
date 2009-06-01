@@ -29,7 +29,8 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 
 /**
- * Enumerate the children in correct time order, start with an initial time. The enumeration allows to look ahead one element.
+ * Enumerate the children in correct time order, start with an initial time. 
+ * The enumeration allows to look ahead one element (via peek).
  * 
  * @author Julian M. Kunkel
  */

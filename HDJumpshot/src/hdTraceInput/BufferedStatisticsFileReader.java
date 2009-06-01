@@ -28,40 +28,69 @@ package hdTraceInput;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
+import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
-public class BufferedStatisticFileReader extends StatisticsReader implements IBufferedReader{
+/**
+ * Buffers all statistics of a given file.
+ * 
+ * @author julian
+ *
+ */
+public class BufferedStatisticsFileReader implements IBufferedReader, StatisticsSource {
 
-	private Epoch minTime;
-	private Epoch maxTime;
+	/**
+	 * Earliest statistics start time
+	 */
+	private final Epoch minTime;
+	
+	/**
+	 * Latest statistics end time
+	 */
+	private final Epoch maxTime;
+	
+	/**
+	 * The group we are reading.
+	 */
+	private final StatisticsGroupDescription group;
 
-	final StatisticStatistics [] statistics;
+	/**
+	 * Statistics about the contained values
+	 */
+	private final StatisticStatistics [] statistics;
 
-	ArrayList<StatisticGroupEntry> statEntries = new ArrayList<StatisticGroupEntry>();
+	/**
+	 * The actual contained entries.
+	 */
+	private final StatisticsGroupEntry [] entries;
 
-	public BufferedStatisticFileReader(String filename, String group) throws Exception{
-		super(filename, group);
+	public BufferedStatisticsFileReader(String filename, String expectedGroupName) throws Exception{
+		final StatisticsReader reader = new StatisticsReader(filename, expectedGroupName);
 
-		StatisticGroupEntry current = getNextInputEntry();
+		this.group = reader.getGroup();
 		
-		minTime = current.getEarliestTime();		
+		StatisticsGroupEntry current = reader.getNextInputEntry();
+		
+		this.minTime = current.getEarliestTime();	
+		
+		final ArrayList<StatisticsGroupEntry> statEntries = new ArrayList<StatisticsGroupEntry>();
 		
 		while(current != null){
 			statEntries.add(current);
-			current = getNextInputEntry();
+			current = reader.getNextInputEntry();
 		}
 
-		maxTime = statEntries.get(statEntries.size()-1).getLatestTime();
+		this.maxTime = statEntries.get(statEntries.size()-1).getLatestTime();
+		
+		this.entries = statEntries.toArray(new StatisticsGroupEntry[]{});
 
-		//  update local min/max value
-		// check file:
-
-		statistics = new StatisticStatistics [getGroup().getSize()];
-
-		for(StatisticDescription desc: getGroup().getStatisticsOrdered()){
+		
+		this.statistics = new StatisticStatistics [getGroup().getSize()];
+		for(StatisticsDescription desc: getGroup().getStatisticsOrdered()){
 			if(! desc.isNumeric())
 				continue;
 			
@@ -71,17 +100,17 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		}
 	}
 
-	public Enumeration<StatisticGroupEntry> enumerateStatistics(Epoch startTime, Epoch endTime){
+	public Enumeration<StatisticsGroupEntry> enumerateStatistics(Epoch startTime, Epoch endTime){
 		return new ReaderStatisticGroupEnumerator(this, getGroup(), startTime, endTime);
 	}
 
 	public int getStatisticPositionAfter(Epoch minEndTime){
 		int min = 0; 
-		int max = statEntries.size() - 1;
+		int max = entries.length - 1;
 		
 		while(true){						
 			int cur = (min + max) / 2;
-			StatisticGroupEntry entry = statEntries.get(cur);
+			StatisticsGroupEntry entry = entries[cur];
 			
 			if(min == max){ // found entry or stopped.
 				
@@ -102,17 +131,17 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 		}
 	}
 
-	public StatisticGroupEntry getTraceEntryClosestToTime(Epoch dTime){
+	public StatisticsGroupEntry getTraceEntryClosestToTime(Epoch dTime){
 		int pos = getStatisticPositionAfter(dTime);
 		if (pos == -1)
-			pos = statEntries.size()-1;
+			pos = entries.length -1;
 
-		return statEntries.get(pos);
+		return entries[pos];
 	}
 
 
-	public ArrayList<StatisticGroupEntry> getStatEntries() {
-		return statEntries;
+	public StatisticsGroupEntry [] getStatEntries() {
+		return entries;
 	}
 
 	public Epoch getMinTime() {
@@ -125,5 +154,9 @@ public class BufferedStatisticFileReader extends StatisticsReader implements IBu
 
 	public StatisticStatistics getStatisticsFor(int which) {
 		return statistics[which];
+	}
+	
+	public StatisticsGroupDescription getGroup() {
+		return group;
 	}
 }

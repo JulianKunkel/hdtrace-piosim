@@ -30,7 +30,11 @@ import java.util.HashMap;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
-
+/**
+ * Event trace object.
+ * 
+ * @author julian
+ */
 public class EventTraceEntry extends TraceEntry{
 
 	/**
@@ -55,6 +59,4 @@ public class EventTraceEntry extends TraceEntry{
 	public Epoch getLatestTime() {
 		return getEarliestTime();
 	}
-	
-	
 }

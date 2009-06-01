@@ -30,24 +30,34 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
- * Read values from a statistic file, aka Statistic Group. 
+ * Contains information for one statistics group and one interval.
  * 
  * @author Julian M. Kunkel
  *
  */
-public class StatisticGroupEntry implements TraceObject{
+public class StatisticsGroupEntry implements TraceObject{
 	
+	/**
+	 * The group the entry belongs to.
+	 */
 	private final StatisticsGroupDescription group;
 	
 	/**
-	 * Maps the statistic name to the measured value.
+	 * Array, which maps the statistics group entry to the actual data value.
 	 */
 	private final Object [] values;
 	
+	/**
+	 * Start time of the interval
+	 */
+	private final Epoch startTime;
+	
+	/**
+	 * End time of the interval
+	 */
 	private final Epoch endTime;
-	private final Epoch startTime; 
-		
-	public StatisticGroupEntry(Object [] values, Epoch startTime, Epoch endTime, StatisticsGroupDescription group) {
+	 
+	public StatisticsGroupEntry(Object [] values, Epoch startTime, Epoch endTime, StatisticsGroupDescription group) {
 		this.group = group;
 		this.values = values;
 		this.endTime = endTime;
@@ -59,7 +69,7 @@ public class StatisticGroupEntry implements TraceObject{
 	}
 	
 	/**
-	 * Return a number as double
+	 * Return the double value for a given statistics in the group 
 	 * @param which, the number of the value
 	 * @return
 	 */
@@ -70,8 +80,11 @@ public class StatisticGroupEntry implements TraceObject{
 		return Double.NaN;
 	}
 	
-	public StatisticEntry createStatisticEntry(int which){
-		return new StatisticEntry(values[which], group.getStatisticsOrdered().get(which) , this);
+	/**
+	 * Create an object for a single statistics contained in this group entry.  
+	 */
+	public StatisticsEntry createStatisticEntry(int which){
+		return new StatisticsEntry(values[which], group.getStatisticsOrdered().get(which) , this);
 	}
 	
 	public Epoch getEarliestTime() {
@@ -90,5 +103,10 @@ public class StatisticGroupEntry implements TraceObject{
 	
 	public StatisticsGroupDescription getGroup() {
 		return group;
+	}
+	
+	@Override
+	final public Epoch getDurationTime() {
+		return getLatestTime().subtract(getEarliestTime());
 	}
 }

@@ -17,21 +17,21 @@
 
 package topology;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 
 /**
  * Statistics for a single statistic across ALL topologies of this file
  */
 public class GlobalStatisticsPerStatistic extends MinMax{
 	
-	private final StatisticDescription statisticDescription;
+	private final StatisticsDescription statisticDescription;
 		
-	public GlobalStatisticsPerStatistic(StatisticDescription statisticDescription) {
+	public GlobalStatisticsPerStatistic(StatisticsDescription statisticDescription) {
 		this.statisticDescription = statisticDescription;
 	}
 	
 	
-	public StatisticDescription getStatisticDescription() {
+	public StatisticsDescription getStatisticDescription() {
 		return statisticDescription;
 	}
 }

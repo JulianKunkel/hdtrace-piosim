@@ -30,6 +30,12 @@ package de.hd.pvs.TraceFormat.trace;
 
 import java.util.Iterator;
 
+/**
+ * Iterate the nested elements of a state in reversed time order, i.e. the last started elements 
+ * will be the first returned by the iterator.
+ * 
+ * @author julian
+ */
 class BackwardStateEnumeration extends ForwardStateEnumeration{
 	public BackwardStateEnumeration(StateTraceEntry owner) {
 		super(owner);

@@ -27,7 +27,7 @@ package de.hd.pvs.TraceFormat.index;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
@@ -104,7 +104,7 @@ public class IndexCreator {
 	
 		final IndexWriter writer = new IndexWriter(outFileName);	
 		
-		StatisticGroupEntry entry = reader.getNextInputEntry();
+		StatisticsGroupEntry entry = reader.getNextInputEntry();
 		while(entry != null){
 			
 			writer.writeNextEntry(entry.getEarliestTime(), reader.getFilePosition());
@@ -112,7 +112,6 @@ public class IndexCreator {
 			entry = reader.getNextInputEntry();
 		}
 		
-		reader.close();
 		writer.finalize();		
 	}
 

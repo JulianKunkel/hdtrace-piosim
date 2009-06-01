@@ -34,8 +34,8 @@ package de.hd.pvs.TraceFormat;
  *
  */
 public enum TraceObjectType{
-	STATE,
+	STATE, 
 	EVENT,
 	STATISTICGROUPVALUES, 
-	STATISTICENTRY
+	STATISTICENTRY //created on demand by a statistic group value
 }

@@ -30,8 +30,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -97,8 +97,8 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Statistics(TopologyNode topology, StatisticGroupEntry entry) {
-		for(StatisticDescription desc: entry.getGroup().getStatisticsOrdered()){						
+	public void Statistics(TopologyNode topology, StatisticsGroupEntry entry) {
+		for(StatisticsDescription desc: entry.getGroup().getStatisticsOrdered()){						
 			String unit = "";
 			if(desc.getUnit() != null){
 				unit = " " + desc.getUnit(); 

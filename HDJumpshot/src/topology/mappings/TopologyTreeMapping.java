@@ -17,14 +17,14 @@
 
 package topology.mappings;
 
-import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
 import topology.TopologyManagerContents;
 import topology.TopologyStatisticTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 /**
@@ -61,9 +61,9 @@ abstract public class TopologyTreeMapping {
 
 			SortedJTreeNode statGroupNode = addDummyTreeNode(group, node);
 
-			BufferedStatisticFileReader statSource = (BufferedStatisticFileReader) topology.getStatisticsSource(group);
+			BufferedStatisticsFileReader statSource = (BufferedStatisticsFileReader) topology.getStatisticsSource(group);
 			
-			for(StatisticDescription statDesc: statSource.getGroup().getStatisticsOrdered()){
+			for(StatisticsDescription statDesc: statSource.getGroup().getStatisticsOrdered()){
 				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file );
 
 				addTopologyTreeNode(statNode, statGroupNode);

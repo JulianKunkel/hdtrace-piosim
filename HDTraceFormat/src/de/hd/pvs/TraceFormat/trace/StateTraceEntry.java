@@ -32,15 +32,23 @@ import java.util.LinkedList;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
-
+/**
+ * State, contains a start and end time and might be nested.
+ * I.e. it is allowed to contain child entries. 
+ * 
+ * @author julian
+ */
 public class StateTraceEntry extends TraceEntry{
 
 	Epoch endTime;
 
+	/**
+	 * Child trace entries.
+	 */
 	LinkedList<TraceEntry> nestedTraceChildren = null;
 
 	/**
-	 * Walk through the children in correct time order, aka Depth First Search
+	 * Walk through the children in correct time order, (Depth First Search)
 	 * This includes not the parent state.
 	 * @return
 	 */
@@ -49,7 +57,7 @@ public class StateTraceEntry extends TraceEntry{
 	}
 	
 	/**
-	 * Walk through the children in correct time order, aka Depth First Search
+	 * Walk through the children in correct time order, (Depth First Search)
 	 * The least startTime the child might have is the startTime.
 	 * This includes not the parent state. 
 	 * @return
@@ -77,14 +85,27 @@ public class StateTraceEntry extends TraceEntry{
 		this.endTime = end;
 	}
 	
+	/**
+	 * Create a new state trace entry.
+	 * @param name
+	 * @param start
+	 */
 	public StateTraceEntry(String name, Epoch start){
 		super(name, start);
 	}
 	
+	/**
+	 * Set the end time.
+	 * @param endTime
+	 */
 	public void setEndTime(Epoch endTime) {
 		this.endTime = endTime;
 	}
 
+	/**
+	 * Add a nested child
+	 * @param child
+	 */
 	public void addTraceChild(TraceEntry child){
 		if(nestedTraceChildren == null){
 			nestedTraceChildren = new LinkedList<TraceEntry>();
@@ -98,14 +119,7 @@ public class StateTraceEntry extends TraceEntry{
 		return TraceObjectType.STATE;
 	}
 
-	public Epoch getDurationTime() {
-		return endTime.subtract(getEarliestTime());
-	}
-
-	public double getDurationTimeDouble() {
-		return endTime.getDouble() - getEarliestTime().getDouble();
-	}
-
+	@Override
 	public Epoch getLatestTime() {
 		return endTime;
 	}
@@ -118,6 +132,10 @@ public class StateTraceEntry extends TraceEntry{
 		return nestedTraceChildren;
 	}
 
+	/**
+	 * Create an informative string for the state and all contained children. 
+	 * @return
+	 */
 	public String toStringWithChildren() {
 		StringBuffer buff = new StringBuffer();
 

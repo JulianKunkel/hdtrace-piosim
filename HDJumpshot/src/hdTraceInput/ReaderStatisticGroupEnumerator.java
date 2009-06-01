@@ -25,38 +25,37 @@
 
 package hdTraceInput;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
-public class ReaderStatisticGroupEnumerator implements Enumeration<StatisticGroupEntry> {
+public class ReaderStatisticGroupEnumerator implements Enumeration<StatisticsGroupEntry> {
 
 	int currentPos;
-	final ArrayList<StatisticGroupEntry> entries;
+	final StatisticsGroupEntry [] entries;
 	final Epoch endTime;
 
-	StatisticGroupEntry current;
+	StatisticsGroupEntry current;
 	
 	// read one more as required, i.e. to cover length of statistic
 	boolean isFinalOne = false;
 
-	public ReaderStatisticGroupEnumerator(BufferedStatisticFileReader reader, StatisticsGroupDescription group, Epoch startTime, Epoch endTime) {		
+	public ReaderStatisticGroupEnumerator(BufferedStatisticsFileReader reader, StatisticsGroupDescription group, Epoch startTime, Epoch endTime) {		
 		entries = reader.getStatEntries();
 		currentPos = reader.getStatisticPositionAfter(startTime) ;
 
 		this.endTime = endTime;	
 		
 		if(currentPos < 0){
-			currentPos = entries.size() - 1;
+			currentPos = entries.length - 1;
 		}
-		current = entries.get(currentPos);
+		current = entries[currentPos];
 		currentPos++;
 		
 		if(current.getLatestTime().compareTo(endTime) > 0){
-			if(currentPos <= entries.size()){
+			if(currentPos <= entries.length){
 				isFinalOne = true;
 			}else{
 				current = null;
@@ -70,11 +69,11 @@ public class ReaderStatisticGroupEnumerator implements Enumeration<StatisticGrou
 	}
 
 	@Override
-	public StatisticGroupEntry nextElement() {
-		StatisticGroupEntry old = current;
+	public StatisticsGroupEntry nextElement() {
+		StatisticsGroupEntry old = current;
 	
-		if(currentPos < entries.size()){
-			current = entries.get(currentPos);
+		if(currentPos < entries.length){
+			current = entries[currentPos];
 			
 			currentPos++;
 			

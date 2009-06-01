@@ -28,12 +28,33 @@ package de.hd.pvs.TraceFormat;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
- * Basic class for all kinds of monitored trace objects
+ * Basic class for all managed trace objects.
+ * 
  * @author Julian M. Kunkel
  *
  */
 public interface TraceObject {
+	/**
+	 * What kind of trace object is it?
+	 * @return
+	 */
 	public TraceObjectType getType();
+	
+	/**
+	 * When does this trace object start
+	 * @return
+	 */
 	public Epoch getEarliestTime();
+	
+	/**
+	 * When is this trace object finished
+	 * @return
+	 */
 	public Epoch getLatestTime();
+	
+	/**
+	 * Duration of the trace object
+	 * @return
+	 */
+	public Epoch getDurationTime();	
 }

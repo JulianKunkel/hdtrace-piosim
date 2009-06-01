@@ -25,10 +25,10 @@
 
 package topology;
 
-import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedStatisticsFileReader;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -37,9 +37,9 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	private static final long serialVersionUID = 7893694713193686328L;
 	
 	final StatisticsSource statisticSource;
-	final StatisticDescription statisticDescription;
+	final StatisticsDescription statisticDescription;
 	
-	public TopologyStatisticTreeNode(StatisticDescription statDesc, String group, TopologyNode topNode, TraceFormatFileOpener file) {
+	public TopologyStatisticTreeNode(StatisticsDescription statDesc, String group, TopologyNode topNode, TraceFormatFileOpener file) {
 		super(topNode, file);
 		
 		this.statisticSource = topNode.getStatisticsSource(group);
@@ -47,15 +47,15 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	}
 	
 	public StatisticsGroupDescription getStatisticGroup(){
-		return ((BufferedStatisticFileReader) statisticSource).getGroup();
+		return ((BufferedStatisticsFileReader) statisticSource).getGroup();
 	}
 		
-	public StatisticDescription getStatisticDescription() {
+	public StatisticsDescription getStatisticDescription() {
 		return statisticDescription;
 	}
 	
-	public BufferedStatisticFileReader getStatisticSource() {
-		return (BufferedStatisticFileReader) statisticSource;
+	public BufferedStatisticsFileReader getStatisticSource() {
+		return (BufferedStatisticsFileReader) statisticSource;
 	}
 	
 	@Override

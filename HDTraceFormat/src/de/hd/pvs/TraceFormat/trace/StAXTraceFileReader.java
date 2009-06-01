@@ -59,8 +59,10 @@ public class StAXTraceFileReader implements TraceSource{
 	 */
 	boolean finishedReading = false;
 	
+	/**
+	 * The time adjustment is added to all read timestamps.
+	 */
 	private Epoch timeAdjustment = Epoch.ZERO;
-
 
 	/**
 	 * Current depths of the tag nesting.
@@ -178,10 +180,18 @@ public class StAXTraceFileReader implements TraceSource{
 		return null;
 	}
 	
+	/**
+	 * Return the current position in the trace file.
+	 * @return
+	 */
 	public long getFilePosition(){
 		return reader.getLocation().getCharacterOffset();
 	}
-	
+
+	/**
+	 * Close the input stream.
+	 * @throws Exception
+	 */
 	public void close() throws Exception{
 		reader.close();
 	}

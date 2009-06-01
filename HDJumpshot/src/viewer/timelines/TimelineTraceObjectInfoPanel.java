@@ -34,7 +34,7 @@
 
 package viewer.timelines;
 
-import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.StatisticStatistics;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
@@ -59,9 +59,9 @@ import viewer.pvfs2.PVFS2OpTypeParser;
 import viewer.pvfs2.PVFS2SMParser;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -132,7 +132,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 			showInfo((StateTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
 			return;
 		case STATISTICENTRY:
-			showInfo((StatisticEntry) obj, infoObj.getTopologyTreeNode().getTopology(), 
+			showInfo((StatisticsEntry) obj, infoObj.getTopologyTreeNode().getTopology(), 
 					((TopologyStatisticTreeNode) infoObj.getTopologyTreeNode()).getStatisticSource());
 			return;
 		default:
@@ -140,14 +140,14 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		}
 	}
 
-	public void showInfo( StatisticEntry statistic, 
+	public void showInfo( StatisticsEntry statistic, 
 			TopologyNode topology, 
-			BufferedStatisticFileReader sReader) {
+			BufferedStatisticsFileReader sReader) {
 
 		setVisibleControls(TraceObjectType.STATISTICENTRY);		
 
-		final StatisticGroupEntry groupEntry = statistic.getParentGroupEntry();
-		final StatisticDescription desc = statistic.getDescription();
+		final StatisticsGroupEntry groupEntry = statistic.getParentGroupEntry();
+		final StatisticsDescription desc = statistic.getDescription();
 		final Category cat = reader.getCategory(desc); 
 
 		this.setStartTime( "" +  reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime()));
@@ -190,7 +190,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
 		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(state.getLatestTime()) );
 
-		this.setDuration( fmt.format( state.getDurationTimeDouble() ) );
+		this.setDuration( fmt.format( state.getDurationTime().getDouble() ) );
 		final Category cat = reader.getCategory(state); 
 		this.setCategoryName( cat.getName() );    
 		this.setCategoryColor( (Color) cat.getColor() );

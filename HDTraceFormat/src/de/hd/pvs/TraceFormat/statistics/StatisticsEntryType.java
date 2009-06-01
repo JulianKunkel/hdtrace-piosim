@@ -26,7 +26,7 @@
 package de.hd.pvs.TraceFormat.statistics;
 
 /**
- * Data types a statistic value might have.
+ * Data types a statistics value might have.
  * @author Julian M. Kunkel
  *
  */

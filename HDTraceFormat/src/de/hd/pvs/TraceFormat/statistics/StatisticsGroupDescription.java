@@ -29,6 +29,12 @@ import java.util.ArrayList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 
+/**
+ * Describes a group of statistics, i.e. a set of statistics which have one timestamp 
+ * and exactly one values of all contained statistics per interval.
+ *    
+ * @author julian
+ */
 public class StatisticsGroupDescription{
 
 	/**
@@ -41,7 +47,6 @@ public class StatisticsGroupDescription{
 	 */
 	int timeResolutionMultiplier = 1;
 
-	
 	String timeResolutionMultiplierName = null;
 	
 	/**
@@ -55,21 +60,21 @@ public class StatisticsGroupDescription{
 	final String groupName;
 
 	// maps contained statistics to type
-	final ArrayList<StatisticDescription>      statisticOrder;
+	final ArrayList<StatisticsDescription>      statisticOrder;
 
 	public StatisticsGroupDescription(String name) {
-		statisticOrder = new ArrayList<StatisticDescription>();
+		statisticOrder = new ArrayList<StatisticsDescription>();
 		this.groupName = name;		
 	}
 
 	/**
 	 * Add a statistic description, the order defines the order in which it is stored in the binary file.
 	 */
-	public void addStatistic(StatisticDescription desc){	
+	public void addStatistic(StatisticsDescription desc){	
 		statisticOrder.add(desc);
 	}
 
-	public ArrayList<StatisticDescription> getStatisticsOrdered() {
+	public ArrayList<StatisticsDescription> getStatisticsOrdered() {
 		return statisticOrder;
 	}
 	

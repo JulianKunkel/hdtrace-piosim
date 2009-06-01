@@ -26,7 +26,7 @@
 
 package topology;
 
-import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.BufferedTraceFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
@@ -60,10 +60,9 @@ import viewer.common.SortedJTreeModel;
 import viewer.common.SortedJTreeNode;
 import viewer.first.MainManager;
 import viewer.histogram.StatisticHistogramFrame;
-import viewer.linegraph.StatisticLineGraphFrame;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 
 public class TopologyManager 
@@ -135,7 +134,7 @@ public class TopologyManager
 	 * Stores information per StatisticDescription to allow to remove timelines if a statistic is visible
 	 * and to restore them if made visible.
 	 */
-	private HashMap<StatisticDescription, LinkedList<RemovedNode>> removedNodesMap = new HashMap<StatisticDescription, LinkedList<RemovedNode>>(); 
+	private HashMap<StatisticsDescription, LinkedList<RemovedNode>> removedNodesMap = new HashMap<StatisticsDescription, LinkedList<RemovedNode>>(); 
 
 
 	private SortedJTreeNode clickedNode;
@@ -203,7 +202,7 @@ public class TopologyManager
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							StatisticHistogramFrame frame = new StatisticHistogramFrame(
-									(BufferedStatisticFileReader) statNode.getStatisticSource(), 
+									(BufferedStatisticsFileReader) statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
 									reader.getCategory(statNode.getStatisticDescription()));
 							frame.show();
@@ -239,8 +238,8 @@ public class TopologyManager
 									//System.out.println("Selected: " + node.getStatisticDescription().getName());
 								//}
 								
-								StatisticLineGraphFrame frame = new StatisticLineGraphFrame(selectedStatNodes, reader, modelTime);
-								frame.show();
+								//StatisticLineGraphFrame frame = new StatisticLineGraphFrame(selectedStatNodes, reader, modelTime);
+								//frame.show();
 							}
 						});			
 					}
@@ -351,8 +350,8 @@ public class TopologyManager
 	 * @param timeline
 	 * @return
 	 */
-	public BufferedStatisticFileReader getStatisticReaderForTimeline(int timeline){
-		return (BufferedStatisticFileReader) ((TopologyStatisticTreeNode) timelines.get(timeline)).getStatisticSource();
+	public BufferedStatisticsFileReader getStatisticReaderForTimeline(int timeline){
+		return (BufferedStatisticsFileReader) ((TopologyStatisticTreeNode) timelines.get(timeline)).getStatisticSource();
 	}
 
 	public TopologyStatisticTreeNode getStatisticNodeForTimeline(int timeline){
@@ -471,7 +470,7 @@ public class TopologyManager
 
 	}
 
-	public void setStatisticVisiblity(StatisticDescription statistic, boolean visible){
+	public void setStatisticVisiblity(StatisticsDescription statistic, boolean visible){
 		final SortedJTreeModel model = getTreeModel();
 
 		if(visible == true){

@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -23,8 +23,8 @@ public class StatisticsComputer {
 	 * @param endTime
 	 * @return
 	 */
-	static public StatisticStatistics computeStatistics(BufferedStatisticFileReader reader, 
-			StatisticDescription description, Epoch startTime, Epoch endTime){
+	static public StatisticStatistics computeStatistics(BufferedStatisticsFileReader reader, 
+			StatisticsDescription description, Epoch startTime, Epoch endTime){
 
 		double min = Double.MAX_VALUE;
 		double max = Double.MIN_VALUE;
@@ -37,10 +37,10 @@ public class StatisticsComputer {
 
 		final int groupNumber = description.getNumberInGroup();
 
-		Enumeration<StatisticGroupEntry> entryEnum = reader.enumerateStatistics(startTime, endTime);
+		Enumeration<StatisticsGroupEntry> entryEnum = reader.enumerateStatistics(startTime, endTime);
 
 		while(entryEnum.hasMoreElements()){
-			final StatisticGroupEntry entry = entryEnum.nextElement();
+			final StatisticsGroupEntry entry = entryEnum.nextElement();
 			double value = entry.getNumeric(groupNumber);
 
 			if( value > max ) max = value;
@@ -66,7 +66,7 @@ public class StatisticsComputer {
 			avg = sum.divide(new BigDecimal(cnt), BigDecimal.ROUND_HALF_EVEN);
 
 			while(entryEnum.hasMoreElements()){
-				final StatisticGroupEntry entry = entryEnum.nextElement();
+				final StatisticsGroupEntry entry = entryEnum.nextElement();
 				double value = entry.getNumeric(groupNumber);
 
 				final BigDecimal multiplier = new BigDecimal(value).subtract(avg);

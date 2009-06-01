@@ -129,7 +129,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 	}
 
 	@Override
-	public void processEarliestEvent(Epoch now) {		
+	public void processEarliestEvent(Epoch now) throws IOException{		
 		//System.out.println(eventTime.getFullDigitString() + " " + currentTraceObject + " processing " + " t " + currentTraceObject.getEarliestTime());
 
 		if(currentTraceObject.getType() == TraceObjectType.EVENT){

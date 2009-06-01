@@ -41,8 +41,8 @@ import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -75,7 +75,7 @@ public class TraceFormatBufferedFileReader {
 	// map category names to the category:
 	final HashMap<String, CategoryState> categoriesStates = new HashMap<String, CategoryState>();	
 	final HashMap<String, CategoryEvent> categoriesEvents = new HashMap<String, CategoryEvent>();
-	final HashMap<StatisticDescription, CategoryStatistic> categoriesStatistics = new HashMap<StatisticDescription, CategoryStatistic>();
+	final HashMap<StatisticsDescription, CategoryStatistic> categoriesStatistics = new HashMap<StatisticsDescription, CategoryStatistic>();
 
 	final HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
@@ -116,7 +116,7 @@ public class TraceFormatBufferedFileReader {
 	 */
 	private void setGlobalValuesOnStatistics(Collection<StatisticsSource> stats){
 		for(StatisticsSource statReader: stats){			
-			final BufferedStatisticFileReader reader = ((BufferedStatisticFileReader) statReader);
+			final BufferedStatisticsFileReader reader = ((BufferedStatisticsFileReader) statReader);
 			updateMinMaxTime(reader);
 
 			final StatisticsGroupDescription group = reader.getGroup();
@@ -130,7 +130,7 @@ public class TraceFormatBufferedFileReader {
 
 			// for each member, update global statistic information TODO put into a file
 			int groupNumber = -1;
-			for(StatisticDescription statDesc: group.getStatisticsOrdered()){
+			for(StatisticsDescription statDesc: group.getStatisticsOrdered()){
 				groupNumber++;
 
 				GlobalStatisticsPerStatistic statsPerStatistic = globalStats.getStatsForStatistic(statDesc);				
@@ -199,9 +199,9 @@ public class TraceFormatBufferedFileReader {
 		// walk through the complete topology and check each statistic
 		for(TopologyNode topo: fileOpener.getTopology().getSubTopologies()){
 			for(StatisticsSource statSource: topo.getStatisticsSources().values()) {
-				StatisticsGroupDescription group = ((BufferedStatisticFileReader) statSource).getGroup();
+				StatisticsGroupDescription group = ((BufferedStatisticsFileReader) statSource).getGroup();
 				
-				for(StatisticDescription desc: group.getStatisticsOrdered()){										 
+				for(StatisticsDescription desc: group.getStatisticsOrdered()){										 
 					if(!categoriesStatistics.containsKey(desc)){
 						categoriesStatistics.put(desc, new CategoryStatistic(desc, null));
 					}
@@ -218,7 +218,7 @@ public class TraceFormatBufferedFileReader {
 	 */	
 	public void loadAdditionalFile(String projectFileName) throws Exception{
 		TraceFormatFileOpener fileOpener = new TraceFormatFileOpener( projectFileName, true, 
-				BufferedStatisticFileReader.class, BufferedTraceFileReader.class );
+				BufferedStatisticsFileReader.class, BufferedTraceFileReader.class );
 
 		updateStatisticCategories(fileOpener);
 
@@ -299,7 +299,7 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStates;
 	}
 
-	public HashMap<StatisticDescription, CategoryStatistic> getCategoriesStatistics() {
+	public HashMap<StatisticsDescription, CategoryStatistic> getCategoriesStatistics() {
 		return categoriesStatistics;
 	}
 
@@ -320,13 +320,13 @@ public class TraceFormatBufferedFileReader {
 		case STATE:
 			return getCategory((StateTraceEntry) object);
 		case STATISTICENTRY:
-			StatisticEntry entry = (StatisticEntry) object;
+			StatisticsEntry entry = (StatisticsEntry) object;
 			return getCategory(entry.getDescription());
 		}
 		return null;	
 	}
 
-	public CategoryStatistic getCategory(StatisticDescription statistic){
+	public CategoryStatistic getCategory(StatisticsDescription statistic){
 		return categoriesStatistics.get(statistic);
 	}
 

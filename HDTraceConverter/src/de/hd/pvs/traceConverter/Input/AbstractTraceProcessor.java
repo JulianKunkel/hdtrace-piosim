@@ -60,7 +60,7 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	/**
 	 * Return the next "trace event" to process.
 	 */
-	abstract public void processEarliestEvent(Epoch now);
+	abstract public void processEarliestEvent(Epoch now) throws IOException;
 	
 	/**
 	 * Return the next event in the trace source.
@@ -72,7 +72,7 @@ abstract public class AbstractTraceProcessor implements Comparable<AbstractTrace
 	/**
 	 * Called once all information is set on this TraceProcessor
 	 */
-	abstract public void initalize();
+	abstract public void initalize() throws IOException;
 	
 	/**
 	 * Get the current position in the file

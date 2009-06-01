@@ -34,7 +34,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 
 import topology.TopologyStatisticTreeNode;
-import de.hd.pvs.TraceFormat.statistics.StatisticEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class InfoDialogForStatisticEntries extends InfoDialog
@@ -45,7 +45,7 @@ public class InfoDialogForStatisticEntries extends InfoDialog
 			final Epoch modelTimeOffset,
 			final Epoch clicked_time,
 			TopologyStatisticTreeNode topologyTreeNode, 
-			StatisticEntry obj)
+			StatisticsEntry obj)
 	{
 		super( frame, "Traceable Object Info Box", clicked_time, modelTimeOffset);
 

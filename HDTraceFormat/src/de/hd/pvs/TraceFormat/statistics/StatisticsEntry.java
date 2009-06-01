@@ -30,17 +30,17 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
- * A single read statistic value.
+ * A single statistic value. It is part of a statistics group entry.
  * 
  * @author Julian M. Kunkel
  */
-public class StatisticEntry implements TraceObject {
-	final StatisticGroupEntry parentGroupEntry;
-	final StatisticDescription description;	
+public class StatisticsEntry implements TraceObject {
+	final StatisticsGroupEntry parentGroupEntry;
+	final StatisticsDescription description;	
 	
 	final Object value;
 	
-	public StatisticEntry(Object value, StatisticDescription description, StatisticGroupEntry parentGroupEntry) {
+	public StatisticsEntry(Object value, StatisticsDescription description, StatisticsGroupEntry parentGroupEntry) {
 			this.value = value;
 			this.description = description;
 			this.parentGroupEntry = parentGroupEntry;
@@ -54,11 +54,11 @@ public class StatisticEntry implements TraceObject {
 		return (Number) value;
 	}
 	
-	public StatisticDescription getDescription() {
+	public StatisticsDescription getDescription() {
 		return description;
 	}
 	
-	public StatisticGroupEntry getParentGroupEntry() {
+	public StatisticsGroupEntry getParentGroupEntry() {
 		return parentGroupEntry;
 	}	
 	
@@ -75,5 +75,10 @@ public class StatisticEntry implements TraceObject {
 	@Override
 	public Epoch getLatestTime() {	
 		return parentGroupEntry.getLatestTime();
+	}
+	
+	@Override
+	final public Epoch getDurationTime() {
+		return getLatestTime().subtract(getEarliestTime());
 	}
 }

@@ -28,25 +28,49 @@ package de.hd.pvs.TraceFormat.statistics;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
- * Write a single statistic file 
+ * Write statistics group values to a statistics file. 
+ * Internally it checks the correct write order of the group's statistics and that the time
+ * is increasing.
  * 
  * @author Julian M. Kunkel
  *
  */
 public class StatisticsWriter {
-	private final DataOutputStream file;	
+	/**
+	 * The output file stream
+	 */
+	private final DataOutputStream file;
+
+	/**
+	 * The group we are writing
+	 */
 	private final StatisticsGroupDescription group;
 
+	/**
+	 * The time the last entry finished, used to check increasing timestamps.
+	 */
 	private Epoch lastTimeStamp = null;
 
-	private Iterator<StatisticDescription> nextExpectedStatisticIter = null;
+	/**
+	 * Iterator, to check the correct write order
+	 */
+	private Iterator<StatisticsDescription> nextExpectedStatisticIter = null;
 
+	/**
+	 * Creates a new statistics writer and initializes the statistics file.
+	 * @param filename The file to write to.
+	 * @param topology The topology this group belongs to.
+	 * @param newGroup The group which shall be written
+	 * @param startTime The first entry will start that time.
+	 * @throws Exception
+	 */
 	public StatisticsWriter(String filename, TopologyNode topology, 
 			StatisticsGroupDescription newGroup, Epoch startTime) throws Exception {
 		this.group = newGroup;
@@ -62,14 +86,14 @@ public class StatisticsWriter {
 		}
 		xmlHeader.append(">\n");
 
-		for(StatisticDescription stat: group.getStatisticsOrdered()){								
+		for(StatisticsDescription stat: group.getStatisticsOrdered()){								
 			xmlHeader.append("<Statistics name=\"" + stat.getName() + "\"" );
 
 			if(stat.getUnit() != null){
 				xmlHeader.append(" unit=\"" + stat.getUnit()  + "\"");
 			}
 
-			xmlHeader.append(" multiplier=\"" + stat.getMultiplier() + "\" type=\"" + stat.getType()  + "\"/>\n");
+			xmlHeader.append(" type=\"" + stat.getDatatype()  + "\"/>\n");
 		}
 
 		xmlHeader.append("</Group>\n");
@@ -82,10 +106,19 @@ public class StatisticsWriter {
 		writeStatisticsTimestampInternal(startTime);
 	}
 
+	/**
+	 * Check if all required values are written.
+	 * @return
+	 */
 	public boolean isStatisticIntervalFinished(){
 		return nextExpectedStatisticIter == null || ! nextExpectedStatisticIter.hasNext();
 	}
-	
+
+	/**
+	 * Write a timestamp in the apropriate format
+	 * @param time
+	 * @throws IOException
+	 */
 	private void writeStatisticsTimestampInternal(Epoch time) throws IOException{
 		final Epoch realTime = time.subtract(group.getTimeAdjustment());
 
@@ -102,10 +135,17 @@ public class StatisticsWriter {
 		default:
 			throw new IllegalArgumentException("Unknown timestamp type: " + group.getTimestampDatatype());
 		}
-		
+
 		lastTimeStamp = time;
 	}
-	
+
+	/**
+	 * Write the timestamp of the next interval.
+	 * Can be called ONLY if statistics of the group are written independently.
+	 * 
+	 * @param time
+	 * @throws IOException
+	 */
 	public void writeStatisticsTimestamp(Epoch time) throws IOException{
 		if(lastTimeStamp != null && lastTimeStamp.compareTo(time) > 0){
 			throw new IllegalArgumentException("New timestamp is before old timestamp! " + lastTimeStamp + " new: " + time);
@@ -120,30 +160,37 @@ public class StatisticsWriter {
 		writeStatisticsTimestampInternal(time);
 	}
 
-	public void writeStatisticEntry(StatisticDescription statistic, Object value) throws IOException{
+	/**
+	 * Write a single statistics value. This function is used in conjunction with writeStatisticsTimestamp.
+	 * 
+	 * @param statistic
+	 * @param value
+	 * @throws IOException
+	 */
+	public void writeStatisticEntry(StatisticsDescription statistic, Object value) throws IOException{
 		assert(nextExpectedStatisticIter != null);
-		
-		final StatisticDescription expectedStat = nextExpectedStatisticIter.next();
+
+		final StatisticsDescription expectedStat = nextExpectedStatisticIter.next();
 
 		if(expectedStat == null || expectedStat != statistic){
 			throw new IllegalArgumentException("Expected to get statistics in the correct order! Expected: \"" + expectedStat.getName() + 
 					"\", but got \"" + statistic + "\"");
 		}
-		
+
 		// write data:
-		final StatisticsEntryType type = expectedStat.getType();
+		final StatisticsEntryType type = expectedStat.getDatatype();
 		switch(type){
 		case INT64:
-			file.writeLong((Long) value / expectedStat.getMultiplier());
+			file.writeLong((Long) value);
 			break;
 		case INT32:
-			file.writeInt((Integer) value/ expectedStat.getMultiplier());
+			file.writeInt((Integer) value);
 			break;
 		case DOUBLE:
-			file.writeDouble((Double) value / expectedStat.getMultiplier());
+			file.writeDouble((Double) value);
 			break;
 		case FLOAT:
-			file.writeFloat((Float) value / expectedStat.getMultiplier());
+			file.writeFloat((Float) value);
 			break;
 		case STRING:
 			final String str = (String) value;
@@ -155,6 +202,29 @@ public class StatisticsWriter {
 		}
 	}
 
+	/**
+	 * Write a complete statistics group entry.
+	 * This function writes the timestamp and all values.
+	 * 
+	 * @param entry
+	 * @throws IOException
+	 */
+	public void writeStatisticsGroupEntry(StatisticsGroupEntry entry) throws IOException{
+		writeStatisticsTimestamp(entry.getLatestTime());
+		
+		// use output group and NOT input group for checking.
+		final ArrayList<StatisticsDescription> descs = group.getStatisticsOrdered();		
+		int cur = 0;
+		for(Object val: entry.getValues()){
+			writeStatisticEntry(descs.get(cur), val);
+			cur++;
+		}
+	}
+
+
+	/**
+	 * Finalize the trace file.
+	 */
 	public void finalize(){
 		try{
 			file.close();
@@ -163,6 +233,10 @@ public class StatisticsWriter {
 		}
 	}
 
+	/**
+	 * Return the group which is written by the writer.
+	 * @return
+	 */
 	public StatisticsGroupDescription getOutputGroup() {
 		return group;
 	}

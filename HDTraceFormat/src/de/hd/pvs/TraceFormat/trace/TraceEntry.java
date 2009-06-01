@@ -32,7 +32,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
- * Container from data read from the trace file.
+ * Contains the information about a single trace entry. Superclass for StateTraceEntry and
+ * EventTraceEntry.
+ * 
  * @author Julian M. Kunkel
  *
  */
@@ -63,10 +65,12 @@ public abstract class TraceEntry extends XMLTag implements TraceObject{
 	}
 
 	@Override
-	public Epoch getEarliestTime() {
+	final public Epoch getEarliestTime() {
 		return time;
 	}
 	
-	
-
+	@Override
+	final public Epoch getDurationTime() {
+		return getLatestTime().subtract(getEarliestTime());
+	}
 }

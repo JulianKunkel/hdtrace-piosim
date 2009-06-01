@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+ /** Version Control Information $Id: TraceWriter.java 318 2009-05-30 10:56:40Z kunkel $
+  * @lastmodified    $Date: 2009-05-30 12:56:40 +0200 (Sa, 30 Mai 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 318 $ 
   */
 
 
@@ -29,36 +29,47 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
- * Write a single trace file.
+ * Write a single trace file. The SimpleTraceWriter requires that full StateEntries or EventEntries
+ * are written.
  * 
  * @author Julian M. Kunkel
  * 
  */
-public class TraceWriter {
+public class SimpleTraceWriter {
 	
+	/**
+	 * A number of attributes is reserved.
+	 */
 	static private final HashSet<String> reservedAttributeKeys = new HashSet<String>();
 
 	static{
-		reservedAttributeKeys.add("time");
-		reservedAttributeKeys.add("end");
+		reservedAttributeKeys.add("time"); // start time
+		reservedAttributeKeys.add("end"); // end time
 	}
 	
+	/**
+	 * Output file
+	 */
 	private final FileWriter file;
 	
-	// stack the states to produce nested entries.
-	LinkedList<StateTraceEntry> stackedEntries = new LinkedList<StateTraceEntry>();
+	/**
+	 * time to write = time - timeAdjustment
+	 */
+	private final Epoch timeAdjustment;
 	
-	StateTraceEntry lastOpenedStateTraceEntry = null; 
-	
-	final Epoch timeAdjustment;
-	
-	public TraceWriter(String filename, Epoch timeAdjustment) throws IOException {
+	/**
+	 * Create a new trace writer
+	 * @param filename The filename to write output.
+	 * @param timeAdjustment Adjusts the time to write by subtracting this value
+	 * @throws IOException
+	 */
+	public SimpleTraceWriter(String filename, Epoch timeAdjustment) throws IOException {
 		file = new FileWriter(filename);
 				
 		if(timeAdjustment != null){
@@ -70,6 +81,9 @@ public class TraceWriter {
 		}
 	}
 
+	/**
+	 * Close the trace file.
+	 */
 	public void finalize() {
 		try {
 			file.write("</Program>\n");
@@ -78,11 +92,12 @@ public class TraceWriter {
 			throw new IllegalArgumentException(e);
 		}
 	}
-
-	private void writeAttributes(TraceEntry traceEntry) throws IOException{
-		writeAttributes(traceEntry.getAttributes()); 
-	}
-
+	
+	/**
+	 * Write the key/value attributes (except reservedAttributes) 
+	 * @param attr
+	 * @throws IOException
+	 */
 	private void writeAttributes(final HashMap<String, String> attr) throws IOException{
 		if(attr == null|| attr.size() == 0)
 			return;
@@ -93,28 +108,26 @@ public class TraceWriter {
 			}
 		}
 	}
-
-	private void updateNestedObjectsOnEnter() throws IOException{
-		if(lastOpenedStateTraceEntry == null)
-			return;
-		
-		file.write("<Nested>\n");
-		
-		stackedEntries.push(lastOpenedStateTraceEntry);
-		lastOpenedStateTraceEntry = null;
-	}
 	
+	/**
+	 * Adjust the time by the timeAdjustment.
+	 * @param time
+	 * @return
+	 */
 	private String getAdaptedTime(Epoch time){
 		return time.subtract(timeAdjustment).toNormalizedString();
 	}
 	
-	public void Event(EventTraceEntry traceEntry) throws IOException{
-		updateNestedObjectsOnEnter();
-		
+	/**
+	 * Write a single event to the trace file.
+	 * @param traceEntry
+	 * @throws IOException
+	 */
+	public void writeEvent(EventTraceEntry traceEntry) throws IOException{
 		file.write("<Event name=\"" + traceEntry.getName() + "\" time=\"" + 
 				getAdaptedTime(traceEntry.getEarliestTime()) + "\"");
 
-		writeAttributes(traceEntry);
+		writeAttributes(traceEntry.getAttributes());
 		
 		if(traceEntry.getNestedXMLTags() != null && traceEntry.getNestedXMLTags().size() != 0 ){
 			file.write(">");
@@ -128,39 +141,30 @@ public class TraceWriter {
 	}
 
 	/**
-	 * Compute the duration for the state end.
-	 * 
-	 * @param time
+	 * Write the content of the traceEntry. However, no child trace entries are taken into account.
 	 * @param traceEntry
 	 * @throws IOException
 	 */
-	public void StateEnd(StateTraceEntry finEntry) throws IOException{		
-		if(lastOpenedStateTraceEntry != finEntry){
-			StateTraceEntry traceEntry;
-			if(stackedEntries.size() == 0){
-				throw new IllegalArgumentException("State ended, but no corresponding state start found");
+	public void writeState(StateTraceEntry traceEntry) throws IOException{
+		if(traceEntry.hasNestedTraceChildren()){
+			file.write("<Nested>");
+			for(TraceEntry child: traceEntry.getNestedTraceChildren()){
+				if(child.getType() == TraceObjectType.EVENT){
+					writeEvent((EventTraceEntry) child);					
+				}else if(child.getType() == TraceObjectType.STATE){
+					writeState((StateTraceEntry) child);
+				}else{
+					throw new IllegalStateException("Unknown object type: " + child.getType());
+				}
 			}
-			
-			if(lastOpenedStateTraceEntry == null){				
-				// we have to finish a nested tag
-				file.write("</Nested>\n");			
-			}
-			traceEntry = stackedEntries.pollFirst();
-			writeState(finEntry);			
-		}else{
-			StateTraceEntry traceEntry;
-			// last start == end tag => not nested 
-			traceEntry = lastOpenedStateTraceEntry;
-			lastOpenedStateTraceEntry = null;			
-			writeState(traceEntry);
+			file.write("<Nested/>");
 		}
-	}
-	
-	private void writeState(StateTraceEntry traceEntry) throws IOException{
+		
+		// finally write content:
 		file.write("<" + traceEntry.getName() + " time=\"" + 
 				getAdaptedTime(traceEntry.getEarliestTime()) + "\" end=\"" 
 				+ getAdaptedTime(traceEntry.getLatestTime()) + "\"");
-			writeAttributes(traceEntry);			
+			writeAttributes(traceEntry.getAttributes());			
 
 			if(traceEntry.getNestedXMLTags() != null && traceEntry.getNestedXMLTags().size() != 0 ){
 				file.write(">");
@@ -172,10 +176,8 @@ public class TraceWriter {
 				file.write("/>\n");
 			}		
 	}
-
-	public void StateStart(StateTraceEntry traceEntry) throws IOException {
-		updateNestedObjectsOnEnter();
-		
-		lastOpenedStateTraceEntry = traceEntry;
+	
+	protected FileWriter getFile() {
+		return file;
 	}
 }

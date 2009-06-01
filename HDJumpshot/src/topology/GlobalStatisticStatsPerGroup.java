@@ -27,7 +27,7 @@ package topology;
 
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 
 /**
@@ -46,7 +46,7 @@ public class GlobalStatisticStatsPerGroup {
 	/**
 	 * Individual statistics of each statistic
 	 */
-	final HashMap<StatisticDescription, GlobalStatisticsPerStatistic> statsPerStatistic = new HashMap<StatisticDescription, GlobalStatisticsPerStatistic>();
+	final HashMap<StatisticsDescription, GlobalStatisticsPerStatistic> statsPerStatistic = new HashMap<StatisticsDescription, GlobalStatisticsPerStatistic>();
 	
 	/**
 	 * Individual statistics of each statistic grouping (if more than one statstic per grouping)
@@ -58,7 +58,7 @@ public class GlobalStatisticStatsPerGroup {
 		this.group = group;
 	}
 	
-	public GlobalStatisticsPerStatistic getStatsForStatistic(StatisticDescription desc) {
+	public GlobalStatisticsPerStatistic getStatsForStatistic(StatisticsDescription desc) {
 		return statsPerStatistic.get(desc);
 	}
 	
@@ -66,7 +66,7 @@ public class GlobalStatisticStatsPerGroup {
 		return groupingStatistic.get(grouping);
 	}
 	
-	public void setStatsForStatistic(StatisticDescription desc, GlobalStatisticsPerStatistic stats) {
+	public void setStatsForStatistic(StatisticsDescription desc, GlobalStatisticsPerStatistic stats) {
 		if(statsPerStatistic.containsKey(desc)){
 			throw new IllegalArgumentException("Already contained statistic: " + desc);
 		}

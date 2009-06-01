@@ -299,7 +299,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 					}
 
 					// compute all values:
-					double inclusiveTime = state.getDurationTimeDouble();
+					double inclusiveTime = state.getDurationTime().getDouble();
 
 					double childDuration = 0;
 
@@ -308,7 +308,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 						for(TraceEntry child: state.getNestedTraceChildren()){
 							if(child.getType() == TraceObjectType.STATE){
-								childDuration += ((StateTraceEntry) child).getDurationTimeDouble();
+								childDuration += ((StateTraceEntry) child).getDurationTime().getDouble();
 							}
 						}						
 					}

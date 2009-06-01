@@ -27,13 +27,15 @@ package de.hd.pvs.TraceFormat.util;
 
 /**
  * Helper class to convert Units in Strings to the Numbers and vice versa.
+ * Understands (some) SI prefixes and others.
+ * 
  * For instance "10M" == 10 * 1 MByte
  * Only one Unit at the end of the String is valid. 
  * 
  * @author Julian M. Kunkel
  */
 
-public class Numbers {
+public class NumberPrefixes {
 	/**
 	 * Define the multipliers:
 	 */
@@ -75,7 +77,7 @@ public class Numbers {
 		value = value.trim();
 		for (int i = 0; i < longFormats.length; i++) {
 			if (value.contains(longFormats[i])) {
-				multiplier = Numbers.longMultiplier[i];
+				multiplier = NumberPrefixes.longMultiplier[i];
 				last_int_pos = value.indexOf(longFormats[i]);
 				break;
 			}
@@ -97,7 +99,7 @@ public class Numbers {
 		value = value.trim();
 		for (int i = 0; i < doubleFormats.length; i++) {
 			if (value.contains(doubleFormats[i])) {
-				multiplier = Numbers.doubleMultiplier[i];
+				multiplier = NumberPrefixes.doubleMultiplier[i];
 				last_int_pos = value.indexOf(doubleFormats[i]);
 			}
 		}

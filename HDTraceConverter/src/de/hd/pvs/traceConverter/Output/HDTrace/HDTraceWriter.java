@@ -30,7 +30,7 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
@@ -49,7 +49,7 @@ public class HDTraceWriter extends TraceOutputWriter {
 
 	public void initalizeProjectDescriptionWithOldValues(String resultFile, ProjectDescription oldDescription, List<XMLTag> unparsedTagsToWrite){
 		writer = new TraceFormatWriter(resultFile,  oldDescription.getTopologyTypes());
-		writer.setUnparsedTagsToWrite(unparsedTagsToWrite);
+		writer.setUnparsedProjectTagsToWrite(unparsedTagsToWrite);
 
 		ProjectDescription outProject = writer.getProjectDescription();		
 		outProject.setDescription(oldDescription.getDescription());
@@ -79,8 +79,8 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Event(TopologyNode topology,	EventTraceEntry traceEntry) {
-		writer.Event(topology, traceEntry);
+	public void Event(TopologyNode topology,	EventTraceEntry traceEntry) throws IOException {
+		writer.writeEvent(topology, traceEntry);
 	}
 
 	@Override
@@ -89,23 +89,23 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry) {
-		writer.StateEnd(topology, traceEntry);
+	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry)  throws IOException {
+		writer.writeStateEnd(topology, traceEntry);
 	}
 
 	@Override
-	public void StateStart(TopologyNode topology, StateTraceEntry traceEntry) {
-		writer.StateStart(topology, traceEntry);
+	public void StateStart(TopologyNode topology, StateTraceEntry traceEntry)  throws IOException {
+		writer.writeStateStart(topology, traceEntry);
 	}
 
 	@Override
-	public void Statistics(TopologyNode topology, StatisticGroupEntry entry) {		
+	public void Statistics(TopologyNode topology, StatisticsGroupEntry entry) {		
 		if(! writer.getProjectDescription().getStatisticsGroupNames().contains(entry.getGroup().getName())){
 			writer.addStatisticGroup(entry.getGroup().getName());
 		}
 
 		try{
-			writer.writeStatistics(topology, entry);
+			writer.writeStatisticsGroupEntry(topology, entry);
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}
