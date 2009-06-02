@@ -28,6 +28,7 @@
 #include "id-generator.h"
 #include "pvfs2-internal.h"
 #include "pvfs2-debug.h"
+#include "pint-event-hd.h"
 
 static int bmi_initialized_count = 0;
 static gen_mutex_t bmi_initialize_mutex = GEN_MUTEX_INITIALIZER;
@@ -654,9 +655,16 @@ int BMI_post_recv(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
+    
+    PINT_HD_update_counter_inc(BMI);
+    
     ret = tmp_ref->interface->post_recv(
         id, tmp_ref->method_addr, buffer, expected_size, actual_size,
         buffer_type, tag, user_ptr, context_id, (PVFS_hint)hints);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(BMI);
+    
     return (ret);
 }
 
@@ -692,9 +700,16 @@ int BMI_post_send(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
+    
+    PINT_HD_update_counter_inc(BMI);
+    
     ret = tmp_ref->interface->post_send(
         id, tmp_ref->method_addr, buffer, size, buffer_type, tag,
         user_ptr, context_id, (PVFS_hint)hints);
+    
+    if (ret < 0 || ret == 1)
+    	PINT_HD_update_counter_dec(BMI);
+    
     return (ret);
 }
 
@@ -730,9 +745,15 @@ int BMI_post_sendunexpected(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
+    
+    PINT_HD_update_counter_inc(BMI);
     ret = tmp_ref->interface->post_sendunexpected(
         id, tmp_ref->method_addr, buffer, size, buffer_type, tag,
         user_ptr, context_id, (PVFS_hint)hints);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(BMI);
+    
     return (ret);
 }
 
@@ -1713,10 +1734,16 @@ int BMI_post_send_list(bmi_op_id_t * id,
 
     if (tmp_ref->interface->post_send_list)
     {
+    
+    PINT_HD_update_counter_inc(BMI);
+    
 	ret = tmp_ref->interface->post_send_list(
             id, tmp_ref->method_addr, buffer_list, size_list,
             list_count, total_size, buffer_type, tag, user_ptr,
             context_id, (PVFS_hint)hints);
+	
+	if (ret < 0 || ret == 1)
+	    PINT_HD_update_counter_dec(BMI);
 
 	return (ret);
     }
@@ -1781,11 +1808,17 @@ int BMI_post_recv_list(bmi_op_id_t * id,
 
     if (tmp_ref->interface->post_recv_list)
     {
+    	
+    PINT_HD_update_counter_inc(BMI);
+    	
 	ret = tmp_ref->interface->post_recv_list(
             id, tmp_ref->method_addr, buffer_list, size_list,
             list_count, total_expected_size, total_actual_size,
             buffer_type, tag, user_ptr, context_id, (PVFS_hint)hints);
 
+	if (ret < 0 || ret == 1)
+	    PINT_HD_update_counter_dec(BMI);
+	
 	return (ret);
     }
 

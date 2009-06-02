@@ -17,6 +17,7 @@
 #include "pvfs2-internal.h"
 
 #include "pint-event.h"
+#include "pint-event-hd.h"
 #include <stdio.h>
 
 #define THREAD_MGR_TEST_COUNT 5
@@ -128,6 +129,8 @@ static void *trove_thread_function(void *ptr)
             return NULL;
 	}
 
+	PINT_HD_update_counter_dec_multiple(TROVE, trove_test_count);
+	
 	for(i=0; i<trove_test_count; i++)
 	{
 	    /* execute a callback for each completed BMI operation */
@@ -267,6 +270,9 @@ static void *bmi_thread_function(void *ptr)
             return NULL;
 	}
 
+	
+	PINT_HD_update_counter_dec_multiple(FLOW, bmi_test_count);
+	
 	for(i=0; i<bmi_test_count; i++)
 	{
 	    /* execute a callback for each completed BMI operation */
