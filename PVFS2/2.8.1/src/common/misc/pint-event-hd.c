@@ -151,13 +151,14 @@ int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count)
 
 int PINT_HD_update_counter_get(HD_Trace_Facility facility) 
 {
+	int ret = 0;
 	if (hd_facilityTraceStatus[facility]) 
 	{	
 		gen_mutex_lock(&hdStatsGroupMutex[facility]);
-		return hdStatsGroupValue[facility];
+		ret = hdStatsGroupValue[facility];
 		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	}
-	return 0;
+	return ret;
 }
 
 
