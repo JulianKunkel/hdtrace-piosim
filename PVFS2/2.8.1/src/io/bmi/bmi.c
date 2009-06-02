@@ -563,6 +563,7 @@ int BMI_open_context(bmi_context_id* context_id)
 
     gen_mutex_lock(&active_method_count_mutex);
     /* tell all of the modules about the new context */
+    PINT_HD_update_counter_inc(BMI);
     for (i = 0; i < active_method_count; i++)
     {
 	ret = active_method_table[i]->open_context(
@@ -589,7 +590,8 @@ int BMI_open_context(bmi_context_id* context_id)
     *context_id = context_index;
 
 out:
-
+	if (ret < 0 || ret == 1)
+	    PINT_HD_update_counter_dec(BMI);
     gen_mutex_unlock(&context_mutex);
     return(ret);
 }
@@ -1404,7 +1406,8 @@ int BMI_get_info(BMI_addr_t addr,
     int tmp_maxsize;
     int ret = 0;
     ref_st_p tmp_ref = NULL;
-
+    
+    PINT_HD_update_counter_inc(BMI);
     switch (option)
     {
 	/* check to see if the interface is initialized */
@@ -1413,11 +1416,13 @@ int BMI_get_info(BMI_addr_t addr,
 	if (active_method_count > 0)
 	{
 	    gen_mutex_unlock(&active_method_count_mutex);
+	    PINT_HD_update_counter_dec(BMI);
 	    return (0);
 	}
 	else
 	{
 	    gen_mutex_unlock(&active_method_count_mutex);
+	    PINT_HD_update_counter_dec(BMI);
 	    return (bmi_errno_to_pvfs(-ENETDOWN));
 	}
     case BMI_CHECK_MAXSIZE:
@@ -1428,6 +1433,7 @@ int BMI_get_info(BMI_addr_t addr,
                 option, &tmp_maxsize);
 	    if (ret < 0)
 	    {
+	    PINT_HD_update_counter_dec(BMI);
 		return (ret);
 	    }
 	    if (i == 0)
@@ -1460,6 +1466,7 @@ int BMI_get_info(BMI_addr_t addr,
         if(!tmp_ref)
         {
             gen_mutex_unlock(&ref_mutex);
+            PINT_HD_update_counter_dec(BMI);
             return (bmi_errno_to_pvfs(-EINVAL));
         }
         gen_mutex_unlock(&ref_mutex);
@@ -1467,6 +1474,7 @@ int BMI_get_info(BMI_addr_t addr,
             option, inout_parameter);
         if(ret < 0)
         {
+        	PINT_HD_update_counter_dec(BMI);
             return ret;
         }
         break;
@@ -1474,6 +1482,7 @@ int BMI_get_info(BMI_addr_t addr,
     default:
 	return (bmi_errno_to_pvfs(-ENOSYS));
     }
+    PINT_HD_update_counter_inc(BMI);
     return (0);
 }
 
@@ -1882,11 +1891,13 @@ int BMI_post_sendunexpected_list(bmi_op_id_t * id,
 
     if (tmp_ref->interface->post_send_list)
     {
+    PINT_HD_update_counter_inc(BMI);
 	ret = tmp_ref->interface->post_sendunexpected_list(
             id, tmp_ref->method_addr, buffer_list, size_list,
             list_count, total_size, buffer_type, tag, user_ptr,
             context_id, (PVFS_hint)hints);
-
+	if (ret < 0 || ret == 1)
+		PINT_HD_update_counter_dec(BMI);
 	return (ret);
     }
 
@@ -1925,9 +1936,12 @@ int BMI_cancel(bmi_op_id_t id,
 
     if(active_method_table[target_op->addr->method_type]->cancel)
     {
+    PINT_HD_update_counter_inc(BMI);
 	ret = active_method_table[
             target_op->addr->method_type]->cancel(
                 id, context_id);
+	if (ret < 0 || ret == 1)
+		PINT_HD_update_counter_dec(BMI);
     }
     else
     {
