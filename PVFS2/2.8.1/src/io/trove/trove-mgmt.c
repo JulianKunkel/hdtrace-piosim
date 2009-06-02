@@ -193,14 +193,9 @@ int trove_collection_create(char *collname,
 
     method_id = global_trove_method_callback(new_coll_id);
     
-    PINT_HD_update_counter_inc(TROVE);
-    
     ret = mgmt_method_table[method_id]->collection_create(
         collname, new_coll_id, user_ptr, out_op_id_p);
     
-    if (ret < 0 || ret == 1)
-        PINT_HD_update_counter_dec(TROVE);
-
     return ((ret < 0) ? ret : 1);
 }
 
