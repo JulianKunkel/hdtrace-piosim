@@ -529,9 +529,10 @@ int trove_keyval_validate(
            out_op_id_p,
            hints);
     
-    PINT_HD_update_counter_inc(TROVE);
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(TROVE);
             
-    int  ret =
+    return ret;
 }
 
 int trove_keyval_iterate(
