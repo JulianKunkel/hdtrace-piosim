@@ -699,7 +699,9 @@ int hdS_commitGroup (
 	group->isCommitted = TRUE;
 
 	/* write the starttime for the first statistic entry */
-    writeTimestampToGroupBuffer(group);
+	writeTimestampToGroupBuffer(group);
+	flushGroupBuffer(group);
+	group->nextValueIdx = 0;
 
 	return 0;
 }
