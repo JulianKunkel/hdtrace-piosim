@@ -1,6 +1,6 @@
 package viewer.linegraph;
 
-import hdTraceInput.BufferedStatisticFileReader;
+import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.StatisticStatistics;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
@@ -21,8 +21,8 @@ import viewer.common.TimeListener;
 import viewer.graph.ElementEnumeration;
 import viewer.graph.GraphData;
 import viewer.graph.LineGraph2DStatic;
-import de.hd.pvs.TraceFormat.statistics.StatisticDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticGroupEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import drawable.CategoryStatistic;
 
 public class StatisticLineGraphFrame {
@@ -33,11 +33,11 @@ public class StatisticLineGraphFrame {
 	private final ModelTime modelTime;
 
 	private static class StatisticData extends GraphData{
-		final BufferedStatisticFileReader source;
-		final StatisticDescription desc;
+		final BufferedStatisticsFileReader source;
+		final StatisticsDescription desc;
 		final StatisticStatistics  stats;
 		
-		public StatisticData(BufferedStatisticFileReader statSource, CategoryStatistic category) {
+		public StatisticData(BufferedStatisticsFileReader statSource, CategoryStatistic category) {
 			super(category.getName(), category.getColor());
 			source = statSource;
 			desc = category.getStatisticDescription();
@@ -76,42 +76,42 @@ public class StatisticLineGraphFrame {
 		
 		static private class StatYValEnum implements ElementEnumeration{
 			private int pos = 0;
-			private final ArrayList<StatisticGroupEntry> entries;
+			private final StatisticsGroupEntry [] entries;
 			private final int statNum;
 			
-			public StatYValEnum(ArrayList<StatisticGroupEntry> entries, int statNum) {
+			public StatYValEnum(StatisticsGroupEntry [] entries, int statNum) {
 				this.entries = entries;
 				this.statNum = statNum;
 			}
 			
 			@Override
 			public boolean hasMoreElements() {
-				return pos < entries.size();
+				return pos < entries.length;
 			}
 			
 			@Override
 			public double nextElement() {
-				return entries.get(pos++).getNumeric(statNum);
+				return entries[pos++].getNumeric(statNum);
 			}
 		}
 		
 
 		static private class StatXValEnum implements ElementEnumeration{
 			private int pos = 0;
-			private final ArrayList<StatisticGroupEntry> entries;
+			private final StatisticsGroupEntry [] entries;
 			
-			public StatXValEnum(ArrayList<StatisticGroupEntry> entries) {
+			public StatXValEnum(StatisticsGroupEntry [] entries) {
 				this.entries = entries;
 			}
 			
 			@Override
 			public boolean hasMoreElements() {
-				return pos < entries.size();
+				return pos < entries.length;
 			}
 			
 			@Override
 			public double nextElement() {
-				return entries.get(pos++).getLatestTime().getDouble();
+				return entries[pos++].getLatestTime().getDouble();
 			}
 		}
 		
