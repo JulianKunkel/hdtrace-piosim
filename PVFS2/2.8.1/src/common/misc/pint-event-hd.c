@@ -57,7 +57,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 		{	
 			hd_facilityTraceStatus[BMI] = 1;
 			hd_facilityTrace[BMI] = hdS_createGroup("BMI", topology, topoNode, 1);
-			hdS_addValue(hd_facilityTrace[BMI],"Concurrent ops", INT32, "#", NULL);
+			hdS_addValue(hd_facilityTrace[BMI],"BMI", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[BMI]);
 			hdS_enableGroup(hd_facilityTrace[BMI]);
 		}
@@ -66,7 +66,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 		{	
 			hd_facilityTraceStatus[TROVE] = 1;
 			hd_facilityTrace[TROVE] = hdS_createGroup("TROVE", topology, topoNode, 1);
-			hdS_addValue(hd_facilityTrace[TROVE],"Concurrent ops", INT32, "#", NULL);
+			hdS_addValue(hd_facilityTrace[TROVE],"TROVE", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[TROVE]);
 			hdS_enableGroup(hd_facilityTrace[TROVE]);
 		}
@@ -75,7 +75,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 		{	
 			hd_facilityTraceStatus[FLOW] = 1;
 			hd_facilityTrace[FLOW] = hdS_createGroup("FLOW", topology, topoNode, 1);
-			hdS_addValue(hd_facilityTrace[FLOW],"Concurrent ops", INT32, "#", NULL);
+			hdS_addValue(hd_facilityTrace[FLOW],"FLOW", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[FLOW]);
 			hdS_enableGroup(hd_facilityTrace[FLOW]);
 		}
@@ -84,7 +84,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 		{	
 			hd_facilityTraceStatus[REQ] = 1;
 			hd_facilityTrace[REQ] = hdS_createGroup("REQ", topology, topoNode, 1);
-			hdS_addValue(hd_facilityTrace[REQ],"Concurrent ops", INT32, "#", NULL);
+			hdS_addValue(hd_facilityTrace[REQ],"REQ", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[REQ]);
 			hdS_enableGroup(hd_facilityTrace[REQ]);
 		}
@@ -93,7 +93,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 		{	
 			hd_facilityTraceStatus[BREQ] = 1;
 			hd_facilityTrace[BREQ] = hdS_createGroup("BREQ", topology, topoNode, 1);
-			hdS_addValue(hd_facilityTrace[BREQ],"Concurrent ops", INT32, "#", NULL);
+			hdS_addValue(hd_facilityTrace[BREQ],"BREQ", INT32, "#", NULL);
 			hdS_commitGroup(hd_facilityTrace[BREQ]);
 			hdS_enableGroup(hd_facilityTrace[BREQ]);
 		}
