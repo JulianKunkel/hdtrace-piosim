@@ -855,7 +855,6 @@ int PINT_req_sched_release(
 	    }
 	}
 	sched_count--;
-	PINT_HD_update_counter_dec(REQ); 
     }
 
     gossip_debug(GOSSIP_REQ_SCHED_DEBUG,
@@ -866,6 +865,15 @@ int PINT_req_sched_release(
     free(tmp_element);
 
     PINT_req_sched_schedule_mode_change();
+    
+    if (PINT_HD_update_counter_get(REQ) > PINT_HD_update_counter_get(BREQ))
+    	PINT_HD_update_counter_dec(REQ); 
+    else
+    {
+    	PINT_HD_update_counter_dec(REQ);
+    	PINT_HD_update_counter_dec(BREQ);
+    }
+
     return (1);
 }
 
