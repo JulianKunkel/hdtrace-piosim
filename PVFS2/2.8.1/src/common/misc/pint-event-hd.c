@@ -139,7 +139,7 @@ int PINT_HD_update_counter_dec(HD_Trace_Facility facility)
 
 int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count) 
 {
-	if (hd_facilityTraceStatus[facility]) 
+	if (hd_facilityTraceStatus[facility] && count > 0) 
 	{	
 		gen_mutex_lock(&hdStatsGroupMutex[facility]);
 		hdStatsGroupValue[facility] -= count;
