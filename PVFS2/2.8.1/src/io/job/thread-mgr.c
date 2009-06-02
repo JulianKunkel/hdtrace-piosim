@@ -271,7 +271,7 @@ static void *bmi_thread_function(void *ptr)
 	}
 
 	
-	PINT_HD_update_counter_dec_multiple(FLOW, bmi_test_count);
+	PINT_HD_update_counter_dec_multiple(BMI, bmi_test_count);
 	
 	for(i=0; i<bmi_test_count; i++)
 	{

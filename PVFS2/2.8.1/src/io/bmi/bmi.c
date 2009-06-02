@@ -747,6 +747,7 @@ int BMI_post_sendunexpected(bmi_op_id_t * id,
     gen_mutex_unlock(&ref_mutex);
     
     PINT_HD_update_counter_inc(BMI);
+    
     ret = tmp_ref->interface->post_sendunexpected(
         id, tmp_ref->method_addr, buffer, size, buffer_type, tag,
         user_ptr, context_id, (PVFS_hint)hints);
