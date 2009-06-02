@@ -531,8 +531,8 @@ int PINT_req_sched_post(enum PVFS_server_op op,
     
     if (ret == 0)
     {
-    	PINT_HD_update_counter_inc(REQ);
     	PINT_HD_update_counter_inc(BREQ);
+    	PINT_HD_update_counter_inc(REQ);
     }
     else if (ret == 1)
     	PINT_HD_update_counter_inc(REQ);
