@@ -713,8 +713,8 @@ int PINT_req_sched_unpost(
 	    }
 	}
 	sched_count--;
-	PINT_HD_update_counter_dec(REQ);
 	PINT_HD_update_counter_dec(BREQ); 
+	PINT_HD_update_counter_dec(REQ);
     }
 
     /* destroy the unposted element */

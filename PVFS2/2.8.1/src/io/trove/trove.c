@@ -186,7 +186,9 @@ int trove_bstream_validate(
 	return -TROVE_EINVAL;
     }
 
-    return bstream_method_table[method_id]->bstream_validate(
+    PINT_HD_update_counter_inc(TROVE);
+    
+    int ret = bstream_method_table[method_id]->bstream_validate(
            coll_id,
            handle,
            flags,
@@ -195,6 +197,11 @@ int trove_bstream_validate(
            context_id,
            out_op_id_p,
            hints);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(TROVE);
+            
+    return ret;
 }
 
 /** Initiate reading from a list of regions in a bstream into
@@ -389,7 +396,7 @@ int trove_keyval_read(
            hints);
     
     if (ret < 0 || ret == 1)
-            PINT_HD_update_counter_dec(TROVE);
+        PINT_HD_update_counter_dec(TROVE);
         
     return ret;
 }
@@ -429,8 +436,10 @@ int trove_keyval_write(
         if (((char *)key_p->buffer)[key_p->buffer_sz-1] != 0)
 	    return -TROVE_EINVAL;
     }
-
-    return keyval_method_table[method_id]->keyval_write(
+    
+    PINT_HD_update_counter_inc(TROVE);
+            
+    int  ret = keyval_method_table[method_id]->keyval_write(
            coll_id,
            handle,
            key_p,
@@ -441,6 +450,11 @@ int trove_keyval_write(
            context_id,
            out_op_id_p,
            hints);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(TROVE);
+            
+    return ret;
 }
 
 /** Initiate removal of a keyword/value pair from a given data space.
@@ -503,7 +517,9 @@ int trove_keyval_validate(
 	return -TROVE_EINVAL;
     }
 
-    return keyval_method_table[method_id]->keyval_validate(
+    PINT_HD_update_counter_inc(TROVE);
+            
+    int  ret = keyval_method_table[method_id]->keyval_validate(
            coll_id,
            handle,
            flags,
@@ -512,6 +528,10 @@ int trove_keyval_validate(
            context_id,
            out_op_id_p,
            hints);
+    
+    PINT_HD_update_counter_inc(TROVE);
+            
+    int  ret =
 }
 
 int trove_keyval_iterate(
@@ -657,7 +677,7 @@ int trove_keyval_read_list(
            hints);
     
     if (ret < 0 || ret == 1)
-            PINT_HD_update_counter_dec(TROVE);
+        PINT_HD_update_counter_dec(TROVE);
         
     return ret;
 }
@@ -835,7 +855,9 @@ int trove_keyval_get_handle_info(TROVE_coll_id coll_id,
 	return -TROVE_EINVAL;
     }
 
-    return keyval_method_table[method_id]->keyval_get_handle_info(
+    PINT_HD_update_counter_inc(TROVE);
+            
+    int  ret = keyval_method_table[method_id]->keyval_get_handle_info(
 	coll_id,
 	handle,
 	flags,
@@ -844,6 +866,11 @@ int trove_keyval_get_handle_info(TROVE_coll_id coll_id,
 	context_id,
 	out_op_id_p,
     hints);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(TROVE);
+            
+    return ret;
 }
 
 /** Initiate creation of multiple new data spaces.
@@ -1394,11 +1421,18 @@ int trove_collection_getinfo(
 	return -TROVE_EINVAL;
     }
 
-    return mgmt_method_table[method_id]->collection_getinfo(
+    PINT_HD_update_counter_inc(TROVE);
+            
+    int  ret = mgmt_method_table[method_id]->collection_getinfo(
            coll_id,
            context_id,
            opt,
            parameter);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(TROVE);
+            
+    return ret;
 }
 
 int trove_collection_setinfo(
@@ -1431,11 +1465,18 @@ int trove_collection_setinfo(
 	return -TROVE_EINVAL;
     }
 
-    return mgmt_method_table[method_id]->collection_setinfo(
+    PINT_HD_update_counter_inc(TROVE);
+            
+    int  ret = mgmt_method_table[method_id]->collection_setinfo(
 	   method_id,
            coll_id,
            context_id,
            option,
            parameter);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(TROVE);
+            
+    return ret;
 }
 
