@@ -1058,7 +1058,7 @@ int trove_dspace_iterate_handles(
 	return -TROVE_EINVAL;
     }
 
-    PINT_HD_update_counter_inc(TROVE);
+//    PINT_HD_update_counter_inc(TROVE);
             
     int  ret = dspace_method_table[method_id]->dspace_iterate_handles(
            coll_id,
@@ -1071,8 +1071,8 @@ int trove_dspace_iterate_handles(
            context_id,
            out_op_id_p);
     
-    if (ret < 0 || ret == 1)
-        PINT_HD_update_counter_dec(TROVE);
+//    if (ret < 0 || ret == 1)
+//        PINT_HD_update_counter_dec(TROVE);
             
     return ret;
 }
@@ -1422,7 +1422,7 @@ int trove_collection_getinfo(
 	return -TROVE_EINVAL;
     }
 
-    PINT_HD_update_counter_inc(TROVE);
+//    PINT_HD_update_counter_inc(TROVE);
             
     int  ret = mgmt_method_table[method_id]->collection_getinfo(
            coll_id,
@@ -1430,8 +1430,8 @@ int trove_collection_getinfo(
            opt,
            parameter);
     
-    if (ret < 0 || ret == 1)
-        PINT_HD_update_counter_dec(TROVE);
+//    if (ret < 0 || ret == 1)
+//        PINT_HD_update_counter_dec(TROVE);
             
     return ret;
 }
@@ -1466,7 +1466,7 @@ int trove_collection_setinfo(
 	return -TROVE_EINVAL;
     }
 
-    PINT_HD_update_counter_inc(TROVE);
+//    PINT_HD_update_counter_inc(TROVE);
             
     int  ret = mgmt_method_table[method_id]->collection_setinfo(
 	   method_id,
@@ -1475,8 +1475,8 @@ int trove_collection_setinfo(
            option,
            parameter);
     
-    if (ret < 0 || ret == 1)
-        PINT_HD_update_counter_dec(TROVE);
+//    if (ret < 0 || ret == 1)
+//        PINT_HD_update_counter_dec(TROVE);
             
     return ret;
 }

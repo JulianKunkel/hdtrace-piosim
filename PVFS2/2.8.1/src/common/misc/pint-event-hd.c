@@ -44,7 +44,6 @@ int PINT_HD_event_initalize(char * traceWhat)
 		
 		if (!topoNode || !topology)
 		{
-			printf("new topo \"%s\"\n",event_list[i]);
 			const char *path[] = {hostname, event_list[i], "0"};
 			len = sizeof(path)/sizeof(int);
 			topoNode = hdT_createTopoNode(path, len);
@@ -117,35 +116,44 @@ int PINT_HD_event_finalize(void)
 
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility) 
 {
+	gen_mutex_lock(&hdStatsGroupMutex[facility]);
+	++hdStatsGroupValue[facility];
+	
 	if (hd_facilityTraceStatus[facility]) 
 	{	
-		gen_mutex_lock(&hdStatsGroupMutex[facility]);
-		hdS_writeInt32Value(hd_facilityTrace[facility], ++hdStatsGroupValue[facility]);
-		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
+		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
 	}
+	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
+			
 	return 0;
 }
 
 int PINT_HD_update_counter_dec(HD_Trace_Facility facility) 
 {
+	gen_mutex_lock(&hdStatsGroupMutex[facility]);
+	--hdStatsGroupValue[facility];
+	
 	if (hd_facilityTraceStatus[facility]) 
 	{	
-		gen_mutex_lock(&hdStatsGroupMutex[facility]);
-		hdS_writeInt32Value(hd_facilityTrace[facility], --hdStatsGroupValue[facility]);
-		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
+		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);	
 	}
+	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	return 0;
 }
 
 int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count) 
 {
-	if (hd_facilityTraceStatus[facility] && count > 0) 
+	if(count <= 0)
+		return 0;
+
+	gen_mutex_lock(&hdStatsGroupMutex[facility]);
+	hdStatsGroupValue[facility] -= count;
+	
+	if (hd_facilityTraceStatus[facility]) 
 	{	
-		gen_mutex_lock(&hdStatsGroupMutex[facility]);
-		hdStatsGroupValue[facility] -= count;
 		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
-		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	}
+	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	return 0;
 }
 
