@@ -157,11 +157,11 @@ public class Message extends NetworkEventType {
 	}
 	
 	/**
-	 * Check if all available data got split into parts.
+	 * return the amounts of bytes which must be send.
 	 * @return
 	 */
-	public boolean isAllAvailableDataSplitIntoParts(){
-		return (this.availableDataPosition == this.createdPosition);
+	public long getRemainingBytesToSend(){
+		return this.availableDataPosition - this.createdPosition;
 	}	
 
 	/**
