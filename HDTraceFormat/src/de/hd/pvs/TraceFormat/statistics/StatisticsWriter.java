@@ -33,6 +33,7 @@ import java.util.Iterator;
 
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLHelper;
 
 /**
  * Write statistics group values to a statistics file. 
@@ -79,20 +80,25 @@ public class StatisticsWriter {
 		// create XML header
 		final StringBuffer xmlHeader = new StringBuffer();
 		xmlHeader.append("<Statistics version=\"1\">");
-		xmlHeader.append("<Group name=\"" + group.getName() + "\" timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeAdjustment=\"" +
+		xmlHeader.append("<Group name=\"" + XMLHelper.escapeAttribute(group.getName()) + "\" timestampDatatype=\"" + group.getTimestampDatatype()  + "\" timeAdjustment=\"" +
 				group.getTimeAdjustment()  + "\"");
 		if(group.getTimeResolutionMultiplierName() != null){
 			xmlHeader.append(" timeResulution=\"" + group.getTimeResolutionMultiplierName() + "\"");
 		}
+		
 		xmlHeader.append(">\n");
 
 		for(StatisticsDescription stat: group.getStatisticsOrdered()){								
-			xmlHeader.append("<Statistics name=\"" + stat.getName() + "\"" );
+			xmlHeader.append("<Statistics name=\"" + XMLHelper.escapeAttribute(stat.getName()) + "\"" );
 
 			if(stat.getUnit() != null){
-				xmlHeader.append(" unit=\"" + stat.getUnit()  + "\"");
+				xmlHeader.append(" unit=\"" + XMLHelper.escapeAttribute(stat.getUnit())  + "\"");
 			}
 
+			if(stat.getGrouping().length() > 0){
+				xmlHeader.append(" grouping=\""+ XMLHelper.escapeAttribute(stat.getGrouping()) + "\"");
+			}
+			
 			xmlHeader.append(" type=\"" + stat.getDatatype()  + "\"/>\n");
 		}
 

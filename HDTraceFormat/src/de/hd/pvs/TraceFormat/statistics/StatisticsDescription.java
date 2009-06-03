@@ -79,7 +79,7 @@ public class StatisticsDescription{
 		this.unit = unit;
 
 		if( grouping == null || grouping.length() == 0){
-			this.grouping = null;
+			this.grouping = "";
 		}else{
 			this.grouping = grouping;
 		}
