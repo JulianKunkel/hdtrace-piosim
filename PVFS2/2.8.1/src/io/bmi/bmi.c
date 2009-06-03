@@ -791,6 +791,7 @@ int BMI_test(bmi_op_id_t id,
     {
 	gossip_debug(GOSSIP_BMI_DEBUG_CONTROL,
                      "BMI_test completing: %llu\n", llu(id));
+    PINT_HD_update_counter_dec_multiple(BMI,*outcount);
 	return (1);
     }
     return (ret);
@@ -906,7 +907,10 @@ int BMI_testsome(int incount,
     free(tmp_id_array);
 
     if(ret == 0 && *outcount > 0)
+    {
 	return(1);
+	PINT_HD_update_counter_dec_multiple(BMI,*outcount);
+    }
     else
 	return(0);
 }
@@ -1128,6 +1132,7 @@ int BMI_testcontext(int incount,
 	    gossip_debug(GOSSIP_BMI_DEBUG_CONTROL, 
 		"BMI_testcontext completing: %llu\n", llu(out_id_array[i]));
 	}
+	PINT_HD_update_counter_dec_multiple(BMI,*outcount);
 	return (1);
     }
     return (0);

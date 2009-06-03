@@ -1058,7 +1058,7 @@ int trove_dspace_iterate_handles(
 	return -TROVE_EINVAL;
     }
 
-//    PINT_HD_update_counter_inc(TROVE);
+    PINT_HD_update_counter_inc(TROVE);
             
     int  ret = dspace_method_table[method_id]->dspace_iterate_handles(
            coll_id,
@@ -1071,8 +1071,8 @@ int trove_dspace_iterate_handles(
            context_id,
            out_op_id_p);
     
-//    if (ret < 0 || ret == 1)
-//        PINT_HD_update_counter_dec(TROVE);
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(TROVE);
             
     return ret;
 }
@@ -1267,7 +1267,7 @@ int trove_dspace_test(
 	return -TROVE_EINVAL;
     }
 
-    return dspace_method_table[method_id]->dspace_test(
+    int  ret = dspace_method_table[method_id]->dspace_test(
            coll_id,
            id,
            context_id,
@@ -1276,6 +1276,10 @@ int trove_dspace_test(
            returned_user_ptr_p,
            state_p,
            max_idle_time_ms);
+    
+    PINT_HD_update_counter_dec_multiple(TROVE,*out_count_p);
+    
+    return ret;
 }
 
 /** Test for completion of one or more trove operations.
@@ -1299,7 +1303,7 @@ int trove_dspace_testsome(
 	return -TROVE_EINVAL;
     }
 
-    return dspace_method_table[method_id]->dspace_testsome(
+    int  ret = dspace_method_table[method_id]->dspace_testsome(
            coll_id,
            context_id,
            ds_id_array,
@@ -1309,6 +1313,10 @@ int trove_dspace_testsome(
            returned_user_ptr_array,
            state_array,
            max_idle_time_ms);
+    
+    PINT_HD_update_counter_dec_multiple(TROVE,*inout_count_p);
+    
+    return ret;
 }
 
 /** Test for completion of any trove operation within a given context.
@@ -1330,7 +1338,7 @@ int trove_dspace_testcontext(
 	return -TROVE_EINVAL;
     }
 
-    return dspace_method_table[method_id]->dspace_testcontext(
+    int ret = dspace_method_table[method_id]->dspace_testcontext(
            coll_id,
            ds_id_array,
            inout_count_p,
@@ -1338,6 +1346,10 @@ int trove_dspace_testcontext(
            user_ptr_array,
            max_idle_time_ms,
            context_id);
+    
+    PINT_HD_update_counter_dec_multiple(TROVE,*inout_count_p);
+    
+    return ret;
 }
 
 int trove_collection_geteattr(

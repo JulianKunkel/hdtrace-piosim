@@ -19,7 +19,7 @@
 <folderInfo id="cdt.managedbuild.toolchain.gnu.base.927199115.813170015" name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.base.409044425" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base">
 <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.1894239244" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
-<builder buildPath="${workspace_loc:/PVFS2-2.8.1}" id="cdt.managedbuild.target.gnu.builder.base.1101831693" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+<builder autoBuildTarget="all" buildPath="${workspace_loc:/PVFS2-2.8.1}" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="cdt.managedbuild.target.gnu.builder.base.1101831693" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.1379363213" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.90780901" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base"/>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1054081748" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
@@ -48,6 +48,9 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/io/bmi}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/gen-locks}&quot;"/>
 </option>
+<option id="gnu.c.compiler.option.preprocessor.def.symbols.2138952164" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+<listOptionValue builtIn="false" value="__PVFS2_TROVE_THREADED__=1"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1155716272" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.base.618331818" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
@@ -70,6 +73,7 @@
 <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 
 <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+
 <storageModule moduleId="scannerConfiguration">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -235,7 +239,7 @@
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
-<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.927199115;cdt.managedbuild.toolchain.gnu.base.927199115.1504613870;cdt.managedbuild.tool.gnu.c.compiler.base.1054081748.1853370079;cdt.managedbuild.tool.gnu.c.compiler.input.1155716272">
+<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.927199115;cdt.managedbuild.toolchain.gnu.base.927199115.1504613870;cdt.managedbuild.tool.gnu.c.compiler.base.1054081748.1853370079;cdt.managedbuild.tool.gnu.c.compiler.input.37564168">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 <buildOutputProvider>
@@ -318,7 +322,7 @@
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
-<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.927199115;cdt.managedbuild.toolchain.gnu.base.927199115.1504613870;cdt.managedbuild.tool.gnu.c.compiler.base.1054081748.1853370079;cdt.managedbuild.tool.gnu.c.compiler.input.37564168">
+<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.927199115;cdt.managedbuild.toolchain.gnu.base.927199115.1504613870;cdt.managedbuild.tool.gnu.c.compiler.base.1054081748.1853370079;cdt.managedbuild.tool.gnu.c.compiler.input.1155716272">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 <buildOutputProvider>
