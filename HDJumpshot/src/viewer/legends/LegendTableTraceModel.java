@@ -344,18 +344,29 @@ public class LegendTableTraceModel extends AbstractTableModel
 			//objdef.setName( (String) value );
 			//fireTableCellUpdated( irow, icolumn );
 			break;
-		case VISIBILITY_COLUMN :
+		case VISIBILITY_COLUMN :{
 			boolean val = ( (Boolean) value ).booleanValue() ;
+			
+			if(val == objdef.isVisible()){
+				break;
+			}
+			
 			objdef.setVisible( val );
 			fireCategoryVisibilityChanged(objdef, val);
 			
 			fireTableCellUpdated( irow, icolumn );
 			break;
-		case SEARCHABILITY_COLUMN :
-			objdef.setSearchable( ( (Boolean) value ).booleanValue() );
+		}case SEARCHABILITY_COLUMN :{
+			boolean val = ( (Boolean) value ).booleanValue() ;
+			
+			if(val == objdef.isSearchable()){
+				break;
+			}			
+			
+			objdef.setSearchable( val );
 			fireTableCellUpdated( irow, icolumn );
 			break;
-		default:
+		}default:
 			System.err.print( "LegendTableModel.setValueAt("
 					+ irow + "," + icolumn + ") fails!" );
 		}

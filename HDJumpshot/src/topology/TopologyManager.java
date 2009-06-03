@@ -65,6 +65,7 @@ import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import drawable.CategoryStatistic;
 
 public class TopologyManager 
 {
@@ -135,7 +136,7 @@ public class TopologyManager
 	 * Stores information per StatisticDescription to allow to remove timelines if a statistic is visible
 	 * and to restore them if made visible.
 	 */
-	private HashMap<StatisticsDescription, LinkedList<RemovedNode>> removedNodesMap = new HashMap<StatisticsDescription, LinkedList<RemovedNode>>(); 
+	private HashMap<CategoryStatistic, LinkedList<RemovedNode>> removedNodesMap = new HashMap<CategoryStatistic, LinkedList<RemovedNode>>(); 
 
 
 	private SortedJTreeNode clickedNode;
@@ -191,7 +192,7 @@ public class TopologyManager
 
 				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){
 					final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) clickedNode);
-					
+
 					// Show statistic histogram:			
 					popupMenu.add(new AbstractAction(){
 						private static final long serialVersionUID = 1L;
@@ -209,40 +210,42 @@ public class TopologyManager
 							frame.show();
 						}
 					});				
-					
+
 					// allow to show aggregated histogram for the selected nodes with the same group(ing).
 					final ArrayList<TopologyStatisticTreeNode> selectedStatNodes = new ArrayList<TopologyStatisticTreeNode>();
-					for(TreePath curPath: tree.getSelectionPaths()){
-						if( TopologyStatisticTreeNode.class.isInstance(curPath.getLastPathComponent()) ){
-							final TopologyStatisticTreeNode selStatNode = (TopologyStatisticTreeNode) curPath.getLastPathComponent();
-							if(	statNode.getStatisticGroup().equals(selStatNode.getStatisticGroup()) && 
-									statNode.getStatisticDescription().getGrouping().equals(selStatNode.getStatisticDescription().getGrouping())){
-								if(statNode.getStatisticDescription().getGrouping().length() > 0 || 
-										statNode.getStatisticDescription().getName().equals(selStatNode.getStatisticDescription().getName())){
-									selectedStatNodes.add(selStatNode);
+					if(tree.getSelectionPaths() != null){
+						for(TreePath curPath: tree.getSelectionPaths()){
+							if( TopologyStatisticTreeNode.class.isInstance(curPath.getLastPathComponent()) ){
+								final TopologyStatisticTreeNode selStatNode = (TopologyStatisticTreeNode) curPath.getLastPathComponent();
+								if(	statNode.getStatisticGroup().equals(selStatNode.getStatisticGroup()) && 
+										statNode.getStatisticDescription().getGrouping().equals(selStatNode.getStatisticDescription().getGrouping())){
+									if(statNode.getStatisticDescription().getGrouping().length() > 0 || 
+											statNode.getStatisticDescription().getName().equals(selStatNode.getStatisticDescription().getName())){
+										selectedStatNodes.add(selStatNode);
+									}
 								}
 							}
 						}
-					}
 
-					if(selectedStatNodes.size() > 1){
-						popupMenu.add(new AbstractAction(){
-							private static final long serialVersionUID = 1L;
+						if(selectedStatNodes.size() > 1){
+							popupMenu.add(new AbstractAction(){
+								private static final long serialVersionUID = 1L;
 
-							{
-								putValue(Action.NAME, "Show line graph for " + selectedStatNodes.size() + " stats");
-							}
+								{
+									putValue(Action.NAME, "Show line graph for " + selectedStatNodes.size() + " stats");
+								}
 
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								//for(TopologyStatisticTreeNode node: selectedStatNodes){
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									//for(TopologyStatisticTreeNode node: selectedStatNodes){
 									//System.out.println("Selected: " + node.getStatisticDescription().getName());
-								//}
-								
-								StatisticLineGraphFrame frame = new StatisticLineGraphFrame(selectedStatNodes, reader, modelTime);
-								frame.show();
-							}
-						});			
+									//}
+
+									StatisticLineGraphFrame frame = new StatisticLineGraphFrame(selectedStatNodes, reader, modelTime);
+									frame.show();
+								}
+							});			
+						}
 					}
 				}
 
@@ -445,6 +448,7 @@ public class TopologyManager
 	 */
 	public void restoreTopology(){
 		removedNodesMap.clear();
+
 		final boolean old = setChangeListenerDisabled(true);
 		try{
 			TopologyTreeMapping mapping = usedTopologyMapping.getInstance();
@@ -461,6 +465,13 @@ public class TopologyManager
 
 			updateTopologyPluginsIfNecessary();
 
+			// update/remove invisible statistics:
+			for (CategoryStatistic cat: reader.getCategoriesStatistics().values()){
+				if(! cat.isVisible()){
+					setStatisticCategoryVisiblity(cat, false);
+				}
+			}
+
 			fireTopologyChanged();			
 		}catch(Exception e){
 			throw new IllegalArgumentException(e);
@@ -471,14 +482,16 @@ public class TopologyManager
 
 	}
 
-	public void setStatisticVisiblity(StatisticsDescription statistic, boolean visible){
+	public void setStatisticCategoryVisiblity(CategoryStatistic category, boolean visible){
 		final SortedJTreeModel model = getTreeModel();
 
 		if(visible == true){
-			final LinkedList<RemovedNode> removedNodes = removedNodesMap.remove(statistic);
+			final LinkedList<RemovedNode> removedNodes = removedNodesMap.remove(category);
+
 			if(removedNodes == null || removedNodes.size() == 0){
 				return;
 			}
+
 			// now add the old values:
 			for(RemovedNode rmNode: removedNodes){
 				model.insertNodeInto(rmNode.child, rmNode.parent);
@@ -487,16 +500,23 @@ public class TopologyManager
 			return;
 		}
 
+		if(removedNodesMap.containsKey(category)){
+			// already invisible.
+			return;
+		}
+
 		// walk through tree:
 		final Enumeration<DefaultMutableTreeNode> nodes = tree_root.depthFirstEnumeration();
 		final LinkedList<RemovedNode> removedNodes = new LinkedList<RemovedNode>();
+
+		final StatisticsDescription desc = category.getStatisticDescription();
 
 		while(nodes.hasMoreElements()){
 			final DefaultMutableTreeNode node = nodes.nextElement();
 
 			if( TopologyStatisticTreeNode.class.isInstance(node) ){
 				final TopologyStatisticTreeNode statNode = (TopologyStatisticTreeNode) node;
-				if(statistic == statNode.getStatisticDescription()){
+				if(desc.equals(statNode.getStatisticDescription())){
 					// remove that node:
 					removedNodes.add( new RemovedNode(statNode));
 
@@ -504,7 +524,7 @@ public class TopologyManager
 				}
 			}
 		}
-		removedNodesMap.put(statistic, removedNodes);
+		removedNodesMap.put(category, removedNodes);
 
 		reloadTopologyMappingFromTree();
 	}

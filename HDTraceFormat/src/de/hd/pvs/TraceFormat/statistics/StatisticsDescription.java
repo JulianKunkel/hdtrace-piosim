@@ -135,4 +135,9 @@ public class StatisticsDescription{
 	public boolean equals(Object obj) {	
 		return ((StatisticsDescription) obj).getName().equals(getName()) && ((StatisticsDescription) obj).getGroup().getName().equals(getGroup().getName());
 	}
+	
+	@Override
+	public int hashCode() {	
+		return getName().hashCode() + getGroup().getName().hashCode();
+	}
 }

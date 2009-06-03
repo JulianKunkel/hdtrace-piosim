@@ -121,7 +121,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			if(category.getTopologyType() == VisualizedObjectType.STATISTIC){
 				final CategoryStatistic statCat = (CategoryStatistic) category;
 				
-				getTopologyManager().setStatisticVisiblity(statCat.getStatisticDescription(), value);
+				getTopologyManager().setStatisticCategoryVisiblity(statCat, value);
 			}
 		}
 		
