@@ -49,7 +49,7 @@ import topology.TopologyTraceTreeNode;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.traceEntries.InfoTableData.InfoTableListData;
 import viewer.dialog.traceEntries.plugins.IInfoDialogPlugin;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -62,7 +62,7 @@ public class InfoDialogForTraceEntries extends InfoDialog implements ResizeListe
 			final Epoch modelTimeDiff,
 			TopologyTraceTreeNode topologyTreeNode,
 			TopologyManager manager,
-			final TraceEntry obj)
+			final ITraceEntry obj)
 	{
 		super( frame, "TraceEntry Info Box", clickedTime, modelTimeDiff);
 
@@ -135,7 +135,7 @@ public class InfoDialogForTraceEntries extends InfoDialog implements ResizeListe
 		
 		createXMLStyles(sc);
 
-		addXMLTextRecursivly(textPane, sc, obj, 0);        
+		addXMLTextRecursivly(textPane, sc, (XMLTag) obj, 0);        
 
 		textPane.setEditable(false);
 		final JScrollPane scroller = new JScrollPane(textPane);

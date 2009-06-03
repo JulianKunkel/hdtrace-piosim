@@ -28,7 +28,7 @@ package hdTraceInput;
 import java.util.ArrayList;
 
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.DrawObjects;
 
@@ -37,7 +37,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	private Epoch minTime;
 	private Epoch maxTime;
 
-	final ArrayList<TraceEntry> traceEntries = new ArrayList<TraceEntry>();
+	final ArrayList<ITraceEntry> traceEntries = new ArrayList<ITraceEntry>();
 	
 	
 	/**
@@ -67,7 +67,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	public BufferedTraceFileReader(String filename, boolean nested) throws Exception {
 		super(filename, nested);
 
-		TraceEntry current = getNextInputEntry();
+		ITraceEntry current = getNextInputEntry();
 
 		minTime = current.getEarliestTime();
 
@@ -81,7 +81,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	}
 
 	
-	public ArrayList<TraceEntry> getTraceEntries() {
+	public ArrayList<ITraceEntry> getTraceEntries() {
 		return traceEntries;
 	}
 
@@ -105,7 +105,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		
 		while(true){
 			int cur = (min + max) / 2;
-			TraceEntry entry = traceEntries.get(cur);
+			ITraceEntry entry = traceEntries.get(cur);
 			
 			if(min == max){ // found entry or stopped.
 				final int ret = traceEntries.get(cur).getLatestTime().compareTo(laterThanTime);
@@ -135,7 +135,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		
 		while(true){
 			int cur = (min + max) / 2;
-			TraceEntry entry = traceEntries.get(cur);
+			ITraceEntry entry = traceEntries.get(cur);
 			
 			if(min == max){ // found entry or stopped.
 				int best = cur;
@@ -143,7 +143,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 								
 				// check entries left and right.
 				if( min != 0){
-					TraceEntry left = traceEntries.get(cur -1);
+					ITraceEntry left = traceEntries.get(cur -1);
 					double leftDistance = DrawObjects.getTimeDistance(dTime, left);
 					
 					if(leftDistance < bestDistance){
@@ -154,7 +154,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 				
 				if(max != traceEntries.size() -1){
 					// check right
-					TraceEntry right = traceEntries.get(cur + 1);
+					ITraceEntry right = traceEntries.get(cur + 1);
 					double rightDistance = DrawObjects.getTimeDistance(dTime, right);
 					
 					if(rightDistance < bestDistance){
@@ -182,7 +182,7 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	 * @param time
 	 * @return
 	 */
-	public TraceEntry getTraceEntryClosestToTime(Epoch dTime){
+	public ITraceEntry getTraceEntryClosestToTime(Epoch dTime){
 		int best = getTraceEntryClosestToTimePosition(dTime);
 		return traceEntries.get(best);
 	}

@@ -8,7 +8,7 @@ import topology.TopologyTreeNode;
 import viewer.dialog.traceEntries.InfoTableData;
 import viewer.dialog.traceEntries.ResizeListener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -21,7 +21,7 @@ abstract public class TopologyDependingPlugin<TYPE extends ITopologyInputPluginO
 	
 	abstract protected Class<TYPE> getDependingTopologyPluginType();
 	
-	abstract protected void ManufactureUI(TraceEntry obj, TYPE pluginData,
+	abstract protected void ManufactureUI(ITraceEntry obj, TYPE pluginData,
 			ProjectDescription description,
 			Epoch modelTimeOffsetToView, 
 			ResizeListener resizeListener, 
@@ -29,7 +29,7 @@ abstract public class TopologyDependingPlugin<TYPE extends ITopologyInputPluginO
 			InfoTableData textData);
 	
 	@Override
-	final public void ManufactureUI(TraceEntry obj, TopologyManager manager,
+	final public void ManufactureUI(ITraceEntry obj, TopologyManager manager,
 			Epoch modelTimeOffsetToView, TopologyTreeNode topology, ResizeListener resizeListener,
 			JPanel panel, InfoTableData textData) 
 	{

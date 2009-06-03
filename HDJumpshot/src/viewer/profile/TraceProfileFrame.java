@@ -67,8 +67,8 @@ import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.ViewportTime;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.CategoryState;
 import drawable.StateBorder;
@@ -278,7 +278,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			final ReaderTraceElementEnumerator enumerator = traceReader.enumerateTraceEntryLaterThan(profileNested, starttime, endtime);
 
 			while(enumerator.hasMoreElements()){
-				final TraceEntry entry = enumerator.nextElement();							
+				final ITraceEntry entry = enumerator.nextElement();							
 
 				if(entry == null)
 					continue;
@@ -289,7 +289,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				}
 
 				if(entry.getType() == TraceObjectType.STATE){
-					final StateTraceEntry state = (StateTraceEntry) entry;
+					final IStateTraceEntry state = (IStateTraceEntry) entry;
 					final CategoryState category = reader.getCategory(state);
 
 					TraceCategoryStateProfile stateProfil = catMap.get(category);
@@ -306,9 +306,9 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 					// subtract nested elements:
 					if( state.hasNestedTraceChildren() ){
 
-						for(TraceEntry child: state.getNestedTraceChildren()){
+						for(ITraceEntry child: state.getNestedTraceChildren()){
 							if(child.getType() == TraceObjectType.STATE){
-								childDuration += ((StateTraceEntry) child).getDurationTime().getDouble();
+								childDuration += ((IStateTraceEntry) child).getDurationTime().getDouble();
 							}
 						}						
 					}
@@ -324,9 +324,9 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 						// subtract nested elements:
 						if( state.hasNestedTraceChildren() ){
 							childDuration = 0;
-							for(TraceEntry child: state.getNestedTraceChildren()){
+							for(ITraceEntry child: state.getNestedTraceChildren()){
 								if(child.getType() == TraceObjectType.STATE){
-									final StateTraceEntry childState = (StateTraceEntry) child;
+									final IStateTraceEntry childState = (IStateTraceEntry) child;
 									if(child.getLatestTime().compareTo(starttime) > 0){ 
 										childDuration += childState.getLatestTime().subtract(starttime).getDouble();
 									}
@@ -342,9 +342,9 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 						// subtract nested elements:
 						if( state.hasNestedTraceChildren() ){
 							childDuration = 0;
-							for(TraceEntry child: state.getNestedTraceChildren()){
+							for(ITraceEntry child: state.getNestedTraceChildren()){
 								if(child.getType() == TraceObjectType.STATE){
-									final StateTraceEntry childState = (StateTraceEntry) child;
+									final IStateTraceEntry childState = (IStateTraceEntry) child;
 									if(child.getEarliestTime().compareTo(endtime) < 0){ 
 										childDuration += endtime.subtract(childState.getEarliestTime()).getDouble();
 									}

@@ -26,9 +26,12 @@
 package de.hd.pvs.TraceFormat.trace;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
  * Write a single trace file and access it with increasing start and end times.
@@ -40,10 +43,19 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * 
  */
 public class NestedTraceWriter extends SimpleTraceWriter{
-	// stack the states to produce nested entries.
-	private LinkedList<StateTraceEntry> stackedEntries = new LinkedList<StateTraceEntry>();
+	private static class NestedStateData{
+		final String name;
+		final Epoch startTime;
+		public NestedStateData(String name, Epoch startTime) {
+			this.name = name;
+			this.startTime = startTime;
+		}
+	}
 	
-	private StateTraceEntry lastOpenedStateTraceEntry = null; 
+	// stack the states to produce nested entries.
+	private LinkedList<NestedStateData> stackedEntries = new LinkedList<NestedStateData>();
+	
+	private NestedStateData lastOpenedStateTraceEntry = null; 
 	
 	/**
 	 * Create a new trace writer
@@ -65,9 +77,8 @@ public class NestedTraceWriter extends SimpleTraceWriter{
 		lastOpenedStateTraceEntry = null;
 	}
 	
-	public void writeEvent(EventTraceEntry traceEntry) throws IOException{
-		updateNestedObjectsOnEnter();
-		
+	public void writeEvent(IEventTraceEntry traceEntry) throws IOException{
+		updateNestedObjectsOnEnter();		
 	}
 
 	/**
@@ -77,31 +88,32 @@ public class NestedTraceWriter extends SimpleTraceWriter{
 	 * @param traceEntry
 	 * @throws IOException
 	 */
-	public void writeStateEnd(StateTraceEntry finEntry) throws IOException{		
-		if(lastOpenedStateTraceEntry != finEntry){
-			StateTraceEntry traceEntry;
+	public void writeStateEnd(String name, Epoch endTime, HashMap<String, String> attributes, ArrayList<XMLTag> xmldata) throws IOException{
+		IStateTraceEntry finEntry;
+		if(lastOpenedStateTraceEntry == null){
 			if(stackedEntries.size() == 0){
 				throw new IllegalArgumentException("State ended, but no corresponding state start found");
 			}
+			// we have to finish a nested tag
+			getFile().write("</Nested>\n");			
+
+			NestedStateData stateData = stackedEntries.pop();
 			
-			if(lastOpenedStateTraceEntry == null){				
-				// we have to finish a nested tag
-				getFile().write("</Nested>\n");			
-			}
-			traceEntry = stackedEntries.pollFirst();
-			writeState(finEntry);			
+			finEntry = new StateTraceEntry(stateData.name, attributes, stateData.startTime, endTime, null, xmldata);					
 		}else{
-			StateTraceEntry traceEntry;
-			// last start == end tag => not nested 
-			traceEntry = lastOpenedStateTraceEntry;
-			lastOpenedStateTraceEntry = null;			
-			super.writeState(traceEntry);
+			finEntry = new StateTraceEntry(lastOpenedStateTraceEntry.name, attributes, lastOpenedStateTraceEntry.startTime, endTime, null, xmldata);
+			lastOpenedStateTraceEntry = null;
 		}
+				
+		if(name != finEntry.getName()){
+			throw new IllegalArgumentException("Start and end trace entry must be the same!");
+		}
+		writeState(finEntry);
 	}
 
-	public void writeStateStart(StateTraceEntry traceEntry) throws IOException {
+	public void writeStateStart(String name, Epoch startTime) throws IOException {
 		updateNestedObjectsOnEnter();
 		
-		lastOpenedStateTraceEntry = traceEntry;
+		lastOpenedStateTraceEntry = new NestedStateData(name, startTime);
 	}
 }

@@ -7,7 +7,6 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -23,13 +22,13 @@ public class WriterTest {
 		final TopologyNode host1 = writer.createInitalizeTopology(new String[]{"host01"});
 		final TopologyNode host2 = writer.createInitalizeTopology(new String[]{"host02"});			
 		
-		StateTraceEntry s1 = writer.StateStart(host1, "Simple", new Epoch(0.0));
-		StateTraceEntry s2 = writer.StateStart(host2, "ACPI1", new Epoch(1.0));
-		StateTraceEntry s3 = writer.StateStart(host2, "ACPI2", new Epoch(2.0));
+		writer.writeStateStart(host1, "Simple", new Epoch(0.0));
+		writer.writeStateStart(host2, "ACPI1", new Epoch(1.0));
+		writer.writeStateStart(host2, "ACPI2", new Epoch(2.0));
 		
-		writer.StateEnd(host2, new Epoch(3.0), s3);
-		writer.StateEnd(host2, new Epoch(4.0), s2);
-		writer.StateEnd(host1, new Epoch(4.1), s1);
+		writer.writeStateEnd(host2, "ACPI2", new Epoch(3.0));
+		writer.writeStateEnd(host2, "ACPI1", new Epoch(4.0));
+		writer.writeStateEnd(host1, "Simple", new Epoch(4.1));
 		
 		// now try to write some statistics:
 		StatisticsGroupDescription estimatedEnergy = new StatisticsGroupDescription("EstimatedEnergy");

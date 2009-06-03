@@ -10,7 +10,7 @@ import topology.TopologyManager;
 import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 
 
 /**
@@ -58,9 +58,9 @@ public class MPIThreadInputPlugin extends TopologyInputPlugin{
 		
 		private void parseTraceFile(BufferedTraceFileReader reader){
 			// read the file and scan for set_view and open operations
-			final Enumeration<TraceEntry> traceEnum = reader.enumerateTraceEntry();
+			final Enumeration<ITraceEntry> traceEnum = reader.enumerateTraceEntry();
 			while(traceEnum.hasMoreElements()){
-				final TraceEntry cur = traceEnum.nextElement();
+				final ITraceEntry cur = traceEnum.nextElement();
 				final String name = cur.getName();
 				if(name.equals(MPIConstants.XML_FILEOPEN)){
 					rankObject.threadSeesFileOpen(cur);

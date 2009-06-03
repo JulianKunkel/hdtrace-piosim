@@ -28,7 +28,7 @@ package de.hd.pvs.piosim.model.inputOutput;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.util.Numbers;
+import de.hd.pvs.TraceFormat.util.NumberPrefixes;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
@@ -88,8 +88,8 @@ public class ListIO{
 				throw new IllegalArgumentException ("Wrong XML, invalid List I/O");
 			}
 			ioOperations.add(new SingleIOOperation(
-						Numbers.getLongValue(offset),
-						Numbers.getLongValue(size)
+					NumberPrefixes.getLongValue(offset),
+					NumberPrefixes.getLongValue(size)
 						));
 		}
 	}

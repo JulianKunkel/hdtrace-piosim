@@ -33,8 +33,9 @@ import java.util.Properties;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -49,13 +50,13 @@ public class TextWriter extends TraceOutputWriter {
 	private BufferedWriter writer;
 
 	@Override
-	public void Event(TopologyNode topology, EventTraceEntry traceEntry) {
+	public void Event(TopologyNode topology, IEventTraceEntry traceEntry) {
 		try {
 			writer.append(traceEntry.getEarliestTime().getFullDigitString() + 
 					" E " + topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
 
-			if(printDetails && traceEntry.getNestedXMLTags() != null){
-				for(XMLTag nested: traceEntry.getNestedXMLTags()){
+			if(printDetails && traceEntry.getContainedXMLData() != null){
+				for(XMLTag nested: traceEntry.getContainedXMLData()){
 					writer.append(nested + "\n"); 
 				}
 			}
@@ -69,10 +70,17 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry) {
+	public void StateEnd(TopologyNode topology, IStateTraceEntry traceEntry) {
 		try {
 			writer.append(traceEntry.getLatestTime().getFullDigitString() + " > " + 
 					topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
+
+			if(printDetails && traceEntry.getContainedXMLData() != null){
+				for(XMLTag nested: traceEntry.getContainedXMLData()){
+					writer.append("\tD: " + nested + "\n");
+				}
+			}
+
 		} catch (IOException e) {			
 			e.printStackTrace();
 			System.exit(1);
@@ -80,16 +88,9 @@ public class TextWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateStart(TopologyNode topology,
-			StateTraceEntry traceEntry) {
+	public void StateStart(TopologyNode topology, String name, Epoch startTime) throws IOException {
 		try {
-			writer.append(traceEntry.getEarliestTime().getFullDigitString() + " < " + topology.toRecursiveString() + " " + traceEntry.getName() + "\n");
-
-			if(printDetails && traceEntry.getNestedXMLTags() != null){
-				for(XMLTag nested: traceEntry.getNestedXMLTags()){
-					writer.append("\tD: " + nested + "\n");
-				}
-			}
+			writer.append(startTime.getFullDigitString() + " < " + topology.toRecursiveString() + " " + name + "\n");
 		} catch (IOException e) {			
 			e.printStackTrace();
 			System.exit(1);

@@ -27,8 +27,8 @@ package hdTraceInput;
 
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.ForwardStateEnumeration;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -45,11 +45,11 @@ public class ReaderTraceElementNestedTimeEnumerator extends ReaderTraceElementEn
 	}
 
 	@Override
-	public TraceEntry nextElement() {		
+	public ITraceEntry nextElement() {		
 		if( stateChildEnumeration == null){ 
-			final TraceEntry current = super.nextElement();
+			final ITraceEntry current = super.nextElement();
 			if(current.getType() == TraceObjectType.STATE){
-				final StateTraceEntry state = (StateTraceEntry) current;
+				final IStateTraceEntry state = (IStateTraceEntry) current;
 				if(! state.hasNestedTraceChildren())
 					return current;
 				
@@ -64,7 +64,7 @@ public class ReaderTraceElementNestedTimeEnumerator extends ReaderTraceElementEn
 		}
 				
 		// now stateChildEnumeration != null
-		final TraceEntry current = stateChildEnumeration.nextElement();
+		final ITraceEntry current = stateChildEnumeration.nextElement();
 		
 		if(! stateChildEnumeration.hasMoreElements()){
 			stateChildEnumeration = null;

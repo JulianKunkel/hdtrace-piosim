@@ -26,6 +26,7 @@
 package de.hd.pvs.TraceFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,9 +38,8 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.NestedTraceWriter;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -178,7 +178,7 @@ public class TraceFormatWriter {
 	 * @param topology
 	 * @param traceEntry
 	 */
-	public void writeEvent(TopologyNode topology, EventTraceEntry traceEntry) throws IOException {
+	public void writeEvent(TopologyNode topology, IEventTraceEntry traceEntry) throws IOException {
 		final NestedTraceWriter writer = getOrCreateTraceForTopology(topology, traceEntry.getEarliestTime());
 		writer.writeEvent(traceEntry);
 	}
@@ -190,9 +190,9 @@ public class TraceFormatWriter {
 	 * @param topology
 	 * @param traceEntry
 	 */
-	public void writeStateEnd(TopologyNode topology, StateTraceEntry traceEntry)  throws IOException {
+	public void writeStateEnd(TopologyNode topology, String name, Epoch endTime, HashMap<String, String> attributes, ArrayList<XMLTag> xmldata)  throws IOException {
 		NestedTraceWriter writer = traceWriterMap.get(topology).traceWriter;
-		writer.writeStateEnd(traceEntry);
+		writer.writeStateEnd(name, endTime, attributes, xmldata);
 	}
 
 	/**
@@ -200,10 +200,9 @@ public class TraceFormatWriter {
 	 * @param topology
 	 * @param traceEntry
 	 */
-	public void writeStateStart(TopologyNode topology, 
-			StateTraceEntry traceEntry)  throws IOException {
-		final NestedTraceWriter writer = getOrCreateTraceForTopology(topology, traceEntry.getEarliestTime());	
-		writer.writeStateStart(traceEntry);
+	public void writeStateStart(TopologyNode topology, String name, Epoch startTime)  throws IOException {
+		final NestedTraceWriter writer = getOrCreateTraceForTopology(topology, startTime);	
+		writer.writeStateStart(name, startTime);
 	}
 
 	/**
@@ -282,8 +281,6 @@ public class TraceFormatWriter {
 	 */
 	public void writeStatisticsGroupEntry(TopologyNode topology, StatisticsGroupEntry entry) throws IOException{
 		final StatisticsGroupDescription group = entry.getGroup();
-		writeStatisticsTimestamp(topology, group, entry.getLatestTime());
-		
 		final StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, entry.getEarliestTime());
 		
 		// use output group and NOT input group for checking.

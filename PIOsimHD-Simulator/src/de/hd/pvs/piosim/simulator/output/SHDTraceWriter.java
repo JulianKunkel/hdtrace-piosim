@@ -21,14 +21,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Stack;
 
-import de.hd.pvs.TraceFormat.TraceFormatWriter;
-import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.topology.TopologyTypes;
+import de.hd.pvs.TraceFormat.SimpleTraceFormatWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLHelper;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
@@ -37,59 +32,53 @@ import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 
 public class SHDTraceWriter extends STraceWriter {
 
-	final TraceFormatWriter out;
-	final ProjectDescription desc;
+	final SimpleTraceFormatWriter writer;
 
 	private static class ComponentTraceInfo{
 		final TopologyNode topology;
-		final Stack<StateTraceEntry> stackedStates = new Stack<StateTraceEntry>();
-		
+
 		public ComponentTraceInfo(TopologyNode top) {
 			this.topology = top;
 		}
 	}
-	
+
 	/**
 	 * Maps the passive component to the initalized topology of the trace writer
 	 */
 	final HashMap<SPassiveComponent<?>, ComponentTraceInfo> topMap = new HashMap<SPassiveComponent<?>, ComponentTraceInfo>();
-	
+
 	// root component, component.., (final) component
 	// other hierarchical information is dropped.
 	final static int MAX_COMPONENT_NESTING = 5; 
 
 	public SHDTraceWriter(String filename, Simulator sim) {
 		super(filename, sim);
-		
-		final TopologyTypes labels = new TopologyTypes();
-		labels.setTopologyTypes(new String []{ "Root Component", "Component", "Component", "Component", "Component"});
-		
-		out = new TraceFormatWriter(filename, labels);
-		desc = out.getProjectDescription();
+
+		writer = new SimpleTraceFormatWriter(filename, "", "", new String []{ "Root Component", "Component", "Component", "Component", "Component"});
 	}
 
 	@Override
 	public void preregister(SPassiveComponent component) {
 		// manufacture topology and cache it.
-		
+
 		final LinkedList<BasicComponent<?>> path = component.getModelComponent().getParentComponentsPlusMe();
-		
+
 		final String [] strPath = new String[path.size()];
-		
+
 		// manufacture topology:
 		if(MAX_COMPONENT_NESTING < strPath.length){
 			throw new IllegalArgumentException("Simulator hierachy is not as deep "+ MAX_COMPONENT_NESTING +  
 					" to record full" +	" hierachy: " + path.size());
 		}
-		
+
 
 		int pos = 0;
 		for(BasicComponent<?> comp: path){
 			strPath[pos] = comp.getIdentifier().toString();
 			pos++;
 		}
-		
-		final TopologyNode newTopo = out.createInitalizeTopology(strPath);
+
+		final TopologyNode newTopo = writer.createInitalizeTopology(strPath);
 		topMap.put(component, new ComponentTraceInfo(newTopo));
 	}
 
@@ -115,34 +104,39 @@ public class SHDTraceWriter extends STraceWriter {
 			String eventDesc) {
 		final ComponentTraceInfo info = topMap.get(comp);
 		final String validText = XMLHelper.validTag(eventDesc);
-		final StateTraceEntry state = new StateTraceEntry(validText, time);
-		
-		info.stackedStates.push(state);		
-		out.StateStart(info.topology, state);
+
+		try{
+			writer.writeStateStart(info.topology, validText, time);
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+
 	}
-	
+
 	@Override
 	protected void endStateInternal(Epoch time, SPassiveComponent comp,
 			String eventDesc) {
 		final ComponentTraceInfo info = topMap.get(comp);		
-		final StateTraceEntry state = info.stackedStates.pop();
-		
+
 		final String validText = XMLHelper.validTag(eventDesc);
-		if(state == null || ! state.getName().equals(validText)){
-			throw new IllegalArgumentException("End state without startstate! " + eventDesc + 
-					" current stacked: " + state);
+		
+		try{
+			writer.writeStateEnd(info.topology, validText, time );
+		}catch(IOException e){
+			e.printStackTrace();
 		}
-		state.setEndTime(time);
-		out.StateEnd(info.topology, state);
+
 	}
 
 	@Override
 	protected void eventInternal(Epoch time, SPassiveComponent comp,
 			String eventDesc, long userEventValue) {
 		final ComponentTraceInfo info = topMap.get(comp);
-		final EventTraceEntry event = new EventTraceEntry(XMLHelper.escapeAttribute(eventDesc), time);
-		event.addAttribute("value" , "" + userEventValue);
-		out.Event(info.topology, event);
+		try{
+			writer.writeEvent(info.topology, eventDesc, time );
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 
 
@@ -150,7 +144,7 @@ public class SHDTraceWriter extends STraceWriter {
 	protected void finalizeInternal(Epoch endTime,
 			Collection<SPassiveComponent> existingComponents) {
 		try{
-			out.finalizeTrace();
+			writer.finalizeTrace();
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}

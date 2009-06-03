@@ -28,6 +28,7 @@
  */
 package de.hd.pvs.TraceFormat.trace;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -37,12 +38,43 @@ import java.util.Iterator;
  * @author julian
  */
 class BackwardStateEnumeration extends ForwardStateEnumeration{
-	public BackwardStateEnumeration(StateTraceEntry owner) {
+
+	/**
+	 * Iterates backwards through an array
+	 * @author julian
+	 * @param <Type>
+	 */
+	private static class ArrayListBackwardsIterator<Type> implements Iterator<Type>{
+		private int pos;
+		private final ArrayList<Type> list;
+		
+		public ArrayListBackwardsIterator(ArrayList<Type> list) {
+			pos = list.size() - 1;
+			this.list = list;			
+		}
+		
+		@Override
+		public boolean hasNext() {
+			return pos >= 0;
+		}
+		
+		@Override
+		public Type next() {
+			return list.get(pos--);
+		}
+		
+		@Override
+		public void remove() {
+			list.remove(pos);
+		}
+	}
+	
+	public BackwardStateEnumeration(IStateTraceEntry owner) {
 		super(owner);
 	}
 	
 	@Override
-	protected Iterator<TraceEntry> iterator(StateTraceEntry state) {		
-		return state.getNestedTraceChildren().descendingIterator();
+	protected Iterator<ITraceEntry> iterator(IStateTraceEntry state) {		
+		return new ArrayListBackwardsIterator<ITraceEntry>(state.getNestedTraceChildren());
 	}
 }

@@ -25,6 +25,7 @@
 
 package de.hd.pvs.piosim.model.program;
 
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
@@ -68,7 +69,7 @@ public class CommandXMLReader {
 	 * @param app
 	 * @throws Exception
 	 */
-	public Command readCommandXML(XMLTag commandXMLElement, Program program) throws Exception {
+	public Command parseCommandXML(XMLTag commandXMLElement, Program program) throws Exception {
 		Command cmd = factory.createCommand(commandXMLElement.getName().toLowerCase());
 
 		// read non-standard attributes:
@@ -85,6 +86,11 @@ public class CommandXMLReader {
 		cmd.setProgram(program);
 		return cmd;
 	}
+	
+	public Command parseCommandXML(ITraceEntry command, Program program) throws Exception {
+		return parseCommandXML((XMLTag) command, program);
+	}
+
 
 
 	/**

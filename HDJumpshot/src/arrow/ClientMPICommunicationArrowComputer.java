@@ -30,7 +30,7 @@ import java.util.LinkedList;
 import viewer.timelines.topologyPlugins.MPIConstants;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -75,9 +75,9 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 
 	private static class PreviousEntry{
 		final TopologyNode topo;
-		final TraceEntry    entry;
+		final ITraceEntry    entry;
 
-		public PreviousEntry(TopologyNode topo, TraceEntry entry) {
+		public PreviousEntry(TopologyNode topo, ITraceEntry entry) {
 			this.topo = topo;
 			this.entry = entry;
 		}
@@ -87,7 +87,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			int rank, 
 			HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyMSGs, 
 			HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> unmatched,
-			TraceEntry entry,
+			ITraceEntry entry,
 			TopologyNode topology,
 			String targetRankStr, String tagStr, String commStr,
 			boolean useEarliestTime)
@@ -185,9 +185,9 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 					if(topology.getTraceSource() != null){
 						// found one trace file.
 						final BufferedTraceFileReader traceReader = (BufferedTraceFileReader) topology.getTraceSource();
-						final Enumeration<TraceEntry>  traceEntries = traceReader.enumerateNestedTraceEntry();
+						final Enumeration<ITraceEntry>  traceEntries = traceReader.enumerateNestedTraceEntry();
 						while(traceEntries.hasMoreElements()){
-							final TraceEntry entry = traceEntries.nextElement();
+							final ITraceEntry entry = traceEntries.nextElement();
 							final String name = entry.getName();
 							final HashMap<String, String> attributes = entry.getAttributes();
 							final String comm = attributes.get("cid");

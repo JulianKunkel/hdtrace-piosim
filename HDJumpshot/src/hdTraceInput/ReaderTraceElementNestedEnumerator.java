@@ -30,18 +30,18 @@ import java.util.Enumeration;
 
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.ForwardStateEnumeration;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 
 /**
  * walks through a list of XMLTraceEntries and also through nested elements.
  * 
  * @author Julian M. Kunkel
  */
-public class ReaderTraceElementNestedEnumerator implements Enumeration<TraceEntry>{
+public class ReaderTraceElementNestedEnumerator implements Enumeration<ITraceEntry>{
 
 	protected ForwardStateEnumeration stateChildEnumeration = null;
-	final protected ArrayList<TraceEntry> list;
+	final protected ArrayList<ITraceEntry> list;
 	int curPos = 0;
 
 	public ReaderTraceElementNestedEnumerator(BufferedTraceFileReader reader) {		
@@ -52,12 +52,12 @@ public class ReaderTraceElementNestedEnumerator implements Enumeration<TraceEntr
 	}
 
 	@Override
-	public TraceEntry nextElement() {
+	public ITraceEntry nextElement() {
 		if( stateChildEnumeration == null ){ 
-			final TraceEntry current = list.get(curPos++);
+			final ITraceEntry current = list.get(curPos++);
 			
 			if(current.getType() == TraceObjectType.STATE){
-				final StateTraceEntry state = (StateTraceEntry) current;
+				final IStateTraceEntry state = (IStateTraceEntry) current;
 				if(! state.hasNestedTraceChildren())
 					return current;
 				
@@ -71,7 +71,7 @@ public class ReaderTraceElementNestedEnumerator implements Enumeration<TraceEntr
 		}
 		
 		// now stateChildEnumeration != null
-		final TraceEntry current = stateChildEnumeration.nextElement();
+		final ITraceEntry current = stateChildEnumeration.nextElement();
 		
 		if(! stateChildEnumeration.hasMoreElements()){
 			stateChildEnumeration = null;

@@ -199,7 +199,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		for (XMLTag xmlcmd: elements) {		
 			// now read the particular command from the XML:
-			Command cmd = cmdReader.readCommandXML(xmlcmd, program);
+			Command cmd = cmdReader.parseCommandXML(xmlcmd, program);
 
 			program.getCommands().add(cmd);
 		}

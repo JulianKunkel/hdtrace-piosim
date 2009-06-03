@@ -31,9 +31,9 @@ import java.util.Stack;
 
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 
@@ -46,7 +46,20 @@ import de.hd.pvs.traceConverter.Input.AbstractTraceProcessor;
 public class TraceProcessor extends AbstractTraceProcessor{
 	final StAXTraceFileReader reader;
 
-	private Stack<StateTraceEntry> nestedStates = new Stack<StateTraceEntry>();
+	private static class StackElements{
+		final IStateTraceEntry state;
+		int curPos = 0;
+		
+		public StackElements(IStateTraceEntry element) {
+			this.state = element;
+		}
+		
+		public boolean hasNext(){
+			return state.hasNestedTraceChildren() && curPos < state.getNestedTraceChildren().size();
+		}
+	}
+	
+	private Stack<StackElements> nestedStates = new Stack<StackElements>();
 	private TraceObject currentTraceObject = null;
 	private long          currentTraceEntryOffset = 0;
 
@@ -72,21 +85,18 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		getOutputConverter().initalizeForTopology(getTopologyEntryResponsibleFor());
 	}
 
-	private void readNextTraceEntryIfNecessary(){		
-		//System.out.println(currentTraceObject);
-
+	private void readNextTraceEntryIfNecessary(){
+		
 		if(currentTraceObject != null){
-			// if it is a child, pick the next object:
-			//System.out.println("Parent: " + currentTraceEntry.getName());
-
 			if(stateStarts == true && currentTraceObject.getType() == TraceObjectType.STATE){
-				StateTraceEntry state = (StateTraceEntry) currentTraceObject;
+				IStateTraceEntry state = (IStateTraceEntry) currentTraceObject;
 
 				if(state.hasNestedTraceChildren()){
-					nestedStates.push(state);
-					currentTraceObject = state.getNestedTraceChildren().pollFirst();
-					eventTime = currentTraceObject.getEarliestTime();		
-
+					final StackElements element = new StackElements(state);
+					nestedStates.push( element );					
+					eventTime = currentTraceObject.getEarliestTime();
+					currentTraceObject = state.getNestedTraceChildren().get(element.curPos++);
+					
 					stateStarts = true;
 					return;
 				}else{
@@ -96,25 +106,25 @@ public class TraceProcessor extends AbstractTraceProcessor{
 				}
 			}			
 
+			// if it is a child, pick the next object			
 			// now a state end is reached or an event.
 			if(nestedStates.size() > 0){
-				StateTraceEntry state = nestedStates.peek();
-
-				if(state.hasNestedTraceChildren()){
-					currentTraceObject = state.getNestedTraceChildren().pollFirst();
+				final StackElements element = nestedStates.peek();				
+				
+				if(element.hasNext()){
+					currentTraceObject = element.state.getNestedTraceChildren().get(element.curPos++);
 					eventTime = currentTraceObject.getEarliestTime();		
 
 					stateStarts = true;
 				}else{
 					// finish State now
-					currentTraceObject = nestedStates.pop();
+					currentTraceObject = nestedStates.pop().state;
 
 					stateStarts = false;
-					eventTime = state.getLatestTime();			
+					eventTime = currentTraceObject.getLatestTime();			
 				}
 				return;
 			}
-
 			// normal event end => read new...
 		}
 
@@ -133,15 +143,14 @@ public class TraceProcessor extends AbstractTraceProcessor{
 		//System.out.println(eventTime.getFullDigitString() + " " + currentTraceObject + " processing " + " t " + currentTraceObject.getEarliestTime());
 
 		if(currentTraceObject.getType() == TraceObjectType.EVENT){
-			getOutputConverter().Event(getTopologyEntryResponsibleFor(), (EventTraceEntry) currentTraceObject);
+			getOutputConverter().Event(getTopologyEntryResponsibleFor(), (IEventTraceEntry) currentTraceObject);
 
 		}else if(currentTraceObject.getType() == TraceObjectType.STATE){			
-			StateTraceEntry state = (StateTraceEntry) currentTraceObject;
+			IStateTraceEntry state = (IStateTraceEntry) currentTraceObject;
 
 			if(stateStarts){
-				getOutputConverter().StateStart(getTopologyEntryResponsibleFor(), state);
-			}else{
-				state.setEndTime(now);
+				getOutputConverter().StateStart(getTopologyEntryResponsibleFor(), state.getName(), state.getEarliestTime());
+			}else{				
 				getOutputConverter().StateEnd(getTopologyEntryResponsibleFor(), state);
 			}
 		}		

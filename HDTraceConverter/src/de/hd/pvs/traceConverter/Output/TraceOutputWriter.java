@@ -29,8 +29,9 @@ import java.io.IOException;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.HDTraceConverter;
 import de.hd.pvs.traceConverter.RunParameters;
 
@@ -76,11 +77,11 @@ abstract public class TraceOutputWriter {
 	 * @param traceEntry
 	 */
 	// handle states == default case
-	abstract public void StateStart(TopologyNode topology, StateTraceEntry traceEntry) throws IOException;
-	abstract public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry) throws IOException;
+	abstract public void StateStart(TopologyNode topology, String name, Epoch startTime) throws IOException;
+	abstract public void StateEnd(TopologyNode topology, IStateTraceEntry traceEntry) throws IOException;
 
 	// handle events
-	abstract public void Event(TopologyNode topology, EventTraceEntry traceEntry) throws IOException;
+	abstract public void Event(TopologyNode topology, IEventTraceEntry traceEntry) throws IOException;
 
 	// handle statistics
 	abstract public void Statistics(TopologyNode topology, StatisticsGroupEntry entry) throws IOException;	

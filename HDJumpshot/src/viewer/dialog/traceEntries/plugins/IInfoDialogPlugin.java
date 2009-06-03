@@ -8,7 +8,7 @@ import topology.TopologyManager;
 import topology.TopologyTreeNode;
 import viewer.dialog.traceEntries.InfoTableData;
 import viewer.dialog.traceEntries.ResizeListener;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -31,7 +31,7 @@ public interface IInfoDialogPlugin {
 	public Color getColor();
 	
 	public void ManufactureUI(
-			TraceEntry obj, 
+			ITraceEntry obj, 
 			TopologyManager manager, 
 			Epoch modelTimeOffsetToView,
 			TopologyTreeNode topology,			

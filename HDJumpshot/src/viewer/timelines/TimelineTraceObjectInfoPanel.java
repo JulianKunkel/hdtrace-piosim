@@ -63,8 +63,8 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import drawable.Category;
 
 
@@ -126,10 +126,10 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 
 		switch(obj.getType()){
 		case EVENT:
-			showInfo((EventTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
+			showInfo((IEventTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
 			return;
 		case STATE:
-			showInfo((StateTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
+			showInfo((IStateTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
 			return;
 		case STATISTICENTRY:
 			showInfo((StatisticsEntry) obj, infoObj.getTopologyTreeNode().getTopology(), 
@@ -184,7 +184,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 	}
 
 
-	public void showInfo( StateTraceEntry state, TopologyNode topology ) {
+	public void showInfo( IStateTraceEntry state, TopologyNode topology ) {
 		setVisibleControls(TraceObjectType.STATE);
 
 		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
@@ -196,7 +196,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		this.setCategoryColor( (Color) cat.getColor() );
 	}
 
-	public void showInfo( EventTraceEntry event, TopologyNode topology) {
+	public void showInfo( IEventTraceEntry event, TopologyNode topology) {
 		setVisibleControls(TraceObjectType.EVENT);
 
 		final double time = reader.subtractGlobalMinTimeOffset(event.getEarliestTime());

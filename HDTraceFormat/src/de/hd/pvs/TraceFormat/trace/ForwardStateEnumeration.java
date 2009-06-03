@@ -36,25 +36,25 @@ import de.hd.pvs.TraceFormat.TraceObjectType;
  * 
  * @author Julian M. Kunkel
  */
-public class ForwardStateEnumeration implements Enumeration<TraceEntry>{
-	private Stack<StateTraceEntry> nestedChildren = new Stack<StateTraceEntry>();
-	private Stack<Iterator<TraceEntry>> nestedIterator = new Stack<Iterator<TraceEntry>>();
+public class ForwardStateEnumeration implements Enumeration<ITraceEntry>{
+	private Stack<IStateTraceEntry> nestedChildren = new Stack<IStateTraceEntry>();
+	private Stack<Iterator<ITraceEntry>> nestedIterator = new Stack<Iterator<ITraceEntry>>();
 	
 	protected boolean hasMoreElements;
 
-	public ForwardStateEnumeration(StateTraceEntry owner) {			
+	public ForwardStateEnumeration(IStateTraceEntry owner) {			
 		pushOnStackIfPossible(owner);
 		hasMoreElements = (nestedIterator.size() != 0);
 	}
 
-	private void pushOnStackIfPossible(StateTraceEntry entry){
+	private void pushOnStackIfPossible(IStateTraceEntry entry){
 		if(entry.hasNestedTraceChildren()){
 			nestedChildren.push(entry);
 			nestedIterator.push( iterator(entry) );
 		}			
 	}
 	
-	protected Iterator<TraceEntry> iterator(StateTraceEntry entry){
+	protected Iterator<ITraceEntry> iterator(IStateTraceEntry entry){
 		return entry.getNestedTraceChildren().iterator();
 	}
 
@@ -65,14 +65,14 @@ public class ForwardStateEnumeration implements Enumeration<TraceEntry>{
 
 	
 	@Override
-	public TraceEntry nextElement() {
-		Iterator<TraceEntry> iter = nestedIterator.peek();
+	public ITraceEntry nextElement() {
+		Iterator<ITraceEntry> iter = nestedIterator.peek();
 
-		TraceEntry obj = iter.next();
+		ITraceEntry obj = iter.next();
 
 		if(obj.getType() == TraceObjectType.STATE){
 			// we have to do a DFS, therefore go into this one:
-			StateTraceEntry state = (StateTraceEntry) obj;
+			IStateTraceEntry state = (IStateTraceEntry) obj;
 			pushOnStackIfPossible(state);
 		}
 

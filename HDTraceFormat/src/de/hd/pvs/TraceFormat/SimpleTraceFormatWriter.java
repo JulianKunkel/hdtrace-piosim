@@ -26,6 +26,7 @@
 package de.hd.pvs.TraceFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
@@ -33,8 +34,8 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
  * Allows to write to HDTraceFormat via a central API.
@@ -93,39 +94,27 @@ public class SimpleTraceFormatWriter {
 		return cur;
 	}
 	
-	public void Event(TopologyNode topology, String name, Epoch time)  throws IOException {
-		Event(topology, name, time, null);
+	public void writeEvent(TopologyNode topology, String name, Epoch time)  throws IOException {
+		writeEvent(topology, name, time, null, null);
 	}
 	
-	public void Event(TopologyNode topology, String name, Epoch time, HashMap<String, String> attributes)  throws IOException {
-		EventTraceEntry traceEntry = new EventTraceEntry(name, time);
-		if(attributes != null){
-			for(String key: attributes.keySet()){
-				traceEntry.addAttribute(key, attributes.get(key));
-			}
-		}
+	public void writeEvent(TopologyNode topology, String name, Epoch time, HashMap<String, String> attributes,  final ArrayList<XMLTag> nestedData )  throws IOException {
+		EventTraceEntry traceEntry = new EventTraceEntry(name, attributes, time, nestedData);
 		writer.writeEvent(topology, traceEntry);
 	}
 	
-	public StateTraceEntry StateStart(TopologyNode topology, String name, Epoch startTime) throws IOException {
-		StateTraceEntry state = new StateTraceEntry(name, startTime);
-		writer.writeStateStart(topology, state);
-		return state;
+	public void writeStateStart(TopologyNode topology, String name, Epoch startTime) throws IOException {
+		writer.writeStateStart(topology, name, startTime);
 	}
 	
-	public void StateEnd(TopologyNode topology, Epoch endTime, StateTraceEntry traceEntry)  throws IOException {
-		traceEntry.setEndTime(endTime);
-		writer.writeStateEnd(topology, traceEntry);
+	public void writeStateEnd(TopologyNode topology, String name, Epoch endTime, HashMap<String, String> attributes, ArrayList<XMLTag> xmldata)  throws IOException {
+		writer.writeStateEnd(topology, name, endTime, attributes, xmldata);
 	}
 	
-	public void StateEnd(TopologyNode topology, Epoch endTime, StateTraceEntry traceEntry, HashMap<String, String> attributes)  throws IOException {
-		if(attributes != null){
-			for(String key: attributes.keySet()){
-				traceEntry.addAttribute(key, attributes.get(key));
-			}
-		}
-		StateEnd(topology, endTime, traceEntry);
+	public void writeStateEnd(TopologyNode topology, String name, Epoch endTime)  throws IOException {
+		writeStateEnd(topology, name, endTime, null, null);
 	}
+
 
 	public void writeStatisticsTimestamp(TopologyNode topology, StatisticsGroupDescription group, Epoch time) throws IOException{
 		// add the group to the writer if necessary:

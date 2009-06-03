@@ -10,7 +10,7 @@ import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
 import viewer.timelines.topologyPlugins.MPIThreadInputPlugin.MPIThreadObject;
 import de.hd.pvs.TraceFormat.project.CommunicatorInformation;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class CommunicatorPlugin extends TopologyDependingPlugin<MPIThreadObject>{
@@ -25,7 +25,7 @@ public class CommunicatorPlugin extends TopologyDependingPlugin<MPIThreadObject>
 	}
 
 	@Override
-	protected void ManufactureUI(TraceEntry obj, MPIThreadObject pluginData,
+	protected void ManufactureUI(ITraceEntry obj, MPIThreadObject pluginData,
 			ProjectDescription description, Epoch realModelTimeStart,
 			ResizeListener resizeListener, JPanel panel, InfoTableData textData) {	
 		// got a rank:

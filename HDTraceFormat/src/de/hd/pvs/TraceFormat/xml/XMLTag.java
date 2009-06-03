@@ -37,36 +37,18 @@ import java.util.LinkedList;
  *
  */
 public class XMLTag {
-	private ArrayList<XMLTag> nestedXMLTags;
+	private final ArrayList<XMLTag> nestedXMLTags;
 
 	private final HashMap<String, String> attributes;	
-	private final String					  name;
-	private String                  containedText = null;
+	private final String				  name;
+	private final String                  containedText;
 	
-	private XMLTag 	parentTag;
-	
-	public XMLTag(final String name, final HashMap<String, String> attributes,
-			XMLTag parentXMLTag) {
+	public XMLTag(final String name, final HashMap<String, String> attributes, String containedText, ArrayList<XMLTag> nestedTagsWithoutLinks) {
 		this.attributes = attributes;
 		this.name = name;
+		this.containedText = containedText;
 		
-		if(	parentXMLTag != null){
-			parentXMLTag.addXMLChildTag(this);
-		}
-		parentTag = parentXMLTag;
-	}
-	
-	private void addXMLChildTag(XMLTag tag){
-		if (nestedXMLTags == null){
-			nestedXMLTags = new ArrayList<XMLTag>();
-		}
-		
-		nestedXMLTags.add(tag);
-	}
-	
-	public void setXMLParentTag(XMLTag parent){
-		parent.addXMLChildTag(this);
-		this.parentTag = parent;
+		this.nestedXMLTags = nestedTagsWithoutLinks;
 	}
 	
 	public ArrayList<XMLTag> getNestedXMLTags() {
@@ -137,14 +119,6 @@ public class XMLTag {
 		return null;
 	}
 	
-	public void setNestedXMLTags(ArrayList<XMLTag> nestedXMLTags) {
-		this.nestedXMLTags = nestedXMLTags;
-	}
-	
-	public void setContainedText(String containedText) {
-		this.containedText = containedText;
-	}
-	
 	public HashMap<String, String> getAttributes() {
 		return attributes;
 	}
@@ -153,20 +127,8 @@ public class XMLTag {
 		return attributes.get(attribute);
 	}
 
-	public void addAttribute(String attribute, String value){
-		attributes.put(attribute, value);
-	}
-	
 	public String getContainedText() {
 		return containedText;
-	}
-	
-	public XMLTag getParentTag() {
-		return parentTag;
-	}
-	
-	public boolean isChild(){
-		return parentTag != null;
 	}
 	
 	public String getName() {

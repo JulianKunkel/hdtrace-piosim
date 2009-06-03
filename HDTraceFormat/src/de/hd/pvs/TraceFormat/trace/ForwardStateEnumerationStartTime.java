@@ -36,9 +36,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 public class ForwardStateEnumerationStartTime extends ForwardStateEnumeration{
 	
-	TraceEntry current = null;
+	ITraceEntry current = null;
 		
-	public ForwardStateEnumerationStartTime(StateTraceEntry owner, Epoch startTime) {
+	public ForwardStateEnumerationStartTime(IStateTraceEntry owner, Epoch startTime) {
 		super(owner);
 		while(super.hasMoreElements){
 			current = super.nextElement();
@@ -55,13 +55,13 @@ public class ForwardStateEnumerationStartTime extends ForwardStateEnumeration{
 	 * Look at the next element without extracting it.
 	 * @return
 	 */
-	public TraceEntry peek(){
+	public ITraceEntry peek(){
 		return current;
 	}
 	
 	@Override
-	public TraceEntry nextElement() {
-		TraceEntry old = current;
+	public ITraceEntry nextElement() {
+		ITraceEntry old = current;
 		
 		if(super.hasMoreElements){
 			current = super.nextElement();

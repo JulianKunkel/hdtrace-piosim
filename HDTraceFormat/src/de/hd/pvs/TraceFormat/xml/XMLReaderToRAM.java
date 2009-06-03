@@ -27,6 +27,7 @@ package de.hd.pvs.TraceFormat.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -79,7 +80,7 @@ public class XMLReaderToRAM {
 		
 		Element applicationNode = DOMdocument.getDocumentElement();
 		
-		return readXMLTag(applicationNode, null);
+		return readXMLTag(applicationNode);
 	}
 	
 	/**
@@ -92,33 +93,37 @@ public class XMLReaderToRAM {
 		//Contains the DOM, read during readProjectDescription		
 		Document document = DOMbuilder.parse(  new ByteArrayInputStream( string.getBytes() ));
 		
-		return readXMLTag(document.getDocumentElement(), null);
+		return readXMLTag(document.getDocumentElement());
 	}
 	
-	private XMLTag readXMLTag(Element tag, XMLTag parent){
+	private XMLTag readXMLTag(Element tag){
 		HashMap<String, String> attributes = new HashMap<String, String>();
 		
 		NamedNodeMap map = tag.getAttributes();
 		for(int i=0; i < map.getLength(); i++){
 			attributes.put(map.item(i).getNodeName(), map.item(i).getTextContent());			
 		}
-		
-		XMLTag xmlTag = new XMLTag(tag.getNodeName(), attributes , parent);
 				
+		String containedText = null;
+		
+		final ArrayList<XMLTag> nestedXMLTags = new ArrayList<XMLTag>(0);		
+		
 		// scan for child nodes:
 		final NodeList list = tag.getChildNodes();
 		for(int i=0; i < list.getLength(); i++){
 			final Node item = list.item(i);
 			if(item.getNodeType() == Node.ELEMENT_NODE){
-				XMLTag child = readXMLTag((Element) item, xmlTag);
+				XMLTag child = readXMLTag((Element) item);
+				nestedXMLTags.add(child);
 			}else if(item.getNodeType() == Node.TEXT_NODE){
 				final String txt = item.getTextContent().trim(); 
 				if(txt.length() > 0){
-					xmlTag.setContainedText(txt);
+					containedText = txt;
 				}
 			}
 		}
 		
+		final XMLTag xmlTag = new XMLTag(tag.getNodeName(), attributes , containedText, nestedXMLTags);
 		return xmlTag;
 	}
 }

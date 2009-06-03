@@ -31,7 +31,7 @@ package de.hd.pvs.piosim.model;
 import java.lang.reflect.Field;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.TraceFormat.util.Numbers;
+import de.hd.pvs.TraceFormat.util.NumberPrefixes;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
@@ -142,13 +142,13 @@ public class AttributeAnnotationHandler {
 				Object value = null;
 
 				if (type == int.class || type == Integer.class) {
-					value= (int) Numbers.getLongValue(stringAttribute);
+					value= (int) NumberPrefixes.getLongValue(stringAttribute);
 				}else if (type == boolean.class ) {
 					value = Boolean.getBoolean(stringAttribute);					
 				}else if (type == long.class || type == Long.class) {
-					value =  Numbers.getLongValue(stringAttribute) ;
+					value =  NumberPrefixes.getLongValue(stringAttribute) ;
 				}else if (type == Epoch.class){
-					value = new Epoch(Numbers.getDoubleValue(stringAttribute));
+					value = new Epoch(NumberPrefixes.getDoubleValue(stringAttribute));
 				}else if (type == String.class){
 					// do nothing
 					value = stringAttribute;
@@ -200,9 +200,9 @@ public class AttributeAnnotationHandler {
 				String stringValue = "";
 
 				if (type == int.class) {
-					stringValue = Numbers.getNiceString(((Integer) value).longValue());
+					stringValue = NumberPrefixes.getNiceString(((Integer) value).longValue());
 				}else if (type == long.class) {
-					stringValue = Numbers.getNiceString((Long) value);
+					stringValue = NumberPrefixes.getNiceString((Long) value);
 				}else if (type == boolean.class ) {
 					stringValue = value.toString();					
 				}else if (type == Epoch.class){

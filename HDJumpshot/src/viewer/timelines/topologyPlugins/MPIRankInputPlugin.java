@@ -8,7 +8,7 @@ import topology.ITopologyInputPluginObject;
 import topology.TopologyInputPlugin;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 
@@ -29,17 +29,17 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 		/**
 		 * Remember file opens
 		 */
-		private ArrayList<TraceEntry> fileOpens = new ArrayList<TraceEntry>();
+		private ArrayList<ITraceEntry> fileOpens = new ArrayList<ITraceEntry>();
 
 		/**
 		 * Remember file views
 		 */
-		private ArrayList<TraceEntry> fileViews = new ArrayList<TraceEntry>();
+		private ArrayList<ITraceEntry> fileViews = new ArrayList<ITraceEntry>();
 		
 		/**
 		 * Remember file close (used together with file views)
 		 */
-		private ArrayList<TraceEntry> fileClose = new ArrayList<TraceEntry>();
+		private ArrayList<ITraceEntry> fileClose = new ArrayList<ITraceEntry>();
 
 		/**
 		 * Checks whether the operations are sorted or not.
@@ -62,9 +62,9 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 		private void checkOperationsSorted(){
 			if(! isOperationsSorted){
 				// sort them
-				Comparator<TraceEntry> comp = new Comparator<TraceEntry>(){
+				Comparator<ITraceEntry> comp = new Comparator<ITraceEntry>(){
 					@Override
-					public int compare(TraceEntry o1, TraceEntry o2) {
+					public int compare(ITraceEntry o1, ITraceEntry o2) {
 						final String fidStr = o1.getAttribute("fid");
 						final String fidStr2 = o2.getAttribute("fid");
 						
@@ -84,7 +84,7 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 			}			
 		}
 
-		private TraceEntry binSearchBeforeTraceObj(ArrayList<TraceEntry> list, Epoch earlierThan, String fid){
+		private ITraceEntry binSearchBeforeTraceObj(ArrayList<ITraceEntry> list, Epoch earlierThan, String fid){
 			int pos = binSearchBefore(list, earlierThan, fid); 			
 			if (pos == -1 ){
 				return null;
@@ -92,7 +92,7 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 			return list.get(pos); 
 		}
 		
-		private int binSearchBefore(ArrayList<TraceEntry> list, Epoch earlierThan, String fid){
+		private int binSearchBefore(ArrayList<ITraceEntry> list, Epoch earlierThan, String fid){
 			
 			checkOperationsSorted();
 			
@@ -105,7 +105,7 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 
 			while(true){
 				final int cur = (min + max) / 2;
-				final TraceEntry entry = list.get(cur);
+				final ITraceEntry entry = list.get(cur);
 				
 				if(min == max){ // found entry or stopped.
 					
@@ -129,16 +129,16 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 			}
 		}
 
-		public TraceEntry getPreviousFileOpen(Epoch earlierThan, String fid){
+		public ITraceEntry getPreviousFileOpen(Epoch earlierThan, String fid){
 			return binSearchBeforeTraceObj(fileOpens, earlierThan, fid);
 		}
 
-		public TraceEntry getPreviousFileSetView(Epoch earlierThan, String fid){			
+		public ITraceEntry getPreviousFileSetView(Epoch earlierThan, String fid){			
 			// now we know there happens sth. before, however it might be sth. like 
 			// [(open), close,] (open), setview, close, close, close, (open), setview
 			
-			final TraceEntry view = binSearchBeforeTraceObj(fileViews, earlierThan, fid);
-			final TraceEntry close = binSearchBeforeTraceObj(fileClose, earlierThan, fid);
+			final ITraceEntry view = binSearchBeforeTraceObj(fileViews, earlierThan, fid);
+			final ITraceEntry close = binSearchBeforeTraceObj(fileClose, earlierThan, fid);
 			
 			if(close != null && close.getEarliestTime().compareTo(view.getEarliestTime()) > 0) {
 				// if close later than view got set => no view any more.
@@ -148,19 +148,19 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 			}
 		}
 		
-		void threadSeesFileOpen(TraceEntry fopen){
+		void threadSeesFileOpen(ITraceEntry fopen){
 			assert(! isOperationsSorted);
 
 			fileOpens.add(fopen);
 		}
 
-		void threadSeesFileSetView(TraceEntry fview){
+		void threadSeesFileSetView(ITraceEntry fview){
 			assert(! isOperationsSorted);
 			
 			fileViews.add(fview);
 		}
 
-		void threadSeesFileClose(TraceEntry fclose){
+		void threadSeesFileClose(ITraceEntry fclose){
 			assert(! isOperationsSorted);
 
 			fileClose.add(fclose);

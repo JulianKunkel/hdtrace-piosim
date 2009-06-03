@@ -38,9 +38,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 
@@ -51,7 +51,7 @@ public class DrawObjects{
 
 	public static  int  drawState( Graphics2D g,
 			CoordPixelXform  coord_xform,
-			StateTraceEntry state,                            
+			IStateTraceEntry state,                            
 			Color color,
 			int nestingDepth,
 			int timeline,
@@ -131,7 +131,7 @@ public class DrawObjects{
 	}
 
 	public static int  drawEvent( Graphics2D g, CoordPixelXform coord_xform,
-			EventTraceEntry event,
+			IEventTraceEntry event,
 			int timeline,
 			Color color,
 			Epoch globalMinTime)
@@ -152,11 +152,11 @@ public class DrawObjects{
 	 * @param entry
 	 * @return
 	 */
-	static public double getTimeDistance(Epoch time, TraceEntry entry){
+	static public double getTimeDistance(Epoch time, ITraceEntry entry){
 		double distance = Math.abs( entry.getEarliestTime().subtract( time).getDouble() );
 
 		if(entry.getType() == TraceObjectType.STATE){
-			final StateTraceEntry state = (StateTraceEntry) entry;
+			final IStateTraceEntry state = (IStateTraceEntry) entry;
 			if ( time.compareTo(state.getLatestTime()) <= 0 && time.compareTo(state.getEarliestTime()) >= 0 ){
 				// perfect match.
 				return 0;

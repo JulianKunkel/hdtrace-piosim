@@ -14,7 +14,7 @@ import viewer.timelines.topologyPlugins.MPIRankInputPlugin.MPIRankObject;
 import viewer.timelines.topologyPlugins.MPIThreadInputPlugin.MPIThreadObject;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -29,7 +29,7 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 	}
 
 	@Override
-	protected void ManufactureUI(TraceEntry obj, MPIThreadObject pluginData,
+	protected void ManufactureUI(ITraceEntry obj, MPIThreadObject pluginData,
 			ProjectDescription desc, Epoch modelTimeOffsetToView,
 			ResizeListener resizeListener, JPanel panel, InfoTableData textData) {
 		// got a rank:
@@ -44,7 +44,7 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 
 		if(fidStr != null){
 			// it might be a file command.					
-			final TraceEntry fopen = rankObj.getPreviousFileOpen(obj.getEarliestTime(), fidStr);
+			final ITraceEntry fopen = rankObj.getPreviousFileOpen(obj.getEarliestTime(), fidStr);
 
 			if(fopen == null){
 				System.err.println("Warning no previous open found for fid: " + fidStr +  " t: " + obj.getEarliestTime());
@@ -63,7 +63,7 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 				
 				final long offset = Long.parseLong(offsetStr);
 				
-				final TraceEntry fview = rankObj.getPreviousFileSetView(obj.getEarliestTime(), fidStr);
+				final ITraceEntry fview = rankObj.getPreviousFileSetView(obj.getEarliestTime(), fidStr);
 				if(fview != null){
 					addDatatypeView("File datatype", rank, desc, fview.getAttribute("filetid"), resizeListener, panel);
 					

@@ -75,11 +75,11 @@ import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
 import drawable.CategoryStatistic;
@@ -469,19 +469,19 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 			final int depth = elements.getNestingDepthOfNextElement();
 
-			TraceEntry entry = elements.nextElement();
+			ITraceEntry entry = elements.nextElement();
 
 			final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
 			if(entry.getType() == TraceObjectType.EVENT){          
-				final EventTraceEntry event = (EventTraceEntry) entry;
+				final IEventTraceEntry event = (IEventTraceEntry) entry;
 
 				final Category category = reader.getCategory(event);
 				if(category.isVisible())
 					DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
 
 			}else if(entry.getType() == TraceObjectType.STATE){
-				final StateTraceEntry state = (StateTraceEntry) entry;
+				final IStateTraceEntry state = (IStateTraceEntry) entry;
 				final Category category = reader.getCategory(state);
 
 				if(category.isVisible())
@@ -508,10 +508,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		switch(topologyManager.getType(timeline)){
 		case TRACE:
 			final BufferedTraceFileReader treader = topologyManager.getTraceReaderForTimeline(timeline);
-			TraceEntry objMouse = treader.getTraceEntryClosestToTime(realTime);			
+			ITraceEntry objMouse = treader.getTraceEntryClosestToTime(realTime);			
 
 			if (objMouse.getType() == TraceObjectType.STATE){
-				StateTraceEntry state = (StateTraceEntry) objMouse;
+				IStateTraceEntry state = (IStateTraceEntry) objMouse;
 				final double curDist = DrawObjects.getTimeDistance(realTime, state);
 
 				if(curDist != 0){
@@ -523,17 +523,17 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				}
 
 				if (state.hasNestedTraceChildren()){					
-					TraceEntry best = objMouse;
+					ITraceEntry best = objMouse;
 					double dist = 0;
 
 					while(dist == 0){
 						// traverse nesting if necessary, and match events.
 
 						if (best.getType() == TraceObjectType.STATE ){
-							state = (StateTraceEntry) best;
+							state = (IStateTraceEntry) best;
 
 							if (state.hasNestedTraceChildren()){		
-								for(TraceEntry child: state.getNestedTraceChildren()){
+								for(ITraceEntry child: state.getNestedTraceChildren()){
 									dist = DrawObjects.getTimeDistance(realTime, child);
 									if(child.getType() == TraceObjectType.EVENT ){
 										if( dist < eventRadius){
@@ -611,7 +611,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 						getModelTime().getGlobalMinimum(),						
 						(TopologyTraceTreeNode) infoObj.getTopologyTreeNode(),
 						getTopologyManager() ,
-						(TraceEntry) infoObj.getObject());	
+						(ITraceEntry) infoObj.getObject());	
 			}
 		}
 
@@ -634,10 +634,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				BufferedTraceFileReader tr = topologyManager.getTraceReaderForTimeline(i);
 
 				traceElementLoop: 
-					for(TraceEntry entry: tr.getTraceEntries()){
+					for(ITraceEntry entry: tr.getTraceEntries()){
 						if(entry.getLatestTime().compareTo(laterThan) > 0){
 							if(entry.getType() == TraceObjectType.EVENT){
-								Category cat = reader.getCategory((EventTraceEntry) entry);
+								Category cat = reader.getCategory((IEventTraceEntry) entry);
 								if(cat.isSearchable()){												
 									if( entry.getEarliestTime().compareTo(minTime) < 0){							
 										minObject = entry;
@@ -648,7 +648,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									break;
 								}							
 							}else if(entry.getType() == TraceObjectType.STATE){
-								StateTraceEntry state = (StateTraceEntry) entry;
+								IStateTraceEntry state = (IStateTraceEntry) entry;
 								Category cat = reader.getCategory(state);
 								// iterate through children if necessary:
 
@@ -662,9 +662,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									break;
 								}
 								if(state.hasNestedTraceChildren()){
-									final Enumeration<TraceEntry> children = state.childForwardEnumeration();
+									final Enumeration<ITraceEntry> children = state.childForwardEnumeration();
 									while(children.hasMoreElements()){
-										final TraceEntry nestedChild = children.nextElement();
+										final ITraceEntry nestedChild = children.nextElement();
 
 										if( nestedChild.getEarliestTime().compareTo(laterThan) <= 0 ){
 											continue;
@@ -708,11 +708,11 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 				traceElementLoop: 
 					for(int te=tr.getTraceEntries().size() -1 ; te >= 0 ; te-- ){
-						TraceEntry entry = tr.getTraceEntries().get(te);
+						ITraceEntry entry = tr.getTraceEntries().get(te);
 
 						if(entry.getEarliestTime().compareTo(earlierThan) < 0){
 							if(entry.getType() == TraceObjectType.EVENT){
-								Category cat = reader.getCategory((EventTraceEntry) entry);
+								Category cat = reader.getCategory((IEventTraceEntry) entry);
 								if(cat.isSearchable()){												
 									if( entry.getLatestTime().compareTo(maxTime) > 0){							
 										minObject = entry;
@@ -723,7 +723,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									break;
 								}							
 							}else if(entry.getType() == TraceObjectType.STATE){
-								StateTraceEntry state = (StateTraceEntry) entry;
+								IStateTraceEntry state = (IStateTraceEntry) entry;
 								Category cat = reader.getCategory(state);
 								// iterate through children if necessary:
 
@@ -737,9 +737,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									break;
 								}
 								if(state.hasNestedTraceChildren()){
-									final Enumeration<TraceEntry> children = state.childBackwardEnumeration();
+									final Enumeration<ITraceEntry> children = state.childBackwardEnumeration();
 									while(children.hasMoreElements()){
-										final TraceEntry nestedChild = children.nextElement();
+										final ITraceEntry nestedChild = children.nextElement();
 
 										if( nestedChild.getLatestTime().compareTo(earlierThan) >= 0 ){
 											continue;

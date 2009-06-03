@@ -25,12 +25,13 @@
 
 package de.hd.pvs.TraceFormat.trace;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
  * State, contains a start and end time and might be nested.
@@ -38,40 +39,27 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * 
  * @author julian
  */
-public class StateTraceEntry extends TraceEntry{
+public class StateTraceEntry extends TraceEntry implements IStateTraceEntry{
 
-	Epoch endTime;
+	private final Epoch endTime;
 
 	/**
 	 * Child trace entries.
 	 */
-	LinkedList<TraceEntry> nestedTraceChildren = null;
+	private final ArrayList<ITraceEntry> nestedTraceChildren;
 
-	/**
-	 * Walk through the children in correct time order, (Depth First Search)
-	 * This includes not the parent state.
-	 * @return
-	 */
+	@Override
 	public ForwardStateEnumeration childForwardEnumeration(){
 		return new ForwardStateEnumeration(this);
 	}
-	
-	/**
-	 * Walk through the children in correct time order, (Depth First Search)
-	 * The least startTime the child might have is the startTime.
-	 * This includes not the parent state. 
-	 * @return
-	 */
+
+	@Override
 	public ForwardStateEnumerationStartTime childForwardEnumeration(Epoch startTime){
 		return new ForwardStateEnumerationStartTime(this, startTime);
 	}
 
-
-	/**
-	 * Walk through the children in reversed time order
-	 * @return
-	 */
-	public Enumeration<TraceEntry> childBackwardEnumeration(){
+	@Override
+	public Enumeration<ITraceEntry> childBackwardEnumeration(){
 		return new BackwardStateEnumeration(this);
 	}
 
@@ -80,40 +68,14 @@ public class StateTraceEntry extends TraceEntry{
 	 * @param name
 	 * @param attributes
 	 */
-	public StateTraceEntry(String name, final HashMap<String, String> attributes, Epoch start, Epoch end) {
-		super(name, attributes, start);
+	public StateTraceEntry(String name, final HashMap<String, String> attributes, 
+			Epoch start, Epoch end, ArrayList<ITraceEntry> nestedTraceChildren, ArrayList<XMLTag> nestedData) {
+		super(name, attributes, start, nestedData);
+		
 		this.endTime = end;
+		this.nestedTraceChildren = nestedTraceChildren;
 	}
 	
-	/**
-	 * Create a new state trace entry.
-	 * @param name
-	 * @param start
-	 */
-	public StateTraceEntry(String name, Epoch start){
-		super(name, start);
-	}
-	
-	/**
-	 * Set the end time.
-	 * @param endTime
-	 */
-	public void setEndTime(Epoch endTime) {
-		this.endTime = endTime;
-	}
-
-	/**
-	 * Add a nested child
-	 * @param child
-	 */
-	public void addTraceChild(TraceEntry child){
-		if(nestedTraceChildren == null){
-			nestedTraceChildren = new LinkedList<TraceEntry>();
-		}
-
-		nestedTraceChildren.add(child);
-	}
-
 	@Override
 	public TraceObjectType getType() {		
 		return TraceObjectType.STATE;
@@ -124,11 +86,13 @@ public class StateTraceEntry extends TraceEntry{
 		return endTime;
 	}
 
+	@Override
 	public boolean hasNestedTraceChildren(){
 		return nestedTraceChildren != null && ! nestedTraceChildren.isEmpty();
 	}
 
-	public LinkedList<TraceEntry> getNestedTraceChildren() {
+	@Override
+	public ArrayList<ITraceEntry> getNestedTraceChildren() {
 		return nestedTraceChildren;
 	}
 
@@ -141,7 +105,7 @@ public class StateTraceEntry extends TraceEntry{
 
 		if(nestedTraceChildren != null){
 			// print nestedXMLTags
-			for(TraceEntry child: nestedTraceChildren){
+			for(ITraceEntry child: nestedTraceChildren){
 				buff.append(child);
 			}
 		}

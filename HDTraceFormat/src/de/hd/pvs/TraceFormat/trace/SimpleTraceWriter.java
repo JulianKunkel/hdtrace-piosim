@@ -123,15 +123,15 @@ public class SimpleTraceWriter {
 	 * @param traceEntry
 	 * @throws IOException
 	 */
-	public void writeEvent(EventTraceEntry traceEntry) throws IOException{
+	public void writeEvent(IEventTraceEntry traceEntry) throws IOException{
 		file.write("<Event name=\"" + traceEntry.getName() + "\" time=\"" + 
 				getAdaptedTime(traceEntry.getEarliestTime()) + "\"");
 
 		writeAttributes(traceEntry.getAttributes());
 		
-		if(traceEntry.getNestedXMLTags() != null && traceEntry.getNestedXMLTags().size() != 0 ){
+		if(traceEntry.getContainedXMLData() != null && traceEntry.getContainedXMLData().size() != 0 ){
 			file.write(">");
-			for(XMLTag nested: traceEntry.getNestedXMLTags()){
+			for(XMLTag nested: traceEntry.getContainedXMLData()){
 				file.write(nested.toString());
 			}
 			file.write("</Event>\n");
@@ -145,14 +145,14 @@ public class SimpleTraceWriter {
 	 * @param traceEntry
 	 * @throws IOException
 	 */
-	public void writeState(StateTraceEntry traceEntry) throws IOException{
+	public void writeState(IStateTraceEntry traceEntry) throws IOException{
 		if(traceEntry.hasNestedTraceChildren()){
 			file.write("<Nested>");
-			for(TraceEntry child: traceEntry.getNestedTraceChildren()){
+			for(ITraceEntry child: traceEntry.getNestedTraceChildren()){
 				if(child.getType() == TraceObjectType.EVENT){
-					writeEvent((EventTraceEntry) child);					
+					writeEvent((IEventTraceEntry) child);					
 				}else if(child.getType() == TraceObjectType.STATE){
-					writeState((StateTraceEntry) child);
+					writeState((IStateTraceEntry) child);
 				}else{
 					throw new IllegalStateException("Unknown object type: " + child.getType());
 				}
@@ -166,9 +166,9 @@ public class SimpleTraceWriter {
 				+ getAdaptedTime(traceEntry.getLatestTime()) + "\"");
 			writeAttributes(traceEntry.getAttributes());			
 
-			if(traceEntry.getNestedXMLTags() != null && traceEntry.getNestedXMLTags().size() != 0 ){
+			if(traceEntry.getContainedXMLData() != null && traceEntry.getContainedXMLData().size() != 0 ){
 				file.write(">");
-				for(XMLTag nested: traceEntry.getNestedXMLTags()){
+				for(XMLTag nested: traceEntry.getContainedXMLData()){
 					file.write(nested.toString());
 				}
 				file.write("</" + traceEntry.getName() + ">\n");

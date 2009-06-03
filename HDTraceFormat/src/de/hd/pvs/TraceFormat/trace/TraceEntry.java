@@ -25,9 +25,9 @@
 
 package de.hd.pvs.TraceFormat.trace;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -38,7 +38,7 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
  * @author Julian M. Kunkel
  *
  */
-public abstract class TraceEntry extends XMLTag implements TraceObject{
+public abstract class TraceEntry extends XMLTag implements ITraceEntry{
 	/**
 	 * when did the event/state etc. occur
 	 */
@@ -49,8 +49,8 @@ public abstract class TraceEntry extends XMLTag implements TraceObject{
 	 * @param name
 	 * @param attributes
 	 */
-	public TraceEntry(final String name, final HashMap<String, String> attributes, final Epoch time) {
-		super(name, attributes, null);
+	public TraceEntry(final String name, final HashMap<String, String> attributes, final Epoch time, final ArrayList<XMLTag> nestedData) {
+		super(name, attributes, null, nestedData);
 		this.time = time;
 	}
 	
@@ -60,7 +60,7 @@ public abstract class TraceEntry extends XMLTag implements TraceObject{
 	 * @param attributes
 	 */
 	public TraceEntry(final String name, final Epoch time) {
-		super(name, new HashMap<String, String>(), null);
+		super(name, new HashMap<String, String>(), null, null);
 		this.time = time;
 	}
 
@@ -72,5 +72,10 @@ public abstract class TraceEntry extends XMLTag implements TraceObject{
 	@Override
 	final public Epoch getDurationTime() {
 		return getLatestTime().subtract(getEarliestTime());
+	}
+	
+	@Override
+	final public ArrayList<XMLTag> getContainedXMLData() {
+		return super.getNestedXMLTags();
 	}
 }

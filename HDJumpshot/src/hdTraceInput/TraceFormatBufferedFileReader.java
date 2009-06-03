@@ -46,9 +46,9 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
@@ -171,11 +171,11 @@ public class TraceFormatBufferedFileReader {
 
 	// TODO read from category index file.
 	private void updateVisibleCategories(BufferedTraceFileReader reader){
-		Enumeration<TraceEntry> enu = reader.enumerateNestedTraceEntry(); //reader.enumerateTraceEntry(true, new Epoch(-1),new Epoch(300000000));
+		Enumeration<ITraceEntry> enu = reader.enumerateNestedTraceEntry(); //reader.enumerateTraceEntry(true, new Epoch(-1),new Epoch(300000000));
 
 		while(enu.hasMoreElements()){
 
-			final TraceEntry entry = enu.nextElement();
+			final ITraceEntry entry = enu.nextElement();
 			final String catName = entry.getName();		
 
 			if(entry.getType() == TraceObjectType.STATE){		
@@ -303,22 +303,22 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStatistics;
 	}
 
-	public CategoryEvent getCategory(EventTraceEntry entry){
+	public CategoryEvent getCategory(IEventTraceEntry entry){
 		return categoriesEvents.get(entry.getName());
 	}
 
-	public CategoryState getCategory(StateTraceEntry entry){
+	public CategoryState getCategory(IStateTraceEntry entry){
 		return categoriesStates.get(entry.getName());
 	}
 
 	public Category getCategory(TraceObject object){
 		switch(object.getType()){
 		case EVENT:
-			return getCategory((EventTraceEntry) object);			
+			return getCategory((IEventTraceEntry) object);			
 		case STATISTICGROUPVALUES:
 			return null;
 		case STATE:
-			return getCategory((StateTraceEntry) object);
+			return getCategory((IStateTraceEntry) object);
 		case STATISTICENTRY:
 			StatisticsEntry entry = (StatisticsEntry) object;
 			return getCategory(entry.getDescription());

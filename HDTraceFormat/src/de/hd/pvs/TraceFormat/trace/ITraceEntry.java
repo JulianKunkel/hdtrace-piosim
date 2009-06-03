@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+ /** Version Control Information $Id: TraceEntry.java 325 2009-06-01 15:42:47Z kunkel $
+  * @lastmodified    $Date: 2009-06-01 17:42:47 +0200 (Mo, 01 Jun 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 325 $ 
   */
 
 
@@ -28,37 +28,38 @@ package de.hd.pvs.TraceFormat.trace;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
-import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
- * Event trace object.
+ * Contains the information about a single trace entry. Superclass for StateTraceEntry and
+ * EventTraceEntry.
  * 
- * @author julian
+ * @author Julian M. Kunkel
+ *
  */
-public class EventTraceEntry extends TraceEntry implements IEventTraceEntry{
-
+public interface ITraceEntry extends TraceObject{
 	/**
-	 * Constructor from XML.
-	 * @param name
-	 * @param attributes
+	 * Return the name of the trace entry.
 	 */
-	public EventTraceEntry(String name, final HashMap<String, String> attributes, final Epoch time,  final ArrayList<XMLTag> nestedData) {
-		super(name, attributes, time, nestedData);		
-	}
+	public String getName();
 	
-	public EventTraceEntry(String name, Epoch time){
-		super(name, time);
-	}
+	/**
+	 * Return a attribute
+	 * @param attribute
+	 * @return
+	 */
+	public String getAttribute(String attribute);
 	
-	@Override
-	public TraceObjectType getType() {		
-		return TraceObjectType.EVENT;
-	}
+	/**
+	 * Return all attributes
+	 * @return
+	 */
+	public HashMap<String, String> getAttributes();
 	
-	@Override
-	public Epoch getLatestTime() {
-		return getEarliestTime();
-	}
+	/**
+	 * Return nested XML data i.e. data of the Trace Entry.
+	 * @return
+	 */
+	public ArrayList<XMLTag> getContainedXMLData();
 }

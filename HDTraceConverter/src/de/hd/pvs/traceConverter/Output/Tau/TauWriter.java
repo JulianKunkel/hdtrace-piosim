@@ -29,8 +29,8 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -103,7 +103,7 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void Event(TopologyNode topology,	EventTraceEntry traceEntry) {	
+	public void Event(TopologyNode topology,	IEventTraceEntry traceEntry) {	
 		final int rank = getRank(topology);
 		final int thread = getThread(topology);
 
@@ -123,7 +123,7 @@ public class TauWriter extends TraceOutputWriter {
 
 
 	@Override
-	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry) {		
+	public void StateEnd(TopologyNode topology, IStateTraceEntry traceEntry) {		
 		pendingStarts--;
 
 		final int rank = getRank(topology);
@@ -136,23 +136,22 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateStart(TopologyNode topology, StateTraceEntry traceEntry) {
-		final String stateName = traceEntry.getName();
+	public void StateStart(TopologyNode topology, String name, Epoch startTime) throws java.io.IOException {
 		pendingStarts++;
 
-		Integer categoryID = tauCategoryMap.get(stateName);
+		Integer categoryID = tauCategoryMap.get(name);
 		if (categoryID == null){
 			categoryID = ++nextCatID;
 
-			tauWriter.defState(categoryID, stateName, DEFAULT_GROUP_ID);
-			tauCategoryMap.put(stateName, categoryID);
+			tauWriter.defState(categoryID, name, DEFAULT_GROUP_ID);
+			tauCategoryMap.put(name, categoryID);
 		}
 
 		//System.out.println("< " + time + "-" + stateName  + " " + categoryID + " " + id.getRank() + " " + id.getVthread());
 		final int rank = getRank(topology);
 		final int thread = getThread(topology);
 
-		tauWriter.enterState(getTimeMikro(traceEntry.getEarliestTime()), rank, thread, categoryID);		
+		tauWriter.enterState(getTimeMikro(startTime), rank, thread, categoryID);		
 	}
 
 	@Override

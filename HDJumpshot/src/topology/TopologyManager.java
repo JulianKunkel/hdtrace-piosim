@@ -60,6 +60,7 @@ import viewer.common.SortedJTreeModel;
 import viewer.common.SortedJTreeNode;
 import viewer.first.MainManager;
 import viewer.histogram.StatisticHistogramFrame;
+import viewer.linegraph.StatisticLineGraphFrame;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
@@ -238,8 +239,8 @@ public class TopologyManager
 									//System.out.println("Selected: " + node.getStatisticDescription().getName());
 								//}
 								
-								//StatisticLineGraphFrame frame = new StatisticLineGraphFrame(selectedStatNodes, reader, modelTime);
-								//frame.show();
+								StatisticLineGraphFrame frame = new StatisticLineGraphFrame(selectedStatNodes, reader, modelTime);
+								frame.show();
 							}
 						});			
 					}

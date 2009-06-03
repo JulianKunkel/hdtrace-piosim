@@ -32,8 +32,9 @@ import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
-import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.traceConverter.RunParameters;
 import de.hd.pvs.traceConverter.Output.TraceOutputWriter;
@@ -75,11 +76,15 @@ public class HDTraceWriter extends TraceOutputWriter {
 				// 
 			}
 		}
-		writer.initalizeTopology(topology);
+		try{
+			writer.initalizeTopology(topology);
+		}catch(IllegalArgumentException e){
+			//
+		}
 	}
 
 	@Override
-	public void Event(TopologyNode topology,	EventTraceEntry traceEntry) throws IOException {
+	public void Event(TopologyNode topology,	IEventTraceEntry traceEntry) throws IOException {
 		writer.writeEvent(topology, traceEntry);
 	}
 
@@ -89,13 +94,14 @@ public class HDTraceWriter extends TraceOutputWriter {
 	}
 
 	@Override
-	public void StateEnd(TopologyNode topology, StateTraceEntry traceEntry)  throws IOException {
-		writer.writeStateEnd(topology, traceEntry);
+	public void StateEnd(TopologyNode topology, IStateTraceEntry traceEntry)  throws IOException {
+		writer.writeStateEnd(topology, traceEntry.getName(), traceEntry.getLatestTime(), traceEntry.getAttributes(), traceEntry.getContainedXMLData());
 	}
 
 	@Override
-	public void StateStart(TopologyNode topology, StateTraceEntry traceEntry)  throws IOException {
-		writer.writeStateStart(topology, traceEntry);
+	public void StateStart(TopologyNode topology, String name, Epoch startTime)
+			throws IOException {	
+		writer.writeStateStart(topology, name, startTime);
 	}
 
 	@Override

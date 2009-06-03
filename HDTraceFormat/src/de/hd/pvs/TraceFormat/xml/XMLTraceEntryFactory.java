@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -25,12 +25,13 @@
 
 package de.hd.pvs.TraceFormat.xml;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.TraceObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class XMLTraceEntryFactory {
@@ -41,46 +42,49 @@ public class XMLTraceEntryFactory {
 			return TraceObjectType.STATE;
 		}
 	}
-	
+
 	/**
-	 * Manufactures top level XML entries.
+	 * Manufactures top level XML entries. Removes nested elements and create real trace entries for them.
 	 * 
-	 * @param data
+	 * @param traceXML
 	 * @param nestedData
 	 * @return
 	 */
-	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, XMLTag nestedData, Epoch timeAdjustment){		
-		final TraceEntry traceObject = manufactureXMLTraceObject(data, parent, timeAdjustment);
-		
-		if(nestedData != null){
+	public static ITraceEntry manufactureXMLTraceObject(XMLTag traceXML, Epoch timeAdjustment){
+		final ArrayList<ITraceEntry> children;
+		final ArrayList<XMLTag> data;
+		if(traceXML.getNestedXMLTags() != null){
 			// type must be state:
-			StateTraceEntry traceObj = (StateTraceEntry) traceObject;
-			// create all traceXML children
-			XMLTag newNestedData = null;
-			for(XMLTag child: nestedData.getNestedXMLTags()){
-				if(child.getName().equals("Nested")){
-					newNestedData = child;
-				}else{					
-					TraceEntry childTraceEntry = manufactureXMLTraceObject(child, traceObj, newNestedData, timeAdjustment);
-					newNestedData = null;
-					traceObj.addTraceChild(childTraceEntry);
+			children = new ArrayList<ITraceEntry>(0);
+			data = new ArrayList<XMLTag>(0);
+			
+			// create all traceXML children			
+			for(XMLTag nestedTag: traceXML.getNestedXMLTags()){
+				if(nestedTag.getName().equals("Nested")){				
+					for(XMLTag child: nestedTag.getNestedXMLTags()){
+						ITraceEntry childTraceEntry = manufactureXMLTraceObject(child, timeAdjustment);
+						children.add(childTraceEntry);
+					}
+				}else{
+					data.add(nestedTag);
 				}
 			}
-			
-			if(newNestedData != null){
-				throw new IllegalArgumentException("Nested data, but no parent to attach to: " + newNestedData + " inside data " + data );
-			}
+		}else{
+			children = null;
+			data = null;
 		}
-		
+
+		final ITraceEntry traceObject = manufactureXMLTraceObject(traceXML, data, timeAdjustment, children);
+
 		return traceObject;
 	}
-	 
 
-	public static TraceEntry manufactureXMLTraceObject(XMLTag data, StateTraceEntry parent, Epoch timeAdjustment){
+
+	public static ITraceEntry manufactureXMLTraceObject(XMLTag traceXML, ArrayList<XMLTag> data, Epoch timeAdjustment, ArrayList<ITraceEntry> children){
 		// determine type
-		final TraceObjectType type = getType(data.getName());
+		final TraceObjectType type = getType(traceXML.getName());
 
-		final HashMap<String, String>  attributes = data.getAttributes();
+		final HashMap<String, String>  attributes = traceXML.getAttributes();
 
 		// parse common time value
 		final String timeStr = attributes.get("time");
@@ -100,21 +104,20 @@ public class XMLTraceEntryFactory {
 			}else{
 				throw new IllegalArgumentException("Trace invalid, no end time given");
 			}
-			
-			StateTraceEntry traceObj = new StateTraceEntry(data.getName(), attributes, time, endTime);
-			traceObj.setNestedXMLTags(data.getNestedXMLTags());
-			
+
+			StateTraceEntry traceObj = new StateTraceEntry(traceXML.getName(), 
+					attributes, time, endTime, children, data);
+
 			return traceObj;
-			
+
 		}else if (type == TraceObjectType.EVENT){
-			
+
 			// strip of the real name
-			String name = data.getAttributes().remove("name");
+			String name = traceXML.getAttributes().remove("name");
 			if( name == null || name.length() < 2){
 				throw new IllegalArgumentException("Event invalid");
 			}
-			EventTraceEntry traceObj= new EventTraceEntry(name, attributes, time);
-			traceObj.setNestedXMLTags(data.getNestedXMLTags());
+			EventTraceEntry traceObj= new EventTraceEntry(name, attributes, time, data);
 			return traceObj;
 		}else{
 			return null;

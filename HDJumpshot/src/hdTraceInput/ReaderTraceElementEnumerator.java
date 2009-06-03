@@ -28,7 +28,7 @@ package hdTraceInput;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -36,11 +36,11 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * 
  * @author Julian M. Kunkel
  */
-public class ReaderTraceElementEnumerator implements Enumeration<TraceEntry>{
+public class ReaderTraceElementEnumerator implements Enumeration<ITraceEntry>{
 
 	protected int curPos;
 	
-	final protected ArrayList<TraceEntry> entries;	
+	final protected ArrayList<ITraceEntry> entries;	
 	final protected Epoch endTime;
 	
 	/**
@@ -70,11 +70,11 @@ public class ReaderTraceElementEnumerator implements Enumeration<TraceEntry>{
 	}
 	
 	@Override
-	public TraceEntry nextElement() {
+	public ITraceEntry nextElement() {
 		return entries.get(curPos++);	
 	}
 	
-	public TraceEntry peekNextElement(){
+	public ITraceEntry peekNextElement(){
 		return entries.get(curPos);
 	}
 	

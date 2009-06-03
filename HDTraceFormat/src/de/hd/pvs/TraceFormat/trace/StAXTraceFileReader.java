@@ -27,7 +27,7 @@ package de.hd.pvs.TraceFormat.trace;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.util.HashMap;
+import java.util.Stack;
 
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -37,6 +37,7 @@ import com.sun.xml.internal.stream.XMLInputFactoryImpl;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
+import de.hd.pvs.TraceFormat.xml.XMLTagCreator;
 import de.hd.pvs.TraceFormat.xml.XMLTraceEntryFactory;
 
 
@@ -68,7 +69,7 @@ public class StAXTraceFileReader implements TraceSource{
 	 * Current depths of the tag nesting.
 	 */
 	private int nesting_depth = 0; 
-
+	
 	/**
 	 * Constructor, start processing of the file.
 	 * @param filename
@@ -87,19 +88,15 @@ public class StAXTraceFileReader implements TraceSource{
 	 * 
 	 * @return
 	 */
-	public TraceEntry getNextInputEntry(){
+	public ITraceEntry getNextInputEntry(){
 		try{
-
-			/**
-			 * State/Statistics which are currently build
-			 */
-			XMLTag currentData = null;
 
 			/**
 			 * Top level nested data:
 			 */
-			XMLTag nestedData = null;
-
+			final Stack<XMLTagCreator> stackedData = new Stack<XMLTagCreator>();  
+			
+			XMLTag nestedElementTag = null;
 			
 			while(reader.hasNext()){
 				final int nextType = reader.next();
@@ -108,36 +105,37 @@ public class StAXTraceFileReader implements TraceSource{
 				case(XMLStreamConstants.CHARACTERS):
 					final String str = reader.getText().trim();
 					if(str.length() > 0){
-						if(currentData == null){
+						if(stackedData.size() == 0){
 							throw new IllegalArgumentException("Invalid text \"" + str + "\" at: " + getPosition());
 						}
 						
-						currentData.setContainedText(str);
+						stackedData.peek().setContainedText(str);
 					}
 					break;
 				case(XMLStreamConstants.START_ELEMENT):{
 					final String name =  reader.getName().getLocalPart();
 					nesting_depth++;		
-					
-					final HashMap<String, String> attributes = new HashMap<String, String>();
 
+					// check if there are nested XMLTrace stats
+					XMLTagCreator currentData = new XMLTagCreator();
+					currentData.setName(name);
+					
+					
 					// generate attributes
 					for( int i = 0; i < reader.getAttributeCount(); i++ ){			
-						attributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
+						currentData.addAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
 					}
 
 
 					if (name.equals("Program") && nesting_depth == 1){
-						if(attributes.containsKey("timeAdjustment")){
-							timeAdjustment = Epoch.parseTime(attributes.get("timeAdjustment"));
+						String tAdj = currentData.getAttribute("timeAdjustment");
+						if(tAdj != null){
+							timeAdjustment = Epoch.parseTime(tAdj);
 						}
 						continue;
 					}
-					
-					// check if there are nested XMLTrace stats
-					XMLTag parent = currentData;
-					currentData = new XMLTag(name, attributes, parent);
-					
+
+					stackedData.push(currentData);
 				}
 				break;
 				case(XMLStreamConstants.END_ELEMENT):{
@@ -148,24 +146,37 @@ public class StAXTraceFileReader implements TraceSource{
 					if (name.equals("Program") && nesting_depth == 0){
 						return null;
 					}
+					
+					final XMLTagCreator currentData = stackedData.pop();
+					final XMLTag newData = currentData.createXMLTag();
+					
+					assert(newData.getName().equals(name));
 
+					if(nestedElementTag != null){
+						// attach nested element to child:						
+						currentData.addNestedXMLTag(nestedElementTag);					
+						nestedElementTag = null;
+					}
+					
 					if(name.equals("Nested")){
-						if(! readNested){
-							return null;
+						if(readNested){
+							nestedElementTag = newData;
 						}
-
-						nestedData = currentData;				
-					}else if(! currentData.isChild()){
-						TraceEntry newTraceEntry;
+						continue;
+					}
+					
+					if(stackedData.size() == 0){
+						ITraceEntry newTraceEntry;
 						try{
-							newTraceEntry = XMLTraceEntryFactory.manufactureXMLTraceObject(currentData, null, nestedData, timeAdjustment);
+							newTraceEntry = XMLTraceEntryFactory.manufactureXMLTraceObject(newData, timeAdjustment);
 						}catch(IllegalArgumentException e){			
 							throw new IllegalArgumentException("Invalid XML object: " + currentData + " at: " + getPosition(), e);
 						}
 
 						return newTraceEntry;
 					}
-					currentData = currentData.getParentTag();
+					
+					stackedData.peek().addNestedXMLTag(newData);					
 				}
 				break;
 				default:
