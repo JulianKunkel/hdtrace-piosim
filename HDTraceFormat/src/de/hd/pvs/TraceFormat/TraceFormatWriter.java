@@ -252,8 +252,8 @@ public class TraceFormatWriter {
 	}
 
 	/**
-	 * Optional function, initializes the statistics file. If this function is not used 
-	 * then the first statistic gets removed during the write process.  
+	 * Initializes the statistics file. If this function is not used, then the first statistic gets removed during the write process.
+	 * The function also registers the statistics group to the project description if necessary.
 	 * 
 	 * @param topology
 	 * @param group
@@ -263,6 +263,10 @@ public class TraceFormatWriter {
 		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
 		StatisticsWriter outWriter = stats.get(group);
 
+		if(! getProjectDescription().getStatisticsGroupNames().contains(group.getName())){
+			addStatisticGroup(group.getName());
+		}
+		
 		if (outWriter == null) {
 			getOrCreateStatisticsTopologyInternal(topology, group, time);
 		}else{
