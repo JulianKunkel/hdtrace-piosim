@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import de.hd.pvs.TraceFormat.SimpleTraceFormatWriter;
+import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLHelper;
@@ -32,7 +32,7 @@ import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 
 public class SHDTraceWriter extends STraceWriter {
 
-	final SimpleTraceFormatWriter writer;
+	final TraceFormatWriter writer;
 
 	private static class ComponentTraceInfo{
 		final TopologyNode topology;
@@ -54,7 +54,7 @@ public class SHDTraceWriter extends STraceWriter {
 	public SHDTraceWriter(String filename, Simulator sim) {
 		super(filename, sim);
 
-		writer = new SimpleTraceFormatWriter(filename, "", "", new String []{ "Root Component", "Component", "Component", "Component", "Component"});
+		writer = new TraceFormatWriter(filename, "", "", new String []{ "Root Component", "Component", "Component", "Component", "Component"});
 	}
 
 	@Override

@@ -85,7 +85,7 @@ public class HDTraceWriter extends TraceOutputWriter {
 
 	@Override
 	public void Event(TopologyNode topology,	IEventTraceEntry traceEntry) throws IOException {
-		writer.writeEvent(topology, traceEntry);
+		writer.writeEvent(topology, traceEntry.getName(), traceEntry.getLatestTime(), traceEntry.getAttributes(), traceEntry.getContainedXMLData());
 	}
 
 	@Override

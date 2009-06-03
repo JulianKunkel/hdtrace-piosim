@@ -141,7 +141,8 @@ public class SimpleTraceWriter {
 	}
 
 	/**
-	 * Write the content of the traceEntry. However, no child trace entries are taken into account.
+	 * Write the content of the traceEntry. 
+	 * 
 	 * @param traceEntry
 	 * @throws IOException
 	 */

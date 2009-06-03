@@ -78,7 +78,9 @@ public class NestedTraceWriter extends SimpleTraceWriter{
 	}
 	
 	public void writeEvent(IEventTraceEntry traceEntry) throws IOException{
-		updateNestedObjectsOnEnter();		
+		updateNestedObjectsOnEnter();
+		
+		super.writeEvent(traceEntry);
 	}
 
 	/**

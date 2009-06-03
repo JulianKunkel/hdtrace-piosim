@@ -38,7 +38,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
-import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
+import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.NestedTraceWriter;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
@@ -111,6 +111,38 @@ public class TraceFormatWriter {
 
 		outProject.setTopologyRoot(new TopologyNode(outProject.getFilesPrefix(), null, "File"));
 	}
+
+	/**
+	 * Create the topology in the project description. Uses the default labels for each topology node.
+	 * All parent topologies required are created.
+	 * @param topology
+	 * @return
+	 */
+	public TopologyNode createInitalizeTopology(String [] topology){
+		final ProjectDescription outProject = getProjectDescription();
+		
+		TopologyNode cur = outProject.getTopologyRoot();
+		
+		if (topology.length > outProject.getTopologyTypes().getTypes().size()){
+			throw new IllegalArgumentException("Topology labels are not as deep as the topology " +
+					"you want to create: " + topology.length + " labels: " + 
+					outProject.getTopologyTypes().getTypes().size() );
+		}
+		for(int p = 0 ; p < topology.length; p++){
+			// check if parents exist
+			final TopologyNode child = cur.getChild(topology[p]);
+			if( child == null){
+				// create all the next ones.
+				for(int n = p ; n < topology.length; n++){
+					cur = new TopologyNode(topology[n], cur, outProject.getTopologyType(p));
+					initalizeTopologyInternal(cur);
+				}
+				return cur;
+			}
+			cur = child;
+		}
+		return cur;
+	}
 	
 	void initalizeTopologyInternal(TopologyNode topology) {
 		OutFiles files = traceWriterMap.get(topology);
@@ -171,22 +203,36 @@ public class TraceFormatWriter {
 		outProject.addStatisticsGroup(group);
 	}
 
-
 	/**
 	 * Write a single event.
 	 * 
 	 * @param topology
-	 * @param traceEntry
 	 */
-	public void writeEvent(TopologyNode topology, IEventTraceEntry traceEntry) throws IOException {
-		final NestedTraceWriter writer = getOrCreateTraceForTopology(topology, traceEntry.getEarliestTime());
+	public void writeEvent(TopologyNode topology, String name, Epoch time, HashMap<String, String> attributes, ArrayList<XMLTag> xmldat) throws IOException {
+		final NestedTraceWriter writer = getOrCreateTraceForTopology(topology, time);
+		final EventTraceEntry traceEntry = new EventTraceEntry(name, attributes, time, xmldat);
+		writer.writeEvent(traceEntry);
+	}
+	
+	/**
+	 * Write a single event.
+	 * 
+	 * @param topology
+	 */
+	public void writeEvent(TopologyNode topology, String name, Epoch time) throws IOException {
+		final NestedTraceWriter writer = getOrCreateTraceForTopology(topology, time);
+		final EventTraceEntry traceEntry = new EventTraceEntry(name, time);
 		writer.writeEvent(traceEntry);
 	}
 
+	public void writeStateEnd(TopologyNode topology, String name, Epoch endTime)  throws IOException {
+		this.writeStateEnd(topology, name, endTime, null, null);
+	}
+
+	
 	/**
 	 * Finish a state.
-	 * 
-	 * Note that the end time of the traceEntry must be set correctly!
+	 *
 	 * @param topology
 	 * @param traceEntry
 	 */

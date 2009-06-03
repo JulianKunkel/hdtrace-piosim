@@ -209,16 +209,8 @@ public class StatisticsReader implements StatisticsSource{
 	 * @return true if there is no further entry which can be read.
 	 */
 	public boolean isFinished(){
-		if(file == null)
-			return true;
 		try{			
-			boolean ret = (file.getFilePointer() == file.length());
-			
-			if(ret == true){
-				file.close();
-				this.file = null;
-			}
-			return ret;
+			return (file.getFilePointer() == file.length());
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}
