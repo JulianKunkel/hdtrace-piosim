@@ -1,4 +1,8 @@
-/**
+/** Version Control Information $Id: TopologyManager.java 349 2009-06-03 11:51:14Z kunkel $
+ * @date    $Date: 2009-06-03 13:51:14 +0200 (Mi, 03. Jun 2009) $
+ * @modifiedby      $LastChangedBy: kunkel $
+ * @version         $Revision: 349 $
+ *
  * @file hdStats.c
  *
  * Implementations of all functions for writing statistics
@@ -7,9 +11,7 @@
  *  @ingroup hdStats
  * @endif
  *
- * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.5
  */
 
 #include "hdStats.h"
@@ -137,6 +139,11 @@ struct _hdStatsGroup {
      * Offset for buffer to write next byte
      */
     int offset;
+
+    /**
+     * Size of the header and initial time stamp
+     */
+    off_t headerLength;
 
     /**
      * Length that an entry should have
@@ -703,6 +710,9 @@ int hdS_commitGroup (
 	flushGroupBuffer(group);
 	group->nextValueIdx = 0;
 
+	/* determine header length */
+	group->headerLength = lseek(group->fd, 0, SEEK_CUR);
+
 	return 0;
 }
 
@@ -1164,6 +1174,8 @@ int hdS_finalize(
         hdStatsGroup group      /* Statistics Group */
         )
 {
+	int ret = 0;
+
 	/* check input */
 	if(group == NULL)
 	{
@@ -1174,6 +1186,16 @@ int hdS_finalize(
 	if (!group->isCommitted)
 	{
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
+	}
+
+	const off_t curSize = lseek(group->fd, 0, SEEK_CUR);
+
+	/* close file */
+	close(group->fd);
+
+	if(curSize == group->headerLength){
+		// file is empty!
+		ret = unlink(group->tracefile);
 	}
 
 	/* free memory allocated in hdS_commitGroup */
@@ -1187,7 +1209,7 @@ int hdS_finalize(
 	hd_free(group->name);
 	hd_free(group);
 
-	return 0;
+	return ret;
 }
 
 
