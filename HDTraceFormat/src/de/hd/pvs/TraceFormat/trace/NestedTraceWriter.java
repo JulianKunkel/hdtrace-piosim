@@ -105,8 +105,8 @@ public class NestedTraceWriter extends SimpleTraceWriter{
 			lastOpenedStateTraceEntry = null;
 		}
 				
-		if(name != finEntry.getName()){
-			throw new IllegalArgumentException("Start and end trace entry must be the same!");
+		if(! name.equals(finEntry.getName())){
+			throw new IllegalArgumentException("Start and end trace entry must be the same! Expected: " + finEntry.getName() + " but got " + name);
 		}
 		writeState(finEntry);
 	}
