@@ -390,10 +390,11 @@ AC_ARG_WITH(hdtrace,
        CFLAGS="$CFLAGS -I$withval/include"
        LDFLAGS="$LDFLAGS -L$withval/lib"
        LIBS="$LIBS -lhdStats -lhdTrace"
-       AC_DEFINE(HAVE_HDTRACE, 1, [Define if HDTrace library is used])
+       AC_DEFINE(HAVE_HDTRACE, 1, [Define if HDTrace library is used])                     
+       #AC_TRY_LINK([#include "hdTopo.h"],[],[],
+       #[AC_MSG_ERROR(hdtrace library is not usable)] )      
+
        BUILD_HDTRACE=1
-       AC_TRY_LINK([#include "hdTopo.h"], [ ], ,
-       AC_MSG_ERROR(hdtrace library is not usable))
     fi
 )
 
@@ -414,11 +415,9 @@ AC_ARG_WITH(hdtraceWrapper,
        AC_DEFINE(USE_MPI_VERSIONS, 1, [Define if ROMIO shall use MPI calls for the wrapper])
        AC_DEFINE(HDTRACE_ROMIO, 1, [Define if more ROMIO internals shall be traced])       
        AC_DEFINE(HDTRACE_MPI_COLLECTIVE, 1, [Define if MPI collective call internals shall be traced])
-       BUILD_HDTRACE_WRAPPER=1       
-       
-       AC_TRY_LINK([], [ ],
-       ,
-       AC_MSG_ERROR(HDMPI wrapper is not usable))
+       BUILD_HDTRACE_WRAPPER=1           
+       #AC_TRY_LINK([], [ ],   ,
+       #AC_MSG_ERROR(HDMPI wrapper is not usable))     
        
        # copy extended source code wrapper
        mkdir -p src/include/
