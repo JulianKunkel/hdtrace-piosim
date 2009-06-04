@@ -503,12 +503,35 @@ AC_ARG_WITH(hdtrace,
        LIBS="$LIBS -lhdStats -lhdTrace"
        AC_DEFINE(HAVE_HDTRACE, 1, [Define if HDTrace library is used])
        BUILD_HDTRACE=1
+       
+       AC_TRY_LINK([#include "hdTopo.h"], [  ],
+       ,
+       AC_MSG_ERROR(hdtrace library is not usable))
     fi
 )
 
 AC_SUBST(BUILD_HDTRACE)
 
+BUILD_HDTRACEPTL=
+dnl use the hdtrace library and Performance Trace of the kernel
+AC_ARG_WITH(hdptl,
+[  --with-hdptl=path         Use Performance Trace library (HDTrace) installed in "path"],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-hdptl must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="$LIBS -lPTL"
+       AC_DEFINE(HAVE_HDPTL, 1, [Define if HDTrace library is used])
+       BUILD_HDTRACEPTL=1
+       
+       AC_TRY_LINK([#include "PTL.h"], [  ],
+       ,
+       AC_MSG_ERROR(PTL library is not usable))
+    fi
+)
 
+AC_SUBST(BUILD_HDTRACEPTL)
 
 BUILD_KERNEL=
 
@@ -1225,6 +1248,14 @@ else
    AC_MSG_RESULT([PVFS2 configured for hdtrace module               : yes])
 fi
 
+if test "x$BUILD_HDTRACEPTL" = "x" ; then
+   AC_MSG_RESULT([configured to use PTL together with hdtrace module:  no])
+else
+   AC_MSG_RESULT([configured to use PTL together with hdtrace module: yes])
+   if test "x$BUILD_HDTRACE" = "x" ; then
+   	AC_MSG_ERROR(Error hdtrace module is required for PTL)
+   fi
+fi
 
 if test "x$LINUX24_KERNEL_SRC" = "x" -a "x$BUILD_BMI_ONLY" != "x1"; then
    AC_MSG_RESULT([PVFS2 configured for the 2.4.x kernel module      :  no])
