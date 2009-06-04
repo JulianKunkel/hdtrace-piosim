@@ -519,9 +519,9 @@ AC_ARG_WITH(hdptl,
     if test "x$withval" = "xyes" ; then
            AC_MSG_ERROR(--with-hdptl must be given a pathname)
     else
-       CFLAGS="$CFLAGS -I$withval/include"
-       LDFLAGS="$LDFLAGS -L$withval/lib"
-       LIBS="$LIBS -lPTL"
+       CFLAGS="$CFLAGS -I$withval/include -I$withval/src  $(pkg-config --cflags gthread-2.0) $(pkg-config --cflags libgtop-2.0)"
+       LDFLAGS="$LDFLAGS -L$withval/lib -L/usr/lib"
+       LIBS="$LIBS -lPTL $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
        AC_DEFINE(HAVE_HDPTL, 1, [Define if HDTrace library is used])
        BUILD_HDTRACEPTL=1
        
