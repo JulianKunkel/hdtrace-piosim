@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "hdTopo.h"
-
+#include <assert.h>
 #ifdef HAVE_HDPTL
 #include "PTL.h"
 static ptlSources statistics;
@@ -107,34 +107,34 @@ int PINT_HD_event_initalize(char * traceWhat)
 		
 		#ifdef HAVE_HDPTL
 		
-		if (strcasecmp(event_list[i],"statisticsNET") == 0)
+		if (strcasecmp(event_list[i],"NET") == 0)
 		{	
-			hd_facilityTraceStatus[statisticsNET] = 1;
+			hd_facilityTraceStatus[NET] = 1;
 			statistics.PTLSRC_NET_IN = 1;
 			statistics.PTLSRC_NET_OUT = 1;
 		}
 		
-		if (strcasecmp(event_list[i],"statisticsMEM") == 0)
+		if (strcasecmp(event_list[i],"MEM") == 0)
 		{	
-			hd_facilityTraceStatus[statisticsMEM] = 1;
+			hd_facilityTraceStatus[MEM] = 1;
 			statistics.PTLSRC_MEM_USED = 1;
 			statistics.PTLSRC_MEM_FREE = 1;
 			statistics.PTLSRC_MEM_BUFFER = 1;
 		}
 		
-		if (strcasecmp(event_list[i],"statisticsCPU") == 0)
+		if (strcasecmp(event_list[i],"CPU") == 0)
 		{	
-			hd_facilityTraceStatus[statisticsCPU] = 1;
+			hd_facilityTraceStatus[CPU] = 1;
 			statistics.PTLSRC_CPU_LOAD = 1;
 		}
 		
-//		if (strcasecmp(event_list[i],"statisticsCPU") == 0)
+//		if (strcasecmp(event_list[i],"DISK") == 0)
 //		{	
 //			statistics.PTLSRC_HDD_WRITE = 1;
 //			statistics.PTLSRC_HDD_READ = 1;
 //		}
-		if (hd_facilityTraceStatus[statisticsNET] || hd_facilityTraceStatus[statisticsMEM] 
-		   || hd_facilityTraceStatus[statisticsCPU])
+		if (hd_facilityTraceStatus[NET] || hd_facilityTraceStatus[MEM] 
+		   || hd_facilityTraceStatus[CPU])
 		{
 		pStatistics = ptl_createTrace(topology, topoNode, 1, statistics, 700);
 		ptl_startTrace(pStatistics);
@@ -151,10 +151,12 @@ int PINT_HD_event_finalize(void)
 {
 	int i;
 	for (i = 0 ; i < ALL_FACILITIES; i++){
-		if(hd_facilityTraceStatus[i])
+		if(hd_facilityTraceStatus[i] && hd_facilityTrace[i] != NULL)
 		{
-			if (hdStatsGroupValue[i] > 0)
-				hdS_writeInt32Value(hd_facilityTrace[i], 0);
+			hdS_writeInt32Value(hd_facilityTrace[i], 0);
+			
+			assert(hd_facilityTrace[i] != NULL);
+			
 			hdS_finalize(hd_facilityTrace[i]);
 			hd_facilityTraceStatus[i] = 0;
 			hd_facilityTrace[i] = NULL; 

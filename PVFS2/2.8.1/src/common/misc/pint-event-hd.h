@@ -23,10 +23,9 @@ int PINT_HD_event_finalize(void);
  * Traceable facilities
  */
 typedef enum {
-	TROVE, 
-	BMI, 
+	BMI = 0, TROVE, 
 	FLOW, REQ, BREQ,
-	statisticsNET, statisticsCPU, statisticsMEM, statisticsDISK,
+	NET, CPU, MEM, DISK,
 	ALL_FACILITIES
 } HD_Trace_Facility;
 
