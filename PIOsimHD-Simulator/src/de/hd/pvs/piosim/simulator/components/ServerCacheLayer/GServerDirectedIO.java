@@ -25,28 +25,15 @@
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
-
-final class IOJobComparator implements Comparator<IOJob> {
-	public int compare(IOJob a, IOJob b) {
-		if (a.getOffset() < b.getOffset()) {
-			return -1;
-		} else if (a.getOffset() > b.getOffset()) {
-			return 1;
-		}
-
-		return 0;
-	}
-}
 
 /**
  * Try to do clever I/O optimization.
@@ -70,8 +57,6 @@ public class GServerDirectedIO extends GAggregationCache {
 		Iterator<IOJob> it;
 		IOJob io = null;
 		MPIFile file = null;
-
-		Collections.sort(l, new IOJobComparator());
 
 		System.out.print("MERGE old: " + l.size());
 
@@ -278,7 +263,57 @@ public class GServerDirectedIO extends GAggregationCache {
 			queuedWriteJobs.put(req.getFile(), new LinkedList<IOJob>());
 		}
 
-		queuedWriteJobs.get(req.getFile()).add(new IOJob(req.getFile(), size, offset, IOOperation.WRITE));
+		IOJob io = new IOJob(req.getFile(), size, offset, IOOperation.WRITE);
+		List<IOJob> jobList = queuedWriteJobs.get(req.getFile());
+		int i = jobList.size();
+
+		while (true) {
+			if (i == 0) {
+				jobList.add(0, io);
+				break;
+			}
+
+			IOJob cmp = jobList.get(i - 1);
+
+			if (cmp.getOffset() >= io.getOffset()) {
+				if (io.getOffset() + io.getSize() >= cmp.getOffset() + cmp.getSize()) {
+					// new operation overwrites the old one
+					jobList.remove(i - 1);
+				} else if (io.getOffset() + io.getSize() > cmp.getOffset()) {
+					// new operation overwrites part of the old one
+					long tmpOffset = io.getOffset() + io.getSize();
+					long tmpSize = cmp.getSize() - (tmpOffset - cmp.getOffset());
+					IOJob tmp = new IOJob(cmp.getFile(), tmpSize, tmpOffset, cmp.getType());
+
+					jobList.set(i - 1, tmp);
+				}
+
+				i--;
+			} else {
+				if (io.getOffset() < cmp.getOffset() + cmp.getSize()) {
+					if (io.getOffset() + io.getSize() < io.getOffset() + io.getSize()) {
+						// new operation splits up the old one
+						long upSize = (cmp.getOffset() + cmp.getSize()) - (io.getOffset() + io.getSize());
+						long upOffset = io.getOffset() + io.getSize();
+						IOJob up = new IOJob(cmp.getFile(), upSize, upOffset, cmp.getType());
+						long downSize = io.getOffset() - cmp.getOffset();
+						IOJob down = new IOJob(cmp.getFile(), downSize, cmp.getOffset(), cmp.getType());
+
+						jobList.set(i - 1, down);
+						jobList.add(i, up);
+					} else {
+						// new operation overwrites part of the old one
+						long tmpSize = io.getOffset() - cmp.getOffset();
+						IOJob tmp = new IOJob(cmp.getFile(), tmpSize, cmp.getOffset(), cmp.getType());
+
+						jobList.set(i - 1, tmp);
+					}
+				}
+
+				jobList.add(i, io);
+				break;
+			}
+		}
 
 		scheduleNextIOJobIfPossible();
 	}
