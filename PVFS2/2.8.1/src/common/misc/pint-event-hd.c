@@ -163,7 +163,7 @@ int PINT_HD_event_finalize(void)
 		}
 	}
 #ifdef HAVE_HDPTL
-if (pStatistics)	
+if (pStatistics != NULL)	
 {
 	ptl_stopTrace(pStatistics);
 	ptl_destroyTrace(pStatistics);
