@@ -14,6 +14,7 @@
 #include "hdError.h"
 #include "pint-event.h"
 
+
 int PINT_HD_event_initalize(char * traceWhat);
 
 int PINT_HD_event_finalize(void);
@@ -22,7 +23,11 @@ int PINT_HD_event_finalize(void);
  * Traceable facilities
  */
 typedef enum {
-	BMI, TROVE, FLOW, REQ, BREQ, ALL_FACILITIES
+	TROVE, 
+	BMI, 
+	FLOW, REQ, BREQ,
+	statisticsNET, statisticsCPU, statisticsMEM, statisticsDISK,
+	ALL_FACILITIES
 } HD_Trace_Facility;
 
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility);
@@ -36,4 +41,3 @@ int PINT_HD_update_counter_get(HD_Trace_Facility facility);
 #endif /* __HAVE_HDTRACE__ */
 
 #endif /* __PINT_EVENTHD_H */
-
