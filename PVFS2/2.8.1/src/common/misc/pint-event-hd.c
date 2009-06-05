@@ -14,6 +14,14 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "hdTopo.h"
+
+#ifdef HAVE_HDPTL
+#include "PTL.h"
+static ptlSources statistics;
+static PerfTrace pStatistics;
+#endif
+
 static hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
 static int hd_facilityTraceStatus[ALL_FACILITIES];
 static int hdStatsGroupValue[ALL_FACILITIES];
@@ -96,7 +104,39 @@ int PINT_HD_event_initalize(char * traceWhat)
 			hdS_commitGroup(hd_facilityTrace[BREQ]);
 			hdS_enableGroup(hd_facilityTrace[BREQ]);
 		}
+		
+		#ifdef HAVE_HDPTL
+		
+		if (strcasecmp(event_list[i],"statisticsNET") == 0)
+		{	
+			statistics.PTLSRC_NET_IN = 1;
+			statistics.PTLSRC_NET_OUT = 1;
+		}
+		
+		if (strcasecmp(event_list[i],"statisticsMEM") == 0)
+		{	
+			statistics.PTLSRC_MEM_USED = 1;
+			statistics.PTLSRC_MEM_FREE = 1;
+			statistics.PTLSRC_MEM_BUFFER = 1;
+		}
+		
+		if (strcasecmp(event_list[i],"statisticsCPU") == 0)
+		{	
+			statistics.PTLSRC_CPU_LOAD = 1;
+		}
+		
+//		if (strcasecmp(event_list[i],"statisticsCPU") == 0)
+//		{	
+//			statistics.PTLSRC_HDD_WRITE = 1;
+//			statistics.PTLSRC_HDD_READ = 1;
+//		}
+		
+		pStatistics = ptl_createTrace(topology, topoNode, 1, statistics, 700);
+		ptl_startTrace(pStatistics);
+		
+		#endif
 	}
+
 	
 	return 0;
 }
@@ -105,10 +145,17 @@ int PINT_HD_event_finalize(void)
 {
 	int i;
 	for (i= 0 ; i < ALL_FACILITIES; i++){
-		if(hd_facilityTraceStatus[i]){
+		if(hd_facilityTraceStatus[i])
+		{
 			hdS_finalize(hd_facilityTrace[i]);
+			if (hdStatsGroupValue[i] > 0)
+				hdS_writeInt32Value(hd_facilityTrace[i], 0);
 			hd_facilityTraceStatus[i] = 0;
 			hd_facilityTrace[i] = NULL; 
+		#ifdef HAVE_HDPTL
+			ptl_stopTrace(pStatistics);
+			ptl_destroyTrace(pStatistics);
+		#endif
 		}
 	}
 	return 0;
@@ -117,12 +164,13 @@ int PINT_HD_event_finalize(void)
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility) 
 {
 	gen_mutex_lock(&hdStatsGroupMutex[facility]);
-	++hdStatsGroupValue[facility];
 	
 	if (hd_facilityTraceStatus[facility]) 
 	{	
 		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
 	}
+
+	++hdStatsGroupValue[facility];
 	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 			
 	return 0;
@@ -131,12 +179,13 @@ int PINT_HD_update_counter_inc(HD_Trace_Facility facility)
 int PINT_HD_update_counter_dec(HD_Trace_Facility facility) 
 {
 	gen_mutex_lock(&hdStatsGroupMutex[facility]);
-	--hdStatsGroupValue[facility];
 	
 	if (hd_facilityTraceStatus[facility]) 
 	{	
 		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);	
 	}
+
+	--hdStatsGroupValue[facility];
 	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	return 0;
 }
@@ -147,12 +196,13 @@ int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count)
 		return 0;
 
 	gen_mutex_lock(&hdStatsGroupMutex[facility]);
-	hdStatsGroupValue[facility] -= count;
 	
 	if (hd_facilityTraceStatus[facility]) 
 	{	
 		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
 	}
+	hdStatsGroupValue[facility] -= count;
+	
 	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	return 0;
 }
@@ -168,7 +218,6 @@ int PINT_HD_update_counter_get(HD_Trace_Facility facility)
 	}
 	return ret;
 }
-
 
 #else
 
