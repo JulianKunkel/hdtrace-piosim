@@ -133,7 +133,7 @@ IIOSubsystemCaller
 	/**
 	 * Maps the serviced read-jobs to the read-requests
 	 */
-	HashMap<IOJob, RequestRead> pendingReadRequestMap = new HashMap<IOJob, RequestRead>();
+	HashMap<IOJob, HashMap<IOJob, RequestRead>> pendingReadRequestMap = new HashMap<IOJob, HashMap<IOJob, RequestRead>>();
 	
 	protected void scheduleNextIOJobIfPossible() {
 		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps() 
@@ -254,19 +254,22 @@ IIOSubsystemCaller
 
 	@Override
 	public void dataReadCompletelyFromDisk(IOJob job) {
-		RequestRead req = pendingReadRequestMap.remove(job);
-		
-		Message msg = pendingReadJobs.get(req);
+		HashMap<IOJob, RequestRead> reqMap = pendingReadRequestMap.remove(job);
 
-		assert(msg != null);
+		for (IOJob io : reqMap.keySet()) {
+			RequestRead req = reqMap.get(io);
+			Message msg = pendingReadJobs.get(req);
 
-		//System.out.println(gServer.getIdentifier() +  " dataReadCompletelyFromDisk " + " " + job.getSize());
+			assert(msg != null);
 
-		msg.getOutgoingNIC().appendAvailableDataToIncompleteSend(msg, job.getSize());
+			//System.out.println(gServer.getIdentifier() +  " dataReadCompletelyFromDisk " + " " + job.getSize());
 
-		if( msg.isAllMessageDataAvailable() ){ // All data read completely
-			//System.out.println("Completed");
-			pendingReadJobs.remove(req);
+			msg.getOutgoingNIC().appendAvailableDataToIncompleteSend(msg, io.getSize());
+
+			if( msg.isAllMessageDataAvailable() ){ // All data read completely
+				//System.out.println("Completed");
+				pendingReadJobs.remove(req);
+			}
 		}
 	}
 
@@ -300,8 +303,12 @@ IIOSubsystemCaller
 	protected void addReadIOJob(long size, long offset, RequestRead req){
 		IOJob iojob = new IOJob(req.getFile(), size, offset,  IOOperation.READ);
 		queuedReadJobs.add(iojob);
-		pendingReadRequestMap.put(iojob, req);
-		
+
+		if (pendingReadRequestMap.get(iojob) == null) {
+			pendingReadRequestMap.put(iojob, new HashMap<IOJob, RequestRead>());
+		}
+		pendingReadRequestMap.get(iojob).put(iojob, req);
+
 		scheduleNextIOJobIfPossible();
 	}
 
