@@ -129,6 +129,9 @@
 #undef HAVE_GNU_STRERROR_R
 
 /* Define if HDTrace library is used */
+#undef HAVE_HDPTL
+
+/* Define if HDTrace library is used */
 #undef HAVE_HDTRACE
 
 /* Define if libibverbs has reregister event */

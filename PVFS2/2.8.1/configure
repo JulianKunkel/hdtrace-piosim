@@ -682,6 +682,7 @@ LINUX24_KERNEL_SRC
 LINUX_KERNEL_SRC
 THREADED_KMOD_HELPER
 BUILD_KERNEL
+BUILD_HDTRACEPTL
 BUILD_HDTRACE
 BUILD_TAU
 TAU_INCS
@@ -789,6 +790,7 @@ with_mtrace
 with_berkdb_debug
 with_tau
 with_hdtrace
+with_hdptl
 with_kernel
 with_kernel24
 enable_kernel_aio
@@ -1501,6 +1503,7 @@ Optional Packages:
   --with-berkdb-debug     Use berkeley db error reporting (if detected).
   --with-tau=path         Use TAU trace library installed in "path"
   --with-hdtrace=path         Use HDTrace library installed in "path"
+  --with-hdptl=path         Use Performance Trace library (HDTrace) installed in "path"
   --with-kernel=srcpath   Build pvfs2 kernel module against 2.6.x src
   --with-kernel24=srcpath Build pvfs2 kernel module against 2.4.x src
   --with-efence=<path>    Use electric fence for malloc debugging.
@@ -8261,11 +8264,134 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
        BUILD_HDTRACE=1
+
+       cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include "hdTopo.h"
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  :
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	{ { $as_echo "$as_me:$LINENO: error: hdtrace library is not usable" >&5
+$as_echo "$as_me: error: hdtrace library is not usable" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
     fi
 
 fi
 
 
+
+
+BUILD_HDTRACEPTL=
+
+# Check whether --with-hdptl was given.
+if test "${with_hdptl+set}" = set; then
+  withval=$with_hdptl; if test "x$withval" = "xyes" ; then
+           { { $as_echo "$as_me:$LINENO: error: --with-hdptl must be given a pathname" >&5
+$as_echo "$as_me: error: --with-hdptl must be given a pathname" >&2;}
+   { (exit 1); exit 1; }; }
+    else
+       CFLAGS="$CFLAGS -I$withval/include -I$withval/src  $(pkg-config --cflags gthread-2.0) $(pkg-config --cflags libgtop-2.0)"
+       LDFLAGS="$LDFLAGS -L$withval/lib -L/usr/lib"
+       LIBS="$LIBS -lPTL $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_HDPTL 1
+_ACEOF
+
+       BUILD_HDTRACEPTL=1
+
+       cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include "PTL.h"
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  :
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	{ { $as_echo "$as_me:$LINENO: error: PTL library is not usable" >&5
+$as_echo "$as_me: error: PTL library is not usable" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+    fi
+
+fi
 
 
 
@@ -20644,6 +20770,18 @@ else
 $as_echo "PVFS2 configured for hdtrace module               : yes" >&6; }
 fi
 
+if test "x$BUILD_HDTRACEPTL" = "x" ; then
+   { $as_echo "$as_me:$LINENO: result: configured to use PTL together with hdtrace module:  no" >&5
+$as_echo "configured to use PTL together with hdtrace module:  no" >&6; }
+else
+   { $as_echo "$as_me:$LINENO: result: configured to use PTL together with hdtrace module: yes" >&5
+$as_echo "configured to use PTL together with hdtrace module: yes" >&6; }
+   if test "x$BUILD_HDTRACE" = "x" ; then
+   	{ { $as_echo "$as_me:$LINENO: error: Error hdtrace module is required for PTL" >&5
+$as_echo "$as_me: error: Error hdtrace module is required for PTL" >&2;}
+   { (exit 1); exit 1; }; }
+   fi
+fi
 
 if test "x$LINUX24_KERNEL_SRC" = "x" -a "x$BUILD_BMI_ONLY" != "x1"; then
    { $as_echo "$as_me:$LINENO: result: PVFS2 configured for the 2.4.x kernel module      :  no" >&5
