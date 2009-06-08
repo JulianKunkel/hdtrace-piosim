@@ -101,9 +101,9 @@ void hdMPI_threadInitTracing(){
 	 * The names are integers, starting at 0, which means a small \a NAME_LEN should suffice.
 	 */
 #define NAME_LEN 10
-	static __thread char hostname[HOST_NAME_MAX];
-	static __thread char rankname[NAME_LEN];
-	static __thread char threadname[NAME_LEN];
+	char hostname[HOST_NAME_MAX];
+	char rankname[NAME_LEN];
+	char threadname[NAME_LEN];
 
 	static int thread_counter = 0;
 	static pthread_mutex_t thread_counter_mutex = PTHREAD_MUTEX_INITIALIZER;

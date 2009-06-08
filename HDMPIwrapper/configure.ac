@@ -100,6 +100,22 @@ AC_TRY_LINK([
 		[return (0);], , [AC_MSG_ERROR("Cannot link with hdtrace")])
 
 
+dnl set the performancetrace library path
+AC_ARG_WITH(hdperftrace,
+[  --with-hdperftrace=path         Use HDPerformanceTrace library installed in "path"],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-hdperftrace must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include -DUSE_PERFORMANCE_TRACE"
+       CPPFLAGS="$CPPFLAGS -I$withval/include -DUSE_PERFORMANCE_TRACE"
+       LDFLAGS="-L$withval/lib $LDFLAGS"
+       AC_TRY_LINK([
+		#include <PTL.h>
+		],
+		[return (0);], , [AC_MSG_ERROR("Cannot link with performance trace library")])   
+    fi
+)
+
 CFLAGS+=" $(getconf LFS_CFLAGS)"
 
 # create sub directories in build folder:

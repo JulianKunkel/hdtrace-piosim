@@ -58,6 +58,11 @@
 #include "hdTopo.h"
 #include "hdMPITracer.h"
 
+#ifdef USE_PERFORMANCE_TRACE
+#include "PTL.h"
+
+static PerfTrace pStatistics = NULL;
+#endif
 
 /**
  * This is a global variable that regulates whether all functions listed in
@@ -302,15 +307,17 @@ static void after_Init(int *argc, char ***argv)
 	/* initalize MPI main thread */
 	hdMPI_threadInitTracing();
 
-#ifdef USE_POWERTRACE
+#ifdef USE_PERFORMANCE_TRACE
 	/* JK: use the powertracer, the powertracer must be started only once per node */
 	/* therefore determine full qualified hostname and send it to all other ranks */
 	/* the rank with the lowest number on each host starts the powertrace */
         int size;
         int ret;
-        int rankForThisHost;
+        int rank;
+        int rankForThisHost = -1;
 
         MPI_Comm_size(MPI_COMM_WORLD, &size);
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
         char hostname[255];
         ret = gethostname(hostname, 255);
@@ -343,9 +350,31 @@ static void after_Init(int *argc, char ***argv)
         free(recvBuff);
 
         if(rankForThisHost == rank){
+
             printf("Start powertop on host %s by rank: %d\n", hostname, rank);
-            /* TODO fill powertop startup here */
+
+        	ptlSources statistics;
+            char hostname[HOST_NAME_MAX];
+
+            // create labels and values for the project topology
+            gethostname(hostname, HOST_NAME_MAX);
+
+            const char *toponames[1] = {"Host"};
+            const char *levels[1] = {hostname};
+
+            hdTopology topology = hdT_createTopology(trace_file_prefix, toponames, 1);
+            hdTopoNode topoNode = hdT_createTopoNode(levels, 1);
+
+            PTLSRC_SET_ALL(statistics);
+
+            // set the global variable
+    		pStatistics = ptl_createTrace(topology, topoNode, 1, statistics, 700);
+
+    		ptl_startTrace(pStatistics);
+        }else{
+        	pStatistics = NULL;
         }
+
 #endif
 }
 
@@ -357,6 +386,13 @@ static void after_Init(int *argc, char ***argv)
 static void after_Finalize(void)
 {
 	hdMPI_threadFinalizeTracing();
+
+#ifdef USE_PERFORMANCE_TRACE
+	if(pStatistics != NULL){
+		ptl_stopTrace(pStatistics);
+		ptl_destroyTrace(pStatistics);
+	}
+#endif
 }
 
 /**
