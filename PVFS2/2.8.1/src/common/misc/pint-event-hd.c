@@ -153,10 +153,7 @@ int PINT_HD_event_finalize(void)
 	for (i = 0 ; i < ALL_FACILITIES; i++){
 		if(hd_facilityTraceStatus[i] && hd_facilityTrace[i] != NULL)
 		{
-			hdS_writeInt32Value(hd_facilityTrace[i], 0);
-			
-			assert(hd_facilityTrace[i] != NULL);
-			
+			hdS_writeInt32Value(hd_facilityTrace[i], hdStatsGroupValue[i]);
 			hdS_finalize(hd_facilityTrace[i]);
 			hd_facilityTraceStatus[i] = 0;
 			hd_facilityTrace[i] = NULL; 
