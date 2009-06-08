@@ -10,8 +10,7 @@ TAGS=ctags
 
 ARFLAGS=rcs
 
-
-BINS=$(LIB_DIR)/libhdTrace.a $(LIB_DIR)/libhdStats.a
+BINS=$(LIB_DIR)/libhdTrace.a $(LIB_DIR)/libhdStats.a $(LIB_DIR)/libhdRelation.a
 
 .PHONY: all clean dist-clean
 
@@ -33,6 +32,10 @@ $(LIB_DIR)/libhdTrace.a: $(SRC_DIR)/hdTrace.o $(SRC_DIR)/hdTopo.o $(SRC_DIR)/com
 	$(AR) $(ARFLAGS) $@ $^
 
 $(LIB_DIR)/libhdStats.a: $(SRC_DIR)/hdStats.o $(SRC_DIR)/hdTopo.o $(SRC_DIR)/common.o $(SRC_DIR)/util.o
+	@echo "  AR   $@"; \
+	$(AR) $(ARFLAGS) $@ $^
+
+$(LIB_DIR)/libhdRelation.a: $(SRC_DIR)/hdRelation.o $(SRC_DIR)/hdTopo.o $(SRC_DIR)/common.o $(SRC_DIR)/util.o
 	@echo "  AR   $@"; \
 	$(AR) $(ARFLAGS) $@ $^
 

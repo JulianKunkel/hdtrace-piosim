@@ -32,11 +32,17 @@
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.2047173983" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 <tool id="cdt.managedbuild.tool.gnu.assembler.base.1855600455" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
+<option id="gnu.both.asm.option.include.paths.823202430" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="/usr/include/glib-2.0"/>
+<listOptionValue builtIn="false" value="/usr/include/glib-2.0/glib"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.assembler.input.2101357146" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1954244170" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
 <option id="gnu.c.compiler.option.include.paths.499859758" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/HDTraceWritingCLibrary/include}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/include/glib-2.0"/>
+<listOptionValue builtIn="false" value="/usr/include/glib-2.0/glib"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.51933932" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>

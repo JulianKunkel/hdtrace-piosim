@@ -14,7 +14,7 @@ CFLAGS=-g -O -std=c99 -pedantic -Wall -Wextra \
 	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wswitch-default \
 	-Wswitch-enum -Wundef -Wwrite-strings \
 	-D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
-LDFLAGS=-L$(LIB_DIR)
+LDFLAGS=-L$(LIB_DIR) $(shell pkg-config --libs glib-2.0)  
 
 # use large file compilation environment
 CFLAGS+=$(shell getconf LFS_CFLAGS)
@@ -29,7 +29,7 @@ SRCS = $(wildcard *.c)
 DEPDIR = .deps
 df = $(DEPDIR)/$(*F)
 
-BINS=hdTopoTest hdStatsTest
+BINS=hdTopoTest hdStatsTest hdRelationTest
 
 .PHONY: all clean dist-clean force
 
@@ -64,5 +64,9 @@ hdTopoTest: hdTopoTest.o ../src/hdTopo.o
 hdStatsTest: hdStatsTest.o ../lib/libhdStats.a
 	echo "  LD  $@"; \
 	$(CC) $(LDFLAGS) $^ -lhdStats -o $@
+	
+hdRelationTest: hdRelationTest.o ../lib/libhdRelation.a
+	echo "  LD  $@"; \
+	$(CC) $(LDFLAGS) $^ -lhdRelation -o $@
 	
 -include $(SRCS:%.c=$(DEPDIR)/%.P)

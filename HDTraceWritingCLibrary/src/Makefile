@@ -15,7 +15,7 @@ CFLAGS=-g -O -std=c99 -pedantic -Wall -Wextra \
 	-D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR)
 
 # use large file compilation environment
-CFLAGS+=$(shell getconf LFS_CFLAGS)
+CFLAGS+=$(shell getconf LFS_CFLAGS) $(shell pkg-config --cflags glib-2.0) 
 LDFLAGS+=$(shell getconf LFS_LDFLAGS)
 LIBS+=$(shell getconf LFS_LIBS)
 
