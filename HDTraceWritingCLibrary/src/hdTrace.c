@@ -156,8 +156,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 	 */
 
 	// generate filename
-	trace->logfile = generateFilename(topology->project, topoNode,
-			hdT_getTopoNodeLevel(topoNode), NULL, ".trc");
+	trace->logfile = generateFilename(topoNode,	hdT_getTopoNodeLevel(topoNode), NULL, ".trc");
 	assert(isValidString(trace->logfile));
 
 	// create and open file
@@ -175,8 +174,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
 	 */
 
 	// generate filename
-	trace->infofile = generateFilename(topology->project, topoNode,
-			hdT_getTopoNodeLevel(topoNode), (char*) NULL, ".info");
+	trace->infofile = generateFilename(topoNode, hdT_getTopoNodeLevel(topoNode), (char*) NULL, ".info");
 	assert(isValidString(trace->infofile));
 
 	// create and open file

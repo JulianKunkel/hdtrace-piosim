@@ -33,151 +33,7 @@
 #include "util.h"
 #include "hdError.h"
 
-/* ************************************************************************* *
- *                        DOCUMENTATION STRUCTURING                          *
- * ************************************************************************* */
-
-/** @cond api_only */
-/**
- * @enum _hdStatsValueType
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType INT32
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType INT64
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType FLOAT
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType DOUBLE
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType STRING
- * @ingroup hdStats
- */
-/**
- * @typedef hdStatsValueType
- * @ingroup hdStats
- */
-/**
- * @typedef hdStatsGroup
- * @ingroup hdStats
- */
-/**
- * @def order_bytes32ip
- * @ingroup hdStats
- */
-/**
- * @def order_bytes64ip
- * @ingroup hdStats
- */
-/**
- * @def order_bytes32fp
- * @ingroup hdStats
- */
-/**
- * @def order_bytes64fp
- * @ingroup hdStats
- */
-/** @endcond */
-
-
-/* ************************************************************************* *
- *                            TYPE DEFINITIONS                               *
- * ************************************************************************* */
-
-/**
- * Type of usage for the group buffer
- */
-enum _hdStatsBufferType {
-	/** Buffer for creating group header */
-	HDS_HEADER_BUFFER,//!< HDS_HEADER_BUFFER
-	/** Buffer for collection values for entry */
-	HDS_ENTRY_BUFFER  //!< HDS_ENTRY_BUFFER
-};
-
-/**
- * @internal
- * Structure representing one statistics group.
- *
- * Do not use directly, use \ref hdStatsGroup instead
- */
-struct _hdStatsGroup {
-	/**
-	 * Name of the group
-	 */
-	char *name;
-
-    /**
-     * File descriptor of the statistics group file
-     */
-	int fd;
-
-    /**
-     * Filename of the statistics group file (for error output only)
-     */
-    char *tracefile;
-
-    /**
-     * Buffer for creating header and collecting entries
-     */
-    char *buffer;
-
-    /**
-     * Current type of \a buffer
-     */
-    enum _hdStatsBufferType btype;
-
-    /**
-     * Offset for buffer to write next byte
-     */
-    int offset;
-
-    /**
-     * Size of the header and initial time stamp
-     */
-    off_t headerLength;
-
-    /**
-     * Length that an entry should have
-     */
-    size_t entryLength;
-
-    /**
-     * Types of the defined values (for error checking)
-     * '-1' terminated in @ref hdS_commitGroup
-     */
-    hdStatsValueType *valueTypes;
-
-    /**
-     * Index of the next value to write (for error checking)
-     */
-    int nextValueIdx;
-
-    /**
-     * True if string values are defined
-     * => reduced error checking
-     */
-    unsigned int hasString : 1;
-
-    /**
-     * True if the group is committed (for error checking)
-     */
-    unsigned int isCommitted : 1;
-
-    /**
-     * True if the group is enabled to trace
-     */
-    unsigned int isEnabled : 1;
-};
-
+#include "hdStatsInternal.h"
 
 /* ************************************************************************* *
  *                     STATIC FUNCTION DECLARATIONS                          *
@@ -286,7 +142,6 @@ static int flushGroupBuffer(hdStatsGroup group);
  */
 hdStatsGroup hdS_createGroup (
         const char *groupName, /* Name of the new statistics group */
-        hdTopology topology,   /* Topology to use, only needed for project name */
         hdTopoNode topoNode,   /* Topology node to use */
         int topoLevel          /* Topology level the group shell belong to */
         )
@@ -302,12 +157,11 @@ hdStatsGroup hdS_createGroup (
 	if (!escapeXMLString(groupNameString, HDS_MAX_GROUP_NAME_LENGTH, groupName))
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL)
 
-	if (topology == NULL || hdT_getTopoNodeLevel(topoNode) < topoLevel)
+	if (hdT_getTopoNodeLevel(topoNode) < topoLevel)
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL);
 
 	/* generate filename of the form Project_Level1_Level2..._Group.stat */
-	char *filename = generateFilename(topology->project,
-			topoNode, topoLevel, groupName, ".stat");
+	char *filename = generateFilename(topoNode, topoLevel, groupName, ".stat");
 	 if (filename == NULL)
 	 {
 		 /* errno set by generateFilename(): MALLOC or BUFFER_OVERFLOW */
@@ -1319,6 +1173,7 @@ static int appendFormatToGroupBuffer(hdStatsGroup group,
 	va_start(ap, format);
 	int sret = vsnprintf(group->buffer + group->offset,
 			bsize - (size_t) group->offset,	format, ap);
+
 	va_end(ap);
 	/* vsnprintf should never return a negative value */
 	assert(sret >= 0);

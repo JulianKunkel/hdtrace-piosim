@@ -9,9 +9,11 @@
 #ifndef TESTS_H_
 #define TESTS_H_
 
+#define STATE_BEGIN(name) \
+	printf("%s line: %d func:%s: Start test \"%s\"\n",__FILE__, __LINE__, __FUNCTION__, name);
 
 #define TEST_BEGIN(name) \
-	printf("%s: Start test \"%s\"\n", __FUNCTION__, name);
+	printf("\n%s line: %d func:%s: Start test \"%s\"\n",__FILE__, __LINE__, __FUNCTION__, name);
 
 #define TEST_PASSED \
 	printf("%s: Passed\n", __FUNCTION__);

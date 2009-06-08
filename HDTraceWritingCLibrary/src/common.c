@@ -54,7 +54,6 @@
  *         // error
  * @endcode
  *
- * @param project   Project the file is for
  * @param toponode  Topology node to use
  * @param level     Topology level to create the filename for
  * @param group     Name of statistics group or \a NULL for hdTrace filename
@@ -66,17 +65,16 @@
  * - HD_ERR_MALLOC
  * - HD_ERR_BUFFER_OVERFLOW
  */
-char * generateFilename(const char *project, hdTopoNode toponode,
+char * generateFilename( hdTopoNode toponode,
 		int level, const char *group, const char* affix)
 {
 	/* check input */
-	assert(isValidString(project));
 	assert(hdT_getTopoNodeLevel(toponode) >= level);
 	assert(isValidString(affix));
 
 	/* generate filename */
 	assert(HD_MAX_FILENAME_LENGTH != 0);
-	char *filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(*filename));
+	char *filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(char));
 	if(filename == NULL)
 	{
 		hd_info_msg("malloc() error during %s filename generation for %s: %s",
@@ -91,7 +89,7 @@ char * generateFilename(const char *project, hdTopoNode toponode,
 	hd_error_msg("Overflow of HD_MAX_FILENAME_LENGTH buffer during" \
 			" %s filename generation for %s", affix, toponode->string);
 
-	strncpy(filename, project, HD_MAX_FILENAME_LENGTH);
+	strncpy(filename, toponode->topology->project, HD_MAX_FILENAME_LENGTH);
 	if (filename[HD_MAX_FILENAME_LENGTH - 1] != '\0')
 	{
 		ERROR_MSG

@@ -56,6 +56,11 @@ typedef struct _hdTopology * hdTopology;
  */
 struct _hdTopoNode {
 	/**
+	 * owning topology
+	 */
+	hdTopology topology;
+
+	/**
 	 * Path to the node.
 	 */
 	char **path;
@@ -100,6 +105,7 @@ int hdT_destroyTopology(
  * Create new topology node.
  */
 hdTopoNode hdT_createTopoNode(
+		hdTopology topology,
 		const char **path,
 		int length
 		);

@@ -12,7 +12,11 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
+#include "common.h"
 #include "hdRelation.h"
 
 /**
@@ -35,7 +39,7 @@ remote endpunkt -->
 
 
 /**
- * Contains all topology mappings from topology to topoToken
+ * Contains all topology mappings from topology to topology token
  */
 static GHashTable * topoMap = NULL;
 
@@ -50,6 +54,11 @@ static GHashTable * tokenTopoMap = NULL;
 static char * remoteTokenPrefix;
 
 /**
+ * Length of the remote token prefix
+ */
+static size_t remoteTokenLen;
+
+/**
  * Unique number for the topology token
  */
 static int     lastTopologyNumber = 0;
@@ -60,9 +69,15 @@ static int     lastTopologyNumber = 0;
 static uint64_t lastTokenNumber = 0;
 
 /**
- * Structure representing one relation trace
+ * Structure representing one relation trace.
+ * For each topology one trace is created.
  */
-struct _hdRelationTrace {
+struct _hdRelationTopo {
+	/**
+	 * Each topology has its own unique number
+	 */
+	int topologyNumber;
+
 	/**
 	 * File descriptor of the XML file
 	 */
@@ -116,12 +131,34 @@ struct _hdR_token{
 	hdR_topoToken topoToken;
 };
 
+/**
+ * Reduce the number of cast warnings by using this function:
+ */
+inline static int getTopologyNumber(gconstpointer key){
+	return ((hdR_topoToken) key)->topologyNumber;
+}
+
+static guint structRelationHash(gconstpointer key){
+	return (guint) getTopologyNumber(key);
+}
+
+static gboolean structRelationEqual(gconstpointer a, gconstpointer b){
+	return ( getTopologyNumber(a) == getTopologyNumber(b) ) ? TRUE : FALSE;
+}
+
+/**
+ * Reduce the number of cast warnings by using this function:
+ */
+inline static char * getTopologyNodeString(gconstpointer key){
+	return ((hdTopoNode) key)->string;
+}
+
 static guint topologyHash(gconstpointer key){
-	return g_str_hash(((hdTopoNode) key)->string);
+	return g_str_hash(getTopologyNodeString(key));
 }
 
 static gboolean topologyEqual(gconstpointer a, gconstpointer b){
-	return (strcmp( ((hdTopoNode) a)->string, ((hdTopoNode) b)->string) == 0) ? TRUE : FALSE;
+	return (strcmp(getTopologyNodeString(a), getTopologyNodeString(b)) == 0) ? TRUE : FALSE;
 }
 
 /**
@@ -136,7 +173,7 @@ static int hdR_init(void){
 		return -1;
 	}
 
-	tokenTopoMap = g_hash_table_new(& g_int_hash, & g_int_equal);
+	tokenTopoMap = g_hash_table_new(& structRelationHash, & structRelationEqual);
 	if(tokenTopoMap == NULL){
 		free(topoMap);
 		return -1;
@@ -147,7 +184,8 @@ static int hdR_init(void){
     int pid = getpid();
     snprintf(pidstr, 10, "%d", pid);
 
-	remoteTokenPrefix = malloc(strlen(hostname) + strlen(pidstr) + 1);
+    remoteTokenLen = strlen(hostname) + strlen(pidstr) ;
+	remoteTokenPrefix = malloc(remoteTokenLen + 1);
 	sprintf(remoteTokenPrefix, "%s%s", hostname, pidstr);
 
 	return 0;
@@ -164,22 +202,36 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 	}
 
 	// check if topology is already registered:
-	const int* token = (int*) g_hash_table_lookup(topoMap, (gpointer) topNode);
+	const hdR_topoToken token = (hdR_topoToken) g_hash_table_lookup(topoMap, (gpointer) topNode);
 	if(token != NULL){
 		return -1;
 	}
 
-	// if not fine:
-	int * lastValue = malloc(sizeof(int));
-	if(lastValue == NULL){
+	hdR_topoToken topoToken = malloc(sizeof(struct _hdRelationTopo));
+	if(topoToken == NULL){
 		return -1;
 	}
-	*lastValue = lastTopologyNumber++;
 
-	*outTopoToken = *lastValue;
+	topoToken->logfile = generateFilename( topNode, topNode->length, NULL, "rel" );
 
-	g_hash_table_insert(topoMap, (gpointer) topNode, lastValue);
-	g_hash_table_insert(tokenTopoMap, (gpointer) lastValue, topNode);
+	topoToken->log_fd = open(topoToken->logfile, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
+
+	if( topoToken->log_fd == -1){
+		free(topoToken->logfile);
+		free(topoToken);
+		return -1;
+	}
+
+
+	topoToken->buffer_pos = 0;
+	topoToken->isEnabled = TRUE;
+	topoToken->topoNode = topNode;
+	topoToken->topologyNumber = lastTopologyNumber++;
+
+	*outTopoToken = topoToken;
+
+	g_hash_table_insert(topoMap, (gpointer) topNode, topoToken);
+	g_hash_table_insert(tokenTopoMap, (gpointer) topoToken, topNode);
 
 	return 0;
 }
@@ -189,7 +241,7 @@ int hdR_finalize(hdTopoNode topNode){
 		return -1;
 	}
 
-	int* token = (int*) g_hash_table_lookup(topoMap, (gpointer) topNode);
+	hdR_topoToken token = (hdR_topoToken) g_hash_table_lookup(topoMap, (gpointer) topNode);
 	if(token == NULL){
 		return -1;
 	}
@@ -198,6 +250,9 @@ int hdR_finalize(hdTopoNode topNode){
 
 	assert( g_hash_table_remove(tokenTopoMap, token) == TRUE);
 
+	// free and finalize contained data:
+	close(token->log_fd);
+	free(token->logfile);
 	free(token);
 
 	const guint size = g_hash_table_size(topoMap);
@@ -215,7 +270,30 @@ int hdR_finalize(hdTopoNode topNode){
 	return 0;
 }
 
-hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken){
+char * hdR_getLocalToken(hdR_token token){
+	if(token == NULL){
+			return NULL;
+	}
+
+	char * buffer = malloc(25 * sizeof(char));
+	snprintf(buffer, 25, "%llu:%llu", (long long unsigned) token->id, (long long unsigned) token->topoToken->topologyNumber);
+	return buffer;
+}
+
+char * hdR_getUniqueToken(hdR_token token){
+	if(token == NULL){
+			return NULL;
+	}
+
+	char * buffer = malloc(25 * sizeof(char) + remoteTokenLen);
+	snprintf(buffer, 25 + remoteTokenLen, "%s:%llu:%llu", remoteTokenPrefix, (long long unsigned) token->id, (long long unsigned) token->topoToken->topologyNumber);
+	return buffer;
+}
+
+/**
+ * internal function:
+ */
+static inline hdR_token createToken(hdR_topoToken topoToken){
 	struct _hdR_token * token = malloc(sizeof(struct _hdR_token));
 
 	token->id = lastTokenNumber++;
@@ -224,23 +302,54 @@ hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken){
 	return token;
 }
 
-int hdR_destroyRelation(hdR_token token){
-	if(token == NULL){
+
+
+
+hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken){
+	return createToken(topoToken);
+}
+
+hdR_token hdR_relateTopoToken(hdR_topoToken newTopologyToken, hdR_token parentToken){
+	if(parentToken == NULL){
+		return NULL;
+	}
+
+	return createToken(newTopologyToken);
+}
+
+hdR_token hdR_relateToken(hdR_topoToken newTopologyToken, const char * strTopoToken){
+	if(strTopoToken == NULL){
+			return NULL;
+	}
+
+	return createToken(newTopologyToken);
+}
+
+hdR_token hdR_relateRemoteToken(hdR_topoToken newTopologyToken, const char * remoteToken){
+	if(remoteToken == NULL){
+			return NULL;
+	}
+
+	return createToken(newTopologyToken);
+}
+
+int hdR_destroyRelation(hdR_token * token){
+	if(token == NULL || *token == NULL){
 		return -1;
 	}
-	free(token);
+	free(*token);
+	*token = NULL;
 
 	return 0;
 }
 
-char * hdR_getLocalToken(hdR_token token){
-	if(token == NULL){
-			return NULL;
-	}
-
-	char * buffer = malloc(25 * sizeof(char));
-	snprintf(buffer, 25, "%llu:%llu", (long long unsigned) token->id, (long long unsigned) token->topoToken);
-	return buffer;
+int hdR_start(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char data_format, ...){
+	return 0;
 }
+
+int hdR_end(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char data_format, ... ){
+	return 0;
+}
+
 
 

@@ -25,8 +25,8 @@
 
 #define HD_LOG_BUF_SIZE (1024 * 1024)
 
-typedef struct _hdR_token *  hdR_token;
-typedef int                  hdR_topoToken;
+typedef struct _hdR_token *      hdR_token;
+typedef struct _hdRelationTopo * hdR_topoToken;
 
 /**
 * Initalize relation handling on topology, can be used multiple times on different topologies.
@@ -44,19 +44,22 @@ hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken);
 /**
  * Relate a token from a different topology (if the topToken is known)
  */
-hdR_token hdR_relateTopoToken(hdR_topoToken topoToken, hdR_token parentToken);
+hdR_token hdR_relateTopoToken(hdR_topoToken newTopologyToken, hdR_token parentToken);
 
 /**
  * Relate a token from a different topology (if the topToken is only known as a string)
  */
-hdR_token hdR_relateToken(const char * strTopoToken);
+hdR_token hdR_relateToken(hdR_topoToken newTopologyToken, const char * strLocalTopoToken);
 
 /**
 * Relate a token which was send by a remote machine
 */
-hdR_token hdR_relateRemoteToken(const char * remoteToken);
+hdR_token hdR_relateRemoteToken(hdR_topoToken topoToken, const char * remoteToken);
 
-int hdR_destroyRelation(hdR_token token);
+/**
+ * Remove a registered relation
+ */
+int hdR_destroyRelation(hdR_token * token);
 
 /**
 * Return a token as a string which can be passed to a different thread or layer in the program on the same machine.

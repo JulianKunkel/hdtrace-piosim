@@ -245,12 +245,13 @@ int hdT_destroyTopology(
  * @sa hdT_destroyTopoNode
  */
 hdTopoNode hdT_createTopoNode(
+		hdTopology topology,
 		const char **path,
 		int length
 		)
 {
 	/* check input */
-	if (path == NULL || length <= 0)
+	if (path == NULL || length <= 0 || topology == NULL)
 	{
 		/* a node without path is useless */
 		errno = HD_ERR_INVALID_ARGUMENT;
@@ -288,11 +289,13 @@ hdTopoNode hdT_createTopoNode(
 		memcpy(node->string + offset, path[i], lengths[i]);
 		offset += (int) lengths[i];
 		/* write level delimiter */
-		node->string[offset++] = '.';
+		node->string[offset++] = '_';
 	}
 	/* mark end of string, should override last delimiter */
-	assert(node->string[(int)sum + length - 1] == '.');
+	assert(node->string[(int)sum + length - 1] == '_');
 	node->string[(int)sum + length - 1] = '\0';
+
+	node->topology = topology;
 
 	/* return new node */
 	return node;

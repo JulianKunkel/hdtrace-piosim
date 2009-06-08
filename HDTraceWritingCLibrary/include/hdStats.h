@@ -91,11 +91,6 @@ enum _hdStatsValueType {
 typedef enum _hdStatsValueType hdStatsValueType;
 
 /**
- * Structure representing one statistics group.
- */
-struct _hdStatsGroup;
-
-/**
  * Type to use for statistics groups.
  */
 typedef struct _hdStatsGroup * hdStatsGroup;
@@ -123,7 +118,6 @@ typedef struct _hdStatsGroup * hdStatsGroup;
  */
 hdStatsGroup hdS_createGroup (
         const char *groupName, /* Name of the new statistics group */
-        hdTopology topology,   /* Topology to use, only needed for project name */
         hdTopoNode topoNode,   /* Topology node to use */
         int topoLevel          /* Topology level the group shell belong to */
         );

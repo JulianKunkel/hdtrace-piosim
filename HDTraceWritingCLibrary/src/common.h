@@ -104,7 +104,6 @@ void printMessage(enum verbosity vlvl, const char *format, ...);
  * Generate well formed filename.
  */
 char * generateFilename(
-		const char *project,
 		const hdTopoNode topology,
 		int level,
 		const char *groupname,
