@@ -842,7 +842,10 @@ int BMI_testsome(int incount,
 
 	/* return 1 if anything completed */
 	if (ret == 0 && *outcount > 0)
+	{
 	    return (1);
+//	    PINT_HD_update_counter_dec_multiple(BMI,*outcount);
+	}
 	else
 	    return ret;
     }
@@ -1047,7 +1050,8 @@ int BMI_testunexpected(int incount,
     /* return 1 if anything completed */
     if (ret == 0 && *outcount > 0)
     {
-	return (1);
+    	PINT_HD_update_counter_dec_multiple(BMI,*outcount);
+    	return (1);
     }
     return (0);
 }

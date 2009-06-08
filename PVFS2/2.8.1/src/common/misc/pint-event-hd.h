@@ -37,6 +37,11 @@ int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count);
 
 int PINT_HD_update_counter_get(HD_Trace_Facility facility); 
 
+//struct hintRelationToken{
+//	gen_mutex_t mutex;
+//	hdR_token token;
+//};
+
 #endif /* __HAVE_HDTRACE__ */
 
 #endif /* __PINT_EVENTHD_H */

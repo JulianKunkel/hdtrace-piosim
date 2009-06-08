@@ -3169,6 +3169,13 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
                             job_context_id context_id,
                             PVFS_hint hints)
 {
+	
+	/*
+	 * aus hints herausholen
+	 * neuer token erzeugen und relaten
+	 * mutex freigeben 
+	 */
+	
     /* post a dspace create.  If it completes (or fails) immediately, then
      * return and fill in the status structure.  If it needs to be tested
      * for completion later, then queue up a job_desc structure.

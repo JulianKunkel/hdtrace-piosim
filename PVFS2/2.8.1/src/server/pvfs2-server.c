@@ -1718,6 +1718,18 @@ int server_state_machine_start(
         s_op->op = s_op->req->op;
         PVFS_hint_add(&s_op->req->hints, PVFS_HINT_SERVER_ID_NAME, sizeof(uint32_t), &server_config.host_index);
         PVFS_hint_add(&s_op->req->hints, PVFS_HINT_OP_ID_NAME, sizeof(uint32_t), &s_op->req->op);
+        
+        //struct hintRelationToken * hintRelationToken = malloc(sizeof(hintRelationToken));
+
+        // check if client sent token information or not!
+        // send token
+        //token = relateOldToken
+        // if not:
+        //token = // new token, unrelated, yet
+       	//s_op->smToken = token;
+        
+        //gen_mutex_init(& hintRelationToken->mutex);
+        //PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(struct hintRelationToken), hintRelationToken);
     }
     else
     {
