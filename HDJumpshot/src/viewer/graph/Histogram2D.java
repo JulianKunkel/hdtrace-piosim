@@ -67,7 +67,7 @@ public class Histogram2D extends BarGraph2DStatic{
 
 		int bin =(int) ((x - histogramData.xOffset) / histogramData.getDeltaPerBin());
 		
-		if (bin > histogramData.getCount() || bin == oldMouseOverBin || bin < 0)
+		if (bin >= histogramData.getCount() || bin == oldMouseOverBin || bin < 0)
 			return;
 
 		binMouseOver(bin);

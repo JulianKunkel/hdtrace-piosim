@@ -33,7 +33,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -51,8 +50,8 @@ import viewer.graph.GraphData;
 import viewer.graph.Histogram2D;
 import viewer.graph.HistogramData;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
-import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.CategoryStatistic;
 
 /**
@@ -112,12 +111,18 @@ public class StatisticHistogramFrame {
 		this.category = category;
 		// now all important fields are set:
 		this.histogramGraph = new HistogramGraph();
+		
+		// set the X axis value as an integer type if appropriate
+		if(description.getDatatype() == StatisticsEntryType.INT32 || description.getDatatype() == StatisticsEntryType.INT64){
+			this.histogramGraph.getXAxis().setIntegerType(true);
+		}
 
 		frame = new JFrame();
 		frame.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
 		frame.setMinimumSize(new Dimension(400, 250));
 		frame.setPreferredSize(new Dimension(400, 250));
 		frame.setResizable(true);
+
 
 		JPanel xPanel = new JPanel();
 		xPanel.setLayout(new BoxLayout( xPanel, BoxLayout.X_AXIS));
@@ -165,6 +170,8 @@ public class StatisticHistogramFrame {
 
 		// default on close operation:
 		frame.addWindowListener(new MyWindowClosedListener());
+		
+		this.histogramGraph.triggerRefreshHistogramData();
 	}
 
 	public void triggerRefreshHistogramData(){
@@ -192,12 +199,12 @@ public class StatisticHistogramFrame {
 		 * At most one of this thread is executed.  
 		 * @author julian
 		 */
-		class BackgroundThread extends SwingWorker<Void, Void>{
+		class BackgroundThread extends Thread{
 
 			@Override
-			protected Void doInBackground() throws Exception {
+			public void run() {			
 				histogramData = computeHistogram();
-
+				
 				// automatically adapt the title.
 				frame.setTitle(reader.getGroup().getName() + ":" + description.getName() + " (" +
 						String.format("%.4f", modelTime.getViewPosition()) + "-" + 
@@ -207,10 +214,8 @@ public class StatisticHistogramFrame {
 
 				histogramGraph.removeAllLines();
 				histogramGraph.addLine(histogramData);
-
-				reloadData();
-
-				return null;
+				
+				reloadData();				
 			}
 		}
 
@@ -231,7 +236,7 @@ public class StatisticHistogramFrame {
 		 */
 		public void triggerRefreshHistogramData(){
 			backgroundThread = new BackgroundThread();
-			backgroundThread.execute();
+			backgroundThread.start();
 		}
 
 		/**
@@ -247,19 +252,16 @@ public class StatisticHistogramFrame {
 			
 			deltaPerBin = (max - min) / numberOfBins;
 			final int whichEntry = description.getNumberInGroup();
-
-			final Epoch startTime = new Epoch(modelTime.getViewPosition());
-			final Epoch endTime = new Epoch(modelTime.getViewExtent() + modelTime.getViewPosition());
 			
-			final Enumeration<StatisticsGroupEntry> entries = reader.enumerateStatistics(	
-					startTime, endTime);
+			final Enumeration<StatisticsGroupEntry> entries = reader.enumerateStatistics(modelTime.getViewPositionAdjusted(), 
+					modelTime.getViewEndAdjusted());
 
 			while(entries.hasMoreElements()){
 				double value = entries.nextElement().getNumeric(whichEntry);
 				int bin = (int)((value - min) / deltaPerBin);
 				// out of range?
 				bin = (bin >= numberOfBins) ? numberOfBins - 1 : bin;
-
+				
 				values[bin] ++;
 				// adapt max number of entries
 				maxNumber = (values[bin] > maxNumber) ? values[bin] : maxNumber;  
@@ -318,8 +320,6 @@ public class StatisticHistogramFrame {
 		public void setAutoRefresh(boolean autoRefresh) {
 			if(autoRefresh == true){
 				modelTime.addTimeListener(timeModifiedListener);
-				
-				triggerRefreshHistogramData();
 			}else{
 				modelTime.removeTimeListener(timeModifiedListener);
 			}

@@ -141,7 +141,15 @@ public class ModelTime
 	 {
 		 return globalMax;
 	 }
-
+	 
+	 public Epoch getViewPositionAdjusted()
+	 {
+		 return globalMin.add(viewInit);
+	 }
+	 
+	 public Epoch getViewEndAdjusted(){
+		 return globalMin.add(viewInit).add(viewExtent);
+	 }	 
 	 
 	 public double getViewPosition()
 	 {
@@ -151,7 +159,7 @@ public class ModelTime
 	 public double getViewEnd(){
 		 return viewInit + viewExtent;
 	 }
-
+	 
 	 public double getViewExtent()
 	 {
 		 return viewExtent;
