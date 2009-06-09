@@ -132,12 +132,10 @@ static int writeState(hdTrace trace);
  *
  * @sa hdT_createTopoNode, hdT_createTopology
  */
-hdTrace hdT_createTrace(hdTopoNode topoNode, hdTopology topology)
+hdTrace hdT_createTrace(hdTopoNode topoNode)
 {
 	/* good to know that hdTopoNode is the same as hdTopology ;) */
-	if (hdT_getTopoNodeLevel(topoNode) <= 0
-			|| hdT_getTopoNodeLevel(topoNode)
-			!= hdT_getTopoDepth(topology) - 1)
+	if (hdT_getTopoNodeLevel(topoNode) <= 0)
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return NULL;

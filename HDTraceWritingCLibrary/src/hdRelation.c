@@ -15,9 +15,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <sys/time.h>
 
 #include "common.h"
 #include "hdRelation.h"
+#include "hdError.h"
 
 /**
 remote_id = <hostname><pid>
@@ -35,7 +38,14 @@ remote endpunkt -->
 <s time="" v=<id> "attributes> data </start>
 <e time="" v=<id> "attributes> data </end>
 </un v=<id>>
-*/
+ */
+
+/**
+ * Macro to print info message (fix string)
+ */
+#define hdr_info(topoToken, string) \
+	printf("I: [RELATION][%s]: %s\n", \
+			hdT_getTopoPathString(topoToken->topoNode), string);
 
 
 /**
@@ -57,6 +67,17 @@ static char * remoteTokenPrefix;
  * Length of the remote token prefix
  */
 static size_t remoteTokenLen;
+
+/**
+ * Token prefix for local access == <PID>
+ */
+static char * localTokenPrefix;
+
+/**
+ * Length of the remote local prefix
+ */
+static size_t localTokenLen;
+
 
 /**
  * Unique number for the topology token
@@ -105,6 +126,11 @@ struct _hdRelationTopo {
 	 * Topology leaf this trace belongs to.
 	 */
 	hdTopoNode topoNode;
+
+	/**
+	 * global time adjustment
+	 */
+	struct timeval timeAdjustment;
 
 	/**
 	 * \a isEnabled = 1 if the trace is enabled.
@@ -165,8 +191,8 @@ static gboolean topologyEqual(gconstpointer a, gconstpointer b){
  * Initalize all required data structures.
  */
 static int hdR_init(void){
-    char hostname[HOST_NAME_MAX];
-    char pidstr[10];
+	char hostname[HOST_NAME_MAX];
+	char pidstr[10];
 
 	topoMap = g_hash_table_new(& topologyHash, & topologyEqual);
 	if(topoMap == NULL){
@@ -180,13 +206,85 @@ static int hdR_init(void){
 	}
 
 	// prepare unique token prefix
-    gethostname(hostname, HOST_NAME_MAX);
-    int pid = getpid();
-    snprintf(pidstr, 10, "%d", pid);
+	gethostname(hostname, HOST_NAME_MAX);
+	int pid = getpid();
+	snprintf(pidstr, 10, "%d", pid);
 
-    remoteTokenLen = strlen(hostname) + strlen(pidstr) ;
+	localTokenLen = strlen(pidstr);
+	localTokenPrefix = strdup(pidstr);
+
+	remoteTokenLen = strlen(hostname) + localTokenLen ;
 	remoteTokenPrefix = malloc(remoteTokenLen + 1);
-	sprintf(remoteTokenPrefix, "%s%s", hostname, pidstr);
+	sprintf(remoteTokenPrefix, "%s%s", hostname, localTokenPrefix);
+
+	return 0;
+}
+
+static int flushBuffer(hdR_topoToken topoToken){
+	if(topoToken->buffer_pos == 0){
+		return 0;
+	}
+
+	ssize_t written = writeToFile(topoToken->log_fd, topoToken->buffer, topoToken->buffer_pos, topoToken->logfile);
+	if (written < 0)
+	{
+		switch (errno)
+		{
+		case HD_ERR_TIMEOUT:
+			hdr_info(topoToken,	"Timeout during writing of trace info,"
+					" stop logging");
+		case HD_ERR_MALLOC:
+			hdr_info(topoToken,
+					"Out of memory during writing of trace info,"
+					" stop logging");
+		case HD_ERR_WRITE_FILE:
+			hdr_info(topoToken, "Write error during writing of trace info,"
+					" stop logging");
+		case HD_ERR_UNKNOWN:
+			hdr_info(topoToken, "Unknown error during writing of trace info,"
+					" stop logging");
+		default:
+			assert(written >= 0);
+		}
+
+		/* disable further tracing (does not touch errno) */
+		// TODO
+
+		/* do not change errno, just return error */
+		return -1;
+	}
+	return 0;
+}
+
+static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...){
+
+	char buffer[HD_TMP_BUF_SIZE];
+	va_list argptr;
+	size_t count;
+
+	va_start(argptr, format);
+	count = (size_t) vsnprintf(buffer, HD_TMP_BUF_SIZE, format, argptr);
+	va_end( argptr );
+
+	if (count >= HD_TMP_BUF_SIZE)
+	{
+		hdr_info(topoToken, "Temporary buffer too small for message.");
+		return HD_ERR_BUFFER_OVERFLOW;
+	}
+
+
+	if(topoToken->buffer_pos + count > HD_LOG_BUF_SIZE){
+		// write to file.
+		if(flushBuffer(topoToken) != 0){
+			return -1;
+		}
+		topoToken->buffer_pos = 0;
+	}
+
+	// append to buffer
+	memcpy(topoToken->buffer + topoToken->buffer_pos, buffer, count);
+
+	topoToken->buffer_pos += count;
 
 	return 0;
 }
@@ -207,12 +305,10 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 		return -1;
 	}
 
-	hdR_topoToken topoToken = malloc(sizeof(struct _hdRelationTopo));
-	if(topoToken == NULL){
-		return -1;
-	}
+	hdR_topoToken topoToken;
+	hd_malloc(topoToken,1, -1);
 
-	topoToken->logfile = generateFilename( topNode, topNode->length, NULL, "rel" );
+	topoToken->logfile = generateFilename( topNode, topNode->length, NULL, ".rel" );
 
 	topoToken->log_fd = open(topoToken->logfile, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
 
@@ -230,8 +326,25 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 
 	*outTopoToken = topoToken;
 
+	// register topology in the topology map:
 	g_hash_table_insert(topoMap, (gpointer) topNode, topoToken);
 	g_hash_table_insert(tokenTopoMap, (gpointer) topoToken, topNode);
+
+	// init time adjustment:
+	gettimeofday(& topoToken->timeAdjustment, NULL);
+
+	// print header to new file:
+	writeToBuffer(topoToken, "<relation version=\"1\" topologyNumber=\"%d\" localToken=\"%s\" remoteToken=\"%s\" timeAdjustment=\"%d\">\n",
+			topoToken->topologyNumber, localTokenPrefix, remoteTokenPrefix, topoToken->timeAdjustment.tv_sec);
+
+	/*
+	 * Alternative way to write local part.
+	 * int i;
+	for(i=1 ; i<= localDepth; i++){
+		writeToBuffer(topoToken, "%s", hdT_getTopoPathLabel(topoToken->topoNode, i));
+	}
+	writeToBuffer(topoToken, "\">\n");
+	*/
 
 	return 0;
 }
@@ -250,8 +363,12 @@ int hdR_finalize(hdTopoNode topNode){
 
 	assert( g_hash_table_remove(tokenTopoMap, token) == TRUE);
 
-	// free and finalize contained data:
+	// finalize contained data:
+	writeToBuffer(token, "</relation>\n");
+	flushBuffer(token);
 	close(token->log_fd);
+
+	// cleanup phase:
 	free(token->logfile);
 	free(token);
 
@@ -263,6 +380,7 @@ int hdR_finalize(hdTopoNode topNode){
 		topoMap = NULL;
 
 		free(remoteTokenPrefix);
+		free(localTokenPrefix);
 
 		remoteTokenPrefix = NULL;
 	}
@@ -272,21 +390,21 @@ int hdR_finalize(hdTopoNode topNode){
 
 char * hdR_getLocalToken(hdR_token token){
 	if(token == NULL){
-			return NULL;
+		return NULL;
 	}
 
 	char * buffer = malloc(25 * sizeof(char));
-	snprintf(buffer, 25, "%llu:%llu", (long long unsigned) token->id, (long long unsigned) token->topoToken->topologyNumber);
+	snprintf(buffer, 25, "%d:%"INT64_FORMAT, token->topoToken->topologyNumber, token->id);
 	return buffer;
 }
 
-char * hdR_getUniqueToken(hdR_token token){
+char * hdR_getRemoteToken(hdR_token token){
 	if(token == NULL){
-			return NULL;
+		return NULL;
 	}
 
 	char * buffer = malloc(25 * sizeof(char) + remoteTokenLen);
-	snprintf(buffer, 25 + remoteTokenLen, "%s:%llu:%llu", remoteTokenPrefix, (long long unsigned) token->id, (long long unsigned) token->topoToken->topologyNumber);
+	snprintf(buffer, 25 + remoteTokenLen, "%s:%d:%"UINT64_FORMAT, remoteTokenPrefix, token->topoToken->topologyNumber, token->id);
 	return buffer;
 }
 
@@ -304,51 +422,153 @@ static inline hdR_token createToken(hdR_topoToken topoToken){
 
 
 
-
 hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken){
-	return createToken(topoToken);
+	hdR_token newToken = createToken(topoToken);
+
+	writeToBuffer(topoToken, "<rel t=\"%d\"/>", newToken->id);
+
+	return newToken;
 }
 
-hdR_token hdR_relateTopoToken(hdR_topoToken newTopologyToken, hdR_token parentToken){
+hdR_token hdR_relateProcessLocalToken(hdR_topoToken newTopologyToken, hdR_token parentToken){
 	if(parentToken == NULL){
 		return NULL;
 	}
 
-	return createToken(newTopologyToken);
+	hdR_token newToken = createToken(newTopologyToken);
+
+	writeToBuffer(newTopologyToken, "<rel t=\"%d\" pt=\"%d:%d\"/>", newToken->id, parentToken->topoToken->topologyNumber, parentToken->id);
+
+	return newToken;
 }
 
-hdR_token hdR_relateToken(hdR_topoToken newTopologyToken, const char * strTopoToken){
+hdR_token hdR_relateLocalToken(hdR_topoToken newTopologyToken, const char * strTopoToken){
 	if(strTopoToken == NULL){
-			return NULL;
+		return NULL;
 	}
 
-	return createToken(newTopologyToken);
+	hdR_token newToken = createToken(newTopologyToken);
+
+	writeToBuffer(newTopologyToken, "<rel t=\"%d\" l=\"%s\"/>", newToken->id, strTopoToken);
+
+	return newToken;
 }
 
 hdR_token hdR_relateRemoteToken(hdR_topoToken newTopologyToken, const char * remoteToken){
 	if(remoteToken == NULL){
-			return NULL;
+		return NULL;
 	}
 
-	return createToken(newTopologyToken);
+	hdR_token newToken = createToken(newTopologyToken);
+	writeToBuffer(newTopologyToken, "<rel t=\"%d\" r=\"%s\"/>", newToken->id, remoteToken);
+	return newToken;
 }
 
 int hdR_destroyRelation(hdR_token * token){
 	if(token == NULL || *token == NULL){
 		return -1;
 	}
+
+	// trace information
+	writeToBuffer((*token)->topoToken, "<un t=\"%" INT64_FORMAT "\"/>", (*token)->id);
+
+	// free token
+
 	free(*token);
 	*token = NULL;
 
 	return 0;
 }
 
-int hdR_start(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char data_format, ...){
+inline static void writeAttributesAndTime(hdR_token token,  int attr_count, const char** attr_keys, const char **attr_values){
+	struct timeval time;
+	gettimeofday(& time, NULL);
+
+	writeToBuffer(token->topoToken, " time=\"%d.%.6d\"", time.tv_sec - token->topoToken->timeAdjustment.tv_sec, time.tv_usec);
+
+	int i;
+	for(i=0; i < attr_count ; i++){
+		writeToBuffer(token->topoToken, " %s=\"%s\"", attr_keys[i], attr_values[i]);
+	}
+
+	writeToBuffer(token->topoToken, ">");
+}
+
+
+static int hdR_starti(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char * buffer){
+	writeToBuffer(token->topoToken, "<s name=\"%s\"", name);
+	writeAttributesAndTime(token, attr_count, attr_keys, attr_values);
+	writeToBuffer(token->topoToken, "%s</s>", buffer);
 	return 0;
 }
 
-int hdR_end(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char data_format, ... ){
+static int hdR_endi(hdR_token token, int attr_count, const char** attr_keys, const char **attr_values, const char * buffer){
+	writeToBuffer(token->topoToken, "<e");
+	writeAttributesAndTime(token, attr_count, attr_keys, attr_values);
+	writeToBuffer(token->topoToken, "%s</e>",buffer);
 	return 0;
+}
+
+int hdR_start(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values){
+	if(token == NULL || name == NULL){
+		return -1;
+	}
+
+	return hdR_starti(token,name, attr_count, attr_keys, attr_values, "");
+}
+
+int hdR_end(hdR_token token, int attr_count, const char** attr_keys, const char **attr_values){
+	if(token == NULL){
+		return -1;
+	}
+
+	return hdR_endi(token, attr_count, attr_keys, attr_values, "");
+}
+
+int hdR_startE(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char * data_format, ...){
+	if(token == NULL || name == NULL){
+		return -1;
+	}
+
+	char buffer[HD_TMP_BUF_SIZE];
+
+	va_list argptr;
+	size_t count;
+
+	va_start(argptr, data_format);
+	count = (size_t) vsnprintf(buffer, HD_TMP_BUF_SIZE, data_format, argptr);
+	va_end( argptr );
+
+	if (count >= HD_TMP_BUF_SIZE)
+	{
+		hdr_info(token->topoToken, "Temporary buffer too small for message.");
+		return HD_ERR_BUFFER_OVERFLOW;
+	}
+
+	return hdR_starti(token,name, attr_count, attr_keys, attr_values, buffer);
+}
+
+int hdR_endE(hdR_token token, int attr_count, const char** attr_keys, const char **attr_values, const char * data_format, ... ){
+	if(token == NULL){
+		return -1;
+	}
+
+	char buffer[HD_TMP_BUF_SIZE];
+
+	va_list argptr;
+	size_t count;
+
+	va_start(argptr, data_format);
+	count = (size_t) vsnprintf(buffer, HD_TMP_BUF_SIZE, data_format, argptr);
+	va_end( argptr );
+
+	if (count >= HD_TMP_BUF_SIZE)
+	{
+		hdr_info(token->topoToken, "Temporary buffer too small for message.");
+		return HD_ERR_BUFFER_OVERFLOW;
+	}
+
+	return hdR_endi(token, attr_count, attr_keys, attr_values, buffer);
 }
 
 

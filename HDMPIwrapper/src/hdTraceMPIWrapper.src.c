@@ -104,6 +104,11 @@ static int trace_file_info = 1;
 static int trace_force_flush = 0;
 
 /**
+ * The topology (host, rank, thread)
+ */
+static hdTopology topology;
+
+/**
  * This array defines the name of the environment variables which
  * are read by the program. The values of the environment variables
  * are then stored in those variables to which elements of the
@@ -304,6 +309,9 @@ static void after_Init(int *argc, char ***argv)
 		}
 	}
 
+	const char *toponames[3] = {"Host", "Rank", "Thread"};
+	topology = hdT_createTopology(trace_file_prefix, toponames, 3);
+
 	/* initalize MPI main thread */
 	hdMPI_threadInitTracing();
 
@@ -359,11 +367,8 @@ static void after_Init(int *argc, char ***argv)
             // create labels and values for the project topology
             gethostname(hostname, HOST_NAME_MAX);
 
-            const char *toponames[1] = {"Host"};
             const char *levels[1] = {hostname};
-
-            hdTopology topology = hdT_createTopology(trace_file_prefix, toponames, 1);
-            hdTopoNode topoNode = hdT_createTopoNode(levels, 1);
+            hdTopoNode topoNode = hdT_createTopoNode(topology, levels, 1);
 
             PTLSRC_SET_ALL(statistics);
 

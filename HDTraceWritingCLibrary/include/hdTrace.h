@@ -58,11 +58,6 @@
 #define HD_LOG_ELEMENT_NAME_BUF_SIZE 1024
 
 /**
- * Size of temporary buffers.
- */
-#define HD_TMP_BUF_SIZE 1024 * 16
-
-/**
  * Maximum depth of nested tracing calls that is logged.
  */
 #define HD_LOG_MAX_DEPTH 4
@@ -220,8 +215,7 @@ typedef struct _hdTrace * hdTrace;
  * Create, open and initialize trace for given topology.
  */
 hdTrace hdT_createTrace(
-		hdTopoNode topoNode,
-		hdTopology topology
+		hdTopoNode topoNode
 		);
 
 /**

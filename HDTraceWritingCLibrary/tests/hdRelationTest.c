@@ -41,6 +41,7 @@ static void Test_createRelationAndCleanup(void)
 	myTopoNode2 = hdT_createTopoNode(topology, path2, 2);
 
 
+
 	hdR_topoToken topoToken1;
 	hdR_topoToken topoToken2;
 
@@ -49,7 +50,6 @@ static void Test_createRelationAndCleanup(void)
 	assert( hdR_initTopology(myTopoNode1, & topoToken2) == -1);
 
 	assert( hdR_initTopology(myTopoNode2, & topoToken2) == 0);
-
 
 	hdR_token token1 = hdR_createTopLevelRelation(topoToken1);
 	assert(token1 != NULL);
@@ -103,7 +103,7 @@ static void Test_createRelationHandling(void)
 	hdR_token token1 = hdR_createTopLevelRelation(topoToken1);
 	assert(token1 != NULL);
 
-	char * tokenStr = hdR_getUniqueToken(token1);
+	char * tokenStr = hdR_getRemoteToken(token1);
 	assert(tokenStr != NULL);
 	printf("Unique token id is: %s\n" , tokenStr);
 
@@ -128,45 +128,66 @@ static void Test_remoteRelationHandling(void)
 	const char *levels1[] = {"Host","Process"};
 	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
 
-
-	hdTopoNode myTopoNode1;
-	hdTopoNode myTopoNode2;
-
 	TEST_BEGIN("Create")
 
 	const char *path1[] = {"host0","process0"};
-	myTopoNode1 = hdT_createTopoNode(topology, path1, 2);
+	hdTopoNode myTopoNode1 = hdT_createTopoNode(topology, path1, 2);
 
 	const char *path2[] = {"host0","process1"};
-	myTopoNode2 = hdT_createTopoNode(topology, path2, 2);
+	hdTopoNode myTopoNode2 = hdT_createTopoNode(topology, path2, 2);
 
+	const char *path3[] = {"host1","process0"};
+	hdTopoNode myTopoNode3 = hdT_createTopoNode(topology, path3, 2);
 
 	hdR_topoToken topoToken1;
 	hdR_topoToken topoToken2;
+	hdR_topoToken topoToken3;
 
 	assert( hdR_initTopology(myTopoNode1, & topoToken1) == 0);
 	assert( hdR_initTopology(myTopoNode2, & topoToken2) == 0);
+	assert( hdR_initTopology(myTopoNode3, & topoToken3) == 0);
 
 
 	hdR_token token1 = hdR_createTopLevelRelation(topoToken1);
 	assert(token1 != NULL);
 
 	STATE_BEGIN("Unique token handling")
-	char * tokenStr = hdR_getUniqueToken(token1);
+	char * tokenStr = hdR_getRemoteToken(token1);
 	assert(tokenStr != NULL);
 
-	hdR_token token2 = hdR_relateRemoteToken(topoToken2, tokenStr);
+	hdR_token token2 = hdR_relateRemoteToken(topoToken3, tokenStr);
 	assert(token2 != NULL);
+
+	hdR_token token3 = hdR_relateProcessLocalToken(topoToken2, token1);
+	assert(token3 != NULL);
+
+	char * localTokenStr = hdR_getLocalToken(token3);
+
+	hdR_token token4 = hdR_relateLocalToken(topoToken1, localTokenStr);
+	free(localTokenStr);
+	assert(token4 != NULL);
+
+	STATE_BEGIN("Try to create start & end state")
+
+	const char * keys [] = {"schuh", "test"};
+	const char * vals [] = {"leder", "#5"};
+	hdR_startE(token1, "Create", 2, keys, vals, "<data>stuff</data>");
+	sleep(1);
+	hdR_endE(token1, 2, keys, vals, "<data2>stuff2</data2>");
+
 
 	STATE_BEGIN("CLEANUP")
 	free(tokenStr);
 
 	assert(hdR_destroyRelation(& token1) == 0);
 	assert(hdR_destroyRelation(& token2) == 0);
+	assert(hdR_destroyRelation(& token3) == 0);
+	assert(hdR_destroyRelation(& token4) == 0);
 
 
 	assert( hdR_finalize(myTopoNode1) == 0);
 	assert( hdR_finalize(myTopoNode2) == 0);
+	assert( hdR_finalize(myTopoNode3) == 0);
 
 	TEST_PASSED
 

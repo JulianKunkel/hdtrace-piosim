@@ -26,6 +26,17 @@
 # define INT64_FORMAT "lld"
 #endif
 
+#if __WORDSIZE == 64
+# define UINT64_FORMAT "lu"
+#else
+# define UINT64_FORMAT "llu"
+#endif
+
+/**
+ * Size of temporary buffers.
+ */
+#define HD_TMP_BUF_SIZE 1024 * 16
+
 /**
  * Print X followed by the code position followed by formated message
  * Do not use directly, use hd_(info|debug|error)_msg instead.

@@ -6,13 +6,13 @@ MAKEDEPEND=gcc -MM
 
 #CPPFLAGS=-DDEBUG
 CPPFLAGS=
-CFLAGS=-g -O0 -ggdb -std=c99 -pedantic -Wall -Wextra -D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR) -I../src
-#	-Waggregate-return -Wcast-align -Wcast-qual -Wconversion -Wfloat-equal \
-#	-Wformat=2 -Winit-self -Winline -Wmissing-declarations \
-#	-Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn \
-#	-Wmissing-prototypes -Wnested-externs -Wold-style-definition \
-#	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wswitch-default \
-#	-Wswitch-enum -Wundef -Wwrite-strings \
+CFLAGS=-g -O0 -ggdb -std=c99 -pedantic -Wall -Wextra -D_POSIX_C_SOURCE -D_GNU_SOURCE -I$(INCLUDE_DIR) -I../src \
+	-Waggregate-return -Wcast-align -Wcast-qual -Wconversion -Wfloat-equal \
+	-Wformat=2 -Winit-self -Winline -Wmissing-declarations \
+	-Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn \
+	-Wmissing-prototypes -Wnested-externs -Wold-style-definition \
+	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wswitch-default \
+	-Wswitch-enum -Wundef -Wwrite-strings 
 
 LDFLAGS=-L$(LIB_DIR) $(shell pkg-config --libs glib-2.0)  
 
@@ -29,7 +29,7 @@ SRCS = $(wildcard *.c)
 DEPDIR = .deps
 df = $(DEPDIR)/$(*F)
 
-BINS=hdTopoTest hdStatsTest hdRelationTest
+BINS=hdTopoTest hdStatsTest hdRelationTest hdTraceTest
 
 .PHONY: all clean dist-clean force
 
@@ -64,6 +64,10 @@ hdTopoTest: hdTopoTest.o ../src/hdTopo.o
 hdStatsTest: hdStatsTest.o ../lib/libhdStats.a
 	echo "  LD  $@"; \
 	$(CC) $(LDFLAGS) $^ -lhdStats -o $@
+
+hdTraceTest: hdTraceTest.o ../lib/libhdTrace.a
+	echo "  LD  $@"; \
+	$(CC) $(LDFLAGS) $^ -lhdTrace -o $@
 	
 hdRelationTest: hdRelationTest.o ../lib/libhdRelation.a
 	echo "  LD  $@"; \

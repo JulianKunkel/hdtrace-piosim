@@ -124,14 +124,12 @@ void hdMPI_threadInitTracing(){
 	snprintf(rankname, NAME_LEN, "%d", rank);
 	snprintf(threadname, NAME_LEN, "%d", thread);
 
-	const char *toponames[3] = {"Host", "Rank", "Thread"};
 	const char *levels[3] = {hostname, rankname, threadname};
 
-	hdTopology topology = hdT_createTopology(trace_file_prefix, toponames, 3);
-	topoNode = hdT_createTopoNode(levels, 3);
+	topoNode = hdT_createTopoNode(topology, levels, 3);
 
 
-	tracefile = hdT_createTrace(topoNode, topology);
+	tracefile = hdT_createTrace(topoNode);
 
 	readEnvVars();
 
