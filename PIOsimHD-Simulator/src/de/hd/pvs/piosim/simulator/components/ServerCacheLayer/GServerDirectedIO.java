@@ -25,6 +25,8 @@
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -34,6 +36,19 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
+
+final class IOJobComparator implements Comparator<IOJob> {
+	public int compare(IOJob a, IOJob b) {
+		if (a.getOffset() < b.getOffset()) {
+			return -1;
+		} else if (a.getOffset() > b.getOffset()) {
+			return 1;
+		}
+
+		return 0;
+	}
+}
 
 /**
  * Try to do clever I/O optimization.
@@ -44,12 +59,132 @@ public class GServerDirectedIO extends GAggregationCache {
 	MPIFile lastFile = null;
 	long lastOffset = -1;
 
+	HashMap<MPIFile, LinkedList<IOJob>> queuedReadJobs = new HashMap<MPIFile, LinkedList<IOJob>>();
 	HashMap<MPIFile, LinkedList<IOJob>> queuedWriteJobs = new HashMap<MPIFile, LinkedList<IOJob>>();
+
+	private void mergeHashMaps(HashMap<IOJob, RequestRead> dst, HashMap<IOJob, RequestRead> src) {
+		for (IOJob io : src.keySet()) {
+			dst.put(io, src.get(io));
+		}
+	}
 
 	/*
 	 * Combine as many IOJobs as possible.
 	 */
-	private LinkedList<IOJob> mergeIOJobs(LinkedList<IOJob> l) {
+	private LinkedList<IOJob> mergeReadJobs(LinkedList<IOJob> l) {
+		long size = -1;
+		long offset = -1;
+
+		LinkedList<IOJob> nl = new LinkedList<IOJob>();
+		Iterator<IOJob> it;
+		IOJob io = null;
+		HashMap<IOJob, RequestRead> map = new HashMap<IOJob, RequestRead>();
+		MPIFile file = null;
+
+		System.out.print("MERGE READ old: " + l.size());
+
+		// FIXME
+		Collections.sort(l, new IOJobComparator());
+
+		it = l.iterator();
+
+		while (it.hasNext()) {
+			IOJob cur = it.next();
+
+			if (file == null) {
+				file = cur.getFile();
+			}
+
+			if (io == null) {
+				io = cur;
+				size = io.getSize();
+				offset = io.getOffset();
+
+				mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+				it.remove();
+				continue;
+			}
+
+			if ((offset >= cur.getOffset() && offset <= cur.getOffset() + cur.getSize())
+					|| (offset + size >= cur.getOffset() && offset + size <= cur.getOffset() + cur.getSize())) {
+				long newOffset;
+				long newSize;
+
+				newOffset = Math.min(offset, cur.getOffset());
+				newSize = Math.max(offset + size, cur.getOffset() + cur.getSize()) - newOffset;
+
+				if (newSize > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
+					IOJob tmp;
+
+					tmp = new IOJob(io.getFile(), size, offset, io.getType());
+					nl.add(tmp);
+
+					if (pendingReadRequestMap.get(tmp) == null) {
+						pendingReadRequestMap.put(tmp, new HashMap<IOJob, RequestRead>());
+					}
+					mergeHashMaps(pendingReadRequestMap.get(tmp), map);
+					map.clear();
+
+					io = cur;
+					size = io.getSize();
+					offset = io.getOffset();
+
+					mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+					it.remove();
+					continue;
+				}
+
+				offset = newOffset;
+				size = newSize;
+
+				mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+				it.remove();
+			} else {
+				IOJob tmp;
+
+				tmp = new IOJob(io.getFile(), size, offset, io.getType());
+				nl.add(tmp);
+
+				if (pendingReadRequestMap.get(tmp) == null) {
+					pendingReadRequestMap.put(tmp, new HashMap<IOJob, RequestRead>());
+				}
+				mergeHashMaps(pendingReadRequestMap.get(tmp), map);
+				map.clear();
+
+				io = cur;
+				size = io.getSize();
+				offset = io.getOffset();
+
+				mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+				it.remove();
+				continue;
+			}
+		}
+
+		assert (l.size() == 0);
+
+		if (io != null) {
+			IOJob tmp;
+
+			tmp = new IOJob(io.getFile(), size, offset, io.getType());
+			nl.add(tmp);
+
+			if (pendingReadRequestMap.get(tmp) == null) {
+				pendingReadRequestMap.put(tmp, new HashMap<IOJob, RequestRead>());
+			}
+			mergeHashMaps(pendingReadRequestMap.get(tmp), map);
+		}
+
+		if (file != null) {
+			queuedReadJobs.put(file, nl);
+		}
+
+		System.out.println(" new: " + nl.size());
+
+		return nl;
+	}
+
+	private LinkedList<IOJob> mergeWriteJobs(LinkedList<IOJob> l) {
 		long size = -1;
 		long offset = -1;
 
@@ -58,7 +193,7 @@ public class GServerDirectedIO extends GAggregationCache {
 		IOJob io = null;
 		MPIFile file = null;
 
-		System.out.print("MERGE old: " + l.size());
+		System.out.print("MERGE WRITE old: " + l.size());
 
 		it = l.iterator();
 
@@ -139,8 +274,10 @@ public class GServerDirectedIO extends GAggregationCache {
 		return nl;
 	}
 
-	private IOJob getJob() {
+	private IOJob getJob(IOOperation type) {
 		long size = 0;
+
+		HashMap<MPIFile, LinkedList<IOJob>> queue = null;
 
 		LinkedList<IOJob> list = null;
 		LinkedList<IOJob> lastFileList = null;
@@ -151,11 +288,17 @@ public class GServerDirectedIO extends GAggregationCache {
 
 		Iterator<IOJob> it = null;
 
-		if (lastFile != null) {
-			lastFileList = queuedWriteJobs.get(lastFile);
+		if (type == IOOperation.WRITE) {
+			queue = queuedWriteJobs;
+		} else if (type == IOOperation.READ) {
+			queue = queuedReadJobs;
 		}
 
-		for (LinkedList<IOJob> l : queuedWriteJobs.values()) {
+		if (lastFile != null) {
+			lastFileList = queue.get(lastFile);
+		}
+
+		for (LinkedList<IOJob> l : queue.values()) {
 			long tmp = 0;
 
 			it = l.iterator();
@@ -183,7 +326,11 @@ public class GServerDirectedIO extends GAggregationCache {
 			lastOffset = -1;
 		}
 
-		list = mergeIOJobs(list);
+		if (type == IOOperation.READ) {
+			list = mergeReadJobs(list);
+		} else if (type == IOOperation.WRITE) {
+			list = mergeWriteJobs(list);
+		}
 
 		it = list.iterator();
 
@@ -220,6 +367,14 @@ public class GServerDirectedIO extends GAggregationCache {
 			return null;
 		}
 
+		if (type == IOOperation.READ) {
+			if (!parentNode.isEnoughFreeMemory(io.getSize())) {
+				return null;
+			}
+
+			parentNode.reserveMemory(io.getSize());
+		}
+
 		list.remove(io);
 
 		lastFile = io.getFile();
@@ -230,17 +385,12 @@ public class GServerDirectedIO extends GAggregationCache {
 
 	@Override
 	protected IOJob getNextSchedulableJob() {
-		// prefer read requests for write requests
-		IOJob io = null;
+		IOJob io;
 
-		if (!queuedReadJobs.isEmpty() && parentNode.isEnoughFreeMemory(queuedReadJobs.peek().getSize())) {
-			// reserve memory for READ requests
-			// io = combineOperation(queuedReadJobs);
-			io = queuedReadJobs.poll();
+		io = getJob(IOOperation.READ);
 
-			parentNode.reserveMemory(io.getSize());
-		} else {
-			io = getJob();
+		if (io == null) {
+			io = getJob(IOOperation.WRITE);
 		}
 
 		return io;
@@ -248,13 +398,35 @@ public class GServerDirectedIO extends GAggregationCache {
 
 	@Override
 	protected int getNumberOfQueuedOperations() {
-		int size = queuedReadJobs.size();
+		int size = 0;
+
+		for (LinkedList<IOJob> l : queuedReadJobs.values()) {
+			size += l.size();
+		}
 
 		for (LinkedList<IOJob> l : queuedWriteJobs.values()) {
 			size += l.size();
 		}
 
 		return size;
+	}
+
+	@Override
+	protected void addReadIOJob(long size, long offset, RequestRead req) {
+		if (queuedReadJobs.get(req.getFile()) == null) {
+			queuedReadJobs.put(req.getFile(), new LinkedList<IOJob>());
+		}
+
+		IOJob io = new IOJob(req.getFile(), size, offset, IOOperation.READ);
+		queuedReadJobs.get(req.getFile()).add(io);
+
+		if (pendingReadRequestMap.get(io) == null) {
+			pendingReadRequestMap.put(io, new HashMap<IOJob, RequestRead>());
+		}
+
+		pendingReadRequestMap.get(io).put(io, req);
+
+		scheduleNextIOJobIfPossible();
 	}
 
 	@Override
