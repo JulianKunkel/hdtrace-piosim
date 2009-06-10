@@ -25,8 +25,7 @@ public class Histogram2D extends BarGraph2DStatic{
 	
 	public Histogram2D() {
 		setConnectPoints(false);
-		setDoCenterDrawing(doCenterDrawing);
-		getYAxis().setIntegerType(true);
+		setDoCenterDrawing(doCenterDrawing);		
 	}
 		
 	public void addLine(HistogramData data) {
@@ -35,7 +34,7 @@ public class Histogram2D extends BarGraph2DStatic{
 		}
 		
 		super.addLine(data);		
-		super.setBarWidth(data.xExtend / data.getCount());
+		super.setBarWidth(data.xExtend / data.getBinCount());
 		
 		histogramData = data;
 	}	
@@ -67,7 +66,7 @@ public class Histogram2D extends BarGraph2DStatic{
 
 		int bin =(int) ((x - histogramData.xOffset) / histogramData.getDeltaPerBin());
 		
-		if (bin >= histogramData.getCount() || bin == oldMouseOverBin || bin < 0)
+		if (bin >= histogramData.getBinCount() || bin == oldMouseOverBin || bin < 0)
 			return;
 
 		binMouseOver(bin);

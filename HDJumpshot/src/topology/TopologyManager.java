@@ -60,6 +60,7 @@ import viewer.common.SortedJTreeModel;
 import viewer.common.SortedJTreeNode;
 import viewer.first.MainManager;
 import viewer.histogram.StatisticHistogramFrame;
+import viewer.histogram.StatisticTimeHistogramFrame;
 import viewer.linegraph.StatisticLineGraphFrame;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
@@ -198,7 +199,7 @@ public class TopologyManager
 						private static final long serialVersionUID = 1L;
 
 						{
-							putValue(Action.NAME, "Show statistic histogram for " + clickedNode.toString());							
+							putValue(Action.NAME, "Show histogram for " + clickedNode.toString());							
 						}
 
 						@Override
@@ -210,6 +211,24 @@ public class TopologyManager
 							frame.show();
 						}
 					});				
+					
+					// Show statistic histogram for the times			
+					popupMenu.add(new AbstractAction(){
+						private static final long serialVersionUID = 1L;
+
+						{
+							putValue(Action.NAME, "Show duration/value histogram for " + clickedNode.toString());							
+						}
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							StatisticTimeHistogramFrame frame = new StatisticTimeHistogramFrame(
+									(BufferedStatisticsFileReader) statNode.getStatisticSource(), 
+									statNode.getStatisticDescription(), modelTime, 
+									reader.getCategory(statNode.getStatisticDescription()));
+							frame.show();
+						}
+					});		
 
 					// allow to show aggregated histogram for the selected nodes with the same group(ing).
 					final ArrayList<TopologyStatisticTreeNode> selectedStatNodes = new ArrayList<TopologyStatisticTreeNode>();

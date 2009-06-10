@@ -67,8 +67,7 @@ public abstract class Graph2DStatic {
 		int posX = xAxis.getDrawOffset() + 10;
 		final int posY = yAxis.getDrawSize() + 2*yAxis.getDrawOffset();
 		
-		
-		while(true){			
+		while(true){
 			assert(posX >= 0);
 			
 			double val = xAxis.convertPixelToValue(posX);

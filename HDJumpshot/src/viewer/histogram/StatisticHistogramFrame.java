@@ -18,40 +18,22 @@
 package viewer.histogram;
 
 import hdTraceInput.BufferedStatisticsFileReader;
-import hdTraceInput.StatisticStatistics;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.Enumeration;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.WindowConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import viewer.common.ButtonAutoRefresh;
 import viewer.common.Const;
-import viewer.common.IAutoRefreshable;
-import viewer.common.LabeledSpinner;
 import viewer.common.LabeledTextField;
 import viewer.common.ModelTime;
-import viewer.common.TimeEvent;
-import viewer.common.TimeListener;
 import viewer.graph.GraphAxis;
-import viewer.graph.GraphData;
-import viewer.graph.Histogram2D;
-import viewer.graph.HistogramData;
+import viewer.graph.HistogramIntData;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
-import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.CategoryStatistic;
 
 /**
@@ -59,276 +41,83 @@ import drawable.CategoryStatistic;
  * 
  * @author Julian M. Kunkel
  */
-public class StatisticHistogramFrame {
+public class StatisticHistogramFrame extends StatisticHistogram<HistogramIntData> {
 
-	final ModelTime modelTime;
-	final JFrame frame;
-
-	final BufferedStatisticsFileReader reader;
-	final StatisticsDescription description;
-
-	final HistogramGraph histogramGraph;
-	final LabeledSpinner binNumberSpinner;
-	final LabeledTextField labelBin;
-	final LabeledTextField labelNumberOfElements;
-	final LabeledTextField labelMinValue;
-	final LabeledTextField labelMaxValue;
-
-	final StatisticStatistics statistics;
-	final CategoryStatistic category;
-
-	/**
-	 * The number of bins of the histogram to put the elements in.
-	 */
-	int numberOfBins = 20;
-
-	/**
-	 * Automatically refresh histogram if time changed (i.e. scrolled)
-	 */
-	private class MyTimeModifiedListener implements TimeListener{
-		@Override
-		public void timeChanged(TimeEvent evt) {
-			triggerRefreshHistogramData();
-		}
-	}
-
-	private MyTimeModifiedListener timeModifiedListener = new MyTimeModifiedListener();
-
-	private class MyWindowClosedListener extends WindowAdapter{
-		@Override
-		public void windowClosed(WindowEvent e) {
-			// don't forget to remove modelTime listener (if autoupdate), otherwise ressources are wasted
-			modelTime.removeTimeListener(timeModifiedListener);
-			super.windowClosed(e);
-		}		
-	}
+	final LabeledTextField labelNumberOfElements = new LabeledTextField( "# Elements", Const.INTEGER_FORMAT );
 
 	public StatisticHistogramFrame(BufferedStatisticsFileReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
-		this.modelTime = modelTime;
-		this.reader = reader;
-		this.description = description;
-		this.statistics = reader.getStatisticsFor(description.getNumberInGroup());
-		this.category = category;
-		// now all important fields are set:
-		this.histogramGraph = new HistogramGraph();
-		
-		// set the X axis value as an integer type if appropriate
-		if(description.getDatatype() == StatisticsEntryType.INT32 || description.getDatatype() == StatisticsEntryType.INT64){
-			this.histogramGraph.getXAxis().setIntegerType(true);
-		}
+		super(reader, description, modelTime, category);
 
-		frame = new JFrame();
-		frame.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
-		frame.setMinimumSize(new Dimension(400, 250));
-		frame.setPreferredSize(new Dimension(400, 250));
-		frame.setResizable(true);
-
-
-		JPanel xPanel = new JPanel();
-		xPanel.setLayout(new BoxLayout( xPanel, BoxLayout.X_AXIS));
-
-		binNumberSpinner = new LabeledSpinner("Number of bins", new SpinnerNumberModel(numberOfBins, 10, 1000, 10), 
-				new ChangeListener(){
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				numberOfBins = (Integer) binNumberSpinner.getValue();								
-				triggerRefreshHistogramData();		
-			}
-		});
-
-		xPanel.add(binNumberSpinner);
-
-		labelBin    = new LabeledTextField( "Bin", Const.INTEGER_FORMAT );
-		labelBin.setEditable( false );		
-		xPanel.add(labelBin);		
-
-		labelNumberOfElements    = new LabeledTextField( "# Elements", Const.INTEGER_FORMAT );
-		labelNumberOfElements.setEditable( false );		
-		xPanel.add(labelNumberOfElements);		
-
-		labelMinValue    = new LabeledTextField( "MinValue", Const.FLOAT_FORMAT );
-		labelMinValue.setEditable( false );		
-		xPanel.add(labelMinValue);				
-
-		labelMaxValue    = new LabeledTextField( "MaxValue", Const.FLOAT_FORMAT );
-		labelMaxValue.setEditable( false );		
-		xPanel.add(labelMaxValue);		
-
-		JButton autoRefresh_btn = new ButtonAutoRefresh(histogramGraph);
-		xPanel.add( autoRefresh_btn );        
-
-
-		final JPanel yPanel = new JPanel();
-		yPanel.setLayout(new BoxLayout( yPanel, BoxLayout.Y_AXIS));		
-		yPanel.setMinimumSize(frame.getPreferredSize());
-
-
-		yPanel.add(xPanel);
-		yPanel.add(histogramGraph.getDrawingArea());
-
-		frame.setContentPane(yPanel);
-
-		// default on close operation:
-		frame.addWindowListener(new MyWindowClosedListener());
-		
-		this.histogramGraph.triggerRefreshHistogramData();
+		getHistogramGraph().getYAxis().setIntegerType(true);	
 	}
 
-	public void triggerRefreshHistogramData(){
-		histogramGraph.triggerRefreshHistogramData();
+	@Override
+	protected void createToolbarOptions(JPanel panel) {
+		labelNumberOfElements.setEditable( false );
+
+		panel.add(labelNumberOfElements);		
 	}
 
-	private class HistogramGraph extends Histogram2D implements IAutoRefreshable{
-		private static final long serialVersionUID = 1L;
+	@Override
+	protected void histogramBinMouseOver(int bin, HistogramIntData data) {
+		labelNumberOfElements.setInteger(data.getBins()[bin]);	
+	}
 
-		// real data of the histogram:
-		private HistogramData histogramData;
-		// position of the first real histogram pixel:
-		private int   xOffsetByLabels;
+	@Override
+	protected HistogramIntData computeHistogram(int numberOfBins, double min,
+			double max, double deltaPerBin, Epoch start, Epoch end) {			
+
+		final int [] values = new int[numberOfBins];
+
+		int maxNumber = 0;
+
+		final int whichEntry = description.getNumberInGroup();
+
+		final Enumeration<StatisticsGroupEntry> entries = reader.enumerateStatistics(start, end);
+
+		while(entries.hasMoreElements()){
+			final StatisticsGroupEntry entry = entries.nextElement(); 
+
+			final double value = entry.getNumeric(whichEntry);
+
+			int bin = (int)((value - min) / deltaPerBin);
+			// out of range?
+			bin = (bin >= numberOfBins) ? numberOfBins - 1 : bin;
+
+			values[bin] ++;
+			// adapt max number of entries
+			maxNumber = (values[bin] > maxNumber) ? values[bin] : maxNumber;  
+		}
+
+		return new HistogramIntData("", category.getColor(),  values, min, max - min);
+	}
+
+	@Override
+	protected void drawAdditionalInfoOnHistogramArea(Graphics2D g) {
+		final HistogramGraph graph = getHistogramGraph();
+		final GraphAxis xaxis = graph.getXAxis();
+		final GraphAxis yaxis = graph.getYAxis();
 		
-		// value of bin increases per bin
-		private double deltaPerBin;
+		// draw average:
+		float [] newdash = { 2.0f };
+		g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
+				BasicStroke.JOIN_MITER, 2.0f, newdash, 0.0f));
 
-		// automatically redraw on time modification:
-		boolean isAutoRefresh;
+		g.setColor(Color.PINK);
+		int x = xaxis.convertValueToPixel(statistics.getAverageValue()) ;
 
-		BackgroundThread backgroundThread = null;
+		g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 
-		// background thread computing the histogram data:
-		/**
-		 * At most one of this thread is executed.  
-		 * @author julian
-		 */
-		class BackgroundThread extends Thread{
-
-			@Override
-			public void run() {			
-				histogramData = computeHistogram();
-				
-				// automatically adapt the title.
-				frame.setTitle(reader.getGroup().getName() + ":" + description.getName() + " (" +
-						String.format("%.4f", modelTime.getViewPosition()) + "-" + 
-						String.format("%.4f",(modelTime.getViewEnd()))
-						+ ")"
-				);
-
-				histogramGraph.removeAllLines();
-				histogramGraph.addLine(histogramData);
-				
-				reloadData();				
-			}
-		}
-
-		@Override
-		protected void binMouseOver(int bin) {
-			labelBin.setInteger(bin + 1);						
-			labelMaxValue.setDouble( (bin +1) * deltaPerBin + statistics.getMinValue()  );
-			labelMinValue.setDouble(bin * deltaPerBin + statistics.getMinValue());
-			labelNumberOfElements.setInteger(histogramData.getBins()[bin]);
-		}
-
-		public HistogramGraph() {			
-			setAutoRefresh(viewer.common.Parameters.ACTIVE_REFRESH);
-		}
-
-		/**
-		 * Call it when the number of bins change or the time interval.
-		 */
-		public void triggerRefreshHistogramData(){
-			backgroundThread = new BackgroundThread();
-			backgroundThread.start();
-		}
-
-		/**
-		 * Compute the input data for the histogram
-		 * @return
-		 */
-		private HistogramData computeHistogram(){			
-			final int [] values = new int[numberOfBins];
-			int maxNumber = 0;
-
-			final double min = statistics.getMinValue();
-			final double max = statistics.getMaxValue();
-			
-			deltaPerBin = (max - min) / numberOfBins;
-			final int whichEntry = description.getNumberInGroup();
-			
-			final Enumeration<StatisticsGroupEntry> entries = reader.enumerateStatistics(modelTime.getViewPositionAdjusted(), 
-					modelTime.getViewEndAdjusted());
-
-			while(entries.hasMoreElements()){
-				double value = entries.nextElement().getNumeric(whichEntry);
-				int bin = (int)((value - min) / deltaPerBin);
-				// out of range?
-				bin = (bin >= numberOfBins) ? numberOfBins - 1 : bin;
-				
-				values[bin] ++;
-				// adapt max number of entries
-				maxNumber = (values[bin] > maxNumber) ? values[bin] : maxNumber;  
-			}
-
-			return new HistogramData("", category.getColor(),  values, min, max - min);
-		}
-
-		@Override
-		protected void drawGraph(Graphics2D g, GraphData line, GraphAxis xaxis, GraphAxis yaxis, int curGraph,
-				int graphCount) 
-		{			
-			if(getNumberOfLines() == 0) // due to some background computation, data might not be available
-				return;
-
-			final int width = xaxis.getDrawSize();
-
-			final double widthPerBin = getBarWidth() * xaxis.getPixelPerValue();
-			if(widthPerBin < 1.0){
-				binNumberSpinner.setValue(width);
-				return;
-			}
-
-			super.drawGraph(g, line, xaxis, yaxis, curGraph,
-					graphCount);
-
-			// draw average:
-			float [] newdash = { 2.0f };
-			g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
-					BasicStroke.JOIN_MITER, 2.0f, newdash, 0.0f));
-
-			g.setColor(Color.PINK);
-			int x = getXAxis().convertValueToPixel(statistics.getAverageValue()) ;
-
+		// draw stddevs
+		g.setColor(Color.WHITE);
+		for (int i=1; i <= 3; i++){
+			g.setColor(g.getColor().darker());
+			x = xaxis.convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
 			g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 
-			// draw stddevs
-			g.setColor(Color.WHITE);
-			for (int i=1; i <= 3; i++){
-				g.setColor(g.getColor().darker());
-				x = getXAxis().convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
-				g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
+			x = xaxis.convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
 
-				x = getXAxis().convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
-
-				g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
-			}
-		}
-
-		@Override
-		public boolean isAutoRefresh() {			
-			return isAutoRefresh;
-		}
-
-		@Override
-		public void setAutoRefresh(boolean autoRefresh) {
-			if(autoRefresh == true){
-				modelTime.addTimeListener(timeModifiedListener);
-			}else{
-				modelTime.removeTimeListener(timeModifiedListener);
-			}
-
-			isAutoRefresh = autoRefresh;
+			g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 		}
 	}
-
-	public void show(){
-		frame.setVisible(true);
-	}	
 }

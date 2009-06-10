@@ -23,66 +23,59 @@ import java.awt.Color;
  * Contains the input data for the histogram 
  * @author Julian M. Kunkel
  */
-public abstract class HistogramData extends GraphData{
+public class HistogramIntData extends HistogramData{
+	final int [] bins;
 	
-	final double xOffset;
-	final double xExtend;
-
-	final public double getXExtend() {
-		return xExtend;
-	}
+	final int maxValueInBin;
 	
-	final public double getDeltaPerBin() {
-		return xExtend / getBinCount();
-	}
-	
-	public HistogramData(String title, Color color, double xOffset, double xExtend) {
-		super(title, color);
+	public HistogramIntData(String title, Color color, int [] bins, double xOffset, double xExtend) {
+		super(title, color, xOffset, xExtend);
+		this.bins = bins;
 		
-		this.xOffset = xOffset;
-		this.xExtend = xExtend;
-	}
-	
-	abstract public int getBinCount();
-
-	@Override
-	abstract public double getMaxY();
-	
-	@Override
-	abstract public ElementEnumeration getYValues();
-
-	@Override
-	final public double getMaxX() {
-		return xOffset + xExtend;
+		// determine max value:
+		int maxValue = 0;
+		for(int binVal: bins){
+			maxValue = binVal > maxValue ? binVal : maxValue; 
+		}
+		this.maxValueInBin = maxValue;
 	}
 	
 	@Override
-	final public double getMinX() {
-		return xOffset;
+	public int getBinCount() {			
+		return bins.length;
 	}
-	
+		
+	@Override
+	public double getMaxY() {		
+		return maxValueInBin;
+	}		
 	
 	@Override
-	final public double getMinY() {
-		return 0;
-	}	
-	
-	@Override
-	final public ElementEnumeration getXValues() {			
-		return new HistogramXAxisEnumeration();
+	public ElementEnumeration getYValues() {
+		return new HistogramBinEnumeration(bins);
 	}
 	
-	private class HistogramXAxisEnumeration  implements ElementEnumeration{
-		int curPos = 0;
+	public int[] getBins() {
+		return bins;
+	}
+		
+	private class HistogramBinEnumeration  implements ElementEnumeration{
+		int pos = 0;
+		final int [] values;
+		
+		public HistogramBinEnumeration(int [] values) {
+			this.values = values;
+		}
 		
 		@Override
 		public boolean hasMoreElements() {
-			return curPos < getBinCount();
+			return pos < values.length;
 		}
 		
 		@Override
 		public double nextElement() {
-			return xOffset + getDeltaPerBin() * curPos++;
-		}
-	}	
+			return values[pos++];
+		}			
+	}
+	
 }

@@ -27,6 +27,7 @@ import viewer.graph.GraphData;
 import viewer.graph.GraphDataDoubleArray;
 import viewer.graph.Histogram2D;
 import viewer.graph.HistogramData;
+import viewer.graph.HistogramIntData;
 import viewer.graph.LineGraph2DStatic;
 
 public class HistogramTest {
@@ -37,7 +38,7 @@ public class HistogramTest {
 		f.add(pan);
 		
 		Histogram2D hist = new Histogram2D();
-		HistogramData data = new HistogramData("test", Color.DARK_GRAY, new int[]{1,1,2,3,10,3,2,1,1,2}, 10, 10);
+		HistogramData data = new HistogramIntData("test", Color.DARK_GRAY, new int[]{1,1,2,3,10,3,2,1,1,2}, 10, 10);
 		hist.addLine(data);
 		hist.getXAxis().setIntegerType(true);
 		

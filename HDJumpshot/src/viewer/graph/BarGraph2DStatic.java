@@ -29,6 +29,8 @@ public class BarGraph2DStatic extends Graph2DStatic{
 	boolean doCenterDrawing = true;
 	
 	public void setBarWidth(double value){
+		assert(value > 0.0);
+		
 		this.barWidth = value;
 	}
 	
