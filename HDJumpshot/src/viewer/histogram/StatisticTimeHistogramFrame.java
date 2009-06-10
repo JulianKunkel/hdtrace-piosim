@@ -64,19 +64,24 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 
 		percentTime.setDouble(binval / data.getAggregatedBinValues() * 100);
 	}
-	
+
 	@Override
 	protected void drawAdditionalInfoOnHistogramArea(Graphics2D g) {
-		
+
 	}
 
+	private int determineBin(StatisticsGroupEntry entry, double min, int whichEntry, int numberOfBins, double deltaPerBin){
+		final double value = entry.getNumeric(whichEntry);
+		int bin = (int)((value - min) / deltaPerBin);
+		// out of range?
+		return (bin >= numberOfBins) ? numberOfBins - 1 : bin;		
+	}
+	
 	@Override
 	protected HistogramDoubleData computeHistogram(int numberOfBins,
 			double min, double max, double deltaPerBin, Epoch start, Epoch end) {
 
 		final BigDecimal [] aggregatedTimes = new BigDecimal[numberOfBins];
-		BigDecimal maxNumber = new BigDecimal(0);
-
 
 		final int whichEntry = description.getNumberInGroup();
 
@@ -86,18 +91,33 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 			aggregatedTimes[i] = new BigDecimal(0);
 		}
 
+		// store first and last entry to remove effect of overlapping events to the borders of the view extend
+		StatisticsGroupEntry earliestEntry = null;
+		StatisticsGroupEntry entry = null;
+		
 		while(entries.hasMoreElements()){
-			final StatisticsGroupEntry entry = entries.nextElement(); 				
-			final double value = entry.getNumeric(whichEntry);
-
-			int bin = (int)((value - min) / deltaPerBin);
-			// out of range?
-					bin = (bin >= numberOfBins) ? numberOfBins - 1 : bin;
-
-					aggregatedTimes[bin] = aggregatedTimes[bin].add(new BigDecimal(entry.getDurationTime().getDouble()));
-
-					// adapt max number of entries
-					maxNumber = (aggregatedTimes[bin].compareTo(maxNumber) > 0) ? aggregatedTimes[bin] : maxNumber;  
+			entry = entries.nextElement(); 				
+			
+			if(earliestEntry == null)
+				earliestEntry = entry;
+		
+			final int bin = determineBin(entry, min, whichEntry, numberOfBins, deltaPerBin);
+			aggregatedTimes[bin] = aggregatedTimes[bin].add(new BigDecimal(entry.getDurationTime().getDouble()));
+  
+		}
+		
+		// check if entry starts earlier or later than start, or ends later than end.
+		if(entry != null){
+			if(earliestEntry.getEarliestTime().compareTo(start) < 0){
+				// starts earlier
+				final int bin = determineBin(earliestEntry, min, whichEntry, numberOfBins, deltaPerBin);
+				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(new BigDecimal( start.subtract(earliestEntry.getEarliestTime()).getDouble() ));
+			}						
+			if(entry.getLatestTime().compareTo(end) > 0){
+				// ends later => subtract time.
+				final int bin = determineBin(entry, min, whichEntry, numberOfBins, deltaPerBin);
+				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(new BigDecimal( entry.getLatestTime().subtract(end).getDouble() ));
+			}	
 		}
 
 		// compute values:
