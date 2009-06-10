@@ -225,6 +225,11 @@ static int flushBuffer(hdR_topoToken topoToken){
 		return 0;
 	}
 
+	if( topoToken->log_fd == -1 ){
+		// file already closed
+		return -1;
+	}
+
 	ssize_t written = writeToFile(topoToken->log_fd, topoToken->buffer, topoToken->buffer_pos, topoToken->logfile);
 	if (written < 0)
 	{
@@ -257,6 +262,11 @@ static int flushBuffer(hdR_topoToken topoToken){
 }
 
 static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...){
+
+	if( topoToken->log_fd == -1 ){
+		// file already closed
+		return -1;
+	}
 
 	char buffer[HD_TMP_BUF_SIZE];
 	va_list argptr;
@@ -367,6 +377,8 @@ int hdR_finalize(hdTopoNode topNode){
 	writeToBuffer(token, "</relation>\n");
 	flushBuffer(token);
 	close(token->log_fd);
+
+	token->log_fd = -1;
 
 	// cleanup phase:
 	free(token->logfile);
@@ -481,10 +493,10 @@ int hdR_destroyRelation(hdR_token * token){
 }
 
 inline static void writeAttributesAndTime(hdR_token token,  int attr_count, const char** attr_keys, const char **attr_values){
-	struct timeval time;
-	gettimeofday(& time, NULL);
+	struct timeval cur_time;
+	gettimeofday(& cur_time, NULL);
 
-	writeToBuffer(token->topoToken, " time=\"%d.%.6d\"", time.tv_sec - token->topoToken->timeAdjustment.tv_sec, time.tv_usec);
+	writeToBuffer(token->topoToken, " time=\"%d.%.6d\"", cur_time.tv_sec - token->topoToken->timeAdjustment.tv_sec, cur_time.tv_usec);
 
 	int i;
 	for(i=0; i < attr_count ; i++){
