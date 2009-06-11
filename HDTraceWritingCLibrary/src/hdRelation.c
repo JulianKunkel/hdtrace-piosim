@@ -59,6 +59,11 @@ static GHashTable * topoMap = NULL;
 static char * remoteTokenPrefix;
 
 /**
+ * Identifies the host
+ */
+static char * uniqueHostID;
+
+/**
  * Length of the remote token prefix
  */
 static size_t remoteTokenLen;
@@ -204,9 +209,11 @@ static int hdR_init(void){
 	localTokenLen = strlen(pidstr);
 	localTokenPrefix = strdup(pidstr);
 
+        uniqueHostID = strdup(hostname);
+
 	remoteTokenLen = strlen(hostname) + localTokenLen ;
 	remoteTokenPrefix = malloc(remoteTokenLen + 1);
-	sprintf(remoteTokenPrefix, "%s%s", hostname, localTokenPrefix);
+	sprintf(remoteTokenPrefix, "%s:%s", hostname, localTokenPrefix);
 
 	return 0;
 }
@@ -336,10 +343,13 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 
 	// init time adjustment:
 	gettimeofday(& topoToken->timeAdjustment, NULL);
+	
+	char hostname[HOST_NAME_MAX];
+	gethostname(hostname, HOST_NAME_MAX);
 
 	// print header to new file:
-	writeToBuffer(topoToken, "<relation version=\"1\" topologyNumber=\"%d\" localToken=\"%s\" remoteToken=\"%s\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
-			topoToken->topologyNumber, localTokenPrefix, remoteTokenPrefix, (long long unsigned) topoToken->timeAdjustment.tv_sec);
+	writeToBuffer(topoToken, "<relation version=\"1\" topologyNumber=\"%d\" localToken=\"%s\" hostID=\"%s\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
+			topoToken->topologyNumber, localTokenPrefix, uniqueHostID, (long long unsigned) topoToken->timeAdjustment.tv_sec);
 
 	/*
 	 * Alternative way to write local part.
@@ -398,7 +408,7 @@ char * hdR_getLocalToken(hdR_token token){
 	}
 
 	char * buffer = malloc(25 * sizeof(char));
-	snprintf(buffer, 25, "%d:%"INT64_FORMAT, token->topoToken->topologyNumber, token->id);
+	snprintf(buffer, 25, "%s:%d:%"INT64_FORMAT, localTokenPrefix, token->topoToken->topologyNumber, token->id);
 	return buffer;
 }
 
@@ -441,7 +451,7 @@ hdR_token hdR_relateProcessLocalToken(hdR_topoToken newTopologyToken, hdR_token 
 
 	hdR_token newToken = createToken(newTopologyToken);
 
-	writeToBuffer(newTopologyToken, "<rel t=\"%" INT64_FORMAT "\" pt=\"%d:%"INT64_FORMAT"\"/>", newToken->id, parentToken->topoToken->topologyNumber, parentToken->id);
+	writeToBuffer(newTopologyToken, "<rel t=\"%" INT64_FORMAT "\" p=\"%d:%"INT64_FORMAT"\"/>", newToken->id, parentToken->topoToken->topologyNumber, parentToken->id);
 
 	return newToken;
 }
@@ -484,33 +494,59 @@ int hdR_destroyRelation(hdR_token * token){
 	return 0;
 }
 
-inline static void writeAttributesAndTime(hdR_token token,  int attr_count, const char** attr_keys, const char **attr_values){
+inline static void writeAttributesAndTime(hdR_token token,  int attr_count, const char** attr_keys, const char **attr_values, int finalizeTag){
 	struct timeval cur_time;
 	gettimeofday(& cur_time, NULL);
 
-	writeToBuffer(token->topoToken, " time=\"%"UINT64_FORMAT".%.6u\"", (long long unsigned) (cur_time.tv_sec - token->topoToken->timeAdjustment.tv_sec), (unsigned) cur_time.tv_usec);
+	writeToBuffer(token->topoToken, " t=\"%"UINT64_FORMAT"\" time=\"%"UINT64_FORMAT".%.6u\"",
+	token->id,
+	(long long unsigned) (cur_time.tv_sec - token->topoToken->timeAdjustment.tv_sec), (unsigned) cur_time.tv_usec);
 
 	int i;
 	for(i=0; i < attr_count ; i++){
 		writeToBuffer(token->topoToken, " %s=\"%s\"", attr_keys[i], attr_values[i]);
 	}
 
-	writeToBuffer(token->topoToken, ">");
+	if (finalizeTag){
+	 writeToBuffer(token->topoToken, "/>");
+	}else{
+	 writeToBuffer(token->topoToken, ">");
+	}
 }
 
 
 static int hdR_starti(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char * buffer){
 	writeToBuffer(token->topoToken, "<s name=\"%s\"", name);
-	writeAttributesAndTime(token, attr_count, attr_keys, attr_values);
-	writeToBuffer(token->topoToken, "%s</s>", buffer);
+	writeAttributesAndTime(token, attr_count, attr_keys, attr_values, buffer == NULL);
+	if(buffer != NULL){
+		writeToBuffer(token->topoToken, "%s</s>", buffer);
+	}
 	return 0;
 }
 
 static int hdR_endi(hdR_token token, int attr_count, const char** attr_keys, const char **attr_values, const char * buffer){
 	writeToBuffer(token->topoToken, "<e");
-	writeAttributesAndTime(token, attr_count, attr_keys, attr_values);
-	writeToBuffer(token->topoToken, "%s</e>",buffer);
+	writeAttributesAndTime(token, attr_count, attr_keys, attr_values, buffer == NULL);
+	if(buffer != NULL){
+		writeToBuffer(token->topoToken, "%s</e>", buffer);
+	}
 	return 0;
+}
+
+int hdR_startS(hdR_token token, const char * name){
+	if(token == NULL || name == NULL){
+		return -1;
+	}
+
+	return hdR_starti(token,name, 0, NULL, NULL, NULL);
+}
+
+int hdR_endS(hdR_token token){
+	if(token == NULL){
+		return -1;
+	}
+
+	return hdR_endi(token,  0, NULL, NULL, NULL);
 }
 
 int hdR_start(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values){
@@ -518,7 +554,7 @@ int hdR_start(hdR_token token, const char * name, int attr_count, const char** a
 		return -1;
 	}
 
-	return hdR_starti(token,name, attr_count, attr_keys, attr_values, "");
+	return hdR_starti(token,name, attr_count, attr_keys, attr_values, NULL);
 }
 
 int hdR_end(hdR_token token, int attr_count, const char** attr_keys, const char **attr_values){
@@ -526,7 +562,7 @@ int hdR_end(hdR_token token, int attr_count, const char** attr_keys, const char 
 		return -1;
 	}
 
-	return hdR_endi(token, attr_count, attr_keys, attr_values, "");
+	return hdR_endi(token, attr_count, attr_keys, attr_values, NULL);
 }
 
 int hdR_startE(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char * data_format, ...){

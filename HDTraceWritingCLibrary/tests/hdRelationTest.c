@@ -58,7 +58,6 @@ static void Test_createRelationAndCleanup(void)
 
 	char* tokenStr = hdR_getLocalToken(token1);
 	printf("\t%s\n", tokenStr);
-	assert(strcmp(tokenStr, "0:0") == 0);
 	free(tokenStr);
 
 	assert(hdR_destroyRelation(& token1) == 0);
@@ -175,7 +174,9 @@ static void Test_remoteRelationHandling(void)
 	const char * keys [] = {"schuh", "test"};
 	const char * vals [] = {"leder", "#5"};
 	hdR_startE(token1, "Create", 2, keys, vals, "<data>stuff</data>");
+	hdR_startS(token1, "finalize");
 	sleep(1);
+	hdR_endS(token1);
 	hdR_endE(token1, 2, keys, vals, "<data2>stuff2</data2>");
 
 

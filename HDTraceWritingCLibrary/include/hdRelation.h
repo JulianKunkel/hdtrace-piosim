@@ -42,6 +42,11 @@ int hdR_finalize(hdTopoNode topNode);
 hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken);
 
 /**
+ * Relate a token with a new token from the same topology.
+ */
+hdR_token hdR_relateTopologyInternalToken(hdR_token parentToken);
+
+/**
  * Relate a token from a different topology but yet in the same process (if the topToken is known)
  */
 hdR_token hdR_relateProcessLocalToken(hdR_topoToken newTopologyToken, hdR_token parentToken);
@@ -77,12 +82,31 @@ char * hdR_getRemoteToken(hdR_token token);
 /**
  * Start a state without additional data
  */
+int hdR_startS(hdR_token token, const char * name);
+
+/**
+ * Start a state with additional attributes
+ * Note: the attributes are merged with the ones specified in the end state call.
+ * Therefore use disjoint names to the end state, otherwise the attributes are overwritten 
+ * by the ones given in the end call.
+ * If possible avoid to add information to the start call.
+ */
 int hdR_start(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values);
 
 /**
  * Start a state, extended version to add arbitrary content.
+ * Note: the attributes is merged with the one specified in the end state call.
+ * The XML data is just added to the one given in the end call.
+ * Therefore use disjoint names to the end state, otherwise the attributes are overwritten 
+ * by the ones given in the end call.
+ * If possible avoid to add information to the start call.
  */
 int hdR_startE(hdR_token token, const char * name, int attr_count, const char** attr_keys, const char **attr_values, const char * data_format, ... ) __attribute__ ((format (printf, 6, 7)));
+
+/**
+ * End the previously started state
+ */
+int hdR_endS(hdR_token token);
 
 /**
  * End the previously started state
