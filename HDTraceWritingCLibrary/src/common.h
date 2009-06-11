@@ -22,13 +22,9 @@
  */
 #if __WORDSIZE == 64
 # define INT64_FORMAT "ld"
-#else
-# define INT64_FORMAT "lld"
-#endif
-
-#if __WORDSIZE == 64
 # define UINT64_FORMAT "lu"
 #else
+# define INT64_FORMAT "lld"
 # define UINT64_FORMAT "llu"
 #endif
 

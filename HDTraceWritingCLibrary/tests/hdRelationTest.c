@@ -74,6 +74,7 @@ static void Test_createRelationAndCleanup(void)
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopoNode(myTopoNode1);
+	hdT_destroyTopoNode(myTopoNode2);
 }
 
 
@@ -154,6 +155,8 @@ static void Test_remoteRelationHandling(void)
 	STATE_BEGIN("Unique token handling")
 	char * tokenStr = hdR_getRemoteToken(token1);
 	assert(tokenStr != NULL);
+
+        printf("tokenStr: %s\n", tokenStr);
 
 	hdR_token token2 = hdR_relateRemoteToken(topoToken3, tokenStr);
 	assert(token2 != NULL);

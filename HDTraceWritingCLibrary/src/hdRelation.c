@@ -54,11 +54,6 @@ remote endpunkt -->
 static GHashTable * topoMap = NULL;
 
 /**
- * Contains all topology mappings from topology token to topology data
- */
-static GHashTable * tokenTopoMap = NULL;
-
-/**
  * Token prefix for remote access == <HOSTNAME><FQDN><PID>
  */
 static char * remoteTokenPrefix;
@@ -160,6 +155,7 @@ struct _hdR_token{
 /**
  * Reduce the number of cast warnings by using this function:
  */
+/*
 inline static int getTopologyNumber(gconstpointer key){
 	return ((hdR_topoToken) key)->topologyNumber;
 }
@@ -171,6 +167,7 @@ static guint structRelationHash(gconstpointer key){
 static gboolean structRelationEqual(gconstpointer a, gconstpointer b){
 	return ( getTopologyNumber(a) == getTopologyNumber(b) ) ? TRUE : FALSE;
 }
+*/
 
 /**
  * Reduce the number of cast warnings by using this function:
@@ -196,12 +193,6 @@ static int hdR_init(void){
 
 	topoMap = g_hash_table_new(& topologyHash, & topologyEqual);
 	if(topoMap == NULL){
-		return -1;
-	}
-
-	tokenTopoMap = g_hash_table_new(& structRelationHash, & structRelationEqual);
-	if(tokenTopoMap == NULL){
-		free(topoMap);
 		return -1;
 	}
 
@@ -261,7 +252,11 @@ static int flushBuffer(hdR_topoToken topoToken){
 	return 0;
 }
 
-static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...){
+static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...) 
+__attribute__ ((format (printf, 2, 3)));
+
+static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...)
+{
 
 	if( topoToken->log_fd == -1 ){
 		// file already closed
@@ -338,14 +333,13 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 
 	// register topology in the topology map:
 	g_hash_table_insert(topoMap, (gpointer) topNode, topoToken);
-	g_hash_table_insert(tokenTopoMap, (gpointer) topoToken, topNode);
 
 	// init time adjustment:
 	gettimeofday(& topoToken->timeAdjustment, NULL);
 
 	// print header to new file:
-	writeToBuffer(topoToken, "<relation version=\"1\" topologyNumber=\"%d\" localToken=\"%s\" remoteToken=\"%s\" timeAdjustment=\"%d\">\n",
-			topoToken->topologyNumber, localTokenPrefix, remoteTokenPrefix, topoToken->timeAdjustment.tv_sec);
+	writeToBuffer(topoToken, "<relation version=\"1\" topologyNumber=\"%d\" localToken=\"%s\" remoteToken=\"%s\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
+			topoToken->topologyNumber, localTokenPrefix, remoteTokenPrefix, (long long unsigned) topoToken->timeAdjustment.tv_sec);
 
 	/*
 	 * Alternative way to write local part.
@@ -371,7 +365,6 @@ int hdR_finalize(hdTopoNode topNode){
 
 	assert( g_hash_table_remove(topoMap, topNode) == TRUE);
 
-	assert( g_hash_table_remove(tokenTopoMap, token) == TRUE);
 
 	// finalize contained data:
 	writeToBuffer(token, "</relation>\n");
@@ -387,7 +380,6 @@ int hdR_finalize(hdTopoNode topNode){
 	const guint size = g_hash_table_size(topoMap);
 	if (size == 0){
 		g_hash_table_destroy(topoMap);
-		g_hash_table_destroy(tokenTopoMap);
 
 		topoMap = NULL;
 
@@ -437,7 +429,7 @@ static inline hdR_token createToken(hdR_topoToken topoToken){
 hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken){
 	hdR_token newToken = createToken(topoToken);
 
-	writeToBuffer(topoToken, "<rel t=\"%d\"/>", newToken->id);
+	writeToBuffer(topoToken, "<rel t=\"%" INT64_FORMAT "\"/>", newToken->id);
 
 	return newToken;
 }
@@ -449,7 +441,7 @@ hdR_token hdR_relateProcessLocalToken(hdR_topoToken newTopologyToken, hdR_token 
 
 	hdR_token newToken = createToken(newTopologyToken);
 
-	writeToBuffer(newTopologyToken, "<rel t=\"%d\" pt=\"%d:%d\"/>", newToken->id, parentToken->topoToken->topologyNumber, parentToken->id);
+	writeToBuffer(newTopologyToken, "<rel t=\"%" INT64_FORMAT "\" pt=\"%d:%"INT64_FORMAT"\"/>", newToken->id, parentToken->topoToken->topologyNumber, parentToken->id);
 
 	return newToken;
 }
@@ -461,7 +453,7 @@ hdR_token hdR_relateLocalToken(hdR_topoToken newTopologyToken, const char * strT
 
 	hdR_token newToken = createToken(newTopologyToken);
 
-	writeToBuffer(newTopologyToken, "<rel t=\"%d\" l=\"%s\"/>", newToken->id, strTopoToken);
+	writeToBuffer(newTopologyToken, "<rel t=\"%"INT64_FORMAT"\" l=\"%s\"/>", newToken->id, strTopoToken);
 
 	return newToken;
 }
@@ -472,7 +464,7 @@ hdR_token hdR_relateRemoteToken(hdR_topoToken newTopologyToken, const char * rem
 	}
 
 	hdR_token newToken = createToken(newTopologyToken);
-	writeToBuffer(newTopologyToken, "<rel t=\"%d\" r=\"%s\"/>", newToken->id, remoteToken);
+	writeToBuffer(newTopologyToken, "<rel t=\"%"INT64_FORMAT"\" r=\"%s\"/>", newToken->id, remoteToken);
 	return newToken;
 }
 
@@ -496,7 +488,7 @@ inline static void writeAttributesAndTime(hdR_token token,  int attr_count, cons
 	struct timeval cur_time;
 	gettimeofday(& cur_time, NULL);
 
-	writeToBuffer(token->topoToken, " time=\"%d.%.6d\"", cur_time.tv_sec - token->topoToken->timeAdjustment.tv_sec, cur_time.tv_usec);
+	writeToBuffer(token->topoToken, " time=\"%"UINT64_FORMAT".%.6u\"", (long long unsigned) (cur_time.tv_sec - token->topoToken->timeAdjustment.tv_sec), (unsigned) cur_time.tv_usec);
 
 	int i;
 	for(i=0; i < attr_count ; i++){
