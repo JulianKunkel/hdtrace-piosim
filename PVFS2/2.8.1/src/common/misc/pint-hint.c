@@ -329,7 +329,7 @@ void encode_PINT_hint(char **pptr, const PINT_hint *hint)
             }
 
             /* encode the hint using the encode function provided */
-            tmp_hint->encode(pptr, tmp_hint->value);
+            tmp_hint->encode(pptr, & tmp_hint->value);
         }
 
         tmp_hint = tmp_hint->next;
@@ -564,7 +564,7 @@ void *PINT_hint_get_value_by_name(
 
     while(h)
     {
-        if(!strcmp(hint->type_string, name))
+        if(h->type_string != NULL && !strcmp(h->type_string, name))
         {
             if(length)
             {

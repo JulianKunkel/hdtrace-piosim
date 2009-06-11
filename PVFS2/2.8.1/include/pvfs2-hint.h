@@ -15,7 +15,9 @@
 #define PVFS_HINT_OP_ID_NAME      "pvfs.hint.op_id"
 #define PVFS_HINT_RANK_NAME       "pvfs.hint.rank"
 #define PVFS_HINT_SERVER_ID_NAME  "pvfs.hint.server_id"
+#define PVFS_HINT_CLIENT_RELATION_TOKEN_NAME  "pvfs.hint.reltoken"
 #define PVFS_HINT_RELATION_TOKEN_NAME  "relationToken"
+
 
 typedef struct PVFS_hint_s *PVFS_hint;
 

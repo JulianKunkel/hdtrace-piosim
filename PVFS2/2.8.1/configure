@@ -8255,9 +8255,9 @@ if test "${with_hdtrace+set}" = set; then
 $as_echo "$as_me: error: --with-hdtrace must be given a pathname" >&2;}
    { (exit 1); exit 1; }; }
     else
-       CFLAGS="$CFLAGS -I$withval/include"
-       LDFLAGS="$LDFLAGS -L$withval/lib"
-       LIBS="$LIBS -lhdStats -lhdTrace"
+       CFLAGS="$CFLAGS -I$withval/include $(pkg-config --cflags glib-2.0)"
+       LDFLAGS="$LDFLAGS -L$withval/lib $(pkg-config --cflags glib-2.0)"
+       LIBS="$LIBS -lhdStats -lhdTrace -lhdRelation $(pkg-config --libs glib-2.0)"
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_HDTRACE 1

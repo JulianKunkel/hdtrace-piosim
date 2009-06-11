@@ -498,9 +498,9 @@ AC_ARG_WITH(hdtrace,
     if test "x$withval" = "xyes" ; then
            AC_MSG_ERROR(--with-hdtrace must be given a pathname)
     else
-       CFLAGS="$CFLAGS -I$withval/include"
-       LDFLAGS="$LDFLAGS -L$withval/lib"
-       LIBS="$LIBS -lhdStats -lhdTrace"
+       CFLAGS="$CFLAGS -I$withval/include $(pkg-config --cflags glib-2.0)"
+       LDFLAGS="$LDFLAGS -L$withval/lib $(pkg-config --cflags glib-2.0)"
+       LIBS="$LIBS -lhdStats -lhdTrace -lhdRelation $(pkg-config --libs glib-2.0)"
        AC_DEFINE(HAVE_HDTRACE, 1, [Define if HDTrace library is used])
        BUILD_HDTRACE=1
        

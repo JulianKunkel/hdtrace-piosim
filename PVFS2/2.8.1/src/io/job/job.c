@@ -26,6 +26,7 @@
 #include "job-time-mgr.h"
 #include "pvfs2-internal.h"
 #include "pint-event-hd.h"
+#include "hdRelation.h"
 
 /* contexts for use within the job interface */
 static bmi_context_id global_bmi_context = -1;
@@ -3175,6 +3176,9 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
 	 * neuer token erzeugen und relaten
 	 * mutex freigeben 
 	 */
+	//hdHintRelationStructure relation = (hdHintRelationStructure) PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
+	//hdR_token newSmToken = hdR_relateProcessLocalToken(hdR_topoTokenArray[JOB], relation->token));
+	//gen_mutex_unlock(&relation->mutex);
 	
     /* post a dspace create.  If it completes (or fails) immediately, then
      * return and fill in the status structure.  If it needs to be tested

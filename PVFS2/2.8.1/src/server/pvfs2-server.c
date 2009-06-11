@@ -46,6 +46,8 @@
 #include "src/server/request-scheduler/request-scheduler.h"
 #include "pint-event.h"
 #include "pint-util.h"
+#include "gen-locks.h"
+#include "pint-event-hd.h"
 
 #ifndef PVFS2_VERSION
 #define PVFS2_VERSION "Unknown"
@@ -1719,17 +1721,30 @@ int server_state_machine_start(
         PVFS_hint_add(&s_op->req->hints, PVFS_HINT_SERVER_ID_NAME, sizeof(uint32_t), &server_config.host_index);
         PVFS_hint_add(&s_op->req->hints, PVFS_HINT_OP_ID_NAME, sizeof(uint32_t), &s_op->req->op);
         
-        //struct hintRelationToken * hintRelationToken = malloc(sizeof(hintRelationToken));
+        HD_RELATION(SERVER,
+        	hdHintRelation_p hintRelationToken = malloc(sizeof(hdHintRelation_t));
 
-        // check if client sent token information or not!
-        // send token
-        //token = relateOldToken
-        // if not:
-        //token = // new token, unrelated, yet
-       	//s_op->smToken = token;
+        	// check if client sent token information or not!
+        	char * clientToken = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
+
+        	if(clientToken)
+        	{
+        		s_op->smToken = hdR_relateRemoteToken(topoTokenArray[SERVER], clientToken); 
+        		free(clientToken);
+        	}else
+        	{
+        		// create new token
+        		s_op->smToken = hdR_createTopLevelRelation(topoTokenArray[SERVER]);
+        	}
+        	
+        	hdR_start(s_op->smToken, op_name_array[s_op->op],0,NULL,NULL);
+        	hdR_end(s_op->smToken,0,NULL,NULL);
+
+        	gen_mutex_init(& hintRelationToken->mutex);
+        	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
+        			hintRelationToken);
+        )
         
-        //gen_mutex_init(& hintRelationToken->mutex);
-        //PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(struct hintRelationToken), hintRelationToken);
     }
     else
     {
@@ -1876,6 +1891,11 @@ int server_state_machine_complete(PINT_smcb *smcb)
     /* set a timestamp on the completion of the state machine */
     id_gen_fast_register(&tmp_id, s_op);
 
+    if(s_op->smToken)
+    {
+    	HD_DESTROY_RELATION(SERVER, s_op->smToken)
+    }
+    
     if(s_op->req)
     {
         PINT_EVENT_END(PINT_sm_event_id, server_controlling_pid,

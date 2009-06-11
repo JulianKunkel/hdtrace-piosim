@@ -32,6 +32,7 @@
 #include "pvfs2-req-proto.h"
 #include "state-machine.h"
 #include "pint-event.h"
+#include "hdRelation.h"
 
 extern job_context_id server_job_context;
 
@@ -481,6 +482,8 @@ typedef struct PINT_server_op
         struct PINT_server_batch_remove_op batch_remove;
         struct PINT_server_unstuff_op unstuff;
     } u;
+    
+    hdR_token smToken;
 
 } PINT_server_op;
 
