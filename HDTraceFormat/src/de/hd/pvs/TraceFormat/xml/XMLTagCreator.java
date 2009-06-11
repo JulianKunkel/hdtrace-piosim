@@ -40,6 +40,10 @@ public class XMLTagCreator {
 		return attributes.get(key);
 	}	
 	
+	public String removeAttribute(String key){
+		return attributes.remove(key);
+	}
+	
 	public void addNestedXMLTag(XMLTag tag){
 		nestedXMLTags.add(tag);
 	}
