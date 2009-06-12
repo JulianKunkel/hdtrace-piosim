@@ -7,6 +7,7 @@
 #include "pint-event.h"
 #include "pint-event-hd.h"
 #include  "str-utils.h"
+#include "state-machine.h"
 #include "gen-locks.h"
 
 #include <sys/time.h>
@@ -33,9 +34,6 @@ hdTopoNode topoNodeArray[STATISTIC_END];
 hdTopology topology;
 
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB"};
-
-/* see enum PVFS_server_op */
-char * op_name_array [] = {"Invalid", "Create", ...};
 
 static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
 {
@@ -117,12 +115,16 @@ int PINT_HD_event_initalize(char * traceWhat)
 #endif
 
 	}
-
+	
+	set_hd_trace_enabled(1);
+	
 	return 0;
 }
 
 int PINT_HD_event_finalize(void)
 {
+	set_hd_trace_enabled(0);
+	
 	int i;
 	for (i = 0 ; i < ALL_FACILITIES; i++)
 	{

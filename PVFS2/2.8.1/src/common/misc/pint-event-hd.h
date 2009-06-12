@@ -42,7 +42,7 @@ struct _hdHintRelationStructure{
 
 #ifdef HAVE_HDTRACE
 	#define HD_RELATION(facility, stmt) \
-	do{        if(topoTokenArray[facility]){ stmt }  }while(0);
+	do{ if(topoTokenArray[facility]){ stmt } } while(0);
 
 	#define HD_DESTROY_RELATION(facility, token) \
 	if(topoNodeArray[facility]){ \
@@ -58,8 +58,6 @@ struct _hdHintRelationStructure{
 
 typedef struct _hdHintRelationStructure hdHintRelation_t;
 typedef struct _hdHintRelationStructure * hdHintRelation_p;
-
-extern const char *hdFacilityNames[];
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END] ;
 extern hdTopoNode topoNodeArray[STATISTIC_END];

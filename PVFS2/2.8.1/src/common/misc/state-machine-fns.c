@@ -15,6 +15,12 @@
 #include "pvfs2-debug.h"
 #include "state-machine.h"
 #include "client-state-machine.h"
+#include "hdRelation.h"
+
+static int hd_trace_enabled;
+
+#define HD_STMT_TOKEN(stmt) \
+	do{ if(smcb->op_get_state_machine != NULL && hd_trace_enabled){ stmt } } while(0);
 
 struct PINT_frame_s
 {
@@ -49,9 +55,14 @@ int PINT_state_machine_halt(void)
  */
 int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 {
+	
     struct PINT_frame_s *f;
     void *my_frame;
     job_id_t id;
+    
+    //HD_STMT_TOKEN(
+   // hdR_endS(smcb->smToken);
+    //)
 
     /* notify parent */
     if (smcb->parent_smcb)
@@ -120,6 +131,12 @@ PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
     state_name = PINT_state_machine_current_state_name(smcb);
     machine_name = PINT_state_machine_current_machine_name(smcb);
 
+
+    HD_STMT_TOKEN(
+    		/* new state */
+    		hdR_startS(smcb->smToken,  state_name);
+    )
+    
     gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
                  "[SM Entering]: (%p) %s:%s (status: %d)\n",
                  smcb,
@@ -130,6 +147,12 @@ PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
      
     /* call state action function */
     retval = (smcb->current_state->action.func)(smcb,r);
+
+    HD_STMT_TOKEN(
+    		/*end state*/
+    		hdR_endS(smcb->smToken);
+    )
+    
     /* process return code */
     switch (retval)
     {
@@ -194,6 +217,10 @@ PINT_sm_action PINT_state_machine_start(struct PINT_smcb *smcb, job_status_s *r)
     /* set the base frame to be the current TOS, which should be 0 */
     smcb->base_frame = smcb->frame_count - 1;
 
+    HD_STMT_TOKEN(
+    	hdR_startS(smcb->smToken, PINT_state_machine_current_machine_name(smcb));
+    )
+    
     /* run the current state action function */
     ret = PINT_state_machine_invoke(smcb, r);
     if (ret == SM_ACTION_COMPLETE || ret == SM_ACTION_TERMINATE)
@@ -207,9 +234,30 @@ PINT_sm_action PINT_state_machine_start(struct PINT_smcb *smcb, job_status_s *r)
         /* this state machine isn't completing immediately */
         smcb->immediate = 0;
     }
-
+  
     return ret;
 }
+
+
+void set_hd_trace_enabled(int enabled){
+	hd_trace_enabled = enabled;
+}
+
+/**
+ * Assign the relation to it
+ */
+int PINT_smcb_set_token(struct PINT_smcb *smcb, hdR_token token){
+	smcb->smToken = token;
+	return 0;
+}
+
+/**
+ * Return the hdR_token assigned to the state machine
+ */
+hdR_token PINT_smcb_get_token(struct PINT_smcb *smcb){
+	return smcb->smToken;
+}
+
 
 /* Function: PINT_state_machine_next()
    Params: smcb pointer and job status pointer
@@ -281,7 +329,7 @@ PINT_sm_action PINT_state_machine_next(struct PINT_smcb *smcb, job_status_s *r)
                 return SM_ACTION_TERMINATE;
 	    }
 	    if (transtbl[i].flag == SM_RETURN)
-	    {
+	    {        
                 /* if this is a return pop the stack
                  * and we'll continue from the state returned to
                  */
@@ -305,8 +353,12 @@ PINT_sm_action PINT_state_machine_next(struct PINT_smcb *smcb, job_status_s *r)
 	    smcb->current_state =
                     smcb->current_state->action.nested->first_state;
         }
+        
         /* runs state_action and returns the return code */
         ret = PINT_state_machine_invoke(smcb, r);
+        
+//        printf("EXECUTE: %s\n", smcb->current_state->state_name);
+        
     } while (ret == SM_ACTION_COMPLETE || ret == SM_ACTION_TERMINATE);
     return ret;
 }
@@ -325,7 +377,7 @@ PINT_sm_action PINT_state_machine_continue(struct PINT_smcb *smcb, job_status_s 
     PINT_sm_action ret;
 
     ret = PINT_state_machine_next(smcb, r);
-
+    
     if(ret == SM_ACTION_TERMINATE)
     {
         /* process terminating SM */
@@ -395,6 +447,12 @@ int PINT_state_machine_locate(struct PINT_smcb *smcb)
 int PINT_smcb_set_op(struct PINT_smcb *smcb, int op)
 {
     smcb->op = op;
+    
+    if(smcb->op_get_state_machine != NULL){
+    	printf("RE STARTE: %d - %s \n", smcb->op, smcb->op_get_state_machine(smcb->op)->name);  
+    	//hdR_start(smcb->smToken, );
+    }
+    
     return PINT_state_machine_locate(smcb);
 }
 
@@ -543,6 +601,12 @@ int PINT_smcb_alloc(
  */
 void PINT_smcb_free(struct PINT_smcb *smcb)
 {
+	
+    HD_STMT_TOKEN(
+    		hdR_endS(smcb->smToken);
+    		hdR_destroyRelation(& smcb->smToken);
+    )
+	
     struct PINT_frame_s *frame_entry, *tmp;
     assert(smcb);
     qlist_for_each_entry_safe(frame_entry, tmp, &smcb->frames, link)
@@ -580,6 +644,11 @@ static struct PINT_state_s *PINT_pop_state(struct PINT_smcb *smcb)
 
     smcb->stackptr--;
     smcb->base_frame = smcb->state_stack[smcb->stackptr].prev_base_frame;
+    
+    HD_STMT_TOKEN(
+    	/*end old sm */
+    	hdR_endS(smcb->smToken);
+    )
     return smcb->state_stack[smcb->stackptr].state;
 }
 
@@ -603,6 +672,20 @@ static void PINT_push_state(struct PINT_smcb *smcb,
     smcb->base_frame = smcb->frame_count - 1;
     smcb->state_stack[smcb->stackptr].state = p;
     smcb->stackptr++;
+    
+    
+	HD_STMT_TOKEN(
+			const char * name;
+			/* avoid ... */
+		    if(smcb->stackptr == 1){
+		    	name = smcb->op_get_state_machine(smcb->op)->name; 
+		    }else{
+		    	name = PINT_state_machine_current_machine_name(smcb);
+		    }
+			
+			/* new state */
+		hdR_startS(smcb->smToken, name);
+	)
 }
 
 /* Function: PINT_sm_frame

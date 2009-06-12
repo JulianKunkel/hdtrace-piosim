@@ -9,6 +9,9 @@
 
 #include "job.h"
 #include "quicklist.h"
+#include "hdRelation.h"
+#include "pint-event-hd.h"
+
 
 /* STATE-MACHINE.H
  *
@@ -92,6 +95,8 @@ typedef struct PINT_smcb
     int (*terminate_fn)(struct PINT_smcb *, job_status_s *);
     void *user_ptr; /* external user pointer */
     int immediate; /* specifies immediate completion of the state machine */
+
+    hdR_token smToken;
 } PINT_smcb;
 
 #define PINT_SET_OP_COMPLETE do{PINT_smcb_set_complete(smcb);} while (0)
@@ -195,6 +200,7 @@ int PINT_smcb_alloc(struct PINT_smcb **, int, int,
         struct PINT_state_machine_s *(*getmach)(int),
         int (*term_fn)(struct PINT_smcb *, job_status_s *),
         job_context_id context_id);
+
 void PINT_smcb_free(struct PINT_smcb *);
 void *PINT_sm_frame(struct PINT_smcb *, int);
 int PINT_sm_push_frame(struct PINT_smcb *smcb, int task_id, void *frame_p);
@@ -202,6 +208,22 @@ void *PINT_sm_pop_frame(struct PINT_smcb *smcb,
                         int *task_id,
                         int *error_code,
                         int *remaining);
+
+/**
+ * Assign the relation to it
+ */
+int PINT_smcb_set_token(struct PINT_smcb *smcb, hdR_token token);
+
+/**
+ * Return the hdR_token assigned to the state machine
+ */
+hdR_token PINT_smcb_get_token(struct PINT_smcb *smcb);
+
+void set_hd_trace_enabled(int hd_trace_enabled);
+
+/**
+ * 
+ */
 
 /* This macro is used in calls to PINT_sm_fram() */
 #define PINT_FRAME_CURRENT 0

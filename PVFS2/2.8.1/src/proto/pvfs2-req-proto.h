@@ -83,7 +83,6 @@ enum PVFS_server_op
     PVFS_SERV_NUM_OPS
 };
 
-extern char * op_name_array [];
 /*
  * These ops must always work, even if the server is in admin mode.
  */
