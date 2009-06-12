@@ -105,8 +105,7 @@ public class GServerDirectedIO extends GAggregationCache {
 				continue;
 			}
 
-			if ((offset >= cur.getOffset() && offset <= cur.getOffset() + cur.getSize())
-					|| (offset + size >= cur.getOffset() && offset + size <= cur.getOffset() + cur.getSize())) {
+			if (offset + size + (getSimulator().getModel().getGlobalSettings().getIOGranularity() / 10) >= cur.getOffset()) {
 				long newOffset;
 				long newSize;
 
