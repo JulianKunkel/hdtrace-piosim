@@ -121,6 +121,11 @@ struct _hdRelationTopo {
 	 * can occur on \a buffer.
 	 */
 	size_t buffer_pos;
+	
+	/**
+	 * Size of the XML header, used to test emptiness
+	 */	
+	off_t headerLength;
 
 	/**
 	 * Topology leaf this trace belongs to.
@@ -351,6 +356,7 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 	writeToBuffer(topoToken, "<relation version=\"1\" hostID=\"%s\" localToken=\"%s\" topologyNumber=\"%d\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
 			uniqueHostID, localTokenPrefix, topoToken->topologyNumber, llu(topoToken->timeAdjustment.tv_sec));
 
+	topoToken->headerLength = lseek(topoToken->log_fd, 0, SEEK_CUR);
 	/*
 	 * Alternative way to write local part.
 	 * int i;
@@ -375,10 +381,16 @@ int hdR_finalize(hdTopoNode topNode){
 
 	assert( g_hash_table_remove(topoMap, topNode) == TRUE);
 
-
-	// finalize contained data:
-	writeToBuffer(token, "</relation>\n");
-	flushBuffer(token);
+	// check if the file is empty.
+	off_t curPos = lseek(token->log_fd, 0, SEEK_CUR);
+	if(curPos == token->headerLength && token->buffer_pos == 0){
+	  // remove file.
+	  unlink(token->logfile);
+	}else{
+	  // finalize contained data:
+	  writeToBuffer(token, "</relation>\n");
+	  flushBuffer(token);
+	}
 	close(token->log_fd);
 
 	token->log_fd = -1;
