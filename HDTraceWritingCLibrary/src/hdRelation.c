@@ -502,7 +502,7 @@ int hdR_destroyRelation(hdR_token * token){
 
 	writeToBuffer((*token)->topoToken, "<un");
 	writeTokenAndTime(*token);
-	writeToBuffer((*token)->topoToken, "\"/>");
+	writeToBuffer((*token)->topoToken, "/>");
 
 	// free token
 
