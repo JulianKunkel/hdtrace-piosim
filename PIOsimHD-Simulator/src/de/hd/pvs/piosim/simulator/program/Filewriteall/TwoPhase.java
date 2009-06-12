@@ -41,7 +41,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
-public class Direct extends CommandImplementation<Filewriteall> {
+public class TwoPhase extends CommandImplementation<Filewriteall> {
 	final class FilewriteallWrapper {
 		private Filewriteall command;
 

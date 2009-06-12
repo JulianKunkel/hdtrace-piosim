@@ -40,42 +40,42 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
-final class FilereadallWrapper {
-	private Filereadall command;
+public class Direct extends CommandImplementation<Filereadall> {
+	final class FilereadallWrapper {
+		private Filereadall command;
 
-	public Filereadall getCommand() {
-		return command;
-	}
-
-	public FilereadallWrapper(Filereadall cmd) {
-		command = cmd;
-	}
-
-	/**
-	 * Used to determine the right Communicator command. Different clients using
-	 * the same command e.g. a particular barrier. It does not test class
-	 * specific parameters for instance tags.
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj.getClass() != getClass()) {
-			return false;
+		public Filereadall getCommand() {
+			return command;
 		}
 
-		FilereadallWrapper compare = (FilereadallWrapper) obj;
+		public FilereadallWrapper(Filereadall cmd) {
+			command = cmd;
+		}
 
-		return (compare.command.getCommunicator() == this.command.getCommunicator())
-				&& (compare.command.getProgram().getApplication() == this.command.getProgram().getApplication())
-				&& (compare.command.getClass() == this.command.getClass());
+		/**
+		 * Used to determine the right Communicator command. Different clients using
+		 * the same command e.g. a particular barrier. It does not test class
+		 * specific parameters for instance tags.
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (obj.getClass() != getClass()) {
+				return false;
+			}
+
+			FilereadallWrapper compare = (FilereadallWrapper) obj;
+
+			return (compare.command.getCommunicator() == this.command.getCommunicator())
+					&& (compare.command.getProgram().getApplication() == this.command.getProgram().getApplication())
+					&& (compare.command.getClass() == this.command.getClass());
+		}
+
+		@Override
+		public int hashCode() {
+			return command.getCommunicator().hashCode() + command.getClass().hashCode();
+		}
 	}
 
-	@Override
-	public int hashCode() {
-		return command.getCommunicator().hashCode() + command.getClass().hashCode();
-	}
-}
-
-public class Direct extends CommandImplementation<Filereadall> {
 	private static HashMap<FilereadallWrapper, HashMap<GClientProcess, CommandProcessing>> sync_blocked_clients = new HashMap<FilereadallWrapper, HashMap<GClientProcess, CommandProcessing>>();
 
 	@Override

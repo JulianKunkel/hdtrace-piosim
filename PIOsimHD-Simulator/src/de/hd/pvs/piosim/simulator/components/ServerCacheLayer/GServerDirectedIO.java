@@ -38,24 +38,24 @@ import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 
-final class IOJobComparator implements Comparator<IOJob> {
-	public int compare(IOJob a, IOJob b) {
-		if (a.getOffset() < b.getOffset()) {
-			return -1;
-		} else if (a.getOffset() > b.getOffset()) {
-			return 1;
-		}
-
-		return 0;
-	}
-}
-
 /**
  * Try to do clever I/O optimization.
  * 
  * @author Michael Kuhn
  */
 public class GServerDirectedIO extends GAggregationCache {
+	final class IOJobComparator implements Comparator<IOJob> {
+		public int compare(IOJob a, IOJob b) {
+			if (a.getOffset() < b.getOffset()) {
+				return -1;
+			} else if (a.getOffset() > b.getOffset()) {
+				return 1;
+			}
+
+			return 0;
+		}
+	}
+
 	MPIFile lastFile = null;
 	long lastOffset = -1;
 

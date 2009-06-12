@@ -51,7 +51,9 @@ de.hd.pvs.piosim.simulator.program.Filewrite.Direct
 +de.hd.pvs.piosim.model.program.commands.Filereadall
 de.hd.pvs.piosim.simulator.program.Global.Dummy
 de.hd.pvs.piosim.simulator.program.Filereadall.Direct
+de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase
 
 +de.hd.pvs.piosim.model.program.commands.Filewriteall
 de.hd.pvs.piosim.simulator.program.Global.Dummy
 de.hd.pvs.piosim.simulator.program.Filewriteall.Direct
+de.hd.pvs.piosim.simulator.program.Filewriteall.TwoPhase
