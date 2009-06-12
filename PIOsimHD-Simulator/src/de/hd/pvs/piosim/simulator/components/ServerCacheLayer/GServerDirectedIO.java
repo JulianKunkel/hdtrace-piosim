@@ -211,14 +211,7 @@ public class GServerDirectedIO extends GAggregationCache {
 				continue;
 			}
 
-			if (offset >= cur.getOffset() && offset + size <= cur.getOffset() + cur.getSize()) {
-				// forget operation
-				io = cur;
-				size = io.getSize();
-				offset = io.getOffset();
-				it.remove();
-				continue;
-			} else if (size + offset == cur.getOffset()) {
+			if (offset + size == cur.getOffset()) {
 				// forward combination
 				if (size + cur.getSize() > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
 					nl.add(new IOJob(io.getFile(), size, offset, io.getType()));
@@ -231,21 +224,6 @@ public class GServerDirectedIO extends GAggregationCache {
 				}
 
 				size += cur.getSize();
-				it.remove();
-			} else if (cur.getOffset() + cur.getSize() == offset) {
-				// backwards combination
-				if (size + cur.getSize() > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
-					nl.add(new IOJob(io.getFile(), size, offset, io.getType()));
-
-					io = cur;
-					size = io.getSize();
-					offset = io.getOffset();
-					it.remove();
-					continue;
-				}
-
-				size += cur.getSize();
-				offset = cur.getOffset();
 				it.remove();
 			} else {
 				nl.add(new IOJob(io.getFile(), size, offset, io.getType()));
