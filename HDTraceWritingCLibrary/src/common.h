@@ -23,9 +23,13 @@
 #if __WORDSIZE == 64
 # define INT64_FORMAT "ld"
 # define UINT64_FORMAT "lu"
+# define llu(x) ((long unsigned) (x))
+
 #else
+
 # define INT64_FORMAT "lld"
 # define UINT64_FORMAT "llu"
+# define llu(x) ((long long unsigned) (x))
 #endif
 
 /**

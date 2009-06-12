@@ -348,8 +348,8 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 	gethostname(hostname, HOST_NAME_MAX);
 
 	// print header to new file:
-	writeToBuffer(topoToken, "<relation version=\"1\" topologyNumber=\"%d\" localToken=\"%s\" hostID=\"%s\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
-			topoToken->topologyNumber, localTokenPrefix, uniqueHostID, (long long unsigned) topoToken->timeAdjustment.tv_sec);
+	writeToBuffer(topoToken, "<relation version=\"1\" hostID=\"%s\" localToken=\"%s\" topologyNumber=\"%d\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
+			uniqueHostID, localTokenPrefix, topoToken->topologyNumber, llu(topoToken->timeAdjustment.tv_sec));
 
 	/*
 	 * Alternative way to write local part.
@@ -434,12 +434,22 @@ static inline hdR_token createToken(hdR_topoToken topoToken){
 	return token;
 }
 
+inline static void writeTokenAndTime(hdR_token token){
+    struct timeval cur_time;
+	gettimeofday(& cur_time, NULL);
+
+	writeToBuffer(token->topoToken, " t=\"%"UINT64_FORMAT"\" time=\"%"UINT64_FORMAT".%.6u\"",
+	token->id,
+	llu(cur_time.tv_sec - token->topoToken->timeAdjustment.tv_sec), (unsigned) cur_time.tv_usec);
+}
 
 
 hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken){
 	hdR_token newToken = createToken(topoToken);
 
-	writeToBuffer(topoToken, "<rel t=\"%" INT64_FORMAT "\"/>", newToken->id);
+	writeToBuffer(topoToken, "<rel");
+	writeTokenAndTime(newToken);
+	writeToBuffer(topoToken, "/>");
 
 	return newToken;
 }
@@ -451,7 +461,9 @@ hdR_token hdR_relateProcessLocalToken(hdR_topoToken newTopologyToken, hdR_token 
 
 	hdR_token newToken = createToken(newTopologyToken);
 
-	writeToBuffer(newTopologyToken, "<rel t=\"%" INT64_FORMAT "\" p=\"%d:%"INT64_FORMAT"\"/>", newToken->id, parentToken->topoToken->topologyNumber, parentToken->id);
+	writeToBuffer(newTopologyToken, "<rel");
+	writeTokenAndTime(newToken);
+	writeToBuffer(newTopologyToken, " p=\"%d:%"INT64_FORMAT"\"/>", parentToken->topoToken->topologyNumber, parentToken->id);
 
 	return newToken;
 }
@@ -463,7 +475,9 @@ hdR_token hdR_relateLocalToken(hdR_topoToken newTopologyToken, const char * strT
 
 	hdR_token newToken = createToken(newTopologyToken);
 
-	writeToBuffer(newTopologyToken, "<rel t=\"%"INT64_FORMAT"\" l=\"%s\"/>", newToken->id, strTopoToken);
+	writeToBuffer(newToken->topoToken, "<rel");
+	writeTokenAndTime(newToken);
+	writeToBuffer(newToken->topoToken, " l=\"%s\"/>", strTopoToken);
 
 	return newToken;
 }
@@ -474,7 +488,10 @@ hdR_token hdR_relateRemoteToken(hdR_topoToken newTopologyToken, const char * rem
 	}
 
 	hdR_token newToken = createToken(newTopologyToken);
-	writeToBuffer(newTopologyToken, "<rel t=\"%"INT64_FORMAT"\" r=\"%s\"/>", newToken->id, remoteToken);
+	
+	writeToBuffer(newToken->topoToken, "<rel");
+	writeTokenAndTime(newToken);
+	writeToBuffer(newToken->topoToken, " r=\"%s\"/>", remoteToken);
 	return newToken;
 }
 
@@ -483,8 +500,9 @@ int hdR_destroyRelation(hdR_token * token){
 		return -1;
 	}
 
-	// trace information
-	writeToBuffer((*token)->topoToken, "<un t=\"%" INT64_FORMAT "\"/>", (*token)->id);
+	writeToBuffer((*token)->topoToken, "<un");
+	writeTokenAndTime(*token);
+	writeToBuffer((*token)->topoToken, "\"/>");
 
 	// free token
 
@@ -495,13 +513,8 @@ int hdR_destroyRelation(hdR_token * token){
 }
 
 inline static void writeAttributesAndTime(hdR_token token,  int attr_count, const char** attr_keys, const char **attr_values, int finalizeTag){
-	struct timeval cur_time;
-	gettimeofday(& cur_time, NULL);
-
-	writeToBuffer(token->topoToken, " t=\"%"UINT64_FORMAT"\" time=\"%"UINT64_FORMAT".%.6u\"",
-	token->id,
-	(long long unsigned) (cur_time.tv_sec - token->topoToken->timeAdjustment.tv_sec), (unsigned) cur_time.tv_usec);
-
+	writeTokenAndTime(token);
+    
 	int i;
 	for(i=0; i < attr_count ; i++){
 		writeToBuffer(token->topoToken, " %s=\"%s\"", attr_keys[i], attr_values[i]);
