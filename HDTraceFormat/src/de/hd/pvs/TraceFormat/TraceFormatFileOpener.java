@@ -32,6 +32,7 @@ import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
+import de.hd.pvs.TraceFormat.trace.RelationSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 /**
@@ -65,7 +66,8 @@ public class TraceFormatFileOpener {
 
 	private void recursivlyCreateTraceSources(TopologyNode currentTopo, 
 			Class<? extends StatisticsSource> statCls, 
-			Class<? extends TraceSource> traceCls, 
+			Class<? extends TraceSource> traceCls,
+			Class<? extends RelationSource> relationCls, 
 			boolean readNested
 	) throws Exception
 	{		
@@ -103,10 +105,15 @@ public class TraceFormatFileOpener {
 				TraceSource staxReader = traceCls.getConstructor(new Class<?>[]{String.class, boolean.class}).newInstance(new Object[]{traceFile, readNested});			
 				currentTopo.setTraceSource(staxReader);
 			}		
+			
+			final String relationFile = filePath + currentTopo.getRelationFileName();
+			if( fileExists(relationFile) ){
+				currentTopo.setRelationSource(relationCls.getConstructor(new Class<?>[]{String.class}).newInstance(new Object[]{relationFile}));
+			}
 		}
 
 		for(TopologyNode child: currentTopo.getChildElements().values()){
-			recursivlyCreateTraceSources(child, statCls, traceCls, readNested);
+			recursivlyCreateTraceSources(child, statCls, traceCls, relationCls, readNested);
 		}
 	}
 
@@ -119,7 +126,10 @@ public class TraceFormatFileOpener {
 	 * @param traceCls Instantiate this trace reader (if null, no traces are read), if unsure use the on demand reader "StAXTraceFileReader"
 	 * @throws Exception
 	 */
-	public TraceFormatFileOpener(String filename, boolean readNested, Class<? extends StatisticsSource> statCls, Class<? extends TraceSource> traceCls) throws Exception{
+	public TraceFormatFileOpener(String filename, boolean readNested, 
+			Class<? extends StatisticsSource> statCls, 
+			Class<? extends TraceSource> traceCls,
+			Class<? extends RelationSource> relationCls) throws Exception{
 		// scan for all the XML files which must be opened during conversion:
 		// general description
 		projectDescrReader = new ProjectDescriptionXMLReader();
@@ -131,7 +141,7 @@ public class TraceFormatFileOpener {
 
 		TopologyNode root = projectDescription.getTopologyRoot();
 
-		recursivlyCreateTraceSources(root, statCls, traceCls, readNested );
+		recursivlyCreateTraceSources(root, statCls, traceCls, relationCls, readNested );
 	}	
 
 	public TopologyNode getTopology(){

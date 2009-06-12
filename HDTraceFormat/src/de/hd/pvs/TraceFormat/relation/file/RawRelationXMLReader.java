@@ -94,48 +94,47 @@ public class RawRelationXMLReader {
 					currentData.addNestedXMLTag(nestedElementTag);					
 					nestedElementTag = null;
 				}
-				
-				final XMLTag newData = currentData.createXMLTag();
-				assert(newData.getName().equals(name));					
+							
+				if(stackedData.size() == 0){				
+					// remove the unnecessary XML attributes:
+					final String token = currentData.removeAttribute("t");
+					final String timeStr = currentData.removeAttribute("time");
+					final Epoch time = Epoch.parseTime(timeStr);
 
-				if(stackedData.size() == 0){					
-					final String token = newData.getAttribute("t");
-					final String timeStr = newData.getAttribute("time");
-										
 					try{
 					// now decide what element to create:
-					if(name.equals("rel")){
-						if(newData.getAttribute("l") != null){
-							String [] split = newData.getAttribute("l").split(":");
-							return new RelateLocal(token, split[2], split[1], split[0]);
-						}else if(newData.getAttribute("i") != null){
-							String [] split = newData.getAttribute("i").split(":");
-							return new RelateInternal(token, split[0]);
-						}else if(newData.getAttribute("p") != null){
-							String [] split = newData.getAttribute("p").split(":");
-							return new RelateProcess(token, split[1], split[0]);
-						}else if(newData.getAttribute("r") != null){
-							String [] split = newData.getAttribute("r").split(":");
-							return new RelateRemote(token, split[3], split[2], split[1], split[0]);
+					if(name.equals("rel")){						
+						if(currentData.getAttribute("l") != null){
+							return new RelationCreate(token, time, currentData.getAttribute("l"));
+						}else if(currentData.getAttribute("i") != null){
+							return new RelationCreate(token, time, currentData.getAttribute("i"));
+						}else if(currentData.getAttribute("p") != null){
+							return new RelationCreate(token, time, currentData.getAttribute("p"));
+						}else if(currentData.getAttribute("r") != null){
+							return new RelationCreate(token, time, currentData.getAttribute("r"));
 						}else{
-							return new RelationInitial(token);
+							return new RelationCreate(token, time, null);
 						}
-					}else if (name.equals("s")){						
-						Epoch time = Epoch.parseTime(timeStr);						
-						return new RelationStartState(newData, header.getTimeAdjustment().add(time));
+					}else if (name.equals("s")){			
+						final String stateName =  currentData.removeAttribute("name");
+						final XMLTag newData = currentData.createXMLTag();
+						
+						return new RelationStartState(token, time, stateName, newData);
 					}else if (name.equals("e")){						
-						Epoch time = Epoch.parseTime(timeStr);		
-						return new RelationEndState(newData, header.getTimeAdjustment().add(time));
+						final XMLTag newData = currentData.createXMLTag();
+						return new RelationEndState(token, time, newData);
 					}else if (name.equals("un")){
-						return new RelationTerminate(token);
+						return new RelationTerminate(token, time);
 					}else{
 						throw new IllegalArgumentException("Found invalid tag with name: " + name);
 					}		
 					}catch(Exception e){
-						throw new IllegalArgumentException("Found invalid tag: " + newData, e);
+						throw new IllegalArgumentException("Found invalid tag: " + currentData.createXMLTag(), e);
 					}
 				}
 
+				final XMLTag newData = currentData.createXMLTag();
+				assert(newData.getName().equals(name));		
 				stackedData.peek().addNestedXMLTag(newData);					
 			}
 			break;

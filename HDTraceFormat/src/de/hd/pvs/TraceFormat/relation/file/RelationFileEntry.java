@@ -1,5 +1,7 @@
 package de.hd.pvs.TraceFormat.relation.file;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
+
 
 /**
  * An single XML entry as read in the relation file.
@@ -10,25 +12,27 @@ package de.hd.pvs.TraceFormat.relation.file;
  */
 public abstract class RelationFileEntry {
 	public enum Type{
-		INITIAL, // initialize a new relation
-		RELATE_REMOTE, // relate a remote relation
-		RELATE_LOCAL,
-		RELATE_PROCESS,
-		RELATE_INTERNAL,
+		CREATE, // initialize a new relation
 		TERMINATE, // terminate a relation
 		START_STATE,
 		END_STATE
 	}
 	
-	final long relationToken;
+	final long relationTokenID;
+	final Epoch time;	
 	
 	abstract public Type getType();
 	
-	public RelationFileEntry(String token) {
-		this.relationToken = Long.parseLong(token);
+	public RelationFileEntry(String token, Epoch time) {
+		this.relationTokenID = Long.parseLong(token);
+		this.time = time;
 	}
 	
-	public final long getRelationID(){
-		return relationToken;
+	public final long getRelationTokenID(){
+		return relationTokenID;
 	}
+
+	public Epoch getTime() {
+		return time;
+	}	
 }

@@ -39,4 +39,16 @@ public class RelationHeader {
 	public Epoch getTimeAdjustment() {
 		return timeAdjustment;
 	}
+	
+	public String getLocalToken() {
+		return localToken;
+	}
+	
+	public int getTopologyNumber() {
+		return topologyNumber;
+	}
+	
+	public String getHostID() {
+		return hostID;
+	}
 }

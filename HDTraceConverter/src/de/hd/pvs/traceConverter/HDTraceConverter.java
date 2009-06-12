@@ -29,6 +29,7 @@ import java.util.PriorityQueue;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
+import de.hd.pvs.TraceFormat.relation.RelationXMLReader;
 import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
@@ -64,8 +65,9 @@ public class HDTraceConverter {
 		final TraceFormatFileOpener traceReader = new TraceFormatFileOpener(
 				param.getInputTraceFile(), 
 				param.isReadNestedTrace(), 
-				StatisticsReader.class, 
-				StAXTraceFileReader.class);
+				StatisticsReader.class, 				
+				StAXTraceFileReader.class,
+				RelationXMLReader.class);
 
 		final ProjectDescription projectDescription = traceReader.getProjectDescription();
 

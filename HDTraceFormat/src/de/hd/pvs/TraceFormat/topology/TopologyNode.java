@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
+import de.hd.pvs.TraceFormat.trace.RelationSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
 public class TopologyNode {	
@@ -48,6 +49,8 @@ public class TopologyNode {
 	private final TopologyNode parent;
 
 	private TraceSource traceSource = null;
+	
+	private RelationSource relationSource = null; 
 
 	/**
 	 * Create a node as child of a parent. Also add this node to the parent if necessary.
@@ -132,6 +135,17 @@ public class TopologyNode {
 		return getFilePrefix() + ".trc";
 	}
 
+
+	/**
+	 * Construct the "relation" file name of this topology entry.
+	 * This does not include the directory the files are located. 
+	 * @return
+	 */
+	public String getRelationFileName(){
+		return getFilePrefix() + ".rel";
+	}
+
+	
 	/**
 	 * Construct the static group file name of a particular group 
 	 * located under this topology entry.
@@ -205,6 +219,14 @@ public class TopologyNode {
 		this.traceSource = traceSource;
 	}
 
+	public void setRelationSource(RelationSource relationSource) {
+		this.relationSource = relationSource;
+	}
+	
+	public RelationSource getRelationSource() {
+		return relationSource;
+	}
+	
 	/**
 	 * Check if this topology entry has a parent entry. 
 	 * @return true if yes.

@@ -217,8 +217,11 @@ public class TraceFormatBufferedFileReader {
 	 * @throws Exception
 	 */	
 	public void loadAdditionalFile(String projectFileName) throws Exception{
-		TraceFormatFileOpener fileOpener = new TraceFormatFileOpener( projectFileName, true, 
-				BufferedStatisticsFileReader.class, BufferedTraceFileReader.class );
+		TraceFormatFileOpener fileOpener = new TraceFormatFileOpener( projectFileName, 
+				true, 
+				BufferedStatisticsFileReader.class, 
+				BufferedTraceFileReader.class, 
+				BufferedRelationReader.class );
 
 		updateStatisticCategories(fileOpener);
 
