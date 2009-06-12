@@ -23,7 +23,6 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 import org.junit.Test;
@@ -34,13 +33,12 @@ import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 public class ClusterIOTest extends ClusterTest {
 	int clientNum = 10;
 	int fileNum = 10;
-	int iterNum = 100;
+	int iterNum = 10;
 	long elementSize = 4 * KBYTE;
 
 	@Test
 	public void writeTest() throws Exception {
 		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
-		ArrayList<Integer> clients = new ArrayList<Integer>();
 
 		testMsg();
 		setup(clientNum, 1);
@@ -56,33 +54,28 @@ public class ClusterIOTest extends ClusterTest {
 			pb.addFileOpen(files.get(i), world, true);
 		}
 
-		for (int i = 0; i < clientNum; i++) {
-			clients.add(i);
-		}
-
 		for (int i = 0; i < iterNum; i++) {
-			Collections.shuffle(clients);
-
-			for (int j : clients) {
-				Collections.shuffle(files);
-
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingtRanks()) {
 				for (MPIFile f : files) {
-					pb.addWriteSequential(j, f, ((i * clientNum) + j) * elementSize, elementSize);
+					pb.addWriteSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+					pb.addReadSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
 				}
 			}
 		}
 
-		for (MPIFile file : files) {
-			HashMap<Integer, Long> offsets = new HashMap<Integer, Long>();
-			HashMap<Integer, Long> sizes = new HashMap<Integer, Long>();
+		for (int i = 0; i < iterNum; i++) {
+			for (MPIFile file : files) {
+				HashMap<Integer, Long> offsets = new HashMap<Integer, Long>();
+				HashMap<Integer, Long> sizes = new HashMap<Integer, Long>();
 
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingtRanks()) {
-				offsets.put(rank, (long) rank * elementSize);
-				sizes.put(rank, (long) elementSize);
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingtRanks()) {
+					offsets.put(rank, (long) ((i * clientNum) + rank) * elementSize);
+					sizes.put(rank, (long) elementSize);
+				}
+
+				pb.addWriteCollective(aB.getWorldCommunicator(), file, offsets, sizes);
+				pb.addReadCollective(aB.getWorldCommunicator(), file, offsets, sizes);
 			}
-
-//			pb.addWriteCollective(aB.getWorldCommunicator(), file, offsets, sizes);
-//			pb.addReadCollective(aB.getWorldCommunicator(), file, offsets, sizes);
 		}
 
 		runSimulationAllExpectedToFinish();
