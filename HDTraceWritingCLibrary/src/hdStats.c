@@ -211,7 +211,7 @@ hdStatsGroup hdS_createGroup (
 	/* check input */
 	char groupNameString[HDS_MAX_GROUP_NAME_LENGTH];
 	if (!escapeXMLString(groupNameString, HDS_MAX_GROUP_NAME_LENGTH, groupName))
-		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL)
+		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL);
 
 	if (hdT_getTopoNodeLevel(topoNode) < topoLevel)
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL);
@@ -228,16 +228,16 @@ hdStatsGroup hdS_createGroup (
 	int fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
 	if (fd < 0)
 	{
-		hd_error_msg("Could not open file %s: %s", filename, strerror(errno))
-	 	hd_error_return(HD_ERR_CREATE_FILE, NULL)
+		hd_error_msg("Could not open file %s: %s", filename, strerror(errno));
+	 	hd_error_return(HD_ERR_CREATE_FILE, NULL);
  	}
 
 	/* create group */
 	hdStatsGroup group;
-	hd_malloc(group, 1, NULL)
+	hd_malloc(group, 1, NULL);
 
 	/* setup group buffer for header */
-    hd_malloc(group->buffer, HDS_HEADER_BUF_SIZE, NULL)
+    hd_malloc(group->buffer, HDS_HEADER_BUF_SIZE, NULL);
 
 	group->btype = HDS_HEADER_BUFFER;
 	group->offset = 0;
@@ -248,7 +248,7 @@ hdStatsGroup hdS_createGroup (
 	group->tracefile = filename;
     group->hasString = FALSE;
     group->entryLength = 0;
-    hd_malloc(group->valueTypes, HDS_MAX_VALUES_PER_GROUP, NULL)
+    hd_malloc(group->valueTypes, HDS_MAX_VALUES_PER_GROUP, NULL);
     group->nextValueIdx = 0;
     group->isCommitted = FALSE;
     group->isEnabled = FALSE;

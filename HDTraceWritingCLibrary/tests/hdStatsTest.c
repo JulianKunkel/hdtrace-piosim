@@ -16,11 +16,11 @@
 #include <errno.h>
 
 #include "hdStats.h"
+#include "../src/hdStatsInternal.h"
 #include "hdError.h"
 #include "../src/config.h"
 
 #include "tests.h"
-#include "hdStatsInternal.h"
 
 /**
  * Return standard testing group (just created)
@@ -62,14 +62,16 @@ static void destroyGroup(hdStatsGroup myGroup)
  *                     BEGIN Tests of hdS_createGroup                        *
  * ************************************************************************* */
 #define ERROR_CHECK \
-	if(myGroup == NULL) \
-		switch(errno) { \
-		case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
-		case HD_ERR_MALLOC: assert(!"HD_ERR_MALLOC"); \
-		case HD_ERR_BUFFER_OVERFLOW: assert(!"HD_ERR_BUFFER_OVERFLOW"); \
-		case HD_ERR_CREATE_FILE: assert(!"HD_ERR_CREATE_FILE"); \
-		default: assert(myGroup != NULL); \
-		}
+	do { \
+		if(myGroup == NULL) \
+			switch(errno) { \
+			case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
+			case HD_ERR_MALLOC: assert(!"HD_ERR_MALLOC"); \
+			case HD_ERR_BUFFER_OVERFLOW: assert(!"HD_ERR_BUFFER_OVERFLOW"); \
+			case HD_ERR_CREATE_FILE: assert(!"HD_ERR_CREATE_FILE"); \
+			default: assert(myGroup != NULL); \
+		} \
+	} while (0)
 /**
  * Test_createGroup: Correct usage (leaf node of topology)
  */
@@ -86,10 +88,10 @@ static void Test_createGroup_C1(void)
 	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage with leaf node of a topology */
-	TEST_BEGIN("Correct usage (leaf node of topology)")
+	TEST_BEGIN("Correct usage (leaf node of topology)");
 
 	myGroup = hdS_createGroup("MyGroup", myTopoNode, 2);
-	ERROR_CHECK
+	ERROR_CHECK;
 
 	/* check name */
 	assert(strcmp(myGroup->name, "MyGroup") == 0);
@@ -128,7 +130,7 @@ static void Test_createGroup_C1(void)
 	/* check offset */
 	assert(myGroup->offset == offset);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -149,10 +151,10 @@ static void Test_createGroup_C2(void)
 	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage (inner node of topology)")
+	TEST_BEGIN("Correct usage (inner node of topology)");
 
 	myGroup = hdS_createGroup("MyGroup", myTopoNode, 1);
-	ERROR_CHECK
+	ERROR_CHECK;
 
 	/* check name */
 	assert(strcmp(myGroup->name, "MyGroup") == 0);
@@ -191,7 +193,7 @@ static void Test_createGroup_C2(void)
 	/* check commit state */
 	assert(myGroup->isCommitted == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -204,13 +206,16 @@ static void Test_createGroup_C2(void)
  *                      BEGIN Tests of hdS_addValue                          *
  * ************************************************************************* */
 #define ERROR_CHECK \
-	if (ret < 0) \
-		switch (errno) { \
-		case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
-		case HD_ERR_BUFFER_OVERFLOW: assert(!"HD_ERR_BUFFER_OVERFLOW"); \
-		case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE"); \
-		default: assert(ret == 0); \
-		}
+	do { \
+		if (ret < 0) \
+			switch (errno) { \
+			case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
+			case HD_ERR_BUFFER_OVERFLOW: assert(!"HD_ERR_BUFFER_OVERFLOW"); \
+			case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE"); \
+			default: assert(ret == 0); \
+		} \
+	} while(0)
+
 /**
  * Test hdS_addValue: Correct usage
  */
@@ -224,10 +229,10 @@ static void Test_addValue_C1(void)
 	int ret;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	ret = hdS_addValue(myGroup, "Int32Value", INT32, "unit0", NULL);
-	ERROR_CHECK
+	ERROR_CHECK;
 
 	/* check value types array */
 	assert(myGroup->valueTypes[0] == INT32);
@@ -245,7 +250,7 @@ static void Test_addValue_C1(void)
 	/* check commit state */
 	assert(myGroup->isCommitted == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -263,16 +268,16 @@ static void Test_addValue_C2(void)
 	int ret;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	ret = hdS_addValue(myGroup, "Int32Value", INT32, "unit0", NULL);
-	ERROR_CHECK
+	ERROR_CHECK;
 	ret = hdS_addValue(myGroup, "Int64Value", INT64, "unit1", NULL);
-	ERROR_CHECK
+	ERROR_CHECK;
 	ret = hdS_addValue(myGroup, "FloatValue", FLOAT, "unit2", NULL);
-	ERROR_CHECK
+	ERROR_CHECK;
 	ret = hdS_addValue(myGroup, "DoubleValue", DOUBLE, "unit3", NULL);
-	ERROR_CHECK
+	ERROR_CHECK;
 
 	/* check value types array */
 	assert(myGroup->valueTypes[0] == INT32);
@@ -297,7 +302,7 @@ static void Test_addValue_C2(void)
 	/* check commit state */
 	assert(myGroup->isCommitted == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -320,7 +325,7 @@ static void Test_commitGroup_C1(void)
 	int ret;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	ret = hdS_commitGroup (myGroup);
 	if (ret < 0)
@@ -385,7 +390,7 @@ static void Test_commitGroup_C1(void)
 
 	regfree(&refregexp);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* remove group trace file */
 	assert(remove(filename) == 0);
@@ -428,7 +433,7 @@ static void Test_enableGroup_C1(void)
 	myGroup->isEnabled = 0;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage (disabled before)")
+	TEST_BEGIN("Correct usage (disabled before)");
 
 	int ret = hdS_enableGroup(myGroup);
 
@@ -438,7 +443,7 @@ static void Test_enableGroup_C1(void)
 	/* check enable state */
 	assert(myGroup->isEnabled == 1);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -454,7 +459,7 @@ static void Test_enableGroup_C2(void)
 	myGroup->isEnabled = 1;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage (enabled before)")
+	TEST_BEGIN("Correct usage (enabled before)");
 
 	int ret = hdS_enableGroup(myGroup);
 
@@ -464,7 +469,7 @@ static void Test_enableGroup_C2(void)
 	/* check enable state */
 	assert(myGroup->isEnabled == 1);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -486,7 +491,7 @@ static void Test_disableGroup_C1(void)
 	myGroup->isEnabled = 1;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage (enabled before)")
+	TEST_BEGIN("Correct usage (enabled before)");
 
 	int ret = hdS_disableGroup(myGroup);
 
@@ -496,7 +501,7 @@ static void Test_disableGroup_C1(void)
 	/* check enable state */
 	assert(myGroup->isEnabled == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -512,7 +517,7 @@ static void Test_disableGroup_C2(void)
 	myGroup->isEnabled = 0;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage (disabled before)")
+	TEST_BEGIN("Correct usage (disabled before)");
 
 	int ret = hdS_disableGroup(myGroup);
 
@@ -522,7 +527,7 @@ static void Test_disableGroup_C2(void)
 	/* check enable state */
 	assert(myGroup->isEnabled == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -544,7 +549,7 @@ static void Test_isEnabled_C1(void)
 	myGroup->isEnabled = 1;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage (enabled)")
+	TEST_BEGIN("Correct usage (enabled)");
 
 	int ret = hdS_isEnabled(myGroup);
 
@@ -554,7 +559,7 @@ static void Test_isEnabled_C1(void)
 	/* check enable state */
 	assert(myGroup->isEnabled == 1);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -570,7 +575,7 @@ static void Test_isEnabled_C2(void)
 	myGroup->isEnabled = 0;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage (enabled)")
+	TEST_BEGIN("Correct usage (enabled)");
 
 	int ret = hdS_isEnabled(myGroup);
 
@@ -580,7 +585,7 @@ static void Test_isEnabled_C2(void)
 	/* check enable state */
 	assert(myGroup->isEnabled == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 }
@@ -640,7 +645,7 @@ static void Test_writeEntry_C1(void)
 	assert(memcmp(entry, ref, 24) == 0);
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	int ret = hdS_writeEntry (myGroup, entry, length);
 	if (ret < 0)
@@ -685,7 +690,7 @@ static void Test_writeEntry_C1(void)
 	/* check entry */
 	assert(memcmp(buffer + HDS_TIMESTAMP_LENGTH, entry, length) == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* close file */
 	fclose(file);
@@ -712,7 +717,7 @@ static void Test_writeEntry_W1(void)
 	size_t length = 24;
 
 	/* Test correct usage with inner node of a topology */
-	TEST_BEGIN("Wrong usage (Group disabled)")
+	TEST_BEGIN("Wrong usage (Group disabled)");
 
 	int ret = hdS_writeEntry (myGroup, entry, length);
 
@@ -721,7 +726,7 @@ static void Test_writeEntry_W1(void)
 
 	assert(myGroup->isEnabled == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	destroyGroup(myGroup);
 	free(entry);
@@ -753,51 +758,56 @@ static void Test_writeXValue_C1(void)
 
 	int ret;
 #define ERROR_CHECK \
-	if (ret < 0) \
-		switch (errno)	{ \
-		case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
-		case HD_ERR_TRACE_DISABLED: assert(!"HD_ERR_TRACE_DISABLED"); \
-		case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE"); \
-		case HDS_ERR_ENTRY_STATE: assert(!"HDS_ERR_ENTRY_STATE"); \
-		default: assert(ret == 0);	}
+	do { \
+		if (ret < 0) \
+			switch (errno)	{ \
+			case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
+			case HD_ERR_TRACE_DISABLED: assert(!"HD_ERR_TRACE_DISABLED"); \
+			case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE"); \
+			case HDS_ERR_ENTRY_STATE: assert(!"HDS_ERR_ENTRY_STATE"); \
+			default: assert(ret == 0); \
+		} \
+	} while (0)
 
 	int nextIdx = 0;
 	int offset = 0;
 
 #define ASSERTS \
-	assert(myGroup->nextValueIdx == nextIdx); \
-	assert(myGroup->offset == offset); \
-	assert(myGroup->isCommitted == 1); \
-	assert(myGroup->isEnabled == 1);
+	do { \
+		assert(myGroup->nextValueIdx == nextIdx); \
+		assert(myGroup->offset == offset); \
+		assert(myGroup->isCommitted == 1); \
+		assert(myGroup->isEnabled == 1); \
+	} while (0)
 
-	ASSERTS
+	ASSERTS;
 
 	/* Test correct usage */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	ret = hdS_writeInt32Value(myGroup, value0);
-	ERROR_CHECK
+	ERROR_CHECK;
 	nextIdx++;
 	offset += HDS_TIMESTAMP_LENGTH + (int) sizeof(value0);
-	ASSERTS
+	ASSERTS;
 
 	ret = hdS_writeInt64Value(myGroup, value1);
-	ERROR_CHECK
+	ERROR_CHECK;
 	nextIdx++;
 	offset += (int) sizeof(value1);
-	ASSERTS
+	ASSERTS;
 
 	ret = hdS_writeFloatValue(myGroup, value2);
-	ERROR_CHECK
+	ERROR_CHECK;
 	nextIdx++;
 	offset += (int) sizeof(value2);
-	ASSERTS
+	ASSERTS;
 
 	ret = hdS_writeDoubleValue(myGroup, value3);
-	ERROR_CHECK
+	ERROR_CHECK;
 	nextIdx = 0;  // entry should be flushed
 	offset = 0;
-	ASSERTS
+	ASSERTS;
 
 #undef ERROR_CHECK
 #undef ASSERTS
@@ -835,7 +845,7 @@ static void Test_writeXValue_C1(void)
 	/* check entry */
 	assert(memcmp(buffer + HDS_TIMESTAMP_LENGTH, ref_entry, ref_length) == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* close file */
 	fclose(file);

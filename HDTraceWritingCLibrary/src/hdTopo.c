@@ -93,13 +93,13 @@ hdTopology hdT_createTopology(
 
 	/* create new topology */
 	hdTopology topology;
-	hd_malloc(topology, 1, NULL)
+	hd_malloc(topology, 1, NULL);
 
 	/* copy project name into topology */
 	topology->project = strdup(project);
 
 	/* allocate memory for names */
-	hd_malloc(topology->levels, (size_t) nlevels, NULL)
+	hd_malloc(topology->levels, (size_t) nlevels, NULL);
 
 	/* copy each path element */
 	for (int i = 0; i < nlevels; ++i)

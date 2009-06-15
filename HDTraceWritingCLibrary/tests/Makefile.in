@@ -34,7 +34,7 @@ host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/common.am
 check_PROGRAMS = hdTopoTest$(EXEEXT) hdStatsTest$(EXEEXT) \
-	hdRelationTest$(EXEEXT)
+	hdRelationTest$(EXEEXT) hdTraceTest$(EXEEXT)
 TESTS = hdTopoTest$(EXEEXT) hdStatsTest$(EXEEXT) \
 	hdRelationTest$(EXEEXT)
 subdir = tests
@@ -66,6 +66,12 @@ hdTopoTest_LDADD = $(LDADD)
 hdTopoTest_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(hdTopoTest_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_hdTraceTest_OBJECTS = hdTraceTest-hdTraceTest.$(OBJEXT)
+hdTraceTest_OBJECTS = $(am_hdTraceTest_OBJECTS)
+hdTraceTest_DEPENDENCIES = $(LIB_DIR)/libhdTrace.la
+hdTraceTest_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(hdTraceTest_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -79,9 +85,9 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(hdRelationTest_SOURCES) $(hdStatsTest_SOURCES) \
-	$(hdTopoTest_SOURCES)
+	$(hdTopoTest_SOURCES) $(hdTraceTest_SOURCES)
 DIST_SOURCES = $(hdRelationTest_SOURCES) $(hdStatsTest_SOURCES) \
-	$(hdTopoTest_SOURCES)
+	$(hdTopoTest_SOURCES) $(hdTraceTest_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -211,10 +217,9 @@ hdTopoTest_CFLAGS = -I$(INC_DIR)
 hdStatsTest_SOURCES = hdStatsTest.c
 hdStatsTest_CFLAGS = -I$(SRC_DIR) -I$(INC_DIR)
 hdStatsTest_LDADD = $(LIB_DIR)/libhdStats.la
-
-#hdTraceTest_SOURCES = hdTraceTest.c
-#hdTraceTest_CFLAGS = -I$(INC_DIR)
-#hdTraceTest_LDADD = $(LIB_DIR)/libhdTrace.la
+hdTraceTest_SOURCES = hdTraceTest.c
+hdTraceTest_CFLAGS = -I$(INC_DIR)
+hdTraceTest_LDADD = $(LIB_DIR)/libhdTrace.la
 hdRelationTest_SOURCES = hdRelationTest.c
 hdRelationTest_CFLAGS = -I$(INC_DIR) $(GLIB_CFLAGS)
 hdRelationTest_LDADD = $(LIB_DIR)/libhdRelation.la $(GLIB_LDADD)
@@ -268,6 +273,9 @@ hdStatsTest$(EXEEXT): $(hdStatsTest_OBJECTS) $(hdStatsTest_DEPENDENCIES)
 hdTopoTest$(EXEEXT): $(hdTopoTest_OBJECTS) $(hdTopoTest_DEPENDENCIES) 
 	@rm -f hdTopoTest$(EXEEXT)
 	$(hdTopoTest_LINK) $(hdTopoTest_OBJECTS) $(hdTopoTest_LDADD) $(LIBS)
+hdTraceTest$(EXEEXT): $(hdTraceTest_OBJECTS) $(hdTraceTest_DEPENDENCIES) 
+	@rm -f hdTraceTest$(EXEEXT)
+	$(hdTraceTest_LINK) $(hdTraceTest_OBJECTS) $(hdTraceTest_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -279,6 +287,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdStatsTest-hdStatsTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdTopoTest-hdTopo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdTopoTest-hdTopoTest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdTraceTest-hdTraceTest.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -356,6 +365,20 @@ hdTopoTest-hdTopo.obj: $(SRC_DIR)/hdTopo.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(SRC_DIR)/hdTopo.c' object='hdTopoTest-hdTopo.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdTopoTest_CFLAGS) $(CFLAGS) -c -o hdTopoTest-hdTopo.obj `if test -f '$(SRC_DIR)/hdTopo.c'; then $(CYGPATH_W) '$(SRC_DIR)/hdTopo.c'; else $(CYGPATH_W) '$(srcdir)/$(SRC_DIR)/hdTopo.c'; fi`
+
+hdTraceTest-hdTraceTest.o: hdTraceTest.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdTraceTest_CFLAGS) $(CFLAGS) -MT hdTraceTest-hdTraceTest.o -MD -MP -MF $(DEPDIR)/hdTraceTest-hdTraceTest.Tpo -c -o hdTraceTest-hdTraceTest.o `test -f 'hdTraceTest.c' || echo '$(srcdir)/'`hdTraceTest.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/hdTraceTest-hdTraceTest.Tpo $(DEPDIR)/hdTraceTest-hdTraceTest.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hdTraceTest.c' object='hdTraceTest-hdTraceTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdTraceTest_CFLAGS) $(CFLAGS) -c -o hdTraceTest-hdTraceTest.o `test -f 'hdTraceTest.c' || echo '$(srcdir)/'`hdTraceTest.c
+
+hdTraceTest-hdTraceTest.obj: hdTraceTest.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdTraceTest_CFLAGS) $(CFLAGS) -MT hdTraceTest-hdTraceTest.obj -MD -MP -MF $(DEPDIR)/hdTraceTest-hdTraceTest.Tpo -c -o hdTraceTest-hdTraceTest.obj `if test -f 'hdTraceTest.c'; then $(CYGPATH_W) 'hdTraceTest.c'; else $(CYGPATH_W) '$(srcdir)/hdTraceTest.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/hdTraceTest-hdTraceTest.Tpo $(DEPDIR)/hdTraceTest-hdTraceTest.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hdTraceTest.c' object='hdTraceTest-hdTraceTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hdTraceTest_CFLAGS) $(CFLAGS) -c -o hdTraceTest-hdTraceTest.obj `if test -f 'hdTraceTest.c'; then $(CYGPATH_W) 'hdTraceTest.c'; else $(CYGPATH_W) '$(srcdir)/hdTraceTest.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -257,8 +257,8 @@ int hdS_finalize(
 #include <endian.h>
 #include <byteswap.h>
 
-#define order_bytes32_p(x) *((uint32_t *) x) = bswap_32(*((uint32_t *) x));
-#define order_bytes64_p(x) *((uint64_t *) x) = bswap_64(*((uint64_t *) x));
+#define order_bytes32_p(x) *((uint32_t *) x) = bswap_32(*((uint32_t *) x))
+#define order_bytes64_p(x) *((uint64_t *) x) = bswap_64(*((uint64_t *) x))
 
 /**
  * @def order_bytes32ip

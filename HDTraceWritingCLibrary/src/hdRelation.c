@@ -45,7 +45,7 @@ remote endpunkt -->
  */
 #define hdr_info(topoToken, string) \
 	printf("I: [RELATION][%s]: %s\n", \
-			hdT_getTopoPathString(topoToken->topoNode), string);
+			hdT_getTopoPathString(topoToken->topoNode), string)
 
 
 /**
@@ -121,10 +121,10 @@ struct _hdRelationTopo {
 	 * can occur on \a buffer.
 	 */
 	size_t buffer_pos;
-	
+
 	/**
 	 * Size of the XML header, used to test emptiness
-	 */	
+	 */
 	off_t headerLength;
 
 	/**
@@ -207,7 +207,7 @@ static int hdR_init(void){
 	if(ret != 0){
 	  return -1;
 	}
-	
+
 	topoMap = g_hash_table_new(& topologyHash, & topologyEqual);
 	if(topoMap == NULL){
 		return -1;
@@ -269,7 +269,7 @@ static int flushBuffer(hdR_topoToken topoToken){
 	return 0;
 }
 
-static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...) 
+static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...)
 __attribute__ ((format (printf, 2, 3)));
 
 static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...)
@@ -353,7 +353,7 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 
 	// init time adjustment:
 	gettimeofday(& topoToken->timeAdjustment, NULL);
-	
+
 	char hostname[HOST_NAME_MAX];
 	gethostname(hostname, HOST_NAME_MAX);
 
@@ -505,7 +505,7 @@ hdR_token hdR_relateRemoteToken(hdR_topoToken newTopologyToken, const char * rem
 	}
 
 	hdR_token newToken = createToken(newTopologyToken);
-	
+
 	writeToBuffer(newToken->topoToken, "<rel");
 	writeTokenAndTime(newToken);
 	writeToBuffer(newToken->topoToken, " r=\"%s\"/>", remoteToken);
@@ -531,7 +531,7 @@ int hdR_destroyRelation(hdR_token * token){
 
 inline static void writeAttributesAndTime(hdR_token token,  int attr_count, const char** attr_keys, const char **attr_values, int finalizeTag){
 	writeTokenAndTime(token);
-    
+
 	int i;
 	for(i=0; i < attr_count ; i++){
 		writeToBuffer(token->topoToken, " %s=\"%s\"", attr_keys[i], attr_values[i]);

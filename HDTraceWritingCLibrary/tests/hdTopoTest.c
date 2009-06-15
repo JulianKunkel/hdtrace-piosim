@@ -25,7 +25,7 @@ static void Test_createTopology_C1(void)
 	hdTopology myTopology;
 
 	/* Test correct usage (with string literals) */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	const char *levels1[] = {"Host","Process"};
 
@@ -39,7 +39,7 @@ static void Test_createTopology_C1(void)
 	assert(strcmp(myTopology->levels[0], "Host") == 0);
 	assert(strcmp(myTopology->levels[1], "Process") == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopology(myTopology);
@@ -53,7 +53,7 @@ static void Test_createTopology_T1(void)
 	hdTopology myTopology;
 
 	/* Test tolerated usage with dynamically allocates strings */
-	TEST_BEGIN("Tolerated usage (dynamic strings)")
+	TEST_BEGIN("Tolerated usage (dynamic strings)");
 
 
 	char **levels = malloc(2 * sizeof(**levels));
@@ -86,7 +86,7 @@ static void Test_createTopology_T1(void)
 	assert(strcmp(myTopology->levels[0], "Host") == 0);
 	assert(strcmp(myTopology->levels[1], "Process") == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 }
 
 /**
@@ -99,13 +99,13 @@ static void Test_getTopoDepth_C1(void)
 	hdTopology myTopology =	hdT_createTopology("MyProject", names, 2);
 
 	/* Test correct usage */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	int myDepth = hdT_getTopoDepth(myTopology);
 
 	assert(myDepth == 3);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 }
 
@@ -117,14 +117,14 @@ static void Test_destroyTopology_E1(void)
 	/* cannot test corret call here */
 
 	/* Test call with NULL argument */
-	TEST_BEGIN("Error handling (NULL argument)")
+	TEST_BEGIN("Error handling (NULL argument)");
 
 	int ret = hdT_destroyTopology(NULL);
 
 	assert(ret == -1);
 	assert(errno == HD_ERR_INVALID_ARGUMENT);
 
-	TEST_PASSED
+	TEST_PASSED;
 }
 
 
@@ -136,7 +136,7 @@ static void Test_createTopoNode_C1(void)
 	hdTopoNode myTopoNode;
 
 	/* Test correct usage with string literals */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	const char *levels1[] = {"Host","Process"};
 	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
@@ -153,7 +153,7 @@ static void Test_createTopoNode_C1(void)
 	/* sting must have the correct string representation of the path */
 	assert(strcmp(myTopoNode->string, "host0_process0") == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopoNode(myTopoNode);
@@ -167,7 +167,7 @@ static void Test_createTopoNode_T1(void)
 	hdTopoNode myTopoNode;
 
 	/* Test tolerated usage with dynamically allocates strings */
-	TEST_BEGIN("Tolerated usage (dynamic strings)")
+	TEST_BEGIN("Tolerated usage (dynamic strings)");
 
 	char **path = malloc(2 * sizeof(**path));
 	path[0] = strdup("host0");
@@ -194,7 +194,7 @@ static void Test_createTopoNode_T1(void)
 	/* sting must have the correct string representation of the path */
 	assert(strcmp(myTopoNode->string, "host0_process0") == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 }
 
 /**
@@ -210,13 +210,13 @@ static void Test_getTopoNodeLevel_C1(void)
 	hdTopoNode myTopoNode =	hdT_createTopoNode(topology, path, 2);
 
 	/* Test correct usage */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	int myLevel = hdT_getTopoNodeLevel(myTopoNode);
 
 	assert(myLevel == 2);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 }
 
@@ -233,13 +233,13 @@ static void Test_getTopoPathString_C1(void)
 	hdTopoNode myTopoNode = hdT_createTopoNode(topology, path, 2);
 
 	/* Test correct usage */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	const char *myString = hdT_getTopoPathString(myTopoNode);
 
 	assert(strcmp(myString, "host0_process0") == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 }
 
@@ -256,7 +256,7 @@ static void Test_getTopoPathLabel_C1(void)
 	hdTopoNode myTopoNode =	hdT_createTopoNode(topology, path, 2);
 
 	/* Test correct usage */
-	TEST_BEGIN("Correct usage")
+	TEST_BEGIN("Correct usage");
 
 	const char * myLabel1 = hdT_getTopoPathLabel(myTopoNode, 1);
 
@@ -266,7 +266,7 @@ static void Test_getTopoPathLabel_C1(void)
 
 	assert(strcmp(myLabel2, "process0") == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 }
 
@@ -278,14 +278,14 @@ static void Test_destroyTopoNode_E1(void)
 	/* cannot test correct call here */
 
 	/* Test call with NULL argument */
-	TEST_BEGIN("Error handling (NULL argument)")
+	TEST_BEGIN("Error handling (NULL argument)");
 
 	int ret = hdT_destroyTopoNode(NULL);
 
 	assert(ret == -1);
 	assert(errno == HD_ERR_INVALID_ARGUMENT);
 
-	TEST_PASSED
+	TEST_PASSED;
 }
 
 

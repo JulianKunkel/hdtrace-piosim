@@ -34,7 +34,7 @@
 #define hdt_debugf(trace, format, ...) \
 	printf("D: [TRACER][%s] %s (%s:%d): " format "\n", \
 			hdT_getTopoPathString(trace->topoNode), \
-			__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__);
+			__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
 
 /**
  * Macro to print debugging message (fix string) (was tsprintf)
@@ -42,7 +42,7 @@
 #define hdt_debug(trace, string) \
 	printf("D: [TRACER][%s] %s (%s:%d): %s\n", \
 			hdT_getTopoPathString(trace->topoNode), \
-			__FUNCTION__, __FILE__, __LINE__, string);
+			__FUNCTION__, __FILE__, __LINE__, string)
 
 /**
  * Macro to print info message (printf like)
@@ -50,14 +50,14 @@
  */
 #define hdt_infof(trace, format, ...) \
 	printf("I: [TRACER][%s]: " format "\n", \
-			hdT_getTopoPathString(trace->topoNode), __VA_ARGS__);
+			hdT_getTopoPathString(trace->topoNode), __VA_ARGS__)
 
 /**
  * Macro to print info message (fix string)
  */
 #define hdt_info(trace, string) \
 	printf("I: [TRACER][%s]: %s\n", \
-			hdT_getTopoPathString(trace->topoNode), string);
+			hdT_getTopoPathString(trace->topoNode), string)
 
 
 //////////////////////////////////
@@ -975,7 +975,7 @@ static int flushLog(hdTrace trace)
 	char *buf = trace->buffer;
 	size_t count = trace->buffer_pos;
 
-	hdt_debugf(trace, "flushing log length: %lld", (long long int) count)
+	hdt_debugf(trace, "flushing log length: %lld", (long long int) count);
 
 	ssize_t written = writeToFile(fd, buf, count, trace->logfile);
 	if (written < 0)

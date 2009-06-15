@@ -32,7 +32,7 @@ static void Test_createRelationAndCleanup(void)
 
 
 	/* Test correct usage (with string literals) */
-	TEST_BEGIN("Create and finalize relation topology")
+	TEST_BEGIN("Create and finalize relation topology");
 
 	const char *path1[] = {"host0","process0"};
 	myTopoNode1 = hdT_createTopoNode(topology, path1, 2);
@@ -54,7 +54,7 @@ static void Test_createRelationAndCleanup(void)
 	hdR_token token1 = hdR_createTopLevelRelation(topoToken1);
 	assert(token1 != NULL);
 
-	STATE_BEGIN("Get local token and compare results")
+	STATE_BEGIN("Get local token and compare results");
 
 	char* tokenStr = hdR_getLocalToken(token1);
 	printf("\t%s\n", tokenStr);
@@ -69,7 +69,7 @@ static void Test_createRelationAndCleanup(void)
 	//already finalized:
 	assert( hdR_finalize(myTopoNode2) == -1);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopoNode(myTopoNode1);
@@ -90,7 +90,7 @@ static void Test_createRelationHandling(void)
 
 
 	/* Test correct usage (with string literals) */
-	TEST_BEGIN("Test handling of remote relations")
+	TEST_BEGIN("Test handling of remote relations");
 
 	const char *path1[] = {"host0","process0"};
 	myTopoNode1 = hdT_createTopoNode(topology, path1, 2);
@@ -113,7 +113,7 @@ static void Test_createRelationHandling(void)
 
 	assert( hdR_finalize(myTopoNode1) == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopoNode(myTopoNode1);
@@ -128,7 +128,7 @@ static void Test_remoteRelationHandling(void)
 	const char *levels1[] = {"Host","Process"};
 	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
 
-	TEST_BEGIN("Create")
+	TEST_BEGIN("Create");
 
 	const char *path1[] = {"host0","process0"};
 	hdTopoNode myTopoNode1 = hdT_createTopoNode(topology, path1, 2);
@@ -151,7 +151,7 @@ static void Test_remoteRelationHandling(void)
 	hdR_token token1 = hdR_createTopLevelRelation(topoToken1);
 	assert(token1 != NULL);
 
-	STATE_BEGIN("Unique token handling")
+	STATE_BEGIN("Unique token handling");
 	char * tokenStr = hdR_getRemoteToken(token1);
 	assert(tokenStr != NULL);
 
@@ -169,7 +169,7 @@ static void Test_remoteRelationHandling(void)
 	free(localTokenStr);
 	assert(token4 != NULL);
 
-	STATE_BEGIN("Try to create start & end state")
+	STATE_BEGIN("Try to create start & end state");
 
 	const char * keys [] = {"schuh", "test"};
 	const char * vals [] = {"leder", "#5"};
@@ -180,7 +180,7 @@ static void Test_remoteRelationHandling(void)
 	hdR_endE(token1, 2, keys, vals, "<data2>stuff2</data2>");
 
 
-	STATE_BEGIN("CLEANUP")
+	STATE_BEGIN("CLEANUP");
 	free(tokenStr);
 
 	assert(hdR_destroyRelation(& token1) == 0);
@@ -193,7 +193,7 @@ static void Test_remoteRelationHandling(void)
 	assert( hdR_finalize(myTopoNode2) == 0);
 	assert( hdR_finalize(myTopoNode3) == 0);
 
-	TEST_PASSED
+	TEST_PASSED;
 
 	/* destroy topology (assumed as working */
 	hdT_destroyTopoNode(myTopoNode1);

@@ -87,31 +87,32 @@ char * generateFilename( hdTopoNode toponode,
 
 #define ERROR_MSG \
 	hd_error_msg("Overflow of HD_MAX_FILENAME_LENGTH buffer during" \
-			" %s filename generation for %s", affix, toponode->string);
+			" %s filename generation for %s", affix, toponode->string)
 
 	strncpy(filename, toponode->topology->project, HD_MAX_FILENAME_LENGTH);
 	if (filename[HD_MAX_FILENAME_LENGTH - 1] != '\0')
 	{
-		ERROR_MSG
+		ERROR_MSG;
 		free(filename);
 		hd_error_return(HD_ERR_BUFFER_OVERFLOW, NULL);
 	}
 	pos = strlen(filename);
 
-#define ERROR_CHECK \
+#define ERROR_CHECK do { \
 	if (ret >= HD_MAX_FILENAME_LENGTH - (int) pos) \
 	{ \
-		ERROR_MSG \
+		ERROR_MSG; \
 		free(filename); \
 		hd_error_return(HD_ERR_BUFFER_OVERFLOW, NULL); \
 	} \
+	} while (0)
 
 	/* append "_level" for each topology level */
 	for (int i = 1; i <= level; ++i)
 	{
 		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
 				"_%s", hdT_getTopoPathLabel(toponode, i));
-		ERROR_CHECK
+		ERROR_CHECK;
 		pos = strlen(filename);
 	}
 
@@ -119,14 +120,14 @@ char * generateFilename( hdTopoNode toponode,
 	{
 		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
 				"%s", affix);
-		ERROR_CHECK
+		ERROR_CHECK;
 	}
 	else
 	{
 		/* TODO: Convert all non-alphanum chars to '_' */
 		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
 				"_%s%s", group, affix);
-		ERROR_CHECK
+		ERROR_CHECK;
 	}
 
 #undef ERROR_CHECK
