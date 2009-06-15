@@ -519,19 +519,23 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		
 		while(elements.hasMoreElements()){
 			final RelationEntry relationEntry = elements.nextElement();
-
+			
 			for(IStateTraceEntry rstate: relationEntry.getStates()){
-
+				
+				final Category stateCategory = reader.getCategory(rstate);
+				if(stateCategory.isVisible())
+					DrawObjects.drawState(offGraphics, coord_xform, rstate , stateCategory.getColor(), 
+							0, timeline, globalMinTime);
+				
 				final ForwardStateEnumeration stateEnum = rstate.childForwardEnumeration();
 
 				while(stateEnum.hasMoreElements()){
 					drawedTraceObjects++;
-					
-					final ITraceEntry entry = stateEnum.nextElement();
 
 					final int depth = stateEnum.getNestingDepthOfNextElement();
-
-
+					
+					final ITraceEntry entry = stateEnum.nextElement();
+					
 					if(entry.getType() == TraceObjectType.EVENT){          
 						final IEventTraceEntry event = (IEventTraceEntry) entry;
 
