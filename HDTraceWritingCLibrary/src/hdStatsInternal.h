@@ -4,62 +4,6 @@
 
 
 /* ************************************************************************* *
- *                        DOCUMENTATION STRUCTURING                          *
- * ************************************************************************* */
-
-/** @cond api_only */
-/**
- * @enum _hdStatsValueType
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType INT32
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType INT64
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType FLOAT
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType DOUBLE
- * @ingroup hdStats
- */
-/**
- * @var _hdStatsValueType STRING
- * @ingroup hdStats
- */
-/**
- * @typedef hdStatsValueType
- * @ingroup hdStats
- */
-/**
- * @typedef hdStatsGroup
- * @ingroup hdStats
- */
-/**
- * @def order_bytes32ip
- * @ingroup hdStats
- */
-/**
- * @def order_bytes64ip
- * @ingroup hdStats
- */
-/**
- * @def order_bytes32fp
- * @ingroup hdStats
- */
-/**
- * @def order_bytes64fp
- * @ingroup hdStats
- */
-/** @endcond */
-
-
-/* ************************************************************************* *
  *                            TYPE DEFINITIONS                               *
  * ************************************************************************* */
 

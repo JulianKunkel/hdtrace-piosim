@@ -19,7 +19,7 @@
  * Verbosity level
  * TODO: Make this controlled by environment
  */
-#define VLEVEL 5
+#define VLEVEL 0
 int verbosity;
 
 /**
