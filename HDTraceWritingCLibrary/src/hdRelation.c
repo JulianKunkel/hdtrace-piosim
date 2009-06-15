@@ -200,25 +200,30 @@ static gboolean topologyEqual(gconstpointer a, gconstpointer b){
 static int hdR_init(void){
 	char hostname[HOST_NAME_MAX];
 	char pidstr[10];
+	int ret;
 
+	// prepare unique token prefix
+	ret = gethostname(hostname, HOST_NAME_MAX);
+	if(ret != 0){
+	  return -1;
+	}
+	
 	topoMap = g_hash_table_new(& topologyHash, & topologyEqual);
 	if(topoMap == NULL){
 		return -1;
 	}
 
-	// prepare unique token prefix
-	gethostname(hostname, HOST_NAME_MAX);
 	int pid = getpid();
 	snprintf(pidstr, 10, "%d", pid);
 
-	localTokenLen = strlen(pidstr);
 	localTokenPrefix = strdup(pidstr);
+	localTokenLen = strlen(localTokenPrefix);
 
         uniqueHostID = strdup(hostname);
 
-	remoteTokenLen = strlen(hostname) + localTokenLen ;
+	remoteTokenLen = strlen(uniqueHostID) + localTokenLen + 1;
 	remoteTokenPrefix = malloc(remoteTokenLen + 1);
-	sprintf(remoteTokenPrefix, "%s:%s", hostname, localTokenPrefix);
+	snprintf(remoteTokenPrefix, remoteTokenLen + 1,  "%s:%s", hostname, localTokenPrefix);
 
 	return 0;
 }
