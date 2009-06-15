@@ -45,8 +45,11 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 
 	@Override
 	public TraceObject getTraceEntryClosestToTime(Epoch time) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new IllegalArgumentException("This function does not need to be implemented, instead use relation layouter functions");
+	}
+		
+	public ReaderRelationEnumerator enumerateRelations(){
+		return new ReaderRelationEnumerator(this);
 	}
 	
 	public ArrayList<RelationEntry> getEntries() {

@@ -26,6 +26,7 @@
 
 package topology;
 
+import hdTraceInput.BufferedRelationReader;
 import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.BufferedTraceFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
@@ -368,6 +369,17 @@ public class TopologyManager
 		return (BufferedTraceFileReader) ((TopologyTraceTreeNode) timelines.get(timeline)).getTraceSource();
 	}
 
+	/**
+	 * Get the trace reader for a particular timeline
+	 * 
+	 * @param timeline
+	 * @return
+	 */
+	public BufferedRelationReader getRelationReaderForTimeline(int timeline){
+		return ((TopologyRelationTreeNode) timelines.get(timeline)).getRelationSource();
+	}
+
+	
 	/**
 	 * Get the statistic reader responsible for a particular timeline
 	 * @param timeline

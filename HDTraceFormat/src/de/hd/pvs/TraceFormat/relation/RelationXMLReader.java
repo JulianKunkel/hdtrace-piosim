@@ -112,7 +112,9 @@ public class RelationXMLReader implements RelationSource{
 				final RelationFileEntry terminateEntry =  entry;
 				assert(creationEntry.getType() == Type.CREATE);
 				
-				return new RelationEntry(((RelationCreate) creationEntry).getParentToken(), tokenID, reader.getHeader(), traceEntries, creationEntry.getTime(), terminateEntry.getTime());
+				return new RelationEntry(((RelationCreate) creationEntry).getParentToken(), 
+						tokenID, reader.getHeader(), traceEntries, 
+						timeAdjustment.add(creationEntry.getTime()), timeAdjustment.add(terminateEntry.getTime()));
 			}
 			
 			// remember entry: 			
@@ -121,7 +123,7 @@ public class RelationXMLReader implements RelationSource{
 				list = new ArrayList<RelationFileEntry>();
 				readEntries.put(tokenID, list);
 			}
-			list.add(entry);			
+			list.add(entry);								
 		}
 		
 		return null;

@@ -94,21 +94,21 @@ public class TraceFormatFileOpener {
 		// ignore the root of the tree, because this is the project file
 		if(currentTopo.hasParent()){ 
 			SimpleConsoleLogger.Debug("Checking trace: " + traceFile);
+			final String relationFile = filePath + currentTopo.getRelationFileName();			
 
-			if( ! fileExists(traceFile) ){
-				if( currentTopo.isLeaf() ){ // leafs should contain a trace file
-					//throw new IllegalArgumentException("Trace file does not exist: " + traceFile);
-					SimpleConsoleLogger.Debug("Topology leaf should contain a trace file: " + currentTopo.toRecursiveString() );					
-				}
-				currentTopo.setTraceSource(null);
-			}else if (traceCls != null){
+			if( fileExists(traceFile) && traceCls != null){
 				TraceSource staxReader = traceCls.getConstructor(new Class<?>[]{String.class, boolean.class}).newInstance(new Object[]{traceFile, readNested});			
 				currentTopo.setTraceSource(staxReader);
 			}		
 			
-			final String relationFile = filePath + currentTopo.getRelationFileName();
-			if( fileExists(relationFile) ){
+			SimpleConsoleLogger.Debug("Checking relation: " + relationFile);			
+			if( fileExists(relationFile) && relationCls != null){
 				currentTopo.setRelationSource(relationCls.getConstructor(new Class<?>[]{String.class}).newInstance(new Object[]{relationFile}));
+			}
+			
+			if( currentTopo.isLeaf() &&  currentTopo.getRelationSource() == null && currentTopo.getTraceSource() == null){ // leafs should contain a trace file
+				//throw new IllegalArgumentException("Trace file does not exist: " + traceFile);
+				SimpleConsoleLogger.Warning("Topology leaf should contain a trace file: " + currentTopo.toRecursiveString() );					
 			}
 		}
 

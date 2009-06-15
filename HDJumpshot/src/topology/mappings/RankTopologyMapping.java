@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 import topology.TopologyInnerNode;
+import topology.TopologyRelationTreeNode;
 import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
@@ -55,6 +56,11 @@ public class RankTopologyMapping extends DefaultTopologyTreeMapping{
 						TopologyTreeNode childNode = new TopologyTraceTreeNode("Trace", file.getTopology(), file);
 						addTopologyTreeNode(childNode, fileNode);			
 					}
+					
+					if(file.getTopology().getRelationSource() != null){
+						TopologyRelationTreeNode childNode = new TopologyRelationTreeNode("Relation", file.getTopology(), file);
+						addTopologyTreeNode(childNode, fileNode);			
+					}					
 					
 					loadRankTopology(i, fileNode, file);
 					continue outer;

@@ -19,6 +19,7 @@ package topology.mappings;
 
 import hdTraceInput.TraceFormatBufferedFileReader;
 import topology.TopologyInnerNode;
+import topology.TopologyRelationTreeNode;
 import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
@@ -46,7 +47,10 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 		final TopologyTreeNode node;
 		
 		if(topology.getTraceSource() != null){
-			node = new TopologyTraceTreeNode(topology.getName(), topology, file);				
+			node = new TopologyTraceTreeNode(topology.getName(), topology, file);
+		}else if (topology.getRelationSource() != null){
+			// TODO fix case:  Trace != null AND relation != null
+			node = new TopologyRelationTreeNode(topology.getName(), topology, file);
 		}else{
 			node = new TopologyInnerNode(topology, file);			
 		}

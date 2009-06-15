@@ -28,6 +28,7 @@ package viewer.timelines;
 public enum TimelineType {
 	TRACE,
 	STATISTIC,
+	RELATION,
 	INNER_NODE,
 	INVALID_TIMELINE
 }

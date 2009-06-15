@@ -41,6 +41,7 @@ import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
@@ -49,6 +50,7 @@ import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
+import de.hd.pvs.TraceFormat.trace.RelationSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
@@ -81,6 +83,9 @@ public class TraceFormatBufferedFileReader {
 
 	final ArrowManager arrowManager = new ArrowManager(this);
 
+	// manage "relation" between multiple relations
+	final RelationManager relationManager = new RelationManager();
+
 	public TraceFormatBufferedFileReader() {
 		legendTraceModel.addCategoryUpdateListener(arrowManager);
 	}
@@ -96,10 +101,9 @@ public class TraceFormatBufferedFileReader {
 	 * @param reader
 	 */
 	private void updateMinMaxTime(IBufferedReader reader){
-		Epoch minTime = reader.getMinTime();
-		Epoch maxTime = reader.getMaxTime();
-
-
+		final Epoch minTime = reader.getMinTime();
+		final Epoch maxTime = reader.getMaxTime();
+		
 		if(maxTime.compareTo(globalMaxTime) > 0){
 			globalMaxTime = maxTime;
 		}
@@ -168,6 +172,20 @@ public class TraceFormatBufferedFileReader {
 			}
 		}
 	}
+	
+	private void updateVisibleCategoryFor(ITraceEntry entry){
+		final String catName = entry.getName();		
+
+		if(entry.getType() == TraceObjectType.STATE){		
+			if(! categoriesStates.containsKey(catName)){
+				categoriesStates.put( catName, new CategoryState(catName, null));
+			}
+
+		}if(entry.getType() == TraceObjectType.EVENT){
+			if(! categoriesEvents.containsKey(catName))
+				categoriesEvents.put( catName, new CategoryEvent(catName, null));
+		}
+	}
 
 	// TODO read from category index file.
 	private void updateVisibleCategories(BufferedTraceFileReader reader){
@@ -176,20 +194,29 @@ public class TraceFormatBufferedFileReader {
 		while(enu.hasMoreElements()){
 
 			final ITraceEntry entry = enu.nextElement();
-			final String catName = entry.getName();		
-
-			if(entry.getType() == TraceObjectType.STATE){		
-				if(! categoriesStates.containsKey(catName)){
-					categoriesStates.put( catName, new CategoryState(catName, null));
-				}
-
-			}if(entry.getType() == TraceObjectType.EVENT){
-				if(! categoriesEvents.containsKey(catName))
-					categoriesEvents.put( catName, new CategoryEvent(catName, null));
-			}
+			updateVisibleCategoryFor(entry);
 		}	
 	}
 
+	// TODO read from category index file.
+	private void updateVisibleCategories(BufferedRelationReader reader){
+		Enumeration<RelationEntry> enu = reader.enumerateRelations(); //reader.enumerateTraceEntry(true, new Epoch(-1),new Epoch(300000000));
+
+		while(enu.hasMoreElements()){
+			final RelationEntry entry = enu.nextElement();
+
+			for(IStateTraceEntry state: entry.getStates()){
+				final Enumeration<ITraceEntry> childEnum = state.childForwardEnumeration();
+
+				updateVisibleCategoryFor(state);
+				
+				while(childEnum.hasMoreElements()){
+					final ITraceEntry child = childEnum.nextElement();
+					updateVisibleCategoryFor(child);
+				}
+			}
+		}
+	}	
 
 	/**
 	 * Add statistic categories in the file if not already part of the category.
@@ -200,7 +227,7 @@ public class TraceFormatBufferedFileReader {
 		for(TopologyNode topo: fileOpener.getTopology().getSubTopologies()){
 			for(StatisticsSource statSource: topo.getStatisticsSources().values()) {
 				StatisticsGroupDescription group = ((BufferedStatisticsFileReader) statSource).getGroup();
-				
+
 				for(StatisticsDescription desc: group.getStatisticsOrdered()){										 
 					if(!categoriesStatistics.containsKey(desc)){
 						categoriesStatistics.put(desc, new CategoryStatistic(desc, null));
@@ -235,7 +262,15 @@ public class TraceFormatBufferedFileReader {
 			final TraceSource traceSource = topology.getTraceSource();
 			if(traceSource != null){
 				updateMinMaxTime((IBufferedReader) traceSource);
-				updateVisibleCategories((BufferedTraceFileReader) traceSource);
+				updateVisibleCategories((BufferedTraceFileReader) traceSource);				
+			}
+
+			// manage relations
+			final RelationSource relationSource = topology.getRelationSource();
+			if(relationSource != null){
+				relationManager.addFile((BufferedRelationReader) relationSource);
+				updateMinMaxTime((IBufferedReader) relationSource);
+				updateVisibleCategories((BufferedRelationReader) relationSource);
 			}
 		}
 

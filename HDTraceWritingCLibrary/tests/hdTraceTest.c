@@ -13,7 +13,7 @@ int main(void){
 	const char *path[] = {"host0", "client0","thread0"};
 	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 3);
 	
-	hdTrace trace = hdT_createTrace(myTopoNode, myTopology);
+	hdTrace trace = hdT_createTrace(myTopoNode);
 	
 	hdT_enableTrace(trace);   	
 	hdT_setNestedDepth(trace,3);

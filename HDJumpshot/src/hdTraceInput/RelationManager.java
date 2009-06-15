@@ -41,16 +41,13 @@ public class RelationManager {
 	 * Add a file to the appropriate mapping.
 	 * @param filename
 	 */
-	public void addFile(String filename) throws Exception{
-		final BufferedRelationReader reader = new BufferedRelationReader(filename);		
+	public void addFile(BufferedRelationReader reader) throws Exception{		
 		final RelationHeader header = reader.getHeader();
 		
 		if(map.containsKey(header.getUniqueID())){
 			throw new IllegalArgumentException("File with the same \"unique\" id already added: " + header.getUniqueID());
 		}
 			
-		System.out.println("loading: " + header.getUniqueID());
-		
 		final HashMap<Long, RelationEntry> entryMap = new HashMap<Long, RelationEntry>();
 		
 		// now add all entries to the map.
@@ -61,7 +58,7 @@ public class RelationManager {
 		final TopologyRelation topoRelation = new TopologyRelation(reader.getEntries(), entryMap);		
 		map.put(header.getUniqueID(), topoRelation);
 	}
-	
+		
 	/**
 	 * Remove a file from the manager.
 	 * @param header
@@ -109,7 +106,7 @@ public class RelationManager {
 			throw new IllegalArgumentException("Invalid state!");
 		}
 		
-		System.out.println("SEARCH " + uniqueID +" " + ids.length);
+		//System.out.println("SEARCH " + uniqueID +" " + ids.length);
 		
 		final TopologyRelation topoRelation = map.get(uniqueID);
 		if(topoRelation == null){
@@ -121,14 +118,14 @@ public class RelationManager {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		RelationManager m = new RelationManager();
+		final RelationManager m = new RelationManager();
 		
-		m.addFile("/tmp/server.rel");
+		//m.addFile(new BufferedRelationReader("/tmp/hurenkasten.xml"));
 		
-		m.addFile("/tmp/test_host0_process0.rel");
-		m.addFile("/tmp/test_host0_process1.rel");
-		m.addFile("/tmp/test_host1_process0.rel");
+		//m.addFile(new BufferedRelationReader("/tmp/test_host0_process0.rel"));
+		//m.addFile(new BufferedRelationReader("/tmp/test_host0_process1.rel"));
+		//m.addFile(new BufferedRelationReader("/tmp/test_host1_process0.rel"));
 		
-		System.out.println(m.getParentRelationEntry(m.map.get("Thor:9104:3").entriesTimeSorted.get(1)));
+		//System.out.println(m.getParentRelationEntry(m.map.get("Thor:9104:3").entriesTimeSorted.get(1)));
 	}
 }
