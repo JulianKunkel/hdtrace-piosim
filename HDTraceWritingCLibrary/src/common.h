@@ -94,7 +94,7 @@
  */
 #define	hd_free(var) \
 	do { \
-		(var) ? (void)(0) : free(var); \
+		(var) ? free(var) : (void)(0); \
 		var = NULL; \
 	} while (0)
 
