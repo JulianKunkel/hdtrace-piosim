@@ -50,9 +50,9 @@ struct _hdStatsGroup {
     int offset;
 
     /**
-     * Size of the header and initial time stamp
+     * Number of entries made to this group
      */
-    off_t headerLength;
+    int64_t numEntries;
 
     /**
      * Length that an entry should have

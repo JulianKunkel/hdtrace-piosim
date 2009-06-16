@@ -618,10 +618,6 @@ int hdS_commitGroup (
 	/* write the starttime for the first statistic entry */
 	writeTimestampToGroupBuffer(group);
 	flushGroupBuffer(group);
-	group->nextValueIdx = 0;
-
-	/* determine header length */
-	group->headerLength = lseek(group->fd, 0, SEEK_CUR);
 
 	return 0;
 }
@@ -787,6 +783,9 @@ int hdS_writeEntry (
 
 	/* write timestamp */
 	writeTimestampToGroupBuffer(group);
+
+	/* this is an entry, even when it has not data */
+	group->numEntries++;
 
 	/* return if nothing to write */
 	if (entryLength == 0)
@@ -1098,13 +1097,11 @@ int hdS_finalize(
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
 
-	const off_t curSize = lseek(group->fd, 0, SEEK_CUR);
-
 	/* close file */
 	close(group->fd);
 
-	if(curSize == group->headerLength){
-		// file is empty!
+	/* delete file if no entries are made */
+	if(group->numEntries == 0){
 		ret = unlink(group->tracefile);
 	}
 
@@ -1426,6 +1423,7 @@ static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsV
 	if (group->offset == (int) group->entryLength + HDS_TIMESTAMP_LENGTH)
 	{
 		flushGroupBuffer(group);
+		group->numEntries++;
 		group->nextValueIdx = 0;
 	}
 
@@ -1478,6 +1476,7 @@ static int flushGroupBuffer(hdStatsGroup group)
 		default:
 			assert(written >= 0);
 		}
+
 		/* disable current group (does not touch errno) */
 		hdS_disableGroup(group);
 

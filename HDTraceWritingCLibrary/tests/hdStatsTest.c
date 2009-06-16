@@ -130,6 +130,11 @@ static void Test_createGroup_C1(void)
 	/* check offset */
 	assert(myGroup->offset == offset);
 
+	/* check enable state */
+	assert(myGroup->isEnabled == 0);
+	/* check commit state */
+	assert(myGroup->isCommitted == 0);
+
 	TEST_PASSED;
 
 	destroyGroup(myGroup);
@@ -345,6 +350,8 @@ static void Test_commitGroup_C1(void)
 	assert(myGroup->isEnabled == 0);
 	/* check commit state */
 	assert(myGroup->isCommitted == 1);
+	/* check number of entries */
+	assert(myGroup->numEntries == 0);
 
 	/* save filename */
 	char *filename = strdup(myGroup->tracefile);
@@ -442,6 +449,8 @@ static void Test_enableGroup_C1(void)
 
 	/* check enable state */
 	assert(myGroup->isEnabled == 1);
+	/* check number of entries */
+	assert(myGroup->numEntries == 0);
 
 	TEST_PASSED;
 
@@ -468,6 +477,8 @@ static void Test_enableGroup_C2(void)
 
 	/* check enable state */
 	assert(myGroup->isEnabled == 1);
+	/* check number of entries */
+	assert(myGroup->numEntries == 0);
 
 	TEST_PASSED;
 
@@ -500,6 +511,8 @@ static void Test_disableGroup_C1(void)
 
 	/* check enable state */
 	assert(myGroup->isEnabled == 0);
+	/* check number of entries */
+	assert(myGroup->numEntries == 0);
 
 	TEST_PASSED;
 
@@ -526,6 +539,8 @@ static void Test_disableGroup_C2(void)
 
 	/* check enable state */
 	assert(myGroup->isEnabled == 0);
+	/* check number of entries */
+	assert(myGroup->numEntries == 0);
 
 	TEST_PASSED;
 
@@ -667,6 +682,9 @@ static void Test_writeEntry_C1(void)
 	assert(myGroup->isEnabled == 1);
 	assert(myGroup->isCommitted == 1);
 
+	/* check number of entries */
+	assert(myGroup->numEntries == 1);
+
 	/* save filename */
 	char *filename = strdup(myGroup->tracefile);
 
@@ -725,6 +743,8 @@ static void Test_writeEntry_W1(void)
 	assert(ret < 0 && errno == HD_ERR_TRACE_DISABLED);
 
 	assert(myGroup->isEnabled == 0);
+
+	assert(myGroup->numEntries == 0);
 
 	TEST_PASSED;
 
@@ -812,10 +832,12 @@ static void Test_writeXValue_C1(void)
 #undef ERROR_CHECK
 #undef ASSERTS
 
+	/* check number of entries */
+	assert(myGroup->numEntries == 1);
+
 	size_t ref_length = 24;
 
-
-	unsigned char ref_entry[24] = {
+	unsigned char ref_entry[ref_length] = {
 			0x00, 0x00, 0x30, 0x39,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x09, 0x32,
 			0x46, 0x40, 0xE6, 0xB7,
