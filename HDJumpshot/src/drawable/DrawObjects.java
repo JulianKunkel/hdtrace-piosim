@@ -46,7 +46,15 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class DrawObjects{
 
-	static double nestingMultiplier = 0.7;
+	final static double nestingMultiplier = 0.7;
+	
+	public static double getHeightMultiplier(int nestingDepth){
+		return Math.pow(nestingMultiplier, nestingDepth);
+	}
+	
+	public static int getNestingDepth(double heightMultiplier){
+		return (int) (Math.log(Math.abs(0.5 - heightMultiplier)) / Math.log(nestingMultiplier) - 0.9) - 1;
+	}
 
 
 	public static  int  drawState( Graphics2D g,
@@ -60,7 +68,7 @@ public class DrawObjects{
 		int iStart   = coord_xform.convertTimeToPixel( state.getEarliestTime().subtract(globalMinTime).getDouble() );
 		int iFinal   = coord_xform.convertTimeToPixel( state.getLatestTime().subtract(globalMinTime).getDouble() );
 		
-		int height = (int) ( coord_xform.getTimelineHeight() * Math.pow(nestingMultiplier, nestingDepth) );
+		int height = (int) ( coord_xform.getTimelineHeight() *  getHeightMultiplier(nestingDepth));
 
 		int jStart   = coord_xform.convertTimelineToPixel( timeline ) + (coord_xform.getTimelineHeight() - height) / 2;
 		int jFinal   = jStart + height;

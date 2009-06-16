@@ -34,10 +34,8 @@
 
 package viewer.timelines;
 
-import hdTraceInput.BufferedRelationReader;
 import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.BufferedTraceFileReader;
-import hdTraceInput.ReaderRelationEnumerator;
 import hdTraceInput.ReaderTraceElementEnumerator;
 import hdTraceInput.StatisticStatistics;
 import hdTraceInput.TraceFormatBufferedFileReader;
@@ -56,6 +54,8 @@ import topology.GlobalStatisticStatsPerGroup;
 import topology.MinMax;
 import topology.TopologyChangeListener;
 import topology.TopologyManager;
+import topology.TopologyRelationExpandedTreeNode;
+import topology.TopologyRelationTreeNode;
 import topology.TopologyStatisticTreeNode;
 import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
@@ -231,8 +231,17 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				drawedTraceElements += drawTraceTimeline(i, topologyManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
 			case RELATION:
-				drawedTraceElements += drawRelationTimeline(i, topologyManager.getRelationReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
+				if(! topologyManager.getTree().isExpanded(i)){
+					final TopologyRelationTreeNode node = ((TopologyRelationTreeNode) topologyManager.getTreeNodeForTimeline(i));
+					// draw only if not expanded. 
+					drawedTraceElements += drawRelationTimeline(i, 
+							node, offGraphics, vStartTime, vEndTime, coord_xform);
+				}
 				break;
+			case RELATION_EXPANDED:
+				final TopologyRelationExpandedTreeNode node = ((TopologyRelationExpandedTreeNode) topologyManager.getTreeNodeForTimeline(i));
+				drawedTraceElements += drawRelationTimeline(i, 
+						node, offGraphics, vStartTime, vEndTime, coord_xform);
 			}
 		}
 
@@ -507,11 +516,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	 */
 	public int drawRelationTimeline(
 			int timeline,
-			BufferedRelationReader tr,  Graphics2D offGraphics,
+			TopologyRelationTreeNode node,
+			Graphics2D offGraphics,
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		final ReaderRelationEnumerator elements = tr.enumerateRelations();
+		final Enumeration<RelationEntry> elements = node.enumerateEntries(startTime, endTime);
 
 		int drawedTraceObjects = 0;
 
@@ -557,79 +567,102 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 		return drawedTraceObjects;
 	}
+	
+	/**
+	 * Recursive find the appropriate trace entry within a state which got selected by the given time and yDelta.
+	 */
+	private ITraceEntry getTraceObjectInState(IStateTraceEntry state, Epoch realTime, int yDelta){
+		final double curDist = DrawObjects.getTimeDistance(realTime, state);
+		final double eventRadius = 2.0 / getViewPixelsPerUnitTime();
+		
+		ITraceEntry objMouse = state;
+		
+		if(curDist != 0){
+			// mouse is not inside the state.
+			if( curDist < eventRadius)
+				return state;
 
+			return null;
+		}
+		
+		/**
+		 * The maximum nesting depth which shall be achieved
+		 */
+		final int maxDepth = (int) DrawObjects.getNestingDepth((double) yDelta / getTopologyManager().getRowHeight());
+				
+		if (state.hasNestedTraceChildren()){					
+			ITraceEntry best = state;
+			double dist = 0;
+			
+			int curDepth = 0;
 
+			while(dist == 0){
+				// traverse nesting if necessary, and match events.
+
+				if (best.getType() == TraceObjectType.STATE ){
+					state = (IStateTraceEntry) best;
+					
+					if (state.hasNestedTraceChildren() && maxDepth > curDepth){
+						curDepth += 1;
+						
+						for(ITraceEntry child: state.getNestedTraceChildren()){
+							dist = DrawObjects.getTimeDistance(realTime, child);
+							if(child.getType() == TraceObjectType.EVENT ){
+								if( dist < eventRadius){
+									best = child;
+								}									
+							}
+							if (dist == 0){
+								// must be inside this one.
+								best = child;
+								break;
+							}
+						}
+					}else{
+						// no matching child
+						break;
+					}
+
+				}
+			} // while
+			objMouse = best;
+		}				
+
+		if(objMouse.getType() == TraceObjectType.STATE){
+			if(! reader.getCategoriesStates().get(objMouse.getName()).isVisible() ){
+				return null;
+			}
+		}else{
+			if(! reader.getCategoriesEvents().get(objMouse.getName()).isVisible() ){
+				return null;
+			}
+		}
+		
+		return objMouse;
+	}
+	
 	@Override
 	public TraceObjectInformation getTraceObjectAt(int timeline, Epoch realTime, int y) {
 		final TopologyManager topologyManager = getTopologyManager();
 
 		final double eventRadius = 2.0 / getViewPixelsPerUnitTime();
-
+		
 		if(topologyManager.getRowCount() <= timeline)
 			return null;
 
 		final TopologyTreeNode treeNode = topologyManager.getTreeNodeForTimeline(timeline);
-
-		switch(topologyManager.getType(timeline)){
+		final TraceObject rootObj; 
+		final TraceObject selectedObject;
+		
+		outer: switch(topologyManager.getType(timeline)){
 		case TRACE:
 			final BufferedTraceFileReader treader = topologyManager.getTraceReaderForTimeline(timeline);
-			ITraceEntry objMouse = treader.getTraceEntryClosestToTime(realTime);			
+			ITraceEntry objMouse = treader.getTraceEntryClosestToTime(realTime);	
+			
+			rootObj = objMouse;
 
 			if (objMouse.getType() == TraceObjectType.STATE){
-				IStateTraceEntry state = (IStateTraceEntry) objMouse;
-				final double curDist = DrawObjects.getTimeDistance(realTime, state);
-				
-				if(curDist != 0){
-					// mouse is not inside the state.
-					if( curDist < eventRadius)
-						return new TraceObjectInformation(treeNode, state);
-
-					return null;
-				}
-
-				if (state.hasNestedTraceChildren()){					
-					ITraceEntry best = objMouse;
-					double dist = 0;
-
-					while(dist == 0){
-						// traverse nesting if necessary, and match events.
-
-						if (best.getType() == TraceObjectType.STATE ){
-							state = (IStateTraceEntry) best;
-
-							if (state.hasNestedTraceChildren()){		
-								for(ITraceEntry child: state.getNestedTraceChildren()){
-									dist = DrawObjects.getTimeDistance(realTime, child);
-									if(child.getType() == TraceObjectType.EVENT ){
-										if( dist < eventRadius){
-											best = child;
-										}									
-									}
-									if (dist == 0){
-										// must be inside this one.
-										best = child;
-										break;
-									}
-								}
-							}else{
-								// no matching child
-								break;
-							}
-
-						}
-					} // while
-					objMouse = best;
-				}				
-
-				if(objMouse.getType() == TraceObjectType.STATE){
-					if(! reader.getCategoriesStates().get(objMouse.getName()).isVisible() ){
-						return null;
-					}
-				}else{
-					if(! reader.getCategoriesEvents().get(objMouse.getName()).isVisible() ){
-						return null;
-					}
-				}				
+				objMouse = getTraceObjectInState((IStateTraceEntry) objMouse, realTime, y );				
 			}else if(objMouse.getType() == TraceObjectType.EVENT){
 				double distance = Math.abs(objMouse.getEarliestTime().subtract(realTime).getDouble());
 				if( distance >= eventRadius){
@@ -641,19 +674,48 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				}
 			}
 
-			return new TraceObjectInformation(treeNode, objMouse);
-		case STATISTIC:
+			selectedObject = objMouse;
+			break;
+		case STATISTIC:{
 			final BufferedStatisticsFileReader sreader = topologyManager.getStatisticReaderForTimeline(timeline);
 			StatisticsGroupEntry entry = sreader.getTraceEntryClosestToTime(realTime);
 			int which = topologyManager.getStatisticNumberForTimeline(timeline);			
-			return new TraceObjectInformation(treeNode, entry.createStatisticEntry(which));
-		case INNER_NODE:
+			selectedObject = entry.createStatisticEntry(which);
+			rootObj = selectedObject;
+		}case INNER_NODE:
 			return null;
 		case RELATION:
 			return null;
+		case RELATION_EXPANDED:{
+			final TopologyRelationExpandedTreeNode node = (TopologyRelationExpandedTreeNode) treeNode;
+			final RelationEntry relentry = (RelationEntry) node.getTraceEntryClosestToTime(realTime); 
+			rootObj = relentry;
+			// lookup right object.
+			
+			// decide which contained element got selected.		
+			for(IStateTraceEntry state: relentry.getStates()){
+				if(state.getEarliestTime().compareTo(realTime) <= 0){
+					if(state.getLatestTime().compareTo(realTime) >= 0){
+						// we are inside the state
+						objMouse = getTraceObjectInState(state, realTime, y );
+						if(objMouse != null){
+							selectedObject = objMouse;
+							break outer;
+						}
+					}
+				}else{
+					break;
+				}
+			}			
+			// if none got selected directly, then choose relation
+			selectedObject = rootObj;
+			break;
+		}
 		default:
 			throw new IllegalArgumentException("Type not known " + topologyManager.getType(timeline));
 		}
+		
+		return new TraceObjectInformation(treeNode, rootObj, selectedObject, realTime);
 	}
 
 

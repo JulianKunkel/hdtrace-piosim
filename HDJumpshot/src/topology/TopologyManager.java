@@ -665,7 +665,7 @@ public class TopologyManager
 	private SortedJTreeModel getTreeModel(){
 		return (SortedJTreeModel) tree.getModel();
 	}
-
+	
 	public void scrollRowToVisible(int timeline) {
 		tree.scrollRowToVisible(timeline);
 	}

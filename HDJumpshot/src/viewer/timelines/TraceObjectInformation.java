@@ -19,14 +19,26 @@ package viewer.timelines;
 
 import topology.TopologyTreeNode;
 import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class TraceObjectInformation {
 	final TopologyTreeNode node;
-	final TraceObject object;
+	final TraceObject object;	
+	final TraceObject rootObject;	// if any	
+	final Epoch time;
 	
-	public TraceObjectInformation(TopologyTreeNode topologyTreeNode, TraceObject object) {
+	/**
+	 * @param topologyTreeNode
+	 * @param rootObject, the object container in which the tracked object is found (or the object itself)
+	 * @param childObject
+	 * @param time
+	 */
+	public TraceObjectInformation(TopologyTreeNode topologyTreeNode, TraceObject rootObject, TraceObject childObject, Epoch time) {
+		assert(rootObject != null);
 		this.node = topologyTreeNode;
-		this.object = object;
+		this.object = childObject;
+		this.time = time;
+		this.rootObject = rootObject;
 	}
 	
 	public TopologyTreeNode getTopologyTreeNode() {
@@ -35,5 +47,13 @@ public class TraceObjectInformation {
 	
 	public TraceObject getObject() {
 		return object;
+	}
+	
+	public TraceObject getRootObject() {
+		return rootObject;
+	}
+	
+	public Epoch getTime() {
+		return time;
 	}
 }

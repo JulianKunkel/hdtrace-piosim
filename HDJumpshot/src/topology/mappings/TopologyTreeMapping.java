@@ -17,9 +17,12 @@
 
 package topology.mappings;
 
+import hdTraceInput.BufferedRelationReader;
 import hdTraceInput.BufferedStatisticsFileReader;
 import hdTraceInput.TraceFormatBufferedFileReader;
 import topology.TopologyManagerContents;
+import topology.TopologyRelationExpandedTreeNode;
+import topology.TopologyRelationTreeNode;
 import topology.TopologyStatisticTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.SortedJTreeNode;
@@ -39,6 +42,18 @@ abstract public class TopologyTreeMapping {
 	
 	public void setTopologyManagerContents(TopologyManagerContents type){
 		this.addStatistics = !(type == TopologyManagerContents.TRACE_ONLY);
+	}
+	
+	/**
+	 * This function adds for each overlapping line a separate node to the RelationTreeNode 
+	 * @param node
+	 */
+	protected void addRelationTreeNodeChildrenTo(TopologyRelationTreeNode node){
+		final BufferedRelationReader reader = node.getRelationSource();
+		for(int i=0; i < reader.getMaximumConcurrentRelationEntries(); i++){
+			TopologyRelationExpandedTreeNode child = new TopologyRelationExpandedTreeNode(i, node.getTopology(), node.getFile());
+			node.add(child);
+		}
 	}
 	
 	protected void addTopologyTreeNode(TopologyTreeNode node, SortedJTreeNode parent){

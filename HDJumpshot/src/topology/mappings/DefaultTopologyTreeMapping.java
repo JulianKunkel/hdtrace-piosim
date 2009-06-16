@@ -51,6 +51,7 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 		}else if (topology.getRelationSource() != null){
 			// TODO fix case:  Trace != null AND relation != null
 			node = new TopologyRelationTreeNode(topology.getName(), topology, file);
+			addRelationTreeNodeChildrenTo((TopologyRelationTreeNode) node);
 		}else{
 			node = new TopologyInnerNode(topology, file);			
 		}

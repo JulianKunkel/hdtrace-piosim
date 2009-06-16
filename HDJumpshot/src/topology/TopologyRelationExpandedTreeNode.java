@@ -25,46 +25,50 @@
 
 package topology;
 
-import hdTraceInput.BufferedRelationReader;
-
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
+import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
-public class TopologyRelationTreeNode extends TopologyTreeNode
+public class TopologyRelationExpandedTreeNode extends TopologyRelationTreeNode
 {
 	private static final long serialVersionUID = 3518866075690297655L;
 	
-	private final String label;
+	private final int line;
 	
-	public TopologyRelationTreeNode(
-			String label, 
+	public TopologyRelationExpandedTreeNode(
+			int line, 
 			TopologyNode topNode,
 			TraceFormatFileOpener file
 	) {
-		super(topNode, file);
-		this.label = label;
+		super(Integer.toString(line), topNode, file);
+		this.line = line;
 	}
 
-	public BufferedRelationReader getRelationSource(){
-		return (BufferedRelationReader) getTopology().getRelationSource();
-	}
-	
-	public Enumeration<RelationEntry> enumerateEntries(Epoch start, Epoch end){
-		return getRelationSource().enumerateRelations();
-	}
-	
 	@Override
 	public TimelineType getType() {
-		return TimelineType.RELATION;
+		return TimelineType.RELATION_EXPANDED;
+	}
+	
+	public int getLine() {
+		return line;
+	}
+	
+	public ArrayList<RelationEntry> getEntries() {
+		return getRelationSource().getEntriesOnLine(line);
 	}
 	
 	@Override
-	public String toString() {
-		return label;
+	public Enumeration<RelationEntry> enumerateEntries(Epoch start, Epoch end) {
+		return getRelationSource().enumerateRelations(line);
+	}
+	
+	public TraceObject getTraceEntryClosestToTime(Epoch time) {
+		return getRelationSource().getTraceEntryClosestToTime(time, line);
 	}
 }

@@ -90,8 +90,8 @@ public class TraceFormatBufferedFileReader {
 		legendTraceModel.addCategoryUpdateListener(arrowManager);
 	}
 
-	public double subtractGlobalMinTimeOffset(Epoch time){
-		return time.subtract(globalMinTime).getDouble();
+	public Epoch subtractGlobalMinTimeOffset(Epoch time){
+		return time.subtract(globalMinTime);
 	}
 
 

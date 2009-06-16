@@ -10,9 +10,9 @@ public class ReaderRelationEnumerator implements Enumeration<RelationEntry> {
 	final private ArrayList<RelationEntry> entries;
 	
 	public ReaderRelationEnumerator(
-			BufferedRelationReader bufferedRelationReader
-			) {
-		entries = bufferedRelationReader.getEntries();
+			ArrayList<RelationEntry> entries
+		) {
+		this.entries = entries;
 	}
 
 	@Override

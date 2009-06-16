@@ -42,8 +42,6 @@ import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,17 +52,18 @@ import topology.TopologyStatisticTreeNode;
 import viewer.common.Const;
 import viewer.common.LabeledTextField;
 import viewer.common.ModelInfoPanel;
-import viewer.common.TimeFormat;
 import viewer.pvfs2.PVFS2OpTypeParser;
 import viewer.pvfs2.PVFS2SMParser;
 import de.hd.pvs.TraceFormat.TraceObject;
 import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import drawable.Category;
 
 
@@ -107,8 +106,6 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 
 
 	private static final String         FORMAT = Const.INFOBOX_TIME_FORMAT;
-	private static       DecimalFormat  fmt    = null;
-	private static       TimeFormat     tfmt   = null;
 
 	/**
 	 * contains the categories which could be mapped to PVFS2 operation types directly
@@ -123,23 +120,54 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 			return;
 
 		final TraceObject obj = infoObj.getObject();
+		final TopologyNode node =  infoObj.getTopologyTreeNode().getTopology();
 
 		switch(obj.getType()){
 		case EVENT:
-			showInfo((IEventTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
+			showInfo((IEventTraceEntry) obj, node);
 			return;
 		case STATE:
-			showInfo((IStateTraceEntry) obj, infoObj.getTopologyTreeNode().getTopology());
+			showInfo((IStateTraceEntry) obj, node);
 			return;
 		case STATISTICENTRY:
-			showInfo((StatisticsEntry) obj, infoObj.getTopologyTreeNode().getTopology(), 
+			showInfo((StatisticsEntry) obj, node, 
 					((TopologyStatisticTreeNode) infoObj.getTopologyTreeNode()).getStatisticSource());
+			return;
+		case RELATION:
+			showInfo((RelationEntry) obj, infoObj.getTime(), node);
 			return;
 		default:
 			throw new IllegalArgumentException("Unexpected object of trace type: " + obj.getType());
 		}
 	}
+	
+	public void showInfo( RelationEntry entry,
+			Epoch time,
+			TopologyNode topology) 
+	{
+		
+		// decide which contained element got selected.		
+		for(IStateTraceEntry state: entry.getStates()){
+			if(state.getEarliestTime().compareTo(time) <= 0){
+				if(state.getLatestTime().compareTo(time) >= 0){
+					// we are inside the state
+					showInfo(state, topology);
+					return;
+				}
+			}else{
+				break;
+			}
+		}
+		
+		// if none got selected directly, then choose relation
+		setVisibleControls(TraceObjectType.RELATION);
 
+		this.setCategoryName("Relation");
+		this.setStartTime(reader.subtractGlobalMinTimeOffset(entry.getEarliestTime()));
+		this.setEndTime( reader.subtractGlobalMinTimeOffset(entry.getLatestTime()));
+		this.setDuration( entry.getDurationTime() );
+	}
+	
 	public void showInfo( StatisticsEntry statistic, 
 			TopologyNode topology, 
 			BufferedStatisticsFileReader sReader) {
@@ -150,11 +178,9 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		final StatisticsDescription desc = statistic.getDescription();
 		final Category cat = reader.getCategory(desc); 
 
-		this.setStartTime( "" +  reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime()));
-		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(groupEntry.getLatestTime()));
+		this.setStartTime(  reader.subtractGlobalMinTimeOffset(groupEntry.getEarliestTime()));
+		this.setEndTime( reader.subtractGlobalMinTimeOffset(groupEntry.getLatestTime()));
 
-
-		this.setDuration( fmt.format( 0 ) );
 		this.setCategoryName( desc.getName() );    
 		this.setCategoryColor( (Color) cat.getColor() );
 		
@@ -187,10 +213,10 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 	public void showInfo( IStateTraceEntry state, TopologyNode topology ) {
 		setVisibleControls(TraceObjectType.STATE);
 
-		this.setStartTime( "" + reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
-		this.setEndTime( "" + reader.subtractGlobalMinTimeOffset(state.getLatestTime()) );
+		this.setStartTime(  reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
+		this.setEndTime( reader.subtractGlobalMinTimeOffset(state.getLatestTime()) );
 
-		this.setDuration( fmt.format( state.getDurationTime().getDouble() ) );
+		this.setDuration(  state.getDurationTime() );
 		final Category cat = reader.getCategory(state); 
 		this.setCategoryName( cat.getName() );    
 		this.setCategoryColor( (Color) cat.getColor() );
@@ -199,12 +225,11 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 	public void showInfo( IEventTraceEntry event, TopologyNode topology) {
 		setVisibleControls(TraceObjectType.EVENT);
 
-		final double time = reader.subtractGlobalMinTimeOffset(event.getEarliestTime());
+		final Epoch time = reader.subtractGlobalMinTimeOffset(event.getEarliestTime());
 
-		this.setStartTime( "" + time  );
-		this.setEndTime( "" + time );
+		this.setStartTime( time  );
+		this.setEndTime( time );
 
-		this.setDuration( fmt.format( 0 ) );
 		final Category cat = reader.getCategory(event); 
 		this.setCategoryName( cat.getName() );    
 		this.setCategoryColor( (Color) cat.getColor() );
@@ -214,13 +239,6 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 
 	@Override
 	protected void addControlsToPanel(JPanel panel) {
-		if ( fmt == null ) {
-			fmt = (DecimalFormat) NumberFormat.getInstance();
-			fmt.applyPattern( FORMAT );
-		}
-		if ( tfmt == null )
-			tfmt = new TimeFormat();
-
 		fld_category_name    = new LabeledTextField( " ", Const.PANEL_TIME_FORMAT );
 		fld_category_name.setEditable( false );
 		fld_category_name.setBackground( Color.black );
@@ -319,7 +337,10 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 			fld_stat_integrated_sum.setVisible(true);
 			fld_stat_integrated_avg.setVisible(true);
 			fld_stat_average.setVisible(true);
-			fld_stat_sum.setVisible(true);			
+			fld_stat_sum.setVisible(true);		
+		case RELATION:
+			fld_time_start.setVisible(true);
+			fld_time_duration.setVisible(true);
 		}
 
 		fld_category_name.setText("");
@@ -328,19 +349,19 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		setInfoString("");
 	}
 
-	private void setStartTime(final String starttime)
+	private void setStartTime(final Epoch starttime)
 	{
-		fld_time_start.setText(starttime);
+		fld_time_start.setDouble(starttime.getDouble());
 	}
 
-	private void setEndTime(final String endtime)
+	private void setEndTime(final Epoch endtime)
 	{
-		fld_time_end.setText(endtime);
+		fld_time_end.setDouble(endtime.getDouble());
 	}
 
-	private void setDuration(final String duration)
+	private void setDuration(final Epoch duration)
 	{
-		fld_time_duration.setText(duration);
+		fld_time_duration.setDouble(duration.getDouble());
 	}
 
 	private void setCategoryColor(final Color color)
