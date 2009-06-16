@@ -97,6 +97,8 @@ public class IconManager{
 		ZoomIn,
 		ZoomOut,
 		Zoom,
+		ZoomUndo,
+		ZoomRedo,
 		DisableAll,
 		DisableSelected,
 		EnableAll,

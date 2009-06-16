@@ -252,7 +252,7 @@ implements ToolBarStatus
 
 		 super.addSeparator( );
 
-		 zoomUndo_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.Undo) );
+		 zoomUndo_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.ZoomUndo) );
 		 zoomUndo_btn.setMargin( btn_insets );
 		 zoomUndo_btn.setToolTipText( "Undo the previous zoom operation" );
 		 zoomUndo_btn.setMnemonic( KeyEvent.VK_U );
@@ -260,7 +260,7 @@ implements ToolBarStatus
 				 new ActionZoomUndo( this, time_model ) );
 		 super.add( zoomUndo_btn );
 
-		 zoomRedo_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.Redo) );
+		 zoomRedo_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.ZoomRedo) );
 		 zoomRedo_btn.setMargin( btn_insets );
 		 zoomRedo_btn.setToolTipText( "Redo the previous zoom operation" );
 		 zoomRedo_btn.setMnemonic( KeyEvent.VK_R );
