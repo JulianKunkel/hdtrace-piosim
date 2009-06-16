@@ -257,24 +257,24 @@ int hdS_finalize(
 #include <endian.h>
 #include <byteswap.h>
 
-#define order_bytes32_p(x) *((uint32_t *) x) = bswap_32(*((uint32_t *) x))
-#define order_bytes64_p(x) *((uint64_t *) x) = bswap_64(*((uint64_t *) x))
+//#define order_bytes32_p(x) *((uint32_t *) x) = bswap_32(*((uint32_t *) x))
+//#define order_bytes64_p(x) *((uint64_t *) x) = bswap_64(*((uint64_t *) x))
 
 /**
  * @def order_bytes32ip
  * Conversation of a 32 bit integer to network byte order.
- * The argument has to be a pointer to the integer an become converted in
+ * The argument has to be a pointer to the integer and becomes converted in
  *  place.
  */
 /**
  * @def order_bytes64ip
  * Conversation of a 64 bit integer to network byte order.
- * The argument has to be a pointer to the integer an become converted in
+ * The argument has to be a pointer to the integer and becomes converted in
  *  place.
  */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-# define order_bytes32ip(x) order_bytes32_p(x)
-# define order_bytes64ip(x) order_bytes64_p(x)
+# define order_bytes32ip(x) *(x) = bswap_32(*(x))
+# define order_bytes64ip(x) *(x) = bswap_64(*(x))
 #elif __BYTE_ORDER == __BIG_ENDIAN
 # define order_bytes32ip(x) (x)
 # define order_bytes64ip(x) (x)
@@ -283,19 +283,32 @@ int hdS_finalize(
  * @def order_bytes32fp
  * Conversation of a 32 bit floating point number (float) to network byte
  *  order.
- * The argument has to be a pointer to the integer an become converted in
+ * The argument has to be a pointer to the float and becomes converted in
  *  place.
  */
 /**
  * @def order_bytes64fp
  * Conversation of a 64 bit floating point number (double) to network byte
  *  order.
- * The argument has to be a pointer to the integer an become converted in
+ * The argument has to be a pointer to the double and becomes converted in
  *  place.
  */
 #if __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
-# define order_bytes32fp(x) order_bytes32_p(x)
-# define order_bytes64fp(x) order_bytes64_p(x)
+/* the memcpys areneeded for ISO C's strict aliasing rules */
+# define order_bytes32fp(x) \
+	do { \
+		uint32_t *tmp = alloca(sizeof(*tmp)); \
+		memcpy(tmp, x, 4); \
+		*tmp = bswap_32(*tmp); \
+		memcpy(x, tmp, 4); \
+	} while (0);
+# define order_bytes64fp(x) \
+	do { \
+		uint64_t *tmp = alloca(sizeof(*tmp)); \
+		memcpy(tmp, x, 8); \
+		*tmp = bswap_64(*tmp); \
+		memcpy(x, tmp, 8); \
+	} while (0);
 #elif __FLOAT_WORD_ORDER == __BIG_ENDIAN
 # define order_bytes32f(x) (x)
 # define order_bytes64f(x) (x)

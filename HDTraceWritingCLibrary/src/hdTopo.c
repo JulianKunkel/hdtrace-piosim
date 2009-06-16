@@ -173,13 +173,13 @@ int hdT_destroyTopology(
 		return -1;
 	}
 
-	free(topology->project);
+	hd_free(topology->project);
 
 	for (int i = 0; i < topology->nlevels; ++i)
-		free(topology->levels[i]);
+		hd_free(topology->levels[i]);
 
-	free(topology->levels);
-	free(topology);
+	hd_free(topology->levels);
+	hd_free(topology);
 
 	return 0;
 }
@@ -439,11 +439,11 @@ int hdT_destroyTopoNode(
 	}
 
 	for (int i = 0; i < node->length; ++i)
-		free(node->path[i]);
+		hd_free(node->path[i]);
 
-	free(node->path);
-	free(node->string);
-	free(node);
+	hd_free(node->path);
+	hd_free(node->string);
+	hd_free(node);
 
 	return 0;
 }

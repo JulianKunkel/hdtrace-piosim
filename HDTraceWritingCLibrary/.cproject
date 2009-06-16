@@ -21,7 +21,7 @@
 <folderInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731." name="/" resourcePath="">
 <toolChain id="org.eclipse.linuxtools.cdt.autotools.toolChain.357956445" name="GNU Autotools Toolchain" nonInternalBuilderId="org.eclipse.linuxtools.cdt.autotools.toolchain.builder" superClass="org.eclipse.linuxtools.cdt.autotools.toolChain">
 <targetPlatform id="org.eclipse.linuxtools.cdt.autotools.toolchain.targetPlatform.465750031" isAbstract="false" name="GNU Autotools Target Platform" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.targetPlatform"/>
-<builder buildPath="${workspace_loc:/HDTraceWritingCLibrary/build.debug}" enableAutoBuild="true" enableCleanBuild="true" id="org.eclipse.linuxtools.cdt.autotools.builder.284366860" keepEnvironmentInBuildfile="false" name="Autotools Makefile Generator" superClass="org.eclipse.linuxtools.cdt.autotools.builder"/>
+<builder autoBuildTarget="all tests/all" buildPath="${workspace_loc:/HDTraceWritingCLibrary/build.debug}" enableAutoBuild="true" enableCleanBuild="true" id="org.eclipse.linuxtools.cdt.autotools.builder.284366860" keepEnvironmentInBuildfile="false" name="Autotools Makefile Generator" superClass="org.eclipse.linuxtools.cdt.autotools.builder"/>
 <tool id="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure.904843764" name="configure" superClass="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure">
 <option id="org.eclipse.linuxtools.cdt.autotools.option.configure.user.890248853" name="User-specified configuration options" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.user" value="--enable-warnings --enable-debugging" valueType="string"/>
 <option id="org.eclipse.linuxtools.cdt.autotools.option.configure.builddir.1863445644" name="Build directory" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.builddir" value="build.debug" valueType="string"/>
@@ -351,6 +351,46 @@
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
+</target>
+<target name="hdRelationTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdRelationTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="hdStatsTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdStatsTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="hdTopoTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdTopoTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="hdTraceTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdTraceTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="clean" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>clean</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
 </target>
 <target name="hdStatsTest" path="build.debug/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
 <buildCommand>make</buildCommand>
@@ -736,6 +776,46 @@
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
+</target>
+<target name="hdRelationTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdRelationTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="hdStatsTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdStatsTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="hdTopoTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdTopoTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="hdTraceTest" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>hdTraceTest</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="clean" path="build.optimized/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>clean</buildTarget>
+<stopOnError>false</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
 </target>
 <target name="hdStatsTest" path="build.debug/tests" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
 <buildCommand>make</buildCommand>

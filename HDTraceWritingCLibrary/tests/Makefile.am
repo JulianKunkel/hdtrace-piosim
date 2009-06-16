@@ -13,10 +13,15 @@ hdStatsTest_LDFLAGS = -static
 hdTraceTest_SOURCES = hdTraceTest.c
 hdTraceTest_CFLAGS = -I$(INC_DIR)
 hdTraceTest_LDADD = $(LIB_DIR)/libhdTrace.la
+hdTraceTest_LDFLAGS = -static
 
 hdRelationTest_SOURCES = hdRelationTest.c
 hdRelationTest_CFLAGS = -I$(INC_DIR) $(GLIB_CFLAGS)
 hdRelationTest_LDADD = $(LIB_DIR)/libhdRelation.la $(GLIB_LDADD)
-hdRelationTest_LDFLAGS = $(GLIB_LIBS)
+hdRelationTest_LDFLAGS = $(GLIB_LIBS) -static
 
 TESTS = hdTopoTest hdStatsTest hdRelationTest
+
+# Build the tests already with target all
+# This is especially needed for eclipse autobuild function
+all: $(check_PROGRAMS)
