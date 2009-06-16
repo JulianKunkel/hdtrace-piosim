@@ -23,40 +23,27 @@
 #include "tests.h"
 
 /**
- * Return standard testing group (just created)
+ * Create standard testing group (just created) myGroup
  */
-static hdStatsGroup getGroup(void)
-{
-	/* create topology */
-	const char *levels[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
-
-	/* create topology node */
-	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
-
-	return hdS_createGroup("MyGroup", myTopoNode, 1);
-}
+#define CREATE_MYGROUP \
+	const char *levels[] = {"Host","Process"}; \
+	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2); \
+	const char *path[] = {"host0","process0"}; \
+	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2); \
+	hdStatsGroup myGroup = hdS_createGroup("MyGroup", myTopoNode, 1);
 
 /**
- * Destroy group and remove trace file
+ * Destroy myGroup and remove trace file
  */
-static void destroyGroup(hdStatsGroup myGroup)
-{
-	/* save filename */
-	char *filename = strdup(myGroup->tracefile);
+#define DESTROY_MYGROUP \
+	char *filename = strdup(myGroup->tracefile); /* save filename */ \
+	myGroup->isCommitted = 1; \
+	assert(hdS_finalize(myGroup) == 0); /* (assumed as working) */ \
+	remove(filename);	/* remove group trace file */ \
+	free(filename); \
+	hdT_destroyTopoNode(myTopoNode); \
+	hdT_destroyTopology(myTopology);
 
-	/* finalize group (assumed as working) */
-
-	myGroup->isCommitted = 1;
-
-	assert(hdS_finalize(myGroup) == 0);
-
-	/* remove group trace file */
-	remove(filename);
-
-	free(filename);
-}
 
 /* ************************************************************************* *
  *                     BEGIN Tests of hdS_createGroup                        *
@@ -119,7 +106,7 @@ static void Test_createGroup_C1(void)
 	assert(strcmp_result == 0);
 	offset += (int) strlen(refstring);
 
-	/* jump over timeAdjustment value (%010d.%09d) */
+	/* jump over timeAdjustment value (-%010d.%09d) */
 	offset += 21;
 
 	refstring = "\">\n";
@@ -137,7 +124,7 @@ static void Test_createGroup_C1(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 
 /**
@@ -200,7 +187,7 @@ static void Test_createGroup_C2(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 #undef ERROR_CHECK
 /* ************************************************************************* *
@@ -227,7 +214,7 @@ static void Test_createGroup_C2(void)
 static void Test_addValue_C1(void)
 {
 
-	hdStatsGroup myGroup = getGroup();
+	CREATE_MYGROUP;
 
 	int offset = myGroup->offset;
 
@@ -257,7 +244,7 @@ static void Test_addValue_C1(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 
 /**
@@ -266,7 +253,7 @@ static void Test_addValue_C1(void)
 static void Test_addValue_C2(void)
 {
 
-	hdStatsGroup myGroup = getGroup();
+	CREATE_MYGROUP;
 
 	int offset = myGroup->offset;
 
@@ -309,7 +296,7 @@ static void Test_addValue_C2(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 #undef ERROR_CHECK
 /* ************************************************************************* *
@@ -325,7 +312,7 @@ static void Test_addValue_C2(void)
 static void Test_commitGroup_C1(void)
 {
 
-	hdStatsGroup myGroup = getGroup();
+	CREATE_MYGROUP;
 
 	int ret;
 
@@ -353,19 +340,12 @@ static void Test_commitGroup_C1(void)
 	/* check number of entries */
 	assert(myGroup->numEntries == 0);
 
-	/* save filename */
-	char *filename = strdup(myGroup->tracefile);
-
-	/* finalize group (assumed as working) */
-	assert(hdS_finalize(myGroup) == 0);
-
-	// test breaks because file got deleted!!
 
 	/* read data from file */
 	char buffer[HDS_HEADER_BUF_SIZE];
 	char reference[HDS_HEADER_BUF_SIZE];
 	FILE *file;
-	assert((file = fopen(filename, "r")) != NULL);
+	assert((file = fopen(myGroup->tracefile, "r")) != NULL);
 	int boff = 0;
 	while(fgets(buffer + boff, HDS_HEADER_BUF_SIZE - boff, file))
 	{
@@ -381,10 +361,10 @@ static void Test_commitGroup_C1(void)
 			HD_INDENT_STRING "<Label value=\"host0\" />\n"
 			"</TopologyNode>\n"
 			"<Group name=\"MyGroup\" timestampDatatype=\"EPOCH\""
-					" timeAdjustment=\"[0-9]{10}\\.[0-9]{9}\">\n"
+					" timeAdjustment=\"-[0-9]{10}\\.[0-9]{9}\">\n"
 			"</Group>\n"
 			"</Statistics>\n",
-			(long) (13 + 15 + strlen(HD_INDENT_STRING) + 24 + 16 + 87 + 9 + 14));
+			(long) (13 + 15 + strlen(HD_INDENT_STRING) + 24 + 16 + 88 + 9 + 14));
 
 	/* create reference header regexp */
 	regex_t refregexp;
@@ -399,10 +379,7 @@ static void Test_commitGroup_C1(void)
 
 	TEST_PASSED;
 
-	/* remove group trace file */
-	assert(remove(filename) == 0);
-
-	free(filename);
+	DESTROY_MYGROUP;
 }
 
 /* ************************************************************************* *
@@ -410,21 +387,15 @@ static void Test_commitGroup_C1(void)
  * ************************************************************************* */
 
 /**
- * Return standard testing group (committed)
+ * CREATE committed standard testing group myGroup
  */
-static hdStatsGroup getCommitedGroup(void)
-{
-	hdStatsGroup myGroup = getGroup();
-
-	hdS_addValue(myGroup, "Int32Value", INT32, "unit0", NULL);
-	hdS_addValue(myGroup, "Int64Value", INT64, "unit1", NULL);
-	hdS_addValue(myGroup, "FloatValue", FLOAT, "unit2", NULL);
-	hdS_addValue(myGroup, "DoubleValue", DOUBLE, "unit3", NULL);
-
+#define CREATE_COMMITED_MYGROUP \
+	CREATE_MYGROUP; \
+	hdS_addValue(myGroup, "Int32Value", INT32, "unit0", NULL); \
+	hdS_addValue(myGroup, "Int64Value", INT64, "unit1", NULL); \
+	hdS_addValue(myGroup, "FloatValue", FLOAT, "unit2", NULL); \
+	hdS_addValue(myGroup, "DoubleValue", DOUBLE, "unit3", NULL); \
 	hdS_commitGroup (myGroup);
-
-	return myGroup;
-}
 
 /* ************************************************************************* *
  *                     BEGIN Tests of hdS_enableGroup                        *
@@ -434,7 +405,7 @@ static hdStatsGroup getCommitedGroup(void)
  */
 static void Test_enableGroup_C1(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* disable group */
 	myGroup->isEnabled = 0;
@@ -454,7 +425,7 @@ static void Test_enableGroup_C1(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 
 /**
@@ -462,7 +433,7 @@ static void Test_enableGroup_C1(void)
  */
 static void Test_enableGroup_C2(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* enable group */
 	myGroup->isEnabled = 1;
@@ -482,7 +453,7 @@ static void Test_enableGroup_C2(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 /* ************************************************************************* *
  *                      END  Tests of hdS_enableGroup                        *
@@ -496,7 +467,7 @@ static void Test_enableGroup_C2(void)
  */
 static void Test_disableGroup_C1(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* enable group */
 	myGroup->isEnabled = 1;
@@ -516,7 +487,7 @@ static void Test_disableGroup_C1(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 
 /**
@@ -524,7 +495,7 @@ static void Test_disableGroup_C1(void)
  */
 static void Test_disableGroup_C2(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* disable group */
 	myGroup->isEnabled = 0;
@@ -544,7 +515,7 @@ static void Test_disableGroup_C2(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 /* ************************************************************************* *
  *                     END  Tests of hdS_disableGroup                        *
@@ -558,7 +529,7 @@ static void Test_disableGroup_C2(void)
  */
 static void Test_isEnabled_C1(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* enable group */
 	myGroup->isEnabled = 1;
@@ -576,7 +547,7 @@ static void Test_isEnabled_C1(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 
 /**
@@ -584,7 +555,7 @@ static void Test_isEnabled_C1(void)
  */
 static void Test_isEnabled_C2(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* disable group */
 	myGroup->isEnabled = 0;
@@ -602,7 +573,7 @@ static void Test_isEnabled_C2(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 }
 
 /* ************************************************************************* *
@@ -617,7 +588,7 @@ static void Test_isEnabled_C2(void)
  */
 static void Test_writeEntry_C1(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* enable group */
 	hdS_enableGroup(myGroup);
@@ -716,6 +687,9 @@ static void Test_writeEntry_C1(void)
 	/* remove group trace file */
 	assert(remove(filename) == 0);
 
+	hdT_destroyTopoNode(myTopoNode);
+	hdT_destroyTopology(myTopology);
+
 	free(entry);
 	free(filename);
 }
@@ -725,7 +699,7 @@ static void Test_writeEntry_C1(void)
  */
 static void Test_writeEntry_W1(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* disable group (should already be) */
 	hdS_disableGroup(myGroup);
@@ -748,7 +722,7 @@ static void Test_writeEntry_W1(void)
 
 	TEST_PASSED;
 
-	destroyGroup(myGroup);
+	DESTROY_MYGROUP;
 	free(entry);
 }
 
@@ -765,7 +739,7 @@ static void Test_writeEntry_W1(void)
  */
 static void Test_writeXValue_C1(void)
 {
-	hdStatsGroup myGroup = getCommitedGroup();
+	CREATE_COMMITED_MYGROUP;
 
 	/* enable group */
 	hdS_enableGroup(myGroup);
@@ -837,7 +811,7 @@ static void Test_writeXValue_C1(void)
 
 	size_t ref_length = 24;
 
-	unsigned char ref_entry[ref_length] = {
+	unsigned char ref_entry[24] = {
 			0x00, 0x00, 0x30, 0x39,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x09, 0x32,
 			0x46, 0x40, 0xE6, 0xB7,
@@ -875,6 +849,9 @@ static void Test_writeXValue_C1(void)
 	/* remove group trace file */
 	assert(remove(filename) == 0);
 
+	hdT_destroyTopoNode(myTopoNode);
+	hdT_destroyTopology(myTopology);
+
 	free(filename);
 
 }
@@ -903,7 +880,7 @@ int main(void)
 	Test_createGroup_C2();
 	Test_addValue_C1();
 	Test_addValue_C2();
-	//Test_commitGroup_C1();
+	Test_commitGroup_C1();
 	Test_enableGroup_C1();
 	Test_enableGroup_C2();
 	Test_disableGroup_C1();

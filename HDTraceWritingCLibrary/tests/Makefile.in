@@ -58,7 +58,7 @@ hdStatsTest_OBJECTS = $(am_hdStatsTest_OBJECTS)
 hdStatsTest_DEPENDENCIES = $(LIB_DIR)/libhdStats.la
 hdStatsTest_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(hdStatsTest_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+	$(CFLAGS) $(hdStatsTest_LDFLAGS) $(LDFLAGS) -o $@
 am_hdTopoTest_OBJECTS = hdTopoTest-hdTopoTest.$(OBJEXT) \
 	hdTopoTest-hdTopo.$(OBJEXT)
 hdTopoTest_OBJECTS = $(am_hdTopoTest_OBJECTS)
@@ -217,6 +217,7 @@ hdTopoTest_CFLAGS = -I$(INC_DIR)
 hdStatsTest_SOURCES = hdStatsTest.c
 hdStatsTest_CFLAGS = -I$(SRC_DIR) -I$(INC_DIR)
 hdStatsTest_LDADD = $(LIB_DIR)/libhdStats.la
+hdStatsTest_LDFLAGS = -static
 hdTraceTest_SOURCES = hdTraceTest.c
 hdTraceTest_CFLAGS = -I$(INC_DIR)
 hdTraceTest_LDADD = $(LIB_DIR)/libhdTrace.la

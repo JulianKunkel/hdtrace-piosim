@@ -443,6 +443,7 @@ int hdT_destroyTopoNode(
 
 	free(node->path);
 	free(node->string);
+	free(node);
 
 	return 0;
 }

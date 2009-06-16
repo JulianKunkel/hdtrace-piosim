@@ -250,6 +250,7 @@ hdStatsGroup hdS_createGroup (
     group->entryLength = 0;
     hd_malloc(group->valueTypes, HDS_MAX_VALUES_PER_GROUP, NULL);
     group->nextValueIdx = 0;
+    group->numEntries = 0;
     group->isCommitted = FALSE;
     group->isEnabled = FALSE;
 
@@ -611,6 +612,9 @@ int hdS_commitGroup (
 
 	/* mark first value as next expected */
 	group->nextValueIdx = 0;
+
+	/* set entry counter to zero */
+	group->numEntries = 0;
 
 	/* mark group as committed */
 	group->isCommitted = TRUE;

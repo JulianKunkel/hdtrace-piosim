@@ -8,6 +8,7 @@ hdTopoTest_CFLAGS = -I$(INC_DIR)
 hdStatsTest_SOURCES = hdStatsTest.c
 hdStatsTest_CFLAGS = -I$(SRC_DIR) -I$(INC_DIR)
 hdStatsTest_LDADD = $(LIB_DIR)/libhdStats.la
+hdStatsTest_LDFLAGS = -static
 
 hdTraceTest_SOURCES = hdTraceTest.c
 hdTraceTest_CFLAGS = -I$(INC_DIR)

@@ -56,7 +56,7 @@ static void Test_createTopology_T1(void)
 	TEST_BEGIN("Tolerated usage (dynamic strings)");
 
 
-	char **levels = malloc(2 * sizeof(**levels));
+	char **levels = malloc(2 * sizeof(*levels));
 	levels[0] = strdup("Host");
 	levels[1] = strdup("Process");
 
@@ -87,6 +87,9 @@ static void Test_createTopology_T1(void)
 	assert(strcmp(myTopology->levels[1], "Process") == 0);
 
 	TEST_PASSED;
+
+	/* destroy topology (assumed as working) */
+	hdT_destroyTopology(myTopology);
 }
 
 /**
@@ -107,6 +110,8 @@ static void Test_getTopoDepth_C1(void)
 
 	TEST_PASSED;
 
+	/* destroy topology (assumed as working) */
+	hdT_destroyTopology(myTopology);
 }
 
 /**
@@ -139,11 +144,11 @@ static void Test_createTopoNode_C1(void)
 	TEST_BEGIN("Correct usage");
 
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	const char *path1[] = {"host0","process0"};
 
-	myTopoNode = hdT_createTopoNode(topology, path1, 2);
+	myTopoNode = hdT_createTopoNode(myTopology, path1, 2);
 
 	/* length must have the number of path elements */
 	assert(myTopoNode->length == 2);
@@ -155,8 +160,9 @@ static void Test_createTopoNode_C1(void)
 
 	TEST_PASSED;
 
-	/* destroy topology (assumed as working */
+	/* destroy topology (assumed as working) */
 	hdT_destroyTopoNode(myTopoNode);
+	hdT_destroyTopology(myTopology);
 }
 
 /**
@@ -169,15 +175,15 @@ static void Test_createTopoNode_T1(void)
 	/* Test tolerated usage with dynamically allocates strings */
 	TEST_BEGIN("Tolerated usage (dynamic strings)");
 
-	char **path = malloc(2 * sizeof(**path));
+	char **path = malloc(2 * sizeof(*path));
 	path[0] = strdup("host0");
 	path[1] = strdup("process0");
 
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology */
-	myTopoNode = hdT_createTopoNode(topology, (const char **)path, 2);
+	myTopoNode = hdT_createTopoNode(myTopology, (const char **)path, 2);
 
 	/* destroy all strings */
 	memcpy(path[0],"x", 2);
@@ -195,6 +201,10 @@ static void Test_createTopoNode_T1(void)
 	assert(strcmp(myTopoNode->string, "host0_process0") == 0);
 
 	TEST_PASSED;
+
+	/* destroy topology (assumed as working) */
+	hdT_destroyTopoNode(myTopoNode);
+	hdT_destroyTopology(myTopology);
 }
 
 /**
@@ -203,11 +213,11 @@ static void Test_createTopoNode_T1(void)
 static void Test_getTopoNodeLevel_C1(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode =	hdT_createTopoNode(topology, path, 2);
+	hdTopoNode myTopoNode =	hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage */
 	TEST_BEGIN("Correct usage");
@@ -218,6 +228,9 @@ static void Test_getTopoNodeLevel_C1(void)
 
 	TEST_PASSED;
 
+	/* destroy topology (assumed as working) */
+	hdT_destroyTopoNode(myTopoNode);
+	hdT_destroyTopology(myTopology);
 }
 
 /**
@@ -226,11 +239,11 @@ static void Test_getTopoNodeLevel_C1(void)
 static void Test_getTopoPathString_C1(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(topology, path, 2);
+	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage */
 	TEST_BEGIN("Correct usage");
@@ -241,6 +254,9 @@ static void Test_getTopoPathString_C1(void)
 
 	TEST_PASSED;
 
+	/* destroy topology (assumed as working) */
+	hdT_destroyTopoNode(myTopoNode);
+	hdT_destroyTopology(myTopology);
 }
 
 /**
@@ -249,11 +265,11 @@ static void Test_getTopoPathString_C1(void)
 static void Test_getTopoPathLabel_C1(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode =	hdT_createTopoNode(topology, path, 2);
+	hdTopoNode myTopoNode =	hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage */
 	TEST_BEGIN("Correct usage");
@@ -268,6 +284,9 @@ static void Test_getTopoPathLabel_C1(void)
 
 	TEST_PASSED;
 
+	/* destroy topology (assumed as working) */
+	hdT_destroyTopoNode(myTopoNode);
+	hdT_destroyTopology(myTopology);
 }
 
 /**
