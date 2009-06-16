@@ -17,10 +17,10 @@
 #include "client-state-machine.h"
 #include "hdRelation.h"
 
-static int hd_trace_enabled;
+static int hd_sm_trace_enabled;
 
 #define HD_STMT_TOKEN(stmt) \
-	do{ if( smcb->op_get_state_machine != NULL && hd_trace_enabled){ stmt } } while(0);
+	do{ if( smcb->op_get_state_machine != NULL && hd_sm_trace_enabled){ stmt } } while(0);
 
 struct PINT_frame_s
 {
@@ -241,8 +241,8 @@ PINT_sm_action PINT_state_machine_start(struct PINT_smcb *smcb, job_status_s *r)
 }
 
 
-void set_hd_trace_enabled(int enabled){
-	hd_trace_enabled = enabled;
+void set_hd_sm_trace_enabled(int enabled){
+	hd_sm_trace_enabled = enabled;
 }
 
 /**

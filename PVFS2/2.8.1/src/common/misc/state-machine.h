@@ -219,7 +219,7 @@ int PINT_smcb_set_token(struct PINT_smcb *smcb, hdR_token token);
  */
 hdR_token PINT_smcb_get_token(struct PINT_smcb *smcb);
 
-void set_hd_trace_enabled(int hd_trace_enabled);
+void set_hd_sm_trace_enabled(int hd_trace_enabled);
 
 /**
  * 

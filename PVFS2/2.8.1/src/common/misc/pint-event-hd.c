@@ -33,10 +33,11 @@ hdTopoNode topoNodeArray[STATISTIC_END];
 
 hdTopology topology;
 
-const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB"};
+const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "CLIENT", "JOB", "STATISTIC_END"};
 
 static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
-{
+{	
+	printf("TEST\n");
 	hd_facilityTraceStatus[facilityNum] = 1;
 	hd_facilityTrace[facilityNum] = hdS_createGroup(hdFacilityNames[facilityNum], topoNode, 1);
 	hdS_addValue(hd_facilityTrace[facilityNum], hdFacilityNames[facilityNum], INT32, "#", NULL);
@@ -63,14 +64,13 @@ int PINT_HD_event_initalize(char * traceWhat)
 	const char *levels[] = {"Hostname", "Layer", "Client"};
 	topology = hdT_createTopology("/tmp/MyProject", levels, 3);
 
-
 	for(i=0; i < count; i++)
 	{
 		printf("Enable: %s\n", event_list[i]);
 		int facilityNum;
 		for (facilityNum = 0; facilityNum < STATISTIC_END; facilityNum++)
 		{
-			if(strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0 && !hd_facilityTrace[facilityNum]){
+			if((strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0) && !hd_facilityTrace[facilityNum]){
 				const char *path[] = {hostname,hdFacilityNames[facilityNum] , "0"};
 				hdTopoNode topoNode = hdT_createTopoNode(topology, path, 3);
 
@@ -82,7 +82,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 				break;
 			}
 		}
-		
+
 #ifdef HAVE_HDPTL
 
 		if (strcasecmp(event_list[i],"NET") == 0)
@@ -115,16 +115,17 @@ int PINT_HD_event_initalize(char * traceWhat)
 #endif
 
 	}
-	
-	set_hd_trace_enabled(1);
-	
+
+	set_hd_sm_trace_enabled(1);
+
 	return 0;
 }
 
 int PINT_HD_event_finalize(void)
 {
-	set_hd_trace_enabled(0);
-	
+	// called by SM thread => no mutex needed.
+	set_hd_sm_trace_enabled(0);
+
 	int i;
 	for (i = 0 ; i < ALL_FACILITIES; i++)
 	{
@@ -134,11 +135,15 @@ int PINT_HD_event_finalize(void)
 			hdS_finalize(hd_facilityTrace[i]);
 			hd_facilityTraceStatus[i] = 0;
 			hd_facilityTrace[i] = NULL; 
-			
-			if(topoNodeArray[i] != NULL)
-				hdR_finalize(topoNodeArray[i]);
-	    	
-			topoNodeArray[i] = NULL; 
+
+		}
+	}
+	for (i = 0 ; i < STATISTIC_END; i++){
+		if(topoNodeArray[i] != NULL)
+		{	
+			hdR_finalize(topoNodeArray[i]);
+			topoNodeArray[i] = NULL;
+			topoTokenArray[i] = NULL;
 		}
 	}
 #ifdef HAVE_HDPTL
