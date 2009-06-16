@@ -6,7 +6,7 @@
  * @version 0.6
  */
 
-#include <glib.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -46,12 +46,6 @@ remote endpunkt -->
 #define hdr_info(topoToken, string) \
 	printf("I: [RELATION][%s]: %s\n", \
 			hdT_getTopoPathString(topoToken->topoNode), string)
-
-
-/**
- * Contains all topology mappings from topology to topology token
- */
-static GHashTable * topoMap = NULL;
 
 /**
  * Token prefix for remote access == <HOSTNAME><FQDN><PID>
@@ -180,23 +174,10 @@ static gboolean structRelationEqual(gconstpointer a, gconstpointer b){
 */
 
 /**
- * Reduce the number of cast warnings by using this function:
- */
-inline static char * getTopologyNodeString(gconstpointer key){
-	return ((hdTopoNode) key)->string;
-}
-
-static guint topologyHash(gconstpointer key){
-	return g_str_hash(getTopologyNodeString(key));
-}
-
-static gboolean topologyEqual(gconstpointer a, gconstpointer b){
-	return (strcmp(getTopologyNodeString(a), getTopologyNodeString(b)) == 0) ? TRUE : FALSE;
-}
-
-/**
  * Initalize all required data structures.
  */
+#define HOST_NAME_MAX 255
+
 static int hdR_init(void){
 	char hostname[HOST_NAME_MAX];
 	char pidstr[10];
@@ -206,11 +187,6 @@ static int hdR_init(void){
 	ret = gethostname(hostname, HOST_NAME_MAX);
 	if(ret != 0){
 	  return -1;
-	}
-
-	topoMap = g_hash_table_new(& topologyHash, & topologyEqual);
-	if(topoMap == NULL){
-		return -1;
 	}
 
 	int pid = getpid();
@@ -314,17 +290,11 @@ static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...)
 int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 	assert(outTopoToken != NULL);
 
-	if(topoMap == NULL){
+	if(remoteTokenLen == 0){
 		int ret = hdR_init();
 		if(ret != 0){
 			return ret;
 		}
-	}
-
-	// check if topology is already registered:
-	const hdR_topoToken token = (hdR_topoToken) g_hash_table_lookup(topoMap, (gpointer) topNode);
-	if(token != NULL){
-		return -1;
 	}
 
 	hdR_topoToken topoToken;
@@ -342,14 +312,11 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 
 
 	topoToken->buffer_pos = 0;
-	topoToken->isEnabled = TRUE;
+	topoToken->isEnabled = 1;
 	topoToken->topoNode = topNode;
 	topoToken->topologyNumber = lastTopologyNumber++;
 
 	*outTopoToken = topoToken;
-
-	// register topology in the topology map:
-	g_hash_table_insert(topoMap, (gpointer) topNode, topoToken);
 
 	// init time adjustment:
 	gettimeofday(& topoToken->timeAdjustment, NULL);
@@ -374,17 +341,8 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 	return 0;
 }
 
-int hdR_finalize(hdTopoNode topNode){
-	if(topoMap == NULL){
-		return -1;
-	}
-
-	hdR_topoToken token = (hdR_topoToken) g_hash_table_lookup(topoMap, (gpointer) topNode);
-	if(token == NULL){
-		return -1;
-	}
-
-	assert( g_hash_table_remove(topoMap, topNode) == TRUE);
+int hdR_finalize(hdR_topoToken * token_p){
+	const hdR_topoToken token = * token_p;
 
 	// check if the file is empty.
 	off_t curPos = lseek(token->log_fd, 0, SEEK_CUR);
@@ -404,17 +362,14 @@ int hdR_finalize(hdTopoNode topNode){
 	free(token->logfile);
 	free(token);
 
-	const guint size = g_hash_table_size(topoMap);
-	if (size == 0){
-		g_hash_table_destroy(topoMap);
+	return 0;
+}
 
-		topoMap = NULL;
+int hdR_closeAPI(void){
+	free(remoteTokenPrefix);
+	free(localTokenPrefix);
 
-		free(remoteTokenPrefix);
-		free(localTokenPrefix);
-
-		remoteTokenPrefix = NULL;
-	}
+	remoteTokenPrefix = NULL;
 
 	return 0;
 }

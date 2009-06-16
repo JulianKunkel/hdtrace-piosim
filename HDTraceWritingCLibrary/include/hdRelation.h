@@ -36,8 +36,12 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken);
 /**
  * finalize & close the relation trace for a given topology
  */
-int hdR_finalize(hdTopoNode topNode);
+int hdR_finalize(hdR_topoToken * token_p);
 
+/**
+ * Shutdown the API and free global ressources.
+ */
+int hdR_closeAPI(void);
 
 hdR_token hdR_createTopLevelRelation(hdR_topoToken topoToken);
 
@@ -87,7 +91,7 @@ int hdR_startS(hdR_token token, const char * name);
 /**
  * Start a state with additional attributes
  * Note: the attributes are merged with the ones specified in the end state call.
- * Therefore use disjoint names to the end state, otherwise the attributes are overwritten 
+ * Therefore use disjoint names to the end state, otherwise the attributes are overwritten
  * by the ones given in the end call.
  * If possible avoid to add information to the start call.
  */
@@ -97,7 +101,7 @@ int hdR_start(hdR_token token, const char * name, int attr_count, const char** a
  * Start a state, extended version to add arbitrary content.
  * Note: the attributes is merged with the one specified in the end state call.
  * The XML data is just added to the one given in the end call.
- * Therefore use disjoint names to the end state, otherwise the attributes are overwritten 
+ * Therefore use disjoint names to the end state, otherwise the attributes are overwritten
  * by the ones given in the end call.
  * If possible avoid to add information to the start call.
  */
