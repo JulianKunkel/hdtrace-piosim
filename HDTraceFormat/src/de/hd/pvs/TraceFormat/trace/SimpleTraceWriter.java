@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -150,9 +150,9 @@ public class SimpleTraceWriter {
 		if(traceEntry.hasNestedTraceChildren()){
 			file.write("<Nested>");
 			for(ITraceEntry child: traceEntry.getNestedTraceChildren()){
-				if(child.getType() == TraceObjectType.EVENT){
+				if(child.getType() == TracableObjectType.EVENT){
 					writeEvent((IEventTraceEntry) child);					
-				}else if(child.getType() == TraceObjectType.STATE){
+				}else if(child.getType() == TracableObjectType.STATE){
 					writeState((IStateTraceEntry) child);
 				}else{
 					throw new IllegalStateException("Unknown object type: " + child.getType());

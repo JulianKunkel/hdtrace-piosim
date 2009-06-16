@@ -28,18 +28,18 @@ package de.hd.pvs.TraceFormat.xml;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.trace.EventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class XMLTraceEntryFactory {
-	private static TraceObjectType getType(String name){
+	private static TracableObjectType getType(String name){
 		if(name.equals("Event")){
-			return TraceObjectType.EVENT;
+			return TracableObjectType.EVENT;
 		}else{
-			return TraceObjectType.STATE;
+			return TracableObjectType.STATE;
 		}
 	}
 
@@ -82,7 +82,7 @@ public class XMLTraceEntryFactory {
 
 	public static ITraceEntry manufactureXMLTraceObject(XMLTag traceXML, ArrayList<XMLTag> data, Epoch timeAdjustment, ArrayList<ITraceEntry> children){
 		// determine type
-		final TraceObjectType type = getType(traceXML.getName());
+		final TracableObjectType type = getType(traceXML.getName());
 
 		final HashMap<String, String>  attributes = traceXML.getAttributes();
 
@@ -95,7 +95,7 @@ public class XMLTraceEntryFactory {
 			throw new IllegalArgumentException("Trace invalid, no time given");
 		}
 
-		if(type == TraceObjectType.STATE ){
+		if(type == TracableObjectType.STATE ){
 			// parse common time value
 			final String endTimeStr = attributes.get("end");
 			final Epoch endTime;
@@ -110,7 +110,7 @@ public class XMLTraceEntryFactory {
 
 			return traceObj;
 
-		}else if (type == TraceObjectType.EVENT){
+		}else if (type == TracableObjectType.EVENT){
 
 			// strip of the real name
 			String name = traceXML.getAttributes().remove("name");

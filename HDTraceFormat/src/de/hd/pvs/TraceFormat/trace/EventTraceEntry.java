@@ -28,7 +28,7 @@ package de.hd.pvs.TraceFormat.trace;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -53,8 +53,8 @@ public class EventTraceEntry extends TraceEntry implements IEventTraceEntry{
 	}
 	
 	@Override
-	public TraceObjectType getType() {		
-		return TraceObjectType.EVENT;
+	public TracableObjectType getType() {		
+		return TracableObjectType.EVENT;
 	}
 	
 	@Override

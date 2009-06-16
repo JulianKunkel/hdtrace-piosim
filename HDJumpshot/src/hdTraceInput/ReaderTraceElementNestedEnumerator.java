@@ -28,7 +28,7 @@ package hdTraceInput;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.trace.ForwardStateEnumeration;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
@@ -56,7 +56,7 @@ public class ReaderTraceElementNestedEnumerator implements Enumeration<ITraceEnt
 		if( stateChildEnumeration == null ){ 
 			final ITraceEntry current = list.get(curPos++);
 			
-			if(current.getType() == TraceObjectType.STATE){
+			if(current.getType() == TracableObjectType.STATE){
 				final IStateTraceEntry state = (IStateTraceEntry) current;
 				if(! state.hasNestedTraceChildren())
 					return current;

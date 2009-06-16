@@ -29,8 +29,8 @@ package de.hd.pvs.traceConverter.Input.Trace;
 import java.io.IOException;
 import java.util.Stack;
 
-import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
@@ -60,7 +60,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 	}
 	
 	private Stack<StackElements> nestedStates = new Stack<StackElements>();
-	private TraceObject currentTraceObject = null;
+	private ITracableObject currentTraceObject = null;
 	private long          currentTraceEntryOffset = 0;
 
 	/**
@@ -88,7 +88,7 @@ public class TraceProcessor extends AbstractTraceProcessor{
 	private void readNextTraceEntryIfNecessary(){
 		
 		if(currentTraceObject != null){
-			if(stateStarts == true && currentTraceObject.getType() == TraceObjectType.STATE){
+			if(stateStarts == true && currentTraceObject.getType() == TracableObjectType.STATE){
 				IStateTraceEntry state = (IStateTraceEntry) currentTraceObject;
 
 				if(state.hasNestedTraceChildren()){
@@ -142,10 +142,10 @@ public class TraceProcessor extends AbstractTraceProcessor{
 	public void processEarliestEvent(Epoch now) throws IOException{		
 		//System.out.println(eventTime.getFullDigitString() + " " + currentTraceObject + " processing " + " t " + currentTraceObject.getEarliestTime());
 
-		if(currentTraceObject.getType() == TraceObjectType.EVENT){
+		if(currentTraceObject.getType() == TracableObjectType.EVENT){
 			getOutputConverter().Event(getTopologyEntryResponsibleFor(), (IEventTraceEntry) currentTraceObject);
 
-		}else if(currentTraceObject.getType() == TraceObjectType.STATE){			
+		}else if(currentTraceObject.getType() == TracableObjectType.STATE){			
 			IStateTraceEntry state = (IStateTraceEntry) currentTraceObject;
 
 			if(stateStarts){

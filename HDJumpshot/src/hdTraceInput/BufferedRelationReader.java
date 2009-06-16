@@ -2,7 +2,7 @@ package hdTraceInput;
 
 import java.util.ArrayList;
 
-import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.ITracableObject;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.relation.RelationHeader;
 import de.hd.pvs.TraceFormat.relation.RelationXMLReader;
@@ -82,8 +82,13 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 	}
 
 	@Override
-	public TraceObject getTraceEntryClosestToTime(Epoch time) {
-		throw new IllegalArgumentException("This function does not need to be implemented! Use getTraceEntryClosestToTime(Epoch time, int line)");
+	public ITracableObject getTraceEntryClosestToTime(Epoch time) {
+		// pick up one.
+		int pos = ArraySearcher.getPositionEntryOverlappingOrLaterThan(entries, time);
+		if (pos == -1)
+			pos = entries.size() -1;
+
+		return entries.get(pos);
 	}
 		
 	public RelationEntry getTraceEntryClosestToTime(Epoch time, int line) {
@@ -96,30 +101,7 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 	
 	public int getPositionAfter(Epoch minEndTime, int line){
 		final ArrayList<RelationEntry> entries = getEntriesOnLine(line);
-		int min = 0; 
-		int max = entries.size() - 1;
-		
-		while(true){						
-			int cur = (min + max) / 2;
-			final RelationEntry entry = entries.get(cur);
-			
-			if(min == max){ // found entry or stopped.
-				
-				if(entry.getLatestTime().compareTo(minEndTime) < 0 && cur == 0){
-					// there was no entry before!
-					return -1;
-				}
-
-				return cur;
-			} 
-			// not found => continue bin search:
-
-			if ( entry.getLatestTime().compareTo(minEndTime) >= 0 ){
-				max = cur;
-			}else{
-				min = cur + 1;
-			}
-		}
+		return ArraySearcher.getPositionEntryOverlappingOrLaterThan(entries, minEndTime);
 	}
 	
 	public ReaderRelationEnumerator enumerateRelations(){

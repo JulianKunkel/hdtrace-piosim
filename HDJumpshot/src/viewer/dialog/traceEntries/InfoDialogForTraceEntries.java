@@ -45,7 +45,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
 import topology.TopologyManager;
-import topology.TopologyTraceTreeNode;
+import topology.TopologyTreeNode;
 import viewer.dialog.InfoDialog;
 import viewer.dialog.traceEntries.InfoTableData.InfoTableListData;
 import viewer.dialog.traceEntries.plugins.IInfoDialogPlugin;
@@ -60,7 +60,7 @@ public class InfoDialogForTraceEntries extends InfoDialog implements ResizeListe
 	public InfoDialogForTraceEntries( final Frame     frame,
 			final Epoch clickedTime,			
 			final Epoch modelTimeDiff,
-			TopologyTraceTreeNode topologyTreeNode,
+			TopologyTreeNode topologyTreeNode,
 			TopologyManager manager,
 			final ITraceEntry obj)
 	{

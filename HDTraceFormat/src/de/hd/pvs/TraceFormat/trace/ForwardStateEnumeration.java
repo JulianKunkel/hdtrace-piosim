@@ -29,7 +29,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Stack;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 
 /**
  * Enumerate the nested elements of a state in correct time order. 
@@ -70,7 +70,7 @@ public class ForwardStateEnumeration implements Enumeration<ITraceEntry>{
 
 		ITraceEntry obj = iter.next();
 
-		if(obj.getType() == TraceObjectType.STATE){
+		if(obj.getType() == TracableObjectType.STATE){
 			// we have to do a DFS, therefore go into this one:
 			IStateTraceEntry state = (IStateTraceEntry) obj;
 			pushOnStackIfPossible(state);

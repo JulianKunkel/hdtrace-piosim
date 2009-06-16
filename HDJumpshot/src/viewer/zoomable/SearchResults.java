@@ -25,7 +25,7 @@
 
 package viewer.zoomable;
 
-import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.ITracableObject;
 
 
 /**
@@ -36,14 +36,14 @@ import de.hd.pvs.TraceFormat.TraceObject;
 public class SearchResults {
 	
 	final int timeline;
-	final TraceObject object;
+	final ITracableObject object;
 	
-	public SearchResults(int timeline, TraceObject object) {
+	public SearchResults(int timeline, ITracableObject object) {
 		this.timeline = timeline;
 		this.object = object;
 	}
 	
-	public TraceObject getObject() {
+	public ITracableObject getObject() {
 		return object;
 	}
 	

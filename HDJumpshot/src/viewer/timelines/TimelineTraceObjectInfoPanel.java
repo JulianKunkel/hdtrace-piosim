@@ -54,8 +54,8 @@ import viewer.common.LabeledTextField;
 import viewer.common.ModelInfoPanel;
 import viewer.pvfs2.PVFS2OpTypeParser;
 import viewer.pvfs2.PVFS2SMParser;
-import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
@@ -119,7 +119,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		if(infoObj == null)
 			return;
 
-		final TraceObject obj = infoObj.getObject();
+		final ITracableObject obj = infoObj.getObject();
 		final TopologyNode node =  infoObj.getTopologyTreeNode().getTopology();
 
 		switch(obj.getType()){
@@ -160,7 +160,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		}
 		
 		// if none got selected directly, then choose relation
-		setVisibleControls(TraceObjectType.RELATION);
+		setVisibleControls(TracableObjectType.RELATION);
 
 		this.setCategoryName("Relation");
 		this.setStartTime(reader.subtractGlobalMinTimeOffset(entry.getEarliestTime()));
@@ -172,7 +172,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 			TopologyNode topology, 
 			BufferedStatisticsFileReader sReader) {
 
-		setVisibleControls(TraceObjectType.STATISTICENTRY);		
+		setVisibleControls(TracableObjectType.STATISTICENTRY);		
 
 		final StatisticsGroupEntry groupEntry = statistic.getParentGroupEntry();
 		final StatisticsDescription desc = statistic.getDescription();
@@ -211,7 +211,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 
 
 	public void showInfo( IStateTraceEntry state, TopologyNode topology ) {
-		setVisibleControls(TraceObjectType.STATE);
+		setVisibleControls(TracableObjectType.STATE);
 
 		this.setStartTime(  reader.subtractGlobalMinTimeOffset(state.getEarliestTime())  );
 		this.setEndTime( reader.subtractGlobalMinTimeOffset(state.getLatestTime()) );
@@ -223,7 +223,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 	}
 
 	public void showInfo( IEventTraceEntry event, TopologyNode topology) {
-		setVisibleControls(TraceObjectType.EVENT);
+		setVisibleControls(TracableObjectType.EVENT);
 
 		final Epoch time = reader.subtractGlobalMinTimeOffset(event.getEarliestTime());
 
@@ -298,7 +298,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		panel.add( fld_stat_integrated_sum);
 		panel.add( fld_stat_integrated_avg);
 
-		setVisibleControls(TraceObjectType.EVENT);
+		setVisibleControls(TracableObjectType.EVENT);
 	}
 
 	public TimelineTraceObjectInfoPanel( TraceFormatBufferedFileReader reader )
@@ -312,7 +312,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 	 * 
 	 * @param forType
 	 */
-	private void setVisibleControls(TraceObjectType forType) {
+	private void setVisibleControls(TracableObjectType forType) {
 		fld_time_start.setVisible(false);
 		fld_time_duration.setVisible(false);
 		fld_stat_average.setVisible(false);

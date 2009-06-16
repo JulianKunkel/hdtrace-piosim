@@ -33,7 +33,7 @@ package de.hd.pvs.TraceFormat;
  * @author Julian M. Kunkel
  *
  */
-public enum TraceObjectType{
+public enum TracableObjectType{
 	STATE, 
 	EVENT,
 	RELATION,

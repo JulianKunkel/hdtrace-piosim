@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -77,8 +77,8 @@ public class StateTraceEntry extends TraceEntry implements IStateTraceEntry{
 	}
 	
 	@Override
-	public TraceObjectType getType() {		
-		return TraceObjectType.STATE;
+	public TracableObjectType getType() {		
+		return TracableObjectType.STATE;
 	}
 
 	@Override

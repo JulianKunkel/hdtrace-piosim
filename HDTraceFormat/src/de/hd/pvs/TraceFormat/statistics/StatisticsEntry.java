@@ -25,8 +25,8 @@
 
 package de.hd.pvs.TraceFormat.statistics;
 
-import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -34,7 +34,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * 
  * @author Julian M. Kunkel
  */
-public class StatisticsEntry implements TraceObject {
+public class StatisticsEntry implements ITracableObject {
 	final StatisticsGroupEntry parentGroupEntry;
 	final StatisticsDescription description;	
 	
@@ -63,8 +63,8 @@ public class StatisticsEntry implements TraceObject {
 	}	
 	
 	@Override
-	public TraceObjectType getType() {
-		return TraceObjectType.STATISTICENTRY;
+	public TracableObjectType getType() {
+		return TracableObjectType.STATISTICENTRY;
 	}
 	
 	@Override

@@ -28,7 +28,7 @@ package de.hd.pvs.TraceFormat.trace;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.ITracableObject;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
@@ -38,7 +38,7 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
  * @author Julian M. Kunkel
  *
  */
-public interface ITraceEntry extends TraceObject{
+public interface ITraceEntry extends ITracableObject{
 	/**
 	 * Return the name of the trace entry.
 	 */

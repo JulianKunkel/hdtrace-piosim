@@ -31,6 +31,7 @@ import java.util.Enumeration;
 
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
+import de.hd.pvs.TraceFormat.ITracableObject;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -66,5 +67,9 @@ public class TopologyRelationTreeNode extends TopologyTreeNode
 	@Override
 	public String toString() {
 		return label;
+	}
+	
+	public ITracableObject getTraceEntryClosestToTime(Epoch time) {
+		return getRelationSource().getTraceEntryClosestToTime(time);
 	}
 }

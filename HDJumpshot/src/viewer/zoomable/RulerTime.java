@@ -46,7 +46,7 @@ import java.text.NumberFormat;
 import viewer.common.Const;
 import viewer.common.Debug;
 import viewer.common.Routines;
-import de.hd.pvs.TraceFormat.TraceObject;
+import de.hd.pvs.TraceFormat.ITracableObject;
 import drawable.TimeBoundingBox;
 
 public class RulerTime extends ScrollableObject
@@ -145,7 +145,7 @@ public class RulerTime extends ScrollableObject
 	}
 	
 	@Override
-	public TraceObject getObjectAt(Point view_click) {
+	public ITracableObject getObjectAt(Point view_click) {
 		return null;
 	}
 }

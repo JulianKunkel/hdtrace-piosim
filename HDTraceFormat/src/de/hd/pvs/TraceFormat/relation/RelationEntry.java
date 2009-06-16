@@ -2,8 +2,8 @@ package de.hd.pvs.TraceFormat.relation;
 
 import java.util.ArrayList;
 
-import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -12,7 +12,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author julian
  *
  */
-public class RelationEntry implements TraceObject {
+public class RelationEntry implements ITracableObject {
 	private final Epoch creationTime;
 	private final Epoch endTime;
 	private final ArrayList<IStateTraceEntry> states;	
@@ -76,8 +76,8 @@ public class RelationEntry implements TraceObject {
 	}
 	
 	@Override
-	public TraceObjectType getType() {
-		return TraceObjectType.RELATION;
+	public TracableObjectType getType() {
+		return TracableObjectType.RELATION;
 	}
 	
 	@Override

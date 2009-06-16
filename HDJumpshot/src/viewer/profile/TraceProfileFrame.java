@@ -66,7 +66,7 @@ import viewer.zoomable.ScrollableObject;
 import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.ViewportTime;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -288,7 +288,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 					continue;
 				}
 
-				if(entry.getType() == TraceObjectType.STATE){
+				if(entry.getType() == TracableObjectType.STATE){
 					final IStateTraceEntry state = (IStateTraceEntry) entry;
 					final CategoryState category = reader.getCategory(state);
 
@@ -307,7 +307,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 					if( state.hasNestedTraceChildren() ){
 
 						for(ITraceEntry child: state.getNestedTraceChildren()){
-							if(child.getType() == TraceObjectType.STATE){
+							if(child.getType() == TracableObjectType.STATE){
 								childDuration += ((IStateTraceEntry) child).getDurationTime().getDouble();
 							}
 						}						
@@ -325,7 +325,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 						if( state.hasNestedTraceChildren() ){
 							childDuration = 0;
 							for(ITraceEntry child: state.getNestedTraceChildren()){
-								if(child.getType() == TraceObjectType.STATE){
+								if(child.getType() == TracableObjectType.STATE){
 									final IStateTraceEntry childState = (IStateTraceEntry) child;
 									if(child.getLatestTime().compareTo(starttime) > 0){ 
 										childDuration += childState.getLatestTime().subtract(starttime).getDouble();
@@ -343,7 +343,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 						if( state.hasNestedTraceChildren() ){
 							childDuration = 0;
 							for(ITraceEntry child: state.getNestedTraceChildren()){
-								if(child.getType() == TraceObjectType.STATE){
+								if(child.getType() == TracableObjectType.STATE){
 									final IStateTraceEntry childState = (IStateTraceEntry) child;
 									if(child.getEarliestTime().compareTo(endtime) < 0){ 
 										childDuration += endtime.subtract(childState.getEarliestTime()).getDouble();

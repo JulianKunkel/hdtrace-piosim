@@ -37,10 +37,10 @@ package drawable;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
-import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 
@@ -74,6 +74,47 @@ public class DrawObjects{
 		int jFinal   = jStart + height;
 		
 		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal );
+	}
+	
+	public static void  drawBox(			
+			Graphics2D g,
+			CoordPixelXform  coord_xform,
+			double startTime,
+			double endTime,
+			Color backGroundcolor,
+			int timeline)
+	{
+		int x1   = coord_xform.convertTimeToPixel( startTime );
+		int x2   = coord_xform.convertTimeToPixel( endTime );
+
+		int height = coord_xform.getTimelineHeight();
+
+		int y1   = coord_xform.convertTimelineToPixel( timeline );
+
+		g.setColor( backGroundcolor );
+		g.fillRect( x1, y1, x2-x1+1, height);
+	}
+	
+	public static void  drawScrambeledBox(			
+			Graphics2D g,
+			CoordPixelXform  coord_xform,
+			double startTime,
+			double endTime,
+			int timeline)
+	{
+		int x1   = coord_xform.convertTimeToPixel( startTime );
+		int x2   = coord_xform.convertTimeToPixel( endTime );
+
+		int height = coord_xform.getTimelineHeight();
+
+		int y1   = coord_xform.convertTimelineToPixel( timeline );
+
+		g.setColor( Color.GRAY );
+		g.fillRect( x1, y1, x2-x1+1, height);
+		
+		g.setColor(Color.BLACK);
+		g.drawLine(x1, y1, x2, y1 + height);
+		g.drawLine(x1, y1 + height, x2, y1);
 	}
 
 	public static void  drawStatisticBackground(			
@@ -160,10 +201,10 @@ public class DrawObjects{
 	 * @param entry
 	 * @return
 	 */
-	static public double getTimeDistance(Epoch time, ITraceEntry entry){
+	static public double getTimeDistance(Epoch time, ITracableObject entry){
 		double distance = Math.abs( entry.getEarliestTime().subtract( time).getDouble() );
 
-		if(entry.getType() == TraceObjectType.STATE){
+		if(entry.getType() == TracableObjectType.STATE){
 			final IStateTraceEntry state = (IStateTraceEntry) entry;
 			if ( time.compareTo(state.getLatestTime()) <= 0 && time.compareTo(state.getEarliestTime()) >= 0 ){
 				// perfect match.

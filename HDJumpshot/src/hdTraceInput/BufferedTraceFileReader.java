@@ -27,10 +27,9 @@ package hdTraceInput;
 
 import java.util.ArrayList;
 
-import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
+import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import drawable.DrawObjects;
 
 public class BufferedTraceFileReader extends StAXTraceFileReader implements IBufferedReader {
 
@@ -100,79 +99,11 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	 * @return
 	 */
 	public int getFirstTraceEntryPositionOverlappingOrLaterThan(Epoch laterThanTime){
-		int min = 0; 
-		int max = traceEntries.size() - 1;
-		
-		while(true){
-			int cur = (min + max) / 2;
-			ITraceEntry entry = traceEntries.get(cur);
-			
-			if(min == max){ // found entry or stopped.
-				final int ret = traceEntries.get(cur).getLatestTime().compareTo(laterThanTime);
-				if( ret > 0 ){
-					return cur;				
-				}else if (ret == 0){
-					if(cur +1 == traceEntries.size())
-						return -1;
-					return cur + 1;
-				}else{				
-					return -1;
-				}
-			} 
-			// not found => continue bin search:
-			
-			if ( entry.getLatestTime().compareTo(laterThanTime) >= 0){
-				max = cur;
-			}else{
-				min = cur + 1;
-			}
-		}
+		return ArraySearcher.getPositionEntryOverlappingOrLaterThan(traceEntries, laterThanTime);
 	}
 	
 	public int getTraceEntryClosestToTimePosition(Epoch dTime){
-		int min = 0; 
-		int max = traceEntries.size() - 1;
-		
-		while(true){
-			int cur = (min + max) / 2;
-			ITraceEntry entry = traceEntries.get(cur);
-			
-			if(min == max){ // found entry or stopped.
-				int best = cur;
-				double bestDistance = DrawObjects.getTimeDistance(dTime, entry);
-								
-				// check entries left and right.
-				if( min != 0){
-					ITraceEntry left = traceEntries.get(cur -1);
-					double leftDistance = DrawObjects.getTimeDistance(dTime, left);
-					
-					if(leftDistance < bestDistance){
-						bestDistance = leftDistance;
-						best = cur-1;
-					}
-				}
-				
-				if(max != traceEntries.size() -1){
-					// check right
-					ITraceEntry right = traceEntries.get(cur + 1);
-					double rightDistance = DrawObjects.getTimeDistance(dTime, right);
-					
-					if(rightDistance < bestDistance){
-						bestDistance = rightDistance;
-						best = cur+1;
-					}
-				}
-
-				return best;
-			} 
-			// not found => continue bin search:
-			
-			if ( entry.getEarliestTime().compareTo(dTime) >= 0){
-				max = cur;
-			}else{
-				min = cur + 1;
-			}
-		}
+		return ArraySearcher.getPositionEntryClosestToTime(traceEntries, dTime);
 	}
 	
 	

@@ -57,7 +57,6 @@ import topology.TopologyManager;
 import topology.TopologyRelationExpandedTreeNode;
 import topology.TopologyRelationTreeNode;
 import topology.TopologyStatisticTreeNode;
-import topology.TopologyTraceTreeNode;
 import topology.TopologyTreeNode;
 import viewer.common.Debug;
 import viewer.common.Parameters;
@@ -73,8 +72,8 @@ import viewer.zoomable.SearchableView;
 import viewer.zoomable.ViewportTime;
 import arrow.Arrow;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
@@ -489,14 +488,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 			final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
-			if(entry.getType() == TraceObjectType.EVENT){          
+			if(entry.getType() == TracableObjectType.EVENT){          
 				final IEventTraceEntry event = (IEventTraceEntry) entry;
 
 				final Category category = reader.getCategory(event);
 				if(category.isVisible())
 					DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
 
-			}else if(entry.getType() == TraceObjectType.STATE){
+			}else if(entry.getType() == TracableObjectType.STATE){
 				final IStateTraceEntry state = (IStateTraceEntry) entry;
 				final Category category = reader.getCategory(state);
 
@@ -527,6 +526,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 		
+		Epoch lastEndTime = Epoch.ZERO;
+		
 		while(elements.hasMoreElements()){
 			final RelationEntry relationEntry = elements.nextElement();
 			
@@ -546,14 +547,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					
 					final ITraceEntry entry = stateEnum.nextElement();
 					
-					if(entry.getType() == TraceObjectType.EVENT){          
+					if(entry.getType() == TracableObjectType.EVENT){          
 						final IEventTraceEntry event = (IEventTraceEntry) entry;
 
 						final Category category = reader.getCategory(event);
 						if(category.isVisible())
 							DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
 
-					}else if(entry.getType() == TraceObjectType.STATE){
+					}else if(entry.getType() == TracableObjectType.STATE){
 						final IStateTraceEntry state = (IStateTraceEntry) entry;
 						final Category category = reader.getCategory(state);
 
@@ -563,6 +564,16 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					}
 				}
 			}
+
+			if(relationEntry.getEarliestTime().compareTo(lastEndTime) < 0){
+				// there is an overlapping area, draw this fact!
+				DrawObjects.drawScrambeledBox(offGraphics, coord_xform,  
+						relationEntry.getEarliestTime().subtract(globalMinTime).getDouble(),  // start
+						lastEndTime.subtract(globalMinTime).getDouble(),  //end
+						timeline);
+			}
+			
+			lastEndTime = relationEntry.getLatestTime();
 		}
 
 		return drawedTraceObjects;
@@ -599,7 +610,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			while(dist == 0){
 				// traverse nesting if necessary, and match events.
 
-				if (best.getType() == TraceObjectType.STATE ){
+				if (best.getType() == TracableObjectType.STATE ){
 					state = (IStateTraceEntry) best;
 					
 					if (state.hasNestedTraceChildren() && maxDepth > curDepth){
@@ -607,7 +618,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 						
 						for(ITraceEntry child: state.getNestedTraceChildren()){
 							dist = DrawObjects.getTimeDistance(realTime, child);
-							if(child.getType() == TraceObjectType.EVENT ){
+							if(child.getType() == TracableObjectType.EVENT ){
 								if( dist < eventRadius){
 									best = child;
 								}									
@@ -628,7 +639,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			objMouse = best;
 		}				
 
-		if(objMouse.getType() == TraceObjectType.STATE){
+		if(objMouse.getType() == TracableObjectType.STATE){
 			if(! reader.getCategoriesStates().get(objMouse.getName()).isVisible() ){
 				return null;
 			}
@@ -651,8 +662,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			return null;
 
 		final TopologyTreeNode treeNode = topologyManager.getTreeNodeForTimeline(timeline);
-		final TraceObject rootObj; 
-		final TraceObject selectedObject;
+		final ITracableObject rootObj; 
+		final ITracableObject selectedObject;
 		
 		outer: switch(topologyManager.getType(timeline)){
 		case TRACE:
@@ -661,9 +672,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			
 			rootObj = objMouse;
 
-			if (objMouse.getType() == TraceObjectType.STATE){
+			if (objMouse.getType() == TracableObjectType.STATE){
 				objMouse = getTraceObjectInState((IStateTraceEntry) objMouse, realTime, y );				
-			}else if(objMouse.getType() == TraceObjectType.EVENT){
+			}else if(objMouse.getType() == TracableObjectType.EVENT){
 				double distance = Math.abs(objMouse.getEarliestTime().subtract(realTime).getDouble());
 				if( distance >= eventRadius){
 					return null;
@@ -684,10 +695,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			rootObj = selectedObject;
 		}case INNER_NODE:
 			return null;
-		case RELATION:
-			return null;
+		case RELATION:			
+			if(topologyManager.getTree().isExpanded(timeline)){
+				return null;
+			}
 		case RELATION_EXPANDED:{
-			final TopologyRelationExpandedTreeNode node = (TopologyRelationExpandedTreeNode) treeNode;
+			final TopologyRelationTreeNode node = (TopologyRelationTreeNode) treeNode;
 			final RelationEntry relentry = (RelationEntry) node.getTraceEntryClosestToTime(realTime); 
 			rootObj = relentry;
 			// lookup right object.
@@ -738,7 +751,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				return new InfoDialogForTraceEntries(window,
 						realTime,
 						getModelTime().getGlobalMinimum(),						
-						(TopologyTraceTreeNode) infoObj.getTopologyTreeNode(),
+						(TopologyTreeNode) infoObj.getTopologyTreeNode(),
 						getTopologyManager() ,
 						(ITraceEntry) infoObj.getObject());	
 			}
@@ -752,7 +765,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		final int num_rows   = getRowCount();
 		final TopologyManager topologyManager = getTopologyManager();
 
-		TraceObject minObject = null;
+		ITracableObject minObject = null;
 		// figure out the object with the smallest time over all timelines which is searchable
 		Epoch minTime = reader.getGlobalMaxTime();
 		int minTimeline = -1;
@@ -765,7 +778,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				traceElementLoop: 
 					for(ITraceEntry entry: tr.getTraceEntries()){
 						if(entry.getLatestTime().compareTo(laterThan) > 0){
-							if(entry.getType() == TraceObjectType.EVENT){
+							if(entry.getType() == TracableObjectType.EVENT){
 								Category cat = reader.getCategory((IEventTraceEntry) entry);
 								if(cat.isSearchable()){												
 									if( entry.getEarliestTime().compareTo(minTime) < 0){							
@@ -776,7 +789,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									// found one so break
 									break;
 								}							
-							}else if(entry.getType() == TraceObjectType.STATE){
+							}else if(entry.getType() == TracableObjectType.STATE){
 								IStateTraceEntry state = (IStateTraceEntry) entry;
 								Category cat = reader.getCategory(state);
 								// iterate through children if necessary:
@@ -816,6 +829,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 						}
 					}
 				break;
+			case RELATION:
+			case RELATION_EXPANDED:
+				
 			}
 		}
 		return new SearchResults(minTimeline, minObject);
@@ -826,7 +842,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		final int num_rows   = getRowCount();
 		final TopologyManager topologyManager = getTopologyManager();
 
-		TraceObject minObject = null;
+		ITracableObject minObject = null;
 		Epoch maxTime = Epoch.ZERO;
 		int minTimeline = -1;
 
@@ -840,7 +856,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 						ITraceEntry entry = tr.getTraceEntries().get(te);
 
 						if(entry.getEarliestTime().compareTo(earlierThan) < 0){
-							if(entry.getType() == TraceObjectType.EVENT){
+							if(entry.getType() == TracableObjectType.EVENT){
 								Category cat = reader.getCategory((IEventTraceEntry) entry);
 								if(cat.isSearchable()){												
 									if( entry.getLatestTime().compareTo(maxTime) > 0){							
@@ -851,7 +867,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									// found one so break
 									break;
 								}							
-							}else if(entry.getType() == TraceObjectType.STATE){
+							}else if(entry.getType() == TracableObjectType.STATE){
 								IStateTraceEntry state = (IStateTraceEntry) entry;
 								Category cat = reader.getCategory(state);
 								// iterate through children if necessary:

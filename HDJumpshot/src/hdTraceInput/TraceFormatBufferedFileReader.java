@@ -39,8 +39,8 @@ import arrow.ArrowManager;
 import arrow.ManagedArrowGroup;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
-import de.hd.pvs.TraceFormat.TraceObject;
-import de.hd.pvs.TraceFormat.TraceObjectType;
+import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
@@ -176,12 +176,12 @@ public class TraceFormatBufferedFileReader {
 	private void updateVisibleCategoryFor(ITraceEntry entry){
 		final String catName = entry.getName();		
 
-		if(entry.getType() == TraceObjectType.STATE){		
+		if(entry.getType() == TracableObjectType.STATE){		
 			if(! categoriesStates.containsKey(catName)){
 				categoriesStates.put( catName, new CategoryState(catName, null));
 			}
 
-		}if(entry.getType() == TraceObjectType.EVENT){
+		}if(entry.getType() == TracableObjectType.EVENT){
 			if(! categoriesEvents.containsKey(catName))
 				categoriesEvents.put( catName, new CategoryEvent(catName, null));
 		}
@@ -349,7 +349,7 @@ public class TraceFormatBufferedFileReader {
 		return categoriesStates.get(entry.getName());
 	}
 
-	public Category getCategory(TraceObject object){
+	public Category getCategory(ITracableObject object){
 		switch(object.getType()){
 		case EVENT:
 			return getCategory((IEventTraceEntry) object);			

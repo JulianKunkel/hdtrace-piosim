@@ -33,12 +33,12 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author Julian M. Kunkel
  *
  */
-public interface TraceObject {
+public interface ITracableObject {
 	/**
 	 * What kind of trace object is it?
 	 * @return
 	 */
-	public TraceObjectType getType();
+	public TracableObjectType getType();
 	
 	/**
 	 * When does this trace object start
