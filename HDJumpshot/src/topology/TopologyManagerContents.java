@@ -21,7 +21,7 @@
 package topology;
 
 public enum TopologyManagerContents{
-	TRACE_ONLY,
+	TRACE_ONLY,	
 	STATISTICS_ONLY,
 	EVERYTHING
 }

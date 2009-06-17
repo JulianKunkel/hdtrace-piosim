@@ -21,6 +21,7 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
 
 /**
  * On demand reader, creates RelationEntries tries to minimize memory footprint.
+ * The reader creates entries by end time order.
  * 
  * @author julian
  *
@@ -39,6 +40,7 @@ public class RelationXMLReader implements RelationSource{
 
 	/**
 	 * Read the XML file until a new entry can be manufactured.
+	 * The returned entry is the next finished Relation Entry.
 	 * 
 	 * @return
 	 * @throws XMLStreamException

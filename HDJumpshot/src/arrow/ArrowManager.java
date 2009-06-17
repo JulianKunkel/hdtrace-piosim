@@ -38,7 +38,7 @@ public class ArrowManager extends CategoryUpdatedListener{
 	
 	final HashMap<ArrowCategory, ManagedArrowGroup> groups = new HashMap<ArrowCategory, ManagedArrowGroup>();
 	
-	final static Class<?> [] existingComputers = {ClientMPICommunicationArrowComputer.class};
+	final static Class<?> [] existingComputers = {ClientMPICommunicationArrowComputer.class, RelationArrowComputer.class};
 	
 	final TraceFormatBufferedFileReader reader;
 		

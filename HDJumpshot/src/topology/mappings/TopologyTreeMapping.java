@@ -37,25 +37,29 @@ import de.hd.pvs.TraceFormat.topology.TopologyNode;
 abstract public class TopologyTreeMapping {
 	abstract public SortedJTreeNode createTopology(TraceFormatBufferedFileReader reader);
 	abstract public boolean isAvailable(TraceFormatBufferedFileReader reader);
-	
+
 	private boolean addStatistics = true;
-	
+	private boolean addExtendedRelation = true;
+
 	public void setTopologyManagerContents(TopologyManagerContents type){
 		this.addStatistics = !(type == TopologyManagerContents.TRACE_ONLY);
+		this.addExtendedRelation = (type == TopologyManagerContents.EVERYTHING);
 	}
-	
+
 	/**
 	 * This function adds for each overlapping line a separate node to the RelationTreeNode 
 	 * @param node
 	 */
 	protected void addRelationTreeNodeChildrenTo(TopologyRelationTreeNode node){
-		final BufferedRelationReader reader = node.getRelationSource();
-		for(int i=0; i < reader.getMaximumConcurrentRelationEntries(); i++){
-			TopologyRelationExpandedTreeNode child = new TopologyRelationExpandedTreeNode(i, node.getTopology(), node.getFile());
-			node.add(child);
+		if(addExtendedRelation){		
+			final BufferedRelationReader reader = node.getRelationSource();
+			for(int i=0; i < reader.getMaximumConcurrentRelationEntries(); i++){
+				TopologyRelationExpandedTreeNode child = new TopologyRelationExpandedTreeNode(i, node.getTopology(), node.getFile());
+				node.add(child);
+			}
 		}
 	}
-	
+
 	protected void addTopologyTreeNode(TopologyTreeNode node, SortedJTreeNode parent){
 		if(parent != null){
 			parent.add(node);
@@ -75,14 +79,14 @@ abstract public class TopologyTreeMapping {
 		for(String group: topology.getStatisticsSources().keySet()){
 			BufferedStatisticsFileReader statSource = (BufferedStatisticsFileReader) topology.getStatisticsSource(group);
 			final SortedJTreeNode statGroupNode;
-			
+
 			if(statSource.getGroup().getStatisticsOrdered().size() == 1){
 				statGroupNode = node;
 			}else{			
 				statGroupNode = addDummyTreeNode(group, node);
 			}
 
-			
+
 			for(StatisticsDescription statDesc: statSource.getGroup().getStatisticsOrdered()){
 				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file );
 
@@ -90,8 +94,16 @@ abstract public class TopologyTreeMapping {
 			}
 		}
 	}
-	
+
 	public boolean isAddStatistics() {
 		return addStatistics;
 	}	
+
+	/**
+	 * Should virtual topologies be created to allow expansion of relations? 
+	 * @return
+	 */
+	public boolean isAddExtendedRelation() {
+		return addExtendedRelation;
+	}
 }

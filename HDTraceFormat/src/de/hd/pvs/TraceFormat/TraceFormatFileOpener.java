@@ -26,6 +26,7 @@
 package de.hd.pvs.TraceFormat;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
@@ -139,16 +140,22 @@ public class TraceFormatFileOpener {
 		// start parsing of the trace files:
 		// trace files: rank + thread id are defined in the file name
 
-		TopologyNode root = projectDescription.getTopologyRoot();
-
+		final TopologyNode root = projectDescription.getTopologyRoot();
+		
 		recursivlyCreateTraceSources(root, statCls, traceCls, relationCls, readNested );
-	}	
+	}
+	
+	public ArrayList<TopologyNode> getTopologies(){
+		return projectDescription.getTopologyRoot().getSubTopologies();
+	}
 
 	public TopologyNode getTopology(){
 		return projectDescription.getTopologyRoot();
 	}
 
-	public TopologyTypes getTopologyLabels(){
+	public TopologyTypes getTopologyLabels(){		
 		return projectDescription.getTopologyTypes();
 	}
+	
+	
 }

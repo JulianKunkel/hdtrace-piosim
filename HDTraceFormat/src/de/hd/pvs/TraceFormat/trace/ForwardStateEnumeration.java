@@ -62,7 +62,6 @@ public class ForwardStateEnumeration implements Enumeration<ITraceEntry>{
 	public boolean hasMoreElements() {
 		return hasMoreElements;
 	}
-
 	
 	@Override
 	public ITraceEntry nextElement() {

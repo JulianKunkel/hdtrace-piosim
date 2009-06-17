@@ -71,8 +71,8 @@ import viewer.zoomable.SearchResults;
 import viewer.zoomable.SearchableView;
 import viewer.zoomable.ViewportTime;
 import arrow.Arrow;
-import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
@@ -229,15 +229,11 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			case TRACE:
 				drawedTraceElements += drawTraceTimeline(i, topologyManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
 				break;
-			case RELATION:
+			case RELATION:{
 				if(! topologyManager.getTree().isExpanded(i)){
-					final TopologyRelationTreeNode node = ((TopologyRelationTreeNode) topologyManager.getTreeNodeForTimeline(i));
-					// draw only if not expanded. 
-					drawedTraceElements += drawRelationTimeline(i, 
-							node, offGraphics, vStartTime, vEndTime, coord_xform);
 				}
 				break;
-			case RELATION_EXPANDED:
+			}case RELATION_EXPANDED:
 				final TopologyRelationExpandedTreeNode node = ((TopologyRelationExpandedTreeNode) topologyManager.getTreeNodeForTimeline(i));
 				drawedTraceElements += drawRelationTimeline(i, 
 						node, offGraphics, vStartTime, vEndTime, coord_xform);
@@ -473,7 +469,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntryLaterThan(true, 
+		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntries(true, 
 				startTime.add(getModelTime().getGlobalMinimum()), 
 				endTime.add(getModelTime().getGlobalMinimum())) ;
 
@@ -515,18 +511,20 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	 */
 	public int drawRelationTimeline(
 			int timeline,
-			TopologyRelationTreeNode node,
+			TopologyRelationExpandedTreeNode node,
 			Graphics2D offGraphics,
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		final Enumeration<RelationEntry> elements = node.enumerateEntries(startTime, endTime);
+		final Enumeration<RelationEntry> elements = node.enumerateEntries(
+				startTime.add(getModelTime().getGlobalMinimum()), 
+				endTime.add(getModelTime().getGlobalMinimum()));
 
 		int drawedTraceObjects = 0;
 
 		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 		
-		Epoch lastEndTime = Epoch.ZERO;
+		//Epoch lastEndTime = Epoch.ZERO;
 		
 		while(elements.hasMoreElements()){
 			final RelationEntry relationEntry = elements.nextElement();
@@ -565,6 +563,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				}
 			}
 
+			/*
+			Right now with expanded relation timelines no overlap will happen. 
 			if(relationEntry.getEarliestTime().compareTo(lastEndTime) < 0){
 				// there is an overlapping area, draw this fact!
 				DrawObjects.drawScrambeledBox(offGraphics, coord_xform,  
@@ -574,6 +574,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			}
 			
 			lastEndTime = relationEntry.getLatestTime();
+			*/
 		}
 
 		return drawedTraceObjects;

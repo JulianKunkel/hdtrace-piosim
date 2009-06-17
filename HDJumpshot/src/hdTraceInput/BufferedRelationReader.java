@@ -17,14 +17,14 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class BufferedRelationReader implements IBufferedReader, RelationSource {
 
 	/**
-	 * Time sorted list of buffered entries contained in the file. 
+	 * List sorted by end time of buffered entries contained in the file
 	 */
-	final ArrayList<RelationEntry> entries = new ArrayList<RelationEntry>(20);
+	final ArrayList<RelationEntry> entriesEndTimeSorted = new ArrayList<RelationEntry>(20);	
 	
 	/**
-	 * Maps overlapping relations onto a separate line.
+	 * Maps overlapping relations onto a separate line. Therefore, this array is sorted by start AND end time.
 	 */
-	final ArrayList<ArrayList<RelationEntry>> layoutedEntries = new ArrayList<ArrayList<RelationEntry>>();
+	final ArrayList<ArrayList<RelationEntry>> layoutedEntriesSorted = new ArrayList<ArrayList<RelationEntry>>();
 	
 	final RelationHeader header;
 	
@@ -39,11 +39,11 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 				break;
 			}
 			
-			entries.add(entry);
+			entriesEndTimeSorted.add(entry);
 			
 			// layout the current entry:
 			// try to check if it fits on a existing line.
-			for(ArrayList<RelationEntry> list: layoutedEntries){
+			for(ArrayList<RelationEntry> list: layoutedEntriesSorted){
 				// compare entry time with last entry in the list
 				if(list.get(list.size() -1).getLatestTime().compareTo(entry.getEarliestTime()) <= 0){
 					// it fits into the old timeline.
@@ -53,20 +53,20 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 			}
 			
 			// if we reach here it does not fit => create a new line.
-			ArrayList<RelationEntry> list = new ArrayList<RelationEntry>();
-			layoutedEntries.add(list);
+			final ArrayList<RelationEntry> list = new ArrayList<RelationEntry>();
+			layoutedEntriesSorted.add(list);
 			list.add(entry);
 		}		
 	}
 	
 	@Override
 	public Epoch getMaxTime() {
-		return entries.get(entries.size() -1 ).getLatestTime();
+		return entriesEndTimeSorted.get(entriesEndTimeSorted.size() -1 ).getLatestTime();
 	}
 
 	@Override
 	public Epoch getMinTime() {
-		return entries.get(0).getEarliestTime();
+		return entriesEndTimeSorted.get(0).getEarliestTime();
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 	 * This is the number of lines needed to render them without overlapping.
 	 */
 	public int getMaximumConcurrentRelationEntries(){
-		return layoutedEntries.size();
+		return layoutedEntriesSorted.size();
 	}
 	
 	public RelationHeader getHeader() {
@@ -84,11 +84,11 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 	@Override
 	public ITracableObject getTraceEntryClosestToTime(Epoch time) {
 		// pick up one.
-		int pos = ArraySearcher.getPositionEntryOverlappingOrLaterThan(entries, time);
+		int pos = ArraySearcher.getPositionEntryOverlappingOrLaterThan(entriesEndTimeSorted, time);
 		if (pos == -1)
-			pos = entries.size() -1;
+			pos = entriesEndTimeSorted.size() -1;
 
-		return entries.get(pos);
+		return entriesEndTimeSorted.get(pos);
 	}
 		
 	public RelationEntry getTraceEntryClosestToTime(Epoch time, int line) {
@@ -103,20 +103,30 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 		final ArrayList<RelationEntry> entries = getEntriesOnLine(line);
 		return ArraySearcher.getPositionEntryOverlappingOrLaterThan(entries, minEndTime);
 	}
-	
+
 	public ReaderRelationEnumerator enumerateRelations(){
-		return new ReaderRelationEnumerator(entries);
+		return new ReaderRelationEnumerator(entriesEndTimeSorted);
 	}
 	
-	public ReaderRelationEnumerator enumerateRelations(int line){
-		return new ReaderRelationEnumerator(layoutedEntries.get(line));
+	public ReaderRelationEnumerator enumerateRelations(Epoch startTime, Epoch endTime, int line){
+		return new ReaderRelationEnumerator(layoutedEntriesSorted.get(line), startTime, endTime);
 	}
 
 	public ArrayList<RelationEntry> getEntriesOnLine(int line) {
-		return layoutedEntries.get(line);
+		return layoutedEntriesSorted.get(line);
 	}
 	
 	public ArrayList<RelationEntry> getEntries() {
-		return entries;
+		return entriesEndTimeSorted;
 	}
+	
+	public ITraceElementEnumerator enumerateTraceEntries(
+			boolean nested, Epoch startTime, Epoch endTime, int line) {
+		final ReaderRelationEnumerator relEnum = enumerateRelations(startTime, endTime, line);
+		
+		if(! nested)
+			return new ReaderRelationTraceElementEnumerator(relEnum, startTime, endTime);
+		else
+			return new ReaderRelationTraceElementNestedEnumerator(relEnum, startTime, endTime);
+	}	
 }

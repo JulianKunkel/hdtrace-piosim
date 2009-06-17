@@ -18,7 +18,7 @@
 package viewer.profile;
 
 import hdTraceInput.BufferedTraceFileReader;
-import hdTraceInput.ReaderTraceElementEnumerator;
+import hdTraceInput.ITraceElementEnumerator;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Color;
@@ -47,6 +47,8 @@ import javax.swing.SwingUtilities;
 import topology.TopologyInputPlugin;
 import topology.TopologyManager;
 import topology.TopologyManagerContents;
+import topology.TopologyRelationTreeNode;
+import topology.TopologyTreeNode;
 import viewer.common.AbstractTimelineFrame;
 import viewer.common.Const;
 import viewer.common.IconManager;
@@ -67,6 +69,7 @@ import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.ViewportTime;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TracableObjectType;
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -90,7 +93,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	TraceProfileMetricHandler metricHandler;
 
 	// mapping from TraceObjectProfile to visible information:
-	HashMap<Integer, TraceObjectProfileMap> timelineMap = new HashMap<Integer, TraceObjectProfileMap>();		
+	HashMap<TopologyNode, TraceObjectProfileMap> timelineMap = new HashMap<TopologyNode, TraceObjectProfileMap>();		
 
 	// shall there be an automatic update of the time i.e. synchronization between timeline window and profile?
 	boolean isTimeUpdateing = true;
@@ -205,14 +208,15 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		double maxValue = 0.000000001; // Initialize to something
 
 		for ( int timeline = 0 ; timeline < topologyManager.getRowCount() ; timeline++ ) {
-			//  Select only non-expanded row
-			if ( topologyManager.getType(timeline) != TimelineType.TRACE  ) {
+			if ( topologyManager.getType(timeline) == TimelineType.INNER_NODE  ) {
 				continue;
 			}
-			final ArrayList<TraceCategoryStateProfile> list = getProfile().getProfileSortedBy(timeline, comparator);
+
+			final TopologyNode topoNode = topologyManager.getTreeNodeForTimeline(timeline).getTopology();
+			final ArrayList<TraceCategoryStateProfile> list = getProfile().getProfileSortedBy(topoNode, comparator);
 
 			final TraceObjectProfileMap tlMap = new TraceObjectProfileMap(list, metricHandler);
-			timelineMap.put(timeline, tlMap);		
+			timelineMap.put(topoNode, tlMap);		
 
 			// adapt max value
 			maxValue = (maxValue < tlMap.getMaxValue()) ? tlMap.getMaxValue(): maxValue; 
@@ -228,7 +232,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				String.format("%.4f",(realModelTime.getViewEnd()))
 				+ ") " + getReader().getCombinedProjectFilename()
 		);		
-		
+
 		final Epoch startTime = new Epoch(realModelTime.getViewPosition()).add(realModelTime.getGlobalMinimum());
 		final Epoch endTime = startTime.add(realModelTime.getViewExtent());
 
@@ -254,6 +258,93 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		});
 	}
 
+	private void addToExistingProfile(ITraceElementEnumerator enumerator, Epoch starttime, Epoch endtime, HashMap<CategoryState, TraceCategoryStateProfile> catMap){
+		final TraceFormatBufferedFileReader reader = getReader();
+
+		while(enumerator.hasMoreElements()){
+			final ITraceEntry entry = enumerator.nextElement();							
+			
+			if(entry.getLatestTime().compareTo(starttime) <= 0 || entry.getEarliestTime().compareTo(endtime) >= 0 ){
+				// ignore these not really overlapping objects.
+				continue;
+			}
+
+			if(entry.getType() == TracableObjectType.STATE){
+				final IStateTraceEntry state = (IStateTraceEntry) entry;
+				final CategoryState category = reader.getCategory(state);
+
+				TraceCategoryStateProfile stateProfil = catMap.get(category);
+				if(stateProfil == null){
+					stateProfil = new TraceCategoryStateProfile(category, this);
+					catMap.put(category, stateProfil);
+				}
+
+				// compute all values:
+				double inclusiveTime = state.getDurationTime().getDouble();
+
+				double childDuration = 0;
+
+				// subtract nested elements:
+				if( state.hasNestedTraceChildren() ){
+
+					for(ITraceEntry child: state.getNestedTraceChildren()){
+						if(child.getType() == TracableObjectType.STATE){
+							childDuration += ((IStateTraceEntry) child).getDurationTime().getDouble();
+						}
+					}						
+				}
+
+				/////////////////OVERLAPPING HANDLING //////////////////
+
+				// now check whether the state overlaps the border:
+
+				if(entry.getEarliestTime().compareTo(starttime) < 0){
+					// overlaps left border
+					inclusiveTime -= starttime.subtract(entry.getEarliestTime()).getDouble();
+
+					// subtract nested elements:
+					if( state.hasNestedTraceChildren() ){
+						childDuration = 0;
+						for(ITraceEntry child: state.getNestedTraceChildren()){
+							if(child.getType() == TracableObjectType.STATE){
+								final IStateTraceEntry childState = (IStateTraceEntry) child;
+								if(child.getLatestTime().compareTo(starttime) > 0){ 
+									childDuration += childState.getLatestTime().subtract(starttime).getDouble();
+								}
+							}
+						}
+					}
+				}
+
+				if(entry.getLatestTime().compareTo(endtime) > 0){
+					// overlaps right border
+					inclusiveTime -= entry.getLatestTime().subtract(endtime).getDouble();
+
+					// subtract nested elements:
+					if( state.hasNestedTraceChildren() ){
+						childDuration = 0;
+						for(ITraceEntry child: state.getNestedTraceChildren()){
+							if(child.getType() == TracableObjectType.STATE){
+								final IStateTraceEntry childState = (IStateTraceEntry) child;
+								if(child.getEarliestTime().compareTo(endtime) < 0){ 
+									childDuration += endtime.subtract(childState.getEarliestTime()).getDouble();
+								}
+							}
+						}
+					}
+				}															
+
+				//////// END HANDLE OVERLAPPING
+
+				final double exclusiveTime = inclusiveTime - childDuration;
+
+				stateProfil.addCall(exclusiveTime, inclusiveTime);
+			}
+
+			// TODO handle events also?
+		}			
+	}
+
 	/**
 	 * Called by the worker thread in background
 	 * @param starttime
@@ -263,109 +354,48 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	private TraceObjectProfile ComputeTraceProfile(Epoch starttime, Epoch endtime){
 		final TraceObjectProfile profile = new TraceObjectProfile();
 		final TopologyManager    topologyManager = getTopologyManager();
-		for(int timeline=0; timeline < topologyManager.getTimelineNumber(); timeline++){
-			if(topologyManager.getType(timeline) != TimelineType.TRACE ){
+		final boolean profileNested = processNestedChkbox.isSelected();
+		
+		for(int timeline=0; timeline < topologyManager.getTimelineNumber(); timeline++){			
+			final HashMap<CategoryState, TraceCategoryStateProfile> catMap = new HashMap<CategoryState, TraceCategoryStateProfile>();
+
+			switch(topologyManager.getType(timeline)){
+			case TRACE:
+			{
+				final BufferedTraceFileReader traceReader = topologyManager.getTraceReaderForTimeline(timeline);
+				ITraceElementEnumerator enumerator = traceReader.enumerateTraceEntries(profileNested, starttime, endtime);
+
+				addToExistingProfile(enumerator, starttime, endtime, catMap);
+				break;
+			}
+			case RELATION:
+			{	
+				final TopologyRelationTreeNode topoNode = (TopologyRelationTreeNode) topologyManager.getTreeNodeForTimeline(timeline);
+				// sum up all children to the profile, note, this can be avoided by adding the already computed statistics from the child nodes.
+				for (int line = 0; line < topoNode.getRelationSource().getMaximumConcurrentRelationEntries(); line++){			
+					ITraceElementEnumerator enumerator = topoNode.getRelationSource().enumerateTraceEntries(profileNested, starttime, endtime, line);				
+					addToExistingProfile(enumerator, starttime, endtime, catMap);
+				}
+
+				break;
+			}			
+			case RELATION_EXPANDED:
+			{
+				// does not work right now, reason, topoNode is the same!				
+				/* final TopologyRelationExpandedTreeNode topoNode = (TopologyRelationExpandedTreeNode) topologyManager.getTreeNodeForTimeline(timeline); 				
+				ITraceElementEnumerator enumerator = topoNode.enumerateTraceEntries(profileNested, starttime, endtime);				
+				addToExistingProfile(enumerator, starttime, endtime, catMap);
+				*/
+				break;
+			}
+			default:
 				continue;
 			}
 
-			final HashMap<CategoryState, TraceCategoryStateProfile> catMap = new HashMap<CategoryState, TraceCategoryStateProfile>();
-
-			final TraceFormatBufferedFileReader reader = getReader();
-			final BufferedTraceFileReader traceReader = topologyManager.getTraceReaderForTimeline(timeline);
-
-			final boolean profileNested = processNestedChkbox.isSelected();
-
-			final ReaderTraceElementEnumerator enumerator = traceReader.enumerateTraceEntryLaterThan(profileNested, starttime, endtime);
-
-			while(enumerator.hasMoreElements()){
-				final ITraceEntry entry = enumerator.nextElement();							
-
-				if(entry == null)
-					continue;
-
-				if(entry.getLatestTime().compareTo(starttime) <= 0 || entry.getEarliestTime().compareTo(endtime) >= 0 ){
-					// ignore these not really overlapping objects.
-					continue;
-				}
-
-				if(entry.getType() == TracableObjectType.STATE){
-					final IStateTraceEntry state = (IStateTraceEntry) entry;
-					final CategoryState category = reader.getCategory(state);
-
-					TraceCategoryStateProfile stateProfil = catMap.get(category);
-					if(stateProfil == null){
-						stateProfil = new TraceCategoryStateProfile(category, this);
-						catMap.put(category, stateProfil);
-					}
-
-					// compute all values:
-					double inclusiveTime = state.getDurationTime().getDouble();
-
-					double childDuration = 0;
-
-					// subtract nested elements:
-					if( state.hasNestedTraceChildren() ){
-
-						for(ITraceEntry child: state.getNestedTraceChildren()){
-							if(child.getType() == TracableObjectType.STATE){
-								childDuration += ((IStateTraceEntry) child).getDurationTime().getDouble();
-							}
-						}						
-					}
-
-					/////////////////OVERLAPPING HANDLING //////////////////
-
-					// now check whether the state overlaps the border:
-
-					if(entry.getEarliestTime().compareTo(starttime) < 0){
-						// overlaps left border
-						inclusiveTime -= starttime.subtract(entry.getEarliestTime()).getDouble();
-
-						// subtract nested elements:
-						if( state.hasNestedTraceChildren() ){
-							childDuration = 0;
-							for(ITraceEntry child: state.getNestedTraceChildren()){
-								if(child.getType() == TracableObjectType.STATE){
-									final IStateTraceEntry childState = (IStateTraceEntry) child;
-									if(child.getLatestTime().compareTo(starttime) > 0){ 
-										childDuration += childState.getLatestTime().subtract(starttime).getDouble();
-									}
-								}
-							}
-						}
-					}
-
-					if(entry.getLatestTime().compareTo(endtime) > 0){
-						// overlaps right border
-						inclusiveTime -= entry.getLatestTime().subtract(endtime).getDouble();
-
-						// subtract nested elements:
-						if( state.hasNestedTraceChildren() ){
-							childDuration = 0;
-							for(ITraceEntry child: state.getNestedTraceChildren()){
-								if(child.getType() == TracableObjectType.STATE){
-									final IStateTraceEntry childState = (IStateTraceEntry) child;
-									if(child.getEarliestTime().compareTo(endtime) < 0){ 
-										childDuration += endtime.subtract(childState.getEarliestTime()).getDouble();
-									}
-								}
-							}
-						}
-					}															
-
-					//////// END HANDLE OVERLAPPING
-
-					final double exclusiveTime = inclusiveTime - childDuration;
-
-					stateProfil.addCall(exclusiveTime, inclusiveTime);
-				}
-
-				// TODO handle events also?
-			}			
-
+			final TopologyNode topoNode = topologyManager.getTreeNodeForTimeline(timeline).getTopology();			
 			final ArrayList<TraceCategoryStateProfile> stateList = new ArrayList<TraceCategoryStateProfile>();
 			stateList.addAll(catMap.values());
-			profile.addProfileInformation(timeline, stateList);
+			profile.addProfileInformation(topoNode, stateList);
 		}
 
 		return profile;
@@ -471,7 +501,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	@Override
 	protected void gotVisibleTheFirstTime() {
 		super.gotVisibleTheFirstTime();
-		
+
 		// start it after it got visible the first time, otherwise zoom will return an error !
 		triggerRecomputeTraceProfile();		
 	}
@@ -480,7 +510,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	{		
 		super(reader, new ModelTime(Epoch.ZERO, new Epoch(1.0)));
 		this.realModelTime = modelTime;
-		
+
 		getFrame().setMinimumSize(new Dimension(700, 500));		
 	}
 
@@ -531,24 +561,24 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			// Draw the center TimeLines.
 			g.setColor( Color.cyan );
 			int totalDrawn = 0;
-			for ( int irow = 0 ; irow < num_rows ; irow++ ) {
-				//  Select only non-expanded row
-				if ( topologyManager.getType(irow) == TimelineType.TRACE  ) {
-					//i_Y = coord_xform.convertTimelineToPixel(irow ) + row_height / 2;
-					//g.drawLine( 0, i_Y, offImage_width-1, i_Y );
-					totalDrawn += drawTimeline(g, irow, coord_xform);
+			for ( int timeline = 0 ; timeline < num_rows ; timeline++ ) {
+				final TopologyTreeNode node = getTopologyManager().getTreeNodeForTimeline(timeline);
+				if(node != null){
+					final TraceObjectProfileMap map = timelineMap.get(node.getTopology());
+					
+					totalDrawn += drawTimeline(g, timeline, map, coord_xform);
 				}
 			}
-			
+
 			if( totalDrawn == 0 ){								
 				final String str = "No profiles for the selected time interval";
 				final int xpos = image.getWidth(null) / 2- 50;
 				final int ypos = image.getHeight(null) / 2 ; //num_rows / 2 * row_height;
-								
+
 				// draw string in middle
 				g.setColor(Color.CYAN);
 				g.fillRect(0, 0, image.getWidth(null), image.getHeight(null));
-				
+
 				g.setColor(Color.BLACK);
 				g.drawChars(str.toCharArray(), 0, str.length(), xpos, ypos - 10);
 			}
@@ -560,12 +590,11 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			}			
 		}
 
-		private int drawTimeline(Graphics2D g, int timeline, CoordPixelImage coordXform){			
-			final TraceObjectProfileMap map = timelineMap.get(timeline);
+		private int drawTimeline(Graphics2D g, int timeline, TraceObjectProfileMap map, CoordPixelImage coordXform){			
 			if(map == null){
 				return 0; // may happen if background computation is slower but redraw is enforced
 			}
-			
+
 			int totalDrawn = 0;
 
 			final int height = coordXform.getTimelineHeight(); 			
@@ -578,7 +607,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			double lastValue = 0;
 
 			final StateBorder border = Parameters.PROFILE_STATE_BORDER;
-
+			
 			for(int i=0 ; i < values.length ; i++){
 				final TraceCategoryStateProfile profile = profiles[i];
 
@@ -600,16 +629,21 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				g.fillRect( x1, yPos, x2-x1, height );
 
 				border.paintStateBorder( g, color,	x1, yPos, true, x2, yPos + height, true );
-				
+
 				totalDrawn++;
 			}
-			
+
 			return totalDrawn;
 		}
 
 		@Override
 		public TraceCategoryStateProfile getTraceObjectAt(int timeline, Epoch realModelTime, int y) {
-			final TraceObjectProfileMap map = timelineMap.get(timeline);
+			final TopologyTreeNode node = getTopologyManager().getTreeNodeForTimeline(timeline);
+			if(node == null){
+				return null;
+			}
+			
+			final TraceObjectProfileMap map = timelineMap.get(node.getTopology());
 			if(map == null){
 				return null;
 			}
@@ -635,10 +669,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	public double getRealModelTimeExtend(){
 		return realModelTime.getViewExtent();
 	}
-	
+
 	@Override
 	protected List<Class<? extends TopologyInputPlugin>> getAvailablePlugins() {
 		return new LinkedList<Class<? extends TopologyInputPlugin>>();
 	}
-	
+
 }

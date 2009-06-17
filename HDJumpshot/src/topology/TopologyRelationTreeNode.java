@@ -26,13 +26,9 @@
 package topology;
 
 import hdTraceInput.BufferedRelationReader;
-
-import java.util.Enumeration;
-
 import viewer.timelines.TimelineType;
-import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.ITracableObject;
-import de.hd.pvs.TraceFormat.relation.RelationEntry;
+import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
@@ -54,11 +50,7 @@ public class TopologyRelationTreeNode extends TopologyTreeNode
 	public BufferedRelationReader getRelationSource(){
 		return (BufferedRelationReader) getTopology().getRelationSource();
 	}
-	
-	public Enumeration<RelationEntry> enumerateEntries(Epoch start, Epoch end){
-		return getRelationSource().enumerateRelations();
-	}
-	
+		
 	@Override
 	public TimelineType getType() {
 		return TimelineType.RELATION;
@@ -69,7 +61,11 @@ public class TopologyRelationTreeNode extends TopologyTreeNode
 		return label;
 	}
 	
-	public ITracableObject getTraceEntryClosestToTime(Epoch time) {
+	public ITracableObject getTraceEntryClosestToTime(Epoch time) {		
 		return getRelationSource().getTraceEntryClosestToTime(time);
 	}
+	
+	public int getMaximumConcurrentRelationEntries(){
+		return getRelationSource().getMaximumConcurrentRelationEntries();
+	}	
 }

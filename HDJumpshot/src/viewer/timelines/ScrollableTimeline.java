@@ -63,7 +63,7 @@ abstract public class ScrollableTimeline extends ScrollableObject{
 		
 		final int timeline       = coord_xform.convertPixelToTimeline( local_click.y);
 		
-		if( timeline <= 0 || timeline > topologyManager.getTimelineNumber() ){
+		if( timeline < 0 || timeline >= topologyManager.getTimelineNumber() ){
 			return null;
 		}
 

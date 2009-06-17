@@ -26,7 +26,6 @@
 package hdTraceInput;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -36,7 +35,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * 
  * @author Julian M. Kunkel
  */
-public class ReaderTraceElementEnumerator implements Enumeration<ITraceEntry>{
+public class ReaderTraceElementEnumerator implements ITraceElementEnumerator{
 
 	protected int curPos;
 	
@@ -74,14 +73,12 @@ public class ReaderTraceElementEnumerator implements Enumeration<ITraceEntry>{
 		return entries.get(curPos++);	
 	}
 	
+	@Override
 	public ITraceEntry peekNextElement(){
 		return entries.get(curPos);
 	}
 	
-	/**
-	 * Return the nesting depth of the next element (does only work for a nested enumerator) 
-	 * @return 0 (by default)
-	 */
+	@Override
 	public int getNestingDepthOfNextElement(){
 		return 0;
 	}

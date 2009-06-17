@@ -25,12 +25,14 @@
 
 package topology;
 
+import hdTraceInput.ITraceElementEnumerator;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 
 import viewer.timelines.TimelineType;
-import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -63,12 +65,16 @@ public class TopologyRelationExpandedTreeNode extends TopologyRelationTreeNode
 		return getRelationSource().getEntriesOnLine(line);
 	}
 	
-	@Override
 	public Enumeration<RelationEntry> enumerateEntries(Epoch start, Epoch end) {
-		return getRelationSource().enumerateRelations(line);
+		return getRelationSource().enumerateRelations(start, end, line);
 	}
 	
 	public ITracableObject getTraceEntryClosestToTime(Epoch time) {
 		return getRelationSource().getTraceEntryClosestToTime(time, line);
+	}
+	
+	public ITraceElementEnumerator enumerateTraceEntries(boolean nested,
+			Epoch startTime, Epoch endTime) {	
+		return getRelationSource().enumerateTraceEntries(nested, startTime, endTime, line);
 	}
 }

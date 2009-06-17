@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
+
 /**
  * 
  * Contains the profile for all (visible) categories and all timelines.
@@ -31,19 +33,19 @@ import java.util.HashMap;
  */
 public class TraceObjectProfile {
 	//final HashMap<CategoryState, TraceCategoryStateProfile> categoryProfiles = new HashMap<CategoryState, TraceCategoryStateProfile>();
-	final HashMap<Integer, ArrayList<TraceCategoryStateProfile>> categoryProfiles = new HashMap<Integer, ArrayList<TraceCategoryStateProfile>>(); 
+	final HashMap<TopologyNode, ArrayList<TraceCategoryStateProfile>> categoryProfiles = new HashMap<TopologyNode, ArrayList<TraceCategoryStateProfile>>(); 
 	
-	private ArrayList<TraceCategoryStateProfile> getProfileForTimeline(int timeline){
-		ArrayList<TraceCategoryStateProfile> profileInfo = categoryProfiles.get(timeline);
+	private ArrayList<TraceCategoryStateProfile> getProfileForTimeline(TopologyNode topoNode){
+		ArrayList<TraceCategoryStateProfile> profileInfo = categoryProfiles.get(topoNode);
 		if(profileInfo == null){
 			profileInfo = new ArrayList<TraceCategoryStateProfile>();
-			categoryProfiles.put(timeline, profileInfo);
+			categoryProfiles.put(topoNode, profileInfo);
 		}
 		return profileInfo;
 	}
 	
-	public void addProfileInformation(int timeline, ArrayList<TraceCategoryStateProfile> profile){
-		categoryProfiles.put(timeline, profile);
+	public void addProfileInformation(TopologyNode topoNode, ArrayList<TraceCategoryStateProfile> profile){
+		categoryProfiles.put(topoNode, profile);
 	}
 	
 	/**
@@ -51,12 +53,12 @@ public class TraceObjectProfile {
 	 * @param timeline
 	 * @return
 	 */
-	public ArrayList<TraceCategoryStateProfile> getProfileCurrentSortOrder(int timeline){
-		return getProfileForTimeline(timeline);
+	public ArrayList<TraceCategoryStateProfile> getProfileCurrentSortOrder(TopologyNode topoNode){
+		return getProfileForTimeline(topoNode);
 	}
 
-	public ArrayList<TraceCategoryStateProfile> getProfileSortedBy(int timeline, TraceProfileComparator comparator){
-		ArrayList<TraceCategoryStateProfile> list = getProfileForTimeline(timeline); 
+	public ArrayList<TraceCategoryStateProfile> getProfileSortedBy(TopologyNode topoNode, TraceProfileComparator comparator){
+		ArrayList<TraceCategoryStateProfile> list = getProfileForTimeline(topoNode); 
 		Collections.sort(list, comparator);
 		return list;
 	}

@@ -12,6 +12,10 @@ public class ArraySearcher {
 		int min = 0; 
 		int max = list.size() - 1;
 		
+		if(max < 0){
+			return -1;
+		}
+		
 		while(true){
 			final int cur = (min + max) / 2;
 			final ITracableObject entry = (ITracableObject) list.get(cur);
@@ -42,6 +46,10 @@ public class ArraySearcher {
 	static public int getPositionEntryClosestToTime(ArrayList list, Epoch dTime){
 		int min = 0; 
 		int max = list.size() - 1;
+		
+		if(max < 0){
+			return -1;
+		}
 		
 		while(true){
 			int cur = (min + max) / 2;

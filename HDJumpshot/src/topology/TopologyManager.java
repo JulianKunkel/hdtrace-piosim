@@ -277,7 +277,7 @@ public class TopologyManager
 			}
 		};	
 	};
-
+	
 	/**
 	 * Change the current topology mapping, i.e. the mapping from topology to timelines.
 	 * @param mapping
