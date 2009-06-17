@@ -1,0 +1,7 @@
+SRC_DIR = $(top_srcdir)/src
+INC_DIR = $(top_srcdir)/include
+LIB_DIR = $(top_builddir)/lib
+TEST_DIR = $(top_builddir)/tests
+EXAMPLE_DIR = $(top_builddir)/examples
+DOC_DIR = $(top_srcdir)/doc
+
