@@ -61,6 +61,10 @@ int PVFS_sys_finalize()
 
     PINT_dist_finalize();
 
+#ifdef HAVE_HDTRACE
+    PVFS_hd_client_trace_finalize();
+#endif
+    
     PINT_event_finalize();
 
     PINT_release_pvfstab();

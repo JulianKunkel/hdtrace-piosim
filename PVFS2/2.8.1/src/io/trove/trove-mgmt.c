@@ -11,7 +11,7 @@
 #include "trove-internal.h"
 #include "gen-locks.h"
 #include "trove-handle-mgmt/trove-handle-mgmt.h"
-#include "pint-event-hd.h"
+#include "pint-event.h"
 
 TROVE_method_callback global_trove_method_callback;
 

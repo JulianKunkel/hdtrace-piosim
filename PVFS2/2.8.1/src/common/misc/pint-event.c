@@ -139,6 +139,7 @@ void PINT_event_finalize(void)
 
     qhash_finalize(groups_table);
     qhash_finalize(events_table);
+    
     return;
 }
 

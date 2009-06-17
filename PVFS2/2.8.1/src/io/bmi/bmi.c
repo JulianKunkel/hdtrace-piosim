@@ -30,7 +30,7 @@
 #include "id-generator.h"
 #include "pvfs2-internal.h"
 #include "pvfs2-debug.h"
-#include "pint-event-hd.h"
+#include "pint-event.h"
 
 static int bmi_initialized_count = 0;
 static gen_mutex_t bmi_initialize_mutex = GEN_MUTEX_INITIALIZER;

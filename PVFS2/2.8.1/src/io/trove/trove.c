@@ -21,7 +21,7 @@
 
 #include "trove.h"
 #include "trove-internal.h"
-#include "pint-event-hd.h"
+#include "pint-event.h"
 
 extern struct TROVE_keyval_ops  *keyval_method_table[];
 extern struct TROVE_dspace_ops  *dspace_method_table[];

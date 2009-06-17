@@ -3,7 +3,7 @@
  *
  * Changes by Acxiom Corporation to add relative path support to
  * PVFS_util_resolve(),
- * Copyright © Acxiom Corporation, 2005
+ * Copyright ï¿½ Acxiom Corporation, 2005
  *
  * See COPYING in top-level directory.
  */
@@ -1105,6 +1105,7 @@ int PVFS_util_init_defaults(void)
 
     /* initialize pvfs system interface */
     ret = PVFS_sys_initialize(GOSSIP_NO_DEBUG);
+    //PINT_client_state_machine_post
     if (ret < 0)
     {
         return(ret);

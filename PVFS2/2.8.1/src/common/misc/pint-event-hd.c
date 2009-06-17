@@ -5,18 +5,14 @@
 #include "hdStats.h"
 #include "hdError.h"
 #include "pint-event.h"
-#include "pint-event-hd.h"
 #include  "str-utils.h"
 #include "state-machine.h"
 #include "gen-locks.h"
-
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-
 #include "hdTopo.h"
-#include <assert.h>
 
 #ifdef HAVE_HDPTL
 #include "PTL.h"
@@ -30,14 +26,13 @@ static int hdStatsGroupValue[ALL_FACILITIES];
 static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES] ;
 hdR_topoToken topoTokenArray[STATISTIC_END];
 hdTopoNode topoNodeArray[STATISTIC_END];
-
 hdTopology topology;
 
-const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "CLIENT", "JOB", "STATISTIC_END"};
+const char * hdFacilityNames[] = 
+{"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END"};
 
 static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
 {	
-	printf("TEST\n");
 	hd_facilityTraceStatus[facilityNum] = 1;
 	hd_facilityTrace[facilityNum] = hdS_createGroup(hdFacilityNames[facilityNum], topoNode, 1);
 	hdS_addValue(hd_facilityTrace[facilityNum], hdFacilityNames[facilityNum], INT32, "#", NULL);
@@ -70,15 +65,15 @@ int PINT_HD_event_initalize(char * traceWhat)
 		int facilityNum;
 		for (facilityNum = 0; facilityNum < STATISTIC_END; facilityNum++)
 		{
-			if((strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0) && !hd_facilityTrace[facilityNum]){
+			if((strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0) && !hd_facilityTrace[facilityNum])
+			{
 				const char *path[] = {hostname,hdFacilityNames[facilityNum] , "0"};
 				hdTopoNode topoNode = hdT_createTopoNode(topology, path, 3);
 
 				testInitFacilityStatisticTrace(topoNode, facilityNum);
-
 				topoNodeArray[facilityNum] = topoNode;
 				hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
-
+				
 				break;
 			}
 		}
@@ -112,7 +107,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 			ptl_startTrace(pStatistics);
 		}
 
-#endif
+#endif /* __HAVE_HDPTL__ */
 
 	}
 
@@ -135,7 +130,6 @@ int PINT_HD_event_finalize(void)
 			hdS_finalize(hd_facilityTrace[i]);
 			hd_facilityTraceStatus[i] = 0;
 			hd_facilityTrace[i] = NULL; 
-
 		}
 	}
 	for (i = 0 ; i < STATISTIC_END; i++){

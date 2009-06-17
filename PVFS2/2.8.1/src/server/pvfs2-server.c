@@ -47,7 +47,7 @@
 #include "pint-event.h"
 #include "pint-util.h"
 #include "gen-locks.h"
-#include "pint-event-hd.h"
+#include "hdRelation.h"
 
 #ifndef PVFS2_VERSION
 #define PVFS2_VERSION "Unknown"
@@ -1717,15 +1717,15 @@ int server_state_machine_start(
     {
         s_op->req  = (struct PVFS_server_req *)s_op->decoded.buffer;
 
-        HD_RELATION(SERVER,
+        HD_SERVER_RELATION(SERVER,
         	hdHintRelation_p hintRelationToken = malloc(sizeof(hdHintRelation_t));
 
         	// check if client sent token information or not!
         	char * clientToken = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
-
+        	printf("clientToken = %s\n",clientToken);
         	if(clientToken)
         	{
-        		PINT_smcb_set_token(smcb, hdR_relateRemoteToken(topoTokenArray[SERVER], clientToken)); 
+        		PINT_smcb_set_token(smcb, hdR_relateRemoteToken(topoTokenArray[SERVER], clientToken));
         	}else{
         		// create new token
         		PINT_smcb_set_token(smcb, hdR_createTopLevelRelation(topoTokenArray[SERVER]));

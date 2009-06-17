@@ -136,6 +136,7 @@ PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
 			/* new state */
 			ret = hdR_startS(smcb->smToken, state_name);
 	)
+//	printf("START INVOKE : %s\n",state_name);
 
 	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
 			"[SM Entering]: (%p) %s:%s (status: %d)\n",
@@ -154,6 +155,7 @@ PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
 				hdR_endS(smcb->smToken);
 			}
 	)
+//	printf("END INVOKE !\n");
 
 	/* process return code */
 	switch (retval)
@@ -217,12 +219,14 @@ PINT_sm_action PINT_state_machine_start(struct PINT_smcb *smcb, job_status_s *r)
 	smcb->immediate = 1;
 
 	/* set the base frame to be the current TOS, which should be 0 */
+	
+	
 	smcb->base_frame = smcb->frame_count - 1;
-
+	
 	HD_STMT_TOKEN(
 			hdR_startS(smcb->smToken, PINT_state_machine_current_machine_name(smcb));
 	)
-
+	
 	/* run the current state action function */
 	ret = PINT_state_machine_invoke(smcb, r);
 	if (ret == SM_ACTION_COMPLETE || ret == SM_ACTION_TERMINATE)
@@ -259,7 +263,6 @@ int PINT_smcb_set_token(struct PINT_smcb *smcb, hdR_token token){
 hdR_token PINT_smcb_get_token(struct PINT_smcb *smcb){
 	return smcb->smToken;
 }
-
 
 /* Function: PINT_state_machine_next()
    Params: smcb pointer and job status pointer
@@ -361,6 +364,7 @@ PINT_sm_action PINT_state_machine_next(struct PINT_smcb *smcb, job_status_s *r)
 			HD_STMT_TOKEN(
 					hdR_startS(smcb->smToken, PINT_state_machine_current_machine_name(smcb));
 			)
+//			printf("START NEXT: %s\n", PINT_state_machine_current_machine_name(smcb));
 		}
 
 		/* runs state_action and returns the return code */
@@ -424,17 +428,25 @@ int PINT_state_machine_locate(struct PINT_smcb *smcb)
 		/* handle the case in which the first state points to a nested
 		 * machine, rather than a simple function
 		 */
+
+		/* the code is called only from the server, because the client did not yet set the smToken */
+		HD_STMT_TOKEN(
+				hdR_startS(smcb->smToken, smcb->op_get_state_machine(smcb->op)->name);
+		)
+		
 		while(current_tmp->flag == SM_JUMP)
 		{
 			machine_name = PINT_state_machine_current_machine_name(smcb);
 
 			PINT_push_state(smcb, current_tmp);
+			
 			current_tmp = ((struct PINT_state_machine_s *)
 					current_tmp->action.nested)->first_state;
-			
+
 			HD_STMT_TOKEN(
 					hdR_startS(smcb->smToken, current_tmp->parent_machine->name);
 			)
+			
 		}
 		smcb->current_state = current_tmp;
 
@@ -460,10 +472,6 @@ int PINT_state_machine_locate(struct PINT_smcb *smcb)
 int PINT_smcb_set_op(struct PINT_smcb *smcb, int op)
 {
 	smcb->op = op;
-
-	HD_STMT_TOKEN(
-			hdR_startS(smcb->smToken, smcb->op_get_state_machine(smcb->op)->name); 
-	)
 
 	return PINT_state_machine_locate(smcb);
 }
@@ -618,6 +626,7 @@ void PINT_smcb_free(struct PINT_smcb *smcb)
 			hdR_endS(smcb->smToken);
 			hdR_destroyRelation(& smcb->smToken);
 	)
+//	printf("END !\n");
 
 	struct PINT_frame_s *frame_entry, *tmp;
 	assert(smcb);
@@ -662,6 +671,7 @@ static struct PINT_state_s *PINT_pop_state(struct PINT_smcb *smcb)
 			/*end old sm */
 			hdR_endS(smcb->smToken);
 	)
+//	printf("END (POP)!\n");
 	
 	return smcb->state_stack[smcb->stackptr].state;
 }

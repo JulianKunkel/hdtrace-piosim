@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	usage(argc, argv);
 	return(-1);
     }
-
+    
     ret = PVFS_util_init_defaults();
     if(ret < 0)
     {
@@ -80,10 +80,13 @@ int main(int argc, char **argv)
             cur_fs, &creds,
             PVFS_SERV_PARAM_EVENT_DISABLE,
             &param_value, NULL, NULL);
+        
+        
     }
     else
     {
         param_value.u.string_value = user_opts->event_string;
+        
         ret = PVFS_mgmt_setparam_all(
             cur_fs, &creds,
             PVFS_SERV_PARAM_EVENT_ENABLE,

@@ -16,6 +16,12 @@
 #include "hdRelation.h"
 #include "gen-locks.h"
 
+//#ifdef __PVFS2_CLIENT__
+//
+//#endif
+//
+//
+//#ifdef __PVFS2_SERVER__
 
 int PINT_HD_event_initalize(char * traceWhat);
 
@@ -41,7 +47,7 @@ struct _hdHintRelationStructure{
 
 
 #ifdef HAVE_HDTRACE
-	#define HD_RELATION(facility, stmt) \
+	#define HD_SERVER_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
 
 	#define HD_DESTROY_RELATION(facility, token) \
@@ -52,14 +58,14 @@ struct _hdHintRelationStructure{
 	}
 
 #else
-	#define HD_RELATION (facility stmt)
+	#define HD_SERVER_RELATION (facility stmt)
 	#define HD_DESTROY_RELATION(facility, token) 
 #endif
 
 typedef struct _hdHintRelationStructure hdHintRelation_t;
 typedef struct _hdHintRelationStructure * hdHintRelation_p;
 
-extern hdR_topoToken topoTokenArray[STATISTIC_END] ;
+extern hdR_topoToken topoTokenArray[STATISTIC_END];
 extern hdTopoNode topoNodeArray[STATISTIC_END];
 
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility);
@@ -70,8 +76,7 @@ int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count);
 
 int PINT_HD_update_counter_get(HD_Trace_Facility facility); 
 
-extern hdR_topoToken topoToken;
-
+//#endif /* HAVE_PVFSERVER */
 #endif /* __HAVE_HDTRACE__ */
 
 #endif /* __PINT_EVENTHD_H */

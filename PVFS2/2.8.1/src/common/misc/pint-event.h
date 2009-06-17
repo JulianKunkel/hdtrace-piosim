@@ -8,6 +8,11 @@
 #define __PINT_EVENT_H
 
 #include "pvfs2-types.h"
+#include "pint-event-hd.h"
+
+#ifdef __PVFS2_CLIENT__
+#include "pint-event-hd-client.h"
+#endif
 
 typedef PVFS_id_gen_t PINT_event_type;
 typedef PVFS_id_gen_t PINT_event_id;

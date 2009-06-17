@@ -14,7 +14,6 @@
 #include "server-config.h"
 #include "pvfs2-server.h"
 #include "pint-event.h"
-#include "pint-event-hd.h"
 #include "pvfs2-internal.h"
 #include "gossip.h"
 #include "request-scheduler/request-scheduler.h"

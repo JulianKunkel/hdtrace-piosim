@@ -25,8 +25,7 @@
 #include "id-generator.h"
 #include "job-time-mgr.h"
 #include "pvfs2-internal.h"
-#include "pint-event-hd.h"
-#include "hdRelation.h"
+#include "pint-event.h"
 
 /* contexts for use within the job interface */
 static bmi_context_id global_bmi_context = -1;

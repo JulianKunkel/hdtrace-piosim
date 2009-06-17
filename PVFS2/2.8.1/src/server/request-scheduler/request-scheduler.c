@@ -36,7 +36,7 @@
 #include "gossip.h"
 #include "id-generator.h"
 #include "pvfs2-internal.h"
-#include "pint-event-hd.h"
+#include "pint-event.h"
 
 /* we need the server header because it defines the operations that
  * we use to determine whether to schedule or queue.  
