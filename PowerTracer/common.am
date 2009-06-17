@@ -1,0 +1,3 @@
+SRC_DIR = $(top_srcdir)/src
+DOC_DIR = $(top_srcdir)/doc
+

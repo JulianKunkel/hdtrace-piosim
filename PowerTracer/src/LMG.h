@@ -1,0 +1,125 @@
+#ifndef LMG_H
+#define LMG_H
+
+#include <unistd.h>
+
+int LMG_reset(int fd);
+
+int LMG_setup(int fd);
+
+int LMG_getIdentity(int fd, char buffer[], size_t bsize);
+
+int LMG_readTextMessage(int fd, char buffer[], size_t bsize);
+
+int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize);
+
+int LMG_getAllErrors(int fd, char buffer[], size_t bsize);
+
+int LMG_close(int fd);
+
+#define LMG_RESET_RETURN_CHECK \
+    switch(ret) \
+    { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* serial_sendbreak(), serial_sendMessage() */ \
+        case ERR_WRITE: \
+        case ERR_UNKNOWN: \
+            return(ret); \
+        default: \
+            ERROR_UNKNOWN \
+            return(ERR_UNKNOWN); \
+    }
+
+#define LMG_SETUP_RETURN_CHECK \
+    switch(ret) \
+    { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */ \
+        case ERR_WRITE: \
+        case ERR_UNKNOWN: \
+            return(ret); \
+        default: \
+            ERROR_UNKNOWN \
+            return(ERR_UNKNOWN); \
+    }
+
+#define LMG_GETIDENTITY_RETURN_CHECK \
+    switch(ret) \
+    { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* serial_sendMessage(), LMG_readTextMessage() */ \
+        case ERR_NO_MSG: \
+        case ERR_MSG_FORMAT: \
+        case ERR_BSIZE: \
+        case ERR_WRITE: \
+        case ERR_UNKNOWN: \
+            return(ret); \
+        default: \
+            ERROR_UNKNOWN \
+            return(ERR_UNKNOWN); \
+    }
+
+#define LMG_READTEXTMESSAGE_ERROR_CHECK \
+    switch(ret) \
+    { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* serial_readBytes() */ \
+        case ERR_NO_MSG: \
+        case ERR_MSG_FORMAT: \
+        case ERR_BSIZE: \
+           return(ret); \
+        default: \
+            ERROR_UNKNOWN \
+            return(ERR_UNKNOWN); \
+    } \
+
+#define LMG_READBINARYMESSAGE_ERROR_CHECK \
+    switch(ret) \
+    { \
+        case ERR_ERRNO: /* serial_readBytes() */ \
+        case ERR_NO_MSG: \
+        case ERR_MSG_FORMAT: \
+        case ERR_BSIZE: \
+        case ERR_UNKNOWN: /* LMG_readBinaryMessage() */ \
+            return(ret); \
+        default: \
+            ERROR_UNKNOWN \
+            return(ERR_UNKNOWN); \
+    }
+
+#define LMG_GETALLERRORS_RETURN_CHECK \
+    switch(ret) \
+    { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* serial_sendMessage(), LMG_readTextMessage() */ \
+        case ERR_BSIZE: \
+        case ERR_WRITE: \
+        case ERR_UNKNOWN: \
+            return(ret); \
+        default: \
+            ERROR_UNKNOWN \
+            return(ERR_UNKNOWN); \
+    }
+
+#define LMG_CLOSE_RETURN_CHECK \
+    switch(ret) \
+    { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */ \
+        case ERR_WRITE: \
+        case ERR_UNKNOWN: \
+            return(ret); \
+        default: \
+            ERROR_UNKNOWN \
+            return(ERR_UNKNOWN); \
+    }
+
+#endif /* LMG_H */
+
+/* vim: set sw=4 sts=4 et: */

@@ -1,0 +1,28 @@
+Eventuell interessante Kommandos:
+
+Commando Beschreibung (Wertebereich) [default]
+
+COUNT? Nummer des Messzyklus dessen Wert im Puffer ist (<= 65535)
+SCTC?  Nummer des letzten Abtastwertes im Messzyklus (<= 2^31-1)
+INTR? Zeit der laufenden Energiemessung
+SMPL? Wert der Abtastfrequenz des LMG
+
+AVER Liest und setzte die Mittelung (float:1...999) [1]
+CYCL Lesen und setzen der Zykluszeit (float:0.05...60) [0.5]
+
+FRMT Ausgabeformat der Daten (ASCII/PACKED)
+CONT aktivieren der kontinuierlichen Verarbeitung (ON/OFF)
+LANG Wechselt den Kommandosatz (SCPI/SHORT)
+ACTN Definition der Befehle zur kontinuierlichen Verarbeitung (...)
+GLT  Go to local
+
+
+
+Stichworte:
+ "geglättete Leistung" (HPAV?)
+ "harmonische Leistung" (HPAM?)
+ "Amplitude der harmonischen Spannung" (HUAM?)
+ "mittlere Wirkleistung" (PM?)
+ "Wirkleistung" (P?)
+ "Effektivwert der Spannung" (UTRMS?)
+
