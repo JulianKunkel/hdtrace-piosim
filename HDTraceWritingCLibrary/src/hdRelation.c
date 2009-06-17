@@ -3,7 +3,7 @@
  *
  * @date 08.06.2009
  * @author Julian M. Kunkel
- * @version 0.6
+ * @version \$Id$
  */
 
 #include <stdarg.h>
@@ -23,11 +23,12 @@
 #include "hdError.h"
 
 /**
-remote_id = <hostname><pid>
-topo = <unique topo design>
-unique id for a token =  remote_id + <ID>
+remote_id = \<hostname\>\<pid\>
+topo = \<unique topo design\>
+unique id for a token =  remote_id + \<ID\>
 
 XML:
+@code
 <topo val="fqn" id=<topo_id>/> <!-- alternativ in extra datei, einmal pro
 topologie -->
 <rel v=<id> top=<id>/>
@@ -38,6 +39,7 @@ remote endpunkt -->
 <s time="" v=<id> "attributes> data </start>
 <e time="" v=<id> "attributes> data </end>
 </un v=<id>>
+@endcode
  */
 
 /**
@@ -48,7 +50,7 @@ remote endpunkt -->
 			hdT_getTopoPathString(topoToken->topoNode), string)
 
 /**
- * Token prefix for remote access == <HOSTNAME><FQDN><PID>
+ * Token prefix for remote access == \<HOSTNAME\>\<FQDN\>\<PID\>
  */
 static char * remoteTokenPrefix;
 
@@ -63,7 +65,7 @@ static char * uniqueHostID;
 static size_t remoteTokenLen;
 
 /**
- * Token prefix for local access == <PID>
+ * Token prefix for local access == \<PID\>
  */
 static char * localTokenPrefix;
 

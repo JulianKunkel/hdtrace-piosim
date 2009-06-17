@@ -1,4 +1,4 @@
-/*
+/**
  * hdRelation.h
  *
  * A relation is similar to a normal tracefile.
@@ -12,8 +12,9 @@
  *
  * Multiple relation files can be related as well, thus allowing to track source and triggered activities across servers.
  *
- *  Created on: 05.06.2009
- *      Author: julian
+ * @date 05.06.2009
+ * @author julian
+ * @version \$Id$
  */
 
 #ifndef HDRELATION_H_

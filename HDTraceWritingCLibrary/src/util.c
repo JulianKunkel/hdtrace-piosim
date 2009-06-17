@@ -5,7 +5,7 @@
  *
  * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version \\$Id$
+ * @version \$Id$
  */
 
 #include "util.h"
@@ -97,7 +97,7 @@ BOOL isValidXMLTagString(const char *string)
  * that should not appear in XML attribute values ('"', '<', '>', '&')
  *
  * @param dest Pointer to the memory for the resulting string
- * @param olen Maximum length of the resulting string including '\0'
+ * @param dlen Maximum length of the resulting string including '\\0'
  * @param src  String to use as input
  *
  * @return Success state

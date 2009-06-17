@@ -3,7 +3,7 @@
  *
  * @date 03.06.2009
  * @author Julian M. Kunkel
- * @version \\$Id$
+ * @version \$Id$
  */
 
 #include <stdlib.h>

@@ -4,7 +4,7 @@
 AC_PREREQ(2.61)
 AC_INIT([HDTraceCLibrary], [0svn20090617], [stephan.krempel@pvs.informatik.uni-heidelberg.de])
 AC_CONFIG_SRCDIR([src/hdTopo.c])
-AC_CONFIG_HEADER([include/config.h])
+AC_CONFIG_HEADER([src/pkgconfig.h])
 
 # Initialize automake
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.10])

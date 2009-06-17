@@ -36,90 +36,11 @@
 <tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gpp.1809514778" name="GCC C++ Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gpp"/>
 </toolChain>
 </folderInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.357353661" name="hdRelation.c" rcbsApplicability="disable" resourcePath="src/hdRelation.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1164068811">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1164068811" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1064256327" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.105079978" name="hdTopo.c" rcbsApplicability="disable" resourcePath="src/hdTopo.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.306051824">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.306051824" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1416219097" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.2126665168" name="util.c" rcbsApplicability="disable" resourcePath="src/util.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1539174398">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1539174398" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.506453126" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1254577953" name="hdStats.c" rcbsApplicability="disable" resourcePath="src/hdStats.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.485114170">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.485114170" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.143671293" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1138986334" name="hdTrace.c" rcbsApplicability="disable" resourcePath="src/hdTrace.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1053184336">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1053184336" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1861641551" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.511255759" name="common.c" rcbsApplicability="disable" resourcePath="src/common.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1573154724">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1573154724" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1996657184" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1069078865" name="'`hdStatsPrint.c" rcbsApplicability="disable" resourcePath="build.debug/tools/`test -f 'hdStatsPrint.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/tools/'`hdStatsPrint.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.659700565">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.659700565" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2123592502" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1488234125" name="hdTopo.c" rcbsApplicability="disable" resourcePath="build.debug/lib/`test -f '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/hdTopo.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/lib/'`/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/hdTopo.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.398718395">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.398718395" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.777830272" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.429735673" name="common.c" rcbsApplicability="disable" resourcePath="build.debug/lib/`test -f '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/common.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/lib/'`/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/common.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.340795859">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.340795859" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1495838227" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1764494662" name="util.c" rcbsApplicability="disable" resourcePath="build.debug/lib/`test -f '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/util.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/lib/'`/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/util.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.931046661">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.931046661" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.317129432" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1280963723" name="hdRelation.c" rcbsApplicability="disable" resourcePath="build.debug/lib/`test -f '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/hdRelation.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/lib/'`/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/hdRelation.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.856607757">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.856607757" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1616751933" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.301115939" name="'`hdRelationTest.c" rcbsApplicability="disable" resourcePath="build.debug/tests/`test -f 'hdRelationTest.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/tests/'`hdRelationTest.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1216649053">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1216649053" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1004215567" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.133548026" name="hdTopo.c" rcbsApplicability="disable" resourcePath="build.debug/tests/`test -f '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/hdTopo.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/tests/'`/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/src/hdTopo.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1774595532">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1774595532" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1141724593" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.132620096" name="'`hdTraceTest.c" rcbsApplicability="disable" resourcePath="build.debug/tests/`test -f 'hdTraceTest.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/tests/'`hdTraceTest.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1539564922">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1539564922" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.396268092" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1325762638" name="'`hdTopoTest.c" rcbsApplicability="disable" resourcePath="build.debug/tests/`test -f 'hdTopoTest.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/tests/'`hdTopoTest.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1432236358">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.1432236358" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1442222326" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
-<fileInfo id="org.eclipse.linuxtools.cdt.autotools.configuration.build.203564731.1885288070" name="'`hdStatsTest.c" rcbsApplicability="disable" resourcePath="build.debug/tests/`test -f 'hdStatsTest.c' || echo '/home/aresius/Studium/Masterarbeit/workspace/HDTraceWritingCLibrary/tests/'`hdStatsTest.c" toolsToInvoke="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.330899343">
-<tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826.330899343" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826">
-<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.806593900" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-</tool>
-</fileInfo>
 <sourceEntries>
 <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="tests"/>
 <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="tools"/>
+<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="include"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -933,22 +854,6 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
 </target>
-<target name="include/config.h" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
-<buildCommand>make</buildCommand>
-<buildArguments/>
-<buildTarget>include/config.h</buildTarget>
-<stopOnError>true</stopOnError>
-<useDefaultCommand>true</useDefaultCommand>
-<runAllBuilders>false</runAllBuilders>
-</target>
-<target name="include/stamp-h1" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
-<buildCommand>make</buildCommand>
-<buildArguments/>
-<buildTarget>include/stamp-h1</buildTarget>
-<stopOnError>true</stopOnError>
-<useDefaultCommand>true</useDefaultCommand>
-<runAllBuilders>false</runAllBuilders>
-</target>
 <target name="info" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
 <buildCommand>make</buildCommand>
 <buildArguments/>
@@ -1105,6 +1010,22 @@
 <buildCommand>make</buildCommand>
 <buildArguments/>
 <buildTarget>ps</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>false</runAllBuilders>
+</target>
+<target name="src/pkgconfig.h" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>src/pkgconfig.h</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>false</runAllBuilders>
+</target>
+<target name="src/stamp-h1" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>src/stamp-h1</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
@@ -1181,6 +1102,7 @@
 <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="tests"/>
 <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="tools"/>
+<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="include"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -1994,22 +1916,6 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
 </target>
-<target name="include/config.h" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
-<buildCommand>make</buildCommand>
-<buildArguments/>
-<buildTarget>include/config.h</buildTarget>
-<stopOnError>true</stopOnError>
-<useDefaultCommand>true</useDefaultCommand>
-<runAllBuilders>false</runAllBuilders>
-</target>
-<target name="include/stamp-h1" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
-<buildCommand>make</buildCommand>
-<buildArguments/>
-<buildTarget>include/stamp-h1</buildTarget>
-<stopOnError>true</stopOnError>
-<useDefaultCommand>true</useDefaultCommand>
-<runAllBuilders>false</runAllBuilders>
-</target>
 <target name="info" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
 <buildCommand>make</buildCommand>
 <buildArguments/>
@@ -2166,6 +2072,22 @@
 <buildCommand>make</buildCommand>
 <buildArguments/>
 <buildTarget>ps</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>false</runAllBuilders>
+</target>
+<target name="src/pkgconfig.h" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>src/pkgconfig.h</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>false</runAllBuilders>
+</target>
+<target name="src/stamp-h1" path="" targetID="org.eclipse.linuxtools.cdt.autotools.builder1">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>src/stamp-h1</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>

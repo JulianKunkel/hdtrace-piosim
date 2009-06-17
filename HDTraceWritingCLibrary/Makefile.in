@@ -35,7 +35,7 @@ host_triplet = @host@
 DIST_COMMON = $(am__configure_deps) $(include_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/common.am $(top_srcdir)/configure \
-	$(top_srcdir)/include/config.h.in compile config.guess \
+	$(top_srcdir)/src/pkgconfig.h.in compile config.guess \
 	config.sub depcomp install-sh ltmain.sh missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -45,7 +45,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/src/pkgconfig.h
 CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -204,6 +204,7 @@ TEST_DIR = $(top_builddir)/tests
 TOOL_DIR = $(top_builddir)/tools
 DOC_DIR = $(top_srcdir)/doc
 include_HEADERS = $(INC_DIR)/hd*.h
+doxyINPUT = $(SRC_DIR) $(INC_DIR) include
 all: all-recursive
 
 .SUFFIXES:
@@ -241,22 +242,22 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 
-include/config.h: include/stamp-h1
+src/pkgconfig.h: src/stamp-h1
 	@if test ! -f $@; then \
-	  rm -f include/stamp-h1; \
-	  $(MAKE) $(AM_MAKEFLAGS) include/stamp-h1; \
+	  rm -f src/stamp-h1; \
+	  $(MAKE) $(AM_MAKEFLAGS) src/stamp-h1; \
 	else :; fi
 
-include/stamp-h1: $(top_srcdir)/include/config.h.in $(top_builddir)/config.status
-	@rm -f include/stamp-h1
-	cd $(top_builddir) && $(SHELL) ./config.status include/config.h
-$(top_srcdir)/include/config.h.in:  $(am__configure_deps) 
+src/stamp-h1: $(top_srcdir)/src/pkgconfig.h.in $(top_builddir)/config.status
+	@rm -f src/stamp-h1
+	cd $(top_builddir) && $(SHELL) ./config.status src/pkgconfig.h
+$(top_srcdir)/src/pkgconfig.h.in:  $(am__configure_deps) 
 	cd $(top_srcdir) && $(AUTOHEADER)
-	rm -f include/stamp-h1
+	rm -f src/stamp-h1
 	touch $@
 
 distclean-hdr:
-	-rm -f include/config.h include/stamp-h1
+	-rm -f src/pkgconfig.h src/stamp-h1
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -678,11 +679,11 @@ uninstall-am: uninstall-includeHEADERS
 doc: devdoc apidoc
 
 devdoc: force
-	OUTDIR=$(DOC_DIR) doxygen $(top_srcdir)/Doxyfile
+	OUTDIR=$(DOC_DIR) INPUT="$(doxyINPUT)" doxygen $(top_srcdir)/Doxyfile
 
 apidoc: force
 	mkdir -p $(DOC_DIR)/api
-	OUTDIR=$(DOC_DIR)/api doxygen $(top_srcdir)/Doxyfile
+	OUTDIR=$(DOC_DIR)/api INPUT="$(doxyINPUT)" doxygen $(top_srcdir)/Doxyfile.api_only
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -1,5 +1,5 @@
 /**
- * @file hdStatsInternals.h
+ * @file hdStatsInternal.h
  *
  * Implementations of all functions for writing statistics
  *
@@ -8,7 +8,7 @@
  * @endif
  *
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version \\$Id$
+ * @version \$Id$
  */
 
 #ifndef HDSTATS_INTERNAL_H_

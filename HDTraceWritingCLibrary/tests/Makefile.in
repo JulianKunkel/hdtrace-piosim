@@ -43,7 +43,7 @@ am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/src/pkgconfig.h
 CONFIG_CLEAN_FILES =
 am_hdRelationTest_OBJECTS = hdRelationTest-hdRelationTest.$(OBJEXT)
 hdRelationTest_OBJECTS = $(am_hdRelationTest_OBJECTS)
@@ -72,7 +72,7 @@ hdTraceTest_DEPENDENCIES = $(LIB_DIR)/libhdTrace.la
 hdTraceTest_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(hdTraceTest_CFLAGS) \
 	$(CFLAGS) $(hdTraceTest_LDFLAGS) $(LDFLAGS) -o $@
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \

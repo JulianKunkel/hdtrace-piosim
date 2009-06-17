@@ -9,7 +9,7 @@
  *
  * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version \\$Id$
+ * @version \$Id$
  */
 
 #include "hdTopo.h"
@@ -55,7 +55,8 @@
  *
  * Example usage:
  * @code
- * hdTopology myTopology = hdT_createTopology("ProjectX", {"Host", "Process", "Thread"}, 3);
+ * hdTopology myTopology =
+ *         hdT_createTopology("ProjectX", {"Host", "Process", "Thread"}, 3);
  * @endcode
  *
  * @if api_only
@@ -220,18 +221,20 @@ int hdT_destroyTopology(
  *
  * Example usages:
  * @code
- * hdTopoNode myTopology = hdT_createTopoNode({hostname, pid, thread_id}, 3);
+ * hdTopoNode myTopoNode =
+ *         hdT_createTopoNode(myTopology, {hostname, pid, thread_id}, 3);
  * @endcode
  * @code
- * hdTopoNode myTopology = hdT_createTopoNode({hostname, pid}, 2);
+ * hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, {hostname, pid}, 2);
  * @endcode
  *
  * @if api_only
  *  @ingroup hdTopo
  * @endif
  *
- * @param path   Array of pointers to the node labels on the path.
- * @param length Length of the path.
+ * @param topology Topology this node should belong to
+ * @param path     Array of pointers to the node labels on the path.
+ * @param length   Length of the path.
  *
  * @return HDTrace topology node object
  *
@@ -376,7 +379,8 @@ const char * hdT_getTopoPathString(hdTopoNode node)
  *
  * For example, create a node like this:
  * @code
- * hdTopoNode myTopoNode = hdT_createTopoNode({host0, process0, thread0}, 3);
+ * hdTopoNode myTopoNode =
+ *         hdT_createTopoNode(myTopology, {host0, process0, thread0}, 3);
  * @endcode
  * then the following call will return \c "process0":
  * @code

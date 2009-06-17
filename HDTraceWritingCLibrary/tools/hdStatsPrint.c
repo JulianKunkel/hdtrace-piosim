@@ -3,7 +3,7 @@
  *
  * @date 24.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version \\$Id$
+ * @version \$Id$
  */
 
 
