@@ -15,7 +15,9 @@ AC_SYS_LARGEFILE
 
 # Checks for programs.
 AC_PROG_CC_C99
+AC_PROG_RANLIB
 AC_PROG_LIBTOOL
+
 
 dnl ----------------------------------------------------------------------
 dnl Define configure commandline flags
@@ -84,7 +86,7 @@ AC_ARG_WITH(glib-static,
 		     then
 			     GLIB_LDADD=${GLIB_STATIC_LIBGLIB2_A}
 			     GLIB_CFLAGS="-I${GLIB_STATIC_INCLUDE} -I${GLIB_STATIC_LIBINCLUDE}"
-			     AC_SUBST(GLIB_LIBS)
+			     AC_SUBST(GLIB_LIBS)   # override the one by AM_PATH_GLIB_2_0
 			     AC_SUBST(GLIB_CFLAGS)
 			     GLIB_PRESENT=YES
 			     AC_MSG_NOTICE([assuming static glib in ${withval} is good...])
@@ -114,15 +116,17 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_INT32_T
 AC_TYPE_INT64_T
+AC_TYPE_UINT8_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_HEADER_TIME
-AC_TYPE_UINT64_T
-AC_TYPE_UINT8_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
+AC_FUNC_ALLOCA
 AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([gethostname gettimeofday isascii memset regcomp select strdup strerror])

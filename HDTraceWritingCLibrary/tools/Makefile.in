@@ -70,6 +70,7 @@ ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
+ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -196,7 +197,8 @@ hdStatsPrint_CFLAGS = -I$(INC_DIR)
 ######################
 # Run configurations #
 ######################
-STATS_EXAMPLE = ../../PerformanceTracingLibrary/examples/MyProject_host0_Performance.stat
+STATS_EXAMPLE = $(top_srcdir)/../PerformanceTracingLibrary/build/examples/MyProject_host0_Performance.stat
+HEADER_READER = $(top_srcdir)/tools/hdStatsReadHeader.pl
 all: all-am
 
 .SUFFIXES:
@@ -466,8 +468,8 @@ uninstall-am:
 	pdf pdf-am ps ps-am tags uninstall uninstall-am
 
 
-run_hdStatsPrint: hdStatsPrint hdStatsReadHeader.pl
-	./hdStatsPrint $(shell ./hdStatsReadHeader.pl $(STATS_EXAMPLE))
+run_hdStatsPrint: hdStatsPrint ${HEADER_READER}
+	./hdStatsPrint $(shell ${HEADER_READER} $(STATS_EXAMPLE))
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

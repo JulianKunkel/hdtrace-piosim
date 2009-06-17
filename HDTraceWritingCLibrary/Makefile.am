@@ -2,7 +2,7 @@ SUBDIRS = lib . tools tests
 
 include $(top_srcdir)/common.am
 
-include_HEADERS = $(INC_DIR)/hd*.h
+include_HEADERS = $(INC_DIR)/*.h
 
 .PHONY: force
 

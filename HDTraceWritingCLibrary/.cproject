@@ -25,6 +25,7 @@
 <tool id="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure.904843764" name="configure" superClass="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure">
 <option id="org.eclipse.linuxtools.cdt.autotools.option.configure.user.890248853" name="User-specified configuration options" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.user" value="--enable-warnings --enable-debugging" valueType="string"/>
 <option id="org.eclipse.linuxtools.cdt.autotools.option.configure.builddir.1863445644" name="Build directory" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.builddir" value="build.debug" valueType="string"/>
+<option id="org.eclipse.linuxtools.cdt.autotools.option.configure.prefix.934209358" name="Arch-independent install directory (--prefix)" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.prefix" value="install" valueType="string"/>
 </tool>
 <tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.autogen.233060553" name="autogen.sh" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.autogen"/>
 <tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.277056826" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc">
@@ -1087,6 +1088,7 @@
 <tool id="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure.2071794298" name="configure" superClass="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure">
 <option id="org.eclipse.linuxtools.cdt.autotools.option.configure.builddir.783039667" name="Build directory" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.builddir" value="build.optimized" valueType="string"/>
 <option id="org.eclipse.linuxtools.cdt.autotools.option.configure.user.504756596" name="User-specified configuration options" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.user" value="--enable-warnings" valueType="string"/>
+<option id="org.eclipse.linuxtools.cdt.autotools.option.configure.prefix.1109914747" name="Arch-independent install directory (--prefix)" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.prefix" value="install" valueType="string"/>
 </tool>
 <tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.autogen.38339253" name="autogen.sh" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.autogen"/>
 <tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.1975011318" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc">

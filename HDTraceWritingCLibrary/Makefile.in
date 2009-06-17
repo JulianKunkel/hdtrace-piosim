@@ -82,6 +82,7 @@ GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
+ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -203,7 +204,7 @@ LIB_DIR = $(top_builddir)/lib
 TEST_DIR = $(top_builddir)/tests
 TOOL_DIR = $(top_builddir)/tools
 DOC_DIR = $(top_srcdir)/doc
-include_HEADERS = $(INC_DIR)/hd*.h
+include_HEADERS = $(INC_DIR)/*.h
 doxyINPUT = $(SRC_DIR) $(INC_DIR) include
 all: all-recursive
 

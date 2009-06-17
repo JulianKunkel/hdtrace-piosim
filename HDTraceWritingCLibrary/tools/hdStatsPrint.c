@@ -139,6 +139,17 @@ int main(int argc, char **argv)
 	/* allocate memory for maximum value size of 64bit */
 	void *value = malloc(8);
 
+	/* read start timestamp */
+	readTimestamp(file, value);
+
+	/* convert start timestamp */
+	order_bytes32ip((int32_t *) value);
+	order_bytes32ip(((int32_t *) value) + 1);
+
+	/* print start timestamp */
+	printf("Start time: %010d,%09d\n", *((int32_t *) value),
+			*(((int32_t *) value) + 1));
+
 	while (1)
 	{
 		/* read timestamp */
