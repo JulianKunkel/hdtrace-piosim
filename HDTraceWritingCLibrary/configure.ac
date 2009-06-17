@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([HDTraceCLibrary], [0svn20090613], [stephan.krempel@pvs.informatik.uni-heidelberg.de])
+AC_INIT([HDTraceCLibrary], [0svn20090617], [stephan.krempel@pvs.informatik.uni-heidelberg.de])
 AC_CONFIG_SRCDIR([src/hdTopo.c])
 AC_CONFIG_HEADER([include/config.h])
 
@@ -128,7 +128,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([gethostname gettimeofday isascii memset regcomp select strdup strerror])
 
 AC_CONFIG_FILES([Makefile
-		 src/Makefile
 		 lib/Makefile
+		 tools/Makefile
 		 tests/Makefile])
 AC_OUTPUT

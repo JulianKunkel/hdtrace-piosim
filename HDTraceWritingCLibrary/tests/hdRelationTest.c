@@ -3,7 +3,7 @@
  *
  * @date 08.06.2009
  * @author Julian M. Kunkel
- * @version 0.6
+ * @version \\$Id$
  */
 
 

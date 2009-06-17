@@ -5,7 +5,7 @@
  *
  * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 1
+ * @version \\$Id$
  */
 
 #include "util.h"

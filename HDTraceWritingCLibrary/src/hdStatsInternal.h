@@ -1,3 +1,15 @@
+/**
+ * @file hdStatsInternals.h
+ *
+ * Implementations of all functions for writing statistics
+ *
+ * @ifnot api_only
+ *  @ingroup hdStats
+ * @endif
+ *
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \\$Id$
+ */
 
 #ifndef HDSTATS_INTERNAL_H_
 #define HDSTATS_INTERNAL_H_

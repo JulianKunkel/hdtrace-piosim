@@ -5,7 +5,7 @@
  *
  * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.5
+ * @version \\$Id$
  */
 
 #ifndef COMMON_H_

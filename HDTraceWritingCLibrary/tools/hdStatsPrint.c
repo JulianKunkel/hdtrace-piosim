@@ -3,7 +3,7 @@
  *
  * @date 24.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \\$Id$
  */
 
 
@@ -178,16 +178,16 @@ int main(int argc, char **argv)
 			switch (types[i])
 			{
 			case INT32:
-				order_bytes32ip((int32_t *) value)
+				order_bytes32ip((int32_t *) value);
 				break;
 			case INT64:
-				order_bytes64ip((int64_t *) value)
+				order_bytes64ip((int64_t *) value);
 				break;
 			case FLOAT:
-				order_bytes32fp((float *) value)
+				order_bytes32fp((float *) value);
 				break;
 			case DOUBLE:
-				order_bytes64fp((double *) value)
+				order_bytes64fp((double *) value);
 				break;
 			case STRING:
 				assert(!"Type switch found STRING");

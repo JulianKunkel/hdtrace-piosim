@@ -1,4 +1,7 @@
 #!/usr/bin/env perl
+#
+# Author: Stephan Krempel <stephan.krempel@gmx.de>
+# Version: $Id$
 
 use strict;
 use warnings;

@@ -1,4 +1,4 @@
-SUBDIRS = src lib . tests
+SUBDIRS = lib . tools tests
 
 include $(top_srcdir)/common.am
 

@@ -1,7 +1,4 @@
-/** Version Control Information $Id: TopologyManager.java 349 2009-06-03 11:51:14Z kunkel $
- * @date    $Date: 2009-06-03 13:51:14 +0200 (Mi, 03. Jun 2009) $
- * @modifiedby      $LastChangedBy: kunkel $
- * @version         $Revision: 349 $
+/**
  *
  * @file hdStats.c
  *
@@ -12,6 +9,7 @@
  * @endif
  *
  * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \\$Id$
  */
 
 #include "hdStats.h"
