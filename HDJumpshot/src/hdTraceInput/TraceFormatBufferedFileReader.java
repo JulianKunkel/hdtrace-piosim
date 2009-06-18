@@ -37,10 +37,10 @@ import viewer.legends.LegendTableStatisticModel;
 import viewer.legends.LegendTableTraceModel;
 import arrow.ArrowManager;
 import arrow.ManagedArrowGroup;
-import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
-import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.ITracableObject;
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.TracableObjectType;
+import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
@@ -82,9 +82,6 @@ public class TraceFormatBufferedFileReader {
 	final HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
 	final ArrowManager arrowManager = new ArrowManager(this);
-
-	// manage "relation" between multiple relations
-	final RelationManager relationManager = new RelationManager();
 
 	public TraceFormatBufferedFileReader() {
 		legendTraceModel.addCategoryUpdateListener(arrowManager);
@@ -268,7 +265,6 @@ public class TraceFormatBufferedFileReader {
 			// manage relations
 			final RelationSource relationSource = topology.getRelationSource();
 			if(relationSource != null){
-				relationManager.addFile((BufferedRelationReader) relationSource);
 				updateMinMaxTime((IBufferedReader) relationSource);
 				updateVisibleCategories((BufferedRelationReader) relationSource);
 			}

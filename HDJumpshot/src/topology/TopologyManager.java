@@ -87,9 +87,9 @@ public class TopologyManager
 	private ArrayList<TopologyTreeNode>      timelines = new ArrayList<TopologyTreeNode>();
 
 	/**
-	 * Stores for each topology entry the corresponding timeline
+	 * Stores for each TreeNode entry the corresponding timeline
 	 */
-	private HashMap<TopologyNode, Integer>  topoToTimelineMapping = new HashMap<TopologyNode, Integer>();
+	private HashMap<TreeNode, Integer>  treeNodeToTimelineMapping = new HashMap<TreeNode, Integer>();
 
 
 	/**
@@ -212,7 +212,7 @@ public class TopologyManager
 							frame.show();
 						}
 					});				
-					
+
 					// Show statistic histogram for the times			
 					popupMenu.add(new AbstractAction(){
 						private static final long serialVersionUID = 1L;
@@ -277,7 +277,7 @@ public class TopologyManager
 			}
 		};	
 	};
-	
+
 	/**
 	 * Change the current topology mapping, i.e. the mapping from topology to timelines.
 	 * @param mapping
@@ -344,7 +344,7 @@ public class TopologyManager
 	 */
 	private void reloadTopologyMappingFromTree(){
 		timelines.clear();
-		topoToTimelineMapping.clear();
+		treeNodeToTimelineMapping.clear();
 		for(int timeline = 0; timeline < tree.getRowCount(); timeline++){
 			final TreePath path = tree.getPathForRow(timeline);
 			final TreeNode node = (TreeNode) path.getLastPathComponent();
@@ -352,7 +352,7 @@ public class TopologyManager
 			if(TopologyTreeNode.class.isInstance(node)){
 				timelines.add((TopologyTreeNode) node);
 
-				topoToTimelineMapping.put(((TopologyTreeNode) node).getTopology(), timeline);
+				treeNodeToTimelineMapping.put(((TopologyTreeNode) node), timeline);
 			}else{
 				timelines.add(null);
 			}
@@ -379,7 +379,7 @@ public class TopologyManager
 		return ((TopologyRelationTreeNode) timelines.get(timeline)).getRelationSource();
 	}
 
-	
+
 	/**
 	 * Get the statistic reader responsible for a particular timeline
 	 * @param timeline
@@ -497,9 +497,11 @@ public class TopologyManager
 			updateTopologyPluginsIfNecessary();
 
 			// update/remove invisible statistics:
-			for (CategoryStatistic cat: reader.getCategoriesStatistics().values()){
-				if(! cat.isVisible()){
-					setStatisticCategoryVisiblity(cat, false);
+			if(topologyManagerType == TopologyManagerContents.EVERYTHING || topologyManagerType == TopologyManagerContents.STATISTICS_ONLY){
+				for (CategoryStatistic cat: reader.getCategoriesStatistics().values()){
+					if(! cat.isVisible()){
+						setStatisticCategoryVisiblity(cat, false);
+					}
 				}
 			}
 
@@ -665,7 +667,7 @@ public class TopologyManager
 	private SortedJTreeModel getTreeModel(){
 		return (SortedJTreeModel) tree.getModel();
 	}
-	
+
 	public void scrollRowToVisible(int timeline) {
 		tree.scrollRowToVisible(timeline);
 	}
@@ -695,8 +697,8 @@ public class TopologyManager
 	 * @param entry
 	 * @return
 	 */
-	public Integer getTimelineForTopology(TopologyNode entry){
-		return topoToTimelineMapping.get(entry);		
+	public Integer getTimelineForTreeNode(TopologyTreeNode entry){
+		return treeNodeToTimelineMapping.get(entry);		
 	}
 
 	/**

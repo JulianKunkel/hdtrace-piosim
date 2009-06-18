@@ -14,9 +14,9 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 public class ReaderRelationEnumerator implements Enumeration<RelationEntry> {	
 	private int pos;
-	final private int lastPos;
 	
-	final private ArrayList<RelationEntry> entries;
+	protected int lastPos;	
+	final protected ArrayList<RelationEntry> entries;
 	
 	ReaderRelationEnumerator(
 			ArrayList<RelationEntry> entries

@@ -27,8 +27,14 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import topology.TopologyManager;
+import topology.TopologyManagerContents;
+import topology.TopologyTraceTreeNode;
+import topology.TopologyTreeNode;
+import viewer.timelines.TimelineType;
 import viewer.timelines.topologyPlugins.MPIConstants;
-import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
+import de.hd.pvs.TraceFormat.ReservedTopologyNames;
+import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -41,12 +47,12 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 
 	final ArrowCategory category = new ArrowCategory("MPI communication", null);
-	
+
 	@Override
 	public ArrowCategory getResponsibleCategory() {		
 		return category;
 	}
-	
+
 	/**
 	 * see MPI: Message Envelope for matching
 	 */
@@ -74,30 +80,30 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 	}
 
 	private static class PreviousEntry{
-		final TopologyNode topo;
+		final TopologyTreeNode topo;
 		final ITraceEntry    entry;
 
-		public PreviousEntry(TopologyNode topo, ITraceEntry entry) {
+		public PreviousEntry(TopologyTreeNode topo, ITraceEntry entry) {
 			this.topo = topo;
 			this.entry = entry;
 		}
 	}
-	
+
 	private void addArrow(ArrayList<Arrow> arrows,
 			int rank, 
 			HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyMSGs, 
 			HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> unmatched,
 			ITraceEntry entry,
-			TopologyNode topology,
+			TopologyTreeNode topoTreeNode,
 			String targetRankStr, String tagStr, String commStr,
 			boolean useEarliestTime)
 	{
 		final int tag = Integer.parseInt(tagStr);
 		final int comm = Integer.parseInt(commStr);
-		
+
 		final MSGMatcher matcher = new MSGMatcher(rank, tag, comm);
 		final int targetRank = Integer.parseInt(targetRankStr);
-		
+
 		final HashMap<MSGMatcher, LinkedList<PreviousEntry>> rankMatching = unmatched.get(targetRank);
 		LinkedList<PreviousEntry> old = null;
 		if(rankMatching != null){
@@ -110,7 +116,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			// matches already
 			final Epoch startTime;
 			final Epoch endTime;
-			
+
 			if(useEarliestTime ){
 				startTime = oldEntry.entry.getEarliestTime();
 				endTime = entry.getLatestTime();
@@ -118,14 +124,15 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 				startTime = oldEntry.entry.getLatestTime();
 				endTime = entry.getEarliestTime();
 			}
-				
-			arrows.add( new Arrow(oldEntry.topo, startTime, 
-					topology, endTime, category) );
+
+			arrows.add( new Arrow(oldEntry.topo, startTime, topoTreeNode, endTime, category) );
 
 			if(old.size() == 0){
 				rankMatching.remove(matcher);
 			}
+			
 		}else{
+			
 			// make a new unmatched one.
 			final MSGMatcher tmatcher = new MSGMatcher(targetRank, tag, comm);
 			LinkedList<PreviousEntry> prev = earlyMSGs.get(tmatcher);
@@ -133,81 +140,105 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 				prev = new LinkedList<PreviousEntry>();
 				earlyMSGs.put(tmatcher, prev);
 			}
-			prev.push(new PreviousEntry(topology, entry));
+			prev.push(new PreviousEntry(topoTreeNode, entry));
 		}
 	}
 
+	private static class EarlyMessages{
+		final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlySends = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();
+		final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlyRcvs = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();
+	}
 
 	@Override
 	public ArrowsOrdered computeArrows(TraceFormatBufferedFileReader reader) {
 		final ArrayList<Arrow> arrows = new ArrayList<Arrow>();
+		// create a fake topology manager:
+		final TopologyManager m = new TopologyManager(reader, null, TopologyManagerContents.TRACE_ONLY);
 
-		for(int i=0 ; i < reader.getNumberOfFilesLoaded(); i++){
-			// scan for rank label
-			final TraceFormatFileOpener file = reader.getLoadedFile(i);
-			int rankDepth = -1;
-			for(final String label: file.getTopologyLabels().getTypes()){
-				rankDepth++;
+		// first phase, fill relation manager.
+		m.restoreTopology();
 
-				if(label.equals(MPIConstants.RANK_TOPOLOGY)){
-					break;
-				}				
-			}
+		// maps the "file" to the earlySends and Recvs. 
+		final HashMap<TopologyTreeNode, EarlyMessages> earlyMessagesGlobal = new HashMap<TopologyTreeNode, EarlyMessages>();
 
-			if(rankDepth == -1){
-				// not found
+		for( int timeline = 0; timeline < m.getTimelineNumber(); timeline++){			
+			final TopologyTreeNode rankNode = m.getTreeNodeForTimeline(timeline);
+			if(rankNode == null){
 				continue;
 			}
-
-			// drill down to the rank topology level with a BFS
 			
-			final LinkedList<TopologyNode> rankTopos = file.getTopology().getChildrenOfDepth(rankDepth);
-
+			final TopologyNode rankTopo = rankNode.getTopology();	
+			if(rankTopo == null){
+				continue;
+			}
+			
+			// continue only if we are the rank topology.
+			if(! rankTopo.getType().equals(MPIConstants.RANK_TOPOLOGY)){
+				continue;
+			}
+			
+			// lookup file:
+			final TopologyTreeNode fileNode = rankNode.getParentTreeNodeWithTopologyLabel(ReservedTopologyNames.File.toString());
+			if(fileNode == null){
+				SimpleConsoleLogger.Warning("Topology with reserved name:" + ReservedTopologyNames.File + " not found as parent " + rankNode.getTopology().toRecursiveString());
+				continue;
+			}						
+						
 			// maps a sender rank to the msg matcher.
-			final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlySends = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();
+			final EarlyMessages earlyMessages;
+			
+			if(earlyMessagesGlobal.containsKey(fileNode)){
+				earlyMessages = earlyMessagesGlobal.get(fileNode);
+			}else{
+				earlyMessages = new EarlyMessages();
+				earlyMessagesGlobal.put(fileNode, earlyMessages);	
+			}
+			
+			final int rank = Integer.parseInt(rankTopo.getName());				
 
-			// maps a receiver rank to the msg matcher.
-			final HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> earlyRcvs = new HashMap<Integer, HashMap<MSGMatcher,LinkedList<PreviousEntry>>>();
+			// unmatched sends and receives of the current rank:
+			final HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyRankSends;
+			final HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyRankRcvs;
 
-			for(final TopologyNode rankTopo: rankTopos){
-				final int rank = Integer.parseInt(rankTopo.getName());				
-				
-				// unmatched sends and receives of the current rank:
-				final HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyRankSends = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();
-				final HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyRankRcvs = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();
-				
-				earlySends.put(rank, earlyRankSends);
-				earlyRcvs.put(rank, earlyRankRcvs);
-								
-				// scan children, i.e. threads 
-				for(final TopologyNode topology: rankTopo.getSubTopologies()){
+			if(! earlyMessages.earlyRcvs.containsKey(rank)){
+				earlyRankSends = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();
+				earlyRankRcvs = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();
 
-					if(topology.getTraceSource() != null){
-						// found one trace file.
-						final BufferedTraceFileReader traceReader = (BufferedTraceFileReader) topology.getTraceSource();
-						final Enumeration<ITraceEntry>  traceEntries = traceReader.enumerateNestedTraceEntry();
-						while(traceEntries.hasMoreElements()){
-							final ITraceEntry entry = traceEntries.nextElement();
-							final String name = entry.getName();
-							final HashMap<String, String> attributes = entry.getAttributes();
-							final String comm = attributes.get("cid");
+				earlyMessages.earlyRcvs.put(rank, earlyRankSends);
+				earlyMessages.earlySends.put(rank, earlyRankRcvs);
+			}else{
+				earlyRankSends = earlyMessages.earlySends.get(rank);
+				earlyRankRcvs = earlyMessages.earlyRcvs.get(rank);
+			}
+			
+			// scan children, i.e. threads
+			for(final TopologyTreeNode childTopoNode: rankNode.getTopologyTreeNodeChildren()){
+				if( childTopoNode.getType() == TimelineType.TRACE ){
+					// found one trace file.
+					final BufferedTraceFileReader traceReader = (BufferedTraceFileReader) ((TopologyTraceTreeNode) childTopoNode).getTraceSource();
+					
+					final Enumeration<ITraceEntry>  traceEntries = traceReader.enumerateNestedTraceEntry();
+					while(traceEntries.hasMoreElements()){
+						final ITraceEntry entry = traceEntries.nextElement();
+						final String name = entry.getName();
+						final HashMap<String, String> attributes = entry.getAttributes();
+						final String comm = attributes.get("cid");
 
-							if(name.contains("Send")){							
-								final String rankStr = attributes.get("toRank");
-								final String tagStr = attributes.get("toTag");
+						if(name.contains("Send")){							
+							final String rankStr = attributes.get("toRank");
+							final String tagStr = attributes.get("toTag");
 
-								if(rankStr != null && tagStr != null && comm != null){
-									addArrow(arrows, rank, earlyRankSends, earlyRcvs, entry, topology, rankStr, tagStr, comm, true);
-								}
+							if(rankStr != null && tagStr != null && comm != null){
+								addArrow(arrows, rank, earlyRankSends, earlyMessages.earlyRcvs, entry, childTopoNode, rankStr, tagStr, comm, true);
 							}
+						}
 
-							if(name.toLowerCase().contains("recv")){
-								final String rankStr = attributes.get("fromRank");
-								final String tagStr = attributes.get("fromTag");
+						if(name.toLowerCase().contains("recv")){
+							final String rankStr = attributes.get("fromRank");
+							final String tagStr = attributes.get("fromTag");
 
-								if(rankStr != null && tagStr != null && comm != null){
-									addArrow(arrows, rank, earlyRankRcvs, earlySends, entry, topology, rankStr, tagStr, comm, false);								
-								}
+							if(rankStr != null && tagStr != null && comm != null){
+								addArrow(arrows, rank, earlyRankRcvs, earlyMessages.earlySends, entry, childTopoNode, rankStr, tagStr, comm, false);								
 							}
 						}
 					}

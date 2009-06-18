@@ -231,6 +231,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				break;
 			case RELATION:{
 				if(! topologyManager.getTree().isExpanded(i)){
+					// problem, end time sorting of relations => no drawing is possible.
+					final TopologyRelationTreeNode node = ((TopologyRelationTreeNode) topologyManager.getTreeNodeForTimeline(i));
+					drawedTraceElements += drawRelationTimeline(i, 
+							node, offGraphics, vStartTime, vEndTime, coord_xform);
 				}
 				break;
 			}case RELATION_EXPANDED:
@@ -268,8 +272,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 			cnt++;
 
-			final Integer startTimeline = topologyManager.getTimelineForTopology(arrow.getStartTopology());
-			final Integer endTimeline = topologyManager.getTimelineForTopology(arrow.getEndTopology());
+			final Integer startTimeline = topologyManager.getTimelineForTreeNode(arrow.getStartTreeNode());
+			final Integer endTimeline = topologyManager.getTimelineForTreeNode(arrow.getEndTreeNode());
+			
 			if(startTimeline == null || endTimeline == null){
 				continue;
 			}			
@@ -511,7 +516,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	 */
 	public int drawRelationTimeline(
 			int timeline,
-			TopologyRelationExpandedTreeNode node,
+			TopologyRelationTreeNode node,
 			Graphics2D offGraphics,
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
@@ -524,10 +529,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 		
-		//Epoch lastEndTime = Epoch.ZERO;
+		Epoch lastEndTime = Epoch.ZERO;
 		
 		while(elements.hasMoreElements()){
 			final RelationEntry relationEntry = elements.nextElement();
+			
+			// draw relation box.
+			DrawObjects.drawBox(offGraphics, coord_xform, relationEntry.getEarliestTime().subtract(globalMinTime).getDouble(), 
+					relationEntry.getLatestTime().subtract(globalMinTime).getDouble(), Color.GRAY, timeline);
 			
 			for(IStateTraceEntry rstate: relationEntry.getStates()){
 				
@@ -563,8 +572,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				}
 			}
 
-			/*
-			Right now with expanded relation timelines no overlap will happen. 
 			if(relationEntry.getEarliestTime().compareTo(lastEndTime) < 0){
 				// there is an overlapping area, draw this fact!
 				DrawObjects.drawScrambeledBox(offGraphics, coord_xform,  
@@ -574,7 +581,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			}
 			
 			lastEndTime = relationEntry.getLatestTime();
-			*/
 		}
 
 		return drawedTraceObjects;
@@ -687,6 +693,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			}
 
 			selectedObject = objMouse;
+						
 			break;
 		case STATISTIC:{
 			final BufferedStatisticsFileReader sreader = topologyManager.getStatisticReaderForTimeline(timeline);
@@ -727,6 +734,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		}
 		default:
 			throw new IllegalArgumentException("Type not known " + topologyManager.getType(timeline));
+		}
+		
+		if(selectedObject == null){
+			return null;
 		}
 		
 		return new TraceObjectInformation(treeNode, rootObj, selectedObject, realTime);

@@ -17,8 +17,10 @@
 
 package viewer.timelines.topologyPlugins;
 
+import de.hd.pvs.TraceFormat.ReservedTopologyNames;
+
 public interface MPIConstants {
-	public final String RANK_TOPOLOGY = "Rank";
+	public final String RANK_TOPOLOGY = ReservedTopologyNames.Rank.toString();
 	
 	public final String XML_FILEOPEN = "File_open";
 	public final String XML_FILE_SETVIEW = "File_set_view";

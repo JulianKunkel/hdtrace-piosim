@@ -120,6 +120,9 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 			return;
 
 		final ITracableObject obj = infoObj.getObject();
+		
+		assert(obj != null);
+		
 		final TopologyNode node =  infoObj.getTopologyTreeNode().getTopology();
 
 		switch(obj.getType()){

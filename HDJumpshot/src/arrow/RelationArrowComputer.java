@@ -17,13 +17,20 @@
 
 package arrow;
 
+import hdTraceInput.RelationManager;
 import hdTraceInput.TraceFormatBufferedFileReader;
+import hdTraceInput.RelationManager.RelationSearchResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 
-import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
+import topology.TopologyManager;
+import topology.TopologyManagerContents;
+import topology.TopologyRelationExpandedTreeNode;
+import viewer.timelines.TimelineType;
+import de.hd.pvs.TraceFormat.relation.RelationEntry;
 
 /**
  * Manufacture arrows for relations
@@ -33,21 +40,49 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 public class RelationArrowComputer implements ArrowComputer{
 
 	final ArrowCategory category = new ArrowCategory("Relations", null);
-	
+
 	@Override
 	public ArrowCategory getResponsibleCategory() {		
 		return category;
 	}
-	
+
 	@Override
 	public ArrowsOrdered computeArrows(TraceFormatBufferedFileReader reader) {
 		final ArrayList<Arrow> arrows = new ArrayList<Arrow>();
+		final RelationManager relManager = new RelationManager();		
 
-		for(int i=0 ; i < reader.getNumberOfFilesLoaded(); i++){
-			// scan for rank label
-			final TraceFormatFileOpener file = reader.getLoadedFile(i);
+		// create a fake topology manager:
+		final TopologyManager m = new TopologyManager(reader, null, TopologyManagerContents.RELATIONS_ONLY);
 
-			
+		// first phase, fill relation manager.
+		m.restoreTopology();
+		
+		for( int timeline = 0; timeline < m.getTimelineNumber(); timeline++){
+			if(m.getType(timeline) == TimelineType.RELATION){
+				relManager.addFile(m.getRelationReaderForTimeline(timeline), m.getTreeNodeForTimeline(timeline));
+			}
+		}
+
+		for( int timeline = 0; timeline < m.getTimelineNumber(); timeline++){
+			if(m.getType(timeline) == TimelineType.RELATION_EXPANDED){				
+				final TopologyRelationExpandedTreeNode node = (TopologyRelationExpandedTreeNode) m.getTreeNodeForTimeline(timeline);
+				
+				// has a relation, try to create arrows for each entry.
+				final Enumeration<RelationEntry> relEntryEnum = node.enumerateEntries(); 
+				while(relEntryEnum.hasMoreElements()){
+					final RelationEntry relEntry = relEntryEnum.nextElement();
+					if(relEntry.getParentToken() == null){
+						continue;
+					}
+
+					final RelationSearchResult search = relManager.getParentRelationEntry(relEntry);
+					if(search == null){
+						continue;
+					}
+					arrows.add(new Arrow(node, relEntry.getEarliestTime(), search.getEntry(), 
+							search.getTopologyTreeNode(), search.getEntry().getEarliestTime(), relEntry, category));
+				}
+			}
 		}
 
 		// sort the arrows by starting time:

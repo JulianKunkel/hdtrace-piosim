@@ -65,8 +65,14 @@ public class TopologyRelationExpandedTreeNode extends TopologyRelationTreeNode
 		return getRelationSource().getEntriesOnLine(line);
 	}
 	
+	@Override
 	public Enumeration<RelationEntry> enumerateEntries(Epoch start, Epoch end) {
 		return getRelationSource().enumerateRelations(start, end, line);
+	}
+	
+	@Override
+	public Enumeration<RelationEntry> enumerateEntries() {
+		return getRelationSource().enumerateRelations(line);
 	}
 	
 	public ITracableObject getTraceEntryClosestToTime(Epoch time) {
@@ -76,5 +82,10 @@ public class TopologyRelationExpandedTreeNode extends TopologyRelationTreeNode
 	public ITraceElementEnumerator enumerateTraceEntries(boolean nested,
 			Epoch startTime, Epoch endTime) {	
 		return getRelationSource().enumerateTraceEntries(nested, startTime, endTime, line);
+	}	
+	
+	@Override
+	public boolean equals(Object obj) {	
+		return super.equals(obj) && ((TopologyRelationExpandedTreeNode) obj).line == line;
 	}
 }

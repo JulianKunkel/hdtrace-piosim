@@ -17,7 +17,8 @@
 
 package arrow;
 
-import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import topology.TopologyTreeNode;
+import de.hd.pvs.TraceFormat.ITracableObject;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
@@ -26,8 +27,11 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  *
  */
 public class Arrow{
-	final private TopologyNode startTopology;
-	final private TopologyNode endTopology;
+	final private TopologyTreeNode startTreeNode;
+	final private TopologyTreeNode endTreeNode;
+
+	final private ITracableObject sourceObj; // startReason
+	final private ITracableObject targetObj;
 
 	final private Epoch startTime;
 	final private Epoch endTime;
@@ -40,22 +44,49 @@ public class Arrow{
 	 * @param scndTime The absolute time (not viewer time) for the end topology
 	 * @param category
 	 */
-	public Arrow(TopologyNode firstTopology, Epoch firstTime, TopologyNode scndTopology , 
-			Epoch scndTime, ArrowCategory category) {
+	public Arrow(TopologyTreeNode firstTopology, Epoch firstTime,  TopologyTreeNode scndTopology, Epoch scndTime, ArrowCategory category) {
 		if(firstTime.compareTo(scndTime) <= 0){
 			this.endTime = scndTime;
 			this.startTime = firstTime;		
-			this.endTopology = scndTopology;
-			this.startTopology = firstTopology;
+			this.endTreeNode = scndTopology;
+			this.startTreeNode = firstTopology;
 		}else{
 			this.endTime = firstTime;
 			this.startTime = scndTime;		
-			this.endTopology = firstTopology;
-			this.startTopology = scndTopology;
+			this.endTreeNode = firstTopology;
+			this.startTreeNode = scndTopology;
 		}
+		this.targetObj = null;
+		this.sourceObj = null;
+		this.category = category;		
+	}
+
+	/**
+	 * @param firstTopology
+	 * @param firstTime The absolute time (not viewer time) for the start topology
+	 * @param scndTopology
+	 * @param scndTime The absolute time (not viewer time) for the end topology
+	 * @param category
+	 */
+	public Arrow(TopologyTreeNode firstTopology, Epoch firstTime, ITracableObject srcObc, TopologyTreeNode scndTopology , 
+			Epoch scndTime, ITracableObject tgtObj, ArrowCategory category) {
+		this.endTime = scndTime;
+		this.startTime = firstTime;		
+		this.endTreeNode = scndTopology;
+		this.startTreeNode = firstTopology;
+		this.sourceObj = srcObc;
+		this.targetObj = tgtObj;
 		this.category = category;
 	}
 
+	public TopologyTreeNode getEndTreeNode() {
+		return endTreeNode;
+	}
+	
+	public TopologyTreeNode getStartTreeNode() {
+		return startTreeNode;
+	}
+	
 	public Epoch getEndTime() {
 		return endTime;
 	}
@@ -64,15 +95,20 @@ public class Arrow{
 		return startTime;
 	}
 
-	public TopologyNode getEndTopology() {
-		return endTopology;
-	}
-
-	public TopologyNode getStartTopology() {
-		return startTopology;
-	}
-
 	public ArrowCategory getCategory() {
 		return category;
+	}
+	
+	public ITracableObject getSourceObj() {
+		return sourceObj;
+	}
+	
+	public ITracableObject getTargetObj() {
+		return targetObj;
+	}	
+	
+	@Override
+	public String toString() {	
+		return startTreeNode + "-" + endTreeNode;
 	}
 }

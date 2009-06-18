@@ -35,6 +35,8 @@ public class TraceObjectInformation {
 	 */
 	public TraceObjectInformation(TopologyTreeNode topologyTreeNode, ITracableObject rootObject, ITracableObject childObject, Epoch time) {
 		assert(rootObject != null);
+		assert(childObject != null);
+		
 		this.node = topologyTreeNode;
 		this.object = childObject;
 		this.time = time;

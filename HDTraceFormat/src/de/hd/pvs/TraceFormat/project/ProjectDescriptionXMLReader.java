@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.ReservedTopologyNames;
 import de.hd.pvs.TraceFormat.SimpleConsoleLogger;
 import de.hd.pvs.TraceFormat.project.datatypes.ContiguousDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
@@ -40,8 +41,8 @@ import de.hd.pvs.TraceFormat.project.datatypes.DatatypeEnum;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
-import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 
@@ -94,7 +95,7 @@ public class ProjectDescriptionXMLReader {
 
 		descriptionInOut.setTopologyRoot( 
 				parseTopology(0, xmlTopology,
-						new TopologyNode(descriptionInOut.getFilesPrefix(), null, "File"), 
+						new TopologyNode(descriptionInOut.getFilesPrefix(), null, ReservedTopologyNames.File.toString()), 
 						descriptionInOut) );
 
 		// parse the descriptions of the external statistics:

@@ -25,6 +25,7 @@
 
 package topology;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.tree.TreeNode;
@@ -37,6 +38,7 @@ import de.hd.pvs.TraceFormat.topology.TopologyNode;
 /**
  * 
  * Tree Node object which encapsulates all the information about the file and traces.
+ * Note: the subclasses might need to override equals() and hashCode()
  * 
  * @author Julian M. Kunkel
  */
@@ -101,5 +103,30 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public int hashCode() {
+		return getTopology().hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return obj.getClass().equals(this.getClass()) && getTopology() == ((TopologyTreeNode) obj).getTopology();
+	}
+	
+	private void addTopologyTreeNodeChildren(ArrayList<TopologyTreeNode> list){
+		for(int i=0; i < getChildCount(); i++){
+			TreeNode n = getChildAt(i);
+			if(TopologyTreeNode.class.isAssignableFrom(n.getClass())){
+				list.add((TopologyTreeNode) n);
+			}
+		}
+	}
+	
+	public ArrayList<TopologyTreeNode> getTopologyTreeNodeChildren(){
+		final ArrayList<TopologyTreeNode> list = new ArrayList<TopologyTreeNode>();
+		addTopologyTreeNodeChildren(list);
+		return list;
 	}
 }

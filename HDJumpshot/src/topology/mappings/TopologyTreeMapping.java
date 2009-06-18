@@ -43,7 +43,7 @@ abstract public class TopologyTreeMapping {
 
 	public void setTopologyManagerContents(TopologyManagerContents type){
 		this.addStatistics = !(type == TopologyManagerContents.TRACE_ONLY);
-		this.addExtendedRelation = (type == TopologyManagerContents.EVERYTHING);
+		this.addExtendedRelation = (type == TopologyManagerContents.EVERYTHING || type == TopologyManagerContents.RELATIONS_ONLY);
 	}
 
 	/**

@@ -3,6 +3,7 @@ package hdTraceInput;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import topology.TopologyTreeNode;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.relation.RelationHeader;
 
@@ -15,7 +16,7 @@ import de.hd.pvs.TraceFormat.relation.RelationHeader;
  */
 public class RelationManager {
 	
-	private static class TopologyRelation{
+	private static class ManagedTopologyRelation{
 		final RelationHeader header;
 		final ArrayList<RelationEntry> entriesTimeSorted;
 		/**
@@ -23,11 +24,33 @@ public class RelationManager {
 		 */
 		final HashMap<Long, RelationEntry> entryMap;
 		
-		public TopologyRelation(ArrayList<RelationEntry> entriesTimeSorted, HashMap<Long, RelationEntry> entryMap) {
+		final TopologyTreeNode topologyTreeNode;
+		
+		public ManagedTopologyRelation(ArrayList<RelationEntry> entriesTimeSorted, 
+				HashMap<Long, RelationEntry> entryMap, TopologyTreeNode topoNode) {
 			assert(entriesTimeSorted.size() > 0);
 			header = entriesTimeSorted.get(0).getHeader();
 			this.entriesTimeSorted = entriesTimeSorted;
 			this.entryMap = entryMap;			
+			this.topologyTreeNode = topoNode;
+		}		
+	}
+	
+	public static class RelationSearchResult{
+		final TopologyTreeNode topologyTreeNode;
+		final RelationEntry entry;
+		
+		public RelationSearchResult(TopologyTreeNode topoNode, RelationEntry entry) {
+			this.topologyTreeNode = topoNode;
+			this.entry = entry;
+		}
+		
+		public RelationEntry getEntry() {
+			return entry;
+		}
+		
+		public TopologyTreeNode getTopologyTreeNode() {
+			return topologyTreeNode;
 		}
 	}
 	
@@ -35,13 +58,13 @@ public class RelationManager {
 	 * map hostID to a local map to map to the topology and finally to the relation.
 	 * (hostID, processID, topoID (int)), tokenID (long)
 	 */
-	final HashMap<String, TopologyRelation> map = new HashMap<String, TopologyRelation>();
+	final HashMap<String, ManagedTopologyRelation> map = new HashMap<String, ManagedTopologyRelation>();
 		
 	/**
 	 * Add a file to the appropriate mapping.
 	 * @param filename
 	 */
-	public void addFile(BufferedRelationReader reader) throws Exception{		
+	public void addFile(BufferedRelationReader reader, TopologyTreeNode topoNode){		
 		final RelationHeader header = reader.getHeader();
 		
 		if(map.containsKey(header.getUniqueID())){
@@ -55,7 +78,7 @@ public class RelationManager {
 			entryMap.put(entry.getTokenID(), entry);
 		}
 		
-		final TopologyRelation topoRelation = new TopologyRelation(reader.getEntries(), entryMap);		
+		final ManagedTopologyRelation topoRelation = new ManagedTopologyRelation(reader.getEntries(), entryMap, topoNode);		
 		map.put(header.getUniqueID(), topoRelation);
 	}
 		
@@ -73,7 +96,7 @@ public class RelationManager {
 	 * Find the parent relation entry for a given entry.
 	 * @return parent || null if not found (i.e. file not loaded, yet)
 	 */
-	public RelationEntry getParentRelationEntry(RelationEntry entry){
+	public RelationSearchResult getParentRelationEntry(RelationEntry entry){
 		assert(entry != null);
 		
 		final String [] ids = entry.getRelatedIDPerLevel();
@@ -108,13 +131,13 @@ public class RelationManager {
 		
 		//System.out.println("SEARCH " + uniqueID +" " + ids.length);
 		
-		final TopologyRelation topoRelation = map.get(uniqueID);
+		final ManagedTopologyRelation topoRelation = map.get(uniqueID);
 		if(topoRelation == null){
 			// file not loaded yet.
 			return null;
 		}
 
-		return  topoRelation.entryMap.get(Long.parseLong(ids[ids.length-1]));
+		return new RelationSearchResult(topoRelation.topologyTreeNode, topoRelation.entryMap.get(Long.parseLong(ids[ids.length-1])));		
 	}
 	
 	public static void main(String[] args) throws Exception {
