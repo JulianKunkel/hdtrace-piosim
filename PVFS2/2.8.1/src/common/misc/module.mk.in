@@ -12,7 +12,6 @@ LIBSRC += $(DIR)/server-config.c \
 	  $(DIR)/pint-perf-counter.c \
 	  $(DIR)/pint-event.c \
 	  $(DIR)/pint-event-hd.c \
-	  $(DIR)/pint-event-hd-client.c \
 	  $(DIR)/pint-cached-config.c \
 	  $(DIR)/pint-util.c \
 	  $(DIR)/msgpairarray.c \

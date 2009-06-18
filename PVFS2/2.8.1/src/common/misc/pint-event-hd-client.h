@@ -10,24 +10,28 @@
 
 #ifdef HAVE_HDTRACE
 
-#define HD_CLIENT_RELATION(facility, stmt) \
-	do{ if(topoClientTokenArray[facility]){ stmt } } while(0);	
-
 #include "pint-event.h"
 #include "hdRelation.h"
-
 
 /**
  * Traceable facilities
  */
 typedef enum {
+	BMI, 
+	FLOW,
+	STATISTIC_END,
 	CLIENT,
-	ALL_CLIENT_FACILITIES
-} HD_Trace_Client_Facility;
+	ALL_FACILITIES
+} HD_Trace_Facility;
 
-int PVFS_hd_client_trace_initialize(hdTopoNode topoNode);
+#define HD_CLIENT_RELATION(facility, stmt) \
+	do{ if(topoTokenArray[facility]){ stmt } } while(0);
 
-extern hdR_topoToken topoClientTokenArray[ALL_CLIENT_FACILITIES];
+extern hdR_topoToken topoTokenArray[STATISTIC_END];
+
+int PVFS_HD_client_trace_initialize(void);
+
+int PVFS_HD_client_trace_finalize(void);
 
 #endif /* __HAVE_HDTRACE__ */
 

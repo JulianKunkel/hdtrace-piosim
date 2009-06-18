@@ -25,7 +25,6 @@
 #include "trove.h"
 #include "server-config-mgr.h"
 #include "client-state-machine.h"
-#include "src/server/request-scheduler/request-scheduler.h"
 #include "job-time-mgr.h"
 #include "pint-util.h"
 #include "pint-event.h"

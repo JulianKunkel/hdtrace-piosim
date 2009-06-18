@@ -531,11 +531,11 @@ int PINT_req_sched_post(enum PVFS_server_op op,
     
     if (ret == 0)
     {
-    	PINT_HD_update_counter_inc(BREQ);
-    	PINT_HD_update_counter_inc(REQ);
+    	PINT_HD_UPDATE_COUNTER_INC_SERVER(BREQ);
     }
-    else if (ret == 1)
-    	PINT_HD_update_counter_inc(REQ);
+    else if (ret == 1){
+    	PINT_HD_UPDATE_COUNTER_INC_SERVER(REQ);
+    }
     	
     return (ret);
 }
@@ -718,14 +718,14 @@ int PINT_req_sched_unpost(
 	    }
 	}
 	sched_count--;
-	PINT_HD_update_counter_dec(BREQ); 
-	PINT_HD_update_counter_dec(REQ);
     }
 
     /* destroy the unposted element */
     free(tmp_element);
 
     PINT_req_sched_schedule_mode_change();
+    
+    // TODO fix case in which this function gets called.
     return (0);
 }
 
@@ -744,6 +744,8 @@ int PINT_req_sched_release(
     struct req_sched_list *tmp_list = NULL;
     struct req_sched_element *next_element = NULL;
 
+	int deblocked = 0;
+	
     /* NOTE: for now, this function always returns immediately- no
      * need to fill in the out_id
      */
@@ -782,6 +784,7 @@ int PINT_req_sched_release(
 	}
 	else
 	{
+		
 	    /* something is queued behind this request */
 	    /* find the next request, change its state, and add it to
 	     * the queue of requests that are ready to be scheduled
@@ -820,6 +823,7 @@ int PINT_req_sched_release(
                                 "handle: %llu\n", llu(next_element->handle));
                             assert(next_element->state == REQ_QUEUED);
                             next_element->state = REQ_READY_TO_SCHEDULE;
+                            deblocked++;
                             qlist_add_tail(
                                 &(next_element->ready_link), &ready_queue);
                         }
@@ -847,6 +851,7 @@ int PINT_req_sched_release(
                                 "handle: %llu\n", llu(next_element->handle));
                             assert(next_element->state == REQ_QUEUED);
                             next_element->state = REQ_READY_TO_SCHEDULE;
+                            deblocked++;
                             qlist_add_tail(
                                 &(next_element->ready_link), &ready_queue);
                         }
@@ -866,14 +871,12 @@ int PINT_req_sched_release(
 
     PINT_req_sched_schedule_mode_change();
     
-    if (PINT_HD_update_counter_get(REQ) > PINT_HD_update_counter_get(BREQ))
-    	PINT_HD_update_counter_dec(REQ); 
-    else
-    {
-    	PINT_HD_update_counter_dec(REQ);
-    	PINT_HD_update_counter_dec(BREQ);
+    if (deblocked > 0){
+    	PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(BREQ, deblocked); 
     }
-
+    /* one got released i.e. is finished */
+    PINT_HD_UPDATE_COUNTER_DEC_SERVER(REQ);
+    
     return (1);
 }
 

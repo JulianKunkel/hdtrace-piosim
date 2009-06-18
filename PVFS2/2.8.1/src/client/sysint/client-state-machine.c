@@ -401,21 +401,23 @@ PVFS_error PINT_client_state_machine_post(
     sm_p->user_ptr = user_ptr;
     
     HD_CLIENT_RELATION(CLIENT,
-    		hdR_token token = hdR_createTopLevelRelation(topoClientTokenArray[CLIENT]);
+    		hdR_token token = hdR_createTopLevelRelation(topoTokenArray[CLIENT]);
     		PINT_smcb_set_token(smcb, token);
 
     		char * relation = hdR_getRemoteToken(token); 
     		    		
     		PVFS_hint_add(&sm_p->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, strlen(relation), relation);
+    		
+    		printf("CLIENT : %s\n",relation);
+    		
     		free(relation);
 
     		int p ;
     		for (p = 0 ; p < smcb->stackptr; p++){
-    			printf("Pappschuber %s\n", smcb->state_stack[p].state->parent_machine->name);
-
+//    			printf("Pappschuber %s\n", smcb->state_stack[p].state->parent_machine->name);
         		hdR_startS(smcb->smToken, smcb->state_stack[p].state->parent_machine->name);
     		}
-    		printf("LAMER %s\n",PINT_state_machine_current_machine_name(smcb));
+//    		printf("LAMER %s\n",PINT_state_machine_current_machine_name(smcb));
 	)
 	
 

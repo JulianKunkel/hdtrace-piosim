@@ -1721,11 +1721,11 @@ int server_state_machine_start(
         	hdHintRelation_p hintRelationToken = malloc(sizeof(hdHintRelation_t));
 
         	// check if client sent token information or not!
-        	char * clientToken = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
-        	printf("clientToken = %s\n",clientToken);
-        	if(clientToken)
+        	char * relation = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
+        	printf("SERVER : %s\n",relation);
+        	if(relation)
         	{
-        		PINT_smcb_set_token(smcb, hdR_relateRemoteToken(topoTokenArray[SERVER], clientToken));
+        		PINT_smcb_set_token(smcb, hdR_relateRemoteToken(topoTokenArray[SERVER], relation));
         	}else{
         		// create new token
         		PINT_smcb_set_token(smcb, hdR_createTopLevelRelation(topoTokenArray[SERVER]));

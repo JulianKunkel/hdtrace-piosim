@@ -52,6 +52,8 @@
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.2138952164" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="__PVFS2_TROVE_THREADED__=1"/>
 <listOptionValue builtIn="false" value="HAVE_HDPTL=1"/>
+<listOptionValue builtIn="false" value="__PVFS2_SERVER__=1"/>
+<listOptionValue builtIn="false" value="__PVFS2_CLIENT__=1"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1155716272" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
@@ -69,7 +71,7 @@
 </folderInfo>
 <fileInfo id="cdt.managedbuild.toolchain.gnu.base.927199115.1009245501" name="job.c" rcbsApplicability="disable" resourcePath="src/io/job/job.c" toolsToInvoke="cdt.managedbuild.tool.gnu.c.compiler.base.1054081748.133424277">
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1054081748.133424277" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.1054081748">
-<option id="gnu.c.compiler.option.preprocessor.def.symbols.760592276" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+<option id="gnu.c.compiler.option.preprocessor.def.symbols.760592276" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="__PVFS2_TROVE_THREADED__=1"/>
 <listOptionValue builtIn="false" value="HAVE_HDPTL=1"/>
 <listOptionValue builtIn="false" value="__PVFS2_TROVE_SUPPORT__=1"/>

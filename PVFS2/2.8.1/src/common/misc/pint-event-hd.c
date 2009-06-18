@@ -25,11 +25,80 @@ static int hd_facilityTraceStatus[ALL_FACILITIES];
 static int hdStatsGroupValue[ALL_FACILITIES];
 static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES] ;
 hdR_topoToken topoTokenArray[STATISTIC_END];
-hdTopoNode topoNodeArray[STATISTIC_END];
-hdTopology topology;
+static hdTopoNode topoNodeArray[STATISTIC_END];
+static hdTopology topology;
 
-const char * hdFacilityNames[] = 
-{"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END"};
+#ifdef __PVFS2_SERVER__
+const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END"};
+#endif
+
+#ifdef __PVFS2_CLIENT__
+
+const char * hdFacilityNames[] = {"BMI", "", "CLIENT"};
+hdR_topoToken topoTokenArray[STATISTIC_END];
+
+static hdTopoNode topoNode;
+
+int PVFS_HD_client_trace_initialize(void)
+{
+	char hostname[255];
+	int ret;
+	ret = gethostname(hostname, 255);
+
+	if (ret != 0)
+	{
+		fprintf(stderr, "Problem with hostname !\n");
+		return 1;
+	}
+	
+	// im MPI program:
+	const char * levels[]={"Host", "Rank", "Thread"};
+	topology = hdT_createTopology("/tmp/Client", levels, 3);
+	const char * nodeP[]={hostname, "BMI", "0"};
+	topoNode = hdT_createTopoNode(topology, nodeP , 3);
+	// ende MPI program
+	
+	/* statistic trace for client BMI*/
+	hd_facilityTraceStatus[BMI] = 1;
+	hd_facilityTrace[BMI] = hdS_createGroup("BMI", topoNode, 1);
+	hdS_addValue(hd_facilityTrace[BMI], "BMI", INT32, "#", NULL);
+	hdS_commitGroup(hd_facilityTrace[BMI]);
+	hdS_enableGroup(hd_facilityTrace[BMI]);
+	hdR_initTopology(topoNode, & topoTokenArray[CLIENT]);
+	
+	set_hd_sm_trace_enabled(1);
+	return 0;
+}
+
+int PVFS_HD_client_trace_finalize(void)
+{
+	if(topoNode != NULL)
+	{	
+		set_hd_sm_trace_enabled(0);
+		hd_facilityTraceStatus[BMI] = 0;
+		hdR_finalize(topoNode);
+		topoNode = NULL;
+	}
+	
+	if(hd_facilityTraceStatus[BMI] && hd_facilityTrace[BMI] != NULL)
+	{
+		hdS_writeInt32Value(hd_facilityTrace[BMI], hdStatsGroupValue[BMI]);
+		hdS_finalize(hd_facilityTrace[BMI]);
+		hd_facilityTraceStatus[BMI] = 0;
+		hd_facilityTrace[BMI] = NULL; 
+	}
+	
+	if(topoNode != NULL)
+	{	
+		hdR_finalize(topoNode);
+		topoNode = NULL;
+		topoTokenArray[CLIENT] = NULL;
+	}
+	
+	return 0;
+}
+
+#endif /* __PVFS2_CLIENT__ */
 
 static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
 {	
@@ -194,18 +263,6 @@ int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count)
 
 	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
 	return 0;
-}
-
-int PINT_HD_update_counter_get(HD_Trace_Facility facility) 
-{
-	int ret = 0;
-	if (hd_facilityTraceStatus[facility]) 
-	{	
-		gen_mutex_lock(&hdStatsGroupMutex[facility]);
-		ret = hdStatsGroupValue[facility];
-		gen_mutex_unlock(&hdStatsGroupMutex[facility]);
-	}
-	return ret;
 }
 
 #else

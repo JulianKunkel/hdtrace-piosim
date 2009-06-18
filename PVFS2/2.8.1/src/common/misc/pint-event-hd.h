@@ -16,12 +16,7 @@
 #include "hdRelation.h"
 #include "gen-locks.h"
 
-//#ifdef __PVFS2_CLIENT__
-//
-//#endif
-//
-//
-//#ifdef __PVFS2_SERVER__
+#ifdef __PVFS2_SERVER__
 
 int PINT_HD_event_initalize(char * traceWhat);
 
@@ -45,38 +40,53 @@ struct _hdHintRelationStructure{
 	hdR_token token;
 };
 
-
 #ifdef HAVE_HDTRACE
 	#define HD_SERVER_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
-
-	#define HD_DESTROY_RELATION(facility, token) \
-	if(topoNodeArray[facility]){ \
-		hdR_destroyRelation(& token); \
-	} else { \
-		free(token); \
-	}
-
 #else
 	#define HD_SERVER_RELATION (facility stmt)
 	#define HD_DESTROY_RELATION(facility, token) 
-#endif
+#endif /* __HAVE_HDTRACE__*/
 
 typedef struct _hdHintRelationStructure hdHintRelation_t;
 typedef struct _hdHintRelationStructure * hdHintRelation_p;
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END];
-extern hdTopoNode topoNodeArray[STATISTIC_END];
+
+
+
+#define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility) PINT_HD_update_counter_inc(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility) PINT_HD_update_counter_dec(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count) PINT_HD_update_counter_dec_multiple(facility, count);
+
+#else /* CLIENT */
+
+#define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count);
+
+#endif /* __PVFS2_SERVER__ */
+
+
+#define PINT_HD_UPDATE_COUNTER_INC(facility) PINT_HD_update_counter_inc(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC(facility) PINT_HD_update_counter_dec(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE(facility, count) PINT_HD_update_counter_dec_multiple(facility, count);
 
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility);
-
 int PINT_HD_update_counter_dec(HD_Trace_Facility facility);
-
 int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count);
 
-int PINT_HD_update_counter_get(HD_Trace_Facility facility); 
+#else /* __HAVE_HDTRACE__ */
 
-//#endif /* HAVE_PVFSERVER */
+#define PINT_HD_UPDATE_COUNTER_INC(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE(facility, count);
+
+#define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility);
+#define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count);
+
 #endif /* __HAVE_HDTRACE__ */
+
 
 #endif /* __PINT_EVENTHD_H */
