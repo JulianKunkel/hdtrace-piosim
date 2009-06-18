@@ -139,16 +139,4 @@ public class RelationManager {
 
 		return new RelationSearchResult(topoRelation.topologyTreeNode, topoRelation.entryMap.get(Long.parseLong(ids[ids.length-1])));		
 	}
-	
-	public static void main(String[] args) throws Exception {
-		final RelationManager m = new RelationManager();
-		
-		//m.addFile(new BufferedRelationReader("/tmp/hurenkasten.xml"));
-		
-		//m.addFile(new BufferedRelationReader("/tmp/test_host0_process0.rel"));
-		//m.addFile(new BufferedRelationReader("/tmp/test_host0_process1.rel"));
-		//m.addFile(new BufferedRelationReader("/tmp/test_host1_process0.rel"));
-		
-		//System.out.println(m.getParentRelationEntry(m.map.get("Thor:9104:3").entriesTimeSorted.get(1)));
-	}
 }

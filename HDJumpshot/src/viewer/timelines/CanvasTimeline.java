@@ -700,6 +700,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			int which = topologyManager.getStatisticNumberForTimeline(timeline);			
 			selectedObject = entry.createStatisticEntry(which);
 			rootObj = selectedObject;
+			break;
 		}case INNER_NODE:
 			return null;
 		case RELATION:			
