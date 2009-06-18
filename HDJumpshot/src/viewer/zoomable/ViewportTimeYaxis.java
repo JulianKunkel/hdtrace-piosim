@@ -144,7 +144,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 
 	public void searchForward(){
 		final Epoch oldTime = searchingTime;
-		searchResults = searchable.searchNextComponent(searchingTime);
+		searchResults = searchable.searchNextTracable(searchingTime);
 		if(searchResults.wasSucessfull()){
 			searchingTime = searchResults.getObject().getEarliestTime();
 
@@ -162,7 +162,7 @@ public class ViewportTimeYaxis extends ViewportTime implements AdjustmentListene
 
 	public void searchBackward(){
 		final Epoch oldTime = searchingTime;
-		searchResults = searchable.searchPreviousComponent(searchingTime);
+		searchResults = searchable.searchPreviousTraceable(searchingTime);
 		if(searchResults.wasSucessfull()){
 			searchingTime = searchResults.getObject().getLatestTime();
 

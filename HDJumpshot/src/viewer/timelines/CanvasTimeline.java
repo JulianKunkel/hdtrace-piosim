@@ -127,7 +127,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				getTopologyManager().setStatisticCategoryVisiblity(statCat, value);
 			}
 		}
-
 	};
 
 
@@ -773,7 +772,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	}
 
 	@Override
-	public SearchResults searchNextComponent(Epoch laterThan) {
+	public SearchResults searchNextTracable(Epoch laterThan) {
 		final int num_rows   = getRowCount();
 		final TopologyManager topologyManager = getTopologyManager();
 
@@ -850,7 +849,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	}
 
 	@Override
-	public SearchResults searchPreviousComponent(Epoch earlierThan) {
+	public SearchResults searchPreviousTraceable(Epoch earlierThan) {
 		final int num_rows   = getRowCount();
 		final TopologyManager topologyManager = getTopologyManager();
 

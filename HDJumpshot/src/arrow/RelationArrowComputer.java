@@ -79,8 +79,10 @@ public class RelationArrowComputer implements ArrowComputer{
 					if(search == null){
 						continue;
 					}
-					arrows.add(new Arrow(node, relEntry.getEarliestTime(), search.getEntry(), 
-							search.getTopologyTreeNode(), search.getEntry().getEarliestTime(), relEntry, category));
+					arrows.add(new Arrow(
+							search.getTopologyTreeNode(), search.getEntry().getEarliestTime(), search.getEntry(), 
+							node, relEntry.getEarliestTime(), relEntry, 
+							category));					
 				}
 			}
 		}

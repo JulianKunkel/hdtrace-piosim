@@ -35,7 +35,6 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  */
 public interface SearchableView
 {	
-    public SearchResults searchPreviousComponent(Epoch earlierThan);
-    public SearchResults searchNextComponent(Epoch laterThan);
-
+    public SearchResults searchPreviousTraceable(Epoch earlierThan);
+    public SearchResults searchNextTracable(Epoch laterThan);
 }
