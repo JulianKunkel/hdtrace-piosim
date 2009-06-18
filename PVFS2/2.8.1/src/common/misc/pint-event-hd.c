@@ -27,34 +27,36 @@ static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES] ;
 hdR_topoToken topoTokenArray[STATISTIC_END];
 static hdTopoNode topoNodeArray[STATISTIC_END];
 static hdTopology topology;
+static char hostname[255];
 
 #ifdef __PVFS2_SERVER__
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END"};
 #endif
 
+static int checkHostname(void)
+{
+	if (gethostname(hostname, 255) != 0)
+	{
+		fprintf(stderr, "Problem with hostname !\n");
+		return 1;
+	}
+	return 0;
+}
+
 #ifdef __PVFS2_CLIENT__
 
-const char * hdFacilityNames[] = {"BMI", "", "CLIENT"};
+const char * hdFacilityNames[] = {"BMI", "FLOW", "", "CLIENT"};
 hdR_topoToken topoTokenArray[STATISTIC_END];
 
 static hdTopoNode topoNode;
 
 int PVFS_HD_client_trace_initialize(void)
 {
-	char hostname[255];
-	int ret;
-	ret = gethostname(hostname, 255);
-
-	if (ret != 0)
-	{
-		fprintf(stderr, "Problem with hostname !\n");
-		return 1;
-	}
-	
+	checkHostname();
 	// im MPI program:
 	const char * levels[]={"Host", "Rank", "Thread"};
-	topology = hdT_createTopology("/tmp/Client", levels, 3);
-	const char * nodeP[]={hostname, "BMI", "0"};
+	topology = hdT_createTopology("/tmp/client", levels, 3);
+	const char * nodeP[]={hostname, hdFacilityNames[CLIENT], "0"};
 	topoNode = hdT_createTopoNode(topology, nodeP , 3);
 	// ende MPI program
 	
@@ -64,6 +66,7 @@ int PVFS_HD_client_trace_initialize(void)
 	hdS_addValue(hd_facilityTrace[BMI], "BMI", INT32, "#", NULL);
 	hdS_commitGroup(hd_facilityTrace[BMI]);
 	hdS_enableGroup(hd_facilityTrace[BMI]);
+	
 	hdR_initTopology(topoNode, & topoTokenArray[CLIENT]);
 	
 	set_hd_sm_trace_enabled(1);
@@ -111,15 +114,7 @@ static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facili
 
 int PINT_HD_event_initalize(char * traceWhat)
 {	
-	char hostname[255];
-	int ret;
-	ret = gethostname(hostname, 255);
-
-	if (ret != 0)
-	{
-		fprintf(stderr, "Problem with hostname !\n");
-		return 1;
-	}
+	checkHostname();
 
 	char **event_list;
 	int i, count;
