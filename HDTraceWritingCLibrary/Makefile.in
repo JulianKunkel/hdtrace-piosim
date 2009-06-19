@@ -37,9 +37,9 @@ DIST_COMMON = $(am__configure_deps) $(include_HEADERS) \
 	$(top_srcdir)/config/common.am \
 	$(top_srcdir)/config/shave-libtool.in \
 	$(top_srcdir)/config/shave.in $(top_srcdir)/configure \
-	$(top_srcdir)/src/pkgconfig.h.in compile config.guess \
+	$(top_srcdir)/src/pkgconfig.h.in COPYING INSTALL compile \
 	config/config.guess config/config.sub config/depcomp \
-	config/install-sh config/ltmain.sh config/missing missing
+	config/install-sh config/ltmain.sh config/missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
