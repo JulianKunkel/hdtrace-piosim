@@ -70,45 +70,6 @@ AC_ARG_ENABLE(asserts,
 # FIXME: Replace `main' with a function in `-lhdTrace':
 # AC_CHECK_LIB([hdTrace], [main])
 
-
-dnl ----------------------------------------------------------------------
-dnl Check for a suitable glib
-dnl ----------------------------------------------------------------------
-
-GLIB_PRESENT=NO
-GLIB_LDADD=
-
-AM_PATH_GLIB_2_0([2.16.6],[GLIB_PRESENT=YES])
-
-AC_ARG_WITH(glib-static,
-	    AC_HELP_STRING([--with-glib-static=prefix],[use static glib tree (prefix is REQUIRED)]),
-	    [
-	     GLIB_STATIC_LIBGLIB2_A="${withval}/lib/libglib-2.0.a"
-	     GLIB_STATIC_INCLUDE="${withval}/include/glib-2.0"
-	     GLIB_STATIC_LIBINCLUDE="${withval}/lib/glib-2.0/include"
-	     if test -f ${GLIB_STATIC_LIBGLIB2_A}
-    	     then
-		     if test -f "${GLIB_STATIC_INCLUDE}/glib.h"
-		     then
-			     GLIB_LDADD=${GLIB_STATIC_LIBGLIB2_A}
-			     GLIB_CFLAGS="-I${GLIB_STATIC_INCLUDE} -I${GLIB_STATIC_LIBINCLUDE}"
-			     AC_SUBST(GLIB_LIBS)   # override the one by AM_PATH_GLIB_2_0
-			     AC_SUBST(GLIB_CFLAGS)
-			     GLIB_PRESENT=YES
-			     AC_MSG_NOTICE([assuming static glib in ${withval} is good...])
-		     fi
-	     fi
-	    ]
-	   )
-
-if test "$GLIB_PRESENT" != "YES"
-then
-	AC_MSG_ERROR([Cannot find a suitable glib2 (>= 2.16.6)])
-fi
-
-AC_SUBST(GLIB_LDADD)
-
-
 dnl ------------------------------------------------------------------------
 dnl Check for C capabilities
 dnl ------------------------------------------------------------------------
