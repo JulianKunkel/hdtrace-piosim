@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <sys/types.h>
@@ -16,16 +17,26 @@
 #include "hdStats.h"
 #include "hdError.h"
 
-#define TYPE_ASCII 0
-#define TYPE_BIN   1
+enum opMode {
+	MODE_ASCII,
+	MODE_BIN
+};
 
 /*
  * Structure for trace file description
  */
 typedef struct
 {
-    char *actn;         /* action script part for this trace */
-    int   size;         /* size of expected response in [byte] */
+	int bin : 1;
+	int ascii : 1;
+	int hdstats : 1;
+	int channel;
+	char *output;
+
+    char *actn; /* action script part for this trace */
+    int   size;    /* size of expected response in [byte] */
+
+    hdTopoNode tnode;   /* topology node, reference needed for destruction */
     hdStatsGroup group; /* statistics group this belongs to */
 } TRACE;
 
@@ -36,19 +47,17 @@ static struct timeval tv_start;
 
 /* read data and log into file */
 static
-int trace_iteration(int serial_fd, TRACE *traces, int ntraces, int type)
+int trace_iteration(int serial_fd, TRACE *traces, int ntraces, enum opMode mode)
 {
     int ret;
 
-    assert(type = TYPE_BIN);
+    assert(mode == MODE_BIN);
 
     static size_t isize = 0; /* Calculate input size only once */
     if (isize == 0)
     {
         for (int i = 0; i < ntraces; ++i)
             isize += traces[i].size;
-        if (type == TYPE_ASCII)
-            isize += ntraces; /* separating ';' and trailing '\0' */
     }
     if (isize < 10)
         isize = 10;
@@ -94,11 +103,11 @@ int trace_iteration(int serial_fd, TRACE *traces, int ntraces, int type)
 
 static
 int trace_data(
-        int serial_fd,   /* file descriptor of serial port */
-        float cycle,     /* cycle length in seconds */
-        TRACE *traces,   /* array of trace descriptions */
-        int ntraces,      /* length of traces array */
-        int type         /* type of trace file (ASCII/BIN) */
+        int serial_fd,      /* file descriptor of serial port */
+        float cycle,        /* cycle length in seconds */
+        TRACE *traces,      /* array of trace descriptions */
+        int ntraces,        /* length of traces array */
+        enum opMode mode  /* operation mode (ASCII/BIN) */
         )
 {
     int ret;
@@ -114,7 +123,7 @@ int trace_data(
     /*
      * check type setting
      */
-    if(type != TYPE_ASCII && type != TYPE_BIN)
+    if(mode != MODE_ASCII && mode != MODE_BIN)
     {
         ERROR_CUSTOM("trace_data(): Unknown type requested.");
     }
@@ -161,13 +170,13 @@ int trace_data(
     /*
      * Set output format
      */
-    switch(type)
+    switch(mode)
     {
-        case TYPE_BIN:
+        case MODE_BIN:
             ret = serial_sendMessage(serial_fd, "FRMT PACKED");
             SERIAL_SENDMESSAGE_RETURN_CHECK
             break;
-        case TYPE_ASCII:
+        case MODE_ASCII:
             ret = serial_sendMessage(serial_fd, "FRMT ASCII");
             SERIAL_SENDMESSAGE_RETURN_CHECK
             break;
@@ -233,7 +242,7 @@ int trace_data(
 
         if (FD_ISSET(serial_fd, &input))
         {
-            ret = trace_iteration(serial_fd, traces, ntraces, type);
+            ret = trace_iteration(serial_fd, traces, ntraces, mode);
             switch(ret)
             {
                 case OK:
@@ -329,12 +338,238 @@ int test_binmode(int serial_fd)
     return (OK);
 }
 
-int main(void)
+char** parsePath(char *output, int *plen) {
+
+	// count number of tokens in output delimited by '_'
+	*plen = 1;
+	char *ptr = output;
+	while ((ptr = index(ptr, '_')) != NULL)
+		++*plen, ++ptr;
+
+	// allocate space for pointers
+	char ** path;
+	path = malloc(*plen * sizeof(*path));
+
+	// allocate space for strings
+	int outlen = strlen(output);
+	if (outlen <= 0)
+		return NULL;
+	path[0] = malloc(outlen+1 * sizeof(*(path[0])));
+
+	// copy output string to allocated memory
+	strcpy(path[0], output);
+
+	// create path string array
+	// by setting the pointers and replacing '_' with '\0'
+	ptr = path[0];
+	for (int i = 1; i < *plen; ++i) {
+		ptr = index(ptr, '_');
+		assert(*ptr == '_');
+		*ptr = '\0';
+		path[i] = ++ptr;
+	}
+
+	return path;
+}
+
+/**
+ * Main function
+ *
+ * Takes following commandline arguments:
+ *
+ * [-P PROJECT] [-t TOPOLOGY] [-p PORT] TRACE [TRACE [TRACE [...]]]]
+ *
+ * PROJECT = Name of the project (default: MyProject)
+ * TOPOLOGY = level1_level2_level3 (default: Host_Process_Thread)
+ * TRACE = TYPES:CHANNEL:OUTPUT
+ *
+ * TYPES = String containing 'a' (ASCII), 'b' (BINARY), 's' (HDSTATS)
+ * CHANNEL = Number of the input channel
+ * OUTPUT = If TYPES contains 'b' or 'a', this is simply the output file
+ *  without the extension. For 'a' .txt is added and '.bin' for 'b'.
+ *  If TYPES contains 's', this describes a topology node and must be in the
+ *  form "path1_path2"
+ *
+ * PORT = "/dev/ttyUSB0"
+ *
+ * @return error code
+ */
+int main(int argc, char **argv)
 {
-    int ret;
+	int ret;
 
-    int serial_fd;
+	/*
+	 * Set defaults
+	 */
+	char *project = "MyProject";
+	char *topo = "Host_Process_Thread";
+	char *port = "/dev/ttyUSB0";
 
+    int mode = MODE_BIN;
+    float cycle = 0.05;
+
+
+	/*
+	 * Read commandline parameters
+	 */
+	char o;
+	while ((o = getopt(argc, argv, "P:t:p:")) >= 0) {
+		switch(o) {
+		case 'P':
+			project = optarg;
+			break;
+		case 't':
+			topo = optarg;
+			break;
+		case 'p':
+			port = optarg;
+			break;
+		default:
+			break;
+		}
+	}
+
+	printf("Project: %s\n", project);
+	printf("Port: %s\n", port);
+
+	/*
+	 * Create topology
+	 */
+	hdTopology myTopology;
+	int tlen;
+	char ** levels = parsePath(topo, &tlen);
+	myTopology = hdT_createTopology((const char *) project,
+			(const char **) levels, tlen);
+
+	printf("Topology: %s", levels[0]);
+	for (int i = 1; i < tlen; ++i) {
+		printf(" - %s", levels[i]);
+	}
+	printf("\n");
+
+	// free memory allocated by parsePath()
+	free(levels[0]);
+	free(levels);
+
+
+	/*
+	 * Build array of traces
+	 */
+
+	int ntraces = argc - optind;
+	TRACE *traces = malloc(ntraces * sizeof(*traces));
+
+	// parse all traces
+	for (int i = optind; i < argc; ++i) {
+
+		char *ptr = argv[i];
+		int tnr = i-optind;
+
+		// parse types of trace
+		traces[tnr].bin = 0;
+		traces[tnr].ascii = 0;
+		traces[tnr].hdstats = 0;
+		while (*ptr != ':') {
+			switch(*ptr) {
+			case 'b':
+				traces[tnr].bin = 1;
+				break;
+			case 'a':
+				traces[tnr].ascii = 1;
+				break;
+			case 's':
+				traces[tnr].hdstats = 1;
+				break;
+			case '\0':
+				puts("Usage()");
+				exit(-1);
+				break;
+			default:
+				puts("Wrong type letter.");
+				exit(-1);
+				break;
+			}
+			ptr++;
+		}
+
+		assert(*ptr == ':');
+		ptr++;
+
+		// parse channel of trace
+		char *tmp = index(ptr, ':');                      // find next colon
+		if (tmp == NULL)
+			puts("Usage()"), exit(-1);
+		*tmp = '\0';                                      // write '\0' there
+		ret = sscanf(ptr, "%d", &(traces[tnr].channel));  // scan channel number
+		if (ret < 1)
+			puts("Usage()"), exit(-1);
+		ptr = tmp + 1;                                    // set ptr to the beginning of the next token
+
+		traces[tnr].output = ptr;
+		if (ptr == '\0')
+			puts("Usage()"), exit(-1);
+
+
+		char **path = NULL;
+		int plen = 0;
+		if (traces[tnr].hdstats)
+			path = parsePath(traces[tnr].output, &plen);
+
+		// print parsed trace config
+		printf("%d: ", tnr);
+		if (traces[tnr].bin)
+			printf("BINARY, ");
+		if (traces[tnr].ascii)
+			printf("ASCII, ");
+		if (traces[tnr].hdstats)
+			printf("HDSTATS, ");
+
+		printf("Channel: %d", traces[tnr].channel);
+
+		if (traces[tnr].hdstats) {
+			printf(", Path: %s", path[0]);
+			for (int i = 1; i < plen; ++i)
+				printf(" - %s", path[i]);
+		}
+		if (traces[tnr].bin || traces[tnr].ascii) {
+			printf(", Filename: %s", traces[tnr].output);
+		}
+		printf("\n");
+
+		if (traces[tnr].hdstats) {
+			// create topology node
+			traces[tnr].tnode =
+				hdT_createTopoNode(myTopology,(const char **) path, plen);
+			/* TODO error checking */
+
+			traces[tnr].group =
+				hdS_createGroup("Energy", traces[tnr].tnode, 1);
+			/* TODO error checking */
+
+			ret = hdS_addValue(traces[tnr].group, "Utrms", FLOAT, "V", "Voltage");
+			/* TODO error checking */
+			ret = hdS_addValue(traces[tnr].group, "Itrms", FLOAT, "A", "Current");
+			/* TODO error checking */
+			ret = hdS_addValue(traces[tnr].group, "P", FLOAT, "W", "Power");
+			/* TODO error checking */
+			ret = hdS_commitGroup(traces[tnr].group);
+			/* TODO error checking */
+
+		}
+
+		// free memory allocated by parsePath()
+		free(path[0]);
+		free(path);
+
+		traces[tnr].actn = malloc(20 * sizeof(*(traces[tnr].actn)));
+		sprintf(traces[tnr].actn, "UTRMS%d?;ITRMS%d?;P%d?",
+				traces[tnr].channel, traces[tnr].channel, traces[tnr].channel);
+		traces[tnr].size = (mode == MODE_BIN) ? (3 * 4) : (3 * 9 + 2);
+
+	}
+
+
+	int serial_fd;
     char buffer[255];  /* Input buffer */
 
     /*
@@ -345,12 +580,20 @@ int main(void)
     /*
      * Open serial port
      */
-    serial_fd = serial_openPort("/dev/ttyUSB0");
+    serial_fd = serial_openPort(port);
     if(serial_fd < 0)
         return(serial_fd);
 
     /*
      * Setup serial port
+     *
+     * Configuration on device:
+     * ComA: Custom
+     * ComA 8N1
+     * Baudrate: 57600
+     * EOS: <lf>
+     * Echo: Off
+     * Protocol: RTS/CTS
      */
     ret = serial_setupPort(serial_fd, 57600);
     SERIAL_SETUPPORT_RETURN_CHECK
@@ -419,62 +662,27 @@ int main(void)
             fputs("Unknown error while testing binary mode.\n", stderr);
     }
 
-    /*
-     * Define topology
-     */
-    const char *levels[] = {"Host", "Process", "Thread"};
-    hdTopology myTopology =
-             hdT_createTopology("MyProject", levels, 3);
-    /* TODO error checking */
-
-
-    /*
-     * Define traces
-     */
-    int type = TYPE_BIN;
-    size_t ntraces = 2;
-    float cycle = 0.05;
-    TRACE traces[ntraces];
-    hdTopoNode nodes[ntraces];
-    const char *host[][1] = { { "host0" }, { "host1" }, { "host2" }, { "host3" } };
-
-	for (int i = 0; i < ntraces; ++i) {
-		nodes[i] = hdT_createTopoNode(myTopology, host[i] , 1);
-		/* TODO error checking */
-
-		traces[i].group = hdS_createGroup("Energy", nodes[i], 1);
-		/* TODO error checking */
-
-        traces[i].actn = "UTRMS1?;ITRMS1?;P1?";
-        traces[i].size = (type == TYPE_BIN) ? (3 * 4) : (3 * 9 + 2);
-
-        ret = hdS_addValue(traces[i].group, "Utrms", FLOAT, "V", "Voltage");
-		/* TODO error checking */
-        ret = hdS_addValue(traces[i].group, "Itrms", FLOAT, "A", "Current");
-        /* TODO error checking */
-        ret = hdS_addValue(traces[i].group, "P", FLOAT, "W", "Power");
-        /* TODO error checking */
-
-        ret = hdS_commitGroup(traces[i].group);
-        /* TODO error checking */
-	}
-
 
     puts("Start tracing!");
 
-    ret = trace_data(serial_fd, cycle, traces, ntraces, type);
+    ret = trace_data(serial_fd, cycle, traces, ntraces, mode);
     printf("Returns %d\n", ret);
     /* TODO: error handling */
 
     puts("End tracing!");
 
     /*
-     * Close files
+     * Close files and free memory
      */
     for(int i = 0; i < ntraces; ++i)
     {
     	hdS_finalize(traces[i].group);
-    	hdT_destroyTopoNode(nodes[i]);
+    	hdT_destroyTopoNode(traces[i].tnode);
+
+    	free(traces[i].output); // allocated by sscanf
+    	free(traces[i].actn);
+
+    	free(traces);
     }
     hdT_destroyTopology(myTopology);
 
@@ -523,6 +731,8 @@ int main(void)
      */
     ret = serial_closePort(serial_fd);
     SERIAL_CLOSEPORT_RETURN_CHECK
+
+
 }
 
 /* vim: set sw=4 sts=4 et fdm=syntax: */

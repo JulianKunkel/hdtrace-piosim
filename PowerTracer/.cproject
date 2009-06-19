@@ -26,7 +26,7 @@
 <targetPlatform id="org.eclipse.linuxtools.cdt.autotools.toolchain.targetPlatform.1574699936" isAbstract="false" name="GNU Autotools Target Platform" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.targetPlatform"/>
 <builder buildPath="${workspace_loc:/PowerTracer/build}" enableAutoBuild="true" enableCleanBuild="true" id="org.eclipse.linuxtools.cdt.autotools.toolchain.builder.492048788" keepEnvironmentInBuildfile="false" name="Autotools Makefile Generator" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.builder"/>
 <tool id="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure.433026651" name="configure" superClass="org.eclipse.linuxtools.cdt.autotools.gnu.toolchain.tool.configure">
-<option id="org.eclipse.linuxtools.cdt.autotools.option.configure.user.1600423065" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.user" value="--enable-warnings --with-hdtwlib-static=../../HDTraceWritingCLibrary/install" valueType="string"/>
+<option id="org.eclipse.linuxtools.cdt.autotools.option.configure.user.1600423065" name="User-specified configuration options" superClass="org.eclipse.linuxtools.cdt.autotools.option.configure.user" value="--enable-warnings --enable-debugging --with-hdtwlib-static=../../HDTraceWritingCLibrary/install" valueType="string"/>
 </tool>
 <tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.autogen.1911802688" name="autogen.sh" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.autogen"/>
 <tool id="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc.938933146" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.toolchain.tool.gcc">
