@@ -58,7 +58,7 @@ int PVFS_HD_client_trace_initialize(void)
 	topology = hdT_createTopology("/tmp/client", levels, 3);
 	const char * nodeP[]={hostname, hdFacilityNames[CLIENT], "0"};
 	topoNode = hdT_createTopoNode(topology, nodeP , 3);
-	// ende MPI program
+	// ende MPI program 
 	
 	/* statistic trace for client BMI*/
 	hd_facilityTraceStatus[BMI] = 1;
@@ -75,18 +75,16 @@ int PVFS_HD_client_trace_initialize(void)
 
 int PVFS_HD_client_trace_finalize(void)
 {
-<<<<<<< .mine
 	set_hd_sm_trace_enabled(0);
-=======
+	
 	if(topoNode != NULL)
 	{	
 		set_hd_sm_trace_enabled(0);
 		hd_facilityTraceStatus[BMI] = 0;
-		hdR_finalize(topoNodeArray[CLIENT]);
+		hdR_finalize(&topoTokenArray[CLIENT]);
 		topoNode = NULL;
 		topoTokenArray[CLIENT] = NULL;
 	}
->>>>>>> .r429
 	
 	if(hd_facilityTraceStatus[BMI] && hd_facilityTrace[BMI] != NULL)
 	{
@@ -94,14 +92,6 @@ int PVFS_HD_client_trace_finalize(void)
 		hdS_finalize(hd_facilityTrace[BMI]);
 		hd_facilityTraceStatus[BMI] = 0;
 		hd_facilityTrace[BMI] = NULL; 
-	}
-	
-	if(topoNode != NULL)
-	{	
-		hd_facilityTraceStatus[BMI] = 0;
-		hdR_finalize(&topoTokenArray[CLIENT]);
-		topoNode = NULL;
-		topoTokenArray[CLIENT] = NULL;
 	}
 	
 	return 0;
@@ -205,7 +195,7 @@ int PINT_HD_event_finalize(void)
 	for (i = 0 ; i < STATISTIC_END; i++){
 		if(topoNodeArray[i] != NULL)
 		{	
-			hdR_finalize(topoNodeArray[i]);
+			hdR_finalize(&topoTokenArray[i]);
 			topoNodeArray[i] = NULL;
 			topoTokenArray[i] = NULL;
 		}
