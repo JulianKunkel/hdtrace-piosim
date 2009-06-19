@@ -16,7 +16,11 @@ AC_SYS_LARGEFILE
 # Checks for programs.
 AC_PROG_CC_C99
 AC_PROG_RANLIB
-AC_PROG_LIBTOOL
+
+# Enable libtool programming and disable shared libraries
+AM_DISABLE_SHARED
+AM_PROG_LIBTOOL
+
 
 
 dnl ----------------------------------------------------------------------
