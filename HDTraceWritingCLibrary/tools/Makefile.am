@@ -1,4 +1,4 @@
-include $(top_srcdir)/common.am
+include $(top_srcdir)/config/common.am
 
 noinst_PROGRAMS = hdStatsPrint
 dist_noinst_SCRIPTS = hdStatsReadHeader.pl

@@ -787,6 +787,16 @@ ac_includes_default="\
 #endif"
 
 ac_subst_vars='LTLIBOBJS
+Q
+V
+MCS
+OBJC
+F77
+FC
+CXX
+AM_MAKEFLAGS
+MAKEFLAGS
+shavedir
 ALLOCA
 LIBOBJS
 GLIB_LDADD
@@ -802,6 +812,7 @@ LIPO
 NMEDIT
 DSYMUTIL
 lt_ECHO
+RANLIB
 AR
 OBJDUMP
 LN_S
@@ -820,7 +831,6 @@ build_vendor
 build_cpu
 build
 LIBTOOL
-RANLIB
 EGREP
 GREP
 CPP
@@ -916,6 +926,7 @@ enable_warnings
 enable_asserts
 enable_glibtest
 with_glib_static
+enable_shave
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1570,6 +1581,7 @@ Optional Features:
   --enable-warnings       enable lots of compiler warnings (only with GCC)
   --disable-asserts       disable assertion code (should produce faster code)
   --disable-glibtest      do not try to compile and run a test GLIB program
+  --enable-shave          use shave to make the build pretty [default=yes]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2043,11 +2055,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ac_config_headers="$ac_config_headers src/pkgconfig.h"
 
 
-# Initialize automake
-am__api_version='1.10'
-
+# additional m4 files are found here:
 ac_aux_dir=
-for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
+for ac_dir in config "$srcdir"/config; do
   if test -f "$ac_dir/install-sh"; then
     ac_aux_dir=$ac_dir
     ac_install_sh="$ac_aux_dir/install-sh -c"
@@ -2063,8 +2073,8 @@ for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
   fi
 done
 if test -z "$ac_aux_dir"; then
-  { { $as_echo "$as_me:$LINENO: error: cannot find install-sh or install.sh in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" >&5
-$as_echo "$as_me: error: cannot find install-sh or install.sh in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" >&2;}
+  { { $as_echo "$as_me:$LINENO: error: cannot find install-sh or install.sh in config \"$srcdir\"/config" >&5
+$as_echo "$as_me: error: cannot find install-sh or install.sh in config \"$srcdir\"/config" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
@@ -2076,6 +2086,11 @@ ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
 ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
 ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
+
+
+
+# Initialize automake
+am__api_version='1.10'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -5056,98 +5071,7 @@ esac
 
 
 
-if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}ranlib", so it can be a program name with args.
-set dummy ${ac_tool_prefix}ranlib; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_RANLIB+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$RANLIB"; then
-  ac_cv_prog_RANLIB="$RANLIB" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_RANLIB="${ac_tool_prefix}ranlib"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-fi
-fi
-RANLIB=$ac_cv_prog_RANLIB
-if test -n "$RANLIB"; then
-  { $as_echo "$as_me:$LINENO: result: $RANLIB" >&5
-$as_echo "$RANLIB" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-fi
-if test -z "$ac_cv_prog_RANLIB"; then
-  ac_ct_RANLIB=$RANLIB
-  # Extract the first word of "ranlib", so it can be a program name with args.
-set dummy ranlib; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_ac_ct_RANLIB+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$ac_ct_RANLIB"; then
-  ac_cv_prog_ac_ct_RANLIB="$ac_ct_RANLIB" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_ac_ct_RANLIB="ranlib"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-fi
-fi
-ac_ct_RANLIB=$ac_cv_prog_ac_ct_RANLIB
-if test -n "$ac_ct_RANLIB"; then
-  { $as_echo "$as_me:$LINENO: result: $ac_ct_RANLIB" >&5
-$as_echo "$ac_ct_RANLIB" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-  if test "x$ac_ct_RANLIB" = x; then
-    RANLIB=":"
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ $as_echo "$as_me:$LINENO: WARNING: using cross tools not prefixed with host triplet" >&5
-$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
-esac
-    RANLIB=$ac_ct_RANLIB
-  fi
-else
-  RANLIB="$ac_cv_prog_RANLIB"
-fi
-
+# AC_PROG_RANLIB
 
 # Enable libtool programming and disable shared libraries
 # Check whether --enable-shared was given.
@@ -5749,13 +5673,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5752: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5676: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5755: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5679: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5758: output\"" >&5)
+  (eval echo "\"\$as_me:5682: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6960,7 +6884,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6963 "configure"' > conftest.$ac_ext
+  echo '#line 6887 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8270,6 +8194,10 @@ _lt_linker_boilerplate=`cat conftest.err`
 $RM -r conftest*
 
 
+## CAVEAT EMPTOR:
+## There is no encapsulation within the following macros, do not change
+## the running order or otherwise move them around unless you know exactly
+## what you are doing...
 if test -n "$compiler"; then
 
 lt_prog_compiler_no_builtin_flag=
@@ -8295,11 +8223,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8298: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8226: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8302: \$? = $ac_status" >&5
+   echo "$as_me:8230: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8634,11 +8562,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8637: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8565: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8641: \$? = $ac_status" >&5
+   echo "$as_me:8569: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8739,11 +8667,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8742: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8670: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8746: \$? = $ac_status" >&5
+   echo "$as_me:8674: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8794,11 +8722,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8797: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8725: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8801: \$? = $ac_status" >&5
+   echo "$as_me:8729: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11610,7 +11538,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11613 "configure"
+#line 11541 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11706,7 +11634,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11709 "configure"
+#line 11637 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11931,8 +11859,6 @@ CC="$lt_save_CC"
 
 
 # Only expand once:
-
-
 
 
 
@@ -14854,7 +14780,99 @@ fi
 done
 
 
-ac_config_files="$ac_config_files Makefile lib/Makefile tools/Makefile tests/Makefile"
+
+
+  # Check whether --enable-shave was given.
+if test "${enable_shave+set}" = set; then
+  enableval=$enable_shave;
+else
+  enable_shave=yes
+
+fi
+
+
+
+  if test x"$enable_shave" = xyes; then
+        shavedir="$ac_pwd/config"
+
+
+        MAKEFLAGS=-s
+
+    AM_MAKEFLAGS='`test -z $V && echo -s`'
+
+
+        # Extract the first word of "sed", so it can be a program name with args.
+set dummy sed; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_SED+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$SED"; then
+  ac_cv_prog_SED="$SED" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_SED="sed"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_SED" && ac_cv_prog_SED="false"
+fi
+fi
+SED=$ac_cv_prog_SED
+if test -n "$SED"; then
+  { $as_echo "$as_me:$LINENO: result: $SED" >&5
+$as_echo "$SED" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+        SHAVE_SAVED_LIBTOOL=$LIBTOOL
+    LIBTOOL="${SHELL} ${shavedir}/shave-libtool '${SHAVE_SAVED_LIBTOOL}'"
+
+
+        SHAVE_SAVED_CC=$CC
+    SHAVE_SAVED_CXX=$CXX
+    SHAVE_SAVED_FC=$FC
+    SHAVE_SAVED_F77=$F77
+    SHAVE_SAVED_OBJC=$OBJC
+    SHAVE_SAVED_MCS=$MCS
+    CC="${SHELL} ${shavedir}/shave cc ${SHAVE_SAVED_CC}"
+    CXX="${SHELL} ${shavedir}/shave cxx ${SHAVE_SAVED_CXX}"
+    FC="${SHELL} ${shavedir}/shave fc ${SHAVE_SAVED_FC}"
+    F77="${SHELL} ${shavedir}/shave f77 ${SHAVE_SAVED_F77}"
+    OBJC="${SHELL} ${shavedir}/shave objc ${SHAVE_SAVED_OBJC}"
+    MCS="${SHELL} ${shavedir}/shave mcs ${SHAVE_SAVED_MCS}"
+
+
+
+
+
+
+
+    V=@
+  else
+    V=1
+  fi
+  Q='$(V:1=)'
+
+
+
+
+ac_config_files="$ac_config_files config/shave config/shave-libtool Makefile lib/Makefile tools/Makefile tests/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -15733,6 +15751,8 @@ do
     "src/pkgconfig.h") CONFIG_HEADERS="$CONFIG_HEADERS src/pkgconfig.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
+    "config/shave") CONFIG_FILES="$CONFIG_FILES config/shave" ;;
+    "config/shave-libtool") CONFIG_FILES="$CONFIG_FILES config/shave-libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "tools/Makefile") CONFIG_FILES="$CONFIG_FILES tools/Makefile" ;;

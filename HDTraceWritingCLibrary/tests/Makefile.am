@@ -1,4 +1,4 @@
-include $(top_srcdir)/common.am
+include $(top_srcdir)/config/common.am
 
 check_PROGRAMS = hdTopoTest hdStatsTest hdRelationTest hdTraceTest
 

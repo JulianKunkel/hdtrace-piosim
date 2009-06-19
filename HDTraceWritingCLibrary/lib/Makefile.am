@@ -1,4 +1,4 @@
-include $(top_srcdir)/common.am
+include $(top_srcdir)/config/common.am
 
 lib_LTLIBRARIES = libhdTrace.la libhdStats.la libhdRelation.la libhdTracing.la
 

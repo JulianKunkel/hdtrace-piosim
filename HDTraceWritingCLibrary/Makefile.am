@@ -1,6 +1,7 @@
 SUBDIRS = lib . tools tests
+ACLOCAL_AMFLAGS = -I config
 
-include $(top_srcdir)/common.am
+include $(top_srcdir)/config/common.am
 
 include_HEADERS = $(INC_DIR)/*.h
 

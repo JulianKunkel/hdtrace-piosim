@@ -6,6 +6,10 @@ AC_INIT([HDTraceCLibrary], [0svn20090617], [stephan.krempel@pvs.informatik.uni-h
 AC_CONFIG_SRCDIR([src/hdTopo.c])
 AC_CONFIG_HEADER([src/pkgconfig.h])
 
+# additional m4 files are found here:
+AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_MACRO_DIR([config])
+
 # Initialize automake
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.10])
 
@@ -15,13 +19,11 @@ AC_SYS_LARGEFILE
 
 # Checks for programs.
 AC_PROG_CC_C99
-AC_PROG_RANLIB
+# AC_PROG_RANLIB
 
 # Enable libtool programming and disable shared libraries
 AM_DISABLE_SHARED
 AM_PROG_LIBTOOL
-
-
 
 dnl ----------------------------------------------------------------------
 dnl Define configure commandline flags
@@ -135,7 +137,11 @@ AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([gethostname gettimeofday isascii memset regcomp select strdup strerror])
 
-AC_CONFIG_FILES([Makefile
+SHAVE_INIT([config], [enable])
+
+AC_CONFIG_FILES([config/shave
+		 config/shave-libtool
+		 Makefile
 		 lib/Makefile
 		 tools/Makefile
 		 tests/Makefile])
