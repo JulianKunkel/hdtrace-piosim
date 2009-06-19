@@ -75,6 +75,9 @@ int PVFS_HD_client_trace_initialize(void)
 
 int PVFS_HD_client_trace_finalize(void)
 {
+<<<<<<< .mine
+	set_hd_sm_trace_enabled(0);
+=======
 	if(topoNode != NULL)
 	{	
 		set_hd_sm_trace_enabled(0);
@@ -83,6 +86,7 @@ int PVFS_HD_client_trace_finalize(void)
 		topoNode = NULL;
 		topoTokenArray[CLIENT] = NULL;
 	}
+>>>>>>> .r429
 	
 	if(hd_facilityTraceStatus[BMI] && hd_facilityTrace[BMI] != NULL)
 	{
@@ -90,6 +94,14 @@ int PVFS_HD_client_trace_finalize(void)
 		hdS_finalize(hd_facilityTrace[BMI]);
 		hd_facilityTraceStatus[BMI] = 0;
 		hd_facilityTrace[BMI] = NULL; 
+	}
+	
+	if(topoNode != NULL)
+	{	
+		hd_facilityTraceStatus[BMI] = 0;
+		hdR_finalize(&topoTokenArray[CLIENT]);
+		topoNode = NULL;
+		topoTokenArray[CLIENT] = NULL;
 	}
 	
 	return 0;

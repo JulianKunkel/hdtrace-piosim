@@ -8255,8 +8255,8 @@ if test "${with_hdtrace+set}" = set; then
 $as_echo "$as_me: error: --with-hdtrace must be given a pathname" >&2;}
    { (exit 1); exit 1; }; }
     else
-       CFLAGS="$CFLAGS -I$withval/include $(pkg-config --cflags glib-2.0)"
-       LDFLAGS="$LDFLAGS -L$withval/lib $(pkg-config --cflags glib-2.0)"
+       CFLAGS="$CFLAGS -I$withval/include -I/home/dinh/pioviz/include  $(pkg-config --cflags glib-2.0)"
+       LDFLAGS="$LDFLAGS -L$withval/lib -L/home/dinh/pioviz/lib $(pkg-config --cflags glib-2.0)"
        LIBS="$LIBS -lhdStats -lhdTrace -lhdRelation $(pkg-config --libs glib-2.0)"
 
 cat >>confdefs.h <<\_ACEOF
@@ -8330,7 +8330,7 @@ if test "${with_hdptl+set}" = set; then
 $as_echo "$as_me: error: --with-hdptl must be given a pathname" >&2;}
    { (exit 1); exit 1; }; }
     else
-       CFLAGS="$CFLAGS -I$withval/include -I$withval/src  $(pkg-config --cflags gthread-2.0) $(pkg-config --cflags libgtop-2.0)"
+       CFLAGS="$CFLAGS -I$withval/include -I$withval/src $(pkg-config --cflags gthread-2.0) $(pkg-config --cflags libgtop-2.0)"
        LDFLAGS="$LDFLAGS -L$withval/lib -L/usr/lib"
        LIBS="$LIBS -lPTL $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
 
