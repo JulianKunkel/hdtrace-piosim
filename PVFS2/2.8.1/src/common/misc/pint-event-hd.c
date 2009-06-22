@@ -52,7 +52,7 @@ int PVFS_HD_client_trace_initialize(void)
 	// im MPI program:
 	const char * levels[]={"Host", "Rank", "Thread"};
 	topology = hdT_createTopology("/tmp/client", levels, 3);
-	const char * nodeP[]={hostname, hdFacilityNames[CLIENT], "0"};
+	const char * nodeP[]= {hostname, hdFacilityNames[CLIENT], "0"};
 	topoNode = hdT_createTopoNode(topology, nodeP , 3);
 	// ende MPI program 
 	
@@ -101,10 +101,11 @@ int PVFS_HD_client_trace_finalize(void)
 
 #ifdef __PVFS2_SERVER__
 
-const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END"};
+const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
+		"NET", "CPU", "MEM", "REL",	"ALL_FACILITIES"};
 static ptlSources statistics;
 static PerfTrace pStatistics;
-static hdTopoNode topoNodeArray[STATISTIC_END];
+static hdTopoNode topoNodeArray[ALL_FACILITIES];
 
 static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
 {	
@@ -130,7 +131,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 	{
 		printf("Enable: %s\n", event_list[i]);
 		int facilityNum;
-		for (facilityNum = 0; facilityNum < STATISTIC_END; facilityNum++)
+		for (facilityNum = 0; facilityNum < ALL_FACILITIES; facilityNum++)
 		{
 			if((strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0) && !hd_facilityTrace[facilityNum])
 			{
