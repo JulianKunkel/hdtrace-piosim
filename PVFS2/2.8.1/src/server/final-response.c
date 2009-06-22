@@ -203,6 +203,10 @@ static PINT_sm_action final_response_cleanup(
         struct PINT_smcb *smcb, job_status_s *js_p)
 {
     struct PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
+//    if (s_op->smToken){
+//    hdR_start(s_op->smToken,"final_response_cleanup",0,NULL,NULL);
+//    hdR_end(s_op->smToken,0,NULL,NULL);
+//    }
     char status_string[64] = {0};
 
     gossip_debug(GOSSIP_SERVER_DEBUG, 

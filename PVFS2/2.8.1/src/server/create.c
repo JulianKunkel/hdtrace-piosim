@@ -18,6 +18,7 @@
 #include "pvfs2-internal.h"
 #include "pint-util.h"
 #include "pint-cached-config.h"
+#include "pint-event.h"
 
 #define REPLACE_DONE 100
 
@@ -376,14 +377,14 @@ static struct PINT_tran_tbl_s ST_cleanup_trtbl[] = {
 	 .flag = SM_TERM }
 };
 
-# 131 "src/server/create.sm"
+# 132 "src/server/create.sm"
 
 
 static int setup_final_response(
     struct PINT_smcb *smcb, job_status_s *js_p)
 {
     struct PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
-
+    
     /* retrieve original error code if present */
     if(s_op->u.create.saved_error_code)
     {
@@ -409,6 +410,11 @@ static int create_metafile(
         PINT_SERVER_TYPE_META,
         &meta_handle_ext_array);
 
+//    hdHintRelation_p hintRelationToken = (hdHintRelation_p) PINT_hint_get_value_by_name(s_op->req->hints, 
+//    													PVFS_HINT_RELATION_TOKEN_NAME, NULL);
+    //    gen_mutex_lock(hintRelationToken->mutex);
+    //    relation->token = s_op->smToken;
+    
     ret = job_trove_dspace_create(
         s_op->req->u.create.fs_id,
         &meta_handle_ext_array,

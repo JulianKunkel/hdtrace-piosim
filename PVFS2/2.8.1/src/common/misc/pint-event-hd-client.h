@@ -21,6 +21,7 @@ typedef enum {
 	FLOW,
 	STATISTIC_END,
 	CLIENT,
+	NET, MEM, CPU,
 	ALL_FACILITIES
 } HD_Trace_Facility;
 

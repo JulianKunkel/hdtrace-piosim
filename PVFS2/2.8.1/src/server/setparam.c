@@ -128,7 +128,7 @@ static PINT_sm_action setparam_work(
     struct server_configuration_s *user_opts;
     struct filesystem_configuration_s *fs_conf;
     char buf[16] = {0};
-
+    
     switch(s_op->req->u.mgmt_setparam.param)
     {
         case PVFS_SERV_PARAM_GOSSIP_MASK:
@@ -159,10 +159,12 @@ static PINT_sm_action setparam_work(
         case PVFS_SERV_PARAM_EVENT_ENABLE:
             ret = 0;
             PINT_event_enable(s_op->req->u.mgmt_setparam.value.u.string_value);
+            PINT_HD_event_initalize(s_op->req->u.mgmt_setparam.value.u.string_value);
             js_p->error_code = ret;
             return SM_ACTION_COMPLETE;
         case PVFS_SERV_PARAM_EVENT_DISABLE:
-            PINT_event_disable(s_op->req->u.mgmt_setparam.value.u.string_value);
+            /* PINT_event_disable(s_op->req->u.mgmt_setparam.value.u.string_value); */
+        	PINT_HD_event_finalize();
             js_p->error_code = 0;
             return SM_ACTION_COMPLETE;
         case PVFS_SERV_PARAM_SYNC_META:

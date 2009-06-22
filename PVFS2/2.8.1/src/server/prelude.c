@@ -20,6 +20,7 @@
 #include "pvfs2-internal.h"
 #include "pint-perf-counter.h"
 #include "check.h"
+#include "pint-event.h"
 
 /* prelude state machine:
  * This is a nested state machine that performs initial setup 
@@ -190,7 +191,7 @@ static struct PINT_tran_tbl_s ST_prelude_work_trtbl[] = {
 	 .flag = SM_RETURN }
 };
 
-# 82 "src/server/prelude.sm"
+# 83 "src/server/prelude.sm"
 
 
 static PINT_sm_action prelude_setup(
@@ -198,7 +199,7 @@ static PINT_sm_action prelude_setup(
 {
     int ret;
     struct PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
-
+    
     ret = PINT_server_req_get_object_ref(
         s_op->req, &s_op->target_fs_id, &s_op->target_handle);
     s_op->access_type = PINT_server_req_get_access_type(s_op->req);
