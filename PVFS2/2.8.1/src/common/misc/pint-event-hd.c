@@ -104,7 +104,7 @@ int PVFS_HD_client_trace_finalize(void)
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
 		"NET", "CPU", "MEM", "REL",	"ALL_FACILITIES"};
 static ptlSources statistics;
-static PerfTrace pStatistics;
+static PerfTrace pStatistics[ALL_FACILITIES];
 static hdTopoNode topoNodeArray[ALL_FACILITIES];
 
 static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
@@ -150,6 +150,8 @@ int PINT_HD_event_initalize(char * traceWhat)
 			hd_facilityTraceStatus[NET] = 1;
 			statistics.PTLSRC_NET_IN = 1;
 			statistics.PTLSRC_NET_OUT = 1;
+			pStatistics[NET] = ptl_createTrace(topoNodeArray[NET], 1, statistics, 700);
+			ptl_startTrace(pStatistics[NET]);
 		}
 
 		if (strcasecmp(event_list[i],"MEM") == 0)
@@ -158,19 +160,18 @@ int PINT_HD_event_initalize(char * traceWhat)
 			statistics.PTLSRC_MEM_USED = 1;
 			statistics.PTLSRC_MEM_FREE = 1;
 			statistics.PTLSRC_MEM_BUFFER = 1;
+			pStatistics[MEM] = ptl_createTrace(topoNodeArray[MEM], 1, statistics, 700);
+			ptl_startTrace(pStatistics[MEM]);
 		}
 
 		if (strcasecmp(event_list[i],"CPU") == 0)
 		{	
 			hd_facilityTraceStatus[CPU] = 1;
 			statistics.PTLSRC_CPU_LOAD = 1;
+			pStatistics[CPU] = ptl_createTrace(topoNodeArray[CPU], 1, statistics, 700);
+			ptl_startTrace(pStatistics[CPU]);
 		}
 
-		if (hd_facilityTraceStatus[NET] || hd_facilityTraceStatus[MEM] || hd_facilityTraceStatus[CPU])
-		{
-			pStatistics = ptl_createTrace(topoNodeArray[facilityNum], 1, statistics, 700);
-			ptl_startTrace(pStatistics);
-		}
 #endif /* __HAVE_HDPTL__ */
 
 	}
@@ -195,11 +196,10 @@ int PINT_HD_event_finalize(void)
 			hd_facilityTraceStatus[i] = 0;
 			hd_facilityTrace[i] = NULL; 
 		}
-	}
-	for (i = 0 ; i < STATISTIC_END; i++){
 		if(topoNodeArray[i] != NULL)
 			topoNodeArray[i] = NULL;
-		
+	}
+	for (i = 0 ; i < STATISTIC_END; i++){
 		if(topoTokenArray[i] != NULL)
 		{
 			hdR_finalize(&topoTokenArray[i]);
@@ -207,10 +207,14 @@ int PINT_HD_event_finalize(void)
 		}
 	}
 #ifdef HAVE_HDPTL
-	if (pStatistics != NULL)	
-	{
-		ptl_stopTrace(pStatistics);
-		ptl_destroyTrace(pStatistics);
+	int ptl = NET;
+	while(ptl <= MEM){
+		if (pStatistics[ptl] != NULL)	
+		{
+			ptl_stopTrace(pStatistics[ptl]);
+			ptl_destroyTrace(pStatistics[ptl]);
+		}
+		ptl++;
 	}
 #endif
 	return 0;
