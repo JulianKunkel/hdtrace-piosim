@@ -678,12 +678,10 @@ int main(int argc, char **argv)
     {
     	hdS_finalize(traces[i].group);
     	hdT_destroyTopoNode(traces[i].tnode);
-
-    	free(traces[i].output); // allocated by sscanf
     	free(traces[i].actn);
-
-    	free(traces);
     }
+
+   	free(traces);
     hdT_destroyTopology(myTopology);
 
 
