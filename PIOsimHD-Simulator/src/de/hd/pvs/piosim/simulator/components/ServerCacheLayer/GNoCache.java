@@ -64,7 +64,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
  */
 public class GNoCache 
 extends SPassiveComponent<NoCache>
-implements  IGServerCacheLayer<SPassiveComponent<GNoCache>>,
+implements  IGServerCacheLayer<SPassiveComponent<NoCache>>,
 IIOSubsystemCaller
 {
 	/**
