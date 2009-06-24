@@ -19,8 +19,8 @@
 typedef enum {
 	BMI, 
 	FLOW,
-	STATISTIC_END,
 	CLIENT,
+	STATISTIC_END,
 	NET, MEM, CPU,
 	ALL_FACILITIES
 } HD_Trace_Facility;

@@ -185,7 +185,7 @@ static void usage(int argc, char** argv)
 {
     fprintf(stderr, "\n");
     fprintf(stderr, "Usage  : %s [-m fs_mount_point] "
-            "[-e events (e.g. bmi,trove,flow,req,breq,NET,MEM,relation"
+            "[-e events (e.g. bmi,trove,flow,req,breq,NET,MEM,relation,server,client"
     		"CPU] [-d <disable>] \n", argv[0]);
 //    fprintf(stderr, "Example: %s -m /mnt/pvfs2 -e bmi-send,dbpf-write\n",
 //            argv[0]);

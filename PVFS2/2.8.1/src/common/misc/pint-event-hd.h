@@ -31,7 +31,6 @@ typedef enum {
 	SERVER, JOB,
 	STATISTIC_END, //facility end
 	NET, CPU, MEM,
-	REL,
 	ALL_FACILITIES
 } HD_Trace_Facility;
 

@@ -25,6 +25,19 @@ static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES] ;
 hdR_topoToken topoTokenArray[STATISTIC_END];
 static hdTopology topology;
 static char hostname[255];
+static hdTopoNode topoNodeArray[ALL_FACILITIES];
+
+#ifdef __PVFS2_CLIENT__
+const char * hdFacilityNames[] = {"BMI", "FLOW", "CLIENT", "STATISTIC_END",
+	"NET", "MEM", "CPU", "ALL_FACILITIES"};
+#endif
+
+#ifdef __PVFS2_SERVER__
+static ptlSources statistics;
+static PerfTrace pStatistics[ALL_FACILITIES];
+const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
+		"NET", "CPU", "MEM", "ALL_FACILITIES"};
+#endif
 
 static int checkHostname(void)
 {
@@ -36,34 +49,43 @@ static int checkHostname(void)
 	return 0;
 }
 
+static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
+{	
+	hd_facilityTraceStatus[facilityNum] = 1;
+	hd_facilityTrace[facilityNum] = hdS_createGroup(hdFacilityNames[facilityNum], topoNode, 1);
+	hdS_addValue(hd_facilityTrace[facilityNum], hdFacilityNames[facilityNum], INT32, "#", NULL);
+	hdS_commitGroup(hd_facilityTrace[facilityNum]);
+	hdS_enableGroup(hd_facilityTrace[facilityNum]);
+}
+
 /*
  * CLIENT
  * */
 
 #ifdef __PVFS2_CLIENT__
 
-const char * hdFacilityNames[] = {"BMI", "FLOW", "", "CLIENT"};
-hdR_topoToken topoTokenArray[STATISTIC_END];
-static hdTopoNode topoNode;
-
 int PVFS_HD_client_trace_initialize(void)
 {
 	checkHostname();
-	// im MPI program:
+	/* im MPI program */
 	const char * levels[]={"Host", "Rank", "Thread"};
 	topology = hdT_createTopology("/tmp/client", levels, 3);
-	const char * nodeP[]= {hostname, hdFacilityNames[CLIENT], "0"};
-	topoNode = hdT_createTopoNode(topology, nodeP , 3);
-	// ende MPI program 
 	
-	/* statistic trace for client BMI*/
-	hd_facilityTraceStatus[BMI] = 1;
-	hd_facilityTrace[BMI] = hdS_createGroup("BMI", topoNode, 1);
-	hdS_addValue(hd_facilityTrace[BMI], "BMI", INT32, "#", NULL);
-	hdS_commitGroup(hd_facilityTrace[BMI]);
-	hdS_enableGroup(hd_facilityTrace[BMI]);
+	// CLIENT
+	const char * nodeC[] = {hostname, hdFacilityNames[CLIENT], "0"};
+	topoNodeArray[CLIENT] = hdT_createTopoNode(topology, nodeC, 3);
+	hdR_initTopology(topoNodeArray[CLIENT], & topoTokenArray[CLIENT]);
 	
-	hdR_initTopology(topoNode, & topoTokenArray[CLIENT]);
+	// BMI
+	const char * nodeB[] = {hostname, hdFacilityNames[BMI], "0"};
+	topoNodeArray[BMI] = hdT_createTopoNode(topology, nodeB, 3);
+	testInitFacilityStatisticTrace(topoNodeArray[BMI],BMI);
+	
+	// FLOW
+	const char * nodeF[] = {hostname, hdFacilityNames[FLOW], "0"};
+	topoNodeArray[FLOW] = hdT_createTopoNode(topology, nodeF, 3);
+	testInitFacilityStatisticTrace(topoNodeArray[FLOW],FLOW);
+	/* ende MPI program */ 
 	
 	set_hd_sm_trace_enabled(1);
 	return 0;
@@ -72,24 +94,27 @@ int PVFS_HD_client_trace_initialize(void)
 int PVFS_HD_client_trace_finalize(void)
 {
 	set_hd_sm_trace_enabled(0);
-	
-	if(topoNode != NULL)
-	{	
-		set_hd_sm_trace_enabled(0);
-		hd_facilityTraceStatus[BMI] = 0;
-		hdR_finalize(&topoTokenArray[CLIENT]);
-		topoNode = NULL;
-		topoTokenArray[CLIENT] = NULL;
-	}
-	
-	if(hd_facilityTraceStatus[BMI] && hd_facilityTrace[BMI] != NULL)
+
+	int i;
+	for (i = 0 ; i < ALL_FACILITIES; i++)
 	{
-		hdS_writeInt32Value(hd_facilityTrace[BMI], hdStatsGroupValue[BMI]);
-		hdS_finalize(hd_facilityTrace[BMI]);
-		hd_facilityTraceStatus[BMI] = 0;
-		hd_facilityTrace[BMI] = NULL; 
+		if(hd_facilityTraceStatus[i] && hd_facilityTrace[i] != NULL)
+		{
+			hdS_writeInt32Value(hd_facilityTrace[i], hdStatsGroupValue[i]);
+			hdS_finalize(hd_facilityTrace[i]);
+			hd_facilityTraceStatus[i] = 0;
+			hd_facilityTrace[i] = NULL; 
+		}
+		if(topoNodeArray[i] != NULL)
+			topoNodeArray[i] = NULL;
 	}
-	
+	for (i = 0 ; i < STATISTIC_END; i++){
+		if(topoTokenArray[i] != NULL)
+		{
+			hdR_finalize(&topoTokenArray[i]);
+			topoTokenArray[i] = NULL;
+		}
+	}
 	return 0;
 }
 
@@ -100,21 +125,6 @@ int PVFS_HD_client_trace_finalize(void)
  * */
 
 #ifdef __PVFS2_SERVER__
-
-const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
-		"NET", "CPU", "MEM", "REL",	"ALL_FACILITIES"};
-static ptlSources statistics;
-static PerfTrace pStatistics[ALL_FACILITIES];
-static hdTopoNode topoNodeArray[ALL_FACILITIES];
-
-static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
-{	
-	hd_facilityTraceStatus[facilityNum] = 1;
-	hd_facilityTrace[facilityNum] = hdS_createGroup(hdFacilityNames[facilityNum], topoNode, 1);
-	hdS_addValue(hd_facilityTrace[facilityNum], hdFacilityNames[facilityNum], INT32, "#", NULL);
-	hdS_commitGroup(hd_facilityTrace[facilityNum]);
-	hdS_enableGroup(hd_facilityTrace[facilityNum]);
-}
 
 int PINT_HD_event_initalize(char * traceWhat)
 {	
@@ -135,16 +145,18 @@ int PINT_HD_event_initalize(char * traceWhat)
 		{
 			if((strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0) && !hd_facilityTrace[facilityNum])
 			{
-				const char *path[] = {hostname,hdFacilityNames[facilityNum] , "0"};
+				const char *path[] = {hostname, hdFacilityNames[facilityNum], "0"};
 				topoNodeArray[facilityNum] = hdT_createTopoNode(topology, path, 3);
-				testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
-				if (facilityNum == SERVER)
+				if (facilityNum != SERVER)
+					testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
+				else if (facilityNum == SERVER)
 					hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
 				break;
 			}
 		}
 
 #ifdef HAVE_HDPTL
+		
 		if (strcasecmp(event_list[i],"NET") == 0)
 		{	
 			hd_facilityTraceStatus[NET] = 1;
@@ -216,11 +228,12 @@ int PINT_HD_event_finalize(void)
 		}
 		ptl++;
 	}
-#endif
+#endif /* __HAVE_HDPTL__*/
+
 	return 0;
 }
 
-#endif /* __PVFS2_SERVER__ */
+#endif /* __PVFS2_SERVER__*/
 
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility) 
 {
