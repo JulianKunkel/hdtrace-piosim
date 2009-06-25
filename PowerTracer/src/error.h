@@ -21,7 +21,7 @@
 /* Macro for reporting errors with errno set */
 #define ERROR(msg) error_at_line(0, errno, __FILE__, __LINE__, msg);
 
-/* Macro for reporting custom errors (withour errno set) */
+/* Macro for reporting custom errors (without errno set) */
 #define ERROR_CUSTOM(msg) error_at_line(0, 0, __FILE__, __LINE__, msg);
 
 /* Macro for reporting unknown errors */

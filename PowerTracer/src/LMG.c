@@ -27,20 +27,20 @@ int LMG_reset(int fd)
      * * Command language change back to SCPI.
      */
     ret = serial_sendBreak(fd);
-    SERIAL_SENDBREAK_RETURN_CHECK
+    SERIAL_SENDBREAK_RETURN_CHECK;
 
     /*
      * Reset the event register of all register structures
      * and clear the error queue.
      */
     ret = serial_sendMessage(fd, "*CLS");
-    SERIAL_SENDMESSAGE_RETURN_CHECK
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     /*
      * Reset the messuring unit.
      */
     ret = serial_sendMessage(fd, "*RST");
-    SERIAL_SENDMESSAGE_RETURN_CHECK
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     return(0);
 }
@@ -51,7 +51,7 @@ int LMG_reset(int fd)
  * Return:
  * - OK
  * - ERR_ERRNO (LMG_reset(), serial_sendMessage())
- * - ERR_WRITE 
+ * - ERR_WRITE
  * - ERR_UNKNOWN
  */
 int LMG_setup(int fd)
@@ -62,13 +62,13 @@ int LMG_setup(int fd)
      * Reset LMG's serial interface
      */
     ret = LMG_reset(fd);
-    LMG_RESET_RETURN_CHECK
+    LMG_RESET_RETURN_CHECK;
 
     /*
      * Set command language to short
      */
     ret = serial_sendMessage(fd, ":SYSTem:LANGuage SHORT");
-    SERIAL_SENDMESSAGE_RETURN_CHECK
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     return(0);
 }
@@ -79,7 +79,7 @@ int LMG_setup(int fd)
  * Return:
  * - OK
  * - ERR_ERRNO (serial_sendMessage(), serial_readMessage())
- * - ERR_BSIZE 
+ * - ERR_BSIZE
  * - ERR_WRITE
  * - ERR_UNKNOWN
  */
@@ -90,14 +90,14 @@ int LMG_getIdentity(int fd, char buffer[], size_t bsize)
      * Send command to device
      */
     ret = serial_sendMessage(fd, "*IDN?");
-    SERIAL_SENDMESSAGE_RETURN_CHECK
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     /*
      * Read response from device
      */
     ret = LMG_readTextMessage(fd, buffer, bsize);
     if (ret < 0)
-        LMG_READTEXTMESSAGE_ERROR_CHECK
+        LMG_READTEXTMESSAGE_ERROR_CHECK;
 
     return(0);
 }
@@ -128,7 +128,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
     {
         if (ret >= 0)
             return(ERR_NO_MSG);
-        SERIAL_READBYTES_ERROR_CHECK
+        SERIAL_READBYTES_ERROR_CHECK;
     }
 
     if (*bufptr == '#')
@@ -159,7 +159,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
         {
             if (ret >= 0)
                 return(ERR_MSG_FORMAT);
-            SERIAL_READBYTES_ERROR_CHECK
+            SERIAL_READBYTES_ERROR_CHECK;
         }
     /* TODO: speedup by implementing a local buffer? */
     }
@@ -207,7 +207,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
             return(ERR_MSG_FORMAT);
         if (ret == 0)
             return(ERR_NO_MSG);
-        SERIAL_READBYTES_ERROR_CHECK
+        SERIAL_READBYTES_ERROR_CHECK;
     }
 
     /* check for '#' indicating start of binary message */
@@ -231,7 +231,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
     {
         if (ret >= 0)
             return(ERR_MSG_FORMAT);
-        SERIAL_READBYTES_ERROR_CHECK
+        SERIAL_READBYTES_ERROR_CHECK;
     }
 
     locbuffer[size_length] = '\0';
@@ -256,7 +256,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
     {
         if (ret >= 0)
             return(ERR_MSG_FORMAT);
-        SERIAL_READBYTES_ERROR_CHECK
+        SERIAL_READBYTES_ERROR_CHECK;
     }
 
     /*
@@ -268,7 +268,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
     {
         if (ret >= 0)
             return(ERR_MSG_FORMAT);
-        SERIAL_READBYTES_ERROR_CHECK
+        SERIAL_READBYTES_ERROR_CHECK;
     }
 
     /* check for '#' indicating start of binary message */
@@ -284,7 +284,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
             ret = LMG_readBinaryMessage(fd,
                     ((char *) buffer)+binary_size, bsize-binary_size);
             if (ret < 0)
-                LMG_READBINARYMESSAGE_ERROR_CHECK
+                LMG_READBINARYMESSAGE_ERROR_CHECK;
             /* return size sum of the parts */
             return(binary_size + ret);
         default:
@@ -299,7 +299,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
  * Return:
  * - OK
  * - ERR_ERRNO (serial_sendMessage(), serial_readMessage())
- * - ERR_BSIZE 
+ * - ERR_BSIZE
  * - ERR_WRITE
  * - ERR_UNKNOWN
  */
@@ -311,20 +311,20 @@ int LMG_getAllErrors(int fd, char buffer[], size_t bsize)
      * Set output format to ASCII mode
      */
     ret = serial_sendMessage(fd, "FRMT ASCII");
-    SERIAL_SENDMESSAGE_RETURN_CHECK
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     /*
      * Send command to device
      */
     ret = serial_sendMessage(fd, "ERRALL?");
-    SERIAL_SENDMESSAGE_RETURN_CHECK
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     /*
      * Read response from device
      */
     ret = LMG_readTextMessage(fd, buffer, bsize);
     if (ret < 0)
-        LMG_READTEXTMESSAGE_ERROR_CHECK
+        LMG_READTEXTMESSAGE_ERROR_CHECK;
 
     return(OK);
 }
@@ -346,13 +346,13 @@ int LMG_close(int fd)
      * Reset LMG's serial interface
      */
     ret = LMG_reset(fd);
-    LMG_RESET_RETURN_CHECK
+    LMG_RESET_RETURN_CHECK;
 
     /*
      * Change LMG to local mode
      */
     ret = serial_sendMessage(fd, "GTL\n");
-    SERIAL_SENDMESSAGE_RETURN_CHECK
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     return(OK);
 }

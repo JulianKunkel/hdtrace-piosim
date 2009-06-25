@@ -16,8 +16,8 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize);
 int serial_closePort(int fd);
 
 #define SERIAL_SETUPPORT_RETURN_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* tcgetattr(), cfsetispeed(), cfsetospeed(), */ \
@@ -26,11 +26,11 @@ int serial_closePort(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define SERIAL_SENDMESSAGE_RETURN_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* write() */ \
@@ -39,11 +39,11 @@ int serial_closePort(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define SERIAL_SENDBREAK_RETURN_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* tcsendbreak() */ \
@@ -51,29 +51,29 @@ int serial_closePort(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    } \
+    } } while (0)
 
 #define SERIAL_READBYTES_ERROR_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case ERR_ERRNO: /* select(), read() */ \
             return(ret); \
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define SERIAL_CLOSEPORT_RETURN_CHECK \
-            switch(ret) \
-            { \
-                case OK: \
-                    break; \
-                case ERR_ERRNO: \
-                    return(ret); \
-                default: \
-                    ERROR_UNKNOWN \
-                    return(ERR_UNKNOWN); \
-            }
+	do { \
+	switch(ret) { \
+		case OK: \
+			break; \
+		case ERR_ERRNO: \
+			return(ret); \
+		default: \
+			ERROR_UNKNOWN \
+			return(ERR_UNKNOWN); \
+	} } while (0)
 
 #endif /* SERIAL_H */
 

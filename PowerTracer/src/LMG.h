@@ -18,8 +18,8 @@ int LMG_getAllErrors(int fd, char buffer[], size_t bsize);
 int LMG_close(int fd);
 
 #define LMG_RESET_RETURN_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* serial_sendbreak(), serial_sendMessage() */ \
@@ -29,11 +29,11 @@ int LMG_close(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define LMG_SETUP_RETURN_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */ \
@@ -43,11 +43,11 @@ int LMG_close(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define LMG_GETIDENTITY_RETURN_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* serial_sendMessage(), LMG_readTextMessage() */ \
@@ -60,11 +60,11 @@ int LMG_close(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define LMG_READTEXTMESSAGE_ERROR_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* serial_readBytes() */ \
@@ -75,11 +75,11 @@ int LMG_close(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    } \
+    } } while (0)
 
 #define LMG_READBINARYMESSAGE_ERROR_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case ERR_ERRNO: /* serial_readBytes() */ \
         case ERR_NO_MSG: \
         case ERR_MSG_FORMAT: \
@@ -89,9 +89,10 @@ int LMG_close(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define LMG_GETALLERRORS_RETURN_CHECK \
+	do { \
     switch(ret) \
     { \
         case OK: \
@@ -104,11 +105,11 @@ int LMG_close(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #define LMG_CLOSE_RETURN_CHECK \
-    switch(ret) \
-    { \
+	do { \
+    switch(ret) { \
         case OK: \
             break; \
         case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */ \
@@ -118,7 +119,7 @@ int LMG_close(int fd);
         default: \
             ERROR_UNKNOWN \
             return(ERR_UNKNOWN); \
-    }
+    } } while (0)
 
 #endif /* LMG_H */
 
