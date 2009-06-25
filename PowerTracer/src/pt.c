@@ -61,19 +61,30 @@ typedef struct traceList_s {
 	TraceStruct *first;
 } TraceListStruct;
 
-/*
+/**
  * Structure for configuration
  */
 typedef struct {
+	/** Type of measurement device used */
 	char *device;
+	/** Operation mode of the device */
     enum opMode mode;
+    /** Host the measurement device is connected to */
 	char *host;
+	/** Port the measurement device is connected to */
 	char *port;
+	/** Time of one measurement cycle */
 	float cycle;
+	/** Name of the project */
 	char *project;
+	/** String representation of the topology */
 	char *topo;
+	/** Topology used for hdStats traces */
 	hdTopology topology;
+	/** List of traces */
 	TraceListStruct traces;
+	/** Response size in bytes expected from the device in each iteration */
+	size_t isize;
 } ConfigStruct;
 
 static void addTraceToList(TraceStruct *trace, TraceListStruct *list) {
@@ -111,19 +122,10 @@ int trace_iteration(int serial_fd, ConfigStruct *config)
     /* currently only binary operation mode is used */
     assert(config->mode == MODE_BIN);
 
-    /* calculate size of one iteration's input from the measurement device
-     * do this only once */
-    static size_t isize = 0;
-    if (isize == 0)
-    {
-        for FOR_TRACES(config)
-            isize += trace->size;
-    }
-
-    assert(isize > 0);
-
     /* in binary mode each value has 4 bytes */
-    assert(isize % 4 == 0);
+    assert(config->isize % 4 == 0);
+
+    size_t isize = config->isize;
 
     char buffer[isize];  /* I/O buffer */
     size_t osize;        /* Output size */
@@ -507,9 +509,33 @@ static int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * confi
 	return 0;
 }
 
+/**
+ * Create all configured traces
+ *
+ * Sets:
+ * - config->topology  for cleanup
+ * - config->isize     for tracing
+ * - for each trace:
+ *   - trace->tnode  for cleanup
+ *   - trace->group  for tracing
+ *   - trace->actn   for tracing
+ *   - trace->size   for tracing
+ *
+ * @param config  Configuration
+ *
+ * @return Error state
+ */
 static int createTraces(ConfigStruct *config) {
 
 	int ret;
+
+	/*
+	 * Test if there are any traces configured
+	 */
+	if (config->traces.first == NULL) {
+		config->topology = NULL;
+		return -1;
+	}
 
 	/*
 	 * Create topology
@@ -529,17 +555,17 @@ static int createTraces(ConfigStruct *config) {
 	free(levels[0]);
 	free(levels);
 
+	config->isize = 0;
 
 	for FOR_TRACES(config) {
 
 		char **path = NULL;
 		int plen = 0;
 
-		if (trace->hdstats)
+		if (trace->hdstats) {
+			// create path array from path string in trace->output
 			path = parsePath(trace->output, &plen);
 
-
-		if (trace->hdstats) {
 			// create topology node
 			trace->tnode =
 				hdT_createTopoNode(config->topology,(const char **) path, plen);
@@ -565,14 +591,19 @@ static int createTraces(ConfigStruct *config) {
 			ret = hdS_commitGroup(trace->group);
 			/* TODO error checking */
 		}
+		else {
+			trace->tnode = NULL;
+			trace->group = NULL;
+		}
 
 		// free memory allocated by parsePath()
 		free(path[0]);
 		free(path);
 
 		char buffer[10];
-		trace->actn = malloc(20 * sizeof(*(trace->actn)));
-		*(trace->actn) = '\0';
+		trace->actn = malloc(21 * sizeof(*(trace->actn)));
+		trace->actn[0] = '\0';
+		trace->size = 0;
 		if (trace->values.Utrms) {
 			snprintf(buffer, 10, "UTRMS%d?;", trace->channel);
 			strcat(trace->actn, buffer);
@@ -594,7 +625,10 @@ static int createTraces(ConfigStruct *config) {
 		// remove last ';'
 		int slen = strlen(trace->actn);
 		assert(slen > 0);
-		*(trace->actn+(slen-1)) = '\0';
+		trace->actn[slen-1] = '\0';
+
+	    /* add response size of this trace to the one of the whole config */
+		config->isize += trace->size;
 
 		// print parsed trace config
 		printf("%d: ", trace->num);
@@ -620,6 +654,8 @@ static int createTraces(ConfigStruct *config) {
 		printf("\n");
 	}
 
+	assert(config->isize > 0);
+
 	return 0;
 }
 
@@ -628,6 +664,24 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	return 0;
 
 }
+
+/**
+ * Close files and free memory
+ */
+static void cleanup(ConfigStruct *config) {
+	for FOR_TRACES(config)
+	{
+		if (trace->hdstats) {
+			hdS_finalize(trace->group);
+			hdT_destroyTopoNode(trace->tnode);
+		}
+		free(trace->actn); // allocated in createTraces()
+	}
+
+	freeAllTraces(&(config->traces));
+	hdT_destroyTopology(config->topology);
+}
+
 
 /**
  * Main function
@@ -659,6 +713,7 @@ int main(int argc, char **argv)
 	 * Initialize configuration
 	 */
 	ConfigStruct config;
+	config.topology = NULL;
 
 	/*
 	 * Set defaults
@@ -737,8 +792,11 @@ int main(int argc, char **argv)
 	 * Create the traces found in configuration
 	 */
 	ret = createTraces(&config);
-
-
+	if (ret == -1) {
+		fputs("No traces configured\n", stderr);
+		cleanup(&config);
+		exit(-1);
+	}
 
 	int serial_fd;
     char buffer[255];  /* Input buffer */
@@ -751,7 +809,7 @@ int main(int argc, char **argv)
     /*
      * Open serial port
      */
-    serial_fd = serial_openPort(port);
+    serial_fd = serial_openPort(config.port);
     if(serial_fd < 0)
         return(serial_fd);
 
@@ -842,19 +900,8 @@ int main(int argc, char **argv)
 
     puts("End tracing!");
 
-    /*
-     * Close files and free memory
-     */
-    for FOR_TRACES(&config)
-    {
-    	hdS_finalize(trace->group);
-    	hdT_destroyTopoNode(trace->tnode);
-    	free(trace->actn);
-    }
 
-    freeAllTraces(&(config.traces));
-    hdT_destroyTopology(config.topology);
-
+    cleanup(&config);
 
     /*
      * Get and print all errors from LMG
