@@ -92,7 +92,6 @@ int main(int argc, char **argv)
             PVFS_SERV_PARAM_EVENT_ENABLE,
             &param_value, NULL, NULL);
         
-//        PVFS_HD_client_trace_initialize();
     }
 
     if(ret < 0)

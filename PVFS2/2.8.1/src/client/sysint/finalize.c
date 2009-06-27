@@ -61,7 +61,7 @@ int PVFS_sys_finalize()
     PINT_dist_finalize();
 
 #ifdef HAVE_HDTRACE
-    PVFS_HD_client_trace_finalize();
+    PINT_HD_event_finalize(); /* for client */
 #endif
     
     PINT_event_finalize();

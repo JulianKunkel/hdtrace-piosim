@@ -652,23 +652,6 @@ int BMI_post_recv(bmi_op_id_t * id,
 
     gen_mutex_lock(&ref_mutex);
     
-    
-//    HD_SERVER_RELATION(BMI,
-//    	hdHintRelation_p hintRelationToken = malloc(sizeof(hdHintRelation_t));
-//
-//    	// check if client sent token information or not!
-//    	char * relation = PINT_hint_get_value_by_name(hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
-//    	printf("BMI : %s\n",relation);
-////    	if(relation)
-////    	{
-////    		PINT_smcb_set_token(smcb, hdR_relateRemoteToken(topoTokenArray[BMI], relation));
-////    	}
-//    	
-//    	gen_mutex_init(& hintRelationToken->mutex);
-//    	PVFS_hint_add(&hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
-//    			hintRelationToken);
-//    )
-    
     tmp_ref = ref_list_search_addr(cur_ref_list, src);
     if (!tmp_ref)
     {
@@ -930,8 +913,8 @@ int BMI_testsome(int incount,
 
     if(ret == 0 && *outcount > 0)
     {
-	return(1);
 	PINT_HD_update_counter_dec_multiple(BMI,*outcount);
+	return(1);
     }
     else
 	return(0);

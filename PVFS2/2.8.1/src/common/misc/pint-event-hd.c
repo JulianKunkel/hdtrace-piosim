@@ -90,34 +90,6 @@ int PVFS_HD_client_trace_initialize(void)
 	set_hd_sm_trace_enabled(1);
 	return 0;
 }
-
-int PVFS_HD_client_trace_finalize(void)
-{
-	set_hd_sm_trace_enabled(0);
-
-	int i;
-	for (i = 0 ; i < ALL_FACILITIES; i++)
-	{
-		if(hd_facilityTraceStatus[i] && hd_facilityTrace[i] != NULL)
-		{
-			hdS_writeInt32Value(hd_facilityTrace[i], hdStatsGroupValue[i]);
-			hdS_finalize(hd_facilityTrace[i]);
-			hd_facilityTraceStatus[i] = 0;
-			hd_facilityTrace[i] = NULL; 
-		}
-		if(topoNodeArray[i] != NULL)
-			topoNodeArray[i] = NULL;
-	}
-	for (i = 0 ; i < STATISTIC_END; i++){
-		if(topoTokenArray[i] != NULL)
-		{
-			hdR_finalize(&topoTokenArray[i]);
-			topoTokenArray[i] = NULL;
-		}
-	}
-	return 0;
-}
-
 #endif /* __PVFS2_CLIENT__ */
 
 /*
@@ -193,13 +165,15 @@ int PINT_HD_event_initalize(char * traceWhat)
 	return 0;
 }
 
+#endif /* __PVFS2_SERVER__ */
+
 int PINT_HD_event_finalize(void)
 {
 	// called by SM thread => no mutex needed.
 	set_hd_sm_trace_enabled(0);
 
 	int i;
-	for (i = 0 ; i < ALL_FACILITIES; i++)
+	for (i = 0; i < ALL_FACILITIES; i++)
 	{
 		if(hd_facilityTraceStatus[i] && hd_facilityTrace[i] != NULL)
 		{
@@ -211,13 +185,15 @@ int PINT_HD_event_finalize(void)
 		if(topoNodeArray[i] != NULL)
 			topoNodeArray[i] = NULL;
 	}
-	for (i = 0 ; i < STATISTIC_END; i++){
+	for (i = 0; i < STATISTIC_END; i++)
+	{
 		if(topoTokenArray[i] != NULL)
 		{
 			hdR_finalize(&topoTokenArray[i]);
 			topoTokenArray[i] = NULL;
 		}
 	}
+#ifdef __PVFS2_SERVER__
 #ifdef HAVE_HDPTL
 	int ptl = NET;
 	while(ptl <= MEM){
@@ -229,11 +205,10 @@ int PINT_HD_event_finalize(void)
 		ptl++;
 	}
 #endif /* __HAVE_HDPTL__*/
+#endif /* __PVFS2_SERVER__ */
 
 	return 0;
 }
-
-#endif /* __PVFS2_SERVER__*/
 
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility) 
 {

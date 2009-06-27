@@ -16,11 +16,11 @@
 #include "hdRelation.h"
 #include "gen-locks.h"
 
+int PINT_HD_event_finalize(void); /* client also uses this function */
+
 #ifdef __PVFS2_SERVER__
 
 int PINT_HD_event_initalize(char * traceWhat);
-
-int PINT_HD_event_finalize(void);
 
 /**
  * Traceable facilities

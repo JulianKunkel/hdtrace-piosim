@@ -47,7 +47,6 @@
 #include "pint-event.h"
 #include "pint-util.h"
 #include "gen-locks.h"
-#include "hdRelation.h"
 
 #ifndef PVFS2_VERSION
 #define PVFS2_VERSION "Unknown"
@@ -1716,7 +1715,7 @@ int server_state_machine_start(
     else if (ret == 0)
     {
         s_op->req  = (struct PVFS_server_req *)s_op->decoded.buffer;
-
+        
         HD_SERVER_RELATION(SERVER,
         	hdHintRelation_p hintRelationToken = malloc(sizeof(hdHintRelation_t));
 
@@ -1731,6 +1730,7 @@ int server_state_machine_start(
         		PINT_smcb_set_token(smcb, hdR_createTopLevelRelation(topoTokenArray[SERVER]));
         	}
         	
+        	hintRelationToken->token = smcb->smToken;
         	gen_mutex_init(& hintRelationToken->mutex);
         	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
         			hintRelationToken);

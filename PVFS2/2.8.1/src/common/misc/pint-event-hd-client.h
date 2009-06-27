@@ -32,8 +32,6 @@ extern hdR_topoToken topoTokenArray[STATISTIC_END];
 
 int PVFS_HD_client_trace_initialize(void);
 
-int PVFS_HD_client_trace_finalize(void);
-
 #endif /* __HAVE_HDTRACE__ */
 
 #endif /* __PINT_EVENT_CLIENT_HD_H */

@@ -405,10 +405,10 @@ PVFS_error PINT_client_state_machine_post(
     		PINT_smcb_set_token(smcb, token);
 
     		char * relation = hdR_getRemoteToken(token); 
-    		    		
-    		PVFS_hint_add(&sm_p->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, strlen(relation), relation);
     		
     		printf("CLIENT : %s\n",relation);
+    		    		
+    		PVFS_hint_add(&sm_p->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, strlen(relation)+1, relation);
     		
     		free(relation);
 
