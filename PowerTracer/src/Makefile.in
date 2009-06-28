@@ -44,7 +44,8 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_pt_OBJECTS = pt-pt.$(OBJEXT) pt-LMG.$(OBJEXT) pt-serial.$(OBJEXT)
+am_pt_OBJECTS = pt-pt.$(OBJEXT) pt-conf.$(OBJEXT) pt-trace.$(OBJEXT) \
+	pt-LMG.$(OBJEXT) pt-serial.$(OBJEXT)
 pt_OBJECTS = $(am_pt_OBJECTS)
 am__DEPENDENCIES_1 =
 pt_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -152,7 +153,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SRC_DIR = $(top_srcdir)/src
 DOC_DIR = $(top_srcdir)/doc
-pt_SOURCES = pt.c LMG.c serial.c
+pt_SOURCES = pt.c conf.c trace.c LMG.c serial.c 
 pt_CFLAGS = $(HDTWLIB_CFLAGS)
 pt_LDADD = $(HDTWLIB_LDADD)
 pt_LDFLAGS = $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS)
@@ -241,8 +242,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pt-LMG.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pt-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pt-pt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pt-serial.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pt-trace.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -271,6 +274,34 @@ pt-pt.obj: pt.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='pt.c' object='pt-pt.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -c -o pt-pt.obj `if test -f 'pt.c'; then $(CYGPATH_W) 'pt.c'; else $(CYGPATH_W) '$(srcdir)/pt.c'; fi`
+
+pt-conf.o: conf.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -MT pt-conf.o -MD -MP -MF $(DEPDIR)/pt-conf.Tpo -c -o pt-conf.o `test -f 'conf.c' || echo '$(srcdir)/'`conf.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/pt-conf.Tpo $(DEPDIR)/pt-conf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='conf.c' object='pt-conf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -c -o pt-conf.o `test -f 'conf.c' || echo '$(srcdir)/'`conf.c
+
+pt-conf.obj: conf.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -MT pt-conf.obj -MD -MP -MF $(DEPDIR)/pt-conf.Tpo -c -o pt-conf.obj `if test -f 'conf.c'; then $(CYGPATH_W) 'conf.c'; else $(CYGPATH_W) '$(srcdir)/conf.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/pt-conf.Tpo $(DEPDIR)/pt-conf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='conf.c' object='pt-conf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -c -o pt-conf.obj `if test -f 'conf.c'; then $(CYGPATH_W) 'conf.c'; else $(CYGPATH_W) '$(srcdir)/conf.c'; fi`
+
+pt-trace.o: trace.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -MT pt-trace.o -MD -MP -MF $(DEPDIR)/pt-trace.Tpo -c -o pt-trace.o `test -f 'trace.c' || echo '$(srcdir)/'`trace.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/pt-trace.Tpo $(DEPDIR)/pt-trace.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='trace.c' object='pt-trace.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -c -o pt-trace.o `test -f 'trace.c' || echo '$(srcdir)/'`trace.c
+
+pt-trace.obj: trace.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -MT pt-trace.obj -MD -MP -MF $(DEPDIR)/pt-trace.Tpo -c -o pt-trace.obj `if test -f 'trace.c'; then $(CYGPATH_W) 'trace.c'; else $(CYGPATH_W) '$(srcdir)/trace.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/pt-trace.Tpo $(DEPDIR)/pt-trace.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='trace.c' object='pt-trace.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -c -o pt-trace.obj `if test -f 'trace.c'; then $(CYGPATH_W) 'trace.c'; else $(CYGPATH_W) '$(srcdir)/trace.c'; fi`
 
 pt-LMG.o: LMG.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pt_CFLAGS) $(CFLAGS) -MT pt-LMG.o -MD -MP -MF $(DEPDIR)/pt-LMG.Tpo -c -o pt-LMG.o `test -f 'LMG.c' || echo '$(srcdir)/'`LMG.c
