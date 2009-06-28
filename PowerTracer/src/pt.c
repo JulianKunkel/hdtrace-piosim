@@ -878,7 +878,8 @@ static int splitPort(ConfigStruct *config) {
 	}
 
 	*ptr = '\0';
-	config->host = ptr + 1;
+	config->host = config->port;
+	config->port = ptr + 1;
 	return 0;
 }
 
