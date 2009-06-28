@@ -7,10 +7,12 @@
 #include <sys/time.h>
 #include <sys/select.h>
 #include <string.h>
+#include <ctype.h>
 #include <arpa/inet.h>
 #include <assert.h>
+#include <regex.h>
 
-#include "error.h"
+#include "ptError.h"
 #include "serial.h"
 #include "LMG.h"
 #include "hdTopo.h"
@@ -54,12 +56,28 @@ typedef struct trace_s {
     hdTopoNode tnode;   /* topology node, reference needed for destruction */
     hdStatsGroup group; /* statistics group this belongs to */
 
-    struct trace_s *next;
+    struct trace_s *prev;
 } TraceStruct;
 
+/**
+ * List head (or actual foot) for list of traces
+ */
 typedef struct traceList_s {
-	TraceStruct *first;
+	/** Last element of the linked list */
+	TraceStruct *last;
 } TraceListStruct;
+
+/**
+ * Structure for configuration file
+ */
+typedef struct {
+	/** filename */
+	const char *filename;
+	/** file object */
+	FILE *file;
+	/** current line number */
+	int linenr;
+} ConfigFileStruct;
 
 /**
  * Structure for configuration
@@ -88,18 +106,18 @@ typedef struct {
 } ConfigStruct;
 
 static void addTraceToList(TraceStruct *trace, TraceListStruct *list) {
-	trace->next = list->first;
-	trace->num = (list->first == NULL) ? 0 : list->first->num + 1;
-	list->first = trace;
+	trace->prev = list->last;
+	trace->num = (list->last == NULL) ? 0 : list->last->num + 1;
+	list->last = trace;
 }
 
 #define FOR_TRACES(config) \
-	(TraceStruct *trace = (*(config)).traces.first; trace != NULL; trace = trace->next)
+	(TraceStruct *trace = (*(config)).traces.last; trace != NULL; trace = trace->prev)
 
 static void freeAllTraces(TraceListStruct *list) {
-	TraceStruct *this = list->first;
+	TraceStruct *this = list->last;
 	while (this != NULL) {
-		TraceStruct *next = this->next;
+		TraceStruct *next = this->prev;
 		free(this);
 		this = next;
 	}
@@ -138,7 +156,7 @@ int trace_iteration(int serial_fd, ConfigStruct *config)
     	LMG_READBINARYMESSAGE_ERROR_CHECK;
     if (ret != isize)
     {
-        ERROR_CUSTOM("Unexpected response size.");
+        ERROR("Unexpected response size.");
         return(ERR_CUSTOM);
     }
 
@@ -156,21 +174,17 @@ int trace_iteration(int serial_fd, ConfigStruct *config)
 
     	osize = trace->size;
 
-#define ASSERT_CASE(x) case x: assert(!#x); break;
-
     	ret = hdS_writeEntry(trace->group, bufptr, osize);
-    	if (ret < 0)
-    		switch(errno) {
-    		ASSERT_CASE(HD_ERR_INVALID_ARGUMENT)
-    		ASSERT_CASE(HD_ERR_TRACE_DISABLED)
-    		ASSERT_CASE(HDS_ERR_GROUP_COMMIT_STATE)
-    		ASSERT_CASE(HDS_ERR_UNEXPECTED_ARGVALUE)
-    		ASSERT_CASE(HDS_ERR_ENTRY_STATE)
-    		default:
-    			assert(ret == 0 || "errno known");
-    		}
-
-#undef ASSERT_CASE
+    	if (ret < 0) {
+    		// all these errors are programmer's faults, not user's faults
+    		assert(errno != HD_ERR_INVALID_ARGUMENT);
+			assert(errno != HD_ERR_TRACE_DISABLED);
+			assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
+			assert(errno != HDS_ERR_UNEXPECTED_ARGVALUE);
+			assert(errno != HDS_ERR_ENTRY_STATE);
+			ERROR_UNKNOWN;
+			return ERR_UNKNOWN;
+    	}
 
         /* set bufptr to the start of the next trace's part */
         bufptr+=osize;
@@ -200,7 +214,7 @@ int trace_data(
      */
     if(config->cycle < 0.05 || config->cycle > 60)
     {
-        ERROR_CUSTOM("trace_data(): Cycle time out of range (0.05..60).");
+        ERROR("trace_data(): Cycle time out of range (0.05..60).");
     }
 
     /*
@@ -281,7 +295,7 @@ int trace_data(
         n = select(serial_fd+1, &input, NULL, NULL, &timeout);
         if (n < 0)
         {
-          ERROR("select()");
+          ERROR_ERRNO("select()");
           return(ERR_ERRNO);
         }
         else if (n == 0)
@@ -321,7 +335,7 @@ int trace_data(
                 case ERR_CUSTOM: \
                     return(ret); \
                 default: \
-                    ERROR_UNKNOWN \
+                    ERROR_UNKNOWN; \
                     return(ERR_UNKNOWN); \
             }
         }
@@ -365,7 +379,7 @@ int test_binmode(int serial_fd)
     /* print message */
     if(puts(buffer) == EOF)
     {
-        ERROR_UNKNOWN
+        ERROR_UNKNOWN;
         return(ERR_UNKNOWN);
     }
 
@@ -397,7 +411,7 @@ int test_binmode(int serial_fd)
 
     if (printf("%.4E;%.4E;%.4E\n", op.utrms, op.itrms, op.p ) < 0)
     {
-        ERROR_UNKNOWN
+        ERROR_UNKNOWN;
         return(ERR_UNKNOWN);
     }
 
@@ -532,7 +546,7 @@ static int createTraces(ConfigStruct *config) {
 	/*
 	 * Test if there are any traces configured
 	 */
-	if (config->traces.first == NULL) {
+	if (config->traces.last == NULL) {
 		config->topology = NULL;
 		return -1;
 	}
@@ -569,11 +583,41 @@ static int createTraces(ConfigStruct *config) {
 			// create topology node
 			trace->tnode =
 				hdT_createTopoNode(config->topology,(const char **) path, plen);
-			/* TODO error checking */
+			if (trace->tnode == NULL) {
+				switch(errno) {
+				case HD_ERR_MALLOC:
+					ERROR_ERRNO("Memory problem during topology node creation");
+					break;
+					strerror(6);
+					return ERR_CUSTOM;
+				default:
+					assert(errno != HD_ERR_INVALID_ARGUMENT);
+					ERROR_UNKNOWN;
+					return ERR_UNKNOWN;
+				}
+				return -1;
+			}
 
+			// create statistics group
 			trace->group =
 				hdS_createGroup("Energy", trace->tnode, 1);
-			/* TODO error checking */
+			if (trace->group == NULL) {
+				switch(errno) {
+				case HD_ERR_MALLOC:
+					ERROR_ERRNO("Memory problem during statistics group creation");
+					break;
+				case HD_ERR_BUFFER_OVERFLOW:
+					ERROR_ERRNO("Buffer overflow during statistics group creation");
+					break;
+				case HD_ERR_CREATE_FILE:
+					ERROR_ERRNO("Problems with file creation for statistics group");
+					break;
+				default:
+					assert(errno != HD_ERR_INVALID_ARGUMENT);
+					ERROR_UNKNOWN;
+				}
+				return -1;
+			}
 
 			if (trace->values.Utrms) {
 				ret = hdS_addValue(trace->group, "Utrms", FLOAT, "V", "Voltage");
@@ -659,10 +703,508 @@ static int createTraces(ConfigStruct *config) {
 	return 0;
 }
 
+/**
+ * Read the next line in the file (until next '\n' or EOF)
+ *
+ * If a line (not NULL) is returned, freeing of the memory is up to the caller.
+ *
+ * @param file File to read
+ *
+ * @return Next line of file
+ *  or NULL if EOF is still reached before the call or an error occurred.
+ */
+static char * readLineFromFile(ConfigFileStruct *cfile) {
+
+	// create initial buffer
+	size_t bsize = 20;
+	char *buffer = malloc(bsize * sizeof(*buffer));
+
+	// initialize counter
+	size_t i = 0;
+
+	// read characters until '\n' or EOF
+	while (1) {
+		// read next character
+		char c = (char) fgetc(cfile->file);
+
+		// if the first character is EOF, there is no more line or an error
+		if (i == 0 && c == EOF) {
+			free(buffer);
+			return NULL;
+		}
+
+		// on '\n' of EOF the line is complete
+		if (c == '\n' || c == EOF) {
+			buffer[i] = '\0';
+			break;
+		}
+
+		// copy character to buffer and increase counter
+		buffer[i++] = c;
+
+		// check if we have still space in buffer
+		if (i > bsize) {
+			// reallocate larger buffer (double the old one)
+			bsize *= 2;
+			buffer = realloc(buffer, bsize);
+		}
+	}
+
+	// resize buffer to needed size
+	buffer = realloc(buffer, strlen(buffer)+1);
+
+	// increase line number
+	cfile->linenr++;
+
+	return buffer;
+}
+
+/**
+ * Get the next non-empty line from file.
+ *
+ * If a line (not NULL) is returned, freeing of the memory is up to the caller.
+ *
+ * @param file File
+ *
+ * @return Next non-empty line or NULL if no more valid line or error.
+ */
+static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
+
+	char *ptr;
+
+	while(1) {
+		// get next line
+		char *line = readLineFromFile(cfile);
+
+		// return NULL if there is no more line
+		if (line == NULL) {
+			return NULL;
+		}
+
+		// remove comment (first # until end of line)
+		if ((ptr = index(line, '#')) != NULL) {
+			*ptr = '\0';
+		}
+
+		// try next line if this one is empty
+		if (*line == '\0') {
+			free(line);
+			continue;
+		}
+
+		// try next line if this one has only whitespaces
+		for (ptr = line; *ptr != '\0'; ++ptr) {
+			if (isspace(*ptr))
+				continue;
+			else
+				break;
+		}
+		if (ptr == '\0' /* only space found */ ) {
+			free(line);
+			continue;
+		}
+
+		// we found a non-empty line
+		return line;
+	}
+}
+
+/**
+ * Removes spaces at the beginning and end of the given string.
+ *
+ * Pay attention that this function changes the pointer *string as well as the
+ *  string **string.
+ *
+ * @param string Pointer to the String to work on
+ */
+static void removeTrailingSpaces(char **string) {
+
+	char *ptr;
+	size_t slen = strlen(*string);
+
+	// search from the end
+	for (ptr = *string + slen - 1; isspace(*ptr); ptr--) {}
+	// ptr points now to the last nonspace char
+	*(ptr+1) = '\0';
+
+	// search from the beginning
+	for (ptr = *string; isspace(*ptr); ptr++) {}
+	// ptr points now to the first nonspace char
+	*string = ptr;
+}
+
+
+/**
+ * Check validity of device in configuration.
+ *
+ * @param config Configuration
+ *
+ * @retval   0  Device is known and supported
+ * @retval  -1  Device is unknown/unsupported
+ * @retval  -2  No device is set
+ */
+static int checkDevice(ConfigStruct *config) {
+	if (config->device == NULL || *(config->device) == '\0' ) {
+		return -2;
+	}
+
+	if (strcmp(config->device, "LMG450") == 0) {
+		return 0;
+	}
+	else {
+		ERROR("Device \"%s\" is unknown and not supported.", config->device);
+		return -1;
+	}
+}
+
+/**
+ * Split the port in the configuration into hostname and port component
+ *  if needed.
+ *
+ * @param config Configuration
+ *
+ * @retval   1  Nothing to do
+ * @retval   0  Port splitted
+ * @retval  -2  No port set
+ */
+static int splitPort(ConfigStruct *config) {
+	if (config->port == NULL || *(config->port) == '\0' ) {
+		return -2;
+	}
+
+	char *ptr = index(config->port, ':');
+	if (ptr == NULL) {
+		return 1;
+	}
+
+	*ptr = '\0';
+	config->host = ptr + 1;
+	return 0;
+}
+
+/**
+ * Check validity of cycle time in configuration.
+ *
+ * @param config Configuration
+ *
+ * @retval  0  Cycle time is valid
+ * @retval  -1  Cycle time is invalid
+ */
+static int checkCycle(ConfigStruct *config) {
+	if (config->cycle >= 0.05 && config->cycle <= 60) {
+		return 0;
+	}
+	else {
+		WARN("Invalid cycle time %f, has to be in [0.05,60.0] for %s.",
+				config->cycle, config->device);
+		return 1;
+	}
+}
+
+/**
+ * Check validity of channel for device in configuration.
+ *
+ * This is only working correctly if the device is not changed thereafter
+ *
+ * @param config Configuration
+ *
+ * @retval   0  Channel is valid
+ * @retval  -1  Channel is invalid
+ */
+static int checkChannel(TraceStruct *trace, ConfigStruct *config) {
+	if (trace->channel >= 1 && trace->channel <= 4) {
+		return 0;
+	}
+	else {
+		WARN("Invalid channel %f, has to be in [1,4] for %s.",
+						trace->channel, config->device);
+		return 1;
+	}
+}
+
+/**
+ * Check configuration for consistency
+ *
+ * @param filename
+ * @param config
+ * @return
+ */
+static int checkConfig(ConfigStruct *config) {
+	// TODO Add more consistency checks
+
+	int result = 0;
+
+	result &= checkCycle(config);
+
+	for FOR_TRACES(config) {
+		result &= checkChannel(trace, config);
+	}
+
+	if (result)
+		ERROR("Consistency check of configuration FAILED. Check warnings above.");
+	else
+		puts("Consistency check of configuration PASSED.");
+
+	return result;
+}
+
+/**
+ *
+ * @param filename
+ * @param config
+ * @return
+ */
 static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
+	// identifies the section we are currently in
+	enum { NONE, GENERAL, TRACE } section = NONE;
+
+	// true after reading one general section
+	int general_done = 0;
+
+	// counter for trace sections
+	int ntraces = 0;
+
+	// pointer to value (temp)
+	char *value;
+
+	// pointer to current trace
+	TraceStruct *trace;
+
+	// true if needed option is set in current trace
+	struct {
+		int type : 1;
+		int output : 1;
+		int channel : 1;
+		int values : 1;
+	} set;
+
+#define CLEAN_SET set.type = set.output = set.channel = set.values = 0
+
+	/*
+	 * Initialize configfile structure
+	 */
+	ConfigFileStruct cfile;
+	cfile.filename = filename;
+	cfile.linenr = 0;
+	cfile.file = fopen(filename, "r");
+
+
+	/*
+	 * Compile needed regex
+	 */
+	int ret;
+#define REGCOM(name, regex) \
+	regex_t name; \
+	if (ret = regcomp(&name, regex, REG_EXTENDED | REG_ICASE | REG_NOSUB)) { \
+		char errbuf[100]; \
+		regerror(ret,&re_section,errbuf,100); \
+		ERROR(errbuf); \
+		return ERR_UNKNOWN; \
+	}
+
+	REGCOM(re_section, "^[[:space:]]*\\[")
+	REGCOM(re_sec_general, "[[:space:]]*\\[[[:space:]]*general[[:space:]]*][[:space:]]*")
+	REGCOM(re_sec_trace, "[[:space:]]*\\[[[:space:]]*trace[[:space:]]*][[:space:]]*")
+
+#undef REGCOM
+
+#define REGEX_CLEANUP \
+	do { \
+	regfree(&re_section); \
+	regfree(&re_sec_general); \
+	regfree(&re_sec_trace); \
+	} while (0);
+
+
+	while(1) {
+		// get next non-empty line
+		int linenr;
+		char *line = getNextNonemptyLine(&cfile);
+		if (line == NULL) {
+			break;
+		}
+
+#define CFILE_ERROR(msg, ...) \
+	ERROR(msg "in %d:%s : \"%s\"", ## __VA_ARGS__, cfile.filename, cfile.linenr, line)
+
+#define CFILE_WARN(msg, ...) \
+	WARN(msg "in %d:%s", ## __VA_ARGS__, cfile.filename, cfile.linenr)
+
+#define RETURN_SYNTAX_ERROR \
+	do { \
+	REGEX_CLEANUP; \
+	fclose(cfile.file); \
+	free(line); \
+	return(ERR_SYNTAX); \
+	} while (0)
+
+		/*
+		 * try reading section start
+		 */
+		if(regexec(&re_section, line, 0, NULL, 0) != REG_NOMATCH) {
+			// handle old section
+			if (section == TRACE) {
+				// check if all mandatory options are set
+				char missing[30];
+				*missing = '\0';
+				if (!set.type)
+					strcat(missing, "type ,");
+
+				if (!set.output)
+					strcat(missing, "node ,");
+
+				if (!set.channel)
+					strcat(missing, "channel ,");
+
+				if (!set.values)
+					strcat(missing, "values ,");
+
+				int mlen = strlen(missing);
+				if (mlen != 0) {
+					missing[mlen-1] = '\0'; // removing " ,"
+					CFILE_ERROR("Start of new section after"
+							" incomplete [Trace] section (%s missing)");
+					free(trace);
+					RETURN_SYNTAX_ERROR;
+				}
+				else {
+					addTraceToList(trace, &(config->traces));
+					trace = NULL; // for easier debugging
+				}
+			}
+
+			/* ":space:*\[:space:*[Gg]eneral:space:*\]:space:*" */
+			if (regexec(&re_sec_general, line, 0, NULL, 0) != REG_NOMATCH) {
+				if (general_done) {
+					CFILE_WARN("Additional [General] section");
+				}
+				section = GENERAL;
+				general_done = 1;
+			}
+
+			//   \s*\[\s*[Tt][Rr][Aa][Cc][Ee]\s*]\s*
+			else if (regexec(&re_sec_trace, line, 0, NULL, 0) != REG_NOMATCH) {
+				section = TRACE;
+				ntraces++;
+				trace = malloc(sizeof(*trace));
+				CLEAN_SET;
+			}
+
+			/* unknown section or syntax error */
+			else {
+				CFILE_ERROR("Unknown section");
+				RETURN_SYNTAX_ERROR;
+			}
+		}
+
+#define COPY_STRING_VALUE_TO(target) \
+	do { \
+	value = (index(line,'=') + 1); \
+	removeTrailingSpaces(&value); \
+	target = malloc(strlen(value) * sizeof(*(target))); \
+	strcpy(target, value); \
+	} while (0)
+
+
+		/*
+		 * Try reading key=value pairs for current section
+		 */
+		else if (section == GENERAL) {
+			/* "[:space:]*device[:space:]*=" */
+			if (sscanf(line, " device =") != EOF) {
+				COPY_STRING_VALUE_TO(config->device);
+				if (checkDevice(config) != 0)
+					return -1;
+			}
+
+			/* "[:space:]*port[:space:]*=" */
+			else if (sscanf(line, " port =") != EOF) {
+				COPY_STRING_VALUE_TO(config->port);
+				if (splitPort(config) < 0)
+					return -1;
+			}
+
+			/* "[:space:]*cycle[:space:]*=" */
+			else if (sscanf(line, " cycle = %f", &(config->cycle)) != 1) {
+				// validity check is done later by checkConfig()
+			}
+
+			/* "[:space:]*project[:space:]*=" */
+			else if (sscanf(line, " project =") != EOF) {
+				COPY_STRING_VALUE_TO(config->project);
+			}
+
+			/* "[:space:]*topology[:space:]*=" */
+			else if (sscanf(line, " topology =") != EOF) {
+				COPY_STRING_VALUE_TO(config->topo);
+			}
+
+			else {
+				CFILE_WARN("Ignoring unknown entry in [General] section");
+			}
+
+		}
+		else if (section == TRACE) {
+			/* "[:space:]*type[:space:]*=" (type=HDSTATS) */
+			if (sscanf(line, " type =") != EOF) {
+				char *type;
+				COPY_STRING_VALUE_TO(type);
+				removeTrailingSpaces(&type);
+				if (strcmp(type, "HDSTATS"))
+					trace->hdstats = 1;
+				else
+					CFILE_ERROR("Unknown type in [Trace] section" );
+			}
+
+			/* "[:space:]*topology[:space:]*=" (node=pvs_node06) */
+			else if (sscanf(line, " node =") != EOF) {
+				COPY_STRING_VALUE_TO(trace->output);
+			}
+
+			/* "[:space:]*channel[:space:]*=" (channel=1) */
+			else if (sscanf(line, " channel = %d", &(trace->channel)) != 1) {
+				// validity check is done later by checkConfig()
+			}
+
+			/* "[:space:]*values[:space:]*=" (values=Utrms,Itrms,P) */
+			if (sscanf(line, " values =") != EOF) {
+				char *values;
+				COPY_STRING_VALUE_TO(values);
+
+				char *saveptr;
+				for (char *tok = strtok_r(values, ",", &saveptr); tok != NULL;
+						strtok_r(NULL, ",", &saveptr)) {
+					if (strcmp(tok, "Utrms") == 0)
+						trace->values.Utrms = 1;
+					else if (strcmp(tok, "Itrms") == 0)
+						trace->values.Itrms = 1;
+					else if (strcmp(tok, "P") == 0)
+						trace->values.P = 1;
+					else
+						WARN("Unknown value for trace ignored in %s:%d",
+								cfile.filename, cfile.linenr);
+				}
+			}
+		}
+
+		else if (section == NONE) {
+			CFILE_WARN("Uncommented entry outside of any section");
+		}
+
+		else {
+			assert(!"Bug!");
+		}
+	}
+
+	fclose(cfile.file);
 	return 0;
 
+#undef CLEAN_SET
+#undef CFILE_ERROR
+#undef CFILE_WARN
+#undef RETURN_SYNTAX_ERROR
+#undef COPY_STRING_VALUE_TO
 }
 
 /**
@@ -675,11 +1217,13 @@ static void cleanup(ConfigStruct *config) {
 			hdS_finalize(trace->group);
 			hdT_destroyTopoNode(trace->tnode);
 		}
-		free(trace->actn); // allocated in createTraces()
+		if (trace->actn)
+			free(trace->actn); // allocated in createTraces()
 	}
 
 	freeAllTraces(&(config->traces));
-	hdT_destroyTopology(config->topology);
+	if (config->topology)
+		hdT_destroyTopology(config->topology);
 }
 
 
@@ -725,7 +1269,7 @@ int main(int argc, char **argv)
 	config.cycle = 0.1;
 	config.project = "MyProject";
 	config.topo = "Host_Process_Thread";
-	config.traces.first = NULL;
+	config.traces.last = NULL;
 
 
 	/*
@@ -772,11 +1316,20 @@ int main(int argc, char **argv)
 		config.topo = topo;
 
 	/*
-	 * Build array of traces
+	 * Add traces from commandline
 	 */
 
 	int ntraces = argc - optind;
 	ret = parseTraceStrings(ntraces, argv+optind, &config);
+
+	/*
+	 * Do consistency check of the final configuration
+	 */
+	ret = checkConfig(&config);
+	if (ret != 0) {
+		cleanup(&config);
+		exit(-1);
+	}
 
 
 	/*
@@ -863,7 +1416,7 @@ int main(int argc, char **argv)
     ret = puts(buffer);
     if(ret == EOF)
     {
-        ERROR_UNKNOWN
+        ERROR_UNKNOWN;
         return(ERR_UNKNOWN);
     }
 
@@ -933,7 +1486,7 @@ int main(int argc, char **argv)
     ret = puts(buffer);
     if (ret == EOF)
     {
-        ERROR_UNKNOWN
+        ERROR_UNKNOWN;
     }
 
     /*

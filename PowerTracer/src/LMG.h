@@ -27,7 +27,7 @@ int LMG_close(int fd);
         case ERR_UNKNOWN: \
             return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -41,7 +41,7 @@ int LMG_close(int fd);
         case ERR_UNKNOWN: \
             return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -58,7 +58,7 @@ int LMG_close(int fd);
         case ERR_UNKNOWN: \
             return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -73,7 +73,7 @@ int LMG_close(int fd);
         case ERR_BSIZE: \
            return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -87,7 +87,7 @@ int LMG_close(int fd);
         case ERR_UNKNOWN: /* LMG_readBinaryMessage() */ \
             return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -103,7 +103,7 @@ int LMG_close(int fd);
         case ERR_UNKNOWN: \
             return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -117,7 +117,7 @@ int LMG_close(int fd);
         case ERR_UNKNOWN: \
             return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 

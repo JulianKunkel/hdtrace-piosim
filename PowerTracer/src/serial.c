@@ -9,7 +9,7 @@
 #include <string.h>
 #include <sys/select.h>
 
-#include "error.h"
+#include "ptError.h"
 
 /*
  * Open serial port.
@@ -25,10 +25,10 @@ int serial_openPort(char *device)
     fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd < 0)
     {
-        ERROR("open()");
+        ERROR_ERRNO("open()");
         return(ERR_ERRNO);
     }
-    
+
     fcntl(fd, F_SETFL, 0);
 
     /* TODO: Clear input and output buffers */
@@ -52,7 +52,7 @@ int serial_setupPort(int fd, int baudrate)
     int ret;
     struct termios options;
     speed_t speed;
-   
+
     switch(baudrate)
     {
         case 38400:
@@ -78,7 +78,7 @@ int serial_setupPort(int fd, int baudrate)
     ret = tcgetattr(fd, &options);
     if(ret != 0)
     {
-       ERROR("tcgetattr()");
+       ERROR_ERRNO("tcgetattr()");
        return(ERR_ERRNO);
     }
 
@@ -140,14 +140,14 @@ int serial_setupPort(int fd, int baudrate)
     ret = cfsetispeed(&options, speed);
     if(ret != 0)
     {
-        ERROR("cfsetispeed()");
+        ERROR_ERRNO("cfsetispeed()");
         return(ERR_ERRNO);
     }
 
     ret = cfsetospeed(&options, speed);
     if(ret != 0)
     {
-        ERROR("cfsetospeed()");
+        ERROR_ERRNO("cfsetospeed()");
         return(ERR_ERRNO);
     }
 
@@ -157,14 +157,14 @@ int serial_setupPort(int fd, int baudrate)
     ret = tcsetattr(fd, TCSANOW, &options);
     if(ret != 0)
     {
-        ERROR("tcsetattr()");
+        ERROR_ERRNO("tcsetattr()");
         return(ERR_ERRNO);
     }
 
     ret = tcflush(fd, TCIOFLUSH);
-    if(ret != 0) 
+    if(ret != 0)
     {
-        ERROR("tcflush()");
+        ERROR_ERRNO("tcflush()");
         return(ERR_ERRNO);
     }
 
@@ -190,24 +190,24 @@ int serial_sendMessage(int fd, const char *msg)
     n = write(fd, msg, strlen(msg));
     if (n < 0)
     {
-        ERROR("write()");
+        ERROR_ERRNO("write()");
         return(ERR_ERRNO);
     }
     else if (n < strlen(msg))
     {
-        ERROR_CUSTOM("Couldn't write the whole message");
+        ERROR("Couldn't write the whole message");
         return(ERR_WRITE);
     }
 
     n = write(fd, "\n", 1);
     if (n < 0)
     {
-        ERROR("write()");
+        ERROR_ERRNO("write()");
         return(ERR_ERRNO);
     }
     else if (n < 1)
     {
-       ERROR_CUSTOM("Couldn't write line feed to terminate the message");
+       ERROR("Couldn't write line feed to terminate the message");
        return(ERR_WRITE);
     }
 #ifdef DEBUG
@@ -231,13 +231,13 @@ int serial_sendBreak(int fd)
     ret = tcsendbreak(fd, 0);
     if (ret > 0)
     {
-        ERROR("tcsendbreak()")
+        ERROR_ERRNO("tcsendbreak()");
         return(ERR_ERRNO);
     }
 
     return(OK);
 }
-    
+
 /*
  * Reads exact the next bsize bytes from fd
  * using select with timeout in seconds.
@@ -278,7 +278,7 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize)
         /* See if there was an error */
         if (ret < 0)
         {
-            ERROR("select()");
+            ERROR_ERRNO("select()");
             return(ERR_ERRNO);
         }
         else if (ret == 0)
@@ -292,7 +292,7 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize)
             /* read all data available but max until buffer filled */
             if((nbytes = read(fd, bufptr, buffer + bsize - bufptr)) < 0)
             {
-                ERROR("read()");
+                ERROR_ERRNO("read()");
                 return(ERR_ERRNO);
             }
 
@@ -323,7 +323,7 @@ int serial_closePort(int fd)
     ret = close(fd);
     if (ret < 0)
     {
-        ERROR("close()");
+        ERROR_ERRNO("close()");
         return(ERR_ERRNO);
     }
 

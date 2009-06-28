@@ -24,7 +24,7 @@ int serial_closePort(int fd);
                         /* tcsetattr(), tcflush()                     */ \
            return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -37,7 +37,7 @@ int serial_closePort(int fd);
         case ERR_WRITE: \
            return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -49,7 +49,7 @@ int serial_closePort(int fd);
         case ERR_ERRNO: /* tcsendbreak() */ \
            return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -59,7 +59,7 @@ int serial_closePort(int fd);
         case ERR_ERRNO: /* select(), read() */ \
             return(ret); \
         default: \
-            ERROR_UNKNOWN \
+            ERROR_UNKNOWN; \
             return(ERR_UNKNOWN); \
     } } while (0)
 
@@ -71,7 +71,7 @@ int serial_closePort(int fd);
 		case ERR_ERRNO: \
 			return(ret); \
 		default: \
-			ERROR_UNKNOWN \
+			ERROR_UNKNOWN; \
 			return(ERR_UNKNOWN); \
 	} } while (0)
 

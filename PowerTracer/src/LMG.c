@@ -3,7 +3,7 @@
 #include <stdio.h>   /* Standard input/output definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 
-#include "error.h"
+#include "ptError.h"
 #include "serial.h"
 
 /*
@@ -221,7 +221,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
     ret = sscanf(locbuffer+1, "%d", &size_length);
     if (ret == EOF)
     {
-        ERROR("sscanf()");
+        ERROR_ERRNO("sscanf()");
         return(ERR_MSG_FORMAT);
     }
 
@@ -238,7 +238,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
     ret = sscanf(locbuffer, "%d", &binary_size);
     if (ret == EOF)
     {
-        ERROR("sscanf()");
+        ERROR_ERRNO("sscanf()");
         return(ERR_MSG_FORMAT);
     }
 
