@@ -743,7 +743,7 @@ static char * readLineFromFile(ConfigFileStruct *cfile) {
 		buffer[i++] = c;
 
 		// check if we have still space in buffer
-		if (i > bsize) {
+		if (i >= bsize) {
 			// reallocate larger buffer (double the old one)
 			bsize *= 2;
 			buffer = realloc(buffer, bsize);
@@ -1003,10 +1003,22 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		return ERR_UNKNOWN; \
 	}
 
-	REGCOM(re_section, "^[[:space:]]*\\[")
-	REGCOM(re_sec_general, "[[:space:]]*\\[[[:space:]]*general[[:space:]]*][[:space:]]*")
-	REGCOM(re_sec_trace, "[[:space:]]*\\[[[:space:]]*trace[[:space:]]*][[:space:]]*")
+#define RE_SPACE "[[:space:]]*"
 
+	REGCOM(re_section, "^" RE_SPACE "\\[")
+	REGCOM(re_sec_general, "^" RE_SPACE "\\[" RE_SPACE "general" RE_SPACE "]" RE_SPACE)
+	REGCOM(re_sec_trace, "^" RE_SPACE "\\[" RE_SPACE "trace" RE_SPACE "]" RE_SPACE)
+	REGCOM(re_key_device, "^" RE_SPACE "device" RE_SPACE "=")
+	REGCOM(re_key_port, "^" RE_SPACE "port" RE_SPACE "=")
+	REGCOM(re_key_cycle, "^" RE_SPACE "cycle" RE_SPACE "=")
+	REGCOM(re_key_project, "^" RE_SPACE "project" RE_SPACE "=")
+	REGCOM(re_key_topology, "^" RE_SPACE "topology" RE_SPACE "=")
+	REGCOM(re_key_type, "^" RE_SPACE "type" RE_SPACE "=")
+	REGCOM(re_key_node, "^" RE_SPACE "node" RE_SPACE "=")
+	REGCOM(re_key_channel, "^" RE_SPACE "channel" RE_SPACE "=")
+	REGCOM(re_key_values, "^" RE_SPACE "values" RE_SPACE "=")
+
+#undef RE_SPACE
 #undef REGCOM
 
 #define REGEX_CLEANUP \
@@ -1014,22 +1026,24 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	regfree(&re_section); \
 	regfree(&re_sec_general); \
 	regfree(&re_sec_trace); \
+	regfree(&re_key_device); \
+	regfree(&re_key_port); \
+	regfree(&re_key_cycle); \
+	regfree(&re_key_project); \
+	regfree(&re_key_topology); \
+	regfree(&re_key_type); \
+	regfree(&re_key_node); \
+	regfree(&re_key_channel); \
+	regfree(&re_key_values); \
 	} while (0);
 
 
-	while(1) {
-		// get next non-empty line
-		int linenr;
-		char *line = getNextNonemptyLine(&cfile);
-		if (line == NULL) {
-			break;
-		}
 
 #define CFILE_ERROR(msg, ...) \
-	ERROR(msg "in %d:%s : \"%s\"", ## __VA_ARGS__, cfile.filename, cfile.linenr, line)
+	ERROR(msg " in %s:%d : \"%s\"", ## __VA_ARGS__, cfile.filename, cfile.linenr, line)
 
 #define CFILE_WARN(msg, ...) \
-	WARN(msg "in %d:%s", ## __VA_ARGS__, cfile.filename, cfile.linenr)
+	WARN(msg " in %s:%d", ## __VA_ARGS__, cfile.filename, cfile.linenr)
 
 #define RETURN_SYNTAX_ERROR \
 	do { \
@@ -1039,9 +1053,58 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	return(ERR_SYNTAX); \
 	} while (0)
 
+
+	/*
+	 * File reading and processing loop
+	 */
+	while(1) {
+		// get next non-empty line
+		int linenr;
+		char *line = getNextNonemptyLine(&cfile);
+		if (line == NULL) {
+			// nothing more to read, finish processing and exit loop
+			// if last section was [Trace] add the trace
+			// TODO this is duplicated code, avoid this
+			if (section == TRACE) {
+				// check if all mandatory options are set
+				char missing[30];
+				*missing = '\0';
+				if (!set.type)
+					strcat(missing, "type, ");
+
+				if (!set.output)
+					strcat(missing, "node, ");
+
+				if (!set.channel)
+					strcat(missing, "channel, ");
+
+				if (!set.values)
+					strcat(missing, "values, ");
+
+				int mlen = strlen(missing);
+				if (mlen != 0) {
+					missing[mlen-2] = '\0'; // removing ", "
+					CFILE_ERROR("End of file reached after"
+							" incomplete [Trace] section (%s missing)", missing);
+					free(trace);
+					RETURN_SYNTAX_ERROR;
+				}
+				else {
+					addTraceToList(trace, &(config->traces));
+				}
+			}
+
+			REGEX_CLEANUP;
+			fclose(cfile.file);
+			free(line);
+			break;
+		}
+
+
 		/*
 		 * try reading section start
 		 */
+		//   ^\s*\[
 		if(regexec(&re_section, line, 0, NULL, 0) != REG_NOMATCH) {
 			// handle old section
 			if (section == TRACE) {
@@ -1049,22 +1112,22 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 				char missing[30];
 				*missing = '\0';
 				if (!set.type)
-					strcat(missing, "type ,");
+					strcat(missing, "type, ");
 
 				if (!set.output)
-					strcat(missing, "node ,");
+					strcat(missing, "node, ");
 
 				if (!set.channel)
-					strcat(missing, "channel ,");
+					strcat(missing, "channel, ");
 
 				if (!set.values)
-					strcat(missing, "values ,");
+					strcat(missing, "values, ");
 
 				int mlen = strlen(missing);
 				if (mlen != 0) {
-					missing[mlen-1] = '\0'; // removing " ,"
+					missing[mlen-2] = '\0'; // removing ", "
 					CFILE_ERROR("Start of new section after"
-							" incomplete [Trace] section (%s missing)");
+							" incomplete [Trace] section (%s missing)", missing);
 					free(trace);
 					RETURN_SYNTAX_ERROR;
 				}
@@ -1074,7 +1137,7 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 				}
 			}
 
-			/* ":space:*\[:space:*[Gg]eneral:space:*\]:space:*" */
+			//   \s*\[\s*[Gg][Ee][Nn][Ee][Rr][Aa][Ll]\s*\]\s*
 			if (regexec(&re_sec_general, line, 0, NULL, 0) != REG_NOMATCH) {
 				if (general_done) {
 					CFILE_WARN("Additional [General] section");
@@ -1102,41 +1165,44 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	do { \
 	value = (index(line,'=') + 1); \
 	removeTrailingSpaces(&value); \
-	target = malloc(strlen(value) * sizeof(*(target))); \
+	target = malloc((strlen(value) + 1) * sizeof(*(target))); \
 	strcpy(target, value); \
 	} while (0)
 
+#define IS_KEY(key) regexec(&re_key_##key, line, 0, NULL, 0) != REG_NOMATCH
 
 		/*
 		 * Try reading key=value pairs for current section
 		 */
 		else if (section == GENERAL) {
 			/* "[:space:]*device[:space:]*=" */
-			if (sscanf(line, " device =") != EOF) {
+			if (IS_KEY(device)) {
 				COPY_STRING_VALUE_TO(config->device);
 				if (checkDevice(config) != 0)
 					return -1;
 			}
 
 			/* "[:space:]*port[:space:]*=" */
-			else if (sscanf(line, " port =") != EOF) {
+			else if (IS_KEY(port)) {
 				COPY_STRING_VALUE_TO(config->port);
 				if (splitPort(config) < 0)
-					return -1;
+					CFILE_WARN("Problem parsing port value");
 			}
 
 			/* "[:space:]*cycle[:space:]*=" */
-			else if (sscanf(line, " cycle = %f", &(config->cycle)) != 1) {
+			else if (IS_KEY(cycle)) {
+				if (sscanf(line, " cycle = %f", &(config->cycle)) != 1)
+					CFILE_WARN("Problem parsing cycle value");
 				// validity check is done later by checkConfig()
 			}
 
 			/* "[:space:]*project[:space:]*=" */
-			else if (sscanf(line, " project =") != EOF) {
+			else if (IS_KEY(project)) {
 				COPY_STRING_VALUE_TO(config->project);
 			}
 
 			/* "[:space:]*topology[:space:]*=" */
-			else if (sscanf(line, " topology =") != EOF) {
+			else if (IS_KEY(topology)) {
 				COPY_STRING_VALUE_TO(config->topo);
 			}
 
@@ -1147,40 +1213,53 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		}
 		else if (section == TRACE) {
 			/* "[:space:]*type[:space:]*=" (type=HDSTATS) */
-			if (sscanf(line, " type =") != EOF) {
+			if (IS_KEY(type)) {
 				char *type;
 				COPY_STRING_VALUE_TO(type);
 				removeTrailingSpaces(&type);
-				if (strcmp(type, "HDSTATS"))
+				if (strcmp(type, "HDSTATS") == 0) {
 					trace->hdstats = 1;
+					set.type = 1;
+				}
 				else
 					CFILE_ERROR("Unknown type in [Trace] section" );
+				free(type);
 			}
 
 			/* "[:space:]*topology[:space:]*=" (node=pvs_node06) */
-			else if (sscanf(line, " node =") != EOF) {
+			else if (IS_KEY(node)) {
 				COPY_STRING_VALUE_TO(trace->output);
+				set.output = 1;
 			}
 
 			/* "[:space:]*channel[:space:]*=" (channel=1) */
-			else if (sscanf(line, " channel = %d", &(trace->channel)) != 1) {
+			else if (IS_KEY(channel)) {
+				if (sscanf(line, " channel = %d", &(trace->channel)) != 1)
+					CFILE_WARN("Problem parsing channel value");
 				// validity check is done later by checkConfig()
+				set.channel = 1;
 			}
 
 			/* "[:space:]*values[:space:]*=" (values=Utrms,Itrms,P) */
-			if (sscanf(line, " values =") != EOF) {
+			if (IS_KEY(values)) {
 				char *values;
 				COPY_STRING_VALUE_TO(values);
 
 				char *saveptr;
 				for (char *tok = strtok_r(values, ",", &saveptr); tok != NULL;
-						strtok_r(NULL, ",", &saveptr)) {
-					if (strcmp(tok, "Utrms") == 0)
+						tok = strtok_r(NULL, ",", &saveptr)) {
+					if (strcmp(tok, "Utrms") == 0) {
 						trace->values.Utrms = 1;
-					else if (strcmp(tok, "Itrms") == 0)
+						set.values = 1;
+					}
+					else if (strcmp(tok, "Itrms") == 0) {
 						trace->values.Itrms = 1;
-					else if (strcmp(tok, "P") == 0)
+						set.values = 1;
+					}
+					else if (strcmp(tok, "P") == 0) {
 						trace->values.P = 1;
+						set.values = 1;
+					}
 					else
 						WARN("Unknown value for trace ignored in %s:%d",
 								cfile.filename, cfile.linenr);
@@ -1197,7 +1276,6 @@ static int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		}
 	}
 
-	fclose(cfile.file);
 	return 0;
 
 #undef CLEAN_SET
