@@ -86,10 +86,29 @@ public class TopologyManager
 	 */
 	private ArrayList<TopologyTreeNode>      timelines = new ArrayList<TopologyTreeNode>();
 
+	private static class TopologyTreeNodeWrapper{ // temporary wrapper, TODO rework model!
+		final TopologyTreeNode node;
+		
+		public TopologyTreeNodeWrapper(TopologyTreeNode node) {
+			this.node = node;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {		
+			return node.equalTopology(((TopologyTreeNodeWrapper) obj).node);
+		}
+		
+		
+		@Override
+		public int hashCode() {		
+			return node.getTopology().hashCode();
+		}
+	}
+	
 	/**
 	 * Stores for each TreeNode entry the corresponding timeline
 	 */
-	private HashMap<TreeNode, Integer>  treeNodeToTimelineMapping = new HashMap<TreeNode, Integer>();
+	private HashMap<TopologyTreeNodeWrapper, Integer>  treeNodeToTimelineMapping = new HashMap<TopologyTreeNodeWrapper, Integer>();
 
 
 	/**
@@ -352,7 +371,7 @@ public class TopologyManager
 			if(TopologyTreeNode.class.isInstance(node)){
 				timelines.add((TopologyTreeNode) node);
 
-				treeNodeToTimelineMapping.put(((TopologyTreeNode) node), timeline);
+				treeNodeToTimelineMapping.put((new TopologyTreeNodeWrapper((TopologyTreeNode) node)), timeline);
 			}else{
 				timelines.add(null);
 			}
@@ -698,7 +717,7 @@ public class TopologyManager
 	 * @return
 	 */
 	public Integer getTimelineForTreeNode(TopologyTreeNode entry){
-		return treeNodeToTimelineMapping.get(entry);		
+		return treeNodeToTimelineMapping.get(new TopologyTreeNodeWrapper(entry));		
 	}
 
 	/**

@@ -105,14 +105,8 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 		return null;
 	}
 	
-	@Override
-	public int hashCode() {
-		return getTopology().hashCode();
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		return obj.getClass().equals(this.getClass()) && getTopology() == ((TopologyTreeNode) obj).getTopology();
+	public boolean equalTopology(TopologyTreeNode obj) {
+		return obj.getClass().equals(this.getClass()) && getTopology() ==  obj.getTopology();
 	}
 	
 	private void addTopologyTreeNodeChildren(ArrayList<TopologyTreeNode> list){
