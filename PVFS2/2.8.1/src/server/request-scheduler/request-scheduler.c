@@ -799,6 +799,7 @@ int PINT_req_sched_release(
 		next_element->state != REQ_SCHEDULED)
 	    {
 		next_element->state = REQ_READY_TO_SCHEDULE;
+		deblocked++;
 		qlist_add_tail(&(next_element->ready_link), &ready_queue);
 
                 if(next_element->op == PVFS_SERV_IO)
@@ -873,6 +874,7 @@ int PINT_req_sched_release(
     
     if (deblocked > 0){
     	PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(BREQ, deblocked); 
+    	PINT_HD_UPDATE_COUNTER_INC_MULTIPLE_SERVER(REQ, deblocked); 
     }
     /* one got released i.e. is finished */
     PINT_HD_UPDATE_COUNTER_DEC_SERVER(REQ);

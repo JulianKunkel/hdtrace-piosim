@@ -239,6 +239,23 @@ int PINT_HD_update_counter_dec(HD_Trace_Facility facility)
 	return 0;
 }
 
+int PINT_HD_update_counter_inc_multiple(HD_Trace_Facility facility, int count) 
+{
+	if(count <= 0)
+		return 0;
+
+	gen_mutex_lock(&hdStatsGroupMutex[facility]);
+
+	if (hd_facilityTraceStatus[facility]) 
+	{	
+		hdS_writeInt32Value(hd_facilityTrace[facility], hdStatsGroupValue[facility]);
+	}
+	hdStatsGroupValue[facility] += count;
+
+	gen_mutex_unlock(&hdStatsGroupMutex[facility]);
+	return 0;
+}
+
 int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count) 
 {
 	if(count <= 0)

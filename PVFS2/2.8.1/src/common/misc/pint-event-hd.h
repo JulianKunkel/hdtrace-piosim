@@ -49,33 +49,34 @@ extern hdR_topoToken topoTokenArray[STATISTIC_END];
 
 #define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility) PINT_HD_update_counter_inc(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility) PINT_HD_update_counter_dec(facility);
+#define PINT_HD_UPDATE_COUNTER_INC_MULTIPLE_SERVER(facility, count) PINT_HD_update_counter_inc_multiple(facility, count);
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count) PINT_HD_update_counter_dec_multiple(facility, count);
 
 #else /* CLIENT */
 
 #define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility);
+#define PINT_HD_UPDATE_COUNTER_INC_MULTIPLE_SERVER(facility, count);
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count);
 
 #endif /* __PVFS2_SERVER__ */
 
 #define PINT_HD_UPDATE_COUNTER_INC(facility) PINT_HD_update_counter_inc(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC(facility) PINT_HD_update_counter_dec(facility);
+#define PINT_HD_UPDATE_COUNTER_INC_MULTIPLE(facility, count) PINT_HD_update_counter_dec_multiple(facility, count);
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE(facility, count) PINT_HD_update_counter_dec_multiple(facility, count);
 
 int PINT_HD_update_counter_inc(HD_Trace_Facility facility);
 int PINT_HD_update_counter_dec(HD_Trace_Facility facility);
+int PINT_HD_update_counter_inc_multiple(HD_Trace_Facility facility, int count);
 int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count);
 
 #else /* __HAVE_HDTRACE__ */
 
 #define PINT_HD_UPDATE_COUNTER_INC(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC(facility);
+#define PINT_HD_UPDATE_COUNTER_INC_MULTIPLE(facility, count);
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE(facility, count);
-
-#define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility);
-#define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility);
-#define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count);
 
 #define HD_SERVER_RELATION (facility stmt)
 #define HD_DESTROY_RELATION(facility, token) 
