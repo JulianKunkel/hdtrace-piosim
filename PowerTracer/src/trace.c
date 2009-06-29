@@ -6,6 +6,8 @@
  * @version 0.1
  */
 
+#include <stdlib.h>
+
 #include "trace.h"
 
 /* ************************************************************************* *
@@ -30,6 +32,21 @@ void addTraceToList(TraceStruct *trace, TraceListStruct *list) {
  * @param list Trace list
  */
 void freeAllTraces(TraceListStruct *list) {
+	/*
+	 * Free all memory allocated in each trace
+	 */
+	FOR_TRACES(*list) {
+		if (trace->hdstats) {
+			hdS_finalize(trace->group);
+			hdT_destroyTopoNode(trace->tnode);
+		}
+		if (trace->actn)
+			free(trace->actn); // allocated in createTraces()
+	}
+
+	/*
+	 * Free memory for traces
+	 */
 	TraceStruct *this = list->last;
 	while (this != NULL) {
 		TraceStruct *next = this->prev;
@@ -37,4 +54,3 @@ void freeAllTraces(TraceListStruct *list) {
 		this = next;
 	}
 }
-

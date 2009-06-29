@@ -60,8 +60,7 @@ int trace_iteration(int serial_fd, ConfigStruct *config)
      * Write response part for each trace to the correct file
      */
     char *bufptr = buffer;
-    for FOR_TRACES(config)
-    {
+    FOR_TRACES(config->traces) {
        	/* use int pointer since order_bytes32ip is assumed to be faster */
     	uint32_t *intptr = (uint32_t *) bufptr;
     	for (int j = 0; j < trace->size / 4; ++j)
@@ -117,13 +116,13 @@ int trace_data(
      */
     size_t actn_len = 5; /* bytes for "ACTN;" */
 
-	for FOR_TRACES(config)
+	FOR_TRACES(config->traces)
         actn_len += strlen(trace->actn) + 1; /* 1 byte for the separating ';' */
 
     char actn[actn_len];
     actn[0] = '\0';
     strcat(actn, "ACTN");
-    for FOR_TRACES(config) {
+    FOR_TRACES(config->traces) {
         strcat(actn, ";");
         strcat(actn, trace->actn);
     }
@@ -167,7 +166,7 @@ int trace_data(
     /*
      * Enable tracing groups
      */
-    for FOR_TRACES(config) {
+    FOR_TRACES(config->traces) {
     	hdS_enableGroup(trace->group);
     }
 
@@ -245,7 +244,7 @@ int trace_data(
     /*
      * Disable tracing groups
      */
-    for FOR_TRACES(config) {
+    FOR_TRACES(config->traces) {
     	hdS_disableGroup(trace->group);
     }
 
@@ -313,6 +312,24 @@ int test_binmode(int serial_fd)
     return (OK);
 }
 
+static void printUsage() {
+	puts(
+			"Usage: pt [-P PROJECT] [-t TOPOLOGY] [-p PORT] TRACE [TRACE [TRACE [...]]]]\n"
+			"\n"
+			"PROJECT = Name of the project (default: MyProject)\n"
+			"TOPOLOGY = level1_level2_level3 (default: Host_Process_Thread)\n"
+			"TRACE = TYPES:CHANNEL:OUTPUT\n"
+			"\n"
+			"TYPES = String containing 'a' (ASCII), 'b' (BINARY), 's' (HDSTATS)\n"
+			"CHANNEL = Number of the input channel\n"
+			"OUTPUT = If TYPES contains 'b' or 'a', this is simply the output file without\n"
+			"         the extension. For 'a' .txt is added and '.bin' for 'b'.\n"
+			"         If TYPES contains 's', this describes a topology node (see hdStats\n"
+			"         documentation) and must have the  form \"path1_path2\"\n"
+			"         (ONLY 's' IS IMPLEMENTED YET!)\n"
+			"\n"
+		);
+}
 
 /**
  * Main function
@@ -334,11 +351,35 @@ int test_binmode(int serial_fd)
  *
  * PORT = "/dev/ttyUSB0"
  *
- * @return error code
+ * @return Error state
+ *
+ * @retval   0  OK
+ * @retval  -1  Syntax error
+ * @retval  -2  Configuration file not found
+ * @retval  -3  Configuration file invalid
+ * @retval  -4  No traces configured
+ * @retval  -5  Out of Memory
+ * @retval  -6  External error in hdTraceWritingLibrary
+ * @retval  -7  Another error occurred
  */
 int main(int argc, char **argv)
 {
+
+#define ERROR_OUTPUT(msg) fputs("PowerTracer: " msg "\n", stderr)
+
 	int ret;
+
+	/*
+	 * Define error states
+	 */
+	static const int EOK = 0;
+	static const int ESYNTAX = -1;
+	static const int ECONFNOTFOUND = -2;
+	static const int ECONFINVALID = -3;
+	static const int ENOTRACES = -4;
+	static const int EMEMORY = -5;
+	static const int EHDLIB = -6;
+	static const int EOTHER = -7;
 
 	/*
 	 * Initialize configuration
@@ -382,7 +423,8 @@ int main(int argc, char **argv)
 			port = optarg;
 			break;
 		default:
-			break;
+			printUsage();
+			return ESYNTAX;
 		}
 	}
 
@@ -390,8 +432,32 @@ int main(int argc, char **argv)
 	/*
 	 * Read configuration file if given
 	 */
-	if (configfile != NULL)
-		readConfigFromFile(configfile, &config);
+	if (configfile != NULL) {
+		ret = readConfigFromFile(configfile, &config);
+		switch (ret) {
+		case OK:
+			break;
+		case ERR_MALLOC:
+			ERROR_OUTPUT("Out of memory.");
+			cleanupConfig(&config);
+			return EMEMORY;
+		case ERR_FILE_NOT_FOUND:
+			ERROR_OUTPUT("Configuration file not found.");
+			cleanupConfig(&config);
+			return ECONFNOTFOUND;
+		case ERR_ERRNO:
+			ERROR_OUTPUT("Problem while processing configuration file.");
+			cleanupConfig(&config);
+			// TODO handle this better
+			return EOTHER;
+		case ERR_SYNTAX:
+			ERROR_OUTPUT("Configuration file invalid.");
+			cleanupConfig(&config);
+			return ECONFINVALID;
+		default:
+			assert(!"Unknown return value from readConfigFromFile()");
+		}
+	}
 
 	/*
 	 * Override configuration file options with commandline options
@@ -406,15 +472,32 @@ int main(int argc, char **argv)
 	/*
 	 * Add traces from commandline
 	 */
-
 	int ntraces = argc - optind;
 	ret = parseTraceStrings(ntraces, argv+optind, &config);
+	switch (ret) {
+	case OK:
+		break;
+	case ERR_SYNTAX:
+		printUsage();
+		cleanupConfig(&config);
+		return ESYNTAX;
+	case ERR_MALLOC:
+		ERROR_OUTPUT("Out of memory.");
+		cleanupConfig(&config);
+		return EMEMORY;
+	default:
+		assert(!"Unknown return value from parseTraceStrings()");
+	}
 
 	/*
 	 * Do consistency check of the final configuration
 	 */
 	ret = checkConfig(&config);
-	if (ret != 0) {
+	switch (ret) {
+	case OK:
+		break;
+	default:
+		ERROR_OUTPUT("Configuration is not valid.");
 		cleanupConfig(&config);
 		exit(-1);
 	}
@@ -433,10 +516,22 @@ int main(int argc, char **argv)
 	 * Create the traces found in configuration
 	 */
 	ret = createTraces(&config);
-	if (ret == -1) {
-		fputs("No traces configured\n", stderr);
+	switch (ret) {
+	case OK:
+		break;
+	case ERR_NO_TRACES:
+		ERROR_OUTPUT("No traces configured.");
 		cleanupConfig(&config);
-		exit(-1);
+		return ENOTRACES;
+	case ERR_MALLOC:
+		ERROR_OUTPUT("Out of memory.");
+		cleanupConfig(&config);
+		return EMEMORY;
+	case ERR_HDLIB:
+		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary.");
+		return EHDLIB;
+	default:
+		assert(!"Unknown return value from createTraces()");
 	}
 
 
@@ -590,7 +685,9 @@ int main(int argc, char **argv)
     ret = serial_closePort(serial_fd);
     SERIAL_CLOSEPORT_RETURN_CHECK;
 
+    return 0;
 
+#undef ERROR_OUTPUT
 }
 
 /* vim: set sw=4 sts=4 et fdm=syntax: */

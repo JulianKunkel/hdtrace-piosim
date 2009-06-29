@@ -9,6 +9,7 @@
 #define ERR_ERRNO     -1
 #define ERR_UNKNOWN   -2
 #define ERR_CUSTOM    -3    /* Custom error */
+#define ERR_MALLOC    -4
 
 /* Return values used in serial_* */
 #define ERR_WRITE    -10    /* Write error */
@@ -19,7 +20,12 @@
 #define ERR_BSIZE      -22  /* Buffer size is not sufficient */
 
 /* Configuration file */
-#define ERR_SYNTAX    -30
+#define ERR_FILE_NOT_FOUND -30
+#define ERR_SYNTAX         -31
+
+/* createTraces() */
+#define ERR_NO_TRACES  -40
+#define ERR_HDLIB      -41
 
 /* Macro for generate non fatal warnings */
 #define WARN(msg, ...) error(0,0, "WARNING: " msg, ## __VA_ARGS__)
@@ -32,5 +38,6 @@
 
 /* Macro for reporting unknown errors */
 #define ERROR_UNKNOWN error_at_line(0, 0, __FILE__, __LINE__, "Unknown Error")
+
 
 #endif

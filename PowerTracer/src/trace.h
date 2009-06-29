@@ -58,10 +58,10 @@ void addTraceToList(TraceStruct *trace, TraceListStruct *list);
 
 /**
  * Macro to use for iterating over all traces in a configuration.
- * Use for FOR_TRACES(config) { ... }
+ * Use FOR_TRACES(tracelist) { ... }
  */
-#define FOR_TRACES(config) \
-	(TraceStruct *trace = (*(config)).traces.last; trace != NULL; trace = trace->prev)
+#define FOR_TRACES(list) \
+	for (TraceStruct *trace = (list).last; trace != NULL; trace = trace->prev)
 
 
 /**

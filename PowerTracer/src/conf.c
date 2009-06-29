@@ -18,7 +18,9 @@
 
 #include "conf.h"
 
+#include "trace.h"
 #include "ptError.h"
+#include "ptInternal.h"
 
 
 /**
@@ -34,58 +36,94 @@ typedef struct configFile_s {
 } ConfigFileStruct;
 
 
+/**
+ * Create path array from path string.
+ *
+ * Two memory blocks are allocated, one for the array pointers and one for
+ *  actual strings. It is up to the caller to free this memory:
+ *
+ * @code
+ * char *output = "path1_path2";
+ * int plen;
+ * char **path;
+ * parsePath(output, &plen, &path)
+ * free(path[0]);
+ * free(path);
+ * @endcode
+ *
+ * @param pstr  Path string (path elements separated by '_')
+ * @param plen  Pointer to return length of the path
+ * @param path  Pointer for the path array
+ *
+ * @return Error state
+ *
+ * @retval OK          Success
+ * @retval ERR_MALLOC  Out of Memory
+ */
+static int parsePath(char *pstr,
+		int * const plen /* OUT */,
+		char *** const path /* OUT */) {
 
-static char** parsePath(char *output, int *plen) {
+	assert(pstr != NULL);
 
 	// count number of tokens in output delimited by '_'
 	*plen = 1;
-	char *ptr = output;
+	char *ptr = pstr;
 	while ((ptr = index(ptr, '_')) != NULL)
 		++*plen, ++ptr;
 
 	// allocate space for pointers
-	char ** path;
-	path = malloc(*plen * sizeof(*path));
+	PTMALLOC(*path, *plen, ERR_MALLOC);
 
 	// allocate space for strings
-	int outlen = strlen(output);
-	if (outlen <= 0)
-		return NULL;
-	path[0] = malloc(outlen+1 * sizeof(*(path[0])));
+	int outlen = strlen(pstr);
+	assert(outlen > 0);
+	PTMALLOC(*path[0], outlen+1, ERR_MALLOC);
 
 	// copy output string to allocated memory
-	strcpy(path[0], output);
+	strcpy(*path[0], pstr);
 
 	// create path string array
 	// by setting the pointers and replacing '_' with '\0'
-	ptr = path[0];
+	ptr = *path[0];
 	for (int i = 1; i < *plen; ++i) {
 		ptr = index(ptr, '_');
 		assert(*ptr == '_');
 		*ptr = '\0';
-		path[i] = ++ptr;
+		*path[i] = ++ptr;
 	}
 
-	return path;
+	return OK;
 }
 
 /**
  * Parse the strings used to configure traces on command line
  *
- * @param ntraces
- * @param strings
- * @param config
- * @return
+ * @param ntraces  Number of traces (length of strings)
+ * @param strings  Array of strings to parse
+ * @param config   Configuration to save the parsed traces in
+ *
+ * @return Error state
+ *
+ * @retval OK          Success
+ * @retval ERR_MALLOC  Out of memory
+ * @retval ERR_SYNTAX  Syntax error in one of the strings
+ *
  */
 int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 
 	int ret;
 
-	// parse all traces
+	/*
+	 * Parse all traces
+	 */
 	for (int i = 0; i < ntraces; ++i) {
 
-		TraceStruct *trace = malloc(sizeof(*trace));
+		TraceStruct *trace;
+		PTMALLOC(trace, 1, ERR_MALLOC);
 		char *ptr = strings[i];
+
+#define RETURN_SYNTAX_ERROR  do { free(trace); return ERR_SYNTAX; } while (0)
 
 		// parse types of trace
 #if 0
@@ -106,14 +144,8 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 			case 's':
 				trace->hdstats = 1;
 				break;
-			case '\0':
-				puts("Usage()");
-				exit(-1);
-				break;
 			default:
-				puts("Unsupported trace type letter.");
-				exit(-1);
-				break;
+				RETURN_SYNTAX_ERROR;
 			}
 			ptr++;
 		}
@@ -124,22 +156,24 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 		// parse channel of trace
 		char *tmp = index(ptr, ':');                  // find next colon
 		if (tmp == NULL)
-			puts("Usage()"), exit(-1);
+			RETURN_SYNTAX_ERROR;
 		*tmp = '\0';                                  // write '\0' there
 		ret = sscanf(ptr, "%d", &(trace->channel));   // scan channel number
 		if (ret < 1)
-			puts("Usage()"), exit(-1);
+			RETURN_SYNTAX_ERROR;
 		ptr = tmp + 1;                                // set ptr to the beginning of the next token
 
 		trace->output = ptr;
 		if (ptr == '\0')
-			puts("Usage()"), exit(-1);
+			RETURN_SYNTAX_ERROR;
 
 
 		// activate default values
 		trace->values.Utrms = 1;
 		trace->values.Itrms = 1;
 		trace->values.P = 1;
+
+#undef RETURN_SYNTAX_ERROR
 
 		addTraceToList(trace, &(config->traces));
 
@@ -160,9 +194,18 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
  *   - trace->actn   for tracing
  *   - trace->size   for tracing
  *
+ * To free all memory allocated in this function, the caller should later call
+ *  \ref cleanupConfig() (also in case of an error).
+ *
  * @param config  Configuration
  *
  * @return Error state
+ *
+ * @retval  ERR_NO_TRACES  No traces specified
+ * @retval  ERR_MALLOC     Out of memory
+ * @retval  ERR_HDLIB      External problem in hdTraceWritingLibrary
+ *
+ * @retval  --> all from \ref parsePath()
  */
 int createTraces(ConfigStruct *config) {
 
@@ -173,37 +216,76 @@ int createTraces(ConfigStruct *config) {
 	 */
 	if (config->traces.last == NULL) {
 		config->topology = NULL;
-		return -1;
+		return ERR_NO_TRACES;
 	}
 
 	/*
-	 * Create topology
+	 * Detect if topology is needed
 	 */
-	int tlen;
-	char ** levels = parsePath(config->topo, &tlen);
-	config->topology = hdT_createTopology((const char *) config->project,
-			(const char **) levels, tlen);
+	int needs_topology = 0;
+	FOR_TRACES(config->traces)
+		needs_topology += trace->hdstats;
 
-	printf("Topology: %s", levels[0]);
-	for (int i = 1; i < tlen; ++i) {
-		printf(" - %s", levels[i]);
+	/*
+	 * Create topology if needed
+	 */
+	int tlen = 0;
+	char ** levels = NULL;
+	if (needs_topology) {
+		// generate path list from path string
+		if (ret = parsePath(config->topo, &tlen, &levels))
+			return ret;
+
+#define FREE_LEVELS do { free(levels[0]); free(levels); } while (0)
+
+		// create topology object
+		config->topology = hdT_createTopology((const char *) config->project,
+				(const char **) levels, tlen);
+		if (!config->topology) {
+			switch (errno) {
+			case HD_ERR_MALLOC:
+				ERROR("Memory allocation failed during hdTopology creation");
+				FREE_LEVELS;
+				return ERR_MALLOC;
+			default:
+				assert(errno != HD_ERR_INVALID_ARGUMENT);
+				assert(!"Unknown return state of hdT_createTopology()");
+			}
+		}
+
+		// print topopology
+		// TODO do not do this when running from library
+		printf("Topology: %s", levels[0]);
+		for (int i = 1; i < tlen; ++i) {
+			printf(" - %s", levels[i]);
+		}
+		printf("\n");
+
+		// free memory allocated by parsePath()
+		FREE_LEVELS;
+
+#undef FREE_LEVELS
+
 	}
-	printf("\n");
+	else {
+		config->topology = NULL;
+	}
 
-	// free memory allocated by parsePath()
-	free(levels[0]);
-	free(levels);
-
+	/*
+	 * Go through traces list and complete all missing values
+	 */
 	config->isize = 0;
-
-	for FOR_TRACES(config) {
+	FOR_TRACES(config->traces) {
 
 		char **path = NULL;
 		int plen = 0;
 
 		if (trace->hdstats) {
 			// create path array from path string in trace->output
-			path = parsePath(trace->output, &plen);
+			if (ret = parsePath(trace->output, &plen, &path))
+				return ret;
+
+#define FREE_PATH do { free(path[0]); free(path); } while (0)
 
 			// create topology node
 			trace->tnode =
@@ -211,16 +293,13 @@ int createTraces(ConfigStruct *config) {
 			if (trace->tnode == NULL) {
 				switch(errno) {
 				case HD_ERR_MALLOC:
-					ERROR_ERRNO("Memory problem during topology node creation");
-					break;
-					strerror(6);
-					return ERR_CUSTOM;
+					ERROR("Memory allocation failed during hdTopoNode creation.");
+					FREE_PATH;
+					return ERR_MALLOC;
 				default:
 					assert(errno != HD_ERR_INVALID_ARGUMENT);
-					ERROR_UNKNOWN;
-					return ERR_UNKNOWN;
+					assert(!"Unknown return state of hdT_createTopoNode().");
 				}
-				return -1;
 			}
 
 			// create statistics group
@@ -229,36 +308,61 @@ int createTraces(ConfigStruct *config) {
 			if (trace->group == NULL) {
 				switch(errno) {
 				case HD_ERR_MALLOC:
-					ERROR_ERRNO("Memory problem during statistics group creation");
-					break;
+					ERROR("Memory allocation failed during hdStatsGroup creation.");
+					FREE_PATH;
+					return ERR_MALLOC;
 				case HD_ERR_BUFFER_OVERFLOW:
-					ERROR_ERRNO("Buffer overflow during statistics group creation");
-					break;
+					ERROR("Buffer overflow during hdStatsGroup creation.");
+					FREE_PATH;
+					return ERR_HDLIB;
 				case HD_ERR_CREATE_FILE:
-					ERROR_ERRNO("Problems with file creation for statistics group");
-					break;
+					ERROR("File creation failed during hdStatsGroup creation.");
+					FREE_PATH;
+					return ERR_HDLIB;
 				default:
 					assert(errno != HD_ERR_INVALID_ARGUMENT);
-					ERROR_UNKNOWN;
+					assert(!"Unknown return state of hdT_createTopoNode().");
 				}
-				return -1;
 			}
+
+#define ADD_VALUE_ERROR_HANDLING \
+	do { \
+		if (ret != 0) \
+			switch(errno) { \
+			case HD_ERR_BUFFER_OVERFLOW: \
+				ERROR("Buffer overflow during hdStatsGroup creation."); \
+				FREE_PATH; \
+				return ERR_HDLIB; \
+			default: \
+				assert(errno != HDS_ERR_GROUP_COMMIT_STATE); \
+				assert(errno != HD_ERR_INVALID_ARGUMENT); \
+				assert(!"Unknown return state of hdS_addValue()."); \
+			} \
+	} while (0)
+
 
 			if (trace->values.Utrms) {
 				ret = hdS_addValue(trace->group, "Utrms", FLOAT, "V", "Voltage");
-				/* TODO error checking */
+				ADD_VALUE_ERROR_HANDLING;
 			}
 			if (trace->values.Itrms) {
 				ret = hdS_addValue(trace->group, "Itrms", FLOAT, "A", "Current");
-				/* TODO error checking */
+				ADD_VALUE_ERROR_HANDLING;
 			}
 			if (trace->values.P) {
 				ret = hdS_addValue(trace->group, "P", FLOAT, "W", "Power");
-				/* TODO error checking */
+				ADD_VALUE_ERROR_HANDLING;
 			}
 
 			ret = hdS_commitGroup(trace->group);
-			/* TODO error checking */
+			if (ret != 0) {
+				switch(errno) {
+				default:
+					assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
+					assert(errno != HD_ERR_INVALID_ARGUMENT);
+					assert(!"Unknown return state of hdS_commitGroup().");
+				}
+			}
 		}
 		else {
 			trace->tnode = NULL;
@@ -266,11 +370,12 @@ int createTraces(ConfigStruct *config) {
 		}
 
 		// free memory allocated by parsePath()
-		free(path[0]);
-		free(path);
+		FREE_PATH;
+
+#undef FREE_PATH
 
 		char buffer[10];
-		trace->actn = malloc(21 * sizeof(*(trace->actn)));
+		PTMALLOC(trace->actn, 21, ERR_MALLOC);
 		trace->actn[0] = '\0';
 		trace->size = 0;
 		if (trace->values.Utrms) {
@@ -300,6 +405,7 @@ int createTraces(ConfigStruct *config) {
 		config->isize += trace->size;
 
 		// print parsed trace config
+		// TODO do not do this when running from library
 		printf("%d: ", trace->num);
 #if 0
 		if (trace->bin)
@@ -333,16 +439,19 @@ int createTraces(ConfigStruct *config) {
  *
  * If a line (not NULL) is returned, freeing of the memory is up to the caller.
  *
- * @param file File to read
+ * @param cfile Configuration file to read from
  *
- * @return Next line of file
- *  or NULL if EOF is still reached before the call or an error occurred.
+ * @return Next line of file or NULL
+ *
+ * @retval NULL  EOF reached before the call or an error occurred.<br>
+ *               On Error errno is set by system library (malloc/realloc)
  */
 static char * readLineFromFile(ConfigFileStruct *cfile) {
 
 	// create initial buffer
 	size_t bsize = 20;
-	char *buffer = malloc(bsize * sizeof(*buffer));
+	char *line;
+	PTMALLOC(line, bsize, NULL);
 
 	// initialize counter
 	size_t i = 0;
@@ -354,34 +463,34 @@ static char * readLineFromFile(ConfigFileStruct *cfile) {
 
 		// if the first character is EOF, there is no more line or an error
 		if (i == 0 && c == EOF) {
-			free(buffer);
+			free(line);
 			return NULL;
 		}
 
 		// on '\n' of EOF the line is complete
 		if (c == '\n' || c == EOF) {
-			buffer[i] = '\0';
+			line[i] = '\0';
 			break;
 		}
 
 		// copy character to buffer and increase counter
-		buffer[i++] = c;
+		line[i++] = c;
 
 		// check if we have still space in buffer
 		if (i >= bsize) {
 			// reallocate larger buffer (double the old one)
 			bsize *= 2;
-			buffer = realloc(buffer, bsize);
+			PTREALLOC(line, bsize, NULL);
 		}
 	}
 
 	// resize buffer to needed size
-	buffer = realloc(buffer, strlen(buffer)+1);
+	PTREALLOC(line, strlen(line)+1, NULL);
 
 	// increase line number
 	cfile->linenr++;
 
-	return buffer;
+	return line;
 }
 
 /**
@@ -389,9 +498,12 @@ static char * readLineFromFile(ConfigFileStruct *cfile) {
  *
  * If a line (not NULL) is returned, freeing of the memory is up to the caller.
  *
- * @param file File
+ * @param cfile Configuration file to read from
  *
- * @return Next non-empty line or NULL if no more valid line or error.
+ * @return Next line of file or NULL
+ *
+ * @retval NULL  EOF reached before the call or an error occurred.<br>
+ *               On error errno is set by system library (malloc/realloc)
  */
 static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
 
@@ -401,7 +513,7 @@ static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
 		// get next line
 		char *line = readLineFromFile(cfile);
 
-		// return NULL if there is no more line
+		// return NULL if there is no more line or an error with errno set
 		if (line == NULL) {
 			return NULL;
 		}
@@ -440,7 +552,7 @@ static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
  * Pay attention that this function changes the pointer *string as well as the
  *  string **string.
  *
- * @param string Pointer to the String to work on
+ * @param  string  Pointer to the String to work on
  */
 static void removeTrailingSpaces(char **string) {
 
@@ -458,30 +570,6 @@ static void removeTrailingSpaces(char **string) {
 	*string = ptr;
 }
 
-
-/**
- * Check validity of device in configuration.
- *
- * @param config Configuration
- *
- * @retval   0  Device is known and supported
- * @retval  -1  Device is unknown/unsupported
- * @retval  -2  No device is set
- */
-static int checkDevice(ConfigStruct *config) {
-	if (config->device == NULL || *(config->device) == '\0' ) {
-		return -2;
-	}
-
-	if (strcmp(config->device, "LMG450") == 0) {
-		return 0;
-	}
-	else {
-		ERROR("Device \"%s\" is unknown and not supported.", config->device);
-		return -1;
-	}
-}
-
 /**
  * Split the port in the configuration into hostname and port component
  *  if needed.
@@ -490,11 +578,11 @@ static int checkDevice(ConfigStruct *config) {
  *
  * @retval   1  Nothing to do
  * @retval   0  Port splitted
- * @retval  -2  No port set
+ * @retval  -1  No port set
  */
 static int splitPort(ConfigStruct *config) {
 	if (config->port == NULL || *(config->port) == '\0' ) {
-		return -2;
+		return -1;
 	}
 
 	char *ptr = index(config->port, ':');
@@ -506,6 +594,29 @@ static int splitPort(ConfigStruct *config) {
 	config->host = config->port;
 	config->port = ptr + 1;
 	return 0;
+}
+
+/**
+ * Check validity of device in configuration.
+ *
+ * @param config Configuration
+ *
+ * @retval   0  Device is known and supported
+ * @retval  -1  No device is set
+ * @retval  -2  Device is unknown/unsupported
+ */
+static int checkDevice(ConfigStruct *config) {
+	if (config->device == NULL || *(config->device) == '\0' ) {
+		return -1;
+	}
+
+	if (strcmp(config->device, "LMG450") == 0) {
+		return 0;
+	}
+	else {
+		ERROR("Device \"%s\" is unknown and not supported.", config->device);
+		return -2;
+	}
 }
 
 /**
@@ -553,16 +664,22 @@ static int checkChannel(TraceStruct *trace, ConfigStruct *config) {
  *
  * @param filename
  * @param config
- * @return
+ *
+ * @return Error state
+ *
+ * @retval  0 OK
+ * @retval !0 Validation error.
  */
 int checkConfig(ConfigStruct *config) {
 	// TODO Add more consistency checks
 
 	int result = 0;
 
+	assert(result == OK);
+
 	result &= checkCycle(config);
 
-	for FOR_TRACES(config) {
+	FOR_TRACES(config->traces) {
 		result &= checkChannel(trace, config);
 	}
 
@@ -581,6 +698,11 @@ int checkConfig(ConfigStruct *config) {
  * @param config   Configuration
  *
  * @return Error state
+ *
+ * @retval ERR_MALLOC
+ * @retval ERR_FILE_NOT_FOUND
+ * @retval ERR_ERRNO
+ * @retval ERR_SYNTAX
  */
 int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
@@ -616,6 +738,18 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	cfile.filename = filename;
 	cfile.linenr = 0;
 	cfile.file = fopen(filename, "r");
+	if (cfile.file == NULL) {
+		assert(errno != EINVAL);
+		ERROR_ERRNO("Open configuration file: ");
+		switch (errno) {
+		case ENOMEM:
+			return ERR_MALLOC;
+		case ENOENT:
+			return ERR_FILE_NOT_FOUND;
+		default:
+			return ERR_ERRNO;
+		}
+	}
 
 
 	/*
@@ -628,7 +762,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		char errbuf[100]; \
 		regerror(ret,&re_section,errbuf,100); \
 		ERROR(errbuf); \
-		return ERR_UNKNOWN; \
+		assert(!"Error during compilation of regular expression."); \
 	}
 
 #define RE_SPACE "[[:space:]]*"
@@ -678,7 +812,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	REGEX_CLEANUP; \
 	fclose(cfile.file); \
 	free(line); \
-	return(ERR_SYNTAX); \
+	return ERR_SYNTAX; \
 	} while (0)
 
 
@@ -690,7 +824,16 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		int linenr;
 		char *line = getNextNonemptyLine(&cfile);
 		if (line == NULL) {
+
+			// check if there was an error
+			if (errno == ENOMEM) {
+				REGEX_CLEANUP;
+				fclose(cfile.file);
+				return ERR_MALLOC;
+			}
+
 			// nothing more to read, finish processing and exit loop
+
 			// if last section was [Trace] add the trace
 			// TODO this is duplicated code, avoid this
 			if (section == TRACE) {
@@ -789,12 +932,23 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 			}
 		}
 
+#undef RETURN_SYNTAX_ERROR
+
 #define COPY_STRING_VALUE_TO(target) \
 	do { \
-	value = (index(line,'=') + 1); \
-	removeTrailingSpaces(&value); \
-	target = malloc((strlen(value) + 1) * sizeof(*(target))); \
-	strcpy(target, value); \
+		value = (index(line,'=') + 1); \
+		removeTrailingSpaces(&value); \
+		target = malloc((strlen(value) + 1) * sizeof(*(target))); \
+		if (target == NULL) { \
+			ERROR_ERRNO(#target); \
+			REGEX_CLEANUP; \
+			fclose(cfile.file); \
+			free(line); \
+			if (section == TRACE) \
+				free(trace); \
+			return ERR_MALLOC; \
+		} \
+		strcpy(target, value); \
 	} while (0)
 
 #define IS_KEY(key) regexec(&re_key_##key, line, 0, NULL, 0) != REG_NOMATCH
@@ -806,6 +960,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 			/* "[:space:]*device[:space:]*=" */
 			if (IS_KEY(device)) {
 				COPY_STRING_VALUE_TO(config->device);
+				config->allocated.device = 1;
 				if (checkDevice(config) != 0)
 					return -1;
 			}
@@ -813,6 +968,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 			/* "[:space:]*port[:space:]*=" */
 			else if (IS_KEY(port)) {
 				COPY_STRING_VALUE_TO(config->port);
+				config->allocated.port = 1;
 				if (splitPort(config) < 0)
 					CFILE_WARN("Problem parsing port value");
 			}
@@ -827,11 +983,13 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 			/* "[:space:]*project[:space:]*=" */
 			else if (IS_KEY(project)) {
 				COPY_STRING_VALUE_TO(config->project);
+				config->allocated.project = 1;
 			}
 
 			/* "[:space:]*topology[:space:]*=" */
 			else if (IS_KEY(topology)) {
 				COPY_STRING_VALUE_TO(config->topo);
+				config->allocated.topo = 1;
 			}
 
 			else {
@@ -909,32 +1067,29 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 #undef CLEAN_SET
 #undef CFILE_ERROR
 #undef CFILE_WARN
-#undef RETURN_SYNTAX_ERROR
 #undef COPY_STRING_VALUE_TO
-}
-
-int doConfig(ConfigStruct config, ConfigStruct override, char *configfile) {
-
-
 }
 
 /**
  * Close files and free memory
+ *
+ * @param config  Configuration
  */
 void cleanupConfig(ConfigStruct *config) {
-	for FOR_TRACES(config)
-	{
-		if (trace->hdstats) {
-			hdS_finalize(trace->group);
-			hdT_destroyTopoNode(trace->tnode);
-		}
-		if (trace->actn)
-			free(trace->actn); // allocated in createTraces()
-	}
 
-	freeAllTraces(&(config->traces));
+#define FREE_VAR(var) if(config->allocated.var) free(config->var)
+
+	FREE_VAR(device);
+	FREE_VAR(port);
+	FREE_VAR(project);
+	FREE_VAR(topo);
+
+#undef FREE_VAR
+
 	if (config->topology)
 		hdT_destroyTopology(config->topology);
+
+	freeAllTraces(&(config->traces));
 }
 
 

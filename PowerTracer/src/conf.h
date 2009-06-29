@@ -45,6 +45,13 @@ typedef struct config_s {
 	TraceListStruct traces;
 	/** Response size in bytes expected from the device in each iteration */
 	size_t isize;
+	/** allocated components */
+	struct {
+		int device : 1;
+		int port : 1;
+		int project : 1;
+		int topo : 1;
+	} allocated;
 } ConfigStruct;
 
 
