@@ -81,12 +81,10 @@ struct ptlSources_s {
     unsigned int PTLSRC_NET_IN : 1;
     /** aggregated outgoing traffic of all network interfaces */
     unsigned int PTLSRC_NET_OUT : 1;
-#if 0
     /** amount of data written to hard disk drives */
     unsigned int PTLSRC_HDD_WRITE : 1;
     /** amount of data read from hard disk drives */
     unsigned int PTLSRC_HDD_READ : 1;
-#endif
 };
 
 /** Type definition of tracing sources bit field */
@@ -107,9 +105,15 @@ typedef struct ptlSources_s ptlSources;
 #define PTLSRC_SET_ALL(sources) \
 	PTLSRC_SET_CPU(sources) \
 	PTLSRC_SET_MEM(sources) \
-	PTLSRC_SET_NET(sources)
+	PTLSRC_SET_NET(sources) \
+	PTLSRC_SET_HDD(sources)
 
 /** Macro for setting/cleaning all CPU statistics at once */
+#define PTLSRC_SET_HDD__(sources, bool) \
+	(sources).PTLSRC_HDD_WRITE = bool; \
+	(sources).PTLSRC_HDD_READ = bool;
+
+/** Macro for setting/cleaning all HDD statistics at once */
 #define PTLSRC_SET_CPU__(sources, bool) \
 	(sources).PTLSRC_CPU_LOAD = bool; \
 	(sources).PTLSRC_CPU_LOAD_X = bool;
@@ -133,6 +137,9 @@ typedef struct ptlSources_s ptlSources;
 
 /** Macro for enabling tracing of all CPU statistics at once */
 #define PTLSRC_SET_CPU(sources) PTLSRC_SET_CPU__(sources, 1)
+
+/** Macro for enabling tracing of all HDD statistics at once */
+#define PTLSRC_SET_HDD(sources) PTLSRC_SET_HDD__(sources, 1)
 
 /** Macro for enabling tracing of all memory statistics at once */
 #define PTLSRC_SET_MEM(sources) PTLSRC_SET_MEM__(sources, 1)

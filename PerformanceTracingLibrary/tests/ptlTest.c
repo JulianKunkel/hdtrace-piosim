@@ -75,7 +75,8 @@ static void Test_C1(void)
 	mySources.PTLSRC_MEM_USED = 1;
 	mySources.PTLSRC_MEM_FREE = 1;
 	mySources.PTLSRC_MEM_BUFFER = 1;
-
+	mySources.PTLSRC_HDD_READ = 1;
+	mySources.PTLSRC_HDD_WRITE = 1;
 
 	TEST_BEGIN("ptl_createTrace: Correct usage");
 

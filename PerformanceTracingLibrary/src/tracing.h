@@ -14,6 +14,7 @@
 #include <glibtop/mem.h>
 #include <glibtop/netlist.h>
 #include <glibtop/netload.h>
+#include <glibtop/fsusage.h>
 
 #include "hdStats.h"
 #include "PTL.h"
@@ -34,6 +35,8 @@ typedef struct {
 	glibtop_cpu cpu;
 	glibtop_mem mem;
 	glibtop_netload *netload;
+	glibtop_fsusage fs;	
+	
 	guint64 net_ext_in;
 	guint64 net_ext_out;
 	guint64 net_all_in;

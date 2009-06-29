@@ -164,7 +164,12 @@ int initTracing(
 	if (sources.PTLSRC_NET_OUT)
 		ADD_VALUE(group, "NET_OUT", INT64, NET_UNIT, "NET");
 
+	if (sources.PTLSRC_HDD_WRITE)
+		ADD_VALUE(group, "HDD_WRITE", INT64, "Blocks", "WRITE");
 
+	if (sources.PTLSRC_HDD_READ)
+		ADD_VALUE(group, "HDD_READ", INT64, "Blocks", "READ");
+	
 	/*
 	 * Commit statistics group
 	 */
@@ -461,6 +466,41 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	tracingData->oldValues.net_all_out = net_all_out;
 
 
+
+	/**************************************************************************
+	 * DISK *
+	 */
+	glibtop_fsusage fs;
+	
+	if(tracingData->sources.PTLSRC_HDD_READ || tracingData->sources.PTLSRC_HDD_WRITE){
+	  // right now read from environment 	  
+	  char * disc = getenv("PTL_DISK_MONITOR");
+	  if(disc == NULL){	    
+	    disc = "/tmp";
+	    fprintf(stderr, "use environment variable PTL_DISK_MONITOR to monitor device, right now I will use %s\n", disc);
+	  }
+	  glibtop_get_fsusage (&fs, disc);
+	}
+	if (tracingData->oldValues.valid)
+	{
+	  if (tracingData->sources.PTLSRC_HDD_READ)
+	  {
+	    	valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
+		WRITE_I64_VALUE(valuei64)
+		fprintf(stderr,
+			"DISK_READ = %" G_GINT64_FORMAT "\n", valuei64);
+	  }
+	  
+	  if (tracingData->sources.PTLSRC_HDD_WRITE)
+	  {
+	    valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
+		WRITE_I64_VALUE(valuei64)
+		fprintf(stderr,
+			"DISK_WRITE = %" G_GINT64_FORMAT  "\n", valuei64);
+	  }
+	}
+	tracingData->oldValues.fs = fs;  
+	
 	/* mark old statistics values saved as valid */
 	tracingData->oldValues.valid = TRUE;
 
