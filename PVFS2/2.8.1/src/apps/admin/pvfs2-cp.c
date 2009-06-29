@@ -137,15 +137,7 @@ int main (int argc, char ** argv)
 
     PVFS_hint_import_env(& hints);
 
-//    // im MPI program:
-//    const char * levels[]={"Host", "Rank", "Thread"};
-//    hdTopology topology = hdT_createTopology("/tmp/kasten", levels, 3);
-//    const char * nodeP[]={"host0", "1", "0"};
-//    hdTopoNode topoNode = hdT_createTopoNode(topology, nodeP , 3);
-//    // ende MPI program
-    
     PVFS_HD_client_trace_initialize();
-    
     
     ret = PVFS_util_init_defaults();
     if (ret < 0)
