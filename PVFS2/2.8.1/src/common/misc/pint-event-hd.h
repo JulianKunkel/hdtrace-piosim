@@ -39,20 +39,13 @@ struct _hdHintRelationStructure{
 	hdR_token token;
 };
 
-#ifdef HAVE_HDTRACE
-	#define HD_SERVER_RELATION(facility, stmt) \
+#define HD_SERVER_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
-#else
-	#define HD_SERVER_RELATION (facility stmt)
-	#define HD_DESTROY_RELATION(facility, token) 
-#endif /* __HAVE_HDTRACE__*/
 
 typedef struct _hdHintRelationStructure hdHintRelation_t;
 typedef struct _hdHintRelationStructure * hdHintRelation_p;
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END];
-
-
 
 #define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility) PINT_HD_update_counter_inc(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility) PINT_HD_update_counter_dec(facility);
@@ -65,7 +58,6 @@ extern hdR_topoToken topoTokenArray[STATISTIC_END];
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count);
 
 #endif /* __PVFS2_SERVER__ */
-
 
 #define PINT_HD_UPDATE_COUNTER_INC(facility) PINT_HD_update_counter_inc(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC(facility) PINT_HD_update_counter_dec(facility);
@@ -85,7 +77,9 @@ int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count);
 #define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count);
 
-#endif /* __HAVE_HDTRACE__ */
+#define HD_SERVER_RELATION (facility stmt)
+#define HD_DESTROY_RELATION(facility, token) 
 
+#endif /* __HAVE_HDTRACE__ */
 
 #endif /* __PINT_EVENTHD_H */

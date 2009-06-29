@@ -31,7 +31,8 @@ typedef struct PVFS_hint_s
 {
     enum PINT_hint_type type;
     char *type_string;
-    char *value;
+//    char *value;
+    void * value;
     int32_t length;
 
     void (*encode)(char **pptr, void *value);

@@ -119,9 +119,9 @@ int PINT_HD_event_initalize(char * traceWhat)
 			{
 				const char *path[] = {hostname, hdFacilityNames[facilityNum], "0"};
 				topoNodeArray[facilityNum] = hdT_createTopoNode(topology, path, 3);
-				if (facilityNum != SERVER)
+//				if (facilityNum != SERVER)
 					testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
-				else if (facilityNum == SERVER)
+//				if (facilityNum == SERVER)
 					hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
 				break;
 			}
