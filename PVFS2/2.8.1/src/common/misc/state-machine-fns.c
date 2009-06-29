@@ -11,16 +11,16 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef __PVFS2_SERVER__
+#include "../../server/pvfs2-server.h"
+#include "pvfs2-req-proto.h"
+#endif
+
 #include "gossip.h"
 #include "pvfs2-debug.h"
 #include "state-machine.h"
 #include "client-state-machine.h"
 #include "hdRelation.h"
-
-#ifdef __PVFS2_SERVER__
-#include "pvfs2-server.h"
-#include "pvfs2-req-proto.h"
-#endif
 
 static int hd_sm_trace_enabled;
 
@@ -97,19 +97,21 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 		return SM_ACTION_DEFERRED;
 	}
 	
+	const char * attr_keys[] = {"size", "req-size"};
 	HD_STMT_TOKEN(
 #ifdef __PVFS2_SERVER__			
 			PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
-			switch(smcb->op){
-			case PVFS_SERV_IO:
+			switch(smcb->op)
+			{
+			case (PVFS_SERV_IO):
 				printf("%lld %lld \n", s_op->u.io.flow_d->result.bytemax, s_op->u.io.flow_d->result.bytes);
-				const char * attr_keys [] = {"size", "req-size"};
+//				const char * attr_keys[] = {"size", "req-size"};
 				char attr_values[2][15];
 				snprintf(attr_values[0], 15, "%lld", lld(s_op->u.io.flow_d->result.bytes));
 				snprintf(attr_values[1], 15, "%lld", lld(s_op->u.io.flow_d->result.bytemax));
 				hdR_end(smcb->smToken, 2, attr_keys, attr_values);
 				break;
-			case PVFS_SERV_SMALL_IO:
+			case (PVFS_SERV_SMALL_IO):
 				/* god damn it: s_op->u.small_io. */
 				hdR_endS(smcb->smToken);	
 				break;

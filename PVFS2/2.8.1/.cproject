@@ -55,6 +55,7 @@
 <listOptionValue builtIn="false" value="__PVFS2_SERVER__=1"/>
 <listOptionValue builtIn="false" value="__PVFS2_CLIENT__=1"/>
 <listOptionValue builtIn="false" value="HAVE_HDTRACE=1"/>
+<listOptionValue builtIn="false" value="HD_STMT_TOKEN=1"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1155716272" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>

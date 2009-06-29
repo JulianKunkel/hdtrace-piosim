@@ -68,22 +68,22 @@ int PVFS_HD_client_trace_initialize(void)
 {
 	checkHostname();
 	/* im MPI program */
-	const char * levels[]={"Host", "Rank", "Thread"};
-	topology = hdT_createTopology("/tmp/client", levels, 3);
+	const char * levels[]={"Host", "Rank"};
+	topology = hdT_createTopology("/tmp/client", levels, 2);
 	
 	// CLIENT
-	const char * nodeC[] = {hostname, hdFacilityNames[CLIENT], "0"};
-	topoNodeArray[CLIENT] = hdT_createTopoNode(topology, nodeC, 3);
+	const char * nodeC[] = {hostname, hdFacilityNames[CLIENT]};
+	topoNodeArray[CLIENT] = hdT_createTopoNode(topology, nodeC, 2);
 	hdR_initTopology(topoNodeArray[CLIENT], & topoTokenArray[CLIENT]);
 	
 	// BMI
-	const char * nodeB[] = {hostname, hdFacilityNames[BMI], "0"};
-	topoNodeArray[BMI] = hdT_createTopoNode(topology, nodeB, 3);
+	const char * nodeB[] = {hostname, hdFacilityNames[BMI]};
+	topoNodeArray[BMI] = hdT_createTopoNode(topology, nodeB, 2);
 	testInitFacilityStatisticTrace(topoNodeArray[BMI],BMI);
 	
 	// FLOW
-	const char * nodeF[] = {hostname, hdFacilityNames[FLOW], "0"};
-	topoNodeArray[FLOW] = hdT_createTopoNode(topology, nodeF, 3);
+	const char * nodeF[] = {hostname, hdFacilityNames[FLOW]};
+	topoNodeArray[FLOW] = hdT_createTopoNode(topology, nodeF, 2);
 	testInitFacilityStatisticTrace(topoNodeArray[FLOW],FLOW);
 	/* ende MPI program */ 
 	
@@ -106,8 +106,8 @@ int PINT_HD_event_initalize(char * traceWhat)
 	int i, count;
 	count = PINT_split_string_list(&event_list, traceWhat);
 
-	const char *levels[] = {"Hostname", "Layer", "Client"};
-	topology = hdT_createTopology("/tmp/MyProject", levels, 3);
+	const char *levels[] = {"Hostname", "Layer"};
+	topology = hdT_createTopology("/tmp/MyProject", levels, 2);
 
 	for(i=0; i < count; i++)
 	{
@@ -117,8 +117,8 @@ int PINT_HD_event_initalize(char * traceWhat)
 		{
 			if((strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0) && !hd_facilityTrace[facilityNum])
 			{
-				const char *path[] = {hostname, hdFacilityNames[facilityNum], "0"};
-				topoNodeArray[facilityNum] = hdT_createTopoNode(topology, path, 3);
+				const char *path[] = {hostname, hdFacilityNames[facilityNum]};
+				topoNodeArray[facilityNum] = hdT_createTopoNode(topology, path, 2);
 //				if (facilityNum != SERVER)
 					testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
 //				if (facilityNum == SERVER)
