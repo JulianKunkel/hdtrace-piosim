@@ -164,12 +164,11 @@ int initTracing(
 	if (sources.PTLSRC_NET_OUT)
 		ADD_VALUE(group, "NET_OUT", INT64, NET_UNIT, "NET");
 
-	if (sources.PTLSRC_HDD_WRITE)
-		ADD_VALUE(group, "HDD_WRITE", INT64, "Blocks", "WRITE");
-
 	if (sources.PTLSRC_HDD_READ)
 		ADD_VALUE(group, "HDD_READ", INT64, "Blocks", "READ");
 	
+	if (sources.PTLSRC_HDD_WRITE)
+		ADD_VALUE(group, "HDD_WRITE", INT64, "Blocks", "WRITE");
 	/*
 	 * Commit statistics group
 	 */
