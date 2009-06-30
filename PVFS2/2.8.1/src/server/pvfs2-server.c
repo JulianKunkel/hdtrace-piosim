@@ -1734,7 +1734,7 @@ int server_state_machine_start(
         	gen_mutex_init(& hintRelationToken->mutex);
         	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
         			hintRelationToken);
-        	printf("hintRelationToken->token : %p\n",hintRelationToken->token);
+        	//printf("hintRelationToken->token : %p\n",hintRelationToken->token);
         )
         
         ret = PINT_smcb_set_op(smcb, s_op->req->op);
