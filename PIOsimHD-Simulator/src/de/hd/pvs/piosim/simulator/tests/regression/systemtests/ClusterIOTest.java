@@ -31,6 +31,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 
 public class ClusterIOTest extends ClusterTest {
+	int serverNum = 5;
 	int clientNum = 10;
 	int fileNum = 10;
 	int iterNum = 10;
@@ -41,10 +42,10 @@ public class ClusterIOTest extends ClusterTest {
 		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
 
 		testMsg();
-		setup(clientNum, 1);
+		setup(clientNum, serverNum);
 
 		SimpleStripe dist = new SimpleStripe();
-		dist.setChunkSize(MBYTE);
+		dist.setChunkSize(elementSize);
 
 		for (int i = 0; i < fileNum; i++) {
 			files.add(aB.createFile("testfile" + i, 0, dist));
