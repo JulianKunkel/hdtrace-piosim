@@ -134,7 +134,7 @@ public class Communicator{
 		return comm_unique_ID;
 	}	
 	
-	public Collection<Integer> getParticipatingtRanks() {
+	public Collection<Integer> getParticipatingRanks() {
 		return participiants.keySet();
 	}
 	

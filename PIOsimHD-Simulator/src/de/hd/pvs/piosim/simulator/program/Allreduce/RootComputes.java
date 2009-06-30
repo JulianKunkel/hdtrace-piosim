@@ -42,7 +42,7 @@ public class RootComputes
 		final int RECV_DATA = 2;
 		//trivial implementation, all send to "rank 0" in this communicator which then sends result back. 
 
-		final Integer[] commParts =  cmd.getCommunicator().getParticipatingtRanks().toArray(new Integer[0]);
+		final Integer[] commParts =  cmd.getCommunicator().getParticipatingRanks().toArray(new Integer[0]);
 		
 		int rankZero = commParts[0];
 		

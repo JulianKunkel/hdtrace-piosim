@@ -103,7 +103,7 @@ public class ProgramBuilder {
 	}
 
 	public void addReadCollective(Communicator comm, MPIFile file, HashMap<Integer,Long> offsets, HashMap<Integer,Long> sizes) {
-		for (Integer rank : comm.getParticipatingtRanks()) {
+		for (Integer rank : comm.getParticipatingRanks()) {
 			Filereadall com = new Filereadall(comm);
 			com.setFile(file);
 
@@ -115,7 +115,7 @@ public class ProgramBuilder {
 	}
 
 	public void addWriteCollective(Communicator comm, MPIFile file, HashMap<Integer,Long> offsets, HashMap<Integer,Long> sizes) {		
-		for (Integer rank : comm.getParticipatingtRanks()) {
+		for (Integer rank : comm.getParticipatingRanks()) {
 			Filewriteall com = new Filewriteall(comm);
 			com.setFile(file);
 			

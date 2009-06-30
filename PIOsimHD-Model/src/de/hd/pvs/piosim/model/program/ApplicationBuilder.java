@@ -155,7 +155,7 @@ public class ApplicationBuilder {
 		cmd.setCommunicator(comm);
 		
 		// add communicator for all participating programs.
-		for(Integer i: app.getCommunicator(comm.getName()).getParticipatingtRanks()){			
+		for(Integer i: app.getCommunicator(comm.getName()).getParticipatingRanks()){
 			addCommand(i, (Command) cmd);
 		}
 	}

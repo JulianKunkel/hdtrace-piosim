@@ -55,7 +55,7 @@ public class ClusterIOTest extends ClusterTest {
 		}
 
 		for (int i = 0; i < iterNum; i++) {
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingtRanks()) {
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
 					pb.addWriteSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
 					pb.addReadSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
@@ -68,7 +68,7 @@ public class ClusterIOTest extends ClusterTest {
 				HashMap<Integer, Long> offsets = new HashMap<Integer, Long>();
 				HashMap<Integer, Long> sizes = new HashMap<Integer, Long>();
 
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingtRanks()) {
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 					offsets.put(rank, (long) ((i * clientNum) + rank) * elementSize);
 					sizes.put(rank, (long) elementSize);
 				}
