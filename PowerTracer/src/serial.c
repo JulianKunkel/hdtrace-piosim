@@ -8,15 +8,19 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <string.h>
 #include <sys/select.h>
+#include <assert.h>
 
 #include "ptError.h"
 
-/*
+/**
  * Open serial port.
  *
- * Return:
- * - the file descriptor (>=0)
- * - ERR_ERRNO (open())
+ * @param device  Name of the device file of the serial port to open
+ *
+ * @return  File descriptor or error
+ *
+ * @retval     >=0     File descriptor
+ * @retval  ERR_ERRNO  Error in system library call with errno set (open())
  */
 int serial_openPort(char *device)
 {
@@ -31,21 +35,24 @@ int serial_openPort(char *device)
 
     fcntl(fd, F_SETFL, 0);
 
-    /* TODO: Clear input and output buffers */
+    /* TODO Clear input and output buffers,
+     *  more than tcflush will do in setup (if possible).
+     *  It seems that there could be old data in the buffers from other
+     *  programs or previous run. */
 
     return (fd);
 }
 
-/*
+/**
  * Setup serial port.
  *
- * Return:
- * - OK
- * - ERR_ERRNO (tcgetattr(),
- *              cfsetispeed(),
- *              cfsetospeed(),
- *              tcsetattr(),
- *              tcflush())
+ * @param fd        File descriptor of the serial port
+ * @param baudrate  Baudrate to use.
+ *
+ * @retval     OK      Success
+ * @retval  ERR_ERRNO  Error in system library call with errno set
+ *                     (tcgetattr(), cfsetispeed(), cfsetospeed(), tcsetattr(),
+ *                      tcflush())
  */
 int serial_setupPort(int fd, int baudrate)
 {
@@ -171,13 +178,15 @@ int serial_setupPort(int fd, int baudrate)
     return(OK);
 }
 
-/*
+/**
  * Send a Message.
  *
- * Return:
- * - OK
- * - ERR_ERRNO (write())
- * - ERR_WRITE
+ * @param fd        File descriptor of the serial port
+ * @param msg       String to send
+ *
+ * @retval     OK      Success
+ * @retval  ERR_ERRNO  Error in system library call with errno set (write())
+ * @retval  ERR_WRITE  Not the whole message could be written
  */
 int serial_sendMessage(int fd, const char *msg)
 {
@@ -217,12 +226,14 @@ int serial_sendMessage(int fd, const char *msg)
     return(0);
 }
 
-/*
+/**
  * Send a BREAK.
  *
- * Return:
- * - OK
- * - ERR_ERRNO (tcsendbreak)
+ * @param fd        File descriptor of the serial port
+ *
+ * @retval     OK      Success
+ * @retval  ERR_ERRNO  Error in system library call with errno set
+ *                     (tcsendbreak())
  */
 int serial_sendBreak(int fd)
 {
@@ -238,13 +249,20 @@ int serial_sendBreak(int fd)
     return(OK);
 }
 
-/*
+/**
  * Reads exact the next bsize bytes from fd
  * using select with timeout in seconds.
  *
- * Return:
- * - Number of bytes read
- * - ERR_ERRNO (select(), read())
+ * @param fd        File descriptor of the serial port
+ * @param tv_sec    Timeout for select
+ * @param buffer    Buffer to store read bytes in
+ * @param bsize     Number of bytes to read
+ *
+ * @return  Number of bytes read or error
+ *
+ * @retval     >=0     Number of bytes read
+ * @retval  ERR_ERRNO  Error in system library call with errno set
+ *                     (select(), read())
  */
 int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize)
 {
@@ -306,16 +324,29 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize)
     }
 }
 
-/*
+/**
  * Close serial port.
  *
- * Return:
- * - OK
- * - ERR_ERRNO (close())
+ * @param fd        File descriptor of the serial port
+ *
+ * @return  Error state
+ *
+ * @retval     OK      Success
+ * @retval  ERR_ERRNO  Error in system library call with errno set (close())
  */
 int serial_closePort(int fd)
 {
     int ret;
+
+    /*
+     * Cleanup buffers (esp. for error case)
+     */
+    ret = tcflush(fd, TCIOFLUSH);
+    if(ret != 0)
+    {
+        ERROR_ERRNO("tcflush()");
+        return(ERR_ERRNO);
+    }
 
     /*
      * Close serial port

@@ -27,6 +27,9 @@
 #define ERR_NO_TRACES  -40
 #define ERR_HDLIB      -41
 
+/* trace_interation() */
+#define ERR_MSGSIZE    -50
+
 /* Macro for generate non fatal warnings */
 #define WARN(msg, ...) error(0,0, "WARNING: " msg, ## __VA_ARGS__)
 

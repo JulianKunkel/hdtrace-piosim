@@ -23,9 +23,17 @@
  */
 static struct timeval tv_start;
 
-/*
+/**
  * Read data of one measuring iteration,
  *  split, prepare and write into the files
+ *
+ * @param serial_fd  File descriptor of the serial port connected to the device
+ * @param config     Configuration
+ *
+ * @return Error state
+ *
+ * @retval OK           Success
+ * @retval ERR_MSGSIZE  Message from device has unexpected size
  */
 static
 int trace_iteration(int serial_fd, ConfigStruct *config)
@@ -52,7 +60,7 @@ int trace_iteration(int serial_fd, ConfigStruct *config)
     if (ret != isize)
     {
         ERROR("Unexpected response size.");
-        return(ERR_CUSTOM);
+        return(ERR_MSGSIZE);
     }
 
 
@@ -76,8 +84,7 @@ int trace_iteration(int serial_fd, ConfigStruct *config)
 			assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
 			assert(errno != HDS_ERR_UNEXPECTED_ARGVALUE);
 			assert(errno != HDS_ERR_ENTRY_STATE);
-			ERROR_UNKNOWN;
-			return ERR_UNKNOWN;
+			assert(!"Unknown return value from hdS_writeEntry()");
     	}
 
         /* set bufptr to the start of the next trace's part */
@@ -148,11 +155,9 @@ int trace_data(
     {
         case MODE_BIN:
             ret = serial_sendMessage(serial_fd, "FRMT PACKED");
-            SERIAL_SENDMESSAGE_RETURN_CHECK;
             break;
         case MODE_ASCII:
             ret = serial_sendMessage(serial_fd, "FRMT ASCII");
-            SERIAL_SENDMESSAGE_RETURN_CHECK;
             break;
     }
     SERIAL_SENDMESSAGE_RETURN_CHECK;
@@ -199,6 +204,7 @@ int trace_data(
             break;
         }
 
+        /* input from standard input ready */
         if (FD_ISSET(stdin_fd, &input))
         {
             switch(getchar())
@@ -214,6 +220,7 @@ int trace_data(
             }
         }
 
+        /* input from device ready */
         if (FD_ISSET(serial_fd, &input))
         {
             ret = trace_iteration(serial_fd, config);
@@ -221,16 +228,15 @@ int trace_data(
             {
                 case OK:
                     break;
-                case ERR_ERRNO: /* read(), readBytes() */ \
-                case ERR_BSIZE: \
-                case ERR_NO_MSG: \
-                case ERR_MSG_FORMAT: \
-                case ERR_UNKNOWN: \
-                case ERR_CUSTOM: \
-                    return(ret); \
-                default: \
-                    ERROR_UNKNOWN; \
-                    return(ERR_UNKNOWN); \
+                case ERR_ERRNO: /* read(), readBytes() */
+                case ERR_BSIZE:
+                case ERR_NO_MSG:
+                case ERR_MSG_FORMAT:
+                case ERR_UNKNOWN:
+                case ERR_CUSTOM:
+                    return(ret);
+                default:
+					assert(!"Unknown return value from trace_iteration()");
             }
         }
     }
@@ -642,6 +648,8 @@ int main(int argc, char **argv)
 
     ret = puts(buffer);
     assert(ret != EOF);
+
+    memset(buffer, '\0', 255);
 
     ret = test_binmode(serial_fd);
     if (ret != OK) {

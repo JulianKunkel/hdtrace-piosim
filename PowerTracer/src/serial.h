@@ -24,8 +24,7 @@ int serial_closePort(int fd);
                         /* tcsetattr(), tcflush()                     */ \
            return(ret); \
         default: \
-            ERROR_UNKNOWN; \
-            return(ERR_UNKNOWN); \
+			assert(!"Unknown return value from serial_setupPort()."); \
     } } while (0)
 
 #define SERIAL_SENDMESSAGE_RETURN_CHECK \
@@ -37,8 +36,7 @@ int serial_closePort(int fd);
         case ERR_WRITE: \
            return(ret); \
         default: \
-            ERROR_UNKNOWN; \
-            return(ERR_UNKNOWN); \
+			assert(!"Unknown return value from serial_sendMessage()."); \
     } } while (0)
 
 #define SERIAL_SENDBREAK_RETURN_CHECK \
@@ -49,8 +47,7 @@ int serial_closePort(int fd);
         case ERR_ERRNO: /* tcsendbreak() */ \
            return(ret); \
         default: \
-            ERROR_UNKNOWN; \
-            return(ERR_UNKNOWN); \
+			assert(!"Unknown return value from serial_sendBreak()."); \
     } } while (0)
 
 #define SERIAL_READBYTES_ERROR_CHECK \
@@ -59,8 +56,7 @@ int serial_closePort(int fd);
         case ERR_ERRNO: /* select(), read() */ \
             return(ret); \
         default: \
-            ERROR_UNKNOWN; \
-            return(ERR_UNKNOWN); \
+			assert(!"Unknown return value from serial_readBytes()."); \
     } } while (0)
 
 #define SERIAL_CLOSEPORT_RETURN_CHECK \
@@ -71,8 +67,7 @@ int serial_closePort(int fd);
 		case ERR_ERRNO: \
 			return(ret); \
 		default: \
-			ERROR_UNKNOWN; \
-			return(ERR_UNKNOWN); \
+			assert(!"Unknown return value from serial_closePort()."); \
 	} } while (0)
 
 #endif /* SERIAL_H */

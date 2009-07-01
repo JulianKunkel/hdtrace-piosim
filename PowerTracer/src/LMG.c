@@ -2,6 +2,7 @@
 
 #include <stdio.h>   /* Standard input/output definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <assert.h>
 
 #include "ptError.h"
 #include "serial.h"
@@ -13,7 +14,6 @@
  * - OK
  * - ERR_ERRNO (serial_sendbreak(), serial_sendMessage())
  * - ERR_WRITE
- * - ERR_UNKNOWN
  */
 int LMG_reset(int fd)
 {
@@ -52,7 +52,6 @@ int LMG_reset(int fd)
  * - OK
  * - ERR_ERRNO (LMG_reset(), serial_sendMessage())
  * - ERR_WRITE
- * - ERR_UNKNOWN
  */
 int LMG_setup(int fd)
 {
@@ -81,7 +80,6 @@ int LMG_setup(int fd)
  * - ERR_ERRNO (serial_sendMessage(), serial_readMessage())
  * - ERR_BSIZE
  * - ERR_WRITE
- * - ERR_UNKNOWN
  */
 int LMG_getIdentity(int fd, char buffer[], size_t bsize)
 {
@@ -181,7 +179,6 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
  * - ERR_NO_MSG
  * - ERR_MSG_FORMAT
  * - ERR_BSIZE
- * - ERR_UNKNOWN
  */
 int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
 {
@@ -301,7 +298,6 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
  * - ERR_ERRNO (serial_sendMessage(), serial_readMessage())
  * - ERR_BSIZE
  * - ERR_WRITE
- * - ERR_UNKNOWN
  */
 int LMG_getAllErrors(int fd, char buffer[], size_t bsize)
 {
@@ -336,7 +332,6 @@ int LMG_getAllErrors(int fd, char buffer[], size_t bsize)
  * - OK
  * - ERR_ERRNO (serial_sendMessage(), serial_readMessage())
  * - ERR_WRITE
- * - ERR_UNKNOWN
  */
 int LMG_close(int fd)
 {
