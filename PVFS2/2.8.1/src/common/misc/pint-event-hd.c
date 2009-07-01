@@ -97,9 +97,6 @@ int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode)
 		return -1;
 	}
 
-	createTopologyNode(CLIENT, depth, parentNode);
-	hdR_initTopology(topoNodeArray[CLIENT], & topoTokenArray[CLIENT]);
-
 	// getenv, PVFS2_HD_TRACE_CLIENT=BMI,JOB,STATEMACHINE ...
 	const char * clientTraceNames = getenv("PVFS2_HD_TRACE_CLIENT");
 	
@@ -113,11 +110,22 @@ int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode)
 		count = PINT_split_string_list(&event_list, clientTraceNames);
 
 		for (i = 0; i < count; i++){
-			if (!strcasecmp(event_list[i],"BMI")){
+			
+			if (!strcasecmp(event_list[i],"CLIENT"))
+			{
+			createTopologyNode(CLIENT, depth, parentNode);
+			hdR_initTopology(topoNodeArray[CLIENT], & topoTokenArray[CLIENT]);
+			}
+			
+			if (!strcasecmp(event_list[i],"BMI"))
+			{
 				createTopologyNode(BMI, depth, parentNode);
 				testInitFacilityStatisticTrace(topoNodeArray[BMI], BMI);
 			}
-			if (!strcasecmp(event_list[i],"FLOW")){
+			
+			
+			if (!strcasecmp(event_list[i],"FLOW"))
+			{
 				createTopologyNode(FLOW, depth, parentNode);
 				testInitFacilityStatisticTrace(topoNodeArray[FLOW], FLOW);
 			}
