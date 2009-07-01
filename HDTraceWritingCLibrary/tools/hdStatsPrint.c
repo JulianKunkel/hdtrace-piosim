@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 		order_bytes32ip(((int32_t *) value) + 1);
 
 		/* print timestamp */
-		printf("%010d,%09d : ", *((int32_t *) value),
+		printf("%010d.%09d : ", *((int32_t *) value),
 				*(((int32_t *) value) + 1));
 
 		/* read values */

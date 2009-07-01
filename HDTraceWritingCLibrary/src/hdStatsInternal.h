@@ -102,6 +102,11 @@ struct _hdStatsGroup {
      * Buffer for creating header and collecting entries
      */
     char *buffer;
+    
+    /**
+     * For debugging, copy the current time to this struct, the file expects the time to be increasing.
+     */ 
+    struct timeval tv;
 };
 
 

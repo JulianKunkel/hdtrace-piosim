@@ -234,6 +234,7 @@ hdStatsGroup hdS_createGroup (
 	/* create group */
 	hdStatsGroup group;
 	hd_malloc(group, 1, NULL);
+	memset(group, 0, sizeof(*group));
 
 	/* setup group buffer for header */
     hd_malloc(group->buffer, HDS_HEADER_BUF_SIZE, NULL);
@@ -1330,6 +1331,13 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
 	/* convert to seconds and nanoseconds */
 	int32_t sec = (int32_t) tv.tv_sec;
 	int32_t nsec = (int32_t) tv.tv_usec * 1000;
+	
+	/* compare the old time with the new time */
+	if(group->tv.tv_sec > tv.tv_sec || (group->tv.tv_sec == tv.tv_sec && group->tv.tv_usec > tv.tv_usec)){
+	   fprintf(stderr,"[HDSTATS], error, time is not increasing, last time >= current time");
+	}else{
+	  memcpy(&group->tv, & tv, sizeof(struct timeval));
+	}
 
 	/* assure the timestamp will have the correct length */
 	assert(sizeof(sec) + sizeof(nsec) == HDS_TIMESTAMP_LENGTH);
@@ -1348,7 +1356,7 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
 
 	memcpy(group->buffer + group->offset, &(nsec), sizeof(nsec));
 	group->offset += (int) sizeof(nsec);
-
+	
 	return 0;
 }
 
