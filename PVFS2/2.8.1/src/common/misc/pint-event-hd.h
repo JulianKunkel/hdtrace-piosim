@@ -52,7 +52,28 @@ extern hdR_topoToken topoTokenArray[STATISTIC_END];
 #define PINT_HD_UPDATE_COUNTER_INC_MULTIPLE_SERVER(facility, count) PINT_HD_update_counter_inc_multiple(facility, count);
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(facility, count) PINT_HD_update_counter_dec_multiple(facility, count);
 
-#else /* CLIENT */
+#else /* CLIENT inside PVFS2 OR external client application */
+/**
+ * Traceable facilities
+ */
+typedef enum {
+	BMI, 
+	FLOW,
+	CLIENT,
+	STATISTIC_END,
+	NET, MEM, CPU, DISC,
+	ALL_FACILITIES
+} HD_Trace_Facility;
+
+
+
+
+#define HD_CLIENT_RELATION(facility, stmt) \
+	do{ if(topoTokenArray[facility]){ stmt } } while(0);
+
+extern hdR_topoToken topoTokenArray[STATISTIC_END];
+
+int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode);
 
 #define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility);

@@ -10,27 +10,7 @@
 
 #ifdef HAVE_HDTRACE
 
-#include "pint-event.h"
-#include "hdRelation.h"
-
-/**
- * Traceable facilities
- */
-typedef enum {
-	BMI, 
-	FLOW,
-	CLIENT,
-	STATISTIC_END,
-	NET, MEM, CPU, DISC,
-	ALL_FACILITIES
-} HD_Trace_Facility;
-
-#define HD_CLIENT_RELATION(facility, stmt) \
-	do{ if(topoTokenArray[facility]){ stmt } } while(0);
-
-extern hdR_topoToken topoTokenArray[STATISTIC_END];
-
-int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode);
+#include "pint-event.h" 
 
 #endif /* __HAVE_HDTRACE__ */
 

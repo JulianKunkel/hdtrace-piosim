@@ -13,7 +13,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
 #include "hdTopo.h"
+#include "hdRelation.h"
 
 #ifdef HAVE_HDPTL
 #include "PTL.h"
