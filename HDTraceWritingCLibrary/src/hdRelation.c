@@ -156,6 +156,11 @@ struct _hdR_token{
 	 * Topology ID, unique for this process
 	 */
 	hdR_topoToken topoToken;
+
+	/**
+	 * Number of start/state - end/state
+	 */ 
+	int startStates;
 };
 
 /**
@@ -404,6 +409,7 @@ static inline hdR_token createToken(hdR_topoToken topoToken){
 
 	token->id = lastTokenNumber++;
 	token->topoToken = topoToken;
+	token->startStates = 0;
 
 	return token;
 }
@@ -479,7 +485,10 @@ int hdR_destroyRelation(hdR_token * token){
 	writeToBuffer((*token)->topoToken, "/>");
 
 	// free token
-
+	if((*token)->startStates > 0){
+	   fprintf(stderr, "[HDRelation] Warning, there are unfinished state starts (count: %d)!\n", (*token)->startStates);
+	}
+	
 	free(*token);
 	*token = NULL;
 
@@ -508,6 +517,7 @@ static int hdR_starti(hdR_token token, const char * name, int attr_count, const 
 	if(buffer != NULL){
 		writeToBuffer(token->topoToken, "%s</s>", buffer);
 	}
+	token->startStates++;
 	return 0;
 }
 
@@ -516,6 +526,10 @@ static int hdR_endi(hdR_token token, int attr_count, const char** attr_keys, con
 	writeAttributesAndTime(token, attr_count, attr_keys, attr_values, buffer == NULL);
 	if(buffer != NULL){
 		writeToBuffer(token->topoToken, "%s</e>", buffer);
+	}
+	token->startStates--;
+	if(token->startStates < 0){
+	   fprintf(stderr, "[HDRelation] Warning, more end states than start states!\n");
 	}
 	return 0;
 }
