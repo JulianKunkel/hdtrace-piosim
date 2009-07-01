@@ -58,11 +58,18 @@
 #include "hdTopo.h"
 #include "hdMPITracer.h"
 
+#include "pkg-config.h"
+
 #ifdef USE_PERFORMANCE_TRACE
 #include "PTL.h"
 
 static PerfTrace pStatistics = NULL;
 #endif
+
+#ifdef ENABLE_PVFS2_INTERNAL_TRACING
+#include "pint-event-hd.h"
+#endif
+
 
 /**
  * This is a global variable that regulates whether all functions listed in
@@ -380,6 +387,22 @@ static void after_Init(int *argc, char ***argv)
         	pStatistics = NULL;
         }
 
+#endif
+
+#ifdef ENABLE_PVFS2_INTERNAL_TRACING
+
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+        char hostname[HOST_NAME_MAX];
+
+         // create labels and values for the project topology
+         gethostname(hostname, HOST_NAME_MAX);
+         const char *levels[2] = {hostname, rank};
+
+        hdTopoNode pvfs2parentNode = hdT_createTopoNode(topology, levels, 2);
+
+        PVFS_HD_client_trace_initialize(topology, pvfs2parentNode);
 #endif
 }
 
