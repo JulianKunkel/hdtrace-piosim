@@ -204,6 +204,14 @@ AC_SUBST(GLIB_LDADD)
 
 CFLAGS+=" $(getconf LFS_CFLAGS)"
 
+
+# create sub directories in build folder:
+AS_MKDIR_P(doc/doxygen)
+AS_MKDIR_P(src)
+AS_MKDIR_P(include)
+AS_MKDIR_P(lib)
+
+
 SHAVE_INIT([config], [enable])
 
 AC_CONFIG_FILES([config/shave
@@ -212,12 +220,5 @@ AC_CONFIG_FILES([config/shave
 		 lib/Makefile
          test/HDTests/Makefile
          test/Makefile])
-
-# create sub directories in build folder:
-AS_MKDIR_P(doc/doxygen)
-AS_MKDIR_P(src)
-AS_MKDIR_P(include)
-AS_MKDIR_P(lib)
-
 
 AC_OUTPUT
