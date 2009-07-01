@@ -4,7 +4,20 @@
 
 AC_PREREQ(2.61)
 AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
-#AC_CONFIG_SRCDIR([src/common.c])
+
+AC_CONFIG_SRCDIR([src/])
+AC_CONFIG_HEADER([src/pkgconfig.h])
+
+# additional m4 files are found here:
+AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_MACRO_DIR([config])
+
+# Initialize automake
+AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.10])
+
+# Enable libtool programming and disable shared libraries
+AM_DISABLE_SHARED
+AM_PROG_LIBTOOL
 
 AS_BOURNE_COMPATIBLE
 
@@ -28,11 +41,6 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([gethostname strrchr])
-
-AC_CONFIG_FILES([Makefile
-                 test/HDTests/Makefile
-                 test/Makefile])
-
 
 dnl ----------------------------------------------------------------------
 dnl Define configure commandline flags
@@ -74,50 +82,22 @@ AC_ARG_ENABLE(asserts,
 	     )
 
 
-dnl ----------------------------------------------------------------------
-dnl Check for a suitable glib
-dnl ----------------------------------------------------------------------
+       
+# PVFS2 path:
+dnl set the pvfs2 library path
+AC_ARG_WITH(hdPVFS2,
+[  --with-hdPVFS2=path         Use modified (hd)-PVFS2 library installed in "path" to enable client-internal PVFS2 tracing],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-PVFS2 must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       CPPFLAGS="$CPPFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       
+       AC_DEFINE(ENABLE_PVFS2_INTERNAL_TRACING, 1, [Define if PVFS2 enabled tracing shall be used])
 
-GLIB_PRESENT=NO
-GLIB_LDADD=
-
-AM_PATH_GLIB_2_0([2.16.6],[GLIB_PRESENT=YES],[GLIB_PRESENT=NO],[gthread])
-
-AC_ARG_WITH(glib-static,
-	    AC_HELP_STRING([--with-glib-static=prefix],[use static glib tree (prefix is REQUIRED)]),
-	    [
-	     if ! echo "${withval}" | grep '^/'
-	     then
-	         withval="$(pwd)/${withval}"
-	     fi
-	     GLIB_STATIC_LIBGLIB2_A="${withval}/lib/libglib-2.0.a"
-	     GLIB_STATIC_LIBGTHREAD2_A="${withval}/lib/libgthread-2.0.a"
-	     GLIB_STATIC_INCLUDE="${withval}/include/glib-2.0"
-	     GLIB_STATIC_LIBINCLUDE="${withval}/lib/glib-2.0/include"
-	     if test -f ${GLIB_STATIC_LIBGLIB2_A} -a -f ${GLIB_STATIC_LIBGTHREAD2_A}
-    	     then
-		     if test -f "${GLIB_STATIC_INCLUDE}/glib.h"
-		     then
-			     GLIB_LDADD="${GLIB_STATIC_LIBGTHREAD2_A} ${GLIB_STATIC_LIBGLIB2_A}"
-			     GLIB_CFLAGS="-I${GLIB_STATIC_INCLUDE} -I${GLIB_STATIC_LIBINCLUDE}"
-			     # TODO: Do we need to do some pthreads stuff here?
-			     AC_SUBST(GLIB_LIBS)   # override the one by AM_PATH_GLIB_2_0
-			     AC_SUBST(GLIB_CFLAGS)
-			     GLIB_PRESENT=YES
-			     AC_MSG_NOTICE([assuming static glib in ${withval} is good...])
-		     fi
-	     fi
-	    ]
-	   )
-
-if test "$GLIB_PRESENT" != "YES"
-then
-	AC_MSG_ERROR([Cannot find a suitable glib2 (>= 2.16.6)])
-fi
-
-AC_SUBST(GLIB_LDADD)
-
-AC_CHECK_HEADERS(glib.h,, AC_MSG_ERROR(Cannot find glib.h use --with-glib-static))
+    fi
+)
 
 # HDTrace path:
 dnl set the hdtrace library path
@@ -175,12 +155,69 @@ AC_ARG_WITH(hdperftrace,
     fi
 )
 
+
+
+
+dnl ----------------------------------------------------------------------
+dnl Check for a suitable glib
+dnl ----------------------------------------------------------------------
+
+GLIB_PRESENT=NO
+GLIB_LDADD=
+
+AM_PATH_GLIB_2_0([2.16.6],[GLIB_PRESENT=YES],[GLIB_PRESENT=NO],[gthread])
+
+AC_ARG_WITH(glib-static,
+	    AC_HELP_STRING([--with-glib-static=prefix],[use static glib tree (prefix is REQUIRED)]),
+	    [
+	     if ! echo "${withval}" | grep '^/'
+	     then
+	         withval="$(pwd)/${withval}"
+	     fi
+	     GLIB_STATIC_LIBGLIB2_A="${withval}/lib/libglib-2.0.a"
+	     GLIB_STATIC_LIBGTHREAD2_A="${withval}/lib/libgthread-2.0.a"
+	     GLIB_STATIC_INCLUDE="${withval}/include/glib-2.0"
+	     GLIB_STATIC_LIBINCLUDE="${withval}/lib/glib-2.0/include"
+	     if test -f ${GLIB_STATIC_LIBGLIB2_A} -a -f ${GLIB_STATIC_LIBGTHREAD2_A}
+    	     then
+		     if test -f "${GLIB_STATIC_INCLUDE}/glib.h"
+		     then
+			     GLIB_LDADD="${GLIB_STATIC_LIBGTHREAD2_A} ${GLIB_STATIC_LIBGLIB2_A}"
+			     GLIB_CFLAGS="-I${GLIB_STATIC_INCLUDE} -I${GLIB_STATIC_LIBINCLUDE}"
+			     # TODO: Do we need to do some pthreads stuff here?
+			     AC_SUBST(GLIB_LIBS)   # override the one by AM_PATH_GLIB_2_0
+			     AC_SUBST(GLIB_CFLAGS)
+			     GLIB_PRESENT=YES
+			     AC_MSG_NOTICE([assuming static glib in ${withval} is good...])
+		     fi
+	     fi
+	    ]
+	   )
+
+if test "$GLIB_PRESENT" != "YES"
+then
+	AC_MSG_ERROR([Cannot find a suitable glib2 (>= 2.16.6)])
+fi
+
+AC_SUBST(GLIB_LDADD)
+
+
 CFLAGS+=" $(getconf LFS_CFLAGS)"
+
+SHAVE_INIT([config], [enable])
+
+AC_CONFIG_FILES([config/shave
+		 config/shave-libtool
+		 Makefile
+		 lib/Makefile
+         test/HDTests/Makefile
+         test/Makefile])
 
 # create sub directories in build folder:
 AS_MKDIR_P(doc/doxygen)
 AS_MKDIR_P(src)
 AS_MKDIR_P(include)
 AS_MKDIR_P(lib)
+
 
 AC_OUTPUT
