@@ -67,7 +67,7 @@ static PerfTrace pStatistics = NULL;
 #endif
 
 #ifdef ENABLE_PVFS2_INTERNAL_TRACING
-#include "pint-event-hd.h"
+#include "pint-event-hd-client.h"
 #endif
 
 
@@ -323,6 +323,7 @@ static void after_Init(int *argc, char ***argv)
 	hdMPI_threadInitTracing();
 
 #ifdef USE_PERFORMANCE_TRACE
+	{
 	/* JK: use the powertracer, the powertracer must be started only once per node */
 	/* therefore determine full qualified hostname and send it to all other ranks */
 	/* the rank with the lowest number on each host starts the powertrace */
@@ -386,23 +387,26 @@ static void after_Init(int *argc, char ***argv)
         }else{
         	pStatistics = NULL;
         }
-
+	}
 #endif
 
 #ifdef ENABLE_PVFS2_INTERNAL_TRACING
-
+        {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
         char hostname[HOST_NAME_MAX];
+        char rankStr[20];
 
-         // create labels and values for the project topology
-         gethostname(hostname, HOST_NAME_MAX);
-         const char *levels[2] = {hostname, rank};
+        // create labels and values for the project topology
+        gethostname(hostname, HOST_NAME_MAX);
+        strncpy(rankStr, 20, "%d", rank);
+        const char *levels[2] = {hostname, rankStr};
 
         hdTopoNode pvfs2parentNode = hdT_createTopoNode(topology, levels, 2);
 
         PVFS_HD_client_trace_initialize(topology, pvfs2parentNode);
+        }
 #endif
 }
 
