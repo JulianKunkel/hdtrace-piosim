@@ -3176,7 +3176,7 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
 	 * mutex freigeben 
 	 */
 #ifdef __PVFS2_SERVER__
-    HD_SERVER_RELATION(SERVER,
+//    HD_SERVER_RELATION(SERVER,
 		hdHintRelation_p parentHintRelationToken = 
 			PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
     	hdR_token token3 = NULL;
@@ -3194,7 +3194,7 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
     		printf("job_trove_dspace_create() :\n");
 //    	gen_mutex_unlock(& parentHintRelationToken->mutex);
     	}
-    )
+//    )
 #endif /* __PVFS2_SERVER__ */
 	
     /* post a dspace create.  If it completes (or fails) immediately, then
@@ -3912,28 +3912,28 @@ int job_trove_fs_geteattr(PVFS_fs_id coll_id,
                           PVFS_hint hints)
 {
 	
-//#ifdef __PVFS2_SERVER__
-//    HD_SERVER_RELATION(SERVER,
-//		hdHintRelation_p parentHintRelationToken = 
-//			PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
-////    	hdHintRelation_p kindHintRelationToken = malloc(sizeof(hdHintRelation_t));
-//    	hdR_token token3 = NULL;
-//    	if (topoTokenArray[JOB] && parentHintRelationToken->token != NULL)
-//    	{
-//    	token3 = hdR_relateProcessLocalToken(topoTokenArray[JOB], parentHintRelationToken->token);
-//    	printf("job_trove_fs_geteattr !\n");
-//    	}
-//    	if(token3)
-//    	{
-//    		printf("job_trove_fs_geteattr() :\n");
-//    	
-//    	gen_mutex_unlock(& parentHintRelationToken->mutex);
-////    	gen_mutex_init(& kindHintRelationToken->mutex);
-////    	PVFS_hint_add(&hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
-////    			kindHintRelationToken);
-//    	}
-//    )
-//#endif /* __PVFS2_SERVER__ */
+#ifdef __PVFS2_SERVER__
+    HD_SERVER_RELATION(SERVER,
+		hdHintRelation_p parentHintRelationToken = 
+			PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
+//    	hdHintRelation_p kindHintRelationToken = malloc(sizeof(hdHintRelation_t));
+    	hdR_token token3 = NULL;
+    	if (topoTokenArray[JOB] && parentHintRelationToken->token != NULL)
+    	{
+    	token3 = hdR_relateProcessLocalToken(topoTokenArray[JOB], parentHintRelationToken->token);
+    	printf("job_trove_fs_geteattr !\n");
+    	}
+    	if(token3)
+    	{
+    		printf("job_trove_fs_geteattr() :\n");
+    	
+    	gen_mutex_unlock(& parentHintRelationToken->mutex);
+//    	gen_mutex_init(& kindHintRelationToken->mutex);
+//    	PVFS_hint_add(&hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
+//    			kindHintRelationToken);
+    	}
+    )
+#endif /* __PVFS2_SERVER__ */
 	
     /* post a trove collection get eattr.  If it completes (or fails)
      * immediately, then return and fill in the status structure.

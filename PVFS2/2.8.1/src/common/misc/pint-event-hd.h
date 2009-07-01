@@ -73,8 +73,6 @@ typedef enum {
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END];
 
-int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode);
-
 #define PINT_HD_UPDATE_COUNTER_INC_SERVER(facility);
 #define PINT_HD_UPDATE_COUNTER_DEC_SERVER(facility);
 #define PINT_HD_UPDATE_COUNTER_INC_MULTIPLE_SERVER(facility, count);

@@ -1735,6 +1735,10 @@ int server_state_machine_start(
         	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
         			hintRelationToken);
         	printf("hintRelationToken->token : %p\n",hintRelationToken->token);
+        	hdHintRelation_p parentHintRelationToken = 
+        				PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
+        	if (parentHintRelationToken->token)
+        		printf("parentHintRelationToken->token : %p\n",parentHintRelationToken->token);
         )
         
         ret = PINT_smcb_set_op(smcb, s_op->req->op);
