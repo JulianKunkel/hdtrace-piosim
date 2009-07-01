@@ -112,14 +112,12 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 			switch(smcb->op)
 			{
 			case (PVFS_SERV_IO):{
-				printf("PVFS_SERV_IO total_transferred = %lld \n", s_op->u.io.flow_d->total_transferred);
 				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.flow_d->total_transferred));
 				hdR_end(smcb->smToken, 1, io_keys, io_values);
 				break;
 			}
 			case (PVFS_SERV_SMALL_IO):
-				printf("PVFS_SERV_SMALL_IO %lld\n", s_op->u.small_io.result_bytes);
-				snprintf(small_io_values[0], 15, "%lld", lld(s_op->u.small_io.result_bytes));
+				snprintf(small_io_values[0], 15, "%lld", lld(s_op->resp.u.small_io.result_size));
 				hdR_end(smcb->smToken, 1, small_io_keys, small_io_values);	
 				break;
 			default:

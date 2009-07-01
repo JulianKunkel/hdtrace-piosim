@@ -30,7 +30,7 @@ typedef enum {
 	FLOW, REQ, BREQ,
 	SERVER, JOB,
 	STATISTIC_END, //facility end
-	NET, CPU, MEM,
+	NET, CPU, MEM, DISC,
 	ALL_FACILITIES
 } HD_Trace_Facility;
 

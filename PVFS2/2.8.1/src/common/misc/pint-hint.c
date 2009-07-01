@@ -14,6 +14,7 @@
 #include "gossip.h"
 #include <stdio.h>
 #include <pvfs2-debug.h>
+#include "pint-event.h"
 
 DEFINE_STATIC_ENDECODE_FUNCS(uint64_t, uint64_t);
 DEFINE_STATIC_ENDECODE_FUNCS(int64_t, int64_t);
@@ -243,7 +244,7 @@ int PVFS_hint_add(
         return -PVFS_ENOMEM;
     }
     memcpy(new_hint->value, value, length);
-
+    
     if(info)
     {
         new_hint->type = info->type;

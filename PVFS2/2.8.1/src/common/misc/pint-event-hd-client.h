@@ -21,7 +21,7 @@ typedef enum {
 	FLOW,
 	CLIENT,
 	STATISTIC_END,
-	NET, MEM, CPU,
+	NET, MEM, CPU, DISC,
 	ALL_FACILITIES
 } HD_Trace_Facility;
 
@@ -30,7 +30,7 @@ typedef enum {
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END];
 
-int PVFS_HD_client_trace_initialize(void);
+int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode);
 
 #endif /* __HAVE_HDTRACE__ */
 

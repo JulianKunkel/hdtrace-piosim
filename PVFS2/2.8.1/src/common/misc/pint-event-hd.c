@@ -10,6 +10,7 @@
 #include "gen-locks.h"
 #include <sys/time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include "hdTopo.h"
@@ -29,14 +30,14 @@ static hdTopoNode topoNodeArray[ALL_FACILITIES];
 
 #ifdef __PVFS2_CLIENT__
 const char * hdFacilityNames[] = {"BMI", "FLOW", "CLIENT", "STATISTIC_END",
-	"NET", "MEM", "CPU", "ALL_FACILITIES"};
+		"NET", "MEM", "CPU", "DISC", "ALL_FACILITIES"};
 #endif
 
 #ifdef __PVFS2_SERVER__
 static ptlSources statistics;
 static PerfTrace pStatistics[ALL_FACILITIES];
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
-		"NET", "CPU", "MEM", "ALL_FACILITIES"};
+		"NET", "CPU", "MEM", "DISC", "ALL_FACILITIES"};
 #endif
 
 static int checkHostname(void)
@@ -64,29 +65,64 @@ static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facili
 
 #ifdef __PVFS2_CLIENT__
 
-int PVFS_HD_client_trace_initialize(void)
+inline static void createTopologyNode(HD_Trace_Facility facility, int depth, hdTopoNode parentNode){
+	const char ** labels = malloc(sizeof(char*) * (depth + 1) );
+	int i;
+	if(labels == NULL){
+		fprintf(stderr,"ERROR %p!\n",labels);
+		exit(1);
+	}
+
+	for(i=1; i <= depth; i++){
+		labels[i-1] = hdT_getTopoPathLabel(parentNode, i);
+	}
+	labels[depth] = hdFacilityNames[facility];
+	topoNodeArray[facility] = hdT_createTopoNode(topology, labels, depth+1);
+	free(labels);
+}
+
+int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode)
 {
 	checkHostname();
-	/* im MPI program */
-	const char * levels[]={"Host", "Rank"};
-	topology = hdT_createTopology("/tmp/client", levels, 2);
-	
-	// CLIENT
-	const char * nodeC[] = {hostname, hdFacilityNames[CLIENT]};
-	topoNodeArray[CLIENT] = hdT_createTopoNode(topology, nodeC, 2);
+
+	topology = topo;
+
+	const int depth = hdT_getTopoNodeLevel(parentNode);
+
+	if(hdT_getTopoDepth(topo) <= depth)
+	{
+		/* this is invalid, we need at least a deeper topology */
+		return -1;
+	}
+
+	createTopologyNode(CLIENT, depth, parentNode);
 	hdR_initTopology(topoNodeArray[CLIENT], & topoTokenArray[CLIENT]);
+
+	// getenv, PVFS2_HD_TRACE_CLIENT=BMI,JOB,STATEMACHINE ...
+	const char * clientTraceNames = getenv("PVFS2_HD_TRACE_CLIENT");
 	
-	// BMI
-	const char * nodeB[] = {hostname, hdFacilityNames[BMI]};
-	topoNodeArray[BMI] = hdT_createTopoNode(topology, nodeB, 2);
-	testInitFacilityStatisticTrace(topoNodeArray[BMI],BMI);
-	
-	// FLOW
-	const char * nodeF[] = {hostname, hdFacilityNames[FLOW]};
-	topoNodeArray[FLOW] = hdT_createTopoNode(topology, nodeF, 2);
-	testInitFacilityStatisticTrace(topoNodeArray[FLOW],FLOW);
-	/* ende MPI program */ 
-	
+	if (clientTraceNames == NULL){
+		printf("the enviroment variable PVFS2_HD_TRACE_CLIENT not set !\n");
+	}
+	else
+	{
+		char **event_list;
+		int i, count;
+		count = PINT_split_string_list(&event_list, clientTraceNames);
+
+		for (i = 0; i < count; i++){
+			if (!strcasecmp(event_list[i],"BMI")){
+				createTopologyNode(BMI, depth, parentNode);
+				testInitFacilityStatisticTrace(topoNodeArray[BMI], BMI);
+			}
+			if (!strcasecmp(event_list[i],"FLOW")){
+				createTopologyNode(FLOW, depth, parentNode);
+				testInitFacilityStatisticTrace(topoNodeArray[FLOW], FLOW);
+			}
+		}
+		free(event_list);
+	}
+
 	set_hd_sm_trace_enabled(1);
 	return 0;
 }
@@ -115,21 +151,21 @@ int PINT_HD_event_initalize(char * traceWhat)
 		int facilityNum;
 		for (facilityNum = 0; facilityNum < ALL_FACILITIES; facilityNum++)
 		{
-			if((strcasecmp(event_list[i], hdFacilityNames[facilityNum]) == 0) && !hd_facilityTrace[facilityNum])
+			if((!strcasecmp(event_list[i], hdFacilityNames[facilityNum])) && !hd_facilityTrace[facilityNum])
 			{
 				const char *path[] = {hostname, hdFacilityNames[facilityNum]};
 				topoNodeArray[facilityNum] = hdT_createTopoNode(topology, path, 2);
-//				if (facilityNum != SERVER)
-					testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
-//				if (facilityNum == SERVER)
-					hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
+				//				if (facilityNum != SERVER)
+				testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
+				//				if (facilityNum == SERVER)
+				hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
 				break;
 			}
 		}
 
 #ifdef HAVE_HDPTL
-		
-		if (strcasecmp(event_list[i],"NET") == 0)
+
+		if (!strcasecmp(event_list[i],"NET"))
 		{	
 			hd_facilityTraceStatus[NET] = 1;
 			statistics.PTLSRC_NET_IN = 1;
@@ -138,7 +174,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 			ptl_startTrace(pStatistics[NET]);
 		}
 
-		if (strcasecmp(event_list[i],"MEM") == 0)
+		if (!strcasecmp(event_list[i],"MEM"))
 		{	
 			hd_facilityTraceStatus[MEM] = 1;
 			statistics.PTLSRC_MEM_USED = 1;
@@ -148,7 +184,7 @@ int PINT_HD_event_initalize(char * traceWhat)
 			ptl_startTrace(pStatistics[MEM]);
 		}
 
-		if (strcasecmp(event_list[i],"CPU") == 0)
+		if (!strcasecmp(event_list[i],"CPU"))
 		{	
 			hd_facilityTraceStatus[CPU] = 1;
 			statistics.PTLSRC_CPU_LOAD = 1;
@@ -156,11 +192,18 @@ int PINT_HD_event_initalize(char * traceWhat)
 			ptl_startTrace(pStatistics[CPU]);
 		}
 
+		if (!strcasecmp(event_list[i],"DISK"))
+		{	
+			/* to do */
+		}
+
 #endif /* __HAVE_HDPTL__ */
 
 	}
 
 	set_hd_sm_trace_enabled(1);
+	
+	free(event_list);
 
 	return 0;
 }
