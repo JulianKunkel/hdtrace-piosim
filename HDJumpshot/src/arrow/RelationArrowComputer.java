@@ -29,6 +29,7 @@ import java.util.Enumeration;
 import topology.TopologyManager;
 import topology.TopologyManagerContents;
 import topology.TopologyRelationExpandedTreeNode;
+import topology.TopologyRelationTreeNode;
 import viewer.timelines.TimelineType;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
 
@@ -56,17 +57,24 @@ public class RelationArrowComputer implements ArrowComputer{
 
 		// first phase, fill relation manager.
 		m.restoreTopology();
-		
+
 		for( int timeline = 0; timeline < m.getTimelineNumber(); timeline++){
-			if(m.getType(timeline) == TimelineType.RELATION){
-				relManager.addFile(m.getRelationReaderForTimeline(timeline), m.getTreeNodeForTimeline(timeline));
+			switch (m.getType(timeline)){
+			case RELATION:{ 		
+				relManager.addFile(m.getRelationReaderForTimeline(timeline), (TopologyRelationTreeNode) m.getTreeNodeForTimeline(timeline));
+				break;
+			}
+			case RELATION_EXPANDED:{ 		
+				relManager.addTopologyTreeNode((TopologyRelationExpandedTreeNode) m.getTreeNodeForTimeline(timeline));
+				break;
+			}			
 			}
 		}
 
 		for( int timeline = 0; timeline < m.getTimelineNumber(); timeline++){
 			if(m.getType(timeline) == TimelineType.RELATION_EXPANDED){				
 				final TopologyRelationExpandedTreeNode node = (TopologyRelationExpandedTreeNode) m.getTreeNodeForTimeline(timeline);
-				
+
 				// has a relation, try to create arrows for each entry.
 				final Enumeration<RelationEntry> relEntryEnum = node.enumerateEntries(); 
 				while(relEntryEnum.hasMoreElements()){
@@ -79,8 +87,9 @@ public class RelationArrowComputer implements ArrowComputer{
 					if(search == null){
 						continue;
 					}
+					
 					arrows.add(new Arrow(
-							search.getTopologyTreeNode(), search.getEntry().getEarliestTime(), search.getEntry(), 
+							search.getTopologyRelationExpandedTreeNode(), search.getEntry().getEarliestTime(), search.getEntry(), 
 							node, relEntry.getEarliestTime(), relEntry, 
 							category));					
 				}

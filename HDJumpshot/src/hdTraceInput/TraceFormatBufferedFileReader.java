@@ -82,6 +82,8 @@ public class TraceFormatBufferedFileReader {
 	final HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup> globalStatStats = new HashMap<StatisticsGroupDescription, GlobalStatisticStatsPerGroup>(); 
 
 	final ArrowManager arrowManager = new ArrowManager(this);
+	
+	final ArrayList<FileLoadedListener> fileLoadListener = new ArrayList<FileLoadedListener>();
 
 	public TraceFormatBufferedFileReader() {
 		legendTraceModel.addCategoryUpdateListener(arrowManager);
@@ -233,6 +235,14 @@ public class TraceFormatBufferedFileReader {
 			}
 		}
 	}
+	
+	public void addFileLoadListener(FileLoadedListener listener){
+		fileLoadListener.add(listener);
+	}
+	
+	public void removeFileLoadListener(FileLoadedListener listener){
+		fileLoadListener.remove(listener);
+	}	
 
 	/**
 	 * Reads a trace file.
@@ -293,8 +303,9 @@ public class TraceFormatBufferedFileReader {
 			legendStatisticModel.addCategory(cat);
 		}
 
-		legendTraceModel.commitModel();
-		legendStatisticModel.commitModel();
+		for(FileLoadedListener listener: fileLoadListener){
+			listener.additionalFileLoaded(fileOpener);
+		}
 	}
 
 	public int getNumberOfFilesLoaded(){

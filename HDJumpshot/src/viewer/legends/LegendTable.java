@@ -91,7 +91,6 @@ public class LegendTable extends JTable
 		this.initColumnSize();
 
 		table_model.addTableModelListener(myTableChangeListener);
-		
 		super.setDefaultRenderer( CategoryIcon.class, new CategoryIconRenderer() );
 		super.setDefaultEditor( CategoryIcon.class,  new CategoryIconEditor() );
 	}

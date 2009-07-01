@@ -84,7 +84,8 @@ public class TopologyRelationExpandedTreeNode extends TopologyRelationTreeNode
 		return getRelationSource().enumerateTraceEntries(nested, startTime, endTime, line);
 	}	
 	
-	public boolean equalTopology(TopologyRelationExpandedTreeNode obj) {	
-		return super.equals(obj) && obj.line == line;
+	@Override
+	public boolean equalTopology(TopologyTreeNode obj) {	
+		return super.equalTopology(obj) && ((TopologyRelationExpandedTreeNode) obj).line == line;
 	}
 }

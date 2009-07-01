@@ -11,6 +11,7 @@ AS_BOURNE_COMPATIBLE
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
+AC_PROG_CC_C99
 
 # Checks for libraries.
 
@@ -32,8 +33,93 @@ AC_CONFIG_FILES([Makefile
                  test/HDTests/Makefile
                  test/Makefile])
 
-# HDTrace path:
 
+dnl ----------------------------------------------------------------------
+dnl Define configure commandline flags
+dnl ----------------------------------------------------------------------
+
+# Enable debugging flags when enabled
+AC_ARG_ENABLE(debugging,
+	      AC_HELP_STRING([--enable-debugging],[enable debugging flags and output (overrides CFLAGS argument)]),
+	      [
+	       CFLAGS="-g -O0 -ggdb -DDEBUG"
+	      ]
+	     )
+
+# Enable compiler warnings when enabled and using gcc
+AC_ARG_ENABLE(warnings,
+	      AC_HELP_STRING([--enable-warnings],[enable lots of compiler warnings (only with GCC)]),
+	      [
+	       if test "$GCC" != "yes"
+	       then
+		       CFLAGS="${CFLAGS} -pedantic -Wall -Wextra -Waggregate-return -Wcast-align -Wcast-qual \
+		               -Wconversion -Wfloat-equal -Wformat=2 -Winit-self -Winline -Wmissing-declarations \
+			       -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn \
+			       -Wmissing-prototypes -Wnested-externs -Wold-style-definition -Wredundant-decls \
+			       -Wshadow -Wstrict-prototypes -Wswitch-default -Wswitch-enum -Wundef -Wwrite-strings"
+		else
+			AC_MSG_WARN(["--enable-warnings" only does something when using gcc])
+		fi
+	       ]
+	      )
+	      
+AC_ARG_ENABLE(asserts,
+	      AC_HELP_STRING([--disable-asserts],[disable assertion code (should produce faster code)]),
+	      [
+	       if test "$enableval" == "no"
+	       then
+		       CPPFLAGS="${CPPFLAGS} -DNDEBUG"
+	       fi
+	      ]
+	     )
+
+
+dnl ----------------------------------------------------------------------
+dnl Check for a suitable glib
+dnl ----------------------------------------------------------------------
+
+GLIB_PRESENT=NO
+GLIB_LDADD=
+
+AM_PATH_GLIB_2_0([2.16.6],[GLIB_PRESENT=YES],[GLIB_PRESENT=NO],[gthread])
+
+AC_ARG_WITH(glib-static,
+	    AC_HELP_STRING([--with-glib-static=prefix],[use static glib tree (prefix is REQUIRED)]),
+	    [
+	     if ! echo "${withval}" | grep '^/'
+	     then
+	         withval="$(pwd)/${withval}"
+	     fi
+	     GLIB_STATIC_LIBGLIB2_A="${withval}/lib/libglib-2.0.a"
+	     GLIB_STATIC_LIBGTHREAD2_A="${withval}/lib/libgthread-2.0.a"
+	     GLIB_STATIC_INCLUDE="${withval}/include/glib-2.0"
+	     GLIB_STATIC_LIBINCLUDE="${withval}/lib/glib-2.0/include"
+	     if test -f ${GLIB_STATIC_LIBGLIB2_A} -a -f ${GLIB_STATIC_LIBGTHREAD2_A}
+    	     then
+		     if test -f "${GLIB_STATIC_INCLUDE}/glib.h"
+		     then
+			     GLIB_LDADD="${GLIB_STATIC_LIBGTHREAD2_A} ${GLIB_STATIC_LIBGLIB2_A}"
+			     GLIB_CFLAGS="-I${GLIB_STATIC_INCLUDE} -I${GLIB_STATIC_LIBINCLUDE}"
+			     # TODO: Do we need to do some pthreads stuff here?
+			     AC_SUBST(GLIB_LIBS)   # override the one by AM_PATH_GLIB_2_0
+			     AC_SUBST(GLIB_CFLAGS)
+			     GLIB_PRESENT=YES
+			     AC_MSG_NOTICE([assuming static glib in ${withval} is good...])
+		     fi
+	     fi
+	    ]
+	   )
+
+if test "$GLIB_PRESENT" != "YES"
+then
+	AC_MSG_ERROR([Cannot find a suitable glib2 (>= 2.16.6)])
+fi
+
+AC_SUBST(GLIB_LDADD)
+
+AC_CHECK_HEADERS(glib.h,, AC_MSG_ERROR(Cannot find glib.h use --with-glib-static))
+
+# HDTrace path:
 dnl set the hdtrace library path
 AC_ARG_WITH(hdtrace,
 [  --with-hdtrace=path         Use HDTrace library installed in "path"],
@@ -72,33 +158,6 @@ AC_TRY_LINK([
 		#include <hdStats.h>
 		],
 		[return (0);], , [AC_MSG_ERROR("Cannot link with hdtrace")])
-
-# add glib2 stuff
-LIBS="$LIBS $(pkg-config --libs glib-2.0)"
-CFLAGS="$CFLAGS $(pkg-config --cflags glib-2.0)"
-CPPFLAGS="$CPPFLAGS $(pkg-config --cflags glib-2.0)"
-
-
-AC_ARG_WITH(glib,
-[  --with-glib=path         Use GLIB2 library installed in "path"],
-    if test "x$withval" = "xyes" ; then
-           AC_MSG_ERROR(--with-glib must be given a pathname)
-    else
-       CFLAGS+=" -I$withval/include"
-       CPPFLAGS+=" -I$withval/include"
-       LDFLAGS+=" -L$withval/lib"
-    fi
-)
-AC_CHECK_HEADERS(glib.h,, AC_MSG_ERROR(Cannot find glib.h use --with-glib))
-
-
-AC_TRY_LINK([
-		#include <stdio.h>
-		#include <hdTrace.h>
-		#include <hdStats.h>
-		],
-		[return (0);], , [AC_MSG_ERROR("Cannot link with hdtrace")])
-
 
 dnl set the performancetrace library path
 AC_ARG_WITH(hdperftrace,

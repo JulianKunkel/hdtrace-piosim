@@ -480,30 +480,23 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				getYModel(), getTopologyManager());		
 	}
 
-
 	@Override
-	protected void windowGetsInvisible() {
-		super.windowGetsInvisible();
-
+	protected void destroyWindow() {	
+		super.destroyWindow();
 		realModelTime.removeTimeListener(timeUpdateListener);
-		getReader().getLegendTraceModel().removeCategoryUpdateListener(categoryVisibleListener);
+		getReader().getLegendTraceModel().removeCategoryUpdateListener(categoryVisibleListener);		
 	}
-
+	
 	@Override
-	protected void windowGetsVisible() {
-		super.windowGetsVisible();
-
-		realModelTime.addTimeListener(timeUpdateListener);
-
-		getReader().getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
-	}
-
-	@Override
-	protected void gotVisibleTheFirstTime() {
-		super.gotVisibleTheFirstTime();
+	protected void initWindow() {
+		super.initWindow();
 
 		// start it after it got visible the first time, otherwise zoom will return an error !
 		triggerRecomputeTraceProfile();		
+		
+		realModelTime.addTimeListener(timeUpdateListener);
+
+		getReader().getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
 	}
 
 	public TraceProfileFrame(TraceFormatBufferedFileReader reader, ModelTime modelTime) 

@@ -34,13 +34,20 @@
 
 package viewer.legends;
 
+import hdTraceInput.FileLoadedListener;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.Dimension;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.border.Border;
 
 import viewer.first.TopWindow;
+import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 
 
 public class LegendFrame extends TopWindow
@@ -49,16 +56,70 @@ public class LegendFrame extends TopWindow
 
 	private        LegendTracePanel        trace_panel;
 	private        LegendStatisticPanel    statistic_panel;
+	private final MyFileLoadedListener fileloadListener = new MyFileLoadedListener();
+	private final TraceFormatBufferedFileReader  reader;
 
-	@Override
-	protected void windowGetsInvisible() {
+	private class LegendTracePanel extends JPanel
+	{
+		private static final long serialVersionUID = -3333521394333510573L;
+		
+		private final LegendTable  legend_table;
+		private final JScrollPane scroller;
 
+		public LegendTracePanel( final TraceFormatBufferedFileReader  reader )
+		{
+			super();
+			super.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+
+			Border  lowered_border, empty_border, etched_border;
+			lowered_border = BorderFactory.createLoweredBevelBorder();
+			empty_border   = BorderFactory.createEmptyBorder( 4, 4, 4 ,4 );
+			etched_border  = BorderFactory.createEtchedBorder();
+
+			legend_table  = new LegendTable(reader.getLegendTraceModel());
+			scroller = new JScrollPane( legend_table,	JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,	JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+			scroller.setBorder( BorderFactory.createCompoundBorder( lowered_border, BorderFactory.createCompoundBorder(empty_border, etched_border ) ) );
+			super.add( scroller );		
+		}
+		
 	}
 
-	@Override
-	protected void windowGetsVisible() {
+	private class LegendStatisticPanel extends JPanel{ 
+		private static final long serialVersionUID = -3333521394333510573L;
 
+		private final LegendTable  legend_table;
+		private final JScrollPane scroller;
+
+		public LegendStatisticPanel( final TraceFormatBufferedFileReader  reader )
+		{
+			super();
+			super.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+
+			Border  lowered_border, empty_border, etched_border;
+			lowered_border = BorderFactory.createLoweredBevelBorder();
+			empty_border   = BorderFactory.createEmptyBorder( 4, 4, 4 ,4 );
+			etched_border  = BorderFactory.createEtchedBorder();
+
+			legend_table  = new LegendTable(reader.getLegendStatisticModel());
+			scroller = new JScrollPane( legend_table,	JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,	JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+			scroller.setBorder( BorderFactory.createCompoundBorder( lowered_border, BorderFactory.createCompoundBorder(empty_border, etched_border ) ) );
+			super.add( scroller );
+		}
 	}
+	
+	private class MyFileLoadedListener implements FileLoadedListener{
+		@Override
+		public void additionalFileLoaded(TraceFormatFileOpener file) {	
+			reader.getLegendStatisticModel().commitModel();
+			reader.getLegendTraceModel().commitModel();
+			
+			// if there are categories added or removed, update the tables and the scrollpane to reflect changes to visible categories
+			statistic_panel.legend_table.revalidate();
+			trace_panel.legend_table.revalidate();
+		}			
+	}		
+	
+
 
 	public LegendFrame( final TraceFormatBufferedFileReader  reader )
 	{
@@ -75,10 +136,25 @@ public class LegendFrame extends TopWindow
 		statistic_panel.setMinimumSize(minimumSize);
 
 		getFrame().setMinimumSize(new Dimension(250, 500));
-		
+
 		split.add(trace_panel);
 		split.add(statistic_panel);     
 
-		getFrame().setContentPane( split );                
+		getFrame().setContentPane( split );      
+		this.reader = reader;
+	}
+	
+	@Override
+	protected void destroyWindow() {
+		super.destroyWindow();
+		reader.removeFileLoadListener(fileloadListener);
+	}
+	
+	@Override
+	protected void initWindow() {	
+		super.initWindow();
+		reader.addFileLoadListener(fileloadListener);
+		// init!
+		fileloadListener.additionalFileLoaded(null);
 	}
 }

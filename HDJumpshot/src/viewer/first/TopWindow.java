@@ -21,7 +21,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 public abstract class TopWindow {
 	private JFrame frame;	
@@ -49,22 +48,21 @@ public abstract class TopWindow {
 			}
 		} );
 	}
-	
-	abstract protected void windowGetsVisible();
 
 	/**
-	 * Override to perform own cleanup:
+	 * Called when the window gets visible the first time
 	 */
-	abstract protected void windowGetsInvisible();
-
-
-	/**
-	 * Called after it got visible the first time
-	 */
-	protected void gotVisibleTheFirstTime(){
+	protected void initWindow(){
 
 	}
 
+	/**
+	 * Gets called when the window gets destroyed
+	 */
+	protected void destroyWindow(){
+		
+	}
+	
 	protected JFrame getFrame() {
 		return frame;
 	}	
@@ -83,28 +81,15 @@ public abstract class TopWindow {
 			frame.pack();
 
 			visibleTheFirstTime = false;
-
-			frame.setVisible( true );	
-
-			// trigger the following code AFTER it got visible.
-			SwingUtilities.invokeLater(new Runnable(){
-				@Override
-				public void run() {
-					gotVisibleTheFirstTime();
-				}
-			});			
+			initWindow();
 		}
 		
 		if(val == true){
 			if(listener != null)
-				listener.getsVisible();
-			
-			windowGetsVisible();					
+				listener.getsVisible();					
 		}else{
 			if(listener != null)
-				listener.getsInvisible();
-			
-			windowGetsInvisible();		
+				listener.getsInvisible();				
 		}
 		
 		frame.setVisible( val );
@@ -114,7 +99,7 @@ public abstract class TopWindow {
 	 * Free all resources, before doing so it will be invisible
 	 */
 	final public void dispose(){
-		setVisible(false);
+		destroyWindow();
 		
 		getFrame().dispose();
 	}

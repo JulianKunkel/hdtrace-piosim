@@ -58,16 +58,6 @@ implements ActionListener
 	private JButton          save_btn;
 	private JButton          close_btn;
 	
-	@Override
-	protected void windowGetsInvisible() {
-		
-	}
-	
-	@Override
-	protected void windowGetsVisible() {
-	
-	}
-	
 	public PreferenceFrame()
 	{
 		setTitle( "Preferences" );
@@ -147,5 +137,11 @@ implements ActionListener
 		else if ( evt.getSource() == this.close_btn ) {
 			PreferenceFrame.this.setVisible( false );
 		}
+	}
+	
+	@Override
+	protected void destroyWindow() {
+		// TODO Auto-generated method stub
+		
 	}
 }

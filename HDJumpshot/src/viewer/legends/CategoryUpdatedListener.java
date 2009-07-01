@@ -57,11 +57,4 @@ public class CategoryUpdatedListener implements EventListener{
 	public void categoryAttributesWereModified(){
 		
 	}
-	
-	/**
-	 * Called once after one or multiple categories got added and/or removed.
-	 */
-	public void categoriesAddedOrRemoved(){
-		
-	}
 }

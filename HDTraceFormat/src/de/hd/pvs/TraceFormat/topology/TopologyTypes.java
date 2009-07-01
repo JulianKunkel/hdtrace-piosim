@@ -46,6 +46,7 @@ public class TopologyTypes {
 	 * @param type
 	 */
 	public void addTypeForNextLevel(String type) {
+		assert(type != null);
 		types.add(type);
 	}
 	

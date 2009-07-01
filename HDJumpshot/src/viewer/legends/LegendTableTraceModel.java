@@ -91,6 +91,15 @@ public class LegendTableTraceModel extends AbstractTableModel
 	}
 
 	/**
+	 * If the model categories are completed, then commit them.
+	 */
+	public void commitModel(){
+		icon_list    = new ArrayList<CategoryIcon>( categories.size() );
+
+		this.sortNormally( LegendComparators.TOPOLOGY_NAME_ORDER );
+	}
+
+	/**
 	 * Add a category
 	 * @param cat
 	 */
@@ -101,7 +110,7 @@ public class LegendTableTraceModel extends AbstractTableModel
 	public void addCategoryUpdateListener(CategoryUpdatedListener listener){
 		categoryUpdateListeners.add(listener);
 	}
-	
+
 	public void removeCategoryUpdateListener(CategoryUpdatedListener listener){
 		categoryUpdateListeners.remove(listener);
 	}
@@ -109,8 +118,6 @@ public class LegendTableTraceModel extends AbstractTableModel
 	//  Sorting into various order
 	private void initIconListFromCategoryList()
 	{
-		icon_list    = new ArrayList<CategoryIcon>( categories.size() );
-
 		CategoryIcon icon;
 		Category  objdef;
 		Iterator<Category>  objdefs = categories.iterator();
@@ -118,17 +125,6 @@ public class LegendTableTraceModel extends AbstractTableModel
 			objdef = (Category) objdefs.next();
 			icon   = new CategoryIcon( objdef );
 			icon_list.add( icon );
-		}
-	}
-
-	/**
-	 * If the model categories are completed, then commit them.
-	 */
-	public void commitModel(){
-		this.sortNormally( LegendComparators.TOPOLOGY_NAME_ORDER );
-
-		for(CategoryUpdatedListener listener: categoryUpdateListeners){
-			listener.categoriesAddedOrRemoved();
 		}
 	}
 
@@ -262,7 +258,7 @@ public class LegendTableTraceModel extends AbstractTableModel
 		for(CategoryUpdatedListener list: categoryUpdateListeners){
 			list.categoryAttributeModified(category, newValue);
 		}
-		
+
 		if(enableCategoryUpdateListener)
 			fireCategoryAttributesWereModified();
 	}    
@@ -275,7 +271,7 @@ public class LegendTableTraceModel extends AbstractTableModel
 			list.categoryVisibilityWasModified();
 		}
 	}
-	
+
 	final protected void fireCategoryAttributesWereModified(){
 		if(! enableCategoryUpdateListener)
 			return;
@@ -284,7 +280,7 @@ public class LegendTableTraceModel extends AbstractTableModel
 			list.categoryAttributesWereModified();
 		}
 	}
-	
+
 	public void fireCategoryModified(int column, Category category, Object newValue){
 		if(! enableCategoryUpdateListener)
 			return;
@@ -295,8 +291,8 @@ public class LegendTableTraceModel extends AbstractTableModel
 			fireCategoryAttributeChanged(category, newValue);
 		}
 	}
-	
-	
+
+
 	public void fireCategoryModificationFinished(int column){
 		if(! enableCategoryUpdateListener)
 			return;
@@ -337,7 +333,7 @@ public class LegendTableTraceModel extends AbstractTableModel
 			icon   = (CategoryIcon) icon_list.get( irow );
 			icon.getCategory().setColor( color );
 			fireTableCellUpdated( irow, icolumn );        
-			
+
 			fireCategoryAttributeChanged(objdef, color);
 			break;
 		case NAME_COLUMN :
@@ -346,23 +342,23 @@ public class LegendTableTraceModel extends AbstractTableModel
 			break;
 		case VISIBILITY_COLUMN :{
 			boolean val = ( (Boolean) value ).booleanValue() ;
-			
+
 			if(val == objdef.isVisible()){
 				break;
 			}
-			
+
 			objdef.setVisible( val );
 			fireCategoryVisibilityChanged(objdef, val);
-			
+
 			fireTableCellUpdated( irow, icolumn );
 			break;
 		}case SEARCHABILITY_COLUMN :{
 			boolean val = ( (Boolean) value ).booleanValue() ;
-			
+
 			if(val == objdef.isSearchable()){
 				break;
 			}			
-			
+
 			objdef.setSearchable( val );
 			fireTableCellUpdated( irow, icolumn );
 			break;

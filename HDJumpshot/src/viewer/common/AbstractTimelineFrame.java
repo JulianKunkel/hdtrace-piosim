@@ -17,6 +17,7 @@
 
 package viewer.common;
 
+import hdTraceInput.FileLoadedListener;
 import hdTraceInput.TraceFormatBufferedFileReader;
 
 import java.awt.BorderLayout;
@@ -48,7 +49,6 @@ import topology.TopologyManagerContents;
 import viewer.common.IconManager.IconType;
 import viewer.first.MainManager;
 import viewer.first.TopWindow;
-import viewer.legends.CategoryUpdatedListener;
 import viewer.zoomable.ModelTimePanel;
 import viewer.zoomable.RowAdjustments;
 import viewer.zoomable.RowNumberChangedListener;
@@ -58,6 +58,7 @@ import viewer.zoomable.ScrollbarTime;
 import viewer.zoomable.ScrollbarTimeModel;
 import viewer.zoomable.ViewportTime;
 import viewer.zoomable.ViewportTimeYaxis;
+import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 
 /**
  * Implements a frame which consists of several sections, a linked in timeline manager,
@@ -71,7 +72,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 	private TraceFormatBufferedFileReader reader;
 	private ModelTime modelTime;
-	
+
 
 	static final int MIN_LEFTPANEL_WIDTH = 150;	
 
@@ -85,7 +86,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 	private ScrollbarTime           scrollbarTime;
 	private ScrollbarTimeModel   		scrollbarTimeModel;
-	
+
 	private ModelTimePanel          time_display_panel;
 	private ModelInfoPanel<InfoModelType> info_model;
 	private RulerTime               timeRuler;
@@ -102,7 +103,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 	private   JRadioButton          zoom_btn;
 	private   JRadioButton          hand_btn;
-	
+
 
 	/**
 	 * Subclass can create its own menu panel.
@@ -110,30 +111,30 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	 * @return
 	 */
 	abstract protected void addToToolbarMenu(TimelineToolBar toolbar, IconManager iconManager, Insets insets);
-	
+
 	/**
 	 * Create your own model info panel.
 	 * @return
 	 */
 	abstract protected ModelInfoPanel<InfoModelType> createModelInfoPanel();
-	
+
 	/**
 	 * Subclass can add their own toolbars to the menu panel.
 	 * @param target
 	 */
 	abstract protected void addOwnPanelsOrToolbars(JPanel menuPanel);
-	
+
 	/**
 	 * Creates the main drawing area (which is scrollable).
 	 * @return
 	 */
 	abstract protected ScrollableObject createCanvasArea();
-	
+
 	/**
 	 * Return the available plugins for this view.
 	 */
 	abstract protected List<Class<? extends TopologyInputPlugin>> getAvailablePlugins();
-	
+
 	/** 
 	 * This listener is invoked if the zoomlevel changes
 	 */
@@ -145,7 +146,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		}
 	};
 
-	
+
 	private class MyNumberOfRowsChangedListener implements RowNumberChangedListener{
 		@Override
 		public void rowNumberChanged() {
@@ -153,19 +154,17 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		}
 	}
 
-	private final UpdateTableModelListener myTableLegendChangeListener = new UpdateTableModelListener();
+	private final FileLoadedListener myTableLegendChangeListener = new MyFileLoadedListener();
 
-	private class UpdateTableModelListener extends CategoryUpdatedListener{
+	private class MyFileLoadedListener implements FileLoadedListener{
 		@Override
-		public void categoriesAddedOrRemoved() {
+		public void additionalFileLoaded(TraceFormatFileOpener file) {
 			topologyManager.restoreTopology();
 		}
 	}  
 
 	private JPanel createContentPane()
 	{		
-		reader.getLegendTraceModel().addCategoryUpdateListener(myTableLegendChangeListener);
-		
 		Dimension sb_minThumbSz = (Dimension)
 		UIManager.get( "ScrollBar.minimumThumbSize" );
 		sb_minThumbSz.width = 4;
@@ -185,12 +184,12 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		scrollbarTimeModel = new ScrollbarTimeModel(modelTime);
 
 		timeCanvasVport = new ViewportTimeYaxis( modelTime, y_model, topologyManager );
-		
+
 		/* The Time Ruler */
 		timeRuler        = new RulerTime( scrollbarTimeModel, timeCanvasVport );
 		time_ruler_vport  = new ViewportTime( modelTime );
 		time_ruler_vport.setView( timeRuler );
-		
+
 		time_ruler_vport.setLeftMouseToZoom( Parameters.LEFTCLICK_INSTANT_ZOOM );
 		/*
                    Propagation of AdjustmentEvent originating from scroller:
@@ -210,14 +209,14 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 		/* The View's Time Display Panel */
 		time_display_panel = new ModelTimePanel( canvasArea );
-		
-		
+
+
 		JPanel canvas_lmouse;
-		
+
 		final IconManager icons = MainManager.getIconManager();
 		// allow only one button to be set:
 		final ButtonGroup buttonGroup = new ButtonGroup();
-		
+
 		zoom_btn     = new JRadioButton( icons.getDisabledToolbarIcon(IconType.ZoomIn) );
 		zoom_btn.setSelectedIcon( icons.getActiveToolbarIcon(IconType.ZoomIn) );
 		zoom_btn.setBorderPainted( true );
@@ -228,7 +227,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 			{
 				if ( zoom_btn.isSelected() )
 					timeCanvasVport.setLeftMouseToZoom(true);
-					time_ruler_vport.setLeftMouseToZoom(true);
+				time_ruler_vport.setLeftMouseToZoom(true);
 			}
 		} );
 
@@ -241,19 +240,19 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 			{
 				if ( hand_btn.isSelected() )
 					timeCanvasVport.setLeftMouseToZoom(false);
-					time_ruler_vport.setLeftMouseToZoom(false);
+				time_ruler_vport.setLeftMouseToZoom(false);
 			}
 		} );
-		
+
 		buttonGroup.add(hand_btn);
 		buttonGroup.add(zoom_btn);
-	
+
 		canvas_lmouse = new JPanel();
 		canvas_lmouse.setLayout( new BoxLayout( canvas_lmouse, BoxLayout.X_AXIS ) );
 		canvas_lmouse.add( zoom_btn );
 		canvas_lmouse.add( hand_btn );
 		canvas_lmouse.setBorder( BorderFactory.createEtchedBorder() );
-			
+
 		canvas_lmouse.setToolTipText("Operation for left mouse button click on Timeline canvas" );
 		time_display_panel.add( canvas_lmouse );
 
@@ -267,7 +266,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 		center_panel.add( timeCanvasVport );
 		center_panel.add( scrollbarTime );
-		
+
 		/*
     Since there is NOT a specific ViewportTime/ViewTimePanel
     for RulerTime, so we need to set PreferredSize of RulerTime
@@ -282,7 +281,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		time_ruler_vport.setMinimumSize(		new Dimension( 20, ruler_panel_height ) );
 		time_ruler_vport.setMaximumSize(		new Dimension( Short.MAX_VALUE, ruler_panel_height ) );
 		time_ruler_vport.setPreferredSize(		new Dimension( 20, ruler_panel_height ) );
-		
+
 		center_panel.add( time_ruler_vport );
 
 		/* Setting up the LEFT panel to store various Y-axis related GUIs */
@@ -290,7 +289,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		left_panel.setLayout( new BoxLayout( left_panel, BoxLayout.Y_AXIS ) );
 
 		/* "VIEW" title */
-		
+
 		/* YaxisTree View for SLOG-2 */
 		y_scroller.setAlignmentX( Component.CENTER_ALIGNMENT );
 		/* when y_scrollbar is changed, update time_canvas as well. */
@@ -345,15 +344,15 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 		/* The ToolBar for various user controls */
 		final IconManager iconManager = MainManager.getIconManager(); 
-		
+
 		toolbar = new TimelineToolBar( canvasArea, timeRuler , timeCanvasVport,
 				y_scrollbar, topologyManager, scrollbarTime, modelTime, row_adjs, iconManager );
-		
+
 		addToToolbarMenu(toolbar, iconManager, toolbar.getInsets());
 		toolbar.addRightButtons(iconManager, getFrame());
 
 		toolbar.init();
-		
+
 		final JPanel top_panel = new JPanel();
 		top_panel.setLayout( new BoxLayout( top_panel, BoxLayout.Y_AXIS ) );
 		top_panel.add(toolbar);
@@ -363,21 +362,21 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 		// Initialize toolbar after creation of YaxisTree view
 		row_adjs.refreshSlidersAndTextFields();
-		
+
 		row_adjs.addRowChangedListener(new MyNumberOfRowsChangedListener());
-		
+
 
 		JPanel contentPanel = new JPanel(new BorderLayout());
 		contentPanel.add( top_panel, BorderLayout.NORTH );
 		contentPanel.add( right_splitter, BorderLayout.CENTER );
-			
+
 		return contentPanel;
 	}
 
 	public void forceRedraw(){
 		canvasArea.forceRedraw();
 	}
-	
+
 	/**
 	 * Called if the y-axis scrollbar value changed 
 	 * @author Julian M. Kunkel
@@ -389,37 +388,45 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 			y_colpanel.getHorizontalScrollBar().setValue(y_scroller.getHorizontalScrollBar().getValue());
 		}
 	}
-	
+
 	@Override
-	protected void windowGetsVisible() {
-		modelTime.addTimeListener( scrollbarTime );
-		modelTime.addTimeListener( timeCanvasVport );
-		modelTime.addTimeListener( time_ruler_vport );		
-		modelTime.addTimeListener( timeUpdateListener);
-		modelTime.addTimeListener( time_display_panel );	
-	}
-	
-	@Override
-	protected void windowGetsInvisible() {
+	protected void destroyWindow() {	
 		// don't forget to remove modelTime listener (if autoupdate), otherwise resources are wasted
 		modelTime.removeTimeListener( scrollbarTime );
 		modelTime.removeTimeListener( timeCanvasVport );
 		modelTime.removeTimeListener( time_ruler_vport );		
 		modelTime.removeTimeListener( timeUpdateListener);
 		modelTime.removeTimeListener( time_display_panel );
+		
+		reader.removeFileLoadListener(myTableLegendChangeListener);
 	}
 	
+	/**
+	 * Override this method to invoke special actions performed after/during the frame gets visible the
+	 * first time. 
+	 */
+	@Override
+	protected void initWindow() {
+		modelTime.addTimeListener( scrollbarTime );
+		modelTime.addTimeListener( timeCanvasVport );
+		modelTime.addTimeListener( time_ruler_vport );		
+		modelTime.addTimeListener( timeUpdateListener);
+		modelTime.addTimeListener( time_display_panel );	
+
+		reader.addFileLoadListener(myTableLegendChangeListener);
+	}
+
 	public AbstractTimelineFrame(final TraceFormatBufferedFileReader reader,  ModelTime modelTime) {
 		this.reader = reader;				
 
 		this.modelTime = modelTime;
 		this.topologyManager = new TopologyManager(reader, modelTime, getTopologyManagerType());
-		
+
 		fileLoadedNotification();
-		
+
 		getFrame().setContentPane( createContentPane());		
 	}
-	
+
 	/**
 	 * When a file gets loaded this function shall be called:
 	 * TODO create a listener for that reason.
@@ -428,44 +435,35 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		this.topologyManager.restoreTopology();
 		this.topologyManager.tryToLoadPlugins(getAvailablePlugins());		
 	}
-	
+
 	protected TopologyManagerContents getTopologyManagerType(){
 		return TopologyManagerContents.EVERYTHING;
 	}
-		
+
 	protected ModelTime getModelTime() {
 		return modelTime;
 	}
-		
+
 	protected TraceFormatBufferedFileReader getReader() {
 		return reader;
 	}	
 
-	/**
-	 * Override this method to invoke special actions performed after/during the frame gets visible the
-	 * first time. 
-	 */
-	@Override
-	protected void gotVisibleTheFirstTime() {
-				
-	}
-	
 	protected TopologyManager getTopologyManager() {
 		return topologyManager;
 	}
-	
+
 	protected BoundedRangeModel getYModel() {
 		return y_model;
 	}
-	
+
 	protected ScrollableObject getCanvasArea() {
 		return canvasArea;
 	}
-	
+
 	protected ViewportTimeYaxis getTimeCanvasVport() {
 		return timeCanvasVport;
 	}
-		
+
 	/**
 	 * Leftmost down area, below topology manager.
 	 * @return
@@ -477,11 +475,11 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	public boolean isAutoRefresh(){
 		return canvasArea.isAutoRefresh();
 	}
-	
+
 	public ScrollbarTimeModel getScrollbarTimeModel() {
 		return scrollbarTimeModel;
 	}
-	
+
 	public RulerTime getTimeRuler() {
 		return timeRuler;
 	}
