@@ -102,7 +102,7 @@ int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode)
 	const char * clientTraceNames = getenv("PVFS2_HD_TRACE_CLIENT");
 	
 	if (clientTraceNames == NULL){
-		printf("the enviroment variable PVFS2_HD_TRACE_CLIENT not set !\n");
+		printf("the enviroment variable PVFS2_HD_TRACE_CLIENT not set in %s!\n",hostname);
 	}
 	else
 	{

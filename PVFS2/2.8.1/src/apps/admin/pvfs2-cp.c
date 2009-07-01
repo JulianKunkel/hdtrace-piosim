@@ -136,7 +136,8 @@ int main (int argc, char ** argv)
     }
 
     PVFS_hint_import_env(& hints);
-
+    
+    /* MPI program */
     const char * levels[] = {"PID", "PVFS2"};
     
     hdTopology topology = hdT_createTopology("pvfs2-cp", levels, 2);
@@ -147,6 +148,7 @@ int main (int argc, char ** argv)
     
     PVFS_HD_client_trace_initialize(topology, parentNode);
     free(pid_str);
+    /* end MPI program*/
     
     ret = PVFS_util_init_defaults();
     if (ret < 0)

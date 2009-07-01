@@ -40,14 +40,14 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/server}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/proto}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/gossip}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/include}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/id-generator}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/build}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/events}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/HDTraceWritingCLibrary/include}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/io/bmi}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/gen-locks}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PerformanceTracingLibrary/include}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/home/dinh/pioviz/build}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/home/dinh/pioviz/include}&quot;"/>
 </option>
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.2138952164" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="__PVFS2_TROVE_THREADED__=1"/>
