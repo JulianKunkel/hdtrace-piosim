@@ -58,7 +58,7 @@
 #include "hdTopo.h"
 #include "hdMPITracer.h"
 
-#include "pkg-config.h"
+#include "hdmpi-wrapper-pkg.h"
 
 #ifdef USE_PERFORMANCE_TRACE
 #include "PTL.h"
@@ -166,16 +166,16 @@ static char * trace_file_prefix;
  * This is desireable because then, all but the MPI_* functions
  * can be declared static.
  */
-#include "mpi_names.c"
-#include "hash_tables.c"
-#include "write_info.c"
-#include "hdMPITracer.c"
+#include "../src/mpi_names.c"
+#include "../src/hash_tables.c"
+#include "../src/write_info.c"
+#include "../src/hdMPITracer.c"
 
 #ifdef  HDTRACE_INCLUDE_NESTED_TEST
-#include "test_nested.c"
+#include "../src/test_nested.c"
 #endif
 
-#include "common.c"
+#include "../src/common.c"
 
 /**
  * This function translates \a rank from the MPI communicator

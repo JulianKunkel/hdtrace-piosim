@@ -6,7 +6,7 @@ AC_PREREQ(2.61)
 AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
 
 AC_CONFIG_SRCDIR([src/])
-AC_CONFIG_HEADER([src/pkgconfig.h])
+AC_CONFIG_HEADER([include/hdmpi-wrapper-pkg.h])
 
 # additional m4 files are found here:
 AC_CONFIG_AUX_DIR([config])
@@ -145,8 +145,11 @@ AC_ARG_WITH(hdperftrace,
     if test "x$withval" = "xyes" ; then
            AC_MSG_ERROR(--with-hdperftrace must be given a pathname)
     else
-       CFLAGS="$CFLAGS -I$withval/include -DUSE_PERFORMANCE_TRACE"
-       CPPFLAGS="$CPPFLAGS -I$withval/include -DUSE_PERFORMANCE_TRACE"
+       CFLAGS="$CFLAGS -I$withval/include"
+       CPPFLAGS="$CPPFLAGS -I$withval/include"
+
+       AC_DEFINE(USE_PERFORMANCE_TRACE, 1, [Define if performance trace shall be enabled])
+
        LDFLAGS="-L$withval/lib $LDFLAGS"
        AC_TRY_LINK([
 		#include <PTL.h>
@@ -154,9 +157,6 @@ AC_ARG_WITH(hdperftrace,
 		[return (0);], , [AC_MSG_ERROR("Cannot link with performance trace library")])   
     fi
 )
-
-
-
 
 dnl ----------------------------------------------------------------------
 dnl Check for a suitable glib
@@ -218,6 +218,7 @@ AC_CONFIG_FILES([config/shave
 		 config/shave-libtool
 		 Makefile
 		 lib/Makefile
+		 src/Makefile
          test/HDTests/Makefile
          test/Makefile])
 
