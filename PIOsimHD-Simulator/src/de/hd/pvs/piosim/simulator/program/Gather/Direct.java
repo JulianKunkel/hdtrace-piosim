@@ -45,9 +45,6 @@ extends CommandImplementation<Gather>
 		final int myRank = client.getModelComponent().getRank();
 		final int rootRank = cmd.getRootRank();
 
-		System.out.println("root " + rootRank);
-		System.out.println("rank " + myRank);
-
 		switch (step) {
 		case (CommandProcessing.STEP_START): {
 			if (myRank != rootRank) {

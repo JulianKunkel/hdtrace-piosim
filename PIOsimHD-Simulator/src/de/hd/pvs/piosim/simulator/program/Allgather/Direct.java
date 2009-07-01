@@ -44,8 +44,6 @@ extends CommandImplementation<Allgather>
 
 		final int myRank = client.getModelComponent().getRank();
 
-		System.out.println("rank " + myRank);
-
 		switch (step) {
 		case (CommandProcessing.STEP_START): {
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
