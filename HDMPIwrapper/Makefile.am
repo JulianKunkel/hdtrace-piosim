@@ -5,7 +5,7 @@ BUILT_SOURCES = src/hdTraceMPIWrapper.c
 
 include $(top_srcdir)/config/common.am
 
-include_HEADERS = $(SRC_DIR)/*.h
+include_HEADERS = include/hdMPITracer.h  include/hdMPITracerCodeLocator.h 
 
 .PHONY: force
 

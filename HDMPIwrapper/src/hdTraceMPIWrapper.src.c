@@ -400,7 +400,7 @@ static void after_Init(int *argc, char ***argv)
 
         // create labels and values for the project topology
         gethostname(hostname, HOST_NAME_MAX);
-        strncpy(rankStr, 20, "%d", rank);
+        snprintf(rankStr, 20, "%d", rank);
         const char *levels[2] = {hostname, rankStr};
 
         hdTopoNode pvfs2parentNode = hdT_createTopoNode(topology, levels, 2);
