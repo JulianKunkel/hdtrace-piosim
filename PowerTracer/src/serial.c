@@ -179,6 +179,29 @@ int serial_setupPort(int fd, int baudrate)
 }
 
 /**
+ * Reset the port. Discard all buffers.
+ *
+ * @param fd        File descriptor of the serial port
+ *
+ * @retval     OK      Success
+ * @retval  ERR_ERRNO  Error in system library call with errno set (tcflush())
+ */
+int serial_resetPort(int fd) {
+
+	int ret;
+
+	//TODO is this sufficient?
+	ret = tcflush(fd, TCIOFLUSH);
+	if(ret != 0)
+	{
+		ERROR_ERRNO("tcflush()");
+		return(ERR_ERRNO);
+	}
+
+	return(OK);
+}
+
+/**
  * Send a Message.
  *
  * @param fd        File descriptor of the serial port

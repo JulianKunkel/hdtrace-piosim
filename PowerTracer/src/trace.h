@@ -63,11 +63,9 @@ void addTraceToList(TraceStruct *trace, TraceListStruct *list);
 #define FOR_TRACES(list) \
 	for (TraceStruct *trace = (list).last; trace != NULL; trace = trace->prev)
 
-
 /**
  * Free all traces in a trace linked list
  */
 void freeAllTraces(TraceListStruct *list);
-
 
 #endif /* TRACE_H_ */

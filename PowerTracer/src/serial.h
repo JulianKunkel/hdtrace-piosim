@@ -7,6 +7,8 @@ int serial_openPort(char *device);
 
 int serial_setupPort(int fd, int baudrate);
 
+int serial_resetPort(int fd);
+
 int serial_sendMessage(int fd, const char *msg);
 
 int serial_sendBreak(int fd);

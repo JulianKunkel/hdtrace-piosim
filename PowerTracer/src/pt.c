@@ -1,15 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <sys/time.h>
-#include <sys/select.h>
 #include <string.h>
+#include <pthread.h>
 #include <assert.h>
 
+#include "pt.h"
 #include "ptError.h"
 #include "ptInternal.h"
 #include "conf.h"
-#include "trace.h"
+#include "tracing.h"
 #include "serial.h"
 #include "LMG.h"
 #include "hdTopo.h"
@@ -24,253 +24,24 @@
 static struct timeval tv_start;
 #endif
 
-/**
- * Read data of one measuring iteration,
- *  split, prepare and write into the files
- *
- * @param serial_fd  File descriptor of the serial port connected to the device
- * @param config     Configuration
- *
- * @return Error state
- *
- * @retval OK           Success
- * @retval ERR_MSGSIZE  Message from device has unexpected size
- * @retval -->          \ref LMG_readBinaryMessage()
+/*
+ * Define error states
  */
-static
-int trace_iteration(int serial_fd, ConfigStruct *config)
-{
-    int ret;
+#define EOK            0
+#define ESYNTAX       -1
+#define ECONFNOTFOUND -2
+#define ECONFINVALID  -3
+#define ENOTRACES     -4
+#define EMEMORY       -5
+#define EHDLIB        -6
+#define EDEVICE       -7
+#define ETHREAD       -8
 
-    /* currently only binary operation mode is used */
-    assert(config->mode == MODE_BIN);
+#define EOTHER      -100
 
-    /* in binary mode each value has 4 bytes */
-    assert(config->isize % 4 == 0);
-
-    size_t isize = config->isize;
-
-    char buffer[isize];  /* I/O buffer */
-    size_t osize;        /* Output size */
-
-    /*
-     * Read message
-     */
-    ret = LMG_readBinaryMessage(serial_fd, buffer, isize);
-    if (ret < 0)
-    	LMG_READBINARYMESSAGE_ERROR_CHECK;
-    if (ret != isize)
-    {
-        ERROR("Unexpected response size.");
-        return(ERR_MSGSIZE);
-    }
-
-
-    /*
-     * Write response part for each trace to the correct file
-     */
-    char *bufptr = buffer;
-    FOR_TRACES(config->traces) {
-       	/* use int pointer since order_bytes32ip is assumed to be faster */
-    	uint32_t *intptr = (uint32_t *) bufptr;
-    	for (int j = 0; j < trace->size / 4; ++j)
-    		order_bytes32ip(intptr+j);
-
-    	osize = trace->size;
-
-    	ret = hdS_writeEntry(trace->group, bufptr, osize);
-    	if (ret < 0) {
-    		// all these errors are programmer's faults, not user's faults
-    		assert(errno != HD_ERR_INVALID_ARGUMENT);
-			assert(errno != HD_ERR_TRACE_DISABLED);
-			assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
-			assert(errno != HDS_ERR_UNEXPECTED_ARGVALUE);
-			assert(errno != HDS_ERR_ENTRY_STATE);
-			assert(!"Unknown return value from hdS_writeEntry()");
-    	}
-
-        /* set bufptr to the start of the next trace's part */
-        bufptr+=osize;
-    }
-
-    return(OK);
-}
-
-/**
- * Trace all the data configured
- *
- * @param serial_fd  File descriptor of the serial port connected to the device
- * @param config     Configuration
- *
- * @return Error state
- *
- * @retval OK    Success
- * @retval -->   \ref serial_sendMessage()
- * @retval -->   \ref trace_iteration()
- */
-static
-int trace_data(
-        int serial_fd,      /* file descriptor of serial port */
-        ConfigStruct *config
-        )
-{
-    int ret;
-
-    u_int8_t done;
-
-    fd_set input;
-    struct timeval timeout;
-    int n;
-
-    int stdin_fd = fileno(stdin);
-
-    /*
-     * check value of cycle time
-     */
-    if(config->cycle < 0.05 || config->cycle > 60)
-    {
-        ERROR("trace_data(): Cycle time out of range (0.05..60).");
-    }
-
-    /*
-     * Define commands to be executed
-     */
-    size_t actn_len = 5; /* bytes for "ACTN;" */
-
-	FOR_TRACES(config->traces)
-        actn_len += strlen(trace->actn) + 1; /* 1 byte for the separating ';' */
-
-    char actn[actn_len];
-    actn[0] = '\0';
-    strcat(actn, "ACTN");
-    FOR_TRACES(config->traces) {
-        strcat(actn, ";");
-        strcat(actn, trace->actn);
-    }
-
-    /*
-     * Send action script to LMG
-     */
-    ret = serial_sendMessage(serial_fd, actn);
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
-
-    /*
-     * Set cycle time
-     */
-    char buffer[32];
-    sprintf(buffer, "CYCL %f", config->cycle);
-    ret = serial_sendMessage(serial_fd, buffer);
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
-
-    /*
-     * Set output format
-     */
-    switch(config->mode)
-    {
-        case MODE_BIN:
-            ret = serial_sendMessage(serial_fd, "FRMT PACKED");
-            break;
-        case MODE_ASCII:
-            ret = serial_sendMessage(serial_fd, "FRMT ASCII");
-            break;
-    }
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
-
-    /*
-     * Start continuous mode
-     */
-    ret = serial_sendMessage(serial_fd, "CONT ON");
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
-
-    /*
-     * Enable tracing groups
-     */
-    FOR_TRACES(config->traces) {
-    	hdS_enableGroup(trace->group);
-    }
-
-    /*
-     * Tracing iterations loop
-     */
-    done = 0;
-    while(!done)
-    {
-        /* Initialize the input set */
-        FD_ZERO(&input);
-        FD_SET(serial_fd, &input);
-        FD_SET(stdin_fd, &input);
-
-        /* Initialize the timeout structure */
-        timeout.tv_sec  = 2;
-        timeout.tv_usec = 0;
-
-        /* Do the select */
-        n = select(serial_fd+1, &input, NULL, NULL, &timeout);
-        if (n < 0)
-        {
-          ERROR_ERRNO("select()");
-          return(ERR_ERRNO);
-        }
-        else if (n == 0)
-        {
-            /* timeout */
-            done = 1;
-            break;
-        }
-
-        /* input from standard input ready */
-        if (FD_ISSET(stdin_fd, &input))
-        {
-            switch(getchar())
-            {
-                case 'q':
-                case 'Q':
-                    /* end continous mode */
-                    ret = serial_sendMessage(serial_fd, "CONT OFF");
-                    SERIAL_SENDMESSAGE_RETURN_CHECK;
-                    /* now the input buffer will run empty and select will
-                     * run into its timeout and so end the loop */
-                    break;
-            }
-        }
-
-        /* input from device ready */
-        if (FD_ISSET(serial_fd, &input))
-        {
-            ret = trace_iteration(serial_fd, config);
-            switch(ret)
-            {
-                case OK:
-                    break;
-                case ERR_MSGSIZE:
-                case ERR_ERRNO: /* read(), readBytes() */
-                case ERR_NO_MSG:
-                case ERR_MSG_FORMAT:
-                case ERR_MALLOC:
-                case ERR_BSIZE:
-                    return(ret);
-                default:
-					assert(!"Unknown return value from trace_iteration()");
-            }
-        }
-    }
-
-    /*
-     * Stop continuous mode
-     */
-    ret = serial_sendMessage(serial_fd, "CONT OFF");
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
-
-    /*
-     * Disable tracing groups
-     */
-    FOR_TRACES(config->traces) {
-    	ret = hdS_disableGroup(trace->group);
-    	assert(ret >= 0);
-    }
-
-    return (OK);
-}
+#define ERROR_OUTPUT(msg, ...) \
+	if (directOutput) \
+		fprintf(stderr, "PowerTracer: " msg "\n", ## __VA_ARGS__)
 
 /**
  * Tests switching to binary mode, assumes to be in ASCII mode when called
@@ -336,24 +107,6 @@ int test_binmode(int serial_fd)
     return OK;
 }
 
-/*
- * Define error states
- */
-#define EOK            0
-#define ESYNTAX       -1
-#define ECONFNOTFOUND -2
-#define ECONFINVALID  -3
-#define ENOTRACES     -4
-#define EMEMORY       -5
-#define EHDLIB        -6
-#define EDEVICE       -7
-
-#define EOTHER      -100
-
-#define ERROR_OUTPUT(msg, ...) \
-	if (directOutput) \
-		fprintf(stderr, "PowerTracer: " msg "\n", ## __VA_ARGS__)
-
 /**
  * Do tracing.
  *
@@ -365,35 +118,13 @@ int test_binmode(int serial_fd)
  *                       (true for commandline tool, false for library use
  *
  * @return Error state
- *
- *
  */
-int doTracing(ConfigStruct *config, int directOutput) {
+static int doTracing(PowerTrace *trace) {
+
+	ConfigStruct *config = trace->config;
+	int directOutput = trace->directOutput;
 
 	int ret;
-
-	/*
-	 * Create the traces found in configuration
-	 */
-	ret = createTraces(config);
-	switch (ret) {
-	case OK:
-		break;
-	case ERR_NO_TRACES:
-		ERROR_OUTPUT("No traces configured.");
-		cleanupConfig(config);
-		return ENOTRACES;
-	case ERR_MALLOC:
-		ERROR_OUTPUT("Out of memory while creating traces.");
-		cleanupConfig(config);
-		return EMEMORY;
-	case ERR_HDLIB:
-		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary while creating traces.");
-		cleanupConfig(config);
-		return EHDLIB;
-	default:
-		assert(!"Unknown return value from createTraces()");
-	}
 
 
 #if 0
@@ -540,7 +271,7 @@ int doTracing(ConfigStruct *config, int directOutput) {
 
     puts("Start tracing!");
 
-    ret = trace_data(serial_fd, config);
+    ret = traceLoop(serial_fd, trace);
     if (ret != OK) {
     	switch (ret) {
     	case ERR_ERRNO:
@@ -562,6 +293,9 @@ int doTracing(ConfigStruct *config, int directOutput) {
 			return EMEMORY;
 		case ERR_BSIZE:
 			ERROR_OUTPUT("Buffer size to low while tracing data.");
+			break;
+		case ERR_TIMEOUT:
+			ERROR_OUTPUT("Timeout while tracing data.");
 			break;
 		default:
 			assert(!"Unknown return value from trace_data().");
@@ -653,6 +387,10 @@ int doTracing(ConfigStruct *config, int directOutput) {
 
 }
 
+static int createTracingThread(ConfigStruct *config, int directOutput,
+		PowerTrace **trace);
+
+#ifndef BUILD_LIB
 
 static void printUsage() {
 	puts(
@@ -717,6 +455,10 @@ int main(int argc, char **argv)
 	 */
 	ConfigStruct config;
 	config.topology = NULL;
+	config.allocated.device = 0;
+	config.allocated.port = 0;
+	config.allocated.project = 0;
+	config.allocated.topo = 0;
 
 	/*
 	 * Set defaults
@@ -792,12 +534,18 @@ int main(int argc, char **argv)
 	/*
 	 * Override configuration file options with commandline options
 	 */
-	if (port != NULL)
-		config.port = port;
-	if (project != NULL)
-		config.project = project;
-	if (topo != NULL)
-		config.topo = topo;
+#define	REPLACE_CONFIG(var) \
+		if (var != NULL) { \
+			if (config.allocated.var) { \
+				free(config.var); \
+				config.allocated.var = 0; \
+			} \
+			config.var = var; \
+		}
+	REPLACE_CONFIG(port)
+	REPLACE_CONFIG(project)
+	REPLACE_CONFIG(topo)
+#undef REPLACE_CONFIG
 
 	/*
 	 * Add traces from commandline
@@ -841,7 +589,283 @@ int main(int argc, char **argv)
 	printf("Port: %s\n", config.port);
 	printf("Project: %s\n", config.project);
 
-	return doTracing(&config, directOutput);
+	/*
+	 * Create the traces found in configuration
+	 */
+	ret = createTraces(&config);
+	switch (ret) {
+	case OK:
+		break;
+	case ERR_NO_TRACES:
+		ERROR_OUTPUT("No traces configured.");
+		cleanupConfig(&config);
+		return ENOTRACES;
+	case ERR_MALLOC:
+		ERROR_OUTPUT("Out of memory while creating traces.");
+		cleanupConfig(&config);
+		return EMEMORY;
+	case ERR_HDLIB:
+		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary while creating traces.");
+		cleanupConfig(&config);
+		return EHDLIB;
+	default:
+		assert(!"Unknown return value from createTraces()");
+	}
+
+	PowerTrace *trace;
+	ret = createTracingThread(&config, 1, &trace);
+	printf("createTracingThread() returned %d\n", ret);
+
+	ret = pt_startTracing(trace);
+	printf("startTracing() returned %d\n", ret);
+
+	sleep(10);
+
+	ret = pt_stopTracing(trace);
+	printf("stopTracing() returned %d\n", ret);
+
+	ret = pt_finalizeTrace(trace);
+	printf("finalizeTrace() returned %d\n", ret);
+
+}
+
+#endif
+
+#if 0
+/* input from standard input ready */
+if (FD_ISSET(stdin_fd, &input))
+{
+    switch(getchar())
+    {
+        case 'q':
+        case 'Q':
+            /* end continous mode */
+            ret = serial_sendMessage(serial_fd, "CONT OFF");
+            SERIAL_SENDMESSAGE_RETURN_CHECK;
+            /* now the input buffer will run empty and select will
+             * run into its timeout and so end the loop */
+            break;
+    }
+}
+#endif
+
+
+
+/* ************************************************************************ *
+ * Library functions
+ */
+
+
+struct tracingThreadReturn_s {
+	int ret;
+};
+
+static void * doTracingThread(void *param);
+
+/**
+ * Create a power trace using the passed configuration file
+ *
+ * @param configfile Name of the configuration file
+ * @param trace      Location to store the PowerTrace pointer (OUTPUT)
+ *
+ * @return  Error state
+ */
+int pt_createTrace(const char* configfile, PowerTrace **trace) {
+
+	int ret;
+
+	if (configfile == NULL)
+		return ECONFNOTFOUND;
+
+	int directOutput = 0;
+
+	/*
+	 * Initialize configuration
+	 */
+	ConfigStruct *config;
+	PTMALLOC(config, 1, EMEMORY);
+
+	config->topology = NULL;
+
+	/*
+	 * Set defaults
+	 */
+	config->device = "LMG450";
+    config->mode = MODE_BIN;
+	config->host = NULL;
+	config->port = "/dev/ttyUSB0";
+	config->cycle = 0.1;
+	config->project = "MyProject";
+	config->topo = "Host_Process_Thread";
+	config->traces.last = NULL;
+
+	/*
+	 * Read configuration file if given
+	 */
+	ret = readConfigFromFile(configfile, config);
+	switch (ret) {
+	case OK:
+		break;
+	case ERR_MALLOC:
+		ERROR_OUTPUT("Out of memory while reading configuration file.");
+		cleanupConfig(config);
+		return EMEMORY;
+	case ERR_FILE_NOT_FOUND:
+		ERROR_OUTPUT("Configuration file not found.");
+		cleanupConfig(config);
+		return ECONFNOTFOUND;
+	case ERR_ERRNO:
+		ERROR_OUTPUT("Problem while processing configuration file: %s", strerror(errno));
+		cleanupConfig(config);
+		return ECONFINVALID;
+	case ERR_SYNTAX:
+		ERROR_OUTPUT("Configuration file invalid.");
+		cleanupConfig(config);
+		return ECONFINVALID;
+	default:
+		assert(!"Unknown return value from readConfigFromFile()");
+	}
+
+	/*
+	 * Do consistency check of the final configuration
+	 */
+	ret = checkConfig(config);
+	switch (ret) {
+	case OK:
+		break;
+	default:
+		ERROR_OUTPUT("Configuration is not valid.");
+		cleanupConfig(config);
+		exit(-1);
+	}
+
+
+	/*
+	 * Print configuration
+	 */
+	printf("Device: %s\n", config->device);
+	printf("Host: %s\n", config->host == NULL ? "NULL" : config->host);
+	printf("Port: %s\n", config->port);
+	printf("Project: %s\n", config->project);
+
+
+	/*
+	 * Create the traces found in configuration
+	 */
+	ret = createTraces(config);
+	switch (ret) {
+	case OK:
+		break;
+	case ERR_NO_TRACES:
+		ERROR_OUTPUT("No traces configured.");
+		cleanupConfig(config);
+		return ENOTRACES;
+	case ERR_MALLOC:
+		ERROR_OUTPUT("Out of memory while creating traces.");
+		cleanupConfig(config);
+		return EMEMORY;
+	case ERR_HDLIB:
+		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary while creating traces.");
+		cleanupConfig(config);
+		return EHDLIB;
+	default:
+		assert(!"Unknown return value from createTraces()");
+	}
+
+	return createTracingThread(config, 0, trace);
+
+}
+
+static int createTracingThread(ConfigStruct *config, int directOutput,
+		PowerTrace **trace) {
+
+	int ret;
+
+	/*
+	 * Create PowerTrace object
+	 */
+	PTMALLOC(*trace, 1, EMEMORY);
+	(*trace)->config = config;
+	(*trace)->directOutput = directOutput;
+
+	(*trace)->control.started = 0;
+	ret = pthread_cond_init(&((*trace)->control.cond), NULL);
+	ret = pthread_mutex_init(&((*trace)->control.mutex), NULL);
+
+	/*
+	 * Create tracing thread
+	 */
+	ret = pthread_create(&((*trace)->thread), NULL, doTracingThread,
+			(void *) *trace);
+	if (ret != 0) {
+		switch (errno) {
+		case EAGAIN:
+			cleanupConfig(config);
+			return ETHREAD;
+		default:
+			assert(!"Unknown return value from pthread_create().");
+		}
+	}
+
+	return OK;
+}
+
+static void * doTracingThread(void *param) {
+
+	PowerTrace *trace = (PowerTrace *) param;
+
+	struct tracingThreadReturn_s *ret;
+	PTMALLOC(ret, 1, NULL);
+
+	ret->ret = doTracing(trace);
+
+	return (void *) ret;
+}
+
+
+/**
+ * Return the hostname with the measuring device connected
+ */
+char *pt_getHostname(PowerTrace *trace) {
+	return trace->config->host;
+}
+
+/**
+ * Start the power tracing
+ */
+int pt_startTracing(PowerTrace *trace) {
+	pthread_mutex_lock(&(trace->control.mutex));
+	trace->control.started = 1;
+	pthread_cond_signal(&(trace->control.cond));
+	pthread_mutex_unlock(&(trace->control.mutex));
+}
+
+/**
+ * Stop the power tracing
+ */
+int pt_stopTracing(PowerTrace *trace) {
+	pthread_mutex_lock(&(trace->control.mutex));
+	trace->control.started = 0;
+	pthread_mutex_unlock(&(trace->control.mutex));
+}
+
+/**
+ * Finalize and free a power trace
+ */
+int pt_finalizeTrace(PowerTrace *trace) {
+
+	struct tracingThreadReturn_s *threadRet;
+	pthread_join(trace->thread, (void *) &threadRet);
+
+	int retval = threadRet->ret;
+
+	/* free memory */
+	cleanupConfig(trace->config);
+	free(threadRet);
+	free(trace->config);
+	free(trace);
+
+	return retval;
 }
 
 #undef ERROR_OUTPUT

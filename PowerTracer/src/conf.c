@@ -66,7 +66,7 @@ static int parsePath(char *pstr,
 
 	assert(pstr != NULL);
 
-	// count number of tokens in output delimited by '_'
+	// count number of tokens in path string delimited by '_'
 	*plen = 1;
 	char *ptr = pstr;
 	while ((ptr = index(ptr, '_')) != NULL)
@@ -76,21 +76,21 @@ static int parsePath(char *pstr,
 	PTMALLOC(*path, *plen, ERR_MALLOC);
 
 	// allocate space for strings
-	int outlen = strlen(pstr);
-	assert(outlen > 0);
-	PTMALLOC(*path[0], outlen+1, ERR_MALLOC);
+	int pstrlen = strlen(pstr);
+	assert(pstrlen > 0);
+	PTMALLOC((*path)[0], pstrlen+1, ERR_MALLOC);
 
 	// copy output string to allocated memory
-	strcpy(*path[0], pstr);
+	strcpy((*path)[0], pstr);
 
 	// create path string array
 	// by setting the pointers and replacing '_' with '\0'
-	ptr = *path[0];
+	ptr = (*path)[0];
 	for (int i = 1; i < *plen; ++i) {
 		ptr = index(ptr, '_');
 		assert(*ptr == '_');
 		*ptr = '\0';
-		*path[i] = ++ptr;
+		(*path)[i] = ++ptr;
 	}
 
 	return OK;
@@ -1077,7 +1077,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
  */
 void cleanupConfig(ConfigStruct *config) {
 
-#define FREE_VAR(var) if(config->allocated.var) free(config->var)
+#define FREE_VAR(var) if(config->allocated.var) free(config->var), config->allocated.var = 0;
 
 	FREE_VAR(device);
 	FREE_VAR(port);

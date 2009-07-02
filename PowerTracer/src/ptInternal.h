@@ -9,30 +9,24 @@
 #ifndef PTINTERNAL_H_
 #define PTINTERNAL_H_
 
-#include <stdlib.h>
-#include "ptError.h"
+#include <pthread.h>
 
-/* Macro to do malloc with error handling */
-#define PTMALLOC(var, count, failret) \
-	do { \
-		errno = 0; /* set errno to detect error when returning NULL */ \
-		var = malloc(count * sizeof(*(var))); \
-		if (var == NULL) { \
-			ERROR_ERRNO(#var); \
-			return failret; \
-		} \
-	} while (0)
+#include "pt.h"
+#include "conf.h"
 
-/* Macro to do realloc with error handling */
-#define PTREALLOC(var, count, failret) \
-	do { \
-		errno = 0; /* set errno to detect error when returning NULL */ \
-		var = realloc(var, count * sizeof(*(var))); \
-		if (var == NULL) { \
-			ERROR_ERRNO(#var); \
-			free(var); /* still we return, free the memory */ \
-			return failret; \
-		} \
-	} while (0)
+typedef struct {
+	int started : 1;
+	int terminate : 1;
+	pthread_cond_t cond;
+	pthread_mutex_t mutex;
+} threadControlStruct;
+
+
+struct powertrace_s {
+	ConfigStruct *config;
+	int directOutput;
+	pthread_t thread;
+	threadControlStruct control;
+};
 
 #endif /* PTINTERNAL_H_ */

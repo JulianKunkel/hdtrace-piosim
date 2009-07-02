@@ -9,13 +9,19 @@ AC_CONFIG_HEADER([src/pkgconfig.h])
 # Initialize automake
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.10])
 
+AC_USE_SYSTEM_EXTENSIONS
+
 # Checks for programs.
 AC_PROG_CC_C99
 AC_PROG_INSTALL
 AC_PROG_AWK
 AC_PROG_MKDIR_P
+AC_PROG_LIBTOOL
 
-AC_USE_SYSTEM_EXTENSIONS
+
+# Checks for libraries.
+AC_CHECK_LIB([pthread], [pthread_create])
+
 
 dnl ----------------------------------------------------------------------
 dnl Define configure commandline flags
@@ -117,7 +123,7 @@ dnl ------------------------------------------------------------------------
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h stdlib.h string.h strings.h sys/time.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -130,7 +136,7 @@ AC_TYPE_UINT32_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([gettimeofday regcomp select strerror])
+AC_CHECK_FUNCS([gettimeofday memset regcomp select strerror])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])
