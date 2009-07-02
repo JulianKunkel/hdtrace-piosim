@@ -71,6 +71,9 @@ JAR piosimhd-simulator simulator.mf  $SIMF # "-C ../ lib"
 echo "Creating trace converter package"
 JAR trace-converter trace-converter.mf  $TRACECONVERTERF # "-C ../ lib"
 
+echo "Creating sunshot package" 
+JAR HDSunshot sunshot.mf  $SUNSHOTF
+cp -a $SUNSHOTF/images $TARGET
 
 cp -a "../javadoc" $TARGET/
 
