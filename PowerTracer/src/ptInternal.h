@@ -9,6 +9,7 @@
 #ifndef PTINTERNAL_H_
 #define PTINTERNAL_H_
 
+#include <stdlib.h>
 #include "ptError.h"
 
 /* Macro to do malloc with error handling */

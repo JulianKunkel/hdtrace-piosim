@@ -15,6 +15,17 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize);
 
 int serial_closePort(int fd);
 
+#define SERIAL_OPENPORT_RETURN_CHECK \
+	do { \
+    switch(ret) { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* open() */ \
+           return(ret); \
+        default: \
+			assert(!"Unknown return value from serial_setupPort()."); \
+    } } while (0)
+
 #define SERIAL_SETUPPORT_RETURN_CHECK \
 	do { \
     switch(ret) { \
@@ -64,7 +75,7 @@ int serial_closePort(int fd);
 	switch(ret) { \
 		case OK: \
 			break; \
-		case ERR_ERRNO: \
+		case ERR_ERRNO: /* tcflush(), close() */ \
 			return(ret); \
 		default: \
 			assert(!"Unknown return value from serial_closePort()."); \

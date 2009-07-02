@@ -30,6 +30,13 @@
 /* trace_interation() */
 #define ERR_MSGSIZE    -50
 
+/* Macro for debugging output */
+#ifdef DEBUG
+# define DEBUGMSG(msg, ...) printf(msg, ## __VA_ARGS__)
+#else
+# define DEBUGMSG(msg, ...) (void) 0
+#endif
+
 /* Macro for generate non fatal warnings */
 #define WARN(msg, ...) error(0,0, "WARNING: " msg, ## __VA_ARGS__)
 

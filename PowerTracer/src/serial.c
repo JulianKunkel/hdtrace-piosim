@@ -282,6 +282,9 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize)
     bufptr = buffer;
     sumbytes = 0;
 
+    if (bsize == 0)
+    	return sumbytes;
+
     while(1)
     {
         readmask = input;

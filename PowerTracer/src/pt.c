@@ -4,7 +4,6 @@
 #include <sys/time.h>
 #include <sys/select.h>
 #include <string.h>
-#include <arpa/inet.h>
 #include <assert.h>
 
 #include "ptError.h"
@@ -18,10 +17,12 @@
 #include "hdError.h"
 
 
+#if 0
 /*
  * Start time storage
  */
 static struct timeval tv_start;
+#endif
 
 /**
  * Read data of one measuring iteration,
@@ -34,6 +35,7 @@ static struct timeval tv_start;
  *
  * @retval OK           Success
  * @retval ERR_MSGSIZE  Message from device has unexpected size
+ * @retval -->          \ref LMG_readBinaryMessage()
  */
 static
 int trace_iteration(int serial_fd, ConfigStruct *config)
@@ -94,6 +96,18 @@ int trace_iteration(int serial_fd, ConfigStruct *config)
     return(OK);
 }
 
+/**
+ * Trace all the data configured
+ *
+ * @param serial_fd  File descriptor of the serial port connected to the device
+ * @param config     Configuration
+ *
+ * @return Error state
+ *
+ * @retval OK    Success
+ * @retval -->   \ref serial_sendMessage()
+ * @retval -->   \ref trace_iteration()
+ */
 static
 int trace_data(
         int serial_fd,      /* file descriptor of serial port */
@@ -228,12 +242,12 @@ int trace_data(
             {
                 case OK:
                     break;
+                case ERR_MSGSIZE:
                 case ERR_ERRNO: /* read(), readBytes() */
-                case ERR_BSIZE:
                 case ERR_NO_MSG:
                 case ERR_MSG_FORMAT:
-                case ERR_UNKNOWN:
-                case ERR_CUSTOM:
+                case ERR_MALLOC:
+                case ERR_BSIZE:
                     return(ret);
                 default:
 					assert(!"Unknown return value from trace_iteration()");
@@ -251,12 +265,25 @@ int trace_data(
      * Disable tracing groups
      */
     FOR_TRACES(config->traces) {
-    	hdS_disableGroup(trace->group);
+    	ret = hdS_disableGroup(trace->group);
+    	assert(ret >= 0);
     }
 
     return (OK);
 }
 
+/**
+ * Tests switching to binary mode, assumes to be in ASCII mode when called
+ *
+ * @param serial_fd  File descriptor of the port connected to the device
+ *
+ * @return Error state
+ *
+ * @retval  OK  Success
+ * @retval -->  \ref serial_sendMessage();
+ * @retval -->  \ref LMG_readTextMessage();
+ * @retval -->  \ref LMG_readBinaryMessage();
+ */
 static
 int test_binmode(int serial_fd)
 {
@@ -277,12 +304,7 @@ int test_binmode(int serial_fd)
         LMG_READTEXTMESSAGE_ERROR_CHECK;
 
     /* print message */
-    if(puts(buffer) == EOF)
-    {
-        ERROR_UNKNOWN;
-        return(ERR_UNKNOWN);
-    }
-
+    puts(buffer);
 
     /*
      * Set output format to binary mode
@@ -309,14 +331,328 @@ int test_binmode(int serial_fd)
         LMG_READBINARYMESSAGE_ERROR_CHECK;
     }
 
-    if (printf("%.4E;%.4E;%.4E\n", op.utrms, op.itrms, op.p ) < 0)
-    {
-        ERROR_UNKNOWN;
-        return(ERR_UNKNOWN);
+    printf("%.4E;%.4E;%.4E\n", op.utrms, op.itrms, op.p );
+
+    return OK;
+}
+
+/*
+ * Define error states
+ */
+#define EOK            0
+#define ESYNTAX       -1
+#define ECONFNOTFOUND -2
+#define ECONFINVALID  -3
+#define ENOTRACES     -4
+#define EMEMORY       -5
+#define EHDLIB        -6
+#define EDEVICE       -7
+
+#define EOTHER      -100
+
+#define ERROR_OUTPUT(msg, ...) \
+	if (directOutput) \
+		fprintf(stderr, "PowerTracer: " msg "\n", ## __VA_ARGS__)
+
+/**
+ * Do tracing.
+ *
+ * This function is the main function used by the commandline tool and the
+ *  library API in common after creating the configuration differently.
+ *
+ * @param config         Configuration
+ * @param directOutput   Direct output to the console
+ *                       (true for commandline tool, false for library use
+ *
+ * @return Error state
+ *
+ *
+ */
+int doTracing(ConfigStruct *config, int directOutput) {
+
+	int ret;
+
+	/*
+	 * Create the traces found in configuration
+	 */
+	ret = createTraces(config);
+	switch (ret) {
+	case OK:
+		break;
+	case ERR_NO_TRACES:
+		ERROR_OUTPUT("No traces configured.");
+		cleanupConfig(config);
+		return ENOTRACES;
+	case ERR_MALLOC:
+		ERROR_OUTPUT("Out of memory while creating traces.");
+		cleanupConfig(config);
+		return EMEMORY;
+	case ERR_HDLIB:
+		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary while creating traces.");
+		cleanupConfig(config);
+		return EHDLIB;
+	default:
+		assert(!"Unknown return value from createTraces()");
+	}
+
+
+#if 0
+    /*
+     * Take start time
+     */
+    ret = gettimeofday(&tv_start, NULL);
+#endif
+
+
+	int serial_fd;
+    char buffer[255];  /* Input buffer */
+
+    /*
+     * Open serial port
+     */
+    serial_fd = serial_openPort(config->port);
+    if(serial_fd < 0) {
+    	switch (serial_fd) {
+    	case ERR_ERRNO:
+    		ERROR_OUTPUT("Problem while opening serial port: %s", strerror(errno));
+    		cleanupConfig(config);
+    		return EDEVICE;
+    	default:
+    		assert(!"Unknown return value from serial_openPort().");
+        }
     }
 
-    return (OK);
+    /*
+     * Setup serial port
+     *
+     * Configuration on device:
+     * ComA: Custom
+     * ComA 8N1
+     * Baudrate: 57600
+     * EOS: <lf>
+     * Echo: Off
+     * Protocol: RTS/CTS
+     */
+    ret = serial_setupPort(serial_fd, 57600);
+    switch(ret) {
+    case OK:
+    	break;
+    case ERR_ERRNO: /* tcgetattr(), cfsetispeed(), cfsetospeed(), tcsetattr(), tcflush() */
+		ERROR_OUTPUT("Problem while setting up serial port: %s", strerror(errno));
+		cleanupConfig(config);
+		return EDEVICE;
+    default:
+    	assert(!"Unknown return state of serial_setupPort().");
+    }
+
+    /*
+     * Setup LMG
+     */
+    ret = LMG_setup(serial_fd);
+    if (ret != OK) {
+	    switch(ret) {
+	    case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
+	    	ERROR_OUTPUT("Problem while setting up LMG device: %s", strerror(errno));
+	    	break;
+	    case ERR_WRITE:
+	    	ERROR_OUTPUT("Write error while setting up LMG device.");
+	    	break;
+	    default: \
+	    	assert(!"Unknown return state of LMG_setup().");
+	    }
+    	cleanupConfig(config);
+    	serial_closePort(serial_fd);
+    	return EDEVICE;
+    }
+
+    /*
+     * Get and print identity string from LMG
+     */
+    ret = LMG_getIdentity(serial_fd, buffer, sizeof(buffer));
+    if (ret != OK) {
+    	switch(ret)
+		{
+			case ERR_ERRNO:
+				ERROR_OUTPUT("Problem while getting identity: %s", strerror(errno));
+				break;
+			case ERR_WRITE:
+				ERROR_OUTPUT("Write error while getting identity.");
+				break;
+			case ERR_NO_MSG:
+				ERROR_OUTPUT("No message ready while getting identity.");
+				break;
+			case ERR_MSG_FORMAT:
+				ERROR_OUTPUT("Incorrect message format while getting identity.");
+				break;
+			case ERR_MALLOC:
+				ERROR_OUTPUT("Out of memory while getting identity.");
+				cleanupConfig(config);
+		    	serial_closePort(serial_fd);
+		    	return EMEMORY;
+			case ERR_BSIZE:
+				ERROR_OUTPUT("Buffer size to low while getting identity.");
+				break;
+			default:
+				assert(!"Unknown return state of LMG_getIdentity().");
+		}
+    	cleanupConfig(config);
+    	serial_closePort(serial_fd);
+    	return EDEVICE;
+    }
+
+    ret = puts(buffer);
+    assert(ret != EOF);
+
+    memset(buffer, '\0', 255);
+
+    ret = test_binmode(serial_fd);
+    if (ret != OK) {
+	    switch(ret)
+	    {
+	        case ERR_ERRNO:
+				ERROR_OUTPUT("Problem while testing binary mode: %s", strerror(errno));
+	            break;
+	        case ERR_WRITE:
+	        	ERROR_OUTPUT("Write error while testing binary mode.");
+	            break;
+	        case ERR_NO_MSG:
+	        	ERROR_OUTPUT("No message ready while testing binary mode.");
+	            break;
+	        case ERR_MSG_FORMAT:
+	        	ERROR_OUTPUT("Incorrect Message format while testing binary mode.");
+	            break;
+			case ERR_MALLOC:
+				ERROR_OUTPUT("Out of memory while getting identity.");
+				cleanupConfig(config);
+		    	serial_closePort(serial_fd);
+		    	return EMEMORY;
+	        case ERR_BSIZE:
+	        	ERROR_OUTPUT("Buffer size to low while testing binary mode.");
+	            break;
+	        default:
+				assert(!"Unknown return state of test_binmode().");
+	    }
+	    cleanupConfig(config);
+	    serial_closePort(serial_fd);
+	    return EDEVICE;
+    }
+
+
+    puts("Start tracing!");
+
+    ret = trace_data(serial_fd, config);
+    if (ret != OK) {
+    	switch (ret) {
+    	case ERR_ERRNO:
+			ERROR_OUTPUT("Problem while tracing data: %s", strerror(errno));
+			break;
+		case ERR_WRITE:
+			ERROR_OUTPUT("Write error while tracing data.");
+			break;
+		case ERR_NO_MSG:
+			ERROR_OUTPUT("No message ready while tracing data.");
+			break;
+		case ERR_MSG_FORMAT:
+			ERROR_OUTPUT("Incorrect message format while tracing data.");
+			break;
+		case ERR_MALLOC:
+			ERROR_OUTPUT("Out of memory while tracing data.");
+			cleanupConfig(config);
+			serial_closePort(serial_fd);
+			return EMEMORY;
+		case ERR_BSIZE:
+			ERROR_OUTPUT("Buffer size to low while tracing data.");
+			break;
+		default:
+			assert(!"Unknown return value from trace_data().");
+    	}
+		cleanupConfig(config);
+    	serial_closePort(serial_fd);
+    	return EDEVICE;
+    }
+
+
+    puts("End tracing!");
+
+
+    cleanupConfig(config);
+
+    /*
+     * Get and print all errors from LMG
+     */
+    ret = LMG_getAllErrors(serial_fd, buffer, sizeof(buffer));
+    if (ret != OK) {
+	    switch(ret)
+	    {
+	        case OK:
+	            break;
+	        case ERR_ERRNO:
+				ERROR_OUTPUT("Problem while getting all errors: %s", strerror(errno));
+	            break;
+	        case ERR_WRITE:
+	            ERROR_OUTPUT("Write error while getting all errors.");
+	            break;
+	        case ERR_NO_MSG:
+	            ERROR_OUTPUT("No message ready while getting all errors.");
+	            break;
+	        case ERR_MSG_FORMAT:
+	            ERROR_OUTPUT("Incorrect message format while getting all errors.");
+	            break;
+			case ERR_MALLOC:
+				ERROR_OUTPUT("Out of memory while getting all errors.");
+				cleanupConfig(config);
+		    	serial_closePort(serial_fd);
+		    	return EMEMORY;
+	        case ERR_BSIZE:
+	            ERROR_OUTPUT("Buffer size to low while getting all errors.");
+	            break;
+	        default:
+				assert(!"Unknown return state of LMG_getAllErrors().");
+	    }
+	    serial_closePort(serial_fd);
+	    return EDEVICE;
+    }
+
+    ret = puts(buffer);
+    assert(ret != EOF);
+
+    /*
+     * Close LMG connection
+     */
+    ret = LMG_close(serial_fd);
+    if (ret != OK) {
+	    switch(ret) {
+	        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
+				ERROR_OUTPUT("Problem while closing LMG device: %s", strerror(errno));
+				break;
+	        case ERR_WRITE:
+				ERROR_OUTPUT("Write problem while closing LMG device.");
+				break;
+	        default:
+				assert(!"Unknown return state of LMG_getAllErrors().");
+	    }
+	    serial_closePort(serial_fd);
+	    return EDEVICE;
+    }
+
+    /*
+     * Close serial port
+     */
+    ret = serial_closePort(serial_fd);
+	switch(ret) {
+		case OK:
+			break;
+		case ERR_ERRNO:
+			ERROR_OUTPUT("Problem while closing serial port: %s", strerror(errno));
+			return EDEVICE;
+	    default:
+	    	assert(!"Unknown return state of serial_closePort().");
+	    }
+
+    return 0;
+
 }
+
 
 static void printUsage() {
 	puts(
@@ -372,23 +708,9 @@ static void printUsage() {
 int main(int argc, char **argv)
 {
 
-#define ERROR_OUTPUT(msg, ...) fprintf(stderr, "PowerTracer: " msg "\n", ## __VA_ARGS__)
-
 	int ret;
 
-	/*
-	 * Define error states
-	 */
-	static const int EOK = 0;
-	static const int ESYNTAX = -1;
-	static const int ECONFNOTFOUND = -2;
-	static const int ECONFINVALID = -3;
-	static const int ENOTRACES = -4;
-	static const int EMEMORY = -5;
-	static const int EHDLIB = -6;
-	static const int EDEVICE = -7;
-
-	static const int EOTHER = -100;
+	int directOutput = 1;
 
 	/*
 	 * Initialize configuration
@@ -447,7 +769,7 @@ int main(int argc, char **argv)
 		case OK:
 			break;
 		case ERR_MALLOC:
-			ERROR_OUTPUT("Out of memory.");
+			ERROR_OUTPUT("Out of memory while reading configuration file.");
 			cleanupConfig(&config);
 			return EMEMORY;
 		case ERR_FILE_NOT_FOUND:
@@ -457,7 +779,7 @@ int main(int argc, char **argv)
 		case ERR_ERRNO:
 			ERROR_OUTPUT("Problem while processing configuration file: %s", strerror(errno));
 			cleanupConfig(&config);
-			return EOTHER;
+			return ECONFINVALID;
 		case ERR_SYNTAX:
 			ERROR_OUTPUT("Configuration file invalid.");
 			cleanupConfig(&config);
@@ -519,247 +841,8 @@ int main(int argc, char **argv)
 	printf("Port: %s\n", config.port);
 	printf("Project: %s\n", config.project);
 
-
-	/*
-	 * Create the traces found in configuration
-	 */
-	ret = createTraces(&config);
-	switch (ret) {
-	case OK:
-		break;
-	case ERR_NO_TRACES:
-		ERROR_OUTPUT("No traces configured.");
-		cleanupConfig(&config);
-		return ENOTRACES;
-	case ERR_MALLOC:
-		ERROR_OUTPUT("Out of memory.");
-		cleanupConfig(&config);
-		return EMEMORY;
-	case ERR_HDLIB:
-		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary.");
-		return EHDLIB;
-	default:
-		assert(!"Unknown return value from createTraces()");
-	}
-
-
-#if 0
-    /*
-     * Take start time
-     */
-    ret = gettimeofday(&tv_start, NULL);
-#endif
-
-
-	int serial_fd;
-    char buffer[255];  /* Input buffer */
-
-    /*
-     * Open serial port
-     */
-    serial_fd = serial_openPort(config.port);
-    if(serial_fd < 0) {
-    	switch (serial_fd) {
-    	case ERR_ERRNO:
-    		ERROR_OUTPUT("Problem while opening serial port: %s", strerror(errno));
-    		cleanupConfig(&config);
-    		return EOTHER;
-    	default:
-    		assert(serial_fd != ERR_ERRNO);
-        }
-    }
-
-    /*
-     * Setup serial port
-     *
-     * Configuration on device:
-     * ComA: Custom
-     * ComA 8N1
-     * Baudrate: 57600
-     * EOS: <lf>
-     * Echo: Off
-     * Protocol: RTS/CTS
-     */
-    ret = serial_setupPort(serial_fd, 57600);
-    switch(ret) {
-    case OK:
-    	break;
-    case ERR_ERRNO: /* tcgetattr(), cfsetispeed(), cfsetospeed(), tcsetattr(), tcflush() */
-		ERROR_OUTPUT("Problem while setting up serial port: %s", strerror(errno));
-		cleanupConfig(&config);
-		return EOTHER;
-    default:
-    	assert(!"Unknown return state of serial_setupPort().");
-    }
-
-    /*
-     * Setup LMG
-     */
-    ret = LMG_setup(serial_fd);
-    if (ret != OK) {
-	    switch(ret) {
-	        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
-	        case ERR_WRITE:
-	        case ERR_UNKNOWN:
-	        	// TODO Error output
-	        	break;
-	        default: \
-	    	assert(!"Unknown return state of LMG_setup().");
-	    }
-    	cleanupConfig(&config);
-    	serial_closePort(serial_fd);
-    	return EDEVICE;
-    }
-
-    /*
-     * Get and print identity string from LMG
-     */
-    ret = LMG_getIdentity(serial_fd, buffer, sizeof(buffer));
-    if (ret != OK) {
-    	switch(ret)
-		{
-			case ERR_ERRNO:
-				ERROR_OUTPUT("Errno error while getting identity.");
-				cleanupConfig(&config);
-				break;
-			case ERR_WRITE:
-				ERROR_OUTPUT("Write error while getting identity.");
-				cleanupConfig(&config);
-				break;
-			case ERR_NO_MSG:
-				ERROR_OUTPUT("No message ready while getting identity.");
-				cleanupConfig(&config);
-				break;
-			case ERR_MSG_FORMAT:
-				ERROR_OUTPUT("Incorrect message format while getting identity.");
-				cleanupConfig(&config);
-				break;
-			case ERR_BSIZE:
-				ERROR_OUTPUT("Buffer size to low while getting identity.");
-				cleanupConfig(&config);
-				break;
-			default:
-				assert(!"Unknown return state of LMG_getIdentity().");
-		}
-    	cleanupConfig(&config);
-    	serial_closePort(serial_fd);
-    	return EDEVICE;
-    }
-
-    ret = puts(buffer);
-    assert(ret != EOF);
-
-    memset(buffer, '\0', 255);
-
-    ret = test_binmode(serial_fd);
-    if (ret != OK) {
-	    switch(ret)
-	    {
-	        case ERR_ERRNO:
-	            ERROR_OUTPUT("Other error while testing binary mode.");
-	            break;
-	        case ERR_WRITE:
-	        	ERROR_OUTPUT("Write error while testing binary mode.");
-	            break;
-	        case ERR_NO_MSG:
-	        	ERROR_OUTPUT("No message ready while testing binary mode.");
-	            break;
-	        case ERR_MSG_FORMAT:
-	        	ERROR_OUTPUT("Incorrect Message format while testing binary mode.");
-	            break;
-	        case ERR_BSIZE:
-	        	ERROR_OUTPUT("Buffer size to low while testing binary mode.");
-	            break;
-	        default:
-				assert(!"Unknown return state of test_binmode().");
-	    }
-	    cleanupConfig(&config);
-	    serial_closePort(serial_fd);
-	    return EDEVICE;
-    }
-
-
-    puts("Start tracing!");
-
-    ret = trace_data(serial_fd, &config);
-    printf("Returns %d\n", ret);
-    /* TODO: error handling */
-
-    puts("End tracing!");
-
-
-    cleanupConfig(&config);
-
-    /*
-     * Get and print all errors from LMG
-     */
-    ret = LMG_getAllErrors(serial_fd, buffer, sizeof(buffer));
-    if (ret != OK) {
-	    switch(ret)
-	    {
-	        case OK:
-	            break;
-	        case ERR_ERRNO:
-	            ERROR_OUTPUT("Errno error while getting all errors.");
-	            break;
-	        case ERR_WRITE:
-	            ERROR_OUTPUT("Write error while getting all errors.");
-	            break;
-	        case ERR_NO_MSG:
-	            ERROR_OUTPUT("No message ready while getting all errors.");
-	            break;
-	        case ERR_MSG_FORMAT:
-	            ERROR_OUTPUT("Incorrect message format while getting all errors.");
-	            break;
-	        case ERR_BSIZE:
-	            ERROR_OUTPUT("Buffer size to low while getting all errors.");
-	            break;
-	        default:
-				assert(!"Unknown return state of LMG_getAllErrors().");
-	    }
-	    cleanupConfig(&config);
-	    serial_closePort(serial_fd);
-	    return EDEVICE;
-    }
-
-    ret = puts(buffer);
-    assert(ret != EOF);
-
-    /*
-     * Close LMG connection
-     */
-    ret = LMG_close(serial_fd);
-    if (ret != OK) {
-	    switch(ret) {
-	        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
-	        case ERR_WRITE:
-	        case ERR_UNKNOWN:
-	        // TODO Error output
-	        default:
-				assert(!"Unknown return state of LMG_getAllErrors().");
-	    }
-	    cleanupConfig(&config);
-	    serial_closePort(serial_fd);
-	    return EDEVICE;
-    }
-
-    /*
-     * Close serial port
-     */
-    ret = serial_closePort(serial_fd);
-	switch(ret) {
-		case OK:
-			break;
-		case ERR_ERRNO:
-			ERROR_OUTPUT("Problem while closing serial port: %s", strerror(errno));
-			return EOTHER;
-	    default:
-	    	assert(!"Unknown return state of serial_closePort().");
-	    }
-
-    return 0;
-
-#undef ERROR_OUTPUT
+	return doTracing(&config, directOutput);
 }
 
+#undef ERROR_OUTPUT
 /* vim: set sw=4 sts=4 et fdm=syntax: */
