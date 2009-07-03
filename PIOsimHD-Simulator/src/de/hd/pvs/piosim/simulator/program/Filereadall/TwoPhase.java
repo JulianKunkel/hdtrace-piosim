@@ -1,35 +1,37 @@
 /** Version Control Information $Id$
  * @lastmodified    $Date$
  * @modifiedby      $LastChangedBy$
- * @version         $Revision$ 
+ * @version         $Revision$
  */
 
 //	Copyright (C) 2009 Michael Kuhn
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.program.Filereadall;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.model.program.commands.Allgather;
 import de.hd.pvs.piosim.model.program.commands.Filereadall;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -76,42 +78,112 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 		}
 	}
 
-	private static HashMap<FilereadallWrapper, HashMap<GClientProcess, CommandProcessing>> sync_blocked_clients = new HashMap<FilereadallWrapper, HashMap<GClientProcess, CommandProcessing>>();
+	final class FilereadallContainer {
+		private Filereadall command;
+		private GClientProcess clientProcess;
+		private CommandProcessing commandProcessing;
+
+		public FilereadallContainer(Filereadall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
+			this.command = command;
+			this.clientProcess = clientProcess;
+			this.commandProcessing = commandProcessing;
+		}
+
+		public Filereadall getCommand() {
+			return command;
+		}
+
+		public GClientProcess getClientProcess() {
+			return clientProcess;
+		}
+
+		public CommandProcessing getCommandProcessing() {
+			return commandProcessing;
+		}
+	}
+
+	private static HashMap<FilereadallWrapper, List<FilereadallContainer>> sync_blocked_clients = new HashMap<FilereadallWrapper, List<FilereadallContainer>>();
+	private static HashMap<Filereadall, List<Filereadall>> xxx = new HashMap<Filereadall, List<Filereadall>>();
 
 	@Override
 	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		final int SEND_REQUEST = 2;
+		final int CHECK_TWO_PHASE = 3;
 
 		int rank = cmd.getProgram().getRank();
 
 		switch (step) {
 		case (CommandProcessing.STEP_START): {
 			FilereadallWrapper wrapper = new FilereadallWrapper(cmd);
-
-			HashMap<GClientProcess, CommandProcessing> waitingClients = sync_blocked_clients.get(wrapper);
+			List<FilereadallContainer> waitingClients = sync_blocked_clients.get(wrapper);
+			FilereadallContainer container = new FilereadallContainer(cmd, client, OUTresults);
 
 			if (waitingClients == null) {
 				/* first client waiting */
-				waitingClients = new HashMap<GClientProcess, CommandProcessing>();
+				waitingClients = new ArrayList<FilereadallContainer>();
 				sync_blocked_clients.put(wrapper, waitingClients);
 			}
 
-			if (waitingClients.size() < cmd.getCommunicator().getSize() - 1) {
-				waitingClients.put(client, OUTresults);
+			waitingClients.add(container);
 
+			if (waitingClients.size() < cmd.getCommunicator().getSize()) {
 				/* just block up */
 				client.debug("Block for " + cmd + " by " + client.getIdentifier());
 				OUTresults.setBlocking();
 			} else {
+				List<Filereadall> cmds = new ArrayList<Filereadall>();
+
+				for (FilereadallContainer c : waitingClients) {
+					cmds.add(c.getCommand());
+				}
+
+				for (FilereadallContainer c : waitingClients) {
+					xxx.put(c.getCommand(), cmds);
+				}
+
+				waitingClients.remove(container);
+
 				client.debug("Activate other clients for barrier " + cmd + " by " + client.getIdentifier());
 
 				/* we finish, therefore reactivate all other clients! */
-				for (GClientProcess c : waitingClients.keySet()) {
-					c.activateBlockedCommand(waitingClients.get(c));
+				for (FilereadallContainer c : waitingClients) {
+					c.getClientProcess().activateBlockedCommand(c.getCommandProcessing());
 				}
 
 				/* remove Barrier */
 				sync_blocked_clients.remove(wrapper);
+			}
+
+			OUTresults.setNextStep(CHECK_TWO_PHASE);
+
+			return;
+		}
+		case (CHECK_TWO_PHASE): {
+			Model m = client.getSimulator().getModel();
+			int myIndex = -1;
+			boolean twoPhase = false;
+
+			Allgather gather = new Allgather();
+			gather.setCommunicator(cmd.getCommunicator());
+			// Two 64 bit offsets
+			gather.setSize(16);
+
+			OUTresults.invokeChildOperation(gather, CommandProcessing.STEP_START, null);
+
+			for (int i = 1; i < xxx.get(cmd).size(); i++) {
+				if (xxx.get(cmd).get(i).getStartOffset() <= xxx.get(cmd).get(i - 1).getEndOffset()) {
+					twoPhase = true;
+				}
+
+				if (xxx.get(cmd).get(i) == cmd) {
+					myIndex = i;
+				}
+			}
+
+			assert(myIndex >= 0);
+
+			if (twoPhase) {
+			} else {
 			}
 
 			OUTresults.setNextStep(SEND_REQUEST);
@@ -164,6 +236,7 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 				OUTresults.addNetReceive(targetNIC, RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
 			}
+
 			return;
 		}
 		}
