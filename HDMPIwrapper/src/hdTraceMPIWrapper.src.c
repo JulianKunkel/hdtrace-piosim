@@ -381,7 +381,7 @@ static void after_Init(int *argc, char ***argv)
             PTLSRC_SET_ALL(statistics);
 
             // set the global variable
-    		pStatistics = ptl_createTrace(topoNode, 1, statistics, 700);
+    		pStatistics = ptl_createTrace(topoNode, 1, statistics, 1000);
 
     		ptl_startTrace(pStatistics);
         }else{
