@@ -225,6 +225,7 @@ int trove_bstream_read_list(
     TROVE_op_id* out_op_id_p,
     PVFS_hint hints)
 {
+	
     TROVE_method_id method_id;
 
     method_id = global_trove_method_callback(coll_id);

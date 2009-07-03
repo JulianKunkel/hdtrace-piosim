@@ -333,6 +333,8 @@ struct PINT_server_getconfig_op
 struct PINT_server_io_op
 {
     flow_descriptor* flow_d;
+    PVFS_size io_size;
+    PVFS_size io_offset;
 };
 
 struct PINT_server_small_io_op

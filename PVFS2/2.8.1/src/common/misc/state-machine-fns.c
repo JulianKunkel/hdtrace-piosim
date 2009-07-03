@@ -98,21 +98,23 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 	}
 
 #ifdef __PVFS2_SERVER__	
-	const char * io_keys[] = {"total_transferred"};
-	const char * small_io_keys[] = {"req-size"};
+	char attr1[15], atrr2[15]; 
 
-	char attr[15];
-	const char * io_values[] = {attr};
-	const char * small_io_values[] = {attr};
+	const char * io_keys[] = {"size","offset"};
+	const char * io_values[] = {attr1, atrr2};
+	
+	const char * small_io_keys[] = {"size"};
+	const char * small_io_values[] = {attr1};
 #endif
-
+	
 	HD_STMT_TOKEN(
 #ifdef __PVFS2_SERVER__			
 			PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
 			switch(smcb->op)
 			{
 			case (PVFS_SERV_IO):{
-				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.flow_d->total_transferred));
+				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.io_size));
+				snprintf(io_values[1], 15, "%lld", lld(s_op->u.io.io_offset));
 				hdR_end(smcb->smToken, 1, io_keys, io_values);
 				break;
 			}
@@ -121,9 +123,9 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 				hdR_end(smcb->smToken, 1, small_io_keys, small_io_values);	
 				break;
 			default:
-				hdR_endS(smcb->smToken);			
+				hdR_endS(smcb->smToken);	
 			}
-#else
+#else /* __PVFS2_CLIENT__ */
 			hdR_endS(smcb->smToken);
 #endif /* __PVFS2_SERVER__ */
 			hdR_destroyRelation(& smcb->smToken);

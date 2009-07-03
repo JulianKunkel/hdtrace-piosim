@@ -42,10 +42,8 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/gossip}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/id-generator}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/events}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HDTraceWritingCLibrary/include}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/io/bmi}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PVFS2-2.8.1/src/common/gen-locks}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PerformanceTracingLibrary/include}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/home/dinh/pioviz/build}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/home/dinh/pioviz/include}&quot;"/>
 </option>

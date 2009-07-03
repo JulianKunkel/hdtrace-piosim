@@ -1716,14 +1716,16 @@ int server_state_machine_start(
     {
         s_op->req  = (struct PVFS_server_req *)s_op->decoded.buffer;
         
-        HD_SERVER_RELATION(SERVER,
+//        HD_SERVER_RELATION(SERVER,
+        if (topoTokenArray[SERVER]){
         	hdHintRelation_p hintRelationToken = malloc(sizeof(hdHintRelation_t));
-
+        	
         	// check if client sent token information or not!
         	char * relation = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
-        	printf("SERVER : %s\n",relation);
+        	
         	if(relation)
         	{
+        		printf("SERVER : %s\n",relation);
         		PINT_smcb_set_token(smcb, hdR_relateRemoteToken(topoTokenArray[SERVER], relation));
         	}else{
         		// create new token
@@ -1731,15 +1733,22 @@ int server_state_machine_start(
         	}
         	
         	hintRelationToken->token = smcb->smToken;
+        	
+//        	if (hintRelationToken->token)
+//        	{
+//        	printf("SERVER hintRelationToken->token : %p\n",hintRelationToken->token);
+//        	}
+        	
         	gen_mutex_init(& hintRelationToken->mutex);
-        	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_p), 
+        	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_t), 
         			hintRelationToken);
-//        	printf("hintRelationToken->token : %p\n",hintRelationToken->token);
-//        	hdHintRelation_p parentHintRelationToken = 
-//        				PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
+
+//        	hdHintRelation_p parentHintRelationToken = malloc(sizeof(hdHintRelation_t));
+//        	parentHintRelationToken = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
 //        	if (parentHintRelationToken->token)
-//        		printf("parentHintRelationToken->token : %p\n",parentHintRelationToken->token);
-        )
+//        		printf("SERVER parentHintRelationToken->token : %p\n",parentHintRelationToken->token);
+        }
+//        )
         
         ret = PINT_smcb_set_op(smcb, s_op->req->op);
         s_op->op = s_op->req->op;

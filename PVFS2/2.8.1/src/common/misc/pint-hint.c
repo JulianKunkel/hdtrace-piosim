@@ -558,7 +558,7 @@ void *PINT_hint_get_value_by_type(
 void *PINT_hint_get_value_by_name(
     struct PVFS_hint_s *hint, const char *name, int *length)
 {
-    PINT_hint *h;
+    PINT_hint *h; 
 
     h = hint;
 

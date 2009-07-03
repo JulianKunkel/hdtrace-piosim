@@ -748,7 +748,7 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
         tmp_type = BSTREAM_WRITE_LIST;
         event_type = trove_dbpf_write_event_id;
     }
-
+    
     /* initialize all the common members */
     dbpf_queued_op_init(q_op_p,
                         tmp_type,
