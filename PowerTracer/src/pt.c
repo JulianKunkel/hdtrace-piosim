@@ -453,24 +453,24 @@ int main(int argc, char **argv)
 	/*
 	 * Initialize configuration
 	 */
-	ConfigStruct config;
-	config.topology = NULL;
-	config.allocated.device = 0;
-	config.allocated.port = 0;
-	config.allocated.project = 0;
-	config.allocated.topo = 0;
+	ConfigStruct *config = malloc(sizeof(*config));
+	config->topology = NULL;
+	config->allocated.device = 0;
+	config->allocated.port = 0;
+	config->allocated.project = 0;
+	config->allocated.topo = 0;
 
 	/*
 	 * Set defaults
 	 */
-	config.device = "LMG450";
-    config.mode = MODE_BIN;
-	config.host = NULL;
-	config.port = "/dev/ttyUSB0";
-	config.cycle = 0.1;
-	config.project = "MyProject";
-	config.topo = "Host_Process_Thread";
-	config.traces.last = NULL;
+	config->device = "LMG450";
+    config->mode = MODE_BIN;
+	config->host = NULL;
+	config->port = "/dev/ttyUSB0";
+	config->cycle = 0.1;
+	config->project = "MyProject";
+	config->topo = "Host_Process_Thread";
+	config->traces.last = NULL;
 
 
 	/*
@@ -506,25 +506,25 @@ int main(int argc, char **argv)
 	 * Read configuration file if given
 	 */
 	if (configfile != NULL) {
-		ret = readConfigFromFile(configfile, &config);
+		ret = readConfigFromFile(configfile, config);
 		switch (ret) {
 		case OK:
 			break;
 		case ERR_MALLOC:
 			ERROR_OUTPUT("Out of memory while reading configuration file.");
-			cleanupConfig(&config);
+			cleanupConfig(config);
 			return EMEMORY;
 		case ERR_FILE_NOT_FOUND:
 			ERROR_OUTPUT("Configuration file not found.");
-			cleanupConfig(&config);
+			cleanupConfig(config);
 			return ECONFNOTFOUND;
 		case ERR_ERRNO:
 			ERROR_OUTPUT("Problem while processing configuration file: %s", strerror(errno));
-			cleanupConfig(&config);
+			cleanupConfig(config);
 			return ECONFINVALID;
 		case ERR_SYNTAX:
 			ERROR_OUTPUT("Configuration file invalid.");
-			cleanupConfig(&config);
+			cleanupConfig(config);
 			return ECONFINVALID;
 		default:
 			assert(!"Unknown return value from readConfigFromFile()");
@@ -536,11 +536,11 @@ int main(int argc, char **argv)
 	 */
 #define	REPLACE_CONFIG(var) \
 		if (var != NULL) { \
-			if (config.allocated.var) { \
-				free(config.var); \
-				config.allocated.var = 0; \
+			if (config->allocated.var) { \
+				free(config->var); \
+				config->allocated.var = 0; \
 			} \
-			config.var = var; \
+			config->var = var; \
 		}
 	REPLACE_CONFIG(port)
 	REPLACE_CONFIG(project)
@@ -551,17 +551,17 @@ int main(int argc, char **argv)
 	 * Add traces from commandline
 	 */
 	int ntraces = argc - optind;
-	ret = parseTraceStrings(ntraces, argv+optind, &config);
+	ret = parseTraceStrings(ntraces, argv+optind, config);
 	switch (ret) {
 	case OK:
 		break;
 	case ERR_SYNTAX:
 		printUsage();
-		cleanupConfig(&config);
+		cleanupConfig(config);
 		return ESYNTAX;
 	case ERR_MALLOC:
 		ERROR_OUTPUT("Out of memory.");
-		cleanupConfig(&config);
+		cleanupConfig(config);
 		return EMEMORY;
 	default:
 		assert(!"Unknown return value from parseTraceStrings()");
@@ -570,13 +570,13 @@ int main(int argc, char **argv)
 	/*
 	 * Do consistency check of the final configuration
 	 */
-	ret = checkConfig(&config);
+	ret = checkConfig(config);
 	switch (ret) {
 	case OK:
 		break;
 	default:
 		ERROR_OUTPUT("Configuration is not valid.");
-		cleanupConfig(&config);
+		cleanupConfig(config);
 		exit(-1);
 	}
 
@@ -584,36 +584,36 @@ int main(int argc, char **argv)
 	/*
 	 * Print configuration
 	 */
-	printf("Device: %s\n", config.device);
-	printf("Host: %s\n", config.host == NULL ? "NULL" : config.host);
-	printf("Port: %s\n", config.port);
-	printf("Project: %s\n", config.project);
+	printf("Device: %s\n", config->device);
+	printf("Host: %s\n", config->host == NULL ? "NULL" : config->host);
+	printf("Port: %s\n", config->port);
+	printf("Project: %s\n", config->project);
 
 	/*
 	 * Create the traces found in configuration
 	 */
-	ret = createTraces(&config);
+	ret = createTraces(config);
 	switch (ret) {
 	case OK:
 		break;
 	case ERR_NO_TRACES:
 		ERROR_OUTPUT("No traces configured.");
-		cleanupConfig(&config);
+		cleanupConfig(config);
 		return ENOTRACES;
 	case ERR_MALLOC:
 		ERROR_OUTPUT("Out of memory while creating traces.");
-		cleanupConfig(&config);
+		cleanupConfig(config);
 		return EMEMORY;
 	case ERR_HDLIB:
 		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary while creating traces.");
-		cleanupConfig(&config);
+		cleanupConfig(config);
 		return EHDLIB;
 	default:
 		assert(!"Unknown return value from createTraces()");
 	}
 
 	PowerTrace *trace;
-	ret = createTracingThread(&config, 1, &trace);
+	ret = createTracingThread(config, 1, &trace);
 	printf("createTracingThread() returned %d\n", ret);
 
 	ret = pt_startTracing(trace);
