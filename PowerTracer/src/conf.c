@@ -1086,8 +1086,10 @@ void cleanupConfig(ConfigStruct *config) {
 
 #undef FREE_VAR
 
-	if (config->topology)
+	if (config->topology) {
 		hdT_destroyTopology(config->topology);
+		config->topology = NULL;
+	}
 
 	freeAllTraces(&(config->traces));
 }

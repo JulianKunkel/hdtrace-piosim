@@ -53,4 +53,6 @@ void freeAllTraces(TraceListStruct *list) {
 		free(this);
 		this = next;
 	}
+
+	list->last = NULL;
 }

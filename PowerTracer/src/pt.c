@@ -68,7 +68,7 @@ int test_binmode(int serial_fd)
 
     /* read data */
 
-    char buffer[255];
+    char buffer[255] = { 0 };
 
     ret = LMG_readTextMessage(serial_fd, buffer, sizeof(buffer));
     if (ret < 0)
@@ -136,7 +136,7 @@ static int doTracing(PowerTrace *trace) {
 
 
 	int serial_fd;
-    char buffer[255];  /* Input buffer */
+    char buffer[255] = { 0 };  /* Input buffer */
 
     /*
      * Open serial port
@@ -789,6 +789,7 @@ static int createTracingThread(ConfigStruct *config, int directOutput,
 	(*trace)->directOutput = directOutput;
 
 	(*trace)->control.started = 0;
+	(*trace)->control.terminate = 0;
 	ret = pthread_cond_init(&((*trace)->control.cond), NULL);
 	ret = pthread_mutex_init(&((*trace)->control.mutex), NULL);
 
@@ -853,6 +854,10 @@ int pt_stopTracing(PowerTrace *trace) {
  * Finalize and free a power trace
  */
 int pt_finalizeTrace(PowerTrace *trace) {
+
+	pthread_mutex_lock(&(trace->control.mutex));
+	trace->control.terminate = 1;
+	pthread_mutex_unlock(&(trace->control.mutex));
 
 	struct tracingThreadReturn_s *threadRet;
 	pthread_join(trace->thread, (void *) &threadRet);

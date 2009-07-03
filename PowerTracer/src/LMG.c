@@ -1,5 +1,6 @@
 #include "LMG.h"
 
+#include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <assert.h>
@@ -325,9 +326,25 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
             return(ERR_MSG_FORMAT);
 	    }
 
+	    /*
+	     * Read length of size
+	     */
+	    ret = serial_readBytes(fd, 5, locbuffer, 1);
+	    if (ret < 1)
+	    {
+	    	free(tmpbuffer);
+	    	if (ret == 0) {
+	    		if (msg_size == 0)
+					return ERR_NO_MSG;
+	    		else
+	    			return ERR_MSG_FORMAT;
+	    	}
+	        SERIAL_READBYTES_ERROR_CHECK;
+	    }
+
         /* scan length of size of the binary data */
-        locbuffer[2] = '\0';
-        ret = sscanf(locbuffer+1, "%d", &size_length);
+        locbuffer[1] = '\0';
+        ret = sscanf(locbuffer, "%d", &size_length);
         if (ret == EOF)
         {
             ERROR_ERRNO("sscanf()");
@@ -335,12 +352,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
             return(ERR_MSG_FORMAT);
         }
 
-        /* check for locbuffer won't overflow */
-        if (size_length > 10) {
-        	ERROR("Size of message has more than 10 digits, unsupported.");
-        	free(tmpbuffer);
-        	return(ERR_MSG_FORMAT);
-        }
+        assert(size_length < 10);
 
         /* read size of the binary part */
         ret = serial_readBytes(fd, 5, locbuffer, size_length);
@@ -364,7 +376,6 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         /*
          * Allocate memory for message
          */
-        void *tmpbuffer;
         PTREALLOC(tmpbuffer, msg_size + block_size, ERR_MALLOC);
 
         /*
