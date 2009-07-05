@@ -74,14 +74,6 @@ public class ProjectDescriptionXMLReader {
 			descriptionInOut.setDescription( desc.getContainedText());
 		}
 
-		try {
-			String val = rootTag.getAttribute("processCount");
-			descriptionInOut.setProcessCount(Integer.parseInt(val));
-		} catch (NumberFormatException e) {
-			// TODO CLEANUP HERE
-			System.err.print("WARNING \"processCount\" missing in project description, therefore won't work with simulator");
-		}
-
 		final XMLTag xmlTopology = rootTag.getAndRemoveFirstNestedXMLTagWithName("Topology");
 		TopologyTypes labels = new TopologyTypes();
 
@@ -114,10 +106,12 @@ public class ProjectDescriptionXMLReader {
 			// MPI trace file.
 			elements = elements.get(0).getNestedXMLTagsWithName("Communicator");
 			for (int i = 0; i < elements.size(); i++) {
-				MPICommunicator c = readCommunicator(elements.get(i), descriptionInOut);
+				final String name = elements.get(i).getAttribute("name");
+
+				MPICommunicator c = createCommunicator(name);
+				readCommunicator(c, elements.get(i), descriptionInOut);
 				descriptionInOut.addCommunicator(c);
 			}
-
 
 		}
 
@@ -204,13 +198,14 @@ public class ProjectDescriptionXMLReader {
 		return datatype;
 	}
 
-	private MPICommunicator readCommunicator(XMLTag xml, ProjectDescription desc){
+	protected MPICommunicator createCommunicator(String name){
+		return new MPICommunicator(name);
+	}
+	
+	private void readCommunicator(MPICommunicator comm, XMLTag xml, ProjectDescription desc){
 		final LinkedList<XMLTag>  elements = xml.getNestedXMLTagsWithName("Rank");
 
 		Iterator<XMLTag> it = elements.iterator();
-		final String name = xml.getAttribute("name");
-
-		final MPICommunicator comm = new MPICommunicator(name);
 
 		for(int i=0; i < elements.size(); i++){
 			XMLTag tag = it.next();
@@ -237,8 +232,6 @@ public class ProjectDescriptionXMLReader {
 				throw new InvalidParameterException("Invalid XML, communicator attribute is not an integer");
 			}	
 		}
-
-		return comm;
 	}
 
 

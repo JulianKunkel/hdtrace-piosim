@@ -2,7 +2,7 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
@@ -28,10 +28,10 @@ package de.hd.pvs.piosim.model.program;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.hd.pvs.TraceFormat.project.MPICommunicator;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
@@ -43,7 +43,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 /**
  * This class is used to create an Application object from an XML description.
- *  
+ *
  * @author Julian M. Kunkel
  */
 
@@ -52,7 +52,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 	/**
 	 * Parse an application of the file.
-	 * 
+	 *
 	 * @param XMLFile
 	 * @return
 	 * @throws Exception
@@ -84,37 +84,34 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 			app.getFiles().put(f.getId(), f);
 		}
 
-		/* read communicator list */
-		elements =  applicationNode.getNestedXMLTagsWithName("CommunicatorList");
-		if (elements.size() != 1) {
-			throw new InvalidParameterException(
-			"Invalid XML, wrong CommunicatorList tags defined (at least WORLD must exist)!");
-		}
-		elements = elements.get(0).getNestedXMLTagsWithName("Communicator");
-		for (int i = 0; i < elements.size(); i++) {
-			Communicator c = readCommunicator(elements.get(i), app);
-			app.getCommunicatorsSim().put(c.getName(), c);
+		MPICommunicator commWorld = null;
+		// search for world communicator:
+		for(MPICommunicator comm: app.getCommunicators()){
+			if(comm.getName().equals("WORLD")){
+				commWorld = comm;
+				break;
+			}
 		}
 
 		// now read Programs:
-		Program [][] programs = new Program[app.getProcessCount()] [];
+		Program [][] programs = new Program[commWorld.getSize()] [];
 
 		final XMLReaderToRAM reader = new XMLReaderToRAM();
 
 		int rank = -1;
-		for (TopologyNode host: app.getTopologyRoot().getChildElements().values()) {			
+		for (TopologyNode host: app.getTopologyRoot().getChildElements().values()) {
 			for (TopologyNode topoRanks: host.getChildElements().values()) {
-				
+
 				rank++;
-				
+
 				final int threadCnt =  topoRanks.getChildElements().size();
 
-				programs[rank] = new Program[threadCnt]; 
+				programs[rank] = new Program[threadCnt];
 				int thread = -1;
 				for(TopologyNode topoThread : topoRanks.getChildElements().values() ){
 					thread++;
-					
-					// for each program open the corresponding file				
+
+					// for each program open the corresponding file
 					final String file = app.getParentDir() + "/" + topoThread.getTraceFileName();
 
 					if(!  (new File(file)).canRead() ){
@@ -126,7 +123,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 						final XMLTag tag = reader.readXML(file);
 						programs[rank][thread] = readProgramXMLDOM(rank, thread, tag, app);
 					}else{ // use SAX Reader to read the file
-						programs[rank][thread] = new ProgramReadXMLOnDemand();					
+						programs[rank][thread] = new ProgramReadXMLOnDemand();
 					}
 
 					programs[rank][thread].setApplication(app, rank, thread);
@@ -140,50 +137,15 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		return app;
 	}
-	
 
-	private Communicator readCommunicator(XMLTag xml, Application app) throws Exception {
-		Communicator comm = new Communicator();
-		
-		String name =xml.getAttribute("name").toUpperCase();
-		comm.setName(name);
-
-		final LinkedList<XMLTag>  elements = xml.getNestedXMLTagsWithName("Rank");
-		
-		Iterator<XMLTag> it = elements.iterator();
-		
-		for(int i=0; i < elements.size(); i++){
-			XMLTag tag = it.next();
-			
-			final String rank = tag.getAttribute("name");
-			if (rank == null){
-				throw new InvalidParameterException("Invalid XML, no rank name specified !");
-			}
-			final String cid = tag.getAttribute("cid");
-			if (rank == null){
-				throw new InvalidParameterException("Invalid XML, no communicator ID specified !");
-			}			
-			
-			int ranki = -1;
-			
-			// lookup rank:
-			ranki = app.getRank(rank);			
-			
-			try{
-				final int cidi = Integer.parseInt(cid);
-				comm.addRank(ranki, cidi);
-				
-			}catch(NumberFormatException e){
-				throw new InvalidParameterException("Invalid XML, no integer cid specified");
-			}	
-		}
-		
-		return comm;
+	@Override
+	protected MPICommunicator createCommunicator(String name) {
+		return new Communicator(name);
 	}
 
 	/**
-	 * Read the program from the XML node DOM. 
-	 * 
+	 * Read the program from the XML node DOM.
+	 *
 	 * @param programmXMLnode
 	 * @param program
 	 * @throws Exception
@@ -197,10 +159,9 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		CommandXMLReader cmdReader = new CommandXMLReader(program);
 
-		for (XMLTag xmlcmd: elements) {		
+		for (XMLTag xmlcmd: elements) {
 			// now read the particular command from the XML:
 			Command cmd = cmdReader.parseCommandXML(xmlcmd, program);
-
 			program.getCommands().add(cmd);
 		}
 

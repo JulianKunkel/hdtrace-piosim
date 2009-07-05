@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -42,7 +42,7 @@ public class CommandXMLReader {
 	class MyAttributeAnnotationHandler extends AttributeAnnotationHandler{
 		public MyAttributeAnnotationHandler() {
 			setDefaultXMLType(AttributeXMLType.ATTRIBUTE);
-		}		
+		}
 
 		// extend reader.
 		public Object parseXMLString(java.lang.Class<?> type, String what) throws IllegalArgumentException {
@@ -63,14 +63,14 @@ public class CommandXMLReader {
 	/**
 	 * Read the XML of a command from the DOM. Therefore Attribute annotated fields are filled with
 	 * the XML content.
-	 * 
+	 *
 	 * @param commandXMLElement
 	 * @param cmd
 	 * @param app
 	 * @throws Exception
 	 */
 	public Command parseCommandXML(XMLTag commandXMLElement, Program program) throws Exception {
-		Command cmd = factory.createCommand(commandXMLElement.getName().toLowerCase());
+		Command cmd = factory.createCommand(commandXMLElement.getName());
 
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
@@ -86,7 +86,7 @@ public class CommandXMLReader {
 		cmd.setProgram(program);
 		return cmd;
 	}
-	
+
 	public Command parseCommandXML(ITraceEntry command, Program program) throws Exception {
 		return parseCommandXML((XMLTag) command, program);
 	}
@@ -95,13 +95,13 @@ public class CommandXMLReader {
 
 	/**
 	 * Helper function, returns the communicator as specified in the string.
-	 *  
+	 *
 	 * @return
 	 */
 	private Communicator getCommunicator(String which){
 		Integer number = Integer.parseInt(which);
 
-		Communicator communicator;		
+		Communicator communicator;
 		communicator = program.getCommunicator(number);
 		if (communicator == null){
 			throw new IllegalArgumentException("Invalid Communicator with cid: " + which);
@@ -112,15 +112,15 @@ public class CommandXMLReader {
 
 	/**
 	 * Helper function, returns the MPI_File as specified in the string.
-	 * 
+	 *
 	 * @param which
 	 * @return
 	 */
-	private MPIFile getFile(String which){		
+	private MPIFile getFile(String which){
 		if (which == null){
 			throw new IllegalArgumentException("No file given for command! But a file parameter is necessary!");
 		}
-		return program.getApplication().getFile(Integer.parseInt(which));		
+		return program.getApplication().getFile(Integer.parseInt(which));
 	}
 
 }

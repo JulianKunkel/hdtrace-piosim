@@ -31,7 +31,7 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
-public class Dummy 
+public class NoOperation 
 extends CommandImplementation<Command>
 {
 	@Override

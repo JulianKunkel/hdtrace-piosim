@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -28,17 +28,16 @@
  */
 package de.hd.pvs.piosim.model.program;
 
-import java.util.HashMap;
-
+import de.hd.pvs.TraceFormat.project.CommunicatorInformation;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 
 /**
  * Contains the sequential program trace for a single client process.
  * Several cooperating programs are an application.
- *  
+ *
  * @author Julian M. Kunkel
- * 
+ *
  */
 abstract public class Program {
 
@@ -56,11 +55,6 @@ abstract public class Program {
 	 * The thread number within the rank.
 	 */
 	private int thread;
-
-	/**
-	 * Map the CID to the corresponding communicator.
-	 */
-	private HashMap<Integer, Communicator> communicatorMap = new HashMap<Integer, Communicator>();
 
 	/**
 	 * Is the program processed completely
@@ -108,27 +102,19 @@ abstract public class Program {
 		return thread;
 	}
 
-	
+
 	/**
 	 * Get the communicator for a given communicator ID
 	 * @param cid
 	 * @return
 	 */
 	public Communicator getCommunicator(int cid) {
-		final Communicator comm = communicatorMap.get(cid);
-		if(comm != null){
-			return comm;
-		}
 		// try to lookup communicator in application.
-		for(Communicator pCom: parentApplication.getCommunicatorsSim().values()){
-			Integer scid = pCom.getParticipiants().get(getRank());
-			if(scid != null && scid == cid){
-				communicatorMap.put(cid, pCom);
-				return pCom;
-			}
+		final CommunicatorInformation commInfo =  parentApplication.getCommunicator(getRank(), cid);
+		if(commInfo == null){
+			throw new IllegalArgumentException("Communicator with cid: " + cid + " not registered for rank " + getRank());
 		}
-
-		throw new IllegalArgumentException("Communicator with cid: " + cid + " not registered for rank " + getRank());		
+		return (Communicator) commInfo.getMPICommunicator();
 	}
 
 }

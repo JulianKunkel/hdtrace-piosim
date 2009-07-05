@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -44,7 +44,7 @@ import de.hd.pvs.piosim.model.program.Program;
 
 /**
  * This class contains all objects part of a cluster model.
- * It links several helper classes. 
+ * It links several helper classes.
  *
  * @author Julian M. Kunkel
  */
@@ -63,7 +63,7 @@ public class Model{
 	 * The template manager contained objects might use.
 	 */
 	TemplateManager     templateManager = new TemplateManager();
-	
+
 	/**
 	 * Settings meaningful for a subset of components:
 	 */
@@ -80,12 +80,12 @@ public class Model{
 	HashMap<String, BasicComponent> componentNameMap = new HashMap<String, BasicComponent>();
 
 	/**
-	 * Maps the Application alias to the application. 
+	 * Maps the Application alias to the application.
 	 * The alias could be different than the application name because one application can
-	 * be used several times for different clients. 
+	 * be used several times for different clients.
 	 */
 	HashMap<String, Application> applicationNameMap = new HashMap<String, Application>();
-	
+
 	/**
 	 * Maximum component ID ever read.
 	 */
@@ -98,22 +98,22 @@ public class Model{
 	public int getMaxComponentID() {
 		return maxComponentID;
 	}
-	
+
 	/**
 	 * @return the nodes
 	 */
-	public List<Node> getNodes() {		
+	public List<Node> getNodes() {
 		return Collections.unmodifiableList(nodes);
 	}
 
 	/**
 	 * @return the switches
 	 */
-	public List<Switch> getSwitches() {				
+	public List<Switch> getSwitches() {
 		return Collections.unmodifiableList(switches);
 	}
 
-	/** 
+	/**
 	 * @return the componentNameMap
 	 */
 	public Map<String, BasicComponent> getComponentNameMap() {
@@ -126,10 +126,10 @@ public class Model{
 	public Map<String, Application> getApplicationNameMap() {
 		return Collections.unmodifiableMap(  applicationNameMap );
 	}
-	
+
 	/**
 	 * Return the program of a particular client
-	 * 
+	 *
 	 * @param client
 	 * @return
 	 */
@@ -145,7 +145,7 @@ public class Model{
 		return Collections.unmodifiableList(servers);
 	}
 	/**
-	 * 
+	 *
 	 * @return clients
 	 */
 	public List<ClientProcess> getClientProcesses(){
@@ -157,10 +157,6 @@ public class Model{
 		StringBuilder str = new StringBuilder();
 		str.append("Global Settings:" + globalSettings + "\n");
 
-		//str.append("Known components\n");
-		//for (BasicComponent c : cidCMap.values()) {
-		//	str.append(c + "\n");
-		//}
 		str.append("Known nodes:\n");
 		for(Node m: nodes){
 			str.append(m);
@@ -176,12 +172,12 @@ public class Model{
 
 	/**
 	 * Derive a object name which is not used right now (can be the same name if not used).
-	 * 
+	 *
 	 * @param oldName
 	 * @return
 	 */
 	public String findUnusedObjectName(String oldName){
-		if (oldName == null) 
+		if (oldName == null)
 			return oldName;
 
 		if (componentNameMap.get(oldName) == null)
@@ -205,8 +201,8 @@ public class Model{
 	/**
 	 * Add a BasicComponent and all subcomponents to the Model.
 	 * This function assigns a valid component ID to the component.
-	 * Beware of later modifications of the BasicComponent (especially addition of new subelements). 
-	 * 
+	 * Beware of later modifications of the BasicComponent (especially addition of new subelements).
+	 *
 	 * @param com
 	 */
 	public void addComponent(BasicComponent com){
@@ -219,14 +215,14 @@ public class Model{
 				throw new IllegalArgumentException("Component ID already used: "
 						+ ci.getID());
 			}
-			
+
 			if( maxComponentID < ci.getID()){
 				maxComponentID = ci.getID();
 			}
 		}
 		cidCMap.put(ci.getID(), com);
 
-		if (ci != null && ci.getName() != null && ci.getName().length() != 0) {			
+		if (ci != null && ci.getName() != null && ci.getName().length() != 0) {
 			if (componentNameMap.get(ci.getName()) != null) {
 				ci.setName(findUnusedObjectName(ci.getName()));
 				/*throw new IllegalArgumentException(
@@ -238,7 +234,7 @@ public class Model{
 			componentNameMap.put(ci.getName(), com);
 		}
 
-		// depending on the type add it to the specific list, TODO, this should be done via 
+		// depending on the type add it to the specific list, TODO, this should be done via
 		// a function addObject(<Type> type) and exploiting polymorphism...
 		if(com.getComponentType().equals("Node")){
 			nodes.add((Node) com);
@@ -252,7 +248,7 @@ public class Model{
 
 		// add subelement
 		ArrayList<BasicComponent> list = com.getDirectChildComponents();
-		
+
 		for (BasicComponent child: list){
 			addComponent(child);
 		}
@@ -260,9 +256,9 @@ public class Model{
 
 	/**
 	 * This method renames the given component component identifier name and updates the model
-	 * to ensure that all references to the particular object are updated. In case the name 
+	 * to ensure that all references to the particular object are updated. In case the name
 	 * already exists the name gets an unused integer value attached.
-	 *  
+	 *
 	 * @param com The component to rename
 	 * @param newName The new name
 	 */
@@ -271,7 +267,7 @@ public class Model{
 
 		com.setName(newName);
 
-		if (newName != null && newName.length() != 0) {			
+		if (newName != null && newName.length() != 0) {
 			if (componentNameMap.get(newName) != null) {
 				com.setName(findUnusedObjectName(newName));
 			}
@@ -282,11 +278,11 @@ public class Model{
 	/**
 	 * Remove the component and all subcomponents from the model.
 	 * Connections within the object are not updated! Thus beware of invalid interconnects.
-	 * 
+	 *
 	 * @param com
 	 */
 	void removeComponent(BasicComponent com){
-		/* remove from all maps, remove necessary connection should be done by the caller */		
+		/* remove from all maps, remove necessary connection should be done by the caller */
 		if ( cidCMap.remove(com) == null ){
 			throw new IllegalArgumentException("Component " + com + " not part of model!");
 		}
@@ -304,7 +300,7 @@ public class Model{
 
 		// remove subelement
 		ArrayList<BasicComponent> list = com.getDirectChildComponents();
-		
+
 		for (BasicComponent child: list){
 			removeComponent(child);
 		}
@@ -332,8 +328,8 @@ public class Model{
 		}
 		maxComponentID = max;
 	}
-	
-	
+
+
 	/**
 	 * @return the templateManager
 	 */
@@ -347,9 +343,9 @@ public class Model{
 	public GlobalSettings getGlobalSettings() {
 		return globalSettings;
 	}
-	
+
 	/**
-	 * Checks if the component is part of the model. 
+	 * Checks if the component is part of the model.
 	 * @param component
 	 * @return
 	 */
@@ -359,7 +355,7 @@ public class Model{
 
 	/**
 	 * generate a new and unused component ID. This function is not thread-safe.
-	 *  
+	 *
 	 * @return
 	 */
 	private int getFreeComponentID() {

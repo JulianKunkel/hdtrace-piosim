@@ -51,8 +51,6 @@ public class ProjectDescription {
 
 	private String description = "";	
 
-	private int processCount = 0;	
-
 	final private LinkedList<MPICommunicator> communicators = new LinkedList<MPICommunicator>();
 
 	/**
@@ -79,11 +77,7 @@ public class ProjectDescription {
 	public String getName() {
 		return applicationName;
 	}
-
-	public int getProcessCount() {
-		return processCount;
-	}
-
+	
 	public String getApplicationName() {
 		return applicationName;
 	}
@@ -154,10 +148,6 @@ public class ProjectDescription {
 		this.description = description;
 	}
 
-	public void setProcessCount(int processCount) {
-		this.processCount = processCount;
-	}
-
 	public void setTopologyTypes(TopologyTypes topologyLabels) {
 		this.topologyTypes = topologyLabels;
 	}
@@ -187,7 +177,7 @@ public class ProjectDescription {
 			HashMap<Integer, CommunicatorInformation> map = rankCIDMap.get(rank);
 			if(map == null){		
 				map = new HashMap<Integer, CommunicatorInformation>();
-				rankCIDMap.put(rank, map);
+				rankCIDMap.put(rank, map);				
 			}
 			
 			final CommunicatorInformation cinfo = cidMap.get(rank);
