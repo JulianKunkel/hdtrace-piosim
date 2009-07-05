@@ -166,7 +166,7 @@ int initTracing(
 
 	if (sources.PTLSRC_HDD_READ)
 		ADD_VALUE(group, "HDD_READ", INT64, "Blocks", "READ");
-	
+
 	if (sources.PTLSRC_HDD_WRITE)
 		ADD_VALUE(group, "HDD_WRITE", INT64, "Blocks", "WRITE");
 	/*
@@ -382,21 +382,53 @@ static void doTracingStep(tracingDataStruct *tracingData)
     	glibtop_netload netload;
     	glibtop_get_netload (&netload, tracingData->staticData.netifs[i]);
 
-    	net_all_in += netload.bytes_in;
-    	net_all_out += netload.bytes_out;
+		guint64 new_in, old_in, new_out, old_out;
+		new_in = netload.bytes_in;
+		old_in = tracingData->oldValues.netload[i].bytes_in;
+		new_out = netload.bytes_out;
+		old_out = tracingData->oldValues.netload[i].bytes_out;
 
+		/* handle system counter overflows */
+		if (tracingData->oldValues.valid)
+		{
+			/* ATTENTION: Some assumptions take place here:
+			 * - OS counter for network traffic is either 32bit or 64bit
+			 *   unsigned integer.
+			 * - Only 32bit will overflow in the near future, since unsigned
+			 *   64bit won't until reaching 16 Exbibytes of network traffic.
+			 *
+			 * So (old < new) means, that an unsigned 32bit counter is used
+			 * and overflowed once since last cycle.
+			 */
+			new_in += (new_in < old_in) ? 0xFFFFFFFF : 0;
+			new_out += (new_out < old_out) ? 0xFFFFFFFF : 0;
+		}
+
+    	/* count aggregated traffic of all interfaces */
+    	net_all_in += new_in;
+    	net_all_out += new_out;
+
+    	/* count aggregated traffic of external interfaces */
     	if (! (netload.if_flags	& (1 << GLIBTOP_IF_FLAGS_LOOPBACK)))
     	{
-    		net_ext_in += netload.bytes_in;
-    		net_ext_out += netload.bytes_out;
+    		net_ext_in += new_in;
+    		net_ext_out += new_out;
     	}
 
 		if (tracingData->oldValues.valid)
 		{
+			/* Handle overflows.
+			 * ATTENTION: Here some assumptions take place:
+			 * - OS counter for network traffic is either 32bit or 64bit and
+			 *   unsigned
+			 * - Only 32bit will overflow in the near future, since unsigned
+			 *   64bit won't until 16 Exbibytes.
+			 *   So (old < new) means, that an unsigned 32bit counter is used
+			 *   and overflowed one time.
+			 */
 			if (tracingData->sources.PTLSRC_NET_IN_X)
 			{
-				valuei64 = (gint64) (netload.bytes_in
-						- tracingData->oldValues.netload[i].bytes_in);
+				valuei64 = (gint64) (new_in - old_in);
 				WRITE_I64_VALUE(valuei64)
 				fprintf(stderr,
 						"NET_IN_%s = %" G_GINT64_FORMAT " " NET_UNIT "\n",
@@ -405,8 +437,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 
 			if (tracingData->sources.PTLSRC_NET_OUT_X)
 			{
-				valuei64 = (gint64) (netload.bytes_out
-						- tracingData->oldValues.netload[i].bytes_out);
+				valuei64 = (gint64) (new_out - old_out);
 				WRITE_I64_VALUE(valuei64)
 				fprintf(stderr,
 						"NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT "\n",
@@ -470,11 +501,11 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	 * DISK *
 	 */
 	glibtop_fsusage fs;
-	
+
 	if(tracingData->sources.PTLSRC_HDD_READ || tracingData->sources.PTLSRC_HDD_WRITE){
-	  // right now read from environment 	  
+	  // right now read from environment
 	  char * disc = getenv("PTL_DISK_MONITOR");
-	  if(disc == NULL){	    
+	  if(disc == NULL){
 	    disc = "/tmp";
 	    fprintf(stderr, "use environment variable PTL_DISK_MONITOR to monitor device, right now I will use %s\n", disc);
 	  }
@@ -489,7 +520,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		fprintf(stderr,
 			"DISK_READ = %" G_GINT64_FORMAT "\n", valuei64);
 	  }
-	  
+
 	  if (tracingData->sources.PTLSRC_HDD_WRITE)
 	  {
 	    valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
@@ -498,8 +529,8 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			"DISK_WRITE = %" G_GINT64_FORMAT  "\n", valuei64);
 	  }
 	}
-	tracingData->oldValues.fs = fs;  
-	
+	tracingData->oldValues.fs = fs;
+
 	/* mark old statistics values saved as valid */
 	tracingData->oldValues.valid = TRUE;
 
