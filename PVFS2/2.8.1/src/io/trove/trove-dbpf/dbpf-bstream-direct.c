@@ -62,6 +62,7 @@
 				snprintf(io_values[1], 15, "%lld", lld(stream_extents[i].offset)); \
 				\
 				hdR_end(relateToken,2,io_keys,io_values); \
+				hdR_destroyRelation(&relateToken); \
 			} \
 	) \
 	if(run){ \
