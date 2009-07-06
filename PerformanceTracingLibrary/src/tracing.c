@@ -86,11 +86,14 @@ int initTracing(
 	int ret = 0;
 
 #define ADD_VALUE(group, string, type, unit, grouping) \
+	do { \
 		ret = hdS_addValue(group, string, type, unit, grouping); \
 		if(ret < 0)	{ \
 			g_assert(errno != HD_ERR_INVALID_ARGUMENT); \
 			g_assert(errno != HD_ERR_BUFFER_OVERFLOW); \
-			g_assert(errno != HDS_ERR_GROUP_COMMIT_STATE); }
+			g_assert(errno != HDS_ERR_GROUP_COMMIT_STATE); \
+		} \
+	} while (0)
 
 
 	/* specify entry format */
@@ -273,13 +276,16 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		int ret = 0;
 
 #define CHECK_WRITE_VALUE_ERROR \
+	do { \
 		if (ret < 0) \
 			switch (errno)	{ \
 			case HD_ERR_INVALID_ARGUMENT: assert(!"HD_ERR_INVALID_ARGUMENT"); \
 			case HD_ERR_TRACE_DISABLED: assert(!"HD_ERR_TRACE_DISABLED"); \
 			case HDS_ERR_GROUP_COMMIT_STATE: assert(!"HDS_ERR_GROUP_COMMIT_STATE"); \
 			case HDS_ERR_ENTRY_STATE: assert(!"HDS_ERR_ENTRY_STATE"); \
-			default: assert(ret == 0);	}
+			default: assert(ret == 0); \
+			} \
+	} while (0)
 
 	VERBMSG("Step!");
 
@@ -288,16 +294,22 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	gfloat valuef;
 
 #define WRITE_I32_VALUE(value) \
-	ret = hdS_writeInt32Value(tracingData->group, value); \
-	CHECK_WRITE_VALUE_ERROR
+	do { \
+		ret = hdS_writeInt32Value(tracingData->group, value); \
+		CHECK_WRITE_VALUE_ERROR; \
+	} while (0)
 
 #define WRITE_I64_VALUE(value) \
-	ret = hdS_writeInt64Value(tracingData->group, value); \
-	CHECK_WRITE_VALUE_ERROR
+	do { \
+		ret = hdS_writeInt64Value(tracingData->group, value); \
+		CHECK_WRITE_VALUE_ERROR; \
+	} while (0)
 
 #define WRITE_FLOAT_VALUE(value) \
-	ret = hdS_writeFloatValue(tracingData->group, value); \
-	CHECK_WRITE_VALUE_ERROR
+	do { \
+		ret = hdS_writeFloatValue(tracingData->group, value); \
+		CHECK_WRITE_VALUE_ERROR; \
+	} while (0)
 
 	/* ************************************************************************
 	 * CPU
@@ -315,7 +327,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		if (tracingData->sources.PTLSRC_CPU_LOAD)
 		{
 			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
-			WRITE_FLOAT_VALUE(valuef * 100)
+			WRITE_FLOAT_VALUE(valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
 
@@ -326,7 +338,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 				/* TODO: Check CPU enable state (flags) */
 				valuef = (gfloat)(1.0 - (CPUDIFF(xcpu_idle[i])
 						/ CPUDIFF(xcpu_total[i])));
-				WRITE_FLOAT_VALUE(valuef * 100)
+				WRITE_FLOAT_VALUE(valuef * 100);
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
@@ -349,15 +361,15 @@ static void doTracingStep(tracingDataStruct *tracingData)
 #define MEM_WRITE_VALUE(PART,part) \
 	if (tracingData->sources.PTLSRC_MEM_##PART) { \
 		valuef = (gfloat) (mem.part / MEM_MULT); \
-		WRITE_FLOAT_VALUE(valuef) \
+		WRITE_FLOAT_VALUE(valuef); \
 		DEBUGMSG("MEM_" #PART " = %f " MEM_UNIT "\n", valuef);\
 	}
 
-		MEM_WRITE_VALUE(USED, used);
-		MEM_WRITE_VALUE(FREE, free);
-		MEM_WRITE_VALUE(SHARED, shared);
-		MEM_WRITE_VALUE(BUFFER, buffer);
-		MEM_WRITE_VALUE(CACHED, cached);
+		MEM_WRITE_VALUE(USED, used)
+		MEM_WRITE_VALUE(FREE, free)
+		MEM_WRITE_VALUE(SHARED, shared)
+		MEM_WRITE_VALUE(BUFFER, buffer)
+		MEM_WRITE_VALUE(CACHED, cached)
 
 #undef MEM_WRITE_VALUE
 
@@ -429,7 +441,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			if (tracingData->sources.PTLSRC_NET_IN_X)
 			{
 				valuei64 = (gint64) (new_in - old_in);
-				WRITE_I64_VALUE(valuei64)
+				WRITE_I64_VALUE(valuei64);
 				DEBUGMSG("NET_IN_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
@@ -437,7 +449,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			if (tracingData->sources.PTLSRC_NET_OUT_X)
 			{
 				valuei64 = (gint64) (new_out - old_out);
-				WRITE_I64_VALUE(valuei64)
+				WRITE_I64_VALUE(valuei64);
 				DEBUGMSG("NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
@@ -454,7 +466,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		{
 			valuei64 = (gint64)	(net_ext_in
 					- tracingData->oldValues.net_ext_in);
-			WRITE_I64_VALUE(valuei64)
+			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_IN_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
@@ -462,7 +474,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		{
 			valuei64 = (gint64)	(net_ext_out
 					- tracingData->oldValues.net_ext_out);
-			WRITE_I64_VALUE(valuei64)
+			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_OUT_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
@@ -470,7 +482,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		{
 			valuei64 = (gint64)	(net_all_in
 					- tracingData->oldValues.net_all_in);
-			WRITE_I64_VALUE(valuei64)
+			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_IN = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
@@ -478,7 +490,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		{
 			valuei64 = (gint64)	(net_all_out
 					- tracingData->oldValues.net_all_out);
-			WRITE_I64_VALUE(valuei64)
+			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_OUT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
     }
@@ -511,14 +523,14 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		if (tracingData->sources.PTLSRC_HDD_READ)
 		{
 			valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
-			WRITE_I64_VALUE(valuei64)
+			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
 	  }
 
 	  if (tracingData->sources.PTLSRC_HDD_WRITE)
 	  {
 		  valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
-		  WRITE_I64_VALUE(valuei64)
+		  WRITE_I64_VALUE(valuei64);
 		  DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
 	  }
 	}

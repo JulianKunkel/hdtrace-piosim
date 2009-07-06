@@ -67,9 +67,7 @@ int verbosity;
 /**
  * Free memory
  */
-#define	ptl_free(var) \
-	if ((var) != NULL) { free(var); } \
-	var = NULL;
+#define	ptl_free(var) do { free(var); var = NULL; } while (0)
 
 
 
