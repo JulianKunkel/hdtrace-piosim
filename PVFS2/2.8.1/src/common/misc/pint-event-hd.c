@@ -31,15 +31,15 @@ static char hostname[255];
 static hdTopoNode topoNodeArray[ALL_FACILITIES];
 
 #ifdef __PVFS2_CLIENT__
-const char * hdFacilityNames[] = {"BMI", "FLOW", "CLIENT", "STATISTIC_END",
-		"NET", "MEM", "CPU", "DISC", "ALL_FACILITIES"};
+const char * hdFacilityNames[] = {"BMI", "FLOW", "CLIENT", "STATISTIC_END", "ALL_FACILITIES"};
 #endif
 
 #ifdef __PVFS2_SERVER__
 static ptlSources statistics;
-static PerfTrace pStatistics[ALL_FACILITIES];
+static PerfTrace pPerformanceTrace;
+static hdTopoNode serverRootTopology;
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
-		"NET", "CPU", "MEM", "DISC", "ALL_FACILITIES"};
+		"NET", "MEM", "CPU", "DISK", "ALL_FACILITIES"};
 #endif
 
 static int checkHostname(void)
@@ -144,7 +144,7 @@ int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode)
 
 #ifdef __PVFS2_SERVER__
 
-int PINT_HD_event_initalize(char * traceWhat)
+int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 {	
 	checkHostname();
 
@@ -153,8 +153,13 @@ int PINT_HD_event_initalize(char * traceWhat)
 	count = PINT_split_string_list(&event_list, traceWhat);
 
 	const char *levels[] = {"Hostname", "Layer"};
-	topology = hdT_createTopology("/tmp/MyProject", levels, 2);
-
+	topology = hdT_createTopology(projectFile, levels, 2);
+	
+	{
+	const char *path[] = {hostname};
+	serverRootTopology = hdT_createTopoNode(topology, path, 1);
+	}
+	
 	for(i=0; i < count; i++)
 	{
 		printf("Enable: %s\n", event_list[i]);
@@ -165,46 +170,51 @@ int PINT_HD_event_initalize(char * traceWhat)
 			{
 				const char *path[] = {hostname, hdFacilityNames[facilityNum]};
 				topoNodeArray[facilityNum] = hdT_createTopoNode(topology, path, 2);
-				//				if (facilityNum != SERVER)
-				testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
-				//				if (facilityNum == SERVER)
-				hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
+				
+				if (facilityNum != NET && facilityNum != MEM && facilityNum != CPU && facilityNum != DISK){
+					hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
+					testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
+				}
+				
 				break;
 			}
 		}
 
 #ifdef HAVE_HDPTL
-
+		int enableStats = 0;
+		
 		if (!strcasecmp(event_list[i],"NET"))
 		{	
-			hd_facilityTraceStatus[NET] = 1;
 			statistics.PTLSRC_NET_IN = 1;
 			statistics.PTLSRC_NET_OUT = 1;
-			pStatistics[NET] = ptl_createTrace(topoNodeArray[NET], 1, statistics, 700);
-			ptl_startTrace(pStatistics[NET]);
+			enableStats = 1;
 		}
 
 		if (!strcasecmp(event_list[i],"MEM"))
 		{	
-			hd_facilityTraceStatus[MEM] = 1;
 			statistics.PTLSRC_MEM_USED = 1;
 			statistics.PTLSRC_MEM_FREE = 1;
 			statistics.PTLSRC_MEM_BUFFER = 1;
-			pStatistics[MEM] = ptl_createTrace(topoNodeArray[MEM], 1, statistics, 700);
-			ptl_startTrace(pStatistics[MEM]);
+			enableStats = 1;
 		}
 
 		if (!strcasecmp(event_list[i],"CPU"))
 		{	
-			hd_facilityTraceStatus[CPU] = 1;
 			statistics.PTLSRC_CPU_LOAD = 1;
-			pStatistics[CPU] = ptl_createTrace(topoNodeArray[CPU], 1, statistics, 700);
-			ptl_startTrace(pStatistics[CPU]);
+			statistics.PTLSRC_CPU_LOAD_X = 1;
+			enableStats = 1;
 		}
 
 		if (!strcasecmp(event_list[i],"DISK"))
 		{	
-			/* to do */
+			statistics.PTLSRC_HDD_WRITE = 1;
+			statistics.PTLSRC_HDD_READ = 1;	
+			enableStats = 1;
+		}
+
+		if(enableStats){
+			pPerformanceTrace = ptl_createTrace(serverRootTopology, 1, statistics, 700);		
+			ptl_startTrace(pPerformanceTrace);
 		}
 
 #endif /* __HAVE_HDPTL__ */
@@ -248,15 +258,8 @@ int PINT_HD_event_finalize(void)
 	}
 #ifdef __PVFS2_SERVER__
 #ifdef HAVE_HDPTL
-	int ptl = NET;
-	while(ptl <= MEM){
-		if (pStatistics[ptl] != NULL)	
-		{
-			ptl_stopTrace(pStatistics[ptl]);
-			ptl_destroyTrace(pStatistics[ptl]);
-		}
-		ptl++;
-	}
+		ptl_stopTrace(pPerformanceTrace);
+		ptl_destroyTrace(pPerformanceTrace);
 #endif /* __HAVE_HDPTL__*/
 #endif /* __PVFS2_SERVER__ */
 

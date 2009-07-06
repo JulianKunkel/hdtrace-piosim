@@ -219,44 +219,6 @@ static void* alt_lio_thread(void* foo)
     if(tmp_item->cb_p->aio_lio_opcode == LIO_READ)
     {	
     	
-//    	const char * io_keys[] = {"size","offset"}; 
-//    	char attr1[15],attr2[15]; 
-//    	const char * io_values[] = {attr1, attr2}; 
-//    	int run = 1; 
-//    	char *name = "alt-io-read";
-//    	if (topoTokenArray[SERVER]){
-//    		hdR_token relateToken = NULL; 
-//    		hdR_token parentToken = *(hdR_token*) PINT_hint_get_value_by_name(tmp_item->hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
-//    		if (parentToken && topoTokenArray[TROVE]) 
-//    		{ 
-//    			relateToken = hdR_relateProcessLocalToken(topoTokenArray[TROVE], parentToken); \
-//    		} 
-//
-//    		if (relateToken) 
-//    		{ 
-//    			hdR_startS(relateToken,name);
-//    			run = 0; 
-//
-//    			ret = pread(tmp_item->cb_p->aio_fildes,
-//    					(void*)tmp_item->cb_p->aio_buf,
-//    					tmp_item->cb_p->aio_nbytes,
-//    					tmp_item->cb_p->aio_offset);
-//
-//    			snprintf(io_values[0], 15, "%du", tmp_item->cb_p->aio_nbytes); 
-//    			snprintf(io_values[1], 15, "%lld", tmp_item->cb_p->aio_offset); 
-//
-//    			hdR_end(relateToken,2,io_keys,io_values); 
-//    			hdR_destroyRelation(&relateToken); 
-//    		}
-//    		} 
-////    	) 
-//    	if(run){ 
-//    		ret = pread(tmp_item->cb_p->aio_fildes,
-//    				(void*)tmp_item->cb_p->aio_buf,
-//    				tmp_item->cb_p->aio_nbytes,
-//    				tmp_item->cb_p->aio_offset);
-//    	}
-    	
     	IO_TROVE_RELATION(tmp_item->hints,"alt-io-read",
     			ret = pread(tmp_item->cb_p->aio_fildes,
     					(void*)tmp_item->cb_p->aio_buf,

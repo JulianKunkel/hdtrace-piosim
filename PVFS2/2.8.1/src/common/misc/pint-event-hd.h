@@ -20,7 +20,7 @@ int PINT_HD_event_finalize(void); /* client also uses this function */
 
 #ifdef __PVFS2_SERVER__
 
-int PINT_HD_event_initalize(char * traceWhat);
+int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile);
 
 /**
  * Traceable facilities
@@ -30,7 +30,7 @@ typedef enum {
 	FLOW, REQ, BREQ,
 	SERVER, JOB,
 	STATISTIC_END, //facility end
-	NET, CPU, MEM, DISC,
+	NET, MEM, CPU, DISK,
 	ALL_FACILITIES
 } HD_Trace_Facility;
 
@@ -84,7 +84,6 @@ typedef enum {
 	FLOW,
 	CLIENT,
 	STATISTIC_END,
-	NET, MEM, CPU, DISC,
 	ALL_FACILITIES
 } HD_Trace_Facility;
 
