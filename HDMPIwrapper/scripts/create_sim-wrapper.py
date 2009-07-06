@@ -95,7 +95,7 @@ outputHeader = open(sys.argv[3] ,"a")
 
 # Output header and scripts to incorporate line numbers into trace:
 codeLocatorHeader = open(sys.argv[4] ,"w")
-codeLocatorHeader.write("/* include this file to add source file and line to the trace */ \n#ifndef HDMPITRACER_CODELOCATOR_H_\n#define HDMPITRACER_CODELOCATOR_H_\n\n\n")
+codeLocatorHeader.write("/* include this file to add source file and line to the trace */ \n#ifndef HDMPITRACER_CODELOCATOR_H_\n#define HDMPITRACER_CODELOCATOR_H_\n#if defined(__cplusplus)\n extern \"C\" {\n \n#endif \n\n")
 
 # MPI function decls with file & name
 extendedMPIDecl = StringIO.StringIO()
@@ -245,7 +245,7 @@ outputC.close()
 
 codeLocatorHeader.write("\n\n /* Extended MPI header, calls func & stores file & line */\n")
 codeLocatorHeader.write(extendedMPIDecl.getvalue())
-codeLocatorHeader.write("#endif\n")
+codeLocatorHeader.write("#if defined(__cplusplus)\n}\n#endif\n#endif\n")
 codeLocatorHeader.close()
 
 
