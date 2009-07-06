@@ -456,7 +456,7 @@ int main(int argc, char **argv)
     config->mode = MODE_BIN;
 	config->host = NULL;
 	config->port = "/dev/ttyUSB0";
-	config->cycle = 0.1;
+	config->cycle = 100;
 	config->project = "MyProject";
 	config->topo = "Host_Process_Thread";
 	config->traces.last = NULL;
@@ -683,7 +683,7 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
     config->mode = MODE_BIN;
 	config->host = NULL;
 	config->port = "/dev/ttyUSB0";
-	config->cycle = 0.1;
+	config->cycle = 100;
 	config->project = "MyProject";
 	config->topo = "Host_Process_Thread";
 	config->traces.last = NULL;

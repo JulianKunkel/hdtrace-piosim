@@ -628,11 +628,11 @@ static int checkDevice(ConfigStruct *config) {
  * @retval  -1  Cycle time is invalid
  */
 static int checkCycle(ConfigStruct *config) {
-	if (config->cycle >= 0.05 && config->cycle <= 60) {
+	if (config->cycle >= 50 && config->cycle <= 60000) {
 		return 0;
 	}
 	else {
-		WARN("Invalid cycle time %f, has to be in [0.05,60.0] for %s.",
+		WARN("Invalid cycle time %d, has to be in [50,60000] for %s.",
 				config->cycle, config->device);
 		return 1;
 	}
@@ -975,7 +975,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
 			/* "[:space:]*cycle[:space:]*=" */
 			else if (IS_KEY(cycle)) {
-				if (sscanf(line, " cycle = %f", &(config->cycle)) != 1)
+				if (sscanf(line, " cycle = %d", &(config->cycle)) != 1)
 					CFILE_WARN("Problem parsing cycle value");
 				// validity check is done later by checkConfig()
 			}

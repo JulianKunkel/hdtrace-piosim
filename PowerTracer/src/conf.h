@@ -34,7 +34,7 @@ typedef struct config_s {
 	/** Port the measurement device is connected to */
 	char *port;
 	/** Time of one measurement cycle */
-	float cycle;
+	int cycle;
 	/** Name of the project */
 	char *project;
 	/** String representation of the topology */

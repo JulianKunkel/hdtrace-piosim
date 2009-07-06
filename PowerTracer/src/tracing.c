@@ -115,13 +115,8 @@ int traceLoop(
     struct timeval timeout;
     int n;
 
-    /*
-     * check value of cycle time
-     */
-    if(config->cycle < 0.05 || config->cycle > 60)
-    {
-        ERROR("trace_data(): Cycle time out of range (0.05..60).");
-    }
+    /* check value of cycle time */
+    assert(config->cycle > 50 && config->cycle < 60000);
 
     /*
      * Define commands to be executed
@@ -149,7 +144,7 @@ int traceLoop(
      * Set cycle time
      */
     char buffer[32];
-    sprintf(buffer, "CYCL %f", config->cycle);
+    sprintf(buffer, "CYCL %f", ((float) config->cycle) / 1000);
     ret = serial_sendMessage(serial_fd, buffer);
     SERIAL_SENDMESSAGE_RETURN_CHECK;
 
