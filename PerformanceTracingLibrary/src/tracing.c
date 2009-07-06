@@ -405,6 +405,11 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		new_out = netload.bytes_out;
 		old_out = tracingData->oldValues.netload[i].bytes_out;
 
+		DEBUGMSG("Got network traffic for %s:"
+				" IN = %" G_GUINT64_FORMAT " " NET_UNIT ", "
+				" OUT = %" G_GUINT64_FORMAT " " NET_UNIT,
+				tracingData->staticData.netifs[i], new_in, new_out);
+
 		/* handle system counter overflows */
 		if (tracingData->oldValues.valid)
 		{
@@ -434,15 +439,8 @@ static void doTracingStep(tracingDataStruct *tracingData)
 
 		if (tracingData->oldValues.valid)
 		{
-			/* Handle overflows.
-			 * ATTENTION: Here some assumptions take place:
-			 * - OS counter for network traffic is either 32bit or 64bit and
-			 *   unsigned
-			 * - Only 32bit will overflow in the near future, since unsigned
-			 *   64bit won't until 16 Exbibytes.
-			 *   So (old < new) means, that an unsigned 32bit counter is used
-			 *   and overflowed one time.
-			 */
+			/* trace single interfaces */
+
 			if (tracingData->sources.PTLSRC_NET_IN_X)
 			{
 				valuei64 = (gint64) (new_in - old_in);
