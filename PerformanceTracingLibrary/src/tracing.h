@@ -35,8 +35,8 @@ typedef struct {
 	glibtop_cpu cpu;
 	glibtop_mem mem;
 	glibtop_netload *netload;
-	glibtop_fsusage fs;	
-	
+	glibtop_fsusage fs;
+
 	guint64 net_ext_in;
 	guint64 net_ext_out;
 	guint64 net_all_in;
@@ -47,6 +47,7 @@ typedef struct {
 	gint cpu_num;
 	glibtop_netlist netlist;
 	char **netifs;
+	char *hdd_mountpoint;
 } tracingStaticDataStruct;
 
 /**

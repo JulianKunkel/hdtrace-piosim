@@ -109,8 +109,16 @@ static void Test_C1(void)
 	remove("MyProject_host0_Performance.stat");
 
 }
+
+
 int main(void)
 {
+	/* setup glib memory debugging */
+	setenv("G_SLICE", "debug-blocks", 1);
+
+	/* setup hdd mountpoint */
+	setenv("PTL_HDD_MOUNTPOINT", "/", 1);
+
 	/* run all tests */
 	Test_C1();
 

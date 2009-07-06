@@ -19,7 +19,6 @@
 #include "hdStats.h"
 #include "hdError.h"
 
-
 /* ************************************************************************* */
 /*               COMPILE TIME ERROR AND WARNING DEFINITIONS                  */
 /* ************************************************************************* */
@@ -33,6 +32,10 @@ __warndecl(ptl_cte_too_few_hds_values_per_group,
 /* ************************************************************************* */
 
 static void doTracingStep(tracingDataStruct *tracingData);
+static void doTracingStepCPU(tracingDataStruct *tracingData);
+static void doTracingStepMEM(tracingDataStruct *tracingData);
+static void doTracingStepNET(tracingDataStruct *tracingData);
+static void doTracingStepHDD(tracingDataStruct *tracingData);
 
 
 /* ************************************************************************* */
@@ -164,11 +167,24 @@ int initTracing(
 	if (sources.PTLSRC_NET_OUT)
 		ADD_VALUE(group, "NET_OUT", INT64, NET_UNIT, "NET");
 
+
+#define HDD_UNIT "Blocks"
+
+	// right now read harddisk partition to use from environment
+	char * mountpoint = getenv("PTL_HDD_MOUNTPOINT");
+	if(mountpoint == NULL){
+		mountpoint = "/";
+		WARNMSG("Use environment variable PTL_HDD_MOUNTPOINT to set mount point to trace.\n"
+				"Right now '%s' is used by default", mountpoint);
+	}
+	ptl_malloc(tracingData->staticData.hdd_mountpoint, strlen(mountpoint) + 1, -1)
+	strcpy(tracingData->staticData.hdd_mountpoint, mountpoint);
+
 	if (sources.PTLSRC_HDD_READ)
-		ADD_VALUE(group, "HDD_READ", INT64, "Blocks", "READ");
+		ADD_VALUE(group, "HDD_READ", INT64, HDD_UNIT, "HDD");
 
 	if (sources.PTLSRC_HDD_WRITE)
-		ADD_VALUE(group, "HDD_WRITE", INT64, "Blocks", "WRITE");
+		ADD_VALUE(group, "HDD_WRITE", INT64, HDD_UNIT, "HDD");
 	/*
 	 * Commit statistics group
 	 */
@@ -263,6 +279,7 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 	for (size_t i = 0; i < tracingData->staticData.netlist.number; ++i)
 		ptl_free(tracingData->staticData.netifs[i]);
 	ptl_free(tracingData->staticData.netifs);
+	ptl_free(tracingData->staticData.hdd_mountpoint);
 	ptl_free(tracingData);
 
 	g_free(NULL);
@@ -278,7 +295,17 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 static void doTracingStep(tracingDataStruct *tracingData)
 {
 
-		int ret = 0;
+	VERBMSG("Step!");
+
+	doTracingStepCPU(tracingData);
+
+	doTracingStepMEM(tracingData);
+
+	doTracingStepNET(tracingData);
+
+	doTracingStepHDD(tracingData);
+
+}
 
 #define CHECK_WRITE_VALUE_ERROR \
 	do { \
@@ -292,37 +319,38 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			} \
 	} while (0)
 
-	VERBMSG("Step!");
-
-	gint32 valuei32;
-	gint64 valuei64;
-	gfloat valuef;
-
 #define WRITE_I32_VALUE(value) \
 	do { \
-		ret = hdS_writeInt32Value(tracingData->group, value); \
+		int ret = hdS_writeInt32Value(tracingData->group, value); \
 		CHECK_WRITE_VALUE_ERROR; \
 	} while (0)
 
 #define WRITE_I64_VALUE(value) \
 	do { \
-		ret = hdS_writeInt64Value(tracingData->group, value); \
+		int ret = hdS_writeInt64Value(tracingData->group, value); \
 		CHECK_WRITE_VALUE_ERROR; \
 	} while (0)
 
 #define WRITE_FLOAT_VALUE(value) \
 	do { \
-		ret = hdS_writeFloatValue(tracingData->group, value); \
+		int ret = hdS_writeFloatValue(tracingData->group, value); \
 		CHECK_WRITE_VALUE_ERROR; \
 	} while (0)
 
-	/* ************************************************************************
-	 * CPU
-	 */
+
+/* ************************************************************************
+ * CPU
+ */
+static void doTracingStepCPU(tracingDataStruct *tracingData) {
+
+	if (! (tracingData->sources.PTLSRC_CPU_LOAD
+			|| tracingData->sources.PTLSRC_CPU_LOAD_X))
+		return;
 
 #define CPUDIFF(val) \
 	((gdouble) (cpu.val - tracingData->oldValues.cpu.val))
 
+	gfloat valuef;
 	glibtop_cpu cpu;
 
 	glibtop_get_cpu(&cpu);
@@ -353,9 +381,22 @@ static void doTracingStep(tracingDataStruct *tracingData)
 
 #undef CPUDIFF
 
-	/* ************************************************************************
-	 * Memory
-	 */
+}
+
+
+/* ************************************************************************
+ * Memory
+ */
+static void doTracingStepMEM(tracingDataStruct *tracingData) {
+
+	if (! (tracingData->sources.PTLSRC_MEM_USED
+			|| tracingData->sources.PTLSRC_MEM_FREE
+			|| tracingData->sources.PTLSRC_MEM_SHARED
+			|| tracingData->sources.PTLSRC_MEM_BUFFER
+			|| tracingData->sources.PTLSRC_MEM_CACHED))
+		return;
+
+	gint64 valuei64;
 	glibtop_mem mem;
 
 	glibtop_get_mem(&mem);
@@ -382,10 +423,22 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	/* save current memory statistics for next step */
 	tracingData->oldValues.mem = mem;
 
+}
 
-	/* ************************************************************************
-	 * Network
-	 */
+/* ************************************************************************
+ * Network
+ */
+static void doTracingStepNET(tracingDataStruct *tracingData) {
+
+	if (! (tracingData->sources.PTLSRC_NET_IN_X
+			|| tracingData->sources.PTLSRC_NET_OUT_X
+			|| tracingData->sources.PTLSRC_NET_IN_EXT
+			|| tracingData->sources.PTLSRC_NET_OUT_EXT
+			|| tracingData->sources.PTLSRC_NET_IN
+			|| tracingData->sources.PTLSRC_NET_OUT))
+		return;
+
+	gint64 valuei64;
 
 	/* variables to aggregate in and out bytes */
 	guint64 net_all_in = 0;
@@ -504,23 +557,24 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	tracingData->oldValues.net_all_in = net_all_in;
 	tracingData->oldValues.net_all_out = net_all_out;
 
+}
 
 
-	/**************************************************************************
-	 * DISK *
-	 */
+
+/* *************************************************************************
+ * HDD
+ */
+static void doTracingStepHDD(tracingDataStruct *tracingData) {
+
+	if(! (tracingData->sources.PTLSRC_HDD_READ
+			|| tracingData->sources.PTLSRC_HDD_WRITE))
+		return;
+
+	gint64 valuei64;
 	glibtop_fsusage fs;
 
-	if(tracingData->sources.PTLSRC_HDD_READ || tracingData->sources.PTLSRC_HDD_WRITE){
-		// right now read from environment
-		char * disc = getenv("PTL_DISK_MONITOR");
-		if(disc == NULL){
-			disc = "/";
-			WARNMSG("Use environment variable PTL_DISK_MONITOR to set mount point to trace.\n"
-					"Right now '%s' is used by default", disc);
-		}
-		glibtop_get_fsusage (&fs, disc);
-	}
+	glibtop_get_fsusage (&fs, tracingData->staticData.hdd_mountpoint);
+
 	if (tracingData->oldValues.valid)
 	{
 		if (tracingData->sources.PTLSRC_HDD_READ)
@@ -541,7 +595,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 
 	/* mark old statistics values saved as valid */
 	tracingData->oldValues.valid = TRUE;
+}
 
 #undef WRITE_I64_VALUE
 #undef CHECK_WRITE_VALUE_ERROR
-}

@@ -48,6 +48,8 @@ static int changeEnableState(PerfTrace trace, gboolean newstate);
 /*                                                                           */
 /* ************************************************************************* */
 
+int ptl_verbosity;
+
 /**
  * Create performance trace
  *
@@ -69,10 +71,12 @@ PerfTrace ptl_createTrace(
 	/*
 	 * Set verbosity as requested by environment
 	 */
-	verbosity = 1;
-	char *verbstr = getenv("LIBPTL_VERBOSITY");
+	ptl_verbosity = 1;
+	char *verbstr = getenv("PTL_VERBOSITY");
 	if (verbstr != NULL)
-		sscanf(verbstr, "%d", &verbosity);
+		sscanf(verbstr, "%d", &ptl_verbosity);
+
+	DEBUGMSG("Verbosity: %d", ptl_verbosity);
 
 	/*
 	 * Take care about Glibs thread capabilities
@@ -235,12 +239,12 @@ static int changeEnableState(PerfTraceStruct *myTrace, gboolean newstate)
 	g_mutex_lock(myTrace->tracingControl->mutex);
 	if (myTrace->tracingControl->enabled == newstate)
 	{
-		/* tracing is already enabled */
+		/* tracing is already enabled/disabled */
 		retval = 1;
 	}
 	else
 	{
-		/* enable tracing and notify tracing thread */
+		/* enable/disable tracing and notify tracing thread */
 		myTrace->tracingControl->enabled = newstate;
 		g_cond_broadcast(myTrace->tracingControl->stateChanged);
 	}

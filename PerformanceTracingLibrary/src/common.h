@@ -17,7 +17,7 @@
 /**
  * Verbosity
  */
-int verbosity;
+extern int ptl_verbosity;
 
 
 #ifdef NDEBUG
@@ -27,21 +27,21 @@ int verbosity;
 #else
 # define PTLMSG(prefix, msg, ...) \
 	fflush(stdout); \
-	fprintf(stderr, prefix ": " msg "in %s (%s)\n", ## __VA_ARGS__, \
+	fprintf(stderr, prefix ": " msg " in %s:%d\n", ## __VA_ARGS__, \
 		__FILE__, __LINE__);
 #endif
 
 #define DEBUGMSG(msg, ...) \
-	do { if (verbosity >= 3) { PTLMSG("PTL", msg, ## __VA_ARGS__) } } while (0)
+	do { if (ptl_verbosity >= 3) { PTLMSG("PTL", msg, ## __VA_ARGS__) } } while (0)
 
 #define VERBMSG(msg, ...) \
-	do { if (verbosity >= 2) { PTLMSG("PTL", msg, ## __VA_ARGS__) } } while (0)
+	do { if (ptl_verbosity >= 2) { PTLMSG("PTL", msg, ## __VA_ARGS__) } } while (0)
 
 #define WARNMSG(msg, ...) \
-	do { if (verbosity >= 1) { PTLMSG("PTL Warning", msg, ## __VA_ARGS__) } } while (0)
+	do { if (ptl_verbosity >= 1) { PTLMSG("PTL Warning", msg, ## __VA_ARGS__) } } while (0)
 
 #define ERRORMSG(msg, ...) \
-	do { if (verbosity >= 0) { PTLMSG("PTL Error", msg, ## __VA_ARGS__) } } while (0)
+	do { if (ptl_verbosity >= 0) { PTLMSG("PTL Error", msg, ## __VA_ARGS__) } } while (0)
 
 
 /**
