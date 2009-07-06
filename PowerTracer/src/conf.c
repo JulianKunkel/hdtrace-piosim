@@ -73,12 +73,12 @@ static int parsePath(char *pstr,
 		++*plen, ++ptr;
 
 	// allocate space for pointers
-	PTMALLOC(*path, *plen, ERR_MALLOC);
+	pt_malloc(*path, *plen, ERR_MALLOC);
 
 	// allocate space for strings
 	int pstrlen = strlen(pstr);
 	assert(pstrlen > 0);
-	PTMALLOC((*path)[0], pstrlen+1, ERR_MALLOC);
+	pt_malloc((*path)[0], pstrlen+1, ERR_MALLOC);
 
 	// copy output string to allocated memory
 	strcpy((*path)[0], pstr);
@@ -120,10 +120,10 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 	for (int i = 0; i < ntraces; ++i) {
 
 		TraceStruct *trace;
-		PTMALLOC(trace, 1, ERR_MALLOC);
+		pt_malloc(trace, 1, ERR_MALLOC);
 		char *ptr = strings[i];
 
-#define RETURN_SYNTAX_ERROR  do { free(trace); return ERR_SYNTAX; } while (0)
+#define RETURN_SYNTAX_ERROR  do { pt_free(trace); return ERR_SYNTAX; } while (0)
 
 		// parse types of trace
 #if 0
@@ -236,7 +236,7 @@ int createTraces(ConfigStruct *config) {
 		if (ret = parsePath(config->topo, &tlen, &levels))
 			return ret;
 
-#define FREE_LEVELS do { free(levels[0]); free(levels); } while (0)
+#define FREE_LEVELS do { pt_free(levels[0]); pt_free(levels); } while (0)
 
 		// create topology object
 		config->topology = hdT_createTopology((const char *) config->project,
@@ -285,7 +285,7 @@ int createTraces(ConfigStruct *config) {
 			if (ret = parsePath(trace->output, &plen, &path))
 				return ret;
 
-#define FREE_PATH do { free(path[0]); free(path); } while (0)
+#define FREE_PATH do { pt_free(path[0]); pt_free(path); } while (0)
 
 			// create topology node
 			trace->tnode =
@@ -375,7 +375,7 @@ int createTraces(ConfigStruct *config) {
 #undef FREE_PATH
 
 		char buffer[10];
-		PTMALLOC(trace->actn, 21, ERR_MALLOC);
+		pt_malloc(trace->actn, 21, ERR_MALLOC);
 		trace->actn[0] = '\0';
 		trace->size = 0;
 		if (trace->values.Utrms) {
@@ -451,7 +451,7 @@ static char * readLineFromFile(ConfigFileStruct *cfile) {
 	// create initial buffer
 	size_t bsize = 20;
 	char *line;
-	PTMALLOC(line, bsize, NULL);
+	pt_malloc(line, bsize, NULL);
 
 	// initialize counter
 	size_t i = 0;
@@ -463,7 +463,7 @@ static char * readLineFromFile(ConfigFileStruct *cfile) {
 
 		// if the first character is EOF, there is no more line or an error
 		if (i == 0 && c == EOF) {
-			free(line);
+			pt_free(line);
 			return NULL;
 		}
 
@@ -480,12 +480,12 @@ static char * readLineFromFile(ConfigFileStruct *cfile) {
 		if (i >= bsize) {
 			// reallocate larger buffer (double the old one)
 			bsize *= 2;
-			PTREALLOC(line, bsize, NULL);
+			pt_realloc(line, bsize, NULL);
 		}
 	}
 
 	// resize buffer to needed size
-	PTREALLOC(line, strlen(line)+1, NULL);
+	pt_realloc(line, strlen(line)+1, NULL);
 
 	// increase line number
 	cfile->linenr++;
@@ -525,7 +525,7 @@ static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
 
 		// try next line if this one is empty
 		if (*line == '\0') {
-			free(line);
+			pt_free(line);
 			continue;
 		}
 
@@ -537,7 +537,7 @@ static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
 				break;
 		}
 		if (ptr == '\0' /* only space found */ ) {
-			free(line);
+			pt_free(line);
 			continue;
 		}
 
@@ -811,7 +811,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	do { \
 	REGEX_CLEANUP; \
 	fclose(cfile.file); \
-	free(line); \
+	pt_free(line); \
 	return ERR_SYNTAX; \
 	} while (0)
 
@@ -857,7 +857,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 					missing[mlen-2] = '\0'; // removing ", "
 					CFILE_ERROR("End of file reached after"
 							" incomplete [Trace] section (%s missing)", missing);
-					free(trace);
+					pt_free(trace);
 					RETURN_SYNTAX_ERROR;
 				}
 				else {
@@ -867,7 +867,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
 			REGEX_CLEANUP;
 			fclose(cfile.file);
-			free(line);
+			pt_free(line);
 			break;
 		}
 
@@ -899,7 +899,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 					missing[mlen-2] = '\0'; // removing ", "
 					CFILE_ERROR("Start of new section after"
 							" incomplete [Trace] section (%s missing)", missing);
-					free(trace);
+					pt_free(trace);
 					RETURN_SYNTAX_ERROR;
 				}
 				else {
@@ -943,9 +943,9 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 			ERROR_ERRNO(#target); \
 			REGEX_CLEANUP; \
 			fclose(cfile.file); \
-			free(line); \
+			pt_free(line); \
 			if (section == TRACE) \
-				free(trace); \
+				pt_free(trace); \
 			return ERR_MALLOC; \
 		} \
 		strcpy(target, value); \
@@ -1009,7 +1009,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 				}
 				else
 					CFILE_ERROR("Unknown type in [Trace] section" );
-				free(type);
+				pt_free(type);
 			}
 
 			/* "[:space:]*topology[:space:]*=" (node=pvs_node06) */
@@ -1077,7 +1077,13 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
  */
 void cleanupConfig(ConfigStruct *config) {
 
-#define FREE_VAR(var) if(config->allocated.var) free(config->var), config->allocated.var = 0;
+#define FREE_VAR(var) \
+	do { \
+		if(config->allocated.var) { \
+			pt_free(config->var); \
+			config->allocated.var = 0; \
+		} \
+	} while (0);
 
 	FREE_VAR(device);
 	FREE_VAR(port);

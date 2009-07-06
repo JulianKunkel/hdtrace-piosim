@@ -52,7 +52,7 @@
 
 
 /* Macro to do malloc with error handling */
-#define PTMALLOC(var, count, failret) \
+#define pt_malloc(var, count, failret) \
 	do { \
 		errno = 0; /* set errno to detect error when returning NULL */ \
 		var = malloc(count * sizeof(*(var))); \
@@ -63,7 +63,7 @@
 	} while (0)
 
 /* Macro to do realloc with error handling */
-#define PTREALLOC(var, count, failret) \
+#define pt_realloc(var, count, failret) \
 	do { \
 		errno = 0; /* set errno to detect error when returning NULL */ \
 		var = realloc(var, count * sizeof(*(var))); \
@@ -73,5 +73,7 @@
 			return failret; \
 		} \
 	} while (0)
+
+#define pt_free(var) do { free(var); var = NULL; } while (0);
 
 #endif

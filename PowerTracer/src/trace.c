@@ -41,7 +41,7 @@ void freeAllTraces(TraceListStruct *list) {
 			hdT_destroyTopoNode(trace->tnode);
 		}
 		if (trace->actn)
-			free(trace->actn); // allocated in createTraces()
+			pt_free(trace->actn); // allocated in createTraces()
 	}
 
 	/*
@@ -50,7 +50,7 @@ void freeAllTraces(TraceListStruct *list) {
 	TraceStruct *this = list->last;
 	while (this != NULL) {
 		TraceStruct *next = this->prev;
-		free(this);
+		pt_free(this);
 		this = next;
 	}
 

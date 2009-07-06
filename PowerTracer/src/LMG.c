@@ -141,7 +141,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
      */
     size_t tbsize = 100;
     char *tmpbuffer;
-    PTMALLOC(tmpbuffer, tbsize, ERR_MALLOC);
+    pt_malloc(tmpbuffer, tbsize, ERR_MALLOC);
 
     /* Pointer to current location */
     char *bufptr = tmpbuffer;
@@ -156,7 +156,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
     ret = serial_readBytes(fd, 5, bufptr, 1);
     if (ret < 1)
     {
-    	free(tmpbuffer);
+    	pt_free(tmpbuffer);
         if (ret == 0)
             return(ERR_NO_MSG);
         SERIAL_READBYTES_ERROR_CHECK;
@@ -164,7 +164,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
 
     /* Return error if the message is binary */
     if (*bufptr == '#') {
-    	free(tmpbuffer);
+    	pt_free(tmpbuffer);
         return(ERR_MSG_FORMAT);
     }
 
@@ -176,7 +176,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
         /* already have read the first character */
     	if (*bufptr == '\0') {
     		/* this is not allowed */
-    		free(tmpbuffer);
+    		pt_free(tmpbuffer);
     		return ERR_MSG_FORMAT;
     	}
     	else if (*bufptr == '"') {
@@ -193,7 +193,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
         assert(msg_size <= tbsize);
         if (msg_size == tbsize) {
         	tbsize *= 2;
-        	PTREALLOC(tmpbuffer, tbsize, ERR_MALLOC);
+        	pt_realloc(tmpbuffer, tbsize, ERR_MALLOC);
         	bufptr = tmpbuffer + msg_size;
         }
 
@@ -202,7 +202,7 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
         ret = serial_readBytes(fd, 5, bufptr, 1);
         if (ret < 1)
         {
-        	free(tmpbuffer);
+        	pt_free(tmpbuffer);
         	if (ret >= 0)
                 return(ERR_MSG_FORMAT);
             SERIAL_READBYTES_ERROR_CHECK;
@@ -218,14 +218,14 @@ int LMG_readTextMessage(int fd, char buffer[], size_t bsize)
    	if (msg_size > bsize) {
    		/* throw message away and return */
    		// TODO better solution
-   		free(tmpbuffer);
+   		pt_free(tmpbuffer);
    	    DEBUGMSG("Message doesn't fit into output buffer.\n");
    		return ERR_BSIZE;
    	}
 
 	/* copy message to output buffer and return */
 	memcpy(buffer, tmpbuffer, msg_size);
-	free(tmpbuffer);
+	pt_free(tmpbuffer);
 
 
     /* return the length of the message including trailing '\0' */
@@ -260,7 +260,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
      * Allocate memory for message (fake)
      */
     void *tmpbuffer;
-    PTMALLOC(tmpbuffer, 0, ERR_MALLOC);
+    pt_malloc(tmpbuffer, 0, ERR_MALLOC);
 
     /* Size of the whole message */
     size_t msg_size = 0;
@@ -289,7 +289,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
 	    ret = serial_readBytes(fd, 5, locbuffer, 1);
 	    if (ret < 1)
 	    {
-	    	free(tmpbuffer);
+	    	pt_free(tmpbuffer);
 	    	if (ret == 0) {
 	    		if (msg_size == 0)
 					return ERR_NO_MSG;
@@ -307,13 +307,13 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         	if (msg_size > bsize) {
         		/* throw message away and return */
         		// TODO better solution
-        		free(tmpbuffer);
+        		pt_free(tmpbuffer);
         		return ERR_BSIZE;
         	}
 
         	/* copy message to output buffer and return */
         	memcpy(buffer, tmpbuffer, msg_size);
-        	free(tmpbuffer);
+        	pt_free(tmpbuffer);
             return(msg_size);
 
         case '#':
@@ -322,7 +322,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
 
         default:
         	/* unexpected format */
-        	free(tmpbuffer);
+        	pt_free(tmpbuffer);
             return(ERR_MSG_FORMAT);
 	    }
 
@@ -332,7 +332,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
 	    ret = serial_readBytes(fd, 5, locbuffer, 1);
 	    if (ret < 1)
 	    {
-	    	free(tmpbuffer);
+	    	pt_free(tmpbuffer);
 	    	if (ret == 0) {
 	    		if (msg_size == 0)
 					return ERR_NO_MSG;
@@ -348,7 +348,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         if (ret == EOF)
         {
             ERROR_ERRNO("sscanf()");
-            free(tmpbuffer);
+            pt_free(tmpbuffer);
             return(ERR_MSG_FORMAT);
         }
 
@@ -358,7 +358,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         ret = serial_readBytes(fd, 5, locbuffer, size_length);
         if (ret < size_length)
         {
-            free(tmpbuffer);
+            pt_free(tmpbuffer);
             if (ret >= 0)
                 return(ERR_MSG_FORMAT);
             SERIAL_READBYTES_ERROR_CHECK;
@@ -369,14 +369,14 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         if (ret == EOF)
         {
             ERROR_ERRNO("sscanf()");
-            free(tmpbuffer);
+            pt_free(tmpbuffer);
             return(ERR_MSG_FORMAT);
         }
 
         /*
          * Allocate memory for message
          */
-        PTREALLOC(tmpbuffer, msg_size + block_size, ERR_MALLOC);
+        pt_realloc(tmpbuffer, msg_size + block_size, ERR_MALLOC);
 
         /*
          * Read binary part from serial bus
@@ -384,7 +384,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         ret = serial_readBytes(fd, 5, tmpbuffer + msg_size, block_size);
         if (ret < block_size)
         {
-        	free(tmpbuffer);
+        	pt_free(tmpbuffer);
             if (ret >= 0)
                 return(ERR_MSG_FORMAT);
             SERIAL_READBYTES_ERROR_CHECK;

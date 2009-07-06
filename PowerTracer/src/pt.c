@@ -146,7 +146,6 @@ static int doTracing(PowerTrace *trace) {
     	switch (serial_fd) {
     	case ERR_ERRNO:
     		ERROR_OUTPUT("Problem while opening serial port: %s", strerror(errno));
-    		cleanupConfig(config);
     		return EDEVICE;
     	default:
     		assert(!"Unknown return value from serial_openPort().");
@@ -170,7 +169,6 @@ static int doTracing(PowerTrace *trace) {
     	break;
     case ERR_ERRNO: /* tcgetattr(), cfsetispeed(), cfsetospeed(), tcsetattr(), tcflush() */
 		ERROR_OUTPUT("Problem while setting up serial port: %s", strerror(errno));
-		cleanupConfig(config);
 		return EDEVICE;
     default:
     	assert(!"Unknown return state of serial_setupPort().");
@@ -191,7 +189,6 @@ static int doTracing(PowerTrace *trace) {
 	    default: \
 	    	assert(!"Unknown return state of LMG_setup().");
 	    }
-    	cleanupConfig(config);
     	serial_closePort(serial_fd);
     	return EDEVICE;
     }
@@ -226,7 +223,6 @@ static int doTracing(PowerTrace *trace) {
 			default:
 				assert(!"Unknown return state of LMG_getIdentity().");
 		}
-    	cleanupConfig(config);
     	serial_closePort(serial_fd);
     	return EDEVICE;
     }
@@ -254,7 +250,6 @@ static int doTracing(PowerTrace *trace) {
 	            break;
 			case ERR_MALLOC:
 				ERROR_OUTPUT("Out of memory while getting identity.");
-				cleanupConfig(config);
 		    	serial_closePort(serial_fd);
 		    	return EMEMORY;
 	        case ERR_BSIZE:
@@ -263,7 +258,6 @@ static int doTracing(PowerTrace *trace) {
 	        default:
 				assert(!"Unknown return state of test_binmode().");
 	    }
-	    cleanupConfig(config);
 	    serial_closePort(serial_fd);
 	    return EDEVICE;
     }
@@ -288,7 +282,6 @@ static int doTracing(PowerTrace *trace) {
 			break;
 		case ERR_MALLOC:
 			ERROR_OUTPUT("Out of memory while tracing data.");
-			cleanupConfig(config);
 			serial_closePort(serial_fd);
 			return EMEMORY;
 		case ERR_BSIZE:
@@ -300,7 +293,6 @@ static int doTracing(PowerTrace *trace) {
 		default:
 			assert(!"Unknown return value from trace_data().");
     	}
-		cleanupConfig(config);
     	serial_closePort(serial_fd);
     	return EDEVICE;
     }
@@ -309,7 +301,6 @@ static int doTracing(PowerTrace *trace) {
     puts("End tracing!");
 
 
-    cleanupConfig(config);
 
     /*
      * Get and print all errors from LMG
@@ -537,7 +528,7 @@ int main(int argc, char **argv)
 #define	REPLACE_CONFIG(var) \
 		if (var != NULL) { \
 			if (config->allocated.var) { \
-				free(config->var); \
+				pt_free(config->var); \
 				config->allocated.var = 0; \
 			} \
 			config->var = var; \
@@ -683,7 +674,7 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
 	 * Initialize configuration
 	 */
 	ConfigStruct *config;
-	PTMALLOC(config, 1, EMEMORY);
+	pt_malloc(config, 1, EMEMORY);
 
 	config->topology = NULL;
 
@@ -784,7 +775,7 @@ static int createTracingThread(ConfigStruct *config, int directOutput,
 	/*
 	 * Create PowerTrace object
 	 */
-	PTMALLOC(*trace, 1, EMEMORY);
+	pt_malloc(*trace, 1, EMEMORY);
 	(*trace)->config = config;
 	(*trace)->directOutput = directOutput;
 
@@ -816,7 +807,7 @@ static void * doTracingThread(void *param) {
 	PowerTrace *trace = (PowerTrace *) param;
 
 	struct tracingThreadReturn_s *ret;
-	PTMALLOC(ret, 1, NULL);
+	pt_malloc(ret, 1, NULL);
 
 	ret->ret = doTracing(trace);
 
@@ -866,9 +857,9 @@ int pt_finalizeTrace(PowerTrace *trace) {
 
 	/* free memory */
 	cleanupConfig(trace->config);
-	free(threadRet);
-	free(trace->config);
-	free(trace);
+	pt_free(threadRet);
+	pt_free(trace->config);
+	pt_free(trace);
 
 	return retval;
 }
