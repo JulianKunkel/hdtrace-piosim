@@ -56,18 +56,18 @@ int verbosity;
  */
 #ifdef NDEBUG
 # define	ptl_malloc(var, num, fail) \
-	(var) = malloc((num) * sizeof(*(var))); \
+	(var) = g_try_malloc((num) * sizeof(*(var))); \
 	if ((var) == NULL) { ptl_error_return(PTL_ERR_MALLOC,(fail)) };
 #else
 # define	ptl_malloc(var, num, fail) \
-	(var) = calloc((num),sizeof(*(var))); \
+	(var) = g_try_malloc0((num) * sizeof(*(var))); \
 	if ((var) == NULL) { ptl_error_return(PTL_ERR_MALLOC,(fail)) };
 #endif
 
 /**
  * Free memory
  */
-#define	ptl_free(var) do { free(var); var = NULL; } while (0)
+#define	ptl_free(var) do { g_free(var); var = NULL; } while (0)
 
 
 

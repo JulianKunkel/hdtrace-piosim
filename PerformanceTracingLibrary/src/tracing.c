@@ -77,8 +77,8 @@ int initTracing(
 #define PTL_STRING_BUFFER_LENGTH 50
 
 	/* allocate string buffer */
-	char *strbuf;
-	ptl_malloc(strbuf, PTL_STRING_BUFFER_LENGTH, -1);
+	char strbuf[PTL_STRING_BUFFER_LENGTH];
+	strbuf[0] = '\0';
 
 #if HDS_MAX_VALUES_PER_GROUP < PTL_MAX_STATS_VALUES
 	ptl_cte_too_few_hds_values_per_group();
@@ -110,25 +110,25 @@ int initTracing(
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
 		}
 
+#define MEM_UNIT "B"
+
 	if (sources.PTLSRC_MEM_USED)
-		ADD_VALUE(group,"MEM_USED", FLOAT, MEM_UNIT, "MEM");
+		ADD_VALUE(group,"MEM_USED", INT64, MEM_UNIT, "MEM");
 
 	if (sources.PTLSRC_MEM_FREE)
-		ADD_VALUE(group,"MEM_FREE", FLOAT, MEM_UNIT, "MEM");
+		ADD_VALUE(group,"MEM_FREE", INT64, MEM_UNIT, "MEM");
 
 	if (sources.PTLSRC_MEM_SHARED)
-		ADD_VALUE(group,"MEM_SHARED", FLOAT, MEM_UNIT, "MEM");
+		ADD_VALUE(group,"MEM_SHARED", INT64, MEM_UNIT, "MEM");
 
 	if (sources.PTLSRC_MEM_BUFFER)
-		ADD_VALUE(group,"MEM_BUFFER", FLOAT, MEM_UNIT, "MEM");
+		ADD_VALUE(group,"MEM_BUFFER", INT64, MEM_UNIT, "MEM");
 
 	if (sources.PTLSRC_MEM_CACHED)
-		ADD_VALUE(group,"MEM_CACHED", FLOAT, MEM_UNIT, "MEM");
+		ADD_VALUE(group,"MEM_CACHED", INT64, MEM_UNIT, "MEM");
 
 
 #define NET_UNIT "B"
-#define NET_MULT G_UINT64_CONSTANT(1)
-/* TODO: Handle net as float like memory? */
 
 	for (size_t i = 0; i < tracingData->staticData.netlist.number; ++i)
 	{
@@ -255,9 +255,17 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 	/* finalize trace */
 	hdS_finalize(tracingData->group);
 
+	/* free timer */
+	g_timer_destroy(timer);
+
 	/* free memory used for thread data */
 	ptl_free(tracingData->oldValues.netload);
+	for (size_t i = 0; i < tracingData->staticData.netlist.number; ++i)
+		ptl_free(tracingData->staticData.netifs[i]);
+	ptl_free(tracingData->staticData.netifs);
 	ptl_free(tracingData);
+
+	g_free(NULL);
 
 	return NULL;
 }
@@ -357,9 +365,9 @@ static void doTracingStep(tracingDataStruct *tracingData)
 
 #define MEM_WRITE_VALUE(PART,part) \
 	if (tracingData->sources.PTLSRC_MEM_##PART) { \
-		valuef = (gfloat) (mem.part / MEM_MULT); \
-		WRITE_FLOAT_VALUE(valuef); \
-		DEBUGMSG("MEM_" #PART " = %f " MEM_UNIT "\n", valuef);\
+		valuei64 = (gint64) (mem.part); \
+		WRITE_I64_VALUE(valuei64); \
+		DEBUGMSG("MEM_" #PART " = %" G_GINT64_FORMAT " " MEM_UNIT, valuei64); \
 	}
 
 		MEM_WRITE_VALUE(USED, used)
