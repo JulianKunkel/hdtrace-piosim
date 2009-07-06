@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <assert.h>
 
+#include "config.h"
 #include "common.h"
 #include "hdStats.h"
 #include "hdError.h"
@@ -108,10 +109,6 @@ int initTracing(
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
 		}
-
-
-#define MEM_UNIT "MB"
-#define MEM_MULT G_GUINT64_CONSTANT(1000000)
 
 	if (sources.PTLSRC_MEM_USED)
 		ADD_VALUE(group,"MEM_USED", FLOAT, MEM_UNIT, "MEM");
