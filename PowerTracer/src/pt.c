@@ -214,7 +214,6 @@ static int doTracing(PowerTrace *trace) {
 				break;
 			case ERR_MALLOC:
 				ERROR_OUTPUT("Out of memory while getting identity.");
-				cleanupConfig(config);
 		    	serial_closePort(serial_fd);
 		    	return EMEMORY;
 			case ERR_BSIZE:
@@ -325,7 +324,6 @@ static int doTracing(PowerTrace *trace) {
 	            break;
 			case ERR_MALLOC:
 				ERROR_OUTPUT("Out of memory while getting all errors.");
-				cleanupConfig(config);
 		    	serial_closePort(serial_fd);
 		    	return EMEMORY;
 	        case ERR_BSIZE:
@@ -792,7 +790,6 @@ static int createTracingThread(ConfigStruct *config, int directOutput,
 	if (ret != 0) {
 		switch (errno) {
 		case EAGAIN:
-			cleanupConfig(config);
 			return ETHREAD;
 		default:
 			assert(!"Unknown return value from pthread_create().");
