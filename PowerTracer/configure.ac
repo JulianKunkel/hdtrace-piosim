@@ -139,5 +139,6 @@ AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([gettimeofday memset regcomp select strerror])
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 lib/Makefile
+                 bin/Makefile])
 AC_OUTPUT

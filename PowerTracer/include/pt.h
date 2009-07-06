@@ -3,7 +3,7 @@
  *
  * @date 02.07.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #ifndef PT_H_
@@ -19,7 +19,7 @@ int pt_createTrace(const char* configfile, PowerTrace **trace);
 /**
  * Return the hostname with the measuring device connected
  */
-char *pt_getHostname(PowerTrace *trace);
+char * pt_getHostname(PowerTrace *trace);
 
 /**
  * Start the power tracing

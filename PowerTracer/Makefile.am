@@ -1,13 +1,21 @@
-SUBDIRS = src .
+# $Id$
+
+SUBDIRS = lib bin .
 
 include $(top_srcdir)/common.am
 
+include_HEADERS = $(INC_DIR)/*.h
+
 .PHONY: force
 
-doc: devdoc
+doc: devdoc apidoc
 
-doxyINPUT = $(SRC_DIR)
+doxyINPUT = $(SRC_DIR) $(INC_DIR)
 
 devdoc: force
 	OUTDIR=$(DOC_DIR) INPUT="$(doxyINPUT)" doxygen $(top_srcdir)/Doxyfile
+
+apidoc: force
+	mkdir -p $(DOC_DIR)/api
+	OUTDIR=$(DOC_DIR)/api INPUT="$(doxyINPUT)" doxygen $(top_srcdir)/Doxyfile.api_only
 
