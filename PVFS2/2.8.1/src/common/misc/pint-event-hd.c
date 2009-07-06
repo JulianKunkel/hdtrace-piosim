@@ -159,6 +159,8 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 	const char *path[] = {hostname};
 	serverRootTopology = hdT_createTopoNode(topology, path, 1);
 	}
+
+	int enableStats = 0;
 	
 	for(i=0; i < count; i++)
 	{
@@ -181,8 +183,6 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 		}
 
 #ifdef HAVE_HDPTL
-		int enableStats = 0;
-		
 		if (!strcasecmp(event_list[i],"NET"))
 		{	
 			statistics.PTLSRC_NET_IN = 1;
@@ -212,14 +212,16 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 			enableStats = 1;
 		}
 
-		if(enableStats){
-			pPerformanceTrace = ptl_createTrace(serverRootTopology, 1, statistics, 700);		
-			ptl_startTrace(pPerformanceTrace);
-		}
-
+#endif /* __HAVE_HDPTL__ */
+	}
+	
+#ifdef HAVE_HDPTL
+	if(enableStats){
+		pPerformanceTrace = ptl_createTrace(serverRootTopology, 1, statistics, 700);		
+		ptl_startTrace(pPerformanceTrace);
+	}
 #endif /* __HAVE_HDPTL__ */
 
-	}
 
 	set_hd_sm_trace_enabled(1);
 	
