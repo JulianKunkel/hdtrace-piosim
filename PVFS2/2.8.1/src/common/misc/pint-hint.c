@@ -137,6 +137,7 @@ int PVFS_hint_add_internal(
     }
 
     new_hint->length = length;
+    new_hint->type_string = NULL;
     new_hint->value = malloc(new_hint->length);
     if(!new_hint->value)
     {
@@ -247,6 +248,7 @@ int PVFS_hint_add(
     
     if(info)
     {
+        new_hint->type_string = NULL;
         new_hint->type = info->type;
         new_hint->flags = info->flags;
         new_hint->encode = info->encode;

@@ -34,16 +34,39 @@ typedef enum {
 	ALL_FACILITIES
 } HD_Trace_Facility;
 
-struct _hdHintRelationStructure{
-	pthread_mutex_t mutex;
-	hdR_token token;
-};
+#define IO_TROVE_RELATION(hints, name, CMD, p_size, size, p_offset, offset) \
+	const char * io_keys[] = {"size","offset"}; \
+	char attr1[15],attr2[15]; \
+	const char * io_values[] = {attr1, attr2}; \
+	int run = 1; \
+	HD_SERVER_RELATION(SERVER, \
+			hdR_token relateToken = NULL; \
+				hdR_token parentToken = *(hdR_token*) PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL); \
+			if (parentToken && topoTokenArray[TROVE]) \
+			{ \
+				relateToken = hdR_relateProcessLocalToken(topoTokenArray[TROVE], parentToken); \
+			} \
+			\
+			if (relateToken) \
+			{ \
+				hdR_startS(relateToken,name); \
+				run = 0; \
+				\
+				CMD \
+				\
+				snprintf(io_values[0], 15, p_size, size); \
+				snprintf(io_values[1], 15, p_offset, offset); \
+				\
+				hdR_end(relateToken,2,io_keys,io_values); \
+				hdR_destroyRelation(&relateToken); \
+			} \
+	) \
+	if(run){ \
+		CMD \
+	} \
 
 #define HD_SERVER_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
-
-typedef struct _hdHintRelationStructure hdHintRelation_t;
-typedef struct _hdHintRelationStructure * hdHintRelation_p;
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END];
 

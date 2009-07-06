@@ -161,11 +161,6 @@ static int create_metafile(
         PINT_SERVER_TYPE_META,
         &meta_handle_ext_array);
 
-//    hdHintRelation_p hintRelationToken = (hdHintRelation_p) PINT_hint_get_value_by_name(s_op->req->hints, 
-//    													PVFS_HINT_RELATION_TOKEN_NAME, NULL);
-    //    gen_mutex_lock(hintRelationToken->mutex);
-    //    relation->token = s_op->smToken;
-    
     ret = job_trove_dspace_create(
         s_op->req->u.create.fs_id,
         &meta_handle_ext_array,

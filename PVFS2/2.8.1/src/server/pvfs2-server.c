@@ -1717,9 +1717,8 @@ int server_state_machine_start(
         s_op->req  = (struct PVFS_server_req *)s_op->decoded.buffer;
         
 //        HD_SERVER_RELATION(SERVER,
-        if (topoTokenArray[SERVER]){
-        	hdHintRelation_p hintRelationToken = malloc(sizeof(hdHintRelation_t));
-        	
+        if (topoTokenArray[SERVER])
+        {
         	// check if client sent token information or not!
         	char * relation = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
         	
@@ -1731,22 +1730,8 @@ int server_state_machine_start(
         		// create new token
         		PINT_smcb_set_token(smcb, hdR_createTopLevelRelation(topoTokenArray[SERVER]));
         	}
-        	
-        	hintRelationToken->token = smcb->smToken;
-        	
-//        	if (hintRelationToken->token)
-//        	{
-//        	printf("SERVER hintRelationToken->token : %p\n",hintRelationToken->token);
-//        	}
-        	
-        	gen_mutex_init(& hintRelationToken->mutex);
-        	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdHintRelation_t), 
-        			hintRelationToken);
-
-//        	hdHintRelation_p parentHintRelationToken = malloc(sizeof(hdHintRelation_t));
-//        	parentHintRelationToken = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL);
-//        	if (parentHintRelationToken->token)
-//        		printf("SERVER parentHintRelationToken->token : %p\n",parentHintRelationToken->token);
+        	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdR_token), 
+        			& smcb->smToken);
         }
 //        )
         

@@ -465,9 +465,32 @@ int PINT_state_machine_locate(struct PINT_smcb *smcb)
 		 * machine, rather than a simple function
 		 */
 
-		/* the code is called only from the server, because the client did not yet set the smToken */
+		/* the code is called only from the server, because the client did not set the smToken yet */
+
 		HD_STMT_TOKEN(
-				hdR_startS(smcb->smToken, smcb->op_get_state_machine(smcb->op)->name);
+#ifdef __PVFS2_SERVER__			
+			PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
+				switch(smcb->op)
+				{
+				case (PVFS_SERV_IO):{
+					if(s_op->req->u.io.io_type == PVFS_IO_READ){
+						hdR_startS(smcb->smToken, "read_sm");
+					}else{
+						hdR_startS(smcb->smToken, "write_sm");
+					}
+					break;
+				}
+				case (PVFS_SERV_SMALL_IO):
+					if(s_op->req->u.io.io_type == PVFS_IO_READ){
+						hdR_startS(smcb->smToken, "small_read_sm");
+					}else{
+						hdR_startS(smcb->smToken, "small_write_sm");
+					}
+					break;
+				default:
+					hdR_startS(smcb->smToken, smcb->op_get_state_machine(smcb->op)->name);
+				}
+#endif /* __PVFS2_SERVER__ */
 		)
 		
 		while(current_tmp->flag == SM_JUMP)

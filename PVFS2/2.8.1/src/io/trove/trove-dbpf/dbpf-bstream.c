@@ -74,7 +74,7 @@ static void aio_progress_notification(union sigval sig)
     dbpf_queued_op_t *cur_op = NULL;
     struct dbpf_op *op_p = NULL;
     int ret, i, aiocb_inuse_count, state = 0;
-    struct aiocb *aiocb_p = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ] = {0};
+    struct aiocb *aiocb_p = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ+1] = {0};
     PVFS_size eor = -1;
     int j;
     TROVE_ds_attributes attr;
@@ -291,6 +291,9 @@ error_in_cleanup:
         {
             aiocb_ptr_array[i] = &aiocb_p[i];
         }
+        // trick: put the hint into the structure
+        aiocb_ptr_array[aiocb_inuse_count] = (struct aiocb *)op_p->hints;
+        
 
         assert(cur_op == op_p->u.b_rw_list.sigev.sigev_value.sival_ptr);
 
@@ -317,7 +320,7 @@ static void start_delayed_ops_if_any(int dec_first)
     int ret = 0;
     dbpf_queued_op_t *cur_op = NULL;
     int i = 0, aiocb_inuse_count = 0;
-    struct aiocb *aiocbs = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ] = {0};
+    struct aiocb *aiocbs = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ+1] = {0};
 
     gen_mutex_lock(&s_dbpf_io_mutex);
     if (dec_first)
@@ -365,7 +368,9 @@ static void start_delayed_ops_if_any(int dec_first)
         {
             aiocb_ptr_array[i] = &aiocbs[i];
         }
-
+        // trick: put the hint into the structure
+        aiocb_ptr_array[aiocb_inuse_count] = (struct aiocb *)cur_op->op.hints;
+        
         if(gossip_debug_enabled(GOSSIP_TROVE_DEBUG))
         {
 
@@ -723,7 +728,7 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
 #ifdef __PVFS2_TROVE_AIO_THREADED__
     struct dbpf_op *op_p = NULL;
     int aiocb_inuse_count = 0;
-    struct aiocb *aiocb_p = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ] = {0};
+    struct aiocb *aiocb_p = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ+1] = {0};
 #endif
 
     coll_p = dbpf_collection_find_registered(coll_id);
@@ -762,7 +767,7 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
                         user_ptr,
                         flags,
                         context_id);
-
+    
     if(PINT_EVENT_ENABLED)
     {
         count_mem = 0;
@@ -829,7 +834,7 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
     q_op_p->op.u.b_rw_list.stream_size_array = stream_size_array;
     q_op_p->op.hints = hints;
     q_op_p->op.u.b_rw_list.aio_ops = aio_ops;
-
+    
     /* initialize the out size to 0 */
     *out_size_p = 0;
     q_op_p->op.u.b_rw_list.out_size_p = out_size_p;
@@ -947,6 +952,9 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
         aiocb_ptr_array[i] = &aiocb_p[i];
     }
 
+    // trick: put the hint into the structure
+    aiocb_ptr_array[aiocb_inuse_count] = (struct aiocb *)op_p->hints;
+    
     assert(q_op_p == op_p->u.b_rw_list.sigev.sigev_value.sival_ptr);
 
     if (op_p->u.b_rw_list.list_proc_state == LIST_PROC_ALLCONVERTED)
@@ -1109,7 +1117,7 @@ static int dbpf_bstream_rw_list_op_svc(struct dbpf_op *op_p)
 {
     int ret = -TROVE_EINVAL, i = 0, aiocb_inuse_count = 0;
     int op_in_progress_count = 0;
-    struct aiocb *aiocb_p = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ];
+    struct aiocb *aiocb_p = NULL, *aiocb_ptr_array[AIOCB_ARRAY_SZ + 1];
 
     if (op_p->u.b_rw_list.list_proc_state == LIST_PROC_INITIALIZED)
     {
@@ -1253,6 +1261,10 @@ static int dbpf_bstream_rw_list_op_svc(struct dbpf_op *op_p)
         {
             aiocb_ptr_array[i] = &aiocb_p[i];
         }
+        
+        // trick: put the hint into the structure
+        aiocb_ptr_array[aiocb_inuse_count] = op_p->hints;
+        
 
         if (op_p->u.b_rw_list.list_proc_state == LIST_PROC_ALLCONVERTED)
         {

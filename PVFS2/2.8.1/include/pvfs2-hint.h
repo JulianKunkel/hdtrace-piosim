@@ -18,7 +18,6 @@
 #define PVFS_HINT_CLIENT_RELATION_TOKEN_NAME  "pvfs.hint.reltoken"
 #define PVFS_HINT_RELATION_TOKEN_NAME  "relationToken"
 
-
 typedef struct PVFS_hint_s *PVFS_hint;
 
 #define PVFS_HINT_NULL NULL

@@ -24,7 +24,7 @@ enum PINT_hint_type
     PINT_HINT_HANDLE,
     PINT_HINT_OP_ID,
     PINT_HINT_RANK,
-    PINT_HINT_SERVER_ID
+    PINT_HINT_SERVER_ID,
 };
 
 typedef struct PVFS_hint_s

@@ -35,40 +35,6 @@
 #include "pint-event.h"
 
 
-#define IO_TROVE_RELATION(name,CMD) \
-	const char * io_keys[] = {"size","offset"}; \
-	char attr1[15],attr2[15]; \
-	const char * io_values[] = {attr1, attr2}; \
-	int run = 1; \
-	HD_SERVER_RELATION(SERVER, \
-			hdR_token relateToken = NULL; \
-			hdHintRelation_p parentHintRelationToken = malloc(sizeof(hdHintRelation_t)); \
-			parentHintRelationToken = PINT_hint_get_value_by_name(hint, PVFS_HINT_RELATION_TOKEN_NAME, NULL); \
-			\
-			if (parentHintRelationToken->token && topoTokenArray[TROVE]) \
-			{ \
-				relateToken = hdR_relateProcessLocalToken(topoTokenArray[TROVE], parentHintRelationToken->token); \
-			} \
-			gen_mutex_unlock(& parentHintRelationToken->mutex); \
-			\
-			if (relateToken) \
-			{ \
-				hdR_startS(relateToken,name); \
-				run = 0; \
-				\
-				CMD \
-				\
-				snprintf(io_values[0], 15, "%d", ret); \
-				snprintf(io_values[1], 15, "%lld", lld(stream_extents[i].offset)); \
-				\
-				hdR_end(relateToken,2,io_keys,io_values); \
-				hdR_destroyRelation(&relateToken); \
-			} \
-	) \
-	if(run){ \
-		CMD \
-	} \
-
 static gen_mutex_t dbpf_update_size_lock = GEN_MUTEX_INITIALIZER;
 
 typedef struct
@@ -760,13 +726,15 @@ static int dbpf_bstream_direct_read_op_svc(void *ptr, PVFS_hint hint)
 	for(i = 0; i < extent_count; ++ i)
 	{	
 
-		IO_TROVE_RELATION("read",
+		IO_TROVE_RELATION(hint,"read",
 				ret = direct_locked_read(rw_op->open_ref.fd,
 						stream_extents[i].buffer,
 						0,
 						stream_extents[i].size,
 						stream_extents[i].offset,
-						attr.u.datafile.b_size);
+						attr.u.datafile.b_size);,
+				"%d",ret,
+				"%lld",stream_extents[i].offset
 		)
 
 		if(ret < 0)
@@ -855,13 +823,15 @@ static int dbpf_bstream_direct_write_op_svc(void *ptr, PVFS_hint hint)
 	for(i = 0; i < extent_count; ++ i)
 	{
 
-		IO_TROVE_RELATION("write",
+		IO_TROVE_RELATION(hint,"write",
 				ret = direct_locked_write(rw_op->open_ref.fd,
 						stream_extents[i].buffer,
 						0,
 						stream_extents[i].size,
 						stream_extents[i].offset,
-						attr.u.datafile.b_size);
+						attr.u.datafile.b_size);,
+				"%d",ret,
+				"%lld",stream_extents[i].offset
 		)
 
 		if(ret < 0)

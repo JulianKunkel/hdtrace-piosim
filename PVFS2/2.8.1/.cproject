@@ -55,6 +55,9 @@
 <listOptionValue builtIn="false" value="HAVE_HDTRACE=1"/>
 <listOptionValue builtIn="false" value="HD_STMT_TOKEN=1"/>
 </option>
+<option id="gnu.c.compiler.option.preprocessor.undef.symbol.795086943" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" valueType="undefDefinedSymbols">
+<listOptionValue builtIn="false" value="__PVFS2_TROVE_AIO_THREADED__"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1155716272" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.base.618331818" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
