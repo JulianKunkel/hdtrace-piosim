@@ -237,7 +237,7 @@ static void* alt_lio_thread(void* foo)
                      tmp_item->cb_p->aio_buf, tmp_item->cb_p->aio_nbytes,
 		     llu(tmp_item->cb_p->aio_offset));
         
-        IO_TROVE_RELATION(tmp_item->hints,"alt-io-wrte",
+        IO_TROVE_RELATION(tmp_item->hints,"alt-io-write",
         		ret = pwrite(tmp_item->cb_p->aio_fildes,
         				(const void*)tmp_item->cb_p->aio_buf,
         				tmp_item->cb_p->aio_nbytes,
