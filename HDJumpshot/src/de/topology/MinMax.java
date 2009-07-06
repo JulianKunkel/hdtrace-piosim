@@ -22,8 +22,8 @@ package de.topology;
  * @author julian
  */
 public class MinMax {
-	private double maxValue = Double.MIN_NORMAL;
-	private double minValue = Double.MAX_VALUE;
+	private double maxValue = Double.NEGATIVE_INFINITY;
+	private double minValue = Double.POSITIVE_INFINITY;
 	
 	public void updateMaxValue(double newValue) {
 		if(newValue > this.maxValue)

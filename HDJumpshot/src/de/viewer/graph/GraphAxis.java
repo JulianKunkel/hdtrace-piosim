@@ -65,8 +65,8 @@ public class GraphAxis {
 	}
 
 	void reset(){
-		this.max = Double.MIN_VALUE;
-		this.min = Double.MAX_VALUE; 
+		this.max = Double.NEGATIVE_INFINITY;
+		this.min = Double.POSITIVE_INFINITY; 
 	}
 
 	void setDrawSize(int drawSize, int drawOffset){

@@ -230,12 +230,12 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 			double max = (bin +1) * deltaPerBin + statistics.getMinValue()  ;
 			
 			if(isInteger){
-				int imin = (int) Math.ceil(min);
-				int imax = (int) max;
+				long imin = (long) Math.ceil(min);
+				long imax = (long) max;
 				if(imin > imax)
 					return;
-				labelMinValue.setInteger( imin );
-				labelMaxValue.setInteger( imax );
+				labelMinValue.setLong( imin );
+				labelMaxValue.setLong( imax );
 			}else{
 				labelMinValue.setDouble( min );
 				labelMaxValue.setDouble( max );				

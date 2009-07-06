@@ -43,8 +43,8 @@ public class StatisticsComputer {
 	static public StatisticStatistics computeStatistics(BufferedStatisticsFileReader reader, 
 			StatisticsDescription description, Epoch startTime, Epoch endTime){
 
-		double min = Double.MAX_VALUE;
-		double max = Double.MIN_VALUE;
+		double min = Double.POSITIVE_INFINITY;
+		double max = Double.NEGATIVE_INFINITY;
 
 		// use bigdecimal to increase accuracy.			
 		BigDecimal sum = new BigDecimal(0);			

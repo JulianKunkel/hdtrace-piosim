@@ -56,8 +56,8 @@ public class GraphDataDoubleArray extends GraphData{
 			throw new IllegalArgumentException("x.length != y.length");
 		
 		// determine min / max:
-		double min = Double.MAX_VALUE;
-		double max = Double.MIN_VALUE;
+		double min = Double.POSITIVE_INFINITY;
+		double max = Double.NEGATIVE_INFINITY;
 		for(double cur: x){
 			min = cur < min ? cur : min;
 			max = cur > max ? cur : max;
@@ -65,8 +65,8 @@ public class GraphDataDoubleArray extends GraphData{
 		minX = min;
 		maxX = max;
 		
-		min = Double.MAX_VALUE;
-		max = Double.MIN_VALUE;
+		min = Double.POSITIVE_INFINITY;
+		max = Double.NEGATIVE_INFINITY;
 		for(double cur: y){
 			min = cur < min ? cur : min;
 			max = cur > max ? cur : max;

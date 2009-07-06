@@ -194,6 +194,12 @@ public class LabeledTextField extends JPanel
         // fld.setText( Integer.toString( ival ) );
         fld.setText( fmt.format( ival ) );
     }
+    
+    public void setLong( long ival )
+    {
+        // fld.setText( Integer.toString( ival ) );
+        fld.setText( fmt.format( ival ) );
+    }
 
     public int getInteger()
     {
@@ -253,7 +259,7 @@ public class LabeledTextField extends JPanel
             return fmt.parse( double_str ).doubleValue();
         } catch ( ParseException perr ) {
             perr.printStackTrace();
-            return Double.MIN_VALUE;
+            return Double.NEGATIVE_INFINITY;
         }
     }
 
