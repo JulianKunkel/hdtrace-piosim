@@ -3,7 +3,7 @@
  *
  * @date 14.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #include "tracing.h"
@@ -214,13 +214,13 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 	gboolean quit = FALSE;
 	while(1)
 	{
-		fputs("Entering tracing loop\n", stderr);
+		VERBMSG("Entering tracing loop");
 		/* wait until tracing is enabled and check quit condition */
 		g_mutex_lock(tracingData->control->mutex);
 
 		while (!tracingData->control->enabled && !tracingData->control->quit)
 		{
-			fputs("Waiting for tracing becomes enabled\n", stderr);
+			VERBMSG("Waiting for tracing becomes enabled");
 			/* mark old statistics data invalid */
 			tracingData->oldValues.valid = FALSE;
 			/* wait for tracing becomes enabled */
@@ -241,13 +241,13 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 		waitTime = (gulong) tracingData->interval
 				- (currentTime % (gulong) tracingData->interval);
 
-		fprintf(stderr, "Wait %ld ms\n", waitTime);
+		DEBUGMSG("Wait %ld ms", waitTime);
 		g_usleep (waitTime * 1000);
 
 		/*  do tracing step */
 		doTracingStep(tracingData);
 	}
-	fputs("Loop exited\n", stderr);
+	VERBMSG("Loop exited");
 
 	/* disable statistics group */
 	hdS_disableGroup(tracingData->group);
@@ -281,7 +281,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			case HDS_ERR_ENTRY_STATE: assert(!"HDS_ERR_ENTRY_STATE"); \
 			default: assert(ret == 0);	}
 
-	fputs("Step!\n", stderr);
+	VERBMSG("Step!");
 
 	gint32 valuei32;
 	gint64 valuei64;
@@ -316,7 +316,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 		{
 			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
 			WRITE_FLOAT_VALUE(valuef * 100)
-			fprintf(stderr, "CPU_TOTAL = %f%%\n", valuef * 100);
+			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
 
 		if (tracingData->sources.PTLSRC_CPU_LOAD_X)
@@ -327,7 +327,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 				valuef = (gfloat)(1.0 - (CPUDIFF(xcpu_idle[i])
 						/ CPUDIFF(xcpu_total[i])));
 				WRITE_FLOAT_VALUE(valuef * 100)
-				fprintf(stderr, "CPU_TOTAL_%d = %f%%\n", i, valuef * 100);
+				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
 	}
@@ -350,7 +350,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	if (tracingData->sources.PTLSRC_MEM_##PART) { \
 		valuef = (gfloat) (mem.part / MEM_MULT); \
 		WRITE_FLOAT_VALUE(valuef) \
-		fprintf(stderr, "MEM_" #PART " = %f " MEM_UNIT "\n", valuef);\
+		DEBUGMSG("MEM_" #PART " = %f " MEM_UNIT "\n", valuef);\
 	}
 
 		MEM_WRITE_VALUE(USED, used);
@@ -430,8 +430,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			{
 				valuei64 = (gint64) (new_in - old_in);
 				WRITE_I64_VALUE(valuei64)
-				fprintf(stderr,
-						"NET_IN_%s = %" G_GINT64_FORMAT " " NET_UNIT "\n",
+				DEBUGMSG("NET_IN_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
 
@@ -439,8 +438,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			{
 				valuei64 = (gint64) (new_out - old_out);
 				WRITE_I64_VALUE(valuei64)
-				fprintf(stderr,
-						"NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT "\n",
+				DEBUGMSG("NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
 		}
@@ -457,8 +455,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			valuei64 = (gint64)	(net_ext_in
 					- tracingData->oldValues.net_ext_in);
 			WRITE_I64_VALUE(valuei64)
-			fprintf(stderr,
-					"NET_IN_EXT = %" G_GINT64_FORMAT " " NET_UNIT "\n", valuei64);
+			DEBUGMSG("NET_IN_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.PTLSRC_NET_OUT_EXT)
@@ -466,8 +463,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			valuei64 = (gint64)	(net_ext_out
 					- tracingData->oldValues.net_ext_out);
 			WRITE_I64_VALUE(valuei64)
-			fprintf(stderr,
-					"NET_OUT_EXT = %" G_GINT64_FORMAT " " NET_UNIT "\n", valuei64);
+			DEBUGMSG("NET_OUT_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.PTLSRC_NET_IN)
@@ -475,8 +471,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			valuei64 = (gint64)	(net_all_in
 					- tracingData->oldValues.net_all_in);
 			WRITE_I64_VALUE(valuei64)
-			fprintf(stderr,
-					"NET_IN = %" G_GINT64_FORMAT " " NET_UNIT "\n", valuei64);
+			DEBUGMSG("NET_IN = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.PTLSRC_NET_OUT)
@@ -484,8 +479,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			valuei64 = (gint64)	(net_all_out
 					- tracingData->oldValues.net_all_out);
 			WRITE_I64_VALUE(valuei64)
-			fprintf(stderr,
-					"NET_OUT = %" G_GINT64_FORMAT " " NET_UNIT "\n", valuei64);
+			DEBUGMSG("NET_OUT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
     }
 
@@ -503,30 +497,29 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	glibtop_fsusage fs;
 
 	if(tracingData->sources.PTLSRC_HDD_READ || tracingData->sources.PTLSRC_HDD_WRITE){
-	  // right now read from environment
-	  char * disc = getenv("PTL_DISK_MONITOR");
-	  if(disc == NULL){
-	    disc = "/tmp";
-	    fprintf(stderr, "use environment variable PTL_DISK_MONITOR to monitor device, right now I will use %s\n", disc);
-	  }
-	  glibtop_get_fsusage (&fs, disc);
+		// right now read from environment
+		char * disc = getenv("PTL_DISK_MONITOR");
+		if(disc == NULL){
+			disc = "/";
+			WARNMSG("Use environment variable PTL_DISK_MONITOR to set mount point to trace.\n"
+					"Right now '%s' is used by default", disc);
+		}
+		glibtop_get_fsusage (&fs, disc);
 	}
 	if (tracingData->oldValues.valid)
 	{
-	  if (tracingData->sources.PTLSRC_HDD_READ)
-	  {
-	    	valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
-		WRITE_I64_VALUE(valuei64)
-		fprintf(stderr,
-			"DISK_READ = %" G_GINT64_FORMAT "\n", valuei64);
+		if (tracingData->sources.PTLSRC_HDD_READ)
+		{
+			valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
+			WRITE_I64_VALUE(valuei64)
+			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
 	  }
 
 	  if (tracingData->sources.PTLSRC_HDD_WRITE)
 	  {
-	    valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
-		WRITE_I64_VALUE(valuei64)
-		fprintf(stderr,
-			"DISK_WRITE = %" G_GINT64_FORMAT  "\n", valuei64);
+		  valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
+		  WRITE_I64_VALUE(valuei64)
+		  DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
 	  }
 	}
 	tracingData->oldValues.fs = fs;

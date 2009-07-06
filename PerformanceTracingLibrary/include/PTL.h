@@ -8,7 +8,7 @@
  *
  * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 /**

@@ -1,3 +1,5 @@
+# $Id$
+
 SUBDIRS = lib . tests examples
 
 include $(top_srcdir)/common.am

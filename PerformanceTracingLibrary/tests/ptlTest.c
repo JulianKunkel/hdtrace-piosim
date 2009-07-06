@@ -3,7 +3,7 @@
  *
  * @date 30.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.2
+ * @version \$Id$
  */
 
 #include <stdlib.h>

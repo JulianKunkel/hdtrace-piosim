@@ -1,3 +1,5 @@
+# $Id$
+
 include $(top_srcdir)/common.am
 
 check_PROGRAMS = ptlTest

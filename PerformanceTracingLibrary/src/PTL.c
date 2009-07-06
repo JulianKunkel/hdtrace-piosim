@@ -3,7 +3,7 @@
  *
  * @date 11.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #include "PTL.h"
@@ -66,6 +66,13 @@ PerfTrace ptl_createTrace(
 		int interval         /* interval of one tracing step in ms */
 		)
 {
+	/*
+	 * Set verbosity as requested by environment
+	 */
+	verbosity = 1;
+	char *verbstr = getenv("LIBPTL_VERBOSITY");
+	if (verbstr != NULL)
+		sscanf(verbstr, "%d", &verbosity);
 
 	/*
 	 * Take care about Glibs thread capabilities
@@ -126,7 +133,7 @@ PerfTrace ptl_createTrace(
 			(gpointer) tracingData, TRUE, &tracingThreadError);
 	if (tracingThread == NULL)
 	{
-		fputs(tracingThreadError->message, stderr);
+		ERRORMSG("%s", tracingThreadError->message);
 		g_error_free (tracingThreadError);
 	}
 

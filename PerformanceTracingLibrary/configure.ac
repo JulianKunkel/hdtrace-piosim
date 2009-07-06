@@ -1,5 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
+#
+# $Id$
 
 AC_PREREQ(2.61)
 AC_INIT([PerformanceTracingLibrary], [0svn20090617], [stephan.krempel@pvs.informatik.uni-heidelberg.de])

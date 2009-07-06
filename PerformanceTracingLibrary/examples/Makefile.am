@@ -1,3 +1,5 @@
+# $Id$
+
 include $(top_srcdir)/common.am
 
 noinst_PROGRAMS = traceAll
