@@ -58,21 +58,21 @@
  */
 #define hd_error_msg(format, ...) \
 	if (verbosity >= V_ERROR) \
-		hd_X_msg("HDS Error", format, __VA_ARGS__)
+		hd_X_msg("HDT Error", format, __VA_ARGS__)
 
 /**
  * Print a formated info message prefixed by "HDS Info:" and the code position
  */
 #define hd_info_msg(format, ...) \
 	if (verbosity >= V_INFO) \
-		hd_X_msg("HDS Info", format, __VA_ARGS__)
+		hd_X_msg("HDT Info", format, __VA_ARGS__)
 
 /**
  * Print a formated debug message prefixed by "HDS Debug:" and the code position
  */
 #define hd_debug_msg(format, ...) \
 	if (verbosity >= V_DEBUG) \
-		hd_X_msg("HDS Debug", format, __VA_ARGS__)
+		hd_X_msg("HDT Debug", format, __VA_ARGS__)
 
 /**
  * Set errno to \a eno and return \a ret
@@ -98,7 +98,7 @@
  */
 #define	hd_free(var) \
 	do { \
-		(var) ? free(var) : (void)(0); \
+		free(var); \
 		var = NULL; \
 	} while (0)
 
