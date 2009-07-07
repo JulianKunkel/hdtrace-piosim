@@ -262,8 +262,11 @@ int PINT_HD_event_finalize(void)
 	}
 #ifdef __PVFS2_SERVER__
 #ifdef HAVE_HDPTL
+	if(pPerformanceTrace)
+	{
 		ptl_stopTrace(pPerformanceTrace);
 		ptl_destroyTrace(pPerformanceTrace);
+	}
 #endif /* __HAVE_HDPTL__*/
 #endif /* __PVFS2_SERVER__ */
 
