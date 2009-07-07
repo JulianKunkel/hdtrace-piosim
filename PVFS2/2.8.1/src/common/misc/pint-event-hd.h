@@ -45,15 +45,18 @@ typedef enum {
 			hdR_token relateToken = NULL; \
 				hdR_token parentToken = *(hdR_token*) PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL); \
 			\
-			gen_mutex_lock(&trove_relation); \
 			if (parentToken && topoTokenArray[TROVE]) \
 			{ \
+				gen_mutex_lock(&trove_relation); \
 				relateToken = hdR_relateProcessLocalToken(topoTokenArray[TROVE], parentToken); \
+				gen_mutex_unlock(&trove_relation); \
 			} \
 			\
 			if (relateToken) \
 			{ \
+				gen_mutex_lock(&trove_relation); \
 				hdR_startS(relateToken,name); \
+				gen_mutex_unlock(&trove_relation); \
 				run = 0; \
 				\
 				CMD \
@@ -61,10 +64,11 @@ typedef enum {
 				snprintf(io_values[0], 15, p_size, size); \
 				snprintf(io_values[1], 15, p_offset, offset); \
 				\
+				gen_mutex_lock(&trove_relation); \
 				hdR_end(relateToken,2,io_keys,io_values); \
 				hdR_destroyRelation(&relateToken); \
+				gen_mutex_unlock(&trove_relation); \
 			} \
-			gen_mutex_unlock(&trove_relation); \
 	) \
 	if(run){ \
 		CMD \
