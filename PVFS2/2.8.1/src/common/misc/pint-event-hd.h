@@ -20,6 +20,8 @@ int PINT_HD_event_finalize(void); /* client also uses this function */
 
 #ifdef __PVFS2_SERVER__
 
+extern gen_mutex_t trove_relation;
+
 int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile);
 
 /**
@@ -42,6 +44,8 @@ typedef enum {
 	HD_SERVER_RELATION(SERVER, \
 			hdR_token relateToken = NULL; \
 				hdR_token parentToken = *(hdR_token*) PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL); \
+			\
+			gen_mutex_lock(&trove_relation); \
 			if (parentToken && topoTokenArray[TROVE]) \
 			{ \
 				relateToken = hdR_relateProcessLocalToken(topoTokenArray[TROVE], parentToken); \
@@ -60,6 +64,7 @@ typedef enum {
 				hdR_end(relateToken,2,io_keys,io_values); \
 				hdR_destroyRelation(&relateToken); \
 			} \
+			gen_mutex_unlock(&trove_relation); \
 	) \
 	if(run){ \
 		CMD \

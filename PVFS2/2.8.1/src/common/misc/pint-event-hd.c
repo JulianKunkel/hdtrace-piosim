@@ -40,6 +40,7 @@ static PerfTrace pPerformanceTrace;
 static hdTopoNode serverRootTopology;
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
 		"NET", "MEM", "CPU", "DISK", "ALL_FACILITIES"};
+gen_mutex_t trove_relation;
 #endif
 
 static int checkHostname(void)
@@ -214,7 +215,7 @@ printf("topology %p\n",topology);
 		}
 
 #endif /* __HAVE_HDPTL__ */
-	}
+	} /* for */
 	
 #ifdef HAVE_HDPTL
 	if(enableStats){

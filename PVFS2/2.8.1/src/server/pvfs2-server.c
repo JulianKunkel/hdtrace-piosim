@@ -1716,9 +1716,7 @@ int server_state_machine_start(
     {
         s_op->req  = (struct PVFS_server_req *)s_op->decoded.buffer;
         
-//        HD_SERVER_RELATION(SERVER,
-        if (topoTokenArray[SERVER])
-        {
+        HD_SERVER_RELATION(SERVER,
         	// check if client sent token information or not!
         	char * relation = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
         	
@@ -1732,8 +1730,7 @@ int server_state_machine_start(
         	}
         	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdR_token), 
         			& smcb->smToken);
-        }
-//        )
+        )
         
         ret = PINT_smcb_set_op(smcb, s_op->req->op);
         s_op->op = s_op->req->op;
