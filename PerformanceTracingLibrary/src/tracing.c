@@ -479,8 +479,8 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 			 * So (old < new) means, that an unsigned 32bit counter is used
 			 * and overflowed once since last cycle.
 			 */
-			new_in += (new_in < old_in) ? 0xFFFFFFFF : 0;
-			new_out += (new_out < old_out) ? 0xFFFFFFFF : 0;
+			new_in += (new_in < old_in) ? G_GUINT64_CONSTANT(0xFFFFFFFF) : 0;
+			new_out += (new_out < old_out) ? G_GUINT64_CONSTANT(0xFFFFFFFF) : 0;
 		}
 
     	/* count aggregated traffic of all interfaces */

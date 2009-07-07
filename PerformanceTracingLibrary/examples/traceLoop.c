@@ -109,7 +109,8 @@ int main(int argc, char **argv)
 	/* loop */
 
 	while (1)
-		;
+		/* sleep, SIGINT signal is processed nevertheless */
+		sleep(600);
 
 
 	/* never come here */
