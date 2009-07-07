@@ -185,6 +185,7 @@ int initTracing(
 
 	if (sources.PTLSRC_HDD_WRITE)
 		ADD_VALUE(group, "HDD_WRITE", INT64, HDD_UNIT, "HDD");
+
 	/*
 	 * Commit statistics group
 	 */
@@ -221,6 +222,7 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 
 	/* enable used statistics group
 	 * (we handle trace enabling/disabling by ourself for performance reasons) */
+	// TODO Change this, since start/stop tracing will be handled special in hdStats
 	hdS_enableGroup(tracingData->group);
 
 	/* create timer */
@@ -305,6 +307,8 @@ static void doTracingStep(tracingDataStruct *tracingData)
 
 	doTracingStepHDD(tracingData);
 
+	/* mark old statistics values saved as valid */
+	tracingData->oldValues.valid = TRUE;
 }
 
 #define CHECK_WRITE_VALUE_ERROR \
@@ -592,9 +596,6 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 	  }
 	}
 	tracingData->oldValues.fs = fs;
-
-	/* mark old statistics values saved as valid */
-	tracingData->oldValues.valid = TRUE;
 }
 
 #undef WRITE_I64_VALUE
