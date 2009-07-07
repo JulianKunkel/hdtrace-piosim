@@ -81,10 +81,10 @@ struct ptlSources_s {
     unsigned int PTLSRC_NET_IN : 1;
     /** aggregated outgoing traffic of all network interfaces */
     unsigned int PTLSRC_NET_OUT : 1;
-    /** amount of data written to hard disk drives */
-    unsigned int PTLSRC_HDD_WRITE : 1;
     /** amount of data read from hard disk drives */
     unsigned int PTLSRC_HDD_READ : 1;
+    /** amount of data written to hard disk drives */
+    unsigned int PTLSRC_HDD_WRITE : 1;
 };
 
 /** Type definition of tracing sources bit field */
@@ -99,47 +99,54 @@ typedef struct ptlSources_s ptlSources;
 
 /** Macro for cleaning all available sources */
 #define PTLSRC_UNSET_ALL(sources) \
-	bzero(&(sources), sizeof(sources));
+	bzero(&(sources), sizeof(sources))
 
 /** Macro for setting all available sources */
 #define PTLSRC_SET_ALL(sources) \
-	PTLSRC_SET_CPU(sources) \
-	PTLSRC_SET_MEM(sources) \
-	PTLSRC_SET_NET(sources) \
-	PTLSRC_SET_HDD(sources)
+	do { \
+		PTLSRC_SET_CPU(sources); \
+		PTLSRC_SET_MEM(sources); \
+		PTLSRC_SET_NET(sources); \
+		PTLSRC_SET_HDD(sources); \
+	} while (0)
 
 /** Macro for setting/cleaning all CPU statistics at once */
-#define PTLSRC_SET_HDD__(sources, bool) \
-	(sources).PTLSRC_HDD_WRITE = bool; \
-	(sources).PTLSRC_HDD_READ = bool;
-
-/** Macro for setting/cleaning all HDD statistics at once */
 #define PTLSRC_SET_CPU__(sources, bool) \
-	(sources).PTLSRC_CPU_LOAD = bool; \
-	(sources).PTLSRC_CPU_LOAD_X = bool;
+	do { \
+		(sources).PTLSRC_CPU_LOAD = bool; \
+		(sources).PTLSRC_CPU_LOAD_X = bool; \
+	} while (0)
 
 /** Macro for setting/cleaning all memory statistics at once */
 #define PTLSRC_SET_MEM__(sources, bool) \
-	(sources).PTLSRC_MEM_USED = bool; \
-    (sources).PTLSRC_MEM_FREE = bool; \
-    (sources).PTLSRC_MEM_SHARED = bool; \
-    (sources).PTLSRC_MEM_BUFFER = bool; \
-    (sources).PTLSRC_MEM_CACHED = bool;
+	do { \
+		(sources).PTLSRC_MEM_USED = bool; \
+		(sources).PTLSRC_MEM_FREE = bool; \
+		(sources).PTLSRC_MEM_SHARED = bool; \
+		(sources).PTLSRC_MEM_BUFFER = bool; \
+		(sources).PTLSRC_MEM_CACHED = bool; \
+	} while (0)
 
 /** Macro for setting/cleaning all NET statistics at once */
 #define PTLSRC_SET_NET__(sources, bool) \
-	(sources).PTLSRC_NET_IN_X = bool; \
-	(sources).PTLSRC_NET_OUT_X = bool; \
-	(sources).PTLSRC_NET_IN_EXT = bool; \
-	(sources).PTLSRC_NET_OUT_EXT = bool; \
-	(sources).PTLSRC_NET_IN = bool; \
-	(sources).PTLSRC_NET_OUT = bool;
+	do { \
+		(sources).PTLSRC_NET_IN_X = bool; \
+		(sources).PTLSRC_NET_OUT_X = bool; \
+		(sources).PTLSRC_NET_IN_EXT = bool; \
+		(sources).PTLSRC_NET_OUT_EXT = bool; \
+		(sources).PTLSRC_NET_IN = bool; \
+		(sources).PTLSRC_NET_OUT = bool; \
+	} while (0)
+
+/** Macro for setting/cleaning all HDD statistics at once */
+#define PTLSRC_SET_HDD__(sources, bool) \
+	do { \
+		(sources).PTLSRC_HDD_READ = bool; \
+		(sources).PTLSRC_HDD_WRITE = bool; \
+	} while (0)
 
 /** Macro for enabling tracing of all CPU statistics at once */
 #define PTLSRC_SET_CPU(sources) PTLSRC_SET_CPU__(sources, 1)
-
-/** Macro for enabling tracing of all HDD statistics at once */
-#define PTLSRC_SET_HDD(sources) PTLSRC_SET_HDD__(sources, 1)
 
 /** Macro for enabling tracing of all memory statistics at once */
 #define PTLSRC_SET_MEM(sources) PTLSRC_SET_MEM__(sources, 1)
@@ -147,18 +154,8 @@ typedef struct ptlSources_s ptlSources;
 /** Macro for enabling tracing of all NET statistics at once */
 #define PTLSRC_SET_NET(sources) PTLSRC_SET_NET__(sources, 1)
 
-#if 0
 /** Macro for enabling tracing of all hard disk statistics at once */
-#define SET_PTLSRC_HDD(sources) SET_PTLSRC_HDD__(sources, 1)
-#endif
-
-#define PTL_GET_SIMPLEST_TOPOLOGY(myTopology, myProject) \
-	char *levels[] = {"level"}; \
-	hdTopology myTopology = hdT_createTopology(##myProject, levels, 1);
-
-#define PTL_GET_SIMPLEST_TOPONODE(myTopoNode) \
-	char *path[] = {"level"}; \
-	hdTopoNode myTopoNode = hdT_createTopoNode(path, 1);
+#define PTLSRC_SET_HDD(sources) PTLSRC_SET_HDD__(sources, 1)
 
 
 /* ************************************************************************* *
