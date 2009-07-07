@@ -25,17 +25,18 @@ extern int ptl_verbosity;
 	fflush(stdout); \
 	fprintf(stderr, prefix ": " msg "\n", ## __VA_ARGS__);
 #else
+# include <libgen.h>
 # define PTLMSG(prefix, msg, ...) \
 	fflush(stdout); \
-	fprintf(stderr, prefix ": " msg " in %s:%d\n", ## __VA_ARGS__, \
-		__FILE__, __LINE__);
+	fprintf(stderr, prefix ": " msg " in %s() (%s:%d)\n", ## __VA_ARGS__, \
+		__FUNCTION__, basename(__FILE__), __LINE__);
 #endif
 
 #define DEBUGMSG(msg, ...) \
-	do { if (ptl_verbosity >= 3) { PTLMSG("PTL", msg, ## __VA_ARGS__) } } while (0)
+	do { if (ptl_verbosity >= 3) { PTLMSG("PTL (3)", msg, ## __VA_ARGS__) } } while (0)
 
 #define VERBMSG(msg, ...) \
-	do { if (ptl_verbosity >= 2) { PTLMSG("PTL", msg, ## __VA_ARGS__) } } while (0)
+	do { if (ptl_verbosity >= 2) { PTLMSG("PTL (2)", msg, ## __VA_ARGS__) } } while (0)
 
 #define WARNMSG(msg, ...) \
 	do { if (ptl_verbosity >= 1) { PTLMSG("PTL Warning", msg, ## __VA_ARGS__) } } while (0)
