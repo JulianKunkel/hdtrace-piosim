@@ -154,29 +154,30 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 
 	const char *levels[] = {"Hostname", "Layer"};
 	topology = hdT_createTopology(projectFile, levels, 2);
+printf("topology %p\n",topology);
 	
 	{
 	const char *path[] = {hostname};
 	serverRootTopology = hdT_createTopoNode(topology, path, 1);
+	printf("serverRootTopology %p\n",serverRootTopology);
 	}
 
 	int enableStats = 0;
+	printf("enableStats %d\n",enableStats);
 	
 	for(i=0; i < count; i++)
 	{
 		printf("Enable: %s\n", event_list[i]);
 		int facilityNum;
-		for (facilityNum = 0; facilityNum < ALL_FACILITIES; facilityNum++)
+		for (facilityNum = 0; facilityNum < STATISTIC_END; facilityNum++)
 		{
 			if((!strcasecmp(event_list[i], hdFacilityNames[facilityNum])) && !hd_facilityTrace[facilityNum])
 			{
 				const char *path[] = {hostname, hdFacilityNames[facilityNum]};
 				topoNodeArray[facilityNum] = hdT_createTopoNode(topology, path, 2);
 				
-				if (facilityNum != NET && facilityNum != MEM && facilityNum != CPU && facilityNum != DISK){
-					hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
-					testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
-				}
+				hdR_initTopology(topoNodeArray[facilityNum], & topoTokenArray[facilityNum]);
+				testInitFacilityStatisticTrace(topoNodeArray[facilityNum], facilityNum);
 				
 				break;
 			}
