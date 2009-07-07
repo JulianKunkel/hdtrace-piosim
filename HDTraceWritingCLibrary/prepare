@@ -1,3 +1,1 @@
-autoreconf
-automake --add-missing
-autoreconf
+autoreconf -i -f

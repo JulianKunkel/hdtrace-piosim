@@ -42,33 +42,37 @@
  * Do not use directly, use hd_(info|debug|error)_msg instead.
  */
 #ifdef NDEBUG
-# define hd_X_msg(X, format, ...) \
-	fprintf(stderr, X ": " format "\n", __VA_ARGS__)
+# define hd_X_msg(prefix, msg, ...) \
+	fflush(stdout); \
+	fprintf(stderr, prefix ": " msg "\n", ## __VA_ARGS__);
 #else
-# define hd_X_msg(X, format, ...) \
-	fprintf(stderr, X ": %s (%s:%d): " format "\n", __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+# include <libgen.h>
+# define hd_X_msg(prefix, msg, ...) \
+	fflush(stdout); \
+	fprintf(stderr, prefix ": " msg " in %s() (%s:%d)\n", ## __VA_ARGS__, \
+		__FUNCTION__, basename(__FILE__), __LINE__);
 #endif /* NDEBUG */
 
 /**
- * Print a formated error message prefixed by "E:" and code position
+ * Print a formated error message prefixed by "HDS Error:" and code position
  */
 #define hd_error_msg(format, ...) \
 	if (verbosity >= V_ERROR) \
-		hd_X_msg("E", format, __VA_ARGS__)
+		hd_X_msg("HDS Error", format, __VA_ARGS__)
 
 /**
- * Print a formated info message prefixed by "I:" and the code position
+ * Print a formated info message prefixed by "HDS Info:" and the code position
  */
 #define hd_info_msg(format, ...) \
 	if (verbosity >= V_INFO) \
-		hd_X_msg("I", format, __VA_ARGS__)
+		hd_X_msg("HDS Info", format, __VA_ARGS__)
 
 /**
- * Print a formated debug message prefixed by "D:" and the code position
+ * Print a formated debug message prefixed by "HDS Debug:" and the code position
  */
 #define hd_debug_msg(format, ...) \
 	if (verbosity >= V_DEBUG) \
-		hd_X_msg("D", format, __VA_ARGS__)
+		hd_X_msg("HDS Debug", format, __VA_ARGS__)
 
 /**
  * Set errno to \a eno and return \a ret

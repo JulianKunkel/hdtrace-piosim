@@ -234,7 +234,6 @@ hdStatsGroup hdS_createGroup (
 	/* create group */
 	hdStatsGroup group;
 	hd_malloc(group, 1, NULL);
-	memset(group, 0, sizeof(*group));
 
 	/* setup group buffer for header */
     hd_malloc(group->buffer, HDS_HEADER_BUF_SIZE, NULL);
@@ -547,7 +546,6 @@ int hdS_addValue (
  * @errno
  * - \ref HD_ERR_INVALID_ARGUMENT
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
- * - \ref HD_ERR_UNKNOWN
  */
 int hdS_commitGroup (
         hdStatsGroup group       /* Statistics Group */
@@ -588,10 +586,7 @@ int hdS_commitGroup (
 	sret = snprintf(group->buffer, HDS_HEADER_SIZE_LENGTH + 1, "%05u", hlen);
 	/* since we have already written behind, this cannot happen */
 	assert(sret <= HDS_HEADER_BUF_SIZE - group->offset);
-	if (sret < 0)
-	{
-		hd_error_return(HD_ERR_UNKNOWN, -1);
-	}
+	assert(sret >= 0);
 
 	/* assure buffer is '\0' terminated (see snprintf(3)) */
 	assert(group->buffer[HDS_HEADER_SIZE_LENGTH] == '\0');
@@ -1331,13 +1326,6 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
 	/* convert to seconds and nanoseconds */
 	int32_t sec = (int32_t) tv.tv_sec;
 	int32_t nsec = (int32_t) tv.tv_usec * 1000;
-	
-	/* compare the old time with the new time */
-	if(group->tv.tv_sec > tv.tv_sec || (group->tv.tv_sec == tv.tv_sec && group->tv.tv_usec > tv.tv_usec)){
-	   fprintf(stderr,"[HDSTATS], error, time is not increasing, last time >= current time");
-	}else{
-	  memcpy(&group->tv, & tv, sizeof(struct timeval));
-	}
 
 	/* assure the timestamp will have the correct length */
 	assert(sizeof(sec) + sizeof(nsec) == HDS_TIMESTAMP_LENGTH);
@@ -1356,7 +1344,7 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
 
 	memcpy(group->buffer + group->offset, &(nsec), sizeof(nsec));
 	group->offset += (int) sizeof(nsec);
-	
+
 	return 0;
 }
 
