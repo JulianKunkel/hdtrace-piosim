@@ -354,8 +354,7 @@ int hdR_finalize(hdR_topoToken * token_p){
 	const hdR_topoToken token = * token_p;
 
 	// check if the file is empty.
-	off_t curPos = lseek(token->log_fd, 0, SEEK_CUR);
-	if(curPos == token->headerLength && token->buffer_pos == 0){
+	if((*token_p)->lastTokenNumber == 0){
 	  // remove file.
 	  unlink(token->logfile);
 	}else{
