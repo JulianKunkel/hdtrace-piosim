@@ -20,6 +20,13 @@
 
 #include "tests.h"
 
+static void cleanup(void){
+	unlink("/tmp/test_host0_process0.rel");
+	unlink("/tmp/test_host0_process1.rel");
+	unlink("/tmp/test_host1_process0.rel");
+	unlink("/tmp/test_host2_process0.rel");
+}
+
 /**
  * Test hdT_createTopology.
  */
@@ -201,8 +208,11 @@ static void Test_remoteRelationHandling(void)
 int main(void)
 {
 	/* run all tests */
+	cleanup();
 	Test_createRelationAndCleanup();
+	cleanup();
 	Test_createRelationHandling();
+	cleanup();
 	Test_remoteRelationHandling();
 
 	puts("hdRelationTest: All tests passed!");

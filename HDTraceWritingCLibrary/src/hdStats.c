@@ -223,11 +223,12 @@ hdStatsGroup hdS_createGroup (
 		 return NULL;
 	 }
 
-	/* open file and truncate to zero if it already exists  */
-	int fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
+	/* open file if it already exists return an error */
+	int fd = open(filename, O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
 	if (fd < 0)
 	{
 		hd_error_msg("Could not open file %s: %s", filename, strerror(errno));
+		free(filename);
 	 	hd_error_return(HD_ERR_CREATE_FILE, NULL);
  	}
 

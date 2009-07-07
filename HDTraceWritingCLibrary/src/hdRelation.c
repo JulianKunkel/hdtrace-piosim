@@ -81,11 +81,6 @@ static size_t localTokenLen;
 static int     lastTopologyNumber = 0;
 
 /**
- * Unique number for the token number
- */
-static uint64_t lastTokenNumber = 0;
-
-/**
  * Structure representing one relation trace.
  * For each topology one trace is created.
  */
@@ -129,6 +124,11 @@ struct _hdRelationTopo {
 	hdTopoNode topoNode;
 
 	/**
+	 * Unique number for the token number
+	 */
+	uint64_t lastTokenNumber;
+
+	/**
 	 * global time adjustment
 	 */
 	struct timeval timeAdjustment;
@@ -159,7 +159,7 @@ struct _hdR_token{
 
 	/**
 	 * Number of start/state - end/state
-	 */ 
+	 */
 	int startStates;
 };
 
@@ -309,18 +309,20 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 
 	topoToken->logfile = generateFilename( topNode, topNode->length, NULL, ".rel" );
 
-	topoToken->log_fd = open(topoToken->logfile, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
+	topoToken->log_fd = open(topoToken->logfile, O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
 
 	if( topoToken->log_fd == -1){
 		free(topoToken->logfile);
 		free(topoToken);
-		return -1;
+		hd_error_msg("Could not open file %s: %s", topoToken->logfile, strerror(errno));
+	 	hd_error_return(HD_ERR_CREATE_FILE, -1);
 	}
 
 
 	topoToken->buffer_pos = 0;
 	topoToken->isEnabled = 1;
 	topoToken->topoNode = topNode;
+	topoToken->lastTokenNumber = 0;
 	topoToken->topologyNumber = lastTopologyNumber++;
 
 	*outTopoToken = topoToken;
@@ -407,7 +409,7 @@ char * hdR_getRemoteToken(hdR_token token){
 static inline hdR_token createToken(hdR_topoToken topoToken){
 	struct _hdR_token * token = malloc(sizeof(struct _hdR_token));
 
-	token->id = lastTokenNumber++;
+	token->id = topoToken->lastTokenNumber++;
 	token->topoToken = topoToken;
 	token->startStates = 0;
 
@@ -488,7 +490,7 @@ int hdR_destroyRelation(hdR_token * token){
 	if((*token)->startStates > 0){
 	   fprintf(stderr, "[HDRelation] Warning, there are unfinished state starts (count: %d)!\n", (*token)->startStates);
 	}
-	
+
 	free(*token);
 	*token = NULL;
 

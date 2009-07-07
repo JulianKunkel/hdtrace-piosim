@@ -12,6 +12,10 @@
  *
  * Multiple relation files can be related as well, thus allowing to track source and triggered activities across servers.
  *
+ * Most functions are thread-safe, however only on a topology token level i.e. if you use multiple threads on a single topology
+ * then you must ensure that only one thread works on a token of a specific toplogy at a time. => use mutex
+ *
+ *
  * @date 05.06.2009
  * @author julian
  * @version \$Id$
@@ -31,6 +35,7 @@ typedef struct _hdRelationTopo * hdR_topoToken;
 
 /**
 * Initialize relation handling on topology, can be used multiple times on different topologies.
+* Note: this function is NOT thread-safe
 */
 int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken);
 

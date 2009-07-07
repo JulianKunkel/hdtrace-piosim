@@ -159,11 +159,12 @@ hdTrace hdT_createTrace(hdTopoNode topoNode)
 
 	// create and open file
 	trace->log_fd = open(trace->logfile,
-			O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
 	if (trace->log_fd == -1)
 	{
 		hdt_debugf(trace, "Could not open file %s: %s",
 				trace->logfile, strerror(errno));
+		free(trace);
 		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
 
@@ -177,11 +178,12 @@ hdTrace hdT_createTrace(hdTopoNode topoNode)
 
 	// create and open file
 	trace->info_fd = open(trace->infofile,
-			O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
 	if (trace->info_fd == -1)
 	{
 		hdt_debugf(trace, "Could not open file %s: %s",
 				trace->infofile, strerror(errno));
+		free(trace);
 		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
 
