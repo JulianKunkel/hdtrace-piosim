@@ -445,16 +445,18 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 	gint64 valuei64;
 
 	/* variables to aggregate in and out bytes */
-	guint64 net_all_in = 0;
-	guint64 net_all_out = 0;
-	guint64 net_ext_in = 0;
-	guint64 net_ext_out = 0;
+	guint64 all_in = 0;
+	guint64 all_out = 0;
+	guint64 ext_in = 0;
+	guint64 ext_out = 0;
 
 	/* handle statistics for each network interface */
     for (size_t i = 0; i < tracingData->staticData.netlist.number; ++i)
     {
     	glibtop_netload netload;
     	glibtop_get_netload (&netload, tracingData->staticData.netifs[i]);
+
+    	guint64 in, out;
 
 		guint64 new_in, old_in, new_out, old_out;
 		new_in = netload.bytes_in;
@@ -483,15 +485,19 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 			new_out += (new_out < old_out) ? G_GUINT64_CONSTANT(0xFFFFFFFF) : 0;
 		}
 
+		in = new_in - old_in;
+		out = new_out - old_out;
+
+
     	/* count aggregated traffic of all interfaces */
-    	net_all_in += new_in;
-    	net_all_out += new_out;
+    	all_in += in;
+    	all_out += out;
 
     	/* count aggregated traffic of external interfaces */
     	if (! (netload.if_flags	& (1 << GLIBTOP_IF_FLAGS_LOOPBACK)))
     	{
-    		net_ext_in += new_in;
-    		net_ext_out += new_out;
+    		ext_in += in;
+    		ext_out += out;
     	}
 
 		if (tracingData->oldValues.valid)
@@ -500,7 +506,7 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 
 			if (tracingData->sources.PTLSRC_NET_IN_X)
 			{
-				valuei64 = (gint64) (new_in - old_in);
+				valuei64 = (gint64) in;
 				WRITE_I64_VALUE(valuei64);
 				DEBUGMSG("NET_IN_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
@@ -508,7 +514,7 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 
 			if (tracingData->sources.PTLSRC_NET_OUT_X)
 			{
-				valuei64 = (gint64) (new_out - old_out);
+				valuei64 = (gint64) out;
 				WRITE_I64_VALUE(valuei64);
 				DEBUGMSG("NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
@@ -524,45 +530,33 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
     {
     	if (tracingData->sources.PTLSRC_NET_IN_EXT)
 		{
-			valuei64 = (gint64)	(net_ext_in
-					- tracingData->oldValues.net_ext_in);
+			valuei64 = (gint64)	ext_in;
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_IN_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.PTLSRC_NET_OUT_EXT)
 		{
-			valuei64 = (gint64)	(net_ext_out
-					- tracingData->oldValues.net_ext_out);
+			valuei64 = (gint64)	ext_out;
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_OUT_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.PTLSRC_NET_IN)
 		{
-			valuei64 = (gint64)	(net_all_in
-					- tracingData->oldValues.net_all_in);
+			valuei64 = (gint64)	all_in;
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_IN = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.PTLSRC_NET_OUT)
 		{
-			valuei64 = (gint64)	(net_all_out
-					- tracingData->oldValues.net_all_out);
+			valuei64 = (gint64)	all_out;
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_OUT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
     }
-
-	/* save current network statistics for next step */
-	tracingData->oldValues.net_ext_in = net_ext_in;
-	tracingData->oldValues.net_ext_out = net_ext_out;
-	tracingData->oldValues.net_all_in = net_all_in;
-	tracingData->oldValues.net_all_out = net_all_out;
-
 }
-
 
 
 /* *************************************************************************

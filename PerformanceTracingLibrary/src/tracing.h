@@ -36,11 +36,6 @@ typedef struct {
 	glibtop_mem mem;
 	glibtop_netload *netload;
 	glibtop_fsusage fs;
-
-	guint64 net_ext_in;
-	guint64 net_ext_out;
-	guint64 net_all_in;
-	guint64 net_all_out;
 } tracingValuesStruct;
 
 typedef struct {
