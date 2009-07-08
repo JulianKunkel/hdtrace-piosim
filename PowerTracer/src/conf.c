@@ -593,6 +593,10 @@ static int splitPort(ConfigStruct *config) {
 	*ptr = '\0';
 	config->host = config->port;
 	config->port = ptr + 1;
+
+	config->allocated.host = config->allocated.port;
+	config->allocated.port = 0;
+
 	return 0;
 }
 
@@ -1086,6 +1090,7 @@ void cleanupConfig(ConfigStruct *config) {
 	} while (0);
 
 	FREE_VAR(device);
+	FREE_VAR(host);
 	FREE_VAR(port);
 	FREE_VAR(project);
 	FREE_VAR(topo);

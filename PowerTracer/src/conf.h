@@ -48,6 +48,7 @@ typedef struct config_s {
 	/** allocated components */
 	struct {
 		int device : 1;
+		int host : 1;
 		int port : 1;
 		int project : 1;
 		int topo : 1;

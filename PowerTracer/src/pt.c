@@ -599,7 +599,7 @@ int pt_finalizeTrace(PowerTrace *trace) {
 	pthread_mutex_unlock(&(trace->control.mutex));
 
 	struct tracingThreadReturn_s *threadRet;
-	pthread_join(trace->thread, (void *) &threadRet);
+	pthread_join(trace->thread, (void **) &threadRet);
 
 	int retval = threadRet->ret;
 

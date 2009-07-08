@@ -94,8 +94,9 @@ int main(int argc, char **argv)
 
 	/*
 	 * Set verbosity as requested by environment
+	 * Set to -1 by default since we have direct output
 	 */
-	pt_verbosity = 1;
+	pt_verbosity = -1;
 	char *verbstr = getenv("PT_VERBOSITY");
 	if (verbstr != NULL)
 		sscanf(verbstr, "%d", &pt_verbosity);
