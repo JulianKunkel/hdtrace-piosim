@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <glib.h>
 #include <glibtop.h>
+#include <limits.h>
 #include <errno.h>
 #include <assert.h>
 
@@ -474,16 +475,11 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 		if (tracingData->oldValues.valid)
 		{
 			/* ATTENTION: Some assumptions take place here:
-			 * - OS counter for network traffic is either 32bit or 64bit
-			 *   unsigned integer.
-			 * - Only 32bit will overflow in the near future, since unsigned
-			 *   64bit won't until reaching 16 Exbibytes of network traffic.
-			 *
-			 * So (old < new) means, that an unsigned 32bit counter is used
-			 * and overflowed once since last cycle.
+			 * - OS counter for network traffic is unsigned long.
+			 * - (old < new) indicates a single overflow since last cycle.
 			 */
-			new_in += (new_in < old_in) ? G_GUINT64_CONSTANT(0xFFFFFFFF) : 0;
-			new_out += (new_out < old_out) ? G_GUINT64_CONSTANT(0xFFFFFFFF) : 0;
+			new_in += (new_in < old_in) ? (guint64) ULONG_MAX : 0;
+			new_out += (new_out < old_out) ? (guint64) ULONG_MAX : 0;
 		}
 
 		in = new_in - old_in;
