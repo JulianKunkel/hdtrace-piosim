@@ -10,7 +10,7 @@
 #include <sys/select.h>
 #include <assert.h>
 
-#include "ptError.h"
+#include "common.h"
 
 /**
  * Open serial port.
@@ -29,7 +29,7 @@ int serial_openPort(char *device)
     fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd < 0)
     {
-        ERROR_ERRNO("open()");
+        ERRNOMSG("open()");
         return(ERR_ERRNO);
     }
 
@@ -85,7 +85,7 @@ int serial_setupPort(int fd, int baudrate)
     ret = tcgetattr(fd, &options);
     if(ret != 0)
     {
-       ERROR_ERRNO("tcgetattr()");
+       ERRNOMSG("tcgetattr()");
        return(ERR_ERRNO);
     }
 
@@ -147,14 +147,14 @@ int serial_setupPort(int fd, int baudrate)
     ret = cfsetispeed(&options, speed);
     if(ret != 0)
     {
-        ERROR_ERRNO("cfsetispeed()");
+        ERRNOMSG("cfsetispeed()");
         return(ERR_ERRNO);
     }
 
     ret = cfsetospeed(&options, speed);
     if(ret != 0)
     {
-        ERROR_ERRNO("cfsetospeed()");
+        ERRNOMSG("cfsetospeed()");
         return(ERR_ERRNO);
     }
 
@@ -164,14 +164,14 @@ int serial_setupPort(int fd, int baudrate)
     ret = tcsetattr(fd, TCSANOW, &options);
     if(ret != 0)
     {
-        ERROR_ERRNO("tcsetattr()");
+        ERRNOMSG("tcsetattr()");
         return(ERR_ERRNO);
     }
 
     ret = tcflush(fd, TCIOFLUSH);
     if(ret != 0)
     {
-        ERROR_ERRNO("tcflush()");
+        ERRNOMSG("tcflush()");
         return(ERR_ERRNO);
     }
 
@@ -194,7 +194,7 @@ int serial_resetPort(int fd) {
 	ret = tcflush(fd, TCIOFLUSH);
 	if(ret != 0)
 	{
-		ERROR_ERRNO("tcflush()");
+		ERRNOMSG("tcflush()");
 		return(ERR_ERRNO);
 	}
 
@@ -222,24 +222,24 @@ int serial_sendMessage(int fd, const char *msg)
     n = write(fd, msg, strlen(msg));
     if (n < 0)
     {
-        ERROR_ERRNO("write()");
+        ERRNOMSG("write()");
         return(ERR_ERRNO);
     }
     else if (n < strlen(msg))
     {
-        ERROR("Couldn't write the whole message");
+        ERRORMSG("Couldn't write the whole message");
         return(ERR_WRITE);
     }
 
     n = write(fd, "\n", 1);
     if (n < 0)
     {
-        ERROR_ERRNO("write()");
+        ERRNOMSG("write()");
         return(ERR_ERRNO);
     }
     else if (n < 1)
     {
-       ERROR("Couldn't write line feed to terminate the message");
+       ERRORMSG("Couldn't write line feed to terminate the message");
        return(ERR_WRITE);
     }
 #ifdef DEBUG
@@ -265,7 +265,7 @@ int serial_sendBreak(int fd)
     ret = tcsendbreak(fd, 0);
     if (ret > 0)
     {
-        ERROR_ERRNO("tcsendbreak()");
+        ERRNOMSG("tcsendbreak()");
         return(ERR_ERRNO);
     }
 
@@ -322,7 +322,7 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize)
         /* See if there was an error */
         if (ret < 0)
         {
-            ERROR_ERRNO("select()");
+            ERRNOMSG("select()");
             return(ERR_ERRNO);
         }
         else if (ret == 0)
@@ -336,7 +336,7 @@ int serial_readBytes(int fd, long tv_sec, char *buffer, size_t bsize)
             /* read all data available but max until buffer filled */
             if((nbytes = read(fd, bufptr, buffer + bsize - bufptr)) < 0)
             {
-                ERROR_ERRNO("read()");
+                ERRNOMSG("read()");
                 return(ERR_ERRNO);
             }
 
@@ -370,7 +370,7 @@ int serial_closePort(int fd)
     ret = tcflush(fd, TCIOFLUSH);
     if(ret != 0)
     {
-        ERROR_ERRNO("tcflush()");
+        ERRNOMSG("tcflush()");
         return(ERR_ERRNO);
     }
 
@@ -380,7 +380,7 @@ int serial_closePort(int fd)
     ret = close(fd);
     if (ret < 0)
     {
-        ERROR_ERRNO("close()");
+        ERRNOMSG("close()");
         return(ERR_ERRNO);
     }
 

@@ -10,7 +10,7 @@
 
 #include "trace.h"
 
-#include "ptError.h"
+#include "common.h"
 
 /* ************************************************************************* *
  *                            Trace List Handling                            *

@@ -13,7 +13,7 @@
 
 #include "conf.h"
 #include "trace.h"
-#include "ptError.h"
+#include "common.h"
 #include "ptInternal.h"
 #include "LMG.h"
 #include "serial.h"
@@ -55,7 +55,7 @@ int traceIteration(int serial_fd, ConfigStruct *config)
     	LMG_READBINARYMESSAGE_ERROR_CHECK;
     if (ret != isize)
     {
-        ERROR("Unexpected response size.");
+        ERRORMSG("Unexpected response size.");
         return(ERR_MSGSIZE);
     }
 
@@ -300,7 +300,7 @@ int traceLoop(
         n = select(serial_fd+1, &input, NULL, NULL, &timeout);
         if (n < 0)
         {
-        	ERROR_ERRNO("select()");
+        	ERRNOMSG("select()");
         	retval = ERR_ERRNO;
         	terminate = 1;
         	continue;
@@ -308,7 +308,7 @@ int traceLoop(
         else if (n == 0)
         {
             /* timeout */
-        	ERROR("select() timeout");
+        	ERRORMSG("select() timeout");
         	retval = ERR_TIMEOUT;
         	terminate = 1;
         	continue;

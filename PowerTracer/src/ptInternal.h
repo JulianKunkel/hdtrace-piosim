@@ -1,9 +1,11 @@
 /**
  * @file ptInternal.h
  *
+ * This header is shared by pt.c and ptmain.c
+ *
  * @date 28.06.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #ifndef PTINTERNAL_H_
@@ -13,6 +15,7 @@
 
 #include "pt.h"
 #include "conf.h"
+#include "common.h"
 
 typedef struct {
 	int started : 1;
@@ -24,31 +27,16 @@ typedef struct {
 
 struct powertrace_s {
 	ConfigStruct *config;
-	int directOutput;
 	pthread_t thread;
 	threadControlStruct control;
 };
 
-/*
- * Define error states
- */
-#define EOK            0
-#define ESYNTAX       -1
-#define ECONFNOTFOUND -2
-#define ECONFINVALID  -3
-#define ENOTRACES     -4
-#define EMEMORY       -5
-#define EHDLIB        -6
-#define EDEVICE       -7
-#define ETHREAD       -8
-
-#define EOTHER      -100
+extern int pt_directOutput;
 
 #define ERROR_OUTPUT(msg, ...) \
-	if (directOutput) \
-		fprintf(stderr, "PowerTracer: " msg "\n", ## __VA_ARGS__)
+	if (pt_directOutput) \
+		ERRORMSG("PowerTracer: " msg "\n", ## __VA_ARGS__)
 
-int createTracingThread(ConfigStruct *config, int directOutput,
-		PowerTrace **trace);
+int createTracingThread(ConfigStruct *config, PowerTrace **trace);
 
 #endif /* PTINTERNAL_H_ */

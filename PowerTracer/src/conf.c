@@ -19,7 +19,7 @@
 #include "conf.h"
 
 #include "trace.h"
-#include "ptError.h"
+#include "common.h"
 #include "ptInternal.h"
 
 
@@ -244,7 +244,7 @@ int createTraces(ConfigStruct *config) {
 		if (!config->topology) {
 			switch (errno) {
 			case HD_ERR_MALLOC:
-				ERROR("Memory allocation failed during hdTopology creation");
+				ERRORMSG("Memory allocation failed during hdTopology creation");
 				FREE_LEVELS;
 				return ERR_MALLOC;
 			default:
@@ -293,7 +293,7 @@ int createTraces(ConfigStruct *config) {
 			if (trace->tnode == NULL) {
 				switch(errno) {
 				case HD_ERR_MALLOC:
-					ERROR("Memory allocation failed during hdTopoNode creation.");
+					ERRORMSG("Memory allocation failed during hdTopoNode creation.");
 					FREE_PATH;
 					return ERR_MALLOC;
 				default:
@@ -308,15 +308,15 @@ int createTraces(ConfigStruct *config) {
 			if (trace->group == NULL) {
 				switch(errno) {
 				case HD_ERR_MALLOC:
-					ERROR("Memory allocation failed during hdStatsGroup creation.");
+					ERRORMSG("Memory allocation failed during hdStatsGroup creation.");
 					FREE_PATH;
 					return ERR_MALLOC;
 				case HD_ERR_BUFFER_OVERFLOW:
-					ERROR("Buffer overflow during hdStatsGroup creation.");
+					ERRORMSG("Buffer overflow during hdStatsGroup creation.");
 					FREE_PATH;
 					return ERR_HDLIB;
 				case HD_ERR_CREATE_FILE:
-					ERROR("File creation failed during hdStatsGroup creation.");
+					ERRORMSG("File creation failed during hdStatsGroup creation.");
 					FREE_PATH;
 					return ERR_HDLIB;
 				default:
@@ -330,7 +330,7 @@ int createTraces(ConfigStruct *config) {
 		if (ret != 0) \
 			switch(errno) { \
 			case HD_ERR_BUFFER_OVERFLOW: \
-				ERROR("Buffer overflow during hdStatsGroup creation."); \
+				ERRORMSG("Buffer overflow during hdStatsGroup creation."); \
 				FREE_PATH; \
 				return ERR_HDLIB; \
 			default: \
@@ -614,7 +614,7 @@ static int checkDevice(ConfigStruct *config) {
 		return 0;
 	}
 	else {
-		ERROR("Device \"%s\" is unknown and not supported.", config->device);
+		ERRORMSG("Device \"%s\" is unknown and not supported.", config->device);
 		return -2;
 	}
 }
@@ -632,7 +632,7 @@ static int checkCycle(ConfigStruct *config) {
 		return 0;
 	}
 	else {
-		WARN("Invalid cycle time %d, has to be in [50,60000] for %s.",
+		WARNMSG("Invalid cycle time %d, has to be in [50,60000] for %s.",
 				config->cycle, config->device);
 		return 1;
 	}
@@ -653,7 +653,7 @@ static int checkChannel(TraceStruct *trace, ConfigStruct *config) {
 		return 0;
 	}
 	else {
-		WARN("Invalid channel %f, has to be in [1,4] for %s.",
+		WARNMSG("Invalid channel %f, has to be in [1,4] for %s.",
 						trace->channel, config->device);
 		return 1;
 	}
@@ -684,7 +684,7 @@ int checkConfig(ConfigStruct *config) {
 	}
 
 	if (result)
-		ERROR("Consistency check of configuration FAILED. Check warnings above.");
+		ERRORMSG("Consistency check of configuration FAILED. Check warnings above.");
 	else
 		puts("Consistency check of configuration PASSED.");
 
@@ -740,7 +740,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	cfile.file = fopen(filename, "r");
 	if (cfile.file == NULL) {
 		assert(errno != EINVAL);
-		ERROR_ERRNO("Open configuration file: ");
+		ERRNOMSG("Open configuration file: ");
 		switch (errno) {
 		case ENOMEM:
 			return ERR_MALLOC;
@@ -761,7 +761,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	if (ret = regcomp(&name, regex, REG_EXTENDED | REG_ICASE | REG_NOSUB)) { \
 		char errbuf[100]; \
 		regerror(ret,&re_section,errbuf,100); \
-		ERROR(errbuf); \
+		ERRORMSG("%s", errbuf); \
 		assert(!"Error during compilation of regular expression."); \
 	}
 
@@ -802,10 +802,10 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
 
 #define CFILE_ERROR(msg, ...) \
-	ERROR(msg " in %s:%d : \"%s\"", ## __VA_ARGS__, cfile.filename, cfile.linenr, line)
+	ERRORMSG(msg " in %s:%d : \"%s\"", ## __VA_ARGS__, cfile.filename, cfile.linenr, line)
 
 #define CFILE_WARN(msg, ...) \
-	WARN(msg " in %s:%d", ## __VA_ARGS__, cfile.filename, cfile.linenr)
+	WARNMSG(msg " in %s:%d", ## __VA_ARGS__, cfile.filename, cfile.linenr)
 
 #define RETURN_SYNTAX_ERROR \
 	do { \
@@ -940,7 +940,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		removeTrailingSpaces(&value); \
 		target = malloc((strlen(value) + 1) * sizeof(*(target))); \
 		if (target == NULL) { \
-			ERROR_ERRNO(#target); \
+			ERRNOMSG(#target); \
 			REGEX_CLEANUP; \
 			fclose(cfile.file); \
 			pt_free(line); \
@@ -1047,7 +1047,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 						set.values = 1;
 					}
 					else
-						WARN("Unknown value for trace ignored in %s:%d",
+						WARNMSG("Unknown value for trace ignored in %s:%d",
 								cfile.filename, cfile.linenr);
 				}
 			}

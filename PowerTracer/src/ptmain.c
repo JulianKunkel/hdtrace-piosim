@@ -4,13 +4,36 @@
 #include <string.h>
 #include <pthread.h>
 #include <assert.h>
+#include <signal.h>
 
 #include "pt.h"
-#include "ptError.h"
+#include "common.h"
 #include "ptInternal.h"
 #include "conf.h"
 #include "tracing.h"
 
+
+static struct {
+	PowerTrace *trace;
+} fstuff = { NULL };
+
+void sighandler(int sig) {
+
+	if (sig != SIGINT)
+		return;
+
+	/* signal is to early */
+	if (fstuff.trace == NULL)
+		return;
+
+	int ret;
+
+	pt_stopTracing(fstuff.trace);
+
+	ret = pt_finalizeTrace(fstuff.trace);
+
+	exit(ret);
+}
 
 
 static void printUsage() {
@@ -69,7 +92,30 @@ int main(int argc, char **argv)
 
 	int ret;
 
-	int directOutput = 1;
+	/*
+	 * Set verbosity as requested by environment
+	 */
+	pt_verbosity = 1;
+	char *verbstr = getenv("PT_VERBOSITY");
+	if (verbstr != NULL)
+		sscanf(verbstr, "%d", &pt_verbosity);
+
+	DEBUGMSG("Verbosity: %d", pt_verbosity);
+
+	/*
+	 * Define to print output directly
+	 */
+	pt_directOutput = 1;
+
+	/*
+	 * Set signal handler for Ctrl+C
+	 */
+	struct sigaction act;
+	act.sa_handler = sighandler;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	sigaction(SIGINT, &act, NULL);
+
 
 	/*
 	 * Initialize configuration
@@ -118,7 +164,7 @@ int main(int argc, char **argv)
 			break;
 		default:
 			printUsage();
-			return ESYNTAX;
+			return PT_ESYNTAX;
 		}
 	}
 
@@ -134,19 +180,19 @@ int main(int argc, char **argv)
 		case ERR_MALLOC:
 			ERROR_OUTPUT("Out of memory while reading configuration file.");
 			cleanupConfig(config);
-			return EMEMORY;
+			return PT_EMEMORY;
 		case ERR_FILE_NOT_FOUND:
 			ERROR_OUTPUT("Configuration file not found.");
 			cleanupConfig(config);
-			return ECONFNOTFOUND;
+			return PT_ECONFNOTFOUND;
 		case ERR_ERRNO:
 			ERROR_OUTPUT("Problem while processing configuration file: %s", strerror(errno));
 			cleanupConfig(config);
-			return ECONFINVALID;
+			return PT_ECONFINVALID;
 		case ERR_SYNTAX:
 			ERROR_OUTPUT("Configuration file invalid.");
 			cleanupConfig(config);
-			return ECONFINVALID;
+			return PT_ECONFINVALID;
 		default:
 			assert(!"Unknown return value from readConfigFromFile()");
 		}
@@ -179,11 +225,11 @@ int main(int argc, char **argv)
 	case ERR_SYNTAX:
 		printUsage();
 		cleanupConfig(config);
-		return ESYNTAX;
+		return PT_ESYNTAX;
 	case ERR_MALLOC:
 		ERROR_OUTPUT("Out of memory.");
 		cleanupConfig(config);
-		return EMEMORY;
+		return PT_EMEMORY;
 	default:
 		assert(!"Unknown return value from parseTraceStrings()");
 	}
@@ -220,53 +266,32 @@ int main(int argc, char **argv)
 	case ERR_NO_TRACES:
 		ERROR_OUTPUT("No traces configured.");
 		cleanupConfig(config);
-		return ENOTRACES;
+		return PT_ENOTRACES;
 	case ERR_MALLOC:
 		ERROR_OUTPUT("Out of memory while creating traces.");
 		cleanupConfig(config);
-		return EMEMORY;
+		return PT_EMEMORY;
 	case ERR_HDLIB:
 		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary while creating traces.");
 		cleanupConfig(config);
-		return EHDLIB;
+		return PT_EHDLIB;
 	default:
 		assert(!"Unknown return value from createTraces()");
 	}
 
 	PowerTrace *trace;
-	ret = createTracingThread(config, 1, &trace);
-	printf("createTracingThread() returned %d\n", ret);
+	ret = createTracingThread(config, &trace);
+	if (ret != PT_EOK)
+		exit(ret);
 
-	ret = pt_startTracing(trace);
-	printf("startTracing() returned %d\n", ret);
+	pt_startTracing(trace);
 
-	sleep(10);
+	fstuff.trace = trace;
 
-	ret = pt_stopTracing(trace);
-	printf("stopTracing() returned %d\n", ret);
-
-	ret = pt_finalizeTrace(trace);
-	printf("finalizeTrace() returned %d\n", ret);
+	/* wait for SIGINT to exit */
+	while (1)
+		sleep(60);
 
 }
-
-#if 0
-/* input from standard input ready */
-if (FD_ISSET(stdin_fd, &input))
-{
-    switch(getchar())
-    {
-        case 'q':
-        case 'Q':
-            /* end continous mode */
-            ret = serial_sendMessage(serial_fd, "CONT OFF");
-            SERIAL_SENDMESSAGE_RETURN_CHECK;
-            /* now the input buffer will run empty and select will
-             * run into its timeout and so end the loop */
-            break;
-    }
-}
-#endif
-
 
 /* vim: set sw=4 sts=4 et fdm=syntax: */

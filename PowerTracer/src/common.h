@@ -1,8 +1,50 @@
-#ifndef PTERROR_H
-#define PTERROR_H
+#ifndef COMMON_H
+#define COMMON_H
 
 #include <error.h>
 #include <errno.h>
+#include <string.h>
+
+/*
+ * Debugging output
+ */
+
+/** Verbosity */
+extern int pt_verbosity;
+
+#ifdef NDEBUG
+# define PTMSG(prefix, msg, ...) \
+	fflush(stdout); \
+	fprintf(stderr, prefix ": " msg "\n", ## __VA_ARGS__);
+#else
+# include <libgen.h>
+# define PTMSG(prefix, msg, ...) \
+	fflush(stdout); \
+	fprintf(stderr, prefix ": " msg " in %s() (%s:%d)\n", ## __VA_ARGS__, \
+		__FUNCTION__, basename(__FILE__), __LINE__);
+#endif
+
+#define DEBUGMSG(msg, ...) \
+	do { if (pt_verbosity >= 3) { PTMSG("PT (3)", msg, ## __VA_ARGS__) } } while (0)
+
+#define VERBMSG(msg, ...) \
+	do { if (pt_verbosity >= 2) { PTMSG("PT (2)", msg, ## __VA_ARGS__) } } while (0)
+
+#define WARNMSG(msg, ...) \
+	do { if (pt_verbosity >= 1) { PTMSG("PT Warning", msg, ## __VA_ARGS__) } } while (0)
+
+#define ERRORMSG(msg, ...) \
+	do { if (pt_verbosity >= 0) { PTMSG("PT Error", msg, ## __VA_ARGS__) } } while (0)
+
+#define ERRNOMSG(msg, ...) \
+	do { if (pt_verbosity >= 0) { \
+		PTMSG("PT Error", msg "(%s)", ## __VA_ARGS__, strerror(errno)) } } while (0)
+
+
+
+/*
+ * Error return values used inside the project
+ */
 
 /* Common return values */
 #define OK             0
@@ -31,25 +73,11 @@
 /* traceLoop() */
 #define ERR_TIMEOUT    -60
 
-/* Macro for debugging output */
-#ifdef DEBUG
-# define DEBUGMSG(msg, ...) printf(msg, ## __VA_ARGS__)
-#else
-# define DEBUGMSG(msg, ...) (void) 0
-#endif
 
-/* Macro for generate non fatal warnings */
-#define WARN(msg, ...) error(0,0, "WARNING: " msg, ## __VA_ARGS__)
 
-/* Macro for reporting custom errors (without errno set) */
-#define ERROR(msg, ...) error_at_line(0, 0, __FILE__, __LINE__, msg, ## __VA_ARGS__)
-
-/* Macro for reporting errors with errno set */
-#define ERROR_ERRNO(msg, ...) error_at_line(0, errno, __FILE__, __LINE__, msg, ## __VA_ARGS__)
-
-/* Macro for reporting unknown errors */
-#define ERROR_UNKNOWN error_at_line(0, 0, __FILE__, __LINE__, "Unknown Error")
-
+/*
+ * Wrapper for memory allocation and free
+ */
 
 /* Macro to do malloc with error handling */
 #define pt_malloc(var, count, failret) \
@@ -57,7 +85,7 @@
 		errno = 0; /* set errno to detect error when returning NULL */ \
 		var = malloc(count * sizeof(*(var))); \
 		if (var == NULL) { \
-			ERROR_ERRNO(#var); \
+			ERRNOMSG(#var); \
 			return failret; \
 		} \
 	} while (0)
@@ -68,7 +96,7 @@
 		errno = 0; /* set errno to detect error when returning NULL */ \
 		var = realloc(var, count * sizeof(*(var))); \
 		if (var == NULL) { \
-			ERROR_ERRNO(#var); \
+			ERRNOMSG(#var); \
 			free(var); /* still we return, free the memory */ \
 			return failret; \
 		} \
@@ -76,4 +104,4 @@
 
 #define pt_free(var) do { free(var); var = NULL; } while (0);
 
-#endif
+#endif /* COMMON_H */

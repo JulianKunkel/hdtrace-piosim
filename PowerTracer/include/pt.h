@@ -11,6 +11,20 @@
 
 typedef struct powertrace_s PowerTrace;
 
+/*
+ * Define error states
+ */
+#define PT_EOK            0
+#define PT_ESYNTAX       -1
+#define PT_ECONFNOTFOUND -2
+#define PT_ECONFINVALID  -3
+#define PT_ENOTRACES     -4
+#define PT_EMEMORY       -5
+#define PT_EHDLIB        -6
+#define PT_EDEVICE       -7
+#define PT_ETHREAD       -8
+
+
 /**
  * Create a power trace using the passed configuration file
  */
@@ -18,18 +32,19 @@ int pt_createTrace(const char* configfile, PowerTrace **trace);
 
 /**
  * Return the hostname with the measuring device connected
+ *  if specified in config file.
  */
 char * pt_getHostname(PowerTrace *trace);
 
 /**
  * Start the power tracing
  */
-int pt_startTracing(PowerTrace *trace);
+void pt_startTracing(PowerTrace *trace);
 
 /**
  * Stop the power tracing
  */
-int pt_stopTracing(PowerTrace *trace);
+void pt_stopTracing(PowerTrace *trace);
 
 /**
  * Finalize and free a power trace

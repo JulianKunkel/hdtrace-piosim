@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "ptError.h"
+#include "common.h"
 #include "ptInternal.h"
 #include "serial.h"
 
@@ -347,7 +347,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         ret = sscanf(locbuffer, "%d", &size_length);
         if (ret == EOF)
         {
-            ERROR_ERRNO("sscanf()");
+            ERRNOMSG("sscanf()");
             pt_free(tmpbuffer);
             return(ERR_MSG_FORMAT);
         }
@@ -368,7 +368,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         ret = sscanf(locbuffer, "%d", &block_size);
         if (ret == EOF)
         {
-            ERROR_ERRNO("sscanf()");
+            ERRNOMSG("sscanf()");
             pt_free(tmpbuffer);
             return(ERR_MSG_FORMAT);
         }

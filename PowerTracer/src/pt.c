@@ -3,10 +3,12 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <string.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <signal.h>
 #include <assert.h>
 
 #include "pt.h"
-#include "ptError.h"
+#include "common.h"
 #include "ptInternal.h"
 #include "conf.h"
 #include "tracing.h"
@@ -16,6 +18,12 @@
 #include "hdStats.h"
 #include "hdError.h"
 
+
+/** Verbosity */
+int pt_verbosity = 0;
+
+/** Direct Output */
+int pt_directOutput = 0;
 
 /**
  * Tests switching to binary mode, assumes to be in ASCII mode when called
@@ -87,16 +95,16 @@ int test_binmode(int serial_fd)
  * This function is the main function used by the commandline tool and the
  *  library API in common after creating the configuration differently.
  *
- * @param config         Configuration
- * @param directOutput   Direct output to the console
- *                       (true for commandline tool, false for library use
+ * @param trace  Power Trace
  *
  * @return Error state
+ *
+ * @retval PT_EDEVICE
+ * @retval PT_EMEMORY
  */
 static int doTracing(PowerTrace *trace) {
 
 	ConfigStruct *config = trace->config;
-	int directOutput = trace->directOutput;
 
 	int ret;
 
@@ -111,7 +119,7 @@ static int doTracing(PowerTrace *trace) {
     	switch (serial_fd) {
     	case ERR_ERRNO:
     		ERROR_OUTPUT("Problem while opening serial port: %s", strerror(errno));
-    		return EDEVICE;
+    		return PT_EDEVICE;
     	default:
     		assert(!"Unknown return value from serial_openPort().");
         }
@@ -134,7 +142,7 @@ static int doTracing(PowerTrace *trace) {
     	break;
     case ERR_ERRNO: /* tcgetattr(), cfsetispeed(), cfsetospeed(), tcsetattr(), tcflush() */
 		ERROR_OUTPUT("Problem while setting up serial port: %s", strerror(errno));
-		return EDEVICE;
+		return PT_EDEVICE;
     default:
     	assert(!"Unknown return state of serial_setupPort().");
     }
@@ -155,7 +163,7 @@ static int doTracing(PowerTrace *trace) {
 	    	assert(!"Unknown return state of LMG_setup().");
 	    }
     	serial_closePort(serial_fd);
-    	return EDEVICE;
+    	return PT_EDEVICE;
     }
 
     /*
@@ -180,7 +188,7 @@ static int doTracing(PowerTrace *trace) {
 			case ERR_MALLOC:
 				ERROR_OUTPUT("Out of memory while getting identity.");
 		    	serial_closePort(serial_fd);
-		    	return EMEMORY;
+		    	return PT_EMEMORY;
 			case ERR_BSIZE:
 				ERROR_OUTPUT("Buffer size to low while getting identity.");
 				break;
@@ -188,7 +196,7 @@ static int doTracing(PowerTrace *trace) {
 				assert(!"Unknown return state of LMG_getIdentity().");
 		}
     	serial_closePort(serial_fd);
-    	return EDEVICE;
+    	return PT_EDEVICE;
     }
 
     ret = puts(buffer);
@@ -215,7 +223,7 @@ static int doTracing(PowerTrace *trace) {
 			case ERR_MALLOC:
 				ERROR_OUTPUT("Out of memory while getting identity.");
 		    	serial_closePort(serial_fd);
-		    	return EMEMORY;
+		    	return PT_EMEMORY;
 	        case ERR_BSIZE:
 	        	ERROR_OUTPUT("Buffer size to low while testing binary mode.");
 	            break;
@@ -223,7 +231,7 @@ static int doTracing(PowerTrace *trace) {
 				assert(!"Unknown return state of test_binmode().");
 	    }
 	    serial_closePort(serial_fd);
-	    return EDEVICE;
+	    return PT_EDEVICE;
     }
 
 
@@ -247,7 +255,7 @@ static int doTracing(PowerTrace *trace) {
 		case ERR_MALLOC:
 			ERROR_OUTPUT("Out of memory while tracing data.");
 			serial_closePort(serial_fd);
-			return EMEMORY;
+			return PT_EMEMORY;
 		case ERR_BSIZE:
 			ERROR_OUTPUT("Buffer size to low while tracing data.");
 			break;
@@ -258,7 +266,7 @@ static int doTracing(PowerTrace *trace) {
 			assert(!"Unknown return value from trace_data().");
     	}
     	serial_closePort(serial_fd);
-    	return EDEVICE;
+    	return PT_EDEVICE;
     }
 
 
@@ -290,7 +298,7 @@ static int doTracing(PowerTrace *trace) {
 			case ERR_MALLOC:
 				ERROR_OUTPUT("Out of memory while getting all errors.");
 		    	serial_closePort(serial_fd);
-		    	return EMEMORY;
+		    	return PT_EMEMORY;
 	        case ERR_BSIZE:
 	            ERROR_OUTPUT("Buffer size to low while getting all errors.");
 	            break;
@@ -298,7 +306,7 @@ static int doTracing(PowerTrace *trace) {
 				assert(!"Unknown return state of LMG_getAllErrors().");
 	    }
 	    serial_closePort(serial_fd);
-	    return EDEVICE;
+	    return PT_EDEVICE;
     }
 
     ret = puts(buffer);
@@ -320,7 +328,7 @@ static int doTracing(PowerTrace *trace) {
 				assert(!"Unknown return state of LMG_getAllErrors().");
 	    }
 	    serial_closePort(serial_fd);
-	    return EDEVICE;
+	    return PT_EDEVICE;
     }
 
     /*
@@ -332,7 +340,7 @@ static int doTracing(PowerTrace *trace) {
 			break;
 		case ERR_ERRNO:
 			ERROR_OUTPUT("Problem while closing serial port: %s", strerror(errno));
-			return EDEVICE;
+			return PT_EDEVICE;
 	    default:
 	    	assert(!"Unknown return state of serial_closePort().");
 	    }
@@ -359,21 +367,38 @@ static void * doTracingThread(void *param);
  * @param trace      Location to store the PowerTrace pointer (OUTPUT)
  *
  * @return  Error state
+ *
+ * @retval PT_EOK            Success
+ * @retval PT_ECONFNOTFOUND  Could not find configuration file
+ * @retval PT_EMEMORY        Out of memory
+ * @retval PT_ECONFINVALID   Configuration read from file is invalid
+ * @retval PT_ENOTRACES      No traces found in configuration
+ * @retval PT_EHDLIB         Error in HDTrace library
+ * @retval PT_ETHREAD        Cannot create tracing thread
  */
 int pt_createTrace(const char* configfile, PowerTrace **trace) {
 
 	int ret;
 
-	if (configfile == NULL)
-		return ECONFNOTFOUND;
+	/*
+	 * Set verbosity as requested by environment
+	 */
+	pt_verbosity = 1;
+	char *verbstr = getenv("PT_VERBOSITY");
+	if (verbstr != NULL)
+		sscanf(verbstr, "%d", &pt_verbosity);
 
-	int directOutput = 0;
+	DEBUGMSG("Verbosity: %d", pt_verbosity);
+
+	if (configfile == NULL)
+		return PT_ECONFNOTFOUND;
+
 
 	/*
 	 * Initialize configuration
 	 */
 	ConfigStruct *config;
-	pt_malloc(config, 1, EMEMORY);
+	pt_malloc(config, 1, PT_EMEMORY);
 
 	config->topology = NULL;
 
@@ -399,19 +424,19 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
 	case ERR_MALLOC:
 		ERROR_OUTPUT("Out of memory while reading configuration file.");
 		cleanupConfig(config);
-		return EMEMORY;
+		return PT_EMEMORY;
 	case ERR_FILE_NOT_FOUND:
 		ERROR_OUTPUT("Configuration file not found.");
 		cleanupConfig(config);
-		return ECONFNOTFOUND;
+		return PT_ECONFNOTFOUND;
 	case ERR_ERRNO:
 		ERROR_OUTPUT("Problem while processing configuration file: %s", strerror(errno));
 		cleanupConfig(config);
-		return ECONFINVALID;
+		return PT_ECONFINVALID;
 	case ERR_SYNTAX:
 		ERROR_OUTPUT("Configuration file invalid.");
 		cleanupConfig(config);
-		return ECONFINVALID;
+		return PT_ECONFINVALID;
 	default:
 		assert(!"Unknown return value from readConfigFromFile()");
 	}
@@ -426,7 +451,7 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
 	default:
 		ERROR_OUTPUT("Configuration is not valid.");
 		cleanupConfig(config);
-		exit(-1);
+		return PT_ECONFINVALID;
 	}
 
 
@@ -449,34 +474,32 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
 	case ERR_NO_TRACES:
 		ERROR_OUTPUT("No traces configured.");
 		cleanupConfig(config);
-		return ENOTRACES;
+		return PT_ENOTRACES;
 	case ERR_MALLOC:
 		ERROR_OUTPUT("Out of memory while creating traces.");
 		cleanupConfig(config);
-		return EMEMORY;
+		return PT_EMEMORY;
 	case ERR_HDLIB:
 		ERROR_OUTPUT("Error occurred in hdTraceWritingLibrary while creating traces.");
 		cleanupConfig(config);
-		return EHDLIB;
+		return PT_EHDLIB;
 	default:
 		assert(!"Unknown return value from createTraces()");
 	}
 
-	return createTracingThread(config, 0, trace);
+	return createTracingThread(config, trace);
 
 }
 
-int createTracingThread(ConfigStruct *config, int directOutput,
-		PowerTrace **trace) {
+int createTracingThread(ConfigStruct *config, PowerTrace **trace) {
 
 	int ret;
 
 	/*
 	 * Create PowerTrace object
 	 */
-	pt_malloc(*trace, 1, EMEMORY);
+	pt_malloc(*trace, 1, PT_EMEMORY);
 	(*trace)->config = config;
-	(*trace)->directOutput = directOutput;
 
 	(*trace)->control.started = 0;
 	(*trace)->control.terminate = 0;
@@ -491,13 +514,13 @@ int createTracingThread(ConfigStruct *config, int directOutput,
 	if (ret != 0) {
 		switch (errno) {
 		case EAGAIN:
-			return ETHREAD;
+			return PT_ETHREAD;
 		default:
 			assert(!"Unknown return value from pthread_create().");
 		}
 	}
 
-	return OK;
+	return PT_EOK;
 }
 
 static void * doTracingThread(void *param) {
@@ -509,21 +532,37 @@ static void * doTracingThread(void *param) {
 
 	ret->ret = doTracing(trace);
 
+	/* if running stand alone, send a signal to ourself to terminate waiting
+	 *  loop if not already happened by a user sent SIGINT */
+	if (pt_directOutput)
+		kill(getpid(), SIGINT);
+
 	return (void *) ret;
 }
 
 
 /**
  * Return the hostname with the measuring device connected
+ *  if specified in config file.
+ *
+ * @param trace  Power trace object
+ *
+ * @return Hostname of NULL if none specified in config file
  */
 char *pt_getHostname(PowerTrace *trace) {
 	return trace->config->host;
 }
 
+
 /**
  * Start the power tracing
+ *
+ * @param trace  Power trace object
  */
-int pt_startTracing(PowerTrace *trace) {
+void pt_startTracing(PowerTrace *trace) {
+	if (trace == NULL)
+		return;
+
 	pthread_mutex_lock(&(trace->control.mutex));
 	trace->control.started = 1;
 	pthread_cond_signal(&(trace->control.cond));
@@ -532,8 +571,13 @@ int pt_startTracing(PowerTrace *trace) {
 
 /**
  * Stop the power tracing
+ *
+ * @param trace  Power trace object
  */
-int pt_stopTracing(PowerTrace *trace) {
+void pt_stopTracing(PowerTrace *trace) {
+	if (trace == NULL)
+		return;
+
 	pthread_mutex_lock(&(trace->control.mutex));
 	trace->control.started = 0;
 	pthread_mutex_unlock(&(trace->control.mutex));
@@ -541,6 +585,12 @@ int pt_stopTracing(PowerTrace *trace) {
 
 /**
  * Finalize and free a power trace
+ *
+ * @return  Error state
+ *
+ * @retval PT_EOK      Success
+ * @retval PT_EDEVICE  Problem during communication with measurement device
+ * @retval PT_EMEMORY  Out of memory
  */
 int pt_finalizeTrace(PowerTrace *trace) {
 
