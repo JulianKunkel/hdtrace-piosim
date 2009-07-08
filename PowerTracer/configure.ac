@@ -140,5 +140,6 @@ AC_CHECK_FUNCS([gettimeofday memset regcomp select strerror])
 
 AC_CONFIG_FILES([Makefile
                  lib/Makefile
-                 bin/Makefile])
+                 bin/Makefile
+                 examples/Makefile])
 AC_OUTPUT

@@ -1,6 +1,6 @@
 # $Id$
 
-SUBDIRS = lib bin .
+SUBDIRS = lib bin examples .
 
 include $(top_srcdir)/common.am
 

@@ -7,9 +7,9 @@
 #include <signal.h>
 #include <assert.h>
 
+#include "ptInternal.h"
 #include "pt.h"
 #include "common.h"
-#include "ptInternal.h"
 #include "conf.h"
 #include "tracing.h"
 #include "serial.h"
