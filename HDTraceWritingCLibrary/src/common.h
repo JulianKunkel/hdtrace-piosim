@@ -38,6 +38,11 @@
 #define HD_TMP_BUF_SIZE 1024 * 16
 
 /**
+ * External verbosity variable (defined in common.c)
+ */
+extern int hdt_verbosity;
+
+/**
  * Print X followed by the code position followed by formated message
  * Do not use directly, use hd_(info|debug|error)_msg instead.
  */
@@ -57,21 +62,21 @@
  * Print a formated error message prefixed by "HDS Error:" and code position
  */
 #define hd_error_msg(format, ...) \
-	if (verbosity >= V_ERROR) \
+	if (hdt_verbosity >= 0) \
 		hd_X_msg("HDT Error", format, __VA_ARGS__)
 
 /**
  * Print a formated info message prefixed by "HDS Info:" and the code position
  */
 #define hd_info_msg(format, ...) \
-	if (verbosity >= V_INFO) \
+	if (hdt_verbosity >= 2) \
 		hd_X_msg("HDT Info", format, __VA_ARGS__)
 
 /**
  * Print a formated debug message prefixed by "HDS Debug:" and the code position
  */
 #define hd_debug_msg(format, ...) \
-	if (verbosity >= V_DEBUG) \
+	if (hdt_verbosity >= 3) \
 		hd_X_msg("HDT Debug", format, __VA_ARGS__)
 
 /**
@@ -102,28 +107,13 @@
 		var = NULL; \
 	} while (0)
 
-/**
- * Verbosity levels of the libraries.
- */
-enum verbosity {
-	/**
-	 * Print only error messages. (default)
-	 */
-	V_ERROR,//!< V_ERROR
-	/**
-	 * Print additional info messages.
-	 */
-	V_INFO, //!< V_INFO
-	/**
-	 * Print detailed debugging messages.
-	 */
-	V_DEBUG //!< V_DEBUG
-};
 
 /**
- * Print message at given verbosity level
+ * Initializes global verbosity by reading environment variable
+ *  HDT_VERBOSITY.
  */
-void printMessage(enum verbosity vlvl, const char *format, ...);
+void initVerbosity();
+
 
 /**
  * Generate well formed filename.

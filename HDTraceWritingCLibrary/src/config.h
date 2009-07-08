@@ -19,11 +19,10 @@
  * ************************************************************************* */
 
 /**
- * Verbosity level
- * TODO: Make this controlled by environment
+ * Default verbosity level
+ *  (overridden by environment variable HDT_VERBOSITY)
  */
 #define VLEVEL 0
-int verbosity;
 
 /**
  * Maximal length of trace file names.

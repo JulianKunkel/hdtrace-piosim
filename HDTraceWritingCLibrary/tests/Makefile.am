@@ -2,7 +2,7 @@ include $(top_srcdir)/config/common.am
 
 check_PROGRAMS = hdTopoTest hdStatsTest hdRelationTest hdTraceTest
 
-hdTopoTest_SOURCES = hdTopoTest.c $(SRC_DIR)/hdTopo.c
+hdTopoTest_SOURCES = hdTopoTest.c $(SRC_DIR)/hdTopo.c $(SRC_DIR)/common.c $(SRC_DIR)/util.c 
 hdTopoTest_CFLAGS = -I$(INC_DIR)
 
 hdStatsTest_SOURCES = hdStatsTest.c

@@ -84,6 +84,9 @@ hdTopology hdT_createTopology(
 		int nlevels
         )
 {
+	/* get verbosity */
+	initVerbosity();
+
 	/* check input */
 	if (project == NULL || nlevels <= 0)
 	{
@@ -253,6 +256,9 @@ hdTopoNode hdT_createTopoNode(
 		int length
 		)
 {
+	/* get verbosity */
+	initVerbosity();
+
 	/* check input */
 	if (path == NULL || length <= 0 || topology == NULL)
 	{

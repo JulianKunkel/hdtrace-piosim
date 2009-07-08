@@ -26,6 +26,28 @@
 #include "config.h"
 
 
+int hdt_verbosity = VLEVEL;
+
+/**
+ * Initializes global verbosity by reading environment variable
+ *  HDT_VERBOSITY.
+ *
+ * Should be called by each module as very first action.
+ * Can be called more than once without doing anything after the first time.
+ */
+void initVerbosity() {
+	static block = 0;
+	if (block)
+		return;
+	block = 1;
+
+	/* get debug level */
+	char *vlvl = getenv("HDT_VERBOSITY");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", &hdt_verbosity);
+}
+
+
 /**
  * Generate well formed filename.
  *

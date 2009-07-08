@@ -201,11 +201,8 @@ hdStatsGroup hdS_createGroup (
         int topoLevel          /* Topology level the group shell belong to */
         )
 {
-	/* get debug level */
-	verbosity = VLEVEL;
-	char *vlvl = getenv("HDS_VERBOSITY");
-	if (isValidString(vlvl))
-		sscanf(vlvl, "%d", &verbosity);
+	/* get verbosity */
+	initVerbosity();
 
 	/* check input */
 	char groupNameString[HDS_MAX_GROUP_NAME_LENGTH];

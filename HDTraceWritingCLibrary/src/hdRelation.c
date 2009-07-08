@@ -186,6 +186,10 @@ static gboolean structRelationEqual(gconstpointer a, gconstpointer b){
 #define HOST_NAME_MAX 255
 
 static int hdR_init(void){
+
+	/* get verbosity */
+	initVerbosity();
+
 	char hostname[HOST_NAME_MAX];
 	char pidstr[10];
 	int ret;
