@@ -36,7 +36,7 @@ int hdt_verbosity = VLEVEL;
  * Can be called more than once without doing anything after the first time.
  */
 void initVerbosity() {
-	static block = 0;
+	static int block = 0;
 	if (block)
 		return;
 	block = 1;
