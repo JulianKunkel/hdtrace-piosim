@@ -48,14 +48,18 @@ extern int hdt_verbosity;
  */
 #ifdef NDEBUG
 # define hd_X_msg(prefix, msg, ...) \
-	fflush(stdout); \
-	fprintf(stderr, prefix ": " msg "\n", ## __VA_ARGS__);
+	do { \
+		fflush(stdout); \
+		fprintf(stderr, prefix ": " msg "\n", ## __VA_ARGS__); \
+	} while (0)
 #else
 # include <libgen.h>
 # define hd_X_msg(prefix, msg, ...) \
-	fflush(stdout); \
-	fprintf(stderr, prefix ": " msg " in %s() (%s:%d)\n", ## __VA_ARGS__, \
-		__FUNCTION__, basename(__FILE__), __LINE__);
+	do { \
+		fflush(stdout); \
+		fprintf(stderr, prefix ": " msg " in %s() (%s:%d)\n", ## __VA_ARGS__, \
+		__FUNCTION__, basename(__FILE__), __LINE__); \
+	} while (0)
 #endif /* NDEBUG */
 
 /**
