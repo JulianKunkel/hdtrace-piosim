@@ -1,0 +1,12 @@
+00387
+<Statistics>
+<TopologyNode>
+  <Label value="host0" />
+</TopologyNode>
+<Group name="Performance" timestampDatatype="EPOCH" timeAdjustment="-0000000000.000000000">
+  <Value name="CPU_TOTAL" type="FLOAT" unit="%" grouping="CPU" />
+  <Value name="CPU_TOTAL_0" type="FLOAT" unit="%" grouping="CPU" />
+  <Value name="CPU_TOTAL_1" type="FLOAT" unit="%" grouping="CPU" />
+</Group>
+</Statistics>
+JR˜~4Ùh

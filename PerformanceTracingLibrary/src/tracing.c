@@ -353,6 +353,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 #define CPUDIFF(val) \
 	((gdouble) (cpu.val - tracingData->oldValues.cpu.val))
+	// TODO evaluate if overflows are possible and likely here
 
 	gfloat valuef;
 	glibtop_cpu cpu;

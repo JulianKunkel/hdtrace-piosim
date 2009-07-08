@@ -2,15 +2,22 @@
 
 include $(top_srcdir)/common.am
 
-noinst_PROGRAMS = ptLoop
+noinst_PROGRAMS = traceAll traceLoop
 
-ptLoop_CFLAGS = -I$(INC_DIR) $(HDTWLIB_CFLAGS)
-ptLoop_LDADD = -lpt $(HDTWLIB_LDADD)
-ptLoop_LDFLAGS = $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS) -L$(LIB_DIR)/.libs -static
+traceAll_CFLAGS = -I$(INC_DIR) $(GLIB_CFLAGS) $(GLIBTOP_CFLAGS) $(HDTWLIB_CFLAGS)
+traceAll_LDADD = -lPTL $(HDTWLIB_LDADD) $(GLIB_LDADD) $(GLIBTOP_LDADD)
+traceAll_LDFLAGS = $(GLIB_LIBS) $(GLIBTOP_LIBS) $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS) -L$(LIB_DIR)/.libs -static
+
+traceLoop_CFLAGS = -I$(INC_DIR) $(GLIB_CFLAGS) $(GLIBTOP_CFLAGS) $(HDTWLIB_CFLAGS)
+traceLoop_LDADD = -lPTL $(HDTWLIB_LDADD) $(GLIB_LDADD) $(GLIBTOP_LDADD)
+traceLoop_LDFLAGS = $(GLIB_LIBS) $(GLIBTOP_LIBS) $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS) -L$(LIB_DIR)/.libs -static
 
 ######################
 # Run configurations #
 ######################
 
-run_ptLoop: ptLoop
-	./ptLoop ../pt.cfg
+run_traceAll: traceAll
+	./traceAll
+
+run_traceLoop: traceLoop
+	./traceLoop ALL
