@@ -285,9 +285,9 @@ int main(int argc, char **argv)
 	if (ret != PT_EOK)
 		exit(ret);
 
-	pt_startTracing(trace);
-
 	fstuff.trace = trace;
+
+	pt_startTracing(trace);
 
 	/* wait for SIGINT to exit */
 	while (1)

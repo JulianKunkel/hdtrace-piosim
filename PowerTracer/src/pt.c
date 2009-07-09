@@ -527,9 +527,16 @@ static void * doTracingThread(void *param) {
 
 	PowerTrace *trace = (PowerTrace *) param;
 
+        /* block all signals, this thread should never handle them */
+	sigset_t mask;
+	sigfillset(&mask);
+        pthread_sigmask(SIG_BLOCK, &mask, NULL);
+
+        /* get memory for returning thread status */
 	struct tracingThreadReturn_s *ret;
 	pt_malloc(ret, 1, NULL);
 
+        /* do actual tracing */
 	ret->ret = doTracing(trace);
 
 	/* if running stand alone, send a signal to ourself to terminate waiting
