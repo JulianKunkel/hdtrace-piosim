@@ -14,15 +14,16 @@ typedef struct powertrace_s PowerTrace;
 /*
  * Define error states
  */
-#define PT_EOK            0
+#define PT_SUCCESS        0
 #define PT_ESYNTAX       -1
 #define PT_ECONFNOTFOUND -2
 #define PT_ECONFINVALID  -3
-#define PT_ENOTRACES     -4
-#define PT_EMEMORY       -5
-#define PT_EHDLIB        -6
-#define PT_EDEVICE       -7
-#define PT_ETHREAD       -8
+#define PT_EWRONGHOST    -4
+#define PT_ENOTRACES     -5
+#define PT_EMEMORY       -6
+#define PT_EHDLIB        -7
+#define PT_EDEVICE       -8
+#define PT_ETHREAD       -9
 
 
 /**

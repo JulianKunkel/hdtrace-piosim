@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "ptInternal.h"
@@ -368,7 +369,7 @@ static void * doTracingThread(void *param);
  *
  * @return  Error state
  *
- * @retval PT_EOK            Success
+ * @retval PT_SUCCESS            Success
  * @retval PT_ECONFNOTFOUND  Could not find configuration file
  * @retval PT_EMEMORY        Out of memory
  * @retval PT_ECONFINVALID   Configuration read from file is invalid
@@ -447,22 +448,38 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
 	ret = checkConfig(config);
 	switch (ret) {
 	case OK:
+		INFO_OUTPUT("Consistency check of configuration PASSED.");
 		break;
 	default:
-		ERROR_OUTPUT("Configuration is not valid.");
+		ERROR_OUTPUT("Consistency check of configuration FAILED. Check warnings.");
 		cleanupConfig(config);
 		return PT_ECONFINVALID;
 	}
 
 
+
 	/*
 	 * Print configuration
 	 */
-	printf("Device: %s\n", config->device);
-	printf("Host: %s\n", config->host == NULL ? "NULL" : config->host);
-	printf("Port: %s\n", config->port);
-	printf("Project: %s\n", config->project);
+	INFO_OUTPUT("Device: %s", config->device);
+	INFO_OUTPUT("Host: %s", config->host == NULL ? "NULL" : config->host);
+	INFO_OUTPUT("Port: %s", config->port);
+	INFO_OUTPUT("Project: %s", config->project);
 
+
+	/*
+	 * Check if we are on the configured host if any
+	 */
+	if (config->host != NULL) {
+		char hostname[HOST_NAME_MAX];
+		gethostname(hostname, HOST_NAME_MAX);
+
+		if (strcmp(hostname, config->host) != 0) {
+			ERROR_OUTPUT("Hostname found in configuration (%s) does not match"
+					" this machine (%s)", config->host, hostname);
+			return PT_EWRONGHOST;
+		}
+	}
 
 	/*
 	 * Create the traces found in configuration
@@ -520,7 +537,7 @@ int createTracingThread(ConfigStruct *config, PowerTrace **trace) {
 		}
 	}
 
-	return PT_EOK;
+	return PT_SUCCESS;
 }
 
 static void * doTracingThread(void *param) {
@@ -595,7 +612,7 @@ void pt_stopTracing(PowerTrace *trace) {
  *
  * @return  Error state
  *
- * @retval PT_EOK      Success
+ * @retval PT_SUCCESS      Success
  * @retval PT_EDEVICE  Problem during communication with measurement device
  * @retval PT_EMEMORY  Out of memory
  */

@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	PowerTrace *trace;
 
 	int ret = pt_createTrace(argv[1], &trace);
-	if (ret != PT_EOK)
+	if (ret != PT_SUCCESS)
 		exit(ret);
 
 	fstuff.trace = trace;

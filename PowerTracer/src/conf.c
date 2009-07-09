@@ -687,11 +687,6 @@ int checkConfig(ConfigStruct *config) {
 		result &= checkChannel(trace, config);
 	}
 
-	if (result)
-		ERRORMSG("Consistency check of configuration FAILED. Check warnings above.");
-	else
-		puts("Consistency check of configuration PASSED.");
-
 	return result;
 }
 

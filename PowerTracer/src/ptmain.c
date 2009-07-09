@@ -282,7 +282,7 @@ int main(int argc, char **argv)
 
 	PowerTrace *trace;
 	ret = createTracingThread(config, &trace);
-	if (ret != PT_EOK)
+	if (ret != PT_SUCCESS)
 		exit(ret);
 
 	fstuff.trace = trace;

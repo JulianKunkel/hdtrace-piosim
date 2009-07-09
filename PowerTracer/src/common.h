@@ -27,7 +27,7 @@ extern int pt_verbosity;
 #define DEBUGMSG(msg, ...) \
 	do { if (pt_verbosity >= 3) { PTMSG("PT (3)", msg, ## __VA_ARGS__) } } while (0)
 
-#define VERBMSG(msg, ...) \
+#define INFOMSG(msg, ...) \
 	do { if (pt_verbosity >= 2) { PTMSG("PT (2)", msg, ## __VA_ARGS__) } } while (0)
 
 #define WARNMSG(msg, ...) \

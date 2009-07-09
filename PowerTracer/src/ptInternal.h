@@ -39,6 +39,12 @@ extern int pt_directOutput;
 	else \
 		ERRORMSG(msg, ## __VA_ARGS__)
 
+#define INFO_OUTPUT(msg, ...) \
+	if (pt_directOutput) \
+		fprintf(stdout, "PowerTracer: " msg "\n", ## __VA_ARGS__); \
+	else \
+		INFOMSG(msg, ## __VA_ARGS__)
+
 int createTracingThread(ConfigStruct *config, PowerTrace **trace);
 
 #endif /* PTINTERNAL_H_ */
