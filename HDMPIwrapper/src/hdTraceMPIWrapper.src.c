@@ -66,6 +66,12 @@
 static PerfTrace pStatistics = NULL;
 #endif
 
+#ifdef USE_POWER_TRACE
+#include "pt.h"
+
+static PowerTrace ptStatistics = NULL;
+#endif
+
 #ifdef ENABLE_PVFS2_INTERNAL_TRACING
 #include "pint-event-hd-client.h"
 #endif
@@ -322,7 +328,7 @@ static void after_Init(int *argc, char ***argv)
 	/* initalize MPI main thread */
 	hdMPI_threadInitTracing();
 
-#ifdef USE_PERFORMANCE_TRACE
+#ifdef USE_PERFORMANCE_TRACE || USE_POWER_TRACE
 	{
 	/* JK: use the powertracer, the powertracer must be started only once per node */
 	/* therefore determine full qualified hostname and send it to all other ranks */
@@ -335,26 +341,27 @@ static void after_Init(int *argc, char ***argv)
         MPI_Comm_size(MPI_COMM_WORLD, &size);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-        char hostname[255];
-        ret = gethostname(hostname, 255);
+        char hostname[HOST_NAME_MAX+1];
+        ret = gethostname(hostname, HOST_NAME_MAX+1);
         if( ret != 0){
                 printf("Error while determine hostname in rank: %d\n", rank);
                 PMPI_Abort(MPI_COMM_WORLD, 2);
         }
 
         /* send hostname to each process */
-        char * recvBuff = malloc(size * 255);
+        char * recvBuff = malloc(size * (HOST_NAME_MAX+1));
         if (recvBuff == 0){
                 printf("Error while reserving memory for recv buffer: %d\n", rank);
                 PMPI_Abort(MPI_COMM_WORLD, 2);
         }
 
-        MPI_Allgather(hostname, 255, MPI_CHAR, recvBuff, 255, MPI_CHAR, MPI_COMM_WORLD);
+        MPI_Allgather(hostname, (HOST_NAME_MAX+1), MPI_CHAR, recvBuff,
+        		(HOST_NAME_MAX+1), MPI_CHAR, MPI_COMM_WORLD);
 
         /* Scan results to lookup first occurence of hostname */
         int i;
         for (i=0; i < size; i++){
-            char * cur =  & recvBuff[255*i];
+            char * cur =  & recvBuff[(HOST_NAME_MAX+1)*i];
             /* printf("got %s \n", cur); */
             if (strcmp(cur, hostname) == 0){
                 rankForThisHost = i;
@@ -362,19 +369,17 @@ static void after_Init(int *argc, char ***argv)
             }
         }
 
-
-        free(recvBuff);
+       free(recvBuff);
 
         if(rankForThisHost == rank){
 
-            printf("Start powertop on host %s by rank: %d\n", hostname, rank);
+# ifdef USE_PERFORMANCE_TRACE
+
+            printf("Start performance tracer on host %s by rank: %d\n", hostname, rank);
 
         	ptlSources statistics;
-            char hostname[HOST_NAME_MAX];
 
             // create labels and values for the project topology
-            gethostname(hostname, HOST_NAME_MAX);
-
             const char *levels[1] = {hostname};
             hdTopoNode topoNode = hdT_createTopoNode(topology, levels, 1);
 
@@ -382,10 +387,52 @@ static void after_Init(int *argc, char ***argv)
 
             // set the global variable
     		pStatistics = ptl_createTrace(topoNode, 1, statistics, 1000);
+    		if (pStatistics == NULL){
+    			printf("Error while starting performance tracing: %d\n", rank);
+    			PMPI_Abort(MPI_COMM_WORLD, 2);
+    		}
 
     		ptl_startTrace(pStatistics);
-        }else{
-        	pStatistics = NULL;
+
+# endif /* USE_PERFORMANCE_TRACE */
+
+# ifdef USE_POWER_TRACE
+
+    		/* Read config files for power tracer from environment */
+    		char *tmp = getenv("HDTRACE_PT_CFG_FILES");
+    		if (tmp == NULL || *tmp = '\0') {
+    			printf("Power tracing activated but HDTRACE_PT_CFG_FILES not set: %d\n", rank);
+    			PMPI_Abort(MPI_COMM_WORLD, 2);
+    		}
+
+    		/* Copy string since strtok will change it */
+            char configfiles[strlen(tmp)];
+            strcpy(configfiles, tmp);
+
+            /* Try all configuration files (separated by ':') */
+            char *saveptr;
+            for( char *ptConfigfile = strtok_r(configfiles, ":", &saveptr);
+					ptConfigfile != NULL;
+					ptConfigfile = strtok_r(NULL, ":", &saveptr)) {
+
+            	/* create power trace and read in configuration file */
+            	ret = pt_createTrace(ptConfigfile, &ptStatistics);
+            	if (ret == PT_SUCCESS) {
+            		printf("Start power tracer on host %s by rank: %d\n", hostname, rank);
+            		pt_startTracing(ptStatistics);
+            	}
+            	else if (ret == PT_EWRONGHOST) {
+            		/* this host is not connected to the measuring device */
+            		pt_finalizeTrace(&ptStatistics);
+            		ptStatistics = NULL;
+            	}
+            	else {
+            		printf("Error while starting power tracing: %d\n", rank);
+            		PMPI_Abort(MPI_COMM_WORLD, 2);
+            	}
+            }
+
+# endif /* USE_POWER_TRACE */
         }
 	}
 #endif
@@ -423,6 +470,12 @@ static void after_Finalize(void)
 	if(pStatistics != NULL){
 		ptl_stopTrace(pStatistics);
 		ptl_destroyTrace(pStatistics);
+	}
+#endif
+#ifdef USE_POWER_TRACE
+	if(ptStatistics != NULL){
+		pt_stopTracing(ptStatistics);
+		pt_finalizeTrace(ptStatistics);
 	}
 #endif
 }

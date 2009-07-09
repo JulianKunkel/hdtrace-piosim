@@ -158,6 +158,25 @@ AC_ARG_WITH(hdperftrace,
     fi
 )
 
+dnl set the power trace library path
+AC_ARG_WITH(hdpowertrace,
+[  --with-hdpowertrace=path         Use HDPowerTrace library installed in "path"],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-hdpowertrace must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       CPPFLAGS="$CPPFLAGS -I$withval/include"
+
+       AC_DEFINE(USE_POWER_TRACE, 1, [Define if power trace shall be enabled])
+
+       LDFLAGS="-L$withval/lib $LDFLAGS"
+       AC_TRY_LINK([
+		#include <pt.h>
+		],
+		[return (0);], , [AC_MSG_ERROR("Cannot link with power trace library")])   
+    fi
+)
+
 dnl ----------------------------------------------------------------------
 dnl Check for a suitable glib
 dnl ----------------------------------------------------------------------
