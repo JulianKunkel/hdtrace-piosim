@@ -69,7 +69,7 @@ static PerfTrace pStatistics = NULL;
 #ifdef USE_POWER_TRACE
 #include "pt.h"
 
-static PowerTrace ptStatistics = NULL;
+static PowerTrace *ptStatistics = NULL;
 #endif
 
 #ifdef ENABLE_PVFS2_INTERNAL_TRACING
@@ -328,7 +328,15 @@ static void after_Init(int *argc, char ***argv)
 	/* initalize MPI main thread */
 	hdMPI_threadInitTracing();
 
-#ifdef USE_PERFORMANCE_TRACE || USE_POWER_TRACE
+#ifdef USE_PERFORMANCE_TRACE
+# define USE_PERFORMANCE_OR_POWER_TRACE
+#else
+# ifdef USE_POWER_TRACE
+#  define USE_PERFORMANCE_OR_POWER_TRACE
+# endif
+#endif
+
+#ifdef USE_PERFORMANCE_OR_POWER_TRACE
 	{
 	/* JK: use the powertracer, the powertracer must be started only once per node */
 	/* therefore determine full qualified hostname and send it to all other ranks */
@@ -400,7 +408,7 @@ static void after_Init(int *argc, char ***argv)
 
     		/* Read config files for power tracer from environment */
     		char *tmp = getenv("HDTRACE_PT_CFG_FILES");
-    		if (tmp == NULL || *tmp = '\0') {
+    		if (tmp == NULL || *tmp == '\0') {
     			printf("Power tracing activated but HDTRACE_PT_CFG_FILES not set: %d\n", rank);
     			PMPI_Abort(MPI_COMM_WORLD, 2);
     		}
@@ -423,7 +431,7 @@ static void after_Init(int *argc, char ***argv)
             	}
             	else if (ret == PT_EWRONGHOST) {
             		/* this host is not connected to the measuring device */
-            		pt_finalizeTrace(&ptStatistics);
+            		pt_finalizeTrace(ptStatistics);
             		ptStatistics = NULL;
             	}
             	else {
