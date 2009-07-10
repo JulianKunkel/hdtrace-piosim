@@ -23,6 +23,8 @@
 package de.hd.pvs.piosim.simulator.program.Filereadall;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -102,10 +104,26 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 		public CommandProcessing getCommandProcessing() {
 			return commandProcessing;
 		}
+
+		public int getRank() {
+			return clientProcess.getModelComponent().getRank();
+		}
+	}
+
+	final class FilereadallContainerComparator implements Comparator<FilereadallContainer> {
+		public int compare(FilereadallContainer a, FilereadallContainer b) {
+			if (a.getRank() < b.getRank()) {
+				return -1;
+			} else if (a.getRank() > b.getRank()) {
+				return 1;
+			}
+
+			return 0;
+		}
 	}
 
 	private static HashMap<FilereadallWrapper, List<FilereadallContainer>> sync_blocked_clients = new HashMap<FilereadallWrapper, List<FilereadallContainer>>();
-	private static HashMap<Filereadall, List<Filereadall>> xxx = new HashMap<Filereadall, List<Filereadall>>();
+	private static HashMap<Filereadall, List<FilereadallContainer>> xxx = new HashMap<Filereadall, List<FilereadallContainer>>();
 
 	@Override
 	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
@@ -133,11 +151,13 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 				client.debug("Block for " + cmd + " by " + client.getIdentifier());
 				OUTresults.setBlocking();
 			} else {
-				List<Filereadall> cmds = new ArrayList<Filereadall>();
+				List<FilereadallContainer> cmds = new ArrayList<FilereadallContainer>();
 
 				for (FilereadallContainer c : waitingClients) {
-					cmds.add(c.getCommand());
+					cmds.add(c);
 				}
+
+				Collections.sort(cmds, new FilereadallContainerComparator());
 
 				for (FilereadallContainer c : waitingClients) {
 					xxx.put(c.getCommand(), cmds);
@@ -162,7 +182,6 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 		}
 		case (CHECK_TWO_PHASE): {
 			Model m = client.getSimulator().getModel();
-			int myIndex = -1;
 			boolean twoPhase = false;
 
 			Allgather gather = new Allgather();
@@ -173,16 +192,10 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			OUTresults.invokeChildOperation(gather, CommandProcessing.STEP_START, null);
 
 			for (int i = 1; i < xxx.get(cmd).size(); i++) {
-				if (xxx.get(cmd).get(i).getStartOffset() <= xxx.get(cmd).get(i - 1).getEndOffset()) {
+				if (xxx.get(cmd).get(i).getCommand().getStartOffset() <= xxx.get(cmd).get(i - 1).getCommand().getEndOffset()) {
 					twoPhase = true;
 				}
-
-				if (xxx.get(cmd).get(i) == cmd) {
-					myIndex = i;
-				}
 			}
-
-			assert(myIndex >= 0);
 
 			if (twoPhase) {
 			} else {
