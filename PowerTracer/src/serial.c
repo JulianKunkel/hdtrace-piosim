@@ -250,9 +250,7 @@ int serial_sendMessage(int fd, const char *msg)
        ERRORMSG("Couldn't write line feed to terminate the message");
        return(ERR_WRITE);
     }
-#ifdef DEBUG
-    printf("Sended Msg: %s\n", msg);
-#endif
+    DEBUGMSG("Sended Msg: %s", msg);
 
     return(0);
 }

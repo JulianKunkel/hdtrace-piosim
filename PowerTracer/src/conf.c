@@ -465,7 +465,7 @@ int createTraces(ConfigStruct *config) {
 			}
 	#endif
 
-			INFO_OUTPUT("Trace %d: %s", trace->num);
+			INFO_OUTPUT("Trace %d: %s", trace->num, tracestr);
 		}
 	}
 
@@ -961,6 +961,9 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 				section = TRACE;
 				ntraces++;
 				trace = malloc(sizeof(*trace));
+				trace->actn = NULL;
+				trace->group = NULL;
+				trace->tnode = NULL;
 				CLEAN_SET;
 			}
 

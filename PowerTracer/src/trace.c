@@ -42,8 +42,7 @@ void freeAllTraces(TraceListStruct *list) {
 			hdS_finalize(trace->group);
 			hdT_destroyTopoNode(trace->tnode);
 		}
-		if (trace->actn)
-			pt_free(trace->actn); // allocated in createTraces()
+		pt_free(trace->actn); // allocated in createTraces()
 	}
 
 	/*

@@ -66,7 +66,7 @@ int test_binmode(int serial_fd)
         LMG_READTEXTMESSAGE_ERROR_CHECK;
 
     /* print message */
-    puts(buffer);
+    INFOMSG("%s", buffer);
 
     /*
      * Set output format to binary mode
@@ -93,7 +93,7 @@ int test_binmode(int serial_fd)
         LMG_READBINARYMESSAGE_ERROR_CHECK;
     }
 
-    printf("%.4E;%.4E;%.4E\n", op.utrms, op.itrms, op.p );
+    INFOMSG("%.4E;%.4E;%.4E\n", op.utrms, op.itrms, op.p );
 
     return OK;
 }
@@ -208,8 +208,7 @@ static int doTracing(PowerTrace *trace) {
     	return PT_EDEVICE;
     }
 
-    ret = puts(buffer);
-    assert(ret != EOF);
+    INFOMSG("%s", buffer);
 
     memset(buffer, '\0', 255);
 
@@ -244,7 +243,7 @@ static int doTracing(PowerTrace *trace) {
     }
 
 
-    puts("Start tracing!");
+    INFO_OUTPUT("Start tracing!");
 
     ret = traceLoop(serial_fd, trace);
     if (ret != OK) {
@@ -279,7 +278,7 @@ static int doTracing(PowerTrace *trace) {
     }
 
 
-    puts("End tracing!");
+    INFO_OUTPUT("End tracing!");
 
 
 
@@ -318,7 +317,7 @@ static int doTracing(PowerTrace *trace) {
 	    return PT_EDEVICE;
     }
 
-    ret = puts(buffer);
+    INFOMSG("%s", buffer);
     assert(ret != EOF);
 
     /*
