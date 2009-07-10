@@ -422,6 +422,8 @@ static void after_Init(int *argc, char ***argv)
             for( char *ptConfigfile = strtok_r(configfiles, ":", &saveptr);
 					ptConfigfile != NULL;
 					ptConfigfile = strtok_r(NULL, ":", &saveptr)) {
+            	printf("Testing power tracer configuration file %s on host %s"
+            			" by rank: %d\n", ptConfigfile, hostname, rank);
 
             	/* create power trace and read in configuration file */
             	ret = pt_createTrace(ptConfigfile, &ptStatistics);
