@@ -144,13 +144,18 @@ static void Test_remoteRelationHandling(void)
 	const char *path3[] = {"host1","process0"};
 	hdTopoNode myTopoNode3 = hdT_createTopoNode(topology, path3, 2);
 
+	const char *path4[] = {"host2","process0"};
+	hdTopoNode myTopoNode4 = hdT_createTopoNode(topology, path4, 2);
+
 	hdR_topoToken topoToken1;
 	hdR_topoToken topoToken2;
 	hdR_topoToken topoToken3;
+	hdR_topoToken topoToken4;
 
 	assert( hdR_initTopology(myTopoNode1, & topoToken1) == 0);
 	assert( hdR_initTopology(myTopoNode2, & topoToken2) == 0);
 	assert( hdR_initTopology(myTopoNode3, & topoToken3) == 0);
+	assert( hdR_initTopology(myTopoNode4, & topoToken4) == 0);
 
 
 	hdR_token token1 = hdR_createTopLevelRelation(topoToken1);
@@ -197,6 +202,8 @@ static void Test_remoteRelationHandling(void)
 	assert( hdR_finalize(& topoToken1) == 0);
 	assert( hdR_finalize(& topoToken2) == 0);
 	assert( hdR_finalize(& topoToken3) == 0);
+	/* this file shall be empty and shall be deleted */
+	assert( hdR_finalize(& topoToken4) == 0);
 
 	TEST_PASSED;
 

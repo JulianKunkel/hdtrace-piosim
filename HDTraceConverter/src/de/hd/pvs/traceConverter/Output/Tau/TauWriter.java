@@ -88,11 +88,11 @@ public class TauWriter extends TraceOutputWriter {
 	}
 
 	private int getThread(TopologyNode topology){
-		return Integer.parseInt(topology.getNodeWithTopologyTypeRecursivly("thread").getName());
+		return Integer.parseInt(topology.getParentNodeWithTopologyType("thread").getName());
 	}
 	
 	private int getRank(TopologyNode topology){
-		return Integer.parseInt(topology.getNodeWithTopologyTypeRecursivly("rank").getName());
+		return Integer.parseInt(topology.getParentNodeWithTopologyType("rank").getName());
 	}
 	
 	@Override

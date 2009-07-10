@@ -126,11 +126,10 @@ public class ApplicationBuilder {
 	public MPIFile createFile(String name, long initialSize, Distribution distribution){
 		final MPIFile file = new MPIFile();
 		file.setSize(initialSize);
-		file.setID(++lastUsedFileID);
 		file.setName(name);
 		file.setDistribution(distribution);
 
-		app.getFiles().put(file.getId(), file);
+		app.addFile(file);
 
 		return file;
 	}
@@ -156,7 +155,7 @@ public class ApplicationBuilder {
 	}
 
 	public void addCommand(int rank, FileCommand cmd, MPIFile file){
-		if (! app.getFiles().values().contains(file)){
+		if (! app.getFiles().contains(file)){
 			throw new IllegalArgumentException("File " + file + " not contained in application");
 		}
 

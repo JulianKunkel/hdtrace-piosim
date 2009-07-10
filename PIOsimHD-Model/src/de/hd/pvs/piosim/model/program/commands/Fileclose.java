@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: Fileopen.java 149 2009-03-27 13:55:56Z kunkel $
+  * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27 Mrz 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 149 $
   */
 
 
@@ -23,34 +23,18 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- *
- */
-package de.hd.pvs.piosim.model.program.commands.superclasses;
+package de.hd.pvs.piosim.model.program.commands;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
 
 /**
- * Superclass for all I/O related operations.
+ * Simulates a file open (i.e. might truncate the file).
  *
  * @author Julian M. Kunkel
+ *
  */
-abstract public class FileCommand extends Command{
+public class Fileclose
+extends FileCommand
+{
 
-	@NotNull
-	@Attribute(xmlName="fid")
-	protected MPIFile file;
-
-	/**
-	 * @return the file the command should operate on.
-	 */
-	public MPIFile getFile() {
-		return file;
-	}
-
-	public void setFile(MPIFile file) {
-		this.file = file;
-	}
 }

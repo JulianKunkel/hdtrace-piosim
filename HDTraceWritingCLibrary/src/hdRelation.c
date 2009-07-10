@@ -114,11 +114,6 @@ struct _hdRelationTopo {
 	size_t buffer_pos;
 
 	/**
-	 * Size of the XML header, used to test emptiness
-	 */
-	off_t headerLength;
-
-	/**
 	 * Topology leaf this trace belongs to.
 	 */
 	hdTopoNode topoNode;
@@ -341,7 +336,6 @@ int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
 	writeToBuffer(topoToken, "<relation version=\"1\" hostID=\"%s\" localToken=\"%s\" topologyNumber=\"%d\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
 			uniqueHostID, localTokenPrefix, topoToken->topologyNumber, llu(topoToken->timeAdjustment.tv_sec));
 
-	topoToken->headerLength = lseek(topoToken->log_fd, 0, SEEK_CUR);
 	/*
 	 * Alternative way to write local part.
 	 * int i;

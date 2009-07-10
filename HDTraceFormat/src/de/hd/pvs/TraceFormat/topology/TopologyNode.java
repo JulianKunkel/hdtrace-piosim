@@ -45,11 +45,11 @@ public class TopologyNode {
 	private final HashMap<String, StatisticsSource> statisticsSources = new HashMap<String, StatisticsSource>();
 
 	private final HashMap<String, TopologyNode>    childElements = new HashMap<String, TopologyNode>();
-	
+
 	private final TopologyNode parent;
 
 	private TraceSource traceSource = null;
-	
+
 	private RelationSource relationSource = null; 
 
 	/**
@@ -61,10 +61,10 @@ public class TopologyNode {
 		this.name = text;
 		this.parent = parent;
 		this.type = type;
-		
+
 		assert(type != null);
 		assert(name != null);
-		
+
 		if(parent != null){
 			parent.setChild(text, this);
 		}
@@ -145,7 +145,7 @@ public class TopologyNode {
 		return getFilePrefix() + ".rel";
 	}
 
-	
+
 	/**
 	 * Construct the static group file name of a particular group 
 	 * located under this topology entry.
@@ -222,11 +222,11 @@ public class TopologyNode {
 	public void setRelationSource(RelationSource relationSource) {
 		this.relationSource = relationSource;
 	}
-	
+
 	public RelationSource getRelationSource() {
 		return relationSource;
 	}
-	
+
 	/**
 	 * Check if this topology entry has a parent entry. 
 	 * @return true if yes.
@@ -248,41 +248,59 @@ public class TopologyNode {
 			}
 			bfsTopos = tmp;
 		}
-		
+
 		return bfsTopos;
 	}
-	
-	 /* Search node and parent nodes recursively to find the topology node which is labeled with
+
+
+	public LinkedList<TopologyNode> getChildrenRecursivly(){
+		// drill down to the rank topology level with a BFS
+		LinkedList<TopologyNode> checkTopos = new LinkedList<TopologyNode>();
+		LinkedList<TopologyNode> allTopos = new LinkedList<TopologyNode>();
+		checkTopos.add(this);
+
+		while(checkTopos.size() > 0){
+			TopologyNode curNode = checkTopos.poll();
+
+			checkTopos.addAll(curNode.childElements.values());
+			
+			allTopos.add(curNode);
+		}
+
+		return allTopos;
+	}
+
+	/* Search node and parent nodes recursively to find the topology node which is labeled with
 	 * the given text.
 	 * @param text
 	 * @return
 	 */
-	public TopologyNode getNodeWithTopologyTypeRecursivly(String searchType){		
+	public TopologyNode getParentNodeWithTopologyType(String searchType){		
 		TopologyNode cur = this;
-		
+
 		// lookup parents until label is found		
 		while(cur != null){
-			if(type.equalsIgnoreCase(searchType)){
+			if(cur.type.equalsIgnoreCase(searchType)){
 				// found correct node:
 				return cur;
 			}
-			
+
 			cur = cur.getParent();
 		}
-		
+
 		return null;
 	}
 
 	public String getType() {
 		return type;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		TopologyNode topNode = (TopologyNode) obj; 
 		return this.name.equals(topNode.name) && topNode.parent.equals(this.parent) ;
 	}
-	
+
 	@Override
 	public int hashCode() {	
 		return this.name.hashCode();

@@ -25,15 +25,28 @@
 
 package de.hd.pvs.piosim.model.program;
 
+import java.util.HashMap;
+
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.program.commands.Fileclose;
+import de.hd.pvs.piosim.model.program.commands.Fileopen;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 
 public class CommandXMLReader {
 	final private Program program;
+
+	/**
+	 * Maps the file id to the correct file.
+	 * It gets populated by File_open and removed by File_close
+	 */
+	final private HashMap<Integer, MPIFile> fidToFileMap = new HashMap<Integer, MPIFile>();
+
 	final private AttributeAnnotationHandler myCommonAttributeHandler;
 
 	final static CommandFactory factory = new CommandFactory();
@@ -47,7 +60,7 @@ public class CommandXMLReader {
 		// extend reader.
 		public Object parseXMLString(java.lang.Class<?> type, String what) throws IllegalArgumentException {
 			if (type == MPIFile.class) {
-				return getFile(what);
+				return fidToFileMap.get(Integer.parseInt(what));
 			}else if (type == Communicator.class) {
 				return getCommunicator(what);
 			}
@@ -69,8 +82,18 @@ public class CommandXMLReader {
 	 * @param app
 	 * @throws Exception
 	 */
-	public Command parseCommandXML(XMLTag commandXMLElement, Program program) throws Exception {
-		Command cmd = factory.createCommand(commandXMLElement.getName());
+	public Command parseCommandXML(XMLTag commandXMLElement) throws Exception {
+		final Command cmd = factory.createCommand(commandXMLElement.getName());
+
+		// special care for file open / close to update fids
+		if(cmd.getClass() == Fileopen.class){
+			final String name = commandXMLElement.getAttribute("name");
+			final MPIFile file = program.getApplication().getFile(name);
+
+			fidToFileMap.put(Integer.parseInt(commandXMLElement.getAttribute("fid")), file);
+		}
+
+		// TODO: handle file set view (!)
 
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
@@ -84,11 +107,30 @@ public class CommandXMLReader {
 			cmd.setAsynchronousID( Integer.parseInt( aid ) );
 		}
 		cmd.setProgram(program);
+
+		// special care for file open / close to update fids
+		if(cmd.getClass() == Fileclose.class){
+			fidToFileMap.remove(Integer.parseInt(commandXMLElement.getAttribute("fid")));
+		}
+
+		// parse File I/O command type id:
+		if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
+			final FileIOCommand fcmd = (FileIOCommand) cmd;
+
+			final long typeID = Long.parseLong(commandXMLElement.getAttribute("tid"));
+			final long offset = Long.parseLong(commandXMLElement.getAttribute("offset"));
+			final long size = Long.parseLong(commandXMLElement.getAttribute("size"));
+
+			ListIO list = new ListIO();
+			list.addIOOperation(offset, size);
+			fcmd.setListIO(list);
+		}
+
 		return cmd;
 	}
 
-	public Command parseCommandXML(ITraceEntry command, Program program) throws Exception {
-		return parseCommandXML((XMLTag) command, program);
+	public Command parseCommandXML(ITraceEntry command) throws Exception {
+		return parseCommandXML((XMLTag) command);
 	}
 
 
@@ -99,28 +141,14 @@ public class CommandXMLReader {
 	 * @return
 	 */
 	private Communicator getCommunicator(String which){
-		Integer number = Integer.parseInt(which);
+		final Integer number = Integer.parseInt(which);
 
-		Communicator communicator;
-		communicator = program.getCommunicator(number);
+		final Communicator communicator = program.getCommunicator(number);
 		if (communicator == null){
 			throw new IllegalArgumentException("Invalid Communicator with cid: " + which);
 		}
 
 		return communicator;
-	}
-
-	/**
-	 * Helper function, returns the MPI_File as specified in the string.
-	 *
-	 * @param which
-	 * @return
-	 */
-	private MPIFile getFile(String which){
-		if (which == null){
-			throw new IllegalArgumentException("No file given for command! But a file parameter is necessary!");
-		}
-		return program.getApplication().getFile(Integer.parseInt(which));
 	}
 
 }

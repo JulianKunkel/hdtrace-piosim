@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -28,6 +28,7 @@ package de.hd.pvs.piosim.model.program;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,18 +74,20 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		if (elements.size() != 1) {
 			throw new InvalidParameterException("Invalid XML, wrong FileList tags found!");
 		}
+
+		// parse files
 		elements = elements.get(0).getNestedXMLTagsWithName("File");
 		for (int i = 0; i < elements.size(); i++) {
-			MPIFile f = new MPIFile();
+			final MPIFile f = new MPIFile();
 
 			commonHandler.readSimpleAttributes(elements.get(i), f);
 			f.setDistribution(Distribution.readDistributionFromXML(
 					elements.get(i).getFirstNestedXMLTagWithName("Distribution")));
-
-			app.getFiles().put(f.getId(), f);
+			app.addFile(f);
 		}
 
 		MPICommunicator commWorld = null;
+
 		// search for world communicator:
 		for(MPICommunicator comm: app.getCommunicators()){
 			if(comm.getName().equals("WORLD")){
@@ -93,43 +96,61 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 			}
 		}
 
-		// now read Programs:
-		Program [][] programs = new Program[commWorld.getSize()] [];
+		// now read Programs (TODO it could use the TraceFormat reader)
+		final ArrayList<TopologyNode> [] threadNodesPerRank = new ArrayList[commWorld.getSize()];
 
 		final XMLReaderToRAM reader = new XMLReaderToRAM();
 
-		int rank = -1;
-		for (TopologyNode host: app.getTopologyRoot().getChildElements().values()) {
-			for (TopologyNode topoRanks: host.getChildElements().values()) {
+		for(int rank=0; rank < commWorld.getSize(); rank++){
+			threadNodesPerRank[rank] = new ArrayList<TopologyNode>();
+		}
 
-				rank++;
+		for (TopologyNode node: app.getTopologyRoot().getChildrenRecursivly()) {
+			final boolean isThread = node.getType().equalsIgnoreCase("thread");
+			final TopologyNode parentRank = node.getParentNodeWithTopologyType("rank");
 
-				final int threadCnt =  topoRanks.getChildElements().size();
+			if(parentRank == null || ! isThread){
+				continue;
+			}
 
-				programs[rank] = new Program[threadCnt];
-				int thread = -1;
-				for(TopologyNode topoThread : topoRanks.getChildElements().values() ){
-					thread++;
+			final int rank = Integer.parseInt(parentRank.getName());
+			threadNodesPerRank[rank].add(node);
+		}
 
-					// for each program open the corresponding file
-					final String file = app.getParentDir() + "/" + topoThread.getTraceFileName();
 
-					if(!  (new File(file)).canRead() ){
-						throw new IOException("File " + file + " is not readable!");
-					}
+		// for each anotherStringrank open the corresponding file if available!
 
-					if(readCompleteProgram){
-						// use DOM reader
-						final XMLTag tag = reader.readXML(file);
-						programs[rank][thread] = readProgramXMLDOM(rank, thread, tag, app);
-					}else{ // use SAX Reader to read the file
-						programs[rank][thread] = new ProgramReadXMLOnDemand();
-					}
+		final Program [][] programs = new Program[commWorld.getSize()][];
+		for(int rank=0; rank < commWorld.getSize(); rank++){
+			final ArrayList<TopologyNode> threadNodes = threadNodesPerRank[rank];
 
-					programs[rank][thread].setApplication(app, rank, thread);
-					programs[rank][thread].setFilename(file);
-					programs[rank][thread].restartWithFirstCommand();
+			programs[rank] = new Program[threadNodes.size()];
+
+			if(threadNodes.size() == 0){ // some programs are missing
+				System.err.println("No program(s) found for rank: " + rank);
+				continue;
+			}
+
+			for(int thread = 0 ; thread < threadNodes.size(); thread++){
+				final TopologyNode threadNode = threadNodes.get(thread);
+
+				final String file = app.getParentDir() + "/" + threadNode.getTraceFileName();
+
+				if(!  (new File(file)).canRead() ){
+					throw new IOException("File " + file + " is not readable!");
 				}
+
+				if(readCompleteProgram){
+					// use DOM reader
+					final XMLTag tag = reader.readXML(file);
+					programs[rank][thread] = readProgramXMLDOM(rank, thread, tag, app);
+				}else{ // use SAX Reader to read the file
+					programs[rank][thread] = new ProgramReadXMLOnDemand();
+				}
+
+				programs[rank][thread].setApplication(app, rank, thread);
+				programs[rank][thread].setFilename(file);
+				programs[rank][thread].restartWithFirstCommand();
 			}
 		}
 
@@ -157,11 +178,11 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		final List<XMLTag> elements = processXML.getNestedXMLTags();
 
-		CommandXMLReader cmdReader = new CommandXMLReader(program);
+		final CommandXMLReader cmdReader = new CommandXMLReader(program);
 
 		for (XMLTag xmlcmd: elements) {
 			// now read the particular command from the XML:
-			Command cmd = cmdReader.parseCommandXML(xmlcmd, program);
+			Command cmd = cmdReader.parseCommandXML(xmlcmd);
 			program.getCommands().add(cmd);
 		}
 

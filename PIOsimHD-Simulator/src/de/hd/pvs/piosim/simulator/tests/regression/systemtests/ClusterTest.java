@@ -1,23 +1,23 @@
 /** Version Control Information $Id$
  * @lastmodified    $Date$
  * @modifiedby      $LastChangedBy$
- * @version         $Revision$ 
+ * @version         $Revision$
  */
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
@@ -33,6 +33,7 @@ import de.hd.pvs.piosim.model.GlobalSettings;
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelSortIDbySubcomponents;
+import de.hd.pvs.piosim.model.ModelXMLWriter;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Connection.Connection;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
@@ -90,6 +91,10 @@ public class ClusterTest {
 		assert (world != null);
 
 		model = mb.getModel();
+
+		// write out model to /tmp
+		final ModelXMLWriter writer = new ModelXMLWriter();
+		writer.writeXMLFromModel(model, "/tmp/model.xml");
 	}
 
 	protected ModelBuilder createDisjointClusterModel(int clients, int servers)
@@ -260,8 +265,8 @@ public class ClusterTest {
 		 * events/sec: 274.9797
 		 * virtual time: 2.457622613s
 		 * virtualTime/realTime: 0.0031395882815843427
-		 * 
-		 * 
+		 *
+		 *
 		 * Transfer granularity 1 KByte:
 		 * simulation finished: 2150631 events
 		 * realtime: 75.397s
@@ -279,7 +284,7 @@ public class ClusterTest {
 
 	/**
 	 * One might change the method to invoke...
-	 * 
+	 *
 	 * @return
 	 */
 	public GlobalSettings getGlobalSettings() {

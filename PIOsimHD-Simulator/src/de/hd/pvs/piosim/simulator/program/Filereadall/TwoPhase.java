@@ -43,6 +43,8 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class TwoPhase extends CommandImplementation<Filereadall> {
+	Communicator myComm = new Communicator("TWO-Phase");
+
 	final class FilereadallWrapper {
 		private Filereadall command;
 

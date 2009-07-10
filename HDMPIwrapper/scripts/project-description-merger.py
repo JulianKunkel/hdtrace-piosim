@@ -175,8 +175,9 @@ class File:
    def xmlString(self):
       return ((' <File name="%s">\n' % self.name)  + 
               ('  <InitialSize>%s</InitialSize>\n' % self.size) +
-              ('  <Distribution class="%s" />\n' % self.distribution_class) +
+              ('  <Distribution class="%s">\n' % self.distribution_class) +
               ('  <ChunkSize>%s</ChunkSize>\n' % self.chunk_size) +
+	       '  </Distribution\n' +
               (' </File>\n' )) 
 
 

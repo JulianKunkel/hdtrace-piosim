@@ -1,25 +1,25 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -65,8 +65,8 @@ import de.hd.pvs.piosim.simulator.output.STraceWriter;
 
 /**
  * The class <code>Simulator</code> manages the simulation.
- * All objects required for the simulation are aggregated and referenced by a Simulator. 
- * 
+ * All objects required for the simulation are aggregated and referenced by a Simulator.
+ *
  * @author Julian M. Kunkel
  */
 public final class Simulator{
@@ -78,10 +78,10 @@ public final class Simulator{
 
 	// the model behind the simulation
 	private Model model;
-	
+
 	// output trace file
 	private STraceWriter traceWriter = null;
-	
+
 	// mapping from application aliases to applications and GClients.
 	private ApplicationMap applicationMap = new ApplicationMap();
 
@@ -89,7 +89,7 @@ public final class Simulator{
 	public STraceWriter getTraceWriter() {
 		return traceWriter;
 	}
-	
+
 	/**
 	 * @return the runParameters
 	 */
@@ -101,14 +101,14 @@ public final class Simulator{
 	 * Contains all events which will arrive in the future.
 	 */
 	private PriorityQueue<InternalEvent> futureEvents = new PriorityQueue<InternalEvent>();
-	
+
 	/**
-	 * We have to find the SimulationComponent belonging to a model component. 
+	 * We have to find the SimulationComponent belonging to a model component.
 	 */
-	private HashMap<ComponentIdentifier, SPassiveComponent> existingSimulationObjects = 
+	private HashMap<ComponentIdentifier, SPassiveComponent> existingSimulationObjects =
 		new HashMap<ComponentIdentifier, SPassiveComponent>();
-	
-	
+
+
 	public HashMap<ComponentIdentifier, SPassiveComponent> getExistingSimulationObjects() {
 		return existingSimulationObjects;
 	}
@@ -130,10 +130,10 @@ public final class Simulator{
 		ConsoleLogger.init(parameters.getLoggerDefinitionFile(), parameters.isDebugEverything());
 
 		ConsoleLogger.getInstance().info("Version:" + version);
-		
+
 		// check the consistency of the model to detect errors in advance.
-		checkModelConsistency(model);		
-		
+		checkModelConsistency(model);
+
 		// load trace writer
 		traceWriter = new SHDTraceWriter(runParameters.traceFile, this);
 
@@ -141,30 +141,30 @@ public final class Simulator{
 		ArrayList<GNode> nodes = new ArrayList<GNode>();
 		for(Node com: model.getNodes()){
 			GNode m = (GNode) instantiateSimObjectForModelObj(com);
-			
-			
-			addSimulatedComponent(m);	
-			
+
+
+			addSimulatedComponent(m);
+
 			nodes.add(m);
-			
+
 			/* put clients into the application map */
 			for(GClientProcess gc: m.getClients()){
 				ClientProcess c = gc.getModelComponent();
 				assert(c != null);
 				applicationMap.put(c.getApplication(), c.getRank(), gc);
 			}
-			
+
 		}
-		
+
 		/* create switches */
-		ArrayList<GSwitch>  switches  = new ArrayList<GSwitch>(); 
+		ArrayList<GSwitch>  switches  = new ArrayList<GSwitch>();
 		for(Switch com: model.getSwitches()){
 			GSwitch sw = (GSwitch) instantiateSimObjectForModelObj(com);
 			addSimulatedComponent(sw);
-			
+
 			switches.add(sw);
 		}
-		
+
 		/* populate routing tables, iterate until the topology is stable which requires
 		 * diameter(Cluster) iterations. */
 		boolean topologyChanged = true;
@@ -179,19 +179,19 @@ public final class Simulator{
 			}
 		}
 		System.out.println("Topology depth (diameter of the model): " + topDepth);
-		
+
 		if(parameters.isDebugEverything()){
 			for(Switch com: model.getSwitches()){
 				System.out.println("Routing table for " + com.getIdentifier());
 				((GSwitch) getSimulatedComponent(com)).printRoutingTable();
 			}
 		}
-		
+
 		/* register all components for the STraceWriter */
 		for(SPassiveComponent bc: existingSimulationObjects.values()){
 			getTraceWriter().preregister(bc);
 		}
-		
+
 		/* start client processing */
 		for(GNode bc: nodes){
 			for(GClientProcess bcomp: ((GNode) bc).getClients()){
@@ -199,36 +199,36 @@ public final class Simulator{
 			}
 		}
 	}
-	
+
 	/**
 	 * Instantiate a Simulation Object based on the Model object's class.
-	 * 
+	 *
 	 * @return
 	 */
 	public SPassiveComponent instantiateSimObjectForModelObj(BasicComponent modelObject) throws Exception{
 		ModelObjectMap mop = DynamicModelClassMapper.getComponentImplementation(modelObject);
-		
+
 		Constructor<SPassiveComponent> ct = ((Class<SPassiveComponent>) Class.forName(mop.getSimulationClass())).getConstructor();
-		
+
 		SPassiveComponent component = ct.newInstance();
-		
-		component.setSimulatedModelComponent(modelObject, this);				
+
+		component.setSimulatedModelComponent(modelObject, this);
 		// add the Component to the Simulator to allow lookup later.
 		//this.addSimulatedComponent(component);
-		
+
 		return component;
 	}
-	
+
 	/**
-	 * Get the SimulationComponent for a particular ID. 
+	 * Get the SimulationComponent for a particular ID.
 	 * @param cid
 	 * @return
 	 */
 	public SPassiveComponent getSimulatedComponent(ComponentIdentifier cid){
 		SPassiveComponent comp = existingSimulationObjects.get(cid);
-		
+
 		assert(comp != null);
-		
+
 		return comp;
 	}
 
@@ -240,18 +240,18 @@ public final class Simulator{
 	public SPassiveComponent getSimulatedComponent(BasicComponent mComponent){
 		return existingSimulationObjects.get(mComponent.getIdentifier());
 	}
-		
+
 	/**
 	 * Add/Register a Simulation Component to the Simulator.
 	 * This is required for lookup of this component.
-	 * 
+	 *
 	 * @param com
 	 */
 	public void addSimulatedComponent(SPassiveComponent com){
 		if(com.getIdentifier().getID() == null){
 			throw new IllegalArgumentException("Identifier is null!");
 		}
-		
+
 		if(existingSimulationObjects.get(com) != null){
 			throw new IllegalArgumentException("Component " + com.getIdentifier() + " already in Simulator");
 		}
@@ -261,28 +261,28 @@ public final class Simulator{
 	/**
 	 * Submit a new event to the central queue, the event will be started in the future when it
 	 * is needed.
-	 * 
+	 *
 	 * @param event
 	 */
-	public void submitNewEvent(InternalEvent event){		
+	public void submitNewEvent(InternalEvent event){
 		assert(event.getEarliestStartTime().compareTo(currentEpoch) >= 0);
-		
+
 		futureEvents.add(event);
 	}
-	
-	
+
+
 	/**
-	 * Try to delete a future event from the job queue 
-	 * 
+	 * Try to delete a future event from the job queue
+	 *
 	 * @param event
 	 * @return true if it got removed.
 	 */
 	public boolean deleteFutureEvent(InternalEvent event){
 		return futureEvents.remove(event);
 	}
-	
+
 	/**
-	 * Print the pending queue of components 
+	 * Print the pending queue of components
 	 */
 	private void printQueue(){
 		if (ConsoleLogger.getInstance().isDebuggable(this)){
@@ -292,7 +292,7 @@ public final class Simulator{
 			}
 		}
 	}
-	
+
 	/**
 	 * If the number of events shall be counted, this is a final value to allow optimizations.
 	 */
@@ -305,7 +305,7 @@ public final class Simulator{
 	public void simulate(Model model) throws Exception{
 		simulate(model, new RunParameters());
 	}
-	
+
 	/**
 	 * Start the simulation of the model and print some statistics.
 	 */
@@ -313,42 +313,42 @@ public final class Simulator{
 		if(existingSimulationObjects.size() > 0){
 			throw new IllegalArgumentException("Simulator already used!");
 		}
-		
+
 		initModel(model, parameters);
-		
+
 		/* initialize file sizes */
 		long sTime = new Date().getTime();
-				
+
 		System.out.println("Simulator simulate() " + new Date());
-		
+
 		// map ID to number of events processed
 		HashMap<Integer, Integer> mapIDEventCount = new HashMap<Integer, Integer>();
-		
+
 		long eventCount = 0;
-		
+
 		while (! futureEvents.isEmpty()) {
-			
+
 			if( eventCount == getRunParameters().getMaximumNumberOfEventsToSimulate() ){
 				break;
 			}
-			
+
 			eventCount++;
-			
+
 			if(eventCount % 100000 == 0){
 				// show some activity for the user.
 				System.out.println(" processing " + eventCount + " "  + " sim-time: " +  getVirtualTime());
 			}
 
 			ConsoleLogger.getInstance().debug(this, "\n\nSimulator Main Iteration");
-			
+
 			printQueue();
 
 			// the component which gets the next event scheduled and therefore has one of the earlierst events.
 			InternalEvent serviceEvent = futureEvents.poll();
-			
+
 			//System.out.println("Servicing: " + serviceEvent);
-			
-			Epoch newTime = serviceEvent.getEarliestStartTime(); 
+
+			Epoch newTime = serviceEvent.getEarliestStartTime();
 			ConsoleLogger.getInstance().debug(this, "SCHEDULING component: " + serviceEvent.getTargetComponent().getIdentifier());
 
 			// safety check, wrong component implementations can lead to this:
@@ -363,55 +363,55 @@ public final class Simulator{
 				Integer id = serviceEvent.getTargetComponent().getIdentifier().getID();
 				Integer cnt = mapIDEventCount.get(id);
 				if(cnt == null){
-					cnt = new Integer(0);				
+					cnt = new Integer(0);
 				}
 				mapIDEventCount.put(id, cnt + 1);
 			}
-			
-			
+
+
 			// now let the component process its earliest event:
 			try {
-				if(serviceEvent.getClass() == Event.class)				
+				if(serviceEvent.getClass() == Event.class)
 					serviceEvent.getTargetComponent().processEvent(	(Event) serviceEvent, currentEpoch	);
 				else
 					serviceEvent.getTargetComponent().processInternalEvent(	serviceEvent, currentEpoch	);
 			}catch(Exception e) {
 				e.printStackTrace();
-				
-				System.err.println("Component: " + serviceEvent.getTargetComponent().getIdentifier() + " " + 
+
+				System.err.println("Component: " + serviceEvent.getTargetComponent().getIdentifier() + " " +
 						serviceEvent.getTargetComponent());
-				
+
 				System.exit(1);
 			}
 		}
-				
+
 		for(SPassiveComponent component:  getSortedList(getExistingSimulationObjects().values())) {
 			Integer count = mapIDEventCount.get(component.getIdentifier().getID());
 			if(count != null){
 				System.out.println(component.getIdentifier() + " event # " + count);
 			}
-			
-			component.simulationFinished();						
+
+			component.simulationFinished();
 		}
-		
+
 		for (Integer id: mapIDEventCount.keySet()){
 			//System.out.println(id + " " + mapIDEventCount.get(id));
 		}
-		
+
 		// compute realtime spent for simulation:
 		long diffTime = (new Date().getTime() - sTime);
-		
+
 		// print statistics:
-		System.out.println("simulation finished: " + eventCount + " events" + 
-				"\n\t realtime: "+ diffTime/1000.0 + 
-				"s\n\t events/sec: " +	eventCount / (float) diffTime * 1000 + 
+		System.out.println("simulation finished: " + eventCount + " events" +
+				"\n\t realtime: "+ diffTime/1000.0 +
+				"s\n\t events/sec: " +	eventCount / (float) diffTime * 1000 +
 				"\n\t virtual time: " + getVirtualTime()
 				+ "\n\t virtualTime/realTime: " + (getVirtualTime().getDouble() / diffTime * 1000.0));
-		
-		
-		
+
+
+
 		traceWriter.finalize(getExistingSimulationObjects().values());
-		
+
 		return new SimulationResults(eventCount, getVirtualTime());
 	}
 
@@ -422,17 +422,17 @@ public final class Simulator{
 	public Epoch getVirtualTime() {
 		return currentEpoch;
 	}
-	
+
 	/**
 	 * Return the mapping from aliases to applications and clients
 	 * @return the applicationMap
 	 */
 	public ApplicationMap getApplicationMap() {
 		return applicationMap;
-	}	
-	 
+	}
+
 	/**
-	 * This method allows to sort a list of components based on the IDs of the components. 
+	 * This method allows to sort a list of components based on the IDs of the components.
 	 * @param <IType>
 	 * @param input
 	 * @return
@@ -460,51 +460,57 @@ public final class Simulator{
 		ModelVerifier mv = new ModelVerifier();
 		mv.checkConsistency(model);
 	}
-	
+
 	/**
 	 * Create a Simulator from a model description.
-	 *  
-	 * @param filename, the XML model 
-	 * @param extraApplicationFileMapping, overrides application-alias to program-file mapping, 
+	 *
+	 * @param filename, the XML model
+	 * @param extraApplicationFileMapping, overrides application-alias to program-file mapping,
 	 * 																		to use the same model with different programs.
-	 * @param parameters 
+	 * @param parameters
 	 * @return The Simulator.
 	 * @throws Exception
 	 */
-	public static SimulationResults 	runProjectDescription(String filename, 
-			HashMap<String, String> extraApplicationFileMapping, RunParameters parameters) 	
-	throws Exception 
+	public static SimulationResults 	runProjectDescription(String filename,
+			HashMap<String, String> extraApplicationFileMapping, RunParameters parameters)
+	throws Exception
 	{
 		System.out.println("Loading model: " + filename);
-	  ModelXMLReader xmlreader = new ModelXMLReader();
-	  xmlreader.setReadCompleteProgramIntoMemory(true);
-	  
+		ModelXMLReader xmlreader = new ModelXMLReader();
+		xmlreader.setReadCompleteProgramIntoMemory(parameters.isLoadProgramToRamOnLoad());
+
 		Model model = xmlreader.parseProjectXML(filename ,extraApplicationFileMapping);
 		if (parameters == null){
 			parameters = new RunParameters();
 		}
 		Simulator sim = new Simulator();
+
+		if(parameters.isDebugEverything()){
+			System.out.println("Model: ");
+			System.out.println(model);
+		}
+
 		return sim.simulate(model, parameters);
 	}
-	
+
 	/**
 	 * Create a Simulator from a model description.
-	 *  
-	 * @param filename, the XML model 
+	 *
+	 * @param filename, the XML model
 	 */
 	static public SimulationResults runProjectDescription(String file, RunParameters parameters) throws Exception{
 		return runProjectDescription(file, null, parameters);
 	}
-	
+
 	/**
 	 * Create a Simulator from a model description.
-	 *  
-	 * @param filename, the XML model 
+	 *
+	 * @param filename, the XML model
 	 */
 	static public SimulationResults parseProjectDescription(String file) throws Exception{
 		return runProjectDescription(file,  null, null);
 	}
-	
+
 	/**
 	 * @return the cluster model behind this simulator.
 	 */

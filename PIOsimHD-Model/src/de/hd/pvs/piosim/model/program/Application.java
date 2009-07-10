@@ -28,6 +28,7 @@
  */
 package de.hd.pvs.piosim.model.program;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
@@ -43,7 +44,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 public class Application extends ProjectDescription{
 	private Program [][] processThreadProgramMap = null;
 
-	private HashMap<Integer, MPIFile>  files = new HashMap<Integer, MPIFile>();
+	private HashMap<String, MPIFile>  files = new HashMap<String, MPIFile>();
 
 	public int getProcessCount() {
 		return processThreadProgramMap.length;
@@ -55,8 +56,8 @@ public class Application extends ProjectDescription{
 		return processThreadProgramMap[process][thread];
 	}
 
-	public HashMap<Integer, MPIFile> getFiles() {
-		return files;
+	public Collection<MPIFile> getFiles() {
+		return files.values();
 	}
 
 	public Program[][] getRankProgramMap() {
@@ -66,15 +67,22 @@ public class Application extends ProjectDescription{
 	/**
 	 * @return a single file
 	 */
-	public MPIFile getFile(int fileid) {
-		return files.get(fileid);
+	public MPIFile getFile(String file) {
+		return files.get(file);
 	}
 
 	public void setProcessThreadProgramMap(Program[][] map) {
 		this.processThreadProgramMap = map;
 	}
 
-	public void setFiles(HashMap<Integer, MPIFile> files) {
-		this.files = files;
+	/**
+	 * Add a new file to the application
+	 * @param file
+	 */
+	public void addFile(MPIFile file) {
+		if(files.containsKey(file.getName())){
+			throw new IllegalArgumentException("File exists multiple times: " + file.getName());
+		}
+		this.files.put(file.getName(), file);
 	}
 }
