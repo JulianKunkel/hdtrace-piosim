@@ -56,7 +56,7 @@ mpi-io-test_node02_3_0.trc
 # to process the output, call this script:
 # 
 
-$ project-description-merger.py -o mpi-io-test.xml mpi-io-test_*
+$ project-description-merger.py -o mpi-io-test.proj mpi-io-test_*.info
 
 #
 # mpi-io-test.xml now contains the project data for the program.

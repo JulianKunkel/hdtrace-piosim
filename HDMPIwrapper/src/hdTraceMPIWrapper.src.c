@@ -426,14 +426,13 @@ static void after_Init(int *argc, char ***argv)
             			" by rank: %d\n", ptConfigfile, hostname, rank);
 
             	/* create power trace and read in configuration file */
-            	ret = pt_createTrace(ptConfigfile, &ptStatistics);
+            	ret = pt_createTrace(ptConfigfile, topology, &ptStatistics);
             	if (ret == PT_SUCCESS) {
             		printf("Start power tracer on host %s by rank: %d\n", hostname, rank);
             		pt_startTracing(ptStatistics);
             	}
             	else if (ret == PT_EWRONGHOST) {
             		/* this host is not connected to the measuring device */
-            		pt_finalizeTrace(ptStatistics);
             		ptStatistics = NULL;
             	}
             	else {
