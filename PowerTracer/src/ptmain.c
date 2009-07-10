@@ -135,6 +135,7 @@ int main(int argc, char **argv)
 	config->allocated.port = 0;
 	config->allocated.project = 0;
 	config->allocated.topo = 0;
+        config->allocated.topology = 0;
 
 	/*
 	 * Set defaults

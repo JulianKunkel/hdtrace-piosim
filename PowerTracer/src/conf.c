@@ -280,9 +280,6 @@ int createTraces(ConfigStruct *config) {
 #undef FREE_LEVELS
 
 	}
-	else {
-		config->topology = NULL;
-	}
 
 	/* free topo string no longer needed */
 	if (config->allocated.topo) {

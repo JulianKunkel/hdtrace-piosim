@@ -168,7 +168,7 @@ static int doTracing(PowerTrace *trace) {
 	    case ERR_WRITE:
 	    	ERROR_OUTPUT("Write error while setting up LMG device.");
 	    	break;
-	    default: \
+        default:
 	    	assert(!"Unknown return state of LMG_setup().");
 	    }
     	serial_closePort(serial_fd);
@@ -180,8 +180,7 @@ static int doTracing(PowerTrace *trace) {
      */
     ret = LMG_getIdentity(serial_fd, buffer, sizeof(buffer));
     if (ret != OK) {
-    	switch(ret)
-		{
+    	switch(ret) {
 			case ERR_ERRNO:
 				ERROR_OUTPUT("Problem while getting identity: %s", strerror(errno));
 				break;
@@ -214,8 +213,7 @@ static int doTracing(PowerTrace *trace) {
 
     ret = test_binmode(serial_fd);
     if (ret != OK) {
-	    switch(ret)
-	    {
+        switch(ret) {
 	        case ERR_ERRNO:
 				ERROR_OUTPUT("Problem while testing binary mode: %s", strerror(errno));
 	            break;
@@ -287,8 +285,7 @@ static int doTracing(PowerTrace *trace) {
      */
     ret = LMG_getAllErrors(serial_fd, buffer, sizeof(buffer));
     if (ret != OK) {
-	    switch(ret)
-	    {
+        switch(ret) {
 	        case OK:
 	            break;
 	        case ERR_ERRNO:
@@ -412,6 +409,11 @@ int pt_createTrace(const char* configfile, hdTopology topology, PowerTrace **tra
 	config->topology = topology;
 	config->allocated.topology = (topology == NULL) ? 0 : 1;
 
+	config->allocated.device = 0;
+	config->allocated.port = 0;
+	config->allocated.project = 0;
+	config->allocated.topo = 0;
+
 	/*
 	 * Set defaults
 	 */
@@ -484,7 +486,7 @@ int pt_createTrace(const char* configfile, hdTopology topology, PowerTrace **tra
 		gethostname(hostname, HOST_NAME_MAX);
 
 		if (strcmp(hostname, config->host) != 0) {
-			ERROR_OUTPUT("Hostname found in configuration (%s) does not match"
+			WARNMSG("Hostname found in configuration (%s) does not match"
 					" this machine (%s)", config->host, hostname);
 			cleanupConfig(config);
 			return PT_EWRONGHOST;
