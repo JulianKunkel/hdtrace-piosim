@@ -113,11 +113,11 @@ int test_binmode(int serial_fd)
  */
 static int doTracing(PowerTrace *trace) {
 
-	ConfigStruct *config = trace->config;
+    ConfigStruct *config = trace->config;
 
-	int ret;
+    int ret;
 
-	int serial_fd;
+    int serial_fd;
     char buffer[255] = { 0 };  /* Input buffer */
 
     /*
@@ -127,10 +127,10 @@ static int doTracing(PowerTrace *trace) {
     if(serial_fd < 0) {
     	switch (serial_fd) {
     	case ERR_ERRNO:
-    		ERROR_OUTPUT("Problem while opening serial port: %s", strerror(errno));
-    		return PT_EDEVICE;
-    	default:
-    		assert(!"Unknown return value from serial_openPort().");
+            ERROR_OUTPUT("Problem while opening serial port: %s", strerror(errno));
+            return PT_EDEVICE;
+        default:
+            assert(!"Unknown return value from serial_openPort().");
         }
     }
 
@@ -148,12 +148,12 @@ static int doTracing(PowerTrace *trace) {
     ret = serial_setupPort(serial_fd, 57600);
     switch(ret) {
     case OK:
-    	break;
+        break;
     case ERR_ERRNO: /* tcgetattr(), cfsetispeed(), cfsetospeed(), tcsetattr(), tcflush() */
-		ERROR_OUTPUT("Problem while setting up serial port: %s", strerror(errno));
-		return PT_EDEVICE;
+        ERROR_OUTPUT("Problem while setting up serial port: %s", strerror(errno));
+        return PT_EDEVICE;
     default:
-    	assert(!"Unknown return state of serial_setupPort().");
+        assert(!"Unknown return state of serial_setupPort().");
     }
 
     /*
@@ -161,18 +161,18 @@ static int doTracing(PowerTrace *trace) {
      */
     ret = LMG_setup(serial_fd);
     if (ret != OK) {
-	    switch(ret) {
-	    case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
-	    	ERROR_OUTPUT("Problem while setting up LMG device: %s", strerror(errno));
-	    	break;
-	    case ERR_WRITE:
-	    	ERROR_OUTPUT("Write error while setting up LMG device.");
-	    	break;
+        switch(ret) {
+        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
+            ERROR_OUTPUT("Problem while setting up LMG device: %s", strerror(errno));
+            break;
+        case ERR_WRITE:
+            ERROR_OUTPUT("Write error while setting up LMG device.");
+            break;
         default:
-	    	assert(!"Unknown return state of LMG_setup().");
-	    }
-    	serial_closePort(serial_fd);
-    	return PT_EDEVICE;
+            assert(!"Unknown return state of LMG_setup().");
+        }
+        serial_closePort(serial_fd);
+        return PT_EDEVICE;
     }
 
     /*
@@ -181,30 +181,30 @@ static int doTracing(PowerTrace *trace) {
     ret = LMG_getIdentity(serial_fd, buffer, sizeof(buffer));
     if (ret != OK) {
     	switch(ret) {
-			case ERR_ERRNO:
-				ERROR_OUTPUT("Problem while getting identity: %s", strerror(errno));
-				break;
-			case ERR_WRITE:
-				ERROR_OUTPUT("Write error while getting identity.");
-				break;
-			case ERR_NO_MSG:
-				ERROR_OUTPUT("No message ready while getting identity.");
-				break;
-			case ERR_MSG_FORMAT:
-				ERROR_OUTPUT("Incorrect message format while getting identity.");
-				break;
-			case ERR_MALLOC:
-				ERROR_OUTPUT("Out of memory while getting identity.");
-		    	serial_closePort(serial_fd);
-		    	return PT_EMEMORY;
-			case ERR_BSIZE:
-				ERROR_OUTPUT("Buffer size to low while getting identity.");
-				break;
-			default:
-				assert(!"Unknown return state of LMG_getIdentity().");
-		}
-    	serial_closePort(serial_fd);
-    	return PT_EDEVICE;
+        case ERR_ERRNO:
+            ERROR_OUTPUT("Problem while getting identity: %s", strerror(errno));
+            break;
+        case ERR_WRITE:
+            ERROR_OUTPUT("Write error while getting identity.");
+            break;
+        case ERR_NO_MSG:
+	    ERROR_OUTPUT("No message ready while getting identity.");
+            break;
+        case ERR_MSG_FORMAT:
+            ERROR_OUTPUT("Incorrect message format while getting identity.");
+            break;
+        case ERR_MALLOC:
+            ERROR_OUTPUT("Out of memory while getting identity.");
+            serial_closePort(serial_fd);
+            return PT_EMEMORY;
+        case ERR_BSIZE:
+            ERROR_OUTPUT("Buffer size to low while getting identity.");
+            break;
+        default:
+            assert(!"Unknown return state of LMG_getIdentity().");
+        }
+        serial_closePort(serial_fd);
+        return PT_EDEVICE;
     }
 
     INFOMSG("%s", buffer);
@@ -214,30 +214,30 @@ static int doTracing(PowerTrace *trace) {
     ret = test_binmode(serial_fd);
     if (ret != OK) {
         switch(ret) {
-	        case ERR_ERRNO:
-				ERROR_OUTPUT("Problem while testing binary mode: %s", strerror(errno));
-	            break;
-	        case ERR_WRITE:
-	        	ERROR_OUTPUT("Write error while testing binary mode.");
-	            break;
-	        case ERR_NO_MSG:
-	        	ERROR_OUTPUT("No message ready while testing binary mode.");
-	            break;
-	        case ERR_MSG_FORMAT:
-	        	ERROR_OUTPUT("Incorrect Message format while testing binary mode.");
-	            break;
-			case ERR_MALLOC:
-				ERROR_OUTPUT("Out of memory while getting identity.");
-		    	serial_closePort(serial_fd);
-		    	return PT_EMEMORY;
-	        case ERR_BSIZE:
-	        	ERROR_OUTPUT("Buffer size to low while testing binary mode.");
-	            break;
-	        default:
-				assert(!"Unknown return state of test_binmode().");
-	    }
-	    serial_closePort(serial_fd);
-	    return PT_EDEVICE;
+        case ERR_ERRNO:
+            ERROR_OUTPUT("Problem while testing binary mode: %s", strerror(errno));
+            break;
+        case ERR_WRITE:
+            ERROR_OUTPUT("Write error while testing binary mode.");
+            break;
+        case ERR_NO_MSG:
+            ERROR_OUTPUT("No message ready while testing binary mode.");
+            break;
+        case ERR_MSG_FORMAT:
+            ERROR_OUTPUT("Incorrect Message format while testing binary mode.");
+            break;
+        case ERR_MALLOC:
+            ERROR_OUTPUT("Out of memory while getting identity.");
+            serial_closePort(serial_fd);
+            return PT_EMEMORY;
+        case ERR_BSIZE:
+            ERROR_OUTPUT("Buffer size to low while testing binary mode.");
+            break;
+        default:
+            assert(!"Unknown return state of test_binmode().");
+        }
+        serial_closePort(serial_fd);
+        return PT_EDEVICE;
     }
 
 
@@ -245,34 +245,34 @@ static int doTracing(PowerTrace *trace) {
 
     ret = traceLoop(serial_fd, trace);
     if (ret != OK) {
-    	switch (ret) {
-    	case ERR_ERRNO:
-			ERROR_OUTPUT("Problem while tracing data: %s", strerror(errno));
-			break;
-		case ERR_WRITE:
-			ERROR_OUTPUT("Write error while tracing data.");
-			break;
-		case ERR_NO_MSG:
-			ERROR_OUTPUT("No message ready while tracing data.");
-			break;
-		case ERR_MSG_FORMAT:
-			ERROR_OUTPUT("Incorrect message format while tracing data.");
-			break;
-		case ERR_MALLOC:
-			ERROR_OUTPUT("Out of memory while tracing data.");
-			serial_closePort(serial_fd);
-			return PT_EMEMORY;
-		case ERR_BSIZE:
-			ERROR_OUTPUT("Buffer size to low while tracing data.");
-			break;
-		case ERR_TIMEOUT:
-			ERROR_OUTPUT("Timeout while tracing data.");
-			break;
-		default:
-			assert(!"Unknown return value from trace_data().");
-    	}
-    	serial_closePort(serial_fd);
-    	return PT_EDEVICE;
+        switch (ret) {
+        case ERR_ERRNO:
+            ERROR_OUTPUT("Problem while tracing data: %s", strerror(errno));
+            break;
+        case ERR_WRITE:
+            ERROR_OUTPUT("Write error while tracing data.");
+            break;
+        case ERR_NO_MSG:
+            ERROR_OUTPUT("No message ready while tracing data.");
+            break;
+        case ERR_MSG_FORMAT:
+            ERROR_OUTPUT("Incorrect message format while tracing data.");
+            break;
+        case ERR_MALLOC:
+            ERROR_OUTPUT("Out of memory while tracing data.");
+            serial_closePort(serial_fd);
+            return PT_EMEMORY;
+        case ERR_BSIZE:
+            ERROR_OUTPUT("Buffer size to low while tracing data.");
+            break;
+        case ERR_TIMEOUT:
+            ERROR_OUTPUT("Timeout while tracing data.");
+            break;
+        default:
+            assert(!"Unknown return value from trace_data().");
+        }
+        serial_closePort(serial_fd);
+        return PT_EDEVICE;
     }
 
 
@@ -286,69 +286,68 @@ static int doTracing(PowerTrace *trace) {
     ret = LMG_getAllErrors(serial_fd, buffer, sizeof(buffer));
     if (ret != OK) {
         switch(ret) {
-	        case OK:
-	            break;
-	        case ERR_ERRNO:
-				ERROR_OUTPUT("Problem while getting all errors: %s", strerror(errno));
-	            break;
-	        case ERR_WRITE:
-	            ERROR_OUTPUT("Write error while getting all errors.");
-	            break;
-	        case ERR_NO_MSG:
-	            ERROR_OUTPUT("No message ready while getting all errors.");
-	            break;
-	        case ERR_MSG_FORMAT:
-	            ERROR_OUTPUT("Incorrect message format while getting all errors.");
-	            break;
-			case ERR_MALLOC:
-				ERROR_OUTPUT("Out of memory while getting all errors.");
-		    	serial_closePort(serial_fd);
-		    	return PT_EMEMORY;
-	        case ERR_BSIZE:
-	            ERROR_OUTPUT("Buffer size to low while getting all errors.");
-	            break;
-	        default:
-				assert(!"Unknown return state of LMG_getAllErrors().");
-	    }
-	    serial_closePort(serial_fd);
-	    return PT_EDEVICE;
+        case OK:
+            break;
+        case ERR_ERRNO:
+            ERROR_OUTPUT("Problem while getting all errors: %s", strerror(errno));
+            break;
+        case ERR_WRITE:
+            ERROR_OUTPUT("Write error while getting all errors.");
+            break;
+        case ERR_NO_MSG:
+            ERROR_OUTPUT("No message ready while getting all errors.");
+            break;
+        case ERR_MSG_FORMAT:
+            ERROR_OUTPUT("Incorrect message format while getting all errors.");
+            break;
+        case ERR_MALLOC:
+            ERROR_OUTPUT("Out of memory while getting all errors.");
+            serial_closePort(serial_fd);
+            return PT_EMEMORY;
+        case ERR_BSIZE:
+            ERROR_OUTPUT("Buffer size to low while getting all errors.");
+            break;
+        default:
+            assert(!"Unknown return state of LMG_getAllErrors().");
+        }
+        serial_closePort(serial_fd);
+        return PT_EDEVICE;
     }
 
     INFOMSG("%s", buffer);
-    assert(ret != EOF);
 
     /*
      * Close LMG connection
      */
     ret = LMG_close(serial_fd);
     if (ret != OK) {
-	    switch(ret) {
-	        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
-				ERROR_OUTPUT("Problem while closing LMG device: %s", strerror(errno));
-				break;
-	        case ERR_WRITE:
-				ERROR_OUTPUT("Write problem while closing LMG device.");
-				break;
-	        default:
-				assert(!"Unknown return state of LMG_getAllErrors().");
-	    }
-	    serial_closePort(serial_fd);
-	    return PT_EDEVICE;
+        switch(ret) {
+        case ERR_ERRNO: /* LMG_reset(), serial_sendMessage() */
+            ERROR_OUTPUT("Problem while closing LMG device: %s", strerror(errno));
+            break;
+        case ERR_WRITE:
+            ERROR_OUTPUT("Write problem while closing LMG device.");
+            break;
+        default:
+            assert(!"Unknown return state of LMG_getAllErrors().");
+        }
+        serial_closePort(serial_fd);
+        return PT_EDEVICE;
     }
 
     /*
      * Close serial port
      */
     ret = serial_closePort(serial_fd);
-	switch(ret) {
-		case OK:
-			break;
-		case ERR_ERRNO:
-			ERROR_OUTPUT("Problem while closing serial port: %s", strerror(errno));
-			return PT_EDEVICE;
-	    default:
-	    	assert(!"Unknown return state of serial_closePort().");
-	    }
+    switch(ret) {
+    case OK:
+        break;
+    case ERR_ERRNO:
+        ERROR_OUTPUT("Problem while closing serial port: %s", strerror(errno));
+        return PT_EDEVICE;
+    default:
+        assert(!"Unknown return state of serial_closePort().");
+    }
 
     return 0;
 
