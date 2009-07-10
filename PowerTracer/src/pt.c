@@ -1,3 +1,11 @@
+/**
+ * @file pt.c
+ *
+ * @date 01.04.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \$Id$
+ */
+
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
@@ -365,6 +373,7 @@ static void * doTracingThread(void *param);
  * Create a power trace using the passed configuration file
  *
  * @param configfile Name of the configuration file
+ * @param topology   Topology to override default or config file choice (NULL not to override)
  * @param trace      Location to store the PowerTrace pointer (OUTPUT)
  *
  * @return  Error state
@@ -377,7 +386,7 @@ static void * doTracingThread(void *param);
  * @retval PT_EHDLIB         Error in HDTrace library
  * @retval PT_ETHREAD        Cannot create tracing thread
  */
-int pt_createTrace(const char* configfile, PowerTrace **trace) {
+int pt_createTrace(const char* configfile, hdTopology topology, PowerTrace **trace) {
 
 	int ret;
 
@@ -401,7 +410,8 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
 	ConfigStruct *config;
 	pt_malloc(config, 1, PT_EMEMORY);
 
-	config->topology = NULL;
+	config->topology = topology;
+	config->allocated.topology = (topology == NULL) ? 0 : 1;
 
 	/*
 	 * Set defaults
@@ -477,6 +487,7 @@ int pt_createTrace(const char* configfile, PowerTrace **trace) {
 		if (strcmp(hostname, config->host) != 0) {
 			ERROR_OUTPUT("Hostname found in configuration (%s) does not match"
 					" this machine (%s)", config->host, hostname);
+			cleanupConfig(config);
 			return PT_EWRONGHOST;
 		}
 	}

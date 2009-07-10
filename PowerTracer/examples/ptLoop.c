@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
 	PowerTrace *trace;
 
-	int ret = pt_createTrace(argv[1], &trace);
+	int ret = pt_createTrace(argv[1], NULL, &trace);
 	if (ret != PT_SUCCESS)
 		exit(ret);
 

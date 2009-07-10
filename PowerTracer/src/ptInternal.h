@@ -1,7 +1,7 @@
 /**
  * @file ptInternal.h
  *
- * This header is shared by pt.c and ptmain.c
+ * This header is shared by pt.c, conf.c and ptmain.c
  *
  * @date 28.06.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>

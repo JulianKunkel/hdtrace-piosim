@@ -3,7 +3,7 @@
  *
  * @date 02.07.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #ifndef TRACING_H_

@@ -3,7 +3,7 @@
  *
  * @date 28.06.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #include <stdlib.h>
@@ -37,7 +37,7 @@ void freeAllTraces(TraceListStruct *list) {
 	/*
 	 * Free all memory allocated in each trace
 	 */
-	FOR_TRACES(*list) {
+	FOR_TRACES(trace, *list) {
 		if (trace->hdstats) {
 			hdS_finalize(trace->group);
 			hdT_destroyTopoNode(trace->tnode);

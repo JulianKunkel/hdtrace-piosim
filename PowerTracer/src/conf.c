@@ -3,7 +3,7 @@
  *
  * @date 28.06.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #include <stdlib.h>
@@ -215,7 +215,6 @@ int createTraces(ConfigStruct *config) {
 	 * Test if there are any traces configured
 	 */
 	if (config->traces.last == NULL) {
-		config->topology = NULL;
 		return ERR_NO_TRACES;
 	}
 
@@ -223,8 +222,14 @@ int createTraces(ConfigStruct *config) {
 	 * Detect if topology is needed
 	 */
 	int needs_topology = 0;
-	FOR_TRACES(config->traces)
+	FOR_TRACES(trace, config->traces)
 		needs_topology += trace->hdstats;
+
+	/* don't need to create one if there is already a topology set.
+	 * this happens if pt_createTrace is called with topology != NULL */
+	if (needs_topology && config->topology != NULL) {
+		needs_topology = 0;
+	}
 
 	/*
 	 * Create topology if needed
@@ -254,12 +259,20 @@ int createTraces(ConfigStruct *config) {
 		}
 
 		// print topopology
-		// TODO do not do this when running from library
-		printf("Topology: %s", levels[0]);
-		for (int i = 1; i < tlen; ++i) {
-			printf(" - %s", levels[i]);
+		{
+			size_t tslen = 255;
+			char topostr[tslen];
+			char *tsptr = topostr;
+			ret = snprintf(tsptr, tslen, "%s", levels[0]);
+			tslen -= ret;
+			tsptr += ret;
+			for (int i = 1; i < tlen; ++i) {
+				ret = snprintf(tsptr, tslen, " - %s", levels[i]);
+				tslen -= ret;
+				tsptr += ret;
+			}
+			INFO_OUTPUT("Topology: %s", topostr);
 		}
-		printf("\n");
 
 		// free memory allocated by parsePath()
 		FREE_LEVELS;
@@ -271,11 +284,18 @@ int createTraces(ConfigStruct *config) {
 		config->topology = NULL;
 	}
 
+	/* free topo string no longer needed */
+	if (config->allocated.topo) {
+		pt_free(config->topo);
+		config->allocated.topo = 0;
+	}
+
+
 	/*
 	 * Go through traces list and complete all missing values
 	 */
 	config->isize = 0;
-	FOR_TRACES(config->traces) {
+	FOR_TRACES(trace, config->traces) {
 
 		char **path = NULL;
 		int plen = 0;
@@ -405,28 +425,48 @@ int createTraces(ConfigStruct *config) {
 		config->isize += trace->size;
 
 		// print parsed trace config
-		// TODO do not do this when running from library
-		printf("%d: ", trace->num);
+		{
+			size_t trlen = 255;
+			char tracestr[trlen];
+			char *trptr = tracestr;
 #if 0
-		if (trace->bin)
-			printf("BINARY, ");
-		if (trace->ascii)
-			printf("ASCII, ");
+			if (trace->bin) {
+				ret = snprintf(trptr, trlen, "BINARY, ");
+				trlen -= ret;
+				trptr += ret;
+			}
+			if (trace->ascii) {
+				ret = snprintf(trptr, trlen, "ASCII, ");
+				trlen -= ret;
+				trptr += ret;
+			}
 #endif
-		if (trace->hdstats)
-			printf("HDSTATS, ");
+			if (trace->hdstats) {
+				ret = snprintf(trptr, trlen, "HDSTATS, ");
+				trlen -= ret;
+				trptr += ret;
+			}
 
-		printf("Channel: %d", trace->channel);
+			ret = snprintf(trptr, trlen, "Channel: %d", trace->channel);
+			trlen -= ret;
+			trptr += ret;
 
-		if (trace->hdstats)
-			printf(", Path: %s", hdT_getTopoPathString(trace->tnode));
+			if (trace->hdstats) {
+				ret = snprintf(trptr, trlen, ", Path: %s", hdT_getTopoPathString(trace->tnode));
+				trlen -= ret;
+				trptr += ret;
+			}
 
-#if 0
-		if (trace->bin || trace->ascii) {
-			printf(", Filename: %s", trace->output);
+	#if 0
+			if (trace->bin || trace->ascii) {
+				ret = snprintf(trptr, trlen, ", Filename: %s", trace->output);
+				trlen -= ret;
+				trptr += ret;
+			}
+	#endif
+
+			INFO_OUTPUT("Trace %d: %s", trace->num);
 		}
-#endif
-		printf("\n");
 	}
 
 	assert(config->isize > 0);
@@ -683,7 +723,7 @@ int checkConfig(ConfigStruct *config) {
 
 	result &= checkCycle(config);
 
-	FOR_TRACES(config->traces) {
+	FOR_TRACES(trace, config->traces) {
 		result &= checkChannel(trace, config);
 	}
 
@@ -1092,7 +1132,7 @@ void cleanupConfig(ConfigStruct *config) {
 
 #undef FREE_VAR
 
-	if (config->topology) {
+	if (config->topology && config->allocated.topology) {
 		hdT_destroyTopology(config->topology);
 		config->topology = NULL;
 	}

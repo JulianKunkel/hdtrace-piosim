@@ -3,7 +3,7 @@
  *
  * @date 28.06.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #ifndef TRACE_H_
@@ -60,7 +60,7 @@ void addTraceToList(TraceStruct *trace, TraceListStruct *list);
  * Macro to use for iterating over all traces in a configuration.
  * Use FOR_TRACES(tracelist) { ... }
  */
-#define FOR_TRACES(list) \
+#define FOR_TRACES(trace, list) \
 	for (TraceStruct *trace = (list).last; trace != NULL; trace = trace->prev)
 
 /**

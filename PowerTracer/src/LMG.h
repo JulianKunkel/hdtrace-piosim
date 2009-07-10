@@ -1,3 +1,11 @@
+/**
+ * @file LMG.h
+ *
+ * @date 01.04.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \$Id$
+ */
+
 #ifndef LMG_H
 #define LMG_H
 

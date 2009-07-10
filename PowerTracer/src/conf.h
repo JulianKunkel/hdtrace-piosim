@@ -3,7 +3,7 @@
  *
  * @date 28.06.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #ifndef CONF_H_
@@ -52,6 +52,7 @@ typedef struct config_s {
 		int port : 1;
 		int project : 1;
 		int topo : 1;
+		int topology :1;
 	} allocated;
 } ConfigStruct;
 

@@ -1,3 +1,11 @@
+/**
+ * @file LMG.c
+ *
+ * @date 01.04.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \$Id$
+ */
+
 #include "LMG.h"
 
 #include <stdlib.h>

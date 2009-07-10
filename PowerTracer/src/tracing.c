@@ -3,7 +3,7 @@
  *
  * @date 02.07.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
- * @version 0.1
+ * @version \$Id$
  */
 
 #include <stdlib.h>
@@ -64,7 +64,7 @@ int traceIteration(int serial_fd, ConfigStruct *config)
      * Write response part for each trace to the correct file
      */
     char *bufptr = buffer;
-    FOR_TRACES(config->traces) {
+    FOR_TRACES(trace, config->traces) {
        	/* use int pointer since order_bytes32ip is assumed to be faster */
     	uint32_t *intptr = (uint32_t *) bufptr;
     	for (int j = 0; j < trace->size / 4; ++j)
@@ -123,13 +123,13 @@ int traceLoop(
      */
     size_t actn_len = 5; /* bytes for "ACTN;" */
 
-	FOR_TRACES(config->traces)
+	FOR_TRACES(trace, config->traces)
         actn_len += strlen(trace->actn) + 1; /* 1 byte for the separating ';' */
 
     char actn[actn_len];
     actn[0] = '\0';
     strcat(actn, "ACTN");
-    FOR_TRACES(config->traces) {
+    FOR_TRACES(trace, config->traces) {
         strcat(actn, ";");
         strcat(actn, trace->actn);
     }
@@ -183,7 +183,7 @@ int traceLoop(
     	if (terminate) {
     		/* try to disable traces and device */
        		if (enabled) {
-       			FOR_TRACES(config->traces) {
+       			FOR_TRACES(trace, config->traces) {
        				hdS_disableGroup(trace->group);
        			}
        			serial_sendMessage(serial_fd, "CONT OFF");
@@ -231,7 +231,7 @@ int traceLoop(
     	if (enable_traces) {
 
     		/* enable statistic groups */
-    		FOR_TRACES(config->traces) {
+    		FOR_TRACES(trace, config->traces) {
     			ret = hdS_enableGroup(trace->group);
     			assert(ret >= 0);
     		}
@@ -261,7 +261,7 @@ int traceLoop(
     	if (disable_traces) {
 
     		/* disable statistic groups */
-    		FOR_TRACES(config->traces) {
+    		FOR_TRACES(trace, config->traces) {
     			ret = hdS_disableGroup(trace->group);
     			assert(ret >= 0);
     		}

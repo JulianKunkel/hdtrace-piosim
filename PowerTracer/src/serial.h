@@ -1,3 +1,11 @@
+/**
+ * @file serial.h
+ *
+ * @date 01.04.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \$Id$
+ */
+
 #ifndef SERIAL_H
 #define SERIAL_H
 

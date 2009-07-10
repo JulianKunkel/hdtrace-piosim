@@ -1,3 +1,11 @@
+/**
+ * @file serial.c
+ *
+ * @date 01.04.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \$Id$
+ */
+
 #include "serial.h"
 
 #include <stdio.h>   /* Standard input/output definitions */

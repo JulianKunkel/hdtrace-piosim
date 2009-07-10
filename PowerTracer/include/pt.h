@@ -9,6 +9,8 @@
 #ifndef PT_H_
 #define PT_H_
 
+#include "hdTopo.h"
+
 typedef struct powertrace_s PowerTrace;
 
 /*
@@ -29,7 +31,8 @@ typedef struct powertrace_s PowerTrace;
 /**
  * Create a power trace using the passed configuration file
  */
-int pt_createTrace(const char* configfile, PowerTrace **trace);
+int pt_createTrace(const char* configfile, hdTopology topology,
+		PowerTrace **trace);
 
 /**
  * Return the hostname with the measuring device connected

@@ -1,3 +1,11 @@
+/**
+ * @file common.h
+ *
+ * @date 02.07.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \$Id$
+ */
+
 #ifndef COMMON_H
 #define COMMON_H
 

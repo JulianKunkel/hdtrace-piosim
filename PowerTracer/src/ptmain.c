@@ -1,3 +1,11 @@
+/**
+ * @file ptmain.c
+ *
+ * @date 05.07.2009
+ * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @version \$Id$
+ */
+
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
