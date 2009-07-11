@@ -25,6 +25,8 @@
 
 package de.hd.pvs.piosim.simulator;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
+
 /**
  * This class stores relevant runtime parameters used during the simulator,
  * typically parameters are read by the command line interface.
@@ -62,6 +64,13 @@ public class RunParameters {
 	 * If the complete program shall be loaded, this allows checking of the program upon load and not during runtime
 	 */
 	boolean loadProgramToRamOnLoad = true;
+
+	/**
+	 * Define the minimum time between trace entries to create a new compute job,
+	 * i.e. if the start time of the new entry - the end time of the last operation (!= NoOperation)
+	 * is longer than this value, then a new Compute Job is created
+	 */
+	Epoch minTimeDiffForComputation = new Epoch(0.0001);
 
 	/**
 	 * the file stores the tau trace
@@ -180,5 +189,13 @@ public class RunParameters {
 
 	public void setLoadProgramToRamOnLoad(boolean loadProgramToRamOnLoad) {
 		this.loadProgramToRamOnLoad = loadProgramToRamOnLoad;
+	}
+
+	public Epoch getMinTimeDiffForComputation() {
+		return minTimeDiffForComputation;
+	}
+
+	public void setMinTimeDiffForComputation(Epoch minTimeDiffForComputation) {
+		this.minTimeDiffForComputation = minTimeDiffForComputation;
 	}
 }

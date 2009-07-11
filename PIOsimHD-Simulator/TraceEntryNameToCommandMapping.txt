@@ -1,0 +1,20 @@
+# define the available trace commands and maps them to the available model commands.
+# i.e. multiple trace commands could be mapped to the same model command
+# by default the model command is added to the trace command   
+
+:Send
+:Recv
+:Sendrecv 
+:Wait
+:Allreduce
+:Allgather
+:Barrier
+:Reduce
+:Gather
+:Bcast
+File_open:Fileopen
+File_close:Fileclose
+File_read,File_read_at:Fileread
+File_write,File_write_at:Filewrite
+File_read_all,File_read_all_at:Filereadall
+File_write_all,File_write_all_at:Filewriteall

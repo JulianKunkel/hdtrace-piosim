@@ -1,19 +1,25 @@
 # define the command groups and the contained implementations and the simulator implementations
 # each row is either a set of commands which are implemented or the actual set of implementation classes for these commands.
+
+# All undefined operations are mapped to NoOperation: 
 +NoOperation
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 
-+de.hd.pvs.piosim.model.program.commands.Compute
+# Automatically generated within the simulator.
++Compute
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Compute.Time
 
 #define a group:
-+de.hd.pvs.piosim.model.program.commands.Send,de.hd.pvs.piosim.model.program.commands.Receive,de.hd.pvs.piosim.model.program.commands.Sendrecv # so it defines a group of commands at once which belong together.
++de.hd.pvs.piosim.model.program.commands.Send,de.hd.pvs.piosim.model.program.commands.Recv,de.hd.pvs.piosim.model.program.commands.Sendrecv # so it defines a group of commands at once which belong together.
 de.hd.pvs.piosim.simulator.program.Global.NoOperation,de.hd.pvs.piosim.simulator.program.Global.NoOperation,de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSend,de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousRcv,de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSendrecv
 
 +de.hd.pvs.piosim.model.program.commands.Wait
 de.hd.pvs.piosim.simulator.program.Wait.Blocking
+
++de.hd.pvs.piosim.model.program.commands.Fileclose
+de.hd.pvs.piosim.simulator.program.FileClose.SimpleClose
 
 +de.hd.pvs.piosim.model.program.commands.Fileopen
 de.hd.pvs.piosim.simulator.program.FileOpen.SimpleFlagOpener

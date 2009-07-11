@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: SimpleFlagOpener.java 149 2009-03-27 13:55:56Z kunkel $
+  * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27 Mrz 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 149 $
   */
 
 
@@ -23,19 +23,20 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.piosim.simulator.program.Global;
+package de.hd.pvs.piosim.simulator.program.FileClose;
 
-import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.model.program.commands.Fileclose;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
-public class NoOperation
-extends CommandImplementation<Command>
+public class SimpleClose
+extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileclose>
 {
 	@Override
-	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
-		return;
+	public void process(Fileclose cmd, CommandProcessing outCommand,
+			GClientProcess client, int step, NetworkJobs compNetJobs) {
+
 	}
 }

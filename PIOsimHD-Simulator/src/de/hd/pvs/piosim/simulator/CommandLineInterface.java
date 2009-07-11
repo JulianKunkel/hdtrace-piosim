@@ -28,6 +28,13 @@
  */
 package de.hd.pvs.piosim.simulator;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
+import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
+
 
 
 /**
@@ -43,6 +50,7 @@ public class CommandLineInterface {
 				"  [options] -i <project.xml> \n"+
 				"Options are a subset of: \n" +
 				"  --load-program-on-demand Load the program on demand (otherwise load it to RAM)\n " +
+				"  -m <time> min time in s between trace entries to create a new compute job" +
 				"  -t  enable tracing\n" +
 				"  -tcs enable client step tracing\n" +
 				"  -ts enable server tracing\n" +
@@ -87,6 +95,8 @@ public class CommandLineInterface {
 
         if(param.equals("-i")) {
         	inp_filename = stringArgument;
+        }else if(param.equals("-m")){
+        	runParameters.setMinTimeDiffForComputation(Epoch.parseTime(stringArgument));
         }else if(param.equals("--load-program-on-demand")){
         	runParameters.setLoadProgramToRamOnLoad(false);
         }else if (param.equals("-tcs")){
@@ -117,6 +127,18 @@ public class CommandLineInterface {
 
 		// load model and programs:
 		SimulationResults results = Simulator.runProjectDescription(inp_filename, runParameters);
+
+		// print trace mapping:
+		System.out.println("Mapping from XMLCommands to model commands");
+		ArrayList<String> xmlCommands = new ArrayList<String>(DynamicTraceEntryToCommandMapper.getTraceEntryMapping().keySet());
+		Collections.sort(xmlCommands);
+		for(String xmlCmd: xmlCommands){
+			// print mapping from real command names to implementing command.
+			final CommandType cmdType = DynamicTraceEntryToCommandMapper.getTraceEntryMapping().get(xmlCmd);
+			System.out.println( "  " + xmlCmd + ": " + cmdType);
+		}
+
+		System.out.println(results);
 	}
 
 	/**

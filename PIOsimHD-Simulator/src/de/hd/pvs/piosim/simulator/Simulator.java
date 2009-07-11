@@ -401,18 +401,9 @@ public final class Simulator{
 		// compute realtime spent for simulation:
 		long diffTime = (new Date().getTime() - sTime);
 
-		// print statistics:
-		System.out.println("simulation finished: " + eventCount + " events" +
-				"\n\t realtime: "+ diffTime/1000.0 +
-				"s\n\t events/sec: " +	eventCount / (float) diffTime * 1000 +
-				"\n\t virtual time: " + getVirtualTime()
-				+ "\n\t virtualTime/realTime: " + (getVirtualTime().getDouble() / diffTime * 1000.0));
-
-
-
 		traceWriter.finalize(getExistingSimulationObjects().values());
 
-		return new SimulationResults(eventCount, getVirtualTime());
+		return new SimulationResults(eventCount, getVirtualTime(), diffTime/1000.0);
 	}
 
 	/**

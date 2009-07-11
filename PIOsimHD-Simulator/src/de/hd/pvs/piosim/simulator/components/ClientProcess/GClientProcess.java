@@ -33,8 +33,8 @@ import java.util.HashSet;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandType;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
@@ -351,7 +351,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		Class<? extends Command>    commandClass = what.getClass();
 
 		//determine global setting value
-		CommandType cMethodMapping = DynamicCommandClassMapper.getCommandImplementationGroup(what.getClass().getSimpleName());
+		final CommandType cMethodMapping = DynamicCommandClassMapper.getCommandImplementationGroup(what.getClass());
 		assert(cMethodMapping != null);
 
 		String implChoosen = getSimulator().getModel().getGlobalSettings().getClientFunctionImplementation(cMethodMapping);

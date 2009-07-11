@@ -28,7 +28,7 @@
  */
 package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
-import de.hd.pvs.piosim.model.program.commands.Receive;
+import de.hd.pvs.piosim.model.program.commands.Recv;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
@@ -41,9 +41,9 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  *
  */
 
-public class RendezvousRcv extends CommandImplementation<Receive>
+public class RendezvousRcv extends CommandImplementation<Recv>
 {
-	public void process(Receive cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {		
+	public void process(Recv cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {		
 
 		final int ACK_RECVD = 1;
 		final int LAST = 2;
@@ -55,9 +55,9 @@ public class RendezvousRcv extends CommandImplementation<Receive>
 			OUTresults.setNextStep(ACK_RECVD);
 
 			if (cmd.getFromRank() >= 0){
-				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getTag(), cmd.getCommunicator());
+				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator());
 			}else{
-				OUTresults.addNetReceive(null,cmd.getTag(), cmd.getCommunicator());
+				OUTresults.addNetReceive(null,cmd.getFromTag(), cmd.getCommunicator());
 			}
 
 			return;
