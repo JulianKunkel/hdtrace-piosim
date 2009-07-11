@@ -5,6 +5,9 @@
 +NoOperation
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 
++Filesetview
+de.hd.pvs.piosim.simulator.program.Filesetview.FileSetViewNormal
+
 # Automatically generated within the simulator.
 +Compute
 de.hd.pvs.piosim.simulator.program.Global.NoOperation

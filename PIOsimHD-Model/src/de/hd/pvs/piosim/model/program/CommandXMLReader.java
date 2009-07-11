@@ -27,6 +27,7 @@ package de.hd.pvs.piosim.model.program;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
@@ -46,6 +47,11 @@ public class CommandXMLReader {
 	 * It gets populated by File_open and removed by File_close
 	 */
 	final private HashMap<Integer, MPIFile> fidToFileMap = new HashMap<Integer, MPIFile>();
+
+	/**
+	 * Maps the file id to the corresponding file view (if any)
+	 */
+	final private HashMap<Integer, FileView> fileView = new HashMap<Integer, FileView>();
 
 	final private AttributeAnnotationHandler myCommonAttributeHandler;
 
@@ -112,20 +118,32 @@ public class CommandXMLReader {
 
 		// special care for file open / close to update fids
 		if(cmd.getClass() == Fileclose.class){
-			fidToFileMap.remove(Integer.parseInt(commandXMLElement.getAttribute("fid")));
+			int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
+			fidToFileMap.remove(fid);
+			fileView.remove(fid);
+		}
+
+		if(cmd.getClass() == FileView.class){
+			final int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
+			//final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
+			final long filetid = Long.parseLong(commandXMLElement.getAttribute("filetid"));
+			final int displacement = Integer.parseInt(commandXMLElement.getAttribute("offset"));
+			Datatype datatype = program.getApplication().getDatatypeMap(program.getRank()).get(filetid);
+			assert(datatype != null);
+			FileView view = new FileView(datatype, displacement);
+			fileView.put(fid, view);
 		}
 
 		// parse File I/O command type id:
 		if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
 			final FileIOCommand fcmd = (FileIOCommand) cmd;
-
-			final long typeID = Long.parseLong(commandXMLElement.getAttribute("tid"));
 			final long offset = Long.parseLong(commandXMLElement.getAttribute("offset"));
 			final long size = Long.parseLong(commandXMLElement.getAttribute("size"));
 
 			ListIO list = new ListIO();
 			list.addIOOperation(offset, size);
 			fcmd.setListIO(list);
+			fcmd.setFileView( fileView.get(commandXMLElement.getAttribute("fid")) );
 		}
 
 		return cmd;

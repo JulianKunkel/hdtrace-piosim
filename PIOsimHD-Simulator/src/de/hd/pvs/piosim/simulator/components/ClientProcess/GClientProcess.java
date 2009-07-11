@@ -78,8 +78,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	 * same implementation must be picked.
 	 */
 	private final static HashMap<Class<? extends Command>, CommandImplementation> commandMap =
-		new HashMap<Class<? extends Command>, CommandImplementation>();;
-
+		new HashMap<Class<? extends Command>, CommandImplementation>();
 
 	/**
 	 * if a command implementation is enforced then a instance get added to this set here, to allow

@@ -23,13 +23,11 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.piosim.model.program;
+package de.hd.pvs.piosim.model.program.commands;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.model.program.FileView;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
-import de.hd.pvs.piosim.model.program.commands.superclasses.ICommunicatorCommand;
 
 /**
  * Simulates a file open (i.e. might truncate the file).
@@ -37,41 +35,17 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.ICommunicatorCommand
  * @author Julian M. Kunkel
  *
  */
-public class Fileopen
-extends FileCommand
-implements ICommunicatorCommand
+public class Filesetview
+	extends FileCommand
 {
-	@Attribute
-	/**
-	 * If the file must be truncated on open
-	 */
-	boolean truncate;
-
 	@NotNull
-	@Attribute(xmlName="cid")
-	protected Communicator comm;
+	private FileView fileView;
 
-	/**
-	 * Get the Communicator the Command should work on
-	 * @return
-	 */
-	public Communicator getCommunicator(){
-		return comm;
+	public void setFileView(FileView fileView) {
+		this.fileView = fileView;
 	}
 
-	/**
-	 * Set the Communicator the Command should work on
-	 * @param communicator
-	 */
-	public void setCommunicator(Communicator communicator) {
-		this.comm = communicator;
-	}
-
-	public boolean isTruncateOnOpen() {
-		return truncate;
-	}
-
-	public void setTruncateOnOpen(boolean truncate) {
-		this.truncate = truncate;
+	public FileView getFileView() {
+		return fileView;
 	}
 }
