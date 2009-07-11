@@ -84,6 +84,10 @@ public class InfoDialogForDuration extends InfoDialog
 		linebuf.append( "[1]: time = "
 				+ fmt.format(timebox.getLatestTime()) + "\n");
 
+		linebuf.append( "[1-0]: time = "
+				+ fmt.format(timebox.getLatestTime() - timebox.getEarliestTime()) + "\n");
+
+		
 		final JTextArea text_area = new JTextArea( linebuf.toString() );
 		text_area.setEditable( false );
 		text_area.setLineWrap( true );
