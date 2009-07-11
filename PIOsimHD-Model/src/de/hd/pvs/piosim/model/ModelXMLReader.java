@@ -39,9 +39,9 @@ import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.OneConnectionComponent;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
+import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandType;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
@@ -206,7 +206,7 @@ public class ModelXMLReader {
 		if(clientMeth != null){
 			for(XMLTag n: clientMeth){
 				String smethod = n.getAttribute("name");
-				CommandType method =  DynamicCommandClassMapper.getCommandImplementationGroup(smethod);
+				CommandType method =  DynamicTraceEntryToCommandMapper.getCommandForTraceEntryName(smethod);
 				global.setClientFunctionImplementation(method, n.getContainedText());
 			}
 		}

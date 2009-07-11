@@ -41,7 +41,7 @@ import de.hd.pvs.piosim.model.program.commands.Filereadall;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.model.program.commands.Filewriteall;
 import de.hd.pvs.piosim.model.program.commands.Gather;
-import de.hd.pvs.piosim.model.program.commands.Receive;
+import de.hd.pvs.piosim.model.program.commands.Recv;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.model.program.commands.Sendrecv;
@@ -132,7 +132,7 @@ public class ProgramBuilder {
 		Send send = new Send();
 
 		send.setSize(size);
-		send.setTag(tag);
+		send.setToTag(tag);
 		send.setToRank(tgtRank);
 		send.setCommunicator(communicator);
 
@@ -140,9 +140,9 @@ public class ProgramBuilder {
 	}
 
 	public void addRecv(Communicator communicator, int srcRank, int tgtRank, int tag){
-		Receive recv = new Receive();
+		Recv recv = new Recv();
 
-		recv.setTag(tag);
+		recv.setFromTag(tag);
 		recv.setFromRank(srcRank);
 		recv.setCommunicator(communicator);
 

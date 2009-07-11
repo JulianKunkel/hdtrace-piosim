@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 public class Allgather  extends CommunicatorCommand{
 	@NotNegativeOrZero
 	@Attribute
-	protected long size = 0;
+	protected long size = -1;
 
 	public long getSize() {
 		return size;

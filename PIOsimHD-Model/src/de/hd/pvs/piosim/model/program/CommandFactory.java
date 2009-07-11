@@ -29,10 +29,9 @@
 package de.hd.pvs.piosim.model.program;
 
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.HashSet;
 
-import de.hd.pvs.piosim.model.program.commands.NoOperation;
+import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 
@@ -42,37 +41,6 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
  * @author Julian M. Kunkel
  */
 public class CommandFactory {
-	// TODO move to external file:
-	final private static HashMap<String, String> commandClassMapping = new HashMap<String, String>();
-	final private static HashSet<String> availableCommands = new HashSet<String>();
-
-
-	static{
-		commandClassMapping.put("File_open", "Fileopen");
-	}
-
-	static{
-		availableCommands.add("Allgather");
-		availableCommands.add("Allgather");
-		availableCommands.add("Allreduce");
-		availableCommands.add("Barrier");
-		availableCommands.add("Bcast");
-		availableCommands.add("Compute");
-		availableCommands.add("Fileopen");
-		availableCommands.add("Filereadall");
-		availableCommands.add("Fileread");
-		availableCommands.add("Filewriteall");
-		availableCommands.add("Filewrite");
-		availableCommands.add("Gather");
-		availableCommands.add("NoOperation");
-		availableCommands.add("Receive");
-		availableCommands.add("Reduce");
-		availableCommands.add("Send");
-		availableCommands.add("Sendrecv");
-		availableCommands.add("Sync");
-		availableCommands.add("Wait");
-	}
-
 	/**
 	 * Create a new Command of the given type.
 	 *
@@ -80,11 +48,8 @@ public class CommandFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public Command createCommand(String type) {
-		type = type.replaceAll("_", "");
-		if(! availableCommands.contains(type)){
-			return new NoOperation();
-		}
+	public Command createCommand(String xmlEntryName) {
+		final CommandType type = DynamicTraceEntryToCommandMapper.getCommandForTraceEntryName(xmlEntryName);
 
 		/* dynamic reference via reflection */
 		final String className = "de.hd.pvs.piosim.model.program.commands." +  type;

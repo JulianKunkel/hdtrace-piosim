@@ -35,8 +35,8 @@ import java.util.HashMap;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.Connection.Connection;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandType;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLWriter;
 

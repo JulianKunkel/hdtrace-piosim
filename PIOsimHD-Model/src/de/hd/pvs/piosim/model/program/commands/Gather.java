@@ -35,11 +35,11 @@ public class Gather extends CommunicatorCommand{
 
 	@NotNegativeOrZero
 	@Attribute
-	protected long size = 0;
+	protected long size = -1;
 
 	@NotNegative
 	@Attribute
-	protected int rootRank = 0;
+	protected int rootRank = -1;
 
 	@Override
 	public String toString() {

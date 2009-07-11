@@ -95,6 +95,8 @@ public class CommandXMLReader {
 
 		// TODO: handle file set view (!)
 
+		cmd.setXMLTag(commandXMLElement);
+
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
 

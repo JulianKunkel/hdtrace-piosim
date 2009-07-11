@@ -30,16 +30,20 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.MPICommunicator;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLReader;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.trace.ITraceEntry;
+import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
+import de.hd.pvs.piosim.model.program.commands.Compute;
+import de.hd.pvs.piosim.model.program.commands.NoOperation;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 /**
@@ -142,8 +146,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 				if(readCompleteProgram){
 					// use DOM reader
-					final XMLTag tag = reader.readXML(file);
-					programs[rank][thread] = readProgramXMLDOM(rank, thread, tag, app);
+					programs[rank][thread] = readProgramXMLDOM(rank, thread, file, app);
 				}else{ // use SAX Reader to read the file
 					programs[rank][thread] = new ProgramReadXMLOnDemand();
 				}
@@ -171,19 +174,34 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 	 * @param program
 	 * @throws Exception
 	 */
-	public Program readProgramXMLDOM(int rank, int thread, XMLTag processXML, Application app) throws Exception {
+	public Program readProgramXMLDOM(int rank, int thread, String filename, Application app) throws Exception {
+		final StAXTraceFileReader traceFileReader = new StAXTraceFileReader(filename, false);
 
 		final ProgramInMemory program = new ProgramInMemory();
 		program.setApplication(app, rank, thread);
 
-		final List<XMLTag> elements = processXML.getNestedXMLTags();
-
 		final CommandXMLReader cmdReader = new CommandXMLReader(program);
 
-		for (XMLTag xmlcmd: elements) {
+		ITraceEntry entry = traceFileReader.getNextInputEntry();
+
+		Epoch lastTimeForComputeJob = entry.getLatestTime();
+
+		while(entry != null) {
 			// now read the particular command from the XML:
-			Command cmd = cmdReader.parseCommandXML(xmlcmd);
-			program.getCommands().add(cmd);
+			Command cmd = cmdReader.parseCommandXML(entry);
+			if(cmd.getClass() != NoOperation.class){
+				// add an appropriate compute job
+				long cycles = entry.getEarliestTime().subtract(lastTimeForComputeJob).getLongInNS() / 1000;
+				if(cycles > 0){
+					Compute compute = new Compute();
+					compute.setCycles( cycles );
+					program.addCommand(compute);
+				}
+
+				lastTimeForComputeJob = entry.getLatestTime();
+				program.addCommand(cmd);
+			}
+			entry = traceFileReader.getNextInputEntry();
 		}
 
 		return program;

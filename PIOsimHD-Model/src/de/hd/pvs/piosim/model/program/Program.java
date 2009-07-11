@@ -40,7 +40,6 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
  *
  */
 abstract public class Program {
-
 	/**
 	 * The parent Application.
 	 */
