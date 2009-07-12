@@ -62,6 +62,10 @@ public class ListIO{
 		public void setOffset(long offset) {
 			this.offset = offset;
 		}
+
+		public String toString() {
+			return "SingleIOOperation <offset, size> = " + getOffset() + ", " +  getAccessSize() + ">";
+		}
 	}
 
 	/**
