@@ -28,7 +28,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
@@ -40,12 +39,14 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class TwoPhase extends CommandImplementation<Filereadall> {
 	Communicator myComm = new Communicator("TWO-Phase");
+	final long twoPhaseBufferSize = 1 * 1024 * 1024;
 
 	final class FilereadallWrapper {
 		private Filereadall command;
@@ -87,10 +88,16 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 		private GClientProcess clientProcess;
 		private CommandProcessing commandProcessing;
 
+		long twoPhaseOffset;
+		long twoPhaseSize;
+
 		public FilereadallContainer(Filereadall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
 			this.command = command;
 			this.clientProcess = clientProcess;
 			this.commandProcessing = commandProcessing;
+
+			twoPhaseOffset = -1;
+			twoPhaseSize = -1;
 		}
 
 		public Filereadall getCommand() {
@@ -105,20 +112,30 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			return commandProcessing;
 		}
 
-		public int getRank() {
+		public Integer getRank() {
 			return clientProcess.getModelComponent().getRank();
+		}
+
+		public long getTwoPhaseOffset() {
+			return twoPhaseOffset;
+		}
+
+		public void setTwoPhaseOffset(long twoPhaseOffset) {
+			this.twoPhaseOffset = twoPhaseOffset;
+		}
+
+		public long getTwoPhaseSize() {
+			return twoPhaseSize;
+		}
+
+		public void setTwoPhaseSize(long twoPhaseSize) {
+			this.twoPhaseSize = twoPhaseSize;
 		}
 	}
 
 	final class FilereadallContainerComparator implements Comparator<FilereadallContainer> {
 		public int compare(FilereadallContainer a, FilereadallContainer b) {
-			if (a.getRank() < b.getRank()) {
-				return -1;
-			} else if (a.getRank() > b.getRank()) {
-				return 1;
-			}
-
-			return 0;
+			return a.getRank().compareTo(b.getRank());
 		}
 	}
 
@@ -129,6 +146,8 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		final int SEND_REQUEST = 2;
 		final int CHECK_TWO_PHASE = 3;
+		final int TWO_PHASE = 4;
+		final int TWO_PHASE_RECV = 5;
 
 		int rank = cmd.getProgram().getRank();
 
@@ -181,7 +200,6 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			return;
 		}
 		case (CHECK_TWO_PHASE): {
-			Model m = client.getSimulator().getModel();
 			boolean twoPhase = false;
 
 			Allgather gather = new Allgather();
@@ -198,59 +216,128 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			}
 
 			if (twoPhase) {
+				OUTresults.setNextStep(TWO_PHASE);
 			} else {
+				OUTresults.invokeChildOperation(cmd, SEND_REQUEST, de.hd.pvs.piosim.simulator.program.Filereadall.Direct.class);
+				xxx.remove(cmd);
 			}
-
-			OUTresults.setNextStep(SEND_REQUEST);
 
 			return;
 		}
-		case (SEND_REQUEST): {
-			/* determine I/O targets */
-			Model m = client.getSimulator().getModel();
+		case (TWO_PHASE): {
+			long minOffset = xxx.get(cmd).get(0).getCommand().getStartOffset();
+			long maxOffset = xxx.get(cmd).get(0).getCommand().getEndOffset();
+			long perRank;
+			long myOffset;
+			long mySize;
+			long nextOffset;
+			int myIndex = -1;
+			FilereadallContainer myContainer = null;
 
-			long actualFileSize = cmd.getFile().getSize();
-			long amountOfDataToRead = cmd.getIOList().getTotalSize();
-			/* check if the file is smaller than expected, if yes, crop data */
+			for (FilereadallContainer c : xxx.get(cmd)) {
+				minOffset = Math.min(minOffset, c.getCommand().getStartOffset());
+				maxOffset = Math.max(maxOffset, c.getCommand().getEndOffset());
 
-			ArrayList<SingleIOOperation> ops = cmd.getIOList().getIOOperations();
-
-			for (int i = ops.size() - 1; i >= 0; i--) {
-				if (ops.get(i).getOffset() + ops.get(i).getAccessSize() < actualFileSize) {
-					break; // done checking due to order
-				}
-
-				if (ops.get(i).getOffset() < actualFileSize) {
-					ops.get(i).setAccessSize(actualFileSize - ops.get(i).getOffset());
-				} else {
-					ops.remove(i);
+				if (c.getCommand() == cmd) {
+					myIndex = xxx.get(cmd).indexOf(c);
+					myContainer = c;
 				}
 			}
 
-			if (amountOfDataToRead != cmd.getIOList().getTotalSize()) {
-				client.debug("Short read: " + cmd.getIOList().getTotalSize() + " instead of " + amountOfDataToRead + " should be read => file too small \""
-						+ actualFileSize + "\"");
+			assert(myIndex >= 0);
+			assert(myContainer != null);
+
+			perRank = (maxOffset - minOffset) / xxx.get(cmd).size();
+			myOffset = minOffset + (myIndex * perRank);
+			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
+			mySize = Math.min(twoPhaseBufferSize, nextOffset - myOffset);
+
+			System.out.println("min " + minOffset + " max " + maxOffset);
+			System.out.println("myOffset " + myOffset);
+
+			if (myContainer.getTwoPhaseOffset() < 0) {
+				myContainer.setTwoPhaseOffset(myOffset);
+				myContainer.setTwoPhaseSize(mySize);
+			} else {
+				myContainer.setTwoPhaseOffset(myContainer.getTwoPhaseOffset() + myContainer.getTwoPhaseSize());
+				myContainer.setTwoPhaseSize(mySize);
 			}
 
-			HashMap<Server, ListIO> targetIOServers = cmd.getFile().getDistribution().distributeIOOperation(cmd.getIOList(), m.getServers());
+			if (myContainer.getTwoPhaseOffset() < nextOffset) {
+				ListIO list = new ListIO();
+				HashMap<Server, ListIO> servers;
 
-			/* create an I/O request for each of these servers */
-			for (Server server : targetIOServers.keySet()) {
-				IGServer sserver = (IGServer) client.getSimulator().getSimulatedComponent(server);
+				list.addIOOperation(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize());
+				servers = cmd.getFile().getDistribution().distributeIOOperation(list, client.getSimulator().getModel().getServers());
 
-				/*
-				 * data to transfer depends on actual command size, but is
-				 * defined in send
-				 */
-				ISNodeHostedComponent targetNIC = sserver;
+				for (Server server : servers.keySet()) {
+					IGServer sserver = (IGServer)client.getSimulator().getSimulatedComponent(server);
+					ISNodeHostedComponent targetNIC = sserver;
+					ListIO iolist = servers.get(server);
 
-				ListIO iolist = targetIOServers.get(server);
+					for (SingleIOOperation op : iolist.getIOOperations()) {
+						System.out.println("XXX " + op);
+					}
 
-				/* initial job request */
-				OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
+					OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
+					OUTresults.addNetReceive(targetNIC, RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
+				}
 
-				OUTresults.addNetReceive(targetNIC, RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
+				OUTresults.setNextStep(TWO_PHASE_RECV);
+			} else {
+				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+				xxx.remove(cmd);
 			}
+
+			return;
+		}
+		case (TWO_PHASE_RECV): {
+			long minOffset = xxx.get(cmd).get(0).getCommand().getStartOffset();
+			long maxOffset = xxx.get(cmd).get(0).getCommand().getEndOffset();
+			long perRank;
+			long myOffset;
+			int myIndex = -1;
+			FilereadallContainer myContainer = null;
+
+			for (FilereadallContainer c : xxx.get(cmd)) {
+				minOffset = Math.min(minOffset, c.getCommand().getStartOffset());
+				maxOffset = Math.max(maxOffset, c.getCommand().getEndOffset());
+
+				if (c.getCommand() == cmd) {
+					myIndex = xxx.get(cmd).indexOf(c);
+					myContainer = c;
+				}
+			}
+
+			assert(myIndex >= 0);
+			assert(myContainer != null);
+
+			perRank = (maxOffset - minOffset) / xxx.get(cmd).size();
+			myOffset = minOffset + (myIndex * perRank);
+
+			System.out.println("rank " + myContainer.getRank());
+
+			for (FilereadallContainer c : xxx.get(cmd)) {
+				long theirOffset;
+
+				if (c.getRank() == myContainer.getRank()) {
+					continue;
+				}
+
+				theirOffset = minOffset + (xxx.get(cmd).indexOf(c) * perRank);
+
+				if (c.getCommand().getStartOffset() <= myOffset + perRank && c.getCommand().getEndOffset() >= myOffset) {
+					System.out.println("send to " + c.getRank());
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getTwoPhaseSize() + 20), 50000, Communicator.INTERNAL_MPI);
+				}
+
+				if (cmd.getStartOffset() <= theirOffset + perRank && cmd.getEndOffset() >= theirOffset) {
+					System.out.println("recv from " + c.getRank());
+					OUTresults.addNetReceive(c.getRank(), 50000, Communicator.INTERNAL_MPI);
+				}
+			}
+
+			OUTresults.setNextStep(TWO_PHASE);
 
 			return;
 		}
