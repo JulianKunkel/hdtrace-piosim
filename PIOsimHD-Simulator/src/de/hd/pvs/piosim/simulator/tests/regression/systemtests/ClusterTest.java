@@ -57,6 +57,7 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 public class ClusterTest {
 	final long KBYTE = 1024;
 	final long MBYTE = 1024 * KBYTE;
+	final long GBYTE = 1024 * MBYTE;
 
 	protected ModelBuilder mb;
 	protected ApplicationBuilder aB;
