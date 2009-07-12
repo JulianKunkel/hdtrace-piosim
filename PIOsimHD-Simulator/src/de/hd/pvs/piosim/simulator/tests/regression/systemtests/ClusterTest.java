@@ -50,6 +50,7 @@ import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.ProgramBuilder;
 import de.hd.pvs.piosim.simulator.RunParameters;
+import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 
@@ -63,6 +64,7 @@ public class ClusterTest {
 	protected Application app;
 	protected Model model;
 	protected Simulator sim;
+	protected SimulationResults simRes;
 	protected Communicator world;
 
 	RunParameters parameters = new RunParameters();
@@ -223,7 +225,9 @@ public class ClusterTest {
 		// parameters.setTraceInternals(false);
 
 		sim = new Simulator();
-		sim.simulate(model, parameters);
+		simRes = sim.simulate(model, parameters);
+
+		System.out.println(simRes);
 
 		for (ClientProcess c : model.getClientProcesses()) {
 			GClientProcess gcp = (GClientProcess) sim.getSimulatedComponent(c);

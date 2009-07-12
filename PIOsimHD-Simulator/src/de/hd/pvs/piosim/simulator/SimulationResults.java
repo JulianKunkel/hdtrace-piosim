@@ -65,10 +65,10 @@ public class SimulationResults {
 
 	@Override
 	public String toString() {
-		return "simulation finished: " + eventCount + " events" +
-				"\n\t realtime: "+ wallClockTime +
-				"s\n\t events/sec: " +	eventCount / wallClockTime +
-				"\n\t virtual time: " + getVirtualTime()
-				+ "\n\t virtualTime/realTime: " + (getVirtualTime().getDouble() / wallClockTime);
+		return "simulation finished: " + eventCount + " events" + "\n"
+				+ "\t realTime: "+ wallClockTime + "s\n"
+				+ "\t events/sec: " + (eventCount / wallClockTime) + "\n"
+				+ "\t virtualTime: " + getVirtualTime() + "\n"
+				+ "\t virtualTime/realTime: " + (getVirtualTime().getDouble() / wallClockTime);
 	}
 }
