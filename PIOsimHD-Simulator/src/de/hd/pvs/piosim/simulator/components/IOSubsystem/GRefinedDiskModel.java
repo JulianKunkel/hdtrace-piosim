@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -44,13 +44,13 @@ import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
  * A IOSubystem can run only one job at a time, however the server might keep a small
  * list of pending I/O jobs to optimize access on this layer. This is especially
  * useful for RAID systems which might be able to schedule multiple requests concurrently.
- * Implements NCQ with some kind of Scan algorithm to find the best next job. 
- * 
+ * Implements NCQ with some kind of Scan algorithm to find the best next job.
+ *
  */
-public class GRefinedDiskModel 
-extends SSchedulableBlockingComponent<RefinedDiskModel, IOJobRefined> 
+public class GRefinedDiskModel
+extends SSchedulableBlockingComponent<RefinedDiskModel, IOJobRefined>
 implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> > {
-	
+
 	IIOSubsystemCaller callback;
 
 	/**
@@ -80,10 +80,10 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 	MPIFile lastFile = null;
 
 	/**
-	 * The last offset used 
+	 * The last offset used
 	 */
 	long lastAccessPosition = 0;
-	
+
 	/**
 	 * These jobs are scheduled before another MPIFile is chosen from the HashMap
 	 */
@@ -91,25 +91,25 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 
 	static private Comparator<Event<IOJobRefined>> offsetComparator = new Comparator<Event<IOJobRefined>>(){
 		public int compare(Event<IOJobRefined> o1, Event<IOJobRefined> o2) {
-			return o1.getEventData().getOffset() < o2.getEventData().getOffset() ? -1 
+			return o1.getEventData().getOffset() < o2.getEventData().getOffset() ? -1
 					:  (o1.getEventData().getOffset() > o2.getEventData().getOffset() ? +1 :0);
 		}
 	};
-	
+
 	/**
-	 * Number of pending I/Os 
+	 * Number of pending I/Os
 	 */
-	int pendingIOs = 0;		
-	
+	int pendingIOs = 0;
+
 	/**
 	 * Pending file list, first element get scheduled when pendingJobsWithLargerOffset is empty
 	 */
 	LinkedList<MPIFile> pendingFiles = new LinkedList<MPIFile>();
-	
-	HashMap<MPIFile, PriorityQueue<Event<IOJobRefined>>> pendingOps = 
+
+	HashMap<MPIFile, PriorityQueue<Event<IOJobRefined>>> pendingOps =
 		new HashMap<MPIFile, PriorityQueue<Event<IOJobRefined>>>();
-	
-	
+
+
 	@Override
 	public int getNumberOfBlockedJobs() {
 		debug(pendingIOs + "");
@@ -120,44 +120,44 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 	public void printWaitingEvents() {
 		// TODO Auto-generated method stub
 	}
-	
+
 	@Override
-	protected Event<IOJobRefined> getNextPendingAndSchedulableEvent() {	
+	protected Event<IOJobRefined> getNextPendingAndSchedulableEvent() {
 		pendingIOs--;
-		
+
 		if(pendingJobsWithLargerOffset.size() > 0){
-			return pendingJobsWithLargerOffset.poll();			
-		}		
-		
+			return pendingJobsWithLargerOffset.poll();
+		}
+
 		MPIFile nextFile = pendingFiles.poll();
 		assert(nextFile != null);
-		
+
 		pendingJobsWithLargerOffset = pendingOps.remove(nextFile);
-		
+
 		return pendingJobsWithLargerOffset.poll();
 	}
 
 	@Override
-	protected void addNewEvent(Event<IOJobRefined> job) {		
+	protected void addNewEvent(Event<IOJobRefined> job) {
 		pendingIOs++;
-				
+
 		IOJobRefined io = job.getEventData();
-		
+
 		// if the same file is accessed with a larger offset add it to the jobs currently to process
 		if(io.getFile() == lastFile && io.getOffset() >= lastAccessPosition){
 			pendingJobsWithLargerOffset.add(job);
 			return;
 		}
-		
+
 		PriorityQueue<Event<IOJobRefined>> set = pendingOps.get(io.getFile());
 		if (set == null){
 			set = new PriorityQueue<Event<IOJobRefined>>(2, offsetComparator);
-			
+
 			// schedule new operations:
-			pendingOps.put(io.getFile(), set);			
+			pendingOps.put(io.getFile(), set);
 			pendingFiles.add(io.getFile());
-		}		
-		 
+		}
+
 		set.add(job);
 	}
 
@@ -175,9 +175,9 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 		// compute if it is close to the old region.
 
 		if(
-				lastFile == job.getFile()  
-		) 
-		{			
+				lastFile == job.getFile()
+		)
+		{
 			if (job.getOffset() == lastAccessPosition){
 				// we assume the position is now fixed.
 				//if (job.getType() == IOOperation.READ){
@@ -187,22 +187,24 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 				//latency = avgRotationalLatency;
 				//}
 				noSeekAccesses++;
-				
+
 				job.setEfficiency(IOEfficiency.NOSEEK);
 			}else	if(Math.abs(job.getOffset() - lastAccessPosition) < getModelComponent().getPositionDifferenceConsideredToBeClose()){
 				// it is close to the old position
 				latency = avgRotationalLatency + getModelComponent().getTrackToTrackSeekTime().getDouble();
 				fastAccesses++;
-				
+
 				job.setEfficiency(IOEfficiency.SHORTSEEK);
 			}
 		}
-		
+
 		if (job.getEfficiency() == null){
 			latency = avgRotationalLatency + getModelComponent().getAverageSeekTime().getDouble();
-			
+
 			job.setEfficiency(IOEfficiency.AVGSEEK);
 		}
+
+		System.out.println(this + ": " + job);
 
 		lastFile = job.getFile();
 		lastAccessPosition = job.getOffset() + job.getSize();
@@ -210,9 +212,9 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 		return new Epoch(latency + transferTime);
 	}
 
-	
+
 	@Override
-	protected void jobStarted(Event<IOJobRefined> event, Epoch startTime) {		
+	protected void jobStarted(Event<IOJobRefined> event, Epoch startTime) {
 		IOJobRefined job = event.getEventData();
 		IOSubsytemHelper.traceIOStart(this, job, job.getEfficiency().toString());
 		//System.out.println("jobStarted "  + startTime + " " + event.getEventData());
@@ -223,27 +225,27 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 		IOJobRefined job = event.getEventData();
 
 		//System.out.println("jobCompleted " + endTime + " " + event.getEventData());
-		
+
 		IOSubsytemHelper.traceIOEnd(this, job, job.getEfficiency().toString());
 
 		totalOperations++;
 		totalAmountOfData += job.getSize();
-		
+
 		callback.IOComplete(endTime, job.getOldJob());
 	}
 
 	@Override
-	public void startNewIO(IOJob job) {		
+	public void startNewIO(IOJob job) {
 		Epoch time = getSimulator().getVirtualTime();
 		addNewEvent(new Event<IOJobRefined>(this, this, time, new IOJobRefined(job)));
-		
+
 		startNextPendingEventIfPossible(time);
 	}
 
 	@Override
-	public void simulationFinished() {		
-		System.out.println("GRefinedDiskModel " + getIdentifier() + " <#ops, noSeekAccesses, fastAccesses, slowAccesses, dataAccessed> = <" + 
-				totalOperations + ", " + noSeekAccesses + ", " + fastAccesses + ", " +  
+	public void simulationFinished() {
+		System.out.println("GRefinedDiskModel " + getIdentifier() + " <#ops, noSeekAccesses, fastAccesses, slowAccesses, dataAccessed> = <" +
+				totalOperations + ", " + noSeekAccesses + ", " + fastAccesses + ", " +
 				(totalOperations - noSeekAccesses - fastAccesses) + ", " + totalAmountOfData + ">");
 		assert(pendingIOs == 0);
 	}
