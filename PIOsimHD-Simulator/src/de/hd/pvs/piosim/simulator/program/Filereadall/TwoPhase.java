@@ -149,8 +149,6 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 		final int TWO_PHASE = 4;
 		final int TWO_PHASE_RECV = 5;
 
-		int rank = cmd.getProgram().getRank();
-
 		switch (step) {
 		case (CommandProcessing.STEP_START): {
 			FilereadallWrapper wrapper = new FilereadallWrapper(cmd);
@@ -254,6 +252,7 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 			System.out.println("min " + minOffset + " max " + maxOffset);
 			System.out.println("myOffset " + myOffset);
+			System.out.println("mySize " + mySize);
 
 			if (myContainer.getTwoPhaseOffset() < 0) {
 				myContainer.setTwoPhaseOffset(myOffset);
@@ -262,6 +261,9 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 				myContainer.setTwoPhaseOffset(myContainer.getTwoPhaseOffset() + myContainer.getTwoPhaseSize());
 				myContainer.setTwoPhaseSize(mySize);
 			}
+
+			System.out.println("twoPhaseOffset " + myContainer.getTwoPhaseOffset());
+			System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
 
 			if (myContainer.getTwoPhaseOffset() < nextOffset) {
 				ListIO list = new ListIO();
@@ -276,7 +278,7 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 					ListIO iolist = servers.get(server);
 
 					for (SingleIOOperation op : iolist.getIOOperations()) {
-						System.out.println("XXX " + op);
+						System.out.println(server + ": " + op);
 					}
 
 					OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
@@ -326,12 +328,12 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 				theirOffset = minOffset + (xxx.get(cmd).indexOf(c) * perRank);
 
-				if (c.getCommand().getStartOffset() <= myOffset + perRank && c.getCommand().getEndOffset() >= myOffset) {
+				if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
 					System.out.println("send to " + c.getRank());
 					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getTwoPhaseSize() + 20), 50000, Communicator.INTERNAL_MPI);
 				}
 
-				if (cmd.getStartOffset() <= theirOffset + perRank && cmd.getEndOffset() >= theirOffset) {
+				if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
 					System.out.println("recv from " + c.getRank());
 					OUTresults.addNetReceive(c.getRank(), 50000, Communicator.INTERNAL_MPI);
 				}

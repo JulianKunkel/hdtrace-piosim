@@ -85,8 +85,6 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 		final int RECV_ACK = 3;
 		final int UPDATE_SIZE = 4;
 
-		int rank = cmd.getProgram().getRank();
-
 		switch (step) {
 		case (CommandProcessing.STEP_START): {
 			FilewriteallWrapper wrapper = new FilewriteallWrapper(cmd);
