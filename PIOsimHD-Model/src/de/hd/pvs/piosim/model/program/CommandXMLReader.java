@@ -36,6 +36,7 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.Fileclose;
 import de.hd.pvs.piosim.model.program.commands.Fileopen;
+import de.hd.pvs.piosim.model.program.commands.Filesetview;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 
@@ -123,7 +124,7 @@ public class CommandXMLReader {
 			fileView.remove(fid);
 		}
 
-		if(cmd.getClass() == FileView.class){
+		if(cmd.getClass() == Filesetview.class){
 			final int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
 			//final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
 			final long filetid = Long.parseLong(commandXMLElement.getAttribute("filetid"));

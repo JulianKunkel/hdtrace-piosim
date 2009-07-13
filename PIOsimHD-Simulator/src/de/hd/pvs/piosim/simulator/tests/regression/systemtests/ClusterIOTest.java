@@ -35,7 +35,7 @@ public class ClusterIOTest extends ClusterTest {
 	int clientNum = 10;
 	int fileNum = 10;
 	int iterNum = 10;
-	long elementSize = 4 * KBYTE;
+	long elementSize = 4 * MBYTE;
 
 	@Test
 	public void writeTest() throws Exception {

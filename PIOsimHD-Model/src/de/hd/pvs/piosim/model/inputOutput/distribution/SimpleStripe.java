@@ -1,25 +1,25 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -37,16 +37,16 @@ import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 /**
  * Very simple round-robin data striping.
  * Works like a RAID-0 with striping of a fixed size.
- * 
+ *
  * @author Julian M. Kunkel
  */
 public class SimpleStripe extends Distribution {
-	
+
 	@Attribute
 	@NotNegativeOrZero
 	/**
 	 * The strip size.
-	 * The amount of contiguous data which is accessed on one server. 
+	 * The amount of contiguous data which is accessed on one server.
 	 */
 	private long chunkSize = -1;
 
@@ -66,7 +66,7 @@ public class SimpleStripe extends Distribution {
 	public void setChunkSize(long chunkSize) {
 		this.chunkSize = chunkSize;
 	}
-	
+
 	/**
 	 * Return the server to manage a particular byte.
 	 * @param offset
@@ -76,10 +76,10 @@ public class SimpleStripe extends Distribution {
 	private int getServerNumberForOffset(long offset, int serverCount){
 		return (int) ((offset / chunkSize) % serverCount);
 	}
-	
+
 	/**
 	 * Compute the physical offset of a logical byte.
-	 * 
+	 *
 	 * @param offset
 	 * @param serverCount
 	 * @return
@@ -87,49 +87,62 @@ public class SimpleStripe extends Distribution {
 	private long logicalToPhysicalOffset(long offset, int serverCount){
 		return ((offset / chunkSize) / serverCount) * chunkSize + (offset % chunkSize);
 	}
-	
+
 	@Override
 	public HashMap<Server, ListIO> distributeIOOperation(ListIO iolist,
 			List<Server> serverList) {
 		assert(chunkSize > 0);
-		
+
 		final int serverCount = serverList.size();
-		
+
 		if (serverCount == 0)
 			throw new IllegalArgumentException("No I/O server available!");
-		
+
 		/* maps server Number to ListIO */
 		HashMap<Integer, ListIO> mapServerNumberRequest = new HashMap<Integer, ListIO>();
 
 		for(ListIO.SingleIOOperation operation: iolist.getIOOperations()){
 			final long offset = operation.getOffset();
 			final long size   = operation.getAccessSize();
+
+			assert(offset >= 0);
+			assert(size >= 0);
+
 			if ( size == 0){
 				continue;
 			}
 			/* determine servers */
 			final int startServer = getServerNumberForOffset(offset, serverCount);
-			final int numberOfChunksHit = (int) ((size+chunkSize-1 + offset % chunkSize) 
+			final int numberOfChunksHit = (int) ((size+chunkSize-1 + offset % chunkSize)
 					/ chunkSize);
-			final int numberOfFullChunksHit = (int) ((size + (offset % chunkSize)) 
-					/ chunkSize); 
-			
+			final int numberOfFullChunksHit = (int) ((size - (offset % chunkSize))
+					/ chunkSize);
+
 
 			final long alignedStartOffset = (offset / chunkSize) * chunkSize;
 			final int lastServer = (numberOfChunksHit -1) % serverCount ;
 			final long sizePerServer =  chunkSize * (numberOfFullChunksHit / serverCount);
+			assert(sizePerServer >= 0);
+
 			final int unevenChunks = (numberOfFullChunksHit % serverCount);
-			final long firstServerUnalignedData = (offset+ chunkSize -1) / 	chunkSize * chunkSize - offset;
-			
-			ConsoleLogger.getInstance().debug(this, " ListIO <" + offset + "," + size + ">\n" + "\tNumberOfChunks: " + 
-					numberOfChunksHit + " FullChunks: " + numberOfFullChunksHit + " unalignedData " + firstServerUnalignedData
+
+			long firstServerRemainingUnalignedData = (offset+ chunkSize -1) / 	chunkSize * chunkSize - offset;
+
+			// in case the unaligned data is less than the given size:
+			firstServerRemainingUnalignedData = (firstServerRemainingUnalignedData >= size) ? size : firstServerRemainingUnalignedData;
+
+			ConsoleLogger.getInstance().debug(this, " ListIO <" + offset + "," + size + ">\n" + "\tNumberOfChunks: " +
+					numberOfChunksHit + " FullChunks: " + numberOfFullChunksHit + " unalignedData " + firstServerRemainingUnalignedData
 					+ " sizePerServer " + sizePerServer + "  alignedStartOffset: " + alignedStartOffset);
-			
-			int unalignedBlockOnFirstServer = 0; 
-			
+
+			int unalignedBlockOnFirstServer = 0;
+
+			// accumulate the size for all servers, the result should be the same as size
+			long checkSize = 0;
+
 			for(int i=0; i < serverCount; i++){
 				int aktServer = ( startServer + i ) % serverCount;
-												
+
 				/* Compute the actual physical access data */
 				long physicalOffsetForThisServer = 0;
 				long myOffset;
@@ -139,39 +152,49 @@ public class SimpleStripe extends Distribution {
 					myOffset = alignedStartOffset + i * chunkSize;
 				}
 				physicalOffsetForThisServer = logicalToPhysicalOffset(myOffset, serverCount);
-				
+				assert(physicalOffsetForThisServer >= 0);
+
 				long physicalSizeForThisServer = sizePerServer;
-								
+
 				if ( lastServer == i) {
-					/* compute remainder */
-					final long remainder =  size - (numberOfFullChunksHit * chunkSize + 
-							firstServerUnalignedData);
+					/* compute remainder, i.e. how much data on the requests end must be put on the last server */
+					final long remainder =  size - (((long) numberOfFullChunksHit) * chunkSize +
+							firstServerRemainingUnalignedData);
+
 					physicalSizeForThisServer += remainder ; //(size + offset) - ((size+offset) / chunkSize * chunkSize)
 					ConsoleLogger.getInstance().debug(this, "last server: " + i + " " + remainder + " " + physicalSizeForThisServer);
+
+					assert(remainder >= 0);
 				}
-				
-				if(i == 0 && firstServerUnalignedData > 0){ 
-					physicalSizeForThisServer += firstServerUnalignedData; 
+
+				if(i == 0 && firstServerRemainingUnalignedData > 0){
+					physicalSizeForThisServer += firstServerRemainingUnalignedData;
 					unalignedBlockOnFirstServer = 1;
 				}else if(i < unevenChunks + unalignedBlockOnFirstServer){
 					physicalSizeForThisServer += chunkSize;
 				}
-				
+
 				if (physicalSizeForThisServer == 0){
 					break;
-				}			
-				
+				}
+				assert(physicalSizeForThisServer > 0);
+
 				ListIO aktIO = mapServerNumberRequest.get(aktServer);
 				if (aktIO == null){
 					aktIO = new ListIO();
 					mapServerNumberRequest.put(aktServer, aktIO);
 				}
+
 				aktIO.addIOOperation(physicalOffsetForThisServer, physicalSizeForThisServer);
-				
-				ConsoleLogger.getInstance().debug(this, "Data is hitting Server: " + aktServer + " Physical Offset: " + 
+
+				ConsoleLogger.getInstance().debug(this, "Data is hitting Server: " + aktServer + " Physical Offset: " +
 						physicalOffsetForThisServer
 						+ " Size: " + physicalSizeForThisServer);
+
+				checkSize += physicalSizeForThisServer;
 			}
+
+			assert(checkSize == size);
 		}
 
 		/* now create an output list */
@@ -179,7 +202,7 @@ public class SimpleStripe extends Distribution {
 		for(Integer val: mapServerNumberRequest.keySet()){
 			out.put(serverList.get(val), mapServerNumberRequest.get(val));
 		}
-		
+
 		return out;
 	}
 

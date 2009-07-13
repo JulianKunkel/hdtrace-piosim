@@ -45,6 +45,9 @@ public class ListIO{
 		public SingleIOOperation(long offset, long accessSize) {
 			this.offset = offset;
 			this.accessSize = accessSize;
+
+			assert(offset >= 0);
+			assert(accessSize > 0);
 		}
 
 		public long getAccessSize(){
