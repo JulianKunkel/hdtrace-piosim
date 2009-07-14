@@ -176,6 +176,12 @@ int serial_setupPort(int fd, int baudrate)
         return(ERR_ERRNO);
     }
 
+	/*
+	 * Send break sequence (stream of zero valued bits for 0.25 - 0.5 seconds)
+	 */
+	ret = serial_sendBreak(fd);
+	SERIAL_SENDBREAK_RETURN_CHECK;
+
     /*
      * Reset input and output
      */
@@ -196,12 +202,6 @@ int serial_resetPort(int fd) {
 
 	int ret;
 
-	/*
-	 * Send break sequence (stream of zero valued bits for 0.25 - 0.5 seconds)
-	 */
-	ret = serial_sendBreak(fd);
-	SERIAL_SENDBREAK_RETURN_CHECK;
-
     /*
      * Throw away all in and output pending on the device
      */
@@ -212,7 +212,7 @@ int serial_resetPort(int fd) {
         return(ERR_ERRNO);
     }
 
-	//TODO is this sufficient now?
+	//TODO is this sufficient?
 
 	return(OK);
 }
