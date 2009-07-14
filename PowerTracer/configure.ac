@@ -7,7 +7,7 @@
 AC_PREREQ(2.61)
 AC_INIT([PowerTracer], [0.9], [stephan.krempel@pvs.informatik.uni-heidelberg.de])
 AC_CONFIG_SRCDIR([src/pt.c])
-AC_CONFIG_HEADER([src/pkgconfig.h])
+AC_CONFIG_HEADER([src/pt-pkg.h])
 
 # Initialize automake
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.10])
