@@ -6,7 +6,7 @@
 AC_PREREQ(2.61)
 AC_INIT([PerformanceTracingLibrary], [0svn20090617], [stephan.krempel@pvs.informatik.uni-heidelberg.de])
 AC_CONFIG_SRCDIR([src/PTL.c])
-AC_CONFIG_HEADER([src/pkgconfig.h])
+AC_CONFIG_HEADER([src/PTL-pkg.h])
 
 # Initialize automake
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.10])
