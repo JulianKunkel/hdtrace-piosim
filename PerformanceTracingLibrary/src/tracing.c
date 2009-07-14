@@ -233,13 +233,13 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 	gboolean quit = FALSE;
 	while(1)
 	{
-		VERBMSG("Entering tracing loop");
+		INFOMSG("Entering tracing loop");
 		/* wait until tracing is enabled and check quit condition */
 		g_mutex_lock(tracingData->control->mutex);
 
 		while (!tracingData->control->enabled && !tracingData->control->quit)
 		{
-			VERBMSG("Waiting for tracing becomes enabled");
+			INFOMSG("Waiting for tracing becomes enabled");
 			/* mark old statistics data invalid */
 			tracingData->oldValues.valid = FALSE;
 			/* wait for tracing becomes enabled */
@@ -266,7 +266,7 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 		/*  do tracing step */
 		doTracingStep(tracingData);
 	}
-	VERBMSG("Loop exited");
+	INFOMSG("Loop exited");
 
 	/* disable statistics group */
 	hdS_disableGroup(tracingData->group);
@@ -298,7 +298,7 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 static void doTracingStep(tracingDataStruct *tracingData)
 {
 
-	VERBMSG("Step!");
+	INFOMSG("Step!");
 
 	doTracingStepCPU(tracingData);
 
