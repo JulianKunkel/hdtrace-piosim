@@ -481,8 +481,8 @@ int pt_createTrace(const char* configfile, hdTopology topology, PowerTrace **tra
 	 * Check if we are on the configured host if any
 	 */
 	if (config->host != NULL) {
-		char hostname[HOST_NAME_MAX];
-		gethostname(hostname, HOST_NAME_MAX);
+		char hostname[HOST_NAME_MAX+1];
+		gethostname(hostname, HOST_NAME_MAX+1);
 
 		if (strcmp(hostname, config->host) != 0) {
 			WARNMSG("Hostname found in configuration (%s) does not match"

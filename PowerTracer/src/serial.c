@@ -176,12 +176,10 @@ int serial_setupPort(int fd, int baudrate)
         return(ERR_ERRNO);
     }
 
-    ret = tcflush(fd, TCIOFLUSH);
-    if(ret != 0)
-    {
-        ERRNOMSG("tcflush()");
-        return(ERR_ERRNO);
-    }
+    /*
+     * Reset input and output
+     */
+    serial_resetPort(fd);
 
     return(OK);
 }
@@ -198,13 +196,23 @@ int serial_resetPort(int fd) {
 
 	int ret;
 
-	//TODO is this sufficient?
-	ret = tcflush(fd, TCIOFLUSH);
-	if(ret != 0)
-	{
-		ERRNOMSG("tcflush()");
-		return(ERR_ERRNO);
-	}
+	/*
+	 * Send break sequence (stream of zero valued bits for 0.25 - 0.5 seconds)
+	 */
+	ret = serial_sendBreak(fd);
+	SERIAL_SENDBREAK_RETURN_CHECK;
+
+    /*
+     * Throw away all in and output pending on the device
+     */
+    ret = tcflush(fd, TCIOFLUSH);
+    if(ret != 0)
+    {
+        ERRNOMSG("tcflush()");
+        return(ERR_ERRNO);
+    }
+
+	//TODO is this sufficient now?
 
 	return(OK);
 }
