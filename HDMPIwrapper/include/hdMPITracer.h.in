@@ -10,16 +10,17 @@
 #define HDMPITRACER_H_
 
 #include "hdTrace.h"
+#include "hdTopo.h"
 
 /**
  * Return the tracefile used to store the threads values in the current topology
  */
-hdTrace hdMPI_getThreadTracefile();
+hdTrace * hdMPI_getThreadTracefile();
 
 /**
  * Return the topology for the current thread
  */
-hdTopology hdMPI_getThreadTopology();
+hdTopology * hdMPI_getThreadTopology();
 
 /**
  * Enable the tracing for this thread (automatically invoked upon creation)

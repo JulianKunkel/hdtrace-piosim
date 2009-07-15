@@ -1,16 +1,15 @@
-#include "hdTrace.h"
-#include "hdTopo.h"
+#include "hdMPITracer.h"
 
 /**
  * This global (per thread) variable holds the \a hdTrace structure that the logging
  * functions are writing to.
  */
-static __thread hdTrace tracefile = NULL;
+static __thread hdTrace *tracefile = NULL;
 
 /**
  * This global (per thread) variable holds the \a hdTrace topology that this tracing belongs to.
  */
-static __thread hdTopoNode topoNode = NULL;
+static __thread hdTopoNode *topoNode = NULL;
 
 
 /**
@@ -73,14 +72,14 @@ static void readEnvVars()
 /**
  * Return the tracefile used to store the threads values in the current topology
  */
-hdTrace hdMPI_getThreadTracefile(){
+hdTrace * hdMPI_getThreadTracefile(){
 	return tracefile;
 }
 
 /**
  * Return the topology for the current thread
  */
-hdTopoNode hdMPI_getThreadTopologyNode(){
+hdTopoNode * hdMPI_getThreadTopologyNode(){
 	return topoNode;
 }
 

@@ -13,6 +13,7 @@
 #include <errno.h>
 
 #include "hdTopo.h"
+#include "../src/hdTopoInternal.h"
 #include "hdError.h"
 
 #include "tests.h"
@@ -22,7 +23,7 @@
  */
 static void Test_createTopology_C1(void)
 {
-	hdTopology myTopology;
+	hdTopology *myTopology;
 
 	/* Test correct usage (with string literals) */
 	TEST_BEGIN("Correct usage");
@@ -50,7 +51,7 @@ static void Test_createTopology_C1(void)
  */
 static void Test_createTopology_T1(void)
 {
-	hdTopology myTopology;
+	hdTopology *myTopology;
 
 	/* Test tolerated usage with dynamically allocates strings */
 	TEST_BEGIN("Tolerated usage (dynamic strings)");
@@ -99,7 +100,7 @@ static void Test_getTopoDepth_C1(void)
 {
 	/* create topology */
 	const char *names[] = {"Host","Process"};
-	hdTopology myTopology =	hdT_createTopology("MyProject", names, 2);
+	hdTopology *myTopology =	hdT_createTopology("MyProject", names, 2);
 
 	/* Test correct usage */
 	TEST_BEGIN("Correct usage");
@@ -138,13 +139,13 @@ static void Test_destroyTopology_E1(void)
  */
 static void Test_createTopoNode_C1(void)
 {
-	hdTopoNode myTopoNode;
+	hdTopoNode *myTopoNode;
 
 	/* Test correct usage with string literals */
 	TEST_BEGIN("Correct usage");
 
 	const char *levels1[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	const char *path1[] = {"host0","process0"};
 
@@ -170,7 +171,7 @@ static void Test_createTopoNode_C1(void)
  */
 static void Test_createTopoNode_T1(void)
 {
-	hdTopoNode myTopoNode;
+	hdTopoNode *myTopoNode;
 
 	/* Test tolerated usage with dynamically allocates strings */
 	TEST_BEGIN("Tolerated usage (dynamic strings)");
@@ -180,7 +181,7 @@ static void Test_createTopoNode_T1(void)
 	path[1] = strdup("process0");
 
 	const char *levels1[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology */
 	myTopoNode = hdT_createTopoNode(myTopology, (const char **)path, 2);
@@ -213,11 +214,11 @@ static void Test_createTopoNode_T1(void)
 static void Test_getTopoNodeLevel_C1(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode =	hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode =	hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage */
 	TEST_BEGIN("Correct usage");
@@ -239,11 +240,11 @@ static void Test_getTopoNodeLevel_C1(void)
 static void Test_getTopoPathString_C1(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage */
 	TEST_BEGIN("Correct usage");
@@ -265,11 +266,11 @@ static void Test_getTopoPathString_C1(void)
 static void Test_getTopoPathLabel_C1(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *myTopology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode =	hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode =	hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage */
 	TEST_BEGIN("Correct usage");

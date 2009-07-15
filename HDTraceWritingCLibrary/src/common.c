@@ -21,6 +21,7 @@
 
 #include "hdError.h"
 #include "hdTopo.h"
+#include "hdTopoInternal.h"
 #include "util.h"
 
 #include "config.h"
@@ -87,7 +88,7 @@ void initVerbosity() {
  * - HD_ERR_MALLOC
  * - HD_ERR_BUFFER_OVERFLOW
  */
-char * generateFilename( hdTopoNode toponode,
+char * generateFilename( const hdTopoNode *toponode,
 		int level, const char *group, const char* affix)
 {
 	/* check input */

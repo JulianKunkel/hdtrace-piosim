@@ -34,22 +34,22 @@ struct PerfTrace_s
 /**
  * Return standard testing topology
  */
-static hdTopology getTopology(void)
+static hdTopology * getTopology(void)
 {
 	/* create topology */
 	const char *levels[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
+	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 2);
 	return myTopology;
 }
 
 /**
  * Return standard testing topology node
  */
-static hdTopoNode getTopoNode(hdTopology myTopology)
+static hdTopoNode * getTopoNode(hdTopology *myTopology)
 {
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 	return myTopoNode;
 }
 
@@ -63,8 +63,8 @@ static hdTopoNode getTopoNode(hdTopology myTopology)
 static void Test_C1(void)
 {
 	/* create topology and topology node */
-	hdTopology myTopology = getTopology();
-	hdTopoNode myTopoNode = getTopoNode(myTopology);
+	hdTopology *myTopology = getTopology();
+	hdTopoNode *myTopoNode = getTopoNode(myTopology);
 
 	/* create sources */
 	ptlSources mySources;

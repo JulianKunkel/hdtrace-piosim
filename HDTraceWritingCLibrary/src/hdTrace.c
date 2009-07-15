@@ -10,6 +10,7 @@
  */
 
 #include "hdTrace.h"
+#include "hdTraceInternal.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -67,34 +68,34 @@
 /**
  * sprintf like function writing to trace log instead of string
  */
-static int writeLogf(hdTrace trace, const char * format, ...)
+static int writeLogf(hdTrace *trace, const char * format, ...)
 __attribute__ ((format (printf, 2, 3)));
 
 /**
  * vsprintf like function writing to trace log instead of string
  */
-static int writeLogfv(hdTrace trace, const char * format,
+static int writeLogfv(hdTrace *trace, const char * format,
 		va_list valist);
 
 /**
  * Write a message to the trace log buffer and flush to file if needed.
  */
-static int writeLog(hdTrace trace, const char * message);
+static int writeLog(hdTrace *trace, const char * message);
 
 /**
  * Flush the buffer of trace log
  */
-static int flushLog(hdTrace trace);
+static int flushLog(hdTrace *trace);
 
 /**
  * Write given number of indentations to trace log
  */
-static int writeLogIndentation(hdTrace trace, int count);
+static int writeLogIndentation(hdTrace *trace, int count);
 
 /**
  * Write state to trace log
  */
-static int writeState(hdTrace trace);
+static int writeState(hdTrace *trace);
 
 
 /////////////////////////////////////
@@ -109,8 +110,8 @@ static int writeState(hdTrace trace);
  *
  * For example:
  * @code
- * hdTopoNode myTopo = hdT_createTopoNode("myhost", "myrank", "mythread");
- * hdTopology myTopoNames = hdT_createTopology("Host", "Rank", "Thread");
+ * hdTopoNode *myTopo = hdT_createTopoNode("myhost", "myrank", "mythread");
+ * hdTopology *myTopoNames = hdT_createTopology("Host", "Rank", "Thread");
  * hdT_createTrace(myTopo, myTopoNames);
  * @endcode
  * creates the following files:
@@ -132,7 +133,7 @@ static int writeState(hdTrace trace);
  *
  * @sa hdT_createTopoNode, hdT_createTopology
  */
-hdTrace hdT_createTrace(hdTopoNode topoNode)
+hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 {
 	/* good to know that hdTopoNode is the same as hdTopology ;) */
 	if (hdT_getTopoNodeLevel(topoNode) <= 0)
@@ -142,7 +143,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode)
 	}
 
 	/* create trace file structure */
-	hdTrace trace = malloc(sizeof(*trace));
+	hdTrace *trace = malloc(sizeof(*trace));
 	if (!trace)
 	{
 		errno = HD_ERR_MALLOC;
@@ -242,7 +243,7 @@ hdTrace hdT_createTrace(hdTopoNode topoNode)
  * - HD_ERR_INVALID_ARGUMENT
  * - HD_ERR_INVALID_CONTEXT
  */
-int hdT_setNestedDepth(hdTrace trace, int depth)
+int hdT_setNestedDepth(hdTrace *trace, int depth)
 {
 	if (trace == NULL)
 	{
@@ -276,7 +277,7 @@ int hdT_setNestedDepth(hdTrace trace, int depth)
  *
  * @sa hdT_disableTrace
  */
-int hdT_enableTrace(hdTrace trace)
+int hdT_enableTrace(hdTrace *trace)
 {
 	if (trace == NULL)
 		return -1;
@@ -302,7 +303,7 @@ int hdT_enableTrace(hdTrace trace)
  *
  * @sa hdT_enableTrace
  */
-int hdT_disableTrace(hdTrace trace)
+int hdT_disableTrace(hdTrace *trace)
 {
 	if (trace == NULL)
 		return -1;
@@ -326,7 +327,7 @@ int hdT_disableTrace(hdTrace trace)
  *
  * @sa hdT_enableTrace, hdT_disableTrace
  */
-int hdT_isEnabled(hdTrace trace)
+int hdT_isEnabled(hdTrace *trace)
 {
 	if (trace == NULL)
 		return 0;
@@ -349,7 +350,7 @@ int hdT_isEnabled(hdTrace trace)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_setForceFlush(hdTrace trace, int flush)
+int hdT_setForceFlush(hdTrace *trace, int flush)
 {
 	if (trace == NULL)
 	{
@@ -380,7 +381,7 @@ int hdT_setForceFlush(hdTrace trace, int flush)
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_UNKNOWN
  */
-int hdT_writeInfo(hdTrace trace, const char *format, ...)
+int hdT_writeInfo(hdTrace *trace, const char *format, ...)
 {
 	if (trace == NULL || !isValidString(format))
 	{
@@ -456,7 +457,7 @@ int hdT_writeInfo(hdTrace trace, const char *format, ...)
  * - HD_ERR_INVALID_ARGUMENT
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_logElement(hdTrace trace, const char * name,
+int hdT_logElement(hdTrace *trace, const char * name,
 		const char * valueFormat, ...)
 {
 	if (trace == NULL || !isValidString(name) || !isValidString(valueFormat)
@@ -545,7 +546,7 @@ int hdT_logElement(hdTrace trace, const char * name,
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
+int hdT_logAttributes(hdTrace *trace, const char * valueFormat, ...)
 {
 	if (trace == NULL || !isValidString(valueFormat))
 	{
@@ -614,7 +615,7 @@ int hdT_logAttributes(hdTrace trace, const char * valueFormat, ...)
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_logStateStart(hdTrace trace, const char * stateName)
+int hdT_logStateStart(hdTrace *trace, const char * stateName)
 {
 	if (trace == NULL || !isValidString(stateName)
 			|| strlen(stateName) >= HD_LOG_ELEMENT_NAME_BUF_SIZE)
@@ -687,7 +688,7 @@ int hdT_logStateStart(hdTrace trace, const char * stateName)
  * - HD_ERR_GET_TIME
  * - HD_ERR_WRITE_FILE
  */
-int hdT_logStateEnd(hdTrace trace)
+int hdT_logStateEnd(hdTrace *trace)
 {
 	if (trace == NULL)
 	{
@@ -742,7 +743,7 @@ int hdT_logStateEnd(hdTrace trace)
  * Not yet implemented
  */
 int hdT_logEventStart(
-		hdTrace trace,
+		hdTrace *trace,
 		char * eventName )
 {
 	return 0;
@@ -752,7 +753,7 @@ int hdT_logEventStart(
  * Not yet implemented
  */
 int hdT_logEventEnd(
-		hdTrace trace,
+		hdTrace *trace,
 		char* sprinhdStringForFurtherValues,
 		...
 		)
@@ -774,7 +775,7 @@ int hdT_logEventEnd(
  * - HD_ERR_WRITE FILE
  * - HD_ERR_CLOSE_FILE
  */
-int hdT_finalize(hdTrace trace)
+int hdT_finalize(hdTrace *trace)
 {
 	if (trace == NULL)
 	{
@@ -867,7 +868,7 @@ int hdT_finalize(hdTrace trace)
  * @errno
  * - each from \sa hdT_LogWriteFormatv
  */
-static int writeLogf(hdTrace trace, const char * format, ...)
+static int writeLogf(hdTrace *trace, const char * format, ...)
 {
 	assert(trace && isValidString(format));
 
@@ -896,7 +897,7 @@ static int writeLogf(hdTrace trace, const char * format, ...)
  * - HD_ERR_BUFFER_OVERFLOW
  * - each from \sa hdT_LogWrite
  */
-static int writeLogfv(hdTrace trace, const char * format,
+static int writeLogfv(hdTrace *trace, const char * format,
 		va_list valist)
 {
 	assert(trace && isValidString(format));
@@ -930,7 +931,7 @@ static int writeLogfv(hdTrace trace, const char * format,
  * @errno
  * - each from \sa hdT_LogFlush
  */
-static int writeLog(hdTrace trace, const char * message)
+static int writeLog(hdTrace *trace, const char * message)
 {
 	assert(trace && isValidString(message));
 
@@ -969,7 +970,7 @@ static int writeLog(hdTrace trace, const char * message)
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_UNKNOWN
  */
-static int flushLog(hdTrace trace)
+static int flushLog(hdTrace *trace)
 {
 	assert(trace);
 
@@ -1023,7 +1024,7 @@ static int flushLog(hdTrace trace)
  * @errno
  * - each from \sa hdT_LogWrite
  */
-static int writeLogIndentation(hdTrace trace, int count)
+static int writeLogIndentation(hdTrace *trace, int count)
 {
 	assert(trace && count >= 0);
 
@@ -1048,7 +1049,7 @@ static int writeLogIndentation(hdTrace trace, int count)
  * - each from \sa hdT_LogWriteIndentation
  * - each from \sa hdT_LogWriteFormat
  */
-static int writeState(hdTrace trace)
+static int writeState(hdTrace *trace)
 {
 	assert(trace);
 

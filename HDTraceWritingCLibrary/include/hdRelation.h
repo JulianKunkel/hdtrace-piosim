@@ -37,7 +37,7 @@ typedef struct _hdRelationTopo * hdR_topoToken;
 * Initialize relation handling on topology, can be used multiple times on different topologies.
 * Note: this function is NOT thread-safe
 */
-int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken);
+int hdR_initTopology(hdTopoNode *topNode, hdR_topoToken * outTopoToken);
 
 /**
  * finalize & close the relation trace for a given topology

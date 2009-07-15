@@ -27,10 +27,10 @@
  */
 #define CREATE_MYGROUP \
 	const char *levels[] = {"Host","Process"}; \
-	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2); \
+	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 2); \
 	const char *path[] = {"host0","process0"}; \
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2); \
-	hdStatsGroup myGroup = hdS_createGroup("MyGroup", myTopoNode, 1);
+	hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2); \
+	hdStatsGroup *myGroup = hdS_createGroup("MyGroup", myTopoNode, 1);
 
 /**
  * Destroy myGroup and remove trace file
@@ -64,15 +64,15 @@
  */
 static void Test_createGroup_C1(void)
 {
-	hdStatsGroup myGroup;
+	hdStatsGroup *myGroup;
 
 	/* create topology */
 	const char *levels[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
+	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 2);
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage with leaf node of a topology */
 	TEST_BEGIN("Correct usage (leaf node of topology)");
@@ -132,15 +132,15 @@ static void Test_createGroup_C1(void)
  */
 static void Test_createGroup_C2(void)
 {
-	hdStatsGroup myGroup;
+	hdStatsGroup *myGroup;
 
 	/* create topology */
 	const char *levels[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
+	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 2);
 
 	/* create topology node */
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 
 	/* Test correct usage with inner node of a topology */
 	TEST_BEGIN("Correct usage (inner node of topology)");
@@ -863,13 +863,13 @@ static void Test_writeXValue_C1(void)
 
 /* TODO: Write test for hdS_writeString */
 int hdS_writeString (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         const char * str         /* STRING value to write */
         );
 
 /* TODO: Evaluate if test hdS_finalize would make sense */
 int hdS_finalize(
-        hdStatsGroup group      /* Statistics Group */
+        hdStatsGroup *group      /* Statistics Group */
         );
 #endif
 

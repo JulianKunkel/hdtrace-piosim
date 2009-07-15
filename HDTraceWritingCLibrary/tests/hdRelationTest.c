@@ -32,10 +32,10 @@ static void cleanup(void){
  */
 static void Test_createRelationAndCleanup(void)
 {
-	hdTopoNode myTopoNode1;
-	hdTopoNode myTopoNode2;
+	hdTopoNode *myTopoNode1;
+	hdTopoNode *myTopoNode2;
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *topology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 
 
@@ -88,10 +88,10 @@ static void Test_createRelationAndCleanup(void)
 static void Test_createRelationHandling(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *topology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 
-	hdTopoNode myTopoNode1;
+	hdTopoNode *myTopoNode1;
 
 
 	/* Test correct usage (with string literals) */
@@ -131,21 +131,21 @@ static void Test_createRelationHandling(void)
 static void Test_remoteRelationHandling(void)
 {
 	const char *levels1[] = {"Host","Process"};
-	hdTopology topology = hdT_createTopology("/tmp/test",levels1, 2 );
+	hdTopology *topology = hdT_createTopology("/tmp/test",levels1, 2 );
 
 	TEST_BEGIN("Create");
 
 	const char *path1[] = {"host0","process0"};
-	hdTopoNode myTopoNode1 = hdT_createTopoNode(topology, path1, 2);
+	hdTopoNode *myTopoNode1 = hdT_createTopoNode(topology, path1, 2);
 
 	const char *path2[] = {"host0","process1"};
-	hdTopoNode myTopoNode2 = hdT_createTopoNode(topology, path2, 2);
+	hdTopoNode *myTopoNode2 = hdT_createTopoNode(topology, path2, 2);
 
 	const char *path3[] = {"host1","process0"};
-	hdTopoNode myTopoNode3 = hdT_createTopoNode(topology, path3, 2);
+	hdTopoNode *myTopoNode3 = hdT_createTopoNode(topology, path3, 2);
 
 	const char *path4[] = {"host2","process0"};
-	hdTopoNode myTopoNode4 = hdT_createTopoNode(topology, path4, 2);
+	hdTopoNode *myTopoNode4 = hdT_createTopoNode(topology, path4, 2);
 
 	hdR_topoToken topoToken1;
 	hdR_topoToken topoToken2;

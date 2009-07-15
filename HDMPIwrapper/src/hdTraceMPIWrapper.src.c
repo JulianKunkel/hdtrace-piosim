@@ -119,7 +119,7 @@ static int trace_force_flush = 0;
 /**
  * The topology (host, rank, thread)
  */
-static hdTopology topology;
+static hdTopology *topology;
 
 /**
  * This array defines the name of the environment variables which
@@ -389,7 +389,7 @@ static void after_Init(int *argc, char ***argv)
 
             // create labels and values for the project topology
             const char *levels[1] = {hostname};
-            hdTopoNode topoNode = hdT_createTopoNode(topology, levels, 1);
+            hdTopoNode *topoNode = hdT_createTopoNode(topology, levels, 1);
 
             PTLSRC_SET_ALL(statistics);
 
@@ -459,7 +459,7 @@ static void after_Init(int *argc, char ***argv)
         snprintf(rankStr, 20, "%d", rank);
         const char *levels[2] = {hostname, rankStr};
 
-        hdTopoNode pvfs2parentNode = hdT_createTopoNode(topology, levels, 2);
+        hdTopoNode *pvfs2parentNode = hdT_createTopoNode(topology, levels, 2);
 
         PVFS_HD_client_trace_initialize(topology, pvfs2parentNode);
         }

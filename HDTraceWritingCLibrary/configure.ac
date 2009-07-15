@@ -1,10 +1,13 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
+#
+# $Id$
+#
 
 AC_PREREQ(2.61)
 AC_INIT([HDTraceCLibrary], [0svn20090617], [stephan.krempel@pvs.informatik.uni-heidelberg.de])
 AC_CONFIG_SRCDIR([src/hdTopo.c])
-AC_CONFIG_HEADER([include/hdtrace-pkg.h])
+AC_CONFIG_HEADER([src/hdtrace-pkg.h])
 
 # additional m4 files are found here:
 AC_CONFIG_AUX_DIR([config])

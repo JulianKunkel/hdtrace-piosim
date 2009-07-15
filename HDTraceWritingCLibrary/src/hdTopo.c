@@ -13,6 +13,7 @@
  */
 
 #include "hdTopo.h"
+#include "hdTopoInternal.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +56,7 @@
  *
  * Example usage:
  * @code
- * hdTopology myTopology =
+ * hdTopology *myTopology =
  *         hdT_createTopology("ProjectX", {"Host", "Process", "Thread"}, 3);
  * @endcode
  *
@@ -78,7 +79,7 @@
  *
  * @sa hdT_destroyTopology
  */
-hdTopology hdT_createTopology(
+hdTopology * hdT_createTopology(
 		const char *project,
 		const char **levels,
 		int nlevels
@@ -96,7 +97,7 @@ hdTopology hdT_createTopology(
 	}
 
 	/* create new topology */
-	hdTopology topology;
+	hdTopology *topology;
 	hd_malloc(topology, 1, NULL);
 
 	/* copy project name into topology */
@@ -135,7 +136,7 @@ hdTopology hdT_createTopology(
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_getTopoDepth(hdTopology topology)
+int hdT_getTopoDepth(hdTopology *topology)
 {
 	/* check input */
 	if (topology == NULL)
@@ -167,7 +168,7 @@ int hdT_getTopoDepth(hdTopology topology)
  * @sa hdT_createTopology
  */
 int hdT_destroyTopology(
-		hdTopology topology
+		hdTopology *topology
                 )
 {
 	/* check input */
@@ -224,11 +225,11 @@ int hdT_destroyTopology(
  *
  * Example usages:
  * @code
- * hdTopoNode myTopoNode =
+ * hdTopoNode *myTopoNode =
  *         hdT_createTopoNode(myTopology, {hostname, pid, thread_id}, 3);
  * @endcode
  * @code
- * hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, {hostname, pid}, 2);
+ * hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, {hostname, pid}, 2);
  * @endcode
  *
  * @if api_only
@@ -250,8 +251,8 @@ int hdT_destroyTopology(
  *
  * @sa hdT_destroyTopoNode
  */
-hdTopoNode hdT_createTopoNode(
-		hdTopology topology,
+hdTopoNode * hdT_createTopoNode(
+		hdTopology *topology,
 		const char **path,
 		int length
 		)
@@ -268,7 +269,7 @@ hdTopoNode hdT_createTopoNode(
 	}
 
 	/* create new topology node */
-	hdTopoNode node;
+	hdTopoNode *node;
 	hd_malloc(node, 1, NULL);
 
 	/* allocate memory for path */
@@ -329,7 +330,7 @@ hdTopoNode hdT_createTopoNode(
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_getTopoNodeLevel(hdTopoNode node)
+int hdT_getTopoNodeLevel(hdTopoNode *node)
 {
 	/* check input */
 	if (node == NULL)
@@ -364,7 +365,7 @@ int hdT_getTopoNodeLevel(hdTopoNode node)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-const char * hdT_getTopoPathString(hdTopoNode node)
+const char * hdT_getTopoPathString(hdTopoNode *node)
 {
 	/* check input */
 	if (node == NULL)
@@ -385,7 +386,7 @@ const char * hdT_getTopoPathString(hdTopoNode node)
  *
  * For example, create a node like this:
  * @code
- * hdTopoNode myTopoNode =
+ * hdTopoNode *myTopoNode =
  *         hdT_createTopoNode(myTopology, {host0, process0, thread0}, 3);
  * @endcode
  * then the following call will return \c "process0":
@@ -408,7 +409,7 @@ const char * hdT_getTopoPathString(hdTopoNode node)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-const char * hdT_getTopoPathLabel(hdTopoNode node, int level)
+const char * hdT_getTopoPathLabel(hdTopoNode *node, int level)
 {
 	/* check input */
 	if (node == NULL || level <= 0)
@@ -438,7 +439,7 @@ const char * hdT_getTopoPathLabel(hdTopoNode node, int level)
  * @sa hdT_createTopoNode
  */
 int hdT_destroyTopoNode(
-		hdTopoNode node
+		hdTopoNode *node
                 )
 {
 	/* check input */

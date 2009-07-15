@@ -381,7 +381,7 @@ static void * doTracingThread(void *param);
  * @retval PT_EHDLIB         Error in HDTrace library
  * @retval PT_ETHREAD        Cannot create tracing thread
  */
-int pt_createTrace(const char* configfile, hdTopology topology, PowerTrace **trace) {
+int pt_createTrace(const char* configfile, hdTopology *topology, PowerTrace **trace) {
 
 	int ret;
 

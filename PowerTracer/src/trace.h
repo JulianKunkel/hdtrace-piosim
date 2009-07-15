@@ -37,8 +37,8 @@ typedef struct trace_s {
     char *actn; /* action script part for this trace */
     int   size;    /* size of expected response in [byte] */
 
-    hdTopoNode tnode;   /* topology node, reference needed for destruction */
-    hdStatsGroup group; /* statistics group this belongs to */
+    hdTopoNode *tnode;   /* topology node, reference needed for destruction */
+    hdStatsGroup *group; /* statistics group this belongs to */
 
     struct trace_s *prev;
 } TraceStruct;

@@ -123,7 +123,7 @@ void initVerbosity();
  * Generate well formed filename.
  */
 char * generateFilename(
-		const hdTopoNode topology,
+		const hdTopoNode *topology,
 		int level,
 		const char *groupname,
 		const char *affix

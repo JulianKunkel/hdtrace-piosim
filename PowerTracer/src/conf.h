@@ -40,7 +40,7 @@ typedef struct config_s {
 	/** String representation of the topology */
 	char *topo;
 	/** Topology used for hdStats traces */
-	hdTopology topology;
+	hdTopology *topology;
 	/** List of traces */
 	TraceListStruct traces;
 	/** Response size in bytes expected from the device in each iteration */

@@ -93,7 +93,7 @@ typedef enum _hdStatsValueType hdStatsValueType;
 /**
  * Type to use for statistics groups.
  */
-typedef struct _hdStatsGroup * hdStatsGroup;
+typedef struct _hdStatsGroup hdStatsGroup;
 
 
 /* ************************************************************************* *
@@ -116,9 +116,9 @@ typedef struct _hdStatsGroup * hdStatsGroup;
 /**
  * Create a new statistics group.
  */
-hdStatsGroup hdS_createGroup (
+hdStatsGroup * hdS_createGroup (
         const char *groupName, /* Name of the new statistics group */
-        hdTopoNode topoNode,   /* Topology node to use */
+        hdTopoNode *topoNode,   /* Topology node to use */
         int topoLevel          /* Topology level the group shell belong to */
         );
 
@@ -126,7 +126,7 @@ hdStatsGroup hdS_createGroup (
  * Add a new value to the entry structure of a statistics group.
  */
 int hdS_addValue (
-        hdStatsGroup group,     /* Statistics Group */
+        hdStatsGroup *group,     /* Statistics Group */
         const char* name,       /* Name of the new value */
         hdStatsValueType type,  /* Type of the new value */
         const char* unit,       /* Unit string of the new value */
@@ -137,23 +137,23 @@ int hdS_addValue (
  * Commit Group, closes initialization step.
  */
 int hdS_commitGroup (
-        hdStatsGroup group       /* Statistics Group */
+        hdStatsGroup *group       /* Statistics Group */
         );
 
 /**
  * Enable statistics group.
  */
-int hdS_enableGroup(hdStatsGroup group);
+int hdS_enableGroup(hdStatsGroup *group);
 
 /**
  * Disable statistics group.
  */
-int hdS_disableGroup(hdStatsGroup group);
+int hdS_disableGroup(hdStatsGroup *group);
 
 /**
  * Get if statistics group is enabled.
  */
-int hdS_isEnabled(hdStatsGroup group);
+int hdS_isEnabled(hdStatsGroup *group);
 
 /**
  * @addtogroup hdStats
@@ -196,7 +196,7 @@ int hdS_isEnabled(hdStatsGroup group);
  * Writes a complete entry to a statistics group.
  */
 int hdS_writeEntry (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         void * entry,            /* Pointer to the entry to write */
         size_t entryLength          /* Length of the entry to write */
         );
@@ -205,7 +205,7 @@ int hdS_writeEntry (
  * Writes 4 byte integer as next value to a statistics group.
  */
 int hdS_writeInt32Value (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         int32_t value            /* INT32 value to write */
         );
 
@@ -213,7 +213,7 @@ int hdS_writeInt32Value (
  * Writes 8 byte integer as next value to a statistics group.
  */
 int hdS_writeInt64Value (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         int64_t value            /* INT64 value to write */
         );
 
@@ -221,7 +221,7 @@ int hdS_writeInt64Value (
  * Writes 4 byte float as next value to a statistics group.
  */
 int hdS_writeFloatValue (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         float value              /* FLOAT value to write */
         );
 
@@ -229,7 +229,7 @@ int hdS_writeFloatValue (
  * Writes 8 byte double as next value to a statistics group.
  */
 int hdS_writeDoubleValue (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         double value             /* DOUBLE value to write */
         );
 
@@ -237,7 +237,7 @@ int hdS_writeDoubleValue (
  * Writes string as the next value to a statistics group.
  */
 int hdS_writeString (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         const char * str         /* STRING value to write */
         );
 
@@ -245,7 +245,7 @@ int hdS_writeString (
  * Finalizes a statistics group.
  */
 int hdS_finalize(
-        hdStatsGroup group      /* Statistics Group */
+        hdStatsGroup *group      /* Statistics Group */
         );
 
 

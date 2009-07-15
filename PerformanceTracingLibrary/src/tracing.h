@@ -49,7 +49,7 @@ typedef struct {
  * TODO
  */
 typedef struct {
-	hdStatsGroup group;
+	hdStatsGroup *group;
 	ptlSources sources;
 	int interval;
 	tracingControlStruct *control;
@@ -68,7 +68,7 @@ typedef struct {
 /* tracingData->sources has to be already set *
  * tracingData->group is set by this function */
 int initTracing(
-		hdTopoNode topoNode, /* topoNode the trace belongs to */
+		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
 		tracingDataStruct *tracingData  /* pointer to tracing Data */
 		);

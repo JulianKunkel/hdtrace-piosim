@@ -44,7 +44,7 @@ static void doTracingStepHDD(tracingDataStruct *tracingData);
 /* ************************************************************************* */
 
 int initTracing(
-		hdTopoNode topoNode, /* topoNode the trace belongs to */
+		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
 		tracingDataStruct *tracingData  /* pointer to tracing Data */
 		)
@@ -54,7 +54,7 @@ int initTracing(
 	 */
 
 	/* generate statistics group */
-	hdStatsGroup group = hdS_createGroup("Performance", topoNode, topoLevel);
+	hdStatsGroup *group = hdS_createGroup("Performance", topoNode, topoLevel);
 	/* TODO Error handling */
 
 	tracingData->group = group;

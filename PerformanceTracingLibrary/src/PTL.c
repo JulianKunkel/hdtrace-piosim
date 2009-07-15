@@ -62,7 +62,7 @@ int ptl_verbosity;
  * @return
  */
 PerfTrace ptl_createTrace(
-		hdTopoNode topoNode, /* topoNode the trace belongs to */
+		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
 		ptlSources sources,  /* bit field of the sources to trace */
 		int interval         /* interval of one tracing step in ms */

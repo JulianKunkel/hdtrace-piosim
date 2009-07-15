@@ -106,27 +106,27 @@ static const char * getTypeString(hdStatsValueType type);
 /**
  * Append formated string to group buffer.
  */
-static int appendFormatToGroupBuffer(hdStatsGroup group,
+static int appendFormatToGroupBuffer(hdStatsGroup *group,
 		const char *format, ...) __attribute__((format(printf,2,3)));
 /**
  * Append indentations to group buffer.
  */
-static int appendIndentToGroupBuffer(hdStatsGroup group, int num);
+static int appendIndentToGroupBuffer(hdStatsGroup *group, int num);
 
 /**
  * Write timestamp to the start of the group buffer
  */
-static int writeTimestampToGroupBuffer(hdStatsGroup group);
+static int writeTimestampToGroupBuffer(hdStatsGroup *group);
 
 /**
  * Append value to group buffer.
  */
-static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsValueType type);
+static int appendValueToGroupBuffer(hdStatsGroup *group, void * value_p, hdStatsValueType type);
 
 /**
  * Append group buffer to group file and reset offset.
  */
-static int flushGroupBuffer(hdStatsGroup group);
+static int flushGroupBuffer(hdStatsGroup *group);
 
 
 /* ************************************************************************* *
@@ -142,9 +142,9 @@ static int flushGroupBuffer(hdStatsGroup group);
  *
  * For example:
  * @code
- * hdTopology myTopology =
+ * hdTopology *myTopology =
  *         hdT_createTopology("MyProject", {"Host", "Process", "Thread"}, 3);
- * hdTopoNode myTopoNode =
+ * hdTopoNode *myTopoNode =
  *         hdT_createTopoNode(myTopology, {"myhost", "myrank", "mythread"} , 3);
  * hdS_createGroup("Energy", myTopoNode, 1);
  * @endcode
@@ -195,9 +195,9 @@ static int flushGroupBuffer(hdStatsGroup group);
  *
  *  @sa hdT_createTopoNode, hdT_createTopology
  */
-hdStatsGroup hdS_createGroup (
+hdStatsGroup * hdS_createGroup (
         const char *groupName, /* Name of the new statistics group */
-        hdTopoNode topoNode,   /* Topology node to use */
+        hdTopoNode *topoNode,   /* Topology node to use */
         int topoLevel          /* Topology level the group shell belong to */
         )
 {
@@ -230,7 +230,7 @@ hdStatsGroup hdS_createGroup (
  	}
 
 	/* create group */
-	hdStatsGroup group;
+	hdStatsGroup *group;
 	hd_malloc(group, 1, NULL);
 
 	/* setup group buffer for header */
@@ -400,7 +400,7 @@ hdStatsGroup hdS_createGroup (
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  */
 int hdS_addValue (
-        hdStatsGroup group,    /* Statistics Group */
+        hdStatsGroup *group,    /* Statistics Group */
         const char* name,      /* Name of the new value */
         hdStatsValueType type, /* Type of the new value */
         const char* unit,      /* Unit string of the new value */
@@ -546,7 +546,7 @@ int hdS_addValue (
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  */
 int hdS_commitGroup (
-        hdStatsGroup group       /* Statistics Group */
+        hdStatsGroup *group       /* Statistics Group */
         )
 {
 	/* check input */
@@ -640,7 +640,7 @@ int hdS_commitGroup (
  *
  * @sa hdS_disableGroup
  */
-int hdS_enableGroup(hdStatsGroup group)
+int hdS_enableGroup(hdStatsGroup *group)
 {
 	if (group == NULL)
 		return -2;
@@ -676,7 +676,7 @@ int hdS_enableGroup(hdStatsGroup group)
  *
  * @sa hdS_enableGroup
  */
-int hdS_disableGroup(hdStatsGroup group)
+int hdS_disableGroup(hdStatsGroup *group)
 {
 	if (group == NULL)
 		return -2;
@@ -705,7 +705,7 @@ int hdS_disableGroup(hdStatsGroup group)
  *
  * @sa hdS_enableGroup, hdS_disableGroup
  */
-int hdS_isEnabled(hdStatsGroup group)
+int hdS_isEnabled(hdStatsGroup *group)
 {
 	if (group == NULL)
 		return 0;
@@ -743,7 +743,7 @@ int hdS_isEnabled(hdStatsGroup group)
  * - \ref HDS_ERR_ENTRY_STATE
  */
 int hdS_writeEntry (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         void * entry,            /* Pointer to the entry to write */
         size_t entryLength          /* Length of the entry to write */
         )
@@ -833,7 +833,7 @@ int hdS_writeEntry (
  * @endif
  */
 int hdS_writeInt32Value (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         int32_t value            /* INT32 value to write */
         )
 {
@@ -885,7 +885,7 @@ int hdS_writeInt32Value (
  * @endif
  */
 int hdS_writeInt64Value (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         int64_t value            /* INT64 value to write */
         )
 {
@@ -937,7 +937,7 @@ int hdS_writeInt64Value (
  * @endif
  */
 int hdS_writeFloatValue (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         float value              /* FLOAT value to write */
         )
 {
@@ -989,7 +989,7 @@ int hdS_writeFloatValue (
  * @endif
  */
 int hdS_writeDoubleValue (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         double value             /* DOUBLE value to write */
         )
 {
@@ -1031,7 +1031,7 @@ int hdS_writeDoubleValue (
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  */
 int hdS_writeString (
-        hdStatsGroup group,      /* Statistics Group */
+        hdStatsGroup *group,      /* Statistics Group */
         const char * str         /* STRING value to write */
         )
 {
@@ -1077,7 +1077,7 @@ int hdS_writeString (
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  */
 int hdS_finalize(
-        hdStatsGroup group      /* Statistics Group */
+        hdStatsGroup *group      /* Statistics Group */
         )
 {
 	int ret = 0;
@@ -1091,6 +1091,7 @@ int hdS_finalize(
 	/* check group commit state */
 	if (!group->isCommitted)
 	{
+		// TODO Be more gentle here ???
 		hd_error_return(HDS_ERR_GROUP_COMMIT_STATE, -1);
 	}
 
@@ -1192,7 +1193,7 @@ static const char * getTypeString(hdStatsValueType type)
  * @errno
  * - \ref HD_ERR_BUFFER_OVERFLOW
  */
-static int appendFormatToGroupBuffer(hdStatsGroup group,
+static int appendFormatToGroupBuffer(hdStatsGroup *group,
 		const char *format, ...)
 {
 	assert(group != NULL);
@@ -1265,7 +1266,7 @@ static int appendFormatToGroupBuffer(hdStatsGroup group,
  * @errno
  * - all from \ref appendFormatToGroupBuffer
  */
-static int appendIndentToGroupBuffer(hdStatsGroup group, int num)
+static int appendIndentToGroupBuffer(hdStatsGroup *group, int num)
 {
 	assert(group != NULL);
 	assert(num >= 0);
@@ -1299,7 +1300,7 @@ static int appendIndentToGroupBuffer(hdStatsGroup group, int num)
  * @errno
  * - \ref HD_ERR_UNKNOWN
  */
-static int writeTimestampToGroupBuffer(hdStatsGroup group)
+static int writeTimestampToGroupBuffer(hdStatsGroup *group)
 {
 	assert(group != NULL);
 
@@ -1367,7 +1368,7 @@ static int writeTimestampToGroupBuffer(hdStatsGroup group)
  * - \ref HDS_ERR_GROUP_COMMIT_STATE
  * - \ref HDS_ERR_ENTRY_STATE
  */
-static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsValueType type)
+static int appendValueToGroupBuffer(hdStatsGroup *group, void * value_p, hdStatsValueType type)
 {
 	/* Don't use assert here since the errors are    *
 	 * simply passed through by hdS_write* functions */
@@ -1444,7 +1445,7 @@ static int appendValueToGroupBuffer(hdStatsGroup group, void * value_p, hdStatsV
  * @errno
  * - all from @ref writeToFile
  */
-static int flushGroupBuffer(hdStatsGroup group)
+static int flushGroupBuffer(hdStatsGroup *group)
 {
 	assert(group != NULL);
 

@@ -20,8 +20,8 @@
 #include "PTL.h"
 
 static struct {
-	hdTopology topology;
-	hdTopoNode toponode;
+	hdTopology *topology;
+	hdTopoNode *toponode;
 	PerfTrace trace;
 } fstuff = { NULL, NULL, NULL };
 
@@ -55,14 +55,14 @@ int main(int argc, char **argv)
 	/* create topology */
 
 	const char *levels[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
+	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 2);
 	fstuff.topology = myTopology;
 
 
 	/* create topology node */
 
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 	fstuff.toponode = myTopoNode;
 
 

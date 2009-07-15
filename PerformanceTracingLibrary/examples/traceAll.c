@@ -25,13 +25,13 @@ int main(void)
 	/* create topology */
 
 	const char *levels[] = {"Host","Process"};
-	hdTopology myTopology = hdT_createTopology("MyProject", levels, 2);
+	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 2);
 
 
 	/* create topology node */
 
 	const char *path[] = {"host0","process0"};
-	hdTopoNode myTopoNode = hdT_createTopoNode(myTopology, path, 2);
+	hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2);
 
 
 	/* create sources */

@@ -19,6 +19,8 @@
 #include <sys/time.h>
 
 #include "common.h"
+#include "hdTopo.h"
+#include "hdTopoInternal.h"
 #include "hdRelation.h"
 #include "hdError.h"
 
@@ -116,7 +118,7 @@ struct _hdRelationTopo {
 	/**
 	 * Topology leaf this trace belongs to.
 	 */
-	hdTopoNode topoNode;
+	hdTopoNode *topoNode;
 
 	/**
 	 * Unique number for the token number
@@ -293,7 +295,7 @@ static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...)
 	return 0;
 }
 
-int hdR_initTopology(hdTopoNode topNode, hdR_topoToken * outTopoToken){
+int hdR_initTopology(hdTopoNode *topNode, hdR_topoToken * outTopoToken){
 	assert(outTopoToken != NULL);
 
 	if(remoteTokenLen == 0){
