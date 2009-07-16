@@ -1,0 +1,1 @@
+SRC_DIR = $(top_srcdir)/src
