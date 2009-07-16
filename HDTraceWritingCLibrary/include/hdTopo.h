@@ -45,7 +45,7 @@ hdTopology * hdT_createTopology(
 /**
  * Get the depth of a topology.
  */
-int hdT_getTopoDepth(hdTopology *topology);
+int hdT_getTopoDepth(const hdTopology *topology);
 
 /**
  * Destroy topology object.
@@ -64,17 +64,17 @@ hdTopoNode * hdT_createTopoNode(
 /**
  * Get the topology tree level of a node.
  */
-int hdT_getTopoNodeLevel(hdTopoNode *node);
+int hdT_getTopoNodeLevel(const hdTopoNode *node);
 
 /**
  * Get the path string of a topology node.
  */
-const char * hdT_getTopoPathString(hdTopoNode *node);
+const char * hdT_getTopoPathString(const hdTopoNode *node);
 
 /**
  * Get the label of one node at the passed \a node's path.
  */
-const char * hdT_getTopoPathLabel(hdTopoNode *node, int level);
+const char * hdT_getTopoPathLabel(const hdTopoNode *node, int level);
 
 /**
  * Destroy topology node.

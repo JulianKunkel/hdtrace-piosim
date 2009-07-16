@@ -136,7 +136,7 @@ hdTopology * hdT_createTopology(
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_getTopoDepth(hdTopology *topology)
+int hdT_getTopoDepth(const hdTopology *topology)
 {
 	/* check input */
 	if (topology == NULL)
@@ -330,7 +330,7 @@ hdTopoNode * hdT_createTopoNode(
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_getTopoNodeLevel(hdTopoNode *node)
+int hdT_getTopoNodeLevel(const hdTopoNode *node)
 {
 	/* check input */
 	if (node == NULL)
@@ -365,7 +365,7 @@ int hdT_getTopoNodeLevel(hdTopoNode *node)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-const char * hdT_getTopoPathString(hdTopoNode *node)
+const char * hdT_getTopoPathString(const hdTopoNode *node)
 {
 	/* check input */
 	if (node == NULL)
@@ -409,7 +409,7 @@ const char * hdT_getTopoPathString(hdTopoNode *node)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-const char * hdT_getTopoPathLabel(hdTopoNode *node, int level)
+const char * hdT_getTopoPathLabel(const hdTopoNode *node, int level)
 {
 	/* check input */
 	if (node == NULL || level <= 0)
