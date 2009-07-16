@@ -47,7 +47,7 @@ int main(void)
 
 	/* create PerfTrace object */
 
-	PerfTrace myTrace;
+	PerfTrace *myTrace;
 	myTrace = ptl_createTrace(myTopoNode, 1, mySources, 700);
 
 	if (myTrace == NULL)

@@ -22,7 +22,7 @@
 static struct {
 	hdTopology *topology;
 	hdTopoNode *toponode;
-	PerfTrace trace;
+	PerfTrace *trace;
 } fstuff = { NULL, NULL, NULL };
 
 void sighandler(int sig) {
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 
 	/* create PerfTrace object */
 
-	PerfTrace myTrace;
+	PerfTrace *myTrace;
 	myTrace = ptl_createTrace(myTopoNode, 1, mySources, 1000);
 
 	if (myTrace == NULL)

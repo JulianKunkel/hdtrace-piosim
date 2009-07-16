@@ -69,3 +69,4 @@ void hdMPI_threadFinalizeTracing();
 #define hdMPI_threadWriteInfo(format, ...) hdT_writeInfo(hdMPI_getThreadTracefile(), format, __VA_ARGS__)
 
 
+/* here the mpi tracing function declarations are appended by create_sim-wrapper.py */

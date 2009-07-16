@@ -41,7 +41,7 @@ typedef struct PerfTrace_s
 /*                                                                           */
 /* ************************************************************************* */
 
-static int changeEnableState(PerfTrace trace, gboolean newstate);
+static int changeEnableState(PerfTrace *trace, gboolean newstate);
 
 
 /* ************************************************************************* */
@@ -61,7 +61,7 @@ int ptl_verbosity;
  *
  * @return
  */
-PerfTrace ptl_createTrace(
+PerfTrace * ptl_createTrace(
 		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
 		ptlSources sources,  /* bit field of the sources to trace */
@@ -162,7 +162,7 @@ PerfTrace ptl_createTrace(
  * @retval  0  Tracing is now enabled (was disabled before)
  * @retval  1  Tracing is enabled (as it was already before)
  */
-int ptl_startTrace(PerfTrace trace)
+int ptl_startTrace(PerfTrace *trace)
 {
 	PerfTraceStruct *myTrace = trace;
 	return changeEnableState(myTrace, TRUE);
@@ -178,7 +178,7 @@ int ptl_startTrace(PerfTrace trace)
  * @retval  0  Tracing is now disabled (was enabled before)
  * @retval  1  Tracing is disabled (as it was already before)
  */
-int ptl_stopTrace(PerfTrace trace)
+int ptl_stopTrace(PerfTrace *trace)
 {
 	PerfTraceStruct *myTrace = trace;
 	return changeEnableState(myTrace, FALSE);
@@ -187,7 +187,7 @@ int ptl_stopTrace(PerfTrace trace)
 /**
  * Destroy performance trace object
  */
-void ptl_destroyTrace(PerfTrace trace)
+void ptl_destroyTrace(PerfTrace *trace)
 {
 	PerfTraceStruct *myTrace = trace;
 

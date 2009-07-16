@@ -80,7 +80,7 @@ static void Test_C1(void)
 
 	TEST_BEGIN("ptl_createTrace: Correct usage");
 
-	PerfTrace myTrace;
+	PerfTrace *myTrace;
 	myTrace = ptl_createTrace(myTopoNode, 1, mySources, 700);
 
 	assert(myTrace != NULL);

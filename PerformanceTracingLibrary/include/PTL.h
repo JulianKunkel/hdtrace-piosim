@@ -51,7 +51,7 @@
  * ************************************************************************* */
 
 /** Type definition of performance trace object */
-typedef struct PerfTrace_s* PerfTrace;
+typedef struct PerfTrace_s PerfTrace;
 
 /** Bit field for sources to trace */
 struct ptlSources_s {
@@ -213,7 +213,7 @@ typedef struct ptlSources_s ptlSources;
  *  object with all sources set that you want to be included in the trace, you
  *  can create the PerfTrace object:
  * @code
- * PerfTrace myPerfTrace ptl_createTrace(myTopology, myTopoNode, 1,
+ * PerfTrace *myPerfTrace ptl_createTrace(myTopology, myTopoNode, 1,
  * 		mySources, 500);
  * @endcode
  *
@@ -234,7 +234,7 @@ typedef struct ptlSources_s ptlSources;
 /**
  * Create performance trace
  */
-PerfTrace ptl_createTrace(
+PerfTrace * ptl_createTrace(
 		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
 		ptlSources sources,  /* bit field of the sources to trace */
@@ -244,16 +244,16 @@ PerfTrace ptl_createTrace(
 /**
  * Start performance tracing
  */
-int ptl_startTrace(PerfTrace trace);
+int ptl_startTrace(PerfTrace *trace);
 
 /**
  * Stop performance tracing
  */
-int ptl_stopTrace(PerfTrace trace);
+int ptl_stopTrace(PerfTrace *trace);
 
 /**
  * Destroy performance trace object
  */
-void ptl_destroyTrace(PerfTrace trace);
+void ptl_destroyTrace(PerfTrace *trace);
 
 #endif /* HDPTL_H_ */
