@@ -47,8 +47,8 @@ void sighandler(int sig) {
 
 int main(int argc, char **argv)
 {
-	if (argc < 3) {
-		puts("You must give at least two arguments (Projectname, Sources)");
+	if (argc < 4) {
+		puts("You must give at least two arguments (Projectname, Cycle, Sources)");
 		return -1;
 	}
 
@@ -86,7 +86,6 @@ int main(int argc, char **argv)
 	ptlSources mySources;
 	PTLSRC_UNSET_ALL(mySources);
 
-
 	/* set sources */
 	for (int i = 2; i < argc; ++i) {
 		if (strcmp(argv[i], "ALL") == 0)
@@ -101,10 +100,18 @@ int main(int argc, char **argv)
 			PTLSRC_SET_HDD(mySources);
 	}
 
+	/* read cycle time */
+
+	int cycle;
+	if (sscanf(argv[2], "%d", &cycle) != 1) {
+		puts("Error reading cycle time");
+		return -1;
+	}
+
 	/* create PerfTrace object */
 
 	PerfTrace *myTrace;
-	myTrace = ptl_createTrace(myTopoNode, 1, mySources, 1000);
+	myTrace = ptl_createTrace(myTopoNode, 1, mySources, cycle);
 
 	if (myTrace == NULL)
 	{
