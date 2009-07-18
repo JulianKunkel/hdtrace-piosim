@@ -31,7 +31,6 @@ package de.hd.pvs.piosim.model.program.commands.superclasses;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.model.program.FileView;
 
 /**
  * Superclass for all file I/O related operations.
@@ -42,9 +41,6 @@ abstract public class FileIOCommand extends FileCommand{
 
 	@NotNull
 	protected ListIO io = null;
-
-	@NotNull
-	protected FileView fileView = null;
 
 	/**
 	 * @return the file the command should operate on.
@@ -63,13 +59,5 @@ abstract public class FileIOCommand extends FileCommand{
 
 	public void setListIO(ListIO io) {
 		this.io = io;
-	}
-
-	public FileView getFileView() {
-		return fileView;
-	}
-
-	public void setFileView(FileView fileView) {
-		this.fileView = fileView;
 	}
 }

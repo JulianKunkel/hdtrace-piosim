@@ -28,7 +28,6 @@ import javax.swing.JPanel;
 import de.hd.pvs.TraceFormat.project.datatypes.ContiguousDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
-import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype.NamedDatatypeType;
 
 /**
  * Unroll a datatype, the datatype draws a sequence of holes and used extends
@@ -69,7 +68,7 @@ public class UnrolledDatatypePanel extends JPanel{
 
 		if(datatype == null){
 			// byte datatype => sequential I/O
-			final Datatype byteDatatype  = new NamedDatatype(NamedDatatypeType.CHAR);
+			final Datatype byteDatatype  = NamedDatatype.CHAR;
 			final Datatype contig = new ContiguousDatatype(byteDatatype, (int) unrollSize);
 			final UnrolledJDatatype type = new UnrolledJDatatype(view, contig); 
 			

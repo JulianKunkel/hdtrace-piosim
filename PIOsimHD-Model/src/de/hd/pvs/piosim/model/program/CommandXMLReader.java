@@ -39,6 +39,7 @@ import de.hd.pvs.piosim.model.program.commands.Fileopen;
 import de.hd.pvs.piosim.model.program.commands.Filesetview;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
+import de.hd.pvs.piosim.model.program.fileView.FileView;
 
 public class CommandXMLReader {
 	final private Program program;
@@ -52,7 +53,7 @@ public class CommandXMLReader {
 	/**
 	 * Maps the file id to the corresponding file view (if any)
 	 */
-	final private HashMap<Integer, FileView> fileView = new HashMap<Integer, FileView>();
+	final private HashMap<Integer, FileView> fileViewMap = new HashMap<Integer, FileView>();
 
 	final private AttributeAnnotationHandler myCommonAttributeHandler;
 
@@ -121,7 +122,7 @@ public class CommandXMLReader {
 		if(cmd.getClass() == Fileclose.class){
 			int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
 			fidToFileMap.remove(fid);
-			fileView.remove(fid);
+			fileViewMap.remove(fid);
 		}
 
 		if(cmd.getClass() == Filesetview.class){
@@ -132,7 +133,7 @@ public class CommandXMLReader {
 			Datatype datatype = program.getApplication().getDatatypeMap(program.getRank()).get(filetid);
 			assert(datatype != null);
 			FileView view = new FileView(datatype, displacement);
-			fileView.put(fid, view);
+			fileViewMap.put(fid, view);
 		}
 
 		// parse File I/O command type id:
@@ -141,10 +142,19 @@ public class CommandXMLReader {
 			final long offset = Long.parseLong(commandXMLElement.getAttribute("offset"));
 			final long size = Long.parseLong(commandXMLElement.getAttribute("size"));
 
-			ListIO list = new ListIO();
-			list.addIOOperation(offset, size);
+
+			// now check if a fileview is set on the file
+			final FileView fileView = fileViewMap.get(commandXMLElement.getAttribute("fid"));
+
+			ListIO list =  new ListIO();
+
+			if(fileView == null){
+				list.addIOOperation(offset, size);
+			}else{
+				fileView.createIOOperation(list, offset, size);
+			}
+
 			fcmd.setListIO(list);
-			fcmd.setFileView( fileView.get(commandXMLElement.getAttribute("fid")) );
 		}
 
 		return cmd;

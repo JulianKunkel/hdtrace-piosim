@@ -26,8 +26,8 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.program.FileView;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
+import de.hd.pvs.piosim.model.program.fileView.FileView;
 
 /**
  * Simulates a file open (i.e. might truncate the file).

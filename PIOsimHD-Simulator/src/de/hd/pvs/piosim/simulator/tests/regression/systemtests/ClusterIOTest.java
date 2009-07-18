@@ -36,11 +36,9 @@ public class ClusterIOTest extends ClusterTest {
 	int fileNum = 10;
 	int iterNum = 10;
 	long elementSize = 4 * MBYTE;
+	ArrayList<MPIFile> files = new ArrayList<MPIFile>();
 
-	@Test
-	public void writeTest() throws Exception {
-		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
-
+	private void prepare() throws Exception{
 		testMsg();
 		setup(clientNum, serverNum);
 
@@ -54,6 +52,12 @@ public class ClusterIOTest extends ClusterTest {
 		for (int i = 0; i < fileNum; i++) {
 			pb.addFileOpen(files.get(i), world, true);
 		}
+	}
+
+
+	@Test
+	public void writeTest() throws Exception {
+		prepare();
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {

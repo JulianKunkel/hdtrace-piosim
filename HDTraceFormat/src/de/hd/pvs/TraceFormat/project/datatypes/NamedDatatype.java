@@ -1,19 +1,19 @@
-//	Copyright (C) 2009 Julian M. Kunkel
-//	
-//	This file is part of PIOsimHD.
-//	
-//	PIOsimHD is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
-//	
-//	PIOsimHD is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
-//	
-//	You should have received a copy of the GNU General Public License
-//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
+//Copyright (C) 2009 Julian M. Kunkel
+
+//This file is part of PIOsimHD.
+
+//PIOsimHD is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//PIOsimHD is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 package de.hd.pvs.TraceFormat.project.datatypes;
 
@@ -37,45 +37,88 @@ public class NamedDatatype extends Datatype{
 		LONG (4),
 		LONG_LONG (8)
 		;
-		
+
 		final int size;
-		
+
 		NamedDatatypeType(int size) {
 			this.size = size;
 		}
-		
+
 		public int getSize() {
 			return size;
 		}
 	}
-	
+
+	final static public NamedDatatype LB = new NamedDatatype(NamedDatatypeType.LB);
+	final static public NamedDatatype UB = new NamedDatatype(NamedDatatypeType.UB);
+	final static public NamedDatatype BYTE = new NamedDatatype(NamedDatatypeType.BYTE);
+	final static public NamedDatatype FLOAT = new NamedDatatype(NamedDatatypeType.FLOAT);
+	final static public NamedDatatype DOUBLE = new NamedDatatype(NamedDatatypeType.DOUBLE);
+	final static public NamedDatatype CHAR = new NamedDatatype(NamedDatatypeType.CHAR);
+	final static public NamedDatatype INTEGER = new NamedDatatype(NamedDatatypeType.INTEGER);
+	final static public NamedDatatype LONG_LONG = new NamedDatatype(NamedDatatypeType.LONG_LONG);
+	final static public NamedDatatype LONG = new NamedDatatype(NamedDatatypeType.LONG);
+
 	final NamedDatatypeType primitiveType;
-	
-	public NamedDatatype(NamedDatatypeType type) {
+
+	NamedDatatype(NamedDatatypeType type) {
 		this.primitiveType = type;
 	}
-	
+
 	public NamedDatatypeType getPrimitiveType() {
 		return primitiveType;
 	}
-	
+
 	@Override
 	public int getExtend() {
 		return primitiveType.size;
 	}
-	
+
 	@Override
 	public int getSize() {	
 		return primitiveType.size;
 	}
-	
+
 	@Override
 	public DatatypeEnum getType() {
 		return DatatypeEnum.NAMED;
 	}
-	
+
 	@Override
 	public ArrayList<Datatype> getChildDataTypes() {
 		return new ArrayList<Datatype>();
+	}
+
+	/**
+	 * Return the appropriate datatype for a given string
+	 * @param value
+	 * @return
+	 */
+	static public NamedDatatype valueOf(String value){
+		NamedDatatypeType type = NamedDatatypeType.valueOf(value);
+		switch(type){
+		case UB:
+			return UB;
+		case LB:
+			return LB;
+		case BYTE:
+			return BYTE;
+		case CHAR:
+			return CHAR;
+		case DOUBLE:
+			return DOUBLE;
+		case FLOAT:
+			return FLOAT;
+		case INT:
+			return INTEGER;
+		case INTEGER:
+			return INTEGER;
+		case LONG:
+			return LONG;
+		case LONG_LONG:
+			return LONG_LONG;
+		default:
+			return null;
+		}		
 	}
 }

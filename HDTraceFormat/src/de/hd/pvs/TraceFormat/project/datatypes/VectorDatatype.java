@@ -20,7 +20,7 @@ package de.hd.pvs.TraceFormat.project.datatypes;
 import java.util.ArrayList;
 
 public class VectorDatatype extends Datatype{
-	final int count;  
+	final int blockCount;  
 	final int blocklen; 
 	final int stride; 
 	
@@ -28,17 +28,17 @@ public class VectorDatatype extends Datatype{
 	
 	/**
 	 * @param previous Datatype
-	 * @param count number of blocks
+	 * @param blockCount number of blocks
 	 * @param blocklen number of elements in each block
 	 * @param strideElements number of elements between start of each block (might lead to holes)
 	 */
-	public VectorDatatype(Datatype previous, int count, int blocklen, int strideElements) {
+	public VectorDatatype(Datatype previous, int blockCount, int blocklen, int strideElements) {
 		this.previous = previous;
-		this.count = count;
+		this.blockCount = blockCount;
 		this.blocklen = blocklen;
 		this.stride = strideElements;
 		
-		assert(count >= 1);
+		assert(blockCount >= 1);
 		assert(blocklen >= 1);
 		
 		//TODO allow negative values in computation.
@@ -47,12 +47,12 @@ public class VectorDatatype extends Datatype{
 	
 	@Override
 	public int getExtend() {
-		return stride * blocklen* count;
+		return previous.getExtend() * stride * blockCount;
 	}
 	
 	@Override
 	public int getSize() {
-		return previous.getSize() * count * blocklen;
+		return previous.getSize() * blockCount * blocklen;
 	}
 	
 	@Override
@@ -64,8 +64,8 @@ public class VectorDatatype extends Datatype{
 		return blocklen;
 	}
 	
-	public int getCount() {
-		return count;
+	public int getBlockCount() {
+		return blockCount;
 	}
 	
 	public int getStride() {

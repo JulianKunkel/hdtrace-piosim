@@ -47,6 +47,7 @@ import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.model.program.commands.Sendrecv;
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.model.program.fileView.FileView;
 
 /**
  * This class allows a rapid creation of programs.
@@ -87,10 +88,19 @@ public class ProgramBuilder {
 	}
 
 	public void addReadSequential(int rank, MPIFile file, long offset, long seqSize) {
+		addReadFileView(rank, file, null, offset, seqSize);
+	}
+
+	public void addReadFileView(int rank, MPIFile file, FileView view, long offset, long accessSize){
 		Fileread com = new Fileread();
 		com.setFile(file);
 		ListIO lio = new ListIO();
-		lio.addIOOperation(offset, seqSize);
+
+		if(view == null){
+			view.createIOOperation(lio, offset, accessSize);
+		}else{
+			lio.addIOOperation(offset, accessSize);
+		}
 		com.setListIO(lio);
 		appBuilder.addCommand(rank, com);
 	}

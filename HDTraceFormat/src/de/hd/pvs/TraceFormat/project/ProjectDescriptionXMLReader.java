@@ -164,7 +164,7 @@ public class ProjectDescriptionXMLReader {
 		}case NAMED:{
 			String name = xml.getAttribute("name").replace("MPI_", "");
 			
-			datatype = new NamedDatatype(NamedDatatype.NamedDatatypeType.valueOf(name));
+			datatype = NamedDatatype.valueOf(name);
 			break;
 		}case STRUCT:{
 			StructDatatype struct = new StructDatatype(); 

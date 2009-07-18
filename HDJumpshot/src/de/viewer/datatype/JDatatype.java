@@ -139,7 +139,7 @@ class JDatatype extends JPanel{
 		}case VECTOR:{
 			VectorDatatype type = (VectorDatatype) datatype;
 			
-			label = new JLabel( type.getCount() + " x");
+			label = new JLabel( type.getBlockCount() + " x");
 			label.setToolTipText("Number of iterations");
 			label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 			this.add(label);
