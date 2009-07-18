@@ -177,6 +177,21 @@ AC_ARG_WITH(hdpowertrace,
     fi
 )
 
+
+
+ENABLE_FUNCTION_WRAPPER=1
+AC_ARG_ENABLE(function-wrapper,
+	      AC_HELP_STRING([--disable-function-wrapper],[Do not wrap common MPI functions, just trigger PVFS2 and PTL upon MPI_init and MPI_finalize]),
+	      [
+                ENABLE_FUNCTION_WRAPPER=0
+	      ]
+	     )
+
+if test "${ENABLE_FUNCTION_WRAPPER}" == "1"
+then
+  AC_DEFINE(ENABLE_FUNCTION_WRAPPER, 1, [Enable the common MPI function call wrapper and tracing])
+fi
+
 dnl ----------------------------------------------------------------------
 dnl Check for a suitable glib
 dnl ----------------------------------------------------------------------

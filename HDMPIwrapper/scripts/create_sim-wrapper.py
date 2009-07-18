@@ -102,6 +102,8 @@ extendedMPIDecl = StringIO.StringIO()
 
 outputHeader.write("/* The following functions just log the attributes of the corresponding MPI calls */\n")
 
+outputC.write("#ifdef ENABLE_FUNCTION_WRAPPER\n")
+
 # print all function definitions
 for i in xrange(0, len(funcs)):
   f = funcs[i]
@@ -241,13 +243,14 @@ for i in xrange(0, len(funcs)):
       outputC.write(eMpiFunc.getvalue())
 
 
+outputC.write("#endif\n\n")
+
 outputC.close()
 
 codeLocatorHeader.write("\n\n /* Extended MPI header, calls func & stores file & line */\n")
 codeLocatorHeader.write(extendedMPIDecl.getvalue())
 codeLocatorHeader.write("#if defined(__cplusplus)\n}\n#endif\n#endif\n")
 codeLocatorHeader.close()
-
 
 outputHeader.write("#endif\n\n")
 outputHeader.close()

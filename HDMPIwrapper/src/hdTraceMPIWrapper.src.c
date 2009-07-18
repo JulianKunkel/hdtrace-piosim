@@ -325,8 +325,10 @@ static void after_Init(int *argc, char ***argv)
 	const char *toponames[3] = {"Host", "Rank", "Thread"};
 	topology = hdT_createTopology(trace_file_prefix, toponames, 3);
 
+#ifdef ENABLE_FUNCTION_WRAPPER
 	/* initalize MPI main thread */
 	hdMPI_threadInitTracing();
+#endif
 
 #ifdef ENABLE_PERFORMANCE_TRACE
 # define ENABLE_PERFORMANCE_OR_POWER_TRACE
@@ -502,5 +504,25 @@ static void before_Abort()
 {
 	hdMPI_threadFinalizeTracing();
 }
+
+/**
+ * If FUNCTION Wrapper is disabled, yet init PVFS2 and PowerTracer
+ */
+#ifndef ENABLE_FUNCTION_WRAPPER
+int MPI_Init(int * v1,  char *** v2){
+  int ret;
+  ret = PMPI_Init( v1,  v2);
+  after_Init(v1, v2); 
+  return ret;
+}
+
+int MPI_Finalize(void){
+  int ret;
+  ret = PMPI_Finalize();
+
+  after_Finalize();
+  return ret;
+}
+#endif 
 
 /* here the mpi tracing function definitions are appended by create_sim-wrapper.py */
