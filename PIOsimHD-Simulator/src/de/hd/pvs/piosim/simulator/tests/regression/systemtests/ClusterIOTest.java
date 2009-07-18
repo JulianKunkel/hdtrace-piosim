@@ -27,6 +27,7 @@ import java.util.HashMap;
 
 import org.junit.Test;
 
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 
@@ -70,16 +71,17 @@ public class ClusterIOTest extends ClusterTest {
 
 		for (int i = 0; i < iterNum; i++) {
 			for (MPIFile file : files) {
-				HashMap<Integer, Long> offsets = new HashMap<Integer, Long>();
-				HashMap<Integer, Long> sizes = new HashMap<Integer, Long>();
+				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 
 				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					offsets.put(rank, (long) ((i * clientNum) + rank) * elementSize);
-					sizes.put(rank, (long) elementSize);
+					ListIO list = new ListIO();
+					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+					list.addIOOperation((((i + 1) * clientNum) + rank) * elementSize, elementSize);
+					io.put(rank, list);
 				}
 
-				pb.addWriteCollective(aB.getWorldCommunicator(), file, offsets, sizes);
-				pb.addReadCollective(aB.getWorldCommunicator(), file, offsets, sizes);
+				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
+				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 			}
 		}
 
