@@ -88,8 +88,10 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 		private GClientProcess clientProcess;
 		private CommandProcessing commandProcessing;
 
-		long twoPhaseOffset;
-		long twoPhaseSize;
+		private long twoPhaseOffset;
+		private long twoPhaseSize;
+
+		private ListIO listIO;
 
 		public FilereadallContainer(Filereadall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
 			this.command = command;
@@ -98,6 +100,8 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 			twoPhaseOffset = -1;
 			twoPhaseSize = -1;
+
+			listIO = null;
 		}
 
 		public Filereadall getCommand() {
@@ -130,6 +134,14 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 		public void setTwoPhaseSize(long twoPhaseSize) {
 			this.twoPhaseSize = twoPhaseSize;
+		}
+
+		public ListIO getListIO() {
+			return listIO;
+		}
+
+		public void setListIO(ListIO listIO) {
+			this.listIO = listIO;
 		}
 	}
 
@@ -245,6 +257,29 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			assert(myIndex >= 0);
 			assert(myContainer != null);
 
+			// FIXME Alltoall
+			FilereadallWrapper wrapper = new FilereadallWrapper(cmd);
+			List<FilereadallContainer> waitingClients = sync_blocked_clients.get(wrapper);
+
+			if (waitingClients == null) {
+				waitingClients = new ArrayList<FilereadallContainer>();
+				sync_blocked_clients.put(wrapper, waitingClients);
+			}
+
+			waitingClients.add(myContainer);
+
+			if (waitingClients.size() < cmd.getCommunicator().getSize()) {
+				OUTresults.setBlocking();
+			} else {
+				waitingClients.remove(myContainer);
+
+				for (FilereadallContainer c : waitingClients) {
+					c.getClientProcess().activateBlockedCommand(c.getCommandProcessing());
+				}
+
+				sync_blocked_clients.remove(wrapper);
+			}
+
 			perRank = (maxOffset - minOffset) / xxx.get(cmd).size();
 			myOffset = minOffset + (myIndex * perRank);
 			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
@@ -261,6 +296,8 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 				myContainer.setTwoPhaseOffset(myContainer.getTwoPhaseOffset() + myContainer.getTwoPhaseSize());
 				myContainer.setTwoPhaseSize(mySize);
 			}
+
+			myContainer.setListIO(cmd.getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()));
 
 			System.out.println("twoPhaseOffset " + myContainer.getTwoPhaseOffset());
 			System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
@@ -330,7 +367,8 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 				if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
 					System.out.println("send to " + c.getRank());
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getTwoPhaseSize() + 20), 50000, Communicator.INTERNAL_MPI);
+					// FIXME
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(c.getListIO().getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
 				}
 
 				if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {

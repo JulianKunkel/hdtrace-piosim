@@ -89,8 +89,10 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 		private GClientProcess clientProcess;
 		private CommandProcessing commandProcessing;
 
-		long twoPhaseOffset;
-		long twoPhaseSize;
+		private long twoPhaseOffset;
+		private long twoPhaseSize;
+
+		private ListIO listIO;
 
 		public FilewriteallContainer(Filewriteall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
 			this.command = command;
@@ -99,6 +101,8 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 			twoPhaseOffset = -1;
 			twoPhaseSize = -1;
+
+			listIO = null;
 		}
 
 		public Filewriteall getCommand() {
@@ -131,6 +135,14 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 		public void setTwoPhaseSize(long twoPhaseSize) {
 			this.twoPhaseSize = twoPhaseSize;
+		}
+
+		public ListIO getListIO() {
+			return listIO;
+		}
+
+		public void setListIO(ListIO listIO) {
+			this.listIO = listIO;
 		}
 	}
 
@@ -247,6 +259,8 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			assert(myIndex >= 0);
 			assert(myContainer != null);
 
+			// FIXME Alltoall
+
 			perRank = (maxOffset - minOffset) / xxx.get(cmd).size();
 			myOffset = minOffset + (myIndex * perRank);
 			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
@@ -264,6 +278,8 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 				myContainer.setTwoPhaseSize(mySize);
 			}
 
+			myContainer.setListIO(cmd.getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()));
+
 			System.out.println("twoPhaseOffset " + myContainer.getTwoPhaseOffset());
 			System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
 
@@ -279,12 +295,12 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 					if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
 						System.out.println("send to " + c.getRank());
-						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getTwoPhaseSize() + 20), 50000, Communicator.INTERNAL_MPI);
+						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
 					}
 
 					if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
 						System.out.println("recv from " + c.getRank());
-						OUTresults.addNetReceive(c.getRank(), 50000, Communicator.INTERNAL_MPI);
+						OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
 					}
 				}
 
