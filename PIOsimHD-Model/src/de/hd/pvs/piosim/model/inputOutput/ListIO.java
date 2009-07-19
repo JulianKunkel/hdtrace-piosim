@@ -26,6 +26,8 @@
 package de.hd.pvs.piosim.model.inputOutput;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Simple List of <Offset, Access-Size> tuples to allow non-contiguous I/O.
@@ -33,6 +35,18 @@ import java.util.ArrayList;
  * @author Julian M. Kunkel
  */
 public class ListIO{
+
+	final class SingleIOOperationComparator implements Comparator<SingleIOOperation> {
+		public int compare(SingleIOOperation a, SingleIOOperation b) {
+			if (a.getOffset() < b.getOffset()) {
+				return -1;
+			} else if (a.getOffset() > b.getOffset()) {
+				return 1;
+			}
+
+			return 0;
+		}
+	}
 
 	/**
 	 * Defines a single Tuple of <Offset, Size>
@@ -115,5 +129,47 @@ public class ListIO{
 			totalSize += op.getAccessSize();
 		}
 		return totalSize;
+	}
+
+	public ListIO getPartition (long offset, long size) {
+		ListIO list = new ListIO();
+
+		for (SingleIOOperation op : ioOperations) {
+			if (op.getOffset() >= offset) {
+				if (op.getOffset() + op.getAccessSize() <= offset + size) {
+					list.addIOOperation(op.getOffset(), op.getAccessSize());
+				} else {
+					long newSize = (offset + size) - op.getOffset();
+
+					if (newSize > 0) {
+						list.addIOOperation(op.getOffset(), newSize);
+					}
+				}
+			} else {
+				if (op.getOffset() + op.getAccessSize() <= offset + size) {
+					long newSize = (op.getOffset() + op.getAccessSize()) - offset;
+
+					if (newSize > 0) {
+						list.addIOOperation(offset, newSize);
+					}
+				} else {
+					list.addIOOperation(offset, size);
+				}
+			}
+		}
+
+		return list;
+	}
+
+	public ListIO getSorted () {
+		ListIO list = new ListIO();
+
+		for (SingleIOOperation op : ioOperations) {
+			list.addIOOperation(op.getOffset(), op.getAccessSize());
+		}
+
+		Collections.sort(list.ioOperations, new SingleIOOperationComparator());
+
+		return list;
 	}
 }
