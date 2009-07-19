@@ -64,7 +64,9 @@ public class ClusterIOTest extends ClusterTest {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
 //					pb.addWriteSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+//					pb.addWriteSequential(rank, f, (((i + 1) * clientNum) + rank) * elementSize, elementSize);
 //					pb.addReadSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+//					pb.addReadSequential(rank, f, (((i + 1) * clientNum) + rank) * elementSize, elementSize);
 				}
 			}
 		}
