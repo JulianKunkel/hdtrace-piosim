@@ -258,27 +258,6 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			assert(myContainer != null);
 
 			// FIXME Alltoall
-			FilereadallWrapper wrapper = new FilereadallWrapper(cmd);
-			List<FilereadallContainer> waitingClients = sync_blocked_clients.get(wrapper);
-
-			if (waitingClients == null) {
-				waitingClients = new ArrayList<FilereadallContainer>();
-				sync_blocked_clients.put(wrapper, waitingClients);
-			}
-
-			waitingClients.add(myContainer);
-
-			if (waitingClients.size() < cmd.getCommunicator().getSize()) {
-				OUTresults.setBlocking();
-			} else {
-				waitingClients.remove(myContainer);
-
-				for (FilereadallContainer c : waitingClients) {
-					c.getClientProcess().activateBlockedCommand(c.getCommandProcessing());
-				}
-
-				sync_blocked_clients.remove(wrapper);
-			}
 
 			perRank = (maxOffset - minOffset) / xxx.get(cmd).size();
 			myOffset = minOffset + (myIndex * perRank);
@@ -318,8 +297,28 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 						System.out.println(server + ": " + op);
 					}
 
+					// FIXME optimize
 					OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
 					OUTresults.addNetReceive(targetNIC, RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
+				}
+
+				for (FilereadallContainer c : xxx.get(cmd)) {
+					long theirOffset;
+
+					if (c.getRank() == myContainer.getRank()) {
+						continue;
+					}
+
+					theirOffset = minOffset + (xxx.get(cmd).indexOf(c) * perRank);
+
+					if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
+						OUTresults.addNetReceive(c.getRank(), 50001, Communicator.INTERNAL_MPI);
+					}
+
+					if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
+						// offset-length pairs
+						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
+					}
 				}
 
 				OUTresults.setNextStep(TWO_PHASE_RECV);
@@ -367,8 +366,7 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 				if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
 					System.out.println("send to " + c.getRank());
-					// FIXME
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(c.getListIO().getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(c.getCommand().getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
 				}
 
 				if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
