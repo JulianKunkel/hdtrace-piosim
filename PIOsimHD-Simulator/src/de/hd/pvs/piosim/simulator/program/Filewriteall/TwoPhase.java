@@ -296,11 +296,14 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 					if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
 						System.out.println("send to " + c.getRank());
 						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
+						// offset-length pairs
+						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getIOOperations().size() * 16 + 20), 60001, Communicator.INTERNAL_MPI);
 					}
 
 					if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
 						System.out.println("recv from " + c.getRank());
 						OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
+						OUTresults.addNetReceive(c.getRank(), 60001, Communicator.INTERNAL_MPI);
 					}
 				}
 
@@ -340,8 +343,18 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			ListIO list = new ListIO();
 			HashMap<Server, ListIO> servers;
 
-			// FIXME
-			list.addIOOperation(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize());
+			// FIXME ROMIO does read-modify-write
+			for (FilewriteallContainer c : xxx.get(cmd)) {
+				for (SingleIOOperation op : c.getCommand().getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()).getIOOperations()) {
+					list.addIOOperation(op.getOffset(), op.getAccessSize());
+				}
+			}
+
+			if (list.getTotalSize() == 0) {
+				OUTresults.setNextStep(TWO_PHASE);
+				return;
+			}
+
 			servers = cmd.getFile().getDistribution().distributeIOOperation(list, client.getSimulator().getModel().getServers());
 
 			for (Server server : servers.keySet()) {
