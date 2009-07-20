@@ -21,14 +21,14 @@
 #include "PTL.h"
 #endif
 
-static hdStatsGroup hd_facilityTrace[ALL_FACILITIES];
+static hdStatsGroup * hd_facilityTrace[ALL_FACILITIES];
 static int hd_facilityTraceStatus[ALL_FACILITIES];
 static int hdStatsGroupValue[ALL_FACILITIES];
 static gen_mutex_t hdStatsGroupMutex[ALL_FACILITIES] ;
 hdR_topoToken topoTokenArray[STATISTIC_END];
-static hdTopology topology;
+static hdTopology * topology;
 static char hostname[255];
-static hdTopoNode topoNodeArray[ALL_FACILITIES];
+static hdTopoNode * topoNodeArray[ALL_FACILITIES];
 
 #ifdef __PVFS2_CLIENT__
 const char * hdFacilityNames[] = {"BMI", "FLOW", "CLIENT", "STATISTIC_END", "ALL_FACILITIES"};
@@ -36,8 +36,8 @@ const char * hdFacilityNames[] = {"BMI", "FLOW", "CLIENT", "STATISTIC_END", "ALL
 
 #ifdef __PVFS2_SERVER__
 static ptlSources statistics;
-static PerfTrace pPerformanceTrace;
-static hdTopoNode serverRootTopology;
+static PerfTrace * pPerformanceTrace;
+static hdTopoNode * serverRootTopology;
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
 		"NET", "MEM", "CPU", "DISK", "ALL_FACILITIES"};
 gen_mutex_t trove_relation;
@@ -53,7 +53,7 @@ static int checkHostname(void)
 	return 0;
 }
 
-static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facility facilityNum)
+static void testInitFacilityStatisticTrace(hdTopoNode * topoNode , HD_Trace_Facility facilityNum)
 {	
 	hd_facilityTraceStatus[facilityNum] = 1;
 	hd_facilityTrace[facilityNum] = hdS_createGroup(hdFacilityNames[facilityNum], topoNode, 1);
@@ -68,7 +68,7 @@ static void testInitFacilityStatisticTrace(hdTopoNode topoNode , HD_Trace_Facili
 
 #ifdef __PVFS2_CLIENT__
 
-inline static void createTopologyNode(HD_Trace_Facility facility, int depth, hdTopoNode parentNode){
+inline static void createTopologyNode(HD_Trace_Facility facility, int depth, hdTopoNode * parentNode){
 	const char ** labels = malloc(sizeof(char*) * (depth + 1) );
 	int i;
 	if(labels == NULL){
@@ -84,7 +84,7 @@ inline static void createTopologyNode(HD_Trace_Facility facility, int depth, hdT
 	free(labels);
 }
 
-int PVFS_HD_client_trace_initialize(hdTopology topo, hdTopoNode parentNode)
+int PVFS_HD_client_trace_initialize(hdTopology * topo, hdTopoNode * parentNode)
 {
 	checkHostname();
 
@@ -160,7 +160,7 @@ printf("topology %p\n",topology);
 	{
 	const char *path[] = {hostname};
 	serverRootTopology = hdT_createTopoNode(topology, path, 1);
-	printf("serverRootTopology %p\n",serverRootTopology);
+	printf("serverRootTopology %p\n",&serverRootTopology);
 	}
 
 	int enableStats = 0;

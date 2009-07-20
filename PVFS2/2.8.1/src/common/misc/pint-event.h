@@ -9,10 +9,6 @@
 
 #include "pvfs2-types.h"
 
-#ifdef __PVFS2_CLIENT__
-#include "pint-event-hd-client.h"
-#endif
-
 #include "pint-event-hd.h"
 #include "pint-hint.h"
 

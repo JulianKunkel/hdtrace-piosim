@@ -97,7 +97,7 @@ typedef enum {
 } HD_Trace_Facility;
 
 
-
+int PVFS_HD_client_trace_initialize(hdTopology * topo, hdTopoNode * parentNode);
 
 #define HD_CLIENT_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
