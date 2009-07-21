@@ -101,12 +101,13 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 	char attr1[15], atrr2[15]; 
 
 	const char * io_keys[] = {"size","offset"};
-	const char * io_values[] = {attr1, atrr2};
+	char * io_values[] = {attr1, atrr2}; // for using snprintf, no const char !
+	const char * c_io_values[2]; // passing to const char !
 	
 	const char * small_io_keys[] = {"size"};
-	const char * small_io_values[] = {attr1};
+	char * small_io_values[] = {attr1};
+	const char * c_small_io_values[1]; // passing to const char !
 #endif
-	
 	HD_STMT_TOKEN(
 #ifdef __PVFS2_SERVER__			
 			PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
@@ -115,12 +116,15 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 			case (PVFS_SERV_IO):{
 				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.io_size));
 				snprintf(io_values[1], 15, "%lld", lld(s_op->u.io.io_offset));
-				hdR_end(smcb->smToken, 1, io_keys, io_values);
+				c_io_values[0] = io_values[0]; 
+				c_io_values[1] = io_values[1]; 
+				hdR_end(smcb->smToken, 1, io_keys, c_io_values);
 				break;
 			}
 			case (PVFS_SERV_SMALL_IO):
 				snprintf(small_io_values[0], 15, "%lld", lld(s_op->resp.u.small_io.result_size));
-				hdR_end(smcb->smToken, 1, small_io_keys, small_io_values);	
+				c_small_io_values[0] = small_io_values[0];
+				hdR_end(smcb->smToken, 1, small_io_keys, c_small_io_values);	
 				break;
 			default:
 				hdR_endS(smcb->smToken);	
@@ -390,7 +394,7 @@ PINT_sm_action PINT_state_machine_next(struct PINT_smcb *smcb, job_status_s *r)
 		 * onto a stack */
 		while (smcb->current_state->flag == SM_JUMP)
 		{
-			char * machine_name;
+			const char * machine_name;
 			machine_name = PINT_state_machine_current_machine_name(smcb);
 
 			PINT_push_state(smcb, smcb->current_state);

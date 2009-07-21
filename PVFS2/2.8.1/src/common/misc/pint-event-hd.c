@@ -5,7 +5,7 @@
 #include "hdStats.h"
 #include "hdError.h"
 #include "pint-event.h"
-#include  "str-utils.h"
+#include "str-utils.h"
 #include "state-machine.h"
 #include "gen-locks.h"
 #include <sys/time.h>
@@ -102,7 +102,7 @@ int PVFS_HD_client_trace_initialize(hdTopology * topo, hdTopoNode * parentNode)
 	const char * clientTraceNames = getenv("PVFS2_HD_TRACE_CLIENT");
 	
 	if (clientTraceNames == NULL){
-		printf("the enviroment variable PVFS2_HD_TRACE_CLIENT not set in %s!\n",hostname);
+		printf("no client trace, cause the enviroment variable PVFS2_HD_TRACE_CLIENT is not set in %s!\n",hostname);
 	}
 	else
 	{

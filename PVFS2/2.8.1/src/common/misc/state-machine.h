@@ -9,8 +9,7 @@
 
 #include "job.h"
 #include "quicklist.h"
-#include "hdRelation.h"
-#include "pint-event-hd.h"
+#include "pint-event.h"
 
 
 /* STATE-MACHINE.H

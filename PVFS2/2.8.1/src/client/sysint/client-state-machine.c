@@ -410,10 +410,8 @@ PVFS_error PINT_client_state_machine_post(
 
     		int p ;
     		for (p = 0 ; p < smcb->stackptr; p++){
-//    			printf("Pappschuber %s\n", smcb->state_stack[p].state->parent_machine->name);
         		hdR_startS(smcb->smToken, smcb->state_stack[p].state->parent_machine->name);
     		}
-//    		printf("LAMER %s\n",PINT_state_machine_current_machine_name(smcb));
 	)
 	
 

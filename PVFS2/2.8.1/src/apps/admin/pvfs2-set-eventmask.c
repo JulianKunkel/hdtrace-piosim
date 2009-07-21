@@ -193,10 +193,8 @@ static struct options* parse_args(int argc, char* argv[])
 static void usage(int argc, char** argv)
 {
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Usage  : %s [-m fs_mount_point] "
+	fprintf(stderr, "Usage  : %s -m fs_mount_point "
 			"[-e events (e.g. server,bmi,trove,flow,req,breq,net,cpu,mem,disk) [-d <disable>]  -l location\n", argv[0]);
-	//    fprintf(stderr, "Example: %s -m /mnt/pvfs2 -e bmi-send,dbpf-write\n",
-	//            argv[0]);
 	return;
 }
 

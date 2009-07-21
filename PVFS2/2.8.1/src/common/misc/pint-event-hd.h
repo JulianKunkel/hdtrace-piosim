@@ -12,7 +12,6 @@
 
 #include "hdStats.h"
 #include "hdError.h"
-#include "pint-event.h"
 #include "hdRelation.h"
 #include "gen-locks.h"
 
@@ -39,7 +38,8 @@ typedef enum {
 #define IO_TROVE_RELATION(hints, name, CMD, p_size, size, p_offset, offset) \
 	const char * io_keys[] = {"size","offset"}; \
 	char attr1[15],attr2[15]; \
-	const char * io_values[] = {attr1, attr2}; \
+	char * io_values[] = {attr1, attr2}; \
+	const char * c_io_values[2]; \
 	int run = 1; \
 	HD_SERVER_RELATION(SERVER, \
 			hdR_token relateToken = NULL; \
@@ -63,9 +63,11 @@ typedef enum {
 				\
 				snprintf(io_values[0], 15, p_size, size); \
 				snprintf(io_values[1], 15, p_offset, offset); \
+				c_io_values[0] = io_values[0]; \
+				c_io_values[1] = io_values[1]; \
 				\
 				gen_mutex_lock(&trove_relation); \
-				hdR_end(relateToken,2,io_keys,io_values); \
+				hdR_end(relateToken,2,io_keys,c_io_values); \
 				hdR_destroyRelation(&relateToken); \
 				gen_mutex_unlock(&trove_relation); \
 			} \
@@ -96,8 +98,6 @@ typedef enum {
 	ALL_FACILITIES
 } HD_Trace_Facility;
 
-
-int PVFS_HD_client_trace_initialize(hdTopology * topo, hdTopoNode * parentNode);
 
 #define HD_CLIENT_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
