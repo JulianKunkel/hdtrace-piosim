@@ -96,7 +96,7 @@ public class ProgramBuilder {
 		com.setFile(file);
 		ListIO lio = new ListIO();
 
-		if(view == null){
+		if(view != null){
 			view.createIOOperation(lio, offset, accessSize);
 		}else{
 			lio.addIOOperation(offset, accessSize);
