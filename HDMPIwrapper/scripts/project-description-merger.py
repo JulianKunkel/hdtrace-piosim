@@ -177,7 +177,7 @@ class File:
               ('  <InitialSize>%s</InitialSize>\n' % self.size) +
               ('  <Distribution class="%s">\n' % self.distribution_class) +
               ('  <ChunkSize>%s</ChunkSize>\n' % self.chunk_size) +
-	       '  </Distribution\n' +
+	       '  </Distribution>\n' +
               (' </File>\n' )) 
 
 
