@@ -302,8 +302,8 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 					if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
 						System.out.println("recv from " + c.getRank());
-						OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
 						OUTresults.addNetReceive(c.getRank(), 60001, Communicator.INTERNAL_MPI);
+						OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
 					}
 				}
 
@@ -317,8 +317,6 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 		case (TWO_PHASE_SEND): {
 			long minOffset = xxx.get(cmd).get(0).getCommand().getStartOffset();
 			long maxOffset = xxx.get(cmd).get(0).getCommand().getEndOffset();
-			long perRank;
-			long myOffset;
 			int myIndex = -1;
 			FilewriteallContainer myContainer = null;
 
@@ -334,9 +332,6 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 			assert(myIndex >= 0);
 			assert(myContainer != null);
-
-			perRank = (maxOffset - minOffset) / xxx.get(cmd).size();
-			myOffset = minOffset + (myIndex * perRank);
 
 			System.out.println("rank " + myContainer.getRank());
 
