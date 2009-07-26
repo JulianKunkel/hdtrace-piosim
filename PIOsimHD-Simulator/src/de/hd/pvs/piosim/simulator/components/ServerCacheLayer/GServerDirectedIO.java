@@ -95,8 +95,10 @@ public class GServerDirectedIO extends GAggregationCache {
 		 * the merged IOJob would be larger than IOGranularity, the old (merged)
 		 * IOJob is inserted into a new job queue (the old one can not be modified
 		 * without invalidating the iterator) and a new merge is started.
+		 *
 		 * Special care must be taken with regards to pendingReadRequestMap. */
 		while (it.hasNext()) {
+			long holeSize;
 			IOJob cur = it.next();
 
 			/* FIXME: Determine file. */
@@ -114,8 +116,11 @@ public class GServerDirectedIO extends GAggregationCache {
 				continue;
 			}
 
-			if (offset + size + (getSimulator().getModel().getGlobalSettings().getIOGranularity() / 10) >= cur.getOffset()) {
-				/* Merge two IOJobs. We allow holes of size (IOGranularity / 10). */
+			holeSize = 0;
+			holeSize = getSimulator().getModel().getGlobalSettings().getIOGranularity() / 10;
+
+			if (offset + size + holeSize >= cur.getOffset()) {
+				/* Merge two IOJobs. We allow holes, that is, perform data sieving. */
 				long newOffset;
 				long newSize;
 
