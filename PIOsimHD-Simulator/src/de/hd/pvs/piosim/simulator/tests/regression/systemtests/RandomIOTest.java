@@ -48,9 +48,13 @@ public class RandomIOTest extends ClusterTest {
 
 	int serverNum = 5;
 	int clientNum = 10;
-	int fileNum = 10;
-	int iterNum = 10;
-	long elementSize = 4 * KBYTE;
+	int fileNum = 1;
+	int iterNum = 100;
+	long elementSize = 512;
+//	long elementSize = 50 * KBYTE;
+//	long elementSize = 5 * MBYTE;
+	// PVFS default
+	long stripeSize = 64 * KBYTE;
 
 	@Test
 	public SimulationResults writeTest() throws Exception {
@@ -61,7 +65,7 @@ public class RandomIOTest extends ClusterTest {
 		setup(clientNum, serverNum);
 
 		SimpleStripe dist = new SimpleStripe();
-		dist.setChunkSize(elementSize);
+		dist.setChunkSize(stripeSize);
 
 		for (int i = 0; i < fileNum; i++) {
 			files.add(aB.createFile("testfile" + i, 0, dist));
@@ -74,7 +78,7 @@ public class RandomIOTest extends ClusterTest {
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
-					TestTuple tuple = new TestTuple(i, f, ((i * clientNum) + rank) * elementSize, elementSize);
+					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
 					tuples.add(tuple);
 				}
 			}
