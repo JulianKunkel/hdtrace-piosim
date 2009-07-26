@@ -136,13 +136,15 @@ public class RandomIOTest extends ClusterTest {
 		double writeTime = 0;
 		double readTime = 0;
 
-		RandomIOTest t = new RandomIOTest();
+		RandomIOTest t;
 
 		for (int i = 0; i < iterations; i++) {
+			t = new RandomIOTest();
 			writeTime += t.writeTest().getVirtualTime().getDouble();
 		}
 
 		for (int i = 0; i < iterations; i++) {
+			t = new RandomIOTest();
 			readTime += t.readTest().getVirtualTime().getDouble();
 		}
 

@@ -124,13 +124,15 @@ public class ClusterIOTest extends ClusterTest {
 		double writeTime = 0;
 		double readTime = 0;
 
-		ClusterIOTest t = new ClusterIOTest();
+		ClusterIOTest t;
 
 		for (int i = 0; i < iterations; i++) {
+			t = new ClusterIOTest();
 			writeTime += t.writeTest().getVirtualTime().getDouble();
 		}
 
 		for (int i = 0; i < iterations; i++) {
+			t = new ClusterIOTest();
 			readTime += t.readTest().getVirtualTime().getDouble();
 		}
 
