@@ -42,7 +42,6 @@ import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
@@ -83,6 +82,7 @@ public class ClusterTest {
 
 	protected void setup(int clients, int servers) throws Exception {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
+//		parameters.setDebugEverything(true);
 
 		mb = createDisjointClusterModel(clients, servers);
 		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", clients, 1);
@@ -199,7 +199,7 @@ public class ClusterTest {
 		AggregationCache cacheImpl = new AggregationCache(); // NoCache()
 //		ServerDirectedIO cacheImpl = new ServerDirectedIO();
 		cacheImpl.setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
-		// NoCache cacheImpl = new NoCache();
+//		NoCache cacheImpl = new NoCache();
 		cacheImpl.setMaxNumberOfConcurrentIOOps(1);
 		serverTemplate.setCacheImplementation(cacheImpl);
 
