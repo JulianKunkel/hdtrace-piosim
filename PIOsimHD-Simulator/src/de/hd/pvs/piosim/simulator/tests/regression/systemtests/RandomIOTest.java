@@ -90,6 +90,37 @@ public class RandomIOTest extends ClusterTest {
 			pb.addWriteSequential(t.rank, t.file, t.offset, t.size);
 		}
 
+		return runSimulationAllExpectedToFinish();
+	}
+
+	@Test
+	public SimulationResults readTest() throws Exception {
+		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
+		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
+
+		testMsg();
+		setup(clientNum, serverNum);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(stripeSize);
+
+		for (int i = 0; i < fileNum; i++) {
+			files.add(aB.createFile("testfile" + i, (clientNum * iterNum) * elementSize, dist));
+		}
+
+		for (int i = 0; i < fileNum; i++) {
+			pb.addFileOpen(files.get(i), world, false);
+		}
+
+		for (int i = 0; i < iterNum; i++) {
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+				for (MPIFile f : files) {
+					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+					tuples.add(tuple);
+				}
+			}
+		}
+
 		Collections.shuffle(tuples);
 
 		for (TestTuple t : tuples) {
@@ -102,13 +133,20 @@ public class RandomIOTest extends ClusterTest {
 	public static void main(String[] args) throws Exception {
 		final int iterations = 10;
 
-		double time = 0;
+		double writeTime = 0;
+		double readTime = 0;
+
 		RandomIOTest t = new RandomIOTest();
 
 		for (int i = 0; i < iterations; i++) {
-			time += t.writeTest().getVirtualTime().getDouble();
+			writeTime += t.writeTest().getVirtualTime().getDouble();
 		}
 
-		System.out.println(iterations + " runs: " + time + "s, " + (time / iterations) + "s avg");
+		for (int i = 0; i < iterations; i++) {
+			readTime += t.readTest().getVirtualTime().getDouble();
+		}
+
+		System.out.println("WRITE " + iterations + " runs: " + writeTime + "s, " + (writeTime / iterations) + "s avg");
+		System.out.println("READ  " + iterations + " runs: " + readTime + "s, " + (readTime / iterations) + "s avg");
 	}
 }

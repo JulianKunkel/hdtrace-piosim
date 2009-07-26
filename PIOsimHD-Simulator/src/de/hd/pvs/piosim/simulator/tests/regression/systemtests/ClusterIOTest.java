@@ -44,7 +44,7 @@ public class ClusterIOTest extends ClusterTest {
 	long stripeSize = 64 * KBYTE;
 	ArrayList<MPIFile> files = new ArrayList<MPIFile>();
 
-	private void prepare() throws Exception{
+	private void prepare(boolean isWrite) throws Exception{
 		testMsg();
 		setup(clientNum, serverNum);
 
@@ -52,32 +52,50 @@ public class ClusterIOTest extends ClusterTest {
 		dist.setChunkSize(stripeSize);
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, 0, dist));
+			files.add(aB.createFile("testfile" + i, (isWrite) ? 0 : (clientNum * iterNum) * elementSize, dist));
 		}
 
 		for (int i = 0; i < fileNum; i++) {
-			pb.addFileOpen(files.get(i), world, true);
+			pb.addFileOpen(files.get(i), world, isWrite);
 		}
 	}
 
-
 	@Test
 	public SimulationResults writeTest() throws Exception {
-		prepare();
+		prepare(true);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
 					pb.addWriteSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
-//					pb.addReadSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
 				}
 			}
 		}
 
 		for (int i = 0; i < iterNum; i++) {
+			for (MPIFile file : files) {
+				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					ListIO list = new ListIO();
+					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+					io.put(rank, list);
+				}
+
+//				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
+			}
+		}
+
+		return runSimulationAllExpectedToFinish();
+	}
+
+	@Test
+	public SimulationResults readTest() throws Exception {
+		prepare(false);
+
+		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
-//					pb.addWriteSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
 					pb.addReadSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
 				}
 			}
@@ -93,23 +111,7 @@ public class ClusterIOTest extends ClusterTest {
 					io.put(rank, list);
 				}
 
-				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
 //				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
-			}
-		}
-
-		for (int i = 0; i < iterNum; i++) {
-			for (MPIFile file : files) {
-				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
-
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					ListIO list = new ListIO();
-					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
-					io.put(rank, list);
-				}
-
-//				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
-				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 			}
 		}
 
@@ -119,13 +121,20 @@ public class ClusterIOTest extends ClusterTest {
 	public static void main(String[] args) throws Exception {
 		final int iterations = 10;
 
-		double time = 0;
+		double writeTime = 0;
+		double readTime = 0;
+
 		ClusterIOTest t = new ClusterIOTest();
 
 		for (int i = 0; i < iterations; i++) {
-			time += t.writeTest().getVirtualTime().getDouble();
+			writeTime += t.writeTest().getVirtualTime().getDouble();
 		}
 
-		System.out.println(iterations + " runs: " + time + "s, " + (time / iterations) + "s avg");
+		for (int i = 0; i < iterations; i++) {
+			readTime += t.readTest().getVirtualTime().getDouble();
+		}
+
+		System.out.println("WRITE " + iterations + " runs: " + writeTime + "s, " + (writeTime / iterations) + "s avg");
+		System.out.println("READ  " + iterations + " runs: " + readTime + "s, " + (readTime / iterations) + "s avg");
 	}
 }
