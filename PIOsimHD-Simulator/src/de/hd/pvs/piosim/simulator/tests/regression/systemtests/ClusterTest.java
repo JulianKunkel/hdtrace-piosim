@@ -214,7 +214,7 @@ public class ClusterTest {
 		return mb;
 	}
 
-	protected void runSimulationAllExpectedToFinish() throws Exception {
+	protected SimulationResults runSimulationAllExpectedToFinish() throws Exception {
 		mb.setApplication("Jacobi", app);
 
 		ModelSortIDbySubcomponents sorter = new ModelSortIDbySubcomponents();
@@ -238,6 +238,8 @@ public class ClusterTest {
 						+ " not finished");
 			}
 		}
+
+		return simRes;
 	}
 
 	public Application createSetSimpleApplication() throws Exception {

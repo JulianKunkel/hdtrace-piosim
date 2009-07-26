@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
+import de.hd.pvs.piosim.simulator.SimulationResults;
 
 public class RandomIOTest extends ClusterTest {
 	final class TestTuple {
@@ -52,7 +53,7 @@ public class RandomIOTest extends ClusterTest {
 	long elementSize = 4 * KBYTE;
 
 	@Test
-	public void writeTest() throws Exception {
+	public SimulationResults writeTest() throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
 
@@ -91,11 +92,19 @@ public class RandomIOTest extends ClusterTest {
 			pb.addReadSequential(t.rank, t.file, t.offset, t.size);
 		}
 
-		runSimulationAllExpectedToFinish();
+		return runSimulationAllExpectedToFinish();
 	}
 
 	public static void main(String[] args) throws Exception {
+		final int iterations = 10;
+
+		double time = 0;
 		RandomIOTest t = new RandomIOTest();
-		t.writeTest();
+
+		for (int i = 0; i < iterations; i++) {
+			time += t.writeTest().getVirtualTime().getDouble();
+		}
+
+		System.out.println(iterations + " runs: " + time + "s, " + (time / iterations) + "s avg");
 	}
 }

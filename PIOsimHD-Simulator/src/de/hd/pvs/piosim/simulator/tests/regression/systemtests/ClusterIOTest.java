@@ -30,6 +30,7 @@ import org.junit.Test;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
+import de.hd.pvs.piosim.simulator.SimulationResults;
 
 public class ClusterIOTest extends ClusterTest {
 	int serverNum = 5;
@@ -61,7 +62,7 @@ public class ClusterIOTest extends ClusterTest {
 
 
 	@Test
-	public void writeTest() throws Exception {
+	public SimulationResults writeTest() throws Exception {
 		prepare();
 
 		for (int i = 0; i < iterNum; i++) {
@@ -112,11 +113,19 @@ public class ClusterIOTest extends ClusterTest {
 			}
 		}
 
-		runSimulationAllExpectedToFinish();
+		return runSimulationAllExpectedToFinish();
 	}
 
 	public static void main(String[] args) throws Exception {
+		final int iterations = 10;
+
+		double time = 0;
 		ClusterIOTest t = new ClusterIOTest();
-		t.writeTest();
+
+		for (int i = 0; i < iterations; i++) {
+			time += t.writeTest().getVirtualTime().getDouble();
+		}
+
+		System.out.println(iterations + " runs: " + time + "s, " + (time / iterations) + "s avg");
 	}
 }
