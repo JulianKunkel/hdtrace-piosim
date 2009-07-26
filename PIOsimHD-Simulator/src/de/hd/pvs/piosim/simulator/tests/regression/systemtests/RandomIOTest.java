@@ -24,6 +24,7 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -121,7 +122,7 @@ public class RandomIOTest extends ClusterTest {
 			}
 		}
 
-		Collections.shuffle(tuples);
+		Collections.shuffle(tuples, new Random(42));
 
 		for (TestTuple t : tuples) {
 			pb.addReadSequential(t.rank, t.file, t.offset, t.size);
@@ -131,24 +132,23 @@ public class RandomIOTest extends ClusterTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		final int iterations = 10;
-
-		double writeTime = 0;
-		double readTime = 0;
+		SimulationResults writeRes = null;
+		SimulationResults readRes = null;
 
 		RandomIOTest t;
 
-		for (int i = 0; i < iterations; i++) {
-			t = new RandomIOTest();
-			writeTime += t.writeTest().getVirtualTime().getDouble();
+		t = new RandomIOTest();
+		writeRes = t.writeTest();
+
+		t = new RandomIOTest();
+		readRes = t.readTest();
+
+		if (writeRes != null) {
+			System.out.println("WRITE " + writeRes.getVirtualTime().getDouble() + "s");
 		}
 
-		for (int i = 0; i < iterations; i++) {
-			t = new RandomIOTest();
-			readTime += t.readTest().getVirtualTime().getDouble();
+		if (readRes != null) {
+			System.out.println("READ  " + readRes.getVirtualTime().getDouble() + "s");
 		}
-
-		System.out.println("WRITE " + iterations + " runs: " + writeTime + "s, " + (writeTime / iterations) + "s avg");
-		System.out.println("READ  " + iterations + " runs: " + readTime + "s, " + (readTime / iterations) + "s avg");
 	}
 }

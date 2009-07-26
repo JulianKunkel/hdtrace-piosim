@@ -42,9 +42,11 @@ public class ClusterIOTest extends ClusterTest {
 //	long elementSize = 5 * MBYTE;
 	// PVFS default
 	long stripeSize = 64 * KBYTE;
-	ArrayList<MPIFile> files = new ArrayList<MPIFile>();
 
-	private void prepare(boolean isWrite) throws Exception{
+	@Test
+	public SimulationResults writeTest() throws Exception {
+		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
+
 		testMsg();
 		setup(clientNum, serverNum);
 
@@ -52,17 +54,12 @@ public class ClusterIOTest extends ClusterTest {
 		dist.setChunkSize(stripeSize);
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, (isWrite) ? 0 : (clientNum * iterNum) * elementSize, dist));
+			files.add(aB.createFile("testfile" + i, 0, dist));
 		}
 
 		for (int i = 0; i < fileNum; i++) {
-			pb.addFileOpen(files.get(i), world, isWrite);
+			pb.addFileOpen(files.get(i), world, true);
 		}
-	}
-
-	@Test
-	public SimulationResults writeTest() throws Exception {
-		prepare(true);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
@@ -91,7 +88,21 @@ public class ClusterIOTest extends ClusterTest {
 
 	@Test
 	public SimulationResults readTest() throws Exception {
-		prepare(false);
+		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
+
+		testMsg();
+		setup(clientNum, serverNum);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(stripeSize);
+
+		for (int i = 0; i < fileNum; i++) {
+			files.add(aB.createFile("testfile" + i, (clientNum * iterNum) * elementSize, dist));
+		}
+
+		for (int i = 0; i < fileNum; i++) {
+			pb.addFileOpen(files.get(i), world, false);
+		}
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
@@ -119,24 +130,23 @@ public class ClusterIOTest extends ClusterTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		final int iterations = 10;
-
-		double writeTime = 0;
-		double readTime = 0;
+		SimulationResults writeRes = null;
+		SimulationResults readRes = null;
 
 		ClusterIOTest t;
 
-		for (int i = 0; i < iterations; i++) {
-			t = new ClusterIOTest();
-			writeTime += t.writeTest().getVirtualTime().getDouble();
+		t = new ClusterIOTest();
+		writeRes = t.writeTest();
+
+		t = new ClusterIOTest();
+		readRes = t.readTest();
+
+		if (writeRes != null) {
+			System.out.println("WRITE " + writeRes.getVirtualTime().getDouble() + "s");
 		}
 
-		for (int i = 0; i < iterations; i++) {
-			t = new ClusterIOTest();
-			readTime += t.readTest().getVirtualTime().getDouble();
+		if (readRes != null) {
+			System.out.println("READ  " + readRes.getVirtualTime().getDouble() + "s");
 		}
-
-		System.out.println("WRITE " + iterations + " runs: " + writeTime + "s, " + (writeTime / iterations) + "s avg");
-		System.out.println("READ  " + iterations + " runs: " + readTime + "s, " + (readTime / iterations) + "s avg");
 	}
 }
