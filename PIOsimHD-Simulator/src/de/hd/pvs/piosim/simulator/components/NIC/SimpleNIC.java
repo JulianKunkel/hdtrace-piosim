@@ -2,24 +2,24 @@
 /** Version Control Information $Id$
  * @lastmodified    $Date$
  * @modifiedby      $LastChangedBy$
- * @version         $Revision$ 
+ * @version         $Revision$
  */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -54,15 +54,15 @@ import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
 /**
  * Simulates a Network Interface Card.
- * 
- * A NIC is split into NIC upload (TX - realized by subclasses) and NIC download (RX) 
+ *
+ * A NIC is split into NIC upload (TX - realized by subclasses) and NIC download (RX)
  * (directly incorporated in the main class).
- * 
+ *
  * @author Julian M. Kunkel
  */
 public class SimpleNIC extends GNIC<NIC>{
-	/** matches via Tag suffice, this hashMap contains Sends which are performed before a client put a Receive on it */	
-	private HashMap<MSGMatchingCriterion, LinkedList<SingleNetworkJob>> mapReceivedMsgsBeforePost = new 
+	/** matches via Tag suffice, this hashMap contains Sends which are performed before a client put a Receive on it */
+	private HashMap<MSGMatchingCriterion, LinkedList<SingleNetworkJob>> mapReceivedMsgsBeforePost = new
 	HashMap<MSGMatchingCriterion, LinkedList<SingleNetworkJob>>();
 
 	/** Posted receives before the matching message got received */
@@ -70,7 +70,7 @@ public class SimpleNIC extends GNIC<NIC>{
 		new HashMap<MSGMatchingCriterion, SingleNetworkJob>();
 
 	/** Posted any source messages but with a communicator and tag */
-	private HashMap<Communicator, HashMap<Integer, SingleNetworkJob >> mapPostedAnySourceWithTag = 
+	private HashMap<Communicator, HashMap<Integer, SingleNetworkJob >> mapPostedAnySourceWithTag =
 		new HashMap<Communicator, HashMap<Integer,SingleNetworkJob>>();
 
 	/**
@@ -80,7 +80,7 @@ public class SimpleNIC extends GNIC<NIC>{
 
 	/**
 	 * This class uploads data from the NIC to the target.
-	 * 
+	 *
 	 * @author Julian M. Kunkel
 	 */
 	public class GNICUpload extends SNetworkComponent<FakeBasicComponent>{
@@ -107,10 +107,10 @@ public class SimpleNIC extends GNIC<NIC>{
 		}
 
 		@Override
-		protected SFlowComponent getTargetFlowComponent(MessagePart event) {			
+		protected SFlowComponent getTargetFlowComponent(MessagePart event) {
 			if(getAttachedNode().isNodeLocal(event.getNetworkJob().getTargetComponent().getIdentifier())){
 				// upload directly to the local maschine.
-				return null; 
+				return null;
 			}else{
 				return getConnectedComponent();
 			}
@@ -119,10 +119,10 @@ public class SimpleNIC extends GNIC<NIC>{
 		@Override
 		protected Epoch getMaximumProcessingTime() {
 			double minBW = getAttachedNode().getModelComponent().getInternalDataTransferSpeed();
-			double newBW =  getModelNIC().getConnection().getBandwidth();			
+			double newBW =  getModelNIC().getConnection().getBandwidth();
 
 			if(newBW < minBW){
-				minBW = newBW; 
+				minBW = newBW;
 			}
 
 			return new Epoch(getSimulator().getModel().getGlobalSettings().getTransferGranularity() / minBW);
@@ -139,12 +139,12 @@ public class SimpleNIC extends GNIC<NIC>{
 			if(getAttachedNode().isNodeLocal(msgPart.getNetworkJob().getTargetComponent().getIdentifier())){
 				// local transfer is done with full speed.
 				return new Epoch(msgPart.getSize() / (double) getAttachedNode().getModelComponent().getInternalDataTransferSpeed());
-			}	
+			}
 
 			/* depends on model component */
 			Connection connection = getModelNIC().getConnection();
-			/* the latency is NOT added here ! */ 
-			return new Epoch(msgPart.getSize() / (double) connection.getBandwidth());		
+			/* the latency is NOT added here ! */
+			return new Epoch(msgPart.getSize() / (double) connection.getBandwidth());
 		}
 
 		@Override
@@ -169,7 +169,7 @@ public class SimpleNIC extends GNIC<NIC>{
 			if(eventData.getNetworkJob().isPartialSendCallbackActive()){
 				/* always confirm reception, for flow receives */
 				hostedSrc.sendMsgPartCB(getGNIC(), eventData, endTime);
-			}				
+			}
 
 			if(newMsgPart == null){
 				//if( p.isLastPart() ){
@@ -179,7 +179,7 @@ public class SimpleNIC extends GNIC<NIC>{
 				//}
 				NetworkJobs jobs = eventData.getNetworkJob().getParentNetworkJobs();
 
-				if (jobs != null){	
+				if (jobs != null){
 
 					jobs.jobCompletedSend();
 
@@ -219,7 +219,7 @@ public class SimpleNIC extends GNIC<NIC>{
 	/**
 	 * Append some new data to a message i.e. new data gets available for a message and can be
 	 * transferred.
-	 * 
+	 *
 	 * @param message
 	 * @param count
 	 */
@@ -231,7 +231,7 @@ public class SimpleNIC extends GNIC<NIC>{
 		/**
 		 * Several cases:
 		 * - message is now completed => enforce creation of remaining bytes
-		 * - message is not completed: 
+		 * - message is not completed:
 		 * -- is more than transfer granularity in the buffer => send transfer granularity bytes
 		 * -- otherwise wait for new data
 		 */
@@ -245,7 +245,7 @@ public class SimpleNIC extends GNIC<NIC>{
 			Epoch time = getSimulator().getVirtualTime();
 			Event<MessagePart> event = new Event<MessagePart>(this, upload, time ,newPart);
 
-			getSimulator().submitNewEvent(event);	
+			getSimulator().submitNewEvent(event);
 			return;
 		}
 
@@ -254,11 +254,11 @@ public class SimpleNIC extends GNIC<NIC>{
 			MessagePart newPart = message.createNextMessagePart(transferGranularity);
 			Epoch time = getSimulator().getVirtualTime();
 			Event<MessagePart> event = new Event<MessagePart>(this, upload, time ,newPart);
-			
+
 			getSimulator().submitNewEvent(event);
 			return;
 		}
-		
+
 		// wait for more data
 	}
 
@@ -269,7 +269,7 @@ public class SimpleNIC extends GNIC<NIC>{
 		 * Set the simulated model component to the same as the NICs
 		 * this shall never happen !!!
 		 */
-		FakeBasicComponent c = new FakeBasicComponent(comp.getIdentifier().getName()+ " upload", 
+		FakeBasicComponent c = new FakeBasicComponent(comp.getIdentifier().getName()+ " upload",
 				sim.getModel(), comp);
 		this.upload.setSimulatedModelComponent(	c , sim		);
 	}
@@ -288,7 +288,7 @@ public class SimpleNIC extends GNIC<NIC>{
 
 		p.getMessage().receivePart(p);
 
-		//getSimulator().getTraceWriter().arrowEnd( TraceType.INTERNAL, event.getIssuingComponent(), 
+		//getSimulator().getTraceWriter().arrowEnd( TraceType.INTERNAL, event.getIssuingComponent(),
 		//		p.getNetworkJob().getTargetComponent().getSimulatorObject(), p);
 
 		ISNodeHostedComponent hostedTgt = p.getNetworkJob().getTargetComponent();
@@ -313,7 +313,7 @@ public class SimpleNIC extends GNIC<NIC>{
 			//}
 			//System.out.println("expected Job: " +  expectedJob);
 
-			// TODO match also ANY_TAG MSGS??			
+			// TODO match also ANY_TAG MSGS??
 
 			if(expectedJob == null){
 				HashMap<Integer, SingleNetworkJob> tagMap = mapPostedAnySourceWithTag.get(rjob.getCommunicator());
@@ -347,7 +347,7 @@ public class SimpleNIC extends GNIC<NIC>{
 
 	/**
 	 * A message got received completely.
-	 * 
+	 *
 	 * @param job The job which got finished
 	 * @param response The response (for a receive).
 	 */
@@ -366,11 +366,11 @@ public class SimpleNIC extends GNIC<NIC>{
 			debug("" + job + " rsp " +  response);
 			assert(response.getSourceComponent() != null);
 
-			getSimulator().getTraceWriter().arrowEnd(TraceType.ALWAYS, 
-					response.getSourceComponent().getSimulatorObject(), 
-					job.getTargetComponent().getSimulatorObject(), 
-					response.getJobData().getSize(), 
-					response.getTag(), 
+			getSimulator().getTraceWriter().arrowEnd(TraceType.ALWAYS,
+					response.getSourceComponent().getSimulatorObject(),
+					job.getTargetComponent().getSimulatorObject(),
+					response.getJobData().getSize(),
+					response.getTag(),
 					response.getCommunicator().getIdentity());
 
 			jobs.jobCompletedRecv(response);
@@ -382,15 +382,15 @@ public class SimpleNIC extends GNIC<NIC>{
 
 	/**
 	 * Start a new network job.
-	 * 
-	 * The method will delegate the job either to the upload queue or register the job on the 
+	 *
+	 * The method will delegate the job either to the upload queue or register the job on the
 	 * download queue
 	 */
 	public void submitNewNetworkJob(SingleNetworkJob job){
 		/* submit any new Events with the current time */
 		INetworkMessage data = job.getJobData();
 
-		//System.out.println(" start:" +  
+		//System.out.println(" start:" +
 		//		job.getJobOperation() + " src: " + job.getSourceComponent() + " tgt: " +  job.getTargetComponent().getIdentifier());
 
 		if (job.getJobOperation() == NetworkJobType.SEND){
@@ -407,7 +407,7 @@ public class SimpleNIC extends GNIC<NIC>{
 				/* initial callback */
 
 				job.getSourceComponent().sendMsgPartCB(this, new MessagePart(msg, 0,0), time);
-			}else{			
+			}else{
 				msg = new Message(data.getSize(), job, this);
 			}
 			msgP = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
@@ -423,15 +423,15 @@ public class SimpleNIC extends GNIC<NIC>{
 			assert(job.getSourceComponent() != null);
 
 
-			getSimulator().getTraceWriter().arrowStart(TraceType.ALWAYS, 
-					job.getSourceComponent().getSimulatorObject(), 
-					job.getTargetComponent().getSimulatorObject(), 
+			getSimulator().getTraceWriter().arrowStart(TraceType.ALWAYS,
+					job.getSourceComponent().getSimulatorObject(),
+					job.getTargetComponent().getSimulatorObject(),
 					msgP);
 
 			Event<MessagePart> event = new Event(this, upload, time,  msgP);
 			getSimulator().submitNewEvent(event);
 
-			return;			
+			return;
 		}else{ /*  Receive */
 			MSGMatchingCriterion crit = new MSGMatchingCriterion(job);
 
@@ -451,7 +451,7 @@ public class SimpleNIC extends GNIC<NIC>{
 						while (it.hasNext()) {
 							SingleNetworkJob pJob = it.next();
 
-							if(//job.getTag() < 0 || // any source any tag ...  
+							if(//job.getTag() < 0 || // any source any tag ...
 									pJob.getTag() == job.getTag()) {
 								// match TODO maybe we match a different object...
 								it.remove();
@@ -465,10 +465,10 @@ public class SimpleNIC extends GNIC<NIC>{
 						}
 					}
 
-				}else { // not any source					
+				}else { // not any source
 					LinkedList<SingleNetworkJob> list = mapReceivedMsgsBeforePost.get(crit);
 
-					if( list != null ){					
+					if( list != null ){
 						completeReceive(job, list.poll());
 
 						if(list.size() == 0){
@@ -485,7 +485,7 @@ public class SimpleNIC extends GNIC<NIC>{
 				SingleNetworkJob existingJob = mapPostedJobsBeforeReceive.put( crit,	job);
 				if (existingJob != null){
 					// might happen due to non-blocking and wrong user programs
-					new IllegalArgumentException("Invalid receive job! " + job.getTag() + " with comm " + 
+					new IllegalArgumentException("Invalid receive job! " + job.getTag() + " with comm " +
 							job.getCommunicator().getName() +" already used!\n" +
 					"Probably your application is wrong and uses non-blocking calls with the same comm and tag");
 				}
@@ -500,7 +500,7 @@ public class SimpleNIC extends GNIC<NIC>{
 				SingleNetworkJob existingJob = tagMap.put( job.getTag() , job);
 				if (existingJob != null){
 					// might happen due to non-blocking and wrong user programs
-					new IllegalArgumentException("Invalid any source job! " + job.getTag() + " with comm " + 
+					new IllegalArgumentException("Invalid any source job! " + job.getTag() + " with comm " +
 							job.getCommunicator().getName() +" already used!\n" +
 					"Probably your application is wrong and uses non-blocking calls with the same comm and tag");
 				}
@@ -513,9 +513,11 @@ public class SimpleNIC extends GNIC<NIC>{
 	}
 
 	@Override
-	public void simulationFinished() {		
-		if(false){		
-			StringBuffer buf = new StringBuffer();		
+	public void simulationFinished() {
+		super.simulationFinished();
+
+		if(false){
+			StringBuffer buf = new StringBuffer();
 
 			for(SingleNetworkJob job: mapPostedJobsBeforeReceive.values()) {
 				buf.append("  unmatched receive:" + job + "\n");

@@ -2,29 +2,29 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * 
+ *
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
@@ -55,14 +55,14 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 /**
  * Basic Implementation.
  * Does not implement any caching at all, instead each read and write is blocking.
- * Provides separate read and write queues and prefers read for write requests. 
- *  
- * A maximum number of concurrent requests is scheduled. 
+ * Provides separate read and write queues and prefers read for write requests.
+ *
+ * A maximum number of concurrent requests is scheduled.
  * Owns the IOSubsystem of the server.
- * 
+ *
  * @author Julian M. Kunkel
  */
-public class GNoCache 
+public class GNoCache
 extends SPassiveComponent<NoCache>
 implements  IGServerCacheLayer<SPassiveComponent<NoCache>>,
 IIOSubsystemCaller
@@ -80,7 +80,7 @@ IIOSubsystemCaller
 	LinkedList<IOJob> queuedWriteJobs = new LinkedList<IOJob>();
 
 	IGServer<?> serverProcess;
-	GNode   parentNode;	
+	GNode   parentNode;
 	IGIOSubsystem ioSubsystem;
 
 
@@ -92,12 +92,12 @@ IIOSubsystemCaller
 
 	protected IOJob getNextSchedulableJob() {
 		// prefer read requests for write requests
-		IOJob io = null;			
-		if(  ! queuedReadJobs.isEmpty() && 
+		IOJob io = null;
+		if(  ! queuedReadJobs.isEmpty() &&
 				parentNode.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
 		{
 			// reserve memory for READ requests
-			io = queuedReadJobs.poll();				
+			io = queuedReadJobs.poll();
 			parentNode.reserveMemory(io.getSize());
 		}
 
@@ -126,25 +126,25 @@ IIOSubsystemCaller
 				io = new IOJob(io.getFile(), size, offset, IOOperation.WRITE);
 			}
 		}
-		
+
 		return io;
 	}
-	
+
 	/**
 	 * Maps the serviced read-jobs to the read-requests
 	 */
 	HashMap<IOJob, HashMap<IOJob, RequestRead>> pendingReadRequestMap = new HashMap<IOJob, HashMap<IOJob, RequestRead>>();
-	
+
 	protected void scheduleNextIOJobIfPossible() {
-		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps() 
+		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps()
 				&& getNumberOfQueuedOperations() > 0)
 		{
 			IOJob io = getNextSchedulableJob();
-			
+
 			if (io == null){
 				// might happen if there are only read requests but no RAM is available to cache data.
 				return;
-			}			
+			}
 
 			//logger.info(time + " " + this.getIdentifier() +  " starting I/O " + io);
 			ioSubsystem.startNewIO( io);
@@ -157,8 +157,8 @@ IIOSubsystemCaller
 	HashMap<NetworkIOData, ArrayList<SingleIOOperation>> notReceivedWriteExtendsFromReqs = new HashMap<NetworkIOData, ArrayList<SingleIOOperation>>();
 
 	// TODO use a new data structure to pick the best write operation depending on all pending requests
-	//   when it is really used. 
-	//TODO evaluate this new strategy with the default strategy when 
+	//   when it is really used.
+	//TODO evaluate this new strategy with the default strategy when
 	//  clients send all pending requests in normal order.
 
 
@@ -169,9 +169,8 @@ IIOSubsystemCaller
 	}
 
 	@Override
-	public void writeDataToCache(NetworkIOData ioData, SingleNetworkJob clientJob, long amountToWrite) {	
+	public void writeDataToCache(NetworkIOData ioData, SingleNetworkJob clientJob, long amountToWrite) {
 		//decide which data actually is contained in the network packet
-
 		debug("amount " + amountToWrite);
 
 		parentNode.reserveMemory(amountToWrite);
@@ -181,7 +180,7 @@ IIOSubsystemCaller
 		if( notReceivedWriteExtendsFromReqs.containsKey(ioData) ){
 			writeList = notReceivedWriteExtendsFromReqs.get(ioData);
 		}else{
-			// add all jobs to the list			
+			// add all jobs to the list
 			try{
 				writeList = (ArrayList<SingleIOOperation>) ioData.getIORequest().getListIO().getIOOperations().clone();
 				notReceivedWriteExtendsFromReqs.put(ioData, writeList );
@@ -234,7 +233,7 @@ IIOSubsystemCaller
 
 		debug("job " + job);
 
-		// now try to submit a new write request by combining pending requests 
+		// now try to submit a new write request by combining pending requests
 	}
 
 	///////////////////////////////////READ PATH////////////////////////////////////////////////////////////////
@@ -281,6 +280,7 @@ IIOSubsystemCaller
 	@Override
 	public void announceIORequest( RequestRead req, SingleNetworkJob request){
 		final long iogran = getSimulator().getModel().getGlobalSettings().getIOGranularity();
+
 		/**
 		 * right now queue up all pending requests...
 		 */
@@ -301,6 +301,8 @@ IIOSubsystemCaller
 	}
 
 	protected void addReadIOJob(long size, long offset, RequestRead req){
+		System.err.println("addReadIOJob " + offset + " " +size);
+
 		IOJob iojob = new IOJob(req.getFile(), size, offset,  IOOperation.READ);
 		queuedReadJobs.add(iojob);
 
@@ -340,7 +342,7 @@ IIOSubsystemCaller
 			Simulator sim) throws Exception {
 		super.setSimulatedModelComponent(comp, sim);
 
-		serverProcess = (IGServer) sim.getSimulatedComponent(comp.getParentComponent());		
+		serverProcess = (IGServer) sim.getSimulatedComponent(comp.getParentComponent());
 		parentNode = (GNode) sim.getSimulatedComponent(comp.getParentComponent().getParentComponent());
 
 		ioSubsystem = (IGIOSubsystem)  sim.instantiateSimObjectForModelObj(comp.getParentComponent().getIOsubsystem());

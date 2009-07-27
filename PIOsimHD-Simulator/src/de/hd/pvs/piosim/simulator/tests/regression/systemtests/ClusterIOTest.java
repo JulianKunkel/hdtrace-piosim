@@ -33,10 +33,10 @@ import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
 public class ClusterIOTest extends ClusterTest {
-	int serverNum = 5;
-	int clientNum = 10;
+	int serverNum = 1;
+	int clientNum = 4;
 	int fileNum = 1;
-	int iterNum = 100;
+	int iterNum = 1;
 	long elementSize = 512;
 //	long elementSize = 50 * KBYTE;
 //	long elementSize = 5 * MBYTE;
@@ -55,6 +55,7 @@ public class ClusterIOTest extends ClusterTest {
 
 		for (int i = 0; i < fileNum; i++) {
 			files.add(aB.createFile("testfile" + i, 0, dist));
+			System.out.println("File size: " + files.get(files.size() -1).getSize() );
 		}
 
 		for (int i = 0; i < fileNum; i++) {
@@ -112,20 +113,6 @@ public class ClusterIOTest extends ClusterTest {
 			}
 		}
 
-		for (int i = 0; i < iterNum; i++) {
-			for (MPIFile file : files) {
-				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
-
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					ListIO list = new ListIO();
-					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
-					io.put(rank, list);
-				}
-
-//				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
-			}
-		}
-
 		return runSimulationAllExpectedToFinish();
 	}
 
@@ -139,7 +126,7 @@ public class ClusterIOTest extends ClusterTest {
 		writeRes = t.writeTest();
 
 		t = new ClusterIOTest();
-		readRes = t.readTest();
+		//readRes = t.readTest();
 
 		if (writeRes != null) {
 			System.out.println("WRITE " + writeRes.getVirtualTime().getDouble() + "s");

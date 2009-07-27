@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -38,29 +38,29 @@ import de.hd.pvs.piosim.simulator.event.FlowEvent;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
-/** 
- * A SFlowComponent does never split or delete a single Event, 
+/**
+ * A SFlowComponent does never split or delete a single Event,
  * instead it only passes the event with the SAME data to another Component.
  * Internally, a SFlowComponent tries to submit a limited number of jobs to the next component.
- * However, enough to keep the source and the drain busy (i.e. optimal). 
+ * However, enough to keep the source and the drain busy (i.e. optimal).
  * This is similar to a data flow and looks more realistic than having an unlimited receive buffer.
  * It is assumed the component delivers ALL events ~= Jobs with the same "endpoint" over the same path.
- * 
- * TODO: fix this issue, otherwise it breaks. 
- *  
- * For instance this is useful for network devices. 
- * 
+ *
+ * TODO: fix this issue, otherwise it breaks.
+ *
+ * For instance this is useful for network devices.
+ *
  * @author Julian M. Kunkel
  *
  */
 abstract public class SFlowComponent
-<Type extends BasicComponent, EventDataType extends FlowEvent> 
+<Type extends BasicComponent, EventDataType extends FlowEvent>
 extends SSequentialBlockingComponent<Type, EventDataType>
 {
 	/**
 	 * This class describes the state of the connection to a particular endpoint.
-	 * All jobs which should be transfered to the same endpoint get an instance of this class assigned. 
-	 * 
+	 * All jobs which should be transfered to the same endpoint get an instance of this class assigned.
+	 *
 	 * @author Julian M. Kunkel
 	 */
 	static private class ConcurrentEvents {
@@ -91,7 +91,7 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 
 		boolean isBlocked(){
 			return blocked;
-		}	
+		}
 
 		void block(){
 			this.blocked = true;
@@ -105,12 +105,12 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 	/**
 	 * for each target endpoint the state of the events is observed.
 	 */
-	private HashMap<ISNodeHostedComponent, ConcurrentEvents > concurrentEvents = 
+	private HashMap<ISNodeHostedComponent, ConcurrentEvents > concurrentEvents =
 		new HashMap<ISNodeHostedComponent, ConcurrentEvents >();
 
 	/**
 	 * The maximum time a job can require in this component.
-	 * It is needed to approximate the number of jobs which must be submitted to the target. 
+	 * It is needed to approximate the number of jobs which must be submitted to the target.
 	 */
 	private Epoch maxTimeToTransferAJobToTheNextComponent = null;
 
@@ -127,30 +127,30 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 	}
 
 	/**
-	 * Lookup the component the particular job must be delivered. 
+	 * Lookup the component the particular job must be delivered.
 	 * @param event
 	 * @return
 	 */
 	abstract protected SFlowComponent getTargetFlowComponent(EventDataType event);
-	
+
 	/**
 	 * Gets called if a job got transferred to the right target.
 	 * @param eventData
 	 */
 	protected void flowJobTransferred(EventDataType eventData, Epoch endTime){
-		
+
 	}
-	
+
 	/**
 	 * Gets called if an event is destroyed i.e. has no target.
 	 * @param eventData
 	 */
 	protected void eventDestroyed(EventDataType eventData, Epoch endTime){
-		
+
 	}
 
 	/**
-	 * The component can control the Flow either by sending at most a number of jobs with a runtime 
+	 * The component can control the Flow either by sending at most a number of jobs with a runtime
 	 * of the latency + processing time OR by directly blocking and unblocking the Flow.
 	 */
 	protected boolean isDirectlyControlledByBlockUnblock(){
@@ -158,8 +158,8 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 	}
 
 	/**
-	 * The time a job takes to arrive on the component it gets submitted, i.e. transfer time between 
-	 * cable and receiver. 
+	 * The time a job takes to arrive on the component it gets submitted, i.e. transfer time between
+	 * cable and receiver.
 	 * @return
 	 */
 	protected Epoch getProcessingLatency(){
@@ -189,15 +189,15 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 	/**
 	 * In case an event of a request was blocked the component only continues
 	 * if it is notified to activate the Request or the target advises to continue transferring jobs.
-	 * This can be done by this call. 
+	 * This can be done by this call.
 	 * By calling this method, the "first" blocked job is enabled in this component for further
-	 * processing. 
+	 * processing.
 	 */
 	private final void continueProcessingOfFlow(
-			ISNodeHostedComponent target, 
+			ISNodeHostedComponent target,
 			EventDataType eventData,
-			Epoch startTime, 
-			SFlowComponent targetFlowComponent) 
+			Epoch startTime,
+			SFlowComponent targetFlowComponent)
 	{
 		getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "ContinueFlow", 1);
 		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
@@ -238,7 +238,7 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 	}
 
 	/**
-	 * Check if there are jobs blocked for the particular target. 
+	 * Check if there are jobs blocked for the particular target.
 	 * @param target
 	 * @return true if this component is blocked.
 	 */
@@ -247,7 +247,8 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 
 		if(pendingEvents == null) return false;
 
-		if(isDirectlyControlledByBlockUnblock()) return pendingEvents.isBlocked();
+		if(isDirectlyControlledByBlockUnblock())
+			return pendingEvents.isBlocked();
 
 		Epoch maxTime = getMaxTimeToTransferAJobToTheNextComponent();
 
@@ -276,16 +277,16 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 			assert(getProcessingLatency() !=  null);
 
 			/*
-			 * Block if the pending processed jobs time is bigger than the latency of this component. 
+			 * Block if the pending processed jobs time is bigger than the latency of this component.
 			 */
 			//System.out.println(getIdentifier().getName() + " " + pendingEvents.availableRuntimeToUse +" " +  jobRunTime);
 
-			// check if the flow to the target is blocked, then this event should not be scheduled at all. 
+			// check if the flow to the target is blocked, then this event should not be scheduled at all.
 			if( isBlockedByEndpoint(target) ){
 				getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "Block", 1);
 
-				pendingEvents.blockedJobs.add(event);		
-				
+				pendingEvents.blockedJobs.add(event);
+
 				continue;
 			}
 
@@ -302,7 +303,7 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 			return event;
 		}
 		return null;
-	}	
+	}
 
 	@Override
 	final protected void jobStarted(Event<EventDataType> event, Epoch startTime) {
@@ -311,17 +312,17 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 		SPassiveComponent source =  event.getIssuingComponent();
 
 		getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, event.getEventData().getClass().getSimpleName());
-		
+
 		/**
 		 * special case for NIC which generates new events.
 		 */
-		if(SFlowComponent.class.isInstance( event.getIssuingComponent() ) && this != source  
+		if(SFlowComponent.class.isInstance( event.getIssuingComponent() ) && this != source
 				&& ! ((SFlowComponent) source).isDirectlyControlledByBlockUnblock() ){
 			// manage flow control here:
-			ISNodeHostedComponent target = event.getEventData().getFinalTarget();			
+			ISNodeHostedComponent target = event.getEventData().getFinalTarget();
 			((SFlowComponent) source).continueProcessingOfFlow(
 					event.getEventData().getFinalTarget(), event.getEventData(), startTime, this );
-		}		
+		}
 
 		if(isDirectlyControlledByBlockUnblock()){
 			// then submit exactly one other job to the same target as long as it is not blocked.
@@ -336,31 +337,31 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 
 	@Override
 	public void timerEvent(Epoch wakeUpTime) {
-		// gets called if a component is idle and gets reactived, to reactivate the component
+		// gets called if a component is idle and gets reactivated, to reactivate the component
 		// a new timerEvent is submitted.
 		startNextPendingEventIfPossible(wakeUpTime);
 	}
 
 	@Override
-	final protected void jobCompleted(Event<EventDataType> event, Epoch endTime) {		
+	final protected void jobCompleted(Event<EventDataType> event, Epoch endTime) {
 		debug( " event " + event);
-		
+
 		getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, event.getEventData().getClass().getSimpleName());
-		
+
 		SFlowComponent targetComponent = getTargetFlowComponent(event.getEventData());
-		
+
 		if(targetComponent == null){
 			eventDestroyed(event.getEventData(), endTime);
 			return;
 		}
-		
+
 		flowJobTransferred(event.getEventData(), endTime);
-		
-		Event newEvent = new Event(this, 
+
+		Event newEvent = new Event(this,
 				targetComponent,
-				endTime.add(getProcessingLatency()), 
+				endTime.add(getProcessingLatency()),
 				event.getEventData());
-		
+
 		getSimulator().submitNewEvent( newEvent);
 	}
 
@@ -379,7 +380,7 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 	 * Unblock a flow which was blocked with blockFlow to a specific target
 	 * @param target
 	 */
-	public void unblockFlow(ISNodeHostedComponent target){		
+	public void unblockFlow(ISNodeHostedComponent target){
 		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
 		assert(pendingEvents.blocked == true);
 		pendingEvents.blocked = false;
@@ -388,6 +389,8 @@ extends SSequentialBlockingComponent<Type, EventDataType>
 			if(pendingEvents.blockedJobs.size() != 0){
 				Event firstEvent = pendingEvents.blockedJobs.poll();
 				addNewEvent(firstEvent);
+
+				timerEvent(getSimulator().getVirtualTime());
 			}
 		}
 	}

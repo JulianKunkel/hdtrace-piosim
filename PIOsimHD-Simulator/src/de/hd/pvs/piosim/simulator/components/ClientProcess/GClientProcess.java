@@ -211,6 +211,8 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 	@Override
 	public void simulationFinished() {
+		super.simulationFinished();
+
 		System.out.println(this.getIdentifier());
 		for(Class<?> cmdClass: commandStats.keySet()){
 			CommandUsageStatistics stat = commandStats.get(cmdClass);

@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -49,10 +49,10 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 /**
  * Simulates a server process together with an I/O subsystem.
  * Glues the cache together with the I/O subsystem.
- * 
+ *
  * @author Julian M. Kunkel
  */
-public class GSimpleServer extends SPassiveComponent<Server>  
+public class GSimpleServer extends SPassiveComponent<Server>
 implements IGServer<SPassiveComponent<Server>>
 {
 	public static final int STEP_COMPLETED = 1000000;
@@ -75,11 +75,11 @@ implements IGServer<SPassiveComponent<Server>>
 		// getAttachedNode().getGNICToNode(request.getSourceComponent()),
 
 		return SingleNetworkJob.createSendOperation(
-				new NetworkIOData(req), 
-				this, 
+				new NetworkIOData(req),
+				this,
 				request.getSourceComponent(),
-				RequestIO.IO_DATA_TAG, 
-				request.getCommunicator(), 
+				RequestIO.IO_DATA_TAG,
+				request.getCommunicator(),
 				null,
 				true, false);
 	}
@@ -87,12 +87,12 @@ implements IGServer<SPassiveComponent<Server>>
 	public SingleNetworkJob process(RequestWrite req, SingleNetworkJob request) {
 		cacheLayer.announceIORequest( req, request );
 
-		/* post receive of further message parts as fragmented flow parts */		
+		/* post receive of further message parts as fragmented flow parts */
 		return SingleNetworkJob.createReceiveOperation(
 				this,
 				request.getSourceComponent(),
-				RequestIO.IO_DATA_TAG, 
-				request.getCommunicator(), 
+				RequestIO.IO_DATA_TAG,
+				request.getCommunicator(),
 				null);
 	}
 
@@ -104,10 +104,10 @@ implements IGServer<SPassiveComponent<Server>>
 	public SingleNetworkJob prepareFinalWriteAcknowledge(SingleNetworkJob request) {
 		return SingleNetworkJob.createSendOperation(
 				new NetworkSimpleMessage(15),
-				this, 
+				this,
 				request.getSourceComponent(),
-				RequestIO.IO_COMPLETION_TAG, 
-				request.getCommunicator(), 
+				RequestIO.IO_COMPLETION_TAG,
+				request.getCommunicator(),
 				null,
 				false,
 				false);
@@ -124,7 +124,7 @@ implements IGServer<SPassiveComponent<Server>>
 		try{
 			Method meth = this.getClass().getMethod("process", partypes);
 
-			Object arglist[] = {job.getJobData(), job};			
+			Object arglist[] = {job.getJobData(), job};
 
 			SingleNetworkJob resp = (SingleNetworkJob) meth.invoke(this, arglist);
 
@@ -174,7 +174,7 @@ implements IGServer<SPassiveComponent<Server>>
 			SingleNetworkJob resp = prepareFinalWriteAcknowledge(job);
 
 			/* return the response or another receive message */
-			if(resp != null){	
+			if(resp != null){
 				this.getAttachedNode().submitNewNetworkJob(resp);
 			}
 		}
@@ -189,7 +189,9 @@ implements IGServer<SPassiveComponent<Server>>
 		//this function is called right now only for writes
 		boolean doesFit = cacheLayer.canIPutDataIntoCache(job, part.getSize());
 
-		if (doesFit){	
+		System.err.println("recvMsgPartCB " + part);
+
+		if (doesFit){
 			processWritePart( part, endTime);
 		}else{
 			debugFollowUpLine("WRITE: cache layer does not accept more data => stall NIC is automatically");
@@ -228,10 +230,10 @@ implements IGServer<SPassiveComponent<Server>>
 
 		submitRecv();
 	}
-	
+
 	@Override
 	public void startupBlockedIOReceiveIfPossible(Epoch startTime) {
-		if( blockedReceives.size() > 0 ){			
+		if( blockedReceives.size() > 0 ){
 			while( ! blockedReceives.isEmpty() ){
 
 				MessagePart p = blockedReceives.get(0);
@@ -239,7 +241,7 @@ implements IGServer<SPassiveComponent<Server>>
 				if (! cacheLayer.canIPutDataIntoCache(p.getNetworkJob(), p.getSize())){
 					break;
 				}
-				
+
 				blockedReceives.remove(0);
 
 				processWritePart(p, startTime);

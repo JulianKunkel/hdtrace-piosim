@@ -41,7 +41,7 @@ import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
@@ -196,11 +196,13 @@ public class ClusterTest {
 		serverTemplate.setName("Server");
 		serverTemplate.setIOsubsystem(iosub);
 
-		AggregationCache cacheImpl = new AggregationCache();
+//		AggregationCache cacheImpl = new AggregationCache();
 //		ServerDirectedIO cacheImpl = new ServerDirectedIO();
-		cacheImpl.setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
-//		NoCache cacheImpl = new NoCache();
+//		cacheImpl.setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
+
+		NoCache cacheImpl = new NoCache();
 		cacheImpl.setMaxNumberOfConcurrentIOOps(1);
+
 		serverTemplate.setCacheImplementation(cacheImpl);
 
 		mb.addTemplate(serverTemplate);

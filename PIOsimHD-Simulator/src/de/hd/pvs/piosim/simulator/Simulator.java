@@ -278,6 +278,9 @@ public final class Simulator{
 	 * @return true if it got removed.
 	 */
 	public boolean deleteFutureEvent(InternalEvent event){
+		if(event == null)
+			return false;
+
 		return futureEvents.remove(event);
 	}
 
