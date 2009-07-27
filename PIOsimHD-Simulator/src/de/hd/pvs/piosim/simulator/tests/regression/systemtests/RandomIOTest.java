@@ -50,7 +50,7 @@ public class RandomIOTest extends ClusterTest {
 	int serverNum = 5;
 	int clientNum = 10;
 	int fileNum = 1;
-	int iterNum = 2;
+	int iterNum = 100;
 	long elementSize = 512;
 //	long elementSize = 50 * KBYTE;
 //	long elementSize = 5 * MBYTE;
@@ -85,8 +85,7 @@ public class RandomIOTest extends ClusterTest {
 			}
 		}
 
-		Random random = new Random(100);
-		Collections.shuffle(tuples, random);
+		Collections.shuffle(tuples, new Random(23));
 
 		for (TestTuple t : tuples) {
 			pb.addWriteSequential(t.rank, t.file, t.offset, t.size);
