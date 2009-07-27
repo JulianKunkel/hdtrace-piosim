@@ -32,6 +32,9 @@ import de.hd.pvs.piosim.simulator.base.SBasicComponent;
  * An internal event is an event a component submits to itself to start internal processing in
  * the future.
  *
+ * Note: this class has a natural ordering that is
+ * inconsistent with equals.
+ *
  * @author Julian M. Kunkel
  *
  */
@@ -73,17 +76,19 @@ implements Comparable<InternalEvent>
 	/**
 	 * Events shall be sorted by the time they can be processed.
 	 */
+	@Override
 	public int compareTo(InternalEvent o) {
 		if(this.equals(o)){
 			return 0;
 		}
 
-		int ret = getEarliestStartTime().compareTo(o.getEarliestStartTime());
+		return getEarliestStartTime().compareTo(o.getEarliestStartTime());
 
-		if (ret == 0){
-			return (this.hashCode() < o.hashCode()) ? -1 : +1;
-		}
-		return ret;
+		// by using the hashCode it leads to different order depending on the memory address of the object.
+		// therefore don't use it !
+		//if (ret == 0){
+		//	return (this.hashCode() < o.hashCode()) ? -1 : +1;
+		//}
 	}
 
 	@Override

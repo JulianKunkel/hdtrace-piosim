@@ -123,10 +123,10 @@ public class ClusterIOTest extends ClusterTest {
 		ClusterIOTest t;
 
 		t = new ClusterIOTest();
-		writeRes = t.writeTest();
+		//writeRes = t.writeTest();
 
 		t = new ClusterIOTest();
-		//readRes = t.readTest();
+		readRes = t.readTest();
 
 		if (writeRes != null) {
 			System.out.println("WRITE " + writeRes.getVirtualTime().getDouble() + "s");

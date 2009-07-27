@@ -349,9 +349,8 @@ public final class Simulator{
 			// the component which gets the next event scheduled and therefore has one of the earlierst events.
 			InternalEvent serviceEvent = futureEvents.poll();
 
-			//System.out.println("Servicing: " + serviceEvent);
+			final Epoch newTime = serviceEvent.getEarliestStartTime();
 
-			Epoch newTime = serviceEvent.getEarliestStartTime();
 			ConsoleLogger.getInstance().debug(this, "SCHEDULING component: " + serviceEvent.getTargetComponent().getIdentifier());
 
 			// safety check, wrong component implementations can lead to this:

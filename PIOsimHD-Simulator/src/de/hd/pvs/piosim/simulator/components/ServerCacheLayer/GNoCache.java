@@ -301,8 +301,6 @@ IIOSubsystemCaller
 	}
 
 	protected void addReadIOJob(long size, long offset, RequestRead req){
-		System.err.println("addReadIOJob " + offset + " " +size);
-
 		IOJob iojob = new IOJob(req.getFile(), size, offset,  IOOperation.READ);
 		queuedReadJobs.add(iojob);
 

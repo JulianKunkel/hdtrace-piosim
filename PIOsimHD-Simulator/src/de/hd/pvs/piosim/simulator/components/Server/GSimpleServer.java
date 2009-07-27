@@ -189,8 +189,6 @@ implements IGServer<SPassiveComponent<Server>>
 		//this function is called right now only for writes
 		boolean doesFit = cacheLayer.canIPutDataIntoCache(job, part.getSize());
 
-		System.err.println("recvMsgPartCB " + part);
-
 		if (doesFit){
 			processWritePart( part, endTime);
 		}else{
