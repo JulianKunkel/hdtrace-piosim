@@ -24,15 +24,13 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
-import org.junit.Test;
-
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
-public class RandomIOTest extends ClusterTest {
+public class RandomIOTest extends IOTest {
 	final class TestTuple {
 		int rank;
 		MPIFile file;
@@ -47,34 +45,9 @@ public class RandomIOTest extends ClusterTest {
 		}
 	}
 
-	int serverNum = 5;
-	int clientNum = 10;
-	int fileNum = 1;
-	int iterNum = 100;
-	long elementSize = 512;
-//	long elementSize = 50 * KBYTE;
-//	long elementSize = 5 * MBYTE;
-	// PVFS default
-	long stripeSize = 64 * KBYTE;
-
-	@Test
 	public SimulationResults writeTest() throws Exception {
+		List<MPIFile> files = prepare(true);
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
-		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
-
-		testMsg();
-		setup(clientNum, serverNum);
-
-		SimpleStripe dist = new SimpleStripe();
-		dist.setChunkSize(stripeSize);
-
-		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, 0, dist));
-		}
-
-		for (int i = 0; i < fileNum; i++) {
-			pb.addFileOpen(files.get(i), world, true);
-		}
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
@@ -91,27 +64,12 @@ public class RandomIOTest extends ClusterTest {
 			pb.addWriteSequential(t.rank, t.file, t.offset, t.size);
 		}
 
-		return runSimulationAllExpectedToFinish();
+		return super.writeTest();
 	}
 
-	@Test
 	public SimulationResults readTest() throws Exception {
+		List<MPIFile> files = prepare(false);
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
-		ArrayList<MPIFile> files = new ArrayList<MPIFile>();
-
-		testMsg();
-		setup(clientNum, serverNum);
-
-		SimpleStripe dist = new SimpleStripe();
-		dist.setChunkSize(stripeSize);
-
-		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, (clientNum * iterNum) * elementSize, dist));
-		}
-
-		for (int i = 0; i < fileNum; i++) {
-			pb.addFileOpen(files.get(i), world, false);
-		}
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
@@ -128,27 +86,10 @@ public class RandomIOTest extends ClusterTest {
 			pb.addReadSequential(t.rank, t.file, t.offset, t.size);
 		}
 
-		return runSimulationAllExpectedToFinish();
+		return super.readTest();
 	}
 
 	public static void main(String[] args) throws Exception {
-		SimulationResults writeRes = null;
-		SimulationResults readRes = null;
-
-		RandomIOTest t;
-
-		t = new RandomIOTest();
-		writeRes = t.writeTest();
-
-		t = new RandomIOTest();
-		readRes = t.readTest();
-
-		if (writeRes != null) {
-			System.out.println("WRITE " + writeRes.getVirtualTime().getDouble() + "s");
-		}
-
-		if (readRes != null) {
-			System.out.println("READ  " + readRes.getVirtualTime().getDouble() + "s");
-		}
+		new RandomIOTest().run();
 	}
 }

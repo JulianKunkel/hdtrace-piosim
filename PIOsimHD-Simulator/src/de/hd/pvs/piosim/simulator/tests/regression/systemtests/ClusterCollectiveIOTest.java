@@ -4,7 +4,6 @@
  * @version         $Revision$
  */
 
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
 //	Copyright (C) 2009 Michael Kuhn
 //
 //	This file is part of PIOsimHD.
@@ -23,20 +22,28 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.util.HashMap;
 import java.util.List;
 
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
-public class ClusterIOTest extends IOTest {
+public class ClusterCollectiveIOTest extends IOTest {
 	public SimulationResults writeTest() throws Exception {
 		List<MPIFile> files = prepare(true);
 
 		for (int i = 0; i < iterNum; i++) {
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					pb.addWriteSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+			for (MPIFile file : files) {
+				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					ListIO list = new ListIO();
+					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+					io.put(rank, list);
 				}
+
+				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
 			}
 		}
 
@@ -47,10 +54,16 @@ public class ClusterIOTest extends IOTest {
 		List<MPIFile> files = prepare(false);
 
 		for (int i = 0; i < iterNum; i++) {
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					pb.addReadSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+			for (MPIFile file : files) {
+				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					ListIO list = new ListIO();
+					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+					io.put(rank, list);
 				}
+
+				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 			}
 		}
 
@@ -58,6 +71,6 @@ public class ClusterIOTest extends IOTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new ClusterIOTest().run();
+		new ClusterCollectiveIOTest().run();
 	}
 }
