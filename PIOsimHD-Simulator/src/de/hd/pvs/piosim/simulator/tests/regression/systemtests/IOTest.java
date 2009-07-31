@@ -38,8 +38,9 @@ public class IOTest extends ClusterTest {
 	int fileNum = 1;
 	int iterNum = 100;
 	long elementSize = 512;
+//	long elementSize = 5 * KBYTE;
 //	long elementSize = 50 * KBYTE;
-//	long elementSize = 5 * MBYTE;
+//	long elementSize = 512 * KBYTE;
 	// PVFS default
 	long stripeSize = 64 * KBYTE;
 
