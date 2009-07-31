@@ -31,6 +31,7 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
@@ -67,6 +68,24 @@ extends SPassiveComponent<NoCache>
 implements  IGServerCacheLayer<SPassiveComponent<NoCache>>,
 IIOSubsystemCaller
 {
+	protected class PendingReadRequest {
+		IOJob job;
+		RequestRead request;
+
+		public PendingReadRequest(IOJob job, RequestRead request) {
+			this.job = job;
+			this.request = request;
+		}
+
+		public IOJob getJob() {
+			return job;
+		}
+
+		public RequestRead getRequest() {
+			return request;
+		}
+	}
+
 	/**
 	 * How many operations are in the IOsubsystem
 	 */
@@ -133,7 +152,7 @@ IIOSubsystemCaller
 	/**
 	 * Maps the serviced read-jobs to the read-requests
 	 */
-	HashMap<IOJob, HashMap<IOJob, RequestRead>> pendingReadRequestMap = new HashMap<IOJob, HashMap<IOJob, RequestRead>>();
+	HashMap<IOJob, List<PendingReadRequest>> pendingReadRequestMap = new HashMap<IOJob, List<PendingReadRequest>>();
 
 	protected void scheduleNextIOJobIfPossible() {
 		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps()
@@ -253,17 +272,17 @@ IIOSubsystemCaller
 
 	@Override
 	public void dataReadCompletelyFromDisk(IOJob job) {
-		HashMap<IOJob, RequestRead> reqMap = pendingReadRequestMap.remove(job);
+		List<PendingReadRequest> reqList = pendingReadRequestMap.remove(job);
 
-		for (IOJob io : reqMap.keySet()) {
-			RequestRead req = reqMap.get(io);
+		for (PendingReadRequest p : reqList) {
+			RequestRead req = p.getRequest();
 			Message msg = pendingReadJobs.get(req);
 
 			assert(msg != null);
 
 			//System.out.println(gServer.getIdentifier() +  " dataReadCompletelyFromDisk " + " " + job.getSize());
 
-			msg.getOutgoingNIC().appendAvailableDataToIncompleteSend(msg, io.getSize());
+			msg.getOutgoingNIC().appendAvailableDataToIncompleteSend(msg, p.getJob().getSize());
 
 			if( msg.isAllMessageDataAvailable() ){ // All data read completely
 				//System.out.println("Completed");
@@ -305,9 +324,9 @@ IIOSubsystemCaller
 		queuedReadJobs.add(iojob);
 
 		if (pendingReadRequestMap.get(iojob) == null) {
-			pendingReadRequestMap.put(iojob, new HashMap<IOJob, RequestRead>());
+			pendingReadRequestMap.put(iojob, new ArrayList<PendingReadRequest>());
 		}
-		pendingReadRequestMap.get(iojob).put(iojob, req);
+		pendingReadRequestMap.get(iojob).add(new PendingReadRequest(iojob, req));
 
 		scheduleNextIOJobIfPossible();
 	}

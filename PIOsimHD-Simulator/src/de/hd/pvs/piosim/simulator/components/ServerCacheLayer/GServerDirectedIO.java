@@ -25,6 +25,7 @@
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -65,13 +66,6 @@ public class GServerDirectedIO extends GAggregationCache {
 	HashMap<MPIFile, LinkedList<IOJob>> queuedReadJobs = new HashMap<MPIFile, LinkedList<IOJob>>();
 	HashMap<MPIFile, LinkedList<IOJob>> queuedWriteJobs = new HashMap<MPIFile, LinkedList<IOJob>>();
 
-	/* Merge src HashMap into dst HashMap. */
-	private void mergeHashMaps(HashMap<IOJob, RequestRead> dst, HashMap<IOJob, RequestRead> src) {
-		for (IOJob io : src.keySet()) {
-			dst.put(io, src.get(io));
-		}
-	}
-
 	/* Combine as many IOJobs as possible. */
 	private LinkedList<IOJob> mergeReadJobs(LinkedList<IOJob> l) {
 		long size = -1;
@@ -80,7 +74,7 @@ public class GServerDirectedIO extends GAggregationCache {
 		LinkedList<IOJob> nl = new LinkedList<IOJob>();
 		Iterator<IOJob> it;
 		IOJob io = null;
-		HashMap<IOJob, RequestRead> map = new HashMap<IOJob, RequestRead>();
+		List<PendingReadRequest> map = new ArrayList<PendingReadRequest>();
 		MPIFile file = null;
 
 		System.out.print("MERGE READ old: " + l.size());
@@ -111,13 +105,13 @@ public class GServerDirectedIO extends GAggregationCache {
 				size = io.getSize();
 				offset = io.getOffset();
 
-				mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+				map.addAll(pendingReadRequestMap.remove(cur));
 				it.remove();
 				continue;
 			}
 
 			holeSize = 0;
-			holeSize = getSimulator().getModel().getGlobalSettings().getIOGranularity() / 10;
+			holeSize = Math.min(size / 5, getSimulator().getModel().getGlobalSettings().getIOGranularity() / 10);
 
 			if (offset + size + holeSize >= cur.getOffset()) {
 				/* Merge two IOJobs. We allow holes, that is, perform data sieving. */
@@ -135,16 +129,16 @@ public class GServerDirectedIO extends GAggregationCache {
 					nl.add(tmp);
 
 					if (pendingReadRequestMap.get(tmp) == null) {
-						pendingReadRequestMap.put(tmp, new HashMap<IOJob, RequestRead>());
+						pendingReadRequestMap.put(tmp, new ArrayList<PendingReadRequest>());
 					}
-					mergeHashMaps(pendingReadRequestMap.get(tmp), map);
+					pendingReadRequestMap.get(tmp).addAll(map);
 					map.clear();
 
 					io = cur;
 					size = io.getSize();
 					offset = io.getOffset();
 
-					mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+					map.addAll(pendingReadRequestMap.remove(cur));
 					it.remove();
 					continue;
 				}
@@ -152,7 +146,7 @@ public class GServerDirectedIO extends GAggregationCache {
 				offset = newOffset;
 				size = newSize;
 
-				mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+				map.addAll(pendingReadRequestMap.remove(cur));
 				it.remove();
 			} else {
 				/* IOJobs can not be merged. Start a new one. */
@@ -162,16 +156,16 @@ public class GServerDirectedIO extends GAggregationCache {
 				nl.add(tmp);
 
 				if (pendingReadRequestMap.get(tmp) == null) {
-					pendingReadRequestMap.put(tmp, new HashMap<IOJob, RequestRead>());
+					pendingReadRequestMap.put(tmp, new ArrayList<PendingReadRequest>());
 				}
-				mergeHashMaps(pendingReadRequestMap.get(tmp), map);
+				pendingReadRequestMap.get(tmp).addAll(map);
 				map.clear();
 
 				io = cur;
 				size = io.getSize();
 				offset = io.getOffset();
 
-				mergeHashMaps(map, pendingReadRequestMap.remove(cur));
+				map.addAll(pendingReadRequestMap.remove(cur));
 				it.remove();
 				continue;
 			}
@@ -186,9 +180,9 @@ public class GServerDirectedIO extends GAggregationCache {
 			nl.add(tmp);
 
 			if (pendingReadRequestMap.get(tmp) == null) {
-				pendingReadRequestMap.put(tmp, new HashMap<IOJob, RequestRead>());
+				pendingReadRequestMap.put(tmp, new ArrayList<PendingReadRequest>());
 			}
-			mergeHashMaps(pendingReadRequestMap.get(tmp), map);
+			pendingReadRequestMap.get(tmp).addAll(map);
 		}
 
 		if (file != null) {
@@ -364,7 +358,7 @@ public class GServerDirectedIO extends GAggregationCache {
 				io = ioLarge;
 			} else if (ioClose != null && ioLarge != null) {
 				/* Use the largest IOJob if it is at least ten times bigger
-				 * then the closest one. */
+				 * than the closest one. */
 				if (ioLarge.getSize() > ioClose.getSize() * 10) {
 					io = ioLarge;
 				} else {
@@ -435,10 +429,10 @@ public class GServerDirectedIO extends GAggregationCache {
 		queuedReadJobs.get(req.getFile()).add(io);
 
 		if (pendingReadRequestMap.get(io) == null) {
-			pendingReadRequestMap.put(io, new HashMap<IOJob, RequestRead>());
+			pendingReadRequestMap.put(io, new ArrayList<PendingReadRequest>());
 		}
 
-		pendingReadRequestMap.get(io).put(io, req);
+		pendingReadRequestMap.get(io).add(new PendingReadRequest(io, req));
 
 		scheduleNextIOJobIfPossible();
 	}
