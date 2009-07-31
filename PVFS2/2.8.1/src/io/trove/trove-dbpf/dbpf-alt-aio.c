@@ -7,7 +7,6 @@
 
 static int alt_lio_listio(int mode, struct aiocb * const list[],
         				  int nent, struct sigevent *sig);
-//		int nent, struct sigevent *sig, PVFS_hint hints);
 
 static int alt_aio_error(const struct aiocb *aiocbp);
 static ssize_t alt_aio_return(struct aiocb *aiocbp);
@@ -224,8 +223,8 @@ static void* alt_lio_thread(void* foo)
     					(void*)tmp_item->cb_p->aio_buf,
     					tmp_item->cb_p->aio_nbytes,
     					tmp_item->cb_p->aio_offset);,
-    			"%du",tmp_item->cb_p->aio_nbytes,
-    			"%lld",tmp_item->cb_p->aio_offset
+    			"%d",tmp_item->cb_p->aio_nbytes,
+    			"%lld",lld(tmp_item->cb_p->aio_offset)
     	)
     }
     else if(tmp_item->cb_p->aio_lio_opcode == LIO_WRITE)
@@ -242,8 +241,8 @@ static void* alt_lio_thread(void* foo)
         				(const void*)tmp_item->cb_p->aio_buf,
         				tmp_item->cb_p->aio_nbytes,
         				tmp_item->cb_p->aio_offset);
-        		,"%du",tmp_item->cb_p->aio_nbytes,
-        		"%lld",tmp_item->cb_p->aio_offset
+        		,"%d",tmp_item->cb_p->aio_nbytes,
+        		"%lld",lld(tmp_item->cb_p->aio_offset)
         )
     }
     else

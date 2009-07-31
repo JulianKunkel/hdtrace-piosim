@@ -1263,7 +1263,7 @@ static int dbpf_bstream_rw_list_op_svc(struct dbpf_op *op_p)
         }
         
         // trick: put the hint into the structure
-        aiocb_ptr_array[aiocb_inuse_count] = op_p->hints;
+        aiocb_ptr_array[aiocb_inuse_count] = (struct aiocb *)op_p->hints;
         
 
         if (op_p->u.b_rw_list.list_proc_state == LIST_PROC_ALLCONVERTED)

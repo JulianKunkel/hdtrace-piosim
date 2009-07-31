@@ -89,9 +89,10 @@ int main(int argc, char **argv)
 		if(user_opts->location == NULL){
 			user_opts->location = "";
 		}
-		
+
 		param_value.u.string_value = malloc(strlen(user_opts->event_string)+ strlen(",fileXUL=") + strlen(user_opts->location));
 		sprintf(param_value.u.string_value, "%s,fileXUL=%s" , user_opts->event_string,user_opts->location);
+		printf("%s\n",param_value.u.string_value);
 
 		ret = PVFS_mgmt_setparam_all(
 				cur_fs, &creds,

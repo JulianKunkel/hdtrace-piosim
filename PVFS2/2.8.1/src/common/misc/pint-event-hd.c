@@ -98,7 +98,7 @@ int PVFS_HD_client_trace_initialize(hdTopology * topo, hdTopoNode * parentNode)
 		return -1;
 	}
 
-	// getenv, PVFS2_HD_TRACE_CLIENT=BMI,JOB,STATEMACHINE ...
+	// getenv, PVFS2_HD_TRACE_CLIENT=bmi,flow,client
 	const char * clientTraceNames = getenv("PVFS2_HD_TRACE_CLIENT");
 	
 	if (clientTraceNames == NULL){
@@ -155,7 +155,7 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 
 	const char *levels[] = {"Hostname", "Layer"};
 	topology = hdT_createTopology(projectFile, levels, 2);
-printf("topology %p\n",topology);
+	printf("topology %p\n",topology);
 	
 	{
 	const char *path[] = {hostname};
@@ -223,7 +223,6 @@ printf("topology %p\n",topology);
 		ptl_startTrace(pPerformanceTrace);
 	}
 #endif /* __HAVE_HDPTL__ */
-
 
 	set_hd_sm_trace_enabled(1);
 	

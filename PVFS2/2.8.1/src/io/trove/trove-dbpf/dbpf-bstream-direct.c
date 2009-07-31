@@ -734,7 +734,7 @@ static int dbpf_bstream_direct_read_op_svc(void *ptr, PVFS_hint hint)
 						stream_extents[i].offset,
 						attr.u.datafile.b_size);,
 				"%d",ret,
-				"%lld",stream_extents[i].offset
+				"%lld",lld(stream_extents[i].offset)
 		)
 
 		if(ret < 0)
@@ -831,7 +831,7 @@ static int dbpf_bstream_direct_write_op_svc(void *ptr, PVFS_hint hint)
 						stream_extents[i].offset,
 						attr.u.datafile.b_size);,
 				"%d",ret,
-				"%lld",stream_extents[i].offset
+				"%lld",lld(stream_extents[i].offset)
 		)
 
 		if(ret < 0)

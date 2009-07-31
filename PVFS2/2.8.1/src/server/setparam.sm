@@ -103,7 +103,6 @@ static PINT_sm_action setparam_work(
             char * projectFileName = strstr(s_op->req->u.mgmt_setparam.value.u.string_value, ",fileXUL=");
             if(projectFileName == NULL || strlen(projectFileName) < 11){
             	char name[255];
-            	snprintf(name, 255, "/tmp/pvfs2-server-%d", getpid());
             	PINT_HD_event_initalize(s_op->req->u.mgmt_setparam.value.u.string_value, name);
             }else{
             	char * what = strdup(s_op->req->u.mgmt_setparam.value.u.string_value);

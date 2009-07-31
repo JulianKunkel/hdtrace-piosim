@@ -299,8 +299,10 @@ static PINT_sm_action io_cleanup(
 
     if (s_op->u.io.flow_d)
     {
+#ifdef HAVE_HDTRACE
     	s_op->u.io.io_size = s_op->u.io.flow_d->file_data.fsize;
     	s_op->u.io.io_offset = s_op->u.io.flow_d->file_req_offset;
+#endif
         PINT_flow_free(s_op->u.io.flow_d);
     }
 

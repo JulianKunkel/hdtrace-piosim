@@ -117,7 +117,7 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.io_size));
 				snprintf(io_values[1], 15, "%lld", lld(s_op->u.io.io_offset));
 				c_io_values[0] = io_values[0]; 
-				c_io_values[1] = io_values[1]; 
+				c_io_values[1] = io_values[1];
 				hdR_end(smcb->smToken, 1, io_keys, c_io_values);
 				break;
 			}
@@ -195,7 +195,6 @@ PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
 				hdR_endS(smcb->smToken);
 			}
 	)
-//	printf("END INVOKE !\n");
 
 	/* process return code */
 	switch (retval)
@@ -728,7 +727,6 @@ static struct PINT_state_s *PINT_pop_state(struct PINT_smcb *smcb)
 			/*end old sm */
 			hdR_endS(smcb->smToken);
 	)
-//	printf("END (POP)!\n");
 	
 	return smcb->state_stack[smcb->stackptr].state;
 }
