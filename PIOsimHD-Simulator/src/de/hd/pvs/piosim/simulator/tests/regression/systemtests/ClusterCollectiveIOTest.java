@@ -33,18 +33,20 @@ public class ClusterCollectiveIOTest extends IOTest {
 	public SimulationResults writeTest() throws Exception {
 		List<MPIFile> files = prepare(true);
 
-		for (int i = 0; i < iterNum; i++) {
-			for (MPIFile file : files) {
-				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+		for (MPIFile file : files) {
+			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					ListIO list = new ListIO();
-					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
-					io.put(rank, list);
-				}
-
-				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+				io.put(rank, new ListIO());
 			}
+
+			for (int i = 0; i < iterNum; i++) {
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					io.get(rank).addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+				}
+			}
+
+			pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
 		}
 
 		return super.writeTest();
@@ -53,18 +55,20 @@ public class ClusterCollectiveIOTest extends IOTest {
 	public SimulationResults readTest() throws Exception {
 		List<MPIFile> files = prepare(false);
 
-		for (int i = 0; i < iterNum; i++) {
-			for (MPIFile file : files) {
-				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+		for (MPIFile file : files) {
+			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					ListIO list = new ListIO();
-					list.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
-					io.put(rank, list);
-				}
-
-				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+				io.put(rank, new ListIO());
 			}
+
+			for (int i = 0; i < iterNum; i++) {
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					io.get(rank).addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+				}
+			}
+
+			pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 		}
 
 		return super.readTest();
