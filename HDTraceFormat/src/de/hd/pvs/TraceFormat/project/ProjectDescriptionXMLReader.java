@@ -258,7 +258,7 @@ public class ProjectDescriptionXMLReader {
 		for(XMLTag tag: children){
 			final String childName = tag.getAttribute("name");
 
-			String label = xmlTopology.getAttribute("type");
+			String label = tag.getAttribute("type");
 			if( label == null ){
 				label = desc.getTopologyType(depth);
 			}
