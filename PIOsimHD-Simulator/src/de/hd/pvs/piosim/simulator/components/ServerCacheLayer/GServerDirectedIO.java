@@ -114,8 +114,8 @@ public class GServerDirectedIO extends GAggregationCache {
 			 * It would be nice to dynamically calculate the hole size depending on the
 			 * possible speedup. For example, an estimation of how many merges can be performed
 			 * with a given hole size could be used. */
-//			holeSize = 0;
-			holeSize = getSimulator().getModel().getGlobalSettings().getIOGranularity() / 10;
+			holeSize = 0;
+//			holeSize = getSimulator().getModel().getGlobalSettings().getIOGranularity() / 10;
 
 			if (offset + size + holeSize >= cur.getOffset()) {
 				/* Merge two IOJobs. We allow holes, that is, perform data sieving. */
