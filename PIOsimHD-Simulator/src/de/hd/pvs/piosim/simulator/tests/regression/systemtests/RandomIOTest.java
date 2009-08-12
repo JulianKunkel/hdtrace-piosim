@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import org.junit.Test;
+
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
@@ -45,8 +47,9 @@ public class RandomIOTest extends IOTest {
 		}
 	}
 
-	public SimulationResults writeTest() throws Exception {
-		List<MPIFile> files = prepare(true);
+	private Random random = null;
+
+	public void doWrite(List<MPIFile> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
 		for (int i = 0; i < iterNum; i++) {
@@ -58,17 +61,14 @@ public class RandomIOTest extends IOTest {
 			}
 		}
 
-		Collections.shuffle(tuples, new Random(23));
+		Collections.shuffle(tuples, random);
 
 		for (TestTuple t : tuples) {
 			pb.addWriteSequential(t.rank, t.file, t.offset, t.size);
 		}
-
-		return super.writeTest();
 	}
 
-	public SimulationResults readTest() throws Exception {
-		List<MPIFile> files = prepare(false);
+	public void doRead(List<MPIFile> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
 		for (int i = 0; i < iterNum; i++) {
@@ -80,13 +80,73 @@ public class RandomIOTest extends IOTest {
 			}
 		}
 
-		Collections.shuffle(tuples, new Random(42));
+		Collections.shuffle(tuples, random);
 
 		for (TestTuple t : tuples) {
 			pb.addReadSequential(t.rank, t.file, t.offset, t.size);
 		}
+	}
 
-		return super.readTest();
+	@Test
+	public void run() throws Exception {
+		List<Long> sizes = new ArrayList<Long>();
+		List<Long> seeds = new ArrayList<Long>();
+		List<Double> readAvgs = new ArrayList<Double>();
+		List<Double> readDevs = new ArrayList<Double>();
+		List<Double> writeAvgs = new ArrayList<Double>();
+		List<Double> writeDevs = new ArrayList<Double>();
+
+		sizes.add((long)512);
+		sizes.add((long)5 * KBYTE);
+		sizes.add((long)50 * KBYTE);
+		sizes.add((long)512 * KBYTE);
+
+		for (long i = 0; i < 100; i++) {
+			seeds.add(i);
+		}
+
+		for (long size : sizes) {
+			double readAvg = 0;
+			double readDev = 0;
+			double writeAvg = 0;
+			double writeDev = 0;
+
+			for (long seed : seeds) {
+				SimulationResults r;
+				SimulationResults w;
+
+				elementSize = size;
+				random = new Random(seed);
+
+				r = readTest();
+				w = writeTest();
+
+				readAvg += r.getVirtualTime().getDouble();
+				readDev += Math.pow(r.getVirtualTime().getDouble(), 2);
+
+				writeAvg += w.getVirtualTime().getDouble();
+				writeDev += Math.pow(w.getVirtualTime().getDouble(), 2);
+			}
+
+			readAvg /= seeds.size();
+			readDev /= seeds.size();
+			readDev = Math.sqrt(readDev - Math.pow(readAvg, 2));
+
+			readAvgs.add(readAvg);
+			readDevs.add(readDev);
+
+			writeAvg /= seeds.size();
+			writeDev /= seeds.size();
+			writeDev = Math.sqrt(writeDev - Math.pow(writeAvg, 2));
+
+			writeAvgs.add(writeAvg);
+			writeDevs.add(writeDev);
+		}
+
+		for (int i = 0; i < sizes.size(); i++) {
+			System.out.println(sizes.get(i) + " READ  " + readAvgs.get(i) + "s (" + readDevs.get(i) + "s)");
+			System.out.println(sizes.get(i) + " WRITE " + writeAvgs.get(i) + "s (" + writeDevs.get(i) + "s)");
+		}
 	}
 
 	public static void main(String[] args) throws Exception {

@@ -32,20 +32,19 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
-public class IOTest extends ClusterTest {
+abstract public class IOTest extends ClusterTest {
 	int serverNum = 5;
 	int clientNum = 10;
 	int fileNum = 1;
 	int iterNum = 100;
-	long elementSize = 512;
-//	long elementSize = 5 * KBYTE;
-//	long elementSize = 50 * KBYTE;
-//	long elementSize = 512 * KBYTE;
+	long elementSize = 0;
 	// PVFS default
 	long stripeSize = 64 * KBYTE;
 
 	protected List<MPIFile> prepare(boolean isWrite) throws Exception {
 		List<MPIFile> files = new ArrayList<MPIFile>();
+
+		assert(elementSize > 0);
 
 		testMsg();
 		setup(clientNum, serverNum);
@@ -64,28 +63,44 @@ public class IOTest extends ClusterTest {
 		return files;
 	}
 
+	abstract public void doWrite(List<MPIFile> files) throws Exception;
+
+	abstract public void doRead(List<MPIFile> files) throws Exception;
+
 	public SimulationResults writeTest() throws Exception {
+		List<MPIFile> files = prepare(true);
+		doWrite(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
+		List<MPIFile> files = prepare(false);
+		doRead(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	@Test
 	public void run() throws Exception {
-		SimulationResults writeRes = null;
-		SimulationResults readRes = null;
+		List<Long> sizes = new ArrayList<Long>();
 
-		writeRes = writeTest();
-		readRes = readTest();
+		List<SimulationResults> readRes = new ArrayList<SimulationResults>();
+		List<SimulationResults> writeRes = new ArrayList<SimulationResults>();
 
-		if (writeRes != null) {
-			System.out.println("WRITE " + writeRes.getVirtualTime().getDouble() + "s");
+		sizes.add((long)512);
+		sizes.add((long)5 * KBYTE);
+		sizes.add((long)50 * KBYTE);
+		sizes.add((long)512 * KBYTE);
+
+		for (long size : sizes) {
+			elementSize = size;
+
+			readRes.add(readTest());
+			writeRes.add(writeTest());
 		}
 
-		if (readRes != null) {
-			System.out.println("READ  " + readRes.getVirtualTime().getDouble() + "s");
+		for (int i = 0; i < sizes.size(); i++) {
+			System.out.println(sizes.get(i) + " READ  " + readRes.get(i).getVirtualTime().getDouble() + "s");
+			System.out.println(sizes.get(i) + " WRITE " + writeRes.get(i).getVirtualTime().getDouble() + "s");
 		}
 	}
 }

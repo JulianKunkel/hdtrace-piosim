@@ -26,12 +26,9 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 import java.util.List;
 
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.simulator.SimulationResults;
 
 public class ClusterIOTest extends IOTest {
-	public SimulationResults writeTest() throws Exception {
-		List<MPIFile> files = prepare(true);
-
+	public void doWrite(List<MPIFile> files) throws Exception {
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
@@ -39,13 +36,9 @@ public class ClusterIOTest extends IOTest {
 				}
 			}
 		}
-
-		return super.writeTest();
 	}
 
-	public SimulationResults readTest() throws Exception {
-		List<MPIFile> files = prepare(false);
-
+	public void doRead(List<MPIFile> files) throws Exception {
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
@@ -53,8 +46,6 @@ public class ClusterIOTest extends IOTest {
 				}
 			}
 		}
-
-		return super.readTest();
 	}
 
 	public static void main(String[] args) throws Exception {

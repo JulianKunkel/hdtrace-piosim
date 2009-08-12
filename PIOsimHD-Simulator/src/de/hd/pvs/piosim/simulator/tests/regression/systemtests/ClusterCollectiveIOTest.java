@@ -27,12 +27,9 @@ import java.util.List;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.simulator.SimulationResults;
 
 public class ClusterCollectiveIOTest extends IOTest {
-	public SimulationResults writeTest() throws Exception {
-		List<MPIFile> files = prepare(true);
-
+	public void doWrite(List<MPIFile> files) throws Exception {
 		for (MPIFile file : files) {
 			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 
@@ -48,13 +45,9 @@ public class ClusterCollectiveIOTest extends IOTest {
 
 			pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
 		}
-
-		return super.writeTest();
 	}
 
-	public SimulationResults readTest() throws Exception {
-		List<MPIFile> files = prepare(false);
-
+	public void doRead(List<MPIFile> files) throws Exception {
 		for (MPIFile file : files) {
 			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 
@@ -70,8 +63,6 @@ public class ClusterCollectiveIOTest extends IOTest {
 
 			pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 		}
-
-		return super.readTest();
 	}
 
 	public static void main(String[] args) throws Exception {
