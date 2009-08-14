@@ -18,7 +18,6 @@
 package de.viewer.graph;
 
 import java.awt.Color;
-import java.math.BigDecimal;
 
 /**
  * Contains the input data for the histogram 
@@ -26,35 +25,22 @@ import java.math.BigDecimal;
  */
 public class HistogramDoubleData extends HistogramData{
 	final double [] bins;
-	/**
-	 * Sum of all bin values:
-	 */
-	final double aggregatedValue;
-	
 	final double maxValueInBin;
 	
-
 	
-	public HistogramDoubleData(String title, Color color, double [] bins, double xOffset, double xExtend) {
-		super(title, color, xOffset, xExtend);
+	public HistogramDoubleData(String title, Color color, double [] bins, double xOffset, double xExtend,  double avgValue, double aggregatedValue) {
+		super(title, color, xOffset, xExtend, avgValue, aggregatedValue);
 		
 		this.bins = bins;
 		
 		// determine max value:
-		BigDecimal aggr = new BigDecimal(0);
 		double maxValue = 0;
 		for(double binVal: bins){
 			maxValue = binVal > maxValue ? binVal : maxValue;
-			aggr = aggr.add(new BigDecimal(binVal));
 		}
 		this.maxValueInBin = maxValue;
-		this.aggregatedValue = aggr.doubleValue();
 	}
-	
-	public double getAggregatedBinValues() {
-		return aggregatedValue;
-	}
-	
+		
 	@Override
 	public int getBinCount() {			
 		return bins.length;

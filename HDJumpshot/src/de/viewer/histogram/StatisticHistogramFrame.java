@@ -21,6 +21,7 @@ package de.viewer.histogram;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.math.BigDecimal;
 import java.util.Enumeration;
 
 import javax.swing.JPanel;
@@ -74,9 +75,14 @@ public class StatisticHistogramFrame extends StatisticHistogram<HistogramIntData
 		final int whichEntry = description.getNumberInGroup();
 
 		final Enumeration<StatisticsGroupEntry> entries = reader.enumerateStatistics(start, end);
+		
+		int numberOfElements = 0;
+		BigDecimal valueSum = new BigDecimal(0);
 
 		while(entries.hasMoreElements()){
 			final StatisticsGroupEntry entry = entries.nextElement(); 
+			
+			numberOfElements++;
 
 			final double value = entry.getNumeric(whichEntry);
 
@@ -86,10 +92,13 @@ public class StatisticHistogramFrame extends StatisticHistogram<HistogramIntData
 
 			values[bin] ++;
 			// adapt max number of entries
-			maxNumber = (values[bin] > maxNumber) ? values[bin] : maxNumber;  
+			maxNumber = (values[bin] > maxNumber) ? values[bin] : maxNumber;
+			
+			valueSum = valueSum.add(new BigDecimal(value));
 		}
 
-		return new HistogramIntData("", category.getColor(),  values, min, max - min);
+		return new HistogramIntData("", category.getColor(),  values, min, max - min, valueSum.doubleValue() / numberOfElements, 
+				valueSum.doubleValue());
 	}
 
 	@Override

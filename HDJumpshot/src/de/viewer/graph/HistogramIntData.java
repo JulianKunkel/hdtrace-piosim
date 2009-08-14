@@ -28,8 +28,8 @@ public class HistogramIntData extends HistogramData{
 	
 	final int maxValueInBin;
 	
-	public HistogramIntData(String title, Color color, int [] bins, double xOffset, double xExtend) {
-		super(title, color, xOffset, xExtend);
+	public HistogramIntData(String title, Color color, int [] bins, double xOffset, double xExtend,  double avgValue, double aggregatedValue) {
+		super(title, color, xOffset, xExtend, avgValue, aggregatedValue);
 		this.bins = bins;
 		
 		// determine max value:

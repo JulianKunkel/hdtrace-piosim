@@ -84,7 +84,9 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 	final LabeledTextField labelBin = new LabeledTextField( "Bin", Const.INTEGER_FORMAT );
 	final LabeledTextField labelMinValue = new LabeledTextField( "Bin min", Const.FLOAT_FORMAT );;
 	final LabeledTextField labelMaxValue = new LabeledTextField( "Bin max", Const.FLOAT_FORMAT );;
-
+	final LabeledTextField averageValue = new LabeledTextField( "Average", Const.FLOAT_FORMAT );
+	final LabeledTextField aggregatedValue = new LabeledTextField( "Sum", Const.FLOAT_FORMAT );
+	
 	final StatisticStatistics statistics;
 	final CategoryStatistic category;
 
@@ -170,11 +172,14 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 		frame.setPreferredSize(new Dimension(400, 250));
 		frame.setResizable(true);
 
-		labelBin.setEditable( false );		
-		
-		labelMinValue.setEditable( false );		
-		
+		labelBin.setEditable( false );				
+		labelMinValue.setEditable( false );				
 		labelMaxValue.setEditable( false );		
+		aggregatedValue.setEditable( false );		
+		averageValue.setEditable( false );
+		
+		averageValue.setToolTipText("Average value over the interval");
+		aggregatedValue.setToolTipText("Aggregated value over the interval i.e. sum of the individual relevant values");
 
 		// default on close operation:
 		frame.addWindowListener(new MyWindowClosedListener());
@@ -186,9 +191,6 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 
 	protected class HistogramGraph extends Histogram2D implements IAutoRefreshable{
 		private static final long serialVersionUID = 1L;
-		
-		// position of the first real histogram pixel:
-		private int   xOffsetByLabels;
 		
 		// automatically redraw on time modification:
 		boolean isAutoRefresh;
@@ -219,6 +221,9 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 
 				histogramGraph.removeAllLines();
 				histogramGraph.addLine(histogramData);
+				
+				averageValue.setDouble(histogramData.getAverageValue());
+				aggregatedValue.setDouble(histogramData.getAggregatedValue());
 				
 				reloadData();				
 			}
@@ -306,7 +311,10 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 	public void show(){
 		JPanel xPanel = new JPanel();
 		xPanel.setLayout(new BoxLayout( xPanel, BoxLayout.X_AXIS));
-
+		
+		xPanel.add(aggregatedValue);		
+		xPanel.add(averageValue);		
+		
 		xPanel.add(binNumberSpinner);
 
 		xPanel.add(labelBin);		

@@ -25,8 +25,11 @@ import java.awt.Color;
  */
 public abstract class HistogramData extends GraphData{
 	
-	final double xOffset;
-	final double xExtend;
+	final private double averageValue;
+	final private double aggregatedValue;
+	
+	final private double xOffset;
+	final private double xExtend;
 
 	final public double getXExtend() {
 		return xExtend;
@@ -35,12 +38,14 @@ public abstract class HistogramData extends GraphData{
 	final public double getDeltaPerBin() {
 		return xExtend / getBinCount();
 	}
-	
-	public HistogramData(String title, Color color, double xOffset, double xExtend) {
+		
+	public HistogramData(String title, Color color, double xOffset, double xExtend, double avgValue, double aggregatedValue) {
 		super(title, color);
 		
 		this.xOffset = xOffset;
 		this.xExtend = xExtend;
+		this.averageValue = avgValue;
+		this.aggregatedValue = aggregatedValue;
 	}
 	
 	abstract public int getBinCount();
@@ -70,6 +75,14 @@ public abstract class HistogramData extends GraphData{
 	@Override
 	final public ElementEnumeration getXValues() {			
 		return new HistogramXAxisEnumeration();
+	}
+	
+	public double getAggregatedValue() {
+		return aggregatedValue;
+	}
+	
+	public double getAverageValue() {
+		return averageValue;
 	}
 	
 	private class HistogramXAxisEnumeration  implements ElementEnumeration{

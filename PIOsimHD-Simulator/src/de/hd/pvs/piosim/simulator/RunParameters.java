@@ -42,13 +42,13 @@ public class RunParameters {
 	/**
 	 * is internal communication traced, i.e. between a NIC and a Switch?
 	 */
-	boolean traceInternals = true;
+	boolean traceInternals = false;
 
 	/**
 	 * a client operation is divided into subsequent atomic operations, each operation step can be traced,
 	 * if disabled only the whole operation is traced.
 	 */
-	boolean traceClientSteps = true;
+	boolean traceClientSteps = false;
 
 	/**
 	 * are any operations on an IOServer traced?

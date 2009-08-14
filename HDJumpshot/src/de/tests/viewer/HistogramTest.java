@@ -39,7 +39,7 @@ public class HistogramTest {
 		f.add(pan);
 		
 		Histogram2D hist = new Histogram2D();
-		HistogramData data = new HistogramIntData("test", Color.DARK_GRAY, new int[]{1,1,2,3,10,3,2,1,1,2}, 10, 10);
+		HistogramData data = new HistogramIntData("test", Color.DARK_GRAY, new int[]{1,1,2,3,10,3,2,1,1,2}, 10, 10, 2, 2);
 		hist.addLine(data);
 		hist.getXAxis().setIntegerType(true);
 		

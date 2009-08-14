@@ -44,6 +44,7 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 	final LabeledTextField aggregatedTime = new LabeledTextField( "Aggregated [t]", Const.FLOAT_FORMAT );
 	final LabeledTextField percentTime = new LabeledTextField( "% [t]", Const.FLOAT_FORMAT );
 
+	
 	public StatisticTimeHistogramFrame(BufferedStatisticsFileReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
 		super(reader, description, modelTime, category);
 	}
@@ -54,7 +55,7 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 		panel.add(aggregatedTime);		
 
 		percentTime.setEditable( false );		
-		panel.add(percentTime);		
+		panel.add(percentTime);
 	}
 
 	@Override
@@ -62,7 +63,7 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 		double binval = data.getBins()[bin];
 		aggregatedTime.setDouble(binval);
 
-		percentTime.setDouble(binval / data.getAggregatedBinValues() * 100);
+		percentTime.setDouble(binval / data.getAggregatedValue() * 100);
 	}
 
 	@Override
@@ -70,8 +71,7 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 
 	}
 
-	private int determineBin(StatisticsGroupEntry entry, double min, int whichEntry, int numberOfBins, double deltaPerBin){
-		final double value = entry.getNumeric(whichEntry);
+	private int determineBin(StatisticsGroupEntry entry, double min, double value, int numberOfBins, double deltaPerBin){
 		int bin = (int)((value - min) / deltaPerBin);
 		// out of range?
 		return (bin >= numberOfBins) ? numberOfBins - 1 : bin;		
@@ -95,15 +95,22 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 		StatisticsGroupEntry earliestEntry = null;
 		StatisticsGroupEntry entry = null;
 		
+		BigDecimal valueSum = new BigDecimal(0);
+		
 		while(entries.hasMoreElements()){
 			entry = entries.nextElement(); 				
 			
 			if(earliestEntry == null)
 				earliestEntry = entry;
-		
-			final int bin = determineBin(entry, min, whichEntry, numberOfBins, deltaPerBin);
-			aggregatedTimes[bin] = aggregatedTimes[bin].add(new BigDecimal(entry.getDurationTime().getDouble()));
+
+			final double value = entry.getNumeric(whichEntry);
+
+			final int bin = determineBin(entry, min, value, numberOfBins, deltaPerBin);
+			final BigDecimal duration = new BigDecimal(entry.getDurationTime().getDouble());
+			
+			aggregatedTimes[bin] = aggregatedTimes[bin].add(duration);
   
+			valueSum = valueSum.add(duration.multiply(new BigDecimal(value)));		
 		}
 		
 		// check if entry starts earlier or later than start, or ends later than end.
@@ -111,12 +118,21 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 			if(earliestEntry.getEarliestTime().compareTo(start) < 0){
 				// starts earlier
 				final int bin = determineBin(earliestEntry, min, whichEntry, numberOfBins, deltaPerBin);
-				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(new BigDecimal( start.subtract(earliestEntry.getEarliestTime()).getDouble() ));
+				final BigDecimal overlappingDuration = new BigDecimal(start.subtract(earliestEntry.getEarliestTime()).getDouble());
+				
+				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(overlappingDuration);
+				final double value = entry.getNumeric(whichEntry);
+				valueSum = valueSum.subtract(overlappingDuration.multiply(new BigDecimal(value)));
 			}						
 			if(entry.getLatestTime().compareTo(end) > 0){
 				// ends later => subtract time.
 				final int bin = determineBin(entry, min, whichEntry, numberOfBins, deltaPerBin);
-				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(new BigDecimal( entry.getLatestTime().subtract(end).getDouble() ));
+				
+				final BigDecimal overlappingDuration = new BigDecimal( entry.getLatestTime().subtract(end).getDouble() );
+				
+				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(overlappingDuration);
+				final double value = entry.getNumeric(whichEntry);
+				valueSum = valueSum.subtract(overlappingDuration.multiply(new BigDecimal(value)));
 			}	
 		}
 
@@ -126,6 +142,7 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 			times[i] = aggregatedTimes[i].doubleValue();
 		}
 
-		return new HistogramDoubleData("", category.getColor(),  times, min, max - min);
+		return new HistogramDoubleData("", category.getColor(),  times, min, max - min, 
+				valueSum.doubleValue() / end.subtract(start).getDouble(), valueSum.doubleValue());
 	}
 }
