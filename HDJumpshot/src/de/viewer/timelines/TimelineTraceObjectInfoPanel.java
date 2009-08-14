@@ -256,24 +256,35 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		fld_stat_integrated_sum = new LabeledTextField( "Integrated Sum", Const.FLOAT_FORMAT );
 		fld_stat_integrated_sum.setEditable( false );
 		fld_stat_integrated_sum.setToolTipText("Show the sum of the statistic entries multiplied by their length");
+		fld_stat_integrated_sum.setBackground(Color.LIGHT_GRAY);
 		
 		fld_stat_integrated_avg = new LabeledTextField( "Integrated Avg", Const.FLOAT_FORMAT );
 		fld_stat_integrated_avg.setEditable( false );
 		fld_stat_integrated_avg.setToolTipText("Show the sum of the statistic entries multiplied by their " +
 				"length divided by the total time duration");
-		
+		fld_stat_integrated_avg.setToolTipText("Show the numeric average of the statistic values");
+		fld_stat_integrated_avg.setBackground(Color.LIGHT_GRAY);
 		
 		fld_stat_sum = new LabeledTextField( "Sum", Const.FLOAT_FORMAT );
 		fld_stat_sum.setEditable( false );
-		fld_stat_integrated_avg.setToolTipText("Show the numeric sum of the statistic values");
-		
+		fld_stat_sum.setBackground(Color.LIGHT_GRAY);
+				
 
 		fld_stat_average = new LabeledTextField( "Average", Const.FLOAT_FORMAT );
 		fld_stat_average.setEditable( false );
-		fld_stat_integrated_avg.setToolTipText("Show the numeric average of the statistic values");		
+		fld_stat_average.setBackground(Color.LIGHT_GRAY);
+		
+				
+		
 		//
 
 		panel.add( fld_category_name );
+
+		panel.add( fld_stat_sum );		
+		panel.add( fld_stat_average );
+		panel.add( fld_stat_integrated_sum);
+		panel.add( fld_stat_integrated_avg);
+
 		panel.add( fld_time_start );
 		panel.add( fld_time_end );
 		panel.add( fld_time_duration );
@@ -281,11 +292,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 		panel.add( fld_operation_type );
 		panel.add( fld_jobID );		
 		panel.add( fld_value );
-		panel.add( fld_stat_sum );		
-		panel.add( fld_stat_average );
-		panel.add( fld_stat_integrated_sum);
-		panel.add( fld_stat_integrated_avg);
-
+		
 		setVisibleControls(TracableObjectType.EVENT);
 	}
 
