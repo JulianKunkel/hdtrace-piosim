@@ -74,6 +74,10 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 	private int determineBin(StatisticsGroupEntry entry, double min, double value, int numberOfBins, double deltaPerBin){
 		int bin = (int)((value - min) / deltaPerBin);
 		// out of range?
+		if(bin < 0){
+			System.out.println("HERNES " + bin);
+		}
+		
 		return (bin >= numberOfBins) ? numberOfBins - 1 : bin;		
 	}
 	
@@ -117,21 +121,23 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 		if(entry != null){
 			if(earliestEntry.getEarliestTime().compareTo(start) < 0){
 				// starts earlier
-				final int bin = determineBin(earliestEntry, min, whichEntry, numberOfBins, deltaPerBin);
+
+				final double value = entry.getNumeric(whichEntry);
+				final int bin = determineBin(earliestEntry, min, value, numberOfBins, deltaPerBin);
 				final BigDecimal overlappingDuration = new BigDecimal(start.subtract(earliestEntry.getEarliestTime()).getDouble());
 				
 				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(overlappingDuration);
-				final double value = entry.getNumeric(whichEntry);
 				valueSum = valueSum.subtract(overlappingDuration.multiply(new BigDecimal(value)));
 			}						
 			if(entry.getLatestTime().compareTo(end) > 0){
 				// ends later => subtract time.
-				final int bin = determineBin(entry, min, whichEntry, numberOfBins, deltaPerBin);
+				final double value = entry.getNumeric(whichEntry);
+				
+				final int bin = determineBin(entry, min, value, numberOfBins, deltaPerBin);
 				
 				final BigDecimal overlappingDuration = new BigDecimal( entry.getLatestTime().subtract(end).getDouble() );
 				
 				aggregatedTimes[bin] = aggregatedTimes[bin].subtract(overlappingDuration);
-				final double value = entry.getNumeric(whichEntry);
 				valueSum = valueSum.subtract(overlappingDuration.multiply(new BigDecimal(value)));
 			}	
 		}
