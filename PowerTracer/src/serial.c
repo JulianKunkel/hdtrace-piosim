@@ -287,7 +287,7 @@ int serial_sendBreak(int fd)
 }
 
 /**
- * Reads exact the next bsize bytes from fd
+ * Read exact the next bsize bytes from fd
  * using select with timeout in seconds.
  *
  * @param fd        File descriptor of the serial port

@@ -51,7 +51,7 @@ int LMG_reset(int fd)
     SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     /*
-     * Reset the messuring unit.
+     * Reset the measuring unit.
      */
     ret = serial_sendMessage(fd, "*RST");
     SERIAL_SENDMESSAGE_RETURN_CHECK;
@@ -120,6 +120,115 @@ int LMG_getIdentity(int fd, char buffer[], size_t bsize)
 
     return OK;
 }
+
+/**
+ * Program the LMG action script for continues mode
+ *
+ * This program uses the configuration to generate and send an action script
+ *  making the LMG sending the needed values after each cycle.
+ *
+ * @param fd       File descriptor of the serial port
+ * @param config   Configuration
+ *
+ * @return  Error state
+ *
+ * @retval  OK    Success
+ * @retval  -->   \ref serial_sendMessage()
+ */
+int LMG_programAction(int fd, ConfigStruct *config)
+{
+	int ret;
+
+    /* check value of cycle time */
+    assert(config->cycle > 50 && config->cycle < 60000);
+
+    /*
+     * Define commands to be executed
+     */
+    size_t actn_len = 5; /* bytes for "ACTN;" */
+
+	FOR_TRACES(trace, config->traces)
+        actn_len += strlen(trace->actn) + 1; /* 1 byte for the separating ';' */
+
+    char actn[actn_len];
+    actn[0] = '\0';
+    strcat(actn, "ACTN");
+    FOR_TRACES(trace, config->traces) {
+        strcat(actn, ";");
+        strcat(actn, trace->actn);
+    }
+
+    /*
+     * Send action script to LMG
+     */
+    ret = serial_sendMessage(fd, actn);
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
+
+    /*
+     * Set cycle time
+     */
+    char buffer[32];
+    sprintf(buffer, "CYCL %f", ((float) config->cycle) / 1000);
+    ret = serial_sendMessage(fd, buffer);
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
+
+    /*
+     * Set output format
+     */
+    switch(config->mode)
+    {
+        case MODE_BIN:
+            ret = serial_sendMessage(fd, "FRMT PACKED");
+            break;
+        case MODE_ASCII:
+            ret = serial_sendMessage(fd, "FRMT ASCII");
+            break;
+    }
+    SERIAL_SENDMESSAGE_RETURN_CHECK;
+
+    return OK;
+}
+
+/**
+ * Start the continues mode
+ *
+ * @param fd       File descriptor of the serial port
+ *
+ * @return  Error state
+ *
+ * @retval  OK    Success
+ * @retval  -->   \ref serial_sendMessage()
+ */
+int LMG_startContinuesMode(int fd)
+{
+	int ret;
+
+	ret = serial_sendMessage(fd, "CONT ON");
+	SERIAL_SENDMESSAGE_RETURN_CHECK;
+
+	return OK;
+}
+
+/**
+ * Stop the continues mode
+ *
+ * @param fd       File descriptor of the serial port
+ *
+ * @return  Error state
+ *
+ * @retval  OK    Success
+ * @retval  -->   \ref serial_sendMessage()
+ */
+int LMG_stopContinuesMode(int fd)
+{
+	int ret;
+
+	ret = serial_sendMessage(fd, "CONT OFF");
+	SERIAL_SENDMESSAGE_RETURN_CHECK;
+
+	return OK;
+}
+
 
 /**
  * Read a message in text (ASCII) format

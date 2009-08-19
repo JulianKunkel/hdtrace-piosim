@@ -11,18 +11,56 @@
 
 #include <unistd.h>
 
+#include "conf.h"
+
+/**
+ * Resets everything in LMG.
+ */
 int LMG_reset(int fd);
 
+/**
+ * Setup the LMG.
+ */
 int LMG_setup(int fd);
 
+/**
+ * Get identity string from LMG.
+ */
 int LMG_getIdentity(int fd, char buffer[], size_t bsize);
 
+/**
+ * Program the LMG action script for continues mode
+ */
+int LMG_programAction(int fd, ConfigStruct *config);
+
+/**
+ * Start the continues mode
+ */
+int LMG_startContinuesMode(int fd);
+
+/**
+ * Stop the continues mode
+ */
+int LMG_stopContinuesMode(int fd);
+
+/**
+ * Read a message in text (ASCII) format
+ */
 int LMG_readTextMessage(int fd, char buffer[], size_t bsize);
 
+/**
+ * Read a message in binary format.
+ */
 int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize);
 
+/**
+ * Get all errors from LMG.
+ */
 int LMG_getAllErrors(int fd, char buffer[], size_t bsize);
 
+/**
+ * Close connection to  LMG.
+ */
 int LMG_close(int fd);
 
 
@@ -66,6 +104,45 @@ int LMG_close(int fd);
             return(ret); \
         default: \
 			assert(!"Unknown return value from LMG_getIdentity()."); \
+		} \
+	} while (0)
+
+#define LMG_PROGRAMACTION_RETURN_CHECK \
+	do { \
+		switch(ret) { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* serial_sendMessage() */ \
+        case ERR_WRITE: \
+            return(ret); \
+        default: \
+			assert(!"Unknown return value from LMG_programAction()."); \
+		} \
+	} while (0)
+
+#define LMG_STARTCONTINUESMODE_RETURN_CHECK \
+	do { \
+		switch(ret) { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* serial_sendMessage() */ \
+        case ERR_WRITE: \
+            return(ret); \
+        default: \
+			assert(!"Unknown return value from LMG_startContinuesMode()."); \
+		} \
+	} while (0)
+
+#define LMG_STOPCONTINUESMODE_RETURN_CHECK \
+	do { \
+		switch(ret) { \
+        case OK: \
+            break; \
+        case ERR_ERRNO: /* serial_sendMessage() */ \
+        case ERR_WRITE: \
+            return(ret); \
+        default: \
+			assert(!"Unknown return value from LMG_stopContinuesMode()."); \
 		} \
 	} while (0)
 

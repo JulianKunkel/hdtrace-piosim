@@ -94,7 +94,7 @@ int traceIteration(int serial_fd, ConfigStruct *config)
  * Trace all the data configured
  *
  * @param serial_fd  File descriptor of the serial port connected to the device
- * @param config     Configuration
+ * @param trace      Trace object
  *
  * @return Error state
  *
@@ -115,52 +115,12 @@ int traceLoop(
     struct timeval timeout;
     int n;
 
-    /* check value of cycle time */
-    assert(config->cycle > 50 && config->cycle < 60000);
-
     /*
-     * Define commands to be executed
+     * Program the power analyzer
      */
-    size_t actn_len = 5; /* bytes for "ACTN;" */
+    LMG_programAction(serial_fd, config);
+    LMG_PROGRAMACTION_RETURN_CHECK;
 
-	FOR_TRACES(trace, config->traces)
-        actn_len += strlen(trace->actn) + 1; /* 1 byte for the separating ';' */
-
-    char actn[actn_len];
-    actn[0] = '\0';
-    strcat(actn, "ACTN");
-    FOR_TRACES(trace, config->traces) {
-        strcat(actn, ";");
-        strcat(actn, trace->actn);
-    }
-
-    /*
-     * Send action script to LMG
-     */
-    ret = serial_sendMessage(serial_fd, actn);
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
-
-    /*
-     * Set cycle time
-     */
-    char buffer[32];
-    sprintf(buffer, "CYCL %f", ((float) config->cycle) / 1000);
-    ret = serial_sendMessage(serial_fd, buffer);
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
-
-    /*
-     * Set output format
-     */
-    switch(config->mode)
-    {
-        case MODE_BIN:
-            ret = serial_sendMessage(serial_fd, "FRMT PACKED");
-            break;
-        case MODE_ASCII:
-            ret = serial_sendMessage(serial_fd, "FRMT ASCII");
-            break;
-    }
-    SERIAL_SENDMESSAGE_RETURN_CHECK;
 
     /*
      * Tracing iterations loop
@@ -186,7 +146,7 @@ int traceLoop(
        			FOR_TRACES(trace, config->traces) {
        				hdS_disableGroup(trace->group);
        			}
-       			serial_sendMessage(serial_fd, "CONT OFF");
+       			LMG_stopContinuesMode(serial_fd);
        		}
        		break;
      	}
@@ -218,8 +178,10 @@ int traceLoop(
         	if (trace->control.terminate) {
         		if (enabled)
         			disable_traces = 1;
-        		else
+        		else {
+        			pthread_mutex_unlock(&(trace->control.mutex));
         			break;
+        		}
         	}
     	}
     	pthread_mutex_unlock(&(trace->control.mutex));
@@ -240,7 +202,7 @@ int traceLoop(
     		ret = serial_resetPort(serial_fd);
 
     		/* start continues mode */
-    		ret = serial_sendMessage(serial_fd, "CONT ON");
+    		ret = LMG_startContinuesMode(serial_fd);
    		    switch(ret) {
    		    case OK:
    		    	break;
@@ -267,7 +229,7 @@ int traceLoop(
     		}
 
     		/* start continues mode */
-    		ret = serial_sendMessage(serial_fd, "CONT OFF");
+    		ret = LMG_stopContinuesMode(serial_fd);
    		    switch(ret) {
    		    case OK:
    		    	break;
