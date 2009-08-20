@@ -99,7 +99,7 @@ typedef enum {
 } HD_Trace_Facility;
 
 
-#define HD_CLIENT_RELATION(facility, stmt) \
+#define HD_CLIENT_SERVER_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END];

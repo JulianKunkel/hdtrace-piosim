@@ -400,7 +400,7 @@ PVFS_error PINT_client_state_machine_post(
     /* save operation type; mark operation as unfinished */
     sm_p->user_ptr = user_ptr;
     
-    HD_CLIENT_RELATION(CLIENT,
+    HD_CLIENT_SERVER_RELATION(CLIENT,
     		hdR_token token = hdR_createTopLevelRelation(topoTokenArray[CLIENT]);
     		PINT_smcb_set_token(smcb, token);
     		char * relation = hdR_getRemoteToken(token); 
