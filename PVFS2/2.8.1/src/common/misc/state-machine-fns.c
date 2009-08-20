@@ -115,7 +115,7 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 			{
 			case (PVFS_SERV_IO):{
 				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.io_size));
-				snprintf(io_values[1], 15, "%lld", lld(s_op->u.io.io_offset));
+				printf("PVFS_SERV_IO %s %s \n",io_values[0],io_values[1]);
 				c_io_values[0] = io_values[0]; 
 				c_io_values[1] = io_values[1];
 				hdR_end(smcb->smToken, 1, io_keys, c_io_values);
@@ -123,6 +123,7 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 			}
 			case (PVFS_SERV_SMALL_IO):
 				snprintf(small_io_values[0], 15, "%lld", lld(s_op->resp.u.small_io.result_size));
+				printf("PVFS_SERV_SMALL_IO %s \n",small_io_values[0]);
 				c_small_io_values[0] = small_io_values[0];
 				hdR_end(smcb->smToken, 1, small_io_keys, c_small_io_values);	
 				break;
@@ -176,7 +177,6 @@ PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
 			/* new state */
 			ret = hdR_startS(smcb->smToken, state_name);
 	)
-//	printf("START INVOKE : %s\n",state_name);
 
 	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
 			"[SM Entering]: (%p) %s:%s (status: %d)\n",
@@ -403,8 +403,7 @@ PINT_sm_action PINT_state_machine_next(struct PINT_smcb *smcb, job_status_s *r)
 			HD_STMT_TOKEN(
 					hdR_startS(smcb->smToken, PINT_state_machine_current_machine_name(smcb));
 			)
-//			printf("START NEXT: %s\n", PINT_state_machine_current_machine_name(smcb));
-		}
+		}	
 
 		/* runs state_action and returns the return code */
 		ret = PINT_state_machine_invoke(smcb, r);

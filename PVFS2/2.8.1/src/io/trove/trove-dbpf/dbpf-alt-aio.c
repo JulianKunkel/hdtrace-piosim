@@ -212,13 +212,13 @@ static int alt_aio_fsync(int operation, struct aiocb * aiocbp)
 
 static void* alt_lio_thread(void* foo)
 {
-    struct alt_aio_item* tmp_item = (struct alt_aio_item*)foo;
+    struct alt_aio_item* tmp_item = (struct alt_aio_item*) foo;
     int ret = 0;
     
     if(tmp_item->cb_p->aio_lio_opcode == LIO_READ)
     {	
     	
-    	IO_TROVE_RELATION(tmp_item->hints,"alt-io-read",
+    	HD_SERVER_TROVE_RELATION(tmp_item->hints,"alt-io-read",
     			ret = pread(tmp_item->cb_p->aio_fildes,
     					(void*)tmp_item->cb_p->aio_buf,
     					tmp_item->cb_p->aio_nbytes,
@@ -236,7 +236,7 @@ static void* alt_lio_thread(void* foo)
                      tmp_item->cb_p->aio_buf, tmp_item->cb_p->aio_nbytes,
 		     llu(tmp_item->cb_p->aio_offset));
         
-        IO_TROVE_RELATION(tmp_item->hints,"alt-io-write",
+        HD_SERVER_TROVE_RELATION(tmp_item->hints,"alt-io-write",
         		ret = pwrite(tmp_item->cb_p->aio_fildes,
         				(const void*)tmp_item->cb_p->aio_buf,
         				tmp_item->cb_p->aio_nbytes,

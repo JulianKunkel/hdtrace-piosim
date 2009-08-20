@@ -1716,7 +1716,7 @@ int server_state_machine_start(
     {
         s_op->req  = (struct PVFS_server_req *)s_op->decoded.buffer;
         
-        HD_SERVER_RELATION(SERVER,
+        HD_CLIENT_SERVER_RELATION(SERVER,
         	// check if client sent token information or not!
         	char * relation = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
         	

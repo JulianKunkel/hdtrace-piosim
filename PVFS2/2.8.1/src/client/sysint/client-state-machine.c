@@ -404,7 +404,6 @@ PVFS_error PINT_client_state_machine_post(
     		hdR_token token = hdR_createTopLevelRelation(topoTokenArray[CLIENT]);
     		PINT_smcb_set_token(smcb, token);
     		char * relation = hdR_getRemoteToken(token); 
-    		printf("CLIENT : %s\n",relation);
     		PVFS_hint_add(&sm_p->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, strlen(relation)+1, relation);
     		free(relation);
 

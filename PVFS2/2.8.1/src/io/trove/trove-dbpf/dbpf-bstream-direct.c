@@ -726,7 +726,7 @@ static int dbpf_bstream_direct_read_op_svc(void *ptr, PVFS_hint hint)
 	for(i = 0; i < extent_count; ++ i)
 	{	
 
-		IO_TROVE_RELATION(hint,"read",
+		HD_SERVER_TROVE_RELATION(hint,"read",
 				ret = direct_locked_read(rw_op->open_ref.fd,
 						stream_extents[i].buffer,
 						0,
@@ -823,7 +823,7 @@ static int dbpf_bstream_direct_write_op_svc(void *ptr, PVFS_hint hint)
 	for(i = 0; i < extent_count; ++ i)
 	{
 
-		IO_TROVE_RELATION(hint,"write",
+		HD_SERVER_TROVE_RELATION(hint,"write",
 				ret = direct_locked_write(rw_op->open_ref.fd,
 						stream_extents[i].buffer,
 						0,

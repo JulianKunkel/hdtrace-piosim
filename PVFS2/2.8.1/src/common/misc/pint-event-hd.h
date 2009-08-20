@@ -35,13 +35,13 @@ typedef enum {
 	ALL_FACILITIES
 } HD_Trace_Facility;
 
-#define IO_TROVE_RELATION(hints, name, CMD, p_size, size, p_offset, offset) \
+#define HD_SERVER_TROVE_RELATION(hints, name, CMD, p_size, size, p_offset, offset) \
 	const char * io_keys[] = {"size","offset"}; \
 	char attr1[15],attr2[15]; \
 	char * io_values[] = {attr1, attr2}; \
 	const char * c_io_values[2]; \
 	int run = 1; \
-	HD_SERVER_RELATION(SERVER, \
+	HD_CLIENT_SERVER_RELATION(SERVER, \
 			hdR_token relateToken = NULL; \
 				hdR_token parentToken = *(hdR_token*) PINT_hint_get_value_by_name(hints, PVFS_HINT_RELATION_TOKEN_NAME, NULL); \
 			\
@@ -76,7 +76,7 @@ typedef enum {
 		CMD \
 	} \
 
-#define HD_SERVER_RELATION(facility, stmt) \
+#define HD_CLIENT_SERVER_RELATION(facility, stmt) \
 	do{ if(topoTokenArray[facility]){ stmt } } while(0);
 
 extern hdR_topoToken topoTokenArray[STATISTIC_END];
@@ -128,7 +128,7 @@ int PINT_HD_update_counter_dec_multiple(HD_Trace_Facility facility, int count);
 #define PINT_HD_UPDATE_COUNTER_INC_MULTIPLE(facility, count);
 #define PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE(facility, count);
 
-#define HD_SERVER_RELATION (facility stmt)
+#define HD_CLIENT_SERVER_RELATION (facility stmt)
 #define HD_DESTROY_RELATION(facility, token) 
 
 #endif /* __HAVE_HDTRACE__ */
