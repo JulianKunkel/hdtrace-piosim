@@ -52,10 +52,6 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 	final class FilewriteallWrapper {
 		private Filewriteall command;
 
-		public Filewriteall getCommand() {
-			return command;
-		}
-
 		public FilewriteallWrapper(Filewriteall cmd) {
 			command = cmd;
 		}
@@ -153,7 +149,7 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 	}
 
 	private static HashMap<FilewriteallWrapper, List<FilewriteallContainer>> sync_blocked_clients = new HashMap<FilewriteallWrapper, List<FilewriteallContainer>>();
-	private static HashMap<Filewriteall, List<FilewriteallContainer>> xxx = new HashMap<Filewriteall, List<FilewriteallContainer>>();
+	private static HashMap<Filewriteall, List<FilewriteallContainer>> meta_info = new HashMap<Filewriteall, List<FilewriteallContainer>>();
 
 	@Override
 	public void process(Filewriteall cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
@@ -191,7 +187,7 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 				Collections.sort(cmds, new FilewriteallContainerComparator());
 
 				for (FilewriteallContainer c : waitingClients) {
-					xxx.put(c.getCommand(), cmds);
+					meta_info.put(c.getCommand(), cmds);
 				}
 
 				waitingClients.remove(container);
@@ -221,8 +217,8 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 			OUTresults.invokeChildOperation(gather, CommandProcessing.STEP_START, null);
 
-			for (int i = 1; i < xxx.get(cmd).size(); i++) {
-				if (xxx.get(cmd).get(i).getCommand().getStartOffset() <= xxx.get(cmd).get(i - 1).getCommand().getEndOffset()) {
+			for (int i = 1; i < meta_info.get(cmd).size(); i++) {
+				if (meta_info.get(cmd).get(i).getCommand().getStartOffset() <= meta_info.get(cmd).get(i - 1).getCommand().getEndOffset()) {
 					twoPhase = true;
 				}
 			}
@@ -231,14 +227,14 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 				OUTresults.setNextStep(TWO_PHASE);
 			} else {
 				OUTresults.invokeChildOperation(cmd, 2, de.hd.pvs.piosim.simulator.program.Filewriteall.Direct.class);
-				xxx.remove(cmd);
+				meta_info.remove(cmd);
 			}
 
 			return;
 		}
 		case (TWO_PHASE): {
-			long minOffset = xxx.get(cmd).get(0).getCommand().getStartOffset();
-			long maxOffset = xxx.get(cmd).get(0).getCommand().getEndOffset();
+			long minOffset = meta_info.get(cmd).get(0).getCommand().getStartOffset();
+			long maxOffset = meta_info.get(cmd).get(0).getCommand().getEndOffset();
 			long perRank;
 			long myOffset;
 			long mySize;
@@ -246,12 +242,12 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			int myIndex = -1;
 			FilewriteallContainer myContainer = null;
 
-			for (FilewriteallContainer c : xxx.get(cmd)) {
+			for (FilewriteallContainer c : meta_info.get(cmd)) {
 				minOffset = Math.min(minOffset, c.getCommand().getStartOffset());
 				maxOffset = Math.max(maxOffset, c.getCommand().getEndOffset());
 
 				if (c.getCommand() == cmd) {
-					myIndex = xxx.get(cmd).indexOf(c);
+					myIndex = meta_info.get(cmd).indexOf(c);
 					myContainer = c;
 				}
 			}
@@ -261,7 +257,7 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 			// FIXME Alltoall
 
-			perRank = (maxOffset - minOffset) / xxx.get(cmd).size();
+			perRank = (maxOffset - minOffset) / meta_info.get(cmd).size();
 			myOffset = minOffset + (myIndex * perRank);
 			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
 			mySize = Math.min(twoPhaseBufferSize, nextOffset - myOffset);
@@ -284,14 +280,14 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
 
 			if (myContainer.getTwoPhaseOffset() < nextOffset) {
-				for (FilewriteallContainer c : xxx.get(cmd)) {
+				for (FilewriteallContainer c : meta_info.get(cmd)) {
 					long theirOffset;
 
 					if (c.getRank() == myContainer.getRank()) {
 						continue;
 					}
 
-					theirOffset = minOffset + (xxx.get(cmd).indexOf(c) * perRank);
+					theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank);
 
 					if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
 						System.out.println("send to " + c.getRank());
@@ -315,17 +311,17 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			return;
 		}
 		case (TWO_PHASE_SEND): {
-			long minOffset = xxx.get(cmd).get(0).getCommand().getStartOffset();
-			long maxOffset = xxx.get(cmd).get(0).getCommand().getEndOffset();
+			long minOffset = meta_info.get(cmd).get(0).getCommand().getStartOffset();
+			long maxOffset = meta_info.get(cmd).get(0).getCommand().getEndOffset();
 			int myIndex = -1;
 			FilewriteallContainer myContainer = null;
 
-			for (FilewriteallContainer c : xxx.get(cmd)) {
+			for (FilewriteallContainer c : meta_info.get(cmd)) {
 				minOffset = Math.min(minOffset, c.getCommand().getStartOffset());
 				maxOffset = Math.max(maxOffset, c.getCommand().getEndOffset());
 
 				if (c.getCommand() == cmd) {
-					myIndex = xxx.get(cmd).indexOf(c);
+					myIndex = meta_info.get(cmd).indexOf(c);
 					myContainer = c;
 				}
 			}
@@ -339,7 +335,7 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			HashMap<Server, ListIO> servers;
 
 			// FIXME ROMIO does read-modify-write
-			for (FilewriteallContainer c : xxx.get(cmd)) {
+			for (FilewriteallContainer c : meta_info.get(cmd)) {
 				for (SingleIOOperation op : c.getCommand().getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()).getIOOperations()) {
 					list.addIOOperation(op.getOffset(), op.getAccessSize());
 				}
@@ -382,11 +378,11 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			return;
 		}
 		case (TWO_PHASE_UPDATE): {
-			long minOffset = xxx.get(cmd).get(0).getCommand().getStartOffset();
-			long maxOffset = xxx.get(cmd).get(0).getCommand().getEndOffset();
+			long minOffset = meta_info.get(cmd).get(0).getCommand().getStartOffset();
+			long maxOffset = meta_info.get(cmd).get(0).getCommand().getEndOffset();
 			FilewriteallContainer myContainer = null;
 
-			for (FilewriteallContainer c : xxx.get(cmd)) {
+			for (FilewriteallContainer c : meta_info.get(cmd)) {
 				minOffset = Math.min(minOffset, c.getCommand().getStartOffset());
 				maxOffset = Math.max(maxOffset, c.getCommand().getEndOffset());
 
@@ -408,7 +404,7 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 			}
 
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
-			xxx.remove(cmd);
+			meta_info.remove(cmd);
 
 			return;
 		}

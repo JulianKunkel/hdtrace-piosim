@@ -275,8 +275,6 @@ public class GServerDirectedIO extends GAggregationCache {
 	}
 
 	private IOJob getJob(IOOperation type) {
-		long size = 0;
-
 		HashMap<MPIFile, LinkedList<IOJob>> queue = null;
 
 		LinkedList<IOJob> list = null;
@@ -300,6 +298,7 @@ public class GServerDirectedIO extends GAggregationCache {
 
 		/* Take a look at all job queues. */
 		for (LinkedList<IOJob> l : queue.values()) {
+			long size = 0;
 			long tmp = 0;
 
 			it = l.iterator();
