@@ -25,7 +25,7 @@
 /* ************************************************************************* */
 
 __warndecl(ptl_cte_too_few_hds_values_per_group,
-		"WARNING: HDS_MAX_VALUES_PER_GROUP < PTL_MAX_STATS_VALUES");
+		"WARNING: HDS_MAX_VALUES_PER_GROUP < RUT_MAX_STATS_VALUES");
 
 
 /* ************************************************************************* */
@@ -75,16 +75,16 @@ int initTracing(
 	 * Specify tracing entry format
 	 */
 
-	ptlSources sources = tracingData->sources;
+	rutSources sources = tracingData->sources;
 
 
-#define PTL_STRING_BUFFER_LENGTH 50
+#define RUT_STRING_BUFFER_LENGTH 50
 
 	/* allocate string buffer */
-	char strbuf[PTL_STRING_BUFFER_LENGTH];
+	char strbuf[RUT_STRING_BUFFER_LENGTH];
 	strbuf[0] = '\0';
 
-#if HDS_MAX_VALUES_PER_GROUP < PTL_MAX_STATS_VALUES
+#if HDS_MAX_VALUES_PER_GROUP < RUT_MAX_STATS_VALUES
 	ptl_cte_too_few_hds_values_per_group();
 #endif
 
@@ -102,33 +102,33 @@ int initTracing(
 
 
 	/* specify entry format */
-	if (sources.PTLSRC_CPU_LOAD)
+	if (sources.CPU_LOAD)
 		ADD_VALUE(group, "CPU_TOTAL", FLOAT, "%", "CPU");
 
-	if (sources.PTLSRC_CPU_LOAD_X)
+	if (sources.CPU_LOAD_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
-			ret = snprintf(strbuf, PTL_STRING_BUFFER_LENGTH, "CPU_TOTAL_%d", i);
-			g_assert(ret < PTL_STRING_BUFFER_LENGTH);
+			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_TOTAL_%d", i);
+			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
 		}
 
 #define MEM_UNIT "B"
 
-	if (sources.PTLSRC_MEM_USED)
+	if (sources.MEM_USED)
 		ADD_VALUE(group,"MEM_USED", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_FREE)
+	if (sources.MEM_FREE)
 		ADD_VALUE(group,"MEM_FREE", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_SHARED)
+	if (sources.MEM_SHARED)
 		ADD_VALUE(group,"MEM_SHARED", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_BUFFER)
+	if (sources.MEM_BUFFER)
 		ADD_VALUE(group,"MEM_BUFFER", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_CACHED)
+	if (sources.MEM_CACHED)
 		ADD_VALUE(group,"MEM_CACHED", INT64, MEM_UNIT, "MEM");
 
 
@@ -138,7 +138,7 @@ int initTracing(
 	{
 		char name[255];
 
-		if (sources.PTLSRC_NET_IN_X)
+		if (sources.NET_IN_X)
 		{
 			ret = snprintf(name, 255, "NET_IN_%s",
 					tracingData->staticData.netifs[i]);
@@ -146,7 +146,7 @@ int initTracing(
 			ADD_VALUE(group, name, INT64, NET_UNIT, "NET");
 		}
 
-		if (sources.PTLSRC_NET_OUT_X)
+		if (sources.NET_OUT_X)
 		{
 			ret = snprintf(name, 255, "NET_OUT_%s",
 					tracingData->staticData.netifs[i]);
@@ -156,35 +156,35 @@ int initTracing(
 
 	}
 
-	if (sources.PTLSRC_NET_IN_EXT)
+	if (sources.NET_IN_EXT)
 		ADD_VALUE(group, "NET_IN_EXT", INT64, NET_UNIT, "NET");
 
-	if (sources.PTLSRC_NET_OUT_EXT)
+	if (sources.NET_OUT_EXT)
 		ADD_VALUE(group, "NET_OUT_EXT", INT64, NET_UNIT, "NET");
 
-	if (sources.PTLSRC_NET_IN)
+	if (sources.NET_IN)
 		ADD_VALUE(group, "NET_IN", INT64, NET_UNIT, "NET");
 
-	if (sources.PTLSRC_NET_OUT)
+	if (sources.NET_OUT)
 		ADD_VALUE(group, "NET_OUT", INT64, NET_UNIT, "NET");
 
 
 #define HDD_UNIT "Blocks"
 
 	// right now read harddisk partition to use from environment
-	char * mountpoint = getenv("PTL_HDD_MOUNTPOINT");
+	char * mountpoint = getenv("RUT_HDD_MOUNTPOINT");
 	if(mountpoint == NULL){
 		mountpoint = "/";
-		WARNMSG("Use environment variable PTL_HDD_MOUNTPOINT to set mount point to trace.\n"
+		WARNMSG("Use environment variable RUT_HDD_MOUNTPOINT to set mount point to trace.\n"
 				"Right now '%s' is used by default", mountpoint);
 	}
-	ptl_malloc(tracingData->staticData.hdd_mountpoint, strlen(mountpoint) + 1, -1)
+	rut_malloc(tracingData->staticData.hdd_mountpoint, strlen(mountpoint) + 1, -1)
 	strcpy(tracingData->staticData.hdd_mountpoint, mountpoint);
 
-	if (sources.PTLSRC_HDD_READ)
+	if (sources.HDD_READ)
 		ADD_VALUE(group, "HDD_READ", INT64, HDD_UNIT, "HDD");
 
-	if (sources.PTLSRC_HDD_WRITE)
+	if (sources.HDD_WRITE)
 		ADD_VALUE(group, "HDD_WRITE", INT64, HDD_UNIT, "HDD");
 
 	/*
@@ -198,7 +198,7 @@ int initTracing(
 	 */
 
 	/* allocate memory for saving network interfaces statistics values */
-	ptl_malloc(tracingData->oldValues.netload,
+	rut_malloc(tracingData->oldValues.netload,
 			tracingData->staticData.netlist.number, -1);
 
     /* mark old values invalid */
@@ -278,12 +278,12 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 	g_timer_destroy(timer);
 
 	/* free memory used for thread data */
-	ptl_free(tracingData->oldValues.netload);
+	rut_free(tracingData->oldValues.netload);
 	for (size_t i = 0; i < tracingData->staticData.netlist.number; ++i)
-		ptl_free(tracingData->staticData.netifs[i]);
-	ptl_free(tracingData->staticData.netifs);
-	ptl_free(tracingData->staticData.hdd_mountpoint);
-	ptl_free(tracingData);
+		rut_free(tracingData->staticData.netifs[i]);
+	rut_free(tracingData->staticData.netifs);
+	rut_free(tracingData->staticData.hdd_mountpoint);
+	rut_free(tracingData);
 
 	g_free(NULL);
 
@@ -348,8 +348,8 @@ static void doTracingStep(tracingDataStruct *tracingData)
  */
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
-	if (! (tracingData->sources.PTLSRC_CPU_LOAD
-			|| tracingData->sources.PTLSRC_CPU_LOAD_X))
+	if (! (tracingData->sources.CPU_LOAD
+			|| tracingData->sources.CPU_LOAD_X))
 		return;
 
 #define CPUDIFF(val) \
@@ -363,14 +363,14 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 	if (tracingData->oldValues.valid)
 	{
-		if (tracingData->sources.PTLSRC_CPU_LOAD)
+		if (tracingData->sources.CPU_LOAD)
 		{
 			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
 			WRITE_FLOAT_VALUE(valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
 
-		if (tracingData->sources.PTLSRC_CPU_LOAD_X)
+		if (tracingData->sources.CPU_LOAD_X)
 		{
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{
@@ -395,11 +395,11 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
  */
 static void doTracingStepMEM(tracingDataStruct *tracingData) {
 
-	if (! (tracingData->sources.PTLSRC_MEM_USED
-			|| tracingData->sources.PTLSRC_MEM_FREE
-			|| tracingData->sources.PTLSRC_MEM_SHARED
-			|| tracingData->sources.PTLSRC_MEM_BUFFER
-			|| tracingData->sources.PTLSRC_MEM_CACHED))
+	if (! (tracingData->sources.MEM_USED
+			|| tracingData->sources.MEM_FREE
+			|| tracingData->sources.MEM_SHARED
+			|| tracingData->sources.MEM_BUFFER
+			|| tracingData->sources.MEM_CACHED))
 		return;
 
 	gint64 valuei64;
@@ -411,7 +411,7 @@ static void doTracingStepMEM(tracingDataStruct *tracingData) {
 	{
 
 #define MEM_WRITE_VALUE(PART,part) \
-	if (tracingData->sources.PTLSRC_MEM_##PART) { \
+	if (tracingData->sources.MEM_##PART) { \
 		valuei64 = (gint64) (mem.part); \
 		WRITE_I64_VALUE(valuei64); \
 		DEBUGMSG("MEM_" #PART " = %" G_GINT64_FORMAT " " MEM_UNIT, valuei64); \
@@ -436,12 +436,12 @@ static void doTracingStepMEM(tracingDataStruct *tracingData) {
  */
 static void doTracingStepNET(tracingDataStruct *tracingData) {
 
-	if (! (tracingData->sources.PTLSRC_NET_IN_X
-			|| tracingData->sources.PTLSRC_NET_OUT_X
-			|| tracingData->sources.PTLSRC_NET_IN_EXT
-			|| tracingData->sources.PTLSRC_NET_OUT_EXT
-			|| tracingData->sources.PTLSRC_NET_IN
-			|| tracingData->sources.PTLSRC_NET_OUT))
+	if (! (tracingData->sources.NET_IN_X
+			|| tracingData->sources.NET_OUT_X
+			|| tracingData->sources.NET_IN_EXT
+			|| tracingData->sources.NET_OUT_EXT
+			|| tracingData->sources.NET_IN
+			|| tracingData->sources.NET_OUT))
 		return;
 
 	gint64 valuei64;
@@ -501,7 +501,7 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 		{
 			/* trace single interfaces */
 
-			if (tracingData->sources.PTLSRC_NET_IN_X)
+			if (tracingData->sources.NET_IN_X)
 			{
 				valuei64 = (gint64) in;
 				WRITE_I64_VALUE(valuei64);
@@ -509,7 +509,7 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 						tracingData->staticData.netifs[i], valuei64);
 			}
 
-			if (tracingData->sources.PTLSRC_NET_OUT_X)
+			if (tracingData->sources.NET_OUT_X)
 			{
 				valuei64 = (gint64) out;
 				WRITE_I64_VALUE(valuei64);
@@ -525,28 +525,28 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
     /* handle aggregated statistics of all interfaces */
     if (tracingData->oldValues.valid)
     {
-    	if (tracingData->sources.PTLSRC_NET_IN_EXT)
+    	if (tracingData->sources.NET_IN_EXT)
 		{
 			valuei64 = (gint64)	ext_in;
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_IN_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
-    	if (tracingData->sources.PTLSRC_NET_OUT_EXT)
+    	if (tracingData->sources.NET_OUT_EXT)
 		{
 			valuei64 = (gint64)	ext_out;
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_OUT_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
-    	if (tracingData->sources.PTLSRC_NET_IN)
+    	if (tracingData->sources.NET_IN)
 		{
 			valuei64 = (gint64)	all_in;
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("NET_IN = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
-    	if (tracingData->sources.PTLSRC_NET_OUT)
+    	if (tracingData->sources.NET_OUT)
 		{
 			valuei64 = (gint64)	all_out;
 			WRITE_I64_VALUE(valuei64);
@@ -561,8 +561,8 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
  */
 static void doTracingStepHDD(tracingDataStruct *tracingData) {
 
-	if(! (tracingData->sources.PTLSRC_HDD_READ
-			|| tracingData->sources.PTLSRC_HDD_WRITE))
+	if(! (tracingData->sources.HDD_READ
+			|| tracingData->sources.HDD_WRITE))
 		return;
 
 	gint64 valuei64;
@@ -572,14 +572,14 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 
 	if (tracingData->oldValues.valid)
 	{
-		if (tracingData->sources.PTLSRC_HDD_READ)
+		if (tracingData->sources.HDD_READ)
 		{
 			valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
 			WRITE_I64_VALUE(valuei64);
 			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
 	  }
 
-	  if (tracingData->sources.PTLSRC_HDD_WRITE)
+	  if (tracingData->sources.HDD_WRITE)
 	  {
 		  valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
 		  WRITE_I64_VALUE(valuei64);

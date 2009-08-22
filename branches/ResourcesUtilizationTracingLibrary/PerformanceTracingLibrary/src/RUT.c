@@ -1,12 +1,12 @@
 /**
- * @file hdPTL.c
+ * @file RUT.c
  *
  * @date 11.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
  * @version \$Id$
  */
 
-#include "PTL.h"
+#include "RUT.h"
 
 #include <stdio.h>
 #include <glib.h>
@@ -30,7 +30,7 @@ __errordecl(ptl_cte_no_glib_thread_implementation,
 /*                                                                           */
 /* ************************************************************************* */
 
-typedef struct PerfTrace_s
+typedef struct UtilTrace_s
 {
 	GThread *tracingThread;
 	tracingControlStruct *tracingControl;
@@ -41,7 +41,7 @@ typedef struct PerfTrace_s
 /*                                                                           */
 /* ************************************************************************* */
 
-static int changeEnableState(PerfTrace *trace, gboolean newstate);
+static int changeEnableState(UtilTrace *trace, gboolean newstate);
 
 
 /* ************************************************************************* */
@@ -61,10 +61,10 @@ int ptl_verbosity;
  *
  * @return
  */
-PerfTrace * ptl_createTrace(
+UtilTrace * rut_createTrace(
 		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
-		ptlSources sources,  /* bit field of the sources to trace */
+		rutSources sources,  /* bit field of the sources to trace */
 		int interval         /* interval of one tracing step in ms */
 		)
 {
@@ -72,7 +72,7 @@ PerfTrace * ptl_createTrace(
 	 * Set verbosity as requested by environment
 	 */
 	ptl_verbosity = 1;
-	char *verbstr = getenv("PTL_VERBOSITY");
+	char *verbstr = getenv("RUT_VERBOSITY");
 	if (verbstr != NULL)
 		sscanf(verbstr, "%d", &ptl_verbosity);
 
@@ -99,7 +99,7 @@ PerfTrace * ptl_createTrace(
 	 */
 
 	tracingControlStruct *tracingControl;
-	ptl_malloc(tracingControl, 1, NULL);
+	rut_malloc(tracingControl, 1, NULL);
 
 	tracingControl->mutex = g_mutex_new();
 	tracingControl->stateChanged = g_cond_new();
@@ -111,7 +111,7 @@ PerfTrace * ptl_createTrace(
 	 */
 
 	tracingDataStruct *tracingData;
-	ptl_malloc(tracingData, 1, NULL);
+	rut_malloc(tracingData, 1, NULL);
 
 	tracingData->sources = sources;
 	tracingData->interval = interval;
@@ -144,7 +144,7 @@ PerfTrace * ptl_createTrace(
 	/* !!! We must not access tracingData after this point. !!! */
 
 	PerfTraceStruct *myTrace;
-	ptl_malloc(myTrace, 1, NULL);
+	rut_malloc(myTrace, 1, NULL);
 
 	myTrace->tracingThread = tracingThread;
 	myTrace->tracingControl = tracingControl;
@@ -162,7 +162,7 @@ PerfTrace * ptl_createTrace(
  * @retval  0  Tracing is now enabled (was disabled before)
  * @retval  1  Tracing is enabled (as it was already before)
  */
-int ptl_startTrace(PerfTrace *trace)
+int rut_startTrace(UtilTrace *trace)
 {
 	PerfTraceStruct *myTrace = trace;
 	return changeEnableState(myTrace, TRUE);
@@ -178,16 +178,16 @@ int ptl_startTrace(PerfTrace *trace)
  * @retval  0  Tracing is now disabled (was enabled before)
  * @retval  1  Tracing is disabled (as it was already before)
  */
-int ptl_stopTrace(PerfTrace *trace)
+int rut_stopTrace(UtilTrace *trace)
 {
 	PerfTraceStruct *myTrace = trace;
 	return changeEnableState(myTrace, FALSE);
 }
 
 /**
- * Destroy performance trace object
+ * Finalize utilization trace object
  */
-void ptl_destroyTrace(PerfTrace *trace)
+void rut_finalizeTrace(UtilTrace *trace)
 {
 	PerfTraceStruct *myTrace = trace;
 
@@ -203,15 +203,15 @@ void ptl_destroyTrace(PerfTrace *trace)
 	/* free all memory used for thread control */
 	g_cond_free(myTrace->tracingControl->stateChanged);
 	g_mutex_free(myTrace->tracingControl->mutex);
-	ptl_free(myTrace->tracingControl);
+	rut_free(myTrace->tracingControl);
 
-	/* free all memory used for PerfTrace object */
-	ptl_free(myTrace);
+	/* free all memory used for UtilTrace object */
+	rut_free(myTrace);
 
 
 #if 0
 	tracingDataStruct *tracingData;
-	ptl_malloc(tracingData, 1, NULL);
+	rut_malloc(tracingData, 1, NULL);
 
 	tracingData->sources = sources;
 	tracingData->interval = interval;

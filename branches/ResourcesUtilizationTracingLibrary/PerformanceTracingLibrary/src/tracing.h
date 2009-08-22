@@ -17,7 +17,7 @@
 #include <glibtop/fsusage.h>
 
 #include "hdStats.h"
-#include "PTL.h"
+#include "RUT.h"
 
 /* ************************************************************************* */
 /*                            TYPE DEFINITIONS                               */
@@ -50,7 +50,7 @@ typedef struct {
  */
 typedef struct {
 	hdStatsGroup *group;
-	ptlSources sources;
+	rutSources sources;
 	int interval;
 	tracingControlStruct *control;
 	tracingStaticDataStruct staticData;
@@ -76,6 +76,6 @@ int initTracing(
 /**
  * TODO
  */
-gpointer tracingThreadFunc(gpointer myPTLObject);
+gpointer tracingThreadFunc(gpointer myRUTObject);
 
 #endif /* TRACING_H_ */
