@@ -196,6 +196,7 @@ public class ClusterTest {
 		serverTemplate.setName("Server");
 		serverTemplate.setIOsubsystem(iosub);
 
+//		SimpleWriteBehindCache cacheImpl = new SimpleWriteBehindCache();
 //		AggregationCache cacheImpl = new AggregationCache();
 //		ServerDirectedIO cacheImpl = new ServerDirectedIO();
 //		cacheImpl.setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
