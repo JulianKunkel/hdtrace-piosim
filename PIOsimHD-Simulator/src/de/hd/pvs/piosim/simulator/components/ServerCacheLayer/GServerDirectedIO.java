@@ -33,9 +33,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 
@@ -57,10 +59,13 @@ public class GServerDirectedIO extends GAggregationCache {
 		}
 	}
 
+	final long cacheSize = 50 * 1024 * 1024;
+
 	/* Remember the last file and offset to perform contiguous operations,
 	 * when possible. */
 	MPIFile lastFile = null;
 	long lastOffset = -1;
+	Epoch lastFlush = null;
 
 	/* Use per-file queues to make merging easier. */
 	HashMap<MPIFile, LinkedList<IOJob>> queuedReadJobs = new HashMap<MPIFile, LinkedList<IOJob>>();
@@ -76,8 +81,6 @@ public class GServerDirectedIO extends GAggregationCache {
 		IOJob io = null;
 		List<PendingReadRequest> map = new ArrayList<PendingReadRequest>();
 		MPIFile file = null;
-
-		System.out.print("MERGE READ old: " + l.size());
 
 		/* FIXME: Sort job queue. Real implementations should probably keep the list sorted on insert. */
 		Collections.sort(l, new IOJobComparator());
@@ -193,8 +196,6 @@ public class GServerDirectedIO extends GAggregationCache {
 			queuedReadJobs.put(file, nl);
 		}
 
-		System.out.println(" new: " + nl.size());
-
 		return nl;
 	}
 
@@ -206,8 +207,6 @@ public class GServerDirectedIO extends GAggregationCache {
 		Iterator<IOJob> it;
 		IOJob io = null;
 		MPIFile file = null;
-
-		System.out.print("MERGE WRITE old: " + l.size());
 
 		it = l.iterator();
 
@@ -268,8 +267,6 @@ public class GServerDirectedIO extends GAggregationCache {
 		if (file != null) {
 			queuedWriteJobs.put(file, nl);
 		}
-
-		System.out.println(" new: " + nl.size());
 
 		return nl;
 	}
@@ -345,7 +342,7 @@ public class GServerDirectedIO extends GAggregationCache {
 				/* We can resume writing at the last position, perfect match. */
 				io = cur;
 				break;
-			} else if (ioClose == null || Math.abs(cur.getOffset() - lastOffset) < Math.abs(ioClose.getOffset() - lastOffset)) {
+			} else if (ioClose == null || (lastOffset >= 0 && Math.abs(cur.getOffset() - lastOffset) < Math.abs(ioClose.getOffset() - lastOffset))) {
 				/* Determine the IOJob closest to the last position. */
 				ioClose = cur;
 			} else if (ioLarge == null || cur.getSize() > ioLarge.getSize()) {
@@ -360,12 +357,12 @@ public class GServerDirectedIO extends GAggregationCache {
 			} else if (ioClose == null && ioLarge != null) {
 				io = ioLarge;
 			} else if (ioClose != null && ioLarge != null) {
-				/* Use the largest IOJob if it is at least ten times bigger
-				 * than the closest one. */
-				if (ioLarge.getSize() > ioClose.getSize() * 10) {
-					io = ioLarge;
-				} else {
+				/* Use the closes IOJob only if it is close enough to the
+				 * last offset. */
+				if (lastOffset >= 0 && Math.abs(ioClose.getOffset() - lastOffset) < 5 * 1024 * 1024) {
 					io = ioClose;
+				} else {
+					io = ioLarge;
 				}
 			} else {
 				/* Just use the first IOJob. */
@@ -377,12 +374,31 @@ public class GServerDirectedIO extends GAggregationCache {
 			return null;
 		}
 
+		if (type == IOOperation.WRITE) {
+			long size = 0;
+			Epoch time = getSimulator().getVirtualTime();
+
+			for (List<IOJob> l : queue.values()) {
+				it = l.iterator();
+
+				while (it.hasNext()) {
+					size += it.next().getSize();
+				}
+			}
+
+			if (size < cacheSize && lastFlush != null && (lastFlush.add(0.2).compareTo(time) > 0)) {
+//				return null;
+			}
+		}
+
 		if (type == IOOperation.READ) {
 			if (!parentNode.isEnoughFreeMemory(io.getSize())) {
 				return null;
 			}
 
 			parentNode.reserveMemory(io.getSize());
+		} else if (type == IOOperation.WRITE) {
+			lastFlush = getSimulator().getVirtualTime();
 		}
 
 		list.remove(io);
@@ -420,6 +436,30 @@ public class GServerDirectedIO extends GAggregationCache {
 		}
 
 		return size;
+	}
+
+	@Override
+	protected void addFlush(RequestFlush req) {
+		if (queuedWriteJobs.get(req.getFile()) == null) {
+			return;
+		}
+
+		List<IOJob> list;
+		Iterator<IOJob> it;
+
+		System.err.println("FLUSHING " + req.getFile());
+
+		list = mergeWriteJobs(queuedWriteJobs.get(req.getFile()));
+		it = list.iterator();
+
+		while (it.hasNext()) {
+			IOJob io = it.next();
+
+			ioSubsystem.startNewIO(io);
+			numberOfScheduledIOOperations++;
+		}
+
+		queuedWriteJobs.get(req.getFile()).clear();
 	}
 
 	@Override

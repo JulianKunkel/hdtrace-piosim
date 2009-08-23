@@ -35,6 +35,7 @@ import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.model.program.commands.Barrier;
 import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.model.program.commands.Compute;
+import de.hd.pvs.piosim.model.program.commands.Fileclose;
 import de.hd.pvs.piosim.model.program.commands.Fileopen;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filereadall;
@@ -83,6 +84,14 @@ public class ProgramBuilder {
 		com.setFile(file);
 		com.setCommunicator(communicator);
 		com.setTruncateOnOpen(shallTruncate);
+
+		appBuilder.addCommand(communicator, com);
+	}
+
+	public void addFileClose(MPIFile file, Communicator communicator) {
+		Fileclose com = new Fileclose();
+		com.setFile(file);
+		com.setCommunicator(communicator);
 
 		appBuilder.addCommand(communicator, com);
 	}

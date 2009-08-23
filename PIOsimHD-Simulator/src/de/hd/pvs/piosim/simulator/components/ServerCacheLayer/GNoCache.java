@@ -47,6 +47,7 @@ import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
@@ -292,6 +293,11 @@ IIOSubsystemCaller
 	}
 
 	@Override
+	public void announceIORequest(RequestFlush req, SingleNetworkJob request) {
+		addFlush(req);
+	}
+
+	@Override
 	public void announceIORequest(RequestWrite req, SingleNetworkJob request) {
 
 	}
@@ -317,6 +323,10 @@ IIOSubsystemCaller
 
 			addReadIOJob(size, offset, req);
 		}
+	}
+
+	protected void addFlush(RequestFlush req){
+		scheduleNextIOJobIfPossible();
 	}
 
 	protected void addReadIOJob(long size, long offset, RequestRead req){

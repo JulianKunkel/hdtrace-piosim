@@ -42,6 +42,7 @@ import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
@@ -94,6 +95,12 @@ implements IGServer<SPassiveComponent<Server>>
 				RequestIO.IO_DATA_TAG,
 				request.getCommunicator(),
 				null);
+	}
+
+	public SingleNetworkJob process(RequestFlush req, SingleNetworkJob request) {
+		cacheLayer.announceIORequest( req, request );
+
+		return null;
 	}
 
 	public SingleNetworkJob process(NetworkIOData data, SingleNetworkJob request) {

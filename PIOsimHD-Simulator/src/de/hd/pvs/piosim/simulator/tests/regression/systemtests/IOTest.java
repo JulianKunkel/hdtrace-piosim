@@ -70,12 +70,18 @@ abstract public class IOTest extends ClusterTest {
 	public SimulationResults writeTest() throws Exception {
 		List<MPIFile> files = prepare(true);
 		doWrite(files);
+		for (MPIFile f : files) {
+			pb.addFileClose(f, world);
+		}
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
 		List<MPIFile> files = prepare(false);
 		doRead(files);
+		for (MPIFile f : files) {
+			pb.addFileClose(f, world);
+		}
 		return runSimulationAllExpectedToFinish();
 	}
 
