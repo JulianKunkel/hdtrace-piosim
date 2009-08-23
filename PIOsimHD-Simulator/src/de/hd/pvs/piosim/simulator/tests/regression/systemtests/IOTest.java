@@ -28,12 +28,17 @@ import java.util.List;
 
 import org.junit.Test;
 
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
 abstract public class IOTest extends ClusterTest {
-	int serverNum = 5;
+	int serverNum = 10;
 	int clientNum = 10;
 	int fileNum = 1;
 	int iterNum = 250;
@@ -41,13 +46,15 @@ abstract public class IOTest extends ClusterTest {
 	// PVFS default
 	long stripeSize = 64 * KBYTE;
 
+	ServerCacheLayer cacheLayer = null;
+
 	protected List<MPIFile> prepare(boolean isWrite) throws Exception {
 		List<MPIFile> files = new ArrayList<MPIFile>();
 
 		assert(elementSize > 0);
 
 		testMsg();
-		setup(clientNum, serverNum);
+		setup(clientNum, serverNum, cacheLayer);
 
 		SimpleStripe dist = new SimpleStripe();
 		dist.setChunkSize(stripeSize);
@@ -87,26 +94,52 @@ abstract public class IOTest extends ClusterTest {
 
 	@Test
 	public void run() throws Exception {
+		final class CacheLayerResults {
+			ServerCacheLayer cacheLayer = null;
+			List<SimulationResults> readResults = new ArrayList<SimulationResults>();
+			List<SimulationResults> writeResults = new ArrayList<SimulationResults>();
+
+			public CacheLayerResults(ServerCacheLayer cacheLayer) {
+				this.cacheLayer = cacheLayer;
+			}
+		}
+
+		List<CacheLayerResults> results = new ArrayList<CacheLayerResults>();
+		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 
-		List<SimulationResults> readRes = new ArrayList<SimulationResults>();
-		List<SimulationResults> writeRes = new ArrayList<SimulationResults>();
+		cacheLayers.add(new NoCache());
+		cacheLayers.add(new SimpleWriteBehindCache());
+		cacheLayers.add(new AggregationCache());
+		cacheLayers.add(new ServerDirectedIO());
 
 		sizes.add((long)512);
 		sizes.add((long)5 * KBYTE);
 		sizes.add((long)50 * KBYTE);
 		sizes.add((long)512 * KBYTE);
 
-		for (long size : sizes) {
-			elementSize = size;
+		for (ServerCacheLayer cacheLayer : cacheLayers) {
+			CacheLayerResults res = new CacheLayerResults(cacheLayer);
 
-			readRes.add(readTest());
-			writeRes.add(writeTest());
+			this.cacheLayer = cacheLayer;
+
+			for (long size : sizes) {
+				elementSize = size;
+
+				res.readResults.add(readTest());
+				res.writeResults.add(writeTest());
+			}
+
+			results.add(res);
 		}
 
-		for (int i = 0; i < sizes.size(); i++) {
-			System.out.println(sizes.get(i) + " READ  " + readRes.get(i).getVirtualTime().getDouble() + "s");
-			System.out.println(sizes.get(i) + " WRITE " + writeRes.get(i).getVirtualTime().getDouble() + "s");
+		for (CacheLayerResults res : results) {
+			System.out.println(res.cacheLayer.getClass().getSimpleName());
+
+			for (int i = 0; i < sizes.size(); i++) {
+				System.out.println("  " + sizes.get(i) + " READ  " + res.readResults.get(i).getVirtualTime().getDouble() + "s");
+				System.out.println("  " + sizes.get(i) + " WRITE " + res.writeResults.get(i).getVirtualTime().getDouble() + "s");
+			}
 		}
 	}
 }

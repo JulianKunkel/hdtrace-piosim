@@ -41,7 +41,10 @@ import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
@@ -81,10 +84,14 @@ public class ClusterTest {
 	}
 
 	protected void setup(int clients, int servers) throws Exception {
+		setup(clients, servers, new NoCache());
+	}
+
+	protected void setup(int clients, int servers, ServerCacheLayer cacheLayer) throws Exception {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
 //		parameters.setDebugEverything(true);
 
-		mb = createDisjointClusterModel(clients, servers);
+		mb = createDisjointClusterModel(clients, servers, cacheLayer);
 		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", clients, 1);
 		app = aB.getApplication();
 
@@ -101,8 +108,11 @@ public class ClusterTest {
 		writer.writeXMLFromModel(model, "/tmp/model.xml");
 	}
 
-	protected ModelBuilder createDisjointClusterModel(int clients, int servers)
-			throws Exception {
+	protected ModelBuilder createDisjointClusterModel(int clients, int servers) throws Exception {
+		return createDisjointClusterModel(clients, servers, new NoCache());
+	}
+
+	protected ModelBuilder createDisjointClusterModel(int clients, int servers, ServerCacheLayer cacheLayer) throws Exception {
 
 		int nodeCount = clients + servers;
 
@@ -196,15 +206,16 @@ public class ClusterTest {
 		serverTemplate.setName("Server");
 		serverTemplate.setIOsubsystem(iosub);
 
-//		SimpleWriteBehindCache cacheImpl = new SimpleWriteBehindCache();
-//		AggregationCache cacheImpl = new AggregationCache();
-//		ServerDirectedIO cacheImpl = new ServerDirectedIO();
-//		cacheImpl.setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
+		assert(cacheLayer != null);
 
-		NoCache cacheImpl = new NoCache();
-		cacheImpl.setMaxNumberOfConcurrentIOOps(1);
+		if (cacheLayer.getClass() == AggregationCache.class
+			|| cacheLayer.getClass() == ServerDirectedIO.class) {
+			((AggregationCache)cacheLayer).setReadDataSievingMaxHoleSizeToCombine(10 * (int) MBYTE);
+		}
 
-		serverTemplate.setCacheImplementation(cacheImpl);
+		cacheLayer.setMaxNumberOfConcurrentIOOps(1);
+
+		serverTemplate.setCacheImplementation(cacheLayer);
 
 		mb.addTemplate(serverTemplate);
 
