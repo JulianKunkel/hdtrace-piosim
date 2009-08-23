@@ -37,7 +37,6 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 
@@ -283,6 +282,8 @@ public class GServerDirectedIO extends GAggregationCache {
 
 		Iterator<IOJob> it = null;
 
+		long size = 0;
+
 		if (type == IOOperation.WRITE) {
 			queue = queuedWriteJobs;
 		} else if (type == IOOperation.READ) {
@@ -295,7 +296,6 @@ public class GServerDirectedIO extends GAggregationCache {
 
 		/* Take a look at all job queues. */
 		for (LinkedList<IOJob> l : queue.values()) {
-			long size = 0;
 			long tmp = 0;
 
 			it = l.iterator();
@@ -374,22 +374,22 @@ public class GServerDirectedIO extends GAggregationCache {
 			return null;
 		}
 
-		if (type == IOOperation.WRITE) {
-			long size = 0;
-			Epoch time = getSimulator().getVirtualTime();
-
-			for (List<IOJob> l : queue.values()) {
-				it = l.iterator();
-
-				while (it.hasNext()) {
-					size += it.next().getSize();
-				}
-			}
-
-			if (size < cacheSize && lastFlush != null && (lastFlush.add(0.2).compareTo(time) > 0)) {
+//		if (type == IOOperation.WRITE) {
+//			long tmp = 0;
+//			Epoch time = getSimulator().getVirtualTime();
+//
+//			for (List<IOJob> l : queue.values()) {
+//				it = l.iterator();
+//
+//				while (it.hasNext()) {
+//					tmp += it.next().getSize();
+//				}
+//			}
+//
+//			if (tmp < cacheSize && lastFlush != null && (lastFlush.add(0.33).compareTo(time) > 0)) {
 //				return null;
-			}
-		}
+//			}
+//		}
 
 		if (type == IOOperation.READ) {
 			if (!parentNode.isEnoughFreeMemory(io.getSize())) {
@@ -438,29 +438,29 @@ public class GServerDirectedIO extends GAggregationCache {
 		return size;
 	}
 
-	@Override
-	protected void addFlush(RequestFlush req) {
-		if (queuedWriteJobs.get(req.getFile()) == null) {
-			return;
-		}
-
-		List<IOJob> list;
-		Iterator<IOJob> it;
-
-		System.err.println("FLUSHING " + req.getFile());
-
-		list = mergeWriteJobs(queuedWriteJobs.get(req.getFile()));
-		it = list.iterator();
-
-		while (it.hasNext()) {
-			IOJob io = it.next();
-
-			ioSubsystem.startNewIO(io);
-			numberOfScheduledIOOperations++;
-		}
-
-		queuedWriteJobs.get(req.getFile()).clear();
-	}
+//	@Override
+//	protected void addFlush(RequestFlush req) {
+//		if (queuedWriteJobs.get(req.getFile()) == null) {
+//			return;
+//		}
+//
+//		List<IOJob> list;
+//		Iterator<IOJob> it;
+//
+////		System.err.println("FLUSHING " + req.getFile());
+//
+//		list = mergeWriteJobs(queuedWriteJobs.get(req.getFile()));
+//		it = list.iterator();
+//
+//		while (it.hasNext()) {
+//			IOJob io = it.next();
+//
+//			ioSubsystem.startNewIO(io);
+//			numberOfScheduledIOOperations++;
+//		}
+//
+//		queuedWriteJobs.get(req.getFile()).clear();
+//	}
 
 	@Override
 	protected void addReadIOJob(long size, long offset, RequestRead req) {

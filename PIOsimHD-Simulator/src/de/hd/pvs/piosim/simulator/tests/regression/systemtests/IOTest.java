@@ -36,7 +36,7 @@ abstract public class IOTest extends ClusterTest {
 	int serverNum = 5;
 	int clientNum = 10;
 	int fileNum = 1;
-	int iterNum = 100;
+	int iterNum = 250;
 	long elementSize = 0;
 	// PVFS default
 	long stripeSize = 64 * KBYTE;
