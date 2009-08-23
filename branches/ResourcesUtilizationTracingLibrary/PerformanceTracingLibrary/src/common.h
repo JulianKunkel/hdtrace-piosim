@@ -19,7 +19,9 @@
  */
 extern int ptl_verbosity;
 
-
+/**
+ * Print a formatted message, to be used only by the \b *MSG macros
+ */
 #ifdef NDEBUG
 # define RUTMSG(prefix, msg, ...) \
 	fflush(stdout); \
@@ -32,15 +34,27 @@ extern int ptl_verbosity;
 		__FUNCTION__, basename(__FILE__), __LINE__);
 #endif
 
+/**
+ * Print a formated debug message if verbosity is at least 3
+ */
 #define DEBUGMSG(msg, ...) \
 	do { if (ptl_verbosity >= 3) { RUTMSG("RUT (3)", msg, ## __VA_ARGS__) } } while (0)
 
+/**
+ * Print a formated info message if verbosity is at least 2
+ */
 #define INFOMSG(msg, ...) \
 	do { if (ptl_verbosity >= 2) { RUTMSG("RUT (2)", msg, ## __VA_ARGS__) } } while (0)
 
+/**
+ * Print a formated warning message if verbosity is at least 1
+ */
 #define WARNMSG(msg, ...) \
 	do { if (ptl_verbosity >= 1) { RUTMSG("RUT Warning", msg, ## __VA_ARGS__) } } while (0)
 
+/**
+ * Print a formated error message if verbosity is at least 0
+ */
 #define ERRORMSG(msg, ...) \
 	do { if (ptl_verbosity >= 0) { RUTMSG("RUT Error", msg, ## __VA_ARGS__) } } while (0)
 

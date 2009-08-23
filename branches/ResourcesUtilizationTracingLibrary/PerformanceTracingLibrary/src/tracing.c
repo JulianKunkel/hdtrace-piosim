@@ -43,6 +43,22 @@ static void doTracingStepHDD(tracingDataStruct *tracingData);
 /*                    PUBLIC FUNCTION IMPLEMENTATIONS                        */
 /* ************************************************************************* */
 
+/**
+ * Initialize the tracing stuff.
+ *
+ * - Creates the statistics group
+ * - Units and value types are defined inside this function (TODO change that?)
+ *
+ * TODO Better error handling
+ *
+ * @param topoNode    Topology node to associate the trace with
+ * @param topoLevel   Topology level of the topology node
+ * @param tracingData Tracing Data Object to use
+ *
+ * @return error state
+ *
+ * @retval 0  Success
+ */
 int initTracing(
 		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
@@ -54,7 +70,7 @@ int initTracing(
 	 */
 
 	/* generate statistics group */
-	hdStatsGroup *group = hdS_createGroup("Performance", topoNode, topoLevel);
+	hdStatsGroup *group = hdS_createGroup("Utilization", topoNode, topoLevel);
 	/* TODO Error handling */
 
 	tracingData->group = group;
@@ -295,6 +311,12 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 /*                    STATIC FUNCTION IMPLEMENTATIONS                        */
 /* ************************************************************************* */
 
+/**
+ * Get all tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
+ */
 static void doTracingStep(tracingDataStruct *tracingData)
 {
 
@@ -312,7 +334,11 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	tracingData->oldValues.valid = TRUE;
 }
 
-#define CHECK_WRITE_VALUE_ERROR \
+/**
+ * Check for errors and use assert if one occurred.
+ *  ret is the return value of one of the hdS_write*Value functions
+ */
+#define CHECK_WRITE_VALUE_ERROR(ret) \
 	do { \
 		if (ret < 0) \
 			switch (errno)	{ \
@@ -324,27 +350,46 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			} \
 	} while (0)
 
-#define WRITE_I32_VALUE(value) \
+/**
+ * Write a INT32 value to the tracing group tracingData->group.
+ * Use \ref CHECK_WRITE_VALUE_ERROR for error handling
+ */
+#define WRITE_I32_VALUE(tracingData, value) \
 	do { \
-		int ret = hdS_writeInt32Value(tracingData->group, value); \
-		CHECK_WRITE_VALUE_ERROR; \
+		int ret = hdS_writeInt32Value((tracingData)->group, value); \
+		CHECK_WRITE_VALUE_ERROR(ret); \
 	} while (0)
 
-#define WRITE_I64_VALUE(value) \
+/**
+ * Write a INT64 value to the tracing group tracingData->group.
+ * Use \ref CHECK_WRITE_VALUE_ERROR for error handling
+ */
+#define WRITE_I64_VALUE(tracingData, value) \
 	do { \
-		int ret = hdS_writeInt64Value(tracingData->group, value); \
-		CHECK_WRITE_VALUE_ERROR; \
+		int ret = hdS_writeInt64Value((tracingData)->group, value); \
+		CHECK_WRITE_VALUE_ERROR(ret); \
 	} while (0)
 
-#define WRITE_FLOAT_VALUE(value) \
+/**
+ * Write a FLOAT value to the tracing group tracingData->group.
+ * Use \ref CHECK_WRITE_VALUE_ERROR for error handling
+ */
+#define WRITE_FLOAT_VALUE(tracingData, value) \
 	do { \
-		int ret = hdS_writeFloatValue(tracingData->group, value); \
-		CHECK_WRITE_VALUE_ERROR; \
+		int ret = hdS_writeFloatValue((tracingData)->group, value); \
+		CHECK_WRITE_VALUE_ERROR(ret); \
 	} while (0)
 
 
 /* ************************************************************************
  * CPU
+ */
+
+/**
+ * Get the CPU tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
  */
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
@@ -366,7 +411,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 		if (tracingData->sources.CPU_LOAD)
 		{
 			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
-			WRITE_FLOAT_VALUE(valuef * 100);
+			WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
 
@@ -377,7 +422,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				/* TODO: Check CPU enable state (flags) */
 				valuef = (gfloat)(1.0 - (CPUDIFF(xcpu_idle[i])
 						/ CPUDIFF(xcpu_total[i])));
-				WRITE_FLOAT_VALUE(valuef * 100);
+				WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
@@ -392,6 +437,13 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 /* ************************************************************************
  * Memory
+ */
+
+/**
+ * Get the MEM tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
  */
 static void doTracingStepMEM(tracingDataStruct *tracingData) {
 
@@ -413,7 +465,7 @@ static void doTracingStepMEM(tracingDataStruct *tracingData) {
 #define MEM_WRITE_VALUE(PART,part) \
 	if (tracingData->sources.MEM_##PART) { \
 		valuei64 = (gint64) (mem.part); \
-		WRITE_I64_VALUE(valuei64); \
+		WRITE_I64_VALUE(tracingData, valuei64); \
 		DEBUGMSG("MEM_" #PART " = %" G_GINT64_FORMAT " " MEM_UNIT, valuei64); \
 	}
 
@@ -433,6 +485,13 @@ static void doTracingStepMEM(tracingDataStruct *tracingData) {
 
 /* ************************************************************************
  * Network
+ */
+
+/**
+ * Get the NET tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
  */
 static void doTracingStepNET(tracingDataStruct *tracingData) {
 
@@ -504,7 +563,7 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 			if (tracingData->sources.NET_IN_X)
 			{
 				valuei64 = (gint64) in;
-				WRITE_I64_VALUE(valuei64);
+				WRITE_I64_VALUE(tracingData, valuei64);
 				DEBUGMSG("NET_IN_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
@@ -512,7 +571,7 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 			if (tracingData->sources.NET_OUT_X)
 			{
 				valuei64 = (gint64) out;
-				WRITE_I64_VALUE(valuei64);
+				WRITE_I64_VALUE(tracingData, valuei64);
 				DEBUGMSG("NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
@@ -528,28 +587,28 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
     	if (tracingData->sources.NET_IN_EXT)
 		{
 			valuei64 = (gint64)	ext_in;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_IN_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.NET_OUT_EXT)
 		{
 			valuei64 = (gint64)	ext_out;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_OUT_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.NET_IN)
 		{
 			valuei64 = (gint64)	all_in;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_IN = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
     	if (tracingData->sources.NET_OUT)
 		{
 			valuei64 = (gint64)	all_out;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_OUT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
     }
@@ -558,6 +617,13 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 
 /* *************************************************************************
  * HDD
+ */
+
+/**
+ * Get the HDD tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
  */
 static void doTracingStepHDD(tracingDataStruct *tracingData) {
 
@@ -575,14 +641,14 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 		if (tracingData->sources.HDD_READ)
 		{
 			valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
 	  }
 
 	  if (tracingData->sources.HDD_WRITE)
 	  {
 		  valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
-		  WRITE_I64_VALUE(valuei64);
+		  WRITE_I64_VALUE(tracingData, valuei64);
 		  DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
 	  }
 	}

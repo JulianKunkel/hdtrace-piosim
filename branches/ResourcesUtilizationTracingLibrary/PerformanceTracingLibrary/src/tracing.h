@@ -23,6 +23,9 @@
 /*                            TYPE DEFINITIONS                               */
 /* ************************************************************************* */
 
+/**
+ * Structure for the control of the tracing thread
+ */
 typedef struct {
 	GMutex *mutex;
 	GCond *stateChanged;
@@ -30,6 +33,9 @@ typedef struct {
 	gboolean quit;
 } tracingControlStruct;
 
+/**
+ * Structure for storing old values e.g. to build differences
+ */
 typedef struct {
 	gboolean valid;
 	glibtop_cpu cpu;
@@ -38,6 +44,9 @@ typedef struct {
 	glibtop_fsusage fs;
 } tracingValuesStruct;
 
+/**
+ * Strcuture for static data sourced out from \ref tracingDataStruct
+ */
 typedef struct {
 	gint cpu_num;
 	glibtop_netlist netlist;
@@ -46,7 +55,7 @@ typedef struct {
 } tracingStaticDataStruct;
 
 /**
- * TODO
+ * Structure for the tracing data for managing the tracing iterations
  */
 typedef struct {
 	hdStatsGroup *group;
@@ -63,7 +72,7 @@ typedef struct {
 /* ************************************************************************* */
 
 /**
- * TODO
+ * Initialize the tracing stuff.
  */
 /* tracingData->sources has to be already set *
  * tracingData->group is set by this function */
@@ -74,7 +83,7 @@ int initTracing(
 		);
 
 /**
- * TODO
+ * Run function of the tracing thread.
  */
 gpointer tracingThreadFunc(gpointer myRUTObject);
 

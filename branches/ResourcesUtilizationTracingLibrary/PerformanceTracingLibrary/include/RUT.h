@@ -3,8 +3,12 @@
  *
  * Main header file of the Resources Utilization Tracing Library.
  *
- * Declarations of all functions and types for doing performance tracing,
+ * Declarations of all functions and types for doing utilization tracing,
  * representing the API of the RUT Library.
+ *
+ * @ifnot api_only
+ *  @ingroup RUT
+ * @endif
  *
  * @date 10.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
@@ -19,10 +23,8 @@
  * of several utilization statistics available in a common UNIX system.
  * It utilizes the Gtop library to get the statistics and the
  * HDTraceWritingCLibrary to produce statistics traces as specified by the
- * HDTrace format. The traces can be shown directly in Sunshot, the native
- * viewer for HDTrace format. The produced statistics traces can also be
- * combined with each other and with other HDTrace parts into an HDTrace
- * project.
+ * HDTrace format. The traces can be embedded in an HDTrace project and visualized in
+ * Sunshot, the native viewer for HDTrace format.
  */
 
 #ifndef HDRUT_H_
@@ -95,7 +97,7 @@ typedef struct rutSources_s rutSources;
  * ************************************************************************* */
 
 /** Maximum number of statistics values traceable */
-#define RUT_MAX_STATS_VALUES (8 + RUT_MAX_NUM_CPUS + RUT_MAX_NUM_NETIFS)
+#define RUT_MAX_STATS_VALUES (12 + RUT_MAX_NUM_CPUS + 2 * RUT_MAX_NUM_NETIFS)
 
 /** Macro for cleaning all available sources */
 #define RUTSRC_UNSET_ALL(sources) \
@@ -167,12 +169,12 @@ typedef struct rutSources_s rutSources;
  *
  * @section seclu Library Usage
  * <b>Outline of creating Resources Utilization Traces using this library:</b>
- *  -# Define sources to trace (@ref rutSources, RUTSRC_SET_* macros)
- *  -# Create a @ref UtilTrace object (@ref rut_createTrace)
- *  -# Start tracing (@ref rut_startTrace)
- *  -# Stop tracing (@ref rut_stopTrace)
- *  -# Use the group to trace data (@b hdS_write..., called many times)
- *  -# Destroy the @ref UtilTrace object (@ref rut_finalizeTrace)
+ *  -# Define sources to trace (\ref rutSources, \b RUTSRC_SET_* macros)
+ *  -# Create a \ref UtilTrace object (\ref rut_createTrace)
+ *  -# Start tracing (\ref rut_startTrace)
+ *  -# Stop tracing (\ref rut_stopTrace)
+ *  -# Use the group to trace data (\b hdS_write..., called many times)
+ *  -# Finalize the trace and destroy the \ref UtilTrace object (\ref rut_finalizeTrace)
  *
  * @subsection ssecds Defining sources
  * After creating a @ref rutSources object
@@ -193,38 +195,37 @@ typedef struct rutSources_s rutSources;
  * @endcode
  *
  * @subsection sseccpto Creating a UtilTrace object
- * To create a UtilTrace object, you first need to create a hdTopology and a
- * hdTopoNode object to define the place of your trace in a larger project.
- * Refer to hdTopology Section in HDTraceWritingCLibrary documentation for
+ * To create a \ref UtilTrace object, you first need to create a \a hdTopology and a
+ * \a hdTopoNode object to define the place of your trace in a larger project.
+ * Refer to \a hdTopology section in <i>HDTraceWritingCLibrary</i> documentation for
  * further information about this topic.
- * In the simplest case, when you do not plan to integrate your trace into a
- * HDTrace project, you can create the simplest hdTopology and hdTopoNode
- * objects possible using the provided macros:
+ * For the simplest case, you can use the following code fragment:
  * @code
- * RUT_GET_SIMPLEST_TOPOLOGY(myTopology, myProject)
- * RUT_GET_SIMPLEST_TOPONODE(myTopoNode)
+ * const char *levels[] = {"Host"};
+ * hdTopology *myTopology = hdT_createTopology("MyProject", levels, 1);
+ * const char *path[] = {"host0"};
+ * hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 1);
  * @endcode
  *
- * @note rut_finalizeTrace will not destroy the hdTopology and hdTopoNode object
+ * @note \ref rut_finalizeTrace will not destroy the \a hdTopology and \a hdTopoNode objects
  *  for you, so if you don't need it for other purposes, you have to do this by
- *  calling hdT_destroyTopoNode and hdT_destroyTopology.
+ *  calling \a hdT_destroyTopoNode and \a hdT_destroyTopology.
  *
- * Now that you have a hdTopology object, a hdTopoNode object and a rutSources
+ * Now that you have a \a hdTopology object, a \a hdTopoNode object and a \ref rutSources
  *  object with all sources set that you want to be included in the trace, you
- *  can create the UtilTrace object:
+ *  can create the \ref UtilTrace object:
  * @code
  * UtilTrace *myUtilTrace rut_createTrace(myTopology, myTopoNode, 1,
  * 		mySources, 500);
  * @endcode
  *
- * @note You cannot change the sources of an already created UtilTrace object
+ * @note You cannot change the sources of an already created \ref UtilTrace object
  *
  * @subsection ssecsst Start and stop tracing
- * The tracing does not start before you tell it to by calling
- *  @ref rut_startTrace.
+ * The tracing does not start before you tell it to by calling \ref rut_startTrace.
  *
- * You can start and stop tracing multiple times by calling @ref rut_startTrace
- * and @ref rut_stopTrace. When calling rut_stopTrace the current tracing period
+ * You can start and stop tracing multiple times by calling \ref rut_startTrace
+ * and \ref rut_stopTrace. When calling rut_stopTrace the current tracing period
  * is finished and no new period is started but the period timer is not reset.
  * So after a subsequent rut_startTrace, the tracing will first wait until the
  * current (virtual) period would end and take the next values at the beginning

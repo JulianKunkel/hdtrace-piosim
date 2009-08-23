@@ -25,6 +25,61 @@ __errordecl(ptl_cte_no_glib_thread_support,
 __errordecl(ptl_cte_no_glib_thread_implementation,
 		"ERROR: Glib has no thread implementation!");
 
+/* ************************************************************************* *
+ *                        DOCUMENTATION STRUCTURING                          *
+ * ************************************************************************* */
+
+/** @cond api_only */
+/**
+ * @typedef UtilTrace
+ * @ingroup RUT
+ */
+/**
+ * @struct rutSources_s
+ * @ingroup RUT
+ */
+/**
+ * @typedef rutSources
+ * @ingroup RUT
+ */
+/**
+ * @def RUT_MAX_NUM_CPUS
+ * @ingroup RUT
+ */
+/**
+ * @def RUT_MAX_NUM_NETIFS
+ * @ingroup RUT
+ */
+/**
+ * @def RUT_MAX_STATS_VALUES
+ * @ingroup RUT
+ */
+/**
+ * @def RUTSRC_UNSET_ALL
+ * @ingroup RUT
+ */
+/**
+ * @def RUTSRC_SET_ALL
+ * @ingroup RUT
+ */
+/**
+ * @def RUTSRC_SET_CPU
+ * @ingroup RUT
+ */
+/**
+ * @def RUTSRC_SET_MEM
+ * @ingroup RUT
+ */
+/**
+ * @def RUTSRC_SET_NET
+ * @ingroup RUT
+ */
+/**
+ * @def RUTSRC_SET_HDD
+ * @ingroup RUT
+ */
+/** @endcond */
+
 
 /* ************************************************************************* */
 /*                                                                           */
@@ -34,7 +89,7 @@ typedef struct UtilTrace_s
 {
 	GThread *tracingThread;
 	tracingControlStruct *tracingControl;
-} PerfTraceStruct;
+} UtilTraceStruct;
 
 
 /* ************************************************************************* */
@@ -53,7 +108,10 @@ int ptl_verbosity;
 /**
  * Create performance trace
  *
- * @param topology
+ * @if api_only
+ *  @ingroup RUT
+ * @endif
+ *
  * @param topoNode
  * @param topoLevel
  * @param sources
@@ -143,7 +201,7 @@ UtilTrace * rut_createTrace(
 
 	/* !!! We must not access tracingData after this point. !!! */
 
-	PerfTraceStruct *myTrace;
+	UtilTraceStruct *myTrace;
 	rut_malloc(myTrace, 1, NULL);
 
 	myTrace->tracingThread = tracingThread;
@@ -155,6 +213,10 @@ UtilTrace * rut_createTrace(
 /**
  * Start performance tracing
  *
+ * @if api_only
+ *  @ingroup RUT
+ * @endif
+ *
  * @param trace Trace object to work on
  *
  * @return Indicate if tracing enable state changed
@@ -164,12 +226,16 @@ UtilTrace * rut_createTrace(
  */
 int rut_startTrace(UtilTrace *trace)
 {
-	PerfTraceStruct *myTrace = trace;
+	UtilTraceStruct *myTrace = trace;
 	return changeEnableState(myTrace, TRUE);
 }
 
 /**
  * Stop performance tracing
+ *
+ * @if api_only
+ *  @ingroup RUT
+ * @endif
  *
  * @param trace Trace object to work on
  *
@@ -180,16 +246,22 @@ int rut_startTrace(UtilTrace *trace)
  */
 int rut_stopTrace(UtilTrace *trace)
 {
-	PerfTraceStruct *myTrace = trace;
+	UtilTraceStruct *myTrace = trace;
 	return changeEnableState(myTrace, FALSE);
 }
 
 /**
  * Finalize utilization trace object
+ *
+ * @if api_only
+ *  @ingroup RUT
+ * @endif
+ *
+ * @param trace
  */
 void rut_finalizeTrace(UtilTrace *trace)
 {
-	PerfTraceStruct *myTrace = trace;
+	UtilTraceStruct *myTrace = trace;
 
 	/* request quitting of the tracing thread */
 	g_mutex_lock(myTrace->tracingControl->mutex);
@@ -233,11 +305,11 @@ void rut_finalizeTrace(UtilTrace *trace)
  * @retval  0  Tracing state changed
  * @retval  1  Tracing state was already the requested one
  */
-static int changeEnableState(PerfTraceStruct *myTrace, gboolean newstate)
+static int changeEnableState(UtilTraceStruct *trace, gboolean newstate)
 {
 	int retval = 0;
-	g_mutex_lock(myTrace->tracingControl->mutex);
-	if (myTrace->tracingControl->enabled == newstate)
+	g_mutex_lock(trace->tracingControl->mutex);
+	if (trace->tracingControl->enabled == newstate)
 	{
 		/* tracing is already enabled/disabled */
 		retval = 1;
@@ -245,9 +317,9 @@ static int changeEnableState(PerfTraceStruct *myTrace, gboolean newstate)
 	else
 	{
 		/* enable/disable tracing and notify tracing thread */
-		myTrace->tracingControl->enabled = newstate;
-		g_cond_broadcast(myTrace->tracingControl->stateChanged);
+		trace->tracingControl->enabled = newstate;
+		g_cond_broadcast(trace->tracingControl->stateChanged);
 	}
-	g_mutex_unlock(myTrace->tracingControl->mutex);
+	g_mutex_unlock(trace->tracingControl->mutex);
 	return retval;
 }
