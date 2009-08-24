@@ -158,8 +158,8 @@ public class Epoch implements Comparable<Epoch> {
 				subSeconds *=10;
 			}
 			
-			if(seconds < 0){			
-				return new Epoch(seconds / multiplier, (-seconds % multiplier) * (MULTIPLIER / multiplier) + subSeconds / multiplier);
+			if(secondsS.startsWith("-")){			
+				return new Epoch(seconds / multiplier, (-seconds % multiplier) * (MULTIPLIER / multiplier) - subSeconds / multiplier);
 			}else{
 				return new Epoch(seconds / multiplier, (seconds % multiplier) * (MULTIPLIER / multiplier)  + subSeconds / multiplier);
 			}
