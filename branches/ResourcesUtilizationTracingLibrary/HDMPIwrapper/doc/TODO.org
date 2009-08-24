@@ -1,0 +1,455 @@
+* Fragen
+*** DONE int MPI_File_open(MPI_Comm, char *, int, MPI_Info, MPI_File *);
+     - return-value speichern? nein
+*** DONE int MPI_File_close(MPI_File *); 
+     - Dateinamen aus der hash-table entfernen? nein
+*** DONE int MPI_File_seek_shared(MPI_File, MPI_Offset, int);
+     -- hier wieder die absolute position rausfinden (wie bei file_write...) ?
+     -> problem: was ist, wenn anderer client in der zwischenzeit seekt? 
+     Nur parameter loggen. NICHT alten Wert.
+*** DONE Was machen wir mit nonblocking operations?
+		 Möglichkeit: eigenes tracking => MPI_IXX calls müssen HashVal setzen (nach 
+		request), prüfung bei MPI_Test, MPI_Wait(X) etc.
+		 Sehr aufwendig! Replikation zu MPI Interna. Für Simulator aber nötig!                                                      
+		 Bei MPI_IXX call wird neue (Thread interne) unique ID (INT) vergeben, bei 
+		Wait bzw. Waitall wird darauf gewartet.          
+		 Einfaches tracking via. (MPI_Request pointer?), HASHMAP
+		 Syntax:
+		 <Wait>
+		  <FOR aid="X"/>
+		  <FOR aid="Y"/>
+		  <FOR aid="Z"/>
+		 </Wait>
+		 => Tags auch für MPI_Waitall oder Waitsome verwendbar.        
+		 
+		 ------
+		 
+		 z.Z. wird MPI_Request nach int gecastet. 
+		 -> nach void* casten
+
+*** DONE MPI_File_write_at -- wird hier der byte offset, oder der view-abhängige
+     Offset angegeben? Get_contents, get_envelope
+     Genau so File_iwrite_at
+
+*** DONE Split-collective-Aufrufe
+    Jetzt wird geloggt:
+    ----------------------------------
+    <SplitBegin>           <Read_all aid="X">
+			    </Read_all>
+    <Read file='97'>
+    </SplitBegin>	 <Wait>
+			<For aid="X>
+    <Wait>       	</Wait>
+    
+    <Read aid="Y">
+    </Read>
+    
+    <Test>
+      <For aid="Y"/>
+    </Test>
+    
+    <Wait>
+	<For aid="Y"/>
+    </Wait>
+    ...
+    <SplitEnd file='97' />
+    ----------------------------------
+    ist das in Ordnung? 
+*** DONE Rufen die PMPI_* - Funktionen wieder MPI_* auf? 
+    bzw., was wäre eine Funktion, die definitiv nested-Aufrufe beinhaltet?
+    mpich2-1.0.5p4.mod/src/mpi/romio/mpi-io/mpioprof.h
+    Sollte klappen.    
+    
+*** DONE Für welche Funktionen muss time+duration gespeichert werden?
+    Jetzt: für alle, die keine w_* - Funktion besitzen.
+    Sollen die anderen auch geloggt werden?
+    duration == endZeit => für alle Zustände!
+*** TODO File_Info rausschreiben 	
+    Soll die tatsächliche Info, oder nur die vom benutzer angegebene geschrieben werden?
+**** DONE    
+		Es wäre cool wenn man bei MPI-IO operationen noch die MPI_File_Info optional 
+		rausschreiben könnte, machbar mit:
+		int MPI_Info_get_nkeys(MPI_Info, int *); 
+		int MPI_Info_get_nthkey(MPI_Info, int, char *);
+
+		Frage: wie soll das aussehen? so in etwa?
+		<File_open ...>
+		<File_info>
+		    <key value="..." />
+		</File_info
+		</File_open>
+
+		MPI_File_set_info, File_open, File_close
+*** TODO Description File
+    Das Description-File wird derzeit von Rang 0 geschrieben. 
+    Wenn mehrere threads zugelassen sind -> ungünstig
+*** TODO brauche ein programm um thread-sicherheit zu testen
+* Aufgaben
+** DONE Tests zum laufen kriegen
+   Offizieller mpich-test compiliert größtenteils 
+   Was nicht compiliert: Programme, die selbst wrapper bereitstellen...
+*** DONE mpich-test
+    -> offizieller mpich-test 
+*** DONE mpi2test
+** DONE HDTraceWriter implementieren
+*** 
+    Funktionsablauf, Beispiel:
+    --------------------------------------------------------------------------------
+    MPI_Write
+	hdLogStateStart()
+		Prüfe ob nested Tag geschrieben / nötig für gegenwärtige Tiefe
+	PMPI_Send
+	hdLogAttributes
+	GENERATE_WRITE_NESTED_TAGS in Buffer
+	hdLogStateEnd(buffer)
+		Prüfe ob END nested Tag nötig
+		Eigentliche Daten speichern
+    --------------------------------------------------------------------------------
+** DONE Was machen mit 'cycles'
+   - [X] Ersetzte cycles, bzw. entfernen?
+   <Compute duration="T" unit="[T]" />
+*** 
+	=> stattdessen speed-multiplier vom Original? (Float value?)
+ 	=> Duration = mikrosekunden = 10^-6 Sekunden
+** DONE Das absolutes-seek-file-offst-Problem
+   - Die jetzige Berechnung gibt bereits den richtigen byte-offset.
+   Im Fall des gemeinsamen Dateizeigers 
+** DONE Filename map
+   Filename <-> id map einbauen, bei öffnen prüfen und ggf. handle <-> id anpassen
+   (falls neue datei geöffnet)
+   ebenfalls: file_delete
+** DONE Operationen tracen
+		Welche Operationen sollen getraced werden? (mpi_funcs.h, mpiio_funcs.h)
+		 Primär alle die kommunizieren oder I/O betreiben, allerdings gibt es einige 
+		wo selten eingesetzt werden und es daher nicht sinnvoll ist das gleich zu 
+		implementieren. Konkret wären anzupassende Operationen:
+*** DONE MPI
+    - [X] int MPI_Send(void*, int, MPI_Datatype, int, int, MPI_Comm);
+    - [X] int MPI_Recv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
+    - [X] int MPI_Bsend(void*, int, MPI_Datatype, int, int, MPI_Comm);
+    - [X] int MPI_Ssend(void*, int, MPI_Datatype, int, int, MPI_Comm);
+    - [X] int MPI_Rsend(void*, int, MPI_Datatype, int, int, MPI_Comm);
+
+    - [X] int MPI_Sendrecv(void *, int, MPI_Datatype,int, int, void *, int, 
+		MPI_Datatype, int, int, MPI_Comm, MPI_Status *);
+
+		
+    - [X] int MPI_Barrier(MPI_Comm );
+    - [X] int MPI_Bcast(void*, int, MPI_Datatype, int, MPI_Comm );
+
+    - [X] int MPI_Gather(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, 
+		MPI_Comm); 
+    - [X] int MPI_Gatherv(void* , int, MPI_Datatype, void*, int *, int *, MPI_Datatype, 
+		int, MPI_Comm); 
+    - [X] int MPI_Scatter(void* , int, MPI_Datatype, void*, int, MPI_Datatype, int, 
+		MPI_Comm);
+    - [X] int MPI_Scatterv(void* , int *, int *,  MPI_Datatype, void*, int, 
+		MPI_Datatype, int, MPI_Comm);
+
+    - [X] int MPI_Allgather(void* , int, MPI_Datatype, void*, int, MPI_Datatype, 
+		MPI_Comm);
+    - [X] int MPI_Allgatherv(void* , int, MPI_Datatype, void*, int *, int *, 
+		MPI_Datatype, MPI_Comm);
+    - [X] int MPI_Alltoall(void* , int, MPI_Datatype, void*, int, MPI_Datatype, 
+		MPI_Comm);
+    - [X] int MPI_Alltoallv(void* , int *, int *, MPI_Datatype, void*, int *, int *, 
+		MPI_Datatype, MPI_Comm);
+
+    - [X] int MPI_Reduce(void* , void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm);
+    - [X] int MPI_Allreduce(void* , void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
+    - [X] int MPI_Reduce_scatter(void* , void*, int *, MPI_Datatype, MPI_Op, MPI_Comm);
+    - [X] int MPI_Scan(void* , void*, int, MPI_Datatype, MPI_Op, MPI_Comm );
+    - [X] int MPI_Exscan(void *, void *, int, MPI_Datatype, MPI_Op, MPI_Comm) ;
+		
+    - [X] int MPI_Init(int *, char ***);
+    - [X] int MPI_Finalize(void);
+    - [X] int MPI_Abort(MPI_Comm, int); // hier vermutlich einfach das Trace file 
+		herausschreiben
+    - [X] int MPI_Sendrecv_replace(void*, int, MPI_Datatype, int, int, int, int, 
+		MPI_Comm, MPI_Status *); 
+    - [X] int MPI_Init_thread(int *, char ***, int, int *); // einfach nur so 
+		hinzufügen, fehler wenn
+		! MPI_THREAD_SINGLE  see: http://linux.die.net/man/3/mpi_init_thread	
+		
+*** DONE Nonblocking
+    - [X] int MPI_Isend(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+    - [X] int MPI_Ibsend(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+    - [X] int MPI_Issend(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_
+    - [X] int MPI_Irsend(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+    - [X] int MPI_Irecv(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+    - [X] int MPI_Wait(MPI_Request *, MPI_Status *);
+    - [X] int MPI_Waitany(int, MPI_Request *, int *, MPI_Status *);
+    - [X] int MPI_Waitall(int, MPI_Request *, MPI_Status *);
+    - [X] int MPI_Waitsome(int, MPI_Request *, int *, int *, MPI_Status *);
+    - [X] int MPI_Iprobe(int, int, MPI_Comm, int *, MPI_Status *);
+
+
+*** DONE I/O operationen:
+**** DONE
+     - [X] int MPI_File_seek_shared(MPI_File, MPI_Offset, int);
+     - [X] int MPI_File_open(MPI_Comm, char *, int, MPI_Info, MPI_File *);
+     - [X] int MPI_File_delete(char *, MPI_Info);
+     - [X] int MPI_File_close(MPI_File *); 
+     int MPI_File_set_size(MPI_File, MPI_Offset);
+     int MPI_File_preallocate(MPI_File, MPI_Offset);
+     int MPI_File_get_size(MPI_File, MPI_Offset *);
+
+     - [X] int MPI_File_read(MPI_File, void *, int, MPI_Datatype, MPI_Status *); 
+     - [X] int MPI_File_read_at(MPI_File, void *, int, MPI_Datatype, MPI_Status *); 
+     - [X] int MPI_File_read_all(MPI_File, void *, int, MPI_Datatype, MPI_Status *); 
+     - [X] int MPI_File_read_at_all(MPI_File, void *, int, MPI_Datatype, MPI_Status *); 
+
+     - [X] int MPI_File_write(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+     - [X] int MPI_File_write_at(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+     - [X] int MPI_File_write_all(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+     - [X] int MPI_File_write_at_all(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+
+     - [X] int MPI_File_set_atomicity(MPI_File, int);
+     - [X] int MPI_File_sync(MPI_File);
+		
+     - [X] int MPI_File_read_shared(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+     - [X] int MPI_File_write_shared(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+		
+     - [X] int MPI_File_read_ordered(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+     - [X] int MPI_File_write_ordered(MPI_File, void *, int, MPI_Datatype, MPI_Status *);
+     
+*** DONE I/O nonblocking + split
+    - [X] int MPI_File_iread(MPI_File, void *, int, MPI_Datatype, MPIO_Request *); 
+    - [X] int MPI_File_iwrite(MPI_File, void *, int, MPI_Datatype, MPIO_Request *);
+
+    - [X] int MPI_File_iwrite_at
+    - [X] int MPI_File_iread_at
+
+    - [X] int MPI_File_read_at_all_begin(MPI_File, void *, MPI_Status *);
+    - [X] int MPI_File_write_at_all_end(MPI_File, void *, MPI_Status *);
+		
+    - [X] int MPI_File_read_all_begin(MPI_File, void *, int, MPI_Datatype);
+    - [X] int MPI_File_read_all_end(MPI_File, void *, MPI_Status *);
+		
+    - [X] int MPI_File_write_all_begin(MPI_File, void *, int, MPI_Datatype);
+    - [X] int MPI_File_write_all_end(MPI_File, void *, MPI_Status *);
+
+    - [X] int MPI_File_read_ordered_begin(MPI_File, void *, int, MPI_Datatype);
+    - [X] int MPI_File_read_ordered_end(MPI_File, void *, MPI_Status *);
+    - [X] int MPI_File_write_ordered_begin(MPI_File, void *, int, MPI_Datatype);
+    - [X] int MPI_File_write_ordered_end(MPI_File, void *, MPI_Status *);
+
+*** DONE Wait*, Test*
+*** DONE Alle weiteren Operationen
+	Alle weiteren Operation z.b. MPI_Get_Count können einfach stdmäßig mit time + 
+	duration getraced werden (Umgebungsvariable aktiviert das, nicht sinnvoll für 
+	SImulator, aber für allgemeinen Tracer)..
+
+	--> wird durch
+	    static int trace_all_functions 
+	    geregelt
+
+*** DONE Später
+**** DONE     int MPI_Comm_get_name(MPI_Comm, char *, int *); // Nutzen um den Comm namen zu 
+		ermitteln		      
+		-> wird nicht mehr benötigt
+** DONE Durations
+   - [ ] durations entfernt, time, end eingefügt
+***
+		Gegenwärtige Zeit + duration (bei states) wird in die Tags hineingeneriert. 
+		 Primär für den Simulator uninteressant, aber fürs Tracing von MPI-I/O ops 
+		nötig.
+		 Redundant zu Compute Operationen! Evtl. wird später bei Compute noch weitere 
+		Information z.b. counter eingefügt.
+		 Duration erst bekannt nachdem die Operation
+		 ausgeführt wurde.				
+*** DONE
+		Noch was zum timestamp: nach ein wenig überlegen, denke ich der sollte mit 
+		gettimeofday bestimmt worden sein, d.h. nicht die MPI_time ...
+		dann wird natürlich seconds.nanoseconds geschrieben. 
+
+		
+** DONE Optionales Logging
+   - [X] Compute Tags sollten optional entfernbar sein, z.b. Umgebungsvariable einlesen 
+		am Anfang (MPI_init)... ;-)
+		-> Compute Tags weg
+
+   - [X] Ebenso sollte die nested operation aktivierbar sein (std: nicht aktiv).
+                -> HDTRACE_NESTED=(1|0)
+**** TODO int MPI_File_set_info(MPI_File, MPI_Info); // optional machen ;-)
+     schon geloggt, aber noch nicht optional
+*** TODO File_Info rausschreiben 	
+		Es wäre cool wenn man bei MPI-IO operationen noch die MPI_File_Info optional 
+		rausschreiben könnte, machbar mit:
+		int MPI_Info_get_nkeys(MPI_Info, int *); 
+		int MPI_Info_get_nthkey(MPI_Info, int, char *);
+   - [ ] File_Info rausschreiben 
+
+** DONE MPI_Pcontrol(...) benutzen?
+***
+		int MPI_Pcontrol(const int, ...); // cool controliert profiling: 
+		http://mpi.deino.net/mpi_functions/MPI_Pcontrol.html, vielleicht nutzen 
+		anstelle Trace an aus fkt.
+		    * level==0 Profiling is disabled.
+		    * level==1 Profiling is enabled at a normal default level of detail.
+		    * level==2 Profile buffers are flushed. (This may be a no-op in some 
+		profilers).
+		    * All other values of level have profile library defined effects and 
+		additional arguments.
+
+
+** DONE Sinnvolle Namen für den Communicator
+   - [X] namen werden 
+**** TODO  int MPI_Comm_set_name(MPI_Comm, char *); // evtl.
+***
+		Bisher war es so das der Communicator im allgemeinen XML definiert welche 
+		(realen) ranks darin enthalten sind.
+		Das Matching wurde mit dem Namen des Communicators gemacht, das ist aber nicht 
+		unbedingt garantiert der der Nutzer einen sinnvollen Namen vergibt.
+		Daher müssten wir falls kein Name gesetzt ist ein unique (ID) namen mit 
+		Comm_set_name  vergeben (dann können weitere funks correct MPI_comm_get_name 
+		aufrufen). Gehen wir mal davon aus das der Nutzer nicht wärend der Laufzeit 
+		ständig die Comms umbenennt.
+		Wie ermitteln wir die Teilnehmer des Communicators?
+		 glaube das geht mit int MPI_Comm_group und dann
+		  MPI_Group_translate_ranks ( MPI_Group group_a, int n, int *ranks_a, 
+		                             MPI_Group group_b, int *ranks_b )
+		Wobei man da dann MPI_COMM_WORLD verwendet (und den anderen Comm).
+		Natürlich muss man nur einmal die Teilnehmer einer benannten Gruppe  
+		rauschreiben, so dass dieses später ins allgemeine XML konvertiert werden 
+		kann.
+
+In Project beschreibung:
+<CommunicatorList> 
+<Communicator name="WORLD">  
+<Rank id="0" cid="1"/>
+<Rank id="1" cid="1"/>
+<Rank id="2" cid="2"/>
+<Rank id="3" cid="1"/>
+</Communicator> 
+<Communicator name="TEST">
+<Rank id="1" cid="1"/>
+<Rank id="3" cid="22"/>
+<Communicator>
+</CommunicatorList>
+
+Per HashMap Communicator ID speichern
+
+------------------------------------------------------------------------------
+	
+** DONE Nested Operations
+   - [X] Nested Operations
+   muss getestet werden
+***		 
+		 Nach bisherigem Schema nicht möglich.
+		 Primär für den Simulator uninteresant (da die oberste Operation simuliert 
+		wird), aber fürs Tracing. MPI-I/O Ops z.b.
+		 Bsp für nested:                                                                                                     
+		  MPI_File_open                                                                                                      
+		   MPI_Barrier                                                                                                       
+		   MPI_Bcast                                                                                                         
+		  <                                                                                                                  
+		 Nach bisherigem Schema (erzeugen der XML Tags nach durchführung der 
+		Operationen) würde das XML erzeugt:             
+		 <Barrier time="x+y" duration=""/>                                                                                   
+		 <Bcast time="x+y+z" duration=""/>                                                                                   
+		 <FileOpen time="x" duration="X"/>                                                                                   
+		
+		 Mögliche representation im XML wäre:
+		 <FileOpen time="x" duration="X"> <Barrier time="x+y" duration=""/> <Bcast 
+		time="x+y+z" duration=""/> </FileOpen>
+		 Problem: duration von FileOpen ist Apriori unbekannt.                                                           
+		 Mögliche Lösung:                                                                                                
+		 Jede Operation prüft zu beginn ob diese nested ist, oder nicht. (Stack/Array, 
+		mit max tiefe)                    
+		
+		 Falls nicht, dann wie bisher. Sonst generiert diese das start tag nested.
+		 <Nested> (Weil aufgerufen von FileOpen, interner depth_counter, erstes 
+		Element dieser Tiefe)
+		  <Barrier time="x+y" duration=""/>                                                          
+		  (kein Nested Tag, zweites Element mit selber tiefe).                                       
+		  <Bcast time="x+y+z" duration=""/>                                                          
+		 </Nested>                                                                                   
+		 <FileOpen time="x" duration="X"/>                                                           
+		
+		 Jedes einzelne Element kann geschrieben wie es will. Die Operation die dem 
+		nested folgt ist der besitzer der nested ops.
+		 Tiefere Verschachtelung ist ja möglich. (Kann aber gerne durch #DEFINE im 
+		code limitiert sein).             
+
+
+
+** DONE "Fix Memleak" klären (MPI_Finalize, hashmaps löschen)
+** DONE Makros in Funktionen umwandeln?
+   - 
+** DONE sind auch alle funktionen in interesting_funcs.h eingetragen?
+   - [X] Ja
+** DONE Welche Funktionen auser File_open können auf "neue" dateien zugreifen -> *.info - file beschreiben
+   bis jetzt nur File_open und File_delete
+   File_open -> GetFileIdEx
+   File_delete -> GetFileIdFromName
+** DONE File_close  : file handle aus hashmap entfernen!
+** DONE unifytraces: wenn im selben Verzeichnis ausgeführt 
+   -> fehler wenn ./ vor dateinamen weggelassen
+** DONE comm-rank -> world-rank im log
+** DONE create_sim-wrapper formatieren
+** DONE create_sim-wrapper: split collecve *_end funktionen: attribute schreiben!
+** DONE Verzeichnisstruktur umstellen
+** DONE trace_ vor dem tracefile weglassen
+** TODO openmpi + mpich besser trennen
+** TODO hdT_TraceNested (afterInit(...)) umschreiben
+** TODO openmpi + mpich header auslagern, makefile anpassen
+** TODO clean getFileIdEx
+** DONE set_view loggen -> datentyp
+** DONE Endtags!
+** DONE Datei-Dupletten beseitigen
+** DONE stephans filewriter verwenden
+** DONE merger ordentlich machen + dokumentieren
+** TODO threads testen
+** TODO eigene tests dokumentieren, am besten vollautom. test
+** TODO überall datentyp rausschreiben
+** DONE DARRAY ausgabe: MPI-Knostanten ordentlich loggen (MPI_DISTRIBUTE_BLOCK...)
+** DONE project-description-merger
+*** DONE Kommunikator- und Typnamen in unifyTraces zusammenbasteln
+*** DONE project-description-merger + hdtraceWriter.c
+   replace minus with underscore in filenames
+
+** TODO Zur Zeit werden die Funktionsnamen kopiert: man kann auch den zeiger
+  speichern (da sowieso statisch). ist das sinnvoll?
+** TODO Kommentare optimiern
+** TODO lizenz - header
+** DONE Wenn auf Datei nur über den namen zugegriffen wird, wird filesize=0 geloggt.
+   - works as intended. Bis jetzt ist das nur der fall, wenn die datei gelöscht wird.
+** TODO wenn File_open etc. schiefgeht -> nicht loggen?
+** DONE g_int_equal nicht mehr für zeiger verwenden
+** TODO Können Threads einfach unterstützt werden ? (TLS) Gibt es weitere Probleme?
+   - einlesen der globalen variablen: 
+** TODO thread tests aus mpi2test funktionieren nicht ?
+** TODO Testen
+*** TODO
+    werden auch veränderbare argumente vor/nach dem mpi-aufruf geloggt?
+*** TODO file hashtables:
+    - eine datei erst löschen dann öffnen
+*** TODO nested operations
+*** TODO mpi2test/pt2pt/sendrecv3 stürzt ab?
+*** TODO Abbruch bei multithreaded-anwendungen
+
+
+*** TODO auf jeden Fall nicht nur mit COMM_WORLD testen
+*** TODO ist auch überall long long double bei den Größenangaben
+*** TODO mpich2-test auch verwenden?
+*** TODO Automatische Überprüfung der Ergebnisse?
+* INFO
+** Threads 
+   - [ ] Wie für threads etc?
+***	
+	=> Pro thread eine XML Datei! (Musst nicht implementieren, aber damit du es 
+	weißt)
+	
+
+** Was passiert mit PIOviz/Server stuff?
+   - [ ] Was passiert mit PIOviz/Server stuff?
+***
+		Einfach neue Event-Tags generieren z.b.
+        <PC type="WRITE" time="1000">1000</PC>
+	
+** INFO über MPI_Request
+     OpenMPI: /ompi-trunk/ompi/request/request.h:ompi_request_t
+     
+** Visualisieren von tracefiles
+   geht mit HDJumpshot/view/first/Jumpshot
