@@ -60,7 +60,7 @@
 
 #include "hdmpi-wrapper-pkg.h"
 
-#ifdef ENABLE_PERFORMANCE_TRACE
+#ifdef ENABLE_UTILIZATION_TRACE
 #include "PTL.h"
 
 static PerfTrace *pStatistics = NULL;
@@ -330,15 +330,15 @@ static void after_Init(int *argc, char ***argv)
 	hdMPI_threadInitTracing();
 #endif
 
-#ifdef ENABLE_PERFORMANCE_TRACE
-# define ENABLE_PERFORMANCE_OR_POWER_TRACE
+#ifdef ENABLE_UTILIZATION_TRACE
+# define ENABLE_UTILIZATION_OR_POWER_TRACE
 #else
 # ifdef ENABLE_POWER_TRACE
-#  define ENABLE_PERFORMANCE_OR_POWER_TRACE
+#  define ENABLE_UTILIZATION_OR_POWER_TRACE
 # endif
 #endif
 
-#ifdef ENABLE_PERFORMANCE_OR_POWER_TRACE
+#ifdef ENABLE_UTILIZATION_OR_POWER_TRACE
 	{
 	/* JK: use the powertracer, the powertracer must be started only once per node */
 	/* therefore determine full qualified hostname and send it to all other ranks */
@@ -383,7 +383,7 @@ static void after_Init(int *argc, char ***argv)
 
         if(rankForThisHost == rank){
 
-# ifdef ENABLE_PERFORMANCE_TRACE
+# ifdef ENABLE_UTILIZATION_TRACE
 
             printf("Start performance tracer on host %s by rank: %d\n", hostname, rank);
 
@@ -404,7 +404,7 @@ static void after_Init(int *argc, char ***argv)
 
     		ptl_startTrace(pStatistics);
 
-# endif /* ENABLE_PERFORMANCE_TRACE */
+# endif /* ENABLE_UTILIZATION_TRACE */
 
 # ifdef ENABLE_POWER_TRACE
 
@@ -477,7 +477,7 @@ static void after_Finalize(void)
 {
 	hdMPI_threadFinalizeTracing();
 
-#ifdef ENABLE_PERFORMANCE_TRACE
+#ifdef ENABLE_UTILIZATION_TRACE
 	if(pStatistics != NULL){
 		ptl_stopTrace(pStatistics);
 		ptl_destroyTrace(pStatistics);
@@ -512,7 +512,7 @@ static void before_Abort()
 int MPI_Init(int * v1,  char *** v2){
   int ret;
   ret = PMPI_Init( v1,  v2);
-  after_Init(v1, v2); 
+  after_Init(v1, v2);
   return ret;
 }
 
@@ -523,6 +523,6 @@ int MPI_Finalize(void){
   after_Finalize();
   return ret;
 }
-#endif 
+#endif
 
 /* here the mpi tracing function definitions are appended by create_sim-wrapper.py */

@@ -148,7 +148,7 @@ AC_ARG_WITH(hdperftrace,
        CFLAGS="$CFLAGS -I$withval/include"
        CPPFLAGS="$CPPFLAGS -I$withval/include"
 
-       AC_DEFINE(ENABLE_PERFORMANCE_TRACE, 1, [Define if performance trace shall be enabled])
+       AC_DEFINE(ENABLE_UTILIZATION_TRACE, 1, [Define if performance trace shall be enabled])
 
        LDFLAGS="-L$withval/lib $LDFLAGS"
        AC_TRY_LINK([
