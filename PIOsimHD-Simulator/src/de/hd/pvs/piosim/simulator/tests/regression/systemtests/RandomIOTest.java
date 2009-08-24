@@ -29,6 +29,11 @@ import java.util.Random;
 
 import org.junit.Test;
 
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
@@ -89,12 +94,27 @@ public class RandomIOTest extends IOTest {
 
 	@Test
 	public void run() throws Exception {
+		final class CacheLayerResults {
+			ServerCacheLayer cacheLayer = null;
+			List<Double> readAvgs = new ArrayList<Double>();
+			List<Double> readDevs = new ArrayList<Double>();
+			List<Double> writeAvgs = new ArrayList<Double>();
+			List<Double> writeDevs = new ArrayList<Double>();
+
+			public CacheLayerResults(ServerCacheLayer cacheLayer) {
+				this.cacheLayer = cacheLayer;
+			}
+		}
+
+		List<CacheLayerResults> results = new ArrayList<CacheLayerResults>();
+		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 		List<Long> seeds = new ArrayList<Long>();
-		List<Double> readAvgs = new ArrayList<Double>();
-		List<Double> readDevs = new ArrayList<Double>();
-		List<Double> writeAvgs = new ArrayList<Double>();
-		List<Double> writeDevs = new ArrayList<Double>();
+
+		cacheLayers.add(new NoCache());
+		cacheLayers.add(new SimpleWriteBehindCache());
+		cacheLayers.add(new AggregationCache());
+		cacheLayers.add(new ServerDirectedIO());
 
 		sizes.add((long)512);
 		sizes.add((long)5 * KBYTE);
@@ -105,47 +125,59 @@ public class RandomIOTest extends IOTest {
 			seeds.add(i);
 		}
 
-		for (long size : sizes) {
-			double readAvg = 0;
-			double readDev = 0;
-			double writeAvg = 0;
-			double writeDev = 0;
+		for (ServerCacheLayer cacheLayer : cacheLayers) {
+			CacheLayerResults res = new CacheLayerResults(cacheLayer);
 
-			for (long seed : seeds) {
-				SimulationResults r;
-				SimulationResults w;
+			this.cacheLayer = cacheLayer;
 
-				elementSize = size;
-				random = new Random(seed);
+			for (long size : sizes) {
+				double readAvg = 0;
+				double readDev = 0;
+				double writeAvg = 0;
+				double writeDev = 0;
 
-				r = readTest();
-				w = writeTest();
+				for (long seed : seeds) {
+					SimulationResults r;
+					SimulationResults w;
 
-				readAvg += r.getVirtualTime().getDouble();
-				readDev += Math.pow(r.getVirtualTime().getDouble(), 2);
+					elementSize = size;
+					random = new Random(seed);
 
-				writeAvg += w.getVirtualTime().getDouble();
-				writeDev += Math.pow(w.getVirtualTime().getDouble(), 2);
+					r = readTest();
+					w = writeTest();
+
+					readAvg += r.getVirtualTime().getDouble();
+					readDev += Math.pow(r.getVirtualTime().getDouble(), 2);
+
+					writeAvg += w.getVirtualTime().getDouble();
+					writeDev += Math.pow(w.getVirtualTime().getDouble(), 2);
+				}
+
+				readAvg /= seeds.size();
+				readDev /= seeds.size();
+				readDev = Math.sqrt(readDev - Math.pow(readAvg, 2));
+
+				res.readAvgs.add(readAvg);
+				res.readDevs.add(readDev);
+
+				writeAvg /= seeds.size();
+				writeDev /= seeds.size();
+				writeDev = Math.sqrt(writeDev - Math.pow(writeAvg, 2));
+
+				res.writeAvgs.add(writeAvg);
+				res.writeDevs.add(writeDev);
 			}
 
-			readAvg /= seeds.size();
-			readDev /= seeds.size();
-			readDev = Math.sqrt(readDev - Math.pow(readAvg, 2));
-
-			readAvgs.add(readAvg);
-			readDevs.add(readDev);
-
-			writeAvg /= seeds.size();
-			writeDev /= seeds.size();
-			writeDev = Math.sqrt(writeDev - Math.pow(writeAvg, 2));
-
-			writeAvgs.add(writeAvg);
-			writeDevs.add(writeDev);
+			results.add(res);
 		}
 
-		for (int i = 0; i < sizes.size(); i++) {
-			System.out.println(sizes.get(i) + " READ  " + readAvgs.get(i) + "s (" + readDevs.get(i) + "s)");
-			System.out.println(sizes.get(i) + " WRITE " + writeAvgs.get(i) + "s (" + writeDevs.get(i) + "s)");
+		for (CacheLayerResults res : results) {
+			System.out.println(res.cacheLayer.getClass().getSimpleName());
+
+			for (int i = 0; i < sizes.size(); i++) {
+				System.out.println("  " + sizes.get(i) + " READ  " + res.readAvgs.get(i) + "s (" + res.readDevs.get(i) + "s)");
+				System.out.println("  " + sizes.get(i) + " WRITE " + res.writeAvgs.get(i) + "s (" + res.writeDevs.get(i) + "s)");
+			}
 		}
 	}
 
