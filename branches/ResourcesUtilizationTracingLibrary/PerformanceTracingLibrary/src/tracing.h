@@ -29,8 +29,8 @@
 typedef struct {
 	GMutex *mutex;
 	GCond *stateChanged;
-	gboolean enabled;
-	gboolean quit;
+	gboolean started;
+	gboolean terminate;
 } tracingControlStruct;
 
 /**

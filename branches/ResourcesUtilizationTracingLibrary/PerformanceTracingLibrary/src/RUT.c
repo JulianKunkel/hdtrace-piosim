@@ -96,7 +96,7 @@ typedef struct UtilTrace_s
 /*                                                                           */
 /* ************************************************************************* */
 
-static int changeEnableState(UtilTrace *trace, gboolean newstate);
+static int changeTracingState(UtilTrace *trace, gboolean newstate);
 
 
 /* ************************************************************************* */
@@ -161,7 +161,7 @@ UtilTrace * rut_createTrace(
 
 	tracingControl->mutex = g_mutex_new();
 	tracingControl->stateChanged = g_cond_new();
-	tracingControl->enabled = FALSE;
+	tracingControl->started = FALSE;
 
 
 	/*
@@ -219,15 +219,15 @@ UtilTrace * rut_createTrace(
  *
  * @param trace Trace object to work on
  *
- * @return Indicate if tracing enable state changed
+ * @return Indicate if tracing state changed
  *
- * @retval  0  Tracing is now enabled (was disabled before)
- * @retval  1  Tracing is enabled (as it was already before)
+ * @retval  0  Tracing is now started (was stopped before)
+ * @retval  1  Tracing is started (as it was already before)
  */
 int rut_startTrace(UtilTrace *trace)
 {
 	UtilTraceStruct *myTrace = trace;
-	return changeEnableState(myTrace, TRUE);
+	return changeTracingState(myTrace, TRUE);
 }
 
 /**
@@ -239,15 +239,15 @@ int rut_startTrace(UtilTrace *trace)
  *
  * @param trace Trace object to work on
  *
- * @return Indicate if tracing enable state changed
+ * @return Indicate if tracing state changed
  *
- * @retval  0  Tracing is now disabled (was enabled before)
- * @retval  1  Tracing is disabled (as it was already before)
+ * @retval  0  Tracing is now stopped (was started before)
+ * @retval  1  Tracing is stopped (as it was already before)
  */
 int rut_stopTrace(UtilTrace *trace)
 {
 	UtilTraceStruct *myTrace = trace;
-	return changeEnableState(myTrace, FALSE);
+	return changeTracingState(myTrace, FALSE);
 }
 
 /**
@@ -265,7 +265,7 @@ void rut_finalizeTrace(UtilTrace *trace)
 
 	/* request quitting of the tracing thread */
 	g_mutex_lock(myTrace->tracingControl->mutex);
-	myTrace->tracingControl->quit = TRUE;
+	myTrace->tracingControl->terminate = TRUE;
 	g_cond_broadcast(myTrace->tracingControl->stateChanged);
 	g_mutex_unlock(myTrace->tracingControl->mutex);
 
@@ -295,21 +295,21 @@ void rut_finalizeTrace(UtilTrace *trace)
 
 
 /**
- * Change tracing enable state
+ * Change tracing state
  *
  * @param trace     Trace object to work on
  * @param newstate  State to set
  *
- * @return Indicate if tracing enable state changed
+ * @return Indicate if tracing state changed
  *
  * @retval  0  Tracing state changed
  * @retval  1  Tracing state was already the requested one
  */
-static int changeEnableState(UtilTraceStruct *trace, gboolean newstate)
+static int changeTracingState(UtilTraceStruct *trace, gboolean newstate)
 {
 	int retval = 0;
 	g_mutex_lock(trace->tracingControl->mutex);
-	if (trace->tracingControl->enabled == newstate)
+	if (trace->tracingControl->started == newstate)
 	{
 		/* tracing is already enabled/disabled */
 		retval = 1;
@@ -317,7 +317,7 @@ static int changeEnableState(UtilTraceStruct *trace, gboolean newstate)
 	else
 	{
 		/* enable/disable tracing and notify tracing thread */
-		trace->tracingControl->enabled = newstate;
+		trace->tracingControl->started = newstate;
 		g_cond_broadcast(trace->tracingControl->stateChanged);
 	}
 	g_mutex_unlock(trace->tracingControl->mutex);

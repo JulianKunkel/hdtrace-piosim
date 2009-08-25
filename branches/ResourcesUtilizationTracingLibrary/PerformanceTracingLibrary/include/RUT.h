@@ -57,10 +57,10 @@ typedef struct UtilTrace_s UtilTrace;
 
 /** Bit field for sources to trace */
 struct rutSources_s {
-    /** aggregated load of all CPUs */
-    unsigned int CPU_LOAD : 1;
-	/** CPU load for each single CPU */
-    unsigned int CPU_LOAD_X : 1;
+    /** aggregated utilization of all CPUs */
+    unsigned int CPU_UTIL : 1;
+	/** CPU utilization for each single CPU */
+    unsigned int CPU_UTIL_X : 1;
     /** amount of main memory used */
     unsigned int MEM_USED : 1;
     /** amount of free main memory */
@@ -115,8 +115,8 @@ typedef struct rutSources_s rutSources;
 /** Macro for setting/cleaning all CPU statistics at once */
 #define RUTSRC_SET_CPU__(sources, bool) \
 	do { \
-		(sources).CPU_LOAD = bool; \
-		(sources).CPU_LOAD_X = bool; \
+		(sources).CPU_UTIL = bool; \
+		(sources).CPU_UTIL_X = bool; \
 	} while (0)
 
 /** Macro for setting/cleaning all memory statistics at once */
@@ -183,7 +183,7 @@ typedef struct rutSources_s rutSources;
  * @endcode
  * you can either set every source you want to trace by hand
  * @code
- * sources.CPU_LOAD = 1;
+ * sources.CPU_UTIL = 1;
  * @endcode
  * or you can use the provided macros to set a whole source group at once
  * @code

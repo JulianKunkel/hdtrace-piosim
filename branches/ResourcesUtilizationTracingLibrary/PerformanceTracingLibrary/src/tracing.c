@@ -118,10 +118,10 @@ int initTracing(
 
 
 	/* specify entry format */
-	if (sources.CPU_LOAD)
+	if (sources.CPU_UTIL)
 		ADD_VALUE(group, "CPU_TOTAL", FLOAT, "%", "CPU");
 
-	if (sources.CPU_LOAD_X)
+	if (sources.CPU_UTIL_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
 			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_TOTAL_%d", i);
@@ -227,7 +227,9 @@ int initTracing(
  * Run function of the tracing thread.
  *
  * This function and so the thread is running the tracing loop all
- * the time when \a tracingData->control->enabled is \a TRUE.
+ * the time when \a tracingData->control->started is \a TRUE. For
+ * terminating the loop, \a tracingData->control->terminate must
+ * become \a TRUE.
  *
  * @param tracingDataPointer  Pointer to the tracing data structure
  *
@@ -235,40 +237,107 @@ int initTracing(
  */
 gpointer tracingThreadFunc(gpointer tracingDataPointer)
 {
-	tracingDataStruct *tracingData = (tracingDataStruct *) tracingDataPointer;
+	int ret;
 
-	/* enable used statistics group
-	 * (we handle trace enabling/disabling by ourself for performance reasons) */
-	// TODO Change this, since start/stop tracing will be handled special in hdStats
-	hdS_enableGroup(tracingData->group);
+	tracingDataStruct *tracingData = (tracingDataStruct *) tracingDataPointer;
 
 	/* create timer */
 	gulong currentTime, waitTime;
 	GTimer *timer = g_timer_new();
 
-	gboolean quit = FALSE;
-	while(1)
-	{
-		INFOMSG("Entering tracing loop");
-		/* wait until tracing is enabled and check quit condition */
+    /*
+     * Tracing iterations loop
+     */
+
+    /* should the traces become enabled/disabled ? */
+    int enable_trace = 0;
+    int disable_trace = 0;
+
+    /* terminate on error with retval */
+    int terminate = 0;
+
+    /* are the traces and the device enabled? */
+    int enabled = 0;
+
+    while(1)
+    {
+    	INFOMSG("Entering tracing loop");
+
+    	/* error handling */
+    	if (terminate) {
+    		/* try to disable traces and device */
+       		if (enabled) {
+       			hdS_disableGroup(tracingData->group);
+       		}
+       		break;
+     	}
+
 		g_mutex_lock(tracingData->control->mutex);
 
-		while (!tracingData->control->enabled && !tracingData->control->quit)
-		{
-			INFOMSG("Waiting for tracing becomes enabled");
-			/* mark old statistics data invalid */
-			tracingData->oldValues.valid = FALSE;
-			/* wait for tracing becomes enabled */
-			g_cond_wait (tracingData->control->stateChanged,
-					tracingData->control->mutex);
-		}
-		quit = tracingData->control->quit;
+    	/* if the thread is stopped but the traces are enabled, disable them */
+    	if (!tracingData->control->started && enabled) {
+    		disable_trace = 1;
+    	}
 
+    	/* else wait until the thread is started or started again */
+    	else {
+    		while (!(tracingData->control->started || tracingData->control->terminate)) {
+    			assert(!enabled);
+    			assert(!enable_trace);
+    			assert(!disable_trace);
+    			INFOMSG("Waiting for tracing becomes started");
+    			/* mark old statistics data invalid */
+    			tracingData->oldValues.valid = FALSE;
+    			/* wait for tracing becomes enabled */
+    			g_cond_wait (tracingData->control->stateChanged,
+    					tracingData->control->mutex);
+    		}
+
+        	/* if the thread is started but the traces are disabled, enable them */
+        	if (tracingData->control->started && !enabled) {
+        		enable_trace = 1;
+        	}
+
+        	/* if termination requested, disable traces and terminate */
+        	if (tracingData->control->terminate) {
+        		if (enabled)
+        			disable_trace = 1;
+        		else {
+        			g_mutex_unlock(tracingData->control->mutex);
+        			break;
+        		}
+        	}
+    	}
 		g_mutex_unlock(tracingData->control->mutex);
 
-		/* quit loop if requested to do */
-		if (quit)
-			break;
+    	/* enable and disable makes no sense together */
+    	assert(!(enable_trace && disable_trace));
+
+    	/* enable traces if necessary */
+    	if (enable_trace) {
+
+    		/* enable statistic group */
+   			ret = hdS_enableGroup(tracingData->group);
+   			assert(ret >= 0);
+
+    		enable_trace = 0;
+    		enabled = 1;
+    	}
+
+    	/* disable traces if necessary */
+    	if (disable_trace) {
+
+    		/* disable statistic group */
+   			ret = hdS_disableGroup(tracingData->group);
+   			assert(ret >= 0);
+
+    		disable_trace = 0;
+    		enabled = 0;
+
+    		/* restart loop to wait for next start */
+    		continue;
+    	}
+
 
 		/* wait for next multiple of interval time */
 		currentTime = (gulong) (1000.0 * g_timer_elapsed(timer, NULL));
@@ -393,8 +462,8 @@ static void doTracingStep(tracingDataStruct *tracingData)
  */
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
-	if (! (tracingData->sources.CPU_LOAD
-			|| tracingData->sources.CPU_LOAD_X))
+	if (! (tracingData->sources.CPU_UTIL
+			|| tracingData->sources.CPU_UTIL_X))
 		return;
 
 #define CPUDIFF(val) \
@@ -408,14 +477,14 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 	if (tracingData->oldValues.valid)
 	{
-		if (tracingData->sources.CPU_LOAD)
+		if (tracingData->sources.CPU_UTIL)
 		{
 			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
 			WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
 
-		if (tracingData->sources.CPU_LOAD_X)
+		if (tracingData->sources.CPU_UTIL_X)
 		{
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{

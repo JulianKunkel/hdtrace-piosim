@@ -71,7 +71,7 @@ static void Test_C1(void)
 	RUTSRC_UNSET_ALL(mySources);
 
 	/* set some sources */
-	mySources.CPU_LOAD = 1;
+	mySources.CPU_UTIL = 1;
 	mySources.MEM_USED = 1;
 	mySources.MEM_FREE = 1;
 	mySources.MEM_BUFFER = 1;
