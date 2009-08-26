@@ -63,7 +63,7 @@ public class StatisticsComputer {
 			if( value > max ) max = value;
 			if( value < min ) min = value;
 
-			sum = sum.add(new BigDecimal(value) );  
+			sum = sum.add(new BigDecimal(value) );
 
 			integratedSum = integratedSum.add(
 					new BigDecimal(value).multiply(
