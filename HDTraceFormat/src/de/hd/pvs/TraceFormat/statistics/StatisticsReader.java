@@ -171,9 +171,15 @@ public class StatisticsReader implements StatisticsSource{
 			case DOUBLE:
 				value = new Double(file.readDouble());
 								
+				if (Double.isInfinite((Double) value) || Double.isNaN((Double) value)){
+					throw new IllegalArgumentException(" alue for " + statName + " is " + value + " at timestamp " + timeStamp); 
+				}				
 				break;
 			case FLOAT:
 				value = new Float(file.readFloat());		
+				if (Float.isInfinite((Float) value) || Float.isNaN((Float) value)){
+					throw new IllegalArgumentException("Value for " + statName + " is " + value  + " at timestamp " + timeStamp); 
+				}
 				break;
 			case STRING:
 				final int length = file.readShort();

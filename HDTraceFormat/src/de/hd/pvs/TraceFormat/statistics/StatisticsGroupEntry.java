@@ -75,6 +75,9 @@ public class StatisticsGroupEntry implements ITracableObject{
 	 */
 	public double getNumeric(int which){
 		if(Number.class.isAssignableFrom(values[which].getClass())){
+			if(((Number) values[which]).doubleValue() == Double.NaN){
+				System.out.println("GOD");
+			}
 			return ((Number) values[which]).doubleValue();
 		}
 		return Double.NaN;
