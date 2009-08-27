@@ -185,7 +185,7 @@ int initTracing(
 		ADD_VALUE(group, "NET_OUT", INT64, NET_UNIT, "NET");
 
 
-#define HDD_UNIT "Blocks"
+#define HDD_UNIT "B"
 
 	// right now read harddisk partition to use from environment
 	char * mountpoint = getenv("RUT_HDD_MOUNTPOINT");
@@ -468,7 +468,8 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 #define CPUDIFF(val) \
 	((gdouble) (cpu.val - tracingData->oldValues.cpu.val))
-	// TODO evaluate if overflows are possible and likely here
+	/* overflows are too rare (max num-of-CPUs times per 497 days)
+	 * so overflow handling would be disproportional costly.  */
 
 	gfloat valuef;
 	glibtop_cpu cpu;
@@ -709,14 +710,16 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 	{
 		if (tracingData->sources.HDD_READ)
 		{
-			valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
+			valuei64 = (gint64) (fs.block_size *
+					(fs.read - tracingData->oldValues.fs.read));
 			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
 	  }
 
 	  if (tracingData->sources.HDD_WRITE)
 	  {
-		  valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
+		  valuei64 = (gint64) (fs.block_size *
+				  (fs.write - tracingData->oldValues.fs.write));
 		  WRITE_I64_VALUE(tracingData, valuei64);
 		  DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
 	  }
