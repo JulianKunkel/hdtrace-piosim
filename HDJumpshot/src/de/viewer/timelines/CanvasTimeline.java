@@ -351,7 +351,10 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		final GlobalStatisticStatsPerGroup statsPerGroup =  reader.getGlobalStatStats(groupDescr);
 
 		switch( cat.getMaxAdjustment()){
-		case GLOBAL_MAX:{
+		case ONE:{
+			maxValue = 1;
+			break;
+		}case GLOBAL_MAX:{
 			maxValue = statsPerGroup.getStatsForStatistic(desc).getMaxValue();
 			break;
 		}case GLOBAL_GROUP_MAX:{

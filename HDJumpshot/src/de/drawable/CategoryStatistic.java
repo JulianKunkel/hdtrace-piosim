@@ -48,6 +48,7 @@ public class CategoryStatistic extends Category {
 	public static enum MaxAdjustment implements IPopupType{
 		GLOBAL_MAX('G'),
 		GLOBAL_GROUP_MAX('g'),
+		ONE('1'),
 		TIMELINE_MAX('L');
 		
 		final private char abreviationLetter;
