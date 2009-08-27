@@ -708,21 +708,24 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 
 	if (tracingData->oldValues.valid)
 	{
+		/* TODO check if block size is always 512,
+		 * the reported is the correct one for the file system but not
+		 * the correct factor for the counted blocks		 */
 		if (tracingData->sources.HDD_READ)
 		{
-			valuei64 = (gint64) (fs.block_size *
+			valuei64 = (gint64) (/*fs.block_size*/ 512 *
 					(fs.read - tracingData->oldValues.fs.read));
 			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
-	  }
+		}
 
-	  if (tracingData->sources.HDD_WRITE)
-	  {
-		  valuei64 = (gint64) (fs.block_size *
-				  (fs.write - tracingData->oldValues.fs.write));
-		  WRITE_I64_VALUE(tracingData, valuei64);
-		  DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
-	  }
+		if (tracingData->sources.HDD_WRITE)
+		{
+			valuei64 = (gint64) (/*fs.block_size*/ 512 *
+					(fs.write - tracingData->oldValues.fs.write));
+			WRITE_I64_VALUE(tracingData, valuei64);
+			DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
+		}
 	}
 	tracingData->oldValues.fs = fs;
 }
