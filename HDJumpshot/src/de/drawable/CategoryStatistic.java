@@ -49,6 +49,7 @@ public class CategoryStatistic extends Category {
 		GLOBAL_MAX('G'),
 		GLOBAL_GROUP_MAX('g'),
 		ONE('1'),
+		HUNDRED('%'),
 		TIMELINE_MAX('L');
 		
 		final private char abreviationLetter;
