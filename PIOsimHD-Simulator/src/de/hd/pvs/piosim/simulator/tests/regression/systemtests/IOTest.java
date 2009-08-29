@@ -40,7 +40,7 @@ import de.hd.pvs.piosim.simulator.SimulationResults;
 abstract public class IOTest extends ClusterTest {
 	int serverNum = 10;
 	int clientNum = 10;
-	int fileNum = 1;
+	int fileNum = 10;
 	int iterNum = 250;
 	long elementSize = 0;
 	// PVFS default

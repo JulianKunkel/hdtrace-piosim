@@ -121,7 +121,7 @@ public class RandomIOTest extends IOTest {
 		sizes.add((long)50 * KBYTE);
 		sizes.add((long)512 * KBYTE);
 
-		for (long i = 0; i < 100; i++) {
+		for (long i = 0; i < 10; i++) {
 			seeds.add(i);
 		}
 
