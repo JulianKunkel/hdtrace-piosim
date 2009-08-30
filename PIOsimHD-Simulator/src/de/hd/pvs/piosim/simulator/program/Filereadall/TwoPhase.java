@@ -45,7 +45,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class TwoPhase extends CommandImplementation<Filereadall> {
-	final long twoPhaseBufferSize = 1 * 1024 * 1024;
+	final long twoPhaseBufferSize = 5 * 1024 * 1024;
 
 	final class FilereadallWrapper {
 		private Filereadall command;

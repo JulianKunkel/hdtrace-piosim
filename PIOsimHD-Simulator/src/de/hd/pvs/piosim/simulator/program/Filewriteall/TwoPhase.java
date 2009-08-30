@@ -47,7 +47,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class TwoPhase extends CommandImplementation<Filewriteall> {
-	final long twoPhaseBufferSize = 1 * 1024 * 1024;
+	final long twoPhaseBufferSize = 5 * 1024 * 1024;
 
 	final class FilewriteallWrapper {
 		private Filewriteall command;
