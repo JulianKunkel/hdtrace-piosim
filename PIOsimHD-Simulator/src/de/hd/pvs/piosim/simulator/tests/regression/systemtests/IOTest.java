@@ -137,8 +137,13 @@ abstract public class IOTest extends ClusterTest {
 			System.out.println(res.cacheLayer.getClass().getSimpleName());
 
 			for (int i = 0; i < sizes.size(); i++) {
-				System.out.println("  " + sizes.get(i) + " READ  " + res.readResults.get(i).getVirtualTime().getDouble() + "s");
-				System.out.println("  " + sizes.get(i) + " WRITE " + res.writeResults.get(i).getVirtualTime().getDouble() + "s");
+				if (res.readResults.size() > i) {
+					System.out.println("  " + sizes.get(i) + " READ  " + res.readResults.get(i).getVirtualTime().getDouble() + "s");
+				}
+
+				if (res.writeResults.size() > i) {
+					System.out.println("  " + sizes.get(i) + " WRITE " + res.writeResults.get(i).getVirtualTime().getDouble() + "s");
+				}
 			}
 		}
 	}

@@ -134,6 +134,10 @@ public class ListIO{
 	public ListIO getPartition (long offset, long size) {
 		ListIO list = new ListIO();
 
+		if (size == 0) {
+			return list;
+		}
+
 		for (SingleIOOperation op : ioOperations) {
 			if (op.getOffset() >= offset) {
 				if (op.getOffset() + op.getAccessSize() <= offset + size) {
