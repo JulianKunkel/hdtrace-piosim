@@ -242,7 +242,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 
 			// FIXME Alltoall
 
-			myOffset = ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + myIndex) * twoPhaseBufferSize;
+			myOffset = minOffset + ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + myIndex) * twoPhaseBufferSize;
 			mySize = Math.min(twoPhaseBufferSize, maxOffset - myOffset);
 			mySize = Math.max(mySize, 0);
 
@@ -260,7 +260,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 					continue;
 				}
 
-				theirOffset = ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + meta_info.get(cmd).indexOf(c)) * twoPhaseBufferSize;
+				theirOffset = minOffset + ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + meta_info.get(cmd).indexOf(c)) * twoPhaseBufferSize;
 				theirSize = Math.min(twoPhaseBufferSize, maxOffset - theirOffset);
 				theirSize = Math.max(theirSize, 0);
 
@@ -302,7 +302,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 				long theirOffset;
 				long theirSize;
 
-				theirOffset = ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + meta_info.get(cmd).indexOf(c)) * twoPhaseBufferSize;
+				theirOffset = minOffset + ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + meta_info.get(cmd).indexOf(c)) * twoPhaseBufferSize;
 				theirSize = Math.min(twoPhaseBufferSize, maxOffset - theirOffset);
 				theirSize = Math.max(theirSize, 0);
 
@@ -344,7 +344,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 			assert(myIndex >= 0);
 			assert(myContainer != null);
 
-			myOffset = ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + myIndex) * twoPhaseBufferSize;
+			myOffset = minOffset + ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + myIndex) * twoPhaseBufferSize;
 			mySize = Math.min(twoPhaseBufferSize, maxOffset - myOffset);
 			mySize = Math.max(mySize, 0);
 
@@ -358,7 +358,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 					continue;
 				}
 
-				theirOffset = ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + meta_info.get(cmd).indexOf(c)) * twoPhaseBufferSize;
+				theirOffset = minOffset + ((myContainer.getTwoPhaseIteration() * meta_info.get(cmd).size()) + meta_info.get(cmd).indexOf(c)) * twoPhaseBufferSize;
 				theirSize = Math.min(twoPhaseBufferSize, maxOffset - theirOffset);
 				theirSize = Math.max(theirSize, 0);
 
