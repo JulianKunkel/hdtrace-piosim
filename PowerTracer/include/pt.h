@@ -171,12 +171,12 @@ char * pt_getHostname(PowerTrace *trace);
 /**
  * Start the power tracing
  */
-void pt_startTracing(PowerTrace *trace);
+int pt_startTracing(PowerTrace *trace);
 
 /**
  * Stop the power tracing
  */
-void pt_stopTracing(PowerTrace *trace);
+int pt_stopTracing(PowerTrace *trace);
 
 /**
  * Finalize and free a power trace
