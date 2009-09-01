@@ -17,18 +17,18 @@
  *
  * @details
  * In HDTrace Format statistics are a special kind of trace for periodically
- * occurring data. One canonical usage for that is to trace performance data
+ * occurring data. One canonical usage for that is to trace utilization data
  * like CPU load, Memory usage, used amounts of Network or I/O bandwidth.
  *
  * The statistics are categorized in so called groups. Each group is associated
- * with the tracing topology at any level (not only the highest as the normal
- * traces) and each group's data is written binary to its own data file.
+ * with the tracing topology at any level and each group's data is written
+ * binary to its own data file.
  *
  * A statistics group consists of entries, each marked with a timestamp. One
- * entry consists of a row of values, each with one of several well defined
+ * entry consists of a tuple of values, each with one of several well defined
  * types. In one group, all entries have exactly the same number of values
  * with exactly the same types and so exactly the same length, except when
- * using values of string type.
+ * using values of string type (not yet implemented).
  *
  * The HDTrace statistics group data file is self-descriptive. At the very
  * beginning there is a header in pseudo-XML describing the values and types
@@ -172,24 +172,27 @@ int hdS_isEnabled(hdStatsGroup *group);
  *
  * @subsection ssecfc File Content
  * The file written for each statistics group is constructed in three parts.
- * -# The first part is only 5 bytes an contains the length of the header, the
- *  second part, as string in decimal notation with leading zeros.
+ * -# The first part is only 6 bytes an contains the length of the header, the
+ *  second part, as string in decimal notation with 5 numbers and leading zeros
+ *  followed by a newline character '\\n'.
  * -# The second part is the header. It describes the binary data, the third
- *  part, and is written in incomplete XML notation.
+ *  part, and is written in correct XML notation.
  * -# The third part is where the actual trace data are written to in entries
  *  like described in "Writing Values".
  *
  * Example:
  * @code
- * 00152
- * <Energy timestampDatatype="EPOCH">
- *   <Voltage type="float" unit="mV"/>
- *   <Current type="float" unit="mA"/>
- *   <Power type="float" unit="mW"/>
- * </Energy>
+ * 00362
+ * <Group name="Utilization" timestampDatatype="EPOCH"
+ *     timeAdjustment="-0000000000.000000000">
+ *   <Value name="CPU_TOTAL" type="FLOAT" unit="%" grouping="CPU" />
+ *   <Value name="MEM_USED" type="INT64" unit="B" grouping="MEM" />
+ *   <Value name="NET_IN" type="INT64" unit="B" grouping="NET" />
+ *   <Value name="NET_OUT" type="INT64" unit="B" grouping="NET" />
+ * </Group>
  * BINARYBINARYBINARYBINARYBINAY.......
  * @endcode
- * 152 since '\\n' and spaces also count of cause.
+ * 362 since '\\n' and spaces also count of cause.
  */
 
 /**

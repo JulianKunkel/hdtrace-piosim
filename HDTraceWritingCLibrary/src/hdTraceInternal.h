@@ -10,6 +10,7 @@
 #define HDTRACE_INTERNAL_H_
 
 /**
+ * @internal
  * Structure representing one trace
  */
 struct _hdTrace {

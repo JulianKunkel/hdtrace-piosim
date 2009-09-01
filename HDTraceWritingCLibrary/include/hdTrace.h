@@ -1,16 +1,18 @@
 /**
  * @file hdTrace.h
- * @ingroup hdTrace
  *
  * Declarations of all functions and types for writing statistics
+ *
+ * @ifnot api_only
+ *  @ingroup hdTrace
+ * @endif
  *
  * @date 25.03.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
  * @version \$Id$
  */
 
-
-/**
+/* *   Do not pollute the API documentation ;)
  * @addtogroup hdTrace HDTrace Writing Library
  *
  * @details
@@ -172,5 +174,4 @@ int hdT_logEventEnd(
 int hdT_finalize(
 		hdTrace *trace
 		);
-
 #endif /* HDTRACE_H_ */

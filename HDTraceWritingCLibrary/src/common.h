@@ -144,4 +144,5 @@ ssize_t writeToFile(
  */
 int snprintIndent(char* string, size_t size, int num);
 
+
 #endif /* COMMON_H_ */

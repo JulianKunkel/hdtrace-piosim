@@ -317,3 +317,53 @@ int snprintIndent(char* string, size_t size, int num)
 	return off;
 }
 
+/**
+ * Return a string describing the error represented by errno.
+ *
+ * @if api_only
+ *  @ingroup hdError
+ * @endif
+ *
+ * @param errno errno value to get the string for
+ *
+ * @return Error describing string or null for unknown errno value
+ */
+char* hdT_strerror(int errno) {
+	switch(errno) {
+	/* common errors */
+	case HD_ERR_INVALID_ARGUMENT:
+		return "Invalid argument";
+	case HD_ERR_MALLOC:
+	    return "Error while memory allocation";
+	case HD_ERR_BUFFER_OVERFLOW:
+	    return "Error due to buffer overflow";
+	case HD_ERR_GET_TIME:
+	    return "Error while getting system time";
+	case HD_ERR_CREATE_FILE:
+	    return "Error while creating a file";
+	case HD_ERR_WRITE_FILE:
+	    return "Error while writing a file";
+	case HD_ERR_CLOSE_FILE:
+	    return "Error while closing a file";
+	case HD_ERR_TIMEOUT:
+		return "Timeout occurred";
+	case HD_ERR_TRACE_DISABLED:
+		return "Trace is disabled";
+	case HD_ERR_INVALID_CONTEXT:
+		return "function may not be called in this context";
+	case HD_ERR_UNKNOWN:
+		return "Error with unknown cause";
+	/* hdTrace errors */
+	case HDT_EXAMPLE:
+		return "Example error";
+	/* hdStats error */
+	case HDS_ERR_GROUP_COMMIT_STATE:
+		return "Statistics group's commit state is not the needed";
+	case HDS_ERR_UNEXPECTED_ARGVALUE:
+		return "One of the arguments has an unexpected value";
+	case HDS_ERR_ENTRY_STATE:
+		return "State of the current entry is wrong for requested action";
+	default:
+		return NULL;
+	}
+}

@@ -56,8 +56,8 @@
  *
  * Example usage:
  * @code
- * hdTopology *myTopology =
- *         hdT_createTopology("ProjectX", {"Host", "Process", "Thread"}, 3);
+ * const char *levels[] = {"Host", "Process", "Thread"};
+ * hdTopology *myTopology = hdT_createTopology("myProject", levels, 3);
  * @endcode
  *
  * @if api_only
@@ -200,11 +200,8 @@ int hdT_destroyTopology(
  * node. The root node is always the starting point, so it can be omitted.
  *
  * This function takes such a path and gives you a hdTopoNode object
- * representing the node you reach walking the given path. In most cases, this
- * will be a leaf node of the topology tree.
- *
- * In HDTrace, normal traces are created only for leaf nodes of the topology
- * tree. For statistics traces this restriction does not hold.
+ * representing the node you reach walking the given path. This could be an
+ * inner as well as a leaf node of the topology tree.
  *
  * With the path for creating nodes, you implicitly label the nodes passed in
  * each level of the topology tree. And so the tree is automatically extended
@@ -225,11 +222,12 @@ int hdT_destroyTopology(
  *
  * Example usages:
  * @code
- * hdTopoNode *myTopoNode =
- *         hdT_createTopoNode(myTopology, {hostname, pid, thread_id}, 3);
+ * const char *path[] = {hostname, pid, thread_id};
+ * hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 3);
  * @endcode
  * @code
- * hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, {hostname, pid}, 2);
+ * const char *path[] = {hostname, pid};
+ * hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 2);
  * @endcode
  *
  * @if api_only
@@ -348,8 +346,7 @@ int hdT_getTopoNodeLevel(const hdTopoNode *node)
  *
  * Returns a string representation of the node's path.
  *
- * For example: \c host1.process1.thread1
- * The \a level of \a topology is returned if it exist, else NULL is returned.
+ * For example: \c host1_process1_thread1
  *
  * @if api_only
  *  @ingroup hdTopo
@@ -386,8 +383,8 @@ const char * hdT_getTopoPathString(const hdTopoNode *node)
  *
  * For example, create a node like this:
  * @code
- * hdTopoNode *myTopoNode =
- *         hdT_createTopoNode(myTopology, {host0, process0, thread0}, 3);
+ * const char *path[] = {host0, process0, thread0};
+ * hdTopoNode *myTopoNode = hdT_createTopoNode(myTopology, path, 3);
  * @endcode
  * then the following call will return \c "process0":
  * @code

@@ -136,4 +136,7 @@ enum hdStatsError {
 /** @endcond **/
 
 
+char* hdT_strerror(int errno);
+
+
 #endif /* HDERROR_H_ */

@@ -1,8 +1,11 @@
 /**
  * @file hdTrace.c
- * @ingroup hdTrace
  *
  * Implementations of all functions for writing statistics
+ *
+ * @ifnot api_only
+ *  @ingroup hdTrace
+ * @endif
  *
  * @date 25.03.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>

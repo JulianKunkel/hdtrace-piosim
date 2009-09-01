@@ -18,7 +18,30 @@
 /**
  * @addtogroup hdTopo HDTrace Topology
  *
- * TODO: Explanation
+ * The topology of a complete trace project describes a tree structure where
+ * each single trace can be assigned to a tree node. As we have several singly
+ * assigned trace files that build one whole trace project, this structuring
+ * method allows us to describe the associations between the single traces.
+ *
+ * The root of the topology is defined to be the project name. The types of the
+ * deeper levels can be freely specified. A topology’s structure is fully
+ * specified by the topology level types. The level type should describe the
+ * semantics of the nodes on the level.
+ *
+ * An example of a topology structure take (Project, Host, Process, Thread).
+ *
+ * Each trace is assigned to exactly one node of the topology called the trace’s
+ * topology node. Each such topology node has a label that must be unique at the
+ * node’s topology level. A node is well-defined by the unique path that leads
+ * from the root of the topology to this node. The path is the list of labels of
+ * each node in the order they are passed when walking on the edges of the tree
+ * to the target node starting from the root node.
+ *
+ * An example for a leaf node in a topology with example structure as defined
+ * above could be (myProject, node01, rank3, thread0).
+ *
+ * The topology structure represented by the topology level types is written
+ * into the project file in order to be used as labels in trace visualization.
  */
 
 /**

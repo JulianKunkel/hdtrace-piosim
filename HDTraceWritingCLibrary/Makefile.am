@@ -9,7 +9,7 @@ include_HEADERS = $(INC_DIR)/*.h
 
 doc: devdoc apidoc
 
-doxyINPUT = $(SRC_DIR) $(INC_DIR) include
+doxyINPUT = $(SRC_DIR) $(INC_DIR) $(top_srcdir)/include
 
 devdoc: force
 	OUTDIR=$(DOC_DIR) INPUT="$(doxyINPUT)" doxygen $(top_srcdir)/Doxyfile
