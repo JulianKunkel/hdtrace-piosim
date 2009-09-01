@@ -78,6 +78,22 @@ __errordecl(ptl_cte_no_glib_thread_implementation,
  * @def RUTSRC_SET_HDD
  * @ingroup RUT
  */
+/**
+ * @def RUT_SUCCESS
+ * @ingroup RUT
+ */
+/**
+ * @def RUT_EMEMORY
+ * @ingroup RUT
+ */
+/**
+ * @def RUT_EHDLIB
+ * @ingroup RUT
+ */
+/**
+ * @def RUT_ETHREAD
+ * @ingroup RUT
+ */
 /** @endcond */
 
 
@@ -112,20 +128,38 @@ int ptl_verbosity;
  *  @ingroup RUT
  * @endif
  *
- * @param topoNode
- * @param topoLevel
- * @param sources
- * @param interval
+ * Use this function to create a new utilization trace. It will setup a
+ * new statistics trace with the values specified in \a sources to trace.
  *
- * @return
+ * The tracing will not start until \ref rut_startTrace is called for the
+ * UtilTrace object returned by this function.
+ *
+ * @param topoNode  The new trace will we associated to this node or one of
+ *                  its ancestor nodes (those on the nodes path)
+ * @param topoLevel level of the node to associate the new trace to
+ * @param sources   Sources to trace
+ * @param interval  Interval to trace in milliseconds. Should be at least
+ *                  100ms for acceptable performance impact.
+ * @param trace      Location to store the UtilTrace pointer (OUTPUT)
+ *
+ * @return  Error state
+ *
+ * @retval RUT_SUCCESS        Success
+ * @retval RUT_EMEMORY        Out of memory
+ * @retval RUT_EHDLIB         Error in HDTrace library
+ * @retval RUT_ETHREAD        Cannot create tracing thread
  */
-UtilTrace * rut_createTrace(
+int rut_createTrace(
 		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
 		rutSources sources,  /* bit field of the sources to trace */
-		int interval         /* interval of one tracing step in ms */
+		int interval,         /* interval of one tracing step in ms */
+		UtilTrace **trace     /* OUTPUT: the trace created */
 		)
 {
+
+	/* TODO: Implement error report as in PT */
+
 	/*
 	 * Set verbosity as requested by environment
 	 */
@@ -207,7 +241,7 @@ UtilTrace * rut_createTrace(
 	myTrace->tracingThread = tracingThread;
 	myTrace->tracingControl = tracingControl;
 
-	return myTrace;
+	trace = &myTrace;
 }
 
 /**
@@ -223,6 +257,7 @@ UtilTrace * rut_createTrace(
  *
  * @retval  0  Tracing is now started (was stopped before)
  * @retval  1  Tracing is started (as it was already before)
+ * @retval  2  \a trace is NULL
  */
 int rut_startTrace(UtilTrace *trace)
 {
@@ -243,6 +278,7 @@ int rut_startTrace(UtilTrace *trace)
  *
  * @retval  0  Tracing is now stopped (was started before)
  * @retval  1  Tracing is stopped (as it was already before)
+ * @retval  2  \a trace is NULL
  */
 int rut_stopTrace(UtilTrace *trace)
 {
@@ -257,10 +293,18 @@ int rut_stopTrace(UtilTrace *trace)
  *  @ingroup RUT
  * @endif
  *
- * @param trace
+ * Finalizes the trace. This destroys the UtilTrace object an frees all memory.
+ *
+ * @param trace  Utilization trace to finalize
+ *
+ * @return  Error state
+ *
+ * @retval RUT_SUCCESS  Success
+ * @retval RUT_EMEMORY  Out of memory
  */
-void rut_finalizeTrace(UtilTrace *trace)
+int rut_finalizeTrace(UtilTrace *trace)
 {
+	/* TODO: Implement Error report as in PT */
 	UtilTraceStruct *myTrace = trace;
 
 	/* request quitting of the tracing thread */
@@ -291,6 +335,7 @@ void rut_finalizeTrace(UtilTrace *trace)
 
 #endif
 
+	return RUT_SUCCESS;
 }
 
 
@@ -304,9 +349,13 @@ void rut_finalizeTrace(UtilTrace *trace)
  *
  * @retval  0  Tracing state changed
  * @retval  1  Tracing state was already the requested one
+ * @retval  2  \a trace is NULL
  */
 static int changeTracingState(UtilTraceStruct *trace, gboolean newstate)
 {
+	if (trace == NULL)
+		return 2;
+
 	int retval = 0;
 	g_mutex_lock(trace->tracingControl->mutex);
 	if (trace->tracingControl->started == newstate)

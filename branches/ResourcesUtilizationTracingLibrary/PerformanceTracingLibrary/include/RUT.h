@@ -52,7 +52,7 @@
  *                            TYPE DEFINITIONS                               *
  * ************************************************************************* */
 
-/** Type definition of performance trace object */
+/** Type definition of utilization trace object */
 typedef struct UtilTrace_s UtilTrace;
 
 /** Bit field for sources to trace */
@@ -161,6 +161,20 @@ typedef struct rutSources_s rutSources;
 
 
 /* ************************************************************************* *
+ *                       PUBLIC ERROR VALUE DEFINITIONS                      *
+ * ************************************************************************* */
+
+/** Success */
+#define RUT_SUCCESS        0
+/** Out of memory */
+#define RUT_EMEMORY       -6
+/** Error in HDTrace library */
+#define RUT_EHDLIB        -7
+/** Cannot create tracing thread */
+#define RUT_ETHREAD       -9
+
+
+/* ************************************************************************* *
  *                      PUBLIC FUNCTION DECLARATIONS                         *
  * ************************************************************************* */
 
@@ -173,7 +187,6 @@ typedef struct rutSources_s rutSources;
  *  -# Create a \ref UtilTrace object (\ref rut_createTrace)
  *  -# Start tracing (\ref rut_startTrace)
  *  -# Stop tracing (\ref rut_stopTrace)
- *  -# Use the group to trace data (\b hdS_write..., called many times)
  *  -# Finalize the trace and destroy the \ref UtilTrace object (\ref rut_finalizeTrace)
  *
  * @subsection ssecds Defining sources
@@ -195,7 +208,7 @@ typedef struct rutSources_s rutSources;
  * @endcode
  *
  * @subsection sseccpto Creating a UtilTrace object
- * To create a \ref UtilTrace object, you first need to create a \a hdTopology and a
+ * To create a \ref UtilTrace object, you first need to create an \a hdTopology and an
  * \a hdTopoNode object to define the place of your trace in a larger project.
  * Refer to \a hdTopology section in <i>HDTraceWritingCLibrary</i> documentation for
  * further information about this topic.
@@ -211,12 +224,12 @@ typedef struct rutSources_s rutSources;
  *  for you, so if you don't need it for other purposes, you have to do this by
  *  calling \a hdT_destroyTopoNode and \a hdT_destroyTopology.
  *
- * Now that you have a \a hdTopology object, a \a hdTopoNode object and a \ref rutSources
+ * Now that you have an \a hdTopology object, an \a hdTopoNode object and a \ref rutSources
  *  object with all sources set that you want to be included in the trace, you
  *  can create the \ref UtilTrace object:
  * @code
- * UtilTrace *myUtilTrace rut_createTrace(myTopology, myTopoNode, 1,
- * 		mySources, 500);
+ * UtilTrace *myUtilTrace;
+ * rut_createTrace(myTopology, myTopoNode, 1, mySources, 500, &myUtilTrace);
  * @endcode
  *
  * @note You cannot change the sources of an already created \ref UtilTrace object
@@ -230,16 +243,34 @@ typedef struct rutSources_s rutSources;
  * So after a subsequent rut_startTrace, the tracing will first wait until the
  * current (virtual) period would end and take the next values at the beginning
  * of the next period.
+ *
+ * @section secenv Environment Variables
+ *
+ * There are two environment variables used by libRUT:<br>
+ *  <center><tt>RUT_VERBOSITY</tt> and <tt>RUT_HDD_MOUNTPOINT</tt></center>
+ *
+ * <tt>RUT_VERBOSITY</tt> can be set to a number in the range -1 to 3.
+ *  The default is 0 only showing error messaged. 1 enables warnings,
+ *  2 enables info messages and 3 enable all debugging output.
+ *  -1 makes the library absolutely silence, even in case of a fatal error.
+ *  This value affects only the messages printed to stderr not the behavior
+ *   of the functions.
+ *
+ * <tt>RUT_HDD_MOUNTPOINT</tt> specifies the mountpoint of the partition to be traces
+ *  when \ref rutSources.HDD_READ or \ref rutSources.HDD_WRITE is enabled.
+ *  Currently you can trace only one partition at the same time.<br>
+ *   <b>Note:</b> The mount mountpoint must be specified without a trailing '/'
  */
 
 /**
  * Create performance trace
  */
-UtilTrace * rut_createTrace(
+int rut_createTrace(
 		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
 		rutSources sources,  /* bit field of the sources to trace */
-		int interval         /* interval of one tracing step in ms */
+		int interval,         /* interval of one tracing step in ms */
+		UtilTrace **trace     /* OUTPUT: the trace created */
 		);
 
 /**
@@ -253,8 +284,8 @@ int rut_startTrace(UtilTrace *trace);
 int rut_stopTrace(UtilTrace *trace);
 
 /**
- * Destroy performance trace object
+ * Finalize utilization trace object
  */
-void rut_finalizeTrace(UtilTrace *trace);
+int rut_finalizeTrace(UtilTrace *trace);
 
 #endif /* HDRUT_H_ */

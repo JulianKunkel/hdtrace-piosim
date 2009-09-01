@@ -24,6 +24,7 @@
 /* ************************************************************************* */
 
 /**
+ * @internal
  * Structure for the control of the tracing thread
  */
 typedef struct {
@@ -34,6 +35,7 @@ typedef struct {
 } tracingControlStruct;
 
 /**
+ * @internal
  * Structure for storing old values e.g. to build differences
  */
 typedef struct {
@@ -45,6 +47,7 @@ typedef struct {
 } tracingValuesStruct;
 
 /**
+ * @internal
  * Strcuture for static data sourced out from \ref tracingDataStruct
  */
 typedef struct {
@@ -55,6 +58,7 @@ typedef struct {
 } tracingStaticDataStruct;
 
 /**
+ * @internal
  * Structure for the tracing data for managing the tracing iterations
  */
 typedef struct {
