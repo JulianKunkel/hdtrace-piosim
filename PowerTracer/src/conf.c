@@ -389,6 +389,7 @@ int createTraces(ConfigStruct *config) {
 		// free memory allocated by parsePath()
 		FREE_PATH;
 
+#undef ADD_VALUE_ERROR_HANDLING
 #undef FREE_PATH
 
 		char buffer[10];

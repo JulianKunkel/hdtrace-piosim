@@ -91,7 +91,11 @@ int traceIteration(int serial_fd, ConfigStruct *config)
 }
 
 /**
- * Trace all the data configured
+ * Trace all the data configured in a loop
+ *
+ * This function and so the thread is running the tracing loop all
+ * the time when \a trace->control.started is set. For terminating
+ * the loop, \a trace->control.terminate must become set.
  *
  * @param serial_fd  File descriptor of the serial port connected to the device
  * @param trace      Trace object

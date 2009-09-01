@@ -89,11 +89,12 @@ static void printUsage() {
  * @retval  -1   Syntax error
  * @retval  -2   Configuration file not found
  * @retval  -3   Configuration file invalid
- * @retval  -4   No traces configured
- * @retval  -5   Out of Memory
- * @retval  -6   External error in hdTraceWritingLibrary
- * @retval  -7   Something went wrong with the measuring device
- * @retval -100  Another error occurred
+ * @retval  -4   Hostname error (never reported)
+ * @retval  -5   No traces configured
+ * @retval  -6   Out of Memory
+ * @retval  -7   External error in hdTraceWritingLibrary
+ * @retval  -8   Something went wrong with the measuring device
+ * @retval  -9   Thread error (never reported)
  */
 int main(int argc, char **argv)
 {
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
 	config->allocated.port = 0;
 	config->allocated.project = 0;
 	config->allocated.topo = 0;
-        config->allocated.topology = 0;
+	config->allocated.topology = 0;
 
 	/*
 	 * Set defaults

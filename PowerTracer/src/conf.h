@@ -22,6 +22,7 @@ enum opMode {
 
 
 /**
+ * @internal
  * Structure for configuration
  */
 typedef struct config_s {

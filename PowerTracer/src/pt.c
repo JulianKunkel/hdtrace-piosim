@@ -27,6 +27,44 @@
 #include "hdStats.h"
 #include "hdError.h"
 
+/** @cond api_only */
+/**
+ * @typedef PowerTrace
+ * @ingroup PT
+ */
+/**
+ * @def PT_SUCCESS
+ * @ingroup PT
+ */
+/**
+ * @def PT_ECONFNOTFOUND
+ * @ingroup PT
+ */
+/**
+ * @def PT_ECONFINVALID
+ * @ingroup PT
+ */
+/**
+ * @def PT_ENOTRACES
+ * @ingroup PT
+ */
+/**
+ * @def PT_EMEMORY
+ * @ingroup PT
+ */
+/**
+ * @def PT_EHDLIB
+ * @ingroup PT
+ */
+/**
+ * @def PT_EDEVICE
+ * @ingroup PT
+ */
+/**
+ * @def PT_ETHREAD
+ * @ingroup PT
+ */
+/** @endcond */
 
 /** Verbosity */
 int pt_verbosity = 0;
@@ -367,13 +405,26 @@ static void * doTracingThread(void *param);
 /**
  * Create a power trace using the passed configuration file
  *
+ * @if api_only
+ *  @ingroup PT
+ * @endif
+ *
+ * Use this function to create a new power trace. It will setup a
+ * new statistics trace with the configuration read from the file.
+ *
+ * For the format of the configuration file, please take a look at the
+ *  example in \ref seclu
+ *
+ * The tracing will not start until \ref pt_startTracing is called for the
+ * UtilTrace object returned by this function.
+ *
  * @param configfile Name of the configuration file
  * @param topology   Topology to override default or config file choice (NULL not to override)
  * @param trace      Location to store the PowerTrace pointer (OUTPUT)
  *
  * @return  Error state
  *
- * @retval PT_SUCCESS            Success
+ * @retval PT_SUCCESS        Success
  * @retval PT_ECONFNOTFOUND  Could not find configuration file
  * @retval PT_EMEMORY        Out of memory
  * @retval PT_ECONFINVALID   Configuration read from file is invalid
@@ -555,16 +606,16 @@ static void * doTracingThread(void *param) {
 
 	PowerTrace *trace = (PowerTrace *) param;
 
-        /* block all signals, this thread should never handle them */
+	/* block all signals, this thread should never handle them */
 	sigset_t mask;
 	sigfillset(&mask);
-        pthread_sigmask(SIG_BLOCK, &mask, NULL);
+	pthread_sigmask(SIG_BLOCK, &mask, NULL);
 
-        /* get memory for returning thread status */
+	/* get memory for returning thread status */
 	struct tracingThreadReturn_s *ret;
 	pt_malloc(ret, 1, NULL);
 
-        /* do actual tracing */
+	/* do actual tracing */
 	ret->ret = doTracing(trace);
 
 	/* if running stand alone, send a signal to ourself to terminate waiting
@@ -580,6 +631,10 @@ static void * doTracingThread(void *param) {
  * Return the hostname with the measuring device connected
  *  if specified in config file.
  *
+ * @if api_only
+ *  @ingroup PT
+ * @endif
+ *
  * @param trace  Power trace object
  *
  * @return Hostname of NULL if none specified in config file
@@ -592,38 +647,72 @@ char *pt_getHostname(PowerTrace *trace) {
 /**
  * Start the power tracing
  *
+ * @if api_only
+ *  @ingroup PT
+ * @endif
+ *
  * @param trace  Power trace object
+ *
+ * @return Indicate if tracing state changed
+ *
+ * @retval  0  Tracing is now started (was stopped before)
+ * @retval  1  Tracing is started (as it was already before)
+ * @retval  2  Parameter is NULL
  */
-void pt_startTracing(PowerTrace *trace) {
+int pt_startTracing(PowerTrace *trace) {
 	if (trace == NULL)
-		return;
+		return 2;
+
+	/* TODO: Implement return value as in RUT */
 
 	pthread_mutex_lock(&(trace->control.mutex));
 	trace->control.started = 1;
 	pthread_cond_signal(&(trace->control.cond));
 	pthread_mutex_unlock(&(trace->control.mutex));
+
+	return 0;
 }
 
 /**
  * Stop the power tracing
  *
+ * @if api_only
+ *  @ingroup PT
+ * @endif
+ *
  * @param trace  Power trace object
+ *
+ * @return Indicate if tracing state changed
+ *
+ * @retval  0  Tracing is now stopped (was started before)
+ * @retval  1  Tracing is stopped (as it was already before)
+ * @retval  2  Parameter is NULL
  */
-void pt_stopTracing(PowerTrace *trace) {
+int pt_stopTracing(PowerTrace *trace) {
 	if (trace == NULL)
-		return;
+		return 2;
+
+	/* TODO: Implement return value as in RUT */
 
 	pthread_mutex_lock(&(trace->control.mutex));
 	trace->control.started = 0;
 	pthread_mutex_unlock(&(trace->control.mutex));
+
+	return 0;
 }
 
 /**
  * Finalize and free a power trace
  *
+ * @if api_only
+ *  @ingroup PT
+ * @endif
+ *
+ * @param trace  Power trace object
+ *
  * @return  Error state
  *
- * @retval PT_SUCCESS      Success
+ * @retval PT_SUCCESS  Success
  * @retval PT_EDEVICE  Problem during communication with measurement device
  * @retval PT_EMEMORY  Out of memory
  */

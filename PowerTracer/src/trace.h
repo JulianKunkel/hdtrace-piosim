@@ -12,6 +12,7 @@
 #include "hdStats.h"
 
 /**
+ * @internal
  * Bitfield of supported values to measure
  */
 typedef struct {
@@ -21,6 +22,7 @@ typedef struct {
 } ValueField;
 
 /**
+ * @internal
  * Structure for trace file description
  */
 typedef struct trace_s {
@@ -44,6 +46,7 @@ typedef struct trace_s {
 } TraceStruct;
 
 /**
+ * @internal
  * List head (or actual foot) for list of traces
  */
 typedef struct traceList_s {
