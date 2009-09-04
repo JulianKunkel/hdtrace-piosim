@@ -23,7 +23,6 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -37,59 +36,92 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
-public class RandomIOTest extends IOTest {
-	final class TestTuple {
-		int rank;
-		MPIFile file;
-		long offset;
-		long size;
-
-		public TestTuple(int rank, MPIFile file, long offset, long size) {
-			this.rank = rank;
-			this.file = file;
-			this.offset = offset;
-			this.size = size;
-		}
-	}
-
+public class DatabaseIOTest extends IOTest {
 	private Random random = null;
 
-	public void doWrite(List<MPIFile> files) throws Exception {
-		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
+	public DatabaseIOTest() {
+		super();
+		iterNum /= 25;
+	}
 
+	protected long getFileSize (long elementSize) {
+		return getDataTotal(elementSize) * 20;
+	}
+
+	private long getDataPerIteration (long elementSize) {
+		return elementSize * 50 * 50;
+	}
+
+	private long getDataTotal (long elementSize) {
+		return getDataPerIteration(elementSize) * iterNum * clientNum;
+	}
+
+	private MPIFile getFile (List<MPIFile> files) {
+		int i = random.nextInt(files.size());
+		return files.get(i);
+	}
+
+	private long getBlockOffset () {
+		long offset = Math.abs(random.nextLong()) % getFileSize(elementSize);
+		long remainder = offset % elementSize;
+		return offset - remainder;
+	}
+
+	private long getBlockSize (long offset) {
+		int i = random.nextInt(100);
+		return Math.min((i + 1) * elementSize, getFileSize(elementSize) - offset);
+	}
+
+	public void doWrite(List<MPIFile> files) throws Exception {
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
-					tuples.add(tuple);
+				MPIFile f = getFile(files);
+				long dataToAccess = getDataPerIteration(elementSize);
+
+				while (dataToAccess > 0) {
+					long offset = getBlockOffset();
+					long size = getBlockSize(offset);
+
+					size = Math.min(size, dataToAccess);
+					dataToAccess -= size;
+
+					pb.addWriteSequential(rank, f, offset, size);
 				}
 			}
-		}
-
-		Collections.shuffle(tuples, random);
-
-		for (TestTuple t : tuples) {
-			pb.addWriteSequential(t.rank, t.file, t.offset, t.size);
 		}
 	}
 
 	public void doRead(List<MPIFile> files) throws Exception {
-		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
-
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
-					tuples.add(tuple);
+				MPIFile f = getFile(files);
+				long dataToAccess = getDataPerIteration(elementSize);
+
+				while (dataToAccess > 0) {
+					long offset = getBlockOffset();
+					long size = getBlockSize(offset);
+
+					size = Math.min(size, dataToAccess);
+					dataToAccess -= size;
+
+					pb.addReadSequential(rank, f, offset, size);
 				}
 			}
 		}
+	}
 
-		Collections.shuffle(tuples, random);
+	public SimulationResults writeTest() throws Exception {
+		List<MPIFile> files = prepare(false);
+		doWrite(files);
+		unprepare(files);
+		return runSimulationAllExpectedToFinish();
+	}
 
-		for (TestTuple t : tuples) {
-			pb.addReadSequential(t.rank, t.file, t.offset, t.size);
-		}
+	public SimulationResults readTest() throws Exception {
+		List<MPIFile> files = prepare(false);
+		doRead(files);
+		unprepare(files);
+		return runSimulationAllExpectedToFinish();
 	}
 
 	@Test
@@ -117,9 +149,9 @@ public class RandomIOTest extends IOTest {
 		cacheLayers.add(new ServerDirectedIO());
 
 		sizes.add((long)512);
-		sizes.add((long)5 * KBYTE);
-		sizes.add((long)50 * KBYTE);
-		sizes.add((long)512 * KBYTE);
+//		sizes.add((long)5 * KBYTE);
+//		sizes.add((long)50 * KBYTE);
+//		sizes.add((long)512 * KBYTE);
 
 		for (long i = 0; i < 10; i++) {
 			seeds.add(i);
@@ -176,19 +208,19 @@ public class RandomIOTest extends IOTest {
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readAvgs.size() > i) {
-					System.out.println("  " + sizes.get(i) + " READ  " + getFileSize(sizes.get(i)) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)");
-					System.out.println("  " + sizes.get(i) + " READ  " + (getFileSize(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s");
+					System.out.println("  " + sizes.get(i) + " READ  " + getDataTotal(sizes.get(i)) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)");
+					System.out.println("  " + sizes.get(i) + " READ  " + (getDataTotal(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s");
 				}
 
 				if (res.readAvgs.size() > i) {
-					System.out.println("  " + sizes.get(i) + " WRITE " + getFileSize(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)");
-					System.out.println("  " + sizes.get(i) + " WRITE " + (getFileSize(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s");
+					System.out.println("  " + sizes.get(i) + " WRITE " + getDataTotal(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)");
+					System.out.println("  " + sizes.get(i) + " WRITE " + (getDataTotal(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s");
 				}
 			}
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
-		new RandomIOTest().run();
+		new DatabaseIOTest().run();
 	}
 }

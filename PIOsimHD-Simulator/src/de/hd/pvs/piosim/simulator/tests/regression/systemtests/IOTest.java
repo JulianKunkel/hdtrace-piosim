@@ -52,7 +52,7 @@ abstract public class IOTest extends ClusterTest {
 		return (clientNum * iterNum) * elementSize;
 	}
 
-	protected List<MPIFile> prepare(boolean isWrite) throws Exception {
+	protected List<MPIFile> prepare(boolean isEmpty) throws Exception {
 		List<MPIFile> files = new ArrayList<MPIFile>();
 
 		assert(elementSize > 0);
@@ -64,11 +64,11 @@ abstract public class IOTest extends ClusterTest {
 		dist.setChunkSize(stripeSize);
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, (isWrite) ? 0 : getFileSize(elementSize), dist));
+			files.add(aB.createFile("testfile" + i, (isEmpty) ? 0 : getFileSize(elementSize), dist));
 		}
 
 		for (int i = 0; i < fileNum; i++) {
-			pb.addFileOpen(files.get(i), world, isWrite);
+			pb.addFileOpen(files.get(i), world, isEmpty);
 		}
 
 		return files;
