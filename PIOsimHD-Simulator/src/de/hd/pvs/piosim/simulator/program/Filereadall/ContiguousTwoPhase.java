@@ -45,7 +45,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
-	final long twoPhaseBufferSize = 5 * 1024 * 1024;
+	final long twoPhaseBufferSize = 8388608;
 
 	final class FilereadallWrapper {
 		private Filereadall command;
