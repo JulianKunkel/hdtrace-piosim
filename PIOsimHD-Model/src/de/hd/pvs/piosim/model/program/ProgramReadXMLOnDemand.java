@@ -77,7 +77,7 @@ public class ProgramReadXMLOnDemand extends Program{
 				// check if this command is valid:
 				modelVerifier.checkConsistency(curCommand);
 			}catch(Exception e){
-				throw new IllegalStateException(e);
+				throw new IllegalStateException("Error in file " + filename + " at pos: " +  traceFileReader.getFilePosition(), e);
 			}
 		}while(curCommand.getClass() == NoOperation.class);
 	}
