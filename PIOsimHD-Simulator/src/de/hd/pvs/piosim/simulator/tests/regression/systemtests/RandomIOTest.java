@@ -175,8 +175,15 @@ public class RandomIOTest extends IOTest {
 			System.out.println(res.cacheLayer.getClass().getSimpleName());
 
 			for (int i = 0; i < sizes.size(); i++) {
-				System.out.println("  " + sizes.get(i) + " READ  " + res.readAvgs.get(i) + "s (" + res.readDevs.get(i) + "s)");
-				System.out.println("  " + sizes.get(i) + " WRITE " + res.writeAvgs.get(i) + "s (" + res.writeDevs.get(i) + "s)");
+				if (res.readAvgs.size() > i) {
+					System.out.println("  " + sizes.get(i) + " READ  " + getFileSize(sizes.get(i)) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)");
+					System.out.println("  " + sizes.get(i) + " READ  " + (getFileSize(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s (" + (getFileSize(sizes.get(i)) / res.readDevs.get(i) / 1024 / 1024) + " MB/s)");
+				}
+
+				if (res.readAvgs.size() > i) {
+					System.out.println("  " + sizes.get(i) + " WRITE " + getFileSize(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)");
+					System.out.println("  " + sizes.get(i) + " WRITE " + (getFileSize(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s (" + (getFileSize(sizes.get(i)) / res.writeDevs.get(i) / 1024 / 1024) + " MB/s)");
+				}
 			}
 		}
 	}

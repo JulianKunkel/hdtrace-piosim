@@ -162,7 +162,7 @@ public class ClusterTest {
 
 		SimpleSwitch sw = new SimpleSwitch();
 		sw.setName("PVS-Switch");
-		sw.setTotalBandwidth(380 * MBYTE);
+		sw.setTotalBandwidth(1000 * MBYTE);
 
 		Port port = new Port();
 		// port.setParentSwitch(sw);

@@ -48,6 +48,10 @@ abstract public class IOTest extends ClusterTest {
 
 	ServerCacheLayer cacheLayer = null;
 
+	protected long getFileSize (long elementSize) {
+		return (clientNum * iterNum) * elementSize;
+	}
+
 	protected List<MPIFile> prepare(boolean isWrite) throws Exception {
 		List<MPIFile> files = new ArrayList<MPIFile>();
 
@@ -60,7 +64,7 @@ abstract public class IOTest extends ClusterTest {
 		dist.setChunkSize(stripeSize);
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, (isWrite) ? 0 : (clientNum * iterNum) * elementSize, dist));
+			files.add(aB.createFile("testfile" + i, (isWrite) ? 0 : getFileSize(elementSize), dist));
 		}
 
 		for (int i = 0; i < fileNum; i++) {
@@ -70,6 +74,12 @@ abstract public class IOTest extends ClusterTest {
 		return files;
 	}
 
+	protected void unprepare (List<MPIFile> files) throws Exception {
+		for (MPIFile f : files) {
+			pb.addFileClose(f, world);
+		}
+	}
+
 	abstract public void doWrite(List<MPIFile> files) throws Exception;
 
 	abstract public void doRead(List<MPIFile> files) throws Exception;
@@ -77,18 +87,14 @@ abstract public class IOTest extends ClusterTest {
 	public SimulationResults writeTest() throws Exception {
 		List<MPIFile> files = prepare(true);
 		doWrite(files);
-		for (MPIFile f : files) {
-			pb.addFileClose(f, world);
-		}
+		unprepare(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
 		List<MPIFile> files = prepare(false);
 		doRead(files);
-		for (MPIFile f : files) {
-			pb.addFileClose(f, world);
-		}
+		unprepare(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
@@ -138,11 +144,13 @@ abstract public class IOTest extends ClusterTest {
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readResults.size() > i) {
-					System.out.println("  " + sizes.get(i) + " READ  " + res.readResults.get(i).getVirtualTime().getDouble() + "s");
+					System.out.println("  " + sizes.get(i) + " READ  " + getFileSize(sizes.get(i)) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s");
+					System.out.println("  " + sizes.get(i) + " READ  " + (getFileSize(sizes.get(i)) / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s");
 				}
 
 				if (res.writeResults.size() > i) {
-					System.out.println("  " + sizes.get(i) + " WRITE " + res.writeResults.get(i).getVirtualTime().getDouble() + "s");
+					System.out.println("  " + sizes.get(i) + " WRITE " + getFileSize(sizes.get(i)) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s");
+					System.out.println("  " + sizes.get(i) + " WRITE " + (getFileSize(sizes.get(i)) / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s");
 				}
 			}
 		}
