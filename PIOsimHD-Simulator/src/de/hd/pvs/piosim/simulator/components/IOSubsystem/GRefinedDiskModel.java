@@ -222,7 +222,7 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 	protected void jobCompleted(Event<IOJobRefined> event, Epoch endTime) {
 		IOJobRefined job = event.getEventData();
 
-		System.err.println("jobCompleted " + endTime + " " + event.getEventData());
+//		System.err.println("jobCompleted " + endTime + " " + event.getEventData());
 
 		IOSubsytemHelper.traceIOEnd(this, job, job.getEfficiency().toString());
 
