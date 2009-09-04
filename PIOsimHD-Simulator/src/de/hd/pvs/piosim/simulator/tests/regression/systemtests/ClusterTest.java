@@ -53,9 +53,9 @@ import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.ProgramBuilder;
 import de.hd.pvs.piosim.simulator.RunParameters;
+import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 
 public class ClusterTest {
 	final long KBYTE = 1024;
@@ -243,15 +243,8 @@ public class ClusterTest {
 		sim = new Simulator();
 		simRes = sim.simulate(model, parameters);
 
-		System.out.println(simRes);
-
-		for (ClientProcess c : model.getClientProcesses()) {
-			GClientProcess gcp = (GClientProcess) sim.getSimulatedComponent(c);
-			if (!gcp.isProgramFinished()) {
-				throw new Exception("Client " + c.getIdentifier()
-						+ " not finished");
-			}
-		}
+		final SimulationResultSerializer serializer = new SimulationResultSerializer();
+		System.out.println(serializer.serializeResults(simRes));
 
 		return simRes;
 	}

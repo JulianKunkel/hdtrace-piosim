@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -33,6 +33,7 @@ import java.util.PriorityQueue;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SSchedulableBlockingComponent;
 import de.hd.pvs.piosim.simulator.base.SSequentialBlockingComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IOJobRefined.IOEfficiency;
@@ -53,26 +54,56 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 
 	IIOSubsystemCaller callback;
 
-	/**
-	 * Total number of I/Os done by this component
-	 */
-	int totalOperations = 0;
+	public class GRefinedDiskModelInformation extends ComponentRuntimeInformation{
+		/**
+		 * Total number of I/Os done by this component
+		 */
+		int totalOperations = 0;
 
-	/**
-	 * Total amount of data accessed
-	 */
-	long totalAmountOfData = 0;
+		/**
+		 * Total amount of data accessed
+		 */
+		long totalAmountOfData = 0;
 
-	/**
-	 * Number of I/Os which did not require seeks
-	 */
-	int noSeekAccesses = 0;
+		/**
+		 * Number of I/Os which did not require seeks
+		 */
+		int noSeekAccesses = 0;
 
-	/**
-	 * Number of I/Os which used short seeks
-	 * If the last access is close to the current access use the track-to-track seek time.
-	 */
-	int fastAccesses = 0;
+		/**
+		 * Number of I/Os which used short seeks
+		 * If the last access is close to the current access use the track-to-track seek time.
+		 */
+		int fastAccesses = 0;
+
+
+		public int getTotalOperations() {
+			return totalOperations;
+		}
+
+		public long getTotalAmountOfData() {
+			return totalAmountOfData;
+		}
+
+		public int getNoSeekAccesses() {
+			return noSeekAccesses;
+		}
+
+		public int getFastAccesses() {
+			return fastAccesses;
+		}
+
+		@Override
+		public String toString() {
+			return " <#ops, noSeekAccesses, fastAccesses, slowAccesses, dataAccessed> = <" +
+					totalOperations + ", " + noSeekAccesses + ", " + fastAccesses + ", " +
+					(totalOperations - noSeekAccesses - fastAccesses) + ", " + totalAmountOfData + ">";
+		}
+
+
+	}
+
+	final GRefinedDiskModelInformation runtimeInformation = new GRefinedDiskModelInformation();
 
 	/**
 	 * The last file accessed
@@ -118,7 +149,12 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 
 	@Override
 	public void printWaitingEvents() {
-		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public ComponentRuntimeInformation getComponentInformation() {
+		return runtimeInformation;
 	}
 
 	@Override
@@ -186,13 +222,13 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 				// add the rotational latency, because the data had to be transfered to the cache.
 				//latency = avgRotationalLatency;
 				//}
-				noSeekAccesses++;
+				runtimeInformation.noSeekAccesses++;
 
 				job.setEfficiency(IOEfficiency.NOSEEK);
 			}else	if(Math.abs(job.getOffset() - lastAccessPosition) < getModelComponent().getPositionDifferenceConsideredToBeClose()){
 				// it is close to the old position
 				latency = avgRotationalLatency + getModelComponent().getTrackToTrackSeekTime().getDouble();
-				fastAccesses++;
+				runtimeInformation.fastAccesses++;
 
 				job.setEfficiency(IOEfficiency.SHORTSEEK);
 			}
@@ -226,8 +262,8 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 
 		IOSubsytemHelper.traceIOEnd(this, job, job.getEfficiency().toString());
 
-		totalOperations++;
-		totalAmountOfData += job.getSize();
+		runtimeInformation.totalOperations++;
+		runtimeInformation.totalAmountOfData += job.getSize();
 
 		callback.IOComplete(endTime, job.getOldJob());
 	}
@@ -242,9 +278,6 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 
 	@Override
 	public void simulationFinished() {
-		System.out.println("GRefinedDiskModel " + getIdentifier() + " <#ops, noSeekAccesses, fastAccesses, slowAccesses, dataAccessed> = <" +
-				totalOperations + ", " + noSeekAccesses + ", " + fastAccesses + ", " +
-				(totalOperations - noSeekAccesses - fastAccesses) + ", " + totalAmountOfData + ">");
 		assert(pendingIOs == 0);
 	}
 

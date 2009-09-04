@@ -138,7 +138,9 @@ public class CommandLineInterface {
 			System.out.println( "  " + xmlCmd + ": " + cmdType);
 		}
 
-		System.out.println(results);
+		// print the results
+		SimulationResultSerializer simResultSerializer = new SimulationResultSerializer();
+		System.out.println(simResultSerializer.serializeResults(results));
 	}
 
 	/**

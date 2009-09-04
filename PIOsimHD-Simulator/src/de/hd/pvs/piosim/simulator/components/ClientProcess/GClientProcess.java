@@ -40,6 +40,7 @@ import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.Simulator;
+import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
@@ -67,11 +68,39 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	 *
 	 * @author Julian M. Kunkel
 	 */
-	private static class CommandUsageStatistics{
+	public static class CommandUsageStatistics {
 		int calls = 0;
 		Epoch totalTimeSpend = Epoch.ZERO;
+
+		public int getCalls() {
+			return calls;
+		}
+
+		public Epoch getTotalTimeSpend() {
+			return totalTimeSpend;
+		}
 	}
 
+
+	public static class ClientRuntimeInformation extends ComponentRuntimeInformation{
+		private HashMap<Class<? extends Command>, CommandUsageStatistics> commandStats = new HashMap<Class<? extends Command>, CommandUsageStatistics>();
+
+		public HashMap<Class<? extends Command>, CommandUsageStatistics> getCommandStats() {
+			return commandStats;
+		}
+
+		@Override
+		public String toString() {
+			StringBuffer buff = new StringBuffer();
+			for(Class<?> cmdClass: commandStats.keySet()){
+				CommandUsageStatistics stat = commandStats.get(cmdClass);
+				buff.append("\n\t" + cmdClass.getSimpleName() + " " + stat.calls + " calls");
+			}
+			return buff.toString();
+		}
+	}
+
+	private final ClientRuntimeInformation runtimeInformation = new ClientRuntimeInformation();
 
 	/**
 	 * Maps the commands to the command's implementation. For all clients the
@@ -108,9 +137,6 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	 */
 	private Program clientProgram = null;
 
-	private HashMap<Class<? extends Command>, CommandUsageStatistics> commandStats =
-		new HashMap<Class<? extends Command>, CommandUsageStatistics>();
-
 	/**
 	 * did this client finish
 	 */
@@ -130,6 +156,11 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	 * maps from AID / Asynchronous ID to the actual Command
 	 */
 	private HashMap<Integer, Command>     pendingNonBlockingOps = new HashMap<Integer, Command>();
+
+	@Override
+	public ComponentRuntimeInformation getComponentInformation() {
+		return runtimeInformation;
+	}
 
 	/**
 	 * use this method to enforce the completion of the currently blocked job
@@ -213,31 +244,24 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	public void simulationFinished() {
 		super.simulationFinished();
 
-		System.out.println(this.getIdentifier());
-		for(Class<?> cmdClass: commandStats.keySet()){
-			CommandUsageStatistics stat = commandStats.get(cmdClass);
-			infoFollowUpLine(cmdClass.getSimpleName() + " " + stat.calls + " calls" );
-		}
-
-		if (pendingNonBlockingOps.size() != 0)
-			System.out.println( " still pending non-blocking operations: " + pendingNonBlockingOps.size());
-
-		if( isProgramFinished())
+		if (pendingNonBlockingOps.size() == 0 && isProgramFinished())
 			return;
 
-		System.out.println("Client got pending operations: " + this.getIdentifier() + ": ");
+		System.err.println("Client got pending operations: " + this.getIdentifier() + ": ");
+
+		if(pendingNonBlockingOps.size() != 00)
+			System.err.println( "   pending NON-blocking operations: " + pendingNonBlockingOps.size());
 
 		for (CommandProcessing pending: pendingNetworkOperations.values()) {
-			System.out.println("   " + pending + " with NetworkOperation: " + pendingNetworkOperations.get(pending));
+			System.err.println("   " + pending + " with NetworkOperation: " + pendingNetworkOperations.get(pending));
 		}
 
 		for(Command pendingBlocked: pendingNonBlockingOps.values()) {
-			System.out.println("   " + pendingBlocked);
+			System.err.println("   " + pendingBlocked);
 		}
 
-		System.out.println("Blocked command: " + blockedCommand);
-		System.out.println("Next command would be: " + clientProgram.getNextCommand());
-
+		System.err.println("Blocked command: " + blockedCommand);
+		System.err.println("Next command would be: " + clientProgram.getNextCommand());
 	}
 
 
@@ -295,10 +319,10 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 
 		debug("command completed: " + cmd);
 
-		CommandUsageStatistics statistic = commandStats.get(cmd.getClass());
+		CommandUsageStatistics statistic = runtimeInformation.commandStats.get(cmd.getClass());
 		if(statistic == null){
 			statistic = new CommandUsageStatistics();
-			commandStats.put(cmd.getClass(), statistic);
+			runtimeInformation.commandStats.put(cmd.getClass(), statistic);
 		}
 		//TODO statistic.totalTimeSpend =  new Time(time.subtract(commandStartTime), statistic.totalTimeSpend);
 		statistic.calls++;

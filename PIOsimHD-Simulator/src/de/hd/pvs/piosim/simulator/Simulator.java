@@ -53,6 +53,7 @@ import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper.ModelObjectMap;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
+import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.ApplicationMap;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -387,6 +388,8 @@ public final class Simulator{
 			}
 		}
 
+		final HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap = new HashMap<ComponentIdentifier, ComponentRuntimeInformation>();
+
 		for(SPassiveComponent component:  getSortedList(getExistingSimulationObjects().values())) {
 			Integer count = mapIDEventCount.get(component.getIdentifier().getID());
 			if(count != null){
@@ -394,6 +397,11 @@ public final class Simulator{
 			}
 
 			component.simulationFinished();
+			// add statistics or other information about run.
+			final ComponentRuntimeInformation information = component.getComponentInformation();
+			if(information != null){
+				idtoRuntimeInformationMap.put(component.getIdentifier(), information);
+			}
 		}
 
 		for (Integer id: mapIDEventCount.keySet()){
@@ -405,7 +413,7 @@ public final class Simulator{
 
 		traceWriter.finalize(getExistingSimulationObjects().values());
 
-		return new SimulationResults(eventCount, getVirtualTime(), diffTime/1000.0);
+		return new SimulationResults(existingSimulationObjects, eventCount, getVirtualTime(), diffTime/1000.0, idtoRuntimeInformationMap);
 	}
 
 	/**

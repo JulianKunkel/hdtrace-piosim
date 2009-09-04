@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -34,22 +34,22 @@ import de.hd.pvs.piosim.simulator.output.ComponentLogger;
  * Basic component which contains a particular "type" of ModelComponents.
  * This component never gets events from the simulator and thus is considered passive.
  * It can be used to create new events or as a container delegating events.
- * 
+ *
  * @author Julian M. Kunkel
  *
- * @param <ModelComp> The type of components in this passive component 
+ * @param <ModelComp> The type of components in this passive component
  */
 public class SPassiveComponent<ModelComp extends BasicComponent> {
 
 	static private ComponentLogger logger = new ComponentLogger();
-	
+
 	/**
 	 * Which model component is represented by this object
-	 * Even if a component is a virtual component it needs to connect to a "fake" or 
-	 * duplicated Model component. Otherwise the Simulator is error-prone ! 
+	 * Even if a component is a virtual component it needs to connect to a "fake" or
+	 * duplicated Model component. Otherwise the Simulator is error-prone !
 	 */
 	private ModelComp modelComponent = null;
-	
+
 	/**
 	 * back reference to the simulator.
 	 */
@@ -84,10 +84,21 @@ public class SPassiveComponent<ModelComp extends BasicComponent> {
 	}
 
 	/**
-	 * This method gets invoked by the simulator to signal completion of the simulation. 
+	 * This method gets invoked by the simulator to signal completion of the simulation.
+	 * Arbitrary data could be appended to the results.
 	 */
 	public void simulationFinished() {
 
+	}
+
+	/**
+	 * Return information about the simulation.
+	 * Override this method to really provide information
+	 *
+	 * @return
+	 */
+	public ComponentRuntimeInformation getComponentInformation(){
+		return null;
 	}
 
 	/**
@@ -131,26 +142,27 @@ public class SPassiveComponent<ModelComp extends BasicComponent> {
 
 	/**
 	 * Print some debugging information if the configurations allows it.
-	 * 
+	 *
 	 * @param what
 	 */
 	final public boolean debug(String what){
 		return logger.debug(this, what);
 	}
-	
+
 	final public boolean debugFollowUpLine(String what){
 		return logger.debugFollowUpline(this, what);
 	}
-	
+
 	final public void info(String what){
 		logger.info(this, what);
 	}
-	
+
 	final public void warn(String what){
 		logger.warn(this, what);
-	}	
-	
-	final public void infoFollowUpLine(String what){		
+	}
+
+	final public void infoFollowUpLine(String what){
 		System.out.println(" -> " + what);
 	}
+
 }

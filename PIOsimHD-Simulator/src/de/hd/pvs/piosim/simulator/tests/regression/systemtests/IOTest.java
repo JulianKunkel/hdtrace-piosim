@@ -40,8 +40,8 @@ import de.hd.pvs.piosim.simulator.SimulationResults;
 abstract public class IOTest extends ClusterTest {
 	int serverNum = 10;
 	int clientNum = 10;
-	int fileNum = 10;
-	int iterNum = 250;
+	int fileNum = 1;
+	int iterNum = 25;
 	long elementSize = 0;
 	// PVFS default
 	long stripeSize = 64 * KBYTE;
@@ -133,6 +133,8 @@ abstract public class IOTest extends ClusterTest {
 				elementSize = size;
 
 				res.readResults.add(readTest());
+				System.exit(0);
+
 				res.writeResults.add(writeTest());
 			}
 

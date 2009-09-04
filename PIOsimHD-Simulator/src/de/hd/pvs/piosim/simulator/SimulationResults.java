@@ -25,7 +25,12 @@
 
 package de.hd.pvs.piosim.simulator;
 
+import java.util.HashMap;
+
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
+import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
+import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 
 public class SimulationResults {
 
@@ -37,10 +42,20 @@ public class SimulationResults {
 
 	final private double wallClockTime;
 
-	public SimulationResults(long eventCount, Epoch virtualTime, double wallClockTime) {
+	final private HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap;
+
+	final private HashMap<ComponentIdentifier, SPassiveComponent> components;
+
+	public SimulationResults(HashMap<ComponentIdentifier, SPassiveComponent> components, long eventCount, Epoch virtualTime, double wallClockTime, HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap) {
 		this.eventCount = eventCount;
+		this.components = components;
 		this.virtualTime = virtualTime;
 		this.wallClockTime = wallClockTime;
+		this.idtoRuntimeInformationMap = idtoRuntimeInformationMap;
+	}
+
+	public HashMap<ComponentIdentifier, SPassiveComponent> getComponents() {
+		return components;
 	}
 
 	/**
@@ -63,12 +78,7 @@ public class SimulationResults {
 		return wallClockTime;
 	}
 
-	@Override
-	public String toString() {
-		return "simulation finished: " + eventCount + " events" + "\n"
-				+ "\t realTime: "+ wallClockTime + "s\n"
-				+ "\t events/sec: " + (eventCount / wallClockTime) + "\n"
-				+ "\t virtualTime: " + getVirtualTime() + "\n"
-				+ "\t virtualTime/realTime: " + (getVirtualTime().getDouble() / wallClockTime);
+	public HashMap<ComponentIdentifier, ComponentRuntimeInformation> getComponentStatistics() {
+		return idtoRuntimeInformationMap;
 	}
 }
