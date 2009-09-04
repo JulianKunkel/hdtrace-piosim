@@ -31,38 +31,53 @@ import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 
 public class ClusterLargeIOTest extends IOTest {
+	private int perIteration () {
+		return iterNum / 25;
+	}
 	public void doWrite(List<MPIFile> files) throws Exception {
-		for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-			for (MPIFile f : files) {
-				Filewrite com = new Filewrite();
-				ListIO lio = new ListIO();
+		int perIteration = perIteration();
 
-				com.setFile(f);
+		assert(iterNum % perIteration == 0);
 
-				for (int i = 0; i < iterNum; i++) {
-					lio.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+		for (int i = 0; i < iterNum; i += perIteration) {
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+				for (MPIFile f : files) {
+					Filewrite com = new Filewrite();
+					ListIO lio = new ListIO();
+
+					com.setFile(f);
+
+					for (int j = 0; j < perIteration; j++) {
+						lio.addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
+					}
+
+					com.setListIO(lio);
+					aB.addCommand(rank, com);
 				}
-
-				com.setListIO(lio);
-				aB.addCommand(rank, com);
 			}
 		}
 	}
 
 	public void doRead(List<MPIFile> files) throws Exception {
-		for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-			for (MPIFile f : files) {
-				Fileread com = new Fileread();
-				ListIO lio = new ListIO();
+		int perIteration = perIteration();
 
-				com.setFile(f);
+		assert(iterNum % perIteration == 0);
 
-				for (int i = 0; i < iterNum; i++) {
-					lio.addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
+		for (int i = 0; i < iterNum; i += perIteration) {
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+				for (MPIFile f : files) {
+					Fileread com = new Fileread();
+					ListIO lio = new ListIO();
+
+					com.setFile(f);
+
+					for (int j = 0; j < perIteration; j++) {
+						lio.addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
+					}
+
+					com.setListIO(lio);
+					aB.addCommand(rank, com);
 				}
-
-				com.setListIO(lio);
-				aB.addCommand(rank, com);
 			}
 		}
 	}
