@@ -23,6 +23,7 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,12 +37,14 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
+import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
+import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefinedDiskModelInformation;
 
 abstract public class IOTest extends ClusterTest {
 	int serverNum = 10;
 	int clientNum = 10;
-	int fileNum = 1;
-	int iterNum = 25;
+	int fileNum = 10;
+	int iterNum = 250;
 	long elementSize = 0;
 	// PVFS default
 	long stripeSize = 64 * KBYTE;
@@ -133,28 +136,42 @@ abstract public class IOTest extends ClusterTest {
 				elementSize = size;
 
 				res.readResults.add(readTest());
-				System.exit(0);
-
 				res.writeResults.add(writeTest());
 			}
 
 			results.add(res);
 		}
 
+		FileWriter out = new FileWriter("/tmp/iotest.txt");
+
 		for (CacheLayerResults res : results) {
 			System.out.println(res.cacheLayer.getClass().getSimpleName());
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readResults.size() > i) {
-					System.out.println("  " + sizes.get(i) + " READ  " + getFileSize(sizes.get(i)) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s");
-					System.out.println("  " + sizes.get(i) + " READ  " + (getFileSize(sizes.get(i)) / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s");
+					out.write("  " + sizes.get(i) + " READ  " + getFileSize(sizes.get(i)) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s\n");
+					out.write("  " + sizes.get(i) + " READ  " + (getFileSize(sizes.get(i)) / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
+
+					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
+						if (info.getClass() == GRefinedDiskModelInformation.class) {
+							out.write("    " + info + "\n");
+						}
+					}
 				}
 
 				if (res.writeResults.size() > i) {
-					System.out.println("  " + sizes.get(i) + " WRITE " + getFileSize(sizes.get(i)) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s");
-					System.out.println("  " + sizes.get(i) + " WRITE " + (getFileSize(sizes.get(i)) / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s");
+					out.write("  " + sizes.get(i) + " WRITE " + getFileSize(sizes.get(i)) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (getFileSize(sizes.get(i)) / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
+
+					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
+						if (info.getClass() == GRefinedDiskModelInformation.class) {
+							out.write("    " + info + "\n");
+						}
+					}
 				}
 			}
 		}
+
+		out.close();
 	}
 }

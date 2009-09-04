@@ -22,6 +22,7 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -203,21 +204,25 @@ public class DatabaseIOTest extends IOTest {
 			results.add(res);
 		}
 
+		FileWriter out = new FileWriter("/tmp/iotest.txt");
+
 		for (CacheLayerResults res : results) {
 			System.out.println(res.cacheLayer.getClass().getSimpleName());
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readAvgs.size() > i) {
-					System.out.println("  " + sizes.get(i) + " READ  " + getDataTotal(sizes.get(i)) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)");
-					System.out.println("  " + sizes.get(i) + " READ  " + (getDataTotal(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s");
+					out.write("  " + sizes.get(i) + " READ  " + getDataTotal(sizes.get(i)) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " READ  " + (getDataTotal(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s\n");
 				}
 
 				if (res.readAvgs.size() > i) {
-					System.out.println("  " + sizes.get(i) + " WRITE " + getDataTotal(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)");
-					System.out.println("  " + sizes.get(i) + " WRITE " + (getDataTotal(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s");
+					out.write("  " + sizes.get(i) + " WRITE " + getDataTotal(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (getDataTotal(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s\n");
 				}
 			}
 		}
+
+		out.close();
 	}
 
 	public static void main(String[] args) throws Exception {
