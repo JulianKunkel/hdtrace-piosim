@@ -46,7 +46,7 @@ public class DatabaseIOTest extends IOTest {
 	}
 
 	protected long getFileSize (long elementSize) {
-		return getDataTotal(elementSize) * 20;
+		return getDataTotal(elementSize) * 10;
 	}
 
 	private long getDataPerIteration (long elementSize) {
@@ -207,7 +207,7 @@ public class DatabaseIOTest extends IOTest {
 		FileWriter out = new FileWriter("/tmp/iotest.txt");
 
 		for (CacheLayerResults res : results) {
-			System.out.println(res.cacheLayer.getClass().getSimpleName());
+			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readAvgs.size() > i) {

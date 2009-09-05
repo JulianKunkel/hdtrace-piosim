@@ -145,7 +145,7 @@ abstract public class IOTest extends ClusterTest {
 		FileWriter out = new FileWriter("/tmp/iotest.txt");
 
 		for (CacheLayerResults res : results) {
-			System.out.println(res.cacheLayer.getClass().getSimpleName());
+			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readResults.size() > i) {
