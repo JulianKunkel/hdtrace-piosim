@@ -111,6 +111,29 @@ public class DatabaseIOTest extends IOTest {
 		}
 	}
 
+	public void doReadWrite(List<MPIFile> files) throws Exception {
+		for (int i = 0; i < iterNum; i++) {
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+				MPIFile f = getFile(files);
+				long dataToAccess = getDataPerIteration(elementSize);
+
+				while (dataToAccess > 0) {
+					long offset = getBlockOffset();
+					long size = getBlockSize(offset);
+
+					size = Math.min(size, dataToAccess);
+					dataToAccess -= size;
+
+					if (random.nextBoolean()) {
+						pb.addReadSequential(rank, f, offset, size);
+					} else {
+						pb.addWriteSequential(rank, f, offset, size);
+					}
+				}
+			}
+		}
+	}
+
 	public SimulationResults writeTest() throws Exception {
 		List<MPIFile> files = prepare(false);
 		doWrite(files);
@@ -125,6 +148,13 @@ public class DatabaseIOTest extends IOTest {
 		return runSimulationAllExpectedToFinish();
 	}
 
+	public SimulationResults readWriteTest() throws Exception {
+		List<MPIFile> files = prepare(false);
+		doReadWrite(files);
+		unprepare(files);
+		return runSimulationAllExpectedToFinish();
+	}
+
 	@Test
 	public void run() throws Exception {
 		final class CacheLayerResults {
@@ -133,6 +163,8 @@ public class DatabaseIOTest extends IOTest {
 			List<Double> readDevs = new ArrayList<Double>();
 			List<Double> writeAvgs = new ArrayList<Double>();
 			List<Double> writeDevs = new ArrayList<Double>();
+			List<Double> readWriteAvgs = new ArrayList<Double>();
+			List<Double> readWriteDevs = new ArrayList<Double>();
 
 			public CacheLayerResults(ServerCacheLayer cacheLayer) {
 				this.cacheLayer = cacheLayer;
@@ -168,22 +200,33 @@ public class DatabaseIOTest extends IOTest {
 				double readDev = 0;
 				double writeAvg = 0;
 				double writeDev = 0;
+				double readWriteAvg = 0;
+				double readWriteDev = 0;
 
 				for (long seed : seeds) {
 					SimulationResults r;
 					SimulationResults w;
+					SimulationResults rw;
 
 					elementSize = size;
-					random = new Random(seed);
 
+					random = new Random(seed);
 					r = readTest();
+
+					random = new Random(seed);
 					w = writeTest();
+
+					random = new Random(seed);
+					rw = readWriteTest();
 
 					readAvg += r.getVirtualTime().getDouble();
 					readDev += Math.pow(r.getVirtualTime().getDouble(), 2);
 
 					writeAvg += w.getVirtualTime().getDouble();
 					writeDev += Math.pow(w.getVirtualTime().getDouble(), 2);
+
+					readWriteAvg += rw.getVirtualTime().getDouble();
+					readWriteDev += Math.pow(rw.getVirtualTime().getDouble(), 2);
 				}
 
 				readAvg /= seeds.size();
@@ -199,6 +242,13 @@ public class DatabaseIOTest extends IOTest {
 
 				res.writeAvgs.add(writeAvg);
 				res.writeDevs.add(writeDev);
+
+				readWriteAvg /= seeds.size();
+				readWriteDev /= seeds.size();
+				readWriteDev = Math.sqrt(readWriteDev - Math.pow(readWriteAvg, 2));
+
+				res.readWriteAvgs.add(readWriteAvg);
+				res.readWriteDevs.add(readWriteDev);
 			}
 
 			results.add(res);
@@ -218,6 +268,11 @@ public class DatabaseIOTest extends IOTest {
 				if (res.readAvgs.size() > i) {
 					out.write("  " + sizes.get(i) + " WRITE " + getDataTotal(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
 					out.write("  " + sizes.get(i) + " WRITE " + (getDataTotal(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s\n");
+				}
+
+				if (res.readWriteAvgs.size() > i) {
+					out.write("  " + sizes.get(i) + " RW  " + getDataTotal(sizes.get(i)) + " B, " + res.readWriteAvgs.get(i) + " s (" + res.readWriteDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " RW  " + (getDataTotal(sizes.get(i)) / res.readWriteAvgs.get(i) / 1024 / 1024) + " MB/s\n");
 				}
 			}
 		}
