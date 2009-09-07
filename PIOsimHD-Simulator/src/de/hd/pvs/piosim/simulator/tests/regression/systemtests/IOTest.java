@@ -149,8 +149,8 @@ abstract public class IOTest extends ClusterTest {
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readResults.size() > i) {
-					out.write("  " + sizes.get(i) + " READ  " + getFileSize(sizes.get(i)) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s\n");
-					out.write("  " + sizes.get(i) + " READ  " + (getFileSize(sizes.get(i)) / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " READ  " + (fileNum * getFileSize(sizes.get(i))) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s\n");
+					out.write("  " + sizes.get(i) + " READ  " + (fileNum * getFileSize(sizes.get(i)) / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
 
 					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
 						if (info.getClass() == GRefinedDiskModelInformation.class) {
@@ -160,8 +160,8 @@ abstract public class IOTest extends ClusterTest {
 				}
 
 				if (res.writeResults.size() > i) {
-					out.write("  " + sizes.get(i) + " WRITE " + getFileSize(sizes.get(i)) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s\n");
-					out.write("  " + sizes.get(i) + " WRITE " + (getFileSize(sizes.get(i)) / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * getFileSize(sizes.get(i))) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * getFileSize(sizes.get(i)) / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
 
 					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
 						if (info.getClass() == GRefinedDiskModelInformation.class) {

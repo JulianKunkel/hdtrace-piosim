@@ -179,13 +179,13 @@ public class RandomIOTest extends IOTest {
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " READ  " + getFileSize(sizes.get(i)) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " READ  " + (getFileSize(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " READ  " + (fileNum * getFileSize(sizes.get(i))) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " READ  " + (fileNum * getFileSize(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s\n");
 				}
 
 				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " WRITE " + getFileSize(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " WRITE " + (getFileSize(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * getFileSize(sizes.get(i))) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * getFileSize(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s\n");
 				}
 			}
 		}
