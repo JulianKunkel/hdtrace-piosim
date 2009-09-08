@@ -66,8 +66,8 @@ public class SimpleNIC extends GNIC<NIC>{
 	HashMap<MSGMatchingCriterion, LinkedList<SingleNetworkJob>>();
 
 	/** Posted receives before the matching message got received */
-	private HashMap<MSGMatchingCriterion, SingleNetworkJob> mapPostedJobsBeforeReceive =
-		new HashMap<MSGMatchingCriterion, SingleNetworkJob>();
+	private HashMap<MSGMatchingCriterion, LinkedList<SingleNetworkJob>> mapPostedJobsBeforeReceive =
+		new HashMap<MSGMatchingCriterion, LinkedList<SingleNetworkJob>>();
 
 	/** Posted any source messages but with a communicator and tag */
 	private HashMap<Communicator, HashMap<Integer, SingleNetworkJob >> mapPostedAnySourceWithTag =
@@ -302,10 +302,13 @@ public class SimpleNIC extends GNIC<NIC>{
 		if (p.getMessage().isReceivedCompletely()){
 			/* if this job was expected we have it in the queue */
 			SingleNetworkJob rjob = p.getMessage().getNetworkJob();
-			Message msg = p.getMessage();
 
-			/* remove it first, because a new read msg with the same matching crit could be initiated */
-			SingleNetworkJob expectedJob =  mapPostedJobsBeforeReceive.remove( new MSGMatchingCriterion(rjob));
+			/* remove it first, because a new read msg with the same matching criteria could be initiated */
+			final LinkedList<SingleNetworkJob> queued = mapPostedJobsBeforeReceive.get( new MSGMatchingCriterion(rjob));
+			SingleNetworkJob expectedJob = null;
+			if(queued != null && queued.size() > 0){
+				expectedJob =  queued.pop();
+			}
 
 			//	System.out.println("NIC receive: " + rjob + " " + rjob.getMatchingCriterion());
 			//		for(SingleNetworkJob exJob: mapPostedJobsBeforeReceive.values()) {
@@ -479,16 +482,21 @@ public class SimpleNIC extends GNIC<NIC>{
 				}
 			}
 
-			//System.out.println("OUTER " + job.getMatchingCriterion());
-
 			if( job.getSourceComponent() != null ){
-				SingleNetworkJob existingJob = mapPostedJobsBeforeReceive.put( crit,	job);
-				if (existingJob != null){
+				LinkedList<SingleNetworkJob> jobs = mapPostedJobsBeforeReceive.get(crit);
+				if(jobs == null){
+					jobs = new LinkedList<SingleNetworkJob>();
+					mapPostedJobsBeforeReceive.put(crit, jobs);
+				}
+
+				if (jobs.size() != 0){
 					// might happen due to non-blocking and wrong user programs
-					new IllegalArgumentException("Invalid receive job! " + job.getTag() + " with comm " +
+					System.out.println("Invalid receive job! " + job.getTag() + " with comm " +
 							job.getCommunicator().getName() +" already used!\n" +
 					"Probably your application is wrong and uses non-blocking calls with the same comm and tag");
 				}
+
+				jobs.add(job);
 			}else{
 				HashMap<Integer, SingleNetworkJob>  tagMap =  mapPostedAnySourceWithTag.get(job.getCommunicator());
 
@@ -516,11 +524,13 @@ public class SimpleNIC extends GNIC<NIC>{
 	public void simulationFinished() {
 		super.simulationFinished();
 
-		if(false){
+		//if(false){
 			StringBuffer buf = new StringBuffer();
 
-			for(SingleNetworkJob job: mapPostedJobsBeforeReceive.values()) {
-				buf.append("  unmatched receive:" + job + "\n");
+			for(LinkedList<SingleNetworkJob> jobs: mapPostedJobsBeforeReceive.values()) {
+				for(SingleNetworkJob job: jobs){
+					buf.append("  unmatched receive:" + job + "\n");
+				}
 			}
 
 			for(LinkedList<SingleNetworkJob> list: mapReceivedMsgsBeforePost.values()) {
@@ -533,6 +543,6 @@ public class SimpleNIC extends GNIC<NIC>{
 				System.out.println("GNIC " + getIdentifier() + " has pending operations:");
 				System.out.println(buf.toString());
 			}
-		}
+		//}
 	}
 }
