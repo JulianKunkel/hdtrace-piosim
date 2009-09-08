@@ -1,4 +1,4 @@
-<Program timeAdjustment='1247131125'>
+<Program timeAdjustment='1247131125.06'>
 <Nested>
   <Sendrecv size='255' toRank='3' toTag='7' fromRank='0' fromTag='7' cid='0' count='255' sendTid='0' recvTid='0'  time='0.894602' end='0.897051'/>
   <Sendrecv size='510' toRank='2' toTag='7' fromRank='1' fromTag='7' cid='0' count='510' sendTid='0' recvTid='0'  time='0.897071' end='0.912339'/>
