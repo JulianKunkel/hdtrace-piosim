@@ -312,6 +312,79 @@ de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel =
 ...
 \end{lstlisting}
 
+\subsection{Data Flow}
+There are two aspects, one is how pakets are transported within the network, second handles internal processing of requests on simulated I/O servers.
+
+\subsubsection{Network packet transport}
+Design criteria: 
+\begin{itemize}
+ \item (almost) optimal network usage - it is mandatory that network components can be fully utilized if there are packets to transport.
+ \item realistic transport - data flows must look somehow realistic, if there is a bottleneck it is not acceptable that all packets queue on this component. 
+  In reality in switched networks buffers allow a limited queue, retransmits occur on packet loss, timeouts on NICs resent lost packets. 
+  However, especially timeouts are hard to estimate, any delay can lead to idle times on the network.
+  Wormhole routing on the other hand may reserve bandwidth, but if the packets are delayed reserved bandwidth is wasted.   
+ \item Simplicity - to some extend observed behavior should be understandable.
+ \item Performance of the implementation - the implementation should not heavily impact simulation performance.
+\end{itemize}
+
+Several alternatives have been tested, for example timeout based retransmit with limited cache size.
+However, the current design models flow control as follows:
+\begin{itemize}
+ \item A network component transmits a number of packets to another until more data got send to compensate for connection  latency. 
+ Then the component stalls submission and queues further packets. 
+ \item Processing of a packet confirms the receipt to the sender and allows to transfer packets worth for the connection latency compensated by the accepted packet. 
+ Therefore, processing of a packet might wake up a cascade of blocked components upstream.
+ \item Once a component finishes processing of a packet it shall accept new packets. Pending packets should be delivered immediately to avoid starvation of downstream components.
+ \item On each component packets are queued per target in the network. 
+  Depending on the receiver in the network a separate queue exists.
+  If one queue is stalled then another queue might still proceed. 
+  To understand the reason, assume a complex topology in which network components are interconnected with varying speeds. 
+  In this scenario one slow target might lead to queues in the intermediate switches. 
+  However, other network components with fast interconnects must still get their performance, therefore the switches must allow to relay their packets. 
+ \item NICs must allow block receiving of further packets. 
+  This is necessary for example on I/O processes. 
+  Writing data to a file system ships data to I/O processes. If the I/O subsystem controlled by this process is slower than the network card, then data is (potentially infinitely) queued on the I/O process. 
+  This is not realistic, therefore the process must block transmission once it has no more free RAM to accept data.
+  \item Packet size is limited by a \textbf{NetworkGranularity} to ensure interleaved processing of packets. 
+  Messages are partitioned into the NetworkGranularity on demand. 
+  Two aspects are involed into picking the size, smaller packets result in more events in the simulation i.e. increase simulation time, but allow a better interleaving of packets from multiple sources on one network component.   
+  Bigger packets decrease simulation efford but reduce interleaving. 
+\end{itemize}
+
+\subsubsection{I/O Server request processing}
+From client side an I/O request is just issued with an list of offset and size pairs (list-IO).
+These lists of non-contiguous operations could be generated automatically by file views.
+
+Once the client issues an I/O operation, the actual visible operation consists of several steps, which are processed sequencially.
+An I/O involves client, server process including cache layer of data and I/O subsystem, network cards and intermediate network. 
+Data flow through the network is already discussed, consequently it is spared here.
+Processing of I/O requests depends on the actual request type i.e. read or write.
+
+\paragraph{Read request}
+\begin{itemize}
+ \item client submits an read request to the NIC
+ \item network transmits requests to all servers involved in the I/O
+ \item each server accepts the request and announces the complete request to its cache layer
+ \item cache layer selects an I/O operation to work on and submits this operation to the I/O subsystem (the I/O subystem model might allow queue up multiple operations). Note the size of a single contiguous I/O operation is limited to \textbf{IOGranularity}.
+ \item once the I/O subsystem finished an operation the cache layer is notified and might submit new operations. 
+ Also data received from the cache layer is immediately added to the network flow resulting in new packets for the network.
+ \item client I/O is implicitly finished once all data is received
+\end{itemize}
+
+\paragraph{Write request}
+\begin{itemize}
+ \item client submits a write request to all servers involved in the I/O
+ \item each server accepts the request and responds with an acknowledge
+ \item client waits for all acknowledges and starts I/O stream to all servers
+ \item server: once data is received the cache layer gets notified immediately about the request.
+ The cache layer puts the received data into the servers I/O cache. If there is no room in the cache the server will 
+ block further receives of data. 
+ The cache layer can decide which data it receives from a request, and it might submit jobs to the I/O subsystem. 
+ Once the job is submitted to the I/O subsystem the cache is freed allowing further requests to get queued.
+ \item once a request is completed a server sends a write complete message to the client
+ \item client I/O is finished once all write complete messages are received
+\end{itemize}
+
 
 \section{Run a Simulation}
 
@@ -367,7 +440,7 @@ Transfer granularity of 100\,KByte. Provided in the Images folder or rerun the (
 \begin{table}
 \begin{center}
 \begin{tabular}{l||l|l|l}
-Process count [\#] & Real time [s] & Simulated time [s] & Simulated / Real [s] \\
+Process count in \# & Real time in s & Simulated time in s & Simulated time / Real time \\
 \hline
 \hline
 1 & 47.30 & 47.35 & 1.001 \\
