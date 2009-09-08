@@ -20,7 +20,7 @@
 //
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
+package de.hd.pvs.piosim.simulator.tests.regression.systemtests.DatabaseIOTest;
 
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -34,100 +34,166 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.program.commands.Fileread;
+import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.simulator.SimulationResults;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
-public class DatabaseIOTest extends IOTest {
+public class Individual extends IOTest {
 	private Random random = null;
 
-	public DatabaseIOTest() {
+	public Individual() {
 		super();
 		iterNum /= 25;
+	}
+
+	private int perIteration () {
+		return 1;
 	}
 
 	protected long getFileSize (long elementSize) {
 		return getDataTotal(elementSize) * 10;
 	}
 
-	private long getDataPerIteration (long elementSize) {
+	protected long getDataPerIteration (long elementSize) {
 		return elementSize * 50 * 50;
 	}
 
-	private long getDataTotal (long elementSize) {
+	protected long getDataTotal (long elementSize) {
 		return getDataPerIteration(elementSize) * iterNum * clientNum;
 	}
 
-	private MPIFile getFile (List<MPIFile> files) {
+	protected MPIFile getFile (List<MPIFile> files) {
 		int i = random.nextInt(files.size());
 		return files.get(i);
 	}
 
-	private long getBlockOffset () {
+	protected long getBlockOffset () {
 		long offset = Math.abs(random.nextLong()) % getFileSize(elementSize);
 		long remainder = offset % elementSize;
 		return offset - remainder;
 	}
 
-	private long getBlockSize (long offset) {
+	protected long getBlockSize (long offset) {
 		int i = random.nextInt(100);
 		return Math.min((i + 1) * elementSize, getFileSize(elementSize) - offset);
 	}
 
 	public void doWrite(List<MPIFile> files) throws Exception {
-		for (int i = 0; i < iterNum; i++) {
+		int perIteration = perIteration();
+
+		assert(iterNum % perIteration == 0);
+
+		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				MPIFile f = getFile(files);
 				long dataToAccess = getDataPerIteration(elementSize);
 
 				while (dataToAccess > 0) {
-					long offset = getBlockOffset();
-					long size = getBlockSize(offset);
+					Filewrite com = new Filewrite();
+					ListIO lio = new ListIO();
 
-					size = Math.min(size, dataToAccess);
-					dataToAccess -= size;
+					com.setFile(f);
 
-					pb.addWriteSequential(rank, f, offset, size);
+					for (int j = 0; j < perIteration; j++) {
+						long offset = getBlockOffset();
+						long size = getBlockSize(offset);
+
+						size = Math.min(size, dataToAccess);
+						dataToAccess -= size;
+
+						lio.addIOOperation(offset, size);
+
+						if (dataToAccess == 0) {
+							break;
+						}
+					}
+
+					com.setListIO(lio);
+					aB.addCommand(rank, com);
 				}
 			}
 		}
 	}
 
 	public void doRead(List<MPIFile> files) throws Exception {
-		for (int i = 0; i < iterNum; i++) {
+		int perIteration = perIteration();
+
+		assert(iterNum % perIteration == 0);
+
+		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				MPIFile f = getFile(files);
 				long dataToAccess = getDataPerIteration(elementSize);
 
 				while (dataToAccess > 0) {
-					long offset = getBlockOffset();
-					long size = getBlockSize(offset);
+					Fileread com = new Fileread();
+					ListIO lio = new ListIO();
 
-					size = Math.min(size, dataToAccess);
-					dataToAccess -= size;
+					com.setFile(f);
 
-					pb.addReadSequential(rank, f, offset, size);
+					for (int j = 0; j < perIteration; j++) {
+						long offset = getBlockOffset();
+						long size = getBlockSize(offset);
+
+						size = Math.min(size, dataToAccess);
+						dataToAccess -= size;
+
+						lio.addIOOperation(offset, size);
+
+						if (dataToAccess == 0) {
+							break;
+						}
+					}
+
+					com.setListIO(lio);
+					aB.addCommand(rank, com);
 				}
 			}
 		}
 	}
 
 	public void doReadWrite(List<MPIFile> files) throws Exception {
-		for (int i = 0; i < iterNum; i++) {
+		int perIteration = perIteration();
+
+		assert(iterNum % perIteration == 0);
+
+		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				MPIFile f = getFile(files);
 				long dataToAccess = getDataPerIteration(elementSize);
 
 				while (dataToAccess > 0) {
-					long offset = getBlockOffset();
-					long size = getBlockSize(offset);
+					ListIO lio = new ListIO();
 
-					size = Math.min(size, dataToAccess);
-					dataToAccess -= size;
+					for (int j = 0; j < perIteration; j++) {
+						long offset = getBlockOffset();
+						long size = getBlockSize(offset);
+
+						size = Math.min(size, dataToAccess);
+						dataToAccess -= size;
+
+						lio.addIOOperation(offset, size);
+
+						if (dataToAccess == 0) {
+							break;
+						}
+					}
 
 					if (random.nextBoolean()) {
-						pb.addReadSequential(rank, f, offset, size);
+						Fileread com = new Fileread();
+
+						com.setFile(f);
+						com.setListIO(lio);
+						aB.addCommand(rank, com);
 					} else {
-						pb.addWriteSequential(rank, f, offset, size);
+						Filewrite com = new Filewrite();
+
+						com.setFile(f);
+						com.setListIO(lio);
+						aB.addCommand(rank, com);
 					}
 				}
 			}
@@ -281,6 +347,6 @@ public class DatabaseIOTest extends IOTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new DatabaseIOTest().run();
+		new Individual().run();
 	}
 }

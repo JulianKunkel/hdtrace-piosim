@@ -4,7 +4,6 @@
  * @version         $Revision$
  */
 
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
 //	Copyright (C) 2009 Michael Kuhn
 //
 //	This file is part of PIOsimHD.
@@ -21,34 +20,53 @@
 //
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
+package de.hd.pvs.piosim.simulator.tests.regression.systemtests.ClusterIOTest;
 
+import java.util.HashMap;
 import java.util.List;
 
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
-public class ClusterIOTest extends IOTest {
+public class Collective extends IOTest {
 	public void doWrite(List<MPIFile> files) throws Exception {
-		for (int i = 0; i < iterNum; i++) {
+		for (MPIFile file : files) {
+			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					pb.addWriteSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+				io.put(rank, new ListIO());
+			}
+
+			for (int i = 0; i < iterNum; i++) {
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					io.get(rank).addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
 				}
 			}
+
+			pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
 		}
 	}
 
 	public void doRead(List<MPIFile> files) throws Exception {
-		for (int i = 0; i < iterNum; i++) {
+		for (MPIFile file : files) {
+			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					pb.addReadSequential(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+				io.put(rank, new ListIO());
+			}
+
+			for (int i = 0; i < iterNum; i++) {
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					io.get(rank).addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
 				}
 			}
+
+			pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
-		new ClusterIOTest().run();
+		new Collective().run();
 	}
 }

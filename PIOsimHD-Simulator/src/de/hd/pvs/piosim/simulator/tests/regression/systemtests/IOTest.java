@@ -41,15 +41,15 @@ import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefinedDiskModelInformation;
 
 abstract public class IOTest extends ClusterTest {
-	int serverNum = 10;
-	int clientNum = 10;
-	int fileNum = 10;
-	int iterNum = 250;
-	long elementSize = 0;
+	protected int serverNum = 10;
+	protected int clientNum = 10;
+	protected int fileNum = 10;
+	protected int iterNum = 250;
+	protected long elementSize = 0;
 	// PVFS default
-	long stripeSize = 64 * KBYTE;
+	protected long stripeSize = 64 * KBYTE;
 
-	ServerCacheLayer cacheLayer = null;
+	protected ServerCacheLayer cacheLayer = null;
 
 	protected long getFileSize (long elementSize) {
 		return (clientNum * iterNum) * elementSize;

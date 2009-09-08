@@ -21,7 +21,7 @@
 //
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
+package de.hd.pvs.piosim.simulator.tests.regression.systemtests.ClusterIOTest;
 
 import java.util.List;
 
@@ -29,11 +29,13 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
-public class ClusterLargeIOTest extends IOTest {
+public class Individual extends IOTest {
 	private int perIteration () {
-		return iterNum / 25;
+		return 1;
 	}
+
 	public void doWrite(List<MPIFile> files) throws Exception {
 		int perIteration = perIteration();
 
@@ -83,6 +85,6 @@ public class ClusterLargeIOTest extends IOTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new ClusterLargeIOTest().run();
+		new Individual().run();
 	}
 }
