@@ -240,8 +240,9 @@ public class SimpleNIC extends GNIC<NIC>{
 		final long remainingBytes = message.getRemainingBytesToSend();
 		final long transferGranularity = getSimulator().getModel().getGlobalSettings().getTransferGranularity();
 
-		if(message.isAllMessageDataAvailable()){
-			MessagePart newPart = message.createNextMessagePart(remainingBytes);
+		if(remainingBytes >= transferGranularity){
+			/* restart the data transfer of this message */
+			MessagePart newPart = message.createNextMessagePart(transferGranularity);
 			Epoch time = getSimulator().getVirtualTime();
 			Event<MessagePart> event = new Event<MessagePart>(this, upload, time ,newPart);
 
@@ -249,9 +250,9 @@ public class SimpleNIC extends GNIC<NIC>{
 			return;
 		}
 
-		if(remainingBytes >= transferGranularity){
-			/* restart the data transfer of this message */
-			MessagePart newPart = message.createNextMessagePart(transferGranularity);
+		if(message.isAllMessageDataAvailable()){
+			MessagePart newPart = message.createNextMessagePart(remainingBytes);
+
 			Epoch time = getSimulator().getVirtualTime();
 			Event<MessagePart> event = new Event<MessagePart>(this, upload, time ,newPart);
 
