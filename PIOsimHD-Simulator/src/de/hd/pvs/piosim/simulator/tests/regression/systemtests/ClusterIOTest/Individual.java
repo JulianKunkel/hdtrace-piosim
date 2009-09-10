@@ -38,6 +38,7 @@ public class Individual extends IOTest {
 
 	public void doWrite(List<MPIFile> files) throws Exception {
 		int perIteration = perIteration();
+		int iterNum = (int)(fileSize / elementSize / clientNum);
 
 		assert(iterNum % perIteration == 0);
 
@@ -62,6 +63,7 @@ public class Individual extends IOTest {
 
 	public void doRead(List<MPIFile> files) throws Exception {
 		int perIteration = perIteration();
+		int iterNum = (int)(fileSize / elementSize / clientNum);
 
 		assert(iterNum % perIteration == 0);
 

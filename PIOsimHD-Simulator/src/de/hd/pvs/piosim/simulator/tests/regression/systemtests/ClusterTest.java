@@ -58,9 +58,9 @@ import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
 
 public class ClusterTest {
-	final long KBYTE = 1024;
-	final long MBYTE = 1024 * KBYTE;
-	final long GBYTE = 1024 * MBYTE;
+	protected final long KBYTE = 1024;
+	protected final long MBYTE = 1024 * KBYTE;
+	protected final long GBYTE = 1024 * MBYTE;
 
 	protected ModelBuilder mb;
 	protected ApplicationBuilder aB;

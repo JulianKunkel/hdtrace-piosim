@@ -43,17 +43,13 @@ import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefi
 abstract public class IOTest extends ClusterTest {
 	protected int serverNum = 10;
 	protected int clientNum = 10;
-	protected int fileNum = 10;
-	protected int iterNum = 250;
+	protected int fileNum = 1;
 	protected long elementSize = 0;
+	protected long fileSize = 1250 * MBYTE;
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
 
 	protected ServerCacheLayer cacheLayer = null;
-
-	protected long getFileSize (long elementSize) {
-		return (clientNum * iterNum) * elementSize;
-	}
 
 	protected List<MPIFile> prepare(boolean isEmpty) throws Exception {
 		List<MPIFile> files = new ArrayList<MPIFile>();
@@ -67,7 +63,7 @@ abstract public class IOTest extends ClusterTest {
 		dist.setChunkSize(stripeSize);
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, (isEmpty) ? 0 : getFileSize(elementSize), dist));
+			files.add(aB.createFile("testfile" + i, (isEmpty) ? 0 : fileSize, dist));
 		}
 
 		for (int i = 0; i < fileNum; i++) {
@@ -149,8 +145,8 @@ abstract public class IOTest extends ClusterTest {
 
 			for (int i = 0; i < sizes.size(); i++) {
 				if (res.readResults.size() > i) {
-					out.write("  " + sizes.get(i) + " READ  " + (fileNum * getFileSize(sizes.get(i))) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s\n");
-					out.write("  " + sizes.get(i) + " READ  " + (fileNum * getFileSize(sizes.get(i)) / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s\n");
+					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
 
 					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
 						if (info.getClass() == GRefinedDiskModelInformation.class) {
@@ -160,8 +156,8 @@ abstract public class IOTest extends ClusterTest {
 				}
 
 				if (res.writeResults.size() > i) {
-					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * getFileSize(sizes.get(i))) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s\n");
-					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * getFileSize(sizes.get(i)) / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
 
 					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
 						if (info.getClass() == GRefinedDiskModelInformation.class) {

@@ -42,43 +42,42 @@ import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Individual extends IOTest {
+	private int iterNum = 10;
+
 	private Random random = null;
 
 	public Individual() {
 		super();
-		iterNum /= 25;
+		fileNum = 10;
+		fileSize = 1250000 * KBYTE;
 	}
 
 	private int perIteration () {
 		return 1;
 	}
 
-	protected long getFileSize (long elementSize) {
-		return getDataTotal(elementSize) * 10;
-	}
-
-	protected long getDataPerIteration (long elementSize) {
+	private long getDataPerIteration (long elementSize) {
 		return elementSize * 50 * 50;
 	}
 
-	protected long getDataTotal (long elementSize) {
+	private long getDataTotal (long elementSize) {
 		return getDataPerIteration(elementSize) * iterNum * clientNum;
 	}
 
-	protected MPIFile getFile (List<MPIFile> files) {
+	private MPIFile getFile (List<MPIFile> files) {
 		int i = random.nextInt(files.size());
 		return files.get(i);
 	}
 
-	protected long getBlockOffset () {
-		long offset = Math.abs(random.nextLong()) % getFileSize(elementSize);
+	private long getBlockOffset () {
+		long offset = Math.abs(random.nextLong()) % fileSize;
 		long remainder = offset % elementSize;
 		return offset - remainder;
 	}
 
-	protected long getBlockSize (long offset) {
+	private long getBlockSize (long offset) {
 		int i = random.nextInt(100);
-		return Math.min((i + 1) * elementSize, getFileSize(elementSize) - offset);
+		return Math.min((i + 1) * elementSize, fileSize - offset);
 	}
 
 	public void doWrite(List<MPIFile> files) throws Exception {

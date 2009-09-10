@@ -38,6 +38,8 @@ public class Collective extends IOTest {
 				io.put(rank, new ListIO());
 			}
 
+			int iterNum = (int)(fileSize / elementSize / clientNum);
+
 			for (int i = 0; i < iterNum; i++) {
 				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 					io.get(rank).addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
@@ -55,6 +57,8 @@ public class Collective extends IOTest {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				io.put(rank, new ListIO());
 			}
+
+			int iterNum = (int)(fileSize / elementSize / clientNum);
 
 			for (int i = 0; i < iterNum; i++) {
 				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
