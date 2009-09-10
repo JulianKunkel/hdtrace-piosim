@@ -115,7 +115,13 @@ public class SimpleStripe extends Distribution {
 			final int startServer = getServerNumberForOffset(offset, serverCount);
 			final int numberOfChunksHit = (int) ((size+chunkSize-1 + offset % chunkSize)
 					/ chunkSize);
-			final int numberOfFullChunksHit = (int) ((size - (offset % chunkSize))
+
+			long firstServerRemainingUnalignedData = (offset+ chunkSize -1) / 	chunkSize * chunkSize - offset;
+
+			// in case the unaligned data is less than the given size:
+			firstServerRemainingUnalignedData = (firstServerRemainingUnalignedData >= size) ? size : firstServerRemainingUnalignedData;
+
+			final int numberOfFullChunksHit = (int) ((size - firstServerRemainingUnalignedData)
 					/ chunkSize);
 
 
@@ -125,11 +131,6 @@ public class SimpleStripe extends Distribution {
 			assert(sizePerServer >= 0);
 
 			final int unevenChunks = (numberOfFullChunksHit % serverCount);
-
-			long firstServerRemainingUnalignedData = (offset+ chunkSize -1) / 	chunkSize * chunkSize - offset;
-
-			// in case the unaligned data is less than the given size:
-			firstServerRemainingUnalignedData = (firstServerRemainingUnalignedData >= size) ? size : firstServerRemainingUnalignedData;
 
 			ConsoleLogger.getInstance().debug(this, " ListIO <" + offset + "," + size + ">\n" + "\tNumberOfChunks: " +
 					numberOfChunksHit + " FullChunks: " + numberOfFullChunksHit + " unalignedData " + firstServerRemainingUnalignedData
@@ -161,10 +162,11 @@ public class SimpleStripe extends Distribution {
 					final long remainder =  size - (((long) numberOfFullChunksHit) * chunkSize +
 							firstServerRemainingUnalignedData);
 
-					physicalSizeForThisServer += remainder ; //(size + offset) - ((size+offset) / chunkSize * chunkSize)
 					ConsoleLogger.getInstance().debug(this, "last server: " + i + " " + remainder + " " + physicalSizeForThisServer);
 
 					assert(remainder >= 0);
+
+					physicalSizeForThisServer += remainder ;
 				}
 
 				if(i == 0 && firstServerRemainingUnalignedData > 0){
