@@ -52,13 +52,13 @@ public class GlobalSettings {
 	 * The maximum amount of data which should be read or written at once from the I/O subsystem.
 	 */
 	@Attribute
-	private long IOGranularity = 1000 * 1000 * 10;
+	private long IOGranularity = 1024 * 1024 * 10;
 
 	/**
 	 * Maximum amount of data transferred in the eager protocol.
 	 */
 	@Attribute
-	private long maxEagerSendSize = 100 * 1024; // 100 KByte
+	private long maxEagerSendSize = 1024 * 100; // 100 KByte
 
 	/**
 	 * This object contains the actual chosen implementation for a function group.
