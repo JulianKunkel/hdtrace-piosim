@@ -26,6 +26,8 @@ public class SimulationResultSerializer {
 			buff.append(results.getComponents().get(cid).getClass().getSimpleName() + " " +  cid + map.get(cid) + "\n");
 		}
 
+		serializeSimulationOutput(buff, results);
+
 		return buff;
 	}
 

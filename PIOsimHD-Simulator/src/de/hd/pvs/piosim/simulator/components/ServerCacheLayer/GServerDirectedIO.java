@@ -343,7 +343,7 @@ public class GServerDirectedIO extends GAggregationCache {
 //				io = cur;
 //				break;
 //			} else
-			if (ioClose == null || ((lastOffset >= 0 && Math.abs(cur.getOffset() - lastOffset) < 5 * 1024 * 1024) && cur.getOffset() < ioClose.getOffset())) {
+			if (ioClose == null || (lastOffset >= 0 && Math.abs(cur.getOffset() - lastOffset) < 5 * 1024 * 1024 && cur.getOffset() < ioClose.getOffset())) {
 				/* Determine the IOJob closest to the last position. */
 				ioClose = cur;
 			} else if (ioLarge == null || cur.getSize() > ioLarge.getSize()) {
