@@ -121,7 +121,7 @@ public class RandomIOTest extends IOTest {
 		cacheLayers.add(new AggregationCache());
 		cacheLayers.add(new ServerDirectedIO());
 
-		sizes.add((long)512);
+//		sizes.add((long)512);
 		sizes.add((long)5 * KBYTE);
 		sizes.add((long)50 * KBYTE);
 		sizes.add((long)512 * KBYTE);
