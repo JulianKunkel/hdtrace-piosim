@@ -45,7 +45,7 @@ abstract public class IOTest extends ClusterTest {
 	protected int clientNum = 10;
 	protected int fileNum = 1;
 	protected long elementSize = 0;
-	protected long fileSize = 1250 * MBYTE;
+	protected long fileSize = 1000 * MBYTE;
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
 
@@ -118,7 +118,7 @@ abstract public class IOTest extends ClusterTest {
 		cacheLayers.add(new AggregationCache());
 		cacheLayers.add(new ServerDirectedIO());
 
-		sizes.add((long)512);
+//		sizes.add((long)512);
 		sizes.add((long)5 * KBYTE);
 		sizes.add((long)50 * KBYTE);
 		sizes.add((long)512 * KBYTE);
@@ -131,7 +131,10 @@ abstract public class IOTest extends ClusterTest {
 			for (long size : sizes) {
 				elementSize = size;
 
+				System.err.println(res.cacheLayer.getClass().getSimpleName() + " READ " + size);
 				res.readResults.add(readTest());
+
+				System.err.println(res.cacheLayer.getClass().getSimpleName() + " WRITE " + size);
 				res.writeResults.add(writeTest());
 			}
 
@@ -159,7 +162,7 @@ abstract public class IOTest extends ClusterTest {
 					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s\n");
 					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
 
-					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
+					for (ComponentRuntimeInformation info : res.writeResults.get(i).getComponentStatistics().values()) {
 						if (info.getClass() == GRefinedDiskModelInformation.class) {
 							out.write("    " + info + "\n");
 						}

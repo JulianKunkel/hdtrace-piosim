@@ -338,11 +338,12 @@ public class GServerDirectedIO extends GAggregationCache {
 		while (it.hasNext()) {
 			IOJob cur = it.next();
 
-			if (lastOffset >= 0 && cur.getOffset() == lastOffset) {
-				/* We can resume writing at the last position, perfect match. */
-				io = cur;
-				break;
-			} else if (ioClose == null || (lastOffset >= 0 && Math.abs(cur.getOffset() - lastOffset) < Math.abs(ioClose.getOffset() - lastOffset))) {
+//			if (lastOffset >= 0 && cur.getOffset() == lastOffset) {
+//				/* We can resume writing at the last position, perfect match. */
+//				io = cur;
+//				break;
+//			} else
+			if (ioClose == null || ((lastOffset >= 0 && Math.abs(cur.getOffset() - lastOffset) < 5 * 1024 * 1024) && cur.getOffset() < ioClose.getOffset())) {
 				/* Determine the IOJob closest to the last position. */
 				ioClose = cur;
 			} else if (ioLarge == null || cur.getSize() > ioLarge.getSize()) {
@@ -364,10 +365,11 @@ public class GServerDirectedIO extends GAggregationCache {
 				} else {
 					io = ioLarge;
 				}
-			} else {
-				/* Just use the first IOJob. */
-				io = list.peek();
 			}
+		}
+
+		if (io == null) {
+			io = list.peek();
 		}
 
 		if (io == null) {
