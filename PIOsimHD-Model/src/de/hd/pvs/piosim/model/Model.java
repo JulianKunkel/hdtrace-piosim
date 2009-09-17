@@ -177,6 +177,8 @@ public class Model{
 	 * @return
 	 */
 	public String findUnusedObjectName(String oldName){
+		String newName;
+
 		if (oldName == null)
 			return oldName;
 
@@ -185,17 +187,23 @@ public class Model{
 
 		Pattern p = Pattern.compile("([0-9]+)$");
 		Matcher m = p.matcher(oldName);
-		int curVal = 1;
+		int curVal = 0;
 		if (m.find()) {
-			curVal = (Integer.parseInt(m.group(1)) + 1);
+			curVal = (Integer.parseInt(m.group(1)));
 			oldName = oldName.substring(0, m.start());
 		}
 		// find an unused value
-		while (componentNameMap.get(oldName + curVal) != null) {
+		do {
 			curVal++;
-		}
 
-		return oldName + curVal;
+			if (curVal < 10) {
+				newName = oldName + "0" + curVal;
+			} else {
+				newName = oldName + curVal;
+			}
+		} while (componentNameMap.get(newName) != null);
+
+		return newName;
 	}
 
 	/**

@@ -183,7 +183,7 @@ public class ModelXMLReader {
 			// change template and names...
 			component.setTemplate(component.getName());
 			if(component.getName() != null)
-				component.setName(component.getName() + "_1");
+				component.setName(component.getName() + "_01");
 		}
 
 		return component;
