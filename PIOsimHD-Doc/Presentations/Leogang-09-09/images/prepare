@@ -1,0 +1,2 @@
+#!/bin/bash
+for I in *.odg ; do unoconv -v -d graphics -f pdf $I ; done

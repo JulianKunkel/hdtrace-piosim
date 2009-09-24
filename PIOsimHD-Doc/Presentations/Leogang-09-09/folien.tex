@@ -4,6 +4,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage[ngerman]{babel}
 \usepackage{rotating}
+\usepackage{float}
+\usepackage{subfigure}
 
 \usepackage{latexsym}
 \usepackage{floatflt}
@@ -269,23 +271,122 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
   \item Kollektive Optimierungen - Two-Phase* vs. Serverseitige Optimierungen
   \item Entwicklung neuer I/O Optimierungsstrategien
   \end{block}
-  
+
+ Normalerweise verfügt das Betriebsystem lediglich ein Teilwissen über I/O
+ Bei Schreibzugriffen nicht so gravierend, da Write-Behind
+ Bei Lesezugriffen ist die Reihenfolge der Bearbeitung vom I/O-Subsystem entscheident
+
   \begin{block}{Server-Directed I/O}
   \begin{itemize}
   \item Cache-Optimierungsstrategie auf I/O Servern
   \item Datentransfer zwischen Client/Server wird durch Server bestimmt
-  \item Interessant für nichtzusammenhängende Zugriffe
-  \itemm{Cache-Schicht bestimmt welche Daten mit Client ausgetauscht werden sollen
-    \item Im Moment für Lesezugriffe implementiert
-    \item Reads aller ausstehenden Anfragen sind bekannt
-    \item Priorisiere große zusammenhängende Reads}
-  
+  \item Geht über Kernel Optimierungen hinaus, da alle Anfragen berücksichtigt
+  \item Interessant für noncontigous I/O
+  \item Simulator: Cache-Schicht aggregiert Zugriffe und sortiert um
+    \itemm{Nutze Wissen über I/O-Subsystem Characteristika und Anfragen}  
   \end{itemize}  
   \end{block}
 }
 
-\myframe{}{
-  \item 
+\frame{
+\frametitle{Evaluation}
+
+\begin{block}{Simuliertes Cluster}
+\begin{itemize}
+  \item 10 Clients, Zugriffsmuster Simple-Strided [1,2,...,10,1,2,...,10]
+  \item 10 Server
+    \itemm{ 
+      1000\,MB Cache (RAM)
+      \item Platte - 50\,MB/s, 10\,ms mittlere Zugriffszeit, track-to-track 1\,ms
+      \itemm{bis 5\,MByte track-to-track seek sonst mittlerer Zugriff}
+    }
+  \item Sternförmige Vernetzung
+  \itemm{Netzwerkkarten -- Durchsatz 100\,MB/s, Latenz 0.2\,ms
+    \item Switch Durchsatz limitiert auf 1000\,MB/s
+  }
+\end{itemize}
+\end{block}
+
+\begin{block}{Experimente}
+ Sequenzielle E/A einer Datei mit 1000\,MByte
+ \begin{itemize}
+  \item Unabhängige I/O mit einem, 100 oder alle Blöcke 
+  \item Two-Phase
+  \item Interleaved Two-Phase 
+  \end{itemize}
+\end{block}
+}
+
+\frame{
+ \frametitle{Erwartungen}
+  \begin{block}{}
+  \begin{itemize}
+   \item Flaschenhals sind die Festplatten
+   \item Maximal 50\,MB/s pro Client und Server
+   \item Two-Phase weniger als 50\,MB/s wegen Netzwerktransport
+   \end{itemize}
+  \end{block}
+}
+
+\frame{
+\frametitle{Vergleich von Optimierungsstrategien -- Blockgröße: 5\,KB}
+\begin{center}
+\begin{figure}
+  \subfigure{
+        \includegraphics[width=0.95\textwidth]{images/Overview-5K-Read.pdf}                                    
+   }
+   \subfigure{
+        \includegraphics[width=0.95\textwidth]{images/Overview-5K-Write.pdf}            
+   }
+\end{figure}                                                                                    
+\end{center}                                                                           
+}
+
+\frame{
+\frametitle{Vergleich von Optimierungsstrategien -- Blockgröße: 512\,KB}
+\begin{center}
+\begin{figure}
+  \subfigure{
+        \includegraphics[width=0.95\textwidth]{images/Overview-512K-Read.pdf}                                    
+   }
+   \subfigure{
+        \includegraphics[width=0.95\textwidth]{images/Overview-512K-Write.pdf}            
+   }
+\end{figure}                                                                                    
+\end{center}                                                                           
+}
+
+\frame{
+
+Identifizieren der Ineffizienzen bei lesendem Zugriff und 5\,KByte Blockgröße
+Test mit mehr Clients -- 100 Clients
+NoCache  = 0.9 MB/s 
+ServerDirectedIO = 4.4 MB/s
+
+Beim non-contiguous Zugriff mit 100 Blöcken nur 15\,MB/s mit Server directed
+100 * 5\,KB = 500\,KB pro Server 
+Sobald I/O beendet ist werden alle clients aktiv $\Rightarrow$ implizite Synchronisation
+ 
+Im folgenden gekürzte Screenshots
+}
+
+\frame{
+\includegraphics[width=\textwidth]{images/Screenshot-IndividualStartup-5KB-1OpPerIteration.png}
+}
+
+\frame{
+\includegraphics[width=\textwidth]{images/Screenshot-IndividualLater-5KB-1OpPerIteration.png}
+}
+
+
+\frame{
+  \frametitle{Eine Iteration - Unabhängig 1 Block/Iteration}
+        \includegraphics[width=\textwidth]{images/Screenshot-Individuall-100.png}
+}
+
+\frame{
+  \frametitle{Eine Iteration - Unabhängig 100 Blöcke/Iteration}
+        \includegraphics[width=\textwidth]{images/Screenshot-Individuall-100.png}
 }
 
 
