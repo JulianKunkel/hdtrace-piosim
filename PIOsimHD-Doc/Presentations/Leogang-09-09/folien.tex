@@ -112,7 +112,7 @@ Julian M. Kunkel
   \itemm{Abschätzung für Effizienz einer Implementierung}
 \item Einfache Modelle für Hardware und Software
 \item Konfiguration der Hardware/Software nach belieben
-  \itemm{Schätze Skalierbarkeit von Software in beliebigen Cluster Umgebungen}
+  \itemm{Schätze Skalierbarkeit von Algorithmus in beliebigen Cluster Umgebungen}
 \item Einsatz/Nutzbarmachung von Standard-Tools zur Analyse
   \itemm{Simulationsergebnisse genau wie realle Programläufe bewerten}
 \item Neue Algorithmen/Verhalten schnell und reproduzierbar testen
@@ -199,7 +199,7 @@ Julian M. Kunkel
     \item Netzwerkoperationen 
     \item (Eigenverwaltete) Blockierung möglich}
 \item Globale Sicht auf alle Prozesse 
-  \itemm{Metawissen soll programmierung von einem Best-Case erlauben
+  \itemm{Metawissen soll Programmierung von einem Best-Case erlauben
     \item Ermöglicht bspw. “Virtuelle” Bariere}
 }
 
@@ -268,23 +268,49 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
 \myframe{Evaluation von I/O Optimierungen}{
   \begin{block}{Ziele}
   \item Effizienz verschiedener Optimierungen soll überprüft werden
-  \item Kollektive Optimierungen - Two-Phase* vs. Serverseitige Optimierungen
+  \item Kollektive Optimierungen - Two-Phase* vs. serverseitige Optimierungen
   \item Entwicklung neuer I/O Optimierungsstrategien
   \end{block}
+}
 
- Normalerweise verfügt das Betriebsystem lediglich ein Teilwissen über I/O
- Bei Schreibzugriffen nicht so gravierend, da Write-Behind
- Bei Lesezugriffen ist die Reihenfolge der Bearbeitung vom I/O-Subsystem entscheident
+\frame{
+\frametitle{Serverseitige Optimierungen}
+\begin{block}{Stand der Technik}
+  \begin{itemize}
+   \item I/O Zugriffe werden von Betriebsystem optimiert
+   \itemm{Betriebsystem Cache und Write-Behind} 
+   \item Typischerweise maximale Anzahl an Operationen die ans Betriebsystem gegeben werden
+   \itemm{Cluster Dateisystem trifft Vorauswahl, wann - welche I/O-Operationen}
+   \item $\Rightarrow$ Die I/O Schicht verfügt nur über Teilwissen der I/O Anfragen
+   \item Bei Schreibzugriffen nicht so gravierend, da Write-Behind Optimierungen erlaubt
+   \item Bei Lesezugriffen ist die Reihenfolge entscheident um Random-Access zu verhindern
+  \end{itemize}
+\end{block}
+}
 
-  \begin{block}{Server-Directed I/O}
+\frame{
+\frametitle{Server-Directed I/O}
+  \begin{block}{Theorie}
   \begin{itemize}
   \item Cache-Optimierungsstrategie auf I/O Servern
   \item Datentransfer zwischen Client/Server wird durch Server bestimmt
-  \item Geht über Kernel Optimierungen hinaus, da alle Anfragen berücksichtigt
-  \item Interessant für noncontigous I/O
-  \item Simulator: Cache-Schicht aggregiert Zugriffe und sortiert um
-    \itemm{Nutze Wissen über I/O-Subsystem Characteristika und Anfragen}  
+  \itemm{Interessant für Nichtzusammenhängende Zugriffe
+    \item Geht über Kernel Optimierungen hinaus, da alle Anfragen berücksichtigt
+    }    
+  \item Der Server kennt seine eigenen I/O-Charakteristika am besten
   \end{itemize}  
+  \end{block}
+  
+  \begin{block}{Umsetzung im Simulator}
+  \begin{itemize}
+  \item Cache-Schicht aggregiere Zugriffe (AggregationCache)
+    \itemm{Nutze Wissen über Anfragen}
+  \item Erweiterung sortiert auch die Zugriffe um (Server-Directed)
+    \itemm{Nutze Wissen über I/O-Subsystem Charakteristika}
+  \item Im Moment wird Datentransfer nur bei lesenden Zugriffen angepasst
+    \itemm{Write-Behind erlaubt schon sehr gute Aggregationen
+    \item Optional kann man Data-Sieving noch in Cache Schicht einbauen}
+  \end{itemize}
   \end{block}
 }
 
@@ -304,8 +330,12 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
   \itemm{Netzwerkkarten -- Durchsatz 100\,MB/s, Latenz 0.2\,ms
     \item Switch Durchsatz limitiert auf 1000\,MB/s
   }
+  \item Datenverteilung: Stripping mit 64\,KByte
 \end{itemize}
 \end{block}
+}
+
+\frame{
 
 \begin{block}{Experimente}
  Sequenzielle E/A einer Datei mit 1000\,MByte
@@ -315,11 +345,8 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
   \item Interleaved Two-Phase 
   \end{itemize}
 \end{block}
-}
 
-\frame{
- \frametitle{Erwartungen}
-  \begin{block}{}
+  \begin{block}{Erwartungen}
   \begin{itemize}
    \item Flaschenhals sind die Festplatten
    \item Maximal 50\,MB/s pro Client und Server
@@ -329,7 +356,7 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
 }
 
 \frame{
-\frametitle{Vergleich von Optimierungsstrategien -- Blockgröße: 5\,KB}
+\frametitle{Vergleich von Optimierungsstrategien, Blockgröße: 5\,KB}
 \begin{center}
 \begin{figure}
   \subfigure{
@@ -343,7 +370,7 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
 }
 
 \frame{
-\frametitle{Vergleich von Optimierungsstrategien -- Blockgröße: 512\,KB}
+\frametitle{Vergleich von Optimierungsstrategien, Blockgröße: 512\,KB}
 \begin{center}
 \begin{figure}
   \subfigure{
@@ -358,37 +385,60 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
 
 \frame{
 
-Identifizieren der Ineffizienzen bei lesendem Zugriff und 5\,KByte Blockgröße
-Test mit mehr Clients -- 100 Clients
-NoCache  = 0.9 MB/s 
-ServerDirectedIO = 4.4 MB/s
-
-Beim non-contiguous Zugriff mit 100 Blöcken nur 15\,MB/s mit Server directed
-100 * 5\,KB = 500\,KB pro Server 
-Sobald I/O beendet ist werden alle clients aktiv $\Rightarrow$ implizite Synchronisation
- 
-Im folgenden gekürzte Screenshots
+Warum ist ServerDirected bei lesendem Zugriff teilweise so langsam?
+\begin{block}{Analyse}
+ \begin{itemize}
+  \item Problemfall: Blockgröße 5\,KByte
+  \item Bei individueller I/O nur 1\,MB/s
+  \item Beim nicht zusammenhängendem Zugriff mit 100 Blöcken nur 15\,MB/s
+  \item Mit Viewer Simulationsergebnisse betrachten
+  \item Im folgenden gekürzte (und beschriftete) Screenshots
+  \itemm{Nur ein Teil der Server und Clients gezeigt}
+ \end{itemize}
+\end{block}
 }
 
 \frame{
+\frametitle{Unabhängige zusammenhängende I/O - 5\,KB - Startphase}
 \includegraphics[width=\textwidth]{images/Screenshot-IndividualStartup-5KB-1OpPerIteration.png}
 }
 
 \frame{
+\frametitle{Unabhängige zusammenhängende I/O - 5\,KB - Später}
 \includegraphics[width=\textwidth]{images/Screenshot-IndividualLater-5KB-1OpPerIteration.png}
 }
 
+\frame{
+ \begin{block}{These}
+  I/O Anfragen der 10 Clients sind später über die 10 Server verteilt\\
+  $\Rightarrow$ Keine Aggregation auf den Servern möglich
+ \end{block}
+ \begin{block}{Prüfung}
+  \begin{itemize}
+   \item Test mit mehr Clients -- 100 Clients
+   \item NoCache = 0.9 MB/s - (nahezu Random Zugriffe)
+   \item ServerDirectedIO = 4.4 MB/s
+  \end{itemize}
+  \end{block}
+}
 
 \frame{
-  \frametitle{Eine Iteration - Unabhängig 1 Block/Iteration}
+  \frametitle{Eine Iteration - 5\,KB - Unabhängige 100 Blöcke/Iteration}
         \includegraphics[width=\textwidth]{images/Screenshot-Individuall-100.png}
 }
 
 \frame{
-  \frametitle{Eine Iteration - Unabhängig 100 Blöcke/Iteration}
-        \includegraphics[width=\textwidth]{images/Screenshot-Individuall-100.png}
+  \begin{block}{Analyse}
+  \begin{itemize}
+   \item Pro Client 100 * 5\,KB = 500\,KB
+   \item Durch Zugriffsmuster Clients brauchen Blöcke von jedem Server 
+   \item Aggregation bündelt Anfragen sinnvoll zusammen
+   \item Sobald I/O beendet ist werden alle Clients aktiv 
+   \itemm{$\Rightarrow$ implizite Synchronisation}
+   \item Leerzeiten auf Server
+  \end{itemize}
+  \end{block}
 }
-
 
 %Kritische Betrachtungen
 %Interface für (Hardware) Komponenten teilweise schwer definierbar
@@ -401,11 +451,15 @@ Im folgenden gekürzte Screenshots
   \item Einfaches Model für Simulation von MPI und Cluster Hardware
   \item Geeignet für Simulation von heterogenen Umgebungen und Netztopologien
   \item Alternative Implementierungen für MPI Befehle evaluieren
-  \item Ergebnisse am beispiel von I/O Optimierungen
-  \itemm {Server-Seitige Optimierung in den meisten Fällen ausreichend}
+  \item Ergebnisse am Beispiel von I/O Optimierungen
+  \itemm {Server-Seitige Optimierung in den vielen Fällen ausreichend}
+  \item Visualisierung vereinfacht Analyse
 }
 
+\newcommand{\comment}[1]{
+}
 
+\comment{
 \section{Angelehnte Projekte}
 
 \subsection{Tracing}
@@ -495,5 +549,5 @@ Im folgenden gekürzte Screenshots
   \item Simulation ist ein Ansatz für Berechnung
   \item Abschätzung für Energiekosten und Verlust durch Programme
 }
-
+}
 \end{document}
