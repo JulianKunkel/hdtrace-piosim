@@ -129,7 +129,7 @@ typedef struct powertrace_s PowerTrace;
  * With the configuration file created you are ready to create a PowerTrace object:
  * @code
  * PowerTrace *myPowerTrace;
- * pt_createTrace("pt.cfg", NULL, &myUtilTrace);
+ * pt_createTrace("pt.cfg", NULL, &myPowerTrace);
  * @endcode
  *
  * @note Passing NULL to the second argument will use the topology defined in
@@ -139,9 +139,9 @@ typedef struct powertrace_s PowerTrace;
  * The tracing does not start before you tell it to by calling \ref pt_startTracing.
  *
  * You can start and stop tracing multiple times by calling \ref pt_startTracing
- * and \ref pt_stopTracing. When calling rut_stopTrace the current tracing period
- * is finished and no new period is started. Calling rut_startTrace immediately
- *  tells power analyzer to send date, so the exact start time depend on the
+ * and \ref pt_stopTracing. When calling pt_stopTracing the current tracing period
+ * is finished and no new period is started. Calling pt_startTracing immediately
+ *  instructs the power analyzer to send data. The exact start time depend on the
  *  arrival time of the new data.
  *
  * @section secenv Environment Variables
@@ -150,9 +150,9 @@ typedef struct powertrace_s PowerTrace;
  *
  * <tt>PT_VERBOSITY</tt> can be set to a number in the range -1 to 3.
  *  The default is 0 only showing error messaged. 1 enables warnings,
- *  2 enables info messages and 3 enable all debugging output.
- *  -1 makes the library absolutely silence, even in case of a fatal error.
- *  This value affects only the messages printed to stderr not the behavior
+ *  2 enables info messages and 3 enables all debugging output.
+ *  -1 makes the library absolutely silent, even in case of a fatal error.
+ *  This value affects only the messages printed to @p stderr not the behavior
  *   of the functions.
  */
 

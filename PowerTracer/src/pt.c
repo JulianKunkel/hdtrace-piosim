@@ -416,7 +416,7 @@ static void * doTracingThread(void *param);
  *  example in \ref seclu
  *
  * The tracing will not start until \ref pt_startTracing is called for the
- * UtilTrace object returned by this function.
+ * PowerTrace object returned by this function.
  *
  * @param configfile Name of the configuration file
  * @param topology   Topology to override default or config file choice (NULL not to override)
