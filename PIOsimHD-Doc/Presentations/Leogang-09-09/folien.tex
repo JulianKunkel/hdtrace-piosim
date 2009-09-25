@@ -33,10 +33,10 @@
 \setbeamertemplate{note page}[plain] 
 %compressed
 
-\title[]{  Simulation paralleler E/A auf Anwendungs- und Systemebene }
+\title[]{  Simulation paralleler E/A auf \\ Anwendungs- und Systemebene }
 \author{ \underline{Julian M. Kunkel} } %Research Group:
 \institute{ Institut für Informatik \\  Parallele und Verteilte Systeme \\ Ruprecht-Karls-Universit\"at Heidelberg}
-\date{  27.09.2009 }
+\date{  28.09.2009 }
 \beamertemplatetransparentcovereddynamic
 \setbeamerfont{note page}{size=\small}
 %\setbeamersize{text margin left=0.1cm,text margin right=0.1cm}
@@ -282,8 +282,8 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
    \item Typischerweise maximale Anzahl an Operationen die ans Betriebsystem gegeben werden
    \itemm{Cluster Dateisystem trifft Vorauswahl, wann - welche I/O-Operationen}
    \item $\Rightarrow$ Die I/O Schicht verfügt nur über Teilwissen der I/O Anfragen
-   \item Bei Schreibzugriffen nicht so gravierend, da Write-Behind Optimierungen erlaubt
    \item Bei Lesezugriffen ist die Reihenfolge entscheident um Random-Access zu verhindern
+   \item Bei Schreibzugriffen nicht so gravierend, da Write-Behind Optimierungen erlaubt   
   \end{itemize}
 \end{block}
 }
@@ -449,105 +449,10 @@ Warum ist ServerDirected bei lesendem Zugriff teilweise so langsam?
 \section{Fazit}
 \myframe{Fazit}{
   \item Einfaches Model für Simulation von MPI und Cluster Hardware
-  \item Geeignet für Simulation von heterogenen Umgebungen und Netztopologien
+  \item Geeignet für Simulation von heterogenen Umgebungen
   \item Alternative Implementierungen für MPI Befehle evaluieren
   \item Ergebnisse am Beispiel von I/O Optimierungen
   \itemm {Server-Seitige Optimierung in den vielen Fällen ausreichend}
-  \item Visualisierung vereinfacht Analyse
-}
-
-\newcommand{\comment}[1]{
-}
-
-\comment{
-\section{Angelehnte Projekte}
-
-\subsection{Tracing}
-\frame{
-  \begin{block}{}
-  \centering
-  Tracing Umgebung
-  \end{block}
-}
-
-\myframe{Tracing}{
-\item Existierende Formate stellten nicht genügend Information bereit
-\itemm{Simulator benötigt alle Parameter eines MPI Aufrufs
-  \item Nichtzusammenhängende I/O muss gespeichert werden}
-\item Eigene Tracing Umgebung
-\itemm{
-  Trace Format(e)
-  \item MPIWrapper
-  \item Viewer
-  }
-}
-
-\subsection{Simulation von Energiesparstrategien}
-
-\frame{
-  \begin{block}{}
-  \centering
-  Simulation von Energiesparstrategien
-  \end{block}
-}
-
-\myframe{Ziele}{
-  \item Vergleiche (simulierten) Energieverbrauch der Anwendung mit verschiedenen Sparstrategien
-  \item Strategien könnten auch (bedingt) Umstrukturierung des Programs berücksichtigen
-  \itemm{bspw. verzögern von Netzwerk- und I/O Aktivität}
-  \item Berechne minimale Energiekosten bei optimal (energiesparenden) Komponenten
-  \itemm{d.h. Energieverbrauch ist proportional zur Leistung 
-    \item Obere Schranke für Energieeinsparpotenzial 
-  }
-  \item Anwendbarkeit bei beliebigen Programmen
-}
-
-\myframe{Simulation von Energiesparstrategien - Methodik}{  
-  \item Auslastung von CPU, Netwerk, I/O-subsystemen periodisch tracen
-  \item Schätze Energieverbrauch der Komponenten basierend auf Auslastung
-    \itemm{Lineare Interpolierung des Energieverbrauchs - Min/Max Auslastung}
-  \item Bei Idle-Zeiten Stromsparmechanismen aktivieren
-    \itemm{ACPI Model für Energieverbrauch/Dauer des Zustandwechsels}
-  \item Strategien kennen künftige Last (im Trace) und steuern Stromsparmechanismen
-  \itemm{Eine Umordung/Verschiebung der Last ist teilweise möglich}
-  \item Vergleich der Simulierten Ergebnisse mit gemessenem Energieverbrauch
-  \itemm{Ebenfalls eine Eichung des Models}
-}
-
-\myframe{Beispielstrategie - Approach Strategie}{
-  \item Betrachte die Last der nächsten (zukünftigen) k-Intervalle
-  \item Kosten Zustandswechsel und Aktivierung vs. Einsparungspotenzial
-  \itemm{$\Rightarrow$ minimale Zeit für die es sich lohnt die Komponente in Sparmodus zu versetzen}
-  \item Bei wenig Last $\le 10\%$  verzögere diese (wenn möglich) auf später
-  \itemm{Bspw. 10 Intervalle a 10\% resultiert in einem Intervall mit 100\% Last}
-}
-
-\myframe{Ergebnisse - Jacobi PDE}{
- \item Iterationen: 5 (Rechenintensiv), 500 (Kommunikationsintensiv)
- \item Für I/O wurde jede Iteration ein Checkpointing auf PVFS gemacht
- \item Die Abweichung zwischen gemessener Leistungsaufnahme und Simulierter beträgt im Beispiel $\leq$ 3\%.
-  \begin{table}
-  \begin{center}
-  \begin{tabular}{l||l|l|l|l}
-  Konfiguration & Simple S. & Optimale S. & Approach S. & Eff. Geräte \\
-  \hline
-  \hline
-  4 p/500 & 90\,Watt & 17\% & 19\% & 33\% \\
-  4x2 p/500 & 70\,Watt & 2.3\% & 2.6\% & 9.3\% \\
-  4 p/5 + I/O & 20\,Watt & 7\% & 11\% & 28\% \\
-  4x2 p/5 + I/O & 18.5\,Watt & 4.7\% & 6.7\% & 23.5\% \\  
-  \end{tabular}
-  \end{center}
-  \end{table}
-  % 500 iterationen => 4 nodes x 2 prozesse
-  % 5 iterationen
-}
-
-\myframe{Fazit}{
-  \item Hohe Auslastung $\Rightarrow$ gute Energieeffizienz
-  \item Potenzial für Energieeinsparung durch Lastungleichheit etc. vorhanden
-  \item Simulation ist ein Ansatz für Berechnung
-  \item Abschätzung für Energiekosten und Verlust durch Programme
-}
+  \item Visualisierung des Systemverhaltens vereinfacht Analyse
 }
 \end{document}

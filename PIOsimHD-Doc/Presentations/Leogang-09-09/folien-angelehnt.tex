@@ -1,0 +1,197 @@
+\documentclass{beamer}
+%\documentclass[notes=show]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage{subfigure}
+
+\usepackage{latexsym}
+\usepackage{floatflt}
+\usepackage{graphicx}
+%\definecolor{lightblue}{rgb}{0.8,0.9,1.0}
+%\usetheme{PaloAlto}
+%\usetheme{Darmstadt}
+\usetheme{Frankfurt}
+%\usetheme{Berlin}
+
+%\usecolortheme{crane}
+%\usecolortheme{wolverine}
+\usecolortheme{seagull}
+%\usecolortheme{albatross}
+%\usecolortheme{beetle}
+%\usecolortheme{lily}
+
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps}
+\usepackage{amsmath,amssymb}
+
+\setbeamercovered{dynamic}
+
+
+%notes:
+\setbeamertemplate{note page}[plain] 
+%compressed
+
+\title[]{  Simulation paralleler E/A auf Anwendungs- und Systemebene }
+\author{ \underline{Julian M. Kunkel} } %Research Group:
+\institute{ Institut für Informatik \\  Parallele und Verteilte Systeme \\ Ruprecht-Karls-Universit\"at Heidelberg}
+\date{  27.09.2009 }
+\beamertemplatetransparentcovereddynamic
+\setbeamerfont{note page}{size=\small}
+%\setbeamersize{text margin left=0.1cm,text margin right=0.1cm}
+%\renewcommand{\>}{\rangle}
+%\newcommand{\<}{\langle} 
+%\usebeamercolor[fg]{[page number]}
+
+\setbeamertemplate{navigation symbols}{}
+%\setbeamertemplate{note page}{}
+
+\setbeamersize{text margin left=0.2cm}
+\setbeamersize{text margin right=0.2cm}
+\setbeamersize{sidebar width right=0cm}
+\setbeamersize{sidebar width left=0cm}
+
+\setbeamertemplate{footline}
+{
+\begin{beamercolorbox}{title}
+\hspace*{0.2cm}
+% \copyright 
+Julian M. Kunkel 
+\hfill
+ \insertslidenavigationsymbol
+ \insertframenavigationsymbol
+ \insertsubsectionnavigationsymbol
+ \insertsectionnavigationsymbol
+ \insertdocnavigationsymbol
+ \insertbackfindforwardnavigationsymbol
+ \hfill\insertframenumber/\inserttotalframenumber
+ \hspace*{0.2cm}
+\end{beamercolorbox}
+}
+
+%\newcommand{\markNote}[1]{	\textsuperscript{\tiny [#1]} }
+\newcommand{\markNote}[1]{	 }
+
+%\AtBeginSection[]{
+%\frame{
+      %\frametitle{Outline}
+	%\tableofcontents[current,hideallsubsections]
+%	}
+%}
+
+\begin{document}
+\frame{
+	\titlepage
+}
+
+\frame{
+\frametitle{Agenda}
+\tableofcontents[hideallsubsections]
+}
+
+\newcommand {\myframe}[2]{
+\frame{
+	\frametitle{#1} 
+	\begin{itemize}
+	#2 
+	\end{itemize}
+}
+}
+
+\newcommand {\itemm}[1]{
+  	\begin{itemize}
+	\item #1
+	\end{itemize}
+}
+
+\section{Angelehnte Projekte}
+
+\subsection{Tracing}
+\frame{
+  \begin{block}{}
+  \centering
+  Tracing Umgebung
+  \end{block}
+}
+
+\myframe{Tracing}{
+\item Existierende Formate stellten nicht genügend Information bereit
+\itemm{Simulator benötigt alle Parameter eines MPI Aufrufs
+  \item Nichtzusammenhängende I/O muss gespeichert werden}
+\item Eigene Tracing Umgebung
+\itemm{
+  Trace Format(e)
+  \item MPIWrapper
+  \item Viewer
+  }
+}
+
+\subsection{Simulation von Energiesparstrategien}
+
+\frame{
+  \begin{block}{}
+  \centering
+  Simulation von Energiesparstrategien
+  \end{block}
+}
+
+\myframe{Ziele}{
+  \item Vergleiche (simulierten) Energieverbrauch der Anwendung mit verschiedenen Sparstrategien
+  \item Strategien könnten auch (bedingt) Umstrukturierung des Programs berücksichtigen
+  \itemm{bspw. verzögern von Netzwerk- und I/O Aktivität}
+  \item Berechne minimale Energiekosten bei optimal (energiesparenden) Komponenten
+  \itemm{d.h. Energieverbrauch ist proportional zur Leistung 
+    \item Obere Schranke für Energieeinsparpotenzial 
+  }
+  \item Anwendbarkeit bei beliebigen Programmen
+}
+
+\myframe{Simulation von Energiesparstrategien - Methodik}{  
+  \item Auslastung von CPU, Netwerk, I/O-subsystemen periodisch tracen
+  \item Schätze Energieverbrauch der Komponenten basierend auf Auslastung
+    \itemm{Lineare Interpolierung des Energieverbrauchs - Min/Max Auslastung}
+  \item Bei Idle-Zeiten Stromsparmechanismen aktivieren
+    \itemm{ACPI Model für Energieverbrauch/Dauer des Zustandwechsels}
+  \item Strategien kennen künftige Last (im Trace) und steuern Stromsparmechanismen
+  \itemm{Eine Umordung/Verschiebung der Last ist teilweise möglich}
+  \item Vergleich der Simulierten Ergebnisse mit gemessenem Energieverbrauch
+  \itemm{Ebenfalls eine Eichung des Models}
+}
+
+\myframe{Beispielstrategie - Approach Strategie}{
+  \item Betrachte die Last der nächsten (zukünftigen) k-Intervalle
+  \item Kosten Zustandswechsel und Aktivierung vs. Einsparungspotenzial
+  \itemm{$\Rightarrow$ minimale Zeit für die es sich lohnt die Komponente in Sparmodus zu versetzen}
+  \item Bei wenig Last $\le 10\%$  verzögere diese (wenn möglich) auf später
+  \itemm{Bspw. 10 Intervalle a 10\% resultiert in einem Intervall mit 100\% Last}
+}
+
+\myframe{Ergebnisse - Jacobi PDE}{
+ \item Iterationen: 5 (Rechenintensiv), 500 (Kommunikationsintensiv)
+ \item Für I/O wurde jede Iteration ein Checkpointing auf PVFS gemacht
+ \item Die Abweichung zwischen gemessener Leistungsaufnahme und Simulierter beträgt im Beispiel $\leq$ 3\%.
+  \begin{table}
+  \begin{center}
+  \begin{tabular}{l||l|l|l|l}
+  Konfiguration & Simple S. & Optimale S. & Approach S. & Eff. Geräte \\
+  \hline
+  \hline
+  4 p/500 & 90\,Watt & 17\% & 19\% & 33\% \\
+  4x2 p/500 & 70\,Watt & 2.3\% & 2.6\% & 9.3\% \\
+  4 p/5 + I/O & 20\,Watt & 7\% & 11\% & 28\% \\
+  4x2 p/5 + I/O & 18.5\,Watt & 4.7\% & 6.7\% & 23.5\% \\  
+  \end{tabular}
+  \end{center}
+  \end{table}
+  % 500 iterationen => 4 nodes x 2 prozesse
+  % 5 iterationen
+}
+
+\myframe{Fazit}{
+  \item Hohe Auslastung $\Rightarrow$ gute Energieeffizienz
+  \item Potenzial für Energieeinsparung durch Lastungleichheit etc. vorhanden
+  \item Simulation ist ein Ansatz für Berechnung
+  \item Abschätzung für Energiekosten und Verlust durch Programme
+}
+\end{document}
