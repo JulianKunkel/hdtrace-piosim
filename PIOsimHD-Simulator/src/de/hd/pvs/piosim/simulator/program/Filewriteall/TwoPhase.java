@@ -290,16 +290,16 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 					theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank);
 
 					if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
+						//System.out.println("recv from " + c.getRank());
+						OUTresults.addNetReceive(c.getRank(), 60001, Communicator.INTERNAL_MPI);
+						OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
+					}
+
+					if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
 						//System.out.println("send to " + c.getRank());
 						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
 						// offset-length pairs
 						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getIOOperations().size() * 16 + 20), 60001, Communicator.INTERNAL_MPI);
-					}
-
-					if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
-						//System.out.println("recv from " + c.getRank());
-						OUTresults.addNetReceive(c.getRank(), 60001, Communicator.INTERNAL_MPI);
-						OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
 					}
 				}
 
