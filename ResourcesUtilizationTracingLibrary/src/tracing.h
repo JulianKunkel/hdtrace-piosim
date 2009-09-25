@@ -17,19 +17,27 @@
 #include <glibtop/fsusage.h>
 
 #include "hdStats.h"
-#include "PTL.h"
+#include "RUT.h"
 
 /* ************************************************************************* */
 /*                            TYPE DEFINITIONS                               */
 /* ************************************************************************* */
 
+/**
+ * @internal
+ * Structure for the control of the tracing thread
+ */
 typedef struct {
 	GMutex *mutex;
 	GCond *stateChanged;
-	gboolean enabled;
-	gboolean quit;
+	gboolean started;
+	gboolean terminate;
 } tracingControlStruct;
 
+/**
+ * @internal
+ * Structure for storing old values e.g. to build differences
+ */
 typedef struct {
 	gboolean valid;
 	glibtop_cpu cpu;
@@ -38,6 +46,10 @@ typedef struct {
 	glibtop_fsusage fs;
 } tracingValuesStruct;
 
+/**
+ * @internal
+ * Strcuture for static data sourced out from \ref tracingDataStruct
+ */
 typedef struct {
 	gint cpu_num;
 	glibtop_netlist netlist;
@@ -46,11 +58,12 @@ typedef struct {
 } tracingStaticDataStruct;
 
 /**
- * TODO
+ * @internal
+ * Structure for the tracing data for managing the tracing iterations
  */
 typedef struct {
 	hdStatsGroup *group;
-	ptlSources sources;
+	rutSources sources;
 	int interval;
 	tracingControlStruct *control;
 	tracingStaticDataStruct staticData;
@@ -63,7 +76,7 @@ typedef struct {
 /* ************************************************************************* */
 
 /**
- * TODO
+ * Initialize the tracing stuff.
  */
 /* tracingData->sources has to be already set *
  * tracingData->group is set by this function */
@@ -74,8 +87,8 @@ int initTracing(
 		);
 
 /**
- * TODO
+ * Run function of the tracing thread.
  */
-gpointer tracingThreadFunc(gpointer myPTLObject);
+gpointer tracingThreadFunc(gpointer myRUTObject);
 
 #endif /* TRACING_H_ */

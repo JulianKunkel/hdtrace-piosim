@@ -60,10 +60,10 @@
 
 #include "hdmpi-wrapper-pkg.h"
 
-#ifdef ENABLE_PERFORMANCE_TRACE
-#include "PTL.h"
+#ifdef ENABLE_UTILIZATION_TRACE
+#include "RUT.h"
 
-static PerfTrace *pStatistics = NULL;
+static UtilTrace *rutStatistics = NULL;
 #endif
 
 #ifdef ENABLE_POWER_TRACE
@@ -330,15 +330,15 @@ static void after_Init(int *argc, char ***argv)
 	hdMPI_threadInitTracing();
 #endif
 
-#ifdef ENABLE_PERFORMANCE_TRACE
-# define ENABLE_PERFORMANCE_OR_POWER_TRACE
+#ifdef ENABLE_UTILIZATION_TRACE
+# define ENABLE_UTILIZATION_OR_POWER_TRACE
 #else
 # ifdef ENABLE_POWER_TRACE
-#  define ENABLE_PERFORMANCE_OR_POWER_TRACE
+#  define ENABLE_UTILIZATION_OR_POWER_TRACE
 # endif
 #endif
 
-#ifdef ENABLE_PERFORMANCE_OR_POWER_TRACE
+#ifdef ENABLE_UTILIZATION_OR_POWER_TRACE
 	{
 	/* JK: use the powertracer, the powertracer must be started only once per node */
 	/* therefore determine full qualified hostname and send it to all other ranks */
@@ -383,28 +383,28 @@ static void after_Init(int *argc, char ***argv)
 
         if(rankForThisHost == rank){
 
-# ifdef ENABLE_PERFORMANCE_TRACE
+# ifdef ENABLE_UTILIZATION_TRACE
 
             printf("Start performance tracer on host %s by rank: %d\n", hostname, rank);
 
-        	ptlSources statistics;
+        	rutSources statistics;
 
             // create labels and values for the project topology
             const char *levels[1] = {hostname};
             hdTopoNode *topoNode = hdT_createTopoNode(topology, levels, 1);
 
-            PTLSRC_SET_ALL(statistics);
+            RUTSRC_SET_ALL(statistics);
 
             // set the global variable
-    		pStatistics = ptl_createTrace(topoNode, 1, statistics, 1000);
-    		if (pStatistics == NULL){
-    			printf("Error while starting performance tracing: %d\n", rank);
-    			PMPI_Abort(MPI_COMM_WORLD, 2);
-    		}
+    		ret = rut_createTrace(topoNode, 1, statistics, 1000, &rutStatistics);
+        	if (ret != RUT_SUCCESS) {
+        		printf("Error while starting resources utilization tracing: %d\n", rank);
+        		PMPI_Abort(MPI_COMM_WORLD, 2);
+        	}
 
-    		ptl_startTrace(pStatistics);
+        rut_startTracing(rutStatistics);
 
-# endif /* ENABLE_PERFORMANCE_TRACE */
+# endif /* ENABLE_UTILIZATION_TRACE */
 
 # ifdef ENABLE_POWER_TRACE
 
@@ -477,10 +477,10 @@ static void after_Finalize(void)
 {
 	hdMPI_threadFinalizeTracing();
 
-#ifdef ENABLE_PERFORMANCE_TRACE
-	if(pStatistics != NULL){
-		ptl_stopTrace(pStatistics);
-		ptl_destroyTrace(pStatistics);
+#ifdef ENABLE_UTILIZATION_TRACE
+	if(rutStatistics != NULL){
+		rut_stopTracing(rutStatistics);
+		rut_finalizeTrace(rutStatistics);
 	}
 #endif
 
@@ -512,7 +512,7 @@ static void before_Abort()
 int MPI_Init(int * v1,  char *** v2){
   int ret;
   ret = PMPI_Init( v1,  v2);
-  after_Init(v1, v2); 
+  after_Init(v1, v2);
   return ret;
 }
 
@@ -523,6 +523,6 @@ int MPI_Finalize(void){
   after_Finalize();
   return ret;
 }
-#endif 
+#endif
 
 /* here the mpi tracing function definitions are appended by create_sim-wrapper.py */

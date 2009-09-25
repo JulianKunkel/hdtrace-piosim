@@ -25,7 +25,7 @@
 /* ************************************************************************* */
 
 __warndecl(ptl_cte_too_few_hds_values_per_group,
-		"WARNING: HDS_MAX_VALUES_PER_GROUP < PTL_MAX_STATS_VALUES");
+		"WARNING: HDS_MAX_VALUES_PER_GROUP < RUT_MAX_STATS_VALUES");
 
 
 /* ************************************************************************* */
@@ -43,6 +43,22 @@ static void doTracingStepHDD(tracingDataStruct *tracingData);
 /*                    PUBLIC FUNCTION IMPLEMENTATIONS                        */
 /* ************************************************************************* */
 
+/**
+ * Initialize the tracing stuff.
+ *
+ * - Creates the statistics group
+ * - Units and value types are defined inside this function (TODO change that?)
+ *
+ * TODO Better error handling
+ *
+ * @param topoNode    Topology node to associate the trace with
+ * @param topoLevel   Topology level of the topology node
+ * @param tracingData Tracing Data Object to use
+ *
+ * @return error state
+ *
+ * @retval 0  Success
+ */
 int initTracing(
 		hdTopoNode *topoNode, /* topoNode the trace belongs to */
 		int topoLevel,       /* level of topology the trace take place */
@@ -54,8 +70,14 @@ int initTracing(
 	 */
 
 	/* generate statistics group */
-	hdStatsGroup *group = hdS_createGroup("Performance", topoNode, topoLevel);
+	hdStatsGroup *group = hdS_createGroup("Utilization", topoNode, topoLevel);
 	/* TODO Error handling */
+	if(group == NULL) {
+		assert(errno != HD_ERR_INVALID_ARGUMENT);
+		assert(errno != HD_ERR_MALLOC);
+		assert(errno != HD_ERR_BUFFER_OVERFLOW);
+		assert(errno != HD_ERR_CREATE_FILE);
+	}
 
 	tracingData->group = group;
 
@@ -75,16 +97,16 @@ int initTracing(
 	 * Specify tracing entry format
 	 */
 
-	ptlSources sources = tracingData->sources;
+	rutSources sources = tracingData->sources;
 
 
-#define PTL_STRING_BUFFER_LENGTH 50
+#define RUT_STRING_BUFFER_LENGTH 50
 
 	/* allocate string buffer */
-	char strbuf[PTL_STRING_BUFFER_LENGTH];
+	char strbuf[RUT_STRING_BUFFER_LENGTH];
 	strbuf[0] = '\0';
 
-#if HDS_MAX_VALUES_PER_GROUP < PTL_MAX_STATS_VALUES
+#if HDS_MAX_VALUES_PER_GROUP < RUT_MAX_STATS_VALUES
 	ptl_cte_too_few_hds_values_per_group();
 #endif
 
@@ -102,33 +124,33 @@ int initTracing(
 
 
 	/* specify entry format */
-	if (sources.PTLSRC_CPU_LOAD)
+	if (sources.CPU_UTIL)
 		ADD_VALUE(group, "CPU_TOTAL", FLOAT, "%", "CPU");
 
-	if (sources.PTLSRC_CPU_LOAD_X)
+	if (sources.CPU_UTIL_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
-			ret = snprintf(strbuf, PTL_STRING_BUFFER_LENGTH, "CPU_TOTAL_%d", i);
-			g_assert(ret < PTL_STRING_BUFFER_LENGTH);
+			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_TOTAL_%d", i);
+			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
 		}
 
 #define MEM_UNIT "B"
 
-	if (sources.PTLSRC_MEM_USED)
+	if (sources.MEM_USED)
 		ADD_VALUE(group,"MEM_USED", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_FREE)
+	if (sources.MEM_FREE)
 		ADD_VALUE(group,"MEM_FREE", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_SHARED)
+	if (sources.MEM_SHARED)
 		ADD_VALUE(group,"MEM_SHARED", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_BUFFER)
+	if (sources.MEM_BUFFER)
 		ADD_VALUE(group,"MEM_BUFFER", INT64, MEM_UNIT, "MEM");
 
-	if (sources.PTLSRC_MEM_CACHED)
+	if (sources.MEM_CACHED)
 		ADD_VALUE(group,"MEM_CACHED", INT64, MEM_UNIT, "MEM");
 
 
@@ -138,7 +160,7 @@ int initTracing(
 	{
 		char name[255];
 
-		if (sources.PTLSRC_NET_IN_X)
+		if (sources.NET_IN_X)
 		{
 			ret = snprintf(name, 255, "NET_IN_%s",
 					tracingData->staticData.netifs[i]);
@@ -146,7 +168,7 @@ int initTracing(
 			ADD_VALUE(group, name, INT64, NET_UNIT, "NET");
 		}
 
-		if (sources.PTLSRC_NET_OUT_X)
+		if (sources.NET_OUT_X)
 		{
 			ret = snprintf(name, 255, "NET_OUT_%s",
 					tracingData->staticData.netifs[i]);
@@ -156,35 +178,35 @@ int initTracing(
 
 	}
 
-	if (sources.PTLSRC_NET_IN_EXT)
+	if (sources.NET_IN_EXT)
 		ADD_VALUE(group, "NET_IN_EXT", INT64, NET_UNIT, "NET");
 
-	if (sources.PTLSRC_NET_OUT_EXT)
+	if (sources.NET_OUT_EXT)
 		ADD_VALUE(group, "NET_OUT_EXT", INT64, NET_UNIT, "NET");
 
-	if (sources.PTLSRC_NET_IN)
+	if (sources.NET_IN)
 		ADD_VALUE(group, "NET_IN", INT64, NET_UNIT, "NET");
 
-	if (sources.PTLSRC_NET_OUT)
+	if (sources.NET_OUT)
 		ADD_VALUE(group, "NET_OUT", INT64, NET_UNIT, "NET");
 
 
-#define HDD_UNIT "Blocks"
+#define HDD_UNIT "B"
 
 	// right now read harddisk partition to use from environment
-	char * mountpoint = getenv("PTL_HDD_MOUNTPOINT");
+	char * mountpoint = getenv("RUT_HDD_MOUNTPOINT");
 	if(mountpoint == NULL){
 		mountpoint = "/";
-		WARNMSG("Use environment variable PTL_HDD_MOUNTPOINT to set mount point to trace.\n"
+		WARNMSG("Use environment variable RUT_HDD_MOUNTPOINT to set mount point to trace.\n"
 				"Right now '%s' is used by default", mountpoint);
 	}
-	ptl_malloc(tracingData->staticData.hdd_mountpoint, strlen(mountpoint) + 1, -1)
+	rut_malloc(tracingData->staticData.hdd_mountpoint, strlen(mountpoint) + 1, -1)
 	strcpy(tracingData->staticData.hdd_mountpoint, mountpoint);
 
-	if (sources.PTLSRC_HDD_READ)
+	if (sources.HDD_READ)
 		ADD_VALUE(group, "HDD_READ", INT64, HDD_UNIT, "HDD");
 
-	if (sources.PTLSRC_HDD_WRITE)
+	if (sources.HDD_WRITE)
 		ADD_VALUE(group, "HDD_WRITE", INT64, HDD_UNIT, "HDD");
 
 	/*
@@ -198,7 +220,7 @@ int initTracing(
 	 */
 
 	/* allocate memory for saving network interfaces statistics values */
-	ptl_malloc(tracingData->oldValues.netload,
+	rut_malloc(tracingData->oldValues.netload,
 			tracingData->staticData.netlist.number, -1);
 
     /* mark old values invalid */
@@ -211,7 +233,9 @@ int initTracing(
  * Run function of the tracing thread.
  *
  * This function and so the thread is running the tracing loop all
- * the time when \a tracingData->control->enabled is \a TRUE.
+ * the time when \a tracingData->control->started is \a TRUE. For
+ * terminating the loop, \a tracingData->control->terminate must
+ * become \a TRUE.
  *
  * @param tracingDataPointer  Pointer to the tracing data structure
  *
@@ -219,40 +243,107 @@ int initTracing(
  */
 gpointer tracingThreadFunc(gpointer tracingDataPointer)
 {
-	tracingDataStruct *tracingData = (tracingDataStruct *) tracingDataPointer;
+	int ret;
 
-	/* enable used statistics group
-	 * (we handle trace enabling/disabling by ourself for performance reasons) */
-	// TODO Change this, since start/stop tracing will be handled special in hdStats
-	hdS_enableGroup(tracingData->group);
+	tracingDataStruct *tracingData = (tracingDataStruct *) tracingDataPointer;
 
 	/* create timer */
 	gulong currentTime, waitTime;
 	GTimer *timer = g_timer_new();
 
-	gboolean quit = FALSE;
-	while(1)
-	{
-		INFOMSG("Entering tracing loop");
-		/* wait until tracing is enabled and check quit condition */
+    /*
+     * Tracing iterations loop
+     */
+
+    /* should the traces become enabled/disabled ? */
+    int enable_trace = 0;
+    int disable_trace = 0;
+
+    /* terminate on error with retval */
+    int terminate = 0;
+
+    /* are the traces and the device enabled? */
+    int enabled = 0;
+
+    while(1)
+    {
+    	INFOMSG("Entering tracing loop");
+
+    	/* error handling */
+    	if (terminate) {
+    		/* try to disable traces and device */
+       		if (enabled) {
+       			hdS_disableGroup(tracingData->group);
+       		}
+       		break;
+     	}
+
 		g_mutex_lock(tracingData->control->mutex);
 
-		while (!tracingData->control->enabled && !tracingData->control->quit)
-		{
-			INFOMSG("Waiting for tracing becomes enabled");
-			/* mark old statistics data invalid */
-			tracingData->oldValues.valid = FALSE;
-			/* wait for tracing becomes enabled */
-			g_cond_wait (tracingData->control->stateChanged,
-					tracingData->control->mutex);
-		}
-		quit = tracingData->control->quit;
+    	/* if the thread is stopped but the traces are enabled, disable them */
+    	if (!tracingData->control->started && enabled) {
+    		disable_trace = 1;
+    	}
 
+    	/* else wait until the thread is started or started again */
+    	else {
+    		while (!(tracingData->control->started || tracingData->control->terminate)) {
+    			assert(!enabled);
+    			assert(!enable_trace);
+    			assert(!disable_trace);
+    			INFOMSG("Waiting for tracing becomes started");
+    			/* mark old statistics data invalid */
+    			tracingData->oldValues.valid = FALSE;
+    			/* wait for tracing becomes enabled */
+    			g_cond_wait (tracingData->control->stateChanged,
+    					tracingData->control->mutex);
+    		}
+
+        	/* if the thread is started but the traces are disabled, enable them */
+        	if (tracingData->control->started && !enabled) {
+        		enable_trace = 1;
+        	}
+
+        	/* if termination requested, disable traces and terminate */
+        	if (tracingData->control->terminate) {
+        		if (enabled)
+        			disable_trace = 1;
+        		else {
+        			g_mutex_unlock(tracingData->control->mutex);
+        			break;
+        		}
+        	}
+    	}
 		g_mutex_unlock(tracingData->control->mutex);
 
-		/* quit loop if requested to do */
-		if (quit)
-			break;
+    	/* enable and disable makes no sense together */
+    	assert(!(enable_trace && disable_trace));
+
+    	/* enable traces if necessary */
+    	if (enable_trace) {
+
+    		/* enable statistic group */
+   			ret = hdS_enableGroup(tracingData->group);
+   			assert(ret >= 0);
+
+    		enable_trace = 0;
+    		enabled = 1;
+    	}
+
+    	/* disable traces if necessary */
+    	if (disable_trace) {
+
+    		/* disable statistic group */
+   			ret = hdS_disableGroup(tracingData->group);
+   			assert(ret >= 0);
+
+    		disable_trace = 0;
+    		enabled = 0;
+
+    		/* restart loop to wait for next start */
+    		continue;
+    	}
+
 
 		/* wait for next multiple of interval time */
 		currentTime = (gulong) (1000.0 * g_timer_elapsed(timer, NULL));
@@ -278,12 +369,12 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 	g_timer_destroy(timer);
 
 	/* free memory used for thread data */
-	ptl_free(tracingData->oldValues.netload);
+	rut_free(tracingData->oldValues.netload);
 	for (size_t i = 0; i < tracingData->staticData.netlist.number; ++i)
-		ptl_free(tracingData->staticData.netifs[i]);
-	ptl_free(tracingData->staticData.netifs);
-	ptl_free(tracingData->staticData.hdd_mountpoint);
-	ptl_free(tracingData);
+		rut_free(tracingData->staticData.netifs[i]);
+	rut_free(tracingData->staticData.netifs);
+	rut_free(tracingData->staticData.hdd_mountpoint);
+	rut_free(tracingData);
 
 	g_free(NULL);
 
@@ -295,6 +386,12 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 /*                    STATIC FUNCTION IMPLEMENTATIONS                        */
 /* ************************************************************************* */
 
+/**
+ * Get all tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
+ */
 static void doTracingStep(tracingDataStruct *tracingData)
 {
 
@@ -312,7 +409,11 @@ static void doTracingStep(tracingDataStruct *tracingData)
 	tracingData->oldValues.valid = TRUE;
 }
 
-#define CHECK_WRITE_VALUE_ERROR \
+/**
+ * Check for errors and use assert if one occurred.
+ *  ret is the return value of one of the hdS_write*Value functions
+ */
+#define CHECK_WRITE_VALUE_ERROR(ret) \
 	do { \
 		if (ret < 0) \
 			switch (errno)	{ \
@@ -324,37 +425,57 @@ static void doTracingStep(tracingDataStruct *tracingData)
 			} \
 	} while (0)
 
-#define WRITE_I32_VALUE(value) \
+/**
+ * Write a INT32 value to the tracing group tracingData->group.
+ * Use \ref CHECK_WRITE_VALUE_ERROR for error handling
+ */
+#define WRITE_I32_VALUE(tracingData, value) \
 	do { \
-		int ret = hdS_writeInt32Value(tracingData->group, value); \
-		CHECK_WRITE_VALUE_ERROR; \
+		int ret = hdS_writeInt32Value((tracingData)->group, value); \
+		CHECK_WRITE_VALUE_ERROR(ret); \
 	} while (0)
 
-#define WRITE_I64_VALUE(value) \
+/**
+ * Write a INT64 value to the tracing group tracingData->group.
+ * Use \ref CHECK_WRITE_VALUE_ERROR for error handling
+ */
+#define WRITE_I64_VALUE(tracingData, value) \
 	do { \
-		int ret = hdS_writeInt64Value(tracingData->group, value); \
-		CHECK_WRITE_VALUE_ERROR; \
+		int ret = hdS_writeInt64Value((tracingData)->group, value); \
+		CHECK_WRITE_VALUE_ERROR(ret); \
 	} while (0)
 
-#define WRITE_FLOAT_VALUE(value) \
+/**
+ * Write a FLOAT value to the tracing group tracingData->group.
+ * Use \ref CHECK_WRITE_VALUE_ERROR for error handling
+ */
+#define WRITE_FLOAT_VALUE(tracingData, value) \
 	do { \
-		int ret = hdS_writeFloatValue(tracingData->group, value); \
-		CHECK_WRITE_VALUE_ERROR; \
+		int ret = hdS_writeFloatValue((tracingData)->group, value); \
+		CHECK_WRITE_VALUE_ERROR(ret); \
 	} while (0)
 
 
 /* ************************************************************************
  * CPU
  */
+
+/**
+ * Get the CPU tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
+ */
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
-	if (! (tracingData->sources.PTLSRC_CPU_LOAD
-			|| tracingData->sources.PTLSRC_CPU_LOAD_X))
+	if (! (tracingData->sources.CPU_UTIL
+			|| tracingData->sources.CPU_UTIL_X))
 		return;
 
 #define CPUDIFF(val) \
 	((gdouble) (cpu.val - tracingData->oldValues.cpu.val))
-	// TODO evaluate if overflows are possible and likely here
+	/* overflows are too rare (max num-of-CPUs times per 497 days)
+	 * so overflow handling would be disproportional costly.  */
 
 	gfloat valuef;
 	glibtop_cpu cpu;
@@ -363,21 +484,21 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 	if (tracingData->oldValues.valid)
 	{
-		if (tracingData->sources.PTLSRC_CPU_LOAD)
+		if (tracingData->sources.CPU_UTIL)
 		{
 			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
-			WRITE_FLOAT_VALUE(valuef * 100);
+			WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
 
-		if (tracingData->sources.PTLSRC_CPU_LOAD_X)
+		if (tracingData->sources.CPU_UTIL_X)
 		{
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{
 				/* TODO: Check CPU enable state (flags) */
 				valuef = (gfloat)(1.0 - (CPUDIFF(xcpu_idle[i])
 						/ CPUDIFF(xcpu_total[i])));
-				WRITE_FLOAT_VALUE(valuef * 100);
+				WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
@@ -393,13 +514,20 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 /* ************************************************************************
  * Memory
  */
+
+/**
+ * Get the MEM tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
+ */
 static void doTracingStepMEM(tracingDataStruct *tracingData) {
 
-	if (! (tracingData->sources.PTLSRC_MEM_USED
-			|| tracingData->sources.PTLSRC_MEM_FREE
-			|| tracingData->sources.PTLSRC_MEM_SHARED
-			|| tracingData->sources.PTLSRC_MEM_BUFFER
-			|| tracingData->sources.PTLSRC_MEM_CACHED))
+	if (! (tracingData->sources.MEM_USED
+			|| tracingData->sources.MEM_FREE
+			|| tracingData->sources.MEM_SHARED
+			|| tracingData->sources.MEM_BUFFER
+			|| tracingData->sources.MEM_CACHED))
 		return;
 
 	gint64 valuei64;
@@ -411,9 +539,9 @@ static void doTracingStepMEM(tracingDataStruct *tracingData) {
 	{
 
 #define MEM_WRITE_VALUE(PART,part) \
-	if (tracingData->sources.PTLSRC_MEM_##PART) { \
+	if (tracingData->sources.MEM_##PART) { \
 		valuei64 = (gint64) (mem.part); \
-		WRITE_I64_VALUE(valuei64); \
+		WRITE_I64_VALUE(tracingData, valuei64); \
 		DEBUGMSG("MEM_" #PART " = %" G_GINT64_FORMAT " " MEM_UNIT, valuei64); \
 	}
 
@@ -434,14 +562,21 @@ static void doTracingStepMEM(tracingDataStruct *tracingData) {
 /* ************************************************************************
  * Network
  */
+
+/**
+ * Get the NET tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
+ */
 static void doTracingStepNET(tracingDataStruct *tracingData) {
 
-	if (! (tracingData->sources.PTLSRC_NET_IN_X
-			|| tracingData->sources.PTLSRC_NET_OUT_X
-			|| tracingData->sources.PTLSRC_NET_IN_EXT
-			|| tracingData->sources.PTLSRC_NET_OUT_EXT
-			|| tracingData->sources.PTLSRC_NET_IN
-			|| tracingData->sources.PTLSRC_NET_OUT))
+	if (! (tracingData->sources.NET_IN_X
+			|| tracingData->sources.NET_OUT_X
+			|| tracingData->sources.NET_IN_EXT
+			|| tracingData->sources.NET_OUT_EXT
+			|| tracingData->sources.NET_IN
+			|| tracingData->sources.NET_OUT))
 		return;
 
 	gint64 valuei64;
@@ -501,18 +636,18 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 		{
 			/* trace single interfaces */
 
-			if (tracingData->sources.PTLSRC_NET_IN_X)
+			if (tracingData->sources.NET_IN_X)
 			{
 				valuei64 = (gint64) in;
-				WRITE_I64_VALUE(valuei64);
+				WRITE_I64_VALUE(tracingData, valuei64);
 				DEBUGMSG("NET_IN_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
 
-			if (tracingData->sources.PTLSRC_NET_OUT_X)
+			if (tracingData->sources.NET_OUT_X)
 			{
 				valuei64 = (gint64) out;
-				WRITE_I64_VALUE(valuei64);
+				WRITE_I64_VALUE(tracingData, valuei64);
 				DEBUGMSG("NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
@@ -525,31 +660,31 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
     /* handle aggregated statistics of all interfaces */
     if (tracingData->oldValues.valid)
     {
-    	if (tracingData->sources.PTLSRC_NET_IN_EXT)
+    	if (tracingData->sources.NET_IN_EXT)
 		{
 			valuei64 = (gint64)	ext_in;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_IN_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
-    	if (tracingData->sources.PTLSRC_NET_OUT_EXT)
+    	if (tracingData->sources.NET_OUT_EXT)
 		{
 			valuei64 = (gint64)	ext_out;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_OUT_EXT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
-    	if (tracingData->sources.PTLSRC_NET_IN)
+    	if (tracingData->sources.NET_IN)
 		{
 			valuei64 = (gint64)	all_in;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_IN = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
 
-    	if (tracingData->sources.PTLSRC_NET_OUT)
+    	if (tracingData->sources.NET_OUT)
 		{
 			valuei64 = (gint64)	all_out;
-			WRITE_I64_VALUE(valuei64);
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("NET_OUT = %" G_GINT64_FORMAT " " NET_UNIT, valuei64);
 		}
     }
@@ -559,10 +694,17 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 /* *************************************************************************
  * HDD
  */
+
+/**
+ * Get the HDD tracing values for one iteration step and write them
+ *  to the statistics group.
+ *
+ * @param tracingData  Tracing Data Object
+ */
 static void doTracingStepHDD(tracingDataStruct *tracingData) {
 
-	if(! (tracingData->sources.PTLSRC_HDD_READ
-			|| tracingData->sources.PTLSRC_HDD_WRITE))
+	if(! (tracingData->sources.HDD_READ
+			|| tracingData->sources.HDD_WRITE))
 		return;
 
 	gint64 valuei64;
@@ -572,19 +714,24 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 
 	if (tracingData->oldValues.valid)
 	{
-		if (tracingData->sources.PTLSRC_HDD_READ)
+		/* TODO check if block size is always 512,
+		 * the reported is the correct one for the file system but not
+		 * the correct factor for the counted blocks		 */
+		if (tracingData->sources.HDD_READ)
 		{
-			valuei64 = (gint64) (fs.read - tracingData->oldValues.fs.read);
-			WRITE_I64_VALUE(valuei64);
+			valuei64 = (gint64) (/*fs.block_size*/ 512 *
+					(fs.read - tracingData->oldValues.fs.read));
+			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
-	  }
+		}
 
-	  if (tracingData->sources.PTLSRC_HDD_WRITE)
-	  {
-		  valuei64 = (gint64) (fs.write - tracingData->oldValues.fs.write);
-		  WRITE_I64_VALUE(valuei64);
-		  DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
-	  }
+		if (tracingData->sources.HDD_WRITE)
+		{
+			valuei64 = (gint64) (/*fs.block_size*/ 512 *
+					(fs.write - tracingData->oldValues.fs.write));
+			WRITE_I64_VALUE(tracingData, valuei64);
+			DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
+		}
 	}
 	tracingData->oldValues.fs = fs;
 }

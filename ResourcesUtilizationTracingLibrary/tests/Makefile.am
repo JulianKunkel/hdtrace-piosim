@@ -2,13 +2,13 @@
 
 include $(top_srcdir)/common.am
 
-check_PROGRAMS = ptlTest
+check_PROGRAMS = rutTest
 
-ptlTest_CFLAGS = -I$(INC_DIR) $(GLIB_CFLAGS) $(GLIBTOP_CFLAGS) $(HDTWLIB_CFLAGS)
-ptlTest_LDADD = $(LIB_DIR)/libPTL.la $(HDTWLIB_LDADD) $(GLIB_LDADD) $(GLIBTOP_LDADD)
-ptlTest_LDFLAGS = $(GLIB_LIBS) $(GLIBTOP_LIBS) $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS) -static
+rutTest_CFLAGS = -I$(INC_DIR) $(GLIB_CFLAGS) $(GLIBTOP_CFLAGS) $(HDTWLIB_CFLAGS)
+rutTest_LDADD = $(LIB_DIR)/libRUT.la $(HDTWLIB_LDADD) $(GLIB_LDADD) $(GLIBTOP_LDADD)
+rutTest_LDFLAGS = $(GLIB_LIBS) $(GLIBTOP_LIBS) $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS) -static
 
-TESTS = ptlTest
+TESTS = rutTest
 
 # Build the tests already with target all
 # This is especially needed for eclipse autobuild function

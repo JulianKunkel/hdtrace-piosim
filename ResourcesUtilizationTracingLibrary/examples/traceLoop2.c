@@ -1,7 +1,7 @@
 /**
  * @file traceLoop2.c
  *
- * Example program showing how to use PTL.
+ * Example program showing how to use libRUT.
  * The program simply starts tracing for all sources groups given as command
  *  line arguments. To stop it send SIGINT (Ctrl+C).
  *
@@ -18,12 +18,12 @@
 #include <limits.h>
 
 #include "hdTopo.h"
-#include "PTL.h"
+#include "RUT.h"
 
 static struct {
 	hdTopology *topology;
 	hdTopoNode *toponode;
-	PerfTrace *trace;
+	UtilTrace *trace;
 } fstuff = { NULL, NULL, NULL };
 
 void sighandler(int sig) {
@@ -32,10 +32,10 @@ void sighandler(int sig) {
 		return;
 
 	/* stop tracing */
-	ptl_stopTrace(fstuff.trace);
+	rut_stopTracing(fstuff.trace);
 
-	/* destroy PerfTrace object */
-	ptl_destroyTrace(fstuff.trace);
+	/* destroy UtilTrace object */
+	rut_finalizeTrace(fstuff.trace);
 
 	/* destroy all the rest */
 	hdT_destroyTopoNode(fstuff.toponode);
@@ -47,6 +47,8 @@ void sighandler(int sig) {
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	if (argc < 4) {
 		puts("You must give at least two arguments (Projectname, Cycle, Sources)");
 		return -1;
@@ -83,21 +85,21 @@ int main(int argc, char **argv)
 
 	/* create sources */
 
-	ptlSources mySources;
-	PTLSRC_UNSET_ALL(mySources);
+	rutSources mySources;
+	RUTSRC_UNSET_ALL(mySources);
 
 	/* set sources */
 	for (int i = 2; i < argc; ++i) {
 		if (strcmp(argv[i], "ALL") == 0)
-			PTLSRC_SET_ALL(mySources);
+			RUTSRC_SET_ALL(mySources);
 		if (strcmp(argv[i], "CPU") == 0)
-			PTLSRC_SET_CPU(mySources);
+			RUTSRC_SET_CPU(mySources);
 		if (strcmp(argv[i], "MEM") == 0)
-			PTLSRC_SET_MEM(mySources);
+			RUTSRC_SET_MEM(mySources);
 		if (strcmp(argv[i], "NET") == 0)
-			PTLSRC_SET_NET(mySources);
+			RUTSRC_SET_NET(mySources);
 		if (strcmp(argv[i], "HDD") == 0)
-			PTLSRC_SET_HDD(mySources);
+			RUTSRC_SET_HDD(mySources);
 	}
 
 	/* read cycle time */
@@ -108,12 +110,12 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	/* create PerfTrace object */
+	/* create UtilTrace object */
 
-	PerfTrace *myTrace;
-	myTrace = ptl_createTrace(myTopoNode, 1, mySources, cycle);
+	UtilTrace *myTrace;
+	ret = rut_createTrace(myTopoNode, 1, mySources, cycle, &myTrace);
 
-	if (myTrace == NULL)
+	if (ret != RUT_SUCCESS)
 	{
 		fputs("Failed to create PerfTrace object.", stderr);
 		return -1;
@@ -123,7 +125,7 @@ int main(int argc, char **argv)
 
 	/* start tracing */
 
-	ptl_startTrace(myTrace);
+	rut_startTracing(myTrace);
 
 
 	/* loop */

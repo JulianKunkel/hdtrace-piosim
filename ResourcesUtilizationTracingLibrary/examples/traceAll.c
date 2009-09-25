@@ -1,7 +1,7 @@
 /**
  * @file traceAll.c
  *
- * Example program showing how to use PTL.
+ * Example program showing how to use libRUT.
  * The program simply starts tracing for all sources available, does some
  * actions resulting in changes of resource utilization and stops tracing
  * afterwards.
@@ -17,10 +17,11 @@
 #include <string.h>
 
 #include "hdTopo.h"
-#include "PTL.h"
+#include "RUT.h"
 
 int main(void)
 {
+	int ret;
 
 	/* create topology */
 
@@ -36,21 +37,21 @@ int main(void)
 
 	/* create sources */
 
-	ptlSources mySources;
-	PTLSRC_UNSET_ALL(mySources);
+	rutSources mySources;
+	RUTSRC_UNSET_ALL(mySources);
 
 
 	/* set all available sources */
 
-	PTLSRC_SET_ALL(mySources);
+	RUTSRC_SET_ALL(mySources);
 
 
-	/* create PerfTrace object */
+	/* create UtilTrace object */
 
-	PerfTrace *myTrace;
-	myTrace = ptl_createTrace(myTopoNode, 1, mySources, 700);
+	UtilTrace *myTrace;
+	ret = rut_createTrace(myTopoNode, 1, mySources, 700, &myTrace);
 
-	if (myTrace == NULL)
+	if (ret != RUT_SUCCESS)
 	{
 		fputs("Failed to create PerfTrace object.", stderr);
 		return -1;
@@ -59,7 +60,7 @@ int main(void)
 
 	/* start tracing */
 
-	ptl_startTrace(myTrace);
+	rut_startTracing(myTrace);
 
 
 	/* first sleep a little while */
@@ -111,12 +112,12 @@ int main(void)
 
 	/* stop tracing */
 
-	ptl_stopTrace(myTrace);
+	rut_stopTracing(myTrace);
 
 
-	/* destroy PerfTrace object */
+	/* destroy UtilTrace object */
 
-	ptl_destroyTrace(myTrace);
+	rut_finalizeTrace(myTrace);
 
 	hdT_destroyTopoNode(myTopoNode);
 	hdT_destroyTopology(myTopology);

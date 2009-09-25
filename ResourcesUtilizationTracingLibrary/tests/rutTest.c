@@ -1,5 +1,5 @@
 /**
- * @file ptlTest.c
+ * @file rutTest.c
  *
  * @date 30.04.2009
  * @author Stephan Krempel <stephan.krempel@gmx.de>
@@ -14,16 +14,16 @@
 #include <assert.h>
 
 #include "hdTopo.h"
-#include "PTL.h"
+#include "RUT.h"
 
 #include "tests.h"
 
 
 #if 0
 /**
- * Copies from PTL.c for direct access while testing
+ * Copies from RUT.c for direct access while testing
  */
-struct PerfTrace_s
+struct UtilTrace_s
 {
 	GThread *tracingThread;
 	tracingControlStruct *tracingControl;
@@ -58,55 +58,61 @@ static hdTopoNode * getTopoNode(hdTopology *myTopology)
  *                                 BEGIN Tests                               *
  * ************************************************************************* */
 /**
- * Test ptl_createTrace: Correct usage
+ * Test rut_createTrace: Correct usage
  */
 static void Test_C1(void)
 {
+	int ret;
+
 	/* create topology and topology node */
 	hdTopology *myTopology = getTopology();
 	hdTopoNode *myTopoNode = getTopoNode(myTopology);
 
 	/* create sources */
-	ptlSources mySources;
-	PTLSRC_UNSET_ALL(mySources);
+	rutSources mySources;
+	RUTSRC_UNSET_ALL(mySources);
 
 	/* set some sources */
-	mySources.PTLSRC_CPU_LOAD = 1;
-	mySources.PTLSRC_MEM_USED = 1;
-	mySources.PTLSRC_MEM_FREE = 1;
-	mySources.PTLSRC_MEM_BUFFER = 1;
-	mySources.PTLSRC_HDD_READ = 1;
-	mySources.PTLSRC_HDD_WRITE = 1;
+	mySources.CPU_UTIL = 1;
+	mySources.MEM_USED = 1;
+	mySources.MEM_FREE = 1;
+	mySources.MEM_BUFFER = 1;
+	mySources.HDD_READ = 1;
+	mySources.HDD_WRITE = 1;
+
+	/* assure the file does not exist */
+	unlink("MyProject_host0_Utilization.stat");
 
 	TEST_BEGIN("ptl_createTrace: Correct usage");
 
-	PerfTrace *myTrace;
-	myTrace = ptl_createTrace(myTopoNode, 1, mySources, 700);
+	UtilTrace *myTrace;
+	ret = rut_createTrace(myTopoNode, 1, mySources, 700, &myTrace);
 
+	assert(ret == RUT_SUCCESS);
 	assert(myTrace != NULL);
 
 	sleep(2);
 
-	ptl_startTrace(myTrace);
+	rut_startTracing(myTrace);
 
 	sleep(5);
 
-	ptl_stopTrace(myTrace);
+	rut_stopTracing(myTrace);
 
 	sleep(3);
 
-	ptl_startTrace(myTrace);
+	rut_startTracing(myTrace);
 
 	sleep(2);
 
 	TEST_PASSED
 
-	ptl_destroyTrace(myTrace);
+	rut_finalizeTrace(myTrace);
 
 	hdT_destroyTopoNode(myTopoNode);
 	hdT_destroyTopology(myTopology);
 
-	remove("MyProject_host0_Performance.stat");
+	remove("MyProject_host0_Utilization.stat");
 
 }
 
@@ -117,7 +123,7 @@ int main(void)
 	setenv("G_SLICE", "debug-blocks", 1);
 
 	/* setup hdd mountpoint */
-	setenv("PTL_HDD_MOUNTPOINT", "/", 1);
+	setenv("RUT_HDD_MOUNTPOINT", "/", 1);
 
 	/* run all tests */
 	Test_C1();
