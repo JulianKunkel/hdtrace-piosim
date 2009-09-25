@@ -41,21 +41,21 @@ public class Collective extends IOTest {
 		//assert(iterNum % perIteration == 0);
 
 		for (MPIFile file : files) {
-			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
-
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				io.put(rank, new ListIO());
-			}
-
 			for (int i = 0; i < iterNum; i += perIteration) {
+				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					io.put(rank, new ListIO());
+				}
+
 				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 					for (int j = 0; j < perIteration; j++) {
 						io.get(rank).addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
 					}
 				}
-			}
 
-			pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
+				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
+			}
 		}
 	}
 
@@ -66,21 +66,21 @@ public class Collective extends IOTest {
 		//assert(iterNum % perIteration == 0);
 
 		for (MPIFile file : files) {
-			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
-
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				io.put(rank, new ListIO());
-			}
-
 			for (int i = 0; i < iterNum; i += perIteration) {
+				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
+				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+					io.put(rank, new ListIO());
+				}
+
 				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 					for (int j = 0; j < perIteration; j++) {
 						io.get(rank).addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
 					}
 				}
-			}
 
-			pb.addReadCollective(aB.getWorldCommunicator(), file, io);
+				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
+			}
 		}
 	}
 
