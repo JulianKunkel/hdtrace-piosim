@@ -33,14 +33,14 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Individual extends IOTest {
 	private int perIteration () {
-		return 1;
+		return 10;
 	}
 
 	public void doWrite(List<MPIFile> files) throws Exception {
 		int perIteration = perIteration();
 		int iterNum = (int)(fileSize / elementSize / clientNum);
 
-		assert(iterNum % perIteration == 0);
+		//assert(iterNum % perIteration == 0);
 
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
@@ -65,10 +65,11 @@ public class Individual extends IOTest {
 		int perIteration = perIteration();
 		int iterNum = (int)(fileSize / elementSize / clientNum);
 
-		assert(iterNum % perIteration == 0);
+		//assert(iterNum % perIteration == 0);
 
-		for (int i = 0; i < iterNum; i += perIteration) {
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+
+		for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+			for (int i = 0; i < iterNum; i += perIteration) {
 				for (MPIFile f : files) {
 					Fileread com = new Fileread();
 					ListIO lio = new ListIO();

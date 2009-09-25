@@ -30,43 +30,66 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Collective extends IOTest {
-	public void doWrite(List<MPIFile> files) throws Exception {
-		for (MPIFile file : files) {
-			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+	int collectiveOperationsPerIteration = 100;
 
+	private HashMap<Integer, ListIO>  prepareIOList(final int outerIter, final int collectiveOperationsPerIteration){
+		final HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+
+		for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+			io.put(rank, new ListIO());
+		}
+
+		for (int iter = 0; iter < collectiveOperationsPerIteration; iter++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				io.put(rank, new ListIO());
+				io.get(rank).addIOOperation((( (outerIter * collectiveOperationsPerIteration + iter) * clientNum) + rank) * elementSize, elementSize);
 			}
+		}
+		return io;
+	}
 
-			int iterNum = (int)(fileSize / elementSize / clientNum);
+	public void doWrite(List<MPIFile> files) throws Exception {
+		int iterNum = (int)(fileSize / elementSize / clientNum);
 
-			for (int i = 0; i < iterNum; i++) {
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					io.get(rank).addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
-				}
+		int maxIter;
+		if(collectiveOperationsPerIteration <= 0){
+			collectiveOperationsPerIteration = iterNum;
+			maxIter = 1;
+		}else{
+			if(iterNum % collectiveOperationsPerIteration != 0){
+				throw new IllegalArgumentException("Running with:" + iterNum + " " + collectiveOperationsPerIteration);
 			}
+			maxIter = iterNum / collectiveOperationsPerIteration;
+		}
 
-			pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
+		for (MPIFile file : files) {
+			for (int curIter = 0; curIter < maxIter; curIter++){
+				HashMap<Integer, ListIO> io =  prepareIOList(curIter, collectiveOperationsPerIteration);
+
+				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
+			}
 		}
 	}
 
 	public void doRead(List<MPIFile> files) throws Exception {
+		int iterNum = (int)(fileSize / elementSize / clientNum);
+
+		int maxIter;
+		if(collectiveOperationsPerIteration <= 0){
+			collectiveOperationsPerIteration = iterNum;
+			maxIter = 1;
+		}else{
+			if(iterNum % collectiveOperationsPerIteration != 0){
+				throw new IllegalArgumentException("Running with:" + iterNum + " " + collectiveOperationsPerIteration);
+			}
+			maxIter = iterNum / collectiveOperationsPerIteration;
+		}
+
 		for (MPIFile file : files) {
-			HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
+			for (int curIter = 0; curIter < maxIter; curIter++){
+				HashMap<Integer, ListIO> io =  prepareIOList(curIter, collectiveOperationsPerIteration);
 
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				io.put(rank, new ListIO());
+				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 			}
-
-			int iterNum = (int)(fileSize / elementSize / clientNum);
-
-			for (int i = 0; i < iterNum; i++) {
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					io.get(rank).addIOOperation(((i * clientNum) + rank) * elementSize, elementSize);
-				}
-			}
-
-			pb.addReadCollective(aB.getWorldCommunicator(), file, io);
 		}
 	}
 

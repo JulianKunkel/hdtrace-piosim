@@ -30,7 +30,6 @@ import java.util.List;
 
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Allgather;
 import de.hd.pvs.piosim.model.program.commands.Filereadall;
@@ -246,9 +245,9 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 			mySize = Math.min(twoPhaseBufferSize, maxOffset - myOffset);
 			mySize = Math.max(mySize, 0);
 
-			System.out.println("min " + minOffset + " max " + maxOffset);
-			System.out.println("myOffset " + myOffset);
-			System.out.println("mySize " + mySize);
+			//System.out.println("min " + minOffset + " max " + maxOffset);
+			//System.out.println("myOffset " + myOffset);
+			//System.out.println("mySize " + mySize);
 
 			myContainer.setListIO(cmd.getIOList().getPartition(myOffset, mySize));
 
@@ -286,9 +285,9 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 					ISNodeHostedComponent targetNIC = sserver;
 					ListIO iolist = servers.get(server);
 
-					for (SingleIOOperation op : iolist.getIOOperations()) {
-						System.out.println(server + ": " + op);
-					}
+					//for (SingleIOOperation op : iolist.getIOOperations()) {
+					//	System.out.println(server + ": " + op);
+					//}
 
 					// FIXME optimize
 					OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
@@ -348,7 +347,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 			mySize = Math.min(twoPhaseBufferSize, maxOffset - myOffset);
 			mySize = Math.max(mySize, 0);
 
-			System.out.println("rank " + myContainer.getRank());
+			//System.out.println("rank " + myContainer.getRank());
 
 			for (FilereadallContainer c : meta_info.get(cmd)) {
 				long theirOffset;
@@ -363,12 +362,12 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 				theirSize = Math.max(theirSize, 0);
 
 				if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
-					System.out.println("send to " + c.getRank());
+					//System.out.println("send to " + c.getRank());
 					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(c.getCommand().getIOList().getPartition(myOffset, mySize).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
 				}
 
 				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
-					System.out.println("recv from " + c.getRank());
+					//System.out.println("recv from " + c.getRank());
 					OUTresults.addNetReceive(c.getRank(), 50000, Communicator.INTERNAL_MPI);
 				}
 			}

@@ -30,7 +30,6 @@ import java.util.List;
 
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Allgather;
 import de.hd.pvs.piosim.model.program.commands.Filereadall;
@@ -259,9 +258,9 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
 			mySize = Math.min(twoPhaseBufferSize, nextOffset - myOffset);
 
-			System.out.println("min " + minOffset + " max " + maxOffset);
-			System.out.println("myOffset " + myOffset);
-			System.out.println("mySize " + mySize);
+			//System.out.println("min " + minOffset + " max " + maxOffset);
+			//System.out.println("myOffset " + myOffset);
+			//System.out.println("mySize " + mySize);
 
 			if (myContainer.getTwoPhaseOffset() < 0) {
 				myContainer.setTwoPhaseOffset(myOffset);
@@ -273,8 +272,8 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 			myContainer.setListIO(cmd.getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()));
 
-			System.out.println("twoPhaseOffset " + myContainer.getTwoPhaseOffset());
-			System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
+			//System.out.println("twoPhaseOffset " + myContainer.getTwoPhaseOffset());
+			//System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
 
 			if (myContainer.getTwoPhaseOffset() < nextOffset) {
 				ListIO list = new ListIO();
@@ -288,9 +287,9 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 					ISNodeHostedComponent targetNIC = sserver;
 					ListIO iolist = servers.get(server);
 
-					for (SingleIOOperation op : iolist.getIOOperations()) {
-						System.out.println(server + ": " + op);
-					}
+					//for (SingleIOOperation op : iolist.getIOOperations()) {
+					//	System.out.println(server + ": " + op);
+					//}
 
 					// FIXME optimize
 					OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
@@ -348,7 +347,7 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			perRank = (maxOffset - minOffset) / meta_info.get(cmd).size();
 			myOffset = minOffset + (myIndex * perRank);
 
-			System.out.println("rank " + myContainer.getRank());
+			//System.out.println("rank " + myContainer.getRank());
 
 			for (FilereadallContainer c : meta_info.get(cmd)) {
 				long theirOffset;
@@ -360,12 +359,12 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 				theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank);
 
 				if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
-					System.out.println("send to " + c.getRank());
+					//System.out.println("send to " + c.getRank());
 					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(c.getCommand().getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
 				}
 
 				if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
-					System.out.println("recv from " + c.getRank());
+					//System.out.println("recv from " + c.getRank());
 					OUTresults.addNetReceive(c.getRank(), 50000, Communicator.INTERNAL_MPI);
 				}
 			}

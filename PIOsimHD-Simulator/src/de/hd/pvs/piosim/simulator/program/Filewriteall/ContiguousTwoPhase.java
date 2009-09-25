@@ -249,9 +249,9 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 			mySize = Math.min(twoPhaseBufferSize, maxOffset - myOffset);
 			mySize = Math.max(mySize, 0);
 
-			System.out.println("min " + minOffset + " max " + maxOffset);
-			System.out.println("myOffset " + myOffset);
-			System.out.println("mySize " + mySize);
+			//System.out.println("min " + minOffset + " max " + maxOffset);
+			//System.out.println("myOffset " + myOffset);
+			//System.out.println("mySize " + mySize);
 
 			myContainer.setListIO(cmd.getIOList().getPartition(myOffset, mySize));
 
@@ -268,14 +268,14 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 				theirSize = Math.max(theirSize, 0);
 
 				if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
-					System.out.println("send to " + c.getRank());
+					//System.out.println("send to " + c.getRank());
 					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
 					// offset-length pairs
 					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getIOOperations().size() * 16 + 20), 60001, Communicator.INTERNAL_MPI);
 				}
 
 				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
-					System.out.println("recv from " + c.getRank());
+					//System.out.println("recv from " + c.getRank());
 					OUTresults.addNetReceive(c.getRank(), 60001, Communicator.INTERNAL_MPI);
 					OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
 				}
@@ -329,7 +329,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 			mySize = Math.min(twoPhaseBufferSize, maxOffset - myOffset);
 			mySize = Math.max(mySize, 0);
 
-			System.out.println("rank " + myContainer.getRank());
+			//System.out.println("rank " + myContainer.getRank());
 
 			ListIO list = new ListIO();
 			HashMap<Server, ListIO> servers;
@@ -355,9 +355,9 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 				ISNodeHostedComponent targetNIC = sserver;
 				ListIO iolist = servers.get(server);
 
-				for (SingleIOOperation op : iolist.getIOOperations()) {
-					System.out.println(server + ": " + op);
-				}
+				//for (SingleIOOperation op : iolist.getIOOperations()) {
+					//System.out.println(server + ": " + op);
+				//}
 
 				OUTresults.addNetSend(targetNIC, new RequestWrite(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
 			}
