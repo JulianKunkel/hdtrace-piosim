@@ -28,7 +28,7 @@
  * specified by the topology level types. The level type should describe the
  * semantics of the nodes on the level.
  *
- * An example of a topology structure take (Project, Host, Process, Thread).
+ * An example of a topology structure is (Project, Host, Process, Thread).
  *
  * Each trace is assigned to exactly one node of the topology called the trace’s
  * topology node. Each such topology node has a label that must be unique at the
@@ -37,11 +37,18 @@
  * each node in the order they are passed when walking on the edges of the tree
  * to the target node starting from the root node.
  *
- * An example for a leaf node in a topology with example structure as defined
- * above could be (myProject, node01, rank3, thread0).
+ * An example for a leaf node in the example topology above could be (myProject,
+ *  node01, rank3, thread0). The path string and unique id of that node would be
+ *  \p myProject_node01_rank3_thread0. The node in this path on the first level
+ *  were (myProject, node01) with the path string \p myProject_node01.
+ *
+ * @note We count the topology levels starting with the root level as number zero.
  *
  * The topology structure represented by the topology level types is written
  * into the project file in order to be used as labels in trace visualization.
+ *
+ * @note The node labels as well as the topology types are restricted to strings
+ *       with alphanumerical ASCII characters only.
  */
 
 /**
@@ -51,7 +58,7 @@
 typedef struct _hdTopology hdTopology;
 
 /**
- * Type for using topology node objects
+ * Type for using topology node objects.
  * Use \ref hdT_createTopoNode to get one of this objects.
  */
 typedef struct _hdTopoNode hdTopoNode;

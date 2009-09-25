@@ -16,9 +16,9 @@
  * @addtogroup hdStats HDTrace Statistics Writing Library
  *
  * @details
- * In HDTrace Format statistics are a special kind of trace for periodically
- * occurring data. One canonical usage for that is to trace utilization data
- * like CPU load, Memory usage, used amounts of Network or I/O bandwidth.
+ * In HDTrace format statistics are a special kind of trace for periodically
+ * occurring data. One canonical usage is to trace utilization data
+ * like CPU load, memory usage, used amounts of network or I/O bandwidth.
  *
  * The statistics are categorized in so called groups. Each group is associated
  * with the tracing topology at any level and each group's data is written
@@ -31,7 +31,7 @@
  * using values of string type (not yet implemented).
  *
  * The HDTrace statistics group data file is self-descriptive. At the very
- * beginning there is a header in pseudo-XML describing the values and types
+ * beginning there is a header in XML describing the values and types
  * each entry in the following binary part of the file contains.
  */
 
@@ -134,7 +134,7 @@ int hdS_addValue (
         );
 
 /**
- * Commit Group, closes initialization step.
+ * Commit statistics group, closes initialization step.
  */
 int hdS_commitGroup (
         hdStatsGroup *group       /* Statistics Group */
@@ -159,13 +159,12 @@ int hdS_isEnabled(hdStatsGroup *group);
  * @addtogroup hdStats
  *
  * @subsection ssecwv Writing Values
- * Write order of the values must be the exactly the same as they are
- * registered!
+ * Write order of the values must be exactly the same as they were registered!
  *
  * At the beginning of each entry, the current time is taken and a timestamp is
  * written for the new entry. This is always done, when the first @b hdS_write*
- * function for an entry is called. Of cause a call to @ref hdS_writeEntry is
- * always the first such call for an entry.@n
+ * function for an entry is called. A call to @ref hdS_writeEntry is always
+ * the first such call for an entry.@n
  * The timestamp is 4 byte integer seconds and 4 byte integer nanoseconds since
  * epoch (Jan 01 1970). Function @b gettimeofday is used to get the time and the
  * returned microseconds are transferred to nanoseconds.

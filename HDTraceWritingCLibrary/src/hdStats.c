@@ -804,7 +804,7 @@ int hdS_writeEntry (
  * Writes 4 byte integer as next value to a statistics group.
  *
  * Checks if the next value in current entry is of type \ref INT32 and
- * append it to the group buffer is so.
+ * append it to the group buffer if so.
  * @ifnot api_only
  * This is a wrapper that cares about the byte order and then calls
  *  \ref appendValueToGroupBuffer().
@@ -856,7 +856,7 @@ int hdS_writeInt32Value (
  * Writes 8 byte integer as next value to a statistics group.
  *
  * Checks if the next value in current entry is of type \ref INT64 and
- * append it to the group buffer is so.
+ * append it to the group buffer if so.
  * @ifnot api_only
  * This is a wrapper that cares about the byte order and then calls
  *  \ref appendValueToGroupBuffer.
@@ -908,7 +908,7 @@ int hdS_writeInt64Value (
  * Writes 4 byte float as next value to a statistics group.
  *
  * Checks if the next value in current entry is of type \ref FLOAT and
- * append it to the group buffer is so.
+ * append it to the group buffer if so.
  * @ifnot api_only
  * This is a wrapper that cares about the byte order and then calls
  *  \ref appendValueToGroupBuffer.
@@ -960,7 +960,7 @@ int hdS_writeFloatValue (
  * Writes 8 byte double as next value to a statistics group.
  *
  * Checks if the next value in current entry is of type \ref DOUBLE and
- * append it to the group buffer is so.
+ * append it to the group buffer if so.
  * @ifnot api_only
  * This is a wrapper that cares about the byte order and then calls
  *  \ref appendValueToGroupBuffer.

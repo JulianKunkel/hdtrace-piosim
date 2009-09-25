@@ -197,14 +197,15 @@ int hdT_destroyTopology(
  *
  * Actually the topology is a tree structure, so the place of each node in the
  * topology is exactly specified by the path to reach this node from the root
- * node. The root node is always the starting point, so it can be omitted.
+ * node. The root node is always the starting point, so it is omitted here when
+ * passing the path to this function.
  *
  * This function takes such a path and gives you a hdTopoNode object
  * representing the node you reach walking the given path. This could be an
  * inner as well as a leaf node of the topology tree.
  *
- * With the path for creating nodes, you implicitly label the nodes passed in
- * each level of the topology tree. And so the tree is automatically extended
+ * With the path for creating nodes, you implicitly label the path's nodes on
+ * each involved level of the topology tree. And so the tree is automatically extended
  * with each hdTopoNode object created.
  *
  *
@@ -213,9 +214,8 @@ int hdT_destroyTopology(
  *
  * Each thread has its own control flow an so it might be a good idea to create
  * one trace for each thread. So you will choose to have the threads as leaf
- * nodes of your tracing topology tree.<br>
- * Of cause you are free to use only two levels and so produce only one trace
- * per process.
+ * nodes of your tracing topology tree. Of course you are free to use only two
+ * levels and so produce traces per process.
  *
  * The node labels on the path are used to generate the canonical filenames for
  * the traces.
