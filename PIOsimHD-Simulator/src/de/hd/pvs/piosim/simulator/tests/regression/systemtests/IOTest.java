@@ -30,6 +30,7 @@ import java.util.List;
 import org.junit.Test;
 
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
@@ -44,7 +45,7 @@ abstract public class IOTest extends ClusterTest {
 	protected int clientNum = 10;
 	protected int fileNum = 1;
 	protected long elementSize = 0;
-	protected long fileSize = 1000 * 1000 * 1024;
+	protected long fileSize = 1000 * MBYTE;
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
 
@@ -112,15 +113,15 @@ abstract public class IOTest extends ClusterTest {
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 
-//		cacheLayers.add(new NoCache());
+		cacheLayers.add(new NoCache());
 		cacheLayers.add(new SimpleWriteBehindCache());
 		cacheLayers.add(new AggregationCache());
 		cacheLayers.add(new ServerDirectedIO());
 
 //		sizes.add((long)512);
 		sizes.add((long)5 * KBYTE);
-		//sizes.add((long)50 * KBYTE);
-		//sizes.add((long)512 * KBYTE);
+		sizes.add((long)50 * KBYTE);
+		sizes.add((long)512 * KBYTE);
 
 		for (ServerCacheLayer cacheLayer : cacheLayers) {
 			CacheLayerResults res = new CacheLayerResults(cacheLayer);

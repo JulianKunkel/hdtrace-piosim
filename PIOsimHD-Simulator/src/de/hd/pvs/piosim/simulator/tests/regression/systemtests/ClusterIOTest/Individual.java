@@ -67,9 +67,8 @@ public class Individual extends IOTest {
 
 		//assert(iterNum % perIteration == 0);
 
-
-		for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-			for (int i = 0; i < iterNum; i += perIteration) {
+		for (int i = 0; i < iterNum; i += perIteration) {
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
 					Fileread com = new Fileread();
 					ListIO lio = new ListIO();
