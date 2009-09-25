@@ -87,16 +87,12 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 
 		private long twoPhaseIteration;
 
-		private ListIO listIO;
-
 		public FilewriteallContainer(Filewriteall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
 			this.command = command;
 			this.clientProcess = clientProcess;
 			this.commandProcessing = commandProcessing;
 
 			twoPhaseIteration = 0;
-
-			listIO = null;
 		}
 
 		public Filewriteall getCommand() {
@@ -121,14 +117,6 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 
 		public void setTwoPhaseIteration(long twoPhaseIteration) {
 			this.twoPhaseIteration = twoPhaseIteration;
-		}
-
-		public ListIO getListIO() {
-			return listIO;
-		}
-
-		public void setListIO(ListIO listIO) {
-			this.listIO = listIO;
 		}
 	}
 
@@ -253,8 +241,6 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 			//System.out.println("myOffset " + myOffset);
 			//System.out.println("mySize " + mySize);
 
-			myContainer.setListIO(cmd.getIOList().getPartition(myOffset, mySize));
-
 			for (FilewriteallContainer c : meta_info.get(cmd)) {
 				long theirOffset;
 				long theirSize;
@@ -268,16 +254,16 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 				theirSize = Math.max(theirSize, 0);
 
 				if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
-					//System.out.println("recv from " + c.getRank());
+//					System.out.println(myContainer.getRank() + " recv from " + c.getRank());
 					OUTresults.addNetReceive(c.getRank(), 60001, Communicator.INTERNAL_MPI);
 					OUTresults.addNetReceive(c.getRank(), 60000, Communicator.INTERNAL_MPI);
 				}
 
 				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
-					//System.out.println("send to " + c.getRank());
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
+//					System.out.println(myContainer.getRank() + " send to " + c.getRank());
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(cmd.getIOList().getPartition(theirOffset, theirSize).getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
 					// offset-length pairs
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getIOOperations().size() * 16 + 20), 60001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(cmd.getIOList().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 60001, Communicator.INTERNAL_MPI);
 				}
 			}
 
@@ -379,8 +365,6 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 
 			for (SingleNetworkJob job : compNetJobs.getNetworkJobs()) {
 				RequestWrite writeRequest = (RequestWrite)job.getJobData();
-				ListIO iolist = writeRequest.getListIO();
-
 				OUTresults.addNetSend(job.getTargetComponent(), new NetworkIOData(writeRequest), RequestIO.IO_DATA_TAG, Communicator.IOSERVERS, true);
 				OUTresults.addNetReceive(job.getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);
 			}

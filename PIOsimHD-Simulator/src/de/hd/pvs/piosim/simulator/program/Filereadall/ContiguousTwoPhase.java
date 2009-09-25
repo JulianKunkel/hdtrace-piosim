@@ -84,16 +84,12 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 
 		private long twoPhaseIteration;
 
-		private ListIO listIO;
-
 		public FilereadallContainer(Filereadall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
 			this.command = command;
 			this.clientProcess = clientProcess;
 			this.commandProcessing = commandProcessing;
 
 			twoPhaseIteration = 0;
-
-			listIO = null;
 		}
 
 		public Filereadall getCommand() {
@@ -118,14 +114,6 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 
 		public void setTwoPhaseIteration(long twoPhaseIteration) {
 			this.twoPhaseIteration = twoPhaseIteration;
-		}
-
-		public ListIO getListIO() {
-			return listIO;
-		}
-
-		public void setListIO(ListIO listIO) {
-			this.listIO = listIO;
 		}
 	}
 
@@ -249,8 +237,6 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 			//System.out.println("myOffset " + myOffset);
 			//System.out.println("mySize " + mySize);
 
-			myContainer.setListIO(cmd.getIOList().getPartition(myOffset, mySize));
-
 			for (FilereadallContainer c : meta_info.get(cmd)) {
 				long theirOffset;
 				long theirSize;
@@ -269,7 +255,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 
 				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
 					// offset-length pairs
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(cmd.getIOList().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
 				}
 			}
 

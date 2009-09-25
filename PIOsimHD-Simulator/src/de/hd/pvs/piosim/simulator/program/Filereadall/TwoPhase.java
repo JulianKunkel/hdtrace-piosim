@@ -82,20 +82,14 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 		private GClientProcess clientProcess;
 		private CommandProcessing commandProcessing;
 
-		private long twoPhaseOffset;
-		private long twoPhaseSize;
-
-		private ListIO listIO;
+		private long twoPhaseIteration;
 
 		public FilereadallContainer(Filereadall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
 			this.command = command;
 			this.clientProcess = clientProcess;
 			this.commandProcessing = commandProcessing;
 
-			twoPhaseOffset = -1;
-			twoPhaseSize = -1;
-
-			listIO = null;
+			twoPhaseIteration = 0;
 		}
 
 		public Filereadall getCommand() {
@@ -114,28 +108,12 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			return clientProcess.getModelComponent().getRank();
 		}
 
-		public long getTwoPhaseOffset() {
-			return twoPhaseOffset;
+		public long getTwoPhaseIteration() {
+			return twoPhaseIteration;
 		}
 
-		public void setTwoPhaseOffset(long twoPhaseOffset) {
-			this.twoPhaseOffset = twoPhaseOffset;
-		}
-
-		public long getTwoPhaseSize() {
-			return twoPhaseSize;
-		}
-
-		public void setTwoPhaseSize(long twoPhaseSize) {
-			this.twoPhaseSize = twoPhaseSize;
-		}
-
-		public ListIO getListIO() {
-			return listIO;
-		}
-
-		public void setListIO(ListIO listIO) {
-			this.listIO = listIO;
+		public void setTwoPhaseIteration(long twoPhaseIteration) {
+			this.twoPhaseIteration = twoPhaseIteration;
 		}
 	}
 
@@ -254,32 +232,24 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			// FIXME Alltoall
 
 			perRank = (maxOffset - minOffset) / meta_info.get(cmd).size();
-			myOffset = minOffset + (myIndex * perRank);
+
+			myOffset = minOffset + (myIndex * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
 			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
 			mySize = Math.min(twoPhaseBufferSize, nextOffset - myOffset);
+			mySize = Math.max(mySize, 0);
 
 			//System.out.println("min " + minOffset + " max " + maxOffset);
 			//System.out.println("myOffset " + myOffset);
 			//System.out.println("mySize " + mySize);
 
-			if (myContainer.getTwoPhaseOffset() < 0) {
-				myContainer.setTwoPhaseOffset(myOffset);
-				myContainer.setTwoPhaseSize(mySize);
-			} else {
-				myContainer.setTwoPhaseOffset(myContainer.getTwoPhaseOffset() + myContainer.getTwoPhaseSize());
-				myContainer.setTwoPhaseSize(mySize);
-			}
-
-			myContainer.setListIO(cmd.getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()));
-
 			//System.out.println("twoPhaseOffset " + myContainer.getTwoPhaseOffset());
 			//System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
 
-			if (myContainer.getTwoPhaseOffset() < nextOffset) {
+			if (myOffset < nextOffset) {
 				ListIO list = new ListIO();
 				HashMap<Server, ListIO> servers;
 
-				list.addIOOperation(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize());
+				list.addIOOperation(myOffset, mySize);
 				servers = cmd.getFile().getDistribution().distributeIOOperation(list, client.getSimulator().getModel().getServers());
 
 				for (Server server : servers.keySet()) {
@@ -298,20 +268,25 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 
 				for (FilereadallContainer c : meta_info.get(cmd)) {
 					long theirOffset;
+					long theirSize;
+					long theirNextOffset;
 
 					if (c.getRank() == myContainer.getRank()) {
 						continue;
 					}
 
-					theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank);
+					theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
+					theirNextOffset = Math.min(minOffset + ((meta_info.get(cmd).indexOf(c) + 1) * perRank), maxOffset);
+					theirSize = Math.min(twoPhaseBufferSize, theirNextOffset - theirOffset);
+					theirSize = Math.max(theirSize, 0);
 
-					if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
+					if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
 						OUTresults.addNetReceive(c.getRank(), 50001, Communicator.INTERNAL_MPI);
 					}
 
-					if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
+					if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
 						// offset-length pairs
-						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(myContainer.getListIO().getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
+						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(cmd.getIOList().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
 					}
 				}
 
@@ -328,6 +303,8 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			long maxOffset = meta_info.get(cmd).get(0).getCommand().getEndOffset();
 			long perRank;
 			long myOffset;
+			long mySize;
+			long nextOffset;
 			int myIndex = -1;
 			FilereadallContainer myContainer = null;
 
@@ -345,29 +322,40 @@ public class TwoPhase extends CommandImplementation<Filereadall> {
 			assert(myContainer != null);
 
 			perRank = (maxOffset - minOffset) / meta_info.get(cmd).size();
-			myOffset = minOffset + (myIndex * perRank);
+
+			myOffset = minOffset + (myIndex * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
+			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
+			mySize = Math.min(twoPhaseBufferSize, nextOffset - myOffset);
+			mySize = Math.max(mySize, 0);
 
 			//System.out.println("rank " + myContainer.getRank());
 
 			for (FilereadallContainer c : meta_info.get(cmd)) {
 				long theirOffset;
+				long theirSize;
+				long theirNextOffset;
 
 				if (c.getRank() == myContainer.getRank()) {
 					continue;
 				}
 
-				theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank);
+				theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
+				theirNextOffset = Math.min(minOffset + ((meta_info.get(cmd).indexOf(c) + 1) * perRank), maxOffset);
+				theirSize = Math.min(twoPhaseBufferSize, theirNextOffset - theirOffset);
+				theirSize = Math.max(theirSize, 0);
 
-				if (c.getCommand().getStartOffset() < myOffset + perRank && c.getCommand().getEndOffset() > myOffset) {
+				if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
 					//System.out.println("send to " + c.getRank());
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(c.getCommand().getIOList().getPartition(myContainer.getTwoPhaseOffset(), myContainer.getTwoPhaseSize()).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(c.getCommand().getIOList().getPartition(myOffset, mySize).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
 				}
 
-				if (cmd.getStartOffset() < theirOffset + perRank && cmd.getEndOffset() > theirOffset) {
+				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
 					//System.out.println("recv from " + c.getRank());
 					OUTresults.addNetReceive(c.getRank(), 50000, Communicator.INTERNAL_MPI);
 				}
 			}
+
+			myContainer.setTwoPhaseIteration(myContainer.getTwoPhaseIteration() + 1);
 
 			OUTresults.setNextStep(TWO_PHASE);
 
