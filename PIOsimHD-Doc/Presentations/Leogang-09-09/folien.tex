@@ -111,19 +111,19 @@ Julian M. Kunkel
 \item MPI and MPI-IO Befehle simulieren
   \itemm{Abschätzung für Effizienz einer Implementierung}
 \item Einfache Modelle für Hardware und Software
-\item Konfiguration der Hardware/Software nach belieben
+\item Konfiguration der Hardware/Software nach Belieben
   \itemm{Schätze Skalierbarkeit von Algorithmus in beliebigen Cluster Umgebungen}
 \item Einsatz/Nutzbarmachung von Standard-Tools zur Analyse
-  \itemm{Simulationsergebnisse genau wie realle Programläufe bewerten}
+  \itemm{Simulationsergebnisse genau wie reale Programmläufe bewerten}
 \item Neue Algorithmen/Verhalten schnell und reproduzierbar testen
 \item Einsetzbarkeit für Lehre
    \itemm{Soll auf Desktop PC lauffähig sein}
 }
 
-\section{Hardware Model}
+\section{Hardware Modell}
 \subsection{Hardware Modell}
 \myframe{Hardware Modell}{
-\item Komponententypen an existierende Hardware angelehnt\\ z.B. “Knoten” oder “I/O-subsystem”
+\item Komponententypen an existierende Hardware angelehnt\\ z.B. “Knoten” oder “I/O-Subsystem”
 \item Je Komponententyp sind alternative Implementierungen möglich\\ z.B. SSD oder Disk
 \item Cluster Modell beschreibt konkrete Implementierungen der Komponenten und Charakteristika
 \item Deterministisches Komponentenverhalten
@@ -135,8 +135,8 @@ Julian M. Kunkel
   \includegraphics[width=0.95\textwidth]{Simulator-Components.pdf}
 }
 
-\subsection{Hardware Model - Charakteristika}
-\myframe{Hardware Model - Charakteristika}{
+\subsection{Hardware Modell - Charakteristika}
+\myframe{Hardware Modell - Charakteristika}{
 \item Knoten:
   \itemm{\# CPUs, Abarbeitungsgeschwindigkeit}
 \item Netzwerkkarte:
@@ -148,15 +148,15 @@ Julian M. Kunkel
     \item Track-To-Track Zugriffzeit, Mittlere Zugriffszeit}
 \item Switch:
   \itemm{Store-and-Forward Switching
-  \item Besteht aus N-Ports}
+  \item besteht aus N-Ports}
 \item Port:
   \itemm{Latenz, Durchsatz}
 }
 
-\subsection{Netzwerk Datenfluss Model}
-\myframe{Datenfluss Model}{
+\subsection{Netzwerk Datenfluss Modell}
+\myframe{Datenfluss Modell}{
   \item Datenflüsse als Flüsse von Paketen (Transfer Granularität)
-  \item Datenfluss Model ist an Realität angelehnt garantiert aber optimalen Transfer (unter gegegebener Granularität) 
+  \item Datenfluss Modell ist an Realität angelehnt, garantiert aber optimalen Transfer (unter gegegebener Granularität) 
   \item Server können Datenflüsse aktiv blockieren z.B. bei gefülltem I/O Cache 
   \item Überholvorgänge innerhalb des Netzwerks sind nicht möglich
   \item Gegenwärtig nur eine Route
@@ -168,17 +168,17 @@ Julian M. Kunkel
     \item Der weitere Datenfluss wird dann blockiert} 
   %\item Alternative Anschauung: wenn mindestens soviele Daten unterwegs sind um die Latenz zu überbrücken 
   \item Bei Bearbeitung eines Pakets wird der Sender benachrichtigt
-    \itemm{Diese darf nun weitere Pakete transferieren 
+    \itemm{Dieser darf nun weitere Pakete transferieren 
     \item Kaskade von nachrückenden Paketen kann aktiviert werden}
   \item Es wird ein Fluss pro Ziel nach obigem Schema verwaltet
-   \itemm{Engpässe die in Flussrichtung auftreten blockieren nicht den Transfer an andere Adressen
+   \itemm{Engpässe, die in Flussrichtung auftreten, blockieren nicht den Transfer an andere Adressen
      \item Anschaulich: ein Switch verwaltet pro Netzwerkadresse eine Warteschlange mit fester Länge
    }
 }
 
-\section{Software Model}
-\subsection{Software Model}
-\myframe{Software Model}{
+\section{Software Modell}
+\subsection{Software Modell}
+\myframe{Software Modell}{
 \item Anwendung 
 \itemm{MPI Semantik
   \item Nichtblockierende Operationen werden unterstützt
@@ -200,7 +200,7 @@ Julian M. Kunkel
     \item (Eigenverwaltete) Blockierung möglich}
 \item Globale Sicht auf alle Prozesse 
   \itemm{Metawissen soll Programmierung von einem Best-Case erlauben
-    \item Ermöglicht bspw. “Virtuelle” Bariere}
+    \item Ermöglicht bspw. “virtuelle” Bariere}
 }
 
 \section{Implementierung}
@@ -212,7 +212,7 @@ Julian M. Kunkel
   \begin{block}{Diskrete Ereignis-Simulation}
   Solange Ereignisse vorhanden sind:
   \itemm{    
-    Bearbeite (ein) frühestes Ereignis durch delegation an zuständige Komponente
+    Bearbeite (ein) frühestes Ereignis durch Delegation an zuständige Komponente
     \item Erzeugt ggf. weitere Ereignisse in der Zukunft
     }
   \end{block}
@@ -229,14 +229,14 @@ Julian M. Kunkel
 \section{Ergebnisse}
 \subsection{Validierung des Simulators}
 \myframe{Validierung des Simulators}{
- \item Existierender Program getraced und simuliert
+ \item Existierendes Programm getraced und simuliert
  \item Jacobi Verfahren - PDE: Iterative Lösung der Poisson Gleichung
  \itemm{
  100 Iterationen
  \item Master Prozess sammelt Ergebnisse ein
  \item Keine I/O 
  }
- \item Cluster Model analog zu unserem 10 Knoten (Test-)Cluster
+ \item Cluster Modell analog zu unserem 10 Knoten (Test-)Cluster
 }
 
 \frame{
@@ -279,10 +279,10 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
   \begin{itemize}
    \item I/O Zugriffe werden von Betriebsystem optimiert
    \itemm{Betriebsystem Cache und Write-Behind} 
-   \item Typischerweise maximale Anzahl an Operationen die ans Betriebsystem gegeben werden
+   \item Typischerweise maximale Anzahl an Operationen, die ans Betriebsystem gegeben werden
    \itemm{Cluster Dateisystem trifft Vorauswahl, wann - welche I/O-Operationen}
    \item $\Rightarrow$ Die I/O Schicht verfügt nur über Teilwissen der I/O Anfragen
-   \item Bei Lesezugriffen ist die Reihenfolge entscheident um Random-Access zu verhindern
+   \item Bei Lesezugriffen ist die Reihenfolge entscheidend, um Random-Access zu verhindern
    \item Bei Schreibzugriffen nicht so gravierend, da Write-Behind Optimierungen erlaubt   
   \end{itemize}
 \end{block}
@@ -294,7 +294,7 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
   \begin{itemize}
   \item Cache-Optimierungsstrategie auf I/O Servern
   \item Datentransfer zwischen Client/Server wird durch Server bestimmt
-  \itemm{Interessant für Nichtzusammenhängende Zugriffe
+  \itemm{Interessant für nicht zusammenhängende Zugriffe
     \item Geht über Kernel Optimierungen hinaus, da alle Anfragen berücksichtigt
     }    
   \item Der Server kennt seine eigenen I/O-Charakteristika am besten
@@ -303,7 +303,7 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
   
   \begin{block}{Umsetzung im Simulator}
   \begin{itemize}
-  \item Cache-Schicht aggregiere Zugriffe (AggregationCache)
+  \item Cache-Schicht aggregiert Zugriffe (AggregationCache)
     \itemm{Nutze Wissen über Anfragen}
   \item Erweiterung sortiert auch die Zugriffe um (Server-Directed)
     \itemm{Nutze Wissen über I/O-Subsystem Charakteristika}
@@ -338,9 +338,9 @@ Prozessanzahl & Laufzeit in s & Simulierte Laufzeit & Simuliert/Real \\
 \frame{
 
 \begin{block}{Experimente}
- Sequenzielle E/A einer Datei mit 1000\,MByte
+ Sequenzielle I/O einer Datei mit 1000\,MByte
  \begin{itemize}
-  \item Unabhängige I/O mit einem, 100 oder alle Blöcke 
+  \item Unabhängige I/O mit einem, 100 oder allen Blöcken 
   \item Two-Phase
   \item Interleaved Two-Phase 
   \end{itemize}
@@ -390,7 +390,7 @@ Warum ist ServerDirected bei lesendem Zugriff teilweise so langsam?
  \begin{itemize}
   \item Problemfall: Blockgröße 5\,KByte
   \item Bei individueller I/O nur 1\,MB/s
-  \item Beim nicht zusammenhängendem Zugriff mit 100 Blöcken nur 15\,MB/s
+  \item Bei nicht zusammenhängendem Zugriff mit 100 Blöcken nur 15\,MB/s
   \item Mit Viewer Simulationsergebnisse betrachten
   \item Im folgenden gekürzte (und beschriftete) Screenshots
   \itemm{Nur ein Teil der Server und Clients gezeigt}
@@ -404,7 +404,7 @@ Warum ist ServerDirected bei lesendem Zugriff teilweise so langsam?
 }
 
 \frame{
-\frametitle{Unabhängige zusammenhängende I/O - 5\,KB - Später}
+\frametitle{Unabhängige zusammenhängende I/O - 5\,KB - später}
 \includegraphics[width=\textwidth]{images/Screenshot-IndividualLater-5KB-1OpPerIteration.png}
 }
 
@@ -423,7 +423,7 @@ Warum ist ServerDirected bei lesendem Zugriff teilweise so langsam?
 }
 
 \frame{
-  \frametitle{Eine Iteration - 5\,KB - Unabhängige 100 Blöcke/Iteration}
+  \frametitle{Eine Iteration - 5\,KB - unabhängige 100 Blöcke/Iteration}
         \includegraphics[width=\textwidth]{images/Screenshot-Individuall-100.png}
 }
 
@@ -448,11 +448,11 @@ Warum ist ServerDirected bei lesendem Zugriff teilweise so langsam?
 
 \section{Fazit}
 \myframe{Fazit}{
-  \item Einfaches Model für Simulation von MPI und Cluster Hardware
+  \item Einfaches Modell für Simulation von MPI und Cluster Hardware
   \item Geeignet für Simulation von heterogenen Umgebungen
   \item Alternative Implementierungen für MPI Befehle evaluieren
   \item Ergebnisse am Beispiel von I/O Optimierungen
-  \itemm {Server-Seitige Optimierung in den vielen Fällen ausreichend}
+  \itemm {Server-seitige Optimierung in den vielen Fällen ausreichend}
   \item Visualisierung des Systemverhaltens vereinfacht Analyse
 }
 \end{document}
