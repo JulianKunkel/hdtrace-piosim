@@ -263,6 +263,7 @@ public class AttributeAnnotationHandler {
 						value = field.get(obj);
 						field.setAccessible(false);
 
+						// a child must be set, always
 						if(value == null) {
 							appendVerificationError("null", obj, field.getName(), errorMessage);
 						}

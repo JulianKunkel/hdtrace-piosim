@@ -27,7 +27,6 @@ package de.hd.pvs.piosim.simulator.components.Port;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.Port.Port;
-import de.hd.pvs.piosim.simulator.base.SFlowComponent;
 import de.hd.pvs.piosim.simulator.base.SNetworkComponent;
 import de.hd.pvs.piosim.simulator.event.MessagePart;
 
@@ -40,10 +39,10 @@ public class GPort extends SNetworkComponent<Port>{
 	/**
 	 * The simulated component this Port is connected to.
 	 */
-	private SFlowComponent connectedComponent = null;
+	private SNetworkComponent connectedComponent = null;
 
 	@Override
-	protected SFlowComponent getTargetFlowComponent(MessagePart part) {
+	protected SNetworkComponent getTargetFlowComponent(MessagePart part) {
 		return connectedComponent;
 	}
 
@@ -64,11 +63,11 @@ public class GPort extends SNetworkComponent<Port>{
 		return getModelComponent().getConnection().getLatency();
 	}
 
-	public SFlowComponent getConnectedComponent() {
+	public SNetworkComponent getConnectedComponent() {
 		return connectedComponent;
 	}
 
-	public void setConnectedComponent(SFlowComponent connectedComponent) {
+	public void setConnectedComponent(SNetworkComponent connectedComponent) {
 		this.connectedComponent = connectedComponent;
 	}
 }

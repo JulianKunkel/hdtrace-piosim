@@ -382,7 +382,11 @@ public class ModelXMLReader {
 			List<XMLTag>  list = element.getNestedXMLTags();
 			for (XMLTag e : list) {
 				BasicComponent newComponent = createComponentFromXML(e, false);
-				model.addComponent(newComponent);
+				try{
+					model.addComponent(newComponent);
+				}catch(IllegalArgumentException error){
+					throw new IllegalArgumentException("Searching for " + type + "List. Parsed: " + newComponent, error);
+				}
 			}
 		}
 	}
@@ -423,6 +427,8 @@ public class ModelXMLReader {
 			for (Field field : fields) {
 				if( ! field.isAnnotationPresent(ChildComponents.class))
 					continue;
+				// check if a default class shall be loaded.
+				final ChildComponents annotation = field.getAnnotation(ChildComponents.class);
 
 				final XMLTag parentNode = xml.getFirstNestedXMLTagWithName(field.getName().toUpperCase());
 

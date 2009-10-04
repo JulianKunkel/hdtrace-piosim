@@ -221,7 +221,7 @@ public class Model{
 		}else{
 			if (cidCMap.keySet().contains(ci.getID())) {
 				throw new IllegalArgumentException("Component ID already used: "
-						+ ci.getID());
+						+ ci.getID() + "\n Component: " + cidCMap.get(ci.getID()));
 			}
 
 			if( maxComponentID < ci.getID()){

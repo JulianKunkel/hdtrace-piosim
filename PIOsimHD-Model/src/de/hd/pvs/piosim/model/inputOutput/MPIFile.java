@@ -28,10 +28,14 @@
  */
 package de.hd.pvs.piosim.model.inputOutput;
 
+import java.util.HashMap;
+import java.util.List;
+
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
+import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 
 /**
@@ -53,6 +57,26 @@ public class MPIFile{
 
 	@NotNull
 	private Distribution distribution = null;
+
+	@NotNull
+	private List<Server> serverList = null;
+
+	public List<Server> getServerList() {
+		return serverList;
+	}
+
+	public void setServerList(List<Server> serverList) {
+		this.serverList = serverList;
+	}
+
+	/**
+	 * Computes on which servers the data should be read/written. Similar to RAID
+	 * concepts.
+	 * @return A map which contains for each server the actual I/O operations to perform
+	 */
+	HashMap<Server, ListIO> distributeIOOperation(ListIO iolist){
+		return distribution.distributeIOOperation(iolist, serverList);
+	}
 
 	/**
 	 * @return the file name

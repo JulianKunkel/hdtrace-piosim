@@ -14,6 +14,8 @@
 </IOSubsystem>
 <Switch implementation="de.hd.pvs.piosim.model.components.Switch.SimpleSwitch" name="PVS-Switch">
 <TotalBandwidth>380M</TotalBandwidth>
+<PAKETROUTINGALGORITHM implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute">
+</PAKETROUTINGALGORITHM>
 <PORTS>
 <Port implementation="de.hd.pvs.piosim.model.components.Port.Port">
 <CONNECTION>
@@ -201,6 +203,9 @@
 
 <NodeList>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="33" name="PVS-Node_1" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="200"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -221,6 +226,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="36" name="PVS-Node_2" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="214"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -241,6 +249,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="39" name="PVS-Node_3" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="201"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -261,6 +272,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="42" name="PVS-Node_4" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="202"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -281,6 +295,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="45" name="PVS-Node_5" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="203"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -301,6 +318,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="48" name="PVS-Node_6" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="204"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -321,6 +341,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="51" name="PVS-Node_7" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="205"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -341,6 +364,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="54" name="PVS-Node_8" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="215"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -361,6 +387,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="57" name="PVS-Node_9" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="206"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -381,6 +410,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="60" name="PVS-Node_10" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="216"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -401,6 +433,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="63" name="PVS-Node_11" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="207"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -437,6 +472,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="66" name="PVS-Node_12" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="208"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -473,6 +511,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="69" name="PVS-Node_13" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="209"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -509,6 +550,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="72" name="PVS-Node_14" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="210"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -545,6 +589,9 @@
 </HOSTEDCOMPONENTS>
 </Node>
 <Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="75" name="PVS-Node_15" template="PVS-Node">
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute" id="211"/>
+</ROUTINGALGORITHM>
 <CPUs>1</CPUs>
 <InstructionsPerSecond>1000000</InstructionsPerSecond>
 <MemorySize>1000M</MemorySize>
@@ -585,6 +632,9 @@
 <SwitchList>
 <Switch implementation="de.hd.pvs.piosim.model.components.Switch.SimpleSwitch" id="0" name="PVS-Switch_1" template="PVS-Switch">
 <TotalBandwidth>380M</TotalBandwidth>
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute"/>
+</ROUTINGALGORITHM>
 <PORTS>
 <Port implementation="de.hd.pvs.piosim.model.components.Port.Port" id="1">
 <CONNECTION>
@@ -718,6 +768,9 @@
 </Switch>
 <Switch implementation="de.hd.pvs.piosim.model.components.Switch.SimpleSwitch" id="78" name="PVS-Switch_2" template="PVS-Switch">
 <TotalBandwidth>380M</TotalBandwidth>
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute"/>
+</ROUTINGALGORITHM>
 <PORTS>
 <Port implementation="de.hd.pvs.piosim.model.components.Port.Port" id="79">
 <CONNECTION>

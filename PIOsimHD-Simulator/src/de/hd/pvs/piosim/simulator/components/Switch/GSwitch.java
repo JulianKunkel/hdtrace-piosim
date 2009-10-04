@@ -107,7 +107,7 @@ public class GSwitch  extends SNetworkComponent<SimpleSwitch>{
 			if(gPort.getConnectedComponent() == null){
 				// try to set the connected component of the port.
 
-				SFlowComponent sConnectedComp = (SFlowComponent) getSimulator().getSimulatedComponent(p.getConnectedComponent());
+				SNetworkComponent sConnectedComp = (SNetworkComponent) getSimulator().getSimulatedComponent(p.getConnectedComponent());
 
 				if(sConnectedComp == null){
 					throw new IllegalArgumentException("Object not created so far: " + p.getConnectedComponent().getIdentifier());

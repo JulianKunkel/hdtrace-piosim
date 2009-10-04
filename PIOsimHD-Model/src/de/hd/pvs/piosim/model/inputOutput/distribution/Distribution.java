@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -40,7 +40,7 @@ import de.hd.pvs.piosim.model.interfaces.IXMLReader;
 
 /**
  * A distribution describes how data get distributed among a set of servers.
- * 
+ *
  * @author Julian M. Kunkel
  */
 abstract public class Distribution implements IXMLReader {
@@ -55,19 +55,19 @@ abstract public class Distribution implements IXMLReader {
 			ListIO iolist,
 			List<Server> serverList
 	);
-	
+
 	/**
 	 * Create a distribution from XML via reflection.
-	 * 
+	 *
 	 * @param xmlelem
 	 * @return
 	 * @throws Exception
 	 */
 	static public Distribution readDistributionFromXML(XMLTag xmlelem)
-			throws Exception {		
-		
+			throws Exception {
+
 		final String name = xmlelem.getAttribute("class");
-		
+
 		try {
 			Class<Distribution> cls = (Class<Distribution>) Class.forName(name);
 			if (cls == null) {
@@ -76,26 +76,26 @@ abstract public class Distribution implements IXMLReader {
 			}
 			Constructor<Distribution> ct = cls.getConstructor();
 			Distribution dist = ct.newInstance();
-			
+
 			dist.readXML(xmlelem);
-			
-			return dist;			
+
+			return dist;
 		} catch (Exception e) {
 			throw new Exception("Invalid Distribution: " + name,  e);
 		}
 	}
-	
+
 	public void readXML(de.hd.pvs.TraceFormat.xml.XMLTag xml) throws Exception {
-		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();				
+		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
 		commonAttributeHandler.readSimpleAttributes(xml, this);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.model.interfaces.IXMLReader#writeXML(java.lang.StringBuffer)
 	 */
 	public void writeXML(StringBuffer sb){
-		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();		
-		
+		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
+
 		try {
 			commonAttributeHandler.writeSimpleAttributeXML(this, sb, null);
 		}catch (Exception e) {

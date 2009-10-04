@@ -7,6 +7,10 @@ de.hd.pvs.piosim.model.components.IOSubsystem.SimpleFlash = de.hd.pvs.piosim.sim
 de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk = de.hd.pvs.piosim.simulator.components.IOSubsystem.GSimpleDisk
 de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel = de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel
 
++PaketRoutingAlgorithm
+de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute = de.hd.pvs.piosim.simulator.components.PaketRoutingAlgorithm.GPaketFirstRoute
+de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketRoundRobinRoute = de.hd.pvs.piosim.simulator.components.PaketRoutingAlgorithm.GPaketRoundRobinRoute
+
 +Port
 de.hd.pvs.piosim.model.components.Port.Port = de.hd.pvs.piosim.simulator.components.Port.GPort
 

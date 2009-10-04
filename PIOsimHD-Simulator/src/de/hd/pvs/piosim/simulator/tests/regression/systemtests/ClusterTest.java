@@ -39,6 +39,8 @@ import de.hd.pvs.piosim.model.components.Connection.Connection;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
+import de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute;
+import de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketRoutingAlgorithm;
 import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
@@ -127,7 +129,10 @@ public class ClusterTest {
 
 		mb.addTemplate(conn);
 
+		PaketRoutingAlgorithm routing = new PaketFirstRoute();
+
 		Node node = new Node();
+		node.setRoutingAlgorithm(routing);
 		node.setName("PVS-Node");
 		// maschine.setCacheSize(1024*1024*1024);
 		node.setCPUs(1);
@@ -153,7 +158,6 @@ public class ClusterTest {
 		mb.addTemplate(iosub);
 
 		NIC nic = new NIC();
-		// nic.setAttachedMaschine(maschine);
 		nic.setConnection(conn);
 
 		mb.addNIC(node, nic);
@@ -161,6 +165,7 @@ public class ClusterTest {
 		mb.addTemplate(node);
 
 		SimpleSwitch sw = new SimpleSwitch();
+		sw.setRoutingAlgorithm(routing);
 		sw.setName("PVS-Switch");
 		sw.setTotalBandwidth(1000 * MBYTE);
 
