@@ -65,7 +65,7 @@ implements Comparable, IBasicComponent<ParentType>{
 		return "\"" + getName() + "\"";
 	}
 
-	@AttributeGetters public String getName() {
+	public String getName() {
 		return getIdentifier().getName();
 	}
 
@@ -208,13 +208,6 @@ implements Comparable, IBasicComponent<ParentType>{
 		ret.add(this);
 		return ret;
 	}
-
-	/**
-	 * Return the component type.
-	 *
-	 * @return
-	 */
-	abstract public String getComponentType();
 
 	/**
 	 *

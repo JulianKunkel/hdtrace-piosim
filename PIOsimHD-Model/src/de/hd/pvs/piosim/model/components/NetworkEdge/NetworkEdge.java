@@ -4,8 +4,8 @@ import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 
 public abstract class NetworkEdge extends BasicComponent implements INetworkEdge  {
-	@Override
-	final public String getComponentType() {
+
+	final public String getObjectType() {
 		return NetworkEdge.class.getSimpleName();
 	}
 }

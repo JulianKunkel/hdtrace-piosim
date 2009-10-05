@@ -79,8 +79,7 @@ public class Server extends NodeHostedComponent implements IIOTarget {
 		this.cacheStrategy = cacheImplementation;
 	}
 
-	@Override
-	public String getComponentType() {
+	public String getObjectType() {
 		return Server.class.getSimpleName();
 	}
 }

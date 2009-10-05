@@ -37,7 +37,7 @@
 <ComponentList>
 
 <NodeList>
-<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="1">
+<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="1" name="Test1">
 <CPUs>-1</CPUs>
 <InstructionsPerSecond>-1</InstructionsPerSecond>
 <MemorySize>-1</MemorySize>
@@ -85,7 +85,7 @@
 </NetworkNodeList>
 
 <TopologyList>
-<Topology name="Patch-Cable">
+<Topology  name="Patch-Cable">
 	<Node id="1">
 		<Edge id="0" to="3"/>
 	</Node>
@@ -96,6 +96,10 @@
 	<Node id="6">
 		<Edge id="5" to="3"/>
 	</Node>
+<ROUTINGALGORITHM>
+<PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute">
+</PaketRoutingAlgorithm>
+</ROUTINGALGORITHM>
 </Topology>
 </TopologyList>
 

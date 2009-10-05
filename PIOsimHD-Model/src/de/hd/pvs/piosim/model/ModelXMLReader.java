@@ -38,9 +38,13 @@ import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
+import de.hd.pvs.piosim.model.interfaces.ISerializableChildObject;
+import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
+import de.hd.pvs.piosim.model.interfaces.ISerializableTemplateObject;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
@@ -145,22 +149,20 @@ public class ModelXMLReader {
 	 *
 	 * @param model
 	 * @param xml The root node containing the element and all sub-elements
-	 * @param isCloneOfTemplate If this object is a clone of a template then the name of the template must be set.
-	 * @return
 	 * @throws Exception
 	 */
-	public BasicComponent createComponentFromXML(XMLTag xml, boolean isCloneOfTemplate) throws Exception{
+	public ISerializableObject createComponentFromXML(XMLTag xml, boolean isCloneOfTemplate) throws Exception{
 		String implementation = xml.getAttribute("implementation");
 
 		ConsoleLogger.getInstance().debug(this, "will create: " + implementation);
 
 		// use reflection to instantiate the object
-		Constructor<BasicComponent> ct = ((Class<BasicComponent>) Class.forName(implementation)).getConstructor();
+		Constructor<ISerializableObject> ct = ((Class<ISerializableObject>) Class.forName(implementation)).getConstructor();
 
 		if (ct == null){
 			throw new IllegalArgumentException("Constructor for the implementation " + implementation + " not found");
 		}
-		BasicComponent component;
+		ISerializableObject component;
 		try{
 			component = ct.newInstance();
 		}catch(InstantiationException e){
@@ -186,10 +188,12 @@ public class ModelXMLReader {
 		}
 
 		if (isCloneOfTemplate){
+			ISerializableTemplateObject namedTemplate = (ISerializableTemplateObject) component;
+
 			// change template and names...
-			component.setTemplate(component.getName());
-			if(component.getName() != null)
-				component.setName(component.getName() + "_01");
+			namedTemplate.setTemplate(namedTemplate.getName());
+			if(namedTemplate.getName() != null)
+				namedTemplate.setName(namedTemplate.getName() + "_01");
 		}
 
 		return component;
@@ -234,9 +238,10 @@ public class ModelXMLReader {
 
 			final NetworkTopology topology = new NetworkTopology();
 
-			topology.setName(topologyXML.getAttribute("name"));
-
 			model.addTopology(topology);
+
+			commonAttributeHandler.readSimpleAttributes(topologyXML, topology);
+			readChildComponents(topologyXML, topology, false);
 
 			final List<XMLTag> nodeList = topologyXML.getNestedXMLTagsWithName("Node");
 
@@ -330,8 +335,8 @@ public class ModelXMLReader {
 		List<XMLTag> elements = templateRoot.getNestedXMLTags();
 
 		for(XMLTag e: elements){
-			BasicComponent component = createComponentFromXML(e, false);
-			model.templateManager.addTemplate(component);
+			IBasicComponent component = (IBasicComponent) createComponentFromXML(e, false);
+			model.templateManager.addTemplate(component, component.getName());
 		}
 	}
 
@@ -353,7 +358,7 @@ public class ModelXMLReader {
 
 			List<XMLTag>  list = element.getNestedXMLTags();
 			for (XMLTag e : list) {
-				BasicComponent newComponent = createComponentFromXML(e, false);
+				IBasicComponent newComponent = (IBasicComponent) createComponentFromXML(e, false);
 				try{
 					model.addComponent(newComponent);
 				}catch(IllegalArgumentException error){
@@ -390,7 +395,7 @@ public class ModelXMLReader {
 	 * @param isCloneOfTemplate Is this object a clone of a template
 	 * @throws Exception
 	 */
-	private void readChildComponents(XMLTag xml, BasicComponent comp, boolean isCloneOfTemplate) throws Exception{
+	private void readChildComponents(XMLTag xml, ISerializableObject comp, boolean isCloneOfTemplate) throws Exception{
 		// Walk through the object hierarchy
 		Class<?> classIterate = comp.getClass();
 
@@ -415,13 +420,15 @@ public class ModelXMLReader {
 				if(elements != null){
 					// create child components
 					for(XMLTag e: elements){
-						BasicComponent newComponent = createComponentFromXML(e, isCloneOfTemplate);
+						ISerializableObject newComponent = createComponentFromXML(e, isCloneOfTemplate);
 
-						// now set the child's parent components if needed:
-						newComponent.setParentComponent(comp);
+						if(ISerializableChildObject.class.isAssignableFrom(newComponent.getClass())){
+							//now set the child's parent components if needed:
+							((ISerializableChildObject) newComponent).setParentComponent((IBasicComponent) comp);
+						}
 
 						if(Collection.class.isAssignableFrom(field.getType()) ){
-							((Collection<BasicComponent>) field.get(comp)).add(newComponent);
+							((Collection<ISerializableObject>) field.get(comp)).add(newComponent);
 						}else{
 							field.set(comp, newComponent);
 						}

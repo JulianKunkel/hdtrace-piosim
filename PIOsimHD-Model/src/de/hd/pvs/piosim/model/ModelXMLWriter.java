@@ -34,9 +34,9 @@ import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
+import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.networkTopology.ITopologyEdge;
@@ -116,26 +116,31 @@ public class ModelXMLWriter {
 		sb.append("<ComponentList>\n\n");
 		sb.append("<NodeList>\n");
 		for (BasicComponent com : model.getNodes()) {
-			createXMLFromComponent(com, sb);
+			createXMLFromInstance(com, sb);
 		}
 		sb.append("</NodeList>\n\n");
 
 		sb.append("<NetworkEdgeList>\n");
-		for (IBasicComponent com : model.getNetworkEdges()) {
-			createXMLFromComponent(com, sb);
+		for (ISerializableObject com : model.getNetworkEdges()) {
+			createXMLFromInstance(com, sb);
 		}
 		sb.append("</NetworkEdgeList>\n\n");
 
 		sb.append("<NetworkNodeList>\n");
-		for (IBasicComponent com : model.getNetworkNodes()) {
-			createXMLFromComponent(com, sb);
+		for (ISerializableObject com : model.getNetworkNodes()) {
+			createXMLFromInstance(com, sb);
 		}
 		sb.append("</NetworkNodeList>\n\n");
 
 		// write out all topologies in sequence
 		sb.append("<TopologyList>\n");
 		for (INetworkTopology topology : model.getTopologies()) {
-			sb.append("<Topology name=\"" + topology.getName() + "\">\n");
+			StringBuffer tags = new StringBuffer();
+			StringBuffer attributes = new StringBuffer();
+			commonAttributeHandler.writeSimpleAttributeXML(topology, tags, attributes);
+
+			sb.append("<Topology " + attributes.toString() + ">\n");
+			sb.append(tags);
 
 			for(INetworkNode node: topology.getGraph().keySet()){
 
@@ -147,6 +152,8 @@ public class ModelXMLWriter {
 				sb.append("\t</Node>\n");
 			}
 
+			createSubComponentXML(topology, sb);
+
 			sb.append("</Topology>\n");
 		}
 		sb.append("</TopologyList>\n\n");
@@ -157,21 +164,21 @@ public class ModelXMLWriter {
 
 	/**
 	 * Serialize a given BasicComponent into the <code>StringBuffer</code>
-	 * @param component The Component which should be serialized.
+	 * @param obj The Component which should be serialized.
 	 * @param sb The StringBuffer to which the XML data is written.
 	 * @throws Exception
 	 */
-	public void createXMLFromComponent(IBasicComponent component, StringBuffer sb) throws Exception{
-		String type =  component.getComponentType();
+	public void createXMLFromInstance(ISerializableObject obj, StringBuffer sb) throws Exception{
+		String type =  obj.getObjectType();
 
-		sb.append("<" + type  +  " implementation=\"" + component.getClass().getCanonicalName() +"\"");
+		sb.append("<" + type  +  " implementation=\"" + obj.getClass().getCanonicalName() +"\"");
 		// next we invoke the createComponentAttributes method for the object hierarchy
-		Class<?> classIterate = component.getClass();
+		Class<?> classIterate = obj.getClass();
 		while(classIterate != Object.class) {
 			try{
 				Method m = this.getClass().getDeclaredMethod("createComponentAttributes",
 						new Class[]{classIterate, StringBuffer.class});
-				m.invoke(this, new Object[]{component, sb});
+				m.invoke(this, new Object[]{obj, sb});
 			}catch(Exception e){
 			}
 
@@ -181,19 +188,19 @@ public class ModelXMLWriter {
 
 		StringBuffer attributes = new StringBuffer();
 
-		commonAttributeHandler.writeSimpleAttributeXML(component, attributes, sb);
+		commonAttributeHandler.writeSimpleAttributeXML(obj, attributes, sb);
 
 		sb.append(">\n");
 
 		sb.append(attributes);
 
 		// next we invoke the createComponentTags method for the object hierarchy
-		classIterate = component.getClass();
+		classIterate = obj.getClass();
 		while(classIterate != Object.class) {
 			try{
 				Method m = this.getClass().getDeclaredMethod("createComponentTags",
 						new Class[]{classIterate, StringBuffer.class});
-				m.invoke(this, new Object[]{component, sb});
+				m.invoke(this, new Object[]{obj, sb});
 			}catch(Exception e){
 			}
 
@@ -202,7 +209,7 @@ public class ModelXMLWriter {
 		/////////////////////////////////////
 
 		// Next create subcomponents
-		createSubComponentXML(component, sb);
+		createSubComponentXML(obj, sb);
 
 		sb.append("</" + type + ">\n");
 	}
@@ -225,8 +232,8 @@ public class ModelXMLWriter {
 	 * @throws Exception
 	 */
 	private void createTemplateXML(TemplateManager manager, StringBuffer buff) throws Exception{
-		for (BasicComponent com :  manager.getTemplates()){
-			createXMLFromComponent(com, buff);
+		for (ISerializableObject com :  manager.getTemplates()){
+			createXMLFromInstance(com, buff);
 		}
 	}
 
@@ -272,7 +279,7 @@ public class ModelXMLWriter {
 	 * @param buff The StringBuffer
 	 * @throws Exception
 	 */
-	private void createSubComponentXML(IBasicComponent component, StringBuffer buff) throws Exception{
+	private void createSubComponentXML(ISerializableObject component, StringBuffer buff) throws Exception{
 		Class<?> classIterate = component.getClass();
 
 		while(classIterate != Object.class) {
@@ -296,10 +303,10 @@ public class ModelXMLWriter {
 				if(Collection.class.isAssignableFrom(value.getClass()) ){
 					Collection<BasicComponent> coll = (Collection<BasicComponent>)  value;
 					for(BasicComponent e: coll){
-						createXMLFromComponent(e, buff);
+						createXMLFromInstance(e, buff);
 					}
 				}else{ // single object
-					createXMLFromComponent((BasicComponent) value, buff);
+					createXMLFromInstance((ISerializableObject) value, buff);
 				}
 
 				buff.append("</" + field.getName().toUpperCase()  +  ">\n");

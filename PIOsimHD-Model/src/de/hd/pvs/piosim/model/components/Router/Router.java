@@ -27,13 +27,12 @@ package de.hd.pvs.piosim.model.components.Router;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
 
 /**
- * Process that forwards pakets i.e. a gateway/router.
+ * Process that forwards packets i.e. a gateway/router.
  *
  * @author julian
  */
 public class Router extends NodeHostedComponent {
-	@Override
-	public String getComponentType() {
+	public String getObjectType() {
 		return Router.class.getSimpleName();
 	}
 }

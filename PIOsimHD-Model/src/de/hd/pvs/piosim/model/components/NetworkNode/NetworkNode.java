@@ -5,8 +5,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 
 public abstract class NetworkNode extends BasicComponent   implements INetworkNode {
 
-	@Override
-	public String getComponentType() {
+	public String getObjectType() {
 		return NetworkNode.class.getSimpleName();
 	}
 }

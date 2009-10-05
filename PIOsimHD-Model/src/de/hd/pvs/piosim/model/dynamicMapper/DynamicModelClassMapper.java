@@ -164,7 +164,7 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 	 * @return
 	 */
 	static public ModelObjectMap getComponentImplementation(BasicComponent component) {
-		return getComponentImplementation(component.getComponentType(), component.getClass().getCanonicalName());
+		return getComponentImplementation(component.getObjectType(), component.getClass().getCanonicalName());
 	}
 
 

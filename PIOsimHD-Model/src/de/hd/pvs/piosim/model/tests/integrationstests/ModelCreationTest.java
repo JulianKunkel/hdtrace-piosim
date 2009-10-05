@@ -42,6 +42,7 @@ import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 
 /**
  * Test if a model can be created.
@@ -63,12 +64,16 @@ public class ModelCreationTest   extends TestSuite  {
 		ClientProcess client2 = new ClientProcess();
 		Node maschine2 = new Node();
 
+		maschine.setName("Test1");
+
 		mb.addClient(maschine, client);
 		mb.addClient(maschine2, client2);
 
 		StoreForwardNetworkNode interNode = new StoreForwardNetworkNode();
 
 		INetworkTopology topology = mb.createTopology("Patch-Cable");
+
+		topology.setRoutingAlgorithm(new PaketFirstRoute());
 
 		SimpleNetworkEdge mi = new SimpleNetworkEdge();
 

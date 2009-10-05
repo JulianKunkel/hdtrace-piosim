@@ -3,9 +3,10 @@ package de.hd.pvs.piosim.model.networkTopology;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 
-public interface INetworkTopology {
+public interface INetworkTopology extends ISerializableObject {
 	public void addEdge(INetworkNode src, INetworkEdge via, INetworkNode tgt);
 
 	public LinkedList<ITopologyEdge> getEdges(INetworkNode src);

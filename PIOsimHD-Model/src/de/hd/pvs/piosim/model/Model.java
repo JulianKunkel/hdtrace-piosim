@@ -269,15 +269,15 @@ public class Model{
 
 		// depending on the type add it to the specific list, TODO, this should be done via
 		// a function addObject(<Type> type) and exploiting polymorphism...
-		if(com.getComponentType().equals("Node")){
+		if(com.getObjectType().equals("Node")){
 			nodes.add((Node) com);
-		}else if(com.getComponentType().equals("ClientProcess")){
+		}else if(com.getObjectType().equals("ClientProcess")){
 			clients.add((ClientProcess) com);
-		}else if(com.getComponentType().equals("Server")){
+		}else if(com.getObjectType().equals("Server")){
 			servers.add((Server) com);
-		}else if(com.getComponentType().equals("NetworkEdge")){
+		}else if(com.getObjectType().equals("NetworkEdge")){
 			networkEdges.add((INetworkEdge) com);
-		}else if(com.getComponentType().equals("NetworkNode")){
+		}else if(com.getObjectType().equals("NetworkNode")){
 			networkNodes.add((INetworkNode) com);
 		}
 
@@ -323,15 +323,15 @@ public class Model{
 		}
 		componentNameMap.remove(com.getName());
 
-		if(com.getComponentType().equals("Node")){
+		if(com.getObjectType().equals("Node")){
 			nodes.remove((Node) com);
-		}else if(com.getComponentType().equals("ClientProcess")){
+		}else if(com.getObjectType().equals("ClientProcess")){
 			clients.remove((ClientProcess) com);
-		}else if(com.getComponentType().equals("Server")){
+		}else if(com.getObjectType().equals("Server")){
 			servers.remove((Server) com);
-		}else if(com.getComponentType().equals("NetworkEdge")){
+		}else if(com.getObjectType().equals("NetworkEdge")){
 			networkEdges.remove((INetworkEdge) com);
-		}else if(com.getComponentType().equals("NetworkNode")){
+		}else if(com.getObjectType().equals("NetworkNode")){
 			networkNodes.remove((INetworkNode) com);
 		}
 

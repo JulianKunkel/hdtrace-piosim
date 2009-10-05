@@ -142,8 +142,7 @@ public class Node  extends BasicComponent implements INetworkEntry, INetworkExit
 	}
 
 
-	@Override
-	public String getComponentType() {
+	public String getObjectType() {
 		return Node.class.getSimpleName();
 	}
 }

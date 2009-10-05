@@ -38,6 +38,7 @@ import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
+import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.networkTopology.NetworkTopology;
@@ -169,7 +170,7 @@ public class ModelBuilder {
 	 * @param template
 	 */
 	public void addTemplate(BasicComponent template){
-		model.getTemplateManager().addTemplate(template);
+		model.getTemplateManager().addTemplate(template, template.getName());
 	}
 
 	/**
@@ -180,7 +181,7 @@ public class ModelBuilder {
 	public void changeComponentToTemplate(BasicComponent component){
 		// remove component from the model.
 		model.removeComponent(component);
-		model.getTemplateManager().addTemplate(component);
+		model.getTemplateManager().addTemplate(component, component.getName());
 	}
 
 	/**
@@ -202,8 +203,8 @@ public class ModelBuilder {
 	 * @return
 	 * @throws Exception
 	 */
-	public BasicComponent cloneFromTemplate(String name) throws Exception{
-		return model.getTemplateManager().cloneFromTemplate(name);
+	public IBasicComponent cloneFromTemplate(String name) throws Exception{
+		return (IBasicComponent) model.getTemplateManager().cloneFromTemplate(name);
 	}
 
 	/**
@@ -220,7 +221,7 @@ public class ModelBuilder {
 	public void modifyTemplateAndDerivedObjects(String oldTemplateName, BasicComponent newTemplate){
 		TemplateManager templateManager = model.getTemplateManager();
 
-		BasicComponent oldTemplate = templateManager.getTemplate(oldTemplateName);
+		ISerializableObject oldTemplate = templateManager.getTemplate(oldTemplateName);
 		if(oldTemplate == null){
 			throw new IllegalArgumentException("Template with name " + oldTemplateName + " does not exist!");
 		}
@@ -234,22 +235,22 @@ public class ModelBuilder {
 					oldTemplate.getClass().getCanonicalName() + " new: " + newTemplate.getClass().getCanonicalName());
 		}
 
-		templateManager.deleteTemplate(oldTemplate);
-		templateManager.addTemplate(newTemplate);
+		templateManager.deleteTemplate(oldTemplateName);
+		templateManager.addTemplate(newTemplate, newTemplate.getName());
 
 		for(IBasicComponent component: model.getCidCMap().values()){
-			if(component.getTemplate() == null || ! component.getTemplate().equals(oldTemplate.getName()) )
+			if(component.getTemplate() == null || ! component.getTemplate().equals(oldTemplateName) )
 				continue;
 
 			// this object is instantiated from the template
 
 			final BasicComponent compImpl = (BasicComponent) component;
 
-			if(newTemplate.getName() != oldTemplate.getName()){
+			if(newTemplate.getName() != oldTemplateName){
 				compImpl.setTemplate(newTemplate.getName());
 
 				//maybe we should rename instantiated components in case their name was not changed
-				if(compImpl.getName().startsWith(oldTemplate.getName() + "_") ){
+				if(compImpl.getName().startsWith(oldTemplateName + "_") ){
 					model.renameComponent( compImpl, newTemplate.getName() + "_01" );
 				}
 			}

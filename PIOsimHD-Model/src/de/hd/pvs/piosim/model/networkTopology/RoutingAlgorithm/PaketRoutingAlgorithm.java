@@ -1,5 +1,7 @@
 package de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm;
 
+import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
+
 
 /**
  * Describes how pakets are routed throughout the network.
@@ -7,7 +9,9 @@ package de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm;
  *
  * @author julian
  */
-public abstract class PaketRoutingAlgorithm
+public abstract class PaketRoutingAlgorithm implements ISerializableObject
 {
-
+	public String getObjectType() {
+		return PaketRoutingAlgorithm.class.getSimpleName();
+	}
 }

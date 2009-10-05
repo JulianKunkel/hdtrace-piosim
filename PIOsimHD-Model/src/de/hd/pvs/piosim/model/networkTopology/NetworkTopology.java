@@ -3,6 +3,10 @@ package de.hd.pvs.piosim.model.networkTopology;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
+import de.hd.pvs.piosim.model.annotations.ChildComponents;
+import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 
@@ -13,6 +17,8 @@ import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgor
  */
 public class NetworkTopology implements INetworkTopology {
 
+	@Attribute(type=AttributeXMLType.ATTRIBUTE)
+	@NotNull
 	private String name = "";
 
 	private static class TopologyEdgeImplk implements ITopologyEdge{
@@ -39,7 +45,8 @@ public class NetworkTopology implements INetworkTopology {
 	// routing protocol could maybe be set on one network topology (Bus system, link together with
 	// redundant 2-D Torus or sth.
 
-	private PaketRoutingAlgorithm routingAlgorithm;
+	@ChildComponents
+	private PaketRoutingAlgorithm routingAlgorithm = null;
 
 	private HashMap<INetworkNode, LinkedList<ITopologyEdge>> graph = new HashMap<INetworkNode, LinkedList<ITopologyEdge>>();
 
@@ -82,5 +89,9 @@ public class NetworkTopology implements INetworkTopology {
 	@Override
 	public String toString() {
 		return "\"" +  name + "\"";
+	}
+
+	public String getObjectType() {
+		return NetworkTopology.class.getSimpleName();
 	}
 }
