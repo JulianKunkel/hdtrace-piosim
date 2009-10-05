@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -38,11 +38,13 @@ import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.components.superclasses.OneConnectionComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
+import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
+import de.hd.pvs.piosim.model.networkTopology.NetworkTopology;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 
@@ -101,7 +103,11 @@ public class ModelXMLReader {
 	 * @throws Exception
 	 */
 	public Model readProjectXML(XMLTag projectNode, String applicationDirName, HashMap<String, String> fixedFileAppMapping) throws Exception {
-		Model model = new Model();
+
+		// TODO: migrate to model builder?
+		ModelBuilder mb = new ModelBuilder();
+
+		Model model = mb.getModel();
 
 		loadApplications(model, projectNode.getFirstNestedXMLTagWithName("ApplicationList"),
 				applicationDirName);
@@ -124,7 +130,7 @@ public class ModelXMLReader {
 
 		ConsoleLogger.getInstance().debug(this, "Connecting Components");
 		try {
-			connectComponents(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
+			loadTopology(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -220,76 +226,42 @@ public class ModelXMLReader {
 	 * @param componentList
 	 * @throws Exception
 	 */
-	private void connectComponents(Model model, XMLTag componentList) throws Exception {
+	private void loadTopology(Model model, XMLTag componentList) throws Exception {
 		/* connect components */
-		for (String type : DynamicModelClassMapper.getAvailableModelTypes()) {
-			XMLTag element = componentList.getFirstNestedXMLTagWithName(type + "List");
+		final XMLTag element = componentList.getFirstNestedXMLTagWithName("TopologyList");
 
-			// ignore empty lists
-			if(element == null){
-				continue;
-			}
+		for(XMLTag topologyXML: element.getNestedXMLTagsWithName("Topology")){
 
-			final List<XMLTag> list = element.getNestedXMLTags();
+			final NetworkTopology topology = new NetworkTopology();
 
-			for (XMLTag sub : list) {
+			topology.setName(topologyXML.getAttribute("name"));
 
-				List<XMLTag> subList = sub.getNestedXMLTags();
+			model.addTopology(topology);
 
-				for (XMLTag e : subList) {
-					List<XMLTag> connectedTo = e.getNestedXMLTags();
+			final List<XMLTag> nodeList = topologyXML.getNestedXMLTagsWithName("Node");
 
-					for (XMLTag el : connectedTo) {
-						XMLTag pConnection = el.getFirstNestedXMLTagWithName("connection");
+			for (XMLTag node : nodeList) {
 
-						if(pConnection == null)
-							continue;
+				final int srcID = Integer.parseInt( node.getAttribute("id") );
 
-						int componentID = Integer.parseInt( el.getAttribute("id") );
+				for (XMLTag edgexml : node.getNestedXMLTagsWithName("Edge")) {
+					final int edgeID = Integer.parseInt( edgexml.getAttribute("id") );
+					final int targetID =  Integer.parseInt( edgexml.getAttribute("to") );
 
-						XMLTag econnection = pConnection.getFirstNestedXMLTagWithName("CONNECTION");
+					INetworkNode srcNode;
+					INetworkNode targetNode;
+					INetworkEdge edge;
 
-						assert(econnection != null);
-
-						if (econnection.getAttribute("to") == null) {
-							System.out.println("No connected to attribute found in component with id: "	+ componentID  + " parent " + sub.getAttribute("id"));
-							continue;
-						}
-
-
-						if (connectedTo.size() != 0) {
-							int connectedToComponentID = Integer.parseInt( econnection.getAttribute("to") );
-
-							OneConnectionComponent<?> sourceComponent = null;
-
-							OneConnectionComponent<?> targetComponent = null;
-
-							try{
-								sourceComponent = (OneConnectionComponent<?>) model.getCidCMap().get(componentID);
-							}catch(ClassCastException ex){
-								throw new IllegalArgumentException("Linked object must be a OneConnectionComponent, link between \"" +
-										componentID + " ->  " +	connectedToComponentID);
-							}
-
-							try{
-								targetComponent = (OneConnectionComponent<?>) model.getCidCMap().get(connectedToComponentID);
-							}catch(ClassCastException ex){
-								throw new IllegalArgumentException("Linked object must be a OneConnectionComponent, link between \"" +
-										componentID + " ->  " +	connectedToComponentID);
-							}
-
-							if (sourceComponent == null || targetComponent == null) {
-								throw new IllegalArgumentException(
-										"Invalid connection between components \""
-										+ componentID + "\" to \""
-										+ connectedToComponentID + "\" src=" +sourceComponent + " tgt=" + targetComponent);
-							}
-
-							ConsoleLogger.getInstance().debug(this, "Connecting components: " + componentID + " to " + connectedToComponentID );
-
-							sourceComponent.setConnectedComponent(targetComponent);
-						}
+					try{
+						srcNode = (INetworkNode) model.getCidCMap().get(srcID);
+						targetNode = (INetworkNode) model.getCidCMap().get(targetID);
+						edge = (INetworkEdge) model.getCidCMap().get(edgeID);
+					}catch(ClassCastException ex){
+						throw new IllegalArgumentException("Topology link error from \"" +
+								srcID + " to " + targetID + " via " + edgeID, ex);
 					}
+
+					topology.addEdge(srcNode, edge, targetNode);
 				}
 			}
 		}

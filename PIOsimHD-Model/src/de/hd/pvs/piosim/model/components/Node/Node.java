@@ -34,10 +34,10 @@ import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
-import de.hd.pvs.piosim.model.components.NIC.NIC;
-import de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketRoutingAlgorithm;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
+import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 
 /**
  * A node is a component which simulates a complete computer. It contains
@@ -51,7 +51,7 @@ import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
  * @has 1 - 0..n de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess
  * @has 1 - 1..n NIC
  */
-public class Node  extends BasicComponent{
+public class Node  extends BasicComponent implements INetworkEntry, INetworkExit{
 	/** Number of CPUs in this node */
 	@Attribute(xmlName="CPUs")
 	@NotNegativeOrZero
@@ -73,23 +73,7 @@ public class Node  extends BasicComponent{
 	private long internalDataTransferSpeed = 0;
 
 	@ChildComponents
-	private PaketRoutingAlgorithm routingAlgorithm = null;
-
-
-	@ChildComponents
-	/** Network cards of the <code>node</code>. */
-	ArrayList<NIC> nics = new ArrayList<NIC>();
-
-	@ChildComponents
 	ArrayList<NodeHostedComponent> hostedComponents = new ArrayList<NodeHostedComponent>();
-
-	public PaketRoutingAlgorithm getRoutingAlgorithm() {
-		return routingAlgorithm;
-	}
-
-	public void setRoutingAlgorithm(PaketRoutingAlgorithm routingAlgorithm) {
-		this.routingAlgorithm = routingAlgorithm;
-	}
 
 	@AttributeGetters
 	public long getInstructionsPerSecond() {
@@ -139,10 +123,6 @@ public class Node  extends BasicComponent{
 		this.cpus = cpus;
 	}
 
-	public ArrayList<NIC> getNICs() {
-		return nics;
-	}
-
 	public ArrayList<NodeHostedComponent> getHostedComponents() {
 		return hostedComponents;
 	}
@@ -152,9 +132,6 @@ public class Node  extends BasicComponent{
 		StringBuffer buff = new StringBuffer();
 		buff.append(super.toString() + " MemorySize " + memorySize
 				+ " InstructionsPerSecond " + instructionsPerSecond + "\n");
-		for (NIC nic: nics){
-			buff.append( "\t " + nic+ "\n");
-		}
 
 		for(NodeHostedComponent mhc: hostedComponents){
 			buff.append( "\t MHC: " + mhc+ "\n");

@@ -36,9 +36,12 @@ import java.util.regex.Pattern;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.components.Switch.Switch;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
+import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
+import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.Program;
 
@@ -54,10 +57,13 @@ public class Model{
 	 * Contains a list of nodes.
 	 */
 	ArrayList<Node> nodes = new ArrayList<Node>();
-	ArrayList<Switch>   switches = new ArrayList<Switch>();
+	ArrayList<INetworkTopology> topologies = new ArrayList<INetworkTopology>();
 
 	ArrayList<Server>   servers = new ArrayList<Server>();
 	ArrayList<ClientProcess>   clients = new ArrayList<ClientProcess>();
+	ArrayList<INetworkEdge>    networkEdges = new ArrayList<INetworkEdge>();
+	ArrayList<INetworkNode>    networkNodes = new ArrayList<INetworkNode>();
+
 
 	/**
 	 * The template manager contained objects might use.
@@ -72,12 +78,12 @@ public class Model{
 	/**
 	 * contains all objects, especially nameless components and subcomponents
 	 */
-	HashMap<Integer, BasicComponent> cidCMap = new HashMap<Integer, BasicComponent>();
+	HashMap<Integer, IBasicComponent> cidCMap = new HashMap<Integer, IBasicComponent>();
 
 	/**
 	 * Maps names to the component. Contains only "named" BasicComponents.
 	 */
-	HashMap<String, BasicComponent> componentNameMap = new HashMap<String, BasicComponent>();
+	HashMap<String, IBasicComponent> componentNameMap = new HashMap<String, IBasicComponent>();
 
 	/**
 	 * Maps the Application alias to the application.
@@ -106,17 +112,14 @@ public class Model{
 		return Collections.unmodifiableList(nodes);
 	}
 
-	/**
-	 * @return the switches
-	 */
-	public List<Switch> getSwitches() {
-		return Collections.unmodifiableList(switches);
+	public ArrayList<INetworkTopology> getTopologies() {
+		return topologies;
 	}
 
 	/**
 	 * @return the componentNameMap
 	 */
-	public Map<String, BasicComponent> getComponentNameMap() {
+	public Map<String, IBasicComponent> getComponentNameMap() {
 		return Collections.unmodifiableMap( componentNameMap );
 	}
 
@@ -144,6 +147,14 @@ public class Model{
 	public List<Server> getServers() {
 		return Collections.unmodifiableList(servers);
 	}
+
+	public List<INetworkEdge> getNetworkEdges() {
+		return Collections.unmodifiableList(networkEdges);
+	}
+
+	public List<INetworkNode> getNetworkNodes() {
+		return Collections.unmodifiableList(networkNodes);
+	}
 	/**
 	 *
 	 * @return clients
@@ -162,12 +173,26 @@ public class Model{
 			str.append(m);
 		}
 
-		str.append("\nKnown switches\n");
-		for(Switch s: switches){
-			str.append(s);
+		str.append("\nKnown network nodes:\n");
+		for(INetworkNode m: networkNodes){
+			str.append(m + "\n");
+		}
+
+		str.append("\nKnown network edges:\n");
+		for(INetworkEdge m: networkEdges){
+			str.append(m + "\n");
+		}
+
+		str.append("\nKnown topologies\n");
+		for(INetworkTopology s: topologies){
+			str.append(s+ "\n");
 		}
 
 		return str.toString();
+	}
+
+	void addTopology(INetworkTopology topology){
+		topologies.add(topology);
 	}
 
 	/**
@@ -213,7 +238,7 @@ public class Model{
 	 *
 	 * @param com
 	 */
-	public void addComponent(BasicComponent com){
+	public void addComponent(IBasicComponent com){
 		ComponentIdentifier ci = com.getIdentifier();
 
 		if(ci.getID() == null){
@@ -246,12 +271,14 @@ public class Model{
 		// a function addObject(<Type> type) and exploiting polymorphism...
 		if(com.getComponentType().equals("Node")){
 			nodes.add((Node) com);
-		}else if(com.getComponentType().equals("Switch")){
-			switches.add((Switch) com);
 		}else if(com.getComponentType().equals("ClientProcess")){
 			clients.add((ClientProcess) com);
 		}else if(com.getComponentType().equals("Server")){
 			servers.add((Server) com);
+		}else if(com.getComponentType().equals("NetworkEdge")){
+			networkEdges.add((INetworkEdge) com);
+		}else if(com.getComponentType().equals("NetworkNode")){
+			networkNodes.add((INetworkNode) com);
 		}
 
 		// add subelement
@@ -298,12 +325,14 @@ public class Model{
 
 		if(com.getComponentType().equals("Node")){
 			nodes.remove((Node) com);
-		}else if(com.getComponentType().equals("Switch")){
-			switches.remove((Switch) com);
 		}else if(com.getComponentType().equals("ClientProcess")){
 			clients.remove((ClientProcess) com);
 		}else if(com.getComponentType().equals("Server")){
 			servers.remove((Server) com);
+		}else if(com.getComponentType().equals("NetworkEdge")){
+			networkEdges.remove((INetworkEdge) com);
+		}else if(com.getComponentType().equals("NetworkNode")){
+			networkNodes.remove((INetworkNode) com);
 		}
 
 		// remove subelement
@@ -318,7 +347,7 @@ public class Model{
 	 * Return a unmodifiable Map of object IDs to BasicComponents.
 	 * @return
 	 */
-	public Map<Integer, BasicComponent> getCidCMap() {
+	public Map<Integer, IBasicComponent> getCidCMap() {
 		return Collections.unmodifiableMap(cidCMap);
 	}
 
@@ -326,7 +355,7 @@ public class Model{
 	 * Set the CID Map of object IDs to BasicComponents.
 	 * @return
 	 */
-	void setCidCMap(HashMap<Integer, BasicComponent> newMap) {
+	void setCidCMap(HashMap<Integer, IBasicComponent> newMap) {
 		cidCMap = newMap;
 
 		// set the max component ID
@@ -357,7 +386,7 @@ public class Model{
 	 * @param component
 	 * @return
 	 */
-	public boolean isComponentInModel(BasicComponent component){
+	public boolean isComponentInModel(IBasicComponent component){
 		return cidCMap.containsKey(component.getIdentifier().getID());
 	}
 
@@ -374,4 +403,5 @@ public class Model{
 		}
 		return cidCMap.keySet().size() + 1;
 	}
+
 }

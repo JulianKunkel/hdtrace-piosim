@@ -150,7 +150,6 @@ public class GlobalSettings {
 		this.maxEagerSendSize = maxEagerSendSize;
 	}
 
-
 	@AttributeList(
 			listAnnotationCreatorMethod = "getAvailableMethodImplementations",
 			classImplementingListMethod = "de.hd.pvs.piosim.model.ClientMethods"

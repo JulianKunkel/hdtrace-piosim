@@ -69,7 +69,11 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 		}
 	}
 
-	static private DynamicModelClassMapper instance = new DynamicModelClassMapper();
+	static private DynamicModelClassMapper instance = null;
+
+	static public void loadConfiguration(boolean loadClasses){
+		instance = new DynamicModelClassMapper(loadClasses);
+	}
 
 	/**
 	 * For one model object different implementations could exist.
@@ -83,13 +87,21 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 	/**
 	 * Load the mapping.
 	 */
-	public DynamicModelClassMapper(){
+	private DynamicModelClassMapper(boolean loadClasses){
 		String componentType = null;
 
+		ArrayList<ModelObjectMap> availableImplementationsForType = null;
 		for(String line: readLines("ModelToSimulationMapper.txt")) {
 
 			if ( line.charAt(0) == '+'){
 				componentType = line.substring(1);
+
+				availableImplementationsForType = mapModelType.get(componentType);
+
+				if (availableImplementationsForType == null) {
+					availableImplementationsForType = new ArrayList<ModelObjectMap>();
+					mapModelType.put(componentType, availableImplementationsForType);
+				}
 
 				continue;
 			}
@@ -101,18 +113,14 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 			if(splitWords.length != 2)
 				continue;
 
-			ArrayList<ModelObjectMap> availableImplementations = mapModelType.get(componentType);
 
-			if (availableImplementations == null) {
-				availableImplementations = new ArrayList<ModelObjectMap>();
-				mapModelType.put(componentType, availableImplementations);
+			if(loadClasses){
+				tryToLoadClass(splitWords[0]);
+				tryToLoadClass(splitWords[1]);
 			}
 
-			tryToLoadClass(splitWords[0]);
-			tryToLoadClass(splitWords[1]);
-
 			ModelObjectMap mop = new ModelObjectMap(splitWords[0], splitWords[1]);
-			availableImplementations.add(mop);
+			availableImplementationsForType.add(mop);
 		}
 	}
 

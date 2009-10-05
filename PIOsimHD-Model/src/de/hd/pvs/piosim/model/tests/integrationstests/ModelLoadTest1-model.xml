@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<Project  xmlns="http://www.uni-heidelberg.de/PIOsimHD" 
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://www.uni-heidelberg.de/PIOsimHD" >	
+
+<Templates>
+</Templates>
+
+<ApplicationList>
+</ApplicationList>
+
+<GlobalSettings>
+<TransferGranularity>10K</TransferGranularity>
+<IOGranularity>10M</IOGranularity>
+<MaxEagerSendSize>100K</MaxEagerSendSize>
+<ClientMethod name="Bcast">de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimpleBlockwise</ClientMethod>
+<ClientMethod name="Send">de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSend</ClientMethod>
+<ClientMethod name="Fileclose">de.hd.pvs.piosim.simulator.program.FileClose.SimpleClose</ClientMethod>
+<ClientMethod name="Fileopen">de.hd.pvs.piosim.simulator.program.FileOpen.BroadcastOpen</ClientMethod>
+<ClientMethod name="Gather">de.hd.pvs.piosim.simulator.program.Gather.Direct</ClientMethod>
+<ClientMethod name="Filewrite">de.hd.pvs.piosim.simulator.program.Filewrite.Direct</ClientMethod>
+<ClientMethod name="Sendrecv">de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSendrecv</ClientMethod>
+<ClientMethod name="Reduce">de.hd.pvs.piosim.simulator.program.Reduce.BinaryTree</ClientMethod>
+<ClientMethod name="Barrier">de.hd.pvs.piosim.simulator.program.Global.VirtualSync</ClientMethod>
+<ClientMethod name="Allreduce">de.hd.pvs.piosim.simulator.program.Allreduce.BinaryTree</ClientMethod>
+<ClientMethod name="Fileread">de.hd.pvs.piosim.simulator.program.Fileread.Direct</ClientMethod>
+<ClientMethod name="Allgather">de.hd.pvs.piosim.simulator.program.Allgather.Direct</ClientMethod>
+<ClientMethod name="Filereadall">de.hd.pvs.piosim.simulator.program.Filereadall.ContiguousTwoPhase</ClientMethod>
+<ClientMethod name="Recv">de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousRcv</ClientMethod>
+<ClientMethod name="NoOperation">de.hd.pvs.piosim.simulator.program.Global.NoOperation</ClientMethod>
+<ClientMethod name="Wait">de.hd.pvs.piosim.simulator.program.Wait.Blocking</ClientMethod>
+<ClientMethod name="Filesetview">de.hd.pvs.piosim.simulator.program.Filesetview.FileSetViewNormal</ClientMethod>
+<ClientMethod name="Filewriteall">de.hd.pvs.piosim.simulator.program.Filewriteall.ContiguousTwoPhase</ClientMethod>
+<ClientMethod name="Compute">de.hd.pvs.piosim.simulator.program.Compute.Time</ClientMethod>
+</GlobalSettings>
+
+<ComponentList>
+
+<NodeList>
+<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="1">
+<CPUs>-1</CPUs>
+<InstructionsPerSecond>-1</InstructionsPerSecond>
+<MemorySize>-1</MemorySize>
+<InternalDataTransferSpeed>0</InternalDataTransferSpeed>
+<HOSTEDCOMPONENTS>
+<ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" id="2" rank="-1" thread="0">
+</ClientProcess>
+</HOSTEDCOMPONENTS>
+</Node>
+<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="6">
+<CPUs>-1</CPUs>
+<InstructionsPerSecond>-1</InstructionsPerSecond>
+<MemorySize>-1</MemorySize>
+<InternalDataTransferSpeed>0</InternalDataTransferSpeed>
+<HOSTEDCOMPONENTS>
+<ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" id="7" rank="-1" thread="0">
+</ClientProcess>
+</HOSTEDCOMPONENTS>
+</Node>
+</NodeList>
+
+<NetworkEdgeList>
+<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="0">
+<Latency>0s</Latency>
+<Bandwidth>-1</Bandwidth>
+</NetworkEdge>
+<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="4">
+<Latency>0s</Latency>
+<Bandwidth>-1</Bandwidth>
+</NetworkEdge>
+<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="5">
+<Latency>0s</Latency>
+<Bandwidth>-1</Bandwidth>
+</NetworkEdge>
+<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="8">
+<Latency>0s</Latency>
+<Bandwidth>-1</Bandwidth>
+</NetworkEdge>
+</NetworkEdgeList>
+
+<NetworkNodeList>
+<NetworkNode implementation="de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode" id="3">
+<TotalBandwidth>-1</TotalBandwidth>
+</NetworkNode>
+</NetworkNodeList>
+
+<TopologyList>
+<Topology name="Patch-Cable">
+	<Node id="1">
+		<Edge id="0" to="3"/>
+	</Node>
+	<Node id="3">
+		<Edge id="4" to="1"/>
+		<Edge id="8" to="6"/>
+	</Node>
+	<Node id="6">
+		<Edge id="5" to="3"/>
+	</Node>
+</Topology>
+</TopologyList>
+
+</ComponentList>
+
+</Project>

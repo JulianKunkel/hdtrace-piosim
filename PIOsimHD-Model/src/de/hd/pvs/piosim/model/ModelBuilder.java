@@ -31,13 +31,16 @@ import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
-import de.hd.pvs.piosim.model.components.IOSubsystem.IOSubsystem;
-import de.hd.pvs.piosim.model.components.NIC.NIC;
+import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
 import de.hd.pvs.piosim.model.components.Node.Node;
-import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.components.Switch.Switch;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
+import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
+import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
+import de.hd.pvs.piosim.model.networkTopology.NetworkTopology;
 import de.hd.pvs.piosim.model.program.Application;
 
 /**
@@ -51,13 +54,17 @@ public class ModelBuilder {
 	/**
 	 * The actual model which is modified.
 	 */
-	Model model = new Model();
+	Model model = null;
 
 	/**
 	 * Basic Constructur, use this one to create a new model.
 	 */
 	public ModelBuilder() {
+		// initialize mappings without loading the classes explicitly
+		DynamicCommandClassMapper.loadConfiguration(false);
+		DynamicModelClassMapper.loadConfiguration(false);
 
+		model = new Model();
 	}
 
 	/**
@@ -109,43 +116,6 @@ public class ModelBuilder {
 	}
 
 	/**
-	 * Add the NIC to the node.
-	 *
-	 * @param node
-	 * @param nic
-	 */
-	public void addNIC(Node node, NIC nic) {
-		node.getNICs().add(nic);
-		nic.setParentComponent(node);
-
-		//if(nic.getName() == null) {
-			//nic.setName(" NIC " + node.getName());
-		//}
-
-		if (model.isComponentInModel(node)){
-			// add also NIC.
-			model.addComponent(nic);
-		}
-	}
-
-	/**
-	 * Add the Port to the Switch.
-	 *
-	 * @param switche
-	 * @param port
-	 */
-	public void addPort(Switch switche, Port port) {
-		switche.addNewPort(port);
-
-		if (model.isComponentInModel(switche)){
-			// add also Port.
-			model.addComponent(port);
-		}
-
-		port.setParentComponent(switche);
-	}
-
-	/**
 	 * Add a node and all subcomponents to the model.
 	 *
 	 * @param node
@@ -155,55 +125,30 @@ public class ModelBuilder {
 	}
 
 	/**
-	 * Add a switch and all subcomponents = ports to the model.
-	 * @param s
-	 */
-	public void addSwitch(Switch s) {
-		model.addComponent(s);
-	}
-
-	public void addIOSubsystem(Server server, IOSubsystem iosub){
-
-	}
-
-	/**
-	 * Link a NIC with a Port.
+	 * Link two entities together.
+	 *
 	 * @param nic
 	 * @param port
 	 */
-	public void setConnection(NIC nic, Port port) {
-		if(nic.getParentComponent() == null){
-			throw new IllegalArgumentException("This NIC is not part of a node");
+	public void connect(INetworkTopology topology, INetworkNode src, NetworkEdge via, INetworkNode tgt) {
+		if(! model.isComponentInModel(via)){
+			model.addComponent(via);
 		}
-		if(port.getParentComponent() == null){
-			throw new IllegalArgumentException("This Port is not part of a Switch");
+		if(! model.isComponentInModel(src)){
+			model.addComponent(src);
 		}
-
-		nic.getConnection().setConnectedComponent(port);
-		port.getConnection().setConnectedComponent(nic);
+		if(! model.isComponentInModel(tgt)){
+			model.addComponent(tgt);
+		}
+		((NetworkTopology) topology).addEdge(src, via, tgt);
 	}
 
-	/**
-	 * Link a Port with another Port.
-	 *
-	 * @param sourcePort
-	 * @param targetPort
-	 */
-	public void setConnection(Port sourcePort, Port targetPort) {
-		if(sourcePort.getParentComponent() == null){
-			throw new IllegalArgumentException("SourcePort is not part of a Switch.");
-		}
-		if(targetPort.getParentComponent() == null){
-			throw new IllegalArgumentException("TargetPort is not part of a Switch.");
-		}
-		if (sourcePort.getParentComponent() == targetPort.getParentComponent()){
-			throw new IllegalArgumentException("Both ports belong to the same switch.");
-		}
-
-		targetPort.getConnection().setConnectedComponent(sourcePort);
-		sourcePort.getConnection().setConnectedComponent(targetPort);
+	public INetworkTopology createTopology(String name){
+		NetworkTopology topology = new NetworkTopology();
+		model.addTopology(topology);
+		topology.setName(name);
+		return topology;
 	}
-
 
 
 	/**
@@ -292,18 +237,20 @@ public class ModelBuilder {
 		templateManager.deleteTemplate(oldTemplate);
 		templateManager.addTemplate(newTemplate);
 
-		for(BasicComponent component: model.getCidCMap().values()){
+		for(IBasicComponent component: model.getCidCMap().values()){
 			if(component.getTemplate() == null || ! component.getTemplate().equals(oldTemplate.getName()) )
 				continue;
 
 			// this object is instantiated from the template
 
+			final BasicComponent compImpl = (BasicComponent) component;
+
 			if(newTemplate.getName() != oldTemplate.getName()){
-				component.setTemplate(newTemplate.getName());
+				compImpl.setTemplate(newTemplate.getName());
 
 				//maybe we should rename instantiated components in case their name was not changed
-				if(component.getName().startsWith(oldTemplate.getName() + "_") ){
-					model.renameComponent( component, newTemplate.getName() + "_01" );
+				if(compImpl.getName().startsWith(oldTemplate.getName() + "_") ){
+					model.renameComponent( compImpl, newTemplate.getName() + "_01" );
 				}
 			}
 

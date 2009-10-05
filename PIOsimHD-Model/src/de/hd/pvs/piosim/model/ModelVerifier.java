@@ -28,7 +28,7 @@ package de.hd.pvs.piosim.model;
 
 import java.lang.reflect.Field;
 
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.Communicator;
@@ -77,7 +77,7 @@ public class ModelVerifier {
 		boolean err = false;
 
 		// for each BasicComponent check if it is valid:
-		for (BasicComponent c: model.getCidCMap().values()){
+		for (IBasicComponent c: model.getCidCMap().values()){
 			try {
 				checkConsistency(c, false);
 			}catch(IllegalArgumentException e) {
@@ -108,7 +108,7 @@ public class ModelVerifier {
 	 * @param comp
 	 * @throws Exception
 	 */
-	public void checkConsistency(BasicComponent comp, boolean isTemplate) throws Exception{
+	public void checkConsistency(IBasicComponent comp, boolean isTemplate) throws Exception{
 		commonAttributeHandler.checkAttributeConsistency(comp, isTemplate);
 	}
 

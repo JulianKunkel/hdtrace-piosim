@@ -81,7 +81,11 @@ public class DynamicCommandClassMapper extends DynamicMapper {
 		}
 	}
 
-	static private DynamicCommandClassMapper instance = new DynamicCommandClassMapper();
+	static private DynamicCommandClassMapper instance = null;
+
+	static public void loadConfiguration(boolean loadClasses){
+		instance = new DynamicCommandClassMapper(loadClasses);
+	}
 
 	/**
 	 * Maps the command name to a list of implementations.
@@ -95,7 +99,7 @@ public class DynamicCommandClassMapper extends DynamicMapper {
 	/**
 	 * Load the mapping.
 	 */
-	public DynamicCommandClassMapper(){
+	private DynamicCommandClassMapper(boolean loadClasses){
 		// now read the command mapping:
 		ArrayList<String> commandGroupContains = null;
 		String [] commands = null;
@@ -113,7 +117,8 @@ public class DynamicCommandClassMapper extends DynamicMapper {
 				if(commands.length > 1) {
 					// all commands must coexist together
 					for (String command: commands) {
-						tryToLoadClass(command);
+						if(loadClasses)
+							tryToLoadClass(command);
 
 						String commandName = getImplementationClassName(command);
 						commandGroupContains.add(commandName);
@@ -149,7 +154,9 @@ public class DynamicCommandClassMapper extends DynamicMapper {
 
 					//System.out.println("Command " + command + " implemented by " + implementations[i]);
 
-					tryToLoadClass(implementations[i]);
+					if(loadClasses)
+						tryToLoadClass(implementations[i]);
+
 					CommandImplemenationMapping cmapping = new CommandImplemenationMapping(command, implementations[i]);
 					cmapping.groupMembers = commandGroupContains;
 

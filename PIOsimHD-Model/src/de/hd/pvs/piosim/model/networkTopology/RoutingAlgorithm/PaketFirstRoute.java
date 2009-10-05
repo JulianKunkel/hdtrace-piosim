@@ -1,4 +1,4 @@
-package de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm;
+package de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm;
 
 /**
  * Routes pakets always through the first route.
