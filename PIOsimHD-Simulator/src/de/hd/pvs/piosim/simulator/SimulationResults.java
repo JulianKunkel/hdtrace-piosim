@@ -30,7 +30,7 @@ import java.util.HashMap;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
-import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
+import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 
 public class SimulationResults {
 
@@ -44,9 +44,9 @@ public class SimulationResults {
 
 	final private HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap;
 
-	final private HashMap<ComponentIdentifier, SPassiveComponent> components;
+	final private HashMap<ComponentIdentifier, ISPassiveComponent> components;
 
-	public SimulationResults(HashMap<ComponentIdentifier, SPassiveComponent> components, long eventCount, Epoch virtualTime, double wallClockTime, HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap) {
+	public SimulationResults(HashMap<ComponentIdentifier, ISPassiveComponent> components, long eventCount, Epoch virtualTime, double wallClockTime, HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap) {
 		this.eventCount = eventCount;
 		this.components = components;
 		this.virtualTime = virtualTime;
@@ -54,7 +54,7 @@ public class SimulationResults {
 		this.idtoRuntimeInformationMap = idtoRuntimeInformationMap;
 	}
 
-	public HashMap<ComponentIdentifier, SPassiveComponent> getComponents() {
+	public HashMap<ComponentIdentifier, ISPassiveComponent> getComponents() {
 		return components;
 	}
 

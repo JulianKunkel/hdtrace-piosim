@@ -53,9 +53,8 @@ import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
  * @author Julian M. Kunkel
  *
  */
-abstract public class SFlowComponent
-<Type extends BasicComponent, EventDataType extends FlowEvent>
-extends SSequentialBlockingComponent<Type, EventDataType>
+abstract public class SFlowComponent<Type extends BasicComponent, EventDataType extends FlowEvent>
+	extends SSequentialBlockingComponent<Type, EventDataType>
 {
 	/**
 	 * This class describes the state of the connection to a particular endpoint.

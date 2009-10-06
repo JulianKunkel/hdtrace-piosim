@@ -145,4 +145,8 @@ public class Node  extends BasicComponent implements INetworkEntry, INetworkExit
 	public String getObjectType() {
 		return Node.class.getSimpleName();
 	}
+
+	public boolean isNetworkExitNode() {
+		return true;
+	}
 }

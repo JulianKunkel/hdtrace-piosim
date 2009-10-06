@@ -3,11 +3,12 @@ package de.hd.pvs.piosim.model.components.superclasses;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import de.hd.pvs.piosim.model.interfaces.ISerializableChildObject;
+import de.hd.pvs.piosim.model.interfaces.IChildObject;
+import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
 import de.hd.pvs.piosim.model.interfaces.ISerializableTemplateObject;
 
-public interface IBasicComponent<ParentType extends BasicComponent>
-	extends ISerializableChildObject<ParentType>, ISerializableTemplateObject
+public interface IBasicComponent<ParentType extends IBasicComponent>
+	extends IChildObject<ParentType>, ISerializableTemplateObject, IDynamicImplementationObject
 {
 
 	public ComponentIdentifier getIdentifier();
@@ -39,17 +40,4 @@ public interface IBasicComponent<ParentType extends BasicComponent>
 	 * @return
 	 */
 	public ArrayList<IBasicComponent> getAllChildComponentsPlusSelf();
-
-	/**
-	 * Return the component type.
-	 *
-	 * @return
-	 */
-	public String getObjectType();
-
-	/**
-	 *
-	 * @return null if this is a top level component (or a template)
-	 */
-	public ParentType getParentComponent();
 }

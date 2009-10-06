@@ -26,7 +26,7 @@
 package de.hd.pvs.piosim.simulator.base;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
 
@@ -41,8 +41,7 @@ import de.hd.pvs.piosim.simulator.event.InternalEvent;
  * @param <EventType> If the component only accepts one event type it should be specified in this
  * 		template variable.
  */
-public abstract class SBasicComponent
-  <ModelComp extends BasicComponent>
+public abstract class SBasicComponent<ModelComp extends IBasicComponent>
   extends SPassiveComponent<ModelComp>
 {
 	/**

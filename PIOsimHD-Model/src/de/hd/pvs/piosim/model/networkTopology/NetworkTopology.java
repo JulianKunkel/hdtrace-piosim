@@ -1,13 +1,9 @@
 package de.hd.pvs.piosim.model.networkTopology;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 
 /**
@@ -15,49 +11,17 @@ import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgor
  *
  * @author julian
  */
-public class NetworkTopology implements INetworkTopology {
+public class NetworkTopology extends NetworkGraph implements INetworkTopology {
 
 	@Attribute(type=AttributeXMLType.ATTRIBUTE)
 	@NotNull
 	private String name = "";
 
-	private static class TopologyEdgeImplk implements ITopologyEdge{
-		final INetworkEdge edge;
-		final INetworkNode target;
-
-		public TopologyEdgeImplk(final INetworkEdge edge, final INetworkNode target) {
-			this.edge = edge;
-			this.target = target;
-		}
-
-		public INetworkEdge getEdge() {
-			return edge;
-		}
-
-		public INetworkNode getTarget() {
-			return target;
-		}
-
-		public ComponentIdentifier getIdentifier() {
-			return edge.getIdentifier();
-		}
-	}
 	// routing protocol could maybe be set on one network topology (Bus system, link together with
 	// redundant 2-D Torus or sth.
 
 	@ChildComponents
 	private PaketRoutingAlgorithm routingAlgorithm = null;
-
-	private HashMap<INetworkNode, LinkedList<ITopologyEdge>> graph = new HashMap<INetworkNode, LinkedList<ITopologyEdge>>();
-
-
-	public HashMap<INetworkNode, LinkedList<ITopologyEdge>> getGraph() {
-		return graph;
-	}
-
-	public LinkedList<ITopologyEdge> getEdges(INetworkNode src){
-		return graph.get(src);
-	}
 
 	public void setRoutingAlgorithm(PaketRoutingAlgorithm routingAlgorithm) {
 		this.routingAlgorithm = routingAlgorithm;
@@ -65,17 +29,6 @@ public class NetworkTopology implements INetworkTopology {
 
 	public PaketRoutingAlgorithm getRoutingAlgorithm() {
 		return routingAlgorithm;
-	}
-
-
-	public void addEdge(INetworkNode src, INetworkEdge via, INetworkNode tgt){
-		LinkedList<ITopologyEdge> tgts = graph.get(src);
-		if(tgts == null){
-			tgts = new LinkedList<ITopologyEdge>();
-			graph.put(src,tgts);
-		}
-
-		tgts.add(new TopologyEdgeImplk(via, tgt));
 	}
 
 	public String getName() {

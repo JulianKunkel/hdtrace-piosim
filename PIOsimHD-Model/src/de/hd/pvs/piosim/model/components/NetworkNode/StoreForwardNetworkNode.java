@@ -38,4 +38,7 @@ public class StoreForwardNetworkNode extends NetworkNode
 		this.totalBandwidth = totalBandwidth;
 	}
 
+	public boolean isNetworkExitNode() {
+		return false;
+	}
 }

@@ -37,9 +37,9 @@ import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
 import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
-import de.hd.pvs.piosim.model.networkTopology.ITopologyEdge;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLWriter;
 
@@ -142,12 +142,13 @@ public class ModelXMLWriter {
 			sb.append("<Topology " + attributes.toString() + ">\n");
 			sb.append(tags);
 
-			for(INetworkNode node: topology.getGraph().keySet()){
+			for(INetworkNode node: topology.getSourceGraph().keySet()){
 
 				sb.append("\t<Node id=\"" + node.getIdentifier().getID() +  "\">\n");
-				for(ITopologyEdge edge: topology.getEdges(node)){
+				for(INetworkEdge edge: topology.getEdges(node)){
 					sb.append("\t\t<Edge id=\"" + edge.getIdentifier().getID() +
-							"\" to=\"" + edge.getTarget().getIdentifier().getID() + "\"/>\n");
+							"\" to=\"" + topology.getEdgeTarget(edge).getIdentifier().getID()
+							+ "\"/>\n");
 				}
 				sb.append("\t</Node>\n");
 			}

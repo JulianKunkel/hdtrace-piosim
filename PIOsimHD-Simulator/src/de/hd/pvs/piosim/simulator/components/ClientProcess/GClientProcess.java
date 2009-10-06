@@ -268,7 +268,8 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	/**
 	 * Gets invoked from the simulator to start with the  first set of commands.
 	 */
-	public void startProcessing(){
+	@Override
+	public void simulationModelIsBuild(){
 		clientProgram = getSimulator().getModel().getProgram(getModelComponent());
 
 		if(clientProgram == null){

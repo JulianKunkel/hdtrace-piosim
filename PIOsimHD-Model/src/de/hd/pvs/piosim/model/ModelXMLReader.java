@@ -42,7 +42,7 @@ import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
-import de.hd.pvs.piosim.model.interfaces.ISerializableChildObject;
+import de.hd.pvs.piosim.model.interfaces.IChildObject;
 import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
 import de.hd.pvs.piosim.model.interfaces.ISerializableTemplateObject;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
@@ -422,9 +422,9 @@ public class ModelXMLReader {
 					for(XMLTag e: elements){
 						ISerializableObject newComponent = createComponentFromXML(e, isCloneOfTemplate);
 
-						if(ISerializableChildObject.class.isAssignableFrom(newComponent.getClass())){
+						if(IChildObject.class.isAssignableFrom(newComponent.getClass())){
 							//now set the child's parent components if needed:
-							((ISerializableChildObject) newComponent).setParentComponent((IBasicComponent) comp);
+							((IChildObject) newComponent).setParentComponent((IBasicComponent) comp);
 						}
 
 						if(Collection.class.isAssignableFrom(field.getType()) ){

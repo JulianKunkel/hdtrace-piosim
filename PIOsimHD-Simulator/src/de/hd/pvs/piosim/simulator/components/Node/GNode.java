@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -29,14 +29,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
+import de.hd.pvs.piosim.model.networkTopology.NetworkTopology;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.INetworkEntryInterface;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
@@ -53,11 +53,7 @@ import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
  *
  */
 public class GNode extends SBasicComponent<Node>{
-
-	/**
-	 * Simulated NICs contained in this node.
-	 */
-	private ArrayList<GNIC> nics = new ArrayList<GNIC>();
+	private INetworkEntryInterface nicUpload;
 
 	/**
 	 * Clients contained in this node.
@@ -123,9 +119,9 @@ public class GNode extends SBasicComponent<Node>{
 
 		// add the NICs
 		for(NIC n: m.getNICs()){
-			GNIC gnic = (GNIC) sim.instantiateSimObjectForModelObj(n);
-			nics.add(gnic);
-			gnic.setAttachedNode(this);
+			NetworkTopology topology = NetworkTopology.global;
+
+			topology.addEdge(src, via);
 		}
 
 		if(m.getNICs().size() == 0){
@@ -136,12 +132,12 @@ public class GNode extends SBasicComponent<Node>{
 		for(NodeHostedComponent c: m.getHostedComponents()){
 			ISNodeHostedComponent scomp = null;
 
-			if(c.getComponentType().equals("Server")){
+			if(c.getObjectType().equals("Server")){
 				IGServer serv = (IGServer) sim.instantiateSimObjectForModelObj(c);
 				servers.add(serv);
 				scomp = serv;
 
-			}else if(c.getComponentType().equals("ClientProcess")){
+			}else if(c.getObjectType().equals("ClientProcess")){
 				GClientProcess e = (GClientProcess) sim.instantiateSimObjectForModelObj(c);
 				clients.add(e);
 				scomp = e;
@@ -266,7 +262,7 @@ public class GNode extends SBasicComponent<Node>{
 
 			computeNextActiveEpoch = currentTime.add(
 					(double) earliestJob.remainingCycles      /      getInstructionsPerJobAndSecond(getNumberOfActiveComputeJobs())
-					);
+			);
 
 			debug(" " + earliestJob.getRemainingCycles() + " next active: " + computeNextActiveEpoch);
 
@@ -369,16 +365,16 @@ public class GNode extends SBasicComponent<Node>{
 	 * @param target
 	 * @param endTime
 	 */
-  public void unblockReceiveFlow(ISNodeHostedComponent target){
-  	for(GNIC g: nics){
+	public void unblockReceiveFlow(ISNodeHostedComponent target){
+		for(GNIC g: nics){
 			g.unblockFlow(target);
 		}
 	}
 
-  /**
-   * Minimum number of instructions a compute job can have to be visible at the time scale.
-   * @return
-   */
+	/**
+	 * Minimum number of instructions a compute job can have to be visible at the time scale.
+	 * @return
+	 */
 	public long getMinimumNumberInstructions() {
 		final long minInstructions = (long) (getModelComponent().getInstructionsPerSecond() * Epoch.getTimeResolution());
 		if(minInstructions == 0) return 1;

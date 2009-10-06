@@ -47,20 +47,28 @@ import de.hd.pvs.piosim.model.ModelVerifier;
 import de.hd.pvs.piosim.model.ModelXMLReader;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Node.Node;
-import de.hd.pvs.piosim.model.components.Switch.Switch;
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper.ModelObjectMap;
+import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
+import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
+import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
+import de.hd.pvs.piosim.simulator.base.IGDynamicImplementationObject;
+import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.ApplicationMap;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.NetworkEdge.IGNetworkEdge;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkNode;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
-import de.hd.pvs.piosim.simulator.components.Switch.GSwitch;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
+import de.hd.pvs.piosim.simulator.network.GNetworkTopology;
+import de.hd.pvs.piosim.simulator.network.routing.AGPaketRouting;
 import de.hd.pvs.piosim.simulator.output.SHDTraceWriter;
 import de.hd.pvs.piosim.simulator.output.STraceWriter;
 
@@ -70,7 +78,7 @@ import de.hd.pvs.piosim.simulator.output.STraceWriter;
  *
  * @author Julian M. Kunkel
  */
-public final class Simulator{
+public final class Simulator implements IModelToSimulatorMapper{
 	// simulator version:
 	private static final float version = 0.89f;
 
@@ -103,15 +111,21 @@ public final class Simulator{
 	 */
 	private PriorityQueue<InternalEvent> futureEvents = new PriorityQueue<InternalEvent>();
 
+	private LinkedList<GNetworkTopology> existingTopologies = new LinkedList<GNetworkTopology>();
+
 	/**
 	 * We have to find the SimulationComponent belonging to a model component.
 	 */
-	private HashMap<ComponentIdentifier, SPassiveComponent> existingSimulationObjects =
-		new HashMap<ComponentIdentifier, SPassiveComponent>();
+	private HashMap<ComponentIdentifier, ISPassiveComponent> existingSimulationObjects =
+		new HashMap<ComponentIdentifier, ISPassiveComponent>();
 
 
-	public HashMap<ComponentIdentifier, SPassiveComponent> getExistingSimulationObjects() {
+	public HashMap<ComponentIdentifier, ISPassiveComponent> getExistingSimulationObjects() {
 		return existingSimulationObjects;
+	}
+
+	public LinkedList<GNetworkTopology> getExistingTopologies() {
+		return existingTopologies;
 	}
 
 	/** the current epoch of the simulator i.e. the simulated time we are right now */
@@ -138,6 +152,18 @@ public final class Simulator{
 		// load trace writer
 		traceWriter = new SHDTraceWriter(runParameters.traceFile, this);
 
+		/* create network routing points */
+		for(INetworkEdge com: model.getNetworkEdges()){
+			IGNetworkEdge c = (IGNetworkEdge) instantiateSimObjectForModelObj(com);
+			addSimulatedComponent(c);
+		}
+
+		for(INetworkNode com: model.getNetworkNodes()){
+			IGNetworkNode c = (IGNetworkNode) instantiateSimObjectForModelObj(com);
+			addSimulatedComponent(c);
+		}
+
+
 		/* create clients and servers from the model */
 		ArrayList<GNode> nodes = new ArrayList<GNode>();
 		for(Node com: model.getNodes()){
@@ -157,47 +183,33 @@ public final class Simulator{
 
 		}
 
-		/* create switches */
-		ArrayList<GSwitch>  switches  = new ArrayList<GSwitch>();
-		for(Switch com: model.getSwitches()){
-			GSwitch sw = (GSwitch) instantiateSimObjectForModelObj(com);
-			addSimulatedComponent(sw);
+		/* load topology */
+		for(INetworkTopology topo: model.getTopologies()){
 
-			switches.add(sw);
-		}
+			GNetworkTopology gtopo = new GNetworkTopology();
+			AGPaketRouting routing = (AGPaketRouting) instantiateSimObjectForModelObj(topo.getRoutingAlgorithm());
+			gtopo.setName(topo.getName());
+			gtopo.setRouting( routing );
 
-		/* populate routing tables, iterate until the topology is stable which requires
-		 * diameter(Cluster) iterations. */
-		boolean topologyChanged = true;
-		int topDepth = 0;
-		while(topologyChanged){
-			topologyChanged = false;
-			topDepth++;
-			for(GSwitch sw: switches){
-				if(sw.populateRoutingTable()){
-					topologyChanged = true;
-				}
+			// now load the edges for the topology:
+			for(final INetworkEdge com: model.getNetworkEdges()){
+				final INetworkNode tgt = topo.getEdgeTarget(com);
+				((IGNetworkEdge)(getSimulatedComponent(com))).setTargetNode(
+						(IGNetworkNode) getSimulatedComponent(tgt));
 			}
-		}
-		System.out.println("Topology depth (diameter of the model): " + topDepth);
 
-		if(parameters.isDebugEverything()){
-			for(Switch com: model.getSwitches()){
-				System.out.println("Routing table for " + com.getIdentifier());
-				((GSwitch) getSimulatedComponent(com)).printRoutingTable();
+			// now load the routing into the nodes
+			for(INetworkNode com: model.getNetworkNodes()){
+				((IGNetworkNode)(getSimulatedComponent(com))).setPaketRouting(routing);
 			}
+
+			routing.buildRoutingTable(topo, this);
+			existingTopologies.add(gtopo);
 		}
 
 		/* register all components for the STraceWriter */
-		for(SPassiveComponent bc: existingSimulationObjects.values()){
-			getTraceWriter().preregister(bc);
-		}
-
-		/* start client processing */
-		for(GNode bc: nodes){
-			for(GClientProcess bcomp: ((GNode) bc).getClients()){
-				bcomp.startProcessing();
-			}
+		for(ISPassiveComponent bc: existingSimulationObjects.values()){
+			//getTraceWriter().preregister(bc);
 		}
 	}
 
@@ -206,16 +218,19 @@ public final class Simulator{
 	 *
 	 * @return
 	 */
-	public SPassiveComponent instantiateSimObjectForModelObj(BasicComponent modelObject) throws Exception{
+	public IGDynamicImplementationObject instantiateSimObjectForModelObj(IDynamicImplementationObject modelObject) throws Exception{
 		ModelObjectMap mop = DynamicModelClassMapper.getComponentImplementation(modelObject);
 
-		Constructor<SPassiveComponent> ct = ((Class<SPassiveComponent>) Class.forName(mop.getSimulationClass())).getConstructor();
+		Constructor<IGDynamicImplementationObject> ct = ((Class<IGDynamicImplementationObject>) Class.forName(mop.getSimulationClass())).getConstructor();
 
-		SPassiveComponent component = ct.newInstance();
+		IGDynamicImplementationObject component = ct.newInstance();
 
-		component.setSimulatedModelComponent(modelObject, this);
-		// add the Component to the Simulator to allow lookup later.
-		//this.addSimulatedComponent(component);
+		// if the component requires to set the simulator, do so.
+		if(SPassiveComponent.class.isInstance(component)){
+			((SPassiveComponent)component).setSimulator(this);
+		}
+
+		component.setModelComponent(modelObject);
 
 		return component;
 	}
@@ -225,8 +240,8 @@ public final class Simulator{
 	 * @param cid
 	 * @return
 	 */
-	public SPassiveComponent getSimulatedComponent(ComponentIdentifier cid){
-		SPassiveComponent comp = existingSimulationObjects.get(cid);
+	public ISPassiveComponent getSimulatedComponent(ComponentIdentifier cid){
+		ISPassiveComponent comp = existingSimulationObjects.get(cid);
 
 		assert(comp != null);
 
@@ -238,7 +253,7 @@ public final class Simulator{
 	 * @param mComponent
 	 * @return
 	 */
-	public SPassiveComponent getSimulatedComponent(BasicComponent mComponent){
+	public ISPassiveComponent getSimulatedComponent(IBasicComponent mComponent){
 		return existingSimulationObjects.get(mComponent.getIdentifier());
 	}
 
@@ -248,7 +263,7 @@ public final class Simulator{
 	 *
 	 * @param com
 	 */
-	public void addSimulatedComponent(SPassiveComponent com){
+	public void addSimulatedComponent(ISPassiveComponent com){
 		if(com.getIdentifier().getID() == null){
 			throw new IllegalArgumentException("Identifier is null!");
 		}
@@ -320,6 +335,14 @@ public final class Simulator{
 
 		initModel(model, parameters);
 
+		// notify all components that the model is now build
+		for(ISPassiveComponent component:  getSortedList(getExistingSimulationObjects().values())) {
+			component.simulationModelIsBuild();
+		}
+
+		// populate the routings for all components.
+		//populateRoutingTables(parameters);
+
 		/* initialize file sizes */
 		long sTime = new Date().getTime();
 
@@ -390,7 +413,7 @@ public final class Simulator{
 
 		final HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap = new HashMap<ComponentIdentifier, ComponentRuntimeInformation>();
 
-		for(SPassiveComponent component:  getSortedList(getExistingSimulationObjects().values())) {
+		for(ISPassiveComponent component:  getSortedList(getExistingSimulationObjects().values())) {
 			Integer count = mapIDEventCount.get(component.getIdentifier().getID());
 			if(count != null){
 				System.out.println(component.getIdentifier() + " event # " + count);
@@ -438,7 +461,7 @@ public final class Simulator{
 	 * @param input
 	 * @return
 	 */
-	private <IType extends SPassiveComponent> LinkedList<IType> getSortedList(Collection<IType> input){
+	private <IType extends ISPassiveComponent> LinkedList<IType> getSortedList(Collection<IType> input){
 		LinkedList<IType> list = new LinkedList<IType>(input);
 		final class comp implements Comparator<IType>{
 			@Override

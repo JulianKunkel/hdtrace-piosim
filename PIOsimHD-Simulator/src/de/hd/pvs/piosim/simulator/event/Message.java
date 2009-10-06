@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.event;
 
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
 import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
 
 /**
@@ -60,11 +59,6 @@ public class Message extends NetworkEventType {
 	 * not transferred so far. It can be transferred by the NIC as soon as possible.
 	 */
 	private long availableDataPosition = 0;
-
-	/**
-	 * The NIC for the outgoing message.
-	 */
-	private final GNIC outgoingNIC;
 
 	/**
 	 * Return the size of this message
@@ -104,11 +98,10 @@ public class Message extends NetworkEventType {
 	 * @param job
 	 * @param flowPart
 	 */
-	public Message(long size, SingleNetworkJob job, GNIC nic) {
+	public Message(long size, SingleNetworkJob job) {
 		this.totalSize = size;
 		this.availableDataPosition = size;
 		this.job = job;
-		this.outgoingNIC = nic;
 	}
 
 	/**
@@ -118,11 +111,10 @@ public class Message extends NetworkEventType {
 	 * @param job
 	 * @param currentPosition How much data is already available from the Message?
 	 */
-	public Message(long size, SingleNetworkJob job, long currentPosition, GNIC nic) {
+	public Message(long size, SingleNetworkJob job, long currentPosition) {
 		this.totalSize = size;
 		this.availableDataPosition = currentPosition;
 		this.job = job;
-		this.outgoingNIC = nic;
 	}
 
 	/**
@@ -170,10 +162,6 @@ public class Message extends NetworkEventType {
 	 */
 	public boolean isAllMessageDataAvailable(){
 		return this.availableDataPosition == this.totalSize;
-	}
-
-	public GNIC getOutgoingNIC() {
-		return outgoingNIC;
 	}
 
 	@Override

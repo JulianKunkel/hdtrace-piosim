@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -37,15 +37,11 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelSortIDbySubcomponents;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
-import de.hd.pvs.piosim.model.components.Connection.Connection;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
-import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
-import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
-import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 import de.hd.pvs.piosim.simulator.RunParameters;
@@ -54,55 +50,55 @@ import de.hd.pvs.piosim.simulator.Simulator;
 public class JacobiTest {
 	final long KBYTE = 1024;
 	final long MBYTE = 1024*KBYTE;
-	
-	public boolean shouldSortModel = false; 
-	
-	@Before public void setUp() { 
+
+	public boolean shouldSortModel = false;
+
+	@Before public void setUp() {
 	}
-	
+
 	@After public void tearDown(){
 		System.out.println();
 		Assert.assertTrue(true); /* to ensure assert stays */
 	}
-		
+
 	// Jacobi program - traced
 	@Test public void Test0S_1C_LAT_Jacobi() throws Exception{
 		runJacobi("1-lat");
 	}
-	
+
 	@Test public void Test0S_2C_LAT_Jacobi() throws Exception{
 		runJacobi("2-lat");
 	}
-	
+
 	@Test public void Test0S_3C_LAT_Jacobi() throws Exception{
 		runJacobi("3-lat");
 	}
-	
+
 	@Test public void Test0S_4C_LAT_Jacobi() throws Exception{
 		runJacobi("4-lat");
 	}
-	
+
 	@Test public void Test0S_5C_LAT_Jacobi() throws Exception{
 		runJacobi("5-lat");
 	}
-	
+
 	@Test public void Test0S_6C_LAT_Jacobi() throws Exception{
 		runJacobi("6-lat");
 	}
-	
+
 	@Test public void Test0S_7C_LAT_Jacobi() throws Exception{
 		runJacobi("7-lat");
 	}
-	
+
 	@Test public void Test0S_8C_LAT_Jacobi() throws Exception{
 		runJacobi("8-lat");
 	}
-	
+
 	@Test public void Test0S_9C_LAT_Jacobi() throws Exception{
 		runJacobi("9-lat");
 	}
-	
-	
+
+
 	@Test public void Test0S_9C_LATCORE_Jacobi() throws Exception{
 		runJacobi("9-lat-core");
 	}
@@ -110,64 +106,64 @@ public class JacobiTest {
 	@Test public void Test0S_1C_Jacobi() throws Exception{
 		runJacobi("1");
 	}
-	
+
 	@Test public void Test0S_2C_Jacobi() throws Exception{
 		runJacobi("2");
 	}
-	
+
 	@Test public void Test0S_3C_Jacobi() throws Exception{
 		runJacobi("3");
 	}
-	
+
 	@Test public void Test0S_4C_Jacobi() throws Exception{
 		runJacobi("4");
 	}
-	
+
 	@Test public void Test0S_5C_Jacobi() throws Exception{
 		runJacobi("5");
 	}
-	
+
 	@Test public void Test0S_6C_Jacobi() throws Exception{
 		runJacobi("6");
 	}
-	
+
 	@Test public void Test0S_7C_Jacobi() throws Exception{
 		runJacobi("7");
 	}
-	
+
 	@Test public void Test0S_8C_Jacobi() throws Exception{
 		runJacobi("8");
 	}
-	
+
 	@Test public void Test0S_9C_Jacobi() throws Exception{
 		runJacobi("9");
 	}
-		
+
 	public double runJacobi(String which) throws Exception{
-		ModelBuilder mb = createDisjointClusterModel(10, 0);	
-		
+		ModelBuilder mb = createDisjointClusterModel(10, 0);
+
 		ApplicationXMLReader axml = new ApplicationXMLReader();
 		Application app = axml.parseApplication("Examples/PDE/" + which + "/result.xml", false);
 		mb.setApplication("Jacobi", app);
-		
+
 		RunParameters params = new RunParameters();
 		//params.setDebugEverything(true);
-		
+
 		// test the sorter..
 		if (shouldSortModel){
 			ModelSortIDbySubcomponents sorter = new ModelSortIDbySubcomponents();
 			sorter.sort(mb.getModel());
 		}
-		
-		
+
+
 		Simulator sim =  new Simulator();
 		SimulationResults results = sim.simulate(mb.getModel(), params);
-		
+
 		if(results.getEventCount() == 0) {
 			System.err.println("Nothing happened! Model:");
 			System.err.println(sim.getModel());
 		}
-		
+
 		return sim.getVirtualTime().getDouble();
 	}
 
@@ -275,31 +271,31 @@ public class JacobiTest {
 
 			return mb;
 	}
-	
+
 	public static void main(String[] args) throws Exception{
 		JacobiTest t = new JacobiTest();
-		
+
 		t.shouldSortModel = true;
-		t.Test0S_1C_Jacobi();		
+		t.Test0S_1C_Jacobi();
 		System.exit(1);
-		
+
 		int cnt = 10;
-		
+
 		double [] runTimes = new double[cnt];
 		double [] realRunTimes = new double[]{47.302645, 24.787603, 17.296363, 13.535730, 11.563651,
 				10.094314, 9.160997, 8.388671,7.999543};
-		
+
 		for(int i=1; i < 10; i++){
 			runTimes[i-1] = t.runJacobi("" + i);
 		}
-		
+
 		System.out.println("Runtimes: ");
-		
+
 		for(int i=1; i < 10; i++){
-			System.out.println(i + " sim: " + runTimes[i-1] + " real: " + realRunTimes[i-1] +  " % " + 
+			System.out.println(i + " sim: " + runTimes[i-1] + " real: " + realRunTimes[i-1] +  " % " +
 					runTimes[i-1] / realRunTimes[i-1]);
 		}
-		
+
 //   27.12.2008:
 //		1 sim: 47.352798999 real: 47.302645 % 1.0010602789548027
 //		2 sim: 24.92842302 real: 24.787603 % 1.0056810664589069
@@ -311,7 +307,7 @@ public class JacobiTest {
 //		8 sim: 8.729002096 real: 8.388671 % 1.0405703234755541
 //		9 sim: 8.262118268 real: 7.999543 % 1.0328237835586358
 
-//    Real values:		
+//    Real values:
 //		Examples/PDE/1/result.txt:[TRACER][0] Runtime 47.302645s
 //		Examples/PDE/2/result.txt:[TRACER][0] Runtime 24.787603s
 //		Examples/PDE/3/result.txt:[TRACER][0] Runtime 17.296363s
@@ -322,7 +318,7 @@ public class JacobiTest {
 //		Examples/PDE/8/result.txt:[TRACER][0] Runtime 8.388671s
 //		Examples/PDE/9/result.txt:[TRACER][0] Runtime 7.999543s
 
-//		
+//
 //		Tests für 9 clients:
 //			100 k transfer size:
 //
@@ -331,7 +327,7 @@ public class JacobiTest {
 //				Dummy Allreduce:               0.116453979s
 //
 //			Normales Allreduce
-//			Eager size 0: 
+//			Eager size 0:
 //				 RootComputes Allreduce:    0.689321108s
 //
 //			mit 1 k transfer size

@@ -7,16 +7,6 @@ de.hd.pvs.piosim.model.components.IOSubsystem.SimpleFlash = de.hd.pvs.piosim.sim
 de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk = de.hd.pvs.piosim.simulator.components.IOSubsystem.GSimpleDisk
 de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel = de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel
 
-+PaketRoutingAlgorithm
-de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute = de.hd.pvs.piosim.simulator.components.PaketRoutingAlgorithm.GPaketFirstRoute
-de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketRoundRobinRoute = de.hd.pvs.piosim.simulator.components.PaketRoutingAlgorithm.GPaketRoundRobinRoute
-
-+Port
-de.hd.pvs.piosim.model.components.Port.Port = de.hd.pvs.piosim.simulator.components.Port.GPort
-
-+NIC
-de.hd.pvs.piosim.model.components.NIC.NIC = de.hd.pvs.piosim.simulator.components.NIC.SimpleNIC
-
 +Node
 de.hd.pvs.piosim.model.components.Node.Node = de.hd.pvs.piosim.simulator.components.Node.GNode
 
@@ -29,6 +19,12 @@ de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache = de.h
 de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GAggregationCache
 de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GServerDirectedIO
 
-+Switch
-de.hd.pvs.piosim.model.components.Switch.SimpleSwitch = de.hd.pvs.piosim.simulator.components.Switch.GSwitch
- 
++NetworkEdge
+de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge = de.hd.pvs.piosim.simulator.components.NetworkEdge.GSimpleNetworkEdge
+
++NetworkNode
+de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode = de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreUndForwardNode
+
++PaketRoutingAlgorithm
+de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketFirstRoute
+de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoundRobinRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketRoundRobinRoute

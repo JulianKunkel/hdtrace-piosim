@@ -9,5 +9,4 @@ import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
  *
  */
 public interface INetworkNode extends IBasicComponent{
-
 }

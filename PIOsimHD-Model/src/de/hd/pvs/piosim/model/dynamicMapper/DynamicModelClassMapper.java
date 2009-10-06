@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
 
 
 /**
@@ -72,7 +72,8 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 	static private DynamicModelClassMapper instance = null;
 
 	static public void loadConfiguration(boolean loadClasses){
-		instance = new DynamicModelClassMapper(loadClasses);
+		instance = new DynamicModelClassMapper();
+		instance.load(loadClasses);
 	}
 
 	/**
@@ -87,21 +88,13 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 	/**
 	 * Load the mapping.
 	 */
-	private DynamicModelClassMapper(boolean loadClasses){
+	private void load(boolean loadClasses){
 		String componentType = null;
 
-		ArrayList<ModelObjectMap> availableImplementationsForType = null;
 		for(String line: readLines("ModelToSimulationMapper.txt")) {
 
 			if ( line.charAt(0) == '+'){
 				componentType = line.substring(1);
-
-				availableImplementationsForType = mapModelType.get(componentType);
-
-				if (availableImplementationsForType == null) {
-					availableImplementationsForType = new ArrayList<ModelObjectMap>();
-					mapModelType.put(componentType, availableImplementationsForType);
-				}
 
 				continue;
 			}
@@ -119,8 +112,7 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 				tryToLoadClass(splitWords[1]);
 			}
 
-			ModelObjectMap mop = new ModelObjectMap(splitWords[0], splitWords[1]);
-			availableImplementationsForType.add(mop);
+			addComponentImplementation(componentType, splitWords[0], splitWords[1]);
 		}
 	}
 
@@ -163,7 +155,7 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 	 * @param component
 	 * @return
 	 */
-	static public ModelObjectMap getComponentImplementation(BasicComponent component) {
+	static public ModelObjectMap getComponentImplementation(IDynamicImplementationObject component) {
 		return getComponentImplementation(component.getObjectType(), component.getClass().getCanonicalName());
 	}
 
@@ -176,4 +168,25 @@ public class DynamicModelClassMapper  extends DynamicMapper{
 		return mop;
 	}
 
+	/**
+	 * Allows to extend the model to simulation mapping on the fly. Especially for testing or
+	 * online extending.
+	 *
+	 * @param componentType
+	 * @param modelClass
+	 * @param simulationClass
+	 */
+	static public void addComponentImplementation(String componentType, String modelClass, String simulationClass){
+		ModelObjectMap mop = new ModelObjectMap(modelClass, simulationClass);
+
+		ArrayList<ModelObjectMap> availableImplementationsForType = null;
+		availableImplementationsForType = instance.mapModelType.get(componentType);
+
+		if (availableImplementationsForType == null) {
+			availableImplementationsForType = new ArrayList<ModelObjectMap>();
+			instance.mapModelType.put(componentType, availableImplementationsForType);
+		}
+
+		availableImplementationsForType.add(mop);
+	}
 }

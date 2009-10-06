@@ -1,6 +1,6 @@
 package de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm;
 
-import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
+import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
 
 
 /**
@@ -9,9 +9,9 @@ import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
  *
  * @author julian
  */
-public abstract class PaketRoutingAlgorithm implements ISerializableObject
+public abstract class PaketRoutingAlgorithm implements IDynamicImplementationObject
 {
-	public String getObjectType() {
+	final public String getObjectType() {
 		return PaketRoutingAlgorithm.class.getSimpleName();
 	}
 }

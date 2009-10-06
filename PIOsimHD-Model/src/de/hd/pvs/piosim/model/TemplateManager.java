@@ -79,10 +79,10 @@ public class TemplateManager {
 		}
 
 		try{
-		ModelXMLReader mreader = new ModelXMLReader();
-		ISerializableObject clonedTemplate = mreader.createComponentFromXML(getXMLRepresentation(template), false);
+			ModelXMLReader mreader = new ModelXMLReader();
+			ISerializableObject clonedTemplate = mreader.createComponentFromXML(getXMLRepresentation(template), false);
 
-		templates.put(name, clonedTemplate);
+			templates.put(name, clonedTemplate);
 		}catch(Exception e){
 			throw new RuntimeException(e);
 		}

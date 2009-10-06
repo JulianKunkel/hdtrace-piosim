@@ -32,24 +32,23 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.GlobalSettings;
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelBuilder;
-import de.hd.pvs.piosim.model.ModelSortIDbySubcomponents;
 import de.hd.pvs.piosim.model.ModelXMLWriter;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
-import de.hd.pvs.piosim.model.components.Connection.Connection;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
-import de.hd.pvs.piosim.model.components.NIC.NIC;
+import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
+import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
+import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
-import de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketFirstRoute;
-import de.hd.pvs.piosim.model.components.PaketRoutingAlgorithm.PaketRoutingAlgorithm;
-import de.hd.pvs.piosim.model.components.Port.Port;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
-import de.hd.pvs.piosim.model.components.Switch.SimpleSwitch;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
+import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.Communicator;
@@ -120,7 +119,7 @@ public class ClusterTest {
 
 		ModelBuilder mb = new ModelBuilder();
 
-		Connection conn = new Connection();
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("1GBit Ethernet");
 		conn.setLatency(new Epoch(0.0002));
 		conn.setBandwidth(100 * MBYTE);
@@ -129,10 +128,8 @@ public class ClusterTest {
 
 		mb.addTemplate(conn);
 
-		PaketRoutingAlgorithm routing = new PaketFirstRoute();
 
 		Node node = new Node();
-		node.setRoutingAlgorithm(routing);
 		node.setName("PVS-Node");
 		// maschine.setCacheSize(1024*1024*1024);
 		node.setCPUs(1);
@@ -156,34 +153,25 @@ public class ClusterTest {
 		// iosub.setMaxThroughput(50 * MBYTE);
 
 		mb.addTemplate(iosub);
-
-		NIC nic = new NIC();
-		nic.setConnection(conn);
-
-		mb.addNIC(node, nic);
-
 		mb.addTemplate(node);
 
-		SimpleSwitch sw = new SimpleSwitch();
-		sw.setRoutingAlgorithm(routing);
+
+		PaketRoutingAlgorithm routing = new PaketFirstRoute();
+		INetworkTopology topology = mb.createTopology("LAN");
+		topology.setRoutingAlgorithm(routing);
+
+		StoreForwardNetworkNode sw = new StoreForwardNetworkNode();
 		sw.setName("PVS-Switch");
 		sw.setTotalBandwidth(1000 * MBYTE);
 
-		Port port = new Port();
-		// port.setParentSwitch(sw);
-		port.setConnection(conn);
-		for (int i = 0; i <= nodeCount; i++)
-			mb.addPort(sw, port);
-
 		mb.addTemplate(sw);
 
-		// System.out.println(sw);
 		// /// NOW BUILD OBJECTS BASED ON PREVIOUS SETUP...
 
-		SimpleSwitch testSW = mb.cloneFromTemplate(sw);
+		StoreForwardNetworkNode testSW = mb.cloneFromTemplate(sw);
+		StoreForwardNetworkNode testSW2 = mb.cloneFromTemplate(sw);
 		ArrayList<Node> nodes = new ArrayList<Node>();
 
-		mb.addSwitch(testSW);
 
 		for (int i = 0; i < nodeCount; i++) {
 			Node node2 = mb.cloneFromTemplate(node);
@@ -191,13 +179,16 @@ public class ClusterTest {
 
 			mb.addNode(node2);
 
-			mb.setConnection(node2.getNICs().get(0), testSW.getPorts().get(i));
+			NetworkEdge edge = mb.cloneFromTemplate(conn);
+			mb.connect(topology, node2, edge , testSW);
+
+			NetworkEdge edge2 = mb.cloneFromTemplate(conn);
+			mb.connect(topology, testSW, edge2 , node2);
 		}
 
-		SimpleSwitch testSW2 = mb.cloneFromTemplate(sw);
-		mb.addSwitch(testSW2);
-		mb.setConnection(testSW.getPorts().get(nodeCount), testSW2.getPorts()
-				.get(nodeCount));
+		NetworkEdge edge2 = mb.cloneFromTemplate(conn);
+		mb.connect(topology, testSW, edge2 , testSW2);
+		mb.connect(topology, testSW2, edge2 , testSW);
 
 		for (int i = 0; i < clients; i++) {
 			ClientProcess c = new ClientProcess();
@@ -236,8 +227,8 @@ public class ClusterTest {
 	protected SimulationResults runSimulationAllExpectedToFinish() throws Exception {
 		mb.setApplication("Jacobi", app);
 
-		ModelSortIDbySubcomponents sorter = new ModelSortIDbySubcomponents();
-		sorter.sort(model);
+		//ModelSortIDbySubcomponents sorter = new ModelSortIDbySubcomponents();
+		//sorter.sort(model);
 
 		// ModelXMLWriter xmlW = new ModelXMLWriter();
 		// xmlW.writeXMLFromProject(model, "/tmp/", "test.xml");

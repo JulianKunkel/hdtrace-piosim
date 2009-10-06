@@ -25,8 +25,8 @@
 
 package de.hd.pvs.piosim.simulator.base;
 import de.hd.pvs.piosim.model.components.FakeBasicComponent;
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.output.ComponentLogger;
 
@@ -39,7 +39,9 @@ import de.hd.pvs.piosim.simulator.output.ComponentLogger;
  *
  * @param <ModelComp> The type of components in this passive component
  */
-public class SPassiveComponent<ModelComp extends BasicComponent> {
+public class SPassiveComponent<ModelComp extends IBasicComponent>
+	implements ISPassiveComponent<ModelComp>
+{
 
 	static private ComponentLogger logger = new ComponentLogger();
 
@@ -84,6 +86,14 @@ public class SPassiveComponent<ModelComp extends BasicComponent> {
 	}
 
 	/**
+	 * This method gets invoked by the simulator to signal that the model is now completely
+	 * build.
+	 */
+	public void simulationModelIsBuild() {
+
+	}
+
+	/**
 	 * This method gets invoked by the simulator to signal completion of the simulation.
 	 * Arbitrary data could be appended to the results.
 	 */
@@ -101,32 +111,36 @@ public class SPassiveComponent<ModelComp extends BasicComponent> {
 		return null;
 	}
 
+	@Override
+	public void setSimulator(Simulator sim) {
+		this.simulator = sim;
+	}
+
 	/**
 	 * Set the component this object tries to simulate. Even if a component is a virtual component
 	 * it needs to connect to a "fake" Model component.
 	 * The components should be attached after the model build completed.
 	 * @param comp The actual Model component
 	 */
-	public void setSimulatedModelComponent(ModelComp comp, Simulator sim) throws Exception{
+	public void setModelComponent(ModelComp comp) throws Exception{
 		if (this.modelComponent != null){
 			throw new IllegalArgumentException("BasicComponent already set to: " + this.modelComponent);
 		}
 
 
 		if (FakeBasicComponent.class.isInstance( comp )){
-			int lastID = sim.getModel().getMaxComponentID() + sim.getExistingSimulationObjects().size() + 1;
+			int lastID = simulator.getModel().getMaxComponentID() + simulator.getExistingSimulationObjects().size() + 1;
 			comp.getIdentifier().setID(lastID);
 
-		}else if( ! sim.getModel().isComponentInModel(comp) ){
+		}else if( ! simulator.getModel().isComponentInModel(comp) ){
 			// FakeBasicComponent is ignored here, because it should not be in the model.
 			throw new IllegalArgumentException("BasicComponent not in model: " + comp);
 		}
 
 		this.modelComponent = comp;
-		this.simulator = sim;
 
 		// add the Component to the Simulator to allow lookup later.
-		sim.addSimulatedComponent(this);
+		simulator.addSimulatedComponent(this);
 
 		assert(this.modelComponent != null);
 		assert(this.simulator != null);
