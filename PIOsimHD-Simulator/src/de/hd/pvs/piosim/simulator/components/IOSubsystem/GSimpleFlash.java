@@ -51,7 +51,7 @@ implements IGIOSubsystem<SPassiveComponent<SimpleFlash>> {
 	}
 	
 	@Override
-	protected Epoch getProcessingTimeOfScheduledJobAndChangeInternalStates(IOJob job) {
+	protected Epoch getProcessingTimeOfScheduledJob(IOJob job) {
 		return getModelComponent().getAvgAccessTime().add(  
 				job.getSize() / (float) getModelComponent().getMaxThroughput()
 				);

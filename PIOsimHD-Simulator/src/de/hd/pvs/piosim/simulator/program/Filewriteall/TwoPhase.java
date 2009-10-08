@@ -39,9 +39,9 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -272,9 +272,9 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 					if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
 						//System.out.println("send to " + c.getRank());
-						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(cmd.getIOList().getPartition(theirOffset, theirSize).getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
+						OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(cmd.getIOList().getPartition(theirOffset, theirSize).getTotalSize() + 20), 60000, Communicator.INTERNAL_MPI);
 						// offset-length pairs
-						OUTresults.addNetSend(c.getRank(), new NetworkSimpleMessage(cmd.getIOList().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 60001, Communicator.INTERNAL_MPI);
+						OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(cmd.getIOList().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 60001, Communicator.INTERNAL_MPI);
 					}
 				}
 
@@ -363,7 +363,7 @@ public class TwoPhase extends CommandImplementation<Filewriteall> {
 
 			assert(myContainer != null);
 
-			for (SingleNetworkJob job : compNetJobs.getNetworkJobs()) {
+			for (InterProcessNetworkJob job : compNetJobs.getNetworkJobs()) {
 				RequestWrite writeRequest = (RequestWrite)job.getJobData();
 				OUTresults.addNetSend(job.getTargetComponent(), new NetworkIOData(writeRequest), RequestIO.IO_DATA_TAG, Communicator.IOSERVERS, true);
 				OUTresults.addNetReceive(job.getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);

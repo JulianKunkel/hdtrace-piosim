@@ -1,9 +1,8 @@
 package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.simulator.components.NetworkEdge.GBusExit;
-import de.hd.pvs.piosim.simulator.event.MessagePart;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 
 /**
@@ -21,11 +20,10 @@ public interface IGNetworkExitCallbacks {
 	 * @param response The response (if any) for Receive Jobs.
 	 * @param endTime The time when the job finished
 	 */
-	public void receiveCB(SingleNetworkJob job,  SingleNetworkJob response,  Epoch endTime);
+	public void receiveCB(InterProcessNetworkJob job,  InterProcessNetworkJob response,  Epoch endTime);
 
 	/**
-	 * This function gets called if a single Message part is received from the Network Cable and
-	 * isShouldPartialRecv() of the senders' Message is active.
+	 * This function gets called if a single Message part is received from the Network Cable
 	 *
 	 * @param part
 	 * @param endTime

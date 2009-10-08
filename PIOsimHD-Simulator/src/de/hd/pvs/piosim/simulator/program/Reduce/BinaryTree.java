@@ -30,7 +30,7 @@ import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -104,7 +104,7 @@ extends CommandImplementation<Reduce>
 					if (targetRank >= commSize) 
 						continue;
 					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0), 
-							new NetworkSimpleMessage(20), // just 20 Bytes or something.
+							new NetworkSimpleData(20), // just 20 Bytes or something.
 							30002, Communicator.INTERNAL_MPI);
 				}
 
@@ -118,7 +118,7 @@ extends CommandImplementation<Reduce>
 				for (int iter = iterations-1 ; iter >= 0 ; iter--){
 					final int targetRank =  1<<iter; 
 					//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0, new NetworkSimpleMessage(20), 30002, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0, new NetworkSimpleData(20), 30002, Communicator.INTERNAL_MPI);
 				}
 			}
 

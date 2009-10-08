@@ -28,7 +28,7 @@ package de.hd.pvs.piosim.simulator.interfaces;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.INetworkEntryInterfaceCallbacks;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntryCallbacks;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExitCallbacks;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
@@ -42,7 +42,7 @@ import de.hd.pvs.piosim.simulator.network.NetworkJobs;
  * @param <Type>
  */
 public interface ISNodeHostedComponent<Type extends SPassiveComponent>
-	extends INetworkEntryInterfaceCallbacks, IGNetworkExitCallbacks
+	extends IGNetworkEntryCallbacks, IGNetworkExitCallbacks
 {
 	/**
 	 * Get the simulated node hosting this component.

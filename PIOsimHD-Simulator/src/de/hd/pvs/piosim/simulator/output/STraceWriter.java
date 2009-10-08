@@ -36,7 +36,7 @@ import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.event.MessagePart;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
  * This class is a superclass for all TraceWriting classes which can

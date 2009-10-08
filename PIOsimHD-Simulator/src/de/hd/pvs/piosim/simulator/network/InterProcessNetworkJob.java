@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+ /** Version Control Information $Id: SingleNetworkJob.java 149 2009-03-27 13:55:56Z kunkel $
+  * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27. Mär 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 149 $ 
   */
 
 
@@ -39,7 +39,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
  * @author Julian M. Kunkel
  */
 
-public class SingleNetworkJob{
+public class InterProcessNetworkJob{
 	
 	/**
 	 * Receiver of the network message
@@ -95,7 +95,7 @@ public class SingleNetworkJob{
 	 * @param shouldPartialRecv
 	 * @return
 	 */
-	static public SingleNetworkJob createSendOperation(	
+	static public InterProcessNetworkJob createSendOperation(	
 			INetworkMessage jobData, 
 			ISNodeHostedComponent sourceComponent,
 			ISNodeHostedComponent targetComponent, 
@@ -107,7 +107,7 @@ public class SingleNetworkJob{
 		
 		assert(sourceComponent != null); //sourceComponent == null if any source AND recv
 		
-		return new SingleNetworkJob(NetworkJobType.SEND, jobData , sourceComponent, targetComponent, tag, comm, parentJobs, 
+		return new InterProcessNetworkJob(NetworkJobType.SEND, jobData , sourceComponent, targetComponent, tag, comm, parentJobs, 
 				partialSend, shouldPartialRecv);		
 	}
 	
@@ -120,14 +120,14 @@ public class SingleNetworkJob{
 	 * @param parentJobs
 	 * @return
 	 */
-	static public SingleNetworkJob createReceiveOperation(
+	static public InterProcessNetworkJob createReceiveOperation(
 			ISNodeHostedComponent receiver,
 			ISNodeHostedComponent senderSource, 
 			int tag, 
 			Communicator comm, 
 			NetworkJobs   parentJobs) 
 	{
-		return new SingleNetworkJob(NetworkJobType.RECEIVE, null, senderSource, receiver, tag, comm, parentJobs, 
+		return new InterProcessNetworkJob(NetworkJobType.RECEIVE, null, senderSource, receiver, tag, comm, parentJobs, 
 				false, false);		
 	}
 	
@@ -144,7 +144,7 @@ public class SingleNetworkJob{
 	 * @param parentJobs if the NIC should only signal if all jobs completed
 	 * @param flowMode
 	 */
-	private SingleNetworkJob(NetworkJobType operation, INetworkMessage jobData, 
+	private InterProcessNetworkJob(NetworkJobType operation, INetworkMessage jobData, 
 			ISNodeHostedComponent sourceComponent,
 			ISNodeHostedComponent targetComponent, int tag, Communicator comm, NetworkJobs   parentJobs, 
 			boolean partialSend, boolean shouldPartialRecv) {

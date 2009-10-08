@@ -30,7 +30,7 @@ import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -238,7 +238,7 @@ public class CommandProcessing{
 	 */
 	final public void addNetReceive(int rankFrom, int tag, Communicator comm){
 		getNetworkJobs().addNetworkJob(
-				SingleNetworkJob.createReceiveOperation(
+				InterProcessNetworkJob.createReceiveOperation(
 						getInvokingComponent(), getTargetfromRank(rankFrom), 
 						tag, comm, getNetworkJobs())
 						);
@@ -246,7 +246,7 @@ public class CommandProcessing{
 
 	final public void addNetReceive(ISNodeHostedComponent from, int tag, Communicator comm){
 		getNetworkJobs().addNetworkJob(
-				SingleNetworkJob.createReceiveOperation(
+				InterProcessNetworkJob.createReceiveOperation(
 						getInvokingComponent(), from, 
 						tag, comm, getNetworkJobs())
 						);
@@ -266,7 +266,7 @@ public class CommandProcessing{
 			boolean shouldPartialRecv )
 	{
 		getNetworkJobs().addNetworkJob(
-				SingleNetworkJob.createSendOperation(jobData, 
+				InterProcessNetworkJob.createSendOperation(jobData, 
 						getInvokingComponent(), getTargetfromRank(rankTo), tag, comm, 
 						getNetworkJobs(), false, shouldPartialRecv));		
 	}
@@ -276,7 +276,7 @@ public class CommandProcessing{
 			boolean shouldPartialRecv )
 	{
 		getNetworkJobs().addNetworkJob(
-				SingleNetworkJob.createSendOperation(jobData, 
+				InterProcessNetworkJob.createSendOperation(jobData, 
 						getInvokingComponent(), to, tag, comm, 
 						getNetworkJobs(), false, shouldPartialRecv));		
 	}

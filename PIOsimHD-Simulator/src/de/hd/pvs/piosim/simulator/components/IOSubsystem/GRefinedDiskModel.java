@@ -203,7 +203,7 @@ implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> >
 	}
 
 	@Override
-	protected Epoch getProcessingTimeOfScheduledJobAndChangeInternalStates(IOJobRefined job) {
+	protected Epoch getProcessingTimeOfScheduledJob(IOJobRefined job) {
 		double avgRotationalLatency = 30.0 / getModelComponent().getRPM();
 		double latency = 0;
 		double transferTime = job.getSize() / (double) getModelComponent().getSequentialTransferRate();

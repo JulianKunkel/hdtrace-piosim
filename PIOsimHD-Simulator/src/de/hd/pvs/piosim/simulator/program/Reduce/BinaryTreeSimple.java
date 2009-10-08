@@ -30,7 +30,7 @@ import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -102,7 +102,7 @@ extends CommandImplementation<Reduce>
 			//System.out.println(myRank + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " +  sendTo);
 
 			OUTresults.addNetSend(sendTo, 
-					new NetworkSimpleMessage(cmd.getSize() + 20),  
+					new NetworkSimpleData(cmd.getSize() + 20),  
 					30001, Communicator.INTERNAL_MPI);				
 
 		}else{

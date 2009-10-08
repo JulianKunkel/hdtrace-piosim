@@ -30,7 +30,7 @@ import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -111,7 +111,7 @@ extends CommandImplementation<Bcast>
 				// send confirmation to receive data to parent node.
 
 				OUTresults.addNetSend(sendTo,
-						new NetworkSimpleMessage(20), // just 20 Bytes or something.
+						new NetworkSimpleData(20), // just 20 Bytes or something.
 						30002, Communicator.INTERNAL_MPI);			
 			}else{
 				// receive from all descending nodes that they accept data.				

@@ -26,7 +26,7 @@
 package de.hd.pvs.piosim.simulator.base;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.EventData;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
@@ -44,9 +44,8 @@ import de.hd.pvs.piosim.simulator.event.InternalEvent;
  * @param <Type>
  * @param <EventDataType>
  */
-abstract public class SSchedulableBlockingComponent
-<Type extends BasicComponent, EventDataType extends EventData>
-extends SBasicComponent<Type>
+abstract public class SSchedulableBlockingComponent<Type extends IBasicComponent, EventDataType extends EventData>
+	extends SBasicComponent<Type>
 {
 	/** Internal states, the busy component processes a job right now */
 	static public enum State {
@@ -71,7 +70,7 @@ extends SBasicComponent<Type>
 	/**
 	 * How long will it take to process this particular event
 	 */
-	abstract protected Epoch getProcessingTimeOfScheduledJobAndChangeInternalStates(EventDataType eventData);
+	abstract protected Epoch getProcessingTimeOfScheduledJob(EventDataType eventData);
 
 	/**
 	 * This function gets called if a job completed.
@@ -151,7 +150,7 @@ extends SBasicComponent<Type>
 			return;
 		}
 
-		Epoch processingTime = getProcessingTimeOfScheduledJobAndChangeInternalStates(event.getEventData());
+		Epoch processingTime = getProcessingTimeOfScheduledJob(event.getEventData());
 
 		/* component is busy right now */
 		state = State.BUSY;
@@ -163,7 +162,7 @@ extends SBasicComponent<Type>
 		jobStarted( event, curTime );
 
 		// wake up the component when the job finishes
-		setNewWakeupTimer(lastRunningEventEndTime);
+		setNewWakeupTimerAbsolute(lastRunningEventEndTime);
 
 		debug(" earliestEventTime: " + event.getEarliestStartTime() +  " from " + curTime + " busy up to:" + lastRunningEventEndTime);
 	}

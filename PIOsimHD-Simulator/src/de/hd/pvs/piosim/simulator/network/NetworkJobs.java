@@ -56,13 +56,13 @@ public class NetworkJobs {
 	/**
 	 * List of bundled jobs. Once all of them finish the <code>NetworkJobs</code> are finished.
 	 */
-	final private ArrayList<SingleNetworkJob> jobs = new ArrayList<SingleNetworkJob>();
+	final private ArrayList<InterProcessNetworkJob> jobs = new ArrayList<InterProcessNetworkJob>();
 	
 	/**
 	 * List of responses. Not ordered. The user must match the Receive operation with the Response
 	 * by him/her self.
 	 */
-	final private ArrayList<SingleNetworkJob> responses = new ArrayList<SingleNetworkJob>();
+	final private ArrayList<InterProcessNetworkJob> responses = new ArrayList<InterProcessNetworkJob>();
 	
 	/** number of currenly pending jobs */
 	private int pendingJobs = 0;
@@ -77,7 +77,7 @@ public class NetworkJobs {
 		this.startTime = commandDescription.getStartTime();
 	}
 	
-	final public ArrayList<SingleNetworkJob> getNetworkJobs(){
+	final public ArrayList<InterProcessNetworkJob> getNetworkJobs(){
 		return jobs;
 	}
 	
@@ -92,7 +92,7 @@ public class NetworkJobs {
 	 * Add a single network job to the list of jobs.
 	 * @param job
 	 */
-	public void addNetworkJob(SingleNetworkJob job){
+	public void addNetworkJob(InterProcessNetworkJob job){
 		jobs.add(job);
 		pendingJobs++;
 	}
@@ -108,7 +108,7 @@ public class NetworkJobs {
 	 * Return the responses in the order they got received.
 	 * @return the responses
 	 */
-	public ArrayList<SingleNetworkJob> getResponses() {
+	public ArrayList<InterProcessNetworkJob> getResponses() {
 		return responses;
 	}
 
@@ -132,7 +132,7 @@ public class NetworkJobs {
 	 * Called if a receive job is completed.
 	 * @param receivedMessage The received job message.
 	 */
-	public void jobCompletedRecv(SingleNetworkJob receivedMessage){
+	public void jobCompletedRecv(InterProcessNetworkJob receivedMessage){
 		responses.add(receivedMessage);
 		
 		pendingJobs--;

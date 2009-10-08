@@ -1,6 +1,5 @@
 package de.hd.pvs.piosim.model.networkTopology;
 
-import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 
 /**
  * Intermediate node in the network topology.
@@ -8,5 +7,5 @@ import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
  * @author julian
  *
  */
-public interface INetworkNode extends IBasicComponent{
+public interface INetworkNode extends INetworkFlowComponent{
 }

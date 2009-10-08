@@ -1,9 +1,8 @@
 package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
-import de.hd.pvs.piosim.simulator.event.Message;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.Message;
 
-public interface INetworkEntryInterface {
+public interface IGNetworkEntry {
 
 	/**
 	 * Append some new data to a message i.e. new data gets available for a message and can be
@@ -20,7 +19,7 @@ public interface INetworkEntryInterface {
 	 * The method will delegate the job either to the upload queue or register the job on the
 	 * download queue
 	 */
-	public void submitNewNetworkJob(SingleNetworkJob job);
+	public void submitNewMessage(Message msg);
 
-	public void setNetworkEntryImplementor(INetworkEntryInterfaceCallbacks networkEntryImplementor);
+	public void setNetworkEntryImplementor(IGNetworkEntryCallbacks networkEntryImplementor);
 }

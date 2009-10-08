@@ -3,31 +3,35 @@ package de.hd.pvs.piosim.simulator.network.routing;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
+import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
+import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoundRobinRoute;
+import de.hd.pvs.piosim.simulator.IModelToSimulatorMapper;
 import de.hd.pvs.piosim.simulator.base.SNetworkComponent;
 import de.hd.pvs.piosim.simulator.components.NetworkEdge.IGNetworkEdge;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.GNetworkNodeExit;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
-import de.hd.pvs.piosim.simulator.event.MessagePart;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
  * Truly sends messages in round robin among the connected components.
  * @author julian
  *
  */
-public class GPaketRoundRobinRoute implements IPaketTopologyRouting {
+public class GPaketRoundRobinRoute extends AGPaketRouting<PaketRoundRobinRoute> {
 	final HashMap<GNode, Iterator<SNetworkComponent>> lastUsedRoute = new HashMap<GNode, Iterator<SNetworkComponent>>();
 
-	public IGNetworkEdge getTargetRouteForMessage(
-			GNetworkNodeExit target, MessagePart part) {
+	@Override
+	public void buildRoutingTable(INetworkTopology networkTopology,
+			IModelToSimulatorMapper objs) {
+		// TODO Auto-generated method stub
 
-		Iterator<SNetworkComponent> lastIt = lastUsedRoute.get(targetNode);
+	}
 
-		if(lastIt != null && lastIt.hasNext()){
-			return lastIt.next();
-		}else{
-			Iterator<SNetworkComponent> it = getRoutesToTarget(targetNode).iterator();
-			lastUsedRoute.put(targetNode, it);
-			return it.next();
-		}
+	@Override
+	public IGNetworkEdge getTargetRouteForMessage(INetworkNode src,
+			INetworkExit target, MessagePart part) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

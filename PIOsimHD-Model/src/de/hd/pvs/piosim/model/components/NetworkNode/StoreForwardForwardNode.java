@@ -5,11 +5,11 @@ import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 
 /**
- * A BusIntermediateRouteNode has a link to one or multiple neighbour NetworkComponents.
+ * Node receives data, buffers it, then transfers it to one outgoing edge.
  *
  * @author Julian M. Kunkel
  */
-public class StoreForwardNetworkNode extends NetworkNode
+public class StoreForwardForwardNode extends NetworkNode
 {
 
 	/** The total bandwidth of the <code>Switch</code>.
@@ -36,9 +36,5 @@ public class StoreForwardNetworkNode extends NetworkNode
 	 */
 	public final void setTotalBandwidth(long totalBandwidth) {
 		this.totalBandwidth = totalBandwidth;
-	}
-
-	public boolean isNetworkExitNode() {
-		return false;
 	}
 }

@@ -23,6 +23,7 @@ de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO = de.hd.pvs.
 de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge = de.hd.pvs.piosim.simulator.components.NetworkEdge.GSimpleNetworkEdge
 
 +NetworkNode
+de.hd.pvs.piosim.model.components.NetworkNode.CutThroughForwardNode = de.hd.pvs.piosim.simulator.components.NetworkNode.GCutThroughForwardNode
 de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode = de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreUndForwardNode
 
 +PaketRoutingAlgorithm

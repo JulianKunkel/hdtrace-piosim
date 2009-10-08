@@ -31,8 +31,8 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IGComponent;
 import de.hd.pvs.piosim.simulator.event.IOJob;
-import de.hd.pvs.piosim.simulator.event.Message;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
@@ -71,7 +71,7 @@ extends IGComponent<Type>
 	 * @param ioData
 	 * @param clientJob
 	 */
-	public void writeDataToCache(NetworkIOData ioData, SingleNetworkJob clientJob, long bytesToWrite);
+	public void writeDataToCache(NetworkIOData ioData, InterProcessNetworkJob clientJob, long bytesToWrite);
 
 	/**
 	 * This method is called when data (which should be fragmented) got sent successfully by the NIC.
@@ -90,7 +90,7 @@ extends IGComponent<Type>
 	 * @param bytesOfWrite
 	 * @return
 	 */
-	public boolean canIPutDataIntoCache(SingleNetworkJob clientJob, long bytesOfWrite);
+	public boolean canIPutDataIntoCache(InterProcessNetworkJob clientJob, long bytesOfWrite);
 
 	/**
 	 * This method is called once a new read request comes in.
@@ -98,7 +98,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestRead req, SingleNetworkJob request);
+	public void announceIORequest( RequestRead req, InterProcessNetworkJob request);
 
 	/**
 	 * This method is called once a read really should start.
@@ -115,7 +115,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestWrite req, SingleNetworkJob request);
+	public void announceIORequest( RequestWrite req, InterProcessNetworkJob request);
 
 
 	/**
@@ -136,7 +136,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestFlush req, SingleNetworkJob request);
+	public void announceIORequest( RequestFlush req, InterProcessNetworkJob request);
 
 
 }

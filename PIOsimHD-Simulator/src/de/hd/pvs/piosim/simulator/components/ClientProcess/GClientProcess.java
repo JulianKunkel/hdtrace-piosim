@@ -45,10 +45,10 @@ import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
-import de.hd.pvs.piosim.simulator.event.MessagePart;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 import de.hd.pvs.piosim.simulator.program.IWaitCommand;
@@ -224,7 +224,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	 * This shall never be called in a client:
 	 */
 	@Override
-	public void receiveCB(SingleNetworkJob job, SingleNetworkJob response, Epoch endTime) {
+	public void receiveCB(InterProcessNetworkJob job, InterProcessNetworkJob response, Epoch endTime) {
 		assert(false);
 	}
 
@@ -537,7 +537,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 				if(newJob.getNetworkJobs().getSize() > 0){
 					pendingNetworkOperations.put(newJob.getNetworkJobs(), newJob);
 
-					for(SingleNetworkJob j: newJob.getNetworkJobs().getNetworkJobs()){
+					for(InterProcessNetworkJob j: newJob.getNetworkJobs().getNetworkJobs()){
 						assert(j.getTargetComponent() != null);
 
 						getAttachedNode().submitNewNetworkJob(j);

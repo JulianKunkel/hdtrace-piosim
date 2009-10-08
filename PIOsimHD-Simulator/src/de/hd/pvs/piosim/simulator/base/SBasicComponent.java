@@ -66,12 +66,26 @@ public abstract class SBasicComponent<ModelComp extends IBasicComponent>
 	 * Try to start pending operations on the component at a given epoch.
 	 * Implements some kind of timer when this component should be woken up.
 	 *
-	 * @param when
+	 * @param when is added to the simulation current time
 	 */
-	final protected void setNewWakeupTimer(Epoch when){
-		debug("when: " + when);
+	final protected void setNewWakeupTimerInFuture(Epoch futureOffset){
+		setNewWakeupTimerAbsolute(futureOffset.add(getSimulator().getVirtualTime()));
+	}
 
+	/**
+	 * Try to start pending operations on the component at a given epoch.
+	 * Implements some kind of timer when this component should be woken up.
+	 *
+	 * @param when is the absolute time
+	 */
+	final protected void setNewWakeupTimerAbsolute(Epoch when){
+		debug("when: " + when);
 		getSimulator().submitNewEvent(new InternalEvent(this, when));
+	}
+
+	// update the wakeup timer to the current time
+	final protected void setNewWakeupTimeNow(){
+		getSimulator().submitNewEvent(new InternalEvent(this, getSimulator().getVirtualTime()));
 	}
 
 	/**
@@ -79,9 +93,11 @@ public abstract class SBasicComponent<ModelComp extends IBasicComponent>
 	 * should wake up. However, it tries to remove old timers from the simulator. (i.e. at most
 	 * one timer should be pending).
 	 *
-	 * @param when
+	 * @param when is added to the simulation current time
 	 */
-	final protected void updateWakeupTimer(Epoch when){
+	final protected void updateWakeupTimerInFuture(Epoch futureOffset){
+		Epoch when = futureOffset.add(getSimulator().getVirtualTime());
+
 		getSimulator().deleteFutureEvent(nextWakeUpEvent);
 		nextWakeUpEvent = new InternalEvent(this, when);
 		getSimulator().submitNewEvent(nextWakeUpEvent);

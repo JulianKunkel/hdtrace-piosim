@@ -37,7 +37,7 @@ import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
-import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode;
+import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardForwardNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
@@ -160,7 +160,7 @@ public class ClusterTest {
 		INetworkTopology topology = mb.createTopology("LAN");
 		topology.setRoutingAlgorithm(routing);
 
-		StoreForwardNetworkNode sw = new StoreForwardNetworkNode();
+		StoreForwardForwardNode sw = new StoreForwardForwardNode();
 		sw.setName("PVS-Switch");
 		sw.setTotalBandwidth(1000 * MBYTE);
 
@@ -168,8 +168,8 @@ public class ClusterTest {
 
 		// /// NOW BUILD OBJECTS BASED ON PREVIOUS SETUP...
 
-		StoreForwardNetworkNode testSW = mb.cloneFromTemplate(sw);
-		StoreForwardNetworkNode testSW2 = mb.cloneFromTemplate(sw);
+		StoreForwardForwardNode testSW = mb.cloneFromTemplate(sw);
+		StoreForwardForwardNode testSW2 = mb.cloneFromTemplate(sw);
 		ArrayList<Node> nodes = new ArrayList<Node>();
 
 

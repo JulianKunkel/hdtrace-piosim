@@ -50,7 +50,7 @@ implements IGIOSubsystem<SSequentialBlockingComponent<SimpleDisk, IOJob>>  {
 	}
 	
 	@Override
-	protected Epoch getProcessingTimeOfScheduledJobAndChangeInternalStates(IOJob job) {
+	protected Epoch getProcessingTimeOfScheduledJob(IOJob job) {
 		return getModelComponent().getAvgAccessTime().add(  
 				job.getSize() / (float) getModelComponent().getMaxThroughput()
 				);

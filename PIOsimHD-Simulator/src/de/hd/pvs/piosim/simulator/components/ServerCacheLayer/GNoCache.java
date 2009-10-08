@@ -42,10 +42,10 @@ import de.hd.pvs.piosim.simulator.components.IOSubsystem.IGIOSubsystem;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.IOJob;
-import de.hd.pvs.piosim.simulator.event.Message;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
@@ -183,13 +183,13 @@ IIOSubsystemCaller
 
 
 	@Override
-	public boolean canIPutDataIntoCache(SingleNetworkJob clientJob, long amount) {
+	public boolean canIPutDataIntoCache(InterProcessNetworkJob clientJob, long amount) {
 		//System.out.println(numberOfPendingWrites);
 		return queuedWriteJobs.size() == 0;
 	}
 
 	@Override
-	public void writeDataToCache(NetworkIOData ioData, SingleNetworkJob clientJob, long amountToWrite) {
+	public void writeDataToCache(NetworkIOData ioData, InterProcessNetworkJob clientJob, long amountToWrite) {
 		//decide which data actually is contained in the network packet
 		debug("amount " + amountToWrite);
 
@@ -293,17 +293,17 @@ IIOSubsystemCaller
 	}
 
 	@Override
-	public void announceIORequest(RequestFlush req, SingleNetworkJob request) {
+	public void announceIORequest(RequestFlush req, InterProcessNetworkJob request) {
 		addFlush(req);
 	}
 
 	@Override
-	public void announceIORequest(RequestWrite req, SingleNetworkJob request) {
+	public void announceIORequest(RequestWrite req, InterProcessNetworkJob request) {
 
 	}
 
 	@Override
-	public void announceIORequest( RequestRead req, SingleNetworkJob request){
+	public void announceIORequest( RequestRead req, InterProcessNetworkJob request){
 		final long iogran = getSimulator().getModel().getGlobalSettings().getIOGranularity();
 
 		/**

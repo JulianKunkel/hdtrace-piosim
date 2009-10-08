@@ -36,12 +36,12 @@ import de.hd.pvs.piosim.model.networkTopology.NetworkTopology;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.INetworkEntryInterface;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 
 
 /**
@@ -53,7 +53,7 @@ import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
  *
  */
 public class GNode extends SBasicComponent<Node>{
-	private INetworkEntryInterface nicUpload;
+	private IGNetworkEntry nicUpload;
 
 	/**
 	 * Clients contained in this node.
@@ -167,7 +167,7 @@ public class GNode extends SBasicComponent<Node>{
 	 * each request
 	 * Jobs could be bundled together i.e. completion will be signaled ONLY if all jobs completed
 	 */
-	public void submitNewNetworkJob(SingleNetworkJob job){
+	public void submitNewNetworkJob(InterProcessNetworkJob job){
 		// determine the right NIC for the Job depending on the target and pick the target NIC.
 		GNIC gnic = getGNICToNode(job.getTargetComponent());
 		gnic.submitNewNetworkJob(job);

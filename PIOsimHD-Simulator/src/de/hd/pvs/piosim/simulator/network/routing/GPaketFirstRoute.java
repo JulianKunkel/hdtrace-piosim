@@ -13,7 +13,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 import de.hd.pvs.piosim.simulator.IModelToSimulatorMapper;
 import de.hd.pvs.piosim.simulator.components.NetworkEdge.IGNetworkEdge;
-import de.hd.pvs.piosim.simulator.event.MessagePart;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
  * This class uses one fixed route with the smallest number of hops.
@@ -110,14 +110,24 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 	}
 
 	@Override
-	public IGNetworkEdge getTargetRouteForMessage(INetworkNode src,
-			INetworkExit target, MessagePart part) {
+	public IGNetworkEdge getTargetRouteForMessage(INetworkNode src, MessagePart part) {
 		HashMap<INetworkExit, IGNetworkEdge> routes = routingTable.get(src);
+		final IGNetworkEdge edge;
+
 		if(routes.size() == 1){
 			// default route:
-			return routes.get(null);
+			edge =  routes.get(null);
+
+			assert(edge != null);
+
+			return edge;
+		}else{
+			edge = routes.get(part.getNetworkTarget());
+
+			assert(edge != null);
+
+			return edge;
 		}
-		return routes.get(target);
 	}
 
 	@Override

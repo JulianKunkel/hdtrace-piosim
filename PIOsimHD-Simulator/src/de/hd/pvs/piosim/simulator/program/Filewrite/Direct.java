@@ -38,7 +38,7 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
@@ -90,7 +90,7 @@ extends CommandImplementation<Filewrite>
 			/* create an I/O request for each of these servers */
 			OUTresults.setNextStep(UPDATE_SIZE);
 
-			for( SingleNetworkJob job : compNetJobs.getNetworkJobs() ){
+			for( InterProcessNetworkJob job : compNetJobs.getNetworkJobs() ){
 				RequestWrite writeRequest = (RequestWrite) job.getJobData();
 				ListIO iolist = writeRequest.getListIO();
 

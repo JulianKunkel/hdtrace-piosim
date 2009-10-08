@@ -32,8 +32,8 @@ import de.hd.pvs.piosim.model.program.commands.Sendrecv;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -68,7 +68,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 				OUTresults.setNextStep(RENDEZVOUS_ACK);
 				
 				/* data to transfer depends on actual command size, but is defined in send */
-				OUTresults.addNetSend(target, new NetworkSimpleMessage(100), cmd.getToTag(), cmd.getCommunicator());
+				OUTresults.addNetSend(target, new NetworkSimpleData(100), cmd.getToTag(), cmd.getCommunicator());
 
 				/* wait for incoming msg (send ready) */
 				OUTresults.addNetReceive(target, cmd.getToTag(), cmd.getCommunicator());			
@@ -84,7 +84,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 			return;
 		}case(RENDEZVOUS_ACK):{
 			// receiver path
-			SingleNetworkJob response = compNetJobs.getResponses().get(0);
+			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
 			client.debug("Receive got ACK from " +  response.getSourceComponent().getIdentifier() );
 
@@ -96,7 +96,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 				//rendezvous protocol
 				/* identify the sender from the source */
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleData(100), response.getTag() , cmd.getCommunicator());
 			}			
 
 			/* data to transfer depends on actual command size, but is defined in send */
@@ -106,7 +106,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 			OUTresults.addNetSend( target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getToTag(), cmd.getCommunicator());
 			return;
 		}case(EAGER_ACK):{
-			SingleNetworkJob response = compNetJobs.getResponses().get(0);
+			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
 			client.debug("Receive got ACK from " +  response.getSourceComponent().getIdentifier() );
 
@@ -119,7 +119,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 				OUTresults.setNextStep(START_RENDEZVOUS_RECV);
 				
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend( response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend( response.getSourceComponent(), new NetworkSimpleData(100), response.getTag() , cmd.getCommunicator());
 			}
 			return;
 		}case(START_RENDEZVOUS_RECV):{

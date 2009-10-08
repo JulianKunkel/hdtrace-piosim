@@ -28,7 +28,7 @@
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 
 
 
@@ -43,7 +43,7 @@ public class GSimpleWriteBehind
 extends GNoCache
 {
 	@Override
-	public boolean canIPutDataIntoCache(SingleNetworkJob clientJob, long amount) {				
+	public boolean canIPutDataIntoCache(InterProcessNetworkJob clientJob, long amount) {				
 		return serverProcess.getAttachedNode().isEnoughFreeMemory(amount);
 	}
 

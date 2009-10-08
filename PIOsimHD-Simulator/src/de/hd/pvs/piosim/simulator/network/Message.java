@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: Message.java 706 2009-10-06 13:52:54Z kunkel $
+  * @lastmodified    $Date: 2009-10-06 15:52:54 +0200 (Di, 06. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 706 $
   */
 
 
@@ -23,9 +23,10 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.piosim.simulator.event;
+package de.hd.pvs.piosim.simulator.network;
 
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
+import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 
 /**
  * A network message consists of several packets.
@@ -33,16 +34,16 @@ import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
  * @author Julian M. Kunkel
  *
  */
-public class Message extends NetworkEventType {
+public class Message<Data extends IMessageUserData> implements INetworkMessage {
+	/**
+	 * Receiver of the network message
+	 */
+	final private INetworkExit targetComponent;
+
 	/**
 	 * The total size of this message.
 	 */
 	final private long totalSize;
-
-	/**
-	 * The NetworkJob realized by this message.
-	 */
-	final private SingleNetworkJob job;
 
 	/**
 	 * How much data has been already packed into smaller packets.
@@ -51,7 +52,7 @@ public class Message extends NetworkEventType {
 	private long createdPosition = 0;
 
 	/**
-	 * How much data got received from the target NIC.
+	 * How much data got received from the target network component.
 	 */
 	private long receivedPosition = 0;
 
@@ -59,6 +60,8 @@ public class Message extends NetworkEventType {
 	 * not transferred so far. It can be transferred by the NIC as soon as possible.
 	 */
 	private long availableDataPosition = 0;
+
+	final private Data containedData;
 
 	/**
 	 * Return the size of this message
@@ -98,10 +101,11 @@ public class Message extends NetworkEventType {
 	 * @param job
 	 * @param flowPart
 	 */
-	public Message(long size, SingleNetworkJob job) {
+	public Message(long size, Data containedData, INetworkExit targetComponent) {
 		this.totalSize = size;
 		this.availableDataPosition = size;
-		this.job = job;
+		this.containedData = containedData;
+		this.targetComponent = targetComponent;
 	}
 
 	/**
@@ -111,10 +115,11 @@ public class Message extends NetworkEventType {
 	 * @param job
 	 * @param currentPosition How much data is already available from the Message?
 	 */
-	public Message(long size, SingleNetworkJob job, long currentPosition) {
+	public Message(long size, long currentPosition, Data containedData, INetworkExit targetComponent) {
 		this.totalSize = size;
 		this.availableDataPosition = currentPosition;
-		this.job = job;
+		this.containedData = containedData;
+		this.targetComponent = targetComponent;
 	}
 
 	/**
@@ -126,12 +131,6 @@ public class Message extends NetworkEventType {
 		assert(this.availableDataPosition <= this.totalSize);
 	}
 
-	/**
-	 * Return the parent NetworkJob realized by this message.
-	 */
-	public SingleNetworkJob getNetworkJob() {
-		return job;
-	}
 
 	/**
 	 * @return the availableDataPosition
@@ -165,7 +164,25 @@ public class Message extends NetworkEventType {
 	}
 
 	@Override
+	public INetworkExit getNetworkTarget() {
+		return targetComponent;
+	}
+
+	@Override
+	public long getSize() {
+		return totalSize;
+	}
+
+	@Override
 	public String toString() {
-		return "from: " + job.getSourceComponent().getIdentifier() + " to: " + job.getTargetComponent().getIdentifier();
+		return " to: " + targetComponent.getIdentifier();
+	}
+
+	/**
+	 * Get the user data transported with this message
+	 * @return
+	 */
+	public Data getContainedUserData() {
+		return containedData;
 	}
 }

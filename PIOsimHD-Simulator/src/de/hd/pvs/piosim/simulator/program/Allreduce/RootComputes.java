@@ -30,7 +30,7 @@ import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RootComputes  
@@ -47,7 +47,7 @@ public class RootComputes
 		int rankZero = commParts[0];
 		
 		if ( client.getModelComponent().getRank() != rankZero){				
-			OUTresults.addNetSend(rankZero, new NetworkSimpleMessage(cmd.getSize() + 20),  
+			OUTresults.addNetSend(rankZero, new NetworkSimpleData(cmd.getSize() + 20),  
 					30000, Communicator.INTERNAL_MPI);
 			/* wait for incoming data (read data) */			
 			OUTresults.addNetReceive(rankZero, 30001, Communicator.INTERNAL_MPI);
@@ -67,7 +67,7 @@ public class RootComputes
 			}else{ // send data back:
 				for(int i=1; i < commParts.length; i++){
 					int rank = commParts[i];
-					OUTresults.addNetSend(rank, new NetworkSimpleMessage(cmd.getSize() + 20),  
+					OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20),  
 							30001, Communicator.INTERNAL_MPI);
 				}				
 			}

@@ -27,7 +27,7 @@ package de.hd.pvs.piosim.simulator.base;
 
 import java.util.LinkedList;
 
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.EventData;
 
@@ -39,9 +39,8 @@ import de.hd.pvs.piosim.simulator.event.EventData;
  *
  * @author Julian M. Kunkel
  */
-abstract public class SSequentialBlockingComponent
-<Type extends BasicComponent, EventDataType extends EventData>
-extends SSchedulableBlockingComponent<Type, EventDataType>
+abstract public class SSequentialBlockingComponent<Type extends IBasicComponent, EventDataType extends EventData>
+	extends SSchedulableBlockingComponent<Type, EventDataType>
 {
 	/**
 	 * The actual queue of pending events (contains blocked events)

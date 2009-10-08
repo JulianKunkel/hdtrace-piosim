@@ -31,7 +31,7 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -127,7 +127,7 @@ extends CommandImplementation<Bcast>
 				amountToTransfer = dataRemains;
 			}
 			
-			INetworkMessage data= new NetworkSimpleMessage(amountToTransfer + msgHeader);
+			INetworkMessage data= new NetworkSimpleData(amountToTransfer + msgHeader);
 			
 			for (int iter = iterations-1 ; iter >= 0 ; iter--){				
 				final int targetRank =  1<<iter; 

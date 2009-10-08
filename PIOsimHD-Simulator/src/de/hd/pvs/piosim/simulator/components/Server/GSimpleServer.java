@@ -37,11 +37,11 @@ import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IGServerCacheLayer;
-import de.hd.pvs.piosim.simulator.event.MessagePart;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
@@ -70,12 +70,12 @@ implements IGServer<SPassiveComponent<Server>>
 	}
 
 
-	public SingleNetworkJob process(RequestRead req, SingleNetworkJob request) {
+	public InterProcessNetworkJob process(RequestRead req, InterProcessNetworkJob request) {
 
 		cacheLayer.announceIORequest( req, request );
 		// getAttachedNode().getGNICToNode(request.getSourceComponent()),
 
-		return SingleNetworkJob.createSendOperation(
+		return InterProcessNetworkJob.createSendOperation(
 				new NetworkIOData(req),
 				this,
 				request.getSourceComponent(),
@@ -85,11 +85,11 @@ implements IGServer<SPassiveComponent<Server>>
 				true, false);
 	}
 
-	public SingleNetworkJob process(RequestWrite req, SingleNetworkJob request) {
+	public InterProcessNetworkJob process(RequestWrite req, InterProcessNetworkJob request) {
 		cacheLayer.announceIORequest( req, request );
 
 		/* post receive of further message parts as fragmented flow parts */
-		return SingleNetworkJob.createReceiveOperation(
+		return InterProcessNetworkJob.createReceiveOperation(
 				this,
 				request.getSourceComponent(),
 				RequestIO.IO_DATA_TAG,
@@ -97,20 +97,20 @@ implements IGServer<SPassiveComponent<Server>>
 				null);
 	}
 
-	public SingleNetworkJob process(RequestFlush req, SingleNetworkJob request) {
+	public InterProcessNetworkJob process(RequestFlush req, InterProcessNetworkJob request) {
 		cacheLayer.announceIORequest( req, request );
 
 		return null;
 	}
 
-	public SingleNetworkJob process(NetworkIOData data, SingleNetworkJob request) {
+	public InterProcessNetworkJob process(NetworkIOData data, InterProcessNetworkJob request) {
 		return null;
 	}
 
 
-	public SingleNetworkJob prepareFinalWriteAcknowledge(SingleNetworkJob request) {
-		return SingleNetworkJob.createSendOperation(
-				new NetworkSimpleMessage(15),
+	public InterProcessNetworkJob prepareFinalWriteAcknowledge(InterProcessNetworkJob request) {
+		return InterProcessNetworkJob.createSendOperation(
+				new NetworkSimpleData(15),
 				this,
 				request.getSourceComponent(),
 				RequestIO.IO_COMPLETION_TAG,
@@ -126,14 +126,14 @@ implements IGServer<SPassiveComponent<Server>>
 	}
 
 
-	void processRequest(SingleNetworkJob job){
-		Class<?> partypes[] = {job.getJobData().getClass() , SingleNetworkJob.class};
+	void processRequest(InterProcessNetworkJob job){
+		Class<?> partypes[] = {job.getJobData().getClass() , InterProcessNetworkJob.class};
 		try{
 			Method meth = this.getClass().getMethod("process", partypes);
 
 			Object arglist[] = {job.getJobData(), job};
 
-			SingleNetworkJob resp = (SingleNetworkJob) meth.invoke(this, arglist);
+			InterProcessNetworkJob resp = (InterProcessNetworkJob) meth.invoke(this, arglist);
 
 			if(resp == null){
 				/* finished processing */
@@ -164,21 +164,21 @@ implements IGServer<SPassiveComponent<Server>>
 	}
 
 	@Override
-	public void receiveCB(SingleNetworkJob job, SingleNetworkJob response, Epoch endTime) {
+	public void receiveCB(InterProcessNetworkJob job, InterProcessNetworkJob response, Epoch endTime) {
 		debug( "Unexpected job starting " + response.getSourceComponent().getIdentifier() + "," + response.getJobData());
 		processRequest(response);
 		submitRecv();
 	}
 
 	private void processWritePart(MessagePart part, Epoch endTime){
-		SingleNetworkJob job = part.getNetworkJob();
+		InterProcessNetworkJob job = part.getNetworkJob();
 		cacheLayer.writeDataToCache((NetworkIOData) job.getJobData(),  job, part.getSize());
 
 		if(part.isLastPart()){
 			/*
 			 * Send an acknowledge to the client.
 			 */
-			SingleNetworkJob resp = prepareFinalWriteAcknowledge(job);
+			InterProcessNetworkJob resp = prepareFinalWriteAcknowledge(job);
 
 			/* return the response or another receive message */
 			if(resp != null){
@@ -189,7 +189,7 @@ implements IGServer<SPassiveComponent<Server>>
 
 	@Override
 	public void recvMsgPartCB(GNIC gnic, MessagePart part, Epoch endTime) {
-		SingleNetworkJob job = part.getNetworkJob();
+		InterProcessNetworkJob job = part.getNetworkJob();
 
 		debug("received MSG Part " + part.getSize() + " cmd: " + job.getParentNetworkJobs().getInitialRequestDescription());
 
@@ -221,7 +221,7 @@ implements IGServer<SPassiveComponent<Server>>
 
 	private void submitRecv(){
 		getAttachedNode().submitNewNetworkJob(
-				SingleNetworkJob.createReceiveOperation(this, null, RequestIO.INITIAL_REQUEST_TAG,  Communicator.IOSERVERS, null));
+				InterProcessNetworkJob.createReceiveOperation(this, null, RequestIO.INITIAL_REQUEST_TAG,  Communicator.IOSERVERS, null));
 	}
 
 	@Override

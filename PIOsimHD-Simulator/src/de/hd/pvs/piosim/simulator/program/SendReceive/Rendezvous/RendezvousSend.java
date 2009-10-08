@@ -32,7 +32,7 @@ import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -66,7 +66,7 @@ public class RendezvousSend extends CommandImplementation<Send>
 								
 				/* data to transfer depends on actual command size, but is defined in send */
 				OUTresults.addNetSend(cmd.getToRank(), 
-						new NetworkSimpleMessage(100), cmd.getToTag(), cmd.getCommunicator());
+						new NetworkSimpleData(100), cmd.getToTag(), cmd.getCommunicator());
 
 				/* wait for incoming msg (send ready) */
 				OUTresults.addNetReceive(cmd.getToRank(),  cmd.getToTag(), cmd.getCommunicator());			

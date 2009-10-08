@@ -54,6 +54,8 @@ import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper.ModelObjectM
 import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
+import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
@@ -63,6 +65,8 @@ import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.ApplicationMap;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.NetworkEdge.IGNetworkEdge;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkNode;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
 import de.hd.pvs.piosim.simulator.event.Event;
@@ -134,10 +138,17 @@ public final class Simulator implements IModelToSimulatorMapper{
 	/**
 	 * Check the model and prepare the simulation
 	 * @param model
-	 * @param parameters
+	 * @param parameters (null, then defaults are used) or the real parameters
 	 * @throws Exception
 	 */
-	private void initModel(Model model, RunParameters parameters) throws Exception {
+	public void initModel(Model model, RunParameters parameters) throws Exception {
+		if(existingSimulationObjects.size() > 0){
+			throw new IllegalArgumentException("Simulator already initalized, model cannot be changed afterwards!");
+		}
+
+		if(parameters == null){
+			parameters = new RunParameters();
+		}
 		this.runParameters = parameters;
 		this.model = model;
 
@@ -149,9 +160,6 @@ public final class Simulator implements IModelToSimulatorMapper{
 		// check the consistency of the model to detect errors in advance.
 		checkModelConsistency(model);
 
-		// load trace writer
-		traceWriter = new SHDTraceWriter(runParameters.traceFile, this);
-
 		/* create network routing points */
 		for(INetworkEdge com: model.getNetworkEdges()){
 			IGNetworkEdge c = (IGNetworkEdge) instantiateSimObjectForModelObj(com);
@@ -159,8 +167,19 @@ public final class Simulator implements IModelToSimulatorMapper{
 		}
 
 		for(INetworkNode com: model.getNetworkNodes()){
-			IGNetworkNode c = (IGNetworkNode) instantiateSimObjectForModelObj(com);
-			addSimulatedComponent(c);
+			final IGNetworkNode node = (IGNetworkNode) instantiateSimObjectForModelObj(com);
+			addSimulatedComponent(node);
+
+			// check that IGNetworkExit is implemented when component implements INetworkExit
+			if(INetworkExit.class.isInstance(com)  && ! IGNetworkExit.class.isInstance(node) ){
+				throw new IllegalArgumentException("Model component " + com.getIdentifier() + " implements INetworkExit "
+						+ "then the simulation component must implement IGNetworkExit, but it does not. Class used was: " + node.getClass().getCanonicalName());
+			}
+			// check that IGNetworkEntry is implemented when component implements INetworkEntry
+			if(INetworkEntry.class.isInstance(com)  && ! IGNetworkEntry.class.isInstance(node) ){
+				throw new IllegalArgumentException("Model component " + com.getIdentifier() + " implements INetworkEntry "
+						+ "then the simulation component must implement IGNetworkEntry, but it does not. Class used was: " + node.getClass().getCanonicalName());
+			}
 		}
 
 
@@ -194,8 +213,9 @@ public final class Simulator implements IModelToSimulatorMapper{
 			// now load the edges for the topology:
 			for(final INetworkEdge com: model.getNetworkEdges()){
 				final INetworkNode tgt = topo.getEdgeTarget(com);
+				final IGNetworkNode tgtNode = (IGNetworkNode) getSimulatedComponent(tgt);
 				((IGNetworkEdge)(getSimulatedComponent(com))).setTargetNode(
-						(IGNetworkNode) getSimulatedComponent(tgt));
+						tgtNode);
 			}
 
 			// now load the routing into the nodes
@@ -207,9 +227,10 @@ public final class Simulator implements IModelToSimulatorMapper{
 			existingTopologies.add(gtopo);
 		}
 
-		/* register all components for the STraceWriter */
-		for(ISPassiveComponent bc: existingSimulationObjects.values()){
-			//getTraceWriter().preregister(bc);
+
+		// notify all components that the model is now build
+		for(ISPassiveComponent component:  getSortedList(getExistingSimulationObjects().values())) {
+			component.simulationModelIsBuild();
 		}
 	}
 
@@ -317,27 +338,28 @@ public final class Simulator implements IModelToSimulatorMapper{
 	 */
 	static final boolean countEventsPerComponent = false;
 
-	/**
-	 * Start the simulation with default run-parameters
-	 * @param model
-	 */
-	public void simulate(Model model) throws Exception{
-		simulate(model, new RunParameters());
+	public void buildModel(Model model) throws Exception{
+		initModel(model, new RunParameters());
+	}
+
+	public void buildModel(RunParameters parameters) throws Exception{
+		initModel(model, parameters);
 	}
 
 	/**
 	 * Start the simulation of the model and print some statistics.
 	 */
-	public SimulationResults simulate(Model model, RunParameters parameters) throws Exception{
-		if(existingSimulationObjects.size() > 0){
+	public SimulationResults simulate() throws Exception{
+		if(traceWriter != null){
 			throw new IllegalArgumentException("Simulator already used!");
 		}
 
-		initModel(model, parameters);
+		// load trace writer
+		traceWriter = new SHDTraceWriter(runParameters.traceFile, this);
 
-		// notify all components that the model is now build
-		for(ISPassiveComponent component:  getSortedList(getExistingSimulationObjects().values())) {
-			component.simulationModelIsBuild();
+		/* register all components for the STraceWriter */
+		for(ISPassiveComponent bc: existingSimulationObjects.values()){
+			//getTraceWriter().preregister(bc);
 		}
 
 		// populate the routings for all components.
@@ -514,7 +536,8 @@ public final class Simulator implements IModelToSimulatorMapper{
 			System.out.println(model);
 		}
 
-		return sim.simulate(model, parameters);
+		sim.initModel(model, parameters);
+		return sim.simulate();
 	}
 
 	/**

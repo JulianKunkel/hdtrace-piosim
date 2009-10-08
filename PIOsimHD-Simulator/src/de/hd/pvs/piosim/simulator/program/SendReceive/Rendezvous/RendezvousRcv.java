@@ -32,8 +32,8 @@ import de.hd.pvs.piosim.model.program.commands.Recv;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.SingleNetworkJob;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -68,7 +68,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 			
 			return;
 		}case(ACK_RECVD):{
-			SingleNetworkJob response = compNetJobs.getResponses().get(0);
+			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
 			client.debug("Receive got ACK from " +  response.getSourceComponent().getIdentifier() );
 
@@ -82,7 +82,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 				OUTresults.setNextStep(LAST);
 
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleMessage(100), response.getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleData(100), response.getTag() , cmd.getCommunicator());
 
 				return;
 			}

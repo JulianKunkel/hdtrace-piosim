@@ -30,7 +30,7 @@ import de.hd.pvs.piosim.model.program.commands.Allgather;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleMessage;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class Direct
@@ -48,7 +48,7 @@ extends CommandImplementation<Allgather>
 		case (CommandProcessing.STEP_START): {
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 				if (rank != myRank) {
-					OUTresults.addNetSend(rank, new NetworkSimpleMessage(cmd.getSize() + 20), 40001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20), 40001, Communicator.INTERNAL_MPI);
 				}
 			}
 
