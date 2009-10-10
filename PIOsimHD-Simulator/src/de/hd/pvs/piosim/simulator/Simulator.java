@@ -73,6 +73,7 @@ import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
 import de.hd.pvs.piosim.simulator.network.GNetworkTopology;
 import de.hd.pvs.piosim.simulator.network.routing.AGPaketRouting;
+import de.hd.pvs.piosim.simulator.output.SDummyTraceWriter;
 import de.hd.pvs.piosim.simulator.output.SHDTraceWriter;
 import de.hd.pvs.piosim.simulator.output.STraceWriter;
 
@@ -354,16 +355,17 @@ public final class Simulator implements IModelToSimulatorMapper{
 			throw new IllegalArgumentException("Simulator already used!");
 		}
 
+		if(runParameters.isTraceEnabled()){
 		// load trace writer
-		traceWriter = new SHDTraceWriter(runParameters.traceFile, this);
+			traceWriter = new SHDTraceWriter(runParameters.traceFile, this);
+		}else{
+			traceWriter = new SDummyTraceWriter(this);
+		}
 
 		/* register all components for the STraceWriter */
 		for(ISPassiveComponent bc: existingSimulationObjects.values()){
-			//getTraceWriter().preregister(bc);
+			getTraceWriter().preregister(bc);
 		}
-
-		// populate the routings for all components.
-		//populateRoutingTables(parameters);
 
 		/* initialize file sizes */
 		long sTime = new Date().getTime();
@@ -448,11 +450,11 @@ public final class Simulator implements IModelToSimulatorMapper{
 			}
 		}
 
-		for (Integer id: mapIDEventCount.keySet()){
+		//for (Integer id: mapIDEventCount.keySet()){
 			//System.out.println(id + " " + mapIDEventCount.get(id));
-		}
+		//}
 
-		// compute realtime spent for simulation:
+		// compute real time spent for simulation:
 		long diffTime = (new Date().getTime() - sTime);
 
 		traceWriter.finalize(getExistingSimulationObjects().values());

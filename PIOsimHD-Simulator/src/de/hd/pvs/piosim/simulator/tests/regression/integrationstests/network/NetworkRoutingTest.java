@@ -2,227 +2,81 @@ package de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network;
 
 import java.util.ArrayList;
 
-import de.hd.pvs.TraceFormat.util.Epoch;
+import junit.framework.TestSuite;
+
+import org.junit.Test;
+
 import de.hd.pvs.piosim.model.ModelBuilder;
-import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
-import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
-import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
-import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardForwardNode;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
-import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
-import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
-import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
+import de.hd.pvs.piosim.simulator.RunParameters;
+import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.network.GNetworkTopology;
-import de.hd.pvs.piosim.simulator.network.Message;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.BasicHardwareSetup;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.TestHardwareSetup;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.TestExecution;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneSendFromTwoNic;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneToTwoNic;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoSendsFromOneNic;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoToOneNic;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.TestTopology;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.test3x3Grid;
 
-public class NetworkRoutingTest {
+public class NetworkRoutingTest extends TestSuite{
 	final long KBYTE = 1000;
 	final long MBYTE = 1000 * 1000;
 
-	protected NetworkNode node;
-	protected NetworkEdge edge;
-	protected ModelBuilder mb;
-	protected INetworkTopology topology;
-
-	// node that is source and target of packets
-	protected NetworkNode exitRouteNode;
-
-	protected interface TestSetup{
-		public void Setup();
-	}
-
-	public class Test1 implements TestSetup{
-		@Override
-		public void Setup() {
-			SimpleNetworkEdge conn = new SimpleNetworkEdge();
-			conn.setName("1GBit Ethernet");
-			conn.setLatency(Epoch.ZERO);
-			conn.setBandwidth(100 * MBYTE);
-			mb.getModel().getGlobalSettings().setTransferGranularity(100 * KBYTE);
-			mb.addTemplate(conn);
-
-			edge = conn;
-
-			PaketRoutingAlgorithm routing = new PaketFirstRoute();
-			topology = mb.createTopology("LAN");
-			topology.setRoutingAlgorithm(routing);
-
-
-			StoreForwardForwardNodeExit exitRouteNode = new StoreForwardForwardNodeExit();
-			// add our own implementation
-			DynamicModelClassMapper.addComponentImplementation(exitRouteNode.getObjectType(),
-					StoreForwardForwardNodeExit.class.getCanonicalName(),
-					GStoreAndForwardExitNode.class.getCanonicalName());
-
-			exitRouteNode.setName("Exit");
-			exitRouteNode.setTotalBandwidth(10000000 * MBYTE);
-			getThis().exitRouteNode = exitRouteNode;
-
-			mb.addTemplate(exitRouteNode);
-
-			StoreForwardForwardNode sw = new StoreForwardForwardNode();
-			sw.setName("PVS-Switch");
-			sw.setTotalBandwidth(10000000 * MBYTE);
-
-			mb.addTemplate(sw);
-			node = sw;
-		}
-	}
-
-	public class Test2 implements TestSetup{
-		@Override
-		public void Setup() {
-			SimpleNetworkEdge conn = new SimpleNetworkEdge();
-			conn.setName("1GBit Ethernet");
-			conn.setLatency(new Epoch(0.0001));
-			conn.setBandwidth(100 * MBYTE);
-			mb.getModel().getGlobalSettings().setTransferGranularity(100 * KBYTE);
-			mb.addTemplate(conn);
-
-			edge = conn;
-
-			PaketRoutingAlgorithm routing = new PaketFirstRoute();
-			topology = mb.createTopology("LAN");
-			topology.setRoutingAlgorithm(routing);
-
-
-			CutThroughForwardNodeExit exitRouteNode = new CutThroughForwardNodeExit();
-			// add our own implementation
-			DynamicModelClassMapper.addComponentImplementation(exitRouteNode.getObjectType(),
-					CutThroughForwardNodeExit.class.getCanonicalName(),
-					GCutThroughForwardNodeExit.class.getCanonicalName());
-
-			exitRouteNode.setName("Exit");
-			getThis().exitRouteNode = exitRouteNode;
-
-			mb.addTemplate(exitRouteNode);
-
-			StoreForwardForwardNode sw = new StoreForwardForwardNode();
-			sw.setName("PVS-Switch");
-			sw.setTotalBandwidth(1000 * MBYTE);
-
-			mb.addTemplate(sw);
-			node = sw;
-		}
-	}
-
-	protected interface TestConfiguration{
-		public void runTest() throws Exception;
-	}
-
-	public ArrayList<TestSetup> setups = new ArrayList<TestSetup>();
-	public ArrayList<TestConfiguration> tests = new ArrayList<TestConfiguration>();
+	private Simulator sim;
+	final RunParameters runParameters = new RunParameters();
 
 	public NetworkRoutingTest() {
-		setups.add(new Test1());
-		//setups.add(new Test2());
-
-		tests.add(new test3x3Grid());
+		runParameters.setTraceInternals(true);
+		runParameters.setTraceEnabled(false);
 	}
 
-	public void runAllTests() throws Exception{
-		for(TestSetup setup : setups){
-			for(TestConfiguration test : tests){
-				mb = new ModelBuilder();
-				setup.Setup();
-
-				assert(edge != null);
-
-				test.runTest();
-			}
-		}
+	public RunParameters getRunParameters() {
+		return runParameters;
 	}
 
-	protected NetworkRoutingTest getThis(){
-		return this;
+	public void runTestFor(TestHardwareSetup setup, TestTopology topology, TestExecution execute) throws Exception{
+
+		final ModelBuilder mb = new ModelBuilder();
+
+		mb.getModel().getGlobalSettings().setTransferGranularity(100 * KBYTE);
+
+		final INetworkEntry entryNode = setup.createNetworkEntry();
+		final INetworkExit exitNode = setup.createNetworkExit();
+		final INetworkEdge myEdge = setup.createEdge();
+		final INetworkNode node = setup.createNetworkNode();
+
+		mb.addTemplate(myEdge);
+		mb.addTemplate(node);
+		mb.addTemplate(exitNode);
+		mb.addTemplate(entryNode);
+
+		final ArrayList<INetworkEntry> entries = new ArrayList<INetworkEntry>();
+		final ArrayList<INetworkExit> exits = new ArrayList<INetworkExit>();
+
+
+		topology.createTopology(entries, exits, entryNode, exitNode, node, myEdge, mb);
+
+		sim = new Simulator();
+
+		sim.initModel(mb.getModel(), runParameters);
+		execute.preSimulation(sim, entries, exits);
+
+		SimulationResults results = sim.simulate();
+
+		// print bandwidth ?
+		// System.out.println("Bandwidth: " + rcvd / sim.getVirtualTime().getDouble() / 1000 / 1000 + " MB/s");
+
+		execute.postSimulation(sim, results, entries, exits);
 	}
 
-	public class test3x3Grid implements TestConfiguration{
-		@Override
-		public void runTest() throws Exception {
-			final int HEIGHT = 3;
-			final int WIDTH = 3;
-
-			final ArrayList<INetworkNode> nodes = new ArrayList<INetworkNode>();
-			// arrangement to:
-			// 0, 1, 2,
-			// 3, 4, 5
-			// 6, 7, 8
-
-			// create nodes:
-			for(int y = 0 ; y < HEIGHT; y++){
-				for (int x = 0; x < WIDTH; x++) {
-					INetworkNode node = mb.cloneFromTemplate(getThis().exitRouteNode);
-					nodes.add(node);
-					node.setName(x + ":"  + y );
-				}
-			}
-			// create horizontal edges:
-			for(int y = 0 ; y < HEIGHT; y++){
-				for (int x = 0; x < WIDTH - 1; x++) {
-					NetworkEdge edge = mb.cloneFromTemplate(getThis().edge);
-					NetworkEdge edge2 = mb.cloneFromTemplate(getThis().edge);
-
-					INetworkNode src = nodes.get(x + y * WIDTH);
-					INetworkNode tgt = nodes.get(x + 1 + y * WIDTH);
-
-					edge.setName(src.getName() + "->" + tgt.getName());
-					edge2.setName(tgt.getName() + "->" + src.getName());
-
-					mb.connect(topology, src, edge , tgt);
-					mb.connect(topology, tgt, edge2 , src);
-				}
-			}
-
-			// create vertical edges:
-
-			for (int x = 0; x < WIDTH; x++) {
-				for(int y = 0 ; y < HEIGHT - 1 ; y++){
-					NetworkEdge edge = mb.cloneFromTemplate(getThis().edge);
-					NetworkEdge edge2 = mb.cloneFromTemplate(getThis().edge);
-
-					INetworkNode src = nodes.get(x + y * WIDTH);
-					INetworkNode tgt = nodes.get(x + (y+1) * WIDTH);
-
-					edge.setName(src.getName() + "|>" + tgt.getName());
-					edge2.setName(tgt.getName() + "|>" + src.getName());
-
-					mb.connect(topology, src, edge , tgt);
-					mb.connect(topology, tgt, edge2 , src);
-				}
-			}
-
-			Simulator sim = new Simulator();
-			sim.initModel(mb.getModel(), null);
-
-			//printRouting(sim);
-
-			// test some basic send & rcvs.
-
-			final INetworkExit endNode = (INetworkExit) nodes.get(nodes.size()-1);
-			final GStoreAndForwardExitNode exitGNode = (GStoreAndForwardExitNode) sim.getSimulatedComponent(nodes.get(nodes.size()-1));
-			final long SIZE = MBYTE;
-			IGNetworkEntry startNode = (IGNetworkEntry)  sim.getSimulatedComponent(nodes.get(0));
-			Message msg = new Message(SIZE, null, (INetworkEntry) nodes.get(0), endNode);
-			startNode.submitNewMessage(msg);
-
-			startNode = (IGNetworkEntry)  sim.getSimulatedComponent(nodes.get(0));
-			msg = new Message(SIZE, null, (INetworkEntry) nodes.get(0), endNode);
-			startNode.submitNewMessage(msg);
-
-			sim.simulate();
-
-			System.out.println("Rcvd data: " + exitGNode.getRcvdData());
-			System.out.println("Bandwidth: " + exitGNode.getRcvdData() / sim.getVirtualTime().getDouble() / MBYTE + " MB/s");
-		}
-	}
-
-	private void printRouting(Simulator sim) throws Exception{
+	public void printRouting(){
 		// now print the routing tables.
 		System.out.println("Routing tables are as follows:");
 
@@ -232,8 +86,32 @@ public class NetworkRoutingTest {
 		}
 	}
 
+
+	@Test
+	public void crossSend() throws Exception{
+		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new oneSendFromTwoNic());
+	}
+
+	@Test
+	public void twoToOneTarget() throws Exception{
+		runParameters.setTraceInternals(true);
+
+		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new twoToOneNic());
+	}
+
+	@Test
+	public void oneToTwoTargets() throws Exception{
+		runParameters.setTraceEnabled(true);
+
+		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new oneToTwoNic());
+	}
+
+	@Test
+	public void twoSends() throws Exception{
+		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new twoSendsFromOneNic());
+	}
+
 	public static void main(String[] args) throws Exception {
 		NetworkRoutingTest test = new NetworkRoutingTest();
-		test.runAllTests();
 	}
 }

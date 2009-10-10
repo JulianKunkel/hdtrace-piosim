@@ -9,6 +9,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkFlowComponent;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
+import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
 /**
  * Components extending this class schedule operations.
@@ -243,6 +244,8 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 			scheduledPart = null;
 
+			getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, "Msg-Part");
+
 			if(isEmpty()){
 				state = State.READY;
 				return;
@@ -270,6 +273,8 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 			if( next.announceSubmissionOf(part) ){
 				state = State.BUSY;
+
+				getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, "Msg-Part");
 
 				final Epoch transportTime = computeTransportTime(part);
 				setNewWakeupTimerInFuture(transportTime);

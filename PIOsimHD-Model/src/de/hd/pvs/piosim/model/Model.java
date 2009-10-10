@@ -316,7 +316,7 @@ public class Model{
 	 *
 	 * @param com
 	 */
-	void removeComponent(BasicComponent com){
+	void removeComponent(IBasicComponent com){
 		/* remove from all maps, remove necessary connection should be done by the caller */
 		if ( cidCMap.remove(com) == null ){
 			throw new IllegalArgumentException("Component " + com + " not part of model!");

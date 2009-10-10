@@ -36,7 +36,6 @@ import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
  * This class is a superclass for all TraceWriting classes which can
@@ -218,18 +217,6 @@ abstract public class STraceWriter {
 
 		pendingArrows--;
 	}
-
-	final public void arrowStart(TraceType type, ISPassiveComponent src, ISPassiveComponent tgt, MessagePart p){
-		arrowStart(type, src, tgt,
-				p.getSize(), p.getNetworkJob().getTag(),
-				p.getNetworkJob().getCommunicator().getIdentity());
-	}
-
-	final public void arrowEnd(TraceType type, ISPassiveComponent src, ISPassiveComponent tgt, MessagePart p){
-		arrowEnd(type, src, tgt,
-				p.getSize(), p.getNetworkJob().getTag(), p.getNetworkJob().getCommunicator().getIdentity());
-	}
-
 
 	/**
 	 * End a job which got started with start.

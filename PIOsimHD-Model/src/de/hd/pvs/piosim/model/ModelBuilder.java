@@ -31,7 +31,6 @@ import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
-import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
@@ -39,6 +38,7 @@ import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.networkTopology.NetworkTopology;
@@ -131,7 +131,7 @@ public class ModelBuilder {
 	 * @param nic
 	 * @param port
 	 */
-	public void connect(INetworkTopology topology, INetworkNode src, NetworkEdge via, INetworkNode tgt) {
+	public void connect(INetworkTopology topology, INetworkNode src, INetworkEdge via, INetworkNode tgt) {
 		if(! model.isComponentInModel(via)){
 			model.addComponent(via);
 		}
@@ -169,7 +169,7 @@ public class ModelBuilder {
 	 *
 	 * @param template
 	 */
-	public void addTemplate(BasicComponent template){
+	public void addTemplate(IBasicComponent template){
 		model.getTemplateManager().addTemplate(template, template.getName());
 	}
 
@@ -178,7 +178,7 @@ public class ModelBuilder {
 	 *
 	 * @param component
 	 */
-	public void changeComponentToTemplate(BasicComponent component){
+	public void changeComponentToTemplate(IBasicComponent component){
 		// remove component from the model.
 		model.removeComponent(component);
 		model.getTemplateManager().addTemplate(component, component.getName());
@@ -192,7 +192,7 @@ public class ModelBuilder {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T extends BasicComponent> T cloneFromTemplate(T component) throws Exception{
+	public <T extends IBasicComponent> T cloneFromTemplate(T component) throws Exception{
 		return model.getTemplateManager().cloneFromTemplate(component);
 	}
 
