@@ -5,22 +5,16 @@ import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntryCallbacks;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExitCallbacks;
-import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
-public class GCutThroughForwardNodeExit extends GCutThroughForwardNode<CutThroughForwardNodeExit> implements IGNetworkExit, IGNetworkEntry {
+public class GCutThroughForwardNodeExit extends GCutThroughForwardNode<CutThroughForwardNodeExit>
+	implements IGNetworkExit, IGNetworkEntry
+{
 	IGNetworkExitCallbacks networkExitI;
 
 	@Override
 	public void setNetworkExitImplementor(IGNetworkExitCallbacks networkExitI) {
 		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void appendAvailableDataToIncompleteSend(Message message, long count) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -41,10 +35,4 @@ public class GCutThroughForwardNodeExit extends GCutThroughForwardNode<CutThroug
 		return true;
 	}
 
-	@Override
-	public void submitNewMessage(Message msg) {
-		MessagePart msgPart = msg.createNextMessagePart(10000);
-		mayISubmitAMessagePart(msgPart);
-		submitMessagePart(msgPart);
-	}
 }

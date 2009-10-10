@@ -1,11 +1,11 @@
 package de.hd.pvs.piosim.simulator.base;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkFlowComponent;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
@@ -31,26 +31,35 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	 */
 	protected State state = State.READY;
 
-	private static class PendingLatencies{
+	private static class ChannelStatus{
+		// amount of data under way.
 		Epoch usedLatency = Epoch.ZERO;
+
+		// transfer to the given exit is blocked?
+		boolean blockedDownstream = false;
+
+		// list of blocked incoming data sources
+		final LinkedList<IGNetworkFlowComponent> blockedComponentsUpstream = new LinkedList<IGNetworkFlowComponent>();
 	}
 
 	/**
 	 * The sum of the latency of all jobs which are processed in the following component.
 	 * */
-	private HashMap<INetworkExit, PendingLatencies> pendingLatencies = new HashMap<INetworkExit, PendingLatencies>();
+	private HashMap<INetworkExit, ChannelStatus> pendingStatus = new HashMap<INetworkExit, ChannelStatus>();
 
 	/**
 	 * Maximum time needed to transport a packet through this edge.
 	 */
-	private Epoch maximumTransportDuration;
+	private Epoch maximumInflightDuration;
+
+	private MessagePart scheduledPart = null;
 
 	/**
 	 * Overload to update the maximum duration correctly.
 	 */
 	public void simulationModelIsBuild() {
 		super.simulationModelIsBuild();
-		maximumTransportDuration = getMaximumTransportDurationForAMessagePart();
+		maximumInflightDuration = getMaximumTransportDurationForAMessagePart();
 	}
 
 	/**
@@ -94,9 +103,11 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 	/**
 	 * The currently scheduled (next) exit shall be blocked.
-	 * Consequently all messages of this exit must be removed from the queue
+	 * Consequently all messages of this exit must be removed from the queue.
+	 * This method is called ONLY if it is determined that the next network part
+	 * cannot be scheduled i.e. the target denies send by mayISend...
 	 */
-	abstract protected void blockScheduledExit();
+	abstract protected void blockPushForExit(INetworkExit exit);
 
 	/**
 	 * Unblock a currently blocked exit
@@ -110,57 +121,54 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	 */
 	abstract protected boolean isEmpty();
 
+	/**
+	 * Might the given message part be submitted to the network flow component at the
+	 * current time.
+	 *
+	 * announceSubmissioOf(part)
+	 * processPart
+	 * submitMessagePart(part) => packet arrives now
+	 *
+	 * @param part
+	 * @return
+	 */
+	public boolean announceSubmissionOf(MessagePart part){
+		ChannelStatus cur = pendingStatus.get(part.getMessageTarget());
+		if(cur == null){
+			cur = new ChannelStatus();
+			pendingStatus.put(part.getMessageTarget(), cur);
+		}
+
+		// register packet.
+		//System.out.println( this.getIdentifier() + " announceSubmissionOf latency:" + cur.usedLatency + " " + cur.blockedDownstream + " to:" + part.getMessageTarget().getIdentifier() + " " + state);
+
+		if( cur.usedLatency.compareTo(maximumInflightDuration) < 0 ){
+			cur.usedLatency = cur.usedLatency.add(computeTransportTime(part));
+
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 
 	/**
 	 * Submit a message part to the edge at the current time!
 	 *
 	 * @param part
 	 */
-	final public void submitMessagePart(MessagePart part){
-		PendingLatencies cur = pendingLatencies.get(part.getNetworkTarget());
-		// it is only allowed to submit a job when the latency is not used up.
-		assert(cur.usedLatency.compareTo(maximumTransportDuration) < 0);
+	public void submitMessagePart(MessagePart part){
+		//System.out.println(this.getIdentifier() + " submitMessagePart " + state);
 
-		cur.usedLatency = cur.usedLatency.add(computeTransportTime(part));
-
-		if(isEmpty()){
+		if(isEmpty() && state == State.READY){
 			// this is the first packet from a data stream => allow transport from this source
 
 			// check if we shall reactivate this component.
-			if(state == State.READY){
-				// this is actually the first message part received => reactivate this component
-				setNewWakeupTimeNow();
-			}
+			// this is actually the first message part received => reactivate this component
+			setNewWakeupTimeNow();
 		}
 
 		addNetworkPart(part);
-	}
-
-	@Override
-	final public void unblockExit(INetworkExit exit) {
-		// restart transmission for this exit target
-		unblockBlockedExit(exit);
-
-		if(state == State.READY){
-			// no other pending packets => reactivate this component
-			setNewWakeupTimeNow();
-		}
-	}
-
-	/**
-	 * Might the given message part be submitted to the network flow component at the
-	 * current time.
-	 *
-	 * @param part
-	 * @return
-	 */
-	public boolean mayISubmitAMessagePart(MessagePart part){
-		PendingLatencies cur = pendingLatencies.get(part.getNetworkTarget());
-		if(cur == null){
-			cur = new PendingLatencies();
-			pendingLatencies.put(part.getNetworkTarget(), cur);
-		}
-		return cur.usedLatency.compareTo(maximumTransportDuration) < 0;
 	}
 
 	/**
@@ -186,29 +194,59 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 		throw new IllegalArgumentException("You shall never send an event to " + this.getClass().getCanonicalName());
 	}
 
+
+	@Override
+	final public void unblockExit(INetworkExit exit) {
+
+		//System.out.println( this.getIdentifier() + " Unblock block src  to " + exit.getIdentifier() + " " + state);
+
+		// restart transmission for this exit target
+		final ChannelStatus status = pendingStatus.get(exit);
+
+		// it must be blocked if the method is called
+		assert(status.blockedDownstream == true);
+
+		status.blockedDownstream = false;
+
+		unblockBlockedExit(exit);
+
+		if(state == State.READY){
+			// no other pending packets => reactivate this component
+			setNewWakeupTimeNow();
+		}
+	}
+
+	@Override
+	final public void rememberBlockedDataPushFrom(IGNetworkFlowComponent src, INetworkExit exit)
+	{
+		//System.out.println(this.getIdentifier() + " rememberBlockedDataPushFrom src " + src.getIdentifier() + " to " + exit.getIdentifier());
+
+		final ChannelStatus status = pendingStatus.get(exit);
+
+		// per component it shall be called only once.
+		assert(! status.blockedComponentsUpstream.contains(src));
+
+		status.blockedComponentsUpstream.add(src);
+	}
+
 	@Override
 	final public void processInternalEvent(InternalEvent event, Epoch time) {
-		assert(! isEmpty());
+		//System.out.println( this.getIdentifier() + " processInternalEvent " + state + " at " + time);
 
 		if(state == State.BUSY){
-			// remove first pending message part
-			final MessagePart part = pollScheduledNetworkPart();
-			final INetworkExit exit = part.getNetworkTarget();
-			final PendingLatencies latency = pendingLatencies.get(exit);
+			assert(scheduledPart != null);
 
-			// remove the packet latency.
-			latency.usedLatency = latency.usedLatency.subtract(computeTransportTime(part));
-
-			messageTransferCompletedEvent(part);
+			messageTransferCompletedEvent(scheduledPart);
 
 			// submit packet:
-			getTargetComponent(part).submitMessagePart(part);
+			getTargetComponent(scheduledPart).submitMessagePart(scheduledPart);
+
+			scheduledPart = null;
 
 			if(isEmpty()){
 				state = State.READY;
 				return;
 			}
-
 			// otherwise continue processing
 		}
 
@@ -222,38 +260,59 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 			final MessagePart part = peekScheduledNetworkPart();
 			assert(part != null);
 
-			// check if we are the final target.
-			if(part.getNetworkTarget() == this.getModelComponent()){
-				final IGNetworkExit exit = ((IGNetworkExit) this);
-
-				// check if we can receive the packet:
-				if(exit.mayIReceiveAMessagePart(part)){
-					// remove the message part from the queue
-					pollScheduledNetworkPart();
-
-					// yes, so we received the packet
-					exit.messagePartReceived(part);
-					continue;
-				}else{
-					// data flow is blocked => try next.
-					blockScheduledExit();
-					continue;
-				}
-			}
+			final INetworkExit exit = part.getMessageTarget();
 
 			final IGNetworkFlowComponent next = getTargetComponent(part);
+			final ChannelStatus status = pendingStatus.get(exit);
 
 			assert(next!= null);
+			assert(status.blockedDownstream == false);
 
-			if( next.mayISubmitAMessagePart(part) ){
-				messageTransferStartedEvent(part);
-				setNewWakeupTimerInFuture(computeTransportTime(part));
-
+			if( next.announceSubmissionOf(part) ){
 				state = State.BUSY;
+
+				final Epoch transportTime = computeTransportTime(part);
+				setNewWakeupTimerInFuture(transportTime);
+
+				// remove the packet latency.
+				status.usedLatency = status.usedLatency.subtract(transportTime);
+
+				// remove first pending message part
+				this.scheduledPart = pollScheduledNetworkPart();
+
+				// now try to reactivate blocked senders if necessary
+				if(status.blockedComponentsUpstream.size() > 0){
+					// sources are blocked => reactivate first blocked.
+					status.blockedComponentsUpstream.poll().unblockExit(exit);
+				}
+				messageTransferStartedEvent(part);
+
 				return;
 			}
+
 			// data flow is blocked => try next.
-			blockScheduledExit();
+			// remember that data flow is blocked to allow retransmit
+			status.blockedDownstream = true;
+
+			next.rememberBlockedDataPushFrom(this, exit);
+
+			blockPushForExit(exit);
 		}
+
+		// no matching packet found => state == ready
+		//System.out.println(" No matching packet => now ready");
+
+		state = State.READY;
 	}
+
+	public void simulationFinished() {
+		// check for error states
+		assert(state == State.READY);
+
+		for(INetworkExit exit: pendingStatus.keySet()){
+			if(pendingStatus.get(exit).blockedDownstream){
+				System.out.println(this.getIdentifier() + " my downstream I/O is blocked to " + exit);
+			}
+		}
+	};
 }

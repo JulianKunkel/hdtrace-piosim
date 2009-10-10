@@ -1,6 +1,7 @@
 package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
 import de.hd.pvs.piosim.simulator.network.Message;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 public interface IGNetworkEntry {
 
@@ -20,6 +21,12 @@ public interface IGNetworkEntry {
 	 * download queue
 	 */
 	public void submitNewMessage(Message msg);
+
+	/**
+	 * This function is called if a single Message part is successfully send.
+	 * Then the next message part can be created.
+	 */
+	public void sendMsgPartCB(MessagePart part);
 
 	public void setNetworkEntryImplementor(IGNetworkEntryCallbacks networkEntryImplementor);
 }

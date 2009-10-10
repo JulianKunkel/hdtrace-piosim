@@ -416,7 +416,6 @@ public final class Simulator implements IModelToSimulatorMapper{
 				mapIDEventCount.put(id, cnt + 1);
 			}
 
-
 			// now let the component process its earliest event:
 			try {
 				if(serviceEvent.getClass() == Event.class)

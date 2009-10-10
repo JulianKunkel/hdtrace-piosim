@@ -31,15 +31,18 @@ abstract public class SFIFOBlockingNetworkFlowComponent<ModelType extends INetwo
 
 	@Override
 	final protected void addNetworkPart(MessagePart part) {
-		final INetworkExit exit = part.getNetworkTarget();
-
-		fifoExitQueue.add(exit);
+		final INetworkExit exit = part.getMessageTarget();
 
 		LinkedList<MessagePart> pendingMessages = this.pendingMessageParts.get(exit);
 
 		if(pendingMessages == null){
 			pendingMessages = new LinkedList<MessagePart>();
 			this.pendingMessageParts.put(exit, pendingMessages);
+		}
+
+		// startup transfer to exit if necessary
+		if(pendingMessages.isEmpty()){
+			fifoExitQueue.add(exit);
 		}
 
 		pendingMessages.add(part);
@@ -70,7 +73,8 @@ abstract public class SFIFOBlockingNetworkFlowComponent<ModelType extends INetwo
 	}
 
 	@Override
-	final protected void blockScheduledExit() {
+	final protected void blockPushForExit(INetworkExit exit) {
+		assert(exit == fifoExitQueue.peek());
 		fifoExitQueue.poll();
 	}
 

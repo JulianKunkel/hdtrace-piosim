@@ -23,21 +23,21 @@ public class GCutThroughForwardNode<ModelType extends CutThroughForwardNode>
 	}
 
 	@Override
-	public boolean mayISubmitAMessagePart(MessagePart part) {
-		if(part.getNetworkTarget() == this.getModelComponent()){
-			final IGNetworkExit exit = ((IGNetworkExit) this);
-			return exit.mayIReceiveAMessagePart(part);
-		}
+	public boolean announceSubmissionOf(MessagePart part) {
+		//if(part.getMessageTarget() == this.getModelComponent()){
+		//	final IGNetworkExit exit = ((IGNetworkExit) this);
+		//	return exit.mayIReceiveAMessagePart(part);
+		//}
 
 		// check if target edge might accept the message part
 		IGNetworkEdge edge = routing.getTargetRouteForMessage(getModelComponent(), part);
 		assert(edge != null);
-		return edge.mayISubmitAMessagePart(part);
+		return edge.announceSubmissionOf(part);
 	}
 
 	@Override
 	public void submitMessagePart(MessagePart part) {
-		if(part.getNetworkTarget() == this.getModelComponent()){
+		if(part.getMessageTarget() == this.getModelComponent()){
 			final IGNetworkExit exit = ((IGNetworkExit) this);
 			exit.messagePartReceived(part);
 			return;
@@ -45,8 +45,13 @@ public class GCutThroughForwardNode<ModelType extends CutThroughForwardNode>
 
 		IGNetworkEdge edge = routing.getTargetRouteForMessage(getModelComponent(), part);
 		assert(edge != null);
-		assert(edge.getTargetNode().mayISubmitAMessagePart(part));
+		assert(edge.getTargetNode().announceSubmissionOf(part));
 		edge.submitMessagePart(part);
+
+		if(part.getMessageSource() == this.getModelComponent()){
+			// invoke message callback
+			((IGNetworkEntry) this).sendMsgPartCB(part);
+		}
 	}
 
 	@Override

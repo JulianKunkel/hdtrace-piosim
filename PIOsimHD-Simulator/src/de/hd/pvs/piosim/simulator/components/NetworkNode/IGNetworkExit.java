@@ -1,6 +1,5 @@
 package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
-import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 public interface IGNetworkExit {
 	public void setNetworkExitImplementor(IGNetworkExitCallbacks networkExitI);
@@ -11,7 +10,7 @@ public interface IGNetworkExit {
 	 * @param part
 	 * @param endTime
 	 */
-	public void messagePartReceived(MessagePart part);
+	//public void messagePartReceived(MessagePart part);
 
-	public boolean mayIReceiveAMessagePart(MessagePart part);
+	//public boolean mayIReceiveAMessagePart(MessagePart part);
 }

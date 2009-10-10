@@ -28,6 +28,7 @@
  */
 package de.hd.pvs.piosim.simulator.network.jobs;
 
+import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 
 
@@ -52,5 +53,11 @@ public interface INetworkMessage {
 	 * The destination of this message (part) inside the network
 	 * @return
 	 */
-	public INetworkExit getNetworkTarget();
+	public INetworkExit getMessageTarget();
+
+	/**
+	 * The source of this message (part)
+	 * @return
+	 */
+	public INetworkEntry getMessageSource();
 }

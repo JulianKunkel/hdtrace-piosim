@@ -25,6 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.network;
 
+import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 
@@ -39,6 +40,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * Receiver of the network message
 	 */
 	final private INetworkExit targetComponent;
+
+	final private INetworkEntry sourceComponent;
 
 	/**
 	 * The total size of this message.
@@ -88,6 +91,17 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	}
 
 	/**
+	 * Undo the creation of the message part i.e. a call to createNextMessagePart
+	 * and then undo does not change the internal state of a message
+	 *
+	 * @param part
+	 */
+	public void undoCreationOfMessagePart(MessagePart part){
+		assert(part.getPosition() == createdPosition - part.getSize());
+		createdPosition -= part.getSize();
+	}
+
+	/**
 	 * Receive a MessagePart.
 	 * @param part
 	 */
@@ -101,11 +115,12 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param job
 	 * @param flowPart
 	 */
-	public Message(long size, Data containedData, INetworkExit targetComponent) {
+	public Message(long size, Data containedData, INetworkEntry sourceComponent, INetworkExit targetComponent) {
 		this.totalSize = size;
 		this.availableDataPosition = size;
 		this.containedData = containedData;
 		this.targetComponent = targetComponent;
+		this.sourceComponent = sourceComponent;
 	}
 
 	/**
@@ -115,11 +130,12 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param job
 	 * @param currentPosition How much data is already available from the Message?
 	 */
-	public Message(long size, long currentPosition, Data containedData, INetworkExit targetComponent) {
+	public Message(long size, long currentPosition, Data containedData, INetworkEntry sourceComponent, INetworkExit targetComponent) {
 		this.totalSize = size;
 		this.availableDataPosition = currentPosition;
 		this.containedData = containedData;
 		this.targetComponent = targetComponent;
+		this.sourceComponent = sourceComponent;
 	}
 
 	/**
@@ -164,7 +180,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	}
 
 	@Override
-	public INetworkExit getNetworkTarget() {
+	public INetworkExit getMessageTarget() {
 		return targetComponent;
 	}
 
@@ -184,5 +200,10 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 */
 	public Data getContainedUserData() {
 		return containedData;
+	}
+
+	@Override
+	public INetworkEntry getMessageSource() {
+		return sourceComponent;
 	}
 }

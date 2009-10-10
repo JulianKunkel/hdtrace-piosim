@@ -25,6 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.network;
 
+import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 
@@ -85,8 +86,13 @@ public class MessagePart implements INetworkMessage{
 	}
 
 	@Override
-	public INetworkExit getNetworkTarget() {
-		return msg.getNetworkTarget();
+	public INetworkExit getMessageTarget() {
+		return msg.getMessageTarget();
+	}
+
+	@Override
+	public INetworkEntry getMessageSource(){
+		return msg.getMessageSource();
 	}
 
 	/**

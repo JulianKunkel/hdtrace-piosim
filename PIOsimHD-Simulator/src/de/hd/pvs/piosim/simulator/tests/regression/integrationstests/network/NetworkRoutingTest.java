@@ -9,6 +9,7 @@ import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
 import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardForwardNode;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
@@ -20,8 +21,8 @@ import de.hd.pvs.piosim.simulator.network.GNetworkTopology;
 import de.hd.pvs.piosim.simulator.network.Message;
 
 public class NetworkRoutingTest {
-	final int KBYTE = 1024;
-	final int MBYTE = 1024 * 1024;
+	final long KBYTE = 1000;
+	final long MBYTE = 1000 * 1000;
 
 	protected NetworkNode node;
 	protected NetworkEdge edge;
@@ -40,7 +41,7 @@ public class NetworkRoutingTest {
 		public void Setup() {
 			SimpleNetworkEdge conn = new SimpleNetworkEdge();
 			conn.setName("1GBit Ethernet");
-			conn.setLatency(new Epoch(0.0001));
+			conn.setLatency(Epoch.ZERO);
 			conn.setBandwidth(100 * MBYTE);
 			mb.getModel().getGlobalSettings().setTransferGranularity(100 * KBYTE);
 			mb.addTemplate(conn);
@@ -59,14 +60,14 @@ public class NetworkRoutingTest {
 					GStoreAndForwardExitNode.class.getCanonicalName());
 
 			exitRouteNode.setName("Exit");
-			exitRouteNode.setTotalBandwidth(100 * MBYTE);
+			exitRouteNode.setTotalBandwidth(10000000 * MBYTE);
 			getThis().exitRouteNode = exitRouteNode;
 
 			mb.addTemplate(exitRouteNode);
 
 			StoreForwardForwardNode sw = new StoreForwardForwardNode();
 			sw.setName("PVS-Switch");
-			sw.setTotalBandwidth(1000 * MBYTE);
+			sw.setTotalBandwidth(10000000 * MBYTE);
 
 			mb.addTemplate(sw);
 			node = sw;
@@ -119,7 +120,7 @@ public class NetworkRoutingTest {
 
 	public NetworkRoutingTest() {
 		setups.add(new Test1());
-		setups.add(new Test2());
+		//setups.add(new Test2());
 
 		tests.add(new test3x3Grid());
 	}
@@ -170,8 +171,8 @@ public class NetworkRoutingTest {
 					INetworkNode src = nodes.get(x + y * WIDTH);
 					INetworkNode tgt = nodes.get(x + 1 + y * WIDTH);
 
-					edge.setName(src.getName() + " -> " + tgt.getName());
-					edge2.setName(tgt.getName() + " -> " + src.getName());
+					edge.setName(src.getName() + "->" + tgt.getName());
+					edge2.setName(tgt.getName() + "->" + src.getName());
 
 					mb.connect(topology, src, edge , tgt);
 					mb.connect(topology, tgt, edge2 , src);
@@ -188,8 +189,8 @@ public class NetworkRoutingTest {
 					INetworkNode src = nodes.get(x + y * WIDTH);
 					INetworkNode tgt = nodes.get(x + (y+1) * WIDTH);
 
-					edge.setName(src.getName() + " -> " + tgt.getName());
-					edge2.setName(tgt.getName() + " -> " + src.getName());
+					edge.setName(src.getName() + "|>" + tgt.getName());
+					edge2.setName(tgt.getName() + "|>" + src.getName());
 
 					mb.connect(topology, src, edge , tgt);
 					mb.connect(topology, tgt, edge2 , src);
@@ -202,11 +203,22 @@ public class NetworkRoutingTest {
 			//printRouting(sim);
 
 			// test some basic send & rcvs.
+
+			final INetworkExit endNode = (INetworkExit) nodes.get(nodes.size()-1);
+			final GStoreAndForwardExitNode exitGNode = (GStoreAndForwardExitNode) sim.getSimulatedComponent(nodes.get(nodes.size()-1));
+			final long SIZE = MBYTE;
 			IGNetworkEntry startNode = (IGNetworkEntry)  sim.getSimulatedComponent(nodes.get(0));
-			Message msg = new Message(10000, null, (INetworkExit) nodes.get(nodes.size()-1));
+			Message msg = new Message(SIZE, null, (INetworkEntry) nodes.get(0), endNode);
+			startNode.submitNewMessage(msg);
+
+			startNode = (IGNetworkEntry)  sim.getSimulatedComponent(nodes.get(0));
+			msg = new Message(SIZE, null, (INetworkEntry) nodes.get(0), endNode);
 			startNode.submitNewMessage(msg);
 
 			sim.simulate();
+
+			System.out.println("Rcvd data: " + exitGNode.getRcvdData());
+			System.out.println("Bandwidth: " + exitGNode.getRcvdData() / sim.getVirtualTime().getDouble() / MBYTE + " MB/s");
 		}
 	}
 

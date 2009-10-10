@@ -33,7 +33,15 @@ public interface IGNetworkFlowComponent<ModelType extends INetworkFlowComponent>
 	 * @param part
 	 * @return
 	 */
-	public boolean mayISubmitAMessagePart(MessagePart part);
+	public boolean announceSubmissionOf(MessagePart part);
+
+	/**
+	 * If a messagePart might not be submitted to a component, then
+	 * the component shall block further transfer and remember this decision.
+	 * Once data flows out incoming (and blocked components) shall be reactivated in
+	 * round robin.
+	 */
+	public void rememberBlockedDataPushFrom(IGNetworkFlowComponent src, INetworkExit exit);
 
 	/**
 	 * Unblock the given network exit i.e. allow transport of new packets for the given exit

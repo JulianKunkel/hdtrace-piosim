@@ -122,7 +122,7 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 
 			return edge;
 		}else{
-			edge = routes.get(part.getNetworkTarget());
+			edge = routes.get(part.getMessageTarget());
 
 			assert(edge != null);
 
