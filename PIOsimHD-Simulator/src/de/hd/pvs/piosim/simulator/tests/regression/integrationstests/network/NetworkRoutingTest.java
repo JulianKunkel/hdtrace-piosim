@@ -23,7 +23,8 @@ import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.tes
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoSendsFromOneNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoToOneNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.TestTopology;
-import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.test3x3Grid;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.testGrid;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.testSwitchingTopology;
 
 public class NetworkRoutingTest extends TestSuite{
 	final long KBYTE = 1000;
@@ -89,26 +90,39 @@ public class NetworkRoutingTest extends TestSuite{
 
 	@Test
 	public void crossSend() throws Exception{
-		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new oneSendFromTwoNic());
+		runTestFor(new BasicHardwareSetup(), new testGrid(), new oneSendFromTwoNic());
 	}
 
 	@Test
 	public void twoToOneTarget() throws Exception{
 		runParameters.setTraceInternals(true);
 
-		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new twoToOneNic());
+		runTestFor(new BasicHardwareSetup(), new testGrid(), new twoToOneNic());
 	}
 
 	@Test
 	public void oneToTwoTargets() throws Exception{
+		runTestFor(new BasicHardwareSetup(), new testGrid(), new oneToTwoNic());
+	}
+
+	@Test
+	public void twoToOneTarge1x4() throws Exception{
+		final testGrid grid = new testGrid();
+		grid.setGrid(1, 4);
+
 		runParameters.setTraceEnabled(true);
 
-		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new oneToTwoNic());
+		runTestFor(new BasicHardwareSetup(), grid, new twoToOneNic());
+	}
+
+	@Test
+	public void twoToOneTargetSwitch() throws Exception{
+		runTestFor(new BasicHardwareSetup(), new testSwitchingTopology(), new twoToOneNic());
 	}
 
 	@Test
 	public void twoSends() throws Exception{
-		runTestFor(new BasicHardwareSetup(), new test3x3Grid(), new twoSendsFromOneNic());
+		runTestFor(new BasicHardwareSetup(), new testGrid(), new twoSendsFromOneNic());
 	}
 
 	public static void main(String[] args) throws Exception {

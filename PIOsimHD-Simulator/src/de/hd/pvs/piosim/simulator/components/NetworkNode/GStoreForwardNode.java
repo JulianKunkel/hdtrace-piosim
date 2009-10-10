@@ -1,7 +1,7 @@
 package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardForwardNode;
+import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.simulator.base.IGNetworkFlowComponent;
 import de.hd.pvs.piosim.simulator.base.SFIFOBlockingNetworkFlowComponent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
@@ -13,7 +13,7 @@ import de.hd.pvs.piosim.simulator.network.routing.IPaketTopologyRouting;
  *
  * @author julian
  */
-public class GStoreUndForwardNode<ModelType extends StoreForwardForwardNode>
+public class GStoreForwardNode<ModelType extends StoreForwardNode>
 	extends SFIFOBlockingNetworkFlowComponent<ModelType>
 	implements IGNetworkNode<ModelType>
 {

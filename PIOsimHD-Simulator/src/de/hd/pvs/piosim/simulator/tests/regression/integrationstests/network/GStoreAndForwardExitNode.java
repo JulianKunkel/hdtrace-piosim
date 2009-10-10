@@ -3,9 +3,9 @@ package de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardForwardNode;
+import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreUndForwardNode;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreForwardNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntryCallbacks;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
@@ -13,7 +13,7 @@ import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExitCallbacks;
 import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
-public class GStoreAndForwardExitNode extends GStoreUndForwardNode<StoreForwardForwardNode>
+public class GStoreAndForwardExitNode extends GStoreForwardNode<StoreForwardNode>
 implements IGNetworkExit, IGNetworkEntry
 {
 	IGNetworkExitCallbacks networkExitI;
@@ -61,6 +61,19 @@ implements IGNetworkExit, IGNetworkEntry
 
 			return true;
 		}
+
+		// check if we want to send to the same exit from the local node
+		final LinkedList<Message> msgs = pendingMsgsMap.get(exit);
+		if(part.getMessageSource() != this.getModelComponent()
+				&& msgs != null && msgs.size() > 0)
+		{
+			// prefer local sends
+			// otherwise remote messages might starve local send.
+			// note: this solution is suboptimal.
+			// Instead use a topology with additional nodes.
+			return false;
+		}
+
 		return super.announceSubmissionOf(part);
 	}
 
@@ -90,6 +103,13 @@ implements IGNetworkExit, IGNetworkEntry
 		super.simulationFinished();
 
 		//System.out.println("Rcvd data: " + rcvdData);
+
+		for(INetworkExit exit: pendingMsgsMap.keySet()){
+			LinkedList<Message> pending = pendingMsgsMap.get(exit);
+			for(Message msg : pending){
+				System.out.println("Warning: pending msgs: " + msg);
+			}
+		}
 	}
 
 	private void tryToContinueSendFromMessage(Message msg){

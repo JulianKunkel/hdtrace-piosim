@@ -9,7 +9,7 @@ import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
  *
  * @author Julian M. Kunkel
  */
-public class StoreForwardForwardNode extends NetworkNode
+public class StoreForwardNode extends NetworkNode
 {
 
 	/** The total bandwidth of the <code>Switch</code>.

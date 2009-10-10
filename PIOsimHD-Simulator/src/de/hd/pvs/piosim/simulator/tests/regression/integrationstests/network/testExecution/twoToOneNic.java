@@ -11,6 +11,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkNode;
 import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.GStoreAndForwardExitNode;
 
@@ -46,8 +47,12 @@ public class twoToOneNic extends TestCase implements TestExecution{
 		Message msg = new Message(SIZE, null, entries.get(entries.size() - 1), endNode);
 		startNode.submitNewMessage(msg);
 
+		System.out.println("from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode.getIdentifier());
+
 		startNode = (IGNetworkEntry)  sim.getSimulatedComponent(entries.get(0));
 		msg = new Message(SIZE, null, entries.get(0), endNode);
 		startNode.submitNewMessage(msg);
+
+		System.out.println("and from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode.getIdentifier());
 	}
 }

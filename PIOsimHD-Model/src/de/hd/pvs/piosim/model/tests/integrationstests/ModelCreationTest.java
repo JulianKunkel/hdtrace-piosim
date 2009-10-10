@@ -39,7 +39,7 @@ import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelXMLWriter;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
-import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardForwardNode;
+import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
@@ -69,7 +69,7 @@ public class ModelCreationTest   extends TestSuite  {
 		mb.addClient(maschine, client);
 		mb.addClient(maschine2, client2);
 
-		StoreForwardForwardNode interNode = new StoreForwardForwardNode();
+		StoreForwardNode interNode = new StoreForwardNode();
 
 		INetworkTopology topology = mb.createTopology("Patch-Cable");
 

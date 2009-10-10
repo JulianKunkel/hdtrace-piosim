@@ -41,7 +41,7 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 
 		// determine targets == exit nodes
 		final LinkedList<INetworkExit> exitNodes = new LinkedList<INetworkExit>();
-		for(INetworkNode node: tgtMap.keySet()){
+		for(INetworkNode node: networkTopology.getSourceGraph().keySet()){
 			if(NetworkNode.isExitNode(node)){
 				exitNodes.add((INetworkExit) node);
 			}
@@ -70,7 +70,13 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 
 					processedNodes.add(cur);
 
-					for(INetworkEdge edge: tgtMap.get(cur)){
+					final LinkedList<INetworkEdge> edges = tgtMap.get(cur);
+
+					if(edges == null){
+						continue;
+					}
+
+					for(INetworkEdge edge: edges){
 						final INetworkNode tgt = inversedGraph.getEdgeTarget(edge);
 						// bfs, target edge already checked.
 						if(processedNodes.contains(tgt)){
@@ -81,6 +87,8 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 						toProcessNext.add(tgt);
 
 						final HashMap<INetworkExit, IGNetworkEdge> routes = routingTable.get(tgt);
+						assert(routes != null);
+
 						if(routes.containsKey(exitNode)){
 							// could be used for multiple routes
 							continue;
@@ -96,7 +104,7 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 		}
 
 		// remove default routes.
-		for(INetworkNode node: tgtMap.keySet()){
+		for(INetworkNode node: networkTopology.getSourceGraph().keySet()){
 			if(networkTopology.getEdges(node).size() == 1){
 				// default route!
 				HashMap<INetworkExit, IGNetworkEdge> map = new HashMap<INetworkExit, IGNetworkEdge>();

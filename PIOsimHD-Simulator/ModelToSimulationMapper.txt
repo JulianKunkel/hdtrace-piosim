@@ -24,7 +24,7 @@ de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge = de.hd.pvs.pios
 
 +NetworkNode
 de.hd.pvs.piosim.model.components.NetworkNode.CutThroughForwardNode = de.hd.pvs.piosim.simulator.components.NetworkNode.GCutThroughForwardNode
-de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode = de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreUndForwardNode
+de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode = de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreForwardNode
 
 +PaketRoutingAlgorithm
 de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketFirstRoute

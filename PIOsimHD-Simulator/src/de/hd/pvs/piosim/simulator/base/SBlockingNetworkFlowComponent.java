@@ -198,6 +198,7 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 	@Override
 	final public void unblockExit(INetworkExit exit) {
+		getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "unblockExit", exit.getIdentifier().getID());
 
 		//System.out.println( this.getIdentifier() + " Unblock block src  to " + exit.getIdentifier() + " " + state);
 
@@ -302,6 +303,8 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 			next.rememberBlockedDataPushFrom(this, exit);
 
 			blockPushForExit(exit);
+
+			getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "blockExit", exit.getIdentifier().getID());
 		}
 
 		// no matching packet found => state == ready
