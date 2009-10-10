@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$ 
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -25,6 +25,8 @@
 
 package de.hd.pvs.TraceFormat;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,16 +96,34 @@ public class TraceFormatWriter {
 		init(projectfile, "", "");
 		outProject.setTopologyTypes(labels);
 	}
-	
+
 	public TraceFormatWriter(String projectfile, String description, String applicationName, String [] types) {
 		final TopologyTypes topoTypes = new TopologyTypes();
-		
+
 		init(projectfile, description, applicationName);		
-		
+
 		outProject.setTopologyTypes(topoTypes);
 		topoTypes.setTopologyTypes(types);
+
+		// delete all files with the same prefix.
+		final File file = new File(projectfile).getAbsoluteFile();
+		final String projPrefix = file.getName();
+		if(projPrefix.length() < 3){
+			throw new IllegalArgumentException("Project file name must be at least 3 characters.");
+		}
+
+		final File folder = file.getParentFile();
+		for(String curName: folder.list(new FilenameFilter() {			
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith(projPrefix) && name.endsWith(".trc");
+			} })
+		){
+			(new File(folder, curName)).delete();
+		}
+
 	}
-	
+
 	private void init(String projectfile, String description, String applicationName){
 		outProject.setDescription(description);
 		outProject.setApplicationName(applicationName);
@@ -120,9 +140,9 @@ public class TraceFormatWriter {
 	 */
 	public TopologyNode createInitalizeTopology(String [] topology){
 		final ProjectDescription outProject = getProjectDescription();
-		
+
 		TopologyNode cur = outProject.getTopologyRoot();
-		
+
 		if (topology.length > outProject.getTopologyTypes().getTypes().size()){
 			throw new IllegalArgumentException("Topology labels are not as deep as the topology " +
 					"you want to create: " + topology.length + " labels: " + 
@@ -143,7 +163,7 @@ public class TraceFormatWriter {
 		}
 		return cur;
 	}
-	
+
 	void initalizeTopologyInternal(TopologyNode topology) {
 		OutFiles files = traceWriterMap.get(topology);
 		if(files != null){
@@ -153,7 +173,7 @@ public class TraceFormatWriter {
 		files = new OutFiles();
 		traceWriterMap.put(topology, files);
 	}
-	
+
 	private NestedTraceWriter getOrCreateTraceForTopology(TopologyNode topology, Epoch time){
 		//lookup topology in project description and create missing topologies				
 		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
@@ -170,7 +190,7 @@ public class TraceFormatWriter {
 					"Trace file could not be created: " + file);
 		}		
 	}
-	
+
 	void initalizeTopologyIfNeeded(TopologyNode topology) {
 		if(traceWriterMap.containsKey(topology)){
 			return;
@@ -178,7 +198,7 @@ public class TraceFormatWriter {
 		initalizeTopologyInternal(topology);
 	}
 
-	
+
 	/**
 	 * Announce that an already existing topology will create some statistics or a trace.
 	 * The parent topologies must be added before.
@@ -213,7 +233,7 @@ public class TraceFormatWriter {
 		final EventTraceEntry traceEntry = new EventTraceEntry(name, attributes, time, xmldat);
 		writer.writeEvent(traceEntry);
 	}
-	
+
 	/**
 	 * Write a single event.
 	 * 
@@ -229,7 +249,7 @@ public class TraceFormatWriter {
 		this.writeStateEnd(topology, name, endTime, null, null);
 	}
 
-	
+
 	/**
 	 * Finish a state.
 	 *
@@ -266,30 +286,30 @@ public class TraceFormatWriter {
 		if(! getProjectDescription().getStatisticsGroupNames().contains(group.getName())){
 			addStatisticGroup(group.getName());
 		}
-		
+
 		if (outWriter == null) {
 			getOrCreateStatisticsTopologyInternal(topology, group, time);
 		}else{
 			throw new IllegalArgumentException("Statistic already initalized " + topology + " " + group );
 		}
 	}
-	
+
 	private StatisticsWriter getOrCreateStatisticsTopologyInternal(TopologyNode topology, StatisticsGroupDescription group, Epoch time){
 		final HashMap<StatisticsGroupDescription, StatisticsWriter> stats =  traceWriterMap.get(topology).registeredStatisticWriter;
-		
+
 
 		StatisticsWriter outWriter = stats.get(group);
 
 		if (outWriter != null){
 			return outWriter;
 		}
-		
+
 		final String file = outProject.getParentDir() + "/" + topology.getStatisticFileName(group.getName());
-		
+
 		if(time == null){
 			throw new IllegalArgumentException("Invalid argument, should not be called with null time");
 		}
-		
+
 		try {
 			// generate a new output writer			
 			outWriter = new StatisticsWriter(file, topology, group, time);
@@ -300,26 +320,26 @@ public class TraceFormatWriter {
 					"Statistic file could not be created: " + file);
 		}
 	}
-	
+
 	public void writeStatisticsTimestamp(TopologyNode topology, StatisticsGroupDescription group, Epoch time) throws IOException{
 		StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, time);
 		outWriter.writeStatisticsTimestamp(time);
 	}
-	
+
 	public void writeStatisticValue(TopologyNode topology, StatisticsDescription statistic, Object value) throws IOException{
 		final StatisticsGroupDescription group = statistic.getGroup();
 		StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, null);
 		outWriter.writeStatisticEntry(statistic, value);
 	}
-	
+
 	public void writeStatisticValue(TopologyNode topology, Epoch time, StatisticsDescription statistic, Object value) throws IOException{
 		final StatisticsGroupDescription group = statistic.getGroup();
 		StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, time);
-		
+
 		if(outWriter.isStatisticIntervalFinished()){
 			outWriter.writeStatisticsTimestamp(time);
 		}
-		
+
 		outWriter.writeStatisticEntry(statistic, value);
 	}
 
@@ -332,11 +352,11 @@ public class TraceFormatWriter {
 	public void writeStatisticsGroupEntry(TopologyNode topology, StatisticsGroupEntry entry) throws IOException{
 		final StatisticsGroupDescription group = entry.getGroup();
 		final StatisticsWriter outWriter = getOrCreateStatisticsTopologyInternal(topology, group, entry.getEarliestTime());
-		
+
 		// use output group and NOT input group for checking.
 		outWriter.writeStatisticsGroupEntry(entry);
 	}
-	
+
 	/**
 	 * Finalize and close the trace file(s).
 	 * @throws IOException
