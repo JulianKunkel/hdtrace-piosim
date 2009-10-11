@@ -59,6 +59,6 @@ public class XMLHelper {
 	 * @return
 	 */
 	static public String validTag(String tag){
-		return tag.replaceAll("[^a-zA-Z0-9]", "");
+		return tag.replaceAll("[^a-zA-Z0-9_]", "");
 	}
 }
