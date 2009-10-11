@@ -16,4 +16,10 @@ public interface IPaketTopologyRouting{
 	 */
 	public IGNetworkEdge getTargetRouteForMessage(INetworkNode src, MessagePart part);
 
+	/**
+	 * Call this method to announce now further routing is needed for the message part.
+	 * @param part
+	 */
+	public void messagePartRemoved(MessagePart part);
+
 }

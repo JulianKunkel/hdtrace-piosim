@@ -36,9 +36,10 @@ public class testSwitchingTopology implements TestTopology{
 			INetworkExit exitNode,
 			INetworkNode node,
 			INetworkEdge myEdge,
-			ModelBuilder mb) throws Exception
+			ModelBuilder mb,
+			PaketRoutingAlgorithm routing
+			) throws Exception
 	{
-		PaketRoutingAlgorithm routing = createRoutingAndTopology();
 		INetworkTopology topology = mb.createTopology("LAN");
 		topology.setRoutingAlgorithm(routing);
 

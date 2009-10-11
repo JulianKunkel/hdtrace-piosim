@@ -8,17 +8,12 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
-import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 
 
 public class testGrid implements TestTopology{
 	int height = 3;
 	int width = 3;
-
-	protected PaketRoutingAlgorithm createRoutingAndTopology(){
-		return new PaketFirstRoute();
-	}
 
 	public void setGrid(int height, int width){
 		this.height = height;
@@ -33,9 +28,10 @@ public class testGrid implements TestTopology{
 			INetworkExit exitNode,
 			INetworkNode node,
 			INetworkEdge myEdge,
-			ModelBuilder mb) throws Exception
+			ModelBuilder mb,
+			PaketRoutingAlgorithm routing
+			) throws Exception
 	{
-		PaketRoutingAlgorithm routing = createRoutingAndTopology();
 		INetworkTopology topology = mb.createTopology("LAN");
 		topology.setRoutingAlgorithm(routing);
 

@@ -82,7 +82,7 @@ public class MessagePart implements INetworkMessage{
 
 	@Override
 	public String toString() {
-		return "msg-part: <" + size + "," + position + "> " + msg;
+		return "<" + size + "," + position + "," + msg + ">";
 	}
 
 	@Override

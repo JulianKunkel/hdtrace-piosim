@@ -47,8 +47,8 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 
 		// start a BFS from all exit nodes.
 		for(INetworkExit exitNode: exitNodes){
-			LinkedList<INetworkNode> toProcess;
-			LinkedList<INetworkNode> toProcessNext = new LinkedList<INetworkNode>();
+			HashSet<INetworkNode> toProcess;
+			HashSet<INetworkNode> toProcessNext = new HashSet<INetworkNode>();
 
 			toProcessNext.add(exitNode);
 
@@ -59,11 +59,12 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 			// do a BFS, count depth
 			while(! toProcessNext.isEmpty()){
 				toProcess = toProcessNext;
-				toProcessNext = new LinkedList<INetworkNode>();
+				toProcessNext = new HashSet<INetworkNode>();
 				hops++;
 
 				while(! toProcess.isEmpty()){
-					final INetworkNode cur = toProcess.poll();
+					final INetworkNode cur = toProcess.iterator().next();
+					toProcess.remove(cur);
 
 					processedNodes.add(cur);
 
@@ -155,5 +156,10 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 		}
 
 		return buf.toString();
+	}
+
+	@Override
+	public void messagePartRemoved(MessagePart part) {
+		// not needed, we do not track the message position
 	}
 }

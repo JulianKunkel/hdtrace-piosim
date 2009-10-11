@@ -10,6 +10,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 
 public interface TestTopology{
 	public void createTopology(
@@ -19,6 +20,7 @@ public interface TestTopology{
 			INetworkExit exitNode,
 			INetworkNode node,
 			INetworkEdge myEdge,
-			ModelBuilder mb
+			ModelBuilder mb,
+			PaketRoutingAlgorithm routing
 			) throws Exception;
 }

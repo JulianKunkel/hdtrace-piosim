@@ -11,6 +11,9 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoundRobinRoute;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 import de.hd.pvs.piosim.simulator.RunParameters;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
@@ -32,7 +35,8 @@ public class NetworkRoutingTest extends TestSuite{
 	final long MBYTE = 1000 * 1000;
 
 	private Simulator sim;
-	final RunParameters runParameters = new RunParameters();
+	private final RunParameters runParameters = new RunParameters();
+	private PaketRoutingAlgorithm routing = null;
 
 	public NetworkRoutingTest() {
 		runParameters.setTraceInternals(true);
@@ -43,8 +47,14 @@ public class NetworkRoutingTest extends TestSuite{
 		return runParameters;
 	}
 
-	public void runTestFor(TestHardwareSetup setup, TestTopology topology, TestExecution execute) throws Exception{
+	public void setRoutingAlgorithm(PaketRoutingAlgorithm routing) {
+		this.routing = routing;
+	}
 
+	public void runTestFor(TestHardwareSetup setup, TestTopology topology, TestExecution execute) throws Exception{
+		if(routing == null){
+			routing = new PaketFirstRoute();
+		}
 		final ModelBuilder mb = new ModelBuilder();
 
 		mb.getModel().getGlobalSettings().setTransferGranularity(100 * KBYTE);
@@ -63,7 +73,7 @@ public class NetworkRoutingTest extends TestSuite{
 		final ArrayList<INetworkExit> exits = new ArrayList<INetworkExit>();
 
 
-		topology.createTopology(entries, exits, entryNode, exitNode, node, myEdge, mb);
+		topology.createTopology(entries, exits, entryNode, exitNode, node, myEdge, mb, routing);
 
 		sim = new Simulator();
 
@@ -95,9 +105,17 @@ public class NetworkRoutingTest extends TestSuite{
 	}
 
 	@Test
-	public void twoToOneTarget() throws Exception{
-		runParameters.setTraceInternals(true);
+	public void crossSendRoungRobinRoute() throws Exception{
 
+		runParameters.setTraceEnabled(true);
+
+		setRoutingAlgorithm(new PaketRoundRobinRoute());
+		runTestFor(new BasicHardwareSetup(), new testGrid(), new oneSendFromTwoNic());
+		//printRouting();
+	}
+
+	@Test
+	public void twoToOneTarget() throws Exception{
 		runTestFor(new BasicHardwareSetup(), new testGrid(), new twoToOneNic());
 	}
 

@@ -34,6 +34,10 @@ implements IGNetworkExit, IGNetworkEntry
 		// check if we are the final target.
 		if(exit == this.getModelComponent()){
 			messagePartReceived(part);
+
+			// announce that the packet will not be routed again (for now).
+			routing.messagePartRemoved(part);
+
 			return;
 		}
 
