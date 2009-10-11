@@ -7,17 +7,13 @@ import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreForwardNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntryCallbacks;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExitCallbacks;
 import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 public class GStoreAndForwardExitNode extends GStoreForwardNode<StoreForwardNode>
 implements IGNetworkExit, IGNetworkEntry
 {
-	IGNetworkExitCallbacks networkExitI;
-
 	HashMap<INetworkExit, LinkedList<Message>> pendingMsgsMap = new HashMap<INetworkExit, LinkedList<Message>>();
 
 	private long rcvdData = 0;
@@ -27,16 +23,9 @@ implements IGNetworkExit, IGNetworkEntry
 	}
 
 	@Override
-	public void setNetworkExitImplementor(IGNetworkExitCallbacks networkExitI) {
-		// TODO Auto-generated method stub
-
-	}
-
-
-	@Override
-	public void setNetworkEntryImplementor(
-			IGNetworkEntryCallbacks networkEntryImplementor) {
-
+	public void messagePartReceived(MessagePart part) {
+		//System.out.println("+ " + this.getIdentifier() + " recveived data: " + part.getSize() + " at " + getSimulator().getVirtualTime());
+		rcvdData += part.getSize();
 	}
 
 	@Override
@@ -44,12 +33,16 @@ implements IGNetworkExit, IGNetworkEntry
 		final INetworkExit exit = part.getMessageTarget();
 		// check if we are the final target.
 		if(exit == this.getModelComponent()){
-			//System.out.println("+ " + this.getIdentifier() + " recveived data: " + part.getSize() + " at " + getSimulator().getVirtualTime());
-			rcvdData += part.getSize();
+			messagePartReceived(part);
 			return;
 		}
 
 		super.submitMessagePart(part);
+	}
+
+	@Override
+	public boolean mayIReceiveAMessagePart(MessagePart part) {
+		return true;
 	}
 
 	@Override
@@ -59,7 +52,7 @@ implements IGNetworkExit, IGNetworkEntry
 		if(exit == this.getModelComponent()){
 			//System.out.println(" announceSubmissionOf");
 
-			return true;
+			return mayIReceiveAMessagePart(part);
 		}
 
 		// check if we want to send to the same exit from the local node

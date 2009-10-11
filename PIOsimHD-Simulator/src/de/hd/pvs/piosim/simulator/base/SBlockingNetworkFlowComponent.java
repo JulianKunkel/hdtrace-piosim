@@ -243,9 +243,9 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 			// submit packet:
 			getTargetComponent(scheduledPart).submitMessagePart(scheduledPart);
 
-			scheduledPart = null;
+			getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, "part_" + scheduledPart.getMessageSource().getIdentifier().getID() +"_"  + scheduledPart.getMessageTarget().getIdentifier().getID());
 
-			getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, "Msg-Part");
+			scheduledPart = null;
 
 			if(isEmpty()){
 				state = State.READY;
@@ -275,8 +275,6 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 			if( next.announceSubmissionOf(part) ){
 				state = State.BUSY;
 
-				getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, "Msg-Part");
-
 				final Epoch transportTime = computeTransportTime(part);
 				setNewWakeupTimerInFuture(transportTime);
 
@@ -285,6 +283,8 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 				// remove first pending message part
 				this.scheduledPart = pollScheduledNetworkPart();
+
+				getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, "part_" + scheduledPart.getMessageSource().getIdentifier().getID() +"_" + scheduledPart.getMessageTarget().getIdentifier().getID());
 
 				// now try to reactivate blocked senders if necessary
 				if(status.blockedComponentsUpstream.size() > 0){

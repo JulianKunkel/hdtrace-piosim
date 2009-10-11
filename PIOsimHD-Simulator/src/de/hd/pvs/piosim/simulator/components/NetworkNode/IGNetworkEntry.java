@@ -27,6 +27,4 @@ public interface IGNetworkEntry {
 	 * Then the next message part can be created.
 	 */
 	public void sendMsgPartCB(MessagePart part);
-
-	public void setNetworkEntryImplementor(IGNetworkEntryCallbacks networkEntryImplementor);
 }

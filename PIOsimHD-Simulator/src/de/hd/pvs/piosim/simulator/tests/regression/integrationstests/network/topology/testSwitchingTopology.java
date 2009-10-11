@@ -14,7 +14,7 @@ import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgor
 
 public class testSwitchingTopology implements TestTopology{
 	int sources = 10;
-	int targets = 1;
+	int targets = 2;
 
 	public void setNodes(int nodes) {
 		this.sources = nodes;
@@ -48,12 +48,11 @@ public class testSwitchingTopology implements TestTopology{
 
 		// create targets:
 		for(int y = 0 ; y < targets; y++){
-				INetworkNode cur;
-				cur = mb.cloneFromTemplate(exitNode);
+				final INetworkNode cur = mb.cloneFromTemplate(exitNode);
 				exitsOut.add((INetworkExit) cur);
 				cur.setName("T" + y );
 
-				INetworkEdge edge = mb.cloneFromTemplate(myEdge);
+				final INetworkEdge edge = mb.cloneFromTemplate(myEdge);
 				edge.setName(sw.getName() + "->" + cur.getName());
 
 				mb.connect(topology, sw, edge , cur);
@@ -61,12 +60,11 @@ public class testSwitchingTopology implements TestTopology{
 
 		// create sources:
 		for(int y = 0 ; y < sources; y++){
-				INetworkNode cur;
-				cur = (INetworkNode) mb.cloneFromTemplate(entryNode);
+				final INetworkNode cur = (INetworkNode) mb.cloneFromTemplate(entryNode);
 				entriesOut.add((INetworkEntry) cur);
 				cur.setName("S" + y );
 
-				INetworkEdge edge = mb.cloneFromTemplate(myEdge);
+				final INetworkEdge edge = mb.cloneFromTemplate(myEdge);
 
 				edge.setName(cur.getName() + "->" + sw.getName());
 

@@ -1,5 +1,8 @@
 package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+
 import de.hd.pvs.piosim.model.components.NetworkNode.CutThroughForwardNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.base.IGNetworkFlowComponent;
@@ -8,11 +11,16 @@ import de.hd.pvs.piosim.simulator.components.NetworkEdge.IGNetworkEdge;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.routing.IPaketTopologyRouting;
 
-public class GCutThroughForwardNode<ModelType extends CutThroughForwardNode>
+public class GCutThroughForwardNodeExplizitBlocking<ModelType extends CutThroughForwardNode>
 	extends SPassiveComponent<ModelType>
 	implements IGNetworkNode<ModelType>
 {
 	protected IPaketTopologyRouting routing;
+
+	/**
+	 * Remember the blocked sources
+	 */
+	protected HashMap<INetworkExit, LinkedList<IGNetworkFlowComponent>> mapBlockedExits = new HashMap<INetworkExit, LinkedList<IGNetworkFlowComponent>>();
 
 	private IGNetworkEdge lastEdgeForTransmission;
 
@@ -53,11 +61,19 @@ public class GCutThroughForwardNode<ModelType extends CutThroughForwardNode>
 			// invoke message callback
 			((IGNetworkEntry) this).sendMsgPartCB(part);
 		}
+
+		final INetworkExit exit = part.getMessageTarget();
+		final LinkedList<IGNetworkFlowComponent> blockedOnes = mapBlockedExits.get(exit);
+		if(blockedOnes != null && ! blockedOnes.isEmpty()){
+			// wakeup another pending one.
+			blockedOnes.pop().unblockExit(exit);
+		}
 	}
 
 	@Override
 	public void unblockExit(INetworkExit exit) {
-		throw new IllegalArgumentException("shall never be called, target components must do flow control");
+		final LinkedList<IGNetworkFlowComponent> blockedOnes = mapBlockedExits.get(exit);
+		blockedOnes.pop().unblockExit(exit);
 	}
 
 	@Override
@@ -65,7 +81,19 @@ public class GCutThroughForwardNode<ModelType extends CutThroughForwardNode>
 			IGNetworkFlowComponent src,
 			INetworkExit exit)
 	{
-		lastEdgeForTransmission.rememberBlockedDataPushFrom(src, exit);
+		LinkedList<IGNetworkFlowComponent> blockedOnes = mapBlockedExits.get(exit);
+		if(blockedOnes == null){
+			blockedOnes = new LinkedList<IGNetworkFlowComponent>();
+			mapBlockedExits.put(exit, blockedOnes);
+		}
+
+		// next target is stored by announceSubmissionOf
+		blockedOnes.add(src);
+
+		if(blockedOnes.isEmpty()){
+			lastEdgeForTransmission.rememberBlockedDataPushFrom(this, exit);
+		}
+
 	}
 
 }

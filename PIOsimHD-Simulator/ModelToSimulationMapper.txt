@@ -21,6 +21,7 @@ de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO = de.hd.pvs.
 
 +NetworkEdge
 de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge = de.hd.pvs.piosim.simulator.components.NetworkEdge.GSimpleNetworkEdge
+de.hd.pvs.piosim.model.components.NetworkEdge.CutThroughNetworkEdge = de.hd.pvs.piosim.simulator.components.NetworkEdge.GCutThroughNetworkEdge
 
 +NetworkNode
 de.hd.pvs.piosim.model.components.NetworkNode.CutThroughForwardNode = de.hd.pvs.piosim.simulator.components.NetworkNode.GCutThroughForwardNode

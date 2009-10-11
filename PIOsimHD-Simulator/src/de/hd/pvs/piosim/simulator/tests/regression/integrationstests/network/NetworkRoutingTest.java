@@ -16,6 +16,7 @@ import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.network.GNetworkTopology;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.BasicHardwareSetup;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareCutThroughNetwork;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.TestHardwareSetup;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.TestExecution;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneSendFromTwoNic;
@@ -118,6 +119,17 @@ public class NetworkRoutingTest extends TestSuite{
 	@Test
 	public void twoToOneTargetSwitch() throws Exception{
 		runTestFor(new BasicHardwareSetup(), new testSwitchingTopology(), new twoToOneNic());
+	}
+
+	@Test
+	public void twoToOneTargetSwitchCutThrough() throws Exception{
+		runTestFor(new HardwareCutThroughNetwork(), new testSwitchingTopology(), new twoToOneNic());
+	}
+
+	@Test
+	public void oneToTwoTargetSwitchCutThrough() throws Exception{
+		runParameters.setTraceEnabled(true);
+		runTestFor(new HardwareCutThroughNetwork(), new testSwitchingTopology(), new oneToTwoNic());
 	}
 
 	@Test

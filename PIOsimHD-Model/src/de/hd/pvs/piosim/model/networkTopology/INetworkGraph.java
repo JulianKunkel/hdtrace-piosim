@@ -2,6 +2,7 @@ package de.hd.pvs.piosim.model.networkTopology;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 public interface INetworkGraph {
 
@@ -23,4 +24,12 @@ public interface INetworkGraph {
 	 * @return
 	 */
 	public INetworkGraph computeInversedGraph();
+
+	/**
+	 * Get all network nodes
+	 * @return
+	 */
+	public List<INetworkNode> getNetworkNodes();
+
+	public List<INetworkExit> getNetworkExitNodes();
 }
