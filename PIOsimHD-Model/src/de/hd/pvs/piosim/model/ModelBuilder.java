@@ -31,6 +31,7 @@ import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
@@ -122,6 +123,9 @@ public class ModelBuilder {
 	 * @param node
 	 */
 	public void addNode(Node node) {
+		if(node.getNetworkInterface() == null){
+			throw new IllegalArgumentException("Set the NIC first");
+		}
 		model.addComponent(node);
 	}
 
@@ -136,10 +140,10 @@ public class ModelBuilder {
 			model.addComponent(via);
 		}
 		if(! model.isComponentInModel(src)){
-			model.addComponent(src);
+			throw new IllegalArgumentException("Src component not part of the model, add it!");
 		}
 		if(! model.isComponentInModel(tgt)){
-			model.addComponent(tgt);
+			throw new IllegalArgumentException("Tgt component not part of the model, add it!");
 		}
 		((NetworkTopology) topology).addEdge(src, via, tgt);
 	}
@@ -297,5 +301,9 @@ public class ModelBuilder {
 	 */
 	public Model getModel() {
 		return model;
+	}
+
+	public void addNetworkNode(StoreForwardNode interNode) {
+		model.addComponent(interNode);
 	}
 }

@@ -34,10 +34,9 @@ import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
+import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
-import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
-import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 
 /**
  * A node is a component which simulates a complete computer. It contains
@@ -51,7 +50,9 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
  * @has 1 - 0..n de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess
  * @has 1 - 1..n NIC
  */
-public class Node  extends BasicComponent implements INetworkEntry, INetworkExit{
+public class Node
+	extends BasicComponent
+{
 	/** Number of CPUs in this node */
 	@Attribute(xmlName="CPUs")
 	@NotNegativeOrZero
@@ -67,13 +68,11 @@ public class Node  extends BasicComponent implements INetworkEntry, INetworkExit
 	@NotNegativeOrZero
 	private long memorySize = -1;
 
-	/** Data transfer speed between two processes in this node */
-	@Attribute
-	@NotNegativeOrZero
-	private long internalDataTransferSpeed = 0;
-
 	@ChildComponents
 	ArrayList<NodeHostedComponent> hostedComponents = new ArrayList<NodeHostedComponent>();
+
+	@ChildComponents
+	private NIC networkInterface;
 
 	@AttributeGetters
 	public long getInstructionsPerSecond() {
@@ -83,21 +82,6 @@ public class Node  extends BasicComponent implements INetworkEntry, INetworkExit
 	@AttributeGetters
 	public long getMemorySize() {
 		return memorySize;
-	}
-
-	/**
-	 * @return the internalDataTransferSpeed
-	 */
-	@AttributeGetters
-	public long getInternalDataTransferSpeed() {
-		return internalDataTransferSpeed;
-	}
-
-	/**
-	 * @param internalDataTransferSpeed the internalDataTransferSpeed to set
-	 */
-	public void setInternalDataTransferSpeed(long internalDataTransferSpeed) {
-		this.internalDataTransferSpeed = internalDataTransferSpeed;
 	}
 
 	/**
@@ -148,5 +132,13 @@ public class Node  extends BasicComponent implements INetworkEntry, INetworkExit
 
 	public boolean isNetworkExitNode() {
 		return true;
+	}
+
+	public void setNetworkInterface(NIC networkInterface) {
+		this.networkInterface = networkInterface;
+	}
+
+	public NIC getNetworkInterface() {
+		return networkInterface;
 	}
 }

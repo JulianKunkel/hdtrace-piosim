@@ -37,38 +37,38 @@
 <ComponentList>
 
 <NodeList>
-<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="1" name="Test1">
+<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="0" name="Test1">
 <CPUs>-1</CPUs>
 <InstructionsPerSecond>-1</InstructionsPerSecond>
 <MemorySize>-1</MemorySize>
-<InternalDataTransferSpeed>0</InternalDataTransferSpeed>
 <HOSTEDCOMPONENTS>
-<ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" id="2" rank="-1" thread="0">
+<ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" id="4" rank="-1" thread="0">
 </ClientProcess>
 </HOSTEDCOMPONENTS>
+<NETWORKINTERFACE>
+<NIC implementation="de.hd.pvs.piosim.model.components.NIC.NIC" id="1">
+<InternalDataTransferSpeed>0</InternalDataTransferSpeed>
+</NIC>
+</NETWORKINTERFACE>
 </Node>
-<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="6">
+<Node implementation="de.hd.pvs.piosim.model.components.Node.Node" id="2">
 <CPUs>-1</CPUs>
 <InstructionsPerSecond>-1</InstructionsPerSecond>
 <MemorySize>-1</MemorySize>
-<InternalDataTransferSpeed>0</InternalDataTransferSpeed>
 <HOSTEDCOMPONENTS>
-<ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" id="7" rank="-1" thread="0">
+<ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" id="5" rank="-1" thread="0">
 </ClientProcess>
 </HOSTEDCOMPONENTS>
+<NETWORKINTERFACE>
+<NIC implementation="de.hd.pvs.piosim.model.components.NIC.NIC" id="3">
+<InternalDataTransferSpeed>10000</InternalDataTransferSpeed>
+</NIC>
+</NETWORKINTERFACE>
 </Node>
 </NodeList>
 
 <NetworkEdgeList>
-<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="0">
-<Latency>0s</Latency>
-<Bandwidth>-1</Bandwidth>
-</NetworkEdge>
-<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="4">
-<Latency>0s</Latency>
-<Bandwidth>-1</Bandwidth>
-</NetworkEdge>
-<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="5">
+<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="7">
 <Latency>0s</Latency>
 <Bandwidth>-1</Bandwidth>
 </NetworkEdge>
@@ -76,10 +76,18 @@
 <Latency>0s</Latency>
 <Bandwidth>-1</Bandwidth>
 </NetworkEdge>
+<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="9">
+<Latency>0s</Latency>
+<Bandwidth>-1</Bandwidth>
+</NetworkEdge>
+<NetworkEdge implementation="de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge" id="10">
+<Latency>0s</Latency>
+<Bandwidth>-1</Bandwidth>
+</NetworkEdge>
 </NetworkEdgeList>
 
 <NetworkNodeList>
-<NetworkNode implementation="de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNetworkNode" id="3">
+<NetworkNode implementation="de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode" id="6">
 <TotalBandwidth>-1</TotalBandwidth>
 </NetworkNode>
 </NetworkNodeList>
@@ -87,14 +95,14 @@
 <TopologyList>
 <Topology  name="Patch-Cable">
 	<Node id="1">
-		<Edge id="0" to="3"/>
+		<Edge id="7" to="6"/>
 	</Node>
 	<Node id="3">
-		<Edge id="4" to="1"/>
-		<Edge id="8" to="6"/>
+		<Edge id="9" to="6"/>
 	</Node>
 	<Node id="6">
-		<Edge id="5" to="3"/>
+		<Edge id="8" to="1"/>
+		<Edge id="10" to="3"/>
 	</Node>
 <ROUTINGALGORITHM>
 <PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute">

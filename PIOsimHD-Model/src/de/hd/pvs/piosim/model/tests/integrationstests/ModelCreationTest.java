@@ -38,6 +38,7 @@ import org.junit.Test;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelXMLWriter;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
@@ -57,41 +58,57 @@ public class ModelCreationTest   extends TestSuite  {
   }
 
 	@Test public void test() throws Exception{
-		ModelBuilder mb = new ModelBuilder();
-		ClientProcess client = new ClientProcess();
-		Node maschine = new Node();
+		final ModelBuilder mb = new ModelBuilder();
+		final Node machine = new Node();
+		final Node machine2 = new Node();
 
-		ClientProcess client2 = new ClientProcess();
-		Node maschine2 = new Node();
+		final ClientProcess client = new ClientProcess();
+		final ClientProcess client2 = new ClientProcess();
 
-		maschine.setName("Test1");
+		final NIC nic1 = new NIC();
+		final NIC nic2 = new NIC();
 
-		mb.addClient(maschine, client);
-		mb.addClient(maschine2, client2);
+		machine.setName("Test1");
 
-		StoreForwardNode interNode = new StoreForwardNode();
+		nic2.setInternalDataTransferSpeed(10000);
 
-		INetworkTopology topology = mb.createTopology("Patch-Cable");
+		machine.setNetworkInterface(nic1);
+		machine2.setNetworkInterface(nic2);
+
+		mb.addNode(machine);
+		mb.addNode(machine2);
+
+		mb.addClient(machine, client);
+		mb.addClient(machine2, client2);
+
+
+		final StoreForwardNode interNode = new StoreForwardNode();
+
+		final INetworkTopology topology = mb.createTopology("Patch-Cable");
 
 		topology.setRoutingAlgorithm(new PaketFirstRoute());
 
+		mb.addNetworkNode(interNode);
+
 		SimpleNetworkEdge mi = new SimpleNetworkEdge();
 
-		mb.connect(topology, maschine, mi, interNode);
+		mb.connect(topology, machine.getNetworkInterface(), mi, interNode);
 		mi = new SimpleNetworkEdge();
-		mb.connect(topology, interNode, mi, maschine);
+		mb.connect(topology, interNode, mi, machine.getNetworkInterface());
 		mi = new SimpleNetworkEdge();
-		mb.connect(topology, maschine2, mi, interNode);
+		mb.connect(topology, machine2.getNetworkInterface(), mi, interNode);
 		mi = new SimpleNetworkEdge();
-		mb.connect(topology, interNode, mi, maschine2);
+		mb.connect(topology, interNode, mi, machine2.getNetworkInterface());
 
 		// write XML to file
-		ModelXMLWriter writer = new ModelXMLWriter();
-		StringBuffer sb = new StringBuffer();
+		final ModelXMLWriter writer = new ModelXMLWriter();
+		final StringBuffer sb = new StringBuffer();
 		writer.createXMLFromModel(mb.getModel(), sb);
 
-		FileOutputStream file = new FileOutputStream("/tmp/model.xml");
+		final FileOutputStream file = new FileOutputStream("/tmp/model.xml");
 		file.write(sb.toString().getBytes());
 		file.close();
+
+		System.out.println(mb.getModel());
 	}
 }

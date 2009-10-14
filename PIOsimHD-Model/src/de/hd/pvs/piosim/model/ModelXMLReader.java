@@ -351,6 +351,7 @@ public class ModelXMLReader {
 		for (String type : DynamicModelClassMapper.getAvailableModelTypes()) {
 			// the elements are contained in the tag XXList
 			XMLTag element = xml.getFirstNestedXMLTagWithName(type + "List");
+
 			if(element == null){
 				System.err.println("No list available for component type: " + type);
 				continue;
@@ -361,6 +362,7 @@ public class ModelXMLReader {
 				IBasicComponent newComponent = (IBasicComponent) createComponentFromXML(e, false);
 				try{
 					model.addComponent(newComponent);
+
 				}catch(IllegalArgumentException error){
 					throw new IllegalArgumentException("Searching for " + type + "List. Parsed: " + newComponent, error);
 				}

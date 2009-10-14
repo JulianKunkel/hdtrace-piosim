@@ -34,6 +34,7 @@ import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
 import de.hd.pvs.piosim.model.annotations.ChildComponents;
+import de.hd.pvs.piosim.model.interfaces.IChildObject;
 
 /**
  * The <code>Component</code> is an abstract superclass for any logical component in a cluster.
@@ -43,7 +44,8 @@ import de.hd.pvs.piosim.model.annotations.ChildComponents;
  * @author Julian M. Kunkel
  */
 public abstract class BasicComponent<ParentType extends BasicComponent>
-implements Comparable, IBasicComponent<ParentType>{
+	implements Comparable, IBasicComponent, IChildObject<ParentType>
+{
 	/**
 	 * The identifier of the component.
 	 */
@@ -107,10 +109,10 @@ implements Comparable, IBasicComponent<ParentType>{
 	 * Get all the parent components plus the component itself
 	 * @return
 	 */
-	public LinkedList<IBasicComponent<?>> getParentComponentsPlusMe(){
-		LinkedList<IBasicComponent<?>> hierachy = new LinkedList<IBasicComponent<?>>();
+	public LinkedList<IBasicComponent> getParentComponentsPlusMe(){
+		LinkedList<IBasicComponent> hierachy = new LinkedList<IBasicComponent>();
 
-		IBasicComponent<?> parent = this;
+		BasicComponent parent = this;
 		while(parent != null){
 			hierachy.push(parent);
 			parent = parent.getParentComponent();
@@ -125,8 +127,8 @@ implements Comparable, IBasicComponent<ParentType>{
 	 *
 	 * @return
 	 */
-	final public ArrayList<IBasicComponent<?>> getDirectChildComponents(){
-		ArrayList<IBasicComponent<?>> ret =  new ArrayList<IBasicComponent<?>>();
+	final public ArrayList<IBasicComponent> getDirectChildComponents(){
+		ArrayList<IBasicComponent> ret =  new ArrayList<IBasicComponent>();
 
 		// use reflection to add all child components
 		Class<?> classIterate = this.getClass();

@@ -282,9 +282,9 @@ public class Model{
 		}
 
 		// add subelement
-		ArrayList<BasicComponent> list = com.getDirectChildComponents();
+		ArrayList<IBasicComponent> list = com.getDirectChildComponents();
 
-		for (BasicComponent child: list){
+		for (IBasicComponent child: list){
 			addComponent(child);
 		}
 	}
@@ -336,9 +336,9 @@ public class Model{
 		}
 
 		// remove subelement
-		ArrayList<BasicComponent> list = com.getDirectChildComponents();
+		ArrayList<IBasicComponent> list = com.getDirectChildComponents();
 
-		for (BasicComponent child: list){
+		for (IBasicComponent child: list){
 			removeComponent(child);
 		}
 	}

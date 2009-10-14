@@ -115,7 +115,7 @@ public class ModelXMLWriter {
 
 		sb.append("<ComponentList>\n\n");
 		sb.append("<NodeList>\n");
-		for (BasicComponent com : model.getNodes()) {
+		for (ISerializableObject com : model.getNodes()) {
 			createXMLFromInstance(com, sb);
 		}
 		sb.append("</NodeList>\n\n");
