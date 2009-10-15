@@ -28,7 +28,7 @@
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
-import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 
 
 

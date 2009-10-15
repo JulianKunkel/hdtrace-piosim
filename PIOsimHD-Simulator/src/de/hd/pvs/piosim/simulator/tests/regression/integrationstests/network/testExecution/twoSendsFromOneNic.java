@@ -10,9 +10,9 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreAndForwardExitNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.network.Message;
-import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.GStoreAndForwardExitNode;
 
 public class twoSendsFromOneNic extends TestCase implements TestExecution{
 	GStoreAndForwardExitNode exitGNode;

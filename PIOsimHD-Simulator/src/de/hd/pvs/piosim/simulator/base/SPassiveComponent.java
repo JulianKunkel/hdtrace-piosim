@@ -66,7 +66,7 @@ public class SPassiveComponent<ModelComp extends IBasicComponent>
 	}
 
 
-	final public ModelComp getModelComponent(){
+	public ModelComp getModelComponent(){
 		assert(modelComponent != null);
 		return modelComponent;
 	}
@@ -122,6 +122,7 @@ public class SPassiveComponent<ModelComp extends IBasicComponent>
 	 * The components should be attached after the model build completed.
 	 * @param comp The actual Model component
 	 */
+	@Override
 	public void setModelComponent(ModelComp comp) throws Exception{
 		if (this.modelComponent != null){
 			throw new IllegalArgumentException("BasicComponent already set to: " + this.modelComponent);
@@ -144,14 +145,6 @@ public class SPassiveComponent<ModelComp extends IBasicComponent>
 
 		assert(this.modelComponent != null);
 		assert(this.simulator != null);
-	}
-
-	/**
-	 * Provided for the IGComponent interface.
-	 * @return
-	 */
-	public final SPassiveComponent<ModelComp> getSimulatorObject(){
-		return this;
 	}
 
 	/**

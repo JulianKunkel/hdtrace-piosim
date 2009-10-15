@@ -1,13 +1,10 @@
-package de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network;
+package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 
 import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreForwardNode;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
 import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
@@ -33,10 +30,10 @@ implements IGNetworkExit, IGNetworkEntry
 		final INetworkExit exit = part.getMessageTarget();
 		// check if we are the final target.
 		if(exit == this.getModelComponent()){
-			messagePartReceived(part);
-
 			// announce that the packet will not be routed again (for now).
 			routing.messagePartRemoved(part);
+
+			messagePartReceived(part);
 
 			return;
 		}

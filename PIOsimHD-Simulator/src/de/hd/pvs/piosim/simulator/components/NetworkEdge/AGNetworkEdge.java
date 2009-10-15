@@ -11,14 +11,10 @@ abstract public class AGNetworkEdge<ModelType extends INetworkEdge>
 	private IGNetworkNode targetNode;
 
 	final public void setTargetNode(IGNetworkNode targetNode) {
-		assert(targetNode != null);
-
 		this.targetNode = targetNode;
 	}
 
 	final public IGNetworkNode getTargetNode() {
-		assert(targetNode != null);
-
 		return targetNode;
 	}
 }

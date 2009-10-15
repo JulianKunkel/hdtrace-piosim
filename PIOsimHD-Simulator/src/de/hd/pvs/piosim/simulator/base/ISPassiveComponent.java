@@ -69,10 +69,4 @@ public interface ISPassiveComponent<ModelComp extends IBasicComponent>
 	public ComponentRuntimeInformation getComponentInformation();
 
 	public void setSimulator(Simulator sim);
-
-	/**
-	 * Provided for the IGComponent interface.
-	 * @return
-	 */
-	public ISPassiveComponent<ModelComp> getSimulatorObject();
 }

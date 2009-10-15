@@ -93,11 +93,21 @@ public abstract class SBasicComponent<ModelComp extends IBasicComponent>
 	 * should wake up. However, it tries to remove old timers from the simulator. (i.e. at most
 	 * one timer should be pending).
 	 *
-	 * @param when is added to the simulation current time
+	 * @param futureOffset is added to the simulation current time
 	 */
 	final protected void updateWakeupTimerInFuture(Epoch futureOffset){
-		Epoch when = futureOffset.add(getSimulator().getVirtualTime());
+		updateWakeupTimer(futureOffset.add(getSimulator().getVirtualTime()));
 
+	}
+
+	/**
+	 * Similar to startTimedWakeup this function sets a timer in the future when the component
+	 * should wake up. However, it tries to remove old timers from the simulator. (i.e. at most
+	 * one timer should be pending).
+	 *
+	 * @param when
+	 */
+	final protected void updateWakeupTimer(Epoch when){
 		getSimulator().deleteFutureEvent(nextWakeUpEvent);
 		nextWakeUpEvent = new InternalEvent(this, when);
 		getSimulator().submitNewEvent(nextWakeUpEvent);

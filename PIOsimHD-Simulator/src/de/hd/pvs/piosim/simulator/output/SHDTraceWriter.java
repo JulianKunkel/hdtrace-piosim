@@ -61,7 +61,7 @@ public class SHDTraceWriter extends STraceWriter {
 	public void preregister(ISPassiveComponent<IBasicComponent> component) {
 		// manufacture topology and cache it.
 
-		final LinkedList<IBasicComponent<?>> path = component.getModelComponent().getParentComponentsPlusMe();
+		final LinkedList<IBasicComponent> path = component.getModelComponent().getParentComponentsPlusMe();
 
 		final String [] strPath = new String[path.size()];
 
@@ -73,7 +73,7 @@ public class SHDTraceWriter extends STraceWriter {
 
 
 		int pos = 0;
-		for(IBasicComponent<?> comp: path){
+		for(IBasicComponent comp: path){
 			strPath[pos] = comp.getIdentifier().toString();
 			pos++;
 		}

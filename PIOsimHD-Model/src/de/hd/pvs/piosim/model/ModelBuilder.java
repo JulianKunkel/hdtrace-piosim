@@ -31,7 +31,6 @@ import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
-import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
@@ -303,7 +302,7 @@ public class ModelBuilder {
 		return model;
 	}
 
-	public void addNetworkNode(StoreForwardNode interNode) {
+	public void addNetworkNode(INetworkNode interNode) {
 		model.addComponent(interNode);
 	}
 }

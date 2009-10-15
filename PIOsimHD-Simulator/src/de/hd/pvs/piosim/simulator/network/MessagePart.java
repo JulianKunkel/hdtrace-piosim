@@ -64,15 +64,6 @@ public class MessagePart implements INetworkMessage{
 	}
 
 	/**
-	 * Check if this MessagePart represents the last packet of a message.
-	 *
-	 * @return
-	 */
-	public boolean isLastPart(){
-		return (position + size) == msg.getTotalSize();
-	}
-
-	/**
 	 * Return the size of this packet.
 	 * @return
 	 */

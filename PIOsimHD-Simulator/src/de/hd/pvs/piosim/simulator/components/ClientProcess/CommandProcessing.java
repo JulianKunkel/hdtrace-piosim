@@ -28,9 +28,9 @@ package de.hd.pvs.piosim.simulator.components.ClientProcess;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 

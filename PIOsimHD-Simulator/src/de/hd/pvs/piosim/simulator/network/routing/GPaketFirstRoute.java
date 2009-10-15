@@ -1,9 +1,9 @@
 package de.hd.pvs.piosim.simulator.network.routing;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
@@ -40,7 +40,7 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 		final HashMap<INetworkNode, LinkedList<INetworkEdge>>  tgtMap = inversedGraph.getSourceGraph();
 
 		// determine targets == exit nodes
-		final List<INetworkExit> exitNodes = networkTopology.getNetworkExitNodes();
+		final Collection<INetworkExit> exitNodes = networkTopology.getNetworkExitNodes();
 		for(INetworkNode node: networkTopology.getNetworkNodes()){
 			routingTable.put(node,	new HashMap<INetworkExit, IGNetworkEdge>());
 		}

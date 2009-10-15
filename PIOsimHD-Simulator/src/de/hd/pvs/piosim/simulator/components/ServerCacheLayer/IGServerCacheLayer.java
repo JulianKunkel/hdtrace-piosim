@@ -30,8 +30,8 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IGComponent;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.event.IOJob;
-import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;

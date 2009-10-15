@@ -11,7 +11,7 @@ import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
-import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.GStoreAndForwardExitNode;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreAndForwardExitNode;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.StoreForwardNodeExit;
 
 public class BasicHardwareSetup implements TestHardwareSetup{
@@ -19,7 +19,6 @@ public class BasicHardwareSetup implements TestHardwareSetup{
 
 	public NetworkEdge createEdge(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
-		conn.setName("1GBit Ethernet");
 		conn.setLatency(Epoch.ZERO);
 		conn.setBandwidth(100 * MBYTE);
 		return conn;
@@ -38,20 +37,17 @@ public class BasicHardwareSetup implements TestHardwareSetup{
 	}
 	public INetworkNode createNetworkNode(){
 		StoreForwardNode sw = new StoreForwardNode();
-		sw.setName("Node");
 		sw.setTotalBandwidth(1000 * MBYTE);
 		return (INetworkNode) sw;
 	}
 
 	public INetworkExit createNetworkExit(){
 		INetworkExit exit = (INetworkExit) setupNetworkNode();
-		exit.setName("Exit");
 		return exit;
 	}
 
 	public INetworkEntry createNetworkEntry(){
 		INetworkEntry entry = (INetworkEntry) setupNetworkNode();
-		entry.setName("Entry");
 		return entry;
 	}
 }

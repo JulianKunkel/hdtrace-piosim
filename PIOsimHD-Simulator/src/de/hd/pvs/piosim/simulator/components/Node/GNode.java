@@ -32,28 +32,27 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
-import de.hd.pvs.piosim.model.networkTopology.NetworkTopology;
-import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
+import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
-import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 
 
 /**
  * Implements a Node containing several CPUs.
- * Ensure computation of all participating tasks is done by multiplexing the ressources
+ * Ensure computation of all participating tasks is done by multiplexing the resources
  * among them.
  *
  * @author Julian M. Kunkel
  *
  */
-public class GNode extends SBasicComponent<Node>{
-	private IGNetworkEntry nicUpload;
+public class GNode<ModelComp extends Node>
+extends SBasicComponent<ModelComp>
+implements INodeRessources
+{
+	private INetworkRessource networkInterface;
 
 	/**
 	 * Clients contained in this node.
@@ -87,6 +86,7 @@ public class GNode extends SBasicComponent<Node>{
 	 * @param required
 	 * @return
 	 */
+	@Override
 	public boolean isEnoughFreeMemory(long required){
 		return freeMemory > required;
 	}
@@ -95,6 +95,7 @@ public class GNode extends SBasicComponent<Node>{
 	 * Reserve an amount of main memory on this node.
 	 * @param required
 	 */
+	@Override
 	public void reserveMemory(long required){
 		freeMemory -= required;
 	}
@@ -103,6 +104,7 @@ public class GNode extends SBasicComponent<Node>{
 	 * Free some memory. Beware to free not more than which got used.
 	 * @param howMuch
 	 */
+	@Override
 	public void freeMemory(long howMuch){
 		freeMemory += howMuch;
 
@@ -110,35 +112,26 @@ public class GNode extends SBasicComponent<Node>{
 	}
 
 	@Override
-	public void setSimulatedModelComponent(Node comp, Simulator sim)  throws Exception{
-		super.setSimulatedModelComponent(comp, sim);
-		Node m = getModelComponent();
+	public void setModelComponent(ModelComp comp) throws Exception {
+		super.setModelComponent(comp);
+
+		// initalize nic
+		networkInterface = (INetworkRessource) getSimulator().instantiateSimObjectForModelObj(comp.getNetworkInterface());
 
 		// initialize freeMemroy
-		freeMemory = m.getMemorySize();
-
-		// add the NICs
-		for(NIC n: m.getNICs()){
-			NetworkTopology topology = NetworkTopology.global;
-
-			topology.addEdge(src, via);
-		}
-
-		if(m.getNICs().size() == 0){
-			throw new IllegalArgumentException("Node does not have a nic " + getIdentifier());
-		}
+		freeMemory = comp.getMemorySize();
 
 		// add the hosted components
-		for(NodeHostedComponent c: m.getHostedComponents()){
+		for(NodeHostedComponent c: comp.getHostedComponents()){
 			ISNodeHostedComponent scomp = null;
 
 			if(c.getObjectType().equals("Server")){
-				IGServer serv = (IGServer) sim.instantiateSimObjectForModelObj(c);
+				IGServer serv = (IGServer) getSimulator().instantiateSimObjectForModelObj(c);
 				servers.add(serv);
 				scomp = serv;
 
 			}else if(c.getObjectType().equals("ClientProcess")){
-				GClientProcess e = (GClientProcess) sim.instantiateSimObjectForModelObj(c);
+				GClientProcess e = (GClientProcess) getSimulator().instantiateSimObjectForModelObj(c);
 				clients.add(e);
 				scomp = e;
 
@@ -150,36 +143,12 @@ public class GNode extends SBasicComponent<Node>{
 		}
 	}
 
-	public ArrayList<GNIC> getNICs() {
-		return nics;
-	}
-
 	public ArrayList<GClientProcess> getClients() {
 		return clients;
 	}
 
 	public ArrayList<IGServer> getServers() {
 		return servers;
-	}
-
-	/**
-	 * Current network model: for each single request choose ONLY one path, i.e. choose exactly one Network Card for
-	 * each request
-	 * Jobs could be bundled together i.e. completion will be signaled ONLY if all jobs completed
-	 */
-	public void submitNewNetworkJob(InterProcessNetworkJob job){
-		// determine the right NIC for the Job depending on the target and pick the target NIC.
-		GNIC gnic = getGNICToNode(job.getTargetComponent());
-		gnic.submitNewNetworkJob(job);
-	}
-
-	/**
-	 * Search for the NIC which can deliver data to the target.
-	 * @param targetNIC
-	 * @return
-	 */
-	public GNIC getGNICToNode(ISNodeHostedComponent<?> hostedComponent) {
-		return getNICs().get(0);
 	}
 
 	/**
@@ -228,6 +197,7 @@ public class GNode extends SBasicComponent<Node>{
 	 * Used by the hosted components to add a compute job.
 	 * @param job
 	 */
+	@Override
 	public void addComputeJob(ComputeJob job){
 		int activeJobs = getNumberOfActiveComputeJobs();
 
@@ -350,28 +320,6 @@ public class GNode extends SBasicComponent<Node>{
 	}
 
 	/**
-	 * Block to receive data for the particular target. (i.e. buffer full).
-	 * @param target
-	 */
-	public void blockReceiveFlow(ISNodeHostedComponent target){
-		for(GNIC g: nics){
-			g.blockFlow(target);
-		}
-	}
-
-
-	/**
-	 * Unblock a particular target at a given time.
-	 * @param target
-	 * @param endTime
-	 */
-	public void unblockReceiveFlow(ISNodeHostedComponent target){
-		for(GNIC g: nics){
-			g.unblockFlow(target);
-		}
-	}
-
-	/**
 	 * Minimum number of instructions a compute job can have to be visible at the time scale.
 	 * @return
 	 */
@@ -380,4 +328,5 @@ public class GNode extends SBasicComponent<Node>{
 		if(minInstructions == 0) return 1;
 		return minInstructions;
 	}
+
 }

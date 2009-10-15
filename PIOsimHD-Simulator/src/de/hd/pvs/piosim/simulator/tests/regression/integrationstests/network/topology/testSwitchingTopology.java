@@ -46,6 +46,7 @@ public class testSwitchingTopology implements TestTopology{
 		// create nodes:
 		INetworkNode sw = mb.cloneFromTemplate(node);
 		sw.setName("SW");
+		mb.addNetworkNode(sw);
 
 		// create targets:
 		for(int y = 0 ; y < targets; y++){
@@ -55,6 +56,9 @@ public class testSwitchingTopology implements TestTopology{
 
 				final INetworkEdge edge = mb.cloneFromTemplate(myEdge);
 				edge.setName(sw.getName() + "->" + cur.getName());
+
+
+				mb.addNetworkNode(cur);
 
 				mb.connect(topology, sw, edge , cur);
 		}
@@ -68,6 +72,8 @@ public class testSwitchingTopology implements TestTopology{
 				final INetworkEdge edge = mb.cloneFromTemplate(myEdge);
 
 				edge.setName(cur.getName() + "->" + sw.getName());
+
+				mb.addNetworkNode(cur);
 
 				mb.connect(topology, cur, edge , sw);
 		}

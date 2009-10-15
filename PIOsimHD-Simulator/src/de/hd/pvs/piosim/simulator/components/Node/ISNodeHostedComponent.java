@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: ISNodeHostedComponent.java 707 2009-10-08 22:19:00Z kunkel $
+  * @lastmodified    $Date: 2009-10-09 00:19:00 +0200 (Fr, 09. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 707 $
   */
 
 
@@ -23,16 +23,14 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.piosim.simulator.interfaces;
+package de.hd.pvs.piosim.simulator.components.Node;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntryCallbacks;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExitCallbacks;
-import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
-import de.hd.pvs.piosim.simulator.components.Node.GNode;
-import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
  * Interface to simulate a NodeHostedComponent from the Model.
@@ -42,13 +40,8 @@ import de.hd.pvs.piosim.simulator.network.NetworkJobs;
  * @param <Type>
  */
 public interface ISNodeHostedComponent<Type extends SPassiveComponent>
-	extends IGNetworkEntryCallbacks, IGNetworkExitCallbacks
 {
-	/**
-	 * Get the simulated node hosting this component.
-	 * @return
-	 */
-	public GNode getAttachedNode();
+	public INetworkRessource getNIC();
 
 	/**
 	 * Return the identifier of this component
@@ -57,18 +50,19 @@ public interface ISNodeHostedComponent<Type extends SPassiveComponent>
 	public ComponentIdentifier getIdentifier();
 
 	/**
-	 * Return the Simulated Component implementing this interface itself.
-	 * @return
-	 */
-	public Type getSimulatorObject();
-
-
-	/**
 	 * This callback is executed once the NetworkJobs completed.
 	 * @param jobs
 	 * @param endTime
 	 */
-	public void jobsCompletedCB(NetworkJobs jobs, Epoch endTime);
+	public void recvCompletedCB(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime);
+
+	public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime);
+
+	public void messagePartSendCB(MessagePart part, InterProcessNetworkJob myJob, Epoch endTime);
+
+	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime);
+
+	public boolean mayIReceiveMessagePart(MessagePart part, InterProcessNetworkJob job);
 
 	/**
 	 * Gets called if a compute job is finished

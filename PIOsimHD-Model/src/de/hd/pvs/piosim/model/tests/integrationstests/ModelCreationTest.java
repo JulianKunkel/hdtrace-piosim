@@ -70,7 +70,7 @@ public class ModelCreationTest   extends TestSuite  {
 
 		machine.setName("Test1");
 
-		nic2.setInternalDataTransferSpeed(10000);
+		nic2.setTotalBandwidth(10000);
 
 		machine.setNetworkInterface(nic1);
 		machine2.setNetworkInterface(nic2);

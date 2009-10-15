@@ -31,8 +31,8 @@ package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 import de.hd.pvs.piosim.model.program.commands.Sendrecv;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 

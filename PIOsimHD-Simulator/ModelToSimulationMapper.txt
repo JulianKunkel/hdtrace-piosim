@@ -30,3 +30,6 @@ de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode = de.hd.pvs.piosi
 +PaketRoutingAlgorithm
 de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketFirstRoute
 de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoundRobinRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketRoundRobinRoute
+
++NIC
+de.hd.pvs.piosim.model.components.NIC.NIC = de.hd.pvs.piosim.simulator.components.NIC.GNIC

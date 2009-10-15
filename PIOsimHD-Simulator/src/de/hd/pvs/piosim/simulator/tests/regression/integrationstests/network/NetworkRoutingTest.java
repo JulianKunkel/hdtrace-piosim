@@ -20,12 +20,14 @@ import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.network.GNetworkTopology;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.BasicHardwareSetup;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareCutThroughNetwork;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareNICs;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.TestHardwareSetup;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.TestExecution;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneSendFromTwoNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneToTwoNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoSendsFromOneNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoToOneNic;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoToOneNodeNIC;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.TestTopology;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.testGrid;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.testSwitchingTopology;
@@ -63,6 +65,11 @@ public class NetworkRoutingTest extends TestSuite{
 		final INetworkExit exitNode = setup.createNetworkExit();
 		final INetworkEdge myEdge = setup.createEdge();
 		final INetworkNode node = setup.createNetworkNode();
+
+		myEdge.setName("Edge");
+		node.setName("Node");
+		exitNode.setName("Exit");
+		entryNode.setName("Entry");
 
 		mb.addTemplate(myEdge);
 		mb.addTemplate(node);
@@ -115,6 +122,14 @@ public class NetworkRoutingTest extends TestSuite{
 	}
 
 	@Test
+	public void nicTest() throws Exception{
+
+		runParameters.setTraceEnabled(true);
+
+		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new twoToOneNodeNIC());
+	}
+
+	@Test
 	public void twoToOneTarget() throws Exception{
 		runTestFor(new BasicHardwareSetup(), new testGrid(), new twoToOneNic());
 	}
@@ -128,8 +143,6 @@ public class NetworkRoutingTest extends TestSuite{
 	public void twoToOneTarge1x4() throws Exception{
 		final testGrid grid = new testGrid();
 		grid.setGrid(1, 4);
-
-		runParameters.setTraceEnabled(true);
 
 		runTestFor(new BasicHardwareSetup(), grid, new twoToOneNic());
 	}

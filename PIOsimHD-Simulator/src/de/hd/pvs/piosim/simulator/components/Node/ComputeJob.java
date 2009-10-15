@@ -28,7 +28,6 @@
  */
 package de.hd.pvs.piosim.simulator.components.Node;
 
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
 
 /**
  * Represents a single ComputeJob i.e. a set of instructions processed on the CPU. 

@@ -42,13 +42,16 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
+import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.GNode;
-import de.hd.pvs.piosim.simulator.interfaces.ISNodeHostedComponent;
+import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
+import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
+import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 import de.hd.pvs.piosim.simulator.program.IWaitCommand;
@@ -60,8 +63,8 @@ import de.hd.pvs.piosim.simulator.program.IWaitCommand;
  *
  */
 public class GClientProcess
-extends SPassiveComponent<ClientProcess>
-implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
+	extends SPassiveComponent<ClientProcess>
+	implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 {
 	/**
 	 * Data structure which collects statistics per command type.
@@ -116,11 +119,7 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 	private final static HashMap<Class<? extends CommandImplementation>, CommandImplementation> enforcedCommandImplementations =
 		new HashMap<Class<? extends CommandImplementation>, CommandImplementation>();
 
-
-	/**
-	 * The node hosting this client process.
-	 */
-	private GNode attachedNode;
+	private INodeRessources ressources;
 
 	/**
 	 * Commands which are blocked.
@@ -187,11 +186,6 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		processCommandStep(cmd, getSimulator().getVirtualTime(), false);
 	}
 
-	@Override
-	public GNode getAttachedNode() {
-		return attachedNode;
-	}
-
 	/**
 	 * @return the pendingNonBlockingOps
 	 */
@@ -218,26 +212,6 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		assert(pendingOp.getNextStep() != CommandProcessing.STEP_START);
 
 		processCommandStep(pendingOp, endTime, true);
-	}
-
-	/**
-	 * This shall never be called in a client:
-	 */
-	@Override
-	public void receiveCB(InterProcessNetworkJob job, InterProcessNetworkJob response, Epoch endTime) {
-		assert(false);
-	}
-
-
-	@Override
-	public void recvMsgPartCB(GNIC nic, MessagePart part, Epoch endTime) {
-		assert(false);
-	}
-
-
-	@Override
-	public void sendMsgPartCB(GNIC nic, MessagePart part, Epoch endTime) {
-		assert(false);
 	}
 
 	@Override
@@ -581,11 +555,69 @@ implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 		blockedCommand = newJob;
 	}
 
-	@Override
 	public void setSimulatedModelComponent(ClientProcess comp, Simulator sim)
-			throws Exception {
-		super.setSimulatedModelComponent(comp, sim);
+			throws Exception
+	{
+		ressources = (GNode) sim.getSimulatedComponent(comp.getParentComponent());
+	}
 
-		attachedNode = (GNode) sim.getSimulatedComponent(comp.getParentComponent());
+	@Override
+	public INetworkRessource getNIC() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void mayIReceiveMessagePart(MessagePart part,
+			InterProcessNetworkJob job) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void messagePartReceivedCB(MessagePart part,
+			InterProcessNetworkJob remoteJob,
+			InterProcessNetworkJob announcedJob, Epoch endTime) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void messagePartSendCB(MessagePart part,
+			InterProcessNetworkJob myJob, Epoch endTime) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void recvCompletedCB(InterProcessNetworkJob remoteJob,
+			InterProcessNetworkJob announcedJob, Epoch endTime) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void sendMsgPartCB(IGNetworkEntry entry, MessagePart part,
+			Epoch endTime) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void receiveCB(Message msg, Epoch endTime) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void recvMsgPartCB(MessagePart part, Epoch endTime) {
+		// TODO Auto-generated method stub
+
 	}
 }

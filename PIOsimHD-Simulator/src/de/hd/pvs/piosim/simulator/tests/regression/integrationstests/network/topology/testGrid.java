@@ -54,6 +54,7 @@ public class testGrid implements TestTopology{
 				}
 				cur.setName(x + ":"  + y );
 				nodes.add(cur);
+				mb.addNetworkNode(cur);
 			}
 		}
 		// create horizontal edges:
