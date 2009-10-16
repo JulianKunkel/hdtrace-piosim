@@ -41,7 +41,12 @@ import de.hd.pvs.piosim.simulator.network.MessagePart;
  */
 public interface ISNodeHostedComponent<Type extends SPassiveComponent>
 {
-	public INetworkRessource getNIC();
+
+	public void setNetworkInterface(INetworkRessource nic);
+	public INetworkRessource getNetworkInterface();
+
+	public void setNodeRessources(INodeRessources ressources);
+	public INodeRessources getNodeRessources();
 
 	/**
 	 * Return the identifier of this component

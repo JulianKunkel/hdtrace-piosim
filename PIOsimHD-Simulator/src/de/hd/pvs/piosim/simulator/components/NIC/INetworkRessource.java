@@ -16,7 +16,7 @@ public interface INetworkRessource{
 	 * announce receive of data from another node.
 	 * The NodeHostedComponent callback is called once all data is send.
 	 */
-	public void addInterProcessTransfer(InterProcessNetworkJob job);
+	public void initiateInterProcessTransfer(InterProcessNetworkJob job);
 
 	public NIC getModelComponent();
 }

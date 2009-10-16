@@ -29,8 +29,8 @@ import org.junit.Test;
 
 public class NormalCommandsClusterTest extends ClusterTest{
 
-	public int maxClient = 10;
-	public int minClient = 1;
+	public int maxClient = 1;
+	public int minClient = 10;
 
 	double [] times = new double[maxClient+1];
 

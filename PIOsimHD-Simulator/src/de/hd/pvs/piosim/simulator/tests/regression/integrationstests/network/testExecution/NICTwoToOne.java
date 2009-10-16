@@ -18,17 +18,18 @@ import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
+import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 
 /**
  * Test Node NIC
- * first start => first exit, last start => first exit
+ * first and second start => first exit :)
  * @author julian
  *
  */
-public class twoToOneNodeNIC extends TestCase implements TestExecution{
+public class NICTwoToOne extends TestCase implements TestExecution{
 	protected static class HostDummy implements ISNodeHostedComponent{
 
 		private GNIC nic;
@@ -47,7 +48,7 @@ public class twoToOneNodeNIC extends TestCase implements TestExecution{
 		}
 
 		@Override
-		public INetworkRessource getNIC() {
+		public INetworkRessource getNetworkInterface() {
 			return nic;
 		}
 
@@ -63,14 +64,14 @@ public class twoToOneNodeNIC extends TestCase implements TestExecution{
 				InterProcessNetworkJob remoteJob,
 				InterProcessNetworkJob announcedJob, Epoch endTime)
 		{
-
+			System.out.println("Msg part rcvd " + part.getSize());
 		}
 
 		@Override
 		public void messagePartSendCB(MessagePart part,
 				InterProcessNetworkJob myJob, Epoch endTime)
 		{
-
+			System.out.println("Msg part send " + part.getSize());
 		}
 
 		@Override
@@ -84,12 +85,30 @@ public class twoToOneNodeNIC extends TestCase implements TestExecution{
 		public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime) {
 			System.out.println(getIdentifier() +  " send data to " + myJob.getMatchingCriterion().getSourceComponent().getIdentifier() + " tag: " + myJob.getMatchingCriterion().getTag());
 		}
+
+		@Override
+		public INodeRessources getNodeRessources() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void setNetworkInterface(INetworkRessource nic) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void setNodeRessources(INodeRessources ressources) {
+			// TODO Auto-generated method stub
+
+		}
 	}
 
 	final long SIZE = 1000 * 1000;
-	HostDummy hostSrc1;
-	HostDummy hostSrc2;
-	HostDummy hostTgt;
+	protected HostDummy hostSrc1;
+	protected HostDummy hostSrc2;
+	protected HostDummy hostTgt;
 
 	@Override
 	public void postSimulation(Simulator sim, SimulationResults results,
@@ -116,10 +135,12 @@ public class twoToOneNodeNIC extends TestCase implements TestExecution{
 		final InterProcessNetworkJob job2 = InterProcessNetworkJob.createSendOperation(crit2, new NetworkSimpleData(SIZE), false);
 
 
-		hostSrc1.nic.addInterProcessTransfer(job1);
-		hostSrc2.nic.addInterProcessTransfer(job2);
+		hostSrc1.nic.initiateInterProcessTransfer(job1);
+		hostSrc2.nic.initiateInterProcessTransfer(job2);
 
 		System.out.println("from " + hostSrc1.getIdentifier() + " to " + hostTgt.getIdentifier());
 		System.out.println("and from " + hostSrc2.getIdentifier() + " to " + hostTgt.getIdentifier());
+
+		hostTgt.nic.initiateInterProcessTransfer(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1, hostTgt, 1, comm), false));
 	}
 }

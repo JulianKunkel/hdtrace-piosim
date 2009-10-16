@@ -43,6 +43,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelVerifier;
 import de.hd.pvs.piosim.model.ModelXMLReader;
+import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
@@ -60,6 +61,7 @@ import de.hd.pvs.piosim.simulator.base.IGDynamicImplementationObject;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.ApplicationMap;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.NetworkEdge.IGNetworkEdge;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
@@ -141,10 +143,10 @@ public final class Simulator implements IModelToSimulatorMapper {
 	 * @throws Exception
 	 */
 	public void initModel(Model model, RunParameters parameters)
-			throws Exception {
+	throws Exception {
 		if (existingSimulationObjects.size() > 0) {
 			throw new IllegalArgumentException(
-					"Simulator already initalized, model cannot be changed afterwards!");
+			"Simulator already initalized, model cannot be changed afterwards!");
 		}
 
 		if (parameters == null) {
@@ -176,10 +178,10 @@ public final class Simulator implements IModelToSimulatorMapper {
 					&& !IGNetworkExit.class.isInstance(node)) {
 				throw new IllegalArgumentException(
 						"Model component "
-								+ com.getIdentifier()
-								+ " implements INetworkExit "
-								+ "then the simulation component must implement IGNetworkExit, but it does not. Class used was: "
-								+ node.getClass().getCanonicalName());
+						+ com.getIdentifier()
+						+ " implements INetworkExit "
+						+ "then the simulation component must implement IGNetworkExit, but it does not. Class used was: "
+						+ node.getClass().getCanonicalName());
 			}
 			// check that IGNetworkEntry is implemented when component
 			// implements INetworkEntry
@@ -187,10 +189,10 @@ public final class Simulator implements IModelToSimulatorMapper {
 					&& !IGNetworkEntry.class.isInstance(node)) {
 				throw new IllegalArgumentException(
 						"Model component "
-								+ com.getIdentifier()
-								+ " implements INetworkEntry "
-								+ "then the simulation component must implement IGNetworkEntry, but it does not. Class used was: "
-								+ node.getClass().getCanonicalName());
+						+ com.getIdentifier()
+						+ " implements INetworkEntry "
+						+ "then the simulation component must implement IGNetworkEntry, but it does not. Class used was: "
+						+ node.getClass().getCanonicalName());
 			}
 		}
 
@@ -202,12 +204,12 @@ public final class Simulator implements IModelToSimulatorMapper {
 			nodes.add(m);
 
 			/* put clients into the application map */
-			// TODO FIXME
-			// for(GClientProcess gc: m.getClients()){
-			// final ClientProcess c = gc.getModelComponent();
-			// assert(c != null);
-			// applicationMap.put(c.getApplication(), c.getRank(), gc);
-			// }
+			final Collection<GClientProcess> clients = m.getClients();
+			for(GClientProcess gc: clients){
+				final ClientProcess c = gc.getModelComponent();
+				assert(c != null);
+				applicationMap.put(c.getApplication(), c.getRank(), gc);
+			}
 		}
 
 
@@ -236,13 +238,13 @@ public final class Simulator implements IModelToSimulatorMapper {
 				assert (tgtNode != null);
 
 				((IGNetworkEdge) (getSimulatedComponent(com)))
-						.setTargetNode(tgtNode);
+				.setTargetNode(tgtNode);
 			}
 
 			// now load the routing into the nodes
 			for (INetworkNode com : topo.getNetworkNodes()) {
 				((IGNetworkNode) (getSimulatedComponent(com)))
-						.setPaketRouting(routing);
+				.setPaketRouting(routing);
 			}
 
 			routing.buildRoutingTable(topo, this);
@@ -264,7 +266,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 	public IGDynamicImplementationObject instantiateSimObjectForModelObj(
 			IDynamicImplementationObject modelObject) throws Exception {
 		ModelObjectMap mop = DynamicModelClassMapper
-				.getComponentImplementation(modelObject);
+		.getComponentImplementation(modelObject);
 
 		Constructor<IGDynamicImplementationObject> ct = ((Class<IGDynamicImplementationObject>) Class
 				.forName(mop.getSimulationClass())).getConstructor();
@@ -283,7 +285,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 
 	public SPassiveComponent instantiateSimObjectForModelObj(IBasicComponent modelObject) throws Exception {
 		ModelObjectMap mop = DynamicModelClassMapper
-				.getComponentImplementation(modelObject);
+		.getComponentImplementation(modelObject);
 
 		Constructor<SPassiveComponent> ct = ((Class<SPassiveComponent>) Class
 				.forName(mop.getSimulationClass())).getConstructor();
@@ -377,7 +379,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 				ConsoleLogger.getInstance().debugFollowUpline(
 						this,
 						"pending: \"" + c.getEarliestStartTime() + " "
-								+ c.getTargetComponent());
+						+ c.getTargetComponent());
 			}
 		}
 	}
@@ -442,7 +444,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 			}
 
 			ConsoleLogger.getInstance().debug(this,
-					"\n\nSimulator Main Iteration");
+			"\n\nSimulator Main Iteration");
 
 			printQueue();
 
@@ -453,24 +455,24 @@ public final class Simulator implements IModelToSimulatorMapper {
 			final Epoch newTime = serviceEvent.getEarliestStartTime();
 
 			ConsoleLogger.getInstance()
-					.debug(
-							this,
-							"SCHEDULING component: "
-									+ serviceEvent.getTargetComponent()
-											.getIdentifier());
+			.debug(
+					this,
+					"SCHEDULING component: "
+					+ serviceEvent.getTargetComponent()
+					.getIdentifier());
 
 			// safety check, wrong component implementations can lead to this:
 			if (currentEpoch.compareTo(newTime) > 0) {
 				throw new IllegalStateException(
 						"Current time smaller than excepted " + " "
-								+ currentEpoch + " newTime:" + newTime + " ");
+						+ currentEpoch + " newTime:" + newTime + " ");
 			}
 
 			currentEpoch = newTime;
 
 			if (countEventsPerComponent) {
 				Integer id = serviceEvent.getTargetComponent().getIdentifier()
-						.getID();
+				.getID();
 				Integer cnt = mapIDEventCount.get(id);
 				if (cnt == null) {
 					cnt = new Integer(0);
@@ -511,7 +513,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 			component.simulationFinished();
 			// add statistics or other information about run.
 			final ComponentRuntimeInformation information = component
-					.getComponentInformation();
+			.getComponentInformation();
 			if (information != null) {
 				idtoRuntimeInformationMap.put(component.getIdentifier(),
 						information);
@@ -637,7 +639,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 	 *            , the XML model
 	 */
 	static public SimulationResults parseProjectDescription(String file)
-			throws Exception {
+	throws Exception {
 		return runProjectDescription(file, null, null);
 	}
 

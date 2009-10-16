@@ -36,4 +36,10 @@ public interface INodeRessources {
 	 * @param howMuch
 	 */
 	public void freeMemory(long howMuch);
+
+	/**
+	 * return the minimum number of instructions allowed in this component
+	 * @return
+	 */
+	public long getMinimumNumberInstructions();
 }

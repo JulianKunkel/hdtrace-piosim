@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -39,17 +39,16 @@ import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
+import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
-import de.hd.pvs.piosim.simulator.components.Node.GNode;
 import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
-import de.hd.pvs.piosim.simulator.network.Message;
+import de.hd.pvs.piosim.simulator.event.Event;
+import de.hd.pvs.piosim.simulator.event.InternalEvent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
@@ -57,15 +56,19 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 import de.hd.pvs.piosim.simulator.program.IWaitCommand;
 
 /**
- * Simulates a single client process, which processes instructions.
+ * Simulates a single client process, which processes commands.
+ * The first event initiates processing.
  *
  * @author Julian M. Kunkel
  *
  */
 public class GClientProcess
-	extends SPassiveComponent<ClientProcess>
+	extends SBasicComponent<ClientProcess>
 	implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 {
+	private INetworkRessource networkInterface;
+	private INodeRessources   nodeRessources;
+
 	/**
 	 * Data structure which collects statistics per command type.
 	 *
@@ -119,8 +122,6 @@ public class GClientProcess
 	private final static HashMap<Class<? extends CommandImplementation>, CommandImplementation> enforcedCommandImplementations =
 		new HashMap<Class<? extends CommandImplementation>, CommandImplementation>();
 
-	private INodeRessources ressources;
-
 	/**
 	 * Commands which are blocked.
 	 */
@@ -143,6 +144,11 @@ public class GClientProcess
 
 	/** instruction counter, which command is the next one */
 	private int nextCommandNumber = 0;
+
+	/**
+	 * If a set of jobs belongs to one command.
+	 */
+	private HashMap<InterProcessNetworkJob, NetworkJobs> pendingJobs = new HashMap<InterProcessNetworkJob, NetworkJobs>();
 
 	private HashMap<ComputeJob, CommandProcessing>  pendingComputeJobs = new HashMap<ComputeJob, CommandProcessing>();
 
@@ -202,19 +208,6 @@ public class GClientProcess
 	}
 
 	@Override
-	public void jobsCompletedCB(NetworkJobs jobs, Epoch endTime) {
-		debug(" resp: " + jobs.getResponses().size() + " " + endTime);
-
-		/* reactivate this client, we have to process the next command */
-		CommandProcessing pendingOp = pendingNetworkOperations.remove(jobs);
-		assert(pendingOp != null);
-
-		assert(pendingOp.getNextStep() != CommandProcessing.STEP_START);
-
-		processCommandStep(pendingOp, endTime, true);
-	}
-
-	@Override
 	public void simulationFinished() {
 		super.simulationFinished();
 
@@ -250,9 +243,8 @@ public class GClientProcess
 			warn("does not have a valid Program ");
 			finished = true;
 		}else{
-			info("uses Program: \"" + clientProgram.getApplication().getApplicationName() + "\" alias: \"" +
-					clientProgram.getApplication().getAlias() + "\" rank " + getModelComponent().getRank());
-			processNextCommands();
+			// wakeup this component => start processing
+			setNewWakeupTimeNow();
 		}
 	}
 
@@ -269,7 +261,7 @@ public class GClientProcess
 	}
 
 	private void traceCommand(Command cmd, CommandImplementation cme, boolean start){
-		String string = cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName();
+		final String string = cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName();
 
 		if(start == false) {
 			if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class){
@@ -443,7 +435,7 @@ public class GClientProcess
 				 * in order to make a single call visible we have to make sure that the simulator time increases between two
 				 * subsequent operations. Also this prevents buffer overflows in commands which finish immediately.
 				 */
-				long instr = getAttachedNode().getMinimumNumberInstructions();
+				long instr = nodeRessources.getMinimumNumberInstructions();
 
 				Object arglist[] = {cmd, nextStep};
 
@@ -452,7 +444,8 @@ public class GClientProcess
 
 				/* wait if the command requires to wait for a while */
 				ComputeJob job =  new ComputeJob(instr, this);
-				getAttachedNode().addComputeJob(job);
+
+				nodeRessources.addComputeJob(job);
 
 				pendingComputeJobs.put(job, cmdStep);
 
@@ -466,7 +459,7 @@ public class GClientProcess
 
 			NetworkJobs oldJobs = cmdStep.getNetworkJobs();
 
-			CommandProcessing newJob = cmdStep;
+			final CommandProcessing newJob = cmdStep;
 			newJob.resetState();
 
 			cme.process(cmd, newJob, this, nextStep, oldJobs);
@@ -512,9 +505,11 @@ public class GClientProcess
 					pendingNetworkOperations.put(newJob.getNetworkJobs(), newJob);
 
 					for(InterProcessNetworkJob j: newJob.getNetworkJobs().getNetworkJobs()){
-						assert(j.getTargetComponent() != null);
+						assert(j.getMatchingCriterion().getTargetComponent() != null);
 
-						getAttachedNode().submitNewNetworkJob(j);
+						pendingJobs.put(j, newJob.getNetworkJobs());
+
+						getNetworkInterface().initiateInterProcessTransfer(j);
 					}
 				}
 			}
@@ -555,69 +550,94 @@ public class GClientProcess
 		blockedCommand = newJob;
 	}
 
-	public void setSimulatedModelComponent(ClientProcess comp, Simulator sim)
-			throws Exception
-	{
-		ressources = (GNode) sim.getSimulatedComponent(comp.getParentComponent());
-	}
+	private void checkJobCompleted(NetworkJobs jobs){
+		if(jobs.isCompleted()){
+			Epoch endTime = getSimulator().getVirtualTime();
+			debug(" resp: " + jobs.getResponses().size() + " " + endTime);
 
-	@Override
-	public INetworkRessource getNIC() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+			/* reactivate this client, we have to process the next command */
+			CommandProcessing pendingOp = pendingNetworkOperations.remove(jobs);
+			assert(pendingOp != null);
 
-	@Override
-	public void mayIReceiveMessagePart(MessagePart part,
-			InterProcessNetworkJob job) {
-		// TODO Auto-generated method stub
+			assert(pendingOp.getNextStep() != CommandProcessing.STEP_START);
 
+			processCommandStep(pendingOp, endTime, true);
+		}
 	}
 
 	@Override
 	public void messagePartReceivedCB(MessagePart part,
 			InterProcessNetworkJob remoteJob,
-			InterProcessNetworkJob announcedJob, Epoch endTime) {
+			InterProcessNetworkJob announcedJob, Epoch endTime)
+	{
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void messagePartSendCB(MessagePart part,
-			InterProcessNetworkJob myJob, Epoch endTime) {
+			InterProcessNetworkJob myJob, Epoch endTime)
+	{
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void recvCompletedCB(InterProcessNetworkJob remoteJob,
-			InterProcessNetworkJob announcedJob, Epoch endTime) {
+			InterProcessNetworkJob announcedJob, Epoch endTime)
+	{
+		//System.out.println("RECV completed");
+
+		final NetworkJobs status = pendingJobs.remove(announcedJob);
+		status.jobCompletedRecv(remoteJob);
+		checkJobCompleted(status);
+	}
+
+	@Override
+	public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime)
+	{
+		//System.out.println("SEND completed");
+
+		final NetworkJobs status = pendingJobs.remove(myJob);
+		status.jobCompletedSend();
+		checkJobCompleted(status);
+	}
+
+	@Override
+	public boolean mayIReceiveMessagePart(MessagePart part, InterProcessNetworkJob job) {
 		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public INetworkRessource getNetworkInterface() {
+		return networkInterface;
+	}
+
+	@Override
+	public INodeRessources getNodeRessources() {
+		return nodeRessources;
+	}
+
+	@Override
+	public void setNetworkInterface(INetworkRessource nic) {
+		this.networkInterface = nic;
 
 	}
 
 	@Override
-	public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime) {
-		// TODO Auto-generated method stub
-
+	public void setNodeRessources(INodeRessources ressources) {
+		this.nodeRessources = ressources;
 	}
 
 	@Override
-	public void sendMsgPartCB(IGNetworkEntry entry, MessagePart part,
-			Epoch endTime) {
-		// TODO Auto-generated method stub
-
+	public void processEvent(Event event, Epoch time) {
+		assert(false);
 	}
 
 	@Override
-	public void receiveCB(Message msg, Epoch endTime) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void recvMsgPartCB(MessagePart part, Epoch endTime) {
-		// TODO Auto-generated method stub
-
+	public void processInternalEvent(InternalEvent event, Epoch time) {
+		assert(time.equals(time.ZERO));
+		info("uses Program: \"" + clientProgram.getApplication().getApplicationName() + "\" alias: \"" +
+				clientProgram.getApplication().getAlias() + "\" rank " + getModelComponent().getRank());
+		processNextCommands();
 	}
 }

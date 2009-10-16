@@ -181,10 +181,7 @@ public class GNIC
 	}
 
 	@Override
-	public void addInterProcessTransfer(InterProcessNetworkJob job) {
-		if(job.getJobData().getSize() == 0){
-			throw new IllegalArgumentException("Data size is 0.");
-		}
+	public void initiateInterProcessTransfer(InterProcessNetworkJob job) {
 
 		// handle sends & recvs differently.
 		switch (job.getJobOperation()){
@@ -215,16 +212,22 @@ public class GNIC
 					earlyRecvsMap.remove(crit);
 				}
 
+				startedRecvMap.put(msg, job);
+
 				callRecvCallback(msg, msg.getContainedUserData(), job);
 			}
 
 			break;
 		}case SEND:{
+			if(job.getJobData().getSize() == 0){
+				throw new IllegalArgumentException("Data size is 0.");
+			}
+
 			submitNewMessage(new Message<InterProcessNetworkJob>(
 					job.getSize(),
 					job,
 					this.getModelComponent(),
-					job.getMatchingCriterion().getTargetComponent().getNIC().getModelComponent()
+					job.getMatchingCriterion().getTargetComponent().getNetworkInterface().getModelComponent()
 					));
 			break;
 		}

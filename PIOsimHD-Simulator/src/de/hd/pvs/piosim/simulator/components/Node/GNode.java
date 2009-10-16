@@ -26,6 +26,7 @@
 package de.hd.pvs.piosim.simulator.components.Node;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -122,7 +123,7 @@ implements INodeRessources
 		freeMemory = comp.getMemorySize();
 
 		// add the hosted components
-		for(NodeHostedComponent c: comp.getHostedComponents()){
+		for(final NodeHostedComponent c: comp.getHostedComponents()){
 			ISNodeHostedComponent scomp = null;
 
 			if(c.getObjectType().equals("Server")){
@@ -134,20 +135,22 @@ implements INodeRessources
 				GClientProcess e = (GClientProcess) getSimulator().instantiateSimObjectForModelObj(c);
 				clients.add(e);
 				scomp = e;
-
 			}else{
 				assert(false);
 			}
 
 			hosted.put(scomp.getIdentifier(), scomp);
+
+			scomp.setNetworkInterface(networkInterface);
+			scomp.setNodeRessources(this);
 		}
 	}
 
-	public ArrayList<GClientProcess> getClients() {
+	public Collection<GClientProcess> getClients() {
 		return clients;
 	}
 
-	public ArrayList<IGServer> getServers() {
+	public Collection<IGServer> getServers() {
 		return servers;
 	}
 

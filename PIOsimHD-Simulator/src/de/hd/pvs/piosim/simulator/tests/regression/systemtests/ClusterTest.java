@@ -35,6 +35,7 @@ import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelXMLWriter;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
+import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
@@ -90,6 +91,9 @@ public class ClusterTest {
 
 	protected void setup(int clients, int servers, ServerCacheLayer cacheLayer) throws Exception {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+		parameters.setTraceClientSteps(true);
 //		parameters.setDebugEverything(true);
 
 		mb = createDisjointClusterModel(clients, servers, cacheLayer);
@@ -134,7 +138,11 @@ public class ClusterTest {
 		// maschine.setCacheSize(1024*1024*1024);
 		node.setCPUs(1);
 		node.setInstructionsPerSecond(1000000);
-		node.setInternalDataTransferSpeed(1000 * MBYTE);
+
+		NIC nic = new NIC();
+		nic.setTotalBandwidth(1000 * MBYTE);
+
+		node.setNetworkInterface(nic);
 		node.setMemorySize(1000 * 1024 * 1024);
 
 		// SimpleDisk iosub = new SimpleDisk();
@@ -172,18 +180,20 @@ public class ClusterTest {
 		StoreForwardNode testSW2 = mb.cloneFromTemplate(sw);
 		ArrayList<Node> nodes = new ArrayList<Node>();
 
+		mb.addNetworkNode(testSW);
+		mb.addNetworkNode(testSW2);
 
 		for (int i = 0; i < nodeCount; i++) {
-			Node node2 = mb.cloneFromTemplate(node);
+			final Node node2 = mb.cloneFromTemplate(node);
 			nodes.add(node2);
 
 			mb.addNode(node2);
 
 			NetworkEdge edge = mb.cloneFromTemplate(conn);
-			mb.connect(topology, node2, edge , testSW);
+			mb.connect(topology, node2.getNetworkInterface(), edge , testSW);
 
 			NetworkEdge edge2 = mb.cloneFromTemplate(conn);
-			mb.connect(topology, testSW, edge2 , node2);
+			mb.connect(topology, testSW, edge2 , node2.getNetworkInterface());
 		}
 
 		NetworkEdge edge2 = mb.cloneFromTemplate(conn);
@@ -237,7 +247,8 @@ public class ClusterTest {
 		// parameters.setTraceInternals(false);
 
 		sim = new Simulator();
-		simRes = sim.simulate(model, parameters);
+		sim.initModel(model, parameters);
+		simRes = sim.simulate();
 
 		final SimulationResultSerializer serializer = new SimulationResultSerializer();
 		System.out.println(serializer.serializeResults(simRes));

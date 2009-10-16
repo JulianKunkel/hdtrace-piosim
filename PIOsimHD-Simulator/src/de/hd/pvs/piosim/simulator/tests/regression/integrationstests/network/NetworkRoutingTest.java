@@ -22,12 +22,13 @@ import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.har
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareCutThroughNetwork;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareNICs;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.TestHardwareSetup;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.NICPartialRecv;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.NICTwoToOne;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.TestExecution;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneSendFromTwoNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneToTwoNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoSendsFromOneNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoToOneNic;
-import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoToOneNodeNIC;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.TestTopology;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.testGrid;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.testSwitchingTopology;
@@ -122,11 +123,17 @@ public class NetworkRoutingTest extends TestSuite{
 	}
 
 	@Test
-	public void nicTest() throws Exception{
+	public void NICPartialRecvTest() throws Exception{
+		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new NICPartialRecv());
+	}
+
+
+	@Test
+	public void NICTWOToOneTest() throws Exception{
 
 		runParameters.setTraceEnabled(true);
 
-		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new twoToOneNodeNIC());
+		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new NICTwoToOne());
 	}
 
 	@Test
