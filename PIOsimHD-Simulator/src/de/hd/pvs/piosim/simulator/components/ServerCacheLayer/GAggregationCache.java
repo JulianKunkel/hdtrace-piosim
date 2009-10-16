@@ -126,12 +126,12 @@ public class GAggregationCache extends GSimpleWriteBehind {
 		// prefer read requests for write requests
 		IOJob io = null;
 		if(  ! queuedReadJobs.isEmpty() &&
-				parentNode.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
+				nodeRessources.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
 		{
 			// reserve memory for READ requests
 			io = combineOperation(queuedReadJobs, IOOperation.READ);
 
-			parentNode.reserveMemory(io.getSize());
+			nodeRessources.reserveMemory(io.getSize());
 		}
 
 		if(io == null){

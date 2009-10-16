@@ -26,9 +26,9 @@
 package de.hd.pvs.piosim.simulator.network.jobs.requests;
 
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
+import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
-public class RequestFlush implements INetworkMessage {
+public class RequestFlush implements IMessageUserData {
 	/// Internal states of the server.
 
 	/**

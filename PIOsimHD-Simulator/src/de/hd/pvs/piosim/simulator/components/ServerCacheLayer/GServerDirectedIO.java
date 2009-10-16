@@ -394,11 +394,11 @@ public class GServerDirectedIO extends GAggregationCache {
 //		}
 
 		if (type == IOOperation.READ) {
-			if (!parentNode.isEnoughFreeMemory(io.getSize())) {
+			if (!nodeRessources.isEnoughFreeMemory(io.getSize())) {
 				return null;
 			}
 
-			parentNode.reserveMemory(io.getSize());
+			nodeRessources.reserveMemory(io.getSize());
 		} else if (type == IOOperation.WRITE) {
 			lastFlush = getSimulator().getVirtualTime();
 		}

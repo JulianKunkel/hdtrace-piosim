@@ -365,8 +365,8 @@ public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 
 			for (InterProcessNetworkJob job : compNetJobs.getNetworkJobs()) {
 				RequestWrite writeRequest = (RequestWrite)job.getJobData();
-				OUTresults.addNetSend(job.getTargetComponent(), new NetworkIOData(writeRequest), RequestIO.IO_DATA_TAG, Communicator.IOSERVERS, true);
-				OUTresults.addNetReceive(job.getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);
+				OUTresults.addNetSend(job.getMatchingCriterion().getTargetComponent(), new NetworkIOData(writeRequest), RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
+				OUTresults.addNetReceive(job.getMatchingCriterion().getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);
 			}
 
 			myContainer.setTwoPhaseIteration(myContainer.getTwoPhaseIteration() + 1);

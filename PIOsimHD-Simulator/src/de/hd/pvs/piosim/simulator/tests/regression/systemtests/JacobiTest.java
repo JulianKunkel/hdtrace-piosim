@@ -38,6 +38,7 @@ import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelSortIDbySubcomponents;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
+import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
@@ -156,8 +157,9 @@ public class JacobiTest {
 		}
 
 
-		Simulator sim =  new Simulator();
-		SimulationResults results = sim.simulate(mb.getModel(), params);
+		final Simulator sim =  new Simulator();
+		sim.initModel(mb.getModel(), params);
+		final SimulationResults results = sim.simulate();
 
 		if(results.getEventCount() == 0) {
 			System.err.println("Nothing happened! Model:");

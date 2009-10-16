@@ -35,7 +35,6 @@ import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SSchedulableBlockingComponent;
-import de.hd.pvs.piosim.simulator.base.SSequentialBlockingComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IOJobRefined.IOEfficiency;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.IOJob;
@@ -49,8 +48,9 @@ import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
  *
  */
 public class GRefinedDiskModel
-extends SSchedulableBlockingComponent<RefinedDiskModel, IOJobRefined>
-implements IGIOSubsystem<SSequentialBlockingComponent<RefinedDiskModel, IOJob> > {
+	extends SSchedulableBlockingComponent<RefinedDiskModel, IOJobRefined>
+	implements IGIOSubsystem<RefinedDiskModel>
+{
 
 	IIOSubsystemCaller callback;
 

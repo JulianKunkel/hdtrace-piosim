@@ -1,6 +1,7 @@
 package de.hd.pvs.piosim.simulator.components.NIC;
 
 import de.hd.pvs.piosim.model.components.NIC.NIC;
+import de.hd.pvs.piosim.simulator.network.Message;
 
 
 
@@ -16,7 +17,16 @@ public interface INetworkRessource{
 	 * announce receive of data from another node.
 	 * The NodeHostedComponent callback is called once all data is send.
 	 */
-	public void initiateInterProcessTransfer(InterProcessNetworkJob job);
+	public void initiateInterProcessReceive(InterProcessNetworkJob job);
+
+	public Message<InterProcessNetworkJob> initiateInterProcessSend(InterProcessNetworkJob job);
+
+
+	public void appendAvailableDataToIncompleteSend(Message msg, long count);
 
 	public NIC getModelComponent();
+
+	public void blockFurtherDataReceives();
+
+	public void unblockFurtherDataReceives();
 }

@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: INetworkMessage.java 708 2009-10-10 12:09:14Z kunkel $
+  * @lastmodified    $Date: 2009-10-10 14:09:14 +0200 (Sa, 10. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 708 $
   */
 
 
@@ -26,7 +26,7 @@
 /**
  *
  */
-package de.hd.pvs.piosim.simulator.network.jobs;
+package de.hd.pvs.piosim.simulator.network;
 
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;

@@ -2,29 +2,29 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * 
+ *
  */
 package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
@@ -43,14 +43,14 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousRcv extends CommandImplementation<Recv>
 {
-	public void process(Recv cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {		
+	public void process(Recv cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 
 		final int ACK_RECVD = 1;
 		final int LAST = 2;
 
 		/* second step ?, receive whole data */
 		switch(step){
-		case(CommandProcessing.STEP_START):{				
+		case(CommandProcessing.STEP_START):{
 			/* determine application */
 			OUTresults.setNextStep(ACK_RECVD);
 
@@ -62,15 +62,15 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 
 			return;
 		}case(LAST):{
-			
-			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getTargetComponent(), 
-					compNetJobs.getNetworkJobs().get(0).getTag(), cmd.getCommunicator());
-			
+
+			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTargetComponent(),
+					compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTag(), cmd.getCommunicator());
+
 			return;
 		}case(ACK_RECVD):{
 			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
-			client.debug("Receive got ACK from " +  response.getSourceComponent().getIdentifier() );
+			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
 			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
 				client.debugFollowUpLine("Eager");
@@ -82,7 +82,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 				OUTresults.setNextStep(LAST);
 
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleData(100), response.getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend(response.getMatchingCriterion().getSourceComponent(), new NetworkSimpleData(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
 
 				return;
 			}

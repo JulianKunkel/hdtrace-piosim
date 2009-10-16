@@ -19,11 +19,11 @@ import de.hd.pvs.piosim.simulator.network.MessagePart;
  *
  */
 public class GNIC
-	extends  GStoreForwardNode<NIC>
-	implements IGNetworkExit, IGNetworkEntry, INetworkRessource
+extends  GStoreForwardNode<NIC>
+implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 {
 
-	// Network operations:
+	boolean acceptNetworkData = true;
 
 	/**
 	 * Store received but not announced jobs. Empty lists are not contained in the map to conserve space.
@@ -34,6 +34,11 @@ public class GNIC
 	 * Store all announced recvs. Empty lists are not contained in the map to conserve space.
 	 */
 	private HashMap<MessageMatchingCriterion, LinkedList<InterProcessNetworkJob>> announcedRecvMap = new HashMap<MessageMatchingCriterion, LinkedList<InterProcessNetworkJob>>();
+
+	/**
+	 * TODO: work with any number of any source recvs
+	 */
+	private InterProcessNetworkJob  anySourceRecv = null;
 
 	/**
 	 * Once a new recv is started which pairs to another announced recv, then it get put into this map:
@@ -75,7 +80,9 @@ public class GNIC
 			final MessageMatchingCriterion crit = remoteJob.getMatchingCriterion();
 			final LinkedList<InterProcessNetworkJob> announcedRecvsForCriterion = announcedRecvMap.get(crit);
 
-			if(announcedRecvsForCriterion == null){
+			// check if any source is enabled
+			if(announcedRecvsForCriterion == null && anySourceRecv == null){
+
 				// uh oh, unexpected recv.
 				if(! msg.isReceivedCompletely()){
 					// optimization, ignore completed msgs.
@@ -95,16 +102,26 @@ public class GNIC
 			}
 
 			// we found a matching message => assign it.
-			final InterProcessNetworkJob announcedJob = announcedRecvsForCriterion.poll();
+			final InterProcessNetworkJob announcedJob;
+
+			if(anySourceRecv == null){
+				announcedJob = announcedRecvsForCriterion.poll();
+
+				// remove empty lists.
+				if(announcedRecvsForCriterion.size() == 0){
+					announcedRecvMap.remove(remoteJob.getMatchingCriterion());
+				}
+
+			}else{
+				announcedJob = anySourceRecv;
+				anySourceRecv = null;
+			}
+
+
 
 			if(! msg.isReceivedCompletely()){
 				// optimization, ignore completed msgs.
 				startedRecvMap.put(msg, announcedJob);
-			}
-
-			// remove empty lists.
-			if(announcedRecvsForCriterion.size() == 0){
-				announcedRecvMap.remove(remoteJob.getMatchingCriterion());
 			}
 
 			callRecvCallbacksIfNececssary(part, remoteJob, announcedJob);
@@ -181,65 +198,95 @@ public class GNIC
 	}
 
 	@Override
-	public void initiateInterProcessTransfer(InterProcessNetworkJob job) {
+	public void initiateInterProcessReceive(InterProcessNetworkJob job) {
+		assert(job.getJobOperation() == InterProcessNetworkJobType.RECEIVE);
 
-		// handle sends & recvs differently.
-		switch (job.getJobOperation()){
-		case RECEIVE:{
-			// check if the message is already pending.
-			final MessageMatchingCriterion crit = job.getMatchingCriterion();
-			final LinkedList<Message> earlyRcvs = earlyRecvsMap.get(crit);
+		if(job.getMatchingCriterion().getSourceComponent() == null){
+			assert(earlyRecvsMap.size() == 0);
+			assert(anySourceRecv == null);
+			anySourceRecv = job;
 
-			if(earlyRcvs == null){
-				 // no pending data.
-				LinkedList<InterProcessNetworkJob> pendingJobs = announcedRecvMap.get(crit);
-				if(pendingJobs == null){
-					// add a new list
-					pendingJobs = new LinkedList<InterProcessNetworkJob>();
-					announcedRecvMap.put(crit, pendingJobs);
-				}
+			return;
+		}
 
-				pendingJobs.add(job);
-			}else{
-				// we already have a pending message => match.
-				if(job.isPartialCallbackActive()){
-					throw new IllegalArgumentException("Invalid state - Partial recv is active, however an early rcv happend.");
-				}
+		// check if the message is already pending.
+		final MessageMatchingCriterion crit = job.getMatchingCriterion();
+		final LinkedList<Message> earlyRcvs = earlyRecvsMap.get(crit);
 
-				final Message<InterProcessNetworkJob> msg = earlyRcvs.poll();
-
-				if(earlyRcvs.size() == 0){
-					earlyRecvsMap.remove(crit);
-				}
-
-				startedRecvMap.put(msg, job);
-
-				callRecvCallback(msg, msg.getContainedUserData(), job);
+		if(earlyRcvs == null){
+			// no pending data.
+			LinkedList<InterProcessNetworkJob> pendingJobs = announcedRecvMap.get(crit);
+			if(pendingJobs == null){
+				// add a new list
+				pendingJobs = new LinkedList<InterProcessNetworkJob>();
+				announcedRecvMap.put(crit, pendingJobs);
 			}
 
-			break;
-		}case SEND:{
-			if(job.getJobData().getSize() == 0){
-				throw new IllegalArgumentException("Data size is 0.");
+			pendingJobs.add(job);
+		}else{
+			// we already have a pending message => match.
+			if(job.isPartialCallbackActive()){
+				throw new IllegalArgumentException("Invalid state - Partial recv is active, however an early rcv happend.");
 			}
 
-			submitNewMessage(new Message<InterProcessNetworkJob>(
-					job.getSize(),
-					job,
-					this.getModelComponent(),
-					job.getMatchingCriterion().getTargetComponent().getNetworkInterface().getModelComponent()
-					));
-			break;
+			final Message<InterProcessNetworkJob> msg = earlyRcvs.poll();
+
+			if(earlyRcvs.size() == 0){
+				earlyRecvsMap.remove(crit);
+			}
+
+			startedRecvMap.put(msg, job);
+
+			callRecvCallback(msg, msg.getContainedUserData(), job);
 		}
+
+	}
+
+	@Override
+	public Message<InterProcessNetworkJob> initiateInterProcessSend(InterProcessNetworkJob job) {
+		assert(job.getJobOperation() == InterProcessNetworkJobType.SEND);
+
+		if(job.getJobData().getSize() == 0){
+			throw new IllegalArgumentException("Data size is 0.");
 		}
+
+		final Message<InterProcessNetworkJob> msg = new Message<InterProcessNetworkJob>(
+				job.getSize(),
+				job,
+				this.getModelComponent(),
+				job.getMatchingCriterion().getTargetComponent().getNetworkInterface().getModelComponent()
+		);
+
+		if(! job.isDataAvailable()){
+			msg.setAvailableDataPosition(0);
+		}
+
+		submitNewMessage(msg);
+
+		return msg;
 	}
 
 	// Network interface
 
+	public void blockFurtherDataReceives(){
+		assert(acceptNetworkData);
+
+		acceptNetworkData = false;
+
+		blockPushForExit(this.getModelComponent());
+	}
+
+	public void unblockFurtherDataReceives(){
+		assert(! acceptNetworkData);
+
+		acceptNetworkData = true;
+
+		unblockExit(this.getModelComponent());
+	}
+
 	@Override
 	public boolean mayIReceiveAMessagePart(MessagePart part) {
-		// TODO check if the client really wants to receive the part.
-		return true;
+		return acceptNetworkData;
 	}
 
 	@Override

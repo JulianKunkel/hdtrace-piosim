@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -33,13 +33,14 @@ import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NIC.GNIC;
+import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
-import de.hd.pvs.piosim.simulator.components.Node.GNode;
+import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IGServerCacheLayer;
+import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
-import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
@@ -49,7 +50,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 
 /**
  * Simulates a server process together with an I/O subsystem.
- * Glues the cache together with the I/O subsystem.
+ * Glues the cache together with the I/O-subsystem.
  *
  * @author Julian M. Kunkel
  */
@@ -58,73 +59,61 @@ implements IGServer<SPassiveComponent<Server>>
 {
 	public static final int STEP_COMPLETED = 1000000;
 
-	private GNode attachedNode;
+	private INetworkRessource networkInterface;
+
+	private INodeRessources nodeRessources;
 
 	private IGServerCacheLayer<?> cacheLayer;
 
 	LinkedList<MessagePart> blockedReceives = new LinkedList<MessagePart>();
 
-	@Override
-	public void computeJobCompletedCV(ComputeJob job) {
+	public void process(RequestRead req, InterProcessNetworkJob request) {
+		final InterProcessNetworkJob resp =  InterProcessNetworkJob.createEmptySendOperation(
+				new MessageMatchingCriterion(this,
+						request.getMatchingCriterion().getSourceComponent(),
+						RequestIO.IO_DATA_TAG,
+						request.getMatchingCriterion().getCommunicator()),
+						new NetworkIOData(req),
+						true);
 
+		Message<InterProcessNetworkJob> msg = networkInterface.initiateInterProcessSend(resp);
+
+		cacheLayer.announceIORequest( msg, req, request );
 	}
 
-
-	public InterProcessNetworkJob process(RequestRead req, InterProcessNetworkJob request) {
-
-		cacheLayer.announceIORequest( req, request );
-		// getAttachedNode().getGNICToNode(request.getSourceComponent()),
-
-		return InterProcessNetworkJob.createSendOperation(
-				new NetworkIOData(req),
-				this,
-				request.getSourceComponent(),
-				RequestIO.IO_DATA_TAG,
-				request.getCommunicator(),
-				null,
-				true, false);
-	}
-
-	public InterProcessNetworkJob process(RequestWrite req, InterProcessNetworkJob request) {
+	public void process(RequestWrite req, InterProcessNetworkJob request) {
 		cacheLayer.announceIORequest( req, request );
 
 		/* post receive of further message parts as fragmented flow parts */
-		return InterProcessNetworkJob.createReceiveOperation(
-				this,
-				request.getSourceComponent(),
-				RequestIO.IO_DATA_TAG,
-				request.getCommunicator(),
-				null);
+		final InterProcessNetworkJob resp =  InterProcessNetworkJob.createReceiveOperation(
+				new MessageMatchingCriterion(
+						this,
+						request.getMatchingCriterion().getSourceComponent(),
+						RequestIO.IO_DATA_TAG,
+						request.getMatchingCriterion().getCommunicator()),
+						true);
+
+
+		networkInterface.initiateInterProcessReceive(resp);
 	}
 
-	public InterProcessNetworkJob process(RequestFlush req, InterProcessNetworkJob request) {
+	public void process(RequestFlush req, InterProcessNetworkJob request) {
 		cacheLayer.announceIORequest( req, request );
-
-		return null;
 	}
 
-	public InterProcessNetworkJob process(NetworkIOData data, InterProcessNetworkJob request) {
-		return null;
+	public void process(NetworkIOData data, InterProcessNetworkJob request) {
+
 	}
 
 
 	public InterProcessNetworkJob prepareFinalWriteAcknowledge(InterProcessNetworkJob request) {
 		return InterProcessNetworkJob.createSendOperation(
-				new NetworkSimpleData(15),
-				this,
-				request.getSourceComponent(),
-				RequestIO.IO_COMPLETION_TAG,
-				request.getCommunicator(),
-				null,
-				false,
-				false);
+				new MessageMatchingCriterion(this,
+						request.getMatchingCriterion().getSourceComponent(),
+						RequestIO.IO_COMPLETION_TAG,
+						request.getMatchingCriterion().getCommunicator()),
+						new NetworkSimpleData(15), false);
 	}
-
-
-	public GNode getAttachedNode() {
-		return attachedNode;
-	}
-
 
 	void processRequest(InterProcessNetworkJob job){
 		Class<?> partypes[] = {job.getJobData().getClass() , InterProcessNetworkJob.class};
@@ -133,106 +122,50 @@ implements IGServer<SPassiveComponent<Server>>
 
 			Object arglist[] = {job.getJobData(), job};
 
-			InterProcessNetworkJob resp = (InterProcessNetworkJob) meth.invoke(this, arglist);
-
-			if(resp == null){
-				/* finished processing */
-				return;
-			}
-
-			//NetworkJobs jobs = new NetworkJobs(job.getParentNetworkJobs().getInitialRequestDescription());
-
-			/* return the response or another receive message */
-			this.getAttachedNode().submitNewNetworkJob(resp);
+			meth.invoke(this, arglist);
 
 		}catch(Exception e){
 			throw new IllegalArgumentException(e);
 		}
 	}
 
-	private void unblockNetworkRecvTransfer(){
-		getAttachedNode().unblockReceiveFlow( this);
-	}
-
-	private void blockNetworkRecvTransfer(){
-		getAttachedNode().blockReceiveFlow( this );
-	}
-
-	@Override
-	public void jobsCompletedCB(NetworkJobs jobs, Epoch endTime) {
-
-	}
-
-	@Override
-	public void receiveCB(InterProcessNetworkJob job, InterProcessNetworkJob response, Epoch endTime) {
-		debug( "Unexpected job starting " + response.getSourceComponent().getIdentifier() + "," + response.getJobData());
-		processRequest(response);
-		submitRecv();
-	}
-
 	private void processWritePart(MessagePart part, Epoch endTime){
-		InterProcessNetworkJob job = part.getNetworkJob();
+		InterProcessNetworkJob job = (InterProcessNetworkJob) part.getMessage().getContainedUserData();
 		cacheLayer.writeDataToCache((NetworkIOData) job.getJobData(),  job, part.getSize());
 
-		if(part.isLastPart()){
+		if(part.getMessage().isReceivedCompletely()){
 			/*
 			 * Send an acknowledge to the client.
 			 */
-			InterProcessNetworkJob resp = prepareFinalWriteAcknowledge(job);
+			final InterProcessNetworkJob resp = prepareFinalWriteAcknowledge(job);
 
 			/* return the response or another receive message */
 			if(resp != null){
-				this.getAttachedNode().submitNewNetworkJob(resp);
+				networkInterface.initiateInterProcessSend(resp);
 			}
 		}
 	}
 
-	@Override
-	public void recvMsgPartCB(GNIC gnic, MessagePart part, Epoch endTime) {
-		InterProcessNetworkJob job = part.getNetworkJob();
-
-		debug("received MSG Part " + part.getSize() + " cmd: " + job.getParentNetworkJobs().getInitialRequestDescription());
-
-		//this function is called right now only for writes
-		boolean doesFit = cacheLayer.canIPutDataIntoCache(job, part.getSize());
-
-		if (doesFit){
-			processWritePart( part, endTime);
-		}else{
-			debugFollowUpLine("WRITE: cache layer does not accept more data => stall NIC is automatically");
-
-			blockedReceives.add(part);
-
-			blockNetworkRecvTransfer();
-		}
-	}
-
-	@Override
-	public void sendMsgPartCB(GNIC gnic, MessagePart part, Epoch endTime) {
-		if(part.getSize() == 0){
-			cacheLayer.startReadRequest(part.getMessage(),  (RequestRead) ((NetworkIOData) part.getNetworkJob().getJobData()).getIORequest() );
-		}else{
-			debug("sent MSG Part "  + part.getSize());
-
-			cacheLayer.readDataFragmentSendByNIC(part.getMessage(), part.getSize());
-		}
-	}
-
-
 	private void submitRecv(){
-		getAttachedNode().submitNewNetworkJob(
-				InterProcessNetworkJob.createReceiveOperation(this, null, RequestIO.INITIAL_REQUEST_TAG,  Communicator.IOSERVERS, null));
+		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
+				new MessageMatchingCriterion(null, this,  RequestIO.INITIAL_REQUEST_TAG,  Communicator.IOSERVERS),
+				false));
 	}
 
 	@Override
-	public void setSimulatedModelComponent(Server comp, Simulator sim) throws Exception {
-		super.setSimulatedModelComponent(comp, sim);
+	public void setModelComponent(Server comp) throws Exception {
+		super.setModelComponent(comp);
+
+		final Simulator sim = getSimulator();
 
 		cacheLayer  = (IGServerCacheLayer) sim.instantiateSimObjectForModelObj(comp.getCacheImplementation());
+	}
 
-		attachedNode = (GNode) sim.getSimulatedComponent(comp.getParentComponent());
+	@Override
+	public void simulationModelIsBuild() {
+		super.simulationModelIsBuild();
+
 		/* submit a new receiver msg */
-
 		submitRecv();
 	}
 
@@ -243,7 +176,7 @@ implements IGServer<SPassiveComponent<Server>>
 
 				MessagePart p = blockedReceives.get(0);
 
-				if (! cacheLayer.canIPutDataIntoCache(p.getNetworkJob(), p.getSize())){
+				if (! cacheLayer.canIPutDataIntoCache((InterProcessNetworkJob) p.getMessage().getContainedUserData(), p.getSize())){
 					break;
 				}
 
@@ -253,8 +186,87 @@ implements IGServer<SPassiveComponent<Server>>
 			}
 
 			if(blockedReceives.size() == 0){
-				unblockNetworkRecvTransfer();
+				networkInterface.unblockFurtherDataReceives();
 			}
 		}
 	}
-}
+
+	@Override
+	public boolean mayIReceiveMessagePart(MessagePart part, InterProcessNetworkJob job) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+	@Override
+	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob,
+			InterProcessNetworkJob announcedJob, Epoch endTime)
+	{
+
+		debug("received MSG Part " + part.getSize());
+
+		//this function is called right now only for writes
+		boolean doesFit = cacheLayer.canIPutDataIntoCache(remoteJob, part.getSize());
+
+		if (doesFit){
+			processWritePart( part, endTime);
+		}else{
+			debugFollowUpLine("WRITE: cache layer does not accept more data => stall NIC");
+
+			blockedReceives.add(part);
+
+			networkInterface.blockFurtherDataReceives();
+		}
+	}
+
+
+	@Override
+	public void messagePartSendCB(MessagePart part, InterProcessNetworkJob myJob, Epoch endTime) {
+		debug("sent MSG Part "  + part.getSize());
+
+		cacheLayer.readDataFragmentSendByNIC(part.getMessage(), part.getSize());
+	}
+
+
+	@Override
+	public void recvCompletedCB(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime) {
+		if(announcedJob.isPartialCallbackActive()){
+			// directly handled by partial callback
+			return;
+		}
+
+		debug( "Unexpected job starting " + remoteJob.getMatchingCriterion().getSourceComponent().getIdentifier());
+		processRequest(remoteJob);
+		submitRecv();
+	}
+
+
+	@Override
+	public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime) {
+
+	}
+
+	@Override
+	public void computeJobCompletedCV(ComputeJob job) {
+
+	}
+
+	@Override
+	public void setNetworkInterface(INetworkRessource nic) {
+		this.networkInterface = nic;
+	}
+
+	@Override
+	public INetworkRessource getNetworkInterface() {
+		return networkInterface;
+	}
+
+	@Override
+	public void setNodeRessources(INodeRessources ressources) {
+		this.nodeRessources = ressources;
+	}
+
+	@Override
+	public INodeRessources getNodeRessources() {
+		return this.nodeRessources;
+	}}

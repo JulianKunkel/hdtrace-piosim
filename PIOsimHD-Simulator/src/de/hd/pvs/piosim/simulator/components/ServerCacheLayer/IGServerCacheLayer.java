@@ -98,16 +98,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestRead req, InterProcessNetworkJob request);
-
-	/**
-	 * This method is called once a read really should start.
-	 *
-	 * @param msg
-	 * @param initDataFlow
-	 */
-	public void startReadRequest(Message msg, RequestRead initDataFlow);
-
+	public void announceIORequest(Message dataMessage, RequestRead req, InterProcessNetworkJob request);
 
 	/**
 	 * This method is called once a new write request comes in.

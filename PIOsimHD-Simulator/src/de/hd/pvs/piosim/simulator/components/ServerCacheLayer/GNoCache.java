@@ -40,7 +40,7 @@ import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IGIOSubsystem;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
-import de.hd.pvs.piosim.simulator.components.Node.GNode;
+import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
@@ -100,7 +100,7 @@ IIOSubsystemCaller
 	LinkedList<IOJob> queuedWriteJobs = new LinkedList<IOJob>();
 
 	IGServer<?> serverProcess;
-	GNode   parentNode;
+	INodeRessources nodeRessources;
 	IGIOSubsystem ioSubsystem;
 
 
@@ -114,11 +114,11 @@ IIOSubsystemCaller
 		// prefer read requests for write requests
 		IOJob io = null;
 		if(  ! queuedReadJobs.isEmpty() &&
-				parentNode.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
+				nodeRessources.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
 		{
 			// reserve memory for READ requests
 			io = queuedReadJobs.poll();
-			parentNode.reserveMemory(io.getSize());
+			nodeRessources.reserveMemory(io.getSize());
 		}
 
 		if(io == null){
@@ -193,7 +193,7 @@ IIOSubsystemCaller
 		//decide which data actually is contained in the network packet
 		debug("amount " + amountToWrite);
 
-		parentNode.reserveMemory(amountToWrite);
+		nodeRessources.reserveMemory(amountToWrite);
 
 		ArrayList<SingleIOOperation> writeList = null;
 
@@ -249,7 +249,7 @@ IIOSubsystemCaller
 
 	@Override
 	public void dataWrittenCompletelyToDisk(IOJob job) {
-		parentNode.freeMemory(job.getSize());
+		nodeRessources.freeMemory(job.getSize());
 
 		debug("job " + job);
 
@@ -263,12 +263,7 @@ IIOSubsystemCaller
 	@Override
 	public void readDataFragmentSendByNIC(Message msg, long amount) {
 		// free memory
-		parentNode.freeMemory(amount);
-	}
-
-	@Override
-	public void startReadRequest(Message msg, RequestRead req) {
-		pendingReadJobs.put(req, msg);
+		nodeRessources.freeMemory(amount);
 	}
 
 	@Override
@@ -283,7 +278,7 @@ IIOSubsystemCaller
 
 			//System.out.println(gServer.getIdentifier() +  " dataReadCompletelyFromDisk " + " " + job.getSize());
 
-			msg.getOutgoingNIC().appendAvailableDataToIncompleteSend(msg, p.getJob().getSize());
+			serverProcess.getNetworkInterface().appendAvailableDataToIncompleteSend(msg, p.getJob().getSize());
 
 			if( msg.isAllMessageDataAvailable() ){ // All data read completely
 				//System.out.println("Completed");
@@ -303,7 +298,9 @@ IIOSubsystemCaller
 	}
 
 	@Override
-	public void announceIORequest( RequestRead req, InterProcessNetworkJob request){
+	public void announceIORequest( Message msg, RequestRead req, InterProcessNetworkJob request){
+		pendingReadJobs.put(req, msg);
+
 		final long iogran = getSimulator().getModel().getGlobalSettings().getIOGranularity();
 
 		/**
@@ -365,12 +362,13 @@ IIOSubsystemCaller
 
 
 	@Override
-	public void setSimulatedModelComponent(NoCache comp,
-			Simulator sim) throws Exception {
-		super.setSimulatedModelComponent(comp, sim);
+	public void setModelComponent(NoCache comp) throws Exception {
+		super.setModelComponent(comp);
+
+		final Simulator sim = getSimulator();
 
 		serverProcess = (IGServer) sim.getSimulatedComponent(comp.getParentComponent());
-		parentNode = (GNode) sim.getSimulatedComponent(comp.getParentComponent().getParentComponent());
+		nodeRessources = (INodeRessources) sim.getSimulatedComponent(comp.getParentComponent().getParentComponent());
 
 		ioSubsystem = (IGIOSubsystem)  sim.instantiateSimObjectForModelObj(comp.getParentComponent().getIOsubsystem());
 		ioSubsystem.setIOCallback(this);

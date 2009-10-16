@@ -27,7 +27,6 @@ package de.hd.pvs.piosim.simulator.network;
 
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
-import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 
 
 /**

@@ -95,11 +95,14 @@ extends CommandImplementation<Filewrite>
 				ListIO iolist = writeRequest.getListIO();
 
 				/* STEP_START I/O job directly */
-				OUTresults.addNetSend(job.getTargetComponent(), new NetworkIOData( writeRequest ), RequestIO.IO_DATA_TAG,
-						Communicator.IOSERVERS, true);
+				OUTresults.addNetSend(
+						job.getMatchingCriterion().getTargetComponent(),
+						new NetworkIOData( writeRequest ),
+						RequestIO.IO_DATA_TAG,
+						Communicator.IOSERVERS);
 
 				/* wait for incoming msg (write completion notification) */
-				OUTresults.addNetReceive(job.getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);
+				OUTresults.addNetReceive(job.getMatchingCriterion().getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);
 			}
 
 			return;

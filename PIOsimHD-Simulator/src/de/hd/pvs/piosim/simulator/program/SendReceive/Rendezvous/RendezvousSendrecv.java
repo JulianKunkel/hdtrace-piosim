@@ -2,29 +2,29 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * 
+ *
  */
 package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
@@ -57,7 +57,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 			if(cmd.getSize() <= client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize()){
 				//eager send:
 				OUTresults.setNextStep(EAGER_ACK);
-				
+
 				/* data to transfer depends on actual command size, but is defined in send */
 				client.debug("eager send to " +  target );
 
@@ -66,14 +66,14 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 				//rendezvous protocol
 				/* determine application */
 				OUTresults.setNextStep(RENDEZVOUS_ACK);
-				
+
 				/* data to transfer depends on actual command size, but is defined in send */
 				OUTresults.addNetSend(target, new NetworkSimpleData(100), cmd.getToTag(), cmd.getCommunicator());
 
 				/* wait for incoming msg (send ready) */
-				OUTresults.addNetReceive(target, cmd.getToTag(), cmd.getCommunicator());			
+				OUTresults.addNetReceive(target, cmd.getToTag(), cmd.getCommunicator());
 			}
-			
+
 			// receiving part:
 			/* MATCH any Source */
 			if (cmd.getFromRank() >= 0){
@@ -86,18 +86,18 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 			// receiver path
 			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
-			client.debug("Receive got ACK from " +  response.getSourceComponent().getIdentifier() );
+			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
 			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
 				client.debugFollowUpLine("Eager");
 				// eager protocoll
 			}else{
-				OUTresults.setNextStep(START_RENDEZVOUS_RECV);				
+				OUTresults.setNextStep(START_RENDEZVOUS_RECV);
 				//rendezvous protocol
 				/* identify the sender from the source */
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend(response.getSourceComponent(), new NetworkSimpleData(100), response.getTag() , cmd.getCommunicator());
-			}			
+				OUTresults.addNetSend(response.getMatchingCriterion().getSourceComponent(), new NetworkSimpleData(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
+			}
 
 			/* data to transfer depends on actual command size, but is defined in send */
 
@@ -108,7 +108,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 		}case(EAGER_ACK):{
 			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
-			client.debug("Receive got ACK from " +  response.getSourceComponent().getIdentifier() );
+			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
 			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
 				client.debugFollowUpLine("Eager");
@@ -117,14 +117,14 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 				//rendezvous protocol
 				/* identify the sender from the source */
 				OUTresults.setNextStep(START_RENDEZVOUS_RECV);
-				
+
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend( response.getSourceComponent(), new NetworkSimpleData(100), response.getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend( response.getMatchingCriterion().getSourceComponent(), new NetworkSimpleData(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
 			}
 			return;
 		}case(START_RENDEZVOUS_RECV):{
-			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getTargetComponent(), 
-					compNetJobs.getNetworkJobs().get(0).getTag(), cmd.getCommunicator());
+			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTargetComponent(),
+					compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTag(), cmd.getCommunicator());
 			return;
 		}
 		}

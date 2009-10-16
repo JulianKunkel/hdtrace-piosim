@@ -34,6 +34,9 @@ public class MessageMatchingCriterion{
 	public MessageMatchingCriterion(ISNodeHostedComponent sourceComponent,
 			ISNodeHostedComponent targetComponent, int tag, Communicator comm)
 	{
+		assert(targetComponent != null);
+		assert(comm != null);
+
 		this.sourceComponent = sourceComponent;
 		this.targetComponent = targetComponent;
 		this.tag = tag;
@@ -47,6 +50,7 @@ public class MessageMatchingCriterion{
 		ret &=(c.getTag() == this.getTag());
 
 		ret &= getSourceComponent() == c.getSourceComponent();
+
 		ret &= getTargetComponent() == c.getTargetComponent();
 
 		return ret;
@@ -54,12 +58,17 @@ public class MessageMatchingCriterion{
 
 	@Override
 	public String toString() {
-		return getSourceComponent().getIdentifier() + " - " + getTargetComponent().getIdentifier() + " " + getTag() + " " + getCommunicator();
+		return getSourceComponent() + " - " + getTargetComponent().getIdentifier() + " " + getTag() + " " + getCommunicator();
 	}
 
 	@Override
 	public int hashCode() {
-		return getTargetComponent().hashCode() + getSourceComponent().hashCode() + getCommunicator().hashCode();
+		// sender wildcard
+		if(sourceComponent == null){
+			return getTargetComponent().hashCode() + getCommunicator().hashCode();
+		}else{
+			return getTargetComponent().hashCode() + getSourceComponent().hashCode() + getCommunicator().hashCode();
+		}
 	}
 
 	public ISNodeHostedComponent getSourceComponent() {

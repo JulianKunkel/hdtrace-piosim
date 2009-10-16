@@ -57,6 +57,11 @@ public class InterProcessNetworkJob implements IMessageUserData{
 	 */
 	private boolean       partialCallbackActive;
 
+	/**
+	 * If this is a send message, is all data available or is the data to be transferred later?
+	 */
+	private boolean       isDataAvailable = true;
+
 
 	/**
 	 * Creates a new NewNetworkJob which receives data from the source.
@@ -71,6 +76,14 @@ public class InterProcessNetworkJob implements IMessageUserData{
 	{
 		return new InterProcessNetworkJob(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, partial);
 	}
+
+	static public InterProcessNetworkJob createEmptySendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, boolean partial)
+	{
+		final InterProcessNetworkJob job = new InterProcessNetworkJob(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, partial);
+		job.isDataAvailable = false;
+		return job;
+	}
+
 
 	/**
 	 * Create a new SingleNetwork Job, private to reduce the error-prone creation of new send
@@ -140,4 +153,8 @@ public class InterProcessNetworkJob implements IMessageUserData{
 		return jobData.getSize();
 	}
 
+
+	public boolean isDataAvailable() {
+		return isDataAvailable;
+	}
 }

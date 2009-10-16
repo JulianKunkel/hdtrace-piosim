@@ -32,8 +32,8 @@ import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
+import de.hd.pvs.piosim.simulator.network.INetworkMessage;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**

@@ -44,6 +44,7 @@ import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobType;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
@@ -509,7 +510,11 @@ public class GClientProcess
 
 						pendingJobs.put(j, newJob.getNetworkJobs());
 
-						getNetworkInterface().initiateInterProcessTransfer(j);
+						if(j.getJobOperation() == InterProcessNetworkJobType.RECEIVE){
+							getNetworkInterface().initiateInterProcessReceive(j);
+						}else{
+							getNetworkInterface().initiateInterProcessSend(j);
+						}
 					}
 				}
 			}
@@ -613,11 +618,6 @@ public class GClientProcess
 	}
 
 	@Override
-	public INodeRessources getNodeRessources() {
-		return nodeRessources;
-	}
-
-	@Override
 	public void setNetworkInterface(INetworkRessource nic) {
 		this.networkInterface = nic;
 
@@ -626,6 +626,11 @@ public class GClientProcess
 	@Override
 	public void setNodeRessources(INodeRessources ressources) {
 		this.nodeRessources = ressources;
+	}
+
+	@Override
+	public INodeRessources getNodeRessources() {
+		return this.nodeRessources;
 	}
 
 	@Override

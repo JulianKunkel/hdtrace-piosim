@@ -27,7 +27,6 @@ package de.hd.pvs.piosim.simulator.network;
 
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
-import de.hd.pvs.piosim.simulator.network.jobs.INetworkMessage;
 
 /**
  * A network message consists of several packets.
@@ -57,7 +56,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	/**
 	 * How much data got received from the target network component.
 	 */
-	private long receivedPosition = 0;
+	private long receivedSize = 0;
 
 	/** this is Data which is already available to transfer by the NIC, but
 	 * not transferred so far. It can be transferred by the NIC as soon as possible.
@@ -106,7 +105,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param part
 	 */
 	public void receivePart(MessagePart part){
-		receivedPosition += part.getSize();
+		receivedSize += part.getSize();
 	}
 
 	/**
@@ -123,19 +122,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 		this.sourceComponent = sourceComponent;
 	}
 
-	/**
-	 * This constructor is used to create messages which data is only
-	 * partially available upon call. However, transfer should start immediately.
-	 * @param size
-	 * @param job
-	 * @param currentPosition How much data is already available from the Message?
-	 */
-	public Message(long size, long currentPosition, Data containedData, INetworkEntry sourceComponent, INetworkExit targetComponent) {
-		this.totalSize = size;
-		this.availableDataPosition = currentPosition;
-		this.containedData = containedData;
-		this.targetComponent = targetComponent;
-		this.sourceComponent = sourceComponent;
+	public void setAvailableDataPosition(long size){
+		this.availableDataPosition = size;
 	}
 
 	/**
@@ -160,7 +148,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @return
 	 */
 	public boolean isReceivedCompletely(){
-		return (receivedPosition == totalSize);
+		return (receivedSize == totalSize);
 	}
 
 	/**
