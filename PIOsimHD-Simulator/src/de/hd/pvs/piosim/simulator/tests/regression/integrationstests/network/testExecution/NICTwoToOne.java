@@ -135,12 +135,12 @@ public class NICTwoToOne extends TestCase implements TestExecution{
 		final InterProcessNetworkJob job2 = InterProcessNetworkJob.createSendOperation(crit2, new NetworkSimpleData(SIZE), false);
 
 
-		hostSrc1.nic.initiateInterProcessTransfer(job1);
-		hostSrc2.nic.initiateInterProcessTransfer(job2);
+		hostSrc1.nic.initiateInterProcessSend(job1);
+		hostSrc2.nic.initiateInterProcessSend(job2);
 
 		System.out.println("from " + hostSrc1.getIdentifier() + " to " + hostTgt.getIdentifier());
 		System.out.println("and from " + hostSrc2.getIdentifier() + " to " + hostTgt.getIdentifier());
 
-		hostTgt.nic.initiateInterProcessTransfer(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1, hostTgt, 1, comm), false));
+		hostTgt.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1, hostTgt, 1, comm), false));
 	}
 }

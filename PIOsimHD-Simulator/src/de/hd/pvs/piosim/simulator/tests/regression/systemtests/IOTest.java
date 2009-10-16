@@ -30,10 +30,7 @@ import java.util.List;
 import org.junit.Test;
 
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
@@ -41,11 +38,11 @@ import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefinedDiskModelInformation;
 
 abstract public class IOTest extends ClusterTest {
-	protected int serverNum = 1;
-	protected int clientNum = 1;
+	protected int serverNum = 2;
+	protected int clientNum = 2;
 	protected int fileNum = 1;
 	protected long elementSize = 0;
-	protected long fileSize = 10 * MBYTE;
+	protected long fileSize = 1 * MBYTE;
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
 
@@ -63,7 +60,7 @@ abstract public class IOTest extends ClusterTest {
 		dist.setChunkSize(stripeSize);
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, (isEmpty) ? 0 : fileSize, dist));
+			files.add(aB.createFile("testfile" + i, ((isEmpty) ? 0 : fileSize) , dist));
 		}
 
 		for (int i = 0; i < fileNum; i++) {
@@ -113,15 +110,16 @@ abstract public class IOTest extends ClusterTest {
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 
-		cacheLayers.add(new NoCache());
-		cacheLayers.add(new SimpleWriteBehindCache());
+		//cacheLayers.add(new NoCache());
+		//cacheLayers.add(new SimpleWriteBehindCache());
 		cacheLayers.add(new AggregationCache());
-		cacheLayers.add(new ServerDirectedIO());
+		//cacheLayers.add(new ServerDirectedIO());
 
 //		sizes.add((long)512);
-		sizes.add((long)5 * KBYTE);
-		sizes.add((long)50 * KBYTE);
-		sizes.add((long)512 * KBYTE);
+		//sizes.add((long)5 * KBYTE);
+		//sizes.add((long)50 * KBYTE);
+		sizes.add((long)500 * KBYTE);
+		//sizes.add((long)5000 * KBYTE);
 
 		for (ServerCacheLayer cacheLayer : cacheLayers) {
 			CacheLayerResults res = new CacheLayerResults(cacheLayer);
@@ -134,8 +132,8 @@ abstract public class IOTest extends ClusterTest {
 				System.err.println(res.cacheLayer.getClass().getSimpleName() + " READ " + size);
 				res.readResults.add(readTest());
 
-				System.err.println(res.cacheLayer.getClass().getSimpleName() + " WRITE " + size);
-				res.writeResults.add(writeTest());
+				//System.err.println(res.cacheLayer.getClass().getSimpleName() + " WRITE " + size);
+				//res.writeResults.add(writeTest());
 			}
 
 			results.add(res);

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
+import de.hd.pvs.piosim.simulator.base.IGNetworkFlowComponent;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreForwardNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
@@ -52,8 +53,6 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 	@Override
 	protected void messageTransferCompletedEvent(MessagePart part) {
-		//System.out.println(this.getIdentifier() + " messageTransferCompletedEvent ");
-
 		if(part.getMessageSource() == this.getModelComponent()){
 			sendMsgPartCB(part);
 		}
@@ -66,6 +65,8 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 		// data arrived
 		msg.receivePart(part);
+
+		//System.out.println(" for " + remoteJob.getMatchingCriterion().getTargetComponent() + " from " + remoteJob.getMatchingCriterion().getSourceComponent() + " size: " +  part.getSize() + " remaining "  +  msg.getRemainingBytesToReceive());
 
 		// check if we have already matched the messages:
 		if(startedRecvMap.containsKey(part.getMessage())){
@@ -104,20 +105,18 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 			// we found a matching message => assign it.
 			final InterProcessNetworkJob announcedJob;
 
-			if(anySourceRecv == null){
+			if(announcedRecvsForCriterion == null){
+				// any recv.
+				announcedJob = anySourceRecv;
+				anySourceRecv = null;
+			}else{
 				announcedJob = announcedRecvsForCriterion.poll();
 
 				// remove empty lists.
 				if(announcedRecvsForCriterion.size() == 0){
 					announcedRecvMap.remove(remoteJob.getMatchingCriterion());
 				}
-
-			}else{
-				announcedJob = anySourceRecv;
-				anySourceRecv = null;
 			}
-
-
 
 			if(! msg.isReceivedCompletely()){
 				// optimization, ignore completed msgs.
@@ -165,15 +164,15 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 		}
 
 		// check if we want to send to the same exit from the local node
-		final LinkedList<Message> msgs = ongoingSendsMap.get(exit);
-		if(part.getMessageSource() != this.getModelComponent()
-				&& msgs != null && msgs.size() > 0)
-		{
+		//final LinkedList<Message> msgs = ongoingSendsMap.get(exit);
+		//if(part.getMessageSource() != this.getModelComponent()
+		//		&& msgs != null && msgs.size() > 0)
+		//{
 			// if we get data, then we must be the target.
-			assert(part.getMessageTarget() == this.getModelComponent());
-
-			return true;
-		}
+		//	assert(part.getMessageTarget() == this.getModelComponent());
+		//
+		//	return true;
+		//}
 
 		return super.announceSubmissionOf(part);
 	}
@@ -192,14 +191,16 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 		}else{
 			// otherwise we must be the source of the message
 			assert(part.getMessageSource() == this.getModelComponent());
-		}
 
-		super.submitMessagePart(part);
+			super.submitMessagePart(part);
+		}
 	}
 
 	@Override
 	public void initiateInterProcessReceive(InterProcessNetworkJob job) {
 		assert(job.getJobOperation() == InterProcessNetworkJobType.RECEIVE);
+
+		//System.out.println(this.getIdentifier() + " RECV initiate" + job);
 
 		if(job.getMatchingCriterion().getSourceComponent() == null){
 			assert(earlyRecvsMap.size() == 0);
@@ -244,6 +245,8 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 	@Override
 	public Message<InterProcessNetworkJob> initiateInterProcessSend(InterProcessNetworkJob job) {
+		//System.out.println(this.getIdentifier() + " SEND initiate" + job);
+
 		assert(job.getJobOperation() == InterProcessNetworkJobType.SEND);
 
 		if(job.getJobData().getSize() == 0){
@@ -268,20 +271,27 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 	// Network interface
 
+	@Override
 	public void blockFurtherDataReceives(){
 		assert(acceptNetworkData);
 
 		acceptNetworkData = false;
-
-		blockPushForExit(this.getModelComponent());
+		blockExit(this.getModelComponent());
 	}
 
+	@Override
 	public void unblockFurtherDataReceives(){
 		assert(! acceptNetworkData);
 
 		acceptNetworkData = true;
+		// wakeup sender if possible.
 
-		unblockExit(this.getModelComponent());
+		unblockUpstreamIfPossible(this.getModelComponent());
+	}
+
+	@Override
+	protected IGNetworkFlowComponent getTargetComponent(MessagePart part) {
+		return super.getTargetComponent(part);
 	}
 
 	@Override
@@ -303,8 +313,9 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 		}
 	}
 
-	private void tryToContinueSendFromMessage(Message msg){
-		//System.out.println(" " + getIdentifier() + " tryToContinueSendFromMessage ");
+	private void tryToContinueSendFromMessage(Message<InterProcessNetworkJob> msg){
+		final InterProcessNetworkJob job = msg.getContainedUserData();
+		//System.out.println("tryToContinueSendFromMessage " + job.getMatchingCriterion().getTargetComponent() + " from " + job.getMatchingCriterion().getSourceComponent() + " remain:" +  msg.getRemainingBytesToSend() + " avail:" +  msg.isAllMessageDataAvailable());
 
 		assert(msg.getMessageSource() == this.getModelComponent());
 
@@ -312,7 +323,8 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 		// we will start to re-send a data packet if message data is all available
 		// or network granularity is reached
-		if (msg.isAllMessageDataAvailable() || msg.getRemainingBytesToSend() >= networkGranularity){
+		if (msg.isAllMessageDataAvailable() || msg.getRemainingBytesToSend() >= networkGranularity)
+		{
 			final MessagePart msgPart = msg.createNextMessagePart(networkGranularity);
 			if(announceSubmissionOf(msgPart)){
 				submitMessagePart(msgPart);
@@ -321,7 +333,6 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 			}
 
 			// check if there is more data to send right now, if so add the pending msg.
-
 			if(msg.getRemainingBytesToSend() > 0){
 				final INetworkExit exit = msg.getMessageTarget();
 				final LinkedList<Message> pendingMsgs = ongoingSendsMap.get(exit);
@@ -361,11 +372,11 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 	public void appendAvailableDataToIncompleteSend(Message msg, long count) {
 		msg.appendAvailableDataToSend(count);
 
+		final InterProcessNetworkJob job = (InterProcessNetworkJob) msg.getContainedUserData();
+
 		// check if we have to reactivate active send, if this is not true then
 		// not all data is send right now => data transfer will be automatically reactivated by sendMsgPartCB
-		if(msg.getRemainingBytesToSend() == count){
-			tryToContinueSendFromMessage(msg);
-		}
+		tryToContinueSendFromMessage(msg);
 	}
 
 

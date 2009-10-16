@@ -134,7 +134,7 @@ public class InterProcessNetworkJob implements IMessageUserData{
 
 	@Override
 	public String toString() {
-		return matchingCriterion.toString();
+		return "<" + matchingCriterion.toString() + " data:" + jobData + " partialCB:" + partialCallbackActive + ">";
 	}
 
 	/**

@@ -143,7 +143,7 @@ public class ClusterTest {
 		nic.setTotalBandwidth(1000 * MBYTE);
 
 		node.setNetworkInterface(nic);
-		node.setMemorySize(1000 * 1024 * 1024);
+		node.setMemorySize(1000 * MBYTE);
 
 		// SimpleDisk iosub = new SimpleDisk();
 		// iosub.setAvgAccessTime(new Epoch(0.005));

@@ -151,6 +151,10 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 		return (receivedSize == totalSize);
 	}
 
+	public long getRemainingBytesToReceive(){
+		return totalSize - receivedSize;
+	}
+
 	/**
 	 * return the amounts of bytes which must be send.
 	 * @return

@@ -103,10 +103,8 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	abstract protected MessagePart pollScheduledNetworkPart();
 
 	/**
-	 * The currently scheduled (next) exit shall be blocked.
+	 * The exit shall be blocked.
 	 * Consequently all messages of this exit must be removed from the queue.
-	 * This method is called ONLY if it is determined that the next network part
-	 * cannot be scheduled i.e. the target denies send by mayISend...
 	 */
 	abstract protected void blockPushForExit(INetworkExit exit);
 
@@ -195,9 +193,26 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 		throw new IllegalArgumentException("You shall never send an event to " + this.getClass().getCanonicalName());
 	}
 
+	final public void blockExit(INetworkExit exit){
+		//System.out.println("BLOCK SCHUH" + this.getIdentifier() + " " + exit.getIdentifier());
+
+		ChannelStatus status = pendingStatus.get(exit);
+
+		if(status == null){
+			status = new ChannelStatus();
+			pendingStatus.put(exit, status);
+		}
+
+		status.blockedDownstream = true;
+
+		blockPushForExit(exit);
+	}
+
 
 	@Override
 	final public void unblockExit(INetworkExit exit) {
+		//System.out.println("UNOCK SCHUH" + this.getIdentifier() + " " + exit.getIdentifier());
+
 		getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "unblockExit", exit.getIdentifier().getID());
 
 		//System.out.println( this.getIdentifier() + " Unblock block src  to " + exit.getIdentifier() + " " + state);
@@ -257,7 +272,7 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 		// state == Ready
 
 		// function shall never be called if empty
-		assert(! isEmpty());
+		//assert(! isEmpty());
 
 		// start transfer of next message part if possible:
 		while(! isEmpty()){
@@ -287,10 +302,9 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 				getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, "part_" + scheduledPart.getMessageSource().getIdentifier().getID() +"_" + scheduledPart.getMessageTarget().getIdentifier().getID());
 
 				// now try to reactivate blocked senders if necessary
-				if(status.blockedComponentsUpstream.size() > 0){
-					// sources are blocked => reactivate first blocked.
-					status.blockedComponentsUpstream.poll().unblockExit(exit);
-				}
+
+				unblockUpstreamIfPossible(exit);
+
 				messageTransferStartedEvent(part);
 
 				return;
@@ -298,11 +312,9 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 			// data flow is blocked => try next.
 			// remember that data flow is blocked to allow retransmit
-			status.blockedDownstream = true;
+			blockExit(exit);
 
 			next.rememberBlockedDataPushFrom(this, exit);
-
-			blockPushForExit(exit);
 
 			getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "blockExit", exit.getIdentifier().getID());
 		}
@@ -311,6 +323,15 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 		//System.out.println(" No matching packet => now ready");
 
 		state = State.READY;
+	}
+
+	public void unblockUpstreamIfPossible(INetworkExit exit) {
+		final ChannelStatus status = pendingStatus.get(exit);
+
+		if(status.blockedComponentsUpstream.size() > 0){
+			// sources are blocked => reactivate first blocked.
+			status.blockedComponentsUpstream.poll().unblockExit(exit);
+		}
 	}
 
 	public void simulationFinished() {

@@ -193,6 +193,8 @@ IIOSubsystemCaller
 		//decide which data actually is contained in the network packet
 		debug("amount " + amountToWrite);
 
+		//System.out.println(serverProcess.getIdentifier() +  " writeDataToCache " + amountToWrite);
+
 		nodeRessources.reserveMemory(amountToWrite);
 
 		ArrayList<SingleIOOperation> writeList = null;
@@ -268,7 +270,7 @@ IIOSubsystemCaller
 
 	@Override
 	public void dataReadCompletelyFromDisk(IOJob job) {
-		List<PendingReadRequest> reqList = pendingReadRequestMap.remove(job);
+		final List<PendingReadRequest> reqList = pendingReadRequestMap.remove(job);
 
 		for (PendingReadRequest p : reqList) {
 			RequestRead req = p.getRequest();
@@ -276,12 +278,9 @@ IIOSubsystemCaller
 
 			assert(msg != null);
 
-			//System.out.println(gServer.getIdentifier() +  " dataReadCompletelyFromDisk " + " " + job.getSize());
-
 			serverProcess.getNetworkInterface().appendAvailableDataToIncompleteSend(msg, p.getJob().getSize());
 
 			if( msg.isAllMessageDataAvailable() ){ // All data read completely
-				//System.out.println("Completed");
 				pendingReadJobs.remove(req);
 			}
 		}
@@ -318,7 +317,9 @@ IIOSubsystemCaller
 				size -= iogran;
 			}
 
-			addReadIOJob(size, offset, req);
+			if(size > 0){
+				addReadIOJob(size, offset, req);
+			}
 		}
 	}
 
@@ -327,6 +328,7 @@ IIOSubsystemCaller
 	}
 
 	protected void addReadIOJob(long size, long offset, RequestRead req){
+
 		IOJob iojob = new IOJob(req.getFile(), size, offset,  IOOperation.READ);
 		queuedReadJobs.add(iojob);
 

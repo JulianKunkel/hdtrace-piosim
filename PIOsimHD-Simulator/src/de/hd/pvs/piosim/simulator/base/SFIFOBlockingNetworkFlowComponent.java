@@ -64,7 +64,11 @@ abstract public class SFIFOBlockingNetworkFlowComponent<ModelType extends INetwo
 
 	@Override
 	protected MessagePart peekScheduledNetworkPart() {
-		return pendingMessageParts.get(fifoExitQueue.peek()).peek();
+		final LinkedList<MessagePart> parts = pendingMessageParts.get(fifoExitQueue.peek());
+
+		assert(parts != null);
+
+		return parts.peek();
 	}
 
 	@Override
@@ -74,8 +78,7 @@ abstract public class SFIFOBlockingNetworkFlowComponent<ModelType extends INetwo
 
 	@Override
 	final protected void blockPushForExit(INetworkExit exit) {
-		assert(exit == fifoExitQueue.peek());
-		fifoExitQueue.poll();
+		fifoExitQueue.remove(exit);
 	}
 
 

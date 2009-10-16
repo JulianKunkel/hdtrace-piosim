@@ -87,12 +87,10 @@ implements IGServer<SPassiveComponent<Server>>
 		/* post receive of further message parts as fragmented flow parts */
 		final InterProcessNetworkJob resp =  InterProcessNetworkJob.createReceiveOperation(
 				new MessageMatchingCriterion(
-						this,
-						request.getMatchingCriterion().getSourceComponent(),
+						request.getMatchingCriterion().getSourceComponent(), this,
 						RequestIO.IO_DATA_TAG,
 						request.getMatchingCriterion().getCommunicator()),
 						true);
-
 
 		networkInterface.initiateInterProcessReceive(resp);
 	}
@@ -202,7 +200,6 @@ implements IGServer<SPassiveComponent<Server>>
 	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob,
 			InterProcessNetworkJob announcedJob, Epoch endTime)
 	{
-
 		debug("received MSG Part " + part.getSize());
 
 		//this function is called right now only for writes
@@ -269,4 +266,12 @@ implements IGServer<SPassiveComponent<Server>>
 	@Override
 	public INodeRessources getNodeRessources() {
 		return this.nodeRessources;
-	}}
+	}
+
+	@Override
+	public String toString() {
+		return "GSimpleServer " + getIdentifier();
+	}
+}
+
+

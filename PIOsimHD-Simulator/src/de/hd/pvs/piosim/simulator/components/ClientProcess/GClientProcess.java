@@ -217,11 +217,18 @@ public class GClientProcess
 
 		System.err.println("Client got pending operations: " + this.getIdentifier() + ": ");
 
-		if(pendingNonBlockingOps.size() != 00)
+		if(pendingNonBlockingOps.size() != 0)
 			System.err.println( "   pending NON-blocking operations: " + pendingNonBlockingOps.size());
 
-		for (CommandProcessing pending: pendingNetworkOperations.values()) {
-			System.err.println("   " + pending + " with NetworkOperation: " + pendingNetworkOperations.get(pending));
+		for (NetworkJobs jobs: pendingNetworkOperations.keySet()) {
+			System.err.println("\t" + pendingNetworkOperations.get(jobs) + " with NetworkOperations: ");
+			for(InterProcessNetworkJob job: jobs.getNetworkJobs()){
+				System.err.println("\t\t" + job);
+			}
+			System.err.println("\tResponses");
+			for(InterProcessNetworkJob job: jobs.getResponses()){
+				System.err.println("\t\t" + job);
+			}
 		}
 
 		for(Command pendingBlocked: pendingNonBlockingOps.values()) {
@@ -589,8 +596,6 @@ public class GClientProcess
 	public void recvCompletedCB(InterProcessNetworkJob remoteJob,
 			InterProcessNetworkJob announcedJob, Epoch endTime)
 	{
-		//System.out.println("RECV completed");
-
 		final NetworkJobs status = pendingJobs.remove(announcedJob);
 		status.jobCompletedRecv(remoteJob);
 		checkJobCompleted(status);
@@ -644,5 +649,10 @@ public class GClientProcess
 		info("uses Program: \"" + clientProgram.getApplication().getApplicationName() + "\" alias: \"" +
 				clientProgram.getApplication().getAlias() + "\" rank " + getModelComponent().getRank());
 		processNextCommands();
+	}
+
+	@Override
+	public String toString() {
+		return "GClientProcess " + getIdentifier();
 	}
 }
