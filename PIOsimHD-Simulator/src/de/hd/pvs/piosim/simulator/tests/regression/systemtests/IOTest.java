@@ -24,13 +24,14 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
@@ -38,26 +39,47 @@ import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefinedDiskModelInformation;
 
 abstract public class IOTest extends ClusterTest {
-	protected int serverNum = 2;
-	protected int clientNum = 2;
+
+	// number of I/O servers
+	protected int serverNum = 10;
+
+	// number of I/O clients
+	protected int clientNum = 10;
+
+	// number of outer iterations == repeats of the inner loop
+	protected int outerIterations = 1;
+
+	// number of data blocks accessed per inner iteration
+	protected int innerNonContigIterations = 100;
+
+	// number of files acessed
 	protected int fileNum = 1;
-	protected long elementSize = 0;
-	protected long fileSize = 1 * MBYTE;
+
+	// block size of the contiguous access
+	protected long blockSize = 0;
+
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
+
+
+	protected long computeFileSize(){
+		return blockSize * innerNonContigIterations * outerIterations * clientNum;
+	}
 
 	protected ServerCacheLayer cacheLayer = null;
 
 	protected List<MPIFile> prepare(boolean isEmpty) throws Exception {
 		List<MPIFile> files = new ArrayList<MPIFile>();
 
-		assert(elementSize > 0);
+		assert(blockSize > 0);
 
 		testMsg();
 		setup(clientNum, serverNum, cacheLayer);
 
 		SimpleStripe dist = new SimpleStripe();
 		dist.setChunkSize(stripeSize);
+
+		final long fileSize = computeFileSize();
 
 		for (int i = 0; i < fileNum; i++) {
 			files.add(aB.createFile("testfile" + i, ((isEmpty) ? 0 : fileSize) , dist));
@@ -94,79 +116,60 @@ abstract public class IOTest extends ClusterTest {
 		return runSimulationAllExpectedToFinish();
 	}
 
-	@Test
-	public void run() throws Exception {
-		final class CacheLayerResults {
-			ServerCacheLayer cacheLayer = null;
-			List<SimulationResults> readResults = new ArrayList<SimulationResults>();
-			List<SimulationResults> writeResults = new ArrayList<SimulationResults>();
+	private void writeTestResults(String type, final long fileSize, final FileWriter out, SimulationResults res) throws IOException{
+		final long iosize = (fileNum * fileSize);
+		out.write("\n  Config<C,S,Inner,Outer,BS> <" + clientNum + "," + serverNum + "," + innerNonContigIterations + "," + outerIterations + "," + blockSize + ">\n");
+		out.write("   " + blockSize + " " +  type + "   " + iosize/1024/1024 + " MiB == " + iosize + " B " + res.getVirtualTime().getDouble() + " s\n");
+		out.write("   " + blockSize + " " +  type + "   " + iosize / res.getVirtualTime().getDouble() / 1024 / 1024 + " MiB/s\n");
 
-			public CacheLayerResults(ServerCacheLayer cacheLayer) {
-				this.cacheLayer = cacheLayer;
+		long accessedAmount = 0;
+
+		for (ComponentRuntimeInformation info : res.getComponentStatistics().values()) {
+			if (info.getClass() == GRefinedDiskModelInformation.class) {
+				out.write("    " + info + "\n");
+				GRefinedDiskModelInformation diskInfo = (GRefinedDiskModelInformation) info;
+				accessedAmount += diskInfo.getTotalAmountOfData();
 			}
 		}
 
-		List<CacheLayerResults> results = new ArrayList<CacheLayerResults>();
+		out.write("   Accessed Data: " + accessedAmount + " isEqual: " + (accessedAmount == iosize) + "\n");
+	}
+
+	@Test
+	public void run() throws Exception {
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 
-		//cacheLayers.add(new NoCache());
-		//cacheLayers.add(new SimpleWriteBehindCache());
-		cacheLayers.add(new AggregationCache());
-		//cacheLayers.add(new ServerDirectedIO());
+//		cacheLayers.add(new NoCache());
+//		cacheLayers.add(new SimpleWriteBehindCache());
+//		cacheLayers.add(new AggregationCache());
+		cacheLayers.add(new ServerDirectedIO());
 
-//		sizes.add((long)512);
-		//sizes.add((long)5 * KBYTE);
+		//		sizes.add((long)512);
+		sizes.add((long)5 * KBYTE);
 		//sizes.add((long)50 * KBYTE);
-		sizes.add((long)500 * KBYTE);
+		//sizes.add((long)500 * KBYTE);
 		//sizes.add((long)5000 * KBYTE);
+		final FileWriter out = new FileWriter("/tmp/iotest.txt");
 
 		for (ServerCacheLayer cacheLayer : cacheLayers) {
-			CacheLayerResults res = new CacheLayerResults(cacheLayer);
-
 			this.cacheLayer = cacheLayer;
 
+			out.write(cacheLayer.getClass().getSimpleName() + "\n");
+
+			System.out.println(cacheLayer.getClass().getSimpleName() + "\n");
+
 			for (long size : sizes) {
-				elementSize = size;
+				blockSize = size;
 
-				System.err.println(res.cacheLayer.getClass().getSimpleName() + " READ " + size);
-				res.readResults.add(readTest());
+				final long fileSize = computeFileSize();
 
-				//System.err.println(res.cacheLayer.getClass().getSimpleName() + " WRITE " + size);
-				//res.writeResults.add(writeTest());
+				//writeTestResults("READ", fileSize, out, readTest());
+				out.flush();
+				writeTestResults("WRITE", fileSize, out, writeTest());
+				out.flush();
 			}
 
-			results.add(res);
-		}
-
-		FileWriter out = new FileWriter("/tmp/iotest.txt");
-
-		for (CacheLayerResults res : results) {
-			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
-
-			for (int i = 0; i < sizes.size(); i++) {
-				if (res.readResults.size() > i) {
-					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize) + " B, " + res.readResults.get(i).getVirtualTime().getDouble() + " s\n");
-					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize / res.readResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
-
-					for (ComponentRuntimeInformation info : res.readResults.get(i).getComponentStatistics().values()) {
-						if (info.getClass() == GRefinedDiskModelInformation.class) {
-							out.write("    " + info + "\n");
-						}
-					}
-				}
-
-				if (res.writeResults.size() > i) {
-					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize) + " B, " + res.writeResults.get(i).getVirtualTime().getDouble() + " s\n");
-					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize / res.writeResults.get(i).getVirtualTime().getDouble() / 1024 / 1024) + " MB/s\n");
-
-					for (ComponentRuntimeInformation info : res.writeResults.get(i).getComponentStatistics().values()) {
-						if (info.getClass() == GRefinedDiskModelInformation.class) {
-							out.write("    " + info + "\n");
-						}
-					}
-				}
-			}
 		}
 
 		out.close();

@@ -168,7 +168,7 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 		//if(part.getMessageSource() != this.getModelComponent()
 		//		&& msgs != null && msgs.size() > 0)
 		//{
-			// if we get data, then we must be the target.
+		// if we get data, then we must be the target.
 		//	assert(part.getMessageTarget() == this.getModelComponent());
 		//
 		//	return true;
@@ -307,8 +307,8 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 		for(INetworkExit exit: ongoingSendsMap.keySet()){
 			LinkedList<Message> pending = ongoingSendsMap.get(exit);
-			for(Message msg : pending){
-				System.out.println("Warning: pending msgs: " + msg);
+			for(Message<InterProcessNetworkJob> msg : pending){
+				System.err.println("Warning: pending msgs: " + msg.getContainedUserData().getMatchingCriterion() + " DataToSend: " + msg.getRemainingBytesToSend() + " DataToRecv: " + msg.getRemainingBytesToSend());
 			}
 		}
 	}
@@ -319,6 +319,8 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 		assert(msg.getMessageSource() == this.getModelComponent());
 
+		assert(msg.getRemainingBytesToSend() > 0);
+
 		final long networkGranularity = getSimulator().getModel().getGlobalSettings().getTransferGranularity();
 
 		// we will start to re-send a data packet if message data is all available
@@ -326,17 +328,28 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 		if (msg.isAllMessageDataAvailable() || msg.getRemainingBytesToSend() >= networkGranularity)
 		{
 			final MessagePart msgPart = msg.createNextMessagePart(networkGranularity);
+			final INetworkExit exit = msg.getMessageTarget();
+			final LinkedList<Message> pendingMsgs = ongoingSendsMap.get(exit);
+
+			// shall not be contained already.
+			assert(! pendingMsgs.contains(msg));
+
 			if(announceSubmissionOf(msgPart)){
 				submitMessagePart(msgPart);
-			}else{
+
+				if (msg.getRemainingBytesToSend() > 0 &&
+						(msg.isAllMessageDataAvailable() ||
+								msg.getRemainingBytesToSend() >= networkGranularity))
+				{
+					// check if there is more data to send right now, if so add the pending msg.
+					//System.out.println("Submit Adding " + msg + " " + msg.getContainedUserData());
+
+					pendingMsgs.add(msg);
+				}
+			}else{ // can not announce !
 				msg.undoCreationOfMessagePart(msgPart);
-			}
 
-			// check if there is more data to send right now, if so add the pending msg.
-			if(msg.getRemainingBytesToSend() > 0){
-				final INetworkExit exit = msg.getMessageTarget();
-				final LinkedList<Message> pendingMsgs = ongoingSendsMap.get(exit);
-
+				// there is more data to send right now, if so add the pending msg.
 				pendingMsgs.add(msg);
 			}
 		}
@@ -370,13 +383,19 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 	@Override
 	public void appendAvailableDataToIncompleteSend(Message msg, long count) {
-		msg.appendAvailableDataToSend(count);
+		assert(count > 0);
 
-		final InterProcessNetworkJob job = (InterProcessNetworkJob) msg.getContainedUserData();
+		msg.appendAvailableDataToSend(count);
 
 		// check if we have to reactivate active send, if this is not true then
 		// not all data is send right now => data transfer will be automatically reactivated by sendMsgPartCB
-		tryToContinueSendFromMessage(msg);
+
+		final INetworkExit exit = msg.getMessageTarget();
+		final LinkedList<Message> pendingMsgs = ongoingSendsMap.get(exit);
+
+		if(pendingMsgs.size() == 0){
+			tryToContinueSendFromMessage(msg);
+		}
 	}
 
 
@@ -397,7 +416,7 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 		if(pendingMsgs.size() > 0){
 			pendingMsgs.add(msg);
-		}else{
+		}else if(msg.getRemainingBytesToSend() > 0){
 			tryToContinueSendFromMessage(msg);
 		}
 	}

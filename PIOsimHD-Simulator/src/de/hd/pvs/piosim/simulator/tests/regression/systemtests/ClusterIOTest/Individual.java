@@ -29,61 +29,41 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Individual extends IOTest {
-	private int perIteration () {
-		return 10;
+
+	private void createIOOps(List<MPIFile> files, Class ioClass) throws Exception{
+		for (int i = 0; i < outerIterations; i += 1) {
+			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
+				for (MPIFile f : files) {
+					final FileIOCommand com = (FileIOCommand) ioClass.newInstance();
+
+					final ListIO lio = new ListIO();
+
+					com.setFile(f);
+
+					for (long j = 0; j < innerNonContigIterations; j++) {
+						final long offset = blockSize * (i * innerNonContigIterations * clientNum
+							+ j * clientNum + rank);
+
+						lio.addIOOperation(offset, blockSize);
+					}
+
+					com.setListIO(lio);
+					aB.addCommand(rank, com);
+				}
+			}
+		}
 	}
 
 	public void doWrite(List<MPIFile> files) throws Exception {
-		int perIteration = perIteration();
-		int iterNum = (int)(fileSize / elementSize / clientNum);
-
-		//assert(iterNum % perIteration == 0);
-
-		for (int i = 0; i < iterNum; i += perIteration) {
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					Filewrite com = new Filewrite();
-					ListIO lio = new ListIO();
-
-					com.setFile(f);
-
-					for (int j = 0; j < perIteration; j++) {
-						lio.addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
-					}
-
-					com.setListIO(lio);
-					aB.addCommand(rank, com);
-				}
-			}
-		}
+		createIOOps(files, Filewrite.class);
 	}
 
 	public void doRead(List<MPIFile> files) throws Exception {
-		int perIteration = perIteration();
-		int iterNum = (int)(fileSize / elementSize / clientNum);
-
-		//assert(iterNum % perIteration == 0);
-
-		for (int i = 0; i < iterNum; i += perIteration) {
-			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
-					Fileread com = new Fileread();
-					ListIO lio = new ListIO();
-
-					com.setFile(f);
-
-					for (int j = 0; j < perIteration; j++) {
-						lio.addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
-					}
-
-					com.setListIO(lio);
-					aB.addCommand(rank, com);
-				}
-			}
-		}
+		createIOOps(files, Fileread.class);
 	}
 
 	public static void main(String[] args) throws Exception {

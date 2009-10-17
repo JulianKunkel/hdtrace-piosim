@@ -58,12 +58,12 @@ public class RandomIOTest extends IOTest {
 	public void doWrite(List<MPIFile> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
-		int iterNum = (int)(fileSize / elementSize / clientNum);
+		int iterNum = (int)(fileSize / blockSize / clientNum);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
-					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * blockSize, blockSize);
 					tuples.add(tuple);
 				}
 			}
@@ -79,12 +79,12 @@ public class RandomIOTest extends IOTest {
 	public void doRead(List<MPIFile> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
-		int iterNum = (int)(fileSize / elementSize / clientNum);
+		int iterNum = (int)(fileSize / blockSize / clientNum);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (MPIFile f : files) {
-					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * elementSize, elementSize);
+					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * blockSize, blockSize);
 					tuples.add(tuple);
 				}
 			}
@@ -145,7 +145,7 @@ public class RandomIOTest extends IOTest {
 					SimulationResults r;
 					SimulationResults w;
 
-					elementSize = size;
+					blockSize = size;
 					random = new Random(seed);
 
 					r = readTest();

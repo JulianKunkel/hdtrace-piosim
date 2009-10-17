@@ -272,7 +272,7 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 		// state == Ready
 
 		// function shall never be called if empty
-		//assert(! isEmpty());
+		assert(! isEmpty());
 
 		// start transfer of next message part if possible:
 		while(! isEmpty()){

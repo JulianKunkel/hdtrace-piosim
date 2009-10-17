@@ -30,14 +30,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Collective extends IOTest {
-	private int perIteration () {
-		return (int)(fileSize / elementSize / clientNum);
-	}
-
 	public void doWrite(List<MPIFile> files) throws Exception {
-		int perIteration = perIteration();
-		int iterNum = (int)(fileSize / elementSize / clientNum);
-
 		//assert(iterNum % perIteration == 0);
 
 		for (MPIFile file : files) {

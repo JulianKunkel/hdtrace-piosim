@@ -91,7 +91,9 @@ public class ClusterTest {
 
 	protected void setup(int clients, int servers, ServerCacheLayer cacheLayer) throws Exception {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
-		parameters.setTraceEnabled(true);
+
+		parameters.setTraceEnabled(false);
+//		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 		parameters.setTraceClientSteps(true);
 //		parameters.setDebugEverything(true);

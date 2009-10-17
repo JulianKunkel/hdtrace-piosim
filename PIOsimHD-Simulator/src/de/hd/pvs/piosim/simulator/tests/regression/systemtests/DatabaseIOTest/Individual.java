@@ -71,13 +71,13 @@ public class Individual extends IOTest {
 
 	private long getBlockOffset () {
 		long offset = Math.abs(random.nextLong()) % fileSize;
-		long remainder = offset % elementSize;
+		long remainder = offset % blockSize;
 		return offset - remainder;
 	}
 
 	private long getBlockSize (long offset) {
 		int i = random.nextInt(100);
-		return Math.min((i + 1) * elementSize, fileSize - offset);
+		return Math.min((i + 1) * blockSize, fileSize - offset);
 	}
 
 	public void doWrite(List<MPIFile> files) throws Exception {
@@ -88,7 +88,7 @@ public class Individual extends IOTest {
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				MPIFile f = getFile(files);
-				long dataToAccess = getDataPerIteration(elementSize);
+				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
 					Filewrite com = new Filewrite();
@@ -125,7 +125,7 @@ public class Individual extends IOTest {
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				MPIFile f = getFile(files);
-				long dataToAccess = getDataPerIteration(elementSize);
+				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
 					Fileread com = new Fileread();
@@ -162,7 +162,7 @@ public class Individual extends IOTest {
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				MPIFile f = getFile(files);
-				long dataToAccess = getDataPerIteration(elementSize);
+				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
 					ListIO lio = new ListIO();
@@ -273,7 +273,7 @@ public class Individual extends IOTest {
 					SimulationResults w;
 					SimulationResults rw;
 
-					elementSize = size;
+					blockSize = size;
 
 					random = new Random(seed);
 					r = readTest();
