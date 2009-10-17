@@ -159,15 +159,19 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	public void submitMessagePart(MessagePart part){
 		//System.out.println(this.getIdentifier() + " submitMessagePart " + state);
 
-		if(isEmpty() && state == State.READY){
-			// this is the first packet from a data stream => allow transport from this source
-
-			// check if we shall reactivate this component.
-			// this is actually the first message part received => reactivate this component
-			setNewWakeupTimeNow();
-		}
+		final boolean wasEmpty = isEmpty();
 
 		addNetworkPart(part);
+
+		if(wasEmpty && ! isEmpty() && state == State.READY){
+			// this is the first packet from a data stream => allow transport from this source
+			// check if we shall reactivate this component.
+			// this is actually the first message part received => reactivate this component
+			// however, it might be that the component exit was blocked => no wakeup.
+			setNewWakeupTimeNow();
+
+			//System.out.println("SUBMIT wAKEUP " + this.getIdentifier());
+		}
 	}
 
 	/**
@@ -229,6 +233,7 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 		if(state == State.READY){
 			// no other pending packets => reactivate this component
+			//System.out.println("UNBLOCK wAKEUP " + this.getIdentifier());
 			setNewWakeupTimeNow();
 		}
 	}
@@ -249,6 +254,8 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	@Override
 	final public void processInternalEvent(InternalEvent event, Epoch time) {
 		//System.out.println( this.getIdentifier() + " processInternalEvent " + state + " at " + time);
+
+		//System.out.println(time + " PIE " + this.getIdentifier() + " " + state);
 
 		if(state == State.BUSY){
 			assert(scheduledPart != null);

@@ -67,6 +67,6 @@ public class Individual extends IOTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new Individual().run();
+		new Individual().runAllTests();
 	}
 }

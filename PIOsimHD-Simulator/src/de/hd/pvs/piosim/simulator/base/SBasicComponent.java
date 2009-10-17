@@ -79,13 +79,16 @@ public abstract class SBasicComponent<ModelComp extends IBasicComponent>
 	 * @param when is the absolute time
 	 */
 	final protected void setNewWakeupTimerAbsolute(Epoch when){
+		//System.out.println("Wakeup timer SET " + this.getIdentifier() +" " + when );
+
 		debug("when: " + when);
+
 		getSimulator().submitNewEvent(new InternalEvent(this, when));
 	}
 
 	// update the wakeup timer to the current time
 	final protected void setNewWakeupTimeNow(){
-		getSimulator().submitNewEvent(new InternalEvent(this, getSimulator().getVirtualTime()));
+		setNewWakeupTimerAbsolute(getSimulator().getVirtualTime());
 	}
 
 	/**

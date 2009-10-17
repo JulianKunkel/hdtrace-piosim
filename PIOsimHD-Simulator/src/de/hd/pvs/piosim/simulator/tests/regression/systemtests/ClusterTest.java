@@ -93,7 +93,7 @@ public class ClusterTest {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
 
 		parameters.setTraceEnabled(false);
-//		parameters.setTraceEnabled(true);
+		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 		parameters.setTraceClientSteps(true);
 //		parameters.setDebugEverything(true);

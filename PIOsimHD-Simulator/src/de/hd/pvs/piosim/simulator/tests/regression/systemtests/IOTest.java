@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
@@ -41,10 +39,10 @@ import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefi
 abstract public class IOTest extends ClusterTest {
 
 	// number of I/O servers
-	protected int serverNum = 10;
+	protected int serverNum = 2;
 
 	// number of I/O clients
-	protected int clientNum = 10;
+	protected int clientNum = 2;
 
 	// number of outer iterations == repeats of the inner loop
 	protected int outerIterations = 1;
@@ -52,7 +50,7 @@ abstract public class IOTest extends ClusterTest {
 	// number of data blocks accessed per inner iteration
 	protected int innerNonContigIterations = 100;
 
-	// number of files acessed
+	// number of files accessed
 	protected int fileNum = 1;
 
 	// block size of the contiguous access
@@ -116,7 +114,8 @@ abstract public class IOTest extends ClusterTest {
 		return runSimulationAllExpectedToFinish();
 	}
 
-	private void writeTestResults(String type, final long fileSize, final FileWriter out, SimulationResults res) throws IOException{
+	private void writeTestResults(String type, final FileWriter out, SimulationResults res) throws IOException{
+		final long fileSize = computeFileSize();
 		final long iosize = (fileNum * fileSize);
 		out.write("\n  Config<C,S,Inner,Outer,BS> <" + clientNum + "," + serverNum + "," + innerNonContigIterations + "," + outerIterations + "," + blockSize + ">\n");
 		out.write("   " + blockSize + " " +  type + "   " + iosize/1024/1024 + " MiB == " + iosize + " B " + res.getVirtualTime().getDouble() + " s\n");
@@ -133,10 +132,44 @@ abstract public class IOTest extends ClusterTest {
 		}
 
 		out.write("   Accessed Data: " + accessedAmount + " isEqual: " + (accessedAmount == iosize) + "\n");
+
+		out.flush();
 	}
 
-	@Test
-	public void run() throws Exception {
+	private void initTestConfiguration(ServerCacheLayer layer, long blockSize,
+			int clientNum, int serverNum, int files, int outerIterations,
+			int innerNonContigIterations)
+	{
+		this.cacheLayer = layer;
+		this.blockSize = blockSize;
+		this.clientNum = clientNum;
+		this.serverNum = serverNum;
+		this.fileNum = files;
+		this.outerIterations = outerIterations;
+		this.innerNonContigIterations = innerNonContigIterations;
+	}
+
+	public void runOneTestRead(ServerCacheLayer layer, long blockSize,
+			int clientNum, int ServerNum, int files, int outerIterations,
+			int innerNonContigIterations, FileWriter out ) throws Exception
+	{
+		initTestConfiguration(layer, blockSize, clientNum, ServerNum, files, outerIterations, innerNonContigIterations);
+
+		writeTestResults("READ", out, readTest());
+	}
+
+
+	public void runOneTestWrite(ServerCacheLayer layer, long blockSize,
+			int clientNum, int ServerNum, int files, int outerIterations,
+			int innerNonContigIterations, FileWriter out ) throws Exception
+	{
+
+		initTestConfiguration(layer, blockSize, clientNum, ServerNum, files, outerIterations, innerNonContigIterations);
+
+		writeTestResults("WRITE", out, writeTest());
+	}
+
+	public void runAllTests() throws Exception {
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 
@@ -146,9 +179,9 @@ abstract public class IOTest extends ClusterTest {
 		cacheLayers.add(new ServerDirectedIO());
 
 		//		sizes.add((long)512);
-		sizes.add((long)5 * KBYTE);
+//		sizes.add((long)5 * KBYTE);
 		//sizes.add((long)50 * KBYTE);
-		//sizes.add((long)500 * KBYTE);
+		sizes.add((long)500 * KBYTE);
 		//sizes.add((long)5000 * KBYTE);
 		final FileWriter out = new FileWriter("/tmp/iotest.txt");
 
@@ -160,14 +193,8 @@ abstract public class IOTest extends ClusterTest {
 			System.out.println(cacheLayer.getClass().getSimpleName() + "\n");
 
 			for (long size : sizes) {
-				blockSize = size;
-
-				final long fileSize = computeFileSize();
-
-				//writeTestResults("READ", fileSize, out, readTest());
-				out.flush();
-				writeTestResults("WRITE", fileSize, out, writeTest());
-				out.flush();
+				runOneTestRead(cacheLayer, size, clientNum, serverNum, fileNum, outerIterations, innerNonContigIterations, out);
+				//runOneTestWrite(cacheLayer, size, clientNum, serverNum, fileNum, outerIterations, innerNonContigIterations, out);
 			}
 
 		}
