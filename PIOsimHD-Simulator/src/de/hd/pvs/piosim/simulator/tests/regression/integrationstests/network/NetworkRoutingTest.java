@@ -24,6 +24,7 @@ import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.har
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.TestHardwareSetup;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.NICPartialRecv;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.NICTwoToOne;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.NICTwoToTwoCross;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.TestExecution;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneSendFromTwoNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneToTwoNic;
@@ -127,13 +128,16 @@ public class NetworkRoutingTest extends TestSuite{
 		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new NICPartialRecv());
 	}
 
-
 	@Test
 	public void NICTWOToOneTest() throws Exception{
+		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new NICTwoToOne());
+	}
 
+	@Test
+	public void NICTWOToTwoCrossTest() throws Exception{
 		runParameters.setTraceEnabled(true);
 
-		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new NICTwoToOne());
+		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new NICTwoToTwoCross());
 	}
 
 	@Test

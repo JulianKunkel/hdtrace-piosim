@@ -43,7 +43,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void barrierTest() throws Exception{
-		testMsg();
+		printStack();
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 
@@ -57,7 +57,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void reduceTest() throws Exception{
-		testMsg();
+		printStack();
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 
@@ -71,7 +71,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void gatherTest() throws Exception{
-		testMsg();
+		printStack();
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
 
@@ -85,7 +85,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void bcastTest() throws Exception{
-		testMsg();
+		printStack();
 
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
@@ -101,7 +101,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void allreduceTest() throws Exception{
-		testMsg();
+		printStack();
 
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);
@@ -116,7 +116,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void allgatherTest() throws Exception{
-		testMsg();
+		printStack();
 
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i, 0);

@@ -25,6 +25,7 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 import java.util.ArrayList;
 
 import junit.framework.Assert;
+import junit.framework.TestSuite;
 
 import org.junit.After;
 
@@ -59,7 +60,7 @@ import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
 
-public class ClusterTest {
+public class ClusterTest extends TestSuite {
 	protected final long KBYTE = 1024;
 	protected final long MBYTE = 1024 * KBYTE;
 	protected final long GBYTE = 1024 * MBYTE;
@@ -81,7 +82,7 @@ public class ClusterTest {
 		Assert.assertTrue(true); /* to ensure assert stays */
 	}
 
-	protected void testMsg() {
+	protected void printStack() {
 		System.err.println(new Exception().getStackTrace()[1]);
 	}
 
@@ -127,7 +128,7 @@ public class ClusterTest {
 
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("1GBit Ethernet");
-		conn.setLatency(new Epoch(0.0002));
+		conn.setLatency(new Epoch(0.00001));
 		conn.setBandwidth(100 * MBYTE);
 
 		mb.getModel().getGlobalSettings().setTransferGranularity(100 * KBYTE);
@@ -145,7 +146,7 @@ public class ClusterTest {
 		nic.setTotalBandwidth(1000 * MBYTE);
 
 		node.setNetworkInterface(nic);
-		node.setMemorySize(1000 * MBYTE);
+		node.setMemorySize(100000 * MBYTE);
 
 		// SimpleDisk iosub = new SimpleDisk();
 		// iosub.setAvgAccessTime(new Epoch(0.005));
@@ -172,7 +173,7 @@ public class ClusterTest {
 
 		StoreForwardNode sw = new StoreForwardNode();
 		sw.setName("PVS-Switch");
-		sw.setTotalBandwidth(1000 * MBYTE);
+		sw.setTotalBandwidth(100000 * MBYTE);
 
 		mb.addTemplate(sw);
 

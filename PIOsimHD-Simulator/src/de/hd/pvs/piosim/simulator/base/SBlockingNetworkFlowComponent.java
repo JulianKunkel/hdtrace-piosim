@@ -24,7 +24,7 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 	/** Internal states, the busy component processes a job right now */
 	static public enum State {
-		BUSY, READY
+		BUSY, READY, WAKEING_UP
 	}
 
 	/**
@@ -142,8 +142,6 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 		//System.out.println( this.getIdentifier() + " announceSubmissionOf latency:" + cur.usedLatency + " " + cur.blockedDownstream + " to:" + part.getMessageTarget().getIdentifier() + " " + state);
 
 		if( cur.usedLatency.compareTo(maximumInflightDuration) < 0 ){
-			cur.usedLatency = cur.usedLatency.add(computeTransportTime(part));
-
 			return true;
 		}else{
 			return false;
@@ -159,18 +157,21 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	public void submitMessagePart(MessagePart part){
 		//System.out.println(this.getIdentifier() + " submitMessagePart " + state);
 
-		final boolean wasEmpty = isEmpty();
+		final ChannelStatus cur = pendingStatus.get(part.getMessageTarget());
+		cur.usedLatency = cur.usedLatency.add(computeTransportTime(part));
 
 		addNetworkPart(part);
 
-		if(wasEmpty && ! isEmpty() && state == State.READY){
+		if( ! isEmpty() && state == State.READY){
 			// this is the first packet from a data stream => allow transport from this source
 			// check if we shall reactivate this component.
 			// this is actually the first message part received => reactivate this component
 			// however, it might be that the component exit was blocked => no wakeup.
+			//System.out.println("SUBMIT WAKEUP " + this.getIdentifier());
+
 			setNewWakeupTimeNow();
 
-			//System.out.println("SUBMIT wAKEUP " + this.getIdentifier());
+			state = State.WAKEING_UP;
 		}
 	}
 
@@ -198,7 +199,7 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	}
 
 	final public void blockExit(INetworkExit exit){
-		//System.out.println("BLOCK SCHUH" + this.getIdentifier() + " " + exit.getIdentifier());
+		//System.out.println("-BLOCK EXIT " + this.getIdentifier().getID() + " to " + exit.getIdentifier().getID());
 
 		ChannelStatus status = pendingStatus.get(exit);
 
@@ -215,11 +216,9 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 	@Override
 	final public void unblockExit(INetworkExit exit) {
-		//System.out.println("UNOCK SCHUH" + this.getIdentifier() + " " + exit.getIdentifier());
-
 		getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "unblockExit", exit.getIdentifier().getID());
 
-		//System.out.println( this.getIdentifier() + " Unblock block src  to " + exit.getIdentifier() + " " + state);
+		//System.out.println( "+UNBLOCK " + this.getIdentifier().getID() + " to " + exit.getIdentifier().getID() + " " + state);
 
 		// restart transmission for this exit target
 		final ChannelStatus status = pendingStatus.get(exit);
@@ -233,8 +232,10 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 		if(state == State.READY){
 			// no other pending packets => reactivate this component
-			//System.out.println("UNBLOCK wAKEUP " + this.getIdentifier());
+			//System.out.println("UNBLOCK WAKEUP " + this.getIdentifier());
 			setNewWakeupTimeNow();
+
+			state = State.WAKEING_UP;
 		}
 	}
 
@@ -258,18 +259,24 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 		//System.out.println(time + " PIE " + this.getIdentifier() + " " + state);
 
 		if(state == State.BUSY){
+			final IGNetworkFlowComponent target = getTargetComponent(scheduledPart);
+
 			assert(scheduledPart != null);
+			assert(target != null);
 
 			messageTransferCompletedEvent(scheduledPart);
 
 			// submit packet:
-			getTargetComponent(scheduledPart).submitMessagePart(scheduledPart);
+			target.submitMessagePart(scheduledPart);
 
 			getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, "part_" + scheduledPart.getMessageSource().getIdentifier().getID() +"_"  + scheduledPart.getMessageTarget().getIdentifier().getID());
 
 			scheduledPart = null;
 
 			if(isEmpty()){
+
+				//System.out.println("NO more Work last one to " + target.getIdentifier() + " " + target.getClass().getCanonicalName());
+
 				state = State.READY;
 				return;
 			}
@@ -309,7 +316,6 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 				getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, "part_" + scheduledPart.getMessageSource().getIdentifier().getID() +"_" + scheduledPart.getMessageTarget().getIdentifier().getID());
 
 				// now try to reactivate blocked senders if necessary
-
 				unblockUpstreamIfPossible(exit);
 
 				messageTransferStartedEvent(part);
@@ -335,6 +341,10 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 	public void unblockUpstreamIfPossible(INetworkExit exit) {
 		final ChannelStatus status = pendingStatus.get(exit);
 
+		//System.out.println("Unblock upstream if " + this.getIdentifier().getID() + " " + status.blockedComponentsUpstream.size() + " " + exit.getIdentifier());
+
+		status.blockedDownstream = false;
+
 		if(status.blockedComponentsUpstream.size() > 0){
 			// sources are blocked => reactivate first blocked.
 			status.blockedComponentsUpstream.poll().unblockExit(exit);
@@ -347,7 +357,7 @@ abstract public class SBlockingNetworkFlowComponent<ModelComp extends INetworkFl
 
 		for(INetworkExit exit: pendingStatus.keySet()){
 			if(pendingStatus.get(exit).blockedDownstream){
-				System.out.println(this.getIdentifier() + " my downstream I/O is blocked to " + exit);
+				System.err.println(this.getIdentifier() + " my downstream I/O is blocked to " + exit);
 			}
 		}
 	};

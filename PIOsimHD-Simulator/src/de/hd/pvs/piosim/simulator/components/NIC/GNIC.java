@@ -273,6 +273,7 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 	@Override
 	public void blockFurtherDataReceives(){
+		//System.out.println("GNIC BLOCK");
 		assert(acceptNetworkData);
 
 		acceptNetworkData = false;
@@ -281,6 +282,8 @@ implements IGNetworkExit, IGNetworkEntry, INetworkRessource
 
 	@Override
 	public void unblockFurtherDataReceives(){
+		//System.out.println("GNIC UNBLOCK");
+
 		assert(! acceptNetworkData);
 
 		acceptNetworkData = true;

@@ -28,8 +28,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
@@ -39,10 +42,10 @@ import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefi
 abstract public class IOTest extends ClusterTest {
 
 	// number of I/O servers
-	protected int serverNum = 2;
+	protected int serverNum = 10;
 
 	// number of I/O clients
-	protected int clientNum = 2;
+	protected int clientNum = 10;
 
 	// number of outer iterations == repeats of the inner loop
 	protected int outerIterations = 1;
@@ -59,6 +62,9 @@ abstract public class IOTest extends ClusterTest {
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
 
+	abstract public void doWrite(List<MPIFile> files) throws Exception;
+
+	abstract public void doRead(List<MPIFile> files) throws Exception;
 
 	protected long computeFileSize(){
 		return blockSize * innerNonContigIterations * outerIterations * clientNum;
@@ -71,7 +77,7 @@ abstract public class IOTest extends ClusterTest {
 
 		assert(blockSize > 0);
 
-		testMsg();
+		printStack();
 		setup(clientNum, serverNum, cacheLayer);
 
 		SimpleStripe dist = new SimpleStripe();
@@ -96,10 +102,6 @@ abstract public class IOTest extends ClusterTest {
 		}
 	}
 
-	abstract public void doWrite(List<MPIFile> files) throws Exception;
-
-	abstract public void doRead(List<MPIFile> files) throws Exception;
-
 	public SimulationResults writeTest() throws Exception {
 		List<MPIFile> files = prepare(true);
 		doWrite(files);
@@ -120,6 +122,8 @@ abstract public class IOTest extends ClusterTest {
 		out.write("\n  Config<C,S,Inner,Outer,BS> <" + clientNum + "," + serverNum + "," + innerNonContigIterations + "," + outerIterations + "," + blockSize + ">\n");
 		out.write("   " + blockSize + " " +  type + "   " + iosize/1024/1024 + " MiB == " + iosize + " B " + res.getVirtualTime().getDouble() + " s\n");
 		out.write("   " + blockSize + " " +  type + "   " + iosize / res.getVirtualTime().getDouble() / 1024 / 1024 + " MiB/s\n");
+		// flush to write configuration in case of an error.
+		out.flush();
 
 		long accessedAmount = 0;
 
@@ -173,13 +177,13 @@ abstract public class IOTest extends ClusterTest {
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 
-//		cacheLayers.add(new NoCache());
-//		cacheLayers.add(new SimpleWriteBehindCache());
-//		cacheLayers.add(new AggregationCache());
+		cacheLayers.add(new NoCache());
+		cacheLayers.add(new SimpleWriteBehindCache());
+		cacheLayers.add(new AggregationCache());
 		cacheLayers.add(new ServerDirectedIO());
 
 		//		sizes.add((long)512);
-//		sizes.add((long)5 * KBYTE);
+		sizes.add((long)5 * KBYTE);
 		//sizes.add((long)50 * KBYTE);
 		sizes.add((long)500 * KBYTE);
 		//sizes.add((long)5000 * KBYTE);
@@ -194,7 +198,7 @@ abstract public class IOTest extends ClusterTest {
 
 			for (long size : sizes) {
 				runOneTestRead(cacheLayer, size, clientNum, serverNum, fileNum, outerIterations, innerNonContigIterations, out);
-				//runOneTestWrite(cacheLayer, size, clientNum, serverNum, fileNum, outerIterations, innerNonContigIterations, out);
+				runOneTestWrite(cacheLayer, size, clientNum, serverNum, fileNum, outerIterations, innerNonContigIterations, out);
 			}
 
 		}

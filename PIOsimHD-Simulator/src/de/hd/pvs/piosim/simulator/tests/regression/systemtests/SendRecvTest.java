@@ -35,19 +35,19 @@ public class SendRecvTest extends ClusterTest{
 	}
 	
 	@Test public void empytAppTest() throws Exception{
-		testMsg();
+		printStack();
 		runSimulationAllExpectedToFinish();
 	}
 	
 	@Test public void normalReceiveTest() throws Exception{
-		testMsg();
+		printStack();
 		pb.addRecv(world, 3, 0, 0);		
 		pb.addSend(world, 3, 0, KBYTE, 0);		
 		runSimulationAllExpectedToFinish();
 	}
 	
 	@Test public void lateSenderTest() throws Exception{
-		testMsg();
+		printStack();
 		pb.addRecv(world, 3, 0, 0);
 		
 		pb.addComputate(3, 1000000);
@@ -56,7 +56,7 @@ public class SendRecvTest extends ClusterTest{
 	}
 	
 	@Test public void lateReceiverTest() throws Exception{
-		testMsg();
+		printStack();
 		pb.addComputate(0, 1000000);
 		pb.addRecv(world, 3, 0, 0);
 		
@@ -65,7 +65,7 @@ public class SendRecvTest extends ClusterTest{
 	}
 	
 	@Test public void doubleReceiveTest() throws Exception{
-		testMsg();
+		printStack();
 		pb.addComputate(0, 1000000);
 		
 		// this works only for non-blocking !
@@ -79,14 +79,14 @@ public class SendRecvTest extends ClusterTest{
 	
 	
 	@Test public void anyReceiveTest() throws Exception{
-		testMsg();
+		printStack();
 		pb.addRecv(world, -1, 0, 0);		
 		pb.addSend(world, 3, 0, KBYTE, 0);		
 		runSimulationAllExpectedToFinish();
 	}
 	
 	@Test public void sendRecvTestTwoClients() throws Exception{
-		testMsg();
+		printStack();
 		
 		pb.addSendRecv(world, 0, 1, 1, MBYTE, 0, 1);
 		
@@ -96,7 +96,7 @@ public class SendRecvTest extends ClusterTest{
 	}
 	
 	@Test public void sendRecvTestTwoClientsEager() throws Exception{
-		testMsg();
+		printStack();
 		mb.getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 		pb.addSendRecv(world, 0, 1, 1, KBYTE, 0, 1);
 		
@@ -107,7 +107,7 @@ public class SendRecvTest extends ClusterTest{
 	
 	
 	@Test public void sendRecvTestThreeClients() throws Exception{
-		testMsg();
+		printStack();
 		pb.addSendRecv(world, 0, 1, 2, MBYTE, 0, 0);
 		
 		pb.addSendRecv(world, 1, 2, 0, KBYTE, 0, 0);

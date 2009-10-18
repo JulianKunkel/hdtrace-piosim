@@ -23,8 +23,12 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests.ClusterIOTest;
 
+import java.io.FileWriter;
 import java.util.List;
 
+import org.junit.Test;
+
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
@@ -33,6 +37,13 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Individual extends IOTest {
+	@Test
+	public void runFailureTest() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/error.txt");
+		runOneTestWrite(new NoCache(),
+				4*100000, 1, 1, 1, 1, 1, out);
+		out.close();
+	}
 
 	private void createIOOps(List<MPIFile> files, Class ioClass) throws Exception{
 		for (int i = 0; i < outerIterations; i += 1) {

@@ -353,6 +353,11 @@ public final class Simulator implements IModelToSimulatorMapper {
 	public void submitNewEvent(InternalEvent event) {
 		assert (event.getEarliestStartTime().compareTo(currentEpoch) >= 0);
 
+		// TODO
+		for(InternalEvent ev: futureEvents){
+			assert(ev.getTargetComponent() != event.getTargetComponent());
+		}
+
 		futureEvents.add(event);
 	}
 

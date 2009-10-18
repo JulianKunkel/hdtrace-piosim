@@ -191,8 +191,7 @@ implements IGServer<SPassiveComponent<Server>>
 
 	@Override
 	public boolean mayIReceiveMessagePart(MessagePart part, InterProcessNetworkJob job) {
-		// TODO Auto-generated method stub
-		return false;
+		return cacheLayer.canIPutDataIntoCache(job, part.getSize());
 	}
 
 
