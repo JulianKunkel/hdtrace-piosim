@@ -42,21 +42,21 @@
 <MemorySize>-1</MemorySize>
 <HOSTEDCOMPONENTS>
 <ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" rank="-1" thread="0">
-<IDENTIFIER>
-<ComponentIdentifier id="4">
-</ComponentIdentifier>
-</IDENTIFIER>
-</ClientProcess>
-</HOSTEDCOMPONENTS>
 <NETWORKINTERFACE>
 <NIC implementation="de.hd.pvs.piosim.model.components.NIC.NIC">
 <TotalBandwidth>-1</TotalBandwidth>
 <IDENTIFIER>
-<ComponentIdentifier id="1">
+<ComponentIdentifier id="3">
 </ComponentIdentifier>
 </IDENTIFIER>
 </NIC>
 </NETWORKINTERFACE>
+<IDENTIFIER>
+<ComponentIdentifier id="2">
+</ComponentIdentifier>
+</IDENTIFIER>
+</ClientProcess>
+</HOSTEDCOMPONENTS>
 <IDENTIFIER>
 <ComponentIdentifier name="Test1" id="0">
 </ComponentIdentifier>
@@ -68,23 +68,23 @@
 <MemorySize>-1</MemorySize>
 <HOSTEDCOMPONENTS>
 <ClientProcess implementation="de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess" rank="-1" thread="0">
-<IDENTIFIER>
-<ComponentIdentifier id="5">
-</ComponentIdentifier>
-</IDENTIFIER>
-</ClientProcess>
-</HOSTEDCOMPONENTS>
 <NETWORKINTERFACE>
 <NIC implementation="de.hd.pvs.piosim.model.components.NIC.NIC">
 <TotalBandwidth>10000</TotalBandwidth>
 <IDENTIFIER>
-<ComponentIdentifier id="3">
+<ComponentIdentifier id="5">
 </ComponentIdentifier>
 </IDENTIFIER>
 </NIC>
 </NETWORKINTERFACE>
 <IDENTIFIER>
-<ComponentIdentifier id="2">
+<ComponentIdentifier id="4">
+</ComponentIdentifier>
+</IDENTIFIER>
+</ClientProcess>
+</HOSTEDCOMPONENTS>
+<IDENTIFIER>
+<ComponentIdentifier id="1">
 </ComponentIdentifier>
 </IDENTIFIER>
 </Node>
@@ -141,15 +141,15 @@
 <PaketRoutingAlgorithm implementation="de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute">
 </PaketRoutingAlgorithm>
 </ROUTINGALGORITHM>
-	<Node id="1">
+	<Node id="3">
 		<Edge id="7" to="6"/>
 	</Node>
-	<Node id="3">
+	<Node id="5">
 		<Edge id="9" to="6"/>
 	</Node>
 	<Node id="6">
-		<Edge id="8" to="1"/>
-		<Edge id="10" to="3"/>
+		<Edge id="8" to="3"/>
+		<Edge id="10" to="5"/>
 	</Node>
 </Topology>
 </TopologyList>

@@ -72,8 +72,8 @@ public class ModelCreationTest   extends TestSuite  {
 
 		nic2.setTotalBandwidth(10000);
 
-		machine.setNetworkInterface(nic1);
-		machine2.setNetworkInterface(nic2);
+		client.setNetworkInterface(nic1);
+		client2.setNetworkInterface(nic2);
 
 		mb.addNode(machine);
 		mb.addNode(machine2);
@@ -92,13 +92,13 @@ public class ModelCreationTest   extends TestSuite  {
 
 		SimpleNetworkEdge mi = new SimpleNetworkEdge();
 
-		mb.connect(topology, machine.getNetworkInterface(), mi, interNode);
+		mb.connect(topology, client.getNetworkInterface(), mi, interNode);
 		mi = new SimpleNetworkEdge();
-		mb.connect(topology, interNode, mi, machine.getNetworkInterface());
+		mb.connect(topology, interNode, mi, client.getNetworkInterface());
 		mi = new SimpleNetworkEdge();
-		mb.connect(topology, machine2.getNetworkInterface(), mi, interNode);
+		mb.connect(topology, client2.getNetworkInterface(), mi, interNode);
 		mi = new SimpleNetworkEdge();
-		mb.connect(topology, interNode, mi, machine2.getNetworkInterface());
+		mb.connect(topology, interNode, mi, client2.getNetworkInterface());
 
 		// write XML to file
 		final ModelXMLWriter writer = new ModelXMLWriter();

@@ -122,9 +122,6 @@ public class ModelBuilder {
 	 * @param node
 	 */
 	public void addNode(Node node) {
-		if(node.getNetworkInterface() == null){
-			throw new IllegalArgumentException("Set the NIC first");
-		}
 		model.addComponent(node);
 	}
 
