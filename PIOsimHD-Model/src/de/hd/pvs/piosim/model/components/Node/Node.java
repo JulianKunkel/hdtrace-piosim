@@ -34,7 +34,6 @@ import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.SerializeChild;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
-import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
 
@@ -70,9 +69,6 @@ public class Node
 
 	@SerializeChild
 	ArrayList<NodeHostedComponent> hostedComponents = new ArrayList<NodeHostedComponent>();
-
-	@SerializeChild
-	private NIC networkInterface;
 
 	@AttributeGetters
 	public long getInstructionsPerSecond() {
@@ -132,13 +128,5 @@ public class Node
 
 	public boolean isNetworkExitNode() {
 		return true;
-	}
-
-	public void setNetworkInterface(NIC networkInterface) {
-		this.networkInterface = networkInterface;
-	}
-
-	public NIC getNetworkInterface() {
-		return networkInterface;
 	}
 }

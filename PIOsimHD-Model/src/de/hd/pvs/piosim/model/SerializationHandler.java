@@ -219,8 +219,6 @@ public class SerializationHandler {
 			return;
 		}
 
-		assert(! IDynamicModelComponent.class.isInstance(obj));
-
 		final String type =  obj.getClass().getSimpleName();
 		writeXML(type, obj, sb);
 	}
@@ -234,7 +232,10 @@ public class SerializationHandler {
 	 * @throws Exception
 	 */
 	public void createXMLFromInstance(IDynamicModelComponent obj, StringBuffer sb) throws Exception{
-		assert(! IDynamicImplementationObject.class.isInstance(obj));
+		if(IDynamicImplementationObject.class.isInstance(obj)){
+			createXMLFromInstance((IDynamicImplementationObject) obj, sb);
+			return;
+		}
 
 		final String type =  obj.getClass().getCanonicalName();
 		writeXML(type, obj, sb);

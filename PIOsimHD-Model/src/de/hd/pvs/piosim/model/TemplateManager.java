@@ -117,7 +117,7 @@ public class TemplateManager {
 	 */
 	public <T extends ISerializableTemplateObject> T cloneFromTemplate(T component) throws Exception{
 		if(templates.get(component.getName()) == null){
-			throw new IllegalArgumentException("Template is not registered!");
+			throw new IllegalArgumentException("Template " + component.getName() + " is not registered!");
 		}
 
 		T clone = (T) serializationHandler.createDynamicObjectFromXML(getXMLRepresentation(component));
