@@ -67,8 +67,6 @@ public interface ISNodeHostedComponent<Type extends SPassiveComponent>
 
 	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime);
 
-	public boolean mayIReceiveMessagePart(MessagePart part, InterProcessNetworkJob job);
-
 	/**
 	 * Gets called if a compute job is finished
 	 * @param job

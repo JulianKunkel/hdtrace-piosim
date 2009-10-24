@@ -82,6 +82,8 @@ import de.hd.pvs.piosim.simulator.output.STraceWriter;
  * @author Julian M. Kunkel
  */
 public final class Simulator implements IModelToSimulatorMapper {
+	private boolean errorState = false;
+
 	// simulator version:
 	private static final float version = 0.89f;
 
@@ -143,7 +145,8 @@ public final class Simulator implements IModelToSimulatorMapper {
 	 * @throws Exception
 	 */
 	public void initModel(Model model, RunParameters parameters)
-	throws Exception {
+		throws Exception
+	{
 		if (existingSimulationObjects.size() > 0) {
 			throw new IllegalArgumentException(
 			"Simulator already initalized, model cannot be changed afterwards!");
@@ -535,7 +538,8 @@ public final class Simulator implements IModelToSimulatorMapper {
 		traceWriter.finalize(getExistingSimulationObjects().values());
 
 		return new SimulationResults(existingSimulationObjects, eventCount,
-				getVirtualTime(), diffTime / 1000.0, idtoRuntimeInformationMap);
+				getVirtualTime(), diffTime / 1000.0, idtoRuntimeInformationMap,
+				isErrorState());
 	}
 
 	/**
@@ -654,5 +658,13 @@ public final class Simulator implements IModelToSimulatorMapper {
 	public Model getModel() {
 		assert (model != null);
 		return model;
+	}
+
+	public void errorDuringProcessing() {
+		this.errorState = true;
+	}
+
+	public boolean isErrorState() {
+		return errorState;
 	}
 }

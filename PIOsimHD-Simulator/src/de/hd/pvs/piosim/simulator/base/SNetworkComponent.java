@@ -173,7 +173,6 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 			Epoch startTime,
 			ISNetworkComponent targetFlowComponent)
 	{
-		getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "ContinueFlow", 1);
 		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
 
 		debug("criterion: " + target);
@@ -338,9 +337,16 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 
 		getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, buildTraceEntry(event.getEventData()));
 
+		if(event.getEventData().getMessageTarget() == getModelComponent()){
+			// we are the target
+			// prevent endless loops in routing algorithm.
+			messagePartDestroyed(event.getEventData(), endTime);
+			return;
+		}
+
 		final ISNetworkComponent targetComponent = getTargetFlowComponent(event.getEventData());
 
-		if(targetComponent == null){
+		if( targetComponent == null ){
 			messagePartDestroyed(event.getEventData(), endTime);
 			return;
 		}

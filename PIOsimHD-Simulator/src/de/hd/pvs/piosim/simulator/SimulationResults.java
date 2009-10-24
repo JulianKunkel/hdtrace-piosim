@@ -42,12 +42,15 @@ public class SimulationResults {
 
 	final private double wallClockTime;
 
+	final private boolean errorDuringProcessing;
+
 	final private HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap;
 
 	final private HashMap<ComponentIdentifier, ISPassiveComponent> components;
 
-	public SimulationResults(HashMap<ComponentIdentifier, ISPassiveComponent> components, long eventCount, Epoch virtualTime, double wallClockTime, HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap) {
+	public SimulationResults(HashMap<ComponentIdentifier, ISPassiveComponent> components, long eventCount, Epoch virtualTime, double wallClockTime, HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap, boolean errorDuringProcessing) {
 		this.eventCount = eventCount;
+		this.errorDuringProcessing = errorDuringProcessing;
 		this.components = components;
 		this.virtualTime = virtualTime;
 		this.wallClockTime = wallClockTime;
@@ -80,5 +83,9 @@ public class SimulationResults {
 
 	public HashMap<ComponentIdentifier, ComponentRuntimeInformation> getComponentStatistics() {
 		return idtoRuntimeInformationMap;
+	}
+
+	public boolean isErrorDuringProcessing() {
+		return errorDuringProcessing;
 	}
 }

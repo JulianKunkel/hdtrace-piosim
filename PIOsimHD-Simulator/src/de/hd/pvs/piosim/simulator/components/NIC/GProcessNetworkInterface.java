@@ -64,6 +64,8 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public void messagePartDestroyed(MessagePart part, Epoch endTime) {
+		//System.out.println(this.getIdentifier() + " messagePartDestroyed ");
+
 		// called upon recv of the message.
 		assert(part.getMessageTarget() == this.getModelComponent());
 		final Message<InterProcessNetworkJob> msg = part.getMessage();
@@ -221,6 +223,8 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 		assert(job.getJobOperation() == InterProcessNetworkJobType.SEND);
 
+		assert(job.getSize() > 0);
+
 		if(job.getJobData().getSize() == 0){
 			throw new IllegalArgumentException("Data size is 0.");
 		}
@@ -256,39 +260,42 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public void submitNewMessage(Message msg, Epoch startTime) {
-		Epoch time = getSimulator().getVirtualTime();
+		assert(msg.getSize() > 0);
+		final MessagePart msgP = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+		if(msgP == null){
+			/* does not make any sense to send an empty message, it will be appended later */
+			return;
+		}
 
-		MessagePart msgP = null;
-		msgP = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
-		assert (msgP != null); /* does not make any sense to send an empty message */
-
-		final Event<MessagePart> event = new Event(this, this, time,  msgP);
+		final Event<MessagePart> event = new Event(this, this, startTime,  msgP);
 		getSimulator().submitNewEvent(event);
 	}
 
 	@Override
 	public void messagePartTransmitted(MessagePart part, Epoch endTime) {
-		if(part.getMessageSource() == this.getModelComponent()){
-			MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+		//System.out.println(this.getIdentifier() + " messagePartTransmitted " + part.getSize());
 
-			if(newMsgPart != null){
-				/* create a new event to upload */
-				Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
-				addNewEvent(partEvent);
-			}
+		if(part.getMessageSource() == this.getModelComponent()){
+			final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
 
 			final Message<InterProcessNetworkJob> msg = part.getMessage();
+
 			final InterProcessNetworkJob job = msg.getContainedUserData();
 			final ISNodeHostedComponent sender =job.getMatchingCriterion().getSourceComponent();
 
 			// partial send?
 			if(msg.getContainedUserData().isPartialCallbackActive()){
-				sender.messagePartSendCB(part, job, getSimulator().getVirtualTime());
+				sender.messagePartSendCB(part, job, endTime);
 			}
 
-			if(msg.getRemainingBytesToSend() == 0){
+			if(newMsgPart != null){
+				/* create a new event to upload data */
+				Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
+				addNewEvent(partEvent);
+			}else{
+				assert(msg.getRemainingBytesToSend() == 0);
 				// all data is send => call callback.
-				sender.sendCompletedCB(job, getSimulator().getVirtualTime());
+				sender.sendCompletedCB(job, endTime);
 			}
 		}
 		// we are the target
@@ -312,5 +319,10 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	@Override
 	public Epoch getProcessingLatency() {
 		return Epoch.ZERO;
+	}
+
+	@Override
+	public boolean isDirectlyControlledByBlockUnblock() {
+		return true;
 	}
 }

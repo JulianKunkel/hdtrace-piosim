@@ -142,11 +142,7 @@ public class ClusterTest extends TestSuite {
 		node.setCPUs(1);
 		node.setInstructionsPerSecond(1000000);
 
-		NIC nic = new NIC();
-		nic.setTotalBandwidth(1000 * MBYTE);
-
-		node.setNetworkInterface(nic);
-		node.setMemorySize(100000 * MBYTE);
+		node.setMemorySize(1000 * MBYTE);
 
 		// SimpleDisk iosub = new SimpleDisk();
 		// iosub.setAvgAccessTime(new Epoch(0.005));
@@ -191,25 +187,34 @@ public class ClusterTest extends TestSuite {
 			nodes.add(node2);
 
 			mb.addNode(node2);
-
-			NetworkEdge edge = mb.cloneFromTemplate(conn);
-			mb.connect(topology, node2.getNetworkInterface(), edge , testSW);
-
-			NetworkEdge edge2 = mb.cloneFromTemplate(conn);
-			mb.connect(topology, testSW, edge2 , node2.getNetworkInterface());
 		}
 
-		NetworkEdge edge2 = mb.cloneFromTemplate(conn);
-		mb.connect(topology, testSW, edge2 , testSW2);
-		mb.connect(topology, testSW2, edge2 , testSW);
-
 		for (int i = 0; i < clients; i++) {
-			ClientProcess c = new ClientProcess();
+			final ClientProcess c = new ClientProcess();
+
+			final NIC nic = new NIC();
+			nic.setTotalBandwidth(1000 * MBYTE);
+			nic.setName("CNIC" + i);
+			c.setNetworkInterface(nic);
+
 			c.setName("Client" + i);
 			mb.addClient(nodes.get(i), c);
 			c.setRank(i);
 			c.setApplication("Jacobi");
+
+			NetworkEdge edge = mb.cloneFromTemplate(conn);
+			mb.connect(topology, c.getNetworkInterface(), edge , testSW);
+
+			NetworkEdge edge2 = mb.cloneFromTemplate(conn);
+			mb.connect(topology, testSW, edge2 , c.getNetworkInterface());
 		}
+
+		{
+			NetworkEdge edge2 = mb.cloneFromTemplate(conn);
+			mb.connect(topology, testSW, edge2 , testSW2);
+			mb.connect(topology, testSW2, edge2 , testSW);
+		}
+
 
 		Server serverTemplate = new Server();
 		serverTemplate.setName("Server");
@@ -229,9 +234,21 @@ public class ClusterTest extends TestSuite {
 		mb.addTemplate(serverTemplate);
 
 		for (int i = 0; i < servers; i++) {
+			final NIC nic = new NIC();
+			nic.setTotalBandwidth(1000 * MBYTE);
+			nic.setName("SNIC" + i);
+
 			Server s = mb.cloneFromTemplate(serverTemplate);
+			s.setNetworkInterface(nic);
+
 			// disjoint client and server processes
 			mb.addServer(nodes.get(i + clients), s);
+
+			NetworkEdge edge = mb.cloneFromTemplate(conn);
+			mb.connect(topology, s.getNetworkInterface(), edge , testSW);
+
+			NetworkEdge edge2 = mb.cloneFromTemplate(conn);
+			mb.connect(topology, testSW, edge2 , s.getNetworkInterface());
 		}
 
 		return mb;
@@ -255,6 +272,10 @@ public class ClusterTest extends TestSuite {
 
 		final SimulationResultSerializer serializer = new SimulationResultSerializer();
 		System.out.println(serializer.serializeResults(simRes));
+
+		if(simRes.isErrorDuringProcessing()){
+			throw new IllegalArgumentException("Errors occured during processing");
+		}
 
 		return simRes;
 	}

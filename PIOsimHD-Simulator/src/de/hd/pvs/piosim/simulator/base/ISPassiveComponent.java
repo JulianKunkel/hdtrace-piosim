@@ -54,6 +54,7 @@ public interface ISPassiveComponent<ModelComp extends IBasicComponent>
 	 * build.
 	 */
 	public void simulationModelIsBuild();
+
 	/**
 	 * This method gets invoked by the simulator to signal completion of the simulation.
 	 * Arbitrary data could be appended to the results.

@@ -173,7 +173,7 @@ abstract public class IOTest extends ClusterTest {
 		writeTestResults("WRITE", out, writeTest());
 	}
 
-	public void runAllTests() throws Exception {
+	public void benchmarkServers() throws Exception {
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 

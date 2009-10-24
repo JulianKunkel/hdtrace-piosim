@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessourceProvider;
+import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
@@ -59,7 +59,7 @@ implements IGServer<SPassiveComponent<Server>>
 {
 	public static final int STEP_COMPLETED = 1000000;
 
-	private INetworkRessourceProvider networkInterface;
+	private IProcessNetworkInterface networkInterface;
 
 	private INodeRessources nodeRessources;
 
@@ -76,7 +76,7 @@ implements IGServer<SPassiveComponent<Server>>
 						new NetworkIOData(req),
 						true);
 
-		Message<InterProcessNetworkJob> msg = networkInterface.initiateInterProcessSend(resp);
+		Message<InterProcessNetworkJob> msg = networkInterface.initiateInterProcessSend(resp, getSimulator().getVirtualTime());
 
 		cacheLayer.announceIORequest( msg, req, request );
 	}
@@ -92,7 +92,7 @@ implements IGServer<SPassiveComponent<Server>>
 						request.getMatchingCriterion().getCommunicator()),
 						true);
 
-		networkInterface.initiateInterProcessReceive(resp);
+		networkInterface.initiateInterProcessReceive(resp, getSimulator().getVirtualTime());
 	}
 
 	public void process(RequestFlush req, InterProcessNetworkJob request) {
@@ -139,7 +139,7 @@ implements IGServer<SPassiveComponent<Server>>
 
 			/* return the response or another receive message */
 			if(resp != null){
-				networkInterface.initiateInterProcessSend(resp);
+				networkInterface.initiateInterProcessSend(resp, endTime);
 			}
 		}
 	}
@@ -147,7 +147,7 @@ implements IGServer<SPassiveComponent<Server>>
 	private void submitRecv(){
 		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
 				new MessageMatchingCriterion(null, this,  RequestIO.INITIAL_REQUEST_TAG,  Communicator.IOSERVERS),
-				false));
+				false), getSimulator().getVirtualTime());
 	}
 
 	@Override
@@ -188,12 +188,6 @@ implements IGServer<SPassiveComponent<Server>>
 			}
 		}
 	}
-
-	@Override
-	public boolean mayIReceiveMessagePart(MessagePart part, InterProcessNetworkJob job) {
-		return cacheLayer.canIPutDataIntoCache(job, part.getSize());
-	}
-
 
 	@Override
 	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob,
@@ -248,13 +242,13 @@ implements IGServer<SPassiveComponent<Server>>
 	}
 
 	@Override
-	public void setNetworkInterface(INetworkRessourceProvider nic) {
-		this.networkInterface = nic;
+	public IProcessNetworkInterface getNetworkInterface() {
+		return this.networkInterface;
 	}
 
 	@Override
-	public INetworkRessourceProvider getNetworkInterface() {
-		return networkInterface;
+	public void setNetworkInterface(IProcessNetworkInterface nic) {
+		this.networkInterface = nic;
 	}
 
 	@Override

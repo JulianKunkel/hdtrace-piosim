@@ -42,7 +42,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessourceProvider;
+import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobType;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
@@ -67,7 +67,7 @@ public class GClientProcess
 	extends SBasicComponent<ClientProcess>
 	implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 {
-	private INetworkRessourceProvider networkInterface;
+	private IProcessNetworkInterface networkInterface;
 	private INodeRessources   nodeRessources;
 
 	/**
@@ -214,6 +214,8 @@ public class GClientProcess
 
 		if (pendingNonBlockingOps.size() == 0 && isProgramFinished())
 			return;
+
+		getSimulator().errorDuringProcessing();
 
 		System.err.println("Client got pending operations: " + this.getIdentifier() + ": ");
 
@@ -518,9 +520,9 @@ public class GClientProcess
 						pendingJobs.put(j, newJob.getNetworkJobs());
 
 						if(j.getJobOperation() == InterProcessNetworkJobType.RECEIVE){
-							getNetworkInterface().initiateInterProcessReceive(j);
+							getNetworkInterface().initiateInterProcessReceive(j, curTime);
 						}else{
-							getNetworkInterface().initiateInterProcessSend(j);
+							getNetworkInterface().initiateInterProcessSend(j, curTime);
 						}
 					}
 				}
@@ -596,7 +598,10 @@ public class GClientProcess
 	public void recvCompletedCB(InterProcessNetworkJob remoteJob,
 			InterProcessNetworkJob announcedJob, Epoch endTime)
 	{
+		//System.out.println("RECV completed");
+
 		final NetworkJobs status = pendingJobs.remove(announcedJob);
+		assert(status != null);
 		status.jobCompletedRecv(remoteJob);
 		checkJobCompleted(status);
 	}
@@ -607,25 +612,9 @@ public class GClientProcess
 		//System.out.println("SEND completed");
 
 		final NetworkJobs status = pendingJobs.remove(myJob);
+		assert(status != null);
 		status.jobCompletedSend();
 		checkJobCompleted(status);
-	}
-
-	@Override
-	public boolean mayIReceiveMessagePart(MessagePart part, InterProcessNetworkJob job) {
-		// TODO Auto-generated method stub
-		return true;
-	}
-
-	@Override
-	public INetworkRessourceProvider getNetworkInterface() {
-		return networkInterface;
-	}
-
-	@Override
-	public void setNetworkInterface(INetworkRessourceProvider nic) {
-		this.networkInterface = nic;
-
 	}
 
 	@Override
@@ -654,5 +643,15 @@ public class GClientProcess
 	@Override
 	public String toString() {
 		return "GClientProcess " + getIdentifier();
+	}
+
+	@Override
+	public void setNetworkInterface(IProcessNetworkInterface nic) {
+		this.networkInterface = nic;
+	}
+
+	@Override
+	public IProcessNetworkInterface getNetworkInterface() {
+		return networkInterface;
 	}
 }

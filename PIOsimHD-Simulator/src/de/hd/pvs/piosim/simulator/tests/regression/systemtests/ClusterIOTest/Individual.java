@@ -38,11 +38,24 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Individual extends IOTest {
 	@Test
-	public void runFailureTest() throws Exception{
-		final FileWriter out = new FileWriter("/tmp/error.txt");
+	public void runTest1x1() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-1x1.txt");
 		runOneTestWrite(new NoCache(),
 				4*100000, 1, 1, 1, 1, 1, out);
 		out.close();
+	}
+
+	@Test
+	public void runTest2x2() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-2x2.txt");
+		runOneTestWrite(new NoCache(),
+				4*100000, 2, 2, 1, 1, 1, out);
+		out.close();
+	}
+
+	@Test
+	public void benchmarkServers() throws Exception{
+		super.benchmarkServers();
 	}
 
 	private void createIOOps(List<MPIFile> files, Class ioClass) throws Exception{
@@ -78,6 +91,6 @@ public class Individual extends IOTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new Individual().runAllTests();
+		new Individual().benchmarkServers();
 	}
 }

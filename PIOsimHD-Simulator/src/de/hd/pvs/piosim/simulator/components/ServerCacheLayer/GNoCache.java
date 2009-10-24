@@ -278,7 +278,7 @@ IIOSubsystemCaller
 
 			assert(msg != null);
 
-			serverProcess.getNetworkInterface().appendAvailableDataToIncompleteSend(msg, p.getJob().getSize());
+			serverProcess.getNetworkInterface().appendAvailableDataToIncompleteSend(msg, p.getJob().getSize(), getSimulator().getVirtualTime());
 
 			if( msg.isAllMessageDataAvailable() ){ // All data read completely
 				pendingReadJobs.remove(req);

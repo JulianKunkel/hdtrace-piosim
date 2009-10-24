@@ -25,22 +25,61 @@
 
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import org.junit.Test;
 
 public class NormalCommandsClusterTest extends ClusterTest{
+	public int minClient = 1;
 
-	public int maxClient = 1;
-	public int minClient = 10;
+	public int maxClient = 10;
 
 	double [] times = new double[maxClient+1];
 
-	private void printTiming(String header, double[] times){
-		System.out.println(header + " timing:");
+	private void printTiming(String header, double[] times) throws IOException{
+		final FileWriter fo = new FileWriter("/tmp/timing-" + this.getClass().getSimpleName() + ".txt", true);
+
+		fo.write(header + " timing:\n");
 
 		for(int i=minClient; i <= maxClient; i++){
-			System.out.println(i + " " + times[i]);
+			fo.write(i + " " + times[i] + "\n");
 		}
+		fo.write("\n");
+		fo.close();
 	}
+
+
+	@Test public void sendAndRecvEagerTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+
+		pb.addSendAndRecv(world, 0, 1, 100 * KBYTE, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendAndRecvTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		pb.addSendAndRecv(world, 0, 1, 1 * MBYTE, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendRecvTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
+
+		pb.addSendRecv(world, 1, 0, 0, 1 * MBYTE, 1, 1);
+		runSimulationAllExpectedToFinish();
+	}
+
 
 	@Test public void barrierTest() throws Exception{
 		printStack();
