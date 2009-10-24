@@ -32,7 +32,7 @@ import java.util.ArrayList;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
+import de.hd.pvs.piosim.model.annotations.SerializeChild;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
@@ -68,10 +68,10 @@ public class Node
 	@NotNegativeOrZero
 	private long memorySize = -1;
 
-	@ChildComponents
+	@SerializeChild
 	ArrayList<NodeHostedComponent> hostedComponents = new ArrayList<NodeHostedComponent>();
 
-	@ChildComponents
+	@SerializeChild
 	private NIC networkInterface;
 
 	@AttributeGetters

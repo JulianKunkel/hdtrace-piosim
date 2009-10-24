@@ -27,16 +27,10 @@ package de.hd.pvs.piosim.model;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.HashMap;
 
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
-import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
-import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
+import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
+import de.hd.pvs.piosim.model.interfaces.IDynamicModelComponent;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
@@ -51,7 +45,7 @@ import de.hd.pvs.piosim.model.program.ApplicationXMLWriter;
  * @author Julian M. Kunkel
  */
 public class ModelXMLWriter {
-	AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
+	final SerializationHandler serializationHandler = new SerializationHandler();
 
 	/**
 	 * Write XML of the model and all programs to a specified directory into XML files.
@@ -109,38 +103,33 @@ public class ModelXMLWriter {
 		createApplicationMappingXML(model, sb);
 		sb.append("</ApplicationList>\n\n");
 
-		sb.append("<GlobalSettings>\n");
-		createGlobalSettingsXML(model.globalSettings, sb);
-		sb.append("</GlobalSettings>\n\n");
+		serializationHandler.writeXML("GlobalSettings", model.globalSettings, sb);
 
 		sb.append("<ComponentList>\n\n");
 		sb.append("<NodeList>\n");
-		for (ISerializableObject com : model.getNodes()) {
-			createXMLFromInstance(com, sb);
+		for (IDynamicImplementationObject com : model.getNodes()) {
+			serializationHandler.createXMLFromInstance(com, sb);
 		}
 		sb.append("</NodeList>\n\n");
 
 		sb.append("<NetworkEdgeList>\n");
-		for (ISerializableObject com : model.getNetworkEdges()) {
-			createXMLFromInstance(com, sb);
+		for (IDynamicImplementationObject com : model.getNetworkEdges()) {
+			serializationHandler.createXMLFromInstance(com, sb);
 		}
 		sb.append("</NetworkEdgeList>\n\n");
 
 		sb.append("<NetworkNodeList>\n");
-		for (ISerializableObject com : model.getNetworkNodes()) {
-			createXMLFromInstance(com, sb);
+		for (IDynamicImplementationObject com : model.getNetworkNodes()) {
+			serializationHandler.createXMLFromInstance(com, sb);
 		}
 		sb.append("</NetworkNodeList>\n\n");
 
 		// write out all topologies in sequence
 		sb.append("<TopologyList>\n");
 		for (INetworkTopology topology : model.getTopologies()) {
-			StringBuffer tags = new StringBuffer();
-			StringBuffer attributes = new StringBuffer();
-			commonAttributeHandler.writeSimpleAttributeXML(topology, tags, attributes);
+			sb.append("<Topology ");
 
-			sb.append("<Topology " + attributes.toString() + ">\n");
-			sb.append(tags);
+			serializationHandler.writeXMLBody(topology, sb);
 
 			for(INetworkNode node: topology.getSourceGraph().keySet()){
 
@@ -153,8 +142,6 @@ public class ModelXMLWriter {
 				sb.append("\t</Node>\n");
 			}
 
-			createSubComponentXML(topology, sb);
-
 			sb.append("</Topology>\n");
 		}
 		sb.append("</TopologyList>\n\n");
@@ -162,60 +149,6 @@ public class ModelXMLWriter {
 
 		sb.append("</ComponentList>\n\n</Project>\n");
 	}
-
-	/**
-	 * Serialize a given BasicComponent into the <code>StringBuffer</code>
-	 * @param obj The Component which should be serialized.
-	 * @param sb The StringBuffer to which the XML data is written.
-	 * @throws Exception
-	 */
-	public void createXMLFromInstance(ISerializableObject obj, StringBuffer sb) throws Exception{
-		String type =  obj.getObjectType();
-
-		sb.append("<" + type  +  " implementation=\"" + obj.getClass().getCanonicalName() +"\"");
-		// next we invoke the createComponentAttributes method for the object hierarchy
-		Class<?> classIterate = obj.getClass();
-		while(classIterate != Object.class) {
-			try{
-				Method m = this.getClass().getDeclaredMethod("createComponentAttributes",
-						new Class[]{classIterate, StringBuffer.class});
-				m.invoke(this, new Object[]{obj, sb});
-			}catch(Exception e){
-			}
-
-			classIterate = classIterate.getSuperclass();
-		}
-		//////
-
-		StringBuffer attributes = new StringBuffer();
-
-		commonAttributeHandler.writeSimpleAttributeXML(obj, attributes, sb);
-
-		sb.append(">\n");
-
-		sb.append(attributes);
-
-		// next we invoke the createComponentTags method for the object hierarchy
-		classIterate = obj.getClass();
-		while(classIterate != Object.class) {
-			try{
-				Method m = this.getClass().getDeclaredMethod("createComponentTags",
-						new Class[]{classIterate, StringBuffer.class});
-				m.invoke(this, new Object[]{obj, sb});
-			}catch(Exception e){
-			}
-
-			classIterate = classIterate.getSuperclass();
-		}
-		/////////////////////////////////////
-
-		// Next create subcomponents
-		createSubComponentXML(obj, sb);
-
-		sb.append("</" + type + ">\n");
-	}
-
-	///////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Writes the content of a StringBuffer to a file
@@ -233,8 +166,8 @@ public class ModelXMLWriter {
 	 * @throws Exception
 	 */
 	private void createTemplateXML(TemplateManager manager, StringBuffer buff) throws Exception{
-		for (ISerializableObject com :  manager.getTemplates()){
-			createXMLFromInstance(com, buff);
+		for (IDynamicModelComponent com :  manager.getTemplates()){
+			serializationHandler.createXMLFromInstance(com, buff);
 		}
 	}
 
@@ -253,82 +186,4 @@ public class ModelXMLWriter {
 			buff.append("<Application alias=\"" + alias + "\" file=\"" + app.getProjectFilename() + "\"/>\n");
 		}
 	}
-
-	/**
-	 * Write the GlobalSettings to the StringBuffer.
-	 * @param settings
-	 * @param buff
-	 * @throws Exception
-	 */
-	private void createGlobalSettingsXML(GlobalSettings settings, StringBuffer buff) throws Exception{
-		commonAttributeHandler.writeSimpleAttributeXML(settings, buff, null);
-		for(CommandType cm: DynamicCommandClassMapper.getAvailableCommands()){
-			if(settings.getClientFunctionImplementation(cm) != null){
-				buff.append("<ClientMethod name=\"" + cm.toString() + "\">" +
-						settings.getClientFunctionImplementation(cm) + "</ClientMethod>\n");
-			}
-		}
-	}
-
-
-	/**
-	 * Create the nested XML for all the contained child components.
-	 * Each field annotated with the <code>ChildComponents</code> Annotation is seralized to XML.
-	 * Collections or Simple Object references are followed.
-	 *
-	 * @param component The component which child components' XML should be created.
-	 * @param buff The StringBuffer
-	 * @throws Exception
-	 */
-	private void createSubComponentXML(ISerializableObject component, StringBuffer buff) throws Exception{
-		Class<?> classIterate = component.getClass();
-
-		while(classIterate != Object.class) {
-			Field [] fields = classIterate.getDeclaredFields();
-			for (Field field : fields) {
-				if( ! field.isAnnotationPresent(ChildComponents.class))
-					continue;
-
-				//ChildComponents annotation = field.getAnnotation(ChildComponents.class);
-
-				field.setAccessible(true);
-				Object value = field.get(component);
-				field.setAccessible(false);
-
-				if(value == null)
-					continue;
-
-				buff.append("<" + field.getName().toUpperCase()  +  ">\n");
-
-				// if it is a collection serialize all contained elements
-				if(Collection.class.isAssignableFrom(value.getClass()) ){
-					Collection<BasicComponent> coll = (Collection<BasicComponent>)  value;
-					for(BasicComponent e: coll){
-						createXMLFromInstance(e, buff);
-					}
-				}else{ // single object
-					createXMLFromInstance((ISerializableObject) value, buff);
-				}
-
-				buff.append("</" + field.getName().toUpperCase()  +  ">\n");
-
-			}
-
-			classIterate = classIterate.getSuperclass();
-		}
-	}
-
-	//////////////////////////////////////////////////////////////////////////////
-
-	// The following methods are called via reflection.
-	// For each class special serializers could be used.
-
-	private void createComponentAttributes(BasicComponent component, StringBuffer sb) throws Exception{
-		if(component.getIdentifier().getID() != null)
-			sb.append(" id=\"" + component.getIdentifier().getID() +	"\"");
-
-		if(component.getIdentifier().getName() != null)
-			sb.append(" name=\"" + component.getIdentifier().getName() + "\"");
-	}
-	//////////////////////////////////////////////////////////////////////////////
 }

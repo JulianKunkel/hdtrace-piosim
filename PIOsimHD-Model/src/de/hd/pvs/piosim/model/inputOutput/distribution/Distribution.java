@@ -28,22 +28,19 @@
  */
 package de.hd.pvs.piosim.model.inputOutput.distribution;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.List;
 
-import de.hd.pvs.TraceFormat.xml.XMLTag;
-import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.interfaces.IXMLReader;
+import de.hd.pvs.piosim.model.interfaces.IDynamicModelComponent;
 
 /**
  * A distribution describes how data get distributed among a set of servers.
  *
  * @author Julian M. Kunkel
  */
-abstract public class Distribution implements IXMLReader {
+abstract public class Distribution implements IDynamicModelComponent {
 	/**
 	 * Computes on which servers the data should be read/written. Similar to RAID
 	 * concepts.
@@ -55,51 +52,4 @@ abstract public class Distribution implements IXMLReader {
 			ListIO iolist,
 			List<Server> serverList
 	);
-
-	/**
-	 * Create a distribution from XML via reflection.
-	 *
-	 * @param xmlelem
-	 * @return
-	 * @throws Exception
-	 */
-	static public Distribution readDistributionFromXML(XMLTag xmlelem)
-			throws Exception {
-
-		final String name = xmlelem.getAttribute("class");
-
-		try {
-			Class<Distribution> cls = (Class<Distribution>) Class.forName(name);
-			if (cls == null) {
-				throw new IllegalArgumentException("Distribution not found: "
-						+ name);
-			}
-			Constructor<Distribution> ct = cls.getConstructor();
-			Distribution dist = ct.newInstance();
-
-			dist.readXML(xmlelem);
-
-			return dist;
-		} catch (Exception e) {
-			throw new Exception("Invalid Distribution: " + name,  e);
-		}
-	}
-
-	public void readXML(de.hd.pvs.TraceFormat.xml.XMLTag xml) throws Exception {
-		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
-		commonAttributeHandler.readSimpleAttributes(xml, this);
-	}
-
-	/* (non-Javadoc)
-	 * @see de.hd.pvs.piosim.model.interfaces.IXMLReader#writeXML(java.lang.StringBuffer)
-	 */
-	public void writeXML(StringBuffer sb){
-		AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
-
-		try {
-			commonAttributeHandler.writeSimpleAttributeXML(this, sb, null);
-		}catch (Exception e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
 }

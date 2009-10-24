@@ -241,7 +241,7 @@ public class Model{
 	public void addComponent(IBasicComponent com){
 		ComponentIdentifier ci = com.getIdentifier();
 
-		if(ci.getID() == null){
+		if(ci.getID() == ComponentIdentifier.INVALID_ID){
 			ci.setID(maxComponentID++);
 		}else{
 			if (cidCMap.keySet().contains(ci.getID())) {

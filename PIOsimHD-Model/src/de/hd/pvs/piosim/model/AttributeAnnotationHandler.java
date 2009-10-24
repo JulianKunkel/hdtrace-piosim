@@ -35,11 +35,13 @@ import de.hd.pvs.TraceFormat.util.NumberPrefixes;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
+import de.hd.pvs.piosim.model.annotations.SerializeChild;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
+import de.hd.pvs.piosim.model.interfaces.IExtendedXMLHandling;
+import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
 
 /**
  * This class provides methods to read/write and verify common attributes.
@@ -108,7 +110,7 @@ public class AttributeAnnotationHandler {
 	 * @param xml
 	 * @param component
 	 */
-	final public void readSimpleAttributes(XMLTag xml, Object object) throws Exception{
+	final public void readSimpleAttributes(XMLTag xml, ISerializableObject object) throws Exception{
 		Class<?> classIterate = object.getClass();
 
 		while(classIterate != Object.class) {
@@ -165,6 +167,13 @@ public class AttributeAnnotationHandler {
 
 			classIterate = classIterate.getSuperclass();
 		}
+
+
+		// next, if we implement the IExtendedXMLHandling interface, then use it.
+		if(IExtendedXMLHandling.class.isInstance(object)){
+			final IExtendedXMLHandling extXMLHandling = (IExtendedXMLHandling) object;
+			extXMLHandling.readXML(xml);
+		}
 	}
 
 
@@ -176,7 +185,7 @@ public class AttributeAnnotationHandler {
 	 * @param attributes StringBuffer for the attributes. Null if no attributes should be read.
 	 * @throws Exception
 	 */
-	final public void writeSimpleAttributeXML(Object obj, StringBuffer tags, StringBuffer attributes) throws Exception{
+	final public void writeSimpleAttributeXML(ISerializableObject obj, StringBuffer tags, StringBuffer attributes) throws Exception{
 		Class<?> classIterate = obj.getClass();
 		// Walk through the whole inheritance tree.
 
@@ -234,6 +243,13 @@ public class AttributeAnnotationHandler {
 
 			classIterate = classIterate.getSuperclass();
 		}
+
+
+		// next, if we implement the IExtendedXMLHandling interface, then use it to read specific attributes.
+		if(IExtendedXMLHandling.class.isInstance(obj)){
+			final IExtendedXMLHandling extXMLHandling = (IExtendedXMLHandling) obj;
+			extXMLHandling.writeXML(tags);
+		}
 	}
 
 
@@ -255,7 +271,7 @@ public class AttributeAnnotationHandler {
 			for (Field field : fields) {
 
 				if (! isTemplate) {
-					if (field.isAnnotationPresent(ChildComponents.class)) {
+					if (field.isAnnotationPresent(SerializeChild.class)) {
 						// this field should contain a reference to the parent component.
 						Object value = null;
 

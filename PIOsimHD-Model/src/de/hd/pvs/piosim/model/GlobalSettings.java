@@ -27,20 +27,24 @@ package de.hd.pvs.piosim.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.AttributeList;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandImplemenationMapping;
+import de.hd.pvs.piosim.model.interfaces.IExtendedXMLHandling;
 
 /**
  * This Class contains common attributes used in several components.
  *
  * @author Julian M. Kunkel
  */
-public class GlobalSettings {
+public class GlobalSettings implements IExtendedXMLHandling{
 
 	/**
 	 * The maximum amount of data which can be shipped per network paket.
@@ -168,6 +172,29 @@ public class GlobalSettings {
 	 */
 	public void setClientFunctionImplementation(CommandType method, String impl){
 		clientFunctionImplementation.put(method, impl);
+	}
+
+	public void readXML(XMLTag xml) throws Exception {
+		LinkedList<XMLTag> clientMeth = xml.getNestedXMLTagsWithName("ClientMethod");
+		if(clientMeth != null){
+			for(XMLTag n: clientMeth){
+				final String smethod = n.getAttribute("name");
+				final CommandType method =  DynamicTraceEntryToCommandMapper.getCommandForTraceEntryName(smethod);
+				if(method == null){
+					throw new IllegalArgumentException("Method is not defined in CommandToTrace mapper for " + smethod);
+				}
+				setClientFunctionImplementation(method, n.getContainedText());
+			}
+		}
+	}
+
+	public void writeXML(StringBuffer sb) {
+		for(CommandType cm: DynamicCommandClassMapper.getAvailableCommands()){
+			if(getClientFunctionImplementation(cm) != null){
+				sb.append("<ClientMethod name=\"" + cm.toString() + "\">" +
+						getClientFunctionImplementation(cm) + "</ClientMethod>\n");
+			}
+		}
 	}
 
 }

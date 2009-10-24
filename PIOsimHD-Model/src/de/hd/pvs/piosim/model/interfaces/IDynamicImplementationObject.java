@@ -7,6 +7,6 @@ package de.hd.pvs.piosim.model.interfaces;
  *
  * @author julian
  */
-public interface IDynamicImplementationObject extends ISerializableObject{
-
+public interface IDynamicImplementationObject extends IDynamicModelComponent{
+	public String getObjectType();
 }

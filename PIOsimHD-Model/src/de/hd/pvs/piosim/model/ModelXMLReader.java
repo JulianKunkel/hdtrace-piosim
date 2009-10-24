@@ -26,25 +26,14 @@
 package de.hd.pvs.piosim.model;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
-import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
-import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
-import de.hd.pvs.piosim.model.interfaces.IChildObject;
-import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
-import de.hd.pvs.piosim.model.interfaces.ISerializableTemplateObject;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
@@ -63,7 +52,7 @@ import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
  *
  */
 public class ModelXMLReader {
-	AttributeAnnotationHandler commonAttributeHandler = new AttributeAnnotationHandler();
+	final SerializationHandler serializationHandler = new SerializationHandler();
 
 	/**
 	 * Should all commands be read on demand or at beginning (i.e. for further modification?)
@@ -127,7 +116,7 @@ public class ModelXMLReader {
 
 		readTemplates(model, projectNode.getFirstNestedXMLTagWithName("Templates"));
 
-		readGlobalSettings(model, projectNode.getFirstNestedXMLTagWithName("GlobalSettings"));
+		serializationHandler.readXML(projectNode.getFirstNestedXMLTagWithName("GlobalSettings"), model.getGlobalSettings());
 
 		ConsoleLogger.getInstance().debug(this, "Creating Components");
 		createAllComponents(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
@@ -136,90 +125,12 @@ public class ModelXMLReader {
 		try {
 			loadTopology(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
 		} catch (Exception e) {
-			e.printStackTrace();
-
 			System.err.println("Available model: " + model);
+
+			throw e;
 		}
 
 		return model;
-	}
-
-	/**
-	 * This method parses the XML and creates a single component of the type as specified in the XML
-	 *
-	 * @param model
-	 * @param xml The root node containing the element and all sub-elements
-	 * @throws Exception
-	 */
-	public ISerializableObject createComponentFromXML(XMLTag xml, boolean isCloneOfTemplate) throws Exception{
-		String implementation = xml.getAttribute("implementation");
-
-		ConsoleLogger.getInstance().debug(this, "will create: " + implementation);
-
-		// use reflection to instantiate the object
-		Constructor<ISerializableObject> ct = ((Class<ISerializableObject>) Class.forName(implementation)).getConstructor();
-
-		if (ct == null){
-			throw new IllegalArgumentException("Constructor for the implementation " + implementation + " not found");
-		}
-		ISerializableObject component;
-		try{
-			component = ct.newInstance();
-		}catch(InstantiationException e){
-			throw new IllegalArgumentException("Constructor for the implementation " + implementation + " invalid");
-		}
-
-		commonAttributeHandler.readSimpleAttributes(xml, component);
-
-		readChildComponents(xml, component, isCloneOfTemplate);
-
-
-		// next we invoke the readComponentDetailsFromXML method for the object hierarchy
-		Class<?> classIterate = component.getClass();
-		while(classIterate != Object.class) {
-			try{
-				Method m = this.getClass().getDeclaredMethod("readComponentDetailsFromXML",
-						new Class[]{XMLTag.class, classIterate});
-				m.invoke(this, new Object[]{xml, component});
-			}catch(NoSuchMethodException e){
-			}
-
-			classIterate = classIterate.getSuperclass();
-		}
-
-		if (isCloneOfTemplate){
-			ISerializableTemplateObject namedTemplate = (ISerializableTemplateObject) component;
-
-			// change template and names...
-			namedTemplate.setTemplate(namedTemplate.getName());
-			if(namedTemplate.getName() != null)
-				namedTemplate.setName(namedTemplate.getName() + "_01");
-		}
-
-		return component;
-	}
-
-
-
-	/**
-	 * Read the XML for the GlobalSettings and create a valid <code>GlobalSetting</code> object.
-	 *
-	 * @param model
-	 * @param xml Root node containing the GlobalSetting XML.
-	 * @throws Exception
-	 */
-	private void readGlobalSettings(Model model, XMLTag xml) throws Exception {
-		GlobalSettings global = model.globalSettings;
-		commonAttributeHandler.readSimpleAttributes(xml, global);
-
-		LinkedList<XMLTag> clientMeth = xml.getNestedXMLTagsWithName("ClientMethod");
-		if(clientMeth != null){
-			for(XMLTag n: clientMeth){
-				String smethod = n.getAttribute("name");
-				CommandType method =  DynamicTraceEntryToCommandMapper.getCommandForTraceEntryName(smethod);
-				global.setClientFunctionImplementation(method, n.getContainedText());
-			}
-		}
 	}
 
 	/**
@@ -240,8 +151,7 @@ public class ModelXMLReader {
 
 			model.addTopology(topology);
 
-			commonAttributeHandler.readSimpleAttributes(topologyXML, topology);
-			readChildComponents(topologyXML, topology, false);
+			serializationHandler.readXML(topologyXML, topology);
 
 			final List<XMLTag> nodeList = topologyXML.getNestedXMLTagsWithName("Node");
 
@@ -335,7 +245,7 @@ public class ModelXMLReader {
 		List<XMLTag> elements = templateRoot.getNestedXMLTags();
 
 		for(XMLTag e: elements){
-			IBasicComponent component = (IBasicComponent) createComponentFromXML(e, false);
+			IBasicComponent component = (IBasicComponent) serializationHandler.createDynamicObjectFromXML(e);
 			model.templateManager.addTemplate(component, component.getName());
 		}
 	}
@@ -359,7 +269,7 @@ public class ModelXMLReader {
 
 			List<XMLTag>  list = element.getNestedXMLTags();
 			for (XMLTag e : list) {
-				IBasicComponent newComponent = (IBasicComponent) createComponentFromXML(e, false);
+				IBasicComponent newComponent = (IBasicComponent) serializationHandler.createDynamicObjectFromXML(e);
 				try{
 					model.addComponent(newComponent);
 
@@ -367,81 +277,6 @@ public class ModelXMLReader {
 					throw new IllegalArgumentException("Searching for " + type + "List. Parsed: " + newComponent, error);
 				}
 			}
-		}
-	}
-
-	////////////////////////////////////////////////////////////////////////////////
-
-	// the following methods are called by reflection during creation of a object and allow
-	// to specify special actions.
-
-	/**
-	 * Dummy wrapper is called if no specific method can be found
-	 *
-	 * @param xml
-	 * @param dummy
-	 */
-	private void readComponentDetailsFromXML(XMLTag xml, BasicComponent dummy) throws Exception{
-		commonAttributeHandler.readSimpleAttributes(xml, dummy.getIdentifier());
-	}
-
-	////////////////////////////////////////////////////////////////////////////////
-
-
-	/**
-	 * Read all child components of a component from the XML based on the <code>ChildComponents</code>
-	 * annotation.
-	 *
-	 * @param xml The node containing the object.
-	 * @param comp
-	 * @param isCloneOfTemplate Is this object a clone of a template
-	 * @throws Exception
-	 */
-	private void readChildComponents(XMLTag xml, ISerializableObject comp, boolean isCloneOfTemplate) throws Exception{
-		// Walk through the object hierarchy
-		Class<?> classIterate = comp.getClass();
-
-		while(classIterate != Object.class) {
-			Field [] fields = classIterate.getDeclaredFields();
-			for (Field field : fields) {
-				if( ! field.isAnnotationPresent(ChildComponents.class))
-					continue;
-				// check if a default class shall be loaded.
-				final ChildComponents annotation = field.getAnnotation(ChildComponents.class);
-
-				final XMLTag parentNode = xml.getFirstNestedXMLTagWithName(field.getName().toUpperCase());
-
-				if(parentNode == null) {
-					// not set!
-					continue;
-				}
-
-				field.setAccessible(true);
-
-				List<XMLTag>  elements = parentNode.getNestedXMLTags();
-				if(elements != null){
-					// create child components
-					for(XMLTag e: elements){
-						ISerializableObject newComponent = createComponentFromXML(e, isCloneOfTemplate);
-
-						if(IChildObject.class.isAssignableFrom(newComponent.getClass())){
-							//now set the child's parent components if needed:
-							((IChildObject) newComponent).setParentComponent((IBasicComponent) comp);
-						}
-
-						if(Collection.class.isAssignableFrom(field.getType()) ){
-							((Collection<ISerializableObject>) field.get(comp)).add(newComponent);
-						}else{
-							field.set(comp, newComponent);
-						}
-					}
-				}
-
-
-				field.setAccessible(false);
-			}
-
-			classIterate = classIterate.getSuperclass();
 		}
 	}
 

@@ -37,6 +37,7 @@ import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
+import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
 
 /**
  * This class contains informations about an MPI_file.
@@ -45,7 +46,7 @@ import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
  * @author Julian M. Kunkel
  *
  */
-public class MPIFile{
+public class MPIFile implements ISerializableObject{
 
 	@Attribute(type=AttributeXMLType.ATTRIBUTE)
 	@NotNull

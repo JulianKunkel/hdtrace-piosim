@@ -2,7 +2,7 @@ package de.hd.pvs.piosim.model.networkTopology;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
+import de.hd.pvs.piosim.model.annotations.SerializeChild;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 
@@ -20,7 +20,7 @@ public class NetworkTopology extends NetworkGraph implements INetworkTopology {
 	// routing protocol could maybe be set on one network topology (Bus system, link together with
 	// redundant 2-D Torus or sth.
 
-	@ChildComponents
+	@SerializeChild
 	private PaketRoutingAlgorithm routingAlgorithm = null;
 
 	public void setRoutingAlgorithm(PaketRoutingAlgorithm routingAlgorithm) {

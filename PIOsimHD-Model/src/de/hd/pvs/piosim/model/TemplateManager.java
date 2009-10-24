@@ -31,7 +31,8 @@ import java.util.HashMap;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
-import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
+import de.hd.pvs.piosim.model.interfaces.IDynamicModelComponent;
+import de.hd.pvs.piosim.model.interfaces.ISerializableTemplateObject;
 
 
 /**
@@ -43,16 +44,16 @@ import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
 public class TemplateManager {
 
 	private final XMLReaderToRAM reader = new XMLReaderToRAM();
-	private final ModelXMLReader mreader = new ModelXMLReader();
+	private final SerializationHandler serializationHandler = new SerializationHandler();
 
 	/* String == Template-Name */
-	private HashMap<String, ISerializableObject> templates = new HashMap<String, ISerializableObject>();
+	private HashMap<String, IDynamicModelComponent> templates = new HashMap<String, IDynamicModelComponent>();
 
 	/**
 	 * Return all templates.
 	 * @return the templates
 	 */
-	public Collection<ISerializableObject> getTemplates() {
+	public Collection<IDynamicModelComponent> getTemplates() {
 		return templates.values();
 	}
 
@@ -61,15 +62,19 @@ public class TemplateManager {
 	 * @param search the template name
 	 * @return the template with a given name or null
 	 */
-	public ISerializableObject getTemplate(String search){
+	public IDynamicModelComponent getTemplate(String search){
 		return templates.get(search);
+	}
+
+	public void addTemplate(ISerializableTemplateObject template){
+		addTemplate(template, template.getName());
 	}
 
 	/**
 	 * Add a template. The Object is cloned via XML to ensure that modifications which are done
 	 * after the component is added do not affect cloned components.
 	 */
-	public void addTemplate(ISerializableObject template, String name){
+	public void addTemplate(IDynamicModelComponent template, String name){
 		if(name == null || name.length() < 2){
 			throw new IllegalArgumentException("Template name must be longer than 1 character");
 		}
@@ -79,8 +84,7 @@ public class TemplateManager {
 		}
 
 		try{
-			ModelXMLReader mreader = new ModelXMLReader();
-			ISerializableObject clonedTemplate = mreader.createComponentFromXML(getXMLRepresentation(template), false);
+			IDynamicModelComponent clonedTemplate = serializationHandler.createDynamicObjectFromXML(getXMLRepresentation(template));
 
 			templates.put(name, clonedTemplate);
 		}catch(Exception e){
@@ -94,11 +98,9 @@ public class TemplateManager {
 	 * @return Root element node.
 	 * @throws Exception
 	 */
-	private XMLTag getXMLRepresentation(ISerializableObject component) throws Exception{
-		ModelXMLWriter mwriter = new ModelXMLWriter();
-
+	private XMLTag getXMLRepresentation(IDynamicModelComponent component) throws Exception{
 		StringBuffer sb = new StringBuffer();
-		mwriter.createXMLFromInstance(component, sb);
+		serializationHandler.createXMLFromInstance(component, sb);
 
 		//System.out.println("XML: " + sb);
 
@@ -113,12 +115,12 @@ public class TemplateManager {
 	 * @return The cloned component.
 	 * @throws Exception
 	 */
-	public <T extends IBasicComponent> T cloneFromTemplate(T component) throws Exception{
+	public <T extends ISerializableTemplateObject> T cloneFromTemplate(T component) throws Exception{
 		if(templates.get(component.getName()) == null){
 			throw new IllegalArgumentException("Template is not registered!");
 		}
 
-		T clone = (T) mreader.createComponentFromXML(getXMLRepresentation(component), true);
+		T clone = (T) serializationHandler.createDynamicObjectFromXML(getXMLRepresentation(component));
 
 		return clone;
 	}
@@ -129,8 +131,8 @@ public class TemplateManager {
 	 * @return The cloned component
 	 * @throws Exception
 	 */
-	public IBasicComponent cloneFromTemplate(String name) throws Exception{
-		ISerializableObject component = templates.get(name);
+	public IDynamicModelComponent cloneFromTemplate(String name) throws Exception{
+		IDynamicModelComponent component = templates.get(name);
 		if(component == null){
 			throw new IllegalArgumentException("Template with name " + name + " does not exists!");
 		}

@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
+/** Version Control Information $Id$
+ * @lastmodified    $Date$
+ * @modifiedby      $LastChangedBy$
+ * @version         $Revision$
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -33,7 +33,7 @@ import java.util.LinkedList;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
+import de.hd.pvs.piosim.model.annotations.SerializeChild;
 import de.hd.pvs.piosim.model.interfaces.IChildObject;
 
 /**
@@ -44,11 +44,12 @@ import de.hd.pvs.piosim.model.interfaces.IChildObject;
  * @author Julian M. Kunkel
  */
 public abstract class BasicComponent<ParentType extends BasicComponent>
-	implements Comparable, IBasicComponent, IChildObject<ParentType>
+implements Comparable<BasicComponent>, IBasicComponent, IChildObject<ParentType>
 {
 	/**
 	 * The identifier of the component.
 	 */
+	@SerializeChild
 	private ComponentIdentifier identifier = new ComponentIdentifier();
 
 	/**
@@ -74,8 +75,8 @@ public abstract class BasicComponent<ParentType extends BasicComponent>
 	/**
 	 * Components are only defined by the ComponentIdentifier.
 	 */
-	public int compareTo(Object o) {
-		return this.identifier.compareTo(((BasicComponent<?>) o).identifier);
+	public int compareTo(BasicComponent o) {
+		return this.identifier.compareTo(o.identifier);
 	}
 
 	public ComponentIdentifier getIdentifier() {
@@ -94,7 +95,7 @@ public abstract class BasicComponent<ParentType extends BasicComponent>
 
 	@Override
 	public String toString() {
-			return this.getClass().getSimpleName() + "-" + identifier + " <" + template  + "> ";
+		return this.getClass().getSimpleName() + "-" + identifier + " <" + template  + "> ";
 	}
 
 	final public void setTemplate(String template) {
@@ -136,7 +137,7 @@ public abstract class BasicComponent<ParentType extends BasicComponent>
 		while(classIterate != Object.class) {
 			Field [] fields = classIterate.getDeclaredFields();
 			for (Field field : fields) {
-				if( ! field.isAnnotationPresent(ChildComponents.class))
+				if( ! field.isAnnotationPresent(SerializeChild.class))
 					continue;
 
 				try{
@@ -149,9 +150,12 @@ public abstract class BasicComponent<ParentType extends BasicComponent>
 							ret.add((BasicComponent) o);
 						}
 					}else{// single object
-						IBasicComponent c = (IBasicComponent) field.get(this);
-						if(c != null){
-							ret.add(c);
+						final Object obj = field.get(this);
+						if(IBasicComponent.class.isInstance(obj)){
+							IBasicComponent c = (IBasicComponent) field.get(this);
+							if(c != null){
+								ret.add(c);
+							}
 						}
 					}
 					field.setAccessible(false);

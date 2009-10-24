@@ -6,7 +6,7 @@ package de.hd.pvs.piosim.model.interfaces;
  * @author julian
  *
  */
-public interface ISerializableTemplateObject {
+public interface ISerializableTemplateObject extends IDynamicModelComponent {
 	public String getTemplate();
 
 	public String getName();

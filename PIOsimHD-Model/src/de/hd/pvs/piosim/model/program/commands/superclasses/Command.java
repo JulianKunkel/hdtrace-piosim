@@ -31,7 +31,7 @@ package de.hd.pvs.piosim.model.program.commands.superclasses;
 import com.sun.istack.internal.NotNull;
 
 import de.hd.pvs.TraceFormat.xml.XMLTag;
-import de.hd.pvs.piosim.model.interfaces.IXMLReader;
+import de.hd.pvs.piosim.model.interfaces.IExtendedXMLHandling;
 import de.hd.pvs.piosim.model.program.Program;
 
 /**
@@ -41,7 +41,7 @@ import de.hd.pvs.piosim.model.program.Program;
  * @author Julian M. Kunkel
  *
  */
-abstract public class Command implements IXMLReader{
+abstract public class Command implements IExtendedXMLHandling{
 	private Program myProgram;
 	private Integer asynchronousID; //null if blocking
 

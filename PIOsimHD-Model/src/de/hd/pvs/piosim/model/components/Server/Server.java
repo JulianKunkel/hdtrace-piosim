@@ -25,7 +25,7 @@
 
 package de.hd.pvs.piosim.model.components.Server;
 
-import de.hd.pvs.piosim.model.annotations.ChildComponents;
+import de.hd.pvs.piosim.model.annotations.SerializeChild;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
 import de.hd.pvs.piosim.model.components.IOSubsystem.IOSubsystem;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
@@ -44,14 +44,14 @@ public class Server extends NodeHostedComponent implements IIOTarget {
 	/**
 	 * The simple Server contains one IOsubsystem used to store data.
 	 */
-	@ChildComponents
+	@SerializeChild
 	private IOSubsystem iosubsystem = null;
 
 	/**
 	 * The cache implementation to choose for this particular server.
 	 */
 	@NotNull
-	@ChildComponents
+	@SerializeChild
 	private ServerCacheLayer cacheStrategy = null;
 
 	/**

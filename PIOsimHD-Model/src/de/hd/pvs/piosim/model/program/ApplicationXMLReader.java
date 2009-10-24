@@ -39,7 +39,7 @@ import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
-import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
+import de.hd.pvs.piosim.model.SerializationHandler;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.program.commands.Compute;
@@ -68,7 +68,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		super.readProjectDescription(app, xmlFile.getAbsolutePath());
 
-		final AttributeAnnotationHandler commonHandler = new AttributeAnnotationHandler();
+		final SerializationHandler serializationHandler = new SerializationHandler();
 
 		LinkedList<XMLTag>  elements;
 		XMLTag applicationNode = rootTag;
@@ -84,9 +84,11 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		for (int i = 0; i < elements.size(); i++) {
 			final MPIFile f = new MPIFile();
 
-			commonHandler.readSimpleAttributes(elements.get(i), f);
-			f.setDistribution(Distribution.readDistributionFromXML(
-					elements.get(i).getFirstNestedXMLTagWithName("Distribution")));
+			serializationHandler.readXML(elements.get(i), f);
+
+			final Distribution dist = (Distribution) serializationHandler.createDynamicObjectFromXML(elements.get(i).getFirstNestedXMLTagWithName("Distribution"));
+			f.setDistribution(dist);
+
 			app.addFile(f);
 		}
 

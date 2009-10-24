@@ -173,7 +173,7 @@ public class ModelBuilder {
 	 * @param template
 	 */
 	public void addTemplate(IBasicComponent template){
-		model.getTemplateManager().addTemplate(template, template.getName());
+		model.getTemplateManager().addTemplate(template);
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class ModelBuilder {
 	public void changeComponentToTemplate(IBasicComponent component){
 		// remove component from the model.
 		model.removeComponent(component);
-		model.getTemplateManager().addTemplate(component, component.getName());
+		model.getTemplateManager().addTemplate(component);
 	}
 
 	/**

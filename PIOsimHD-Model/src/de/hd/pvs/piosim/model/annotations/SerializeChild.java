@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: ChildComponents.java 703 2009-10-04 08:23:49Z kunkel $
+  * @lastmodified    $Date: 2009-10-04 10:23:49 +0200 (So, 04. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 703 $
   */
 
 
@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface ChildComponents {
+public @interface SerializeChild {
 	/**
 	 * Specify a default class to be loaded if the value is not specified
 	 * @return
