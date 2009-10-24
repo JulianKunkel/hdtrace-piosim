@@ -11,8 +11,10 @@ import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreAndForwardExitNode;
-import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.StoreForwardNodeExit;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GEntryNode;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GExitNode;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.ModelEntryNode;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.ModelExitNode;
 
 public class BasicHardwareSetup implements TestHardwareSetup{
 	protected final long MBYTE = 1000 * 1000;
@@ -24,17 +26,6 @@ public class BasicHardwareSetup implements TestHardwareSetup{
 		return conn;
 	}
 
-	public INetworkNode setupNetworkNode(){
-		StoreForwardNodeExit exitRouteNode = new StoreForwardNodeExit();
-		// add our own implementation
-		DynamicModelClassMapper.addComponentImplementation(exitRouteNode.getObjectType(),
-				StoreForwardNodeExit.class.getCanonicalName(),
-				GStoreAndForwardExitNode.class.getCanonicalName());
-
-		exitRouteNode.setTotalBandwidth(1000 * MBYTE);
-
-		return exitRouteNode;
-	}
 	public INetworkNode createNetworkNode(){
 		StoreForwardNode sw = new StoreForwardNode();
 		sw.setTotalBandwidth(1000 * MBYTE);
@@ -42,12 +33,21 @@ public class BasicHardwareSetup implements TestHardwareSetup{
 	}
 
 	public INetworkExit createNetworkExit(){
-		INetworkExit exit = (INetworkExit) setupNetworkNode();
-		return exit;
+		ModelExitNode node = new ModelExitNode();
+		// add our own implementation
+		DynamicModelClassMapper.addComponentImplementation(node.getObjectType(),
+				ModelExitNode.class.getCanonicalName(),
+				GExitNode.class.getCanonicalName());
+
+		return node;
 	}
 
 	public INetworkEntry createNetworkEntry(){
-		INetworkEntry entry = (INetworkEntry) setupNetworkNode();
-		return entry;
+		ModelEntryNode node = new ModelEntryNode();
+		// add our own implementation
+		DynamicModelClassMapper.addComponentImplementation(node.getObjectType(),
+				ModelEntryNode.class.getCanonicalName(),
+				GEntryNode.class.getCanonicalName());
+		return node;
 	}
 }

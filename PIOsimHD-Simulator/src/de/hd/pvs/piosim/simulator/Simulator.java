@@ -333,7 +333,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 	 * @param com
 	 */
 	public void addSimulatedComponent(ISPassiveComponent com) {
-		if (com.getIdentifier().getID() == null) {
+		if (com.getIdentifier().getID() == ComponentIdentifier.INVALID_ID) {
 			throw new IllegalArgumentException("Identifier is null!");
 		}
 
@@ -354,9 +354,9 @@ public final class Simulator implements IModelToSimulatorMapper {
 		assert (event.getEarliestStartTime().compareTo(currentEpoch) >= 0);
 
 		// TODO
-		for(InternalEvent ev: futureEvents){
-			assert(ev.getTargetComponent() != event.getTargetComponent());
-		}
+		//for(InternalEvent ev: futureEvents){
+		//	assert(ev.getTargetComponent() != event.getTargetComponent());
+		//}
 
 		futureEvents.add(event);
 	}

@@ -121,11 +121,15 @@ public class GPaketRoundRobinRoute extends GPaketRoutingPersistentRoute<PaketRou
 	}
 
 	@Override
-	public IGNetworkEdge getTargetRouteForMessageNow(INetworkNode src, MessagePart part) {
-		HashMap<INetworkExit, RouteSettings> routes = routingTableSrcMap.get(src);
+	public IGNetworkEdge getTargetRouteForMessageNow(INetworkNode cur, MessagePart part) {
+		HashMap<INetworkExit, RouteSettings> routes = routingTableSrcMap.get(cur);
 		final IGNetworkEdge edge;
 
 		final RouteSettings routeSetting = routes.get(part.getMessageTarget());
+		if(routeSetting == null){
+			return null;
+		}
+
 		if(routeSetting.edges.size() == 0){
 			return routeSetting.edges.iterator().next();
 		}

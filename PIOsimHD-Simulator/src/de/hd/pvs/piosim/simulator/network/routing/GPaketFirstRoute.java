@@ -130,8 +130,6 @@ public class GPaketFirstRoute extends AGPaketRouting<PaketFirstRoute> {
 		}else{
 			edge = routes.get(part.getMessageTarget());
 
-			assert(edge != null);
-
 			return edge;
 		}
 	}

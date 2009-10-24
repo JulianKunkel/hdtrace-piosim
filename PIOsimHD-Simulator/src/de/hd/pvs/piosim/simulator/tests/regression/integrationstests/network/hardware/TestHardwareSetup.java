@@ -9,8 +9,6 @@ public interface TestHardwareSetup {
 
 	public abstract NetworkEdge createEdge();
 
-	public abstract INetworkNode setupNetworkNode();
-
 	public abstract INetworkNode createNetworkNode();
 
 	public abstract INetworkExit createNetworkExit();

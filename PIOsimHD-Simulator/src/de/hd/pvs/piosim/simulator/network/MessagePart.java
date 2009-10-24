@@ -27,6 +27,7 @@ package de.hd.pvs.piosim.simulator.network;
 
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
+import de.hd.pvs.piosim.simulator.event.EventData;
 
 
 /**
@@ -36,7 +37,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
  * @author Julian M. Kunkel
  *
  */
-public class MessagePart implements INetworkMessage{
+public class MessagePart implements INetworkMessage, EventData{
 	/**
 	 * Size of this MessagePart
 	 */

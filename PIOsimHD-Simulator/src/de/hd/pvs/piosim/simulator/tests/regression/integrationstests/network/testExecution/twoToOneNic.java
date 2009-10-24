@@ -6,11 +6,12 @@ package de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.te
 import java.util.ArrayList;
 
 import junit.framework.TestCase;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreAndForwardExitNode;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GExitNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkNode;
 import de.hd.pvs.piosim.simulator.network.Message;
@@ -21,7 +22,7 @@ import de.hd.pvs.piosim.simulator.network.Message;
  *
  */
 public class twoToOneNic extends TestCase implements TestExecution{
-	GStoreAndForwardExitNode exitGNode;
+	GExitNode exitGNode;
 
 	final long SIZE = 1000 * 1000;
 
@@ -41,17 +42,17 @@ public class twoToOneNic extends TestCase implements TestExecution{
 			throws Exception
 	{
 		final INetworkExit endNode = exits.get(0);
-		exitGNode = (GStoreAndForwardExitNode) sim.getSimulatedComponent(endNode);
+		exitGNode = (GExitNode) sim.getSimulatedComponent(endNode);
 
 		IGNetworkEntry startNode = (IGNetworkEntry) sim.getSimulatedComponent(entries.get(entries.size() - 1));
 		Message msg = new Message(SIZE, null, entries.get(entries.size() - 1), endNode);
-		startNode.submitNewMessage(msg);
+		startNode.submitNewMessage(msg, Epoch.ZERO);
 
 		System.out.println("from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode.getIdentifier());
 
 		startNode = (IGNetworkEntry)  sim.getSimulatedComponent(entries.get(0));
 		msg = new Message(SIZE, null, entries.get(0), endNode);
-		startNode.submitNewMessage(msg);
+		startNode.submitNewMessage(msg, Epoch.ZERO);
 
 		System.out.println("and from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode.getIdentifier());
 	}

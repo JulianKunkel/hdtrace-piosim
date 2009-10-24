@@ -20,6 +20,7 @@ import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.network.GNetworkTopology;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.BasicHardwareSetup;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareCutThroughNetwork;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareHighLatency;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.HardwareNICs;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.hardware.TestHardwareSetup;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.NICPartialRecv;
@@ -27,7 +28,7 @@ import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.tes
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.NICTwoToTwoCross;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.TestExecution;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneSendFromTwoNic;
-import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneToTwoNic;
+import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.oneToTwoNodes;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoSendsFromOneNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.testExecution.twoToOneNic;
 import de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.topology.TestTopology;
@@ -107,6 +108,19 @@ public class NetworkRoutingTest extends TestSuite{
 		}
 	}
 
+	@Test
+	public void crossSendHighLatency() throws Exception{
+		runParameters.setTraceEnabled(true);
+
+		runTestFor(new HardwareHighLatency(), new testGrid(), new oneSendFromTwoNic());
+	}
+
+	@Test
+	public void sendHighLatency() throws Exception{
+		runParameters.setTraceEnabled(true);
+
+		runTestFor(new HardwareHighLatency(), new testGrid(), new twoSendsFromOneNic());
+	}
 
 	@Test
 	public void crossSend() throws Exception{
@@ -135,8 +149,6 @@ public class NetworkRoutingTest extends TestSuite{
 
 	@Test
 	public void NICTWOToTwoCrossTest() throws Exception{
-		runParameters.setTraceEnabled(true);
-
 		runTestFor(new HardwareNICs(), new testSwitchingTopology(), new NICTwoToTwoCross());
 	}
 
@@ -146,8 +158,10 @@ public class NetworkRoutingTest extends TestSuite{
 	}
 
 	@Test
-	public void oneToTwoTargets() throws Exception{
-		runTestFor(new BasicHardwareSetup(), new testGrid(), new oneToTwoNic());
+	public void oneToTwoTargetsGrid() throws Exception{
+		runParameters.setTraceEnabled(true);
+
+		runTestFor(new BasicHardwareSetup(), new testGrid(), new oneToTwoNodes());
 	}
 
 	@Test
@@ -171,7 +185,7 @@ public class NetworkRoutingTest extends TestSuite{
 	@Test
 	public void oneToTwoTargetSwitchCutThrough() throws Exception{
 		runParameters.setTraceEnabled(true);
-		runTestFor(new HardwareCutThroughNetwork(), new testSwitchingTopology(), new oneToTwoNic());
+		runTestFor(new HardwareCutThroughNetwork(), new testSwitchingTopology(), new oneToTwoNodes());
 	}
 
 	@Test

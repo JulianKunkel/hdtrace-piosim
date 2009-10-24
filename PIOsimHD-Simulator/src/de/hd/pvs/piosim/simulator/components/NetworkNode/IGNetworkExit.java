@@ -1,5 +1,6 @@
 package de.hd.pvs.piosim.simulator.components.NetworkNode;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 
@@ -10,13 +11,5 @@ public interface IGNetworkExit {
 	 * @param part
 	 * @param endTime
 	 */
-	public void messagePartReceived(MessagePart part);
-
-	/**
-	 * Check if we can receive a message part.
-	 *
-	 * @param part
-	 * @return
-	 */
-	public boolean mayIReceiveAMessagePart(MessagePart part);
+	public void messagePartDestroyed(MessagePart part, Epoch endTime);
 }

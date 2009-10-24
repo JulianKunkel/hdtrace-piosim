@@ -35,7 +35,7 @@ import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
+import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
@@ -53,8 +53,6 @@ public class GNode<ModelComp extends Node>
 extends SBasicComponent<ModelComp>
 implements INodeRessources
 {
-	private INetworkRessource networkInterface;
-
 	/**
 	 * Clients contained in this node.
 	 */
@@ -116,9 +114,6 @@ implements INodeRessources
 	public void setModelComponent(ModelComp comp) throws Exception {
 		super.setModelComponent(comp);
 
-		// initalize nic
-		networkInterface = (INetworkRessource) getSimulator().instantiateSimObjectForModelObj(comp.getNetworkInterface());
-
 		// initialize freeMemroy
 		freeMemory = comp.getMemorySize();
 
@@ -141,6 +136,8 @@ implements INodeRessources
 
 			hosted.put(scomp.getIdentifier(), scomp);
 
+			// initalize network-interface for process
+			IProcessNetworkInterface networkInterface = (IProcessNetworkInterface) getSimulator().instantiateSimObjectForModelObj(c.getNetworkInterface());
 			scomp.setNetworkInterface(networkInterface);
 			scomp.setNodeRessources(this);
 		}

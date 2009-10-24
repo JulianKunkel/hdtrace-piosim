@@ -6,11 +6,12 @@ package de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.te
 import java.util.ArrayList;
 
 import junit.framework.TestCase;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreAndForwardExitNode;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GExitNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkNode;
 import de.hd.pvs.piosim.simulator.network.Message;
@@ -21,8 +22,8 @@ import de.hd.pvs.piosim.simulator.network.Message;
  *
  */
 public class oneSendFromTwoNic extends TestCase implements TestExecution{
-	GStoreAndForwardExitNode exitGNode;
-	GStoreAndForwardExitNode exitGNode2;
+	GExitNode exitGNode;
+	GExitNode exitGNode2;
 
 	final long SIZE = 1000 * 1000;
 
@@ -33,7 +34,7 @@ public class oneSendFromTwoNic extends TestCase implements TestExecution{
 	{
 		System.out.println("Bandwidth: " + (exitGNode.getRcvdData() + exitGNode2.getRcvdData() )/ sim.getVirtualTime().getDouble() / 1000 / 1000 + " MB/s");
 
-		assertTrue(exitGNode.getRcvdData() + exitGNode2.getRcvdData() == SIZE * 2);
+		assertTrue("Rcvd:" + (exitGNode.getRcvdData() + exitGNode2.getRcvdData()) + " expected " +  SIZE * 2, exitGNode.getRcvdData() + exitGNode2.getRcvdData() == SIZE * 2);
 	}
 
 	@Override
@@ -42,18 +43,18 @@ public class oneSendFromTwoNic extends TestCase implements TestExecution{
 			throws Exception
 	{
 		INetworkExit endNode = exits.get(0);
-		exitGNode = (GStoreAndForwardExitNode) sim.getSimulatedComponent(endNode);
+		exitGNode = (GExitNode) sim.getSimulatedComponent(endNode);
 
 		IGNetworkEntry startNode = (IGNetworkEntry) sim.getSimulatedComponent(entries.get(entries.size() - 1));
 		Message msg = new Message(SIZE, null, entries.get(entries.size() - 1), endNode);
-		startNode.submitNewMessage(msg);
+		startNode.submitNewMessage(msg, Epoch.ZERO);
 		System.out.println("from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode.getIdentifier());
 
 		endNode = exits.get(exits.size() -1 );
-		exitGNode2 = (GStoreAndForwardExitNode) sim.getSimulatedComponent(endNode);
+		exitGNode2 = (GExitNode) sim.getSimulatedComponent(endNode);
 		startNode = (IGNetworkEntry)  sim.getSimulatedComponent(entries.get(0));
 		msg = new Message(SIZE, null, entries.get(0), endNode);
-		startNode.submitNewMessage(msg);
+		startNode.submitNewMessage(msg, Epoch.ZERO);
 
 		System.out.println("from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode2.getIdentifier());
 

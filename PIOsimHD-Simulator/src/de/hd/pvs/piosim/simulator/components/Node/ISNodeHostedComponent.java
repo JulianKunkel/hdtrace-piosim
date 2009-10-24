@@ -28,7 +28,7 @@ package de.hd.pvs.piosim.simulator.components.Node;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
+import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
@@ -42,8 +42,8 @@ import de.hd.pvs.piosim.simulator.network.MessagePart;
 public interface ISNodeHostedComponent<Type extends SPassiveComponent>
 {
 
-	public void setNetworkInterface(INetworkRessource nic);
-	public INetworkRessource getNetworkInterface();
+	public void setNetworkInterface(IProcessNetworkInterface nic);
+	public IProcessNetworkInterface getNetworkInterface();
 
 	public void setNodeRessources(INodeRessources ressources);
 	public INodeRessources getNodeRessources();

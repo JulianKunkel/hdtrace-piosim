@@ -6,11 +6,12 @@ package de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network.te
 import java.util.ArrayList;
 
 import junit.framework.TestCase;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
-import de.hd.pvs.piosim.simulator.components.NetworkNode.GStoreAndForwardExitNode;
+import de.hd.pvs.piosim.simulator.components.NetworkNode.GExitNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkNode;
 import de.hd.pvs.piosim.simulator.network.Message;
@@ -20,9 +21,9 @@ import de.hd.pvs.piosim.simulator.network.Message;
  * @author julian
  *
  */
-public class oneToTwoNic extends TestCase implements TestExecution{
-	GStoreAndForwardExitNode exitGNode;
-	GStoreAndForwardExitNode exitGNode2;
+public class oneToTwoNodes extends TestCase implements TestExecution{
+	GExitNode exitGNode;
+	GExitNode exitGNode2;
 
 	final long SIZE = 1000 * 1000;
 	final int COUNT = 2;
@@ -46,19 +47,19 @@ public class oneToTwoNic extends TestCase implements TestExecution{
 	{
 
 		INetworkExit endNode = exits.get(0);
-		exitGNode = (GStoreAndForwardExitNode) sim.getSimulatedComponent(endNode);
+		exitGNode = (GExitNode) sim.getSimulatedComponent(endNode);
 
 		final IGNetworkEntry startNode = (IGNetworkEntry) sim.getSimulatedComponent(entries.get(0));
 		Message msg = new Message(SIZE, null, entries.get(0), endNode);
-		startNode.submitNewMessage(msg);
+		startNode.submitNewMessage(msg, Epoch.ZERO);
 
 		endNode = exits.get(exits.size() -1 );
 
 		System.out.println("from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode.getIdentifier());
 
-		exitGNode2 = (GStoreAndForwardExitNode) sim.getSimulatedComponent(endNode);
+		exitGNode2 = (GExitNode) sim.getSimulatedComponent(endNode);
 		msg = new Message(SIZE, null, entries.get(0), endNode);
-		startNode.submitNewMessage(msg);
+		startNode.submitNewMessage(msg, Epoch.ZERO);
 
 		System.out.println("from " + ((IGNetworkNode) startNode).getIdentifier() + " to " + exitGNode2.getIdentifier());
 

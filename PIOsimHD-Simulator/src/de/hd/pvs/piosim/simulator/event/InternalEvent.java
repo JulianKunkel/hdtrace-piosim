@@ -26,7 +26,7 @@
 package de.hd.pvs.piosim.simulator.event;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.simulator.base.SBasicComponent;
+import de.hd.pvs.piosim.simulator.base.ISBasicComponent;
 
 /**
  * An internal event is an event a component submits to itself to start internal processing in
@@ -50,10 +50,10 @@ implements Comparable<InternalEvent>
 	/**
 	 * The component which will start the event.
 	 */
-	private final SBasicComponent targetComponent;
+	private final ISBasicComponent targetComponent;
 
 
-	public InternalEvent(SBasicComponent targetComponent, Epoch earlistStartTime){
+	public InternalEvent(ISBasicComponent targetComponent, Epoch earlistStartTime){
 		this.earlistStartTime = earlistStartTime;
 		this.targetComponent = targetComponent;
 	}
@@ -68,7 +68,7 @@ implements Comparable<InternalEvent>
 		return earlistStartTime;
 	}
 
-	public SBasicComponent getTargetComponent() {
+	public ISBasicComponent getTargetComponent() {
 		return targetComponent;
 	}
 

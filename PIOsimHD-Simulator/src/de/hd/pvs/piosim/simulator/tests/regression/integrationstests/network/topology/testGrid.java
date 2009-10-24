@@ -44,19 +44,44 @@ public class testGrid implements TestTopology{
 		// create nodes:
 		for(int y = 0 ; y < height; y++){
 			for (int x = 0; x < width; x++) {
-				INetworkNode cur;
-				if(x % 2 == 0){
-					cur = mb.cloneFromTemplate(exitNode);
-					exitsOut.add((INetworkExit) cur);
-				}else{
-					cur = (INetworkNode) mb.cloneFromTemplate(entryNode);
-					entriesOut.add((INetworkEntry) cur);
-				}
+				INetworkNode cur = mb.cloneFromTemplate(node);
 				cur.setName(x + ":"  + y );
 				nodes.add(cur);
 				mb.addNetworkNode(cur);
 			}
 		}
+
+		// create exits:
+		for(int y = 0 ; y < height; y++){
+			for (int x = 0; x < width; x++) {
+				INetworkExit cur = mb.cloneFromTemplate(exitNode);
+				exitsOut.add(cur);
+				mb.addNetworkNode(cur);
+				cur.setName("S" + x + ":"  + y );
+
+				// link it.
+				INetworkEdge edge = mb.cloneFromTemplate(myEdge);
+				INetworkNode src = nodes.get(x + y * width);
+				edge.setName(src.getName() + "->" + cur.getName());
+				mb.connect(topology, src, edge , cur);
+			}
+		}
+
+		// create entries.
+		for(int y = 0 ; y < height; y++){
+			for (int x = 0; x < width; x++) {
+				INetworkEntry cur = mb.cloneFromTemplate(entryNode);
+				entriesOut.add(cur);
+				mb.addNetworkNode(cur);
+				cur.setName("E" + x + ":"  + y );
+
+				INetworkEdge edge = mb.cloneFromTemplate(myEdge);
+				INetworkNode tgt = nodes.get(x + y * width);
+				edge.setName(cur.getName() + "->" + tgt.getName());
+				mb.connect(topology, cur, edge , tgt);
+			}
+		}
+
 		// create horizontal edges:
 		for(int y = 0 ; y < height; y++){
 			for (int x = 0; x < width - 1; x++) {

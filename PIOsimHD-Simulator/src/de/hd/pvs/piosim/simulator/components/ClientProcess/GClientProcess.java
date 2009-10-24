@@ -42,7 +42,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
+import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessourceProvider;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobType;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
@@ -67,7 +67,7 @@ public class GClientProcess
 	extends SBasicComponent<ClientProcess>
 	implements ISNodeHostedComponent<SPassiveComponent<ClientProcess>>
 {
-	private INetworkRessource networkInterface;
+	private INetworkRessourceProvider networkInterface;
 	private INodeRessources   nodeRessources;
 
 	/**
@@ -618,12 +618,12 @@ public class GClientProcess
 	}
 
 	@Override
-	public INetworkRessource getNetworkInterface() {
+	public INetworkRessourceProvider getNetworkInterface() {
 		return networkInterface;
 	}
 
 	@Override
-	public void setNetworkInterface(INetworkRessource nic) {
+	public void setNetworkInterface(INetworkRessourceProvider nic) {
 		this.networkInterface = nic;
 
 	}

@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
-import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessource;
+import de.hd.pvs.piosim.simulator.components.NIC.INetworkRessourceProvider;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
@@ -59,7 +59,7 @@ implements IGServer<SPassiveComponent<Server>>
 {
 	public static final int STEP_COMPLETED = 1000000;
 
-	private INetworkRessource networkInterface;
+	private INetworkRessourceProvider networkInterface;
 
 	private INodeRessources nodeRessources;
 
@@ -248,12 +248,12 @@ implements IGServer<SPassiveComponent<Server>>
 	}
 
 	@Override
-	public void setNetworkInterface(INetworkRessource nic) {
+	public void setNetworkInterface(INetworkRessourceProvider nic) {
 		this.networkInterface = nic;
 	}
 
 	@Override
-	public INetworkRessource getNetworkInterface() {
+	public INetworkRessourceProvider getNetworkInterface() {
 		return networkInterface;
 	}
 

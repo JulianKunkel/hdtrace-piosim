@@ -90,17 +90,6 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	}
 
 	/**
-	 * Undo the creation of the message part i.e. a call to createNextMessagePart
-	 * and then undo does not change the internal state of a message
-	 *
-	 * @param part
-	 */
-	public void undoCreationOfMessagePart(MessagePart part){
-		assert(part.getPosition() == createdPosition - part.getSize());
-		createdPosition -= part.getSize();
-	}
-
-	/**
 	 * Receive a MessagePart.
 	 * @param part
 	 */

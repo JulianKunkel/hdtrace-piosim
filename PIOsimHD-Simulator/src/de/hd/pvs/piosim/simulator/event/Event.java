@@ -26,8 +26,8 @@
 package de.hd.pvs.piosim.simulator.event;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.simulator.base.SBasicComponent;
-import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
+import de.hd.pvs.piosim.simulator.base.ISBasicComponent;
+import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 
 /**
  * An event is a single occurrence of some work information submitted to a particular component.
@@ -45,7 +45,7 @@ extends InternalEvent
 	/**
 	 * The source of the event.
 	 */
-	final SPassiveComponent<?> issueingComponent;
+	final ISPassiveComponent issueingComponent;
 
 	/**
 	 * Information about the event i.e. data contained.
@@ -63,7 +63,7 @@ extends InternalEvent
 	/**
 	 * This constructor creates a  new event.
 	 */
-	public Event(SPassiveComponent issueingComponent, SBasicComponent targetComponent,
+	public Event(ISPassiveComponent issueingComponent, ISBasicComponent targetComponent,
 			Epoch earlistStartTime, EventType eventData){
 		super(targetComponent, earlistStartTime);
 		this.issueingComponent = issueingComponent;
@@ -76,7 +76,7 @@ extends InternalEvent
 	 * Return the source of this event i.e. the component which submitted the event.
 	 * @return
 	 */
-	public SPassiveComponent getIssuingComponent(){
+	public ISPassiveComponent getIssuingComponent(){
 		return issueingComponent;
 	}
 

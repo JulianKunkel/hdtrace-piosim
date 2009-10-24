@@ -2,30 +2,17 @@ package de.hd.pvs.piosim.simulator.components.NetworkEdge;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
-import de.hd.pvs.piosim.simulator.base.IGNetworkFlowComponent;
+import de.hd.pvs.piosim.simulator.base.ISNetworkComponent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 public class GSimpleNetworkEdge extends AGNetworkEdge<SimpleNetworkEdge> {
-
-	/**
-	 * Method is called upon initialization of the component
-	 *
-	 * @return the maximum time a message part needs to get transported to the end of this edge.
-	 */
 	@Override
-	protected Epoch getMaximumTransportDurationForAMessagePart(){
-		// latency + max msg part size / bandwidth
-		return computeTransportTime(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
-	}
-
-	@Override
-	protected Epoch computeTransportTime(MessagePart part){
+	public Epoch getProcessingTime(MessagePart part) {
 		return computeTransportTime(part.getSize());
 	}
 
 	@Override
-	protected IGNetworkFlowComponent getTargetComponent(MessagePart part) {
-
+	public ISNetworkComponent getTargetFlowComponent(MessagePart part) {
 		return getTargetNode();
 	}
 
@@ -35,7 +22,16 @@ public class GSimpleNetworkEdge extends AGNetworkEdge<SimpleNetworkEdge> {
 	 * @return
 	 */
 	private Epoch computeTransportTime(long size){
-		return getModelComponent().getLatency().add(((double) size) / getModelComponent().getBandwidth());
+		return new Epoch(((double) size) / getModelComponent().getBandwidth());
 	}
 
+	@Override
+	public Epoch getMaximumProcessingTime() {
+		return computeTransportTime(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+	}
+
+	@Override
+	public Epoch getProcessingLatency() {
+		return getModelComponent().getLatency();
+	}
 }

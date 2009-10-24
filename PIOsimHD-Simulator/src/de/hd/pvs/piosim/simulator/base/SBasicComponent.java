@@ -42,22 +42,20 @@ import de.hd.pvs.piosim.simulator.event.InternalEvent;
  * 		template variable.
  */
 public abstract class SBasicComponent<ModelComp extends IBasicComponent>
-  extends SPassiveComponent<ModelComp>
+  extends SPassiveComponent<ModelComp> implements ISBasicComponent<ModelComp>
 {
 	/**
 	 * Remembers the next internal event at which we should wake up.
 	 */
 	InternalEvent nextWakeUpEvent = null;
 
-	/**
-	 * The simulator calls this function to allow the component to actually run its next event.
-	 * This means the particular component must have an event which must be scheduled next.
+	/* (non-Javadoc)
+	 * @see de.hd.pvs.piosim.simulator.base.ISBasicComponent#processEvent(de.hd.pvs.piosim.simulator.event.Event, de.hd.pvs.TraceFormat.util.Epoch)
 	 */
 	abstract public void processEvent(Event event, Epoch time);
 
-	/**
-	 * Process an event the component started for itself
-	 * @param event
+	/* (non-Javadoc)
+	 * @see de.hd.pvs.piosim.simulator.base.ISBasicComponent#processInternalEvent(de.hd.pvs.piosim.simulator.event.InternalEvent, de.hd.pvs.TraceFormat.util.Epoch)
 	 */
 	abstract public void processInternalEvent(InternalEvent event, Epoch time);
 
