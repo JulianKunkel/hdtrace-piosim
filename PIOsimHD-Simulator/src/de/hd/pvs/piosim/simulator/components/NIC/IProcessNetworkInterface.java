@@ -21,12 +21,9 @@ public interface IProcessNetworkInterface
 	 */
 	public void initiateInterProcessReceive(InterProcessNetworkJob job, Epoch time);
 
-	/**
-	 * Return the created message for reference.
-	 * @param job
-	 * @return
-	 */
-	public Message<InterProcessNetworkJob> initiateInterProcessSend(InterProcessNetworkJob job, Epoch startTime);
+	public void initiateInterProcessSend(Message<? extends InterProcessNetworkJob> msg, Epoch startTime);
+
+	public void initiateInterProcessSend(InterProcessNetworkJob job, Epoch startTime);
 
 	public void appendAvailableDataToIncompleteSend(Message msg, long count, Epoch startTime);
 

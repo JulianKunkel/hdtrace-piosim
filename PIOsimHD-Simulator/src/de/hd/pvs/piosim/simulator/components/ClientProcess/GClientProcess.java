@@ -30,11 +30,17 @@ package de.hd.pvs.piosim.simulator.components.ClientProcess;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
+import de.hd.pvs.piosim.model.inputOutput.IORedirection;
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
+import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
@@ -42,15 +48,17 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
+import de.hd.pvs.piosim.simulator.components.NIC.IInterProcessNetworkJobCallback;
 import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobCallbackAdaptor;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobType;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
-import de.hd.pvs.piosim.simulator.network.MessagePart;
+import de.hd.pvs.piosim.simulator.inputOutput.IORedirectionHelper;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -71,6 +79,36 @@ public class GClientProcess
 	private INodeRessources   nodeRessources;
 
 	/**
+	 * If applicable.
+	 */
+	private IORedirection     ioRedirection = null;
+
+	private final IInterProcessNetworkJobCallback callback = new InterProcessNetworkJobCallbackAdaptor(){
+		@Override
+		public void recvCompletedCB(InterProcessNetworkJob remoteJob,
+				InterProcessNetworkJob announcedJob, Epoch endTime)
+		{
+			//System.out.println("RECV completed");
+
+			final NetworkJobs status = pendingJobs.remove(announcedJob);
+			assert(status != null);
+			status.jobCompletedRecv(remoteJob);
+			checkJobCompleted(status);
+		}
+
+		@Override
+		public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime)
+		{
+			//System.out.println("SEND completed");
+
+			final NetworkJobs status = pendingJobs.remove(myJob);
+			assert(status != null);
+			status.jobCompletedSend();
+			checkJobCompleted(status);
+		}
+	};
+
+	/**
 	 * Data structure which collects statistics per command type.
 	 *
 	 * @author Julian M. Kunkel
@@ -88,6 +126,34 @@ public class GClientProcess
 		}
 	}
 
+	/**
+	 * Distribute the IO operation to eventual I/O forwarders
+	 *
+	 * @param file
+	 * @param listIO
+	 * @return
+	 */
+	public List<SClientListIO> distributeIOOperations(MPIFile file, ListIO listIO){
+		final HashMap<Server, ListIO> IOtargets = file.getDistribution().distributeIOOperation(listIO,	getSimulator().getModel().getServers()  );
+
+		final LinkedList<SClientListIO> newTargets = new LinkedList<SClientListIO>();
+
+		// check IO forwarders
+		if(ioRedirection == null){
+			for(Server o: IOtargets.keySet()){
+				newTargets.add(new SClientListIO(o, o, IOtargets.get(o)));
+			}
+			return newTargets;
+		}
+
+		// IO forwarder is set => redirect IO
+
+		for(Server o: IOtargets.keySet()){
+			newTargets.add(new SClientListIO(o, IORedirectionHelper.getNextHopFor(o, ioRedirection, getSimulator().getModel()), IOtargets.get(o)));
+		}
+
+		return newTargets;
+	}
 
 	public static class ClientRuntimeInformation extends ComponentRuntimeInformation{
 		private HashMap<Class<? extends Command>, CommandUsageStatistics> commandStats = new HashMap<Class<? extends Command>, CommandUsageStatistics>();
@@ -256,6 +322,9 @@ public class GClientProcess
 			// wakeup this component => start processing
 			setNewWakeupTimeNow();
 		}
+
+		// now setup IORedirection Layer if applicable.
+		ioRedirection = IORedirectionHelper.getIORedirectionLayerFor(getSimulator().getModel().getIORedirectionLayers(), this.getIdentifier().getID());
 	}
 
 	/**
@@ -580,44 +649,6 @@ public class GClientProcess
 	}
 
 	@Override
-	public void messagePartReceivedCB(MessagePart part,
-			InterProcessNetworkJob remoteJob,
-			InterProcessNetworkJob announcedJob, Epoch endTime)
-	{
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void messagePartSendCB(MessagePart part,
-			InterProcessNetworkJob myJob, Epoch endTime)
-	{
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void recvCompletedCB(InterProcessNetworkJob remoteJob,
-			InterProcessNetworkJob announcedJob, Epoch endTime)
-	{
-		//System.out.println("RECV completed");
-
-		final NetworkJobs status = pendingJobs.remove(announcedJob);
-		assert(status != null);
-		status.jobCompletedRecv(remoteJob);
-		checkJobCompleted(status);
-	}
-
-	@Override
-	public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime)
-	{
-		//System.out.println("SEND completed");
-
-		final NetworkJobs status = pendingJobs.remove(myJob);
-		assert(status != null);
-		status.jobCompletedSend();
-		checkJobCompleted(status);
-	}
-
-	@Override
 	public void setNodeRessources(INodeRessources ressources) {
 		this.nodeRessources = ressources;
 	}
@@ -653,5 +684,9 @@ public class GClientProcess
 	@Override
 	public IProcessNetworkInterface getNetworkInterface() {
 		return networkInterface;
+	}
+
+	public IInterProcessNetworkJobCallback getCallback() {
+		return callback;
 	}
 }

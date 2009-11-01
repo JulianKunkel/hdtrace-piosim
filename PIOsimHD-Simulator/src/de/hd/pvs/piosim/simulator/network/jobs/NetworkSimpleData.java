@@ -44,7 +44,7 @@ public class NetworkSimpleData implements IMessageUserData {
 		this.size = size;
 	}
 
-	public long getSize() {
+	final public long getSize() {
 		return size;
 	}
 

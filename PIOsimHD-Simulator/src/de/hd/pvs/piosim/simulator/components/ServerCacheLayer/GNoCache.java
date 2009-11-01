@@ -31,7 +31,6 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
@@ -45,7 +44,6 @@ import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
-import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
@@ -65,25 +63,18 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
  * @author Julian M. Kunkel
  */
 public class GNoCache
-extends SPassiveComponent<NoCache>
-implements  IGServerCacheLayer<SPassiveComponent<NoCache>>,
-IIOSubsystemCaller
+	extends SPassiveComponent<NoCache>
+	implements  IGServerCacheLayer<SPassiveComponent<NoCache>>, IIOSubsystemCaller
 {
-	protected class PendingReadRequest {
-		IOJob job;
-		RequestRead request;
+	static protected class InternalIOData<RequestType extends RequestIO> {
+		final IServerCacheLayerJobCallback callback;
+		final RequestType request;
+		final Object userData;
 
-		public PendingReadRequest(IOJob job, RequestRead request) {
-			this.job = job;
+		public InternalIOData(RequestType request, Object userData, IServerCacheLayerJobCallback callback) {
 			this.request = request;
-		}
-
-		public IOJob getJob() {
-			return job;
-		}
-
-		public RequestRead getRequest() {
-			return request;
+			this.callback = callback;
+			this.userData = userData;
 		}
 	}
 
@@ -95,9 +86,9 @@ IIOSubsystemCaller
 	/**
 	 * Queued read operations, read and write operations are split.
 	 */
-	LinkedList<IOJob> queuedReadJobs = new LinkedList<IOJob>();
+	LinkedList<IOJob<InternalIOData<RequestRead>>> queuedReadJobs = new LinkedList<IOJob<InternalIOData<RequestRead>>>();
 
-	LinkedList<IOJob> queuedWriteJobs = new LinkedList<IOJob>();
+	LinkedList<IOJob<InternalIOData<RequestWrite>>> queuedWriteJobs = new LinkedList<IOJob<InternalIOData<RequestWrite>>>();
 
 	IGServer<?> serverProcess;
 	INodeRessources nodeRessources;
@@ -143,17 +134,12 @@ IIOSubsystemCaller
 					size += io.getSize();
 				}
 
-				io = new IOJob(io.getFile(), size, offset, IOOperation.WRITE);
+				io = new IOJob(io.getFile(), io.getUserData(), size, offset, IOOperation.WRITE);
 			}
 		}
 
 		return io;
 	}
-
-	/**
-	 * Maps the serviced read-jobs to the read-requests
-	 */
-	HashMap<IOJob, List<PendingReadRequest>> pendingReadRequestMap = new HashMap<IOJob, List<PendingReadRequest>>();
 
 	protected void scheduleNextIOJobIfPossible() {
 		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps()
@@ -176,20 +162,14 @@ IIOSubsystemCaller
 	//////////////////////////////////WRITE PATH////////////////////////////////////////////////////////////////
 	HashMap<NetworkIOData, ArrayList<SingleIOOperation>> notReceivedWriteExtendsFromReqs = new HashMap<NetworkIOData, ArrayList<SingleIOOperation>>();
 
-	// TODO use a new data structure to pick the best write operation depending on all pending requests
-	//   when it is really used.
-	//TODO evaluate this new strategy with the default strategy when
-	//  clients send all pending requests in normal order.
-
-
 	@Override
-	public boolean canIPutDataIntoCache(InterProcessNetworkJob clientJob, long amount) {
+	public boolean canIPutDataIntoCache(RequestWrite clientJob, long bytesOfWrite) {
 		//System.out.println(numberOfPendingWrites);
 		return queuedWriteJobs.size() == 0;
 	}
 
 	@Override
-	public void writeDataToCache(NetworkIOData ioData, InterProcessNetworkJob clientJob, long amountToWrite) {
+	public void writeDataToCache(NetworkIOData ioData, InterProcessNetworkJob clientJob, long amountToWrite, Object userData, IServerCacheLayerJobCallback callback) {
 		//decide which data actually is contained in the network packet
 		debug("amount " + amountToWrite);
 
@@ -235,12 +215,12 @@ IIOSubsystemCaller
 			amountToWrite -= dataToWrite;
 
 			while(dataToWrite > iogran){
-				addWriteIOJob(iogran, offset, ioData.getIORequest());
+				addWriteIOJob(iogran, offset, (RequestWrite) ioData.getIORequest(), userData, callback);
 				offset += iogran;
 				dataToWrite -= iogran;
 			}
 
-			addWriteIOJob( dataToWrite, offset,   	ioData.getIORequest());
+			addWriteIOJob( dataToWrite, offset, (RequestWrite) ioData.getIORequest(), userData, callback);
 		}
 
 		// if we processed all write requests we are done
@@ -249,41 +229,27 @@ IIOSubsystemCaller
 		}
 	}
 
-	@Override
-	public void dataWrittenCompletelyToDisk(IOJob job) {
+	public void dataWrittenCompletelyToDisk(IOJob<InternalIOData<RequestWrite>> job, Epoch endTime) {
 		nodeRessources.freeMemory(job.getSize());
 
 		debug("job " + job);
 
-		// now try to submit a new write request by combining pending requests
+		final InternalIOData<RequestWrite> userData = job.getUserData();
+		userData.callback.IORequestPartiallyCompleted(userData.request, userData.userData, endTime, job.getSize());
 	}
 
 	///////////////////////////////////READ PATH////////////////////////////////////////////////////////////////
 
-	HashMap<RequestRead, Message> pendingReadJobs = new HashMap<RequestRead, Message>();
-
 	@Override
-	public void readDataFragmentSendByNIC(Message msg, long amount) {
+	public void readDataFragmentSendByNIC(RequestRead req, long bytesSendByNIC) {
 		// free memory
-		nodeRessources.freeMemory(amount);
+		nodeRessources.freeMemory(bytesSendByNIC);
 	}
 
-	@Override
-	public void dataReadCompletelyFromDisk(IOJob job) {
-		final List<PendingReadRequest> reqList = pendingReadRequestMap.remove(job);
 
-		for (PendingReadRequest p : reqList) {
-			RequestRead req = p.getRequest();
-			Message msg = pendingReadJobs.get(req);
-
-			assert(msg != null);
-
-			serverProcess.getNetworkInterface().appendAvailableDataToIncompleteSend(msg, p.getJob().getSize(), getSimulator().getVirtualTime());
-
-			if( msg.isAllMessageDataAvailable() ){ // All data read completely
-				pendingReadJobs.remove(req);
-			}
-		}
+	public void dataReadCompletelyFromDisk(IOJob<InternalIOData<RequestRead>> job, Epoch endTime) {
+		final InternalIOData<RequestRead> data = job.getUserData();
+		data.callback.IORequestPartiallyCompleted(data.request, data.userData, endTime, job.getSize());
 	}
 
 	@Override
@@ -292,14 +258,12 @@ IIOSubsystemCaller
 	}
 
 	@Override
-	public void announceIORequest(RequestWrite req, InterProcessNetworkJob request) {
+	public void announceIORequest(RequestWrite req, Object userData, IServerCacheLayerJobCallback callback) {
 
 	}
 
 	@Override
-	public void announceIORequest( Message msg, RequestRead req, InterProcessNetworkJob request){
-		pendingReadJobs.put(req, msg);
-
+	public void announceIORequest(RequestRead req, Object userData, IServerCacheLayerJobCallback callback) {
 		final long iogran = getSimulator().getModel().getGlobalSettings().getIOGranularity();
 
 		/**
@@ -312,13 +276,13 @@ IIOSubsystemCaller
 			long offset = op.getOffset();
 
 			while(size > iogran){
-				addReadIOJob(iogran, offset, req);
+				addReadIOJob(iogran, offset, req, userData, callback);
 				offset += iogran;
 				size -= iogran;
 			}
 
 			if(size > 0){
-				addReadIOJob(size, offset, req);
+				addReadIOJob(size, offset, req, userData, callback);
 			}
 		}
 	}
@@ -327,21 +291,20 @@ IIOSubsystemCaller
 		scheduleNextIOJobIfPossible();
 	}
 
-	protected void addReadIOJob(long size, long offset, RequestRead req){
+	protected void addReadIOJob(long size, long offset,  RequestRead req, Object userData, IServerCacheLayerJobCallback callback){
+		final InternalIOData<RequestRead> downLayerUserData = new InternalIOData<RequestRead>(req, userData, callback);
 
-		IOJob iojob = new IOJob(req.getFile(), size, offset,  IOOperation.READ);
-		queuedReadJobs.add(iojob);
-
-		if (pendingReadRequestMap.get(iojob) == null) {
-			pendingReadRequestMap.put(iojob, new ArrayList<PendingReadRequest>());
-		}
-		pendingReadRequestMap.get(iojob).add(new PendingReadRequest(iojob, req));
+		queuedReadJobs.add(new IOJob<InternalIOData<RequestRead>>(
+				req.getFile(), downLayerUserData, size, offset,  IOOperation.READ));
 
 		scheduleNextIOJobIfPossible();
 	}
 
-	protected void addWriteIOJob(long size, long offset, RequestIO req){
-		queuedWriteJobs.add(new IOJob(req.getFile(), size, offset,  IOOperation.WRITE));
+	protected void addWriteIOJob(long size, long offset, RequestWrite req, Object userData, IServerCacheLayerJobCallback callback){
+		final InternalIOData<RequestWrite> internalUserData = new InternalIOData<RequestWrite>(req, userData, callback);
+
+		queuedWriteJobs.add(new IOJob<InternalIOData<RequestWrite>>(
+				req.getFile(), internalUserData, size, offset,  IOOperation.WRITE));
 		scheduleNextIOJobIfPossible();
 	}
 
@@ -350,11 +313,10 @@ IIOSubsystemCaller
 		debug("I/O done " + job);
 
 		if(job.getType() == IOOperation.READ){
-			dataReadCompletelyFromDisk(job);
+			dataReadCompletelyFromDisk(job, endTime);
 		}else{
 			// write request
-			dataWrittenCompletelyToDisk(job);
-			serverProcess.startupBlockedIOReceiveIfPossible(endTime);
+			dataWrittenCompletelyToDisk(job, endTime);
 		}
 
 		numberOfScheduledIOOperations--;

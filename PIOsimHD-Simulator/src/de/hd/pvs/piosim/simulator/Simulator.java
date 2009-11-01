@@ -286,14 +286,14 @@ public final class Simulator implements IModelToSimulatorMapper {
 		return component;
 	}
 
-	public SPassiveComponent instantiateSimObjectForModelObj(IBasicComponent modelObject) throws Exception {
+	public ISPassiveComponent instantiateSimObjectForModelObj(IBasicComponent modelObject) throws Exception {
 		ModelObjectMap mop = DynamicModelClassMapper
 		.getComponentImplementation(modelObject);
 
-		Constructor<SPassiveComponent> ct = ((Class<SPassiveComponent>) Class
+		Constructor<ISPassiveComponent> ct = ((Class<ISPassiveComponent>) Class
 				.forName(mop.getSimulationClass())).getConstructor();
 
-		final SPassiveComponent component = ct.newInstance();
+		final ISPassiveComponent component = ct.newInstance();
 
 		// if the component requires to set the simulator, do so.
 		component.setSimulator(this);
@@ -306,7 +306,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 	}
 
 	/**
-	 * Get the SimulationComponent for a particular ID.
+	 * Get the SimulationComponent for a particular component id.
 	 *
 	 * @param cid
 	 * @return

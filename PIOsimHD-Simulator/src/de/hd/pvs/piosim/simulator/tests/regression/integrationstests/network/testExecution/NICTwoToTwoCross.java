@@ -50,18 +50,18 @@ public class NICTwoToTwoCross extends NICTwoToOne{
 		hostTgt2 =  new HostDummy((GProcessNetworkInterface) sim.getSimulatedComponent(exits.get(1)));
 
 		final Communicator comm = new Communicator("WORLD");
-		final MessageMatchingCriterion crit1 = new MessageMatchingCriterion(hostSrc1, hostTgt1, 1, comm);
-		final InterProcessNetworkJob job1 = InterProcessNetworkJob.createSendOperation(crit1, new NetworkSimpleData(SIZE), false);
+		final MessageMatchingCriterion crit1 = new MessageMatchingCriterion(hostSrc1.getModelComponent(), hostTgt1.getModelComponent(), 1, comm);
+		final InterProcessNetworkJob job1 = InterProcessNetworkJob.createSendOperation(crit1, new NetworkSimpleData(SIZE), hostTgt1);
 
 
-		final MessageMatchingCriterion crit2 = new MessageMatchingCriterion(hostSrc2, hostTgt1, 1, comm);
-		final InterProcessNetworkJob job2 = InterProcessNetworkJob.createSendOperation(crit2, new NetworkSimpleData(SIZE), false);
+		final MessageMatchingCriterion crit2 = new MessageMatchingCriterion(hostSrc2.getModelComponent(), hostTgt1.getModelComponent(), 1, comm);
+		final InterProcessNetworkJob job2 = InterProcessNetworkJob.createSendOperation(crit2, new NetworkSimpleData(SIZE), hostTgt1);
 
-		final MessageMatchingCriterion crit3 = new MessageMatchingCriterion(hostSrc1, hostTgt2, 1, comm);
-		final InterProcessNetworkJob job3 = InterProcessNetworkJob.createSendOperation(crit3, new NetworkSimpleData(SIZE), false);
+		final MessageMatchingCriterion crit3 = new MessageMatchingCriterion(hostSrc1.getModelComponent(), hostTgt2.getModelComponent(), 1, comm);
+		final InterProcessNetworkJob job3 = InterProcessNetworkJob.createSendOperation(crit3, new NetworkSimpleData(SIZE), hostTgt2);
 
-		final MessageMatchingCriterion crit4 = new MessageMatchingCriterion(hostSrc2, hostTgt2, 1, comm);
-		final InterProcessNetworkJob job4 = InterProcessNetworkJob.createSendOperation(crit4, new NetworkSimpleData(SIZE), false);
+		final MessageMatchingCriterion crit4 = new MessageMatchingCriterion(hostSrc2.getModelComponent(), hostTgt2.getModelComponent(), 1, comm);
+		final InterProcessNetworkJob job4 = InterProcessNetworkJob.createSendOperation(crit4, new NetworkSimpleData(SIZE), hostTgt2);
 
 
 		hostSrc1.nic.initiateInterProcessSend(job1, Epoch.ZERO);
@@ -73,9 +73,9 @@ public class NICTwoToTwoCross extends NICTwoToOne{
 		System.out.println("from " + hostSrc1.getIdentifier() + "and from " + hostSrc2.getIdentifier() + " to " +
 				hostTgt1.getIdentifier() + " and to " + hostTgt2.getIdentifier());
 
-		hostTgt1.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1, hostTgt1, 1, comm), false), Epoch.ZERO);
-		hostTgt1.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc2, hostTgt1, 1, comm), false), Epoch.ZERO);
-		hostTgt2.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1, hostTgt2, 1, comm), false), Epoch.ZERO);
-		hostTgt2.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc2, hostTgt2, 1, comm), false), Epoch.ZERO);
+		hostTgt1.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1.getModelComponent(), hostTgt1.getModelComponent(), 1, comm), hostTgt1), Epoch.ZERO);
+		hostTgt1.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc2.getModelComponent(), hostTgt1.getModelComponent(), 1, comm), hostTgt1), Epoch.ZERO);
+		hostTgt2.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1.getModelComponent(), hostTgt2.getModelComponent(), 1, comm), hostTgt2), Epoch.ZERO);
+		hostTgt2.nic.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc2.getModelComponent(), hostTgt2.getModelComponent(), 1, comm), hostTgt2), Epoch.ZERO);
 	}
 }

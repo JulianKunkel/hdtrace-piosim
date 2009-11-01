@@ -28,7 +28,6 @@
  */
 package de.hd.pvs.piosim.simulator.network.jobs;
 
-import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 
 
@@ -38,17 +37,12 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
  * @author Julian M. Kunkel
  *
  */
-public class NetworkIOData  implements IMessageUserData {
+public class NetworkIOData extends NetworkSimpleData {
 	private final RequestIO ioRequest;
 
-
 	public NetworkIOData(RequestIO ioRequest) {
+		super(ioRequest.getListIO().getTotalSize());
 		this.ioRequest = ioRequest;
-	}
-
-	@Override
-	public long getSize() {
-		return ioRequest.getListIO().getTotalSize();
 	}
 
 	/**

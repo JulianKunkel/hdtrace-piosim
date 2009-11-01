@@ -4,7 +4,10 @@
 package de.hd.pvs.piosim.simulator.tests.regression.integrationstests.network;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
+import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
+import de.hd.pvs.piosim.simulator.components.NIC.IInterProcessNetworkJobCallback;
 import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
@@ -12,9 +15,37 @@ import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
-public class HostDummy implements ISNodeHostedComponent{
+public class HostDummy implements ISNodeHostedComponent, IInterProcessNetworkJobCallback{
 
 	public IProcessNetworkInterface nic;
+
+	static private int curID = 10000;
+
+	private class HostDummyModel extends NodeHostedComponent {
+		@Override
+		public String getObjectType() {
+			return this.getClass().getCanonicalName();
+		}
+
+		public HostDummyModel() {
+			this.getIdentifier().setID(curID++);
+		}
+
+		@Override
+		public NIC getNetworkInterface() {
+			return getNic().getModelComponent();
+		}
+	}
+
+	private IProcessNetworkInterface getNic() {
+		return nic;
+	}
+
+	public HostDummyModel modelComponent = new HostDummyModel();
+
+	public HostDummyModel getModelComponent() {
+		return modelComponent;
+	}
 
 	public HostDummy(IProcessNetworkInterface nic) {
 		setNetworkInterface(nic);
@@ -27,14 +58,6 @@ public class HostDummy implements ISNodeHostedComponent{
 	@Override
 	public ComponentIdentifier getIdentifier() {
 		return nic.getModelComponent().getIdentifier();
-	}
-
-
-	@Override
-	public boolean mayIReceiveMessagePart(MessagePart part,
-			InterProcessNetworkJob job)
-	{
-		return true;
 	}
 
 	@Override
@@ -66,13 +89,11 @@ public class HostDummy implements ISNodeHostedComponent{
 
 	@Override
 	public INodeRessources getNodeRessources() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void setNodeRessources(INodeRessources ressources) {
-		// TODO Auto-generated method stub
 
 	}
 

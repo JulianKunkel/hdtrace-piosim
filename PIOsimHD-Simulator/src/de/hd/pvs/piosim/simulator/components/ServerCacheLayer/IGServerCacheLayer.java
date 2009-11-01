@@ -31,8 +31,6 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IGComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
-import de.hd.pvs.piosim.simulator.event.IOJob;
-import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
@@ -71,7 +69,7 @@ extends IGComponent<Type>
 	 * @param ioData
 	 * @param clientJob
 	 */
-	public void writeDataToCache(NetworkIOData ioData, InterProcessNetworkJob clientJob, long bytesToWrite);
+	public void writeDataToCache(NetworkIOData ioData, InterProcessNetworkJob clientJob, long bytesToWrite, Object userData, IServerCacheLayerJobCallback callback);
 
 	/**
 	 * This method is called when data (which should be fragmented) got sent successfully by the NIC.
@@ -79,7 +77,7 @@ extends IGComponent<Type>
 	 * @param ioData
 	 * @param clientJob
 	 */
-	public void readDataFragmentSendByNIC(Message msg, long bytesSendByNIC);
+	public void readDataFragmentSendByNIC(RequestRead req, long bytesSendByNIC);
 
 	/**
 	 * The server should invoke this method to check if a particular amount of data
@@ -90,7 +88,7 @@ extends IGComponent<Type>
 	 * @param bytesOfWrite
 	 * @return
 	 */
-	public boolean canIPutDataIntoCache(InterProcessNetworkJob clientJob, long bytesOfWrite);
+	public boolean canIPutDataIntoCache(RequestWrite clientJob, long bytesOfWrite);
 
 	/**
 	 * This method is called once a new read request comes in.
@@ -98,7 +96,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest(Message dataMessage, RequestRead req, InterProcessNetworkJob request);
+	public void announceIORequest( RequestRead req, Object userData, IServerCacheLayerJobCallback callback);
 
 	/**
 	 * This method is called once a new write request comes in.
@@ -106,20 +104,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestWrite req, InterProcessNetworkJob request);
-
-
-	/**
-	 * This method gets called when data is successfully read from disk. It should actually transfer the data to a client.
-	 * @param job
-	 */
-	public void dataReadCompletelyFromDisk(IOJob job);
-
-	/**
-	 * This method gets called when data is successfully written to disk. It should actually unblock the NIC if need.
-	 * @param job
-	 */
-	public void dataWrittenCompletelyToDisk(IOJob job);
+	public void announceIORequest( RequestWrite req, Object userData, IServerCacheLayerJobCallback callback);
 
 	/**
 	 * This method is called once a new flush request comes in.
@@ -128,6 +113,5 @@ extends IGComponent<Type>
 	 * @param request
 	 */
 	public void announceIORequest( RequestFlush req, InterProcessNetworkJob request);
-
 
 }

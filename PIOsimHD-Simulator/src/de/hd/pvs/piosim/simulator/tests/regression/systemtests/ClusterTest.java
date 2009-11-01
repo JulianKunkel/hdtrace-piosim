@@ -93,7 +93,7 @@ public class ClusterTest extends TestSuite {
 	protected void setup(int clients, int servers, ServerCacheLayer cacheLayer) throws Exception {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
 
-		parameters.setTraceEnabled(false);
+		parameters.setTraceEnabled(true);
 		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 		parameters.setTraceClientSteps(true);
@@ -169,7 +169,7 @@ public class ClusterTest extends TestSuite {
 
 		StoreForwardNode sw = new StoreForwardNode();
 		sw.setName("PVS-Switch");
-		sw.setTotalBandwidth(100000 * MBYTE);
+		sw.setTotalBandwidth(1000 * MBYTE);
 
 		mb.addTemplate(sw);
 

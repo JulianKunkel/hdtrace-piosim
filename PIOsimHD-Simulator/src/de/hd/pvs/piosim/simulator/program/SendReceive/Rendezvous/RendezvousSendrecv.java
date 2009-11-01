@@ -37,6 +37,9 @@ import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
+ *
+ * TODO: a bug leads to hung up for sendRecv with rendevouz protocol, recheck execution graph
+ *
  * @author Julian M. Kunkel
  *
  */

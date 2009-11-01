@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
@@ -38,18 +39,56 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Individual extends IOTest {
 	@Test
-	public void runTest1x1() throws Exception{
-		final FileWriter out = new FileWriter("/tmp/test-1x1.txt");
+	public void runTest1x1Write() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-write-1x1.txt");
 		runOneTestWrite(new NoCache(),
 				4*100000, 1, 1, 1, 1, 1, out);
 		out.close();
 	}
 
 	@Test
-	public void runTest2x2() throws Exception{
-		final FileWriter out = new FileWriter("/tmp/test-2x2.txt");
-		runOneTestWrite(new NoCache(),
-				4*100000, 2, 2, 1, 1, 1, out);
+	public void runTest1x1Read() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-read-1x1.txt");
+		runOneTestRead(new NoCache(),
+				4*100000, 1, 1, 1, 1, 1, out);
+		out.close();
+	}
+
+
+	@Test
+	public void runTest2x2Write() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-write-2x2.txt");
+		runOneTestWrite(new NoCache(), 	MBYTE, 2, 2, 1, 1, 20, out);
+		out.close();
+	}
+
+	@Test
+	public void runTest2x2Read() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-read-2x2.txt");
+		runOneTestRead(new NoCache(), 	MBYTE, 2, 2, 1, 1, 20, out);
+		out.close();
+	}
+
+
+
+	@Test
+	public void runTest2x2AggregationCache() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-2x2Aggregation.txt");
+		runOneTestWrite(new AggregationCache(), MBYTE, 2, 2, 1, 1, 20, out);
+		out.close();
+	}
+
+	@Test
+	public void runTest5x5AggregationCache() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-5x5Aggregation.txt");
+		runOneTestWrite(new AggregationCache(), MBYTE, 5, 5, 1, 1, 50, out);
+		out.close();
+	}
+
+	@Test
+	public void runTest10x10AggregationCache() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-10x10Aggregation.txt");
+		runOneTestWrite(new AggregationCache(),  MBYTE , 10, 10, 1, 1, 100, out);
 		out.close();
 	}
 

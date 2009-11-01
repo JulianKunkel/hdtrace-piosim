@@ -36,6 +36,7 @@ import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
+import de.hd.pvs.piosim.simulator.components.Router.GRouter;
 import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
@@ -129,6 +130,9 @@ implements INodeRessources
 			}else if(c.getObjectType().equals("ClientProcess")){
 				GClientProcess e = (GClientProcess) getSimulator().instantiateSimObjectForModelObj(c);
 				clients.add(e);
+				scomp = e;
+			}else if(c.getObjectType().equals("Router")){
+				GRouter e = (GRouter) getSimulator().instantiateSimObjectForModelObj(c);
 				scomp = e;
 			}else{
 				assert(false);

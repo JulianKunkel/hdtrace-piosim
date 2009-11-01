@@ -25,19 +25,18 @@
 
 package de.hd.pvs.piosim.simulator.program.Filewrite;
 
-import java.util.HashMap;
+import java.util.List;
 
 import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.SClientListIO;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
-import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
-import de.hd.pvs.piosim.simulator.components.Server.IGServer;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
@@ -57,30 +56,24 @@ extends CommandImplementation<Filewrite>
 			/* determine I/O targets */
 			assert(client.getSimulator() != null);
 
-			Model m = client.getSimulator().getModel();
+			final Model m = client.getSimulator().getModel();
 
 			assert(m.getServers().size() > 0);
 
-			HashMap<Server, ListIO> targetIOServers =
-				cmd.getFile().getDistribution().distributeIOOperation(
-						cmd.getIOList(),m.getServers()  );
+			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getIOList());
 
 			/* create an I/O request for each of these servers */
 			OUTresults.setNextStep(RECV_ACK);
 
-			assert(targetIOServers.keySet().size() > 0);
-
-			for(Server server: targetIOServers.keySet()){
-				IGServer sserver = (IGServer) client.getSimulator().getSimulatedComponent(server);
-
+			for(SClientListIO io: ioTargets){
 				/* data to transfer depends on actual command size, but is defined in send */
-				ISNodeHostedComponent targetNIC = sserver;
-
-				ListIO iolist = targetIOServers.get(server);
-
 				/* initial job request */
-				OUTresults.addNetSend(targetNIC,
-						new RequestWrite(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);			}
+				OUTresults.addNetSendRoutable(client.getModelComponent(),
+						io.getTargetServer(),
+						io.getNextHop(),
+						new RequestWrite(io.getListIO(), cmd.getFile()),
+						RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
+			}
 
 			return;
 		}
@@ -91,11 +84,13 @@ extends CommandImplementation<Filewrite>
 			OUTresults.setNextStep(UPDATE_SIZE);
 
 			for( InterProcessNetworkJob job : compNetJobs.getNetworkJobs() ){
-				RequestWrite writeRequest = (RequestWrite) job.getJobData();
-				ListIO iolist = writeRequest.getListIO();
+				final RequestWrite writeRequest = (RequestWrite) job.getJobData();
+
+				final Server server = (Server) ((InterProcessNetworkJobRoutable) job).getFinalTarget();
 
 				/* STEP_START I/O job directly */
-				OUTresults.addNetSend(
+				OUTresults.addNetSendRoutable(client.getModelComponent(),
+						server,
 						job.getMatchingCriterion().getTargetComponent(),
 						new NetworkIOData( writeRequest ),
 						RequestIO.IO_DATA_TAG,

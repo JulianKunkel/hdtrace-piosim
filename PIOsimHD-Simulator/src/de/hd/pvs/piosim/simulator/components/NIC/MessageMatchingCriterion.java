@@ -1,7 +1,7 @@
 package de.hd.pvs.piosim.simulator.components.NIC;
 
+import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.Communicator;
-import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 
 /**
  * This class encapsulates the matching of receive network jobs with send jobs.
@@ -23,16 +23,16 @@ public class MessageMatchingCriterion{
 	/**
 	 * Receiver of the network message
 	 */
-	final private ISNodeHostedComponent targetComponent;
+	final private INodeHostedComponent targetComponent;
 
 	/**
 	 * Sender of the network message.
 	 */
-	final private ISNodeHostedComponent sourceComponent;
+	final private INodeHostedComponent sourceComponent;
 
 
-	public MessageMatchingCriterion(ISNodeHostedComponent sourceComponent,
-			ISNodeHostedComponent targetComponent, int tag, Communicator comm)
+	public MessageMatchingCriterion(INodeHostedComponent sourceComponent,
+			INodeHostedComponent targetComponent, int tag, Communicator comm)
 	{
 		assert(targetComponent != null);
 		assert(comm != null);
@@ -71,7 +71,7 @@ public class MessageMatchingCriterion{
 		}
 	}
 
-	public ISNodeHostedComponent getSourceComponent() {
+	public INodeHostedComponent getSourceComponent() {
 		return sourceComponent;
 	}
 
@@ -79,7 +79,7 @@ public class MessageMatchingCriterion{
 		return tag;
 	}
 
-	public ISNodeHostedComponent getTargetComponent() {
+	public INodeHostedComponent getTargetComponent() {
 		return targetComponent;
 	}
 

@@ -13,6 +13,9 @@ de.hd.pvs.piosim.model.components.Node.Node = de.hd.pvs.piosim.simulator.compone
 +Server
 de.hd.pvs.piosim.model.components.Server.Server = de.hd.pvs.piosim.simulator.components.Server.GSimpleServer
 
++Router
+de.hd.pvs.piosim.model.components.Router.Router = de.hd.pvs.piosim.simulator.components.Router.GRouter
+
 +ServerCacheLayer
 de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GNoCache
 de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache = de.hd.pvs.piosim.simulator.components.ServerCacheLayer.GSimpleWriteBehind

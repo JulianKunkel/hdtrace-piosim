@@ -27,14 +27,13 @@ package de.hd.pvs.piosim.simulator.network.jobs.requests;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
 /**
  * Superclass for all different types of I/O requests a server can perform.
  *
  * @author Julian M. Kunkel
  */
-public class RequestIO implements IMessageUserData {
+public class RequestIO extends FileRequest {
 	/// Internal states of the server.
 
 	/**
@@ -56,26 +55,13 @@ public class RequestIO implements IMessageUserData {
 	private final ListIO listIO;
 
 	/**
-	 * The file on which the I/O should be performed.
-	 */
-	private final MPIFile file;
-
-	/**
-	 * Return the total size of this request.
-	 */
-	@Override
-	public long getSize() {
-		return 20+listIO.getIOOperations().size() * 8 ;
-	}
-
-	/**
 	 * Create a complete Request:
 	 * @param listio
 	 * @param file
 	 */
 	public RequestIO(ListIO listio, MPIFile file) {
+		super(file, 20 + listio.getIOOperations().size() * 8);
 		this.listIO = listio;
-		this.file = file;
 	}
 
 	/**
@@ -83,12 +69,5 @@ public class RequestIO implements IMessageUserData {
 	 */
 	public ListIO getListIO() {
 		return listIO;
-	}
-
-	/**
-	 * @return the file to perform I/O on.
-	 */
-	public MPIFile getFile() {
-		return file;
 	}
 }

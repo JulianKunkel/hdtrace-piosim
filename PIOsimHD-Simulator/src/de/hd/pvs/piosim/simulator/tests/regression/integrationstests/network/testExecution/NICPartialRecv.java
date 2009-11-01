@@ -24,12 +24,13 @@ public class NICPartialRecv extends NICTwoToOne{
 		hostTgt =  new HostDummy((IProcessNetworkInterface) sim.getSimulatedComponent(exits.get(0)));
 
 		final Communicator comm = new Communicator("WORLD");
-		final MessageMatchingCriterion crit1 = new MessageMatchingCriterion(hostSrc1, hostTgt, 1, comm);
-		final InterProcessNetworkJob job1 = InterProcessNetworkJob.createSendOperation(crit1, new NetworkSimpleData(SIZE), true);
+		final MessageMatchingCriterion crit1 = new MessageMatchingCriterion(hostSrc1.getModelComponent(),
+				hostTgt.getModelComponent(), 1, comm);
+		final InterProcessNetworkJob job1 = InterProcessNetworkJob.createSendOperation(crit1, new NetworkSimpleData(SIZE), hostSrc1);
 
 
-		final MessageMatchingCriterion crit2 = new MessageMatchingCriterion(hostSrc2, hostTgt, 1, comm);
-		final InterProcessNetworkJob job2 = InterProcessNetworkJob.createSendOperation(crit2, new NetworkSimpleData(SIZE), true);
+		final MessageMatchingCriterion crit2 = new MessageMatchingCriterion(hostSrc2.getModelComponent(), hostTgt.getModelComponent(), 1, comm);
+		final InterProcessNetworkJob job2 = InterProcessNetworkJob.createSendOperation(crit2, new NetworkSimpleData(SIZE), hostSrc2);
 
 
 		hostSrc1.getNetworkInterface().initiateInterProcessSend(job1, Epoch.ZERO);
@@ -38,6 +39,6 @@ public class NICPartialRecv extends NICTwoToOne{
 		System.out.println("from " + hostSrc1.getIdentifier() + " to " + hostTgt.getIdentifier());
 		System.out.println("and from " + hostSrc2.getIdentifier() + " to " + hostTgt.getIdentifier());
 
-		hostTgt.getNetworkInterface().initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1, hostTgt, 1, comm), true), Epoch.ZERO);
+		hostTgt.getNetworkInterface().initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(new MessageMatchingCriterion(hostSrc1.getModelComponent(), hostTgt.getModelComponent(), 1, comm), hostTgt), Epoch.ZERO);
 	}
 }

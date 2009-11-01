@@ -177,21 +177,23 @@ public class GRefinedDiskModel
 	protected void addNewEvent(Event<IOJobRefined> job) {
 		pendingIOs++;
 
-		IOJobRefined io = job.getEventData();
+		final IOJobRefined io = job.getEventData();
+
+		final MPIFile file = io.getFile();
 
 		// if the same file is accessed with a larger offset add it to the jobs currently to process
-		if(io.getFile() == lastFile && io.getOffset() >= lastAccessPosition){
+		if(file == lastFile && io.getOffset() >= lastAccessPosition){
 			pendingJobsWithLargerOffset.add(job);
 			return;
 		}
 
-		PriorityQueue<Event<IOJobRefined>> set = pendingOps.get(io.getFile());
+		PriorityQueue<Event<IOJobRefined>> set = pendingOps.get(file);
 		if (set == null){
 			set = new PriorityQueue<Event<IOJobRefined>>(2, offsetComparator);
 
 			// schedule new operations:
-			pendingOps.put(io.getFile(), set);
-			pendingFiles.add(io.getFile());
+			pendingOps.put(file, set);
+			pendingFiles.add(file);
 		}
 
 		set.add(job);
@@ -210,10 +212,9 @@ public class GRefinedDiskModel
 
 		// compute if it is close to the old region.
 
-		if(
-				lastFile == job.getFile()
-		)
-		{
+		final MPIFile file = job.getFile();
+
+		if(	lastFile == file	) {
 			if (job.getOffset() == lastAccessPosition){
 				// we assume the position is now fixed.
 				//if (job.getType() == IOOperation.READ){
@@ -240,7 +241,7 @@ public class GRefinedDiskModel
 			job.setEfficiency(IOEfficiency.AVGSEEK);
 		}
 
-		lastFile = job.getFile();
+		lastFile = file;
 		lastAccessPosition = job.getOffset() + job.getSize();
 
 		return new Epoch(latency + transferTime);

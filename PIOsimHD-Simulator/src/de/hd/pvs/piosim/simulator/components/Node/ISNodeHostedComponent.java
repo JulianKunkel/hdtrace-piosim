@@ -25,12 +25,9 @@
 
 package de.hd.pvs.piosim.simulator.components.Node;
 
-import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
-import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
-import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
  * Interface to simulate a NodeHostedComponent from the Model.
@@ -53,19 +50,6 @@ public interface ISNodeHostedComponent<Type extends SPassiveComponent>
 	 * @return
 	 */
 	public ComponentIdentifier getIdentifier();
-
-	/**
-	 * This callback is executed once the NetworkJobs completed.
-	 * @param jobs
-	 * @param endTime
-	 */
-	public void recvCompletedCB(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime);
-
-	public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime);
-
-	public void messagePartSendCB(MessagePart part, InterProcessNetworkJob myJob, Epoch endTime);
-
-	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime);
 
 	/**
 	 * Gets called if a compute job is finished

@@ -26,18 +26,14 @@
 package de.hd.pvs.piosim.simulator.program.Fileread;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
-import de.hd.pvs.piosim.model.Model;
-import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
-import de.hd.pvs.piosim.simulator.components.Server.IGServer;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.SClientListIO;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
@@ -51,9 +47,6 @@ extends CommandImplementation<Fileread>
 		switch(step){
 		case(CommandProcessing.STEP_START):{
 			/* determine I/O targets */
-			Model m = client.getSimulator().getModel();
-
-
 			final long actualFileSize = cmd.getFile().getSize();
 			final long amountOfDataToReadOriginal = cmd.getIOList().getTotalSize();
 			/* check if the file is smaller than expected, if yes, crop data */
@@ -76,24 +69,18 @@ extends CommandImplementation<Fileread>
 				client.warn("Short read: " +  cmd.getIOList().getTotalSize() + " instead of " + amountOfDataToReadOriginal  +	" should be read => file too small \"" + actualFileSize + "\"") ;
 			}
 
-			final HashMap<Server, ListIO> targetIOServers =	cmd.getFile().getDistribution().
-				distributeIOOperation(cmd.getIOList(),m.getServers()  );
+			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getIOList());
 
 			/* create an I/O request for each of these servers */
-			for(Server server: targetIOServers.keySet()){
-				IGServer sserver = (IGServer) client.getSimulator().getSimulatedComponent(server);
-
+			for(SClientListIO io: ioTargets){
 				/* data to transfer depends on actual command size, but is defined in send */
-				ISNodeHostedComponent targetNIC = sserver;
-
-				final ListIO iolist = targetIOServers.get(server);
-
 				/* initial job request */
+				OUTresults.addNetSendRoutable(client.getModelComponent(),
+						io.getNextHop(),
+						io.getTargetServer(),
+						new RequestRead(io.getListIO(), cmd.getFile()),  RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
 
-				OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()),  RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
-
-				OUTresults.addNetReceive(targetNIC,  RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
-
+				OUTresults.addNetReceive(io.getNextHop(),  RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
 			}
 			return;
 		}

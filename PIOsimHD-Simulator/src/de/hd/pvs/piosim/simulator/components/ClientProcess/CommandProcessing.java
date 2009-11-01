@@ -26,13 +26,14 @@
 package de.hd.pvs.piosim.simulator.components.ClientProcess;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
+import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
-import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
-import de.hd.pvs.piosim.simulator.network.INetworkMessage;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -242,10 +243,10 @@ public class CommandProcessing{
 		addNetReceive(getTargetfromRank(rankFrom), tag, comm);
 	}
 
-	final public void addNetReceive(ISNodeHostedComponent from, int tag, Communicator comm){
+	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm){
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createReceiveOperation( new MessageMatchingCriterion(
-						from, getInvokingComponent(), tag, comm), false ));
+						from, getInvokingComponent().getModelComponent(), tag, comm), getInvokingComponent().getCallback() ));
 	}
 
 	/**
@@ -263,13 +264,29 @@ public class CommandProcessing{
 		addNetSend(getTargetfromRank(rankTo), jobData, tag, comm);
 	}
 
-	final public void addNetSend(ISNodeHostedComponent to,
+	final public void addNetSend(INodeHostedComponent to,
 			IMessageUserData jobData, int tag, Communicator comm)
 	{
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createSendOperation(
-						new MessageMatchingCriterion(getInvokingComponent(), to, tag, comm),
-						jobData, false ));
+						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
+								to, tag, comm),
+						jobData, getInvokingComponent().getCallback() ));
+	}
+
+	final public void addNetSendRoutable(ClientProcess client, INodeHostedComponent finalTarget,
+			INodeHostedComponent nextHop, IMessageUserData jobData, int tag, Communicator comm)
+	{
+		getNetworkJobs().addNetworkJob(
+				InterProcessNetworkJobRoutable.createRoutableSendOperation(
+						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
+								nextHop, tag, comm),
+						jobData, getInvokingComponent().getCallback(),
+						client, finalTarget)	);
+	}
+
+	final public void addNetJob(InterProcessNetworkJob job){
+		getNetworkJobs().addNetworkJob(job);
 	}
 
 	final public boolean isNestedOperation(){
@@ -285,35 +302,15 @@ public class CommandProcessing{
 	}
 
 	/**
-	 * Add a network send to be performed by the command.
-	 *
-	 * @param to
-	 * @param jobData
-	 * @param tag
-	 * @param comm
-	 */
-	final public void addNetSend(int rankTo,
-			INetworkMessage jobData, int tag, Communicator comm)
-	{
-		addNetSend(rankTo, jobData, tag, comm);
-	}
-
-	final public void addNetSend(ISNodeHostedComponent to,
-			INetworkMessage jobData, int tag, Communicator comm)
-	{
-		addNetSend(to, jobData, tag, comm);
-	}
-
-	/**
 	 * Lookup a target rank from the application this client has.
 	 *
 	 * @param gclient
 	 * @param rank
 	 * @return The target rank of the application.
 	 */
-	final private ISNodeHostedComponent getTargetfromRank(int rank){
+	final private INodeHostedComponent getTargetfromRank(int rank){
 		return getInvokingComponent().getSimulator().getApplicationMap().
-		getClient( getInvokingComponent().getModelComponent().getApplication(),  rank);
+			getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
 	}
 
 

@@ -9,7 +9,6 @@ import de.hd.pvs.piosim.simulator.base.ISNetworkComponent;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.AGNetworkNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkExit;
-import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
@@ -41,12 +40,9 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	private void callRecvCallbacksIfNececssary(MessagePart part, InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch time){
 		assert(remoteJob != null);
 		assert(announcedJob != null);
-		final ISNodeHostedComponent host = announcedJob.getMatchingCriterion().getTargetComponent();
 
 		// check if the partial recv is active.
-		if(announcedJob.isPartialCallbackActive()){
-			host.messagePartReceivedCB(part, remoteJob, announcedJob, time);
-		}
+		announcedJob.getCallbacks().messagePartReceivedCB(part, remoteJob, announcedJob, time);
 
 		// call target completed callback if msg is completed
 		final Message msg = part.getMessage();
@@ -54,11 +50,9 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	}
 
 	private void callRecvCallback(Message msg, InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch time){
-		final ISNodeHostedComponent host = announcedJob.getMatchingCriterion().getTargetComponent();
-
 		if(msg.isReceivedCompletely()){
 			startedRecvMap.remove(msg);
-			host.recvCompletedCB(remoteJob, announcedJob, time);
+			announcedJob.getCallbacks().recvCompletedCB(remoteJob, announcedJob, time);
 		}
 	}
 
@@ -175,8 +169,11 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	public void initiateInterProcessReceive(InterProcessNetworkJob job, Epoch time) {
 		assert(job.getJobOperation() == InterProcessNetworkJobType.RECEIVE);
 
+		assert(job.getMatchingCriterion() != null);
+
 		//System.out.println(this.getIdentifier() + " RECV initiate" + job);
 
+		// any source any tag match ? TODO fixme.
 		if(job.getMatchingCriterion().getSourceComponent() == null){
 			assert(earlyRecvsMap.size() == 0);
 			assert(anySourceRecv == null);
@@ -201,10 +198,6 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			pendingJobs.add(job);
 		}else{
 			// we already have a pending message => match.
-			if(job.isPartialCallbackActive()){
-				throw new IllegalArgumentException("Invalid state - Partial recv is active, however an early rcv happend.");
-			}
-
 			final Message<InterProcessNetworkJob> msg = earlyRcvs.poll();
 
 			if(earlyRcvs.size() == 0){
@@ -218,10 +211,22 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	}
 
 	@Override
-	public Message<InterProcessNetworkJob> initiateInterProcessSend(InterProcessNetworkJob job, Epoch startTime) {
-		//System.out.println(this.getIdentifier() + " SEND initiate" + job);
+	public void initiateInterProcessSend(InterProcessNetworkJob job, Epoch startTime) {
+		final Message<InterProcessNetworkJob> msg = new Message<InterProcessNetworkJob>(
+				job.getSize(),
+				job,
+				this.getModelComponent(),
+				job.getMatchingCriterion().getTargetComponent().getNetworkInterface()
+			);
+		initiateInterProcessSend(msg, startTime);
+	}
 
+	@Override
+	public void initiateInterProcessSend(Message<? extends InterProcessNetworkJob> msg, Epoch startTime) {
+		InterProcessNetworkJob job = msg.getContainedUserData();
 		assert(job.getJobOperation() == InterProcessNetworkJobType.SEND);
+
+		//System.out.println(this.getIdentifier() + " Send initiate" + job);
 
 		assert(job.getSize() > 0);
 
@@ -229,20 +234,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			throw new IllegalArgumentException("Data size is 0.");
 		}
 
-		final Message<InterProcessNetworkJob> msg = new Message<InterProcessNetworkJob>(
-				job.getSize(),
-				job,
-				this.getModelComponent(),
-				job.getMatchingCriterion().getTargetComponent().getNetworkInterface().getModelComponent()
-		);
-
-		if(! job.isDataAvailable()){
-			msg.setAvailableDataPosition(0);
-		}
-
 		submitNewMessage(msg, startTime);
-
-		return msg;
 	}
 
 	@Override
@@ -281,12 +273,9 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			final Message<InterProcessNetworkJob> msg = part.getMessage();
 
 			final InterProcessNetworkJob job = msg.getContainedUserData();
-			final ISNodeHostedComponent sender =job.getMatchingCriterion().getSourceComponent();
 
 			// partial send?
-			if(msg.getContainedUserData().isPartialCallbackActive()){
-				sender.messagePartSendCB(part, job, endTime);
-			}
+			job.getCallbacks().messagePartSendCB(part, job, endTime);
 
 			if(newMsgPart != null){
 				/* create a new event to upload data */
@@ -295,7 +284,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			}else{
 				assert(msg.getRemainingBytesToSend() == 0);
 				// all data is send => call callback.
-				sender.sendCompletedCB(job, endTime);
+				job.getCallbacks().sendCompletedCB(job, endTime);
 			}
 		}
 		// we are the target

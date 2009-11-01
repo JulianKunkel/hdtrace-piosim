@@ -48,7 +48,6 @@ public interface INetworkMessage {
 	 */
 	public long getSize();
 
-
 	/**
 	 * The destination of this message (part) inside the network
 	 * @return

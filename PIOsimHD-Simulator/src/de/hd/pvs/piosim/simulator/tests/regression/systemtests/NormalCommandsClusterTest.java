@@ -70,13 +70,52 @@ public class NormalCommandsClusterTest extends ClusterTest{
 		runSimulationAllExpectedToFinish();
 	}
 
-	@Test public void sendRecvTest() throws Exception{
+	@Test public void sendAndRecvCrossTest() throws Exception{
 		printStack();
 		setup(2, 0);
 
-		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
+		pb.addSendAndRecv(world, 0, 1, 1 * MBYTE, 1);
+		pb.addSendAndRecv(world, 1, 0, 1 * MBYTE, 1);
 
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void sendRecvEagerTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 200 * KBYTE, 1, 1);
+		pb.addSendRecv(world, 1, 0, 0, 100 * KBYTE, 1, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void sendRecvOneRendevouzTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 200 * KBYTE, 1, 1);
 		pb.addSendRecv(world, 1, 0, 0, 1 * MBYTE, 1, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void sendRecvRendevouzTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
+		pb.addSendRecv(world, 1, 0, 0, 1 * MBYTE, 1, 1);
+
 		runSimulationAllExpectedToFinish();
 	}
 

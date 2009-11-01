@@ -51,56 +51,32 @@ public class InterProcessNetworkJob implements IMessageUserData{
 	 */
 	final private IMessageUserData   jobData;
 
-	/**
-	 * if flowMode == false (default) then use one big message
-	 * otherwise a message part callback is called for each received or sent part.
-	 */
-	private boolean       partialCallbackActive;
 
-	/**
-	 * If this is a send message, is all data available or is the data to be transferred later?
-	 */
-	private boolean       isDataAvailable = true;
-
+	final private IInterProcessNetworkJobCallback callbacks;
 
 	/**
 	 * Creates a new NewNetworkJob which receives data from the source.
 	 * @return
 	 */
-	static public InterProcessNetworkJob createReceiveOperation(MessageMatchingCriterion matchingCriterion, boolean partial)
+	static public InterProcessNetworkJob createReceiveOperation(MessageMatchingCriterion matchingCriterion, IInterProcessNetworkJobCallback callback)
 	{
-		return new InterProcessNetworkJob(InterProcessNetworkJobType.RECEIVE, null, matchingCriterion, partial);
+		return new InterProcessNetworkJob(InterProcessNetworkJobType.RECEIVE, null, matchingCriterion, callback);
 	}
 
-	static public InterProcessNetworkJob createSendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, boolean partial)
+	static public InterProcessNetworkJob createSendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, IInterProcessNetworkJobCallback callback)
 	{
-		return new InterProcessNetworkJob(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, partial);
+		return new InterProcessNetworkJob(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, callback);
 	}
-
-	static public InterProcessNetworkJob createEmptySendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, boolean partial)
-	{
-		final InterProcessNetworkJob job = new InterProcessNetworkJob(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, partial);
-		job.isDataAvailable = false;
-		return job;
-	}
-
 
 	/**
 	 * Create a new SingleNetwork Job, private to reduce the error-prone creation of new send
 	 * or receive jobs.
 	 *
-	 * @param operation
-	 * @param jobData
-	 * @param sourceComponent (can be NULL if receive and MPI_ANY_SOURCE tag).
-	 * @param targetComponent
-	 * @param tag
-	 * @param comm
-	 * @param parentJobs if the NIC should only signal if all jobs completed
-	 * @param flowMode
 	 */
-	private InterProcessNetworkJob(InterProcessNetworkJobType operation, IMessageUserData jobData,
+	protected InterProcessNetworkJob(InterProcessNetworkJobType operation, IMessageUserData jobData,
 			MessageMatchingCriterion matchingCriterion,
-			boolean partial) {
+			IInterProcessNetworkJobCallback callbacks)
+	{
 
 		assert(matchingCriterion != null);
 
@@ -109,7 +85,7 @@ public class InterProcessNetworkJob implements IMessageUserData{
 
 
 		this.jobData = jobData;
-		this.partialCallbackActive = partial;
+		this.callbacks = callbacks;
 	}
 
 	public MessageMatchingCriterion getMatchingCriterion() {
@@ -134,18 +110,7 @@ public class InterProcessNetworkJob implements IMessageUserData{
 
 	@Override
 	public String toString() {
-		return "<" + matchingCriterion.toString() + " data:" + jobData + " partialCB:" + partialCallbackActive + ">";
-	}
-
-	/**
-	 * Should this send message invoke the sender callback on the sending component
-	 * for each successful message part.
-	 *
-	 * @return the partialSend
-	 */
-
-	public boolean isPartialCallbackActive() {
-		return partialCallbackActive;
+		return "<" + matchingCriterion.toString() + " data:" + jobData  + ">";
 	}
 
 	@Override
@@ -153,8 +118,7 @@ public class InterProcessNetworkJob implements IMessageUserData{
 		return jobData.getSize();
 	}
 
-
-	public boolean isDataAvailable() {
-		return isDataAvailable;
+	public IInterProcessNetworkJobCallback getCallbacks() {
+		return callbacks;
 	}
 }

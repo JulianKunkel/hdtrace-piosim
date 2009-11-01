@@ -29,7 +29,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 
 /**
- * A network message consists of several packets.
+ * A network message consists of several packets aka message parts.
  *
  * @author Julian M. Kunkel
  *
@@ -104,6 +104,9 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param flowPart
 	 */
 	public Message(long size, Data containedData, INetworkEntry sourceComponent, INetworkExit targetComponent) {
+		assert(targetComponent != null);
+		assert(sourceComponent != null);
+
 		this.totalSize = size;
 		this.availableDataPosition = size;
 		this.containedData = containedData;
