@@ -135,6 +135,8 @@
 </NetworkNode>
 </NetworkNodeList>
 
+</ComponentList>
+
 <TopologyList>
 <Topology  name="Patch-Cable">
 <ROUTINGALGORITHM>
@@ -154,6 +156,15 @@
 </Topology>
 </TopologyList>
 
-</ComponentList>
+<IORedirectionList>
+<IORedirection defaultRouteID="-1">
+<REDIRECTS>
+<InternalIORedirection serverID="5" viaID="1">
+</InternalIORedirection>
+</REDIRECTS>
+<MODIFIEDCOMPONENTIDS>
+<VALUE val="2"/></MODIFIEDCOMPONENTIDS>
+</IORedirection>
+</IORedirectionList>
 
 </Project>

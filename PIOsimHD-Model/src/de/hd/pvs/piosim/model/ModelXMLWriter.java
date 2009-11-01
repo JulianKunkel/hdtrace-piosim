@@ -29,6 +29,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
+import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
 import de.hd.pvs.piosim.model.interfaces.IDynamicModelComponent;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
@@ -124,6 +125,8 @@ public class ModelXMLWriter {
 		}
 		sb.append("</NetworkNodeList>\n\n");
 
+		sb.append("</ComponentList>\n\n");
+
 		// write out all topologies in sequence
 		sb.append("<TopologyList>\n");
 		for (INetworkTopology topology : model.getTopologies()) {
@@ -146,8 +149,22 @@ public class ModelXMLWriter {
 		}
 		sb.append("</TopologyList>\n\n");
 
+		// write out I/O redirection layers:
+		sb.append("<IORedirectionList>\n");
+		for(IORedirection redirect: model.getIORedirectionLayers()){
+			sb.append("<IORedirect default=\"" + redirect.getDefaultRouteID() + "\">\n");
+			for(Integer server : redirect.getRedirects().keySet()){
+				sb.append("<Srv id=\"" + server + "\" via=\""+  redirect.getRedirects().get(server) + "\"/>\n");
+			}
+			for(Integer component : redirect.getModifyingComponentIDs()){
+				sb.append("<Component id=\"" + component +"\"/>\n");
+			}
+			sb.append("</IORedirect>\n");
+		}
+		sb.append("</IORedirectionList>\n");
 
-		sb.append("</ComponentList>\n\n</Project>\n");
+		// end top XML Tag
+		sb.append("\n</Project>\n");
 	}
 
 	/**

@@ -25,13 +25,17 @@
 package de.hd.pvs.piosim.model.components.Router;
 
 import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
+import de.hd.pvs.piosim.model.inputOutput.IIOTarget;
 
 /**
  * Process that forwards packets i.e. a gateway/router.
  *
  * @author julian
  */
-public class Router extends NodeHostedComponent {
+public class Router
+	extends NodeHostedComponent
+	implements IIOTarget
+{
 	public String getObjectType() {
 		return Router.class.getSimpleName();
 	}

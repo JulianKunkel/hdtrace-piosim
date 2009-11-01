@@ -28,6 +28,7 @@ package de.hd.pvs.piosim.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -39,6 +40,7 @@ import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
+import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
@@ -63,6 +65,8 @@ public class Model{
 	ArrayList<ClientProcess>   clients = new ArrayList<ClientProcess>();
 	ArrayList<INetworkEdge>    networkEdges = new ArrayList<INetworkEdge>();
 	ArrayList<INetworkNode>    networkNodes = new ArrayList<INetworkNode>();
+
+	LinkedList<IORedirection> ioRedirectionLayers = new LinkedList<IORedirection>();
 
 
 	/**
@@ -189,6 +193,14 @@ public class Model{
 		}
 
 		return str.toString();
+	}
+
+	public void addIORedirectionLayer(IORedirection layerBuilder){
+		ioRedirectionLayers.add(layerBuilder);
+	}
+
+	public LinkedList<IORedirection> getIORedirectionLayers() {
+		return ioRedirectionLayers;
 	}
 
 	void addTopology(INetworkTopology topology){

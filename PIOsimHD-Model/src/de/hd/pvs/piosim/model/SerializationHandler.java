@@ -22,9 +22,14 @@ public class SerializationHandler {
 	 * @param obj
 	 */
 	public void readXML(XMLTag xml, ISerializableObject component) throws Exception{
-		commonAttributeHandler.readSimpleAttributes(xml, component);
+		try{
+			commonAttributeHandler.readSimpleAttributes(xml, component);
 
-		readChildComponents(xml, component);
+			readChildComponents(xml, component);
+		}catch(Exception e){
+			System.err.println("Error  in " + xml);
+			throw e;
+		}
 	}
 
 	/**
@@ -185,9 +190,18 @@ public class SerializationHandler {
 
 				// if it is a collection serialize all contained elements
 				if(Collection.class.isAssignableFrom(value.getClass()) ){
-					Collection<ISerializableObject> coll = (Collection<ISerializableObject>)  value;
-					for(ISerializableObject e: coll){
-						createXMLFromInstance(e, buff);
+					final Collection<Object> collArb = (Collection<Object>) value;
+					if(! collArb.isEmpty()){
+						final Object first = collArb.iterator().next();
+						if(Number.class.isInstance(first)){
+							for(Object o: collArb){
+								createXMLFromNumber((Number) o, buff);
+							}
+						}else{
+							for(Object e: collArb){
+								createXMLFromInstance((ISerializableObject) e, buff);
+							}
+						}
 					}
 				}else{ // single object
 					createXMLFromInstance(((ISerializableObject) value).getClass().cast(value), buff);
@@ -199,6 +213,10 @@ public class SerializationHandler {
 
 			classIterate = classIterate.getSuperclass();
 		}
+	}
+
+	public void createXMLFromNumber(Number number, StringBuffer sb){
+		sb.append("<VALUE val=\"" + number.toString() + "\"/>");
 	}
 
 

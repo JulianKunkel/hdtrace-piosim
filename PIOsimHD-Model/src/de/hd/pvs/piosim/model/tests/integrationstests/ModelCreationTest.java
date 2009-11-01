@@ -42,6 +42,7 @@ import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
+import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 
@@ -99,6 +100,12 @@ public class ModelCreationTest   extends TestSuite  {
 		mb.connect(topology, client2.getNetworkInterface(), mi, interNode);
 		mi = new SimpleNetworkEdge();
 		mb.connect(topology, interNode, mi, client2.getNetworkInterface());
+
+		// test I/O redirection layers.
+		final IORedirection rb = new IORedirection();
+		rb.addModifyingComponent(client.getIdentifier().getID());
+		rb.addRedirect(5, machine2.getIdentifier().getID());
+		mb.getModel().addIORedirectionLayer(rb);
 
 		// write XML to file
 		final ModelXMLWriter writer = new ModelXMLWriter();

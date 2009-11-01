@@ -44,7 +44,7 @@ import de.hd.pvs.piosim.model.interfaces.IDynamicImplementationObject;
  */
 abstract public class NodeHostedComponent
 	extends BasicComponent<Node>
-	implements IDynamicImplementationObject
+	implements IDynamicImplementationObject, INodeHostedComponent
 {
 	@SerializeChild
 	private NIC networkInterface;

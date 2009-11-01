@@ -32,6 +32,7 @@ import java.util.HashMap;
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Node.Node;
+import de.hd.pvs.piosim.model.components.Router.Router;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
@@ -84,6 +85,21 @@ public class ModelBuilder {
 	 */
 	public GlobalSettings getGlobalSettings() {
 		return model.getGlobalSettings();
+	}
+
+	/**
+	 * Modify the model in a consistent way that a router is part of the node.
+	 *
+	 * @param node
+	 * @param client
+	 */
+	public void addRouter(Node node, Router router) {
+		node.getHostedComponents().add(router);
+		router.setParentComponent(node);
+
+		if (model.isComponentInModel(node)){
+			model.addComponent(router);
+		}
 	}
 
 	/**

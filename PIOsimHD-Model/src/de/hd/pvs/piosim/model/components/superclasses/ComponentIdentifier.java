@@ -36,7 +36,9 @@ import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
  *
  * @author Julian M. Kunkel
  */
-public class ComponentIdentifier implements Comparable<ComponentIdentifier>, ISerializableObject {
+public class ComponentIdentifier
+	implements Comparable<ComponentIdentifier>, ISerializableObject
+{
 	final public static int INVALID_ID = -1;
 
 	@Attribute(type=AttributeXMLType.ATTRIBUTE)

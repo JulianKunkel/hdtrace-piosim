@@ -34,6 +34,7 @@ import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicModelClassMapper;
+import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.logging.ConsoleLogger;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
@@ -123,7 +124,15 @@ public class ModelXMLReader {
 
 		ConsoleLogger.getInstance().debug(this, "Connecting Components");
 		try {
-			loadTopology(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
+			loadTopology(model, projectNode);
+		} catch (Exception e) {
+			System.err.println("Available model: " + model);
+
+			throw e;
+		}
+
+		try {
+			loadIORedirectors(model, projectNode);
 		} catch (Exception e) {
 			System.err.println("Available model: " + model);
 
@@ -131,6 +140,16 @@ public class ModelXMLReader {
 		}
 
 		return model;
+	}
+
+	private void loadIORedirectors(Model model, XMLTag componentList) throws Exception {
+		/* connect components */
+		final XMLTag element = componentList.getFirstNestedXMLTagWithName("IORedirectionList");
+
+		for(XMLTag xml: element.getNestedXMLTags()){
+			IORedirection ioredirection  = new IORedirection();
+			//serializationHandler.readXML(xml, ioredirection );
+		}
 	}
 
 	/**
