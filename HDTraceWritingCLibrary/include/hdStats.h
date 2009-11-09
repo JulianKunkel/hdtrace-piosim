@@ -41,6 +41,43 @@
 #include <stdio.h>   /* standard input/output stuff */
 #include <stdint.h>  /* standard integer type */
 
+#ifdef _AIX
+#warning "Why - its for science..."
+/* On AIX not existing ... */
+
+static inline uint32_t  bswap_32 (unsigned int buf)
+{
+	uint32_t ret;
+	char * o = (char *) & ret;
+	char * b = (char *) & buf;
+	o[0] = b[3];
+	o[1] = b[2];
+	o[2] = b[1];
+	o[3] = b[0];
+
+	return ret;
+}
+
+static inline uint64_t  bswap_64 (unsigned int buf)
+{
+	uint64_t ret;
+	char * o = (char *) & ret;
+	char * b = (char *) & buf;
+	o[0] = b[7];
+	o[1] = b[6];
+	o[2] = b[5];
+	o[3] = b[4];
+	o[4] = b[3];
+	o[5] = b[2];
+	o[6] = b[1];
+	o[7] = b[0];
+
+	return ret;
+}
+
+
+#endif 
+
 #include "hdError.h" /* error definitions */
 #include "hdTopo.h" /* topology stuff */
 
@@ -256,8 +293,8 @@ int hdS_finalize(
  * ************************************************************************* */
 
 /* Defines for byte order conversion */
-#include <endian.h>
-#include <byteswap.h>
+//#include <endian.h>
+//#include <byteswap.h>
 
 //#define order_bytes32_p(x) *((uint32_t *) x) = bswap_32(*((uint32_t *) x))
 //#define order_bytes64_p(x) *((uint64_t *) x) = bswap_64(*((uint64_t *) x))
