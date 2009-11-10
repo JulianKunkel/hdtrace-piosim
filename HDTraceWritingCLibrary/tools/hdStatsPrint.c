@@ -5,13 +5,14 @@
  * @author Stephan Krempel <stephan.krempel@gmx.de>
  * @version \$Id$
  */
-
+#pragma alloca 
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+#include <malloc.h>
 
 /* for byte order functions only */
 #include "hdStats.h"
