@@ -495,10 +495,11 @@ def struct_string(id, combiner, name, integers, addresses, types):
 def subarray_string(id, combiner, name, integers, addresses, types):
    assert int(integers[0])*3 + 2 == len(integers)
    
-   result = ""
-   result += '  <%s id="%s" name="%s" count="%s" order="%s" oldType="%s" >\n' % (combiner, id, name, integers[0], integers[-1], types[0])
-
    size = int(integers[0])
+   
+   result = ""
+   result += '  <%s id="%s" name="%s" ndims="%s" order="%s" oldType="%s" >\n' % (combiner, id, name, size, integers[-1], types[0])
+
    for i in range(0, size):
       result += '   <Dimension size="%s" subsize="%s" start="%s" />\n' % (integers[1 + i], integers[1 + size + i], integers[1 + size*2 + i])
    result += '  </%s>\n' % combiner
