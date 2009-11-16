@@ -496,7 +496,7 @@ def subarray_string(id, combiner, name, integers, addresses, types):
    assert int(integers[0])*3 + 2 == len(integers)
    
    result = ""
-   result += '  <%s id="%s" name="%s" count="%s" order="%s">\n' % (combiner, id, name, integers[0], integers[-1])
+   result += '  <%s id="%s" name="%s" count="%s" order="%s" oldType="%s" >\n' % (combiner, id, name, integers[0], integers[-1], types[0])
 
    size = int(integers[0])
    for i in range(0, size):
