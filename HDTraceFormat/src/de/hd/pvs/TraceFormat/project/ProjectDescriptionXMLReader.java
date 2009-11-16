@@ -40,7 +40,9 @@ import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.project.datatypes.DatatypeEnum;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype.DimensionSpec;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
@@ -133,7 +135,7 @@ public class ProjectDescriptionXMLReader {
 					SimpleConsoleLogger.Debug(rank + ": found datatype " + newType);
 					datatypeMapping.put(newType.getTid(), newType);
 				}
-				
+
 				if(descriptionInOut.getDatatypeMap(rank) != null){
 					throw new IllegalArgumentException("Error: type map already set for rank " + rank);
 				}
@@ -157,13 +159,13 @@ public class ProjectDescriptionXMLReader {
 			long oldType = Long.parseLong(xml.getAttribute("oldType"));
 			final Datatype old = datatypeMapping.get(oldType);
 			int count = Integer.parseInt(xml.getAttribute("count"));
-			
+
 			datatype = new ContiguousDatatype(old, count);			
-			
+
 			break;
 		}case NAMED:{
 			String name = xml.getAttribute("name").replace("MPI_", "");
-			
+
 			datatype = NamedDatatype.valueOf(name);
 			break;
 		}case STRUCT:{
@@ -172,7 +174,7 @@ public class ProjectDescriptionXMLReader {
 				long id = Long.parseLong(child.getAttribute("id"));
 				int displacement = Integer.parseInt(child.getAttribute("displacement"));
 				int blockLen = Integer.parseInt(child.getAttribute("blocklen"));
-				
+
 				final Datatype old = datatypeMapping.get(id);
 				assert(old != null);
 				struct.appendType(old, displacement, blockLen);
@@ -185,8 +187,35 @@ public class ProjectDescriptionXMLReader {
 			int stride = Integer.parseInt(xml.getAttribute("stride"));
 			long oldType = Long.parseLong(xml.getAttribute("oldType"));
 			final Datatype old = datatypeMapping.get(oldType);
-			
+
 			datatype = new VectorDatatype(old, count, blocklength, stride);
+			break;
+		}case SUBARRAY:{
+			int ndims = Integer.parseInt(xml.getAttribute("ndims"));
+			SubarrayDatatype.Order order = SubarrayDatatype.Order.valueOf(xml.getAttribute("order"));
+			long oldType = Long.parseLong(xml.getAttribute("oldType"));
+			final Datatype old = datatypeMapping.get(oldType);
+			
+			DimensionSpec[] dimSpec = new DimensionSpec[ndims];
+			
+			int cur = 0;
+			for(XMLTag child: xml.getNestedXMLTags()){
+				// <Dimension size="32" subsize="1" start="5" />
+				if(cur > ndims){
+					throw new IllegalArgumentException("More dimensions defined than specified.");
+				}
+				
+				int size = Integer.parseInt(child.getAttribute("size"));
+				int subsize = Integer.parseInt(child.getAttribute("subsize"));
+				int start = Integer.parseInt(child.getAttribute("start"));
+				
+				dimSpec[cur] = new DimensionSpec(size, subsize, start);
+				
+				cur ++;
+			}
+			
+			
+			datatype = new SubarrayDatatype(dimSpec, order, old);
 			break;
 		}default:
 			throw new IllegalArgumentException("Datatype " + type + " not implemented, yet");
@@ -201,7 +230,7 @@ public class ProjectDescriptionXMLReader {
 	protected MPICommunicator createCommunicator(String name){
 		return new MPICommunicator(name);
 	}
-	
+
 	private void readCommunicator(MPICommunicator comm, XMLTag xml, ProjectDescription desc){
 		final LinkedList<XMLTag>  elements = xml.getNestedXMLTagsWithName("Rank");
 
@@ -254,7 +283,7 @@ public class ProjectDescriptionXMLReader {
 
 	private TopologyNode parseTopology(int depth, XMLTag xmlTopology, TopologyNode topoNode, ProjectDescription desc){		
 		final LinkedList<XMLTag> children =  xmlTopology.getNestedXMLTagsWithName("Node");		
-		
+
 		for(XMLTag tag: children){
 			final String childName = tag.getAttribute("name");
 
@@ -264,7 +293,7 @@ public class ProjectDescriptionXMLReader {
 			}
 
 			TopologyNode childNode = new TopologyNode(childName, topoNode, label);
-			
+
 			parseTopology(depth + 1, tag, childNode, desc);			
 		}
 

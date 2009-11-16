@@ -25,6 +25,8 @@ import java.util.ArrayList;
  * @author Julian M. Kunkel
  */
 public class NamedDatatype extends Datatype{
+	
+	// TODO: fix, size of some datatypes depends on architecture.
 	public static enum NamedDatatypeType{
 		LB (0),
 		UB (0),

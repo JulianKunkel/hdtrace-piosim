@@ -22,5 +22,6 @@ public enum DatatypeEnum {
 	CONTIGUOUS,
 	//HVECTOR, deprecated
 	STRUCT,
-	VECTOR
+	VECTOR,
+	SUBARRAY
 }
