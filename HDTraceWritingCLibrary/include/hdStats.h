@@ -75,7 +75,8 @@ static inline uint64_t  bswap_64 (unsigned int buf)
 	return ret;
 }
 
-
+#else
+#include <byteswap.h>
 #endif 
 
 #include "hdError.h" /* error definitions */
