@@ -18,7 +18,7 @@
 #include "hdRelation.h"
 
 #ifdef HAVE_HDPTL
-#include "PTL.h"
+#include "RUT.h"
 #endif
 
 static hdStatsGroup * hd_facilityTrace[ALL_FACILITIES];
@@ -35,8 +35,8 @@ const char * hdFacilityNames[] = {"BMI", "FLOW", "CLIENT", "STATISTIC_END", "ALL
 #endif
 
 #ifdef __PVFS2_SERVER__
-static ptlSources statistics;
-static PerfTrace * pPerformanceTrace;
+static rutSources statistics;
+static UtilTrace * pPerformanceTrace;
 static hdTopoNode * serverRootTopology;
 const char * hdFacilityNames[] = {"BMI", "TROVE", "FLOW", "REQ", "BREQ", "SERVER", "JOB", "STATISTIC_END", 
 		"NET", "MEM", "CPU", "DISK", "ALL_FACILITIES"};
@@ -188,30 +188,30 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 #ifdef HAVE_HDPTL
 		if (!strcasecmp(event_list[i],"NET"))
 		{	
-			statistics.PTLSRC_NET_IN = 1;
-			statistics.PTLSRC_NET_OUT = 1;
+			statistics.NET_IN = 1;
+			statistics.NET_OUT = 1;
 			enableStats = 1;
 		}
 
 		if (!strcasecmp(event_list[i],"MEM"))
 		{	
-			statistics.PTLSRC_MEM_USED = 1;
-			statistics.PTLSRC_MEM_FREE = 1;
-			statistics.PTLSRC_MEM_BUFFER = 1;
+			statistics.MEM_USED = 1;
+			statistics.MEM_FREE = 1;
+			statistics.MEM_BUFFER = 1;
 			enableStats = 1;
 		}
 
 		if (!strcasecmp(event_list[i],"CPU"))
 		{	
-			statistics.PTLSRC_CPU_LOAD = 1;
-			statistics.PTLSRC_CPU_LOAD_X = 1;
+			statistics.CPU_UTIL = 1;
+			statistics.CPU_UTIL_X = 1;
 			enableStats = 1;
 		}
 
 		if (!strcasecmp(event_list[i],"DISK"))
 		{	
-			statistics.PTLSRC_HDD_WRITE = 1;
-			statistics.PTLSRC_HDD_READ = 1;	
+			statistics.HDD_WRITE = 1;
+			statistics.HDD_READ = 1;	
 			enableStats = 1;
 		}
 
@@ -220,8 +220,8 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 	
 #ifdef HAVE_HDPTL
 	if(enableStats){
-		pPerformanceTrace = ptl_createTrace(serverRootTopology, 1, statistics, 700);		
-		ptl_startTrace(pPerformanceTrace);
+		rut_createTrace(serverRootTopology, 1, statistics, 700, & pPerformanceTrace);		
+		rut_startTracing(pPerformanceTrace);
 	}
 #endif /* __HAVE_HDPTL__ */
 
@@ -264,8 +264,8 @@ int PINT_HD_event_finalize(void)
 #ifdef HAVE_HDPTL
 	if(pPerformanceTrace)
 	{
-		ptl_stopTrace(pPerformanceTrace);
-		ptl_destroyTrace(pPerformanceTrace);
+		rut_stopTracing(pPerformanceTrace);
+		rut_finalizeTrace(pPerformanceTrace);
 	}
 #endif /* __HAVE_HDPTL__*/
 #endif /* __PVFS2_SERVER__ */
