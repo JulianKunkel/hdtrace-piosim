@@ -148,6 +148,9 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
+/* Define if HDRut library is used */
+#undef HAVE_HDRUT
+
 /* Define if HDTrace library is used */
 #undef HAVE_HDTRACE
 

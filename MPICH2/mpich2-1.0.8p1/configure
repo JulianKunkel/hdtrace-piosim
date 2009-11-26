@@ -955,6 +955,7 @@ with_logging
 with_mpe
 enable_mpe
 with_hdtrace
+with_hdrut
 with_hdtraceWrapper
 enable_hdTraceSourceLine
 enable_hdTraceSourceLineROMIO
@@ -1734,6 +1735,7 @@ Optional Packages:
 --with-logging=name - Specify the logging library for MPICH.
 --with-mpe - Build the MPE (MPI Parallel Environment) routines
 --with-hdtrace=path         Use HDTrace library installed in "path"
+--with-hdrut=path         Use HDRut library installed in "path"
 --with-hdtraceWrapper=path         Use HDTrace wrapper installed in "path"
 --with-cross=file - Specify the values of variables that configure cannot
 determine in a cross-compilation environment
@@ -2656,6 +2658,31 @@ fi
 
 
 
+
+# Check whether --with-hdrut was given.
+if test "${with_hdrut+set}" = set; then
+  withval=$with_hdrut; if test "x$withval" = "xyes" ; then
+           { { $as_echo "$as_me:$LINENO: error: --with-hdrut must be given a pathname" >&5
+$as_echo "$as_me: error: --with-hdrut must be given a pathname" >&2;}
+   { (exit 1); exit 1; }; }
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="-lRUT $LIBS `pkg-config --libs libgtop-2.0` `pkg-config --libs gthread-2.0`"
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_HDRUT 1
+_ACEOF
+
+       #AC_TRY_LINK([#include "RUT.h"],[],[],
+       # [AC_MSG_ERROR(hdtrace library is not usable)] )
+
+       BUILD_HDTRACE=1
+    fi
+
+fi
+
+
 BUILD_HDTRACE_WRAPPER=
 
 # Check whether --with-hdtraceWrapper was given.
@@ -2668,7 +2695,7 @@ $as_echo "$as_me: error: --with-hdtraceWrapper must be given a pathname" >&2;}
        CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) -DUSE_MPI_VERSIONS"
        CPPFLAGS+="-DUSE_MPI_VERSIONS"
        LDFLAGS="$LDFLAGS -L$withval/lib"
-       LIBS="$LIBS -lhdTraceMPIWrapper -lhdStats -lhdTrace $(pkg-config --libs glib-2.0)"
+       LIBS="-lhdTraceMPIWrapper $LIBS $(pkg-config --libs glib-2.0)"
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_HDTRACE_WRAPPER 1
@@ -8671,7 +8698,7 @@ $as_echo "unknown!" >&6; }
     rm -f conftest*
 fi
 # Provide some information about the compiler.
-echo "$as_me:8674:" \
+echo "$as_me:8701:" \
      "checking for Fortran 90 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -10131,7 +10158,7 @@ $as_echo "unknown!" >&6; }
     rm -f conftest*
 fi
 # Provide some information about the compiler.
-echo "$as_me:10134:" \
+echo "$as_me:10161:" \
      "checking for Fortran 90 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -13914,7 +13941,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 13917 "configure"
+#line 13944 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -15724,7 +15751,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 15727 "configure"
+#line 15754 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -22744,7 +22771,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 22747 "configure"
+#line 22774 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -23718,7 +23745,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 23721 "configure"
+#line 23748 "configure"
 #include "confdefs.h"
 #include <sys/bitypes.h>
 int conftest() {return 0;}
@@ -23808,7 +23835,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 23811 "configure"
+#line 23838 "configure"
 #include "confdefs.h"
 #include <inttypes.h>
 int conftest() {return 0;}
@@ -26743,7 +26770,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     else
         cat > conftest.$ac_ext <<EOF
 
-#line 26746 "configure"
+#line 26773 "configure"
 #include "confdefs.h"
 
 main(){return(0);}
@@ -26836,7 +26863,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
         else
             cat > conftest.$ac_ext <<EOF
 
-#line 26839 "configure"
+#line 26866 "configure"
 #include "confdefs.h"
 
 int main(){return(0);}
@@ -27987,7 +28014,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 27990 "configure"
+#line 28017 "configure"
 #include "confdefs.h"
 #include <complex>
 int conftest() {return 0;}
@@ -30341,7 +30368,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 30344 "configure"
+#line 30371 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -31861,7 +31888,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 31864 "configure"
+#line 31891 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -33582,7 +33609,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 33585 "configure"
+#line 33612 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -34181,7 +34208,7 @@ fi
 # If cpp failed, see if the compiler accepts the header.
 if test "$pac_found_header" != "yes" ; then
     cat >conftest.c<<EOF
-#line 34184 "configure"
+#line 34211 "configure"
 #include "confdefs.h"
 #include <$ac_header>
 int conftest() {return 0;}
@@ -35328,7 +35355,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     else
         cat > conftest.$ac_ext <<EOF
 
-#line 35331 "configure"
+#line 35358 "configure"
 #include "confdefs.h"
 
 main(){return(0);}
@@ -35419,7 +35446,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
         else
             cat > conftest.$ac_ext <<EOF
 
-#line 35422 "configure"
+#line 35449 "configure"
 #include "confdefs.h"
 
 int main(){return(0);}

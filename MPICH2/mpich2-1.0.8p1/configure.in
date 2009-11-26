@@ -400,6 +400,22 @@ AC_ARG_WITH(hdtrace,
 
 AC_SUBST(BUILD_HDTRACE)
 
+AC_ARG_WITH(hdrut,       
+[--with-hdrut=path         Use HDRut library installed in "path"],
+    if test "x$withval" = "xyes" ; then                                 
+           AC_MSG_ERROR(--with-hdrut must be given a pathname)        
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+       LIBS="-lRUT $LIBS `pkg-config --libs libgtop-2.0` `pkg-config --libs gthread-2.0`"
+       AC_DEFINE(HAVE_HDRUT, 1, [Define if HDRut library is used])                     
+       #AC_TRY_LINK([#include "RUT.h"],[],[], 
+       # [AC_MSG_ERROR(hdtrace library is not usable)] )      
+
+       BUILD_HDTRACE=1
+    fi
+)
+
 BUILD_HDTRACE_WRAPPER=
 dnl use the hdtrace MPI wrapper (use it together with the hdTraceLibrary)
 AC_ARG_WITH(hdtraceWrapper,       
@@ -410,7 +426,7 @@ AC_ARG_WITH(hdtraceWrapper,
        CFLAGS="$CFLAGS -I$withval/include  $(pkg-config --cflags glib-2.0) -DUSE_MPI_VERSIONS"
        CPPFLAGS+="-DUSE_MPI_VERSIONS"
        LDFLAGS="$LDFLAGS -L$withval/lib"
-       LIBS="$LIBS -lhdTraceMPIWrapper -lhdStats -lhdTrace $(pkg-config --libs glib-2.0)"
+       LIBS="-lhdTraceMPIWrapper $LIBS $(pkg-config --libs glib-2.0)"
        AC_DEFINE(HAVE_HDTRACE_WRAPPER, 1, [Define if HDTrace MPI Wrapper is used])
        AC_DEFINE(USE_MPI_VERSIONS, 1, [Define if ROMIO shall use MPI calls for the wrapper])
        AC_DEFINE(HDTRACE_ROMIO, 1, [Define if more ROMIO internals shall be traced])       
