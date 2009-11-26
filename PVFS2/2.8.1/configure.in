@@ -514,20 +514,20 @@ AC_SUBST(BUILD_HDTRACE)
 
 BUILD_HDTRACEPTL=
 dnl use the hdtrace library and Performance Trace of the kernel
-AC_ARG_WITH(hdptl,
-[  --with-hdptl=path         Use Performance Trace library (HDTrace) installed in "path"],
+AC_ARG_WITH(hdrut,
+[  --with-hdrut=path         Use Ressource Utilization Tracing installed in "path"],
     if test "x$withval" = "xyes" ; then
-           AC_MSG_ERROR(--with-hdptl must be given a pathname)
+           AC_MSG_ERROR(--with-hdrut must be given a pathname)
     else
        CFLAGS="$CFLAGS -I$withval/include -I$withval/src  $(pkg-config --cflags gthread-2.0) $(pkg-config --cflags libgtop-2.0)"
        LDFLAGS="$LDFLAGS -L$withval/lib -L/usr/lib"
-       LIBS="$LIBS -lPTL $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
-       AC_DEFINE(HAVE_HDPTL, 1, [Define if HDTrace library is used])
+       LIBS="-lRUT $LIBS $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
+       AC_DEFINE(HAVE_HDPTL, 1, [Define if HDRut library is used])
        BUILD_HDTRACEPTL=1
        
-       AC_TRY_LINK([#include "PTL.h"], [  ],
+       AC_TRY_LINK([#include "RUT.h"], [  ],
        ,
-       AC_MSG_ERROR(PTL library is not usable))
+       AC_MSG_ERROR(RUT library is not usable))
     fi
 )
 

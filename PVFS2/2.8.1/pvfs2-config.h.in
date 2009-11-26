@@ -128,7 +128,7 @@
 /* Define if strerror_r is GNU-specific */
 #undef HAVE_GNU_STRERROR_R
 
-/* Define if HDTrace library is used */
+/* Define if HDRut library is used */
 #undef HAVE_HDPTL
 
 /* Define if HDTrace library is used */

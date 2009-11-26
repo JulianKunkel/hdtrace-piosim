@@ -790,7 +790,7 @@ with_mtrace
 with_berkdb_debug
 with_tau
 with_hdtrace
-with_hdptl
+with_hdrut
 with_kernel
 with_kernel24
 enable_kernel_aio
@@ -1503,7 +1503,7 @@ Optional Packages:
   --with-berkdb-debug     Use berkeley db error reporting (if detected).
   --with-tau=path         Use TAU trace library installed in "path"
   --with-hdtrace=path         Use HDTrace library installed in "path"
-  --with-hdptl=path         Use Performance Trace library (HDTrace) installed in "path"
+  --with-hdrut=path         Use Ressource Utilization Tracing installed in "path"
   --with-kernel=srcpath   Build pvfs2 kernel module against 2.6.x src
   --with-kernel24=srcpath Build pvfs2 kernel module against 2.4.x src
   --with-efence=<path>    Use electric fence for malloc debugging.
@@ -8323,16 +8323,16 @@ fi
 
 BUILD_HDTRACEPTL=
 
-# Check whether --with-hdptl was given.
-if test "${with_hdptl+set}" = set; then
-  withval=$with_hdptl; if test "x$withval" = "xyes" ; then
-           { { $as_echo "$as_me:$LINENO: error: --with-hdptl must be given a pathname" >&5
-$as_echo "$as_me: error: --with-hdptl must be given a pathname" >&2;}
+# Check whether --with-hdrut was given.
+if test "${with_hdrut+set}" = set; then
+  withval=$with_hdrut; if test "x$withval" = "xyes" ; then
+           { { $as_echo "$as_me:$LINENO: error: --with-hdrut must be given a pathname" >&5
+$as_echo "$as_me: error: --with-hdrut must be given a pathname" >&2;}
    { (exit 1); exit 1; }; }
     else
        CFLAGS="$CFLAGS -I$withval/include -I$withval/src  $(pkg-config --cflags gthread-2.0) $(pkg-config --cflags libgtop-2.0)"
        LDFLAGS="$LDFLAGS -L$withval/lib -L/usr/lib"
-       LIBS="$LIBS -lPTL $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
+       LIBS="-lRUT $LIBS $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_HDPTL 1
@@ -8346,7 +8346,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include "PTL.h"
+#include "RUT.h"
 int
 main ()
 {
@@ -8381,8 +8381,8 @@ else
   $as_echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	{ { $as_echo "$as_me:$LINENO: error: PTL library is not usable" >&5
-$as_echo "$as_me: error: PTL library is not usable" >&2;}
+	{ { $as_echo "$as_me:$LINENO: error: RUT library is not usable" >&5
+$as_echo "$as_me: error: RUT library is not usable" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
