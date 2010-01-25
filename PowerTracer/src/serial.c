@@ -187,6 +187,21 @@ int serial_setupPort(int fd, int baudrate)
      */
     serial_resetPort(fd);
 
+    /** TM: Copied reset stuff from minicom-2.4 **/
+
+    /* Posix - set baudrate to 0 and back */
+    struct termios tty, old;
+
+    tcgetattr(fd, &tty);
+    tcgetattr(fd, &old);
+    cfsetospeed(&tty, B0);
+    cfsetispeed(&tty, B0);
+    tcsetattr(fd, TCSANOW, &tty);
+    sleep(1);
+    tcsetattr(fd, TCSANOW, &old);
+
+    /** till here **/
+
     return(OK);
 }
 
