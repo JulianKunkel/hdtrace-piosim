@@ -58,7 +58,7 @@ static void printUsage() {
 			"         the extension. For 'a' .txt is added and '.bin' for 'b'.\n"
 			"         If TYPES contains 's', this describes a topology node (see hdStats\n"
 			"         documentation) and must have the  form \"path1_path2\"\n"
-			"         (ONLY 's' IS IMPLEMENTED YET!)\n"
+			"         (ONLY 's' IS IMPLEMENTED YET, 'a' PRINTS TO COMMANDLINE!)\n"
 			"\n"
 		);
 }

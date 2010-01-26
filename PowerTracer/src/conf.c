@@ -128,19 +128,20 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 		// parse types of trace
 #if 0
 		trace->bin = 0;
-		trace->ascii = 0;
 #endif
+		trace->ascii = 0;
 		trace->hdstats = 0;
+
 		while (*ptr != ':') {
 			switch(*ptr) {
 #if 0
 			case 'b':
 				trace->bin = 1;
 				break;
+#endif
 			case 'a':
 				trace->ascii = 1;
 				break;
-#endif
 			case 's':
 				trace->hdstats = 1;
 				break;
@@ -380,6 +381,11 @@ int createTraces(ConfigStruct *config) {
 					assert(!"Unknown return state of hdS_commitGroup().");
 				}
 			}
+		} else if (trace->ascii) {
+			// define FREE_PATH but not needed in ASCII mode
+#define FREE_PATH do { ; } while (0)
+
+			// TODO: create output file with extension
 		}
 		else {
 			trace->tnode = NULL;

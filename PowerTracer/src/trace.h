@@ -29,8 +29,8 @@ typedef struct trace_s {
 	short num;
 #if 0
 	int bin : 1;
-	int ascii : 1;
 #endif
+	int ascii : 1;
 	int hdstats : 1;
 	int channel;
 	ValueField values;

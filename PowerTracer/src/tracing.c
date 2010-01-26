@@ -65,22 +65,37 @@ int traceIteration(int serial_fd, ConfigStruct *config)
      */
     char *bufptr = buffer;
     FOR_TRACES(trace, config->traces) {
-       	/* use int pointer since order_bytes32ip is assumed to be faster */
-    	uint32_t *intptr = (uint32_t *) bufptr;
-    	for (int j = 0; j < trace->size / 4; ++j)
-    		order_bytes32ip(intptr+j);
 
-    	osize = trace->size;
+    	if(trace->hdstats) {
+    		/* use int pointer since order_bytes32ip is assumed to be faster */
+    		uint32_t *intptr = (uint32_t *) bufptr;
+    		for (int j = 0; j < trace->size / 4; ++j)
+    			order_bytes32ip(intptr+j);
 
-    	ret = hdS_writeEntry(trace->group, bufptr, osize);
-    	if (ret < 0) {
-    		// all these errors are programmer's faults, not user's faults
-    		assert(errno != HD_ERR_INVALID_ARGUMENT);
-			assert(errno != HD_ERR_TRACE_DISABLED);
-			assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
-			assert(errno != HDS_ERR_UNEXPECTED_ARGVALUE);
-			assert(errno != HDS_ERR_ENTRY_STATE);
-			assert(!"Unknown return value from hdS_writeEntry()");
+    		osize = trace->size;
+
+    		ret = hdS_writeEntry(trace->group, bufptr, osize);
+    		if (ret < 0) {
+    			// all these errors are programmer's faults, not user's faults
+    			assert(errno != HD_ERR_INVALID_ARGUMENT);
+    			assert(errno != HD_ERR_TRACE_DISABLED);
+    			assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
+    			assert(errno != HDS_ERR_UNEXPECTED_ARGVALUE);
+    			assert(errno != HDS_ERR_ENTRY_STATE);
+    			assert(!"Unknown return value from hdS_writeEntry()");
+    		}
+
+    	} else if(trace->ascii) {
+
+    		struct {
+    			float utrms;
+    			float itrms;
+    			float p;
+    		} op;
+
+    		memcpy(&op, bufptr, isize);
+
+    		printf("U: %f I: %f P: %f\n", op.utrms, op.itrms, op.p);
     	}
 
         /* set bufptr to the start of the next trace's part */
@@ -198,8 +213,10 @@ int traceLoop(
 
     		/* enable statistic groups */
     		FOR_TRACES(trace, config->traces) {
-    			ret = hdS_enableGroup(trace->group);
-    			assert(ret >= 0);
+    			if(trace->hdstats) {
+    				ret = hdS_enableGroup(trace->group);
+    				assert(ret >= 0);
+    			}
     		}
 
     		/* reset serial bus to clear input buffer */
@@ -228,8 +245,10 @@ int traceLoop(
 
     		/* disable statistic groups */
     		FOR_TRACES(trace, config->traces) {
-    			ret = hdS_disableGroup(trace->group);
-    			assert(ret >= 0);
+    			if(trace->hdstats) {
+    				ret = hdS_disableGroup(trace->group);
+    				assert(ret >= 0);
+    			}
     		}
 
     		/* start continues mode */
