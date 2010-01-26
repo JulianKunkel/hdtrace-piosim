@@ -160,14 +160,61 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 			RETURN_SYNTAX_ERROR;
 		*tmp = '\0';                                  // write '\0' there
 		ret = sscanf(ptr, "%d", &(trace->channel));   // scan channel number
-		if (ret < 1)
-			RETURN_SYNTAX_ERROR;
+		if (ret < 1) {
+
+			/* try to read hostname to map the hostname to the port and channel */
+
+			char tmpHostname[80];
+			ret = sscanf(ptr, "%s", &tmpHostname);
+
+			if(ret < 1)
+				RETURN_SYNTAX_ERROR;
+
+			if(config->allocated.port) {
+				pt_free(config->port);
+				config->allocated.port = 0;
+			}
+
+			if(strcmp(&tmpHostname,"switch") == 0) {
+				config->port = "/dev/ttyUSB0";
+				trace->channel = 1;
+			}
+			else if(strcmp(&tmpHostname,"nas1") == 0) {
+				config->port = "/dev/ttyUSB0";
+				trace->channel = 2;
+			}
+			else if(strcmp(&tmpHostname,"intel1") == 0) {
+				config->port = "/dev/ttyUSB0";
+				trace->channel = 3;
+			}
+			else if(strcmp(&tmpHostname,"intel2") == 0) {
+				config->port = "/dev/ttyUSB0";
+				trace->channel = 4;
+			}
+			else if(strcmp(&tmpHostname,"intel3") == 0) {
+				config->port = "/dev/ttyUSB1";
+				trace->channel = 1;
+			}
+			else if(strcmp(&tmpHostname,"intel4") == 0) {
+				config->port = "/dev/ttyUSB1";
+				trace->channel = 2;
+			}
+			else if(strcmp(&tmpHostname,"intel5") == 0) {
+				config->port = "/dev/ttyUSB1";
+				trace->channel = 3;
+			}
+			else if(strcmp(&tmpHostname,"eeclust") == 0) {
+				config->port = "/dev/ttyUSB1";
+				trace->channel = 4;
+			}
+			else
+				RETURN_SYNTAX_ERROR;
+		}
 		ptr = tmp + 1;                                // set ptr to the beginning of the next token
 
 		trace->output = ptr;
 		if (ptr == '\0')
 			RETURN_SYNTAX_ERROR;
-
 
 		// activate default values
 		trace->values.Utrms = 1;
