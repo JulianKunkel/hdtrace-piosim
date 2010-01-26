@@ -176,35 +176,35 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 			}
 
 			if(strcmp(&tmpHostname,"switch") == 0) {
-				config->port = "/dev/ttyUSB0";
+				config->port = "/dev/ttyUSB1";
 				trace->channel = 1;
 			}
 			else if(strcmp(&tmpHostname,"nas1") == 0) {
-				config->port = "/dev/ttyUSB0";
+				config->port = "/dev/ttyUSB1";
 				trace->channel = 2;
 			}
 			else if(strcmp(&tmpHostname,"intel1") == 0) {
-				config->port = "/dev/ttyUSB0";
+				config->port = "/dev/ttyUSB1";
 				trace->channel = 3;
 			}
 			else if(strcmp(&tmpHostname,"intel2") == 0) {
-				config->port = "/dev/ttyUSB0";
+				config->port = "/dev/ttyUSB1";
 				trace->channel = 4;
 			}
 			else if(strcmp(&tmpHostname,"intel3") == 0) {
-				config->port = "/dev/ttyUSB1";
+				config->port = "/dev/ttyUSB0";
 				trace->channel = 1;
 			}
 			else if(strcmp(&tmpHostname,"intel4") == 0) {
-				config->port = "/dev/ttyUSB1";
+				config->port = "/dev/ttyUSB0";
 				trace->channel = 2;
 			}
 			else if(strcmp(&tmpHostname,"intel5") == 0) {
-				config->port = "/dev/ttyUSB1";
+				config->port = "/dev/ttyUSB0";
 				trace->channel = 3;
 			}
 			else if(strcmp(&tmpHostname,"eeclust") == 0) {
-				config->port = "/dev/ttyUSB1";
+				config->port = "/dev/ttyUSB0";
 				trace->channel = 4;
 			}
 			else
