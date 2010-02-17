@@ -6,7 +6,7 @@ noinst_PROGRAMS = ptLoop
 
 ptLoop_CFLAGS = -I$(INC_DIR) $(HDTWLIB_CFLAGS)
 ptLoop_LDADD = -lpt $(HDTWLIB_LDADD)
-ptLoop_LDFLAGS = $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS) -L$(LIB_DIR)/.libs -static
+ptLoop_LDFLAGS = $(HDTWLIB_LDFLAGS) $(HDTWLIB_LIBS) $(GLIB_LIBS) -L$(LIB_DIR)/.libs -static
 
 ######################
 # Run configurations #

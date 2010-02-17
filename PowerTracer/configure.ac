@@ -21,7 +21,6 @@ AC_PROG_AWK
 AC_PROG_MKDIR_P
 AC_PROG_LIBTOOL
 
-
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_create])
 
@@ -119,6 +118,11 @@ AC_SUBST(HDTWLIB_LDFLAGS)
 AC_SUBST(HDTWLIB_LIBS)
 AC_SUBST(HDTWLIB_LDADD)
 
+dnl ----------------------------------------------------------------------
+dnl Check for a suitable glib
+dnl ----------------------------------------------------------------------
+
+AM_PATH_GLIB_2_0
 
 dnl ------------------------------------------------------------------------
 dnl Check for C capabilities
