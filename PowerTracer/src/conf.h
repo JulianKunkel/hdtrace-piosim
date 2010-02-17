@@ -11,6 +11,7 @@
 
 #include "hdTopo.h"
 #include "trace.h"
+#include <glib.h>
 
 /**
  * Enumeration for operation mode of the measurement device
@@ -57,8 +58,6 @@ typedef struct config_s {
 	} allocated;
 } ConfigStruct;
 
-
-
 /**
  * Fills the configuration with data read from file.
  */
@@ -84,5 +83,14 @@ int checkConfig(ConfigStruct *config);
  */
 void cleanupConfig(ConfigStruct *config);
 
+/**
+ * Reads mapping info from file
+ */
+int readMappingFromFile(const char * filename, GHashTable * mapping);
+
+/**
+ * Sets port and channel for hostname based on mapping
+ */
+int setPortAndChannelForHostname(GHashTable * mapping, char * hostname, char ** port, int * channel);
 
 #endif /* CONF_H_ */

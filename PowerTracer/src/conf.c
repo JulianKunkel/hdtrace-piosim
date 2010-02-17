@@ -22,7 +22,6 @@
 #include "common.h"
 #include "ptInternal.h"
 
-
 /**
  * Structure for configuration file
  */
@@ -34,7 +33,6 @@ typedef struct configFile_s {
 	/** current line number */
 	int linenr;
 } ConfigFileStruct;
-
 
 /**
  * Create path array from path string.
@@ -60,8 +58,7 @@ typedef struct configFile_s {
  * @retval OK          Success
  * @retval ERR_MALLOC  Out of Memory
  */
-static int parsePath(char *pstr,
-		int * const plen /* OUT */,
+static int parsePath(char *pstr, int * const plen /* OUT */,
 		char *** const path /* OUT */) {
 
 	assert(pstr != NULL);
@@ -133,11 +130,11 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 		trace->hdstats = 0;
 
 		while (*ptr != ':') {
-			switch(*ptr) {
+			switch (*ptr) {
 #if 0
 			case 'b':
-				trace->bin = 1;
-				break;
+			trace->bin = 1;
+			break;
 #endif
 			case 'a':
 				trace->ascii = 1;
@@ -155,62 +152,49 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 		ptr++;
 
 		// parse channel of trace
-		char *tmp = index(ptr, ':');                  // find next colon
+		char *tmp = index(ptr, ':'); // find next colon
 		if (tmp == NULL)
 			RETURN_SYNTAX_ERROR;
-		*tmp = '\0';                                  // write '\0' there
-		ret = sscanf(ptr, "%d", &(trace->channel));   // scan channel number
+		*tmp = '\0'; // write '\0' there
+		ret = sscanf(ptr, "%d", &(trace->channel)); // scan channel number
 		if (ret < 1) {
 
 			/* try to read hostname to map the hostname to the port and channel */
 
-			char tmpHostname[80];
-			ret = sscanf(ptr, "%s", &tmpHostname);
+			char * tmpHostname = malloc(16 * sizeof(char));
+			ret = sscanf(ptr, "%s", tmpHostname);
 
-			if(ret < 1)
+			if (ret < 1)
 				RETURN_SYNTAX_ERROR;
 
-			if(config->allocated.port) {
+			if (config->allocated.port) {
 				pt_free(config->port);
 				config->allocated.port = 0;
 			}
 
-			if(strcmp(&tmpHostname,"switch") == 0) {
-				config->port = "/dev/ttyUSB1";
-				trace->channel = 1;
-			}
-			else if(strcmp(&tmpHostname,"nas1") == 0) {
-				config->port = "/dev/ttyUSB1";
-				trace->channel = 2;
-			}
-			else if(strcmp(&tmpHostname,"intel1") == 0) {
-				config->port = "/dev/ttyUSB1";
-				trace->channel = 3;
-			}
-			else if(strcmp(&tmpHostname,"intel2") == 0) {
-				config->port = "/dev/ttyUSB1";
-				trace->channel = 4;
-			}
-			else if(strcmp(&tmpHostname,"intel3") == 0) {
-				config->port = "/dev/ttyUSB0";
-				trace->channel = 1;
-			}
-			else if(strcmp(&tmpHostname,"intel4") == 0) {
-				config->port = "/dev/ttyUSB0";
-				trace->channel = 2;
-			}
-			else if(strcmp(&tmpHostname,"intel5") == 0) {
-				config->port = "/dev/ttyUSB0";
-				trace->channel = 3;
-			}
-			else if(strcmp(&tmpHostname,"eeclust") == 0) {
-				config->port = "/dev/ttyUSB0";
-				trace->channel = 4;
-			}
-			else
+			GHashTable * hashTable = g_hash_table_new_full(g_str_hash,
+					g_str_equal, g_free, g_free);
+
+			int ret = readMappingFromFile("hosts.map", hashTable);
+			if (ret < 0) {
+				// Error while reading mapping information from file
+				g_hash_table_destroy(hashTable);
+				free(tmpHostname);
 				RETURN_SYNTAX_ERROR;
+			}
+
+			ret = setPortAndChannelForHostname(hashTable, tmpHostname,
+					&(config->port), &(trace->channel));
+
+			free(tmpHostname);
+			g_hash_table_destroy(hashTable);
+
+			if (ret < 0) {
+				// no key value pair specified for this hostname
+				RETURN_SYNTAX_ERROR;
+			}
 		}
-		ptr = tmp + 1;                                // set ptr to the beginning of the next token
+		ptr = tmp + 1; // set ptr to the beginning of the next token
 
 		trace->output = ptr;
 		if (ptr == '\0')
@@ -319,8 +303,8 @@ int createTraces(ConfigStruct *config) {
 				tslen -= ret;
 				tsptr += ret;
 			}
-			INFO_OUTPUT("Topology: %s", topostr);
-		}
+			INFO_OUTPUT("Topology: %s", topostr)
+;		}
 
 		// free memory allocated by parsePath()
 		FREE_LEVELS;
@@ -335,7 +319,6 @@ int createTraces(ConfigStruct *config) {
 		config->allocated.topo = 0;
 	}
 
-
 	/*
 	 * Go through traces list and complete all missing values
 	 */
@@ -348,20 +331,20 @@ int createTraces(ConfigStruct *config) {
 		if (trace->hdstats) {
 			// create path array from path string in trace->output
 			if (ret = parsePath(trace->output, &plen, &path))
-				return ret;
+			return ret;
 
 #define FREE_PATH do { pt_free(path[0]); pt_free(path); } while (0)
 
 			// create topology node
 			trace->tnode =
-				hdT_createTopoNode(config->topology,(const char **) path, plen);
+			hdT_createTopoNode(config->topology,(const char **) path, plen);
 			if (trace->tnode == NULL) {
 				switch(errno) {
-				case HD_ERR_MALLOC:
+					case HD_ERR_MALLOC:
 					ERRORMSG("Memory allocation failed during hdTopoNode creation.");
 					FREE_PATH;
 					return ERR_MALLOC;
-				default:
+					default:
 					assert(errno != HD_ERR_INVALID_ARGUMENT);
 					assert(!"Unknown return state of hdT_createTopoNode().");
 				}
@@ -369,22 +352,22 @@ int createTraces(ConfigStruct *config) {
 
 			// create statistics group
 			trace->group =
-				hdS_createGroup("Energy", trace->tnode, plen);
+			hdS_createGroup("Energy", trace->tnode, plen);
 			if (trace->group == NULL) {
 				switch(errno) {
-				case HD_ERR_MALLOC:
+					case HD_ERR_MALLOC:
 					ERRORMSG("Memory allocation failed during hdStatsGroup creation.");
 					FREE_PATH;
 					return ERR_MALLOC;
-				case HD_ERR_BUFFER_OVERFLOW:
+					case HD_ERR_BUFFER_OVERFLOW:
 					ERRORMSG("Buffer overflow during hdStatsGroup creation.");
 					FREE_PATH;
 					return ERR_HDLIB;
-				case HD_ERR_CREATE_FILE:
+					case HD_ERR_CREATE_FILE:
 					ERRORMSG("File creation failed during hdStatsGroup creation.");
 					FREE_PATH;
 					return ERR_HDLIB;
-				default:
+					default:
 					assert(errno != HD_ERR_INVALID_ARGUMENT);
 					assert(!"Unknown return state of hdT_createTopoNode().");
 				}
@@ -405,7 +388,6 @@ int createTraces(ConfigStruct *config) {
 			} \
 	} while (0)
 
-
 			if (trace->values.Utrms) {
 				ret = hdS_addValue(trace->group, "Utrms", FLOAT, "V", "Voltage");
 				ADD_VALUE_ERROR_HANDLING;
@@ -422,7 +404,7 @@ int createTraces(ConfigStruct *config) {
 			ret = hdS_commitGroup(trace->group);
 			if (ret != 0) {
 				switch(errno) {
-				default:
+					default:
 					assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
 					assert(errno != HD_ERR_INVALID_ARGUMENT);
 					assert(!"Unknown return state of hdS_commitGroup().");
@@ -465,14 +447,14 @@ int createTraces(ConfigStruct *config) {
 			trace->size += (config->mode == MODE_BIN) ? 4 : 9;
 		}
 		if (config->mode != MODE_BIN)
-			trace->size += 2;
+		trace->size += 2;
 
 		// remove last ';'
 		int slen = strlen(trace->actn);
 		assert(slen > 0);
 		trace->actn[slen-1] = '\0';
 
-	    /* add response size of this trace to the one of the whole config */
+		/* add response size of this trace to the one of the whole config */
 		config->isize += trace->size;
 
 		// print parsed trace config
@@ -508,13 +490,13 @@ int createTraces(ConfigStruct *config) {
 				trptr += ret;
 			}
 
-	#if 0
+#if 0
 			if (trace->bin || trace->ascii) {
 				ret = snprintf(trptr, trlen, ", Filename: %s", trace->output);
 				trlen -= ret;
 				trptr += ret;
 			}
-	#endif
+#endif
 
 			INFO_OUTPUT("Trace %d: %s", trace->num, tracestr);
 		}
@@ -600,7 +582,7 @@ static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
 
 	char *ptr;
 
-	while(1) {
+	while (1) {
 		// get next line
 		char *line = readLineFromFile(cfile);
 
@@ -627,7 +609,7 @@ static char * getNextNonemptyLine(ConfigFileStruct *cfile) {
 			else
 				break;
 		}
-		if (ptr == '\0' /* only space found */ ) {
+		if (ptr == '\0' /* only space found */) {
 			pt_free(line);
 			continue;
 		}
@@ -651,12 +633,14 @@ static void removeTrailingSpaces(char **string) {
 	size_t slen = strlen(*string);
 
 	// search from the end
-	for (ptr = *string + slen - 1; isspace(*ptr); ptr--) {}
+	for (ptr = *string + slen - 1; isspace(*ptr); ptr--) {
+	}
 	// ptr points now to the last nonspace char
-	*(ptr+1) = '\0';
+	*(ptr + 1) = '\0';
 
 	// search from the beginning
-	for (ptr = *string; isspace(*ptr); ptr++) {}
+	for (ptr = *string; isspace(*ptr); ptr++) {
+	}
 	// ptr points now to the first nonspace char
 	*string = ptr;
 }
@@ -672,7 +656,7 @@ static void removeTrailingSpaces(char **string) {
  * @retval  -1  No port set
  */
 static int splitPort(ConfigStruct *config) {
-	if (config->port == NULL || *(config->port) == '\0' ) {
+	if (config->port == NULL || *(config->port) == '\0') {
 		return -1;
 	}
 
@@ -701,14 +685,13 @@ static int splitPort(ConfigStruct *config) {
  * @retval  -2  Device is unknown/unsupported
  */
 static int checkDevice(ConfigStruct *config) {
-	if (config->device == NULL || *(config->device) == '\0' ) {
+	if (config->device == NULL || *(config->device) == '\0') {
 		return -1;
 	}
 
 	if (strcmp(config->device, "LMG450") == 0) {
 		return 0;
-	}
-	else {
+	} else {
 		ERRORMSG("Device \"%s\" is unknown and not supported.", config->device);
 		return -2;
 	}
@@ -725,8 +708,7 @@ static int checkDevice(ConfigStruct *config) {
 static int checkCycle(ConfigStruct *config) {
 	if (config->cycle >= 50 && config->cycle <= 60000) {
 		return 0;
-	}
-	else {
+	} else {
 		WARNMSG("Invalid cycle time %d, has to be in [50,60000] for %s.",
 				config->cycle, config->device);
 		return 1;
@@ -746,10 +728,9 @@ static int checkCycle(ConfigStruct *config) {
 static int checkChannel(TraceStruct *trace, ConfigStruct *config) {
 	if (trace->channel >= 1 && trace->channel <= 4) {
 		return 0;
-	}
-	else {
+	} else {
 		WARNMSG("Invalid channel %f, has to be in [1,4] for %s.",
-						trace->channel, config->device);
+				trace->channel, config->device);
 		return 1;
 	}
 }
@@ -797,7 +778,9 @@ int checkConfig(ConfigStruct *config) {
 int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
 	// identifies the section we are currently in
-	enum { NONE, GENERAL, TRACE } section = NONE;
+	enum {
+		NONE, GENERAL, TRACE
+	} section = NONE;
 
 	// true after reading one general section
 	int general_done = 0;
@@ -813,10 +796,10 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
 	// true if needed option is set in current trace
 	struct {
-		int type : 1;
-		int output : 1;
-		int channel : 1;
-		int values : 1;
+		int type :1;
+		int output :1;
+		int channel :1;
+		int values :1;
 	} set;
 
 #define CLEAN_SET set.type = set.output = set.channel = set.values = 0
@@ -841,7 +824,6 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		}
 	}
 
-
 	/*
 	 * Compile needed regex
 	 */
@@ -854,9 +836,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 		ERRORMSG("%s", errbuf); \
 		assert(!"Error during compilation of regular expression."); \
 	}
-
 #define RE_SPACE "[[:space:]]*"
-
 	REGCOM(re_section, "^" RE_SPACE "\\[")
 	REGCOM(re_sec_general, "^" RE_SPACE "\\[" RE_SPACE "general" RE_SPACE "]" RE_SPACE)
 	REGCOM(re_sec_trace, "^" RE_SPACE "\\[" RE_SPACE "trace" RE_SPACE "]" RE_SPACE)
@@ -889,8 +869,6 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	regfree(&re_key_values); \
 	} while (0);
 
-
-
 #define CFILE_ERROR(msg, ...) \
 	ERRORMSG(msg " in %s:%d : \"%s\"", ## __VA_ARGS__, cfile.filename, cfile.linenr, line)
 
@@ -905,11 +883,10 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 	return ERR_SYNTAX; \
 	} while (0)
 
-
 	/*
 	 * File reading and processing loop
 	 */
-	while(1) {
+	while (1) {
 		// get next non-empty line
 		int linenr;
 		char *line = getNextNonemptyLine(&cfile);
@@ -944,13 +921,12 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
 				int mlen = strlen(missing);
 				if (mlen != 0) {
-					missing[mlen-2] = '\0'; // removing ", "
+					missing[mlen - 2] = '\0'; // removing ", "
 					CFILE_ERROR("End of file reached after"
 							" incomplete [Trace] section (%s missing)", missing);
 					pt_free(trace);
 					RETURN_SYNTAX_ERROR;
-				}
-				else {
+				} else {
 					addTraceToList(trace, &(config->traces));
 				}
 			}
@@ -961,12 +937,11 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 			break;
 		}
 
-
 		/*
 		 * try reading section start
 		 */
 		//   ^\s*\[
-		if(regexec(&re_section, line, 0, NULL, 0) != REG_NOMATCH) {
+		if (regexec(&re_section, line, 0, NULL, 0) != REG_NOMATCH) {
 			// handle old section
 			if (section == TRACE) {
 				// check if all mandatory options are set
@@ -986,13 +961,12 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 
 				int mlen = strlen(missing);
 				if (mlen != 0) {
-					missing[mlen-2] = '\0'; // removing ", "
+					missing[mlen - 2] = '\0'; // removing ", "
 					CFILE_ERROR("Start of new section after"
 							" incomplete [Trace] section (%s missing)", missing);
 					pt_free(trace);
 					RETURN_SYNTAX_ERROR;
-				}
-				else {
+				} else {
 					addTraceToList(trace, &(config->traces));
 					trace = NULL; // for easier debugging
 				}
@@ -1089,8 +1063,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 				CFILE_WARN("Ignoring unknown entry in [General] section");
 			}
 
-		}
-		else if (section == TRACE) {
+		} else if (section == TRACE) {
 			/* "[:space:]*type[:space:]*=" (type=HDSTATS) */
 			if (IS_KEY(type)) {
 				char *type;
@@ -1099,8 +1072,7 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 				if (strcmp(type, "HDSTATS") == 0) {
 					trace->hdstats = 1;
 					set.type = 1;
-				}
-				else
+				} else
 					CFILE_ERROR("Unknown type in [Trace] section" );
 				pt_free(type);
 			}
@@ -1125,21 +1097,18 @@ int readConfigFromFile(const char * filename, ConfigStruct *config) {
 				COPY_STRING_VALUE_TO(values);
 
 				char *saveptr;
-				for (char *tok = strtok_r(values, ",", &saveptr); tok != NULL;
-						tok = strtok_r(NULL, ",", &saveptr)) {
+				for (char *tok = strtok_r(values, ",", &saveptr); tok != NULL; tok
+						= strtok_r(NULL, ",", &saveptr)) {
 					if (strcmp(tok, "Utrms") == 0) {
 						trace->values.Utrms = 1;
 						set.values = 1;
-					}
-					else if (strcmp(tok, "Itrms") == 0) {
+					} else if (strcmp(tok, "Itrms") == 0) {
 						trace->values.Itrms = 1;
 						set.values = 1;
-					}
-					else if (strcmp(tok, "P") == 0) {
+					} else if (strcmp(tok, "P") == 0) {
 						trace->values.P = 1;
 						set.values = 1;
-					}
-					else
+					} else
 						WARNMSG("Unknown value for trace ignored in %s:%d",
 								cfile.filename, cfile.linenr);
 				}
@@ -1194,5 +1163,62 @@ void cleanupConfig(ConfigStruct *config) {
 	freeAllTraces(&(config->traces));
 }
 
+int readMappingFromFile(const char * filename, GHashTable * hashTable) {
+
+	FILE * pFile;
+	pFile = fopen(filename, "r");
+	if (pFile != NULL) {
+		int i = 0;
+
+		char *hostname = malloc(16 * sizeof(char));
+		char *port = malloc(16 * sizeof(char));
+		char *channel = malloc(2 * sizeof(char));
+		int ret = fscanf(pFile, "%s %s %s", hostname, port, channel);
+
+		while (ret == 3) {
+			char *value = malloc(18 * sizeof(char));
+			strcpy(value, port);
+			strcat(value, " ");
+			strcat(value, channel);
+
+			g_hash_table_insert(hashTable, strdup(hostname), strdup(value));
+
+			free(value);
+
+			ret = fscanf(pFile, "%s %s %s", hostname, port, channel);
+		}
+
+		free(hostname);
+		free(port);
+		free(channel);
+
+	} else {
+		fclose(pFile);
+		return -1;
+	}
+	fclose(pFile);
+
+	return 0;
+}
+
+int setPortAndChannelForHostname(GHashTable * mapping, char* hostname,
+		char ** p_port, int * channel) {
+
+	char * value = (char*) g_hash_table_lookup(mapping, hostname);
+
+	if (value == NULL) {
+		return -1;
+	}
+
+	char * port = malloc(16 * sizeof(char));
+
+	if (sscanf(value, "%s %d", port, channel) == 2) {
+		*p_port = strdup(port);
+		free(port);
+		return 0;
+	}
+
+	return -2;
+}
 
 /* vim: set sw=4 sts=4 et fdm=syntax: */

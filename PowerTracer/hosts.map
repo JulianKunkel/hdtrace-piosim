@@ -1,0 +1,8 @@
+ switch /dev/ttyUSB0 1
+nas1 /dev/ttyUSB0 2
+intel1 /dev/ttyUSB0 3
+intel2 /dev/ttyUSB0 4
+intel3 /dev/ttyUSB1 1
+intel4 /dev/ttyUSB1 2
+intel5 /dev/ttyUSB1 3
+master /dev/ttyUSB1 4
