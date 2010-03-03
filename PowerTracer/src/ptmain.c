@@ -69,7 +69,7 @@ static void printUsage() {
 		);
 #else
 	puts(
-				"Usage: pt [-P PROJECT] [-p PORT] TRACE [TRACE [TRACE [...]]]]\n"
+				"Usage: pt [-P PROJECT] [-p PORT] TRACE\n"
 				"\n"
 				"PROJECT = Name of the project (default: MyProject)\n"
 				"TRACE = CHANNEL:OUTPUT\n"
