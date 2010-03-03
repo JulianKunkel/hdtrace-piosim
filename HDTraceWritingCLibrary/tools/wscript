@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+def configure (conf):
+	conf.check_tool('gcc')
+
+def build (bld):
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['hdStatsPrint.c'],
+		includes = ['../include'],
+		target = 'hdStatsPrint',
+		install_path = None
+	)
+
+	'''
+-STATS_EXAMPLE=$(top_srcdir)/../PerformanceTracingLibrary/build/examples/MyProject_host0_Performance.stat
+-HEADER_READER=$(top_srcdir)/tools/hdStatsReadHeader.pl
+-
+-run_hdStatsPrint: hdStatsPrint ${HEADER_READER}
+-       ./hdStatsPrint $(shell ${HEADER_READER} $(STATS_EXAMPLE))
+	'''

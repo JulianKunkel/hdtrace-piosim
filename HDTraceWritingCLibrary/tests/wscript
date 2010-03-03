@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+def configure (conf):
+	conf.check_tool('gcc')
+
+def build (bld):
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['hdTopoTest.c', '../src/hdTopo.c', '../src/common.c', '../src/util.c'],
+		includes = ['../src', '../include'],
+		target = 'hdTopoTest',
+		install_path = None
+	)
+
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['hdStatsTest.c'],
+		includes = ['../src', '../include'],
+		uselib_local = ['hdStats'],
+		target = 'hdStatsTest',
+		install_path = None
+	)
+
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['hdTraceTest.c'],
+		includes = ['../include'],
+		uselib_local = ['hdTrace'],
+		target = 'hdTraceTest',
+		install_path = None
+	)
+
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['hdRelationTest.c'],
+		includes = ['../include'],
+		uselib_local = ['hdRelation'],
+		target = 'hdRelationTest',
+		install_path = None
+	)
