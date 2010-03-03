@@ -77,7 +77,7 @@ static void printUsage() {
 				"TYPES = String containing 'a' (ASCII), 'b' (BINARY)\n"
 				"CHANNEL = Number of the input channel\n"
 				"OUTPUT = If TYPES contains 'b' or 'a', this is simply the output file without\n"
-				"         the extension. For 'a' '_CHANNEL.txt' is added and '_CHANNEL.bin' for 'b'.\n"
+				"         the extension. For 'a' '.txt' is added and '.bin' for 'b'.\n"
 				"         (ONLY 'a' is implemented yet!)\n"
 				"\n"
 			);

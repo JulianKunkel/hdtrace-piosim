@@ -203,11 +203,6 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 		ptr = tmp + 1; // set ptr to the beginning of the next token
 
 		if(trace->ascii) {
-			strcat(ptr,"_");
-			char* channel = malloc(2 * sizeof(char));
-			channel[0] = trace->channel + 48;
-			channel[1] = "\0";
-			strcat(ptr,channel);
 			strcat(ptr,".txt");
 		}
 #if 0
