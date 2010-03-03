@@ -5,7 +5,7 @@
  * @author Stephan Krempel <stephan.krempel@gmx.de>
  * @version \$Id$
  */
-#pragma alloca 
+#pragma alloca
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 				errno));
 
 	/* read header length from file */
-	ret = fscanf(file, "%u\n", &header_length);
+	ret = fscanf(file, "%zu\n", &header_length);
 	if (ret != 1 || ret == EOF)
 		fprintf(stderr, "Could not read header from file: %s\n", strerror(errno));
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 	if (header == NULL)
 		fprintf(
 				stderr,
-				"Could not allocate memory for header (header_length=%d): %s\n",
+				"Could not allocate memory for header (header_length=%zu): %s\n",
 				header_length, strerror(errno));
 	clearerr(file);
 	uret = fread(header, sizeof(*header), header_length, file);
@@ -122,14 +122,14 @@ int main(int argc, char **argv)
 		if (ferror(file))
 		{
 			fprintf(stderr,
-					"Could not read header from file (header_length=%d): %s\n",
+					"Could not read header from file (header_length=%zu): %s\n",
 					header_length, strerror(errno));
 			exit(-1);
 		}
 		else if (feof(file))
 		{
 			fprintf(stderr, "End of file reached while reading header"
-					"(header_length=%d)", header_length);
+					"(header_length=%zu)", header_length);
 			exit(-1);
 		}
 		else
