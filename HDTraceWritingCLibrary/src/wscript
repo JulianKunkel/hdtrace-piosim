@@ -3,8 +3,6 @@
 def configure (conf):
 	conf.check_tool('gcc')
 
-	conf.write_config_header('hdtrace-pkg.h')
-
 def build (bld):
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
