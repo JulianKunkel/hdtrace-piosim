@@ -95,7 +95,7 @@ int traceIteration(int serial_fd, ConfigStruct *config)
 
     		memcpy(&op, bufptr, isize);
 
-    		printf("U: %f I: %f P: %f\n", op.utrms, op.itrms, op.p);
+    		fprintf(trace->fptr, "U: %f I: %f P: %f\n", op.utrms, op.itrms, op.p);
     	}
 
         /* set bufptr to the start of the next trace's part */
@@ -163,7 +163,9 @@ int traceLoop(
     		/* try to disable traces and device */
        		if (enabled) {
        			FOR_TRACES(trace, config->traces) {
-       				hdS_disableGroup(trace->group);
+       				if(trace->hdstats) {
+       					hdS_disableGroup(trace->group);
+       				}
        			}
        			LMG_stopContinuesMode(serial_fd);
        		}

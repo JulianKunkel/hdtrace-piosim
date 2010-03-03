@@ -9,7 +9,7 @@
 #ifndef CONF_H_
 #define CONF_H_
 
-#include "hdTopo.h"
+#include "topo.h"
 #include "trace.h"
 #include <glib.h>
 

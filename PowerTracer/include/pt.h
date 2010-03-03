@@ -29,7 +29,7 @@
 #ifndef PT_H_
 #define PT_H_
 
-#include "hdTopo.h"
+#include "topo.h"
 
 /** Type definition of power trace object */
 typedef struct powertrace_s PowerTrace;

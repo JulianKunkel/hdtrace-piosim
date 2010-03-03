@@ -9,7 +9,9 @@
 #ifndef TRACE_H_
 #define TRACE_H_
 
-#include "hdStats.h"
+#include <stdio.h>
+
+#include "topo.h"
 
 /**
  * @internal
@@ -35,6 +37,7 @@ typedef struct trace_s {
 	int channel;
 	ValueField values;
 	char *output;
+	FILE *fptr;
 
     char *actn; /* action script part for this trace */
     int   size;    /* size of expected response in [byte] */

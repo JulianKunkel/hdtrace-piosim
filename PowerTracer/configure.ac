@@ -110,13 +110,14 @@ AC_ARG_WITH(hdtwlib-static,
 
 if test "$HDTWLIB_PRESENT" != "YES"
 then
-	AC_MSG_ERROR([Cannot find hdStats library])
+	AC_MSG_WARN([HDTraceWritingLibrary not found, no writing to HDTraces is possible!])
+else
+	AC_SUBST(HDTWLIB_CFLAGS)
+	AC_SUBST(HDTWLIB_LDFLAGS)
+	AC_SUBST(HDTWLIB_LIBS)
+	AC_SUBST(HDTWLIB_LDADD)
+	AC_DEFINE(HAVE_HDTWLIB,[], [Define to 1 if you have the `HDTraceWritingLibrary'])
 fi
-
-AC_SUBST(HDTWLIB_CFLAGS)
-AC_SUBST(HDTWLIB_LDFLAGS)
-AC_SUBST(HDTWLIB_LIBS)
-AC_SUBST(HDTWLIB_LDADD)
 
 dnl ----------------------------------------------------------------------
 dnl Check for a suitable glib

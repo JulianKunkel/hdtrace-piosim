@@ -7,7 +7,7 @@
  */
 
 #include <stdlib.h>
-//#include <stdio.h>   /* Standard input/output definitions */
+#include <stdio.h>   /* Standard input/output definitions */
 //#include <unistd.h>  /* UNIX standard function definitions */
 #include <string.h>
 #include <strings.h>
@@ -15,6 +15,10 @@
 #include <regex.h>
 #include <errno.h>
 #include <assert.h>
+
+#ifdef HAVE_CONFIG_H
+ #include "pt-pkg.h"
+#endif
 
 #include "conf.h"
 
@@ -139,9 +143,11 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 			case 'a':
 				trace->ascii = 1;
 				break;
+#ifdef HAVE_HDTWLIB
 			case 's':
 				trace->hdstats = 1;
 				break;
+#endif
 			default:
 				RETURN_SYNTAX_ERROR;
 			}
@@ -195,6 +201,20 @@ int parseTraceStrings(int ntraces, char * strings[], ConfigStruct * config) {
 			}
 		}
 		ptr = tmp + 1; // set ptr to the beginning of the next token
+
+		if(trace->ascii) {
+			strcat(ptr,"_");
+			char* channel = malloc(2 * sizeof(char));
+			channel[0] = trace->channel + 48;
+			channel[1] = "\0";
+			strcat(ptr,channel);
+			strcat(ptr,".txt");
+		}
+#if 0
+		if(trace->bin) {
+			strcat(ptr,".bin");
+		}
+#endif
 
 		trace->output = ptr;
 		if (ptr == '\0')
@@ -414,7 +434,7 @@ int createTraces(ConfigStruct *config) {
 			// define FREE_PATH but not needed in ASCII mode
 #define FREE_PATH do { ; } while (0)
 
-			// TODO: create output file with extension
+			trace->fptr = fopen (trace->output,"w");
 		}
 		else {
 			trace->tnode = NULL;
@@ -468,12 +488,12 @@ int createTraces(ConfigStruct *config) {
 				trlen -= ret;
 				trptr += ret;
 			}
+#endif
 			if (trace->ascii) {
 				ret = snprintf(trptr, trlen, "ASCII, ");
 				trlen -= ret;
 				trptr += ret;
 			}
-#endif
 			if (trace->hdstats) {
 				ret = snprintf(trptr, trlen, "HDSTATS, ");
 				trlen -= ret;
@@ -491,12 +511,18 @@ int createTraces(ConfigStruct *config) {
 			}
 
 #if 0
-			if (trace->bin || trace->ascii) {
+			if (trace->bin) {
 				ret = snprintf(trptr, trlen, ", Filename: %s", trace->output);
 				trlen -= ret;
 				trptr += ret;
 			}
 #endif
+
+			if (trace->ascii) {
+				ret = snprintf(trptr, trlen, ", Filename: %s", trace->output);
+				trlen -= ret;
+				trptr += ret;
+			}
 
 			INFO_OUTPUT("Trace %d: %s", trace->num, tracestr);
 		}

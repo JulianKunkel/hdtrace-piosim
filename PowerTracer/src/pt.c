@@ -23,9 +23,7 @@
 #include "tracing.h"
 #include "serial.h"
 #include "LMG.h"
-#include "hdTopo.h"
-#include "hdStats.h"
-#include "hdError.h"
+#include "topo.h"
 
 /** @cond api_only */
 /**

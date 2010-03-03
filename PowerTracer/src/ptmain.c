@@ -20,6 +20,10 @@
 #include "conf.h"
 #include "tracing.h"
 
+#ifdef HAVE_CONFIG_H
+ #include "pt-pkg.h"
+#endif
+
 
 static struct {
 	PowerTrace *trace;
@@ -45,6 +49,8 @@ void sighandler(int sig) {
 
 
 static void printUsage() {
+
+#ifdef HAVE_HDTWLIB
 	puts(
 			"Usage: pt [-P PROJECT] [-t TOPOLOGY] [-p PORT] TRACE [TRACE [TRACE [...]]]]\n"
 			"\n"
@@ -61,6 +67,21 @@ static void printUsage() {
 			"         (ONLY 's' IS IMPLEMENTED YET, 'a' PRINTS TO COMMANDLINE!)\n"
 			"\n"
 		);
+#else
+	puts(
+				"Usage: pt [-P PROJECT] [-p PORT] TRACE [TRACE [TRACE [...]]]]\n"
+				"\n"
+				"PROJECT = Name of the project (default: MyProject)\n"
+				"TRACE = CHANNEL:OUTPUT\n"
+				"\n"
+				"TYPES = String containing 'a' (ASCII), 'b' (BINARY)\n"
+				"CHANNEL = Number of the input channel\n"
+				"OUTPUT = If TYPES contains 'b' or 'a', this is simply the output file without\n"
+				"         the extension. For 'a' '_CHANNEL.txt' is added and '_CHANNEL.bin' for 'b'.\n"
+				"         (ONLY 'a' is implemented yet!)\n"
+				"\n"
+			);
+#endif
 }
 
 /**

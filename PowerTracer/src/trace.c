@@ -41,6 +41,8 @@ void freeAllTraces(TraceListStruct *list) {
 		if (trace->hdstats) {
 			hdS_finalize(trace->group);
 			hdT_destroyTopoNode(trace->tnode);
+		} else if(trace->ascii) {
+			fclose(trace->fptr);
 		}
 		pt_free(trace->actn); // allocated in createTraces()
 	}
