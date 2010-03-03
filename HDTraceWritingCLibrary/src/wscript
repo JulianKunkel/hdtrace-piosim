@@ -3,13 +3,6 @@
 def configure (conf):
 	conf.check_tool('gcc')
 
-	conf.check_cfg(
-		package = 'glib-2.0',
-		args = '--cflags --libs',
-		atleast_version = '2.16',
-		mandatory = True
-	)
-
 	conf.write_config_header('hdtrace-pkg.h')
 
 def build (bld):
@@ -34,15 +27,13 @@ def build (bld):
 		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdRelation',
-		uselib = ['GLIB-2.0'],
 		install_path = '${PREFIX}/lib'
 	)
 
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
-		source = ['hdTrace.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c'],
+		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdTracing',
-		uselib = ['GLIB-2.0'],
 		install_path = '${PREFIX}/lib'
 	)
