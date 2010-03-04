@@ -27,10 +27,10 @@ public class StructDatatype extends Datatype{
 	
 	public class StructType{
 		final Datatype type;
-		final int displacement;
+		final long displacement;
 		final int blocklen;
 		
-		public StructType(Datatype type, int displacement, int blocklen) {
+		public StructType(Datatype type, long displacement, int blocklen) {
 			this.type = type;
 			this.displacement = displacement;
 			this.blocklen = blocklen;
@@ -40,7 +40,7 @@ public class StructDatatype extends Datatype{
 			return type;
 		}
 		
-		public int getDisplacement() {
+		public long getDisplacement() {
 			return displacement;
 		}
 		
@@ -48,7 +48,7 @@ public class StructDatatype extends Datatype{
 			return blocklen;
 		}
 		
-		public int getEndPos() {
+		public long getEndPos() {
 			return displacement + blocklen * type.getExtend();
 		}
 	}
@@ -63,21 +63,21 @@ public class StructDatatype extends Datatype{
 		return types.get(which);
 	}
 	
-	public void appendType(Datatype type, int displacement, int blockLen){			
+	public void appendType(Datatype type, long displacement, int blockLen){			
 		types.add(new StructType(type, displacement, blockLen));
 		
 		size += type.getSize() * blockLen;
 	}
 	
 	@Override
-	public int getExtend() {
+	public long getExtend() {
 		if(types.size() == 0)
 			return 0;
 		return types.get(types.size() - 1).getEndPos();
 	}
 	
 	@Override
-	public int getSize() {		
+	public long getSize() {		
 		return size;
 	}
 	

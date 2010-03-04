@@ -27,11 +27,11 @@ public interface IDatatype {
 	 * Return the size of the datatype (including holes)
 	 * @return
 	 */
-	public int getExtend();
+	public long getExtend();
 	
 	/**
 	 * Return the used size of the datatype (i.e. do not count holes)
 	 * @return
 	 */
-	public int getSize();
+	public long getSize();
 }

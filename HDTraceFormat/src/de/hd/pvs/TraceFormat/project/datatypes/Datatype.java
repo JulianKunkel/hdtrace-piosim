@@ -29,9 +29,9 @@ public abstract class Datatype implements IDatatype{
 	
 	abstract public DatatypeEnum getType();
 	
-	abstract public int getExtend();
+	abstract public long getExtend();
 	
-	abstract public int getSize();
+	abstract public long getSize();
 	
 	abstract public ArrayList<Datatype> getChildDataTypes();
 	

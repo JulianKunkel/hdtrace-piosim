@@ -172,7 +172,7 @@ public class ProjectDescriptionXMLReader {
 			StructDatatype struct = new StructDatatype(); 
 			for(XMLTag child: xml.getNestedXMLTags()){
 				long id = Long.parseLong(child.getAttribute("id"));
-				int displacement = Integer.parseInt(child.getAttribute("displacement"));
+				long displacement = Long.parseLong(child.getAttribute("displacement"));
 				int blockLen = Integer.parseInt(child.getAttribute("blocklen"));
 
 				final Datatype old = datatypeMapping.get(id);

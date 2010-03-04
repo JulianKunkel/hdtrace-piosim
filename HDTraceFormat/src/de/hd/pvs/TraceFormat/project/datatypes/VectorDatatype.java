@@ -46,12 +46,12 @@ public class VectorDatatype extends Datatype{
 	}
 	
 	@Override
-	public int getExtend() {
+	public long getExtend() {
 		return previous.getExtend() * stride * blockCount;
 	}
 	
 	@Override
-	public int getSize() {
+	public long getSize() {
 		return previous.getSize() * blockCount * blocklen;
 	}
 	

@@ -69,7 +69,13 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 		}
 
 		public MPIRankObject(TopologyNode node) {
-			rank = Integer.parseInt(node.getName());
+			try{
+				rank = Integer.parseInt(node.getName());
+			}catch(NumberFormatException e){
+				System.err.println("Warning, the topology RANK is found, however it contains non numerical content \"" + node.getName() + "\"");
+				System.err.println("Project file is broken!");
+				throw e;
+			}
 		}
 
 		public int getRank() {

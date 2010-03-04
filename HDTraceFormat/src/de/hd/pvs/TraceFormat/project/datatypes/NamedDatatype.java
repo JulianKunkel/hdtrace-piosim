@@ -72,12 +72,12 @@ public class NamedDatatype extends Datatype{
 	}
 
 	@Override
-	public int getExtend() {
+	public long getExtend() {
 		return primitiveType.size;
 	}
 
 	@Override
-	public int getSize() {	
+	public long getSize() {	
 		return primitiveType.size;
 	}
 

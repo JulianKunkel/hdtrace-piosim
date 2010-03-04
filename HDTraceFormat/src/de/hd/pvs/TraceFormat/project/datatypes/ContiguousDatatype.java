@@ -32,12 +32,12 @@ public class ContiguousDatatype extends Datatype{
 	}
 	
 	@Override
-	public int getExtend() {
+	public long getExtend() {
 		return previous.getExtend() * count;
 	}
 	
 	@Override
-	public int getSize() {
+	public long getSize() {
 		return previous.getSize() * count;
 	}
 	

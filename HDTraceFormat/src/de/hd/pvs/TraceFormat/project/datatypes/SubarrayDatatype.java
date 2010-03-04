@@ -68,13 +68,13 @@ public class SubarrayDatatype extends Datatype{
 	}
 
 	@Override
-	public int getExtend() {
+	public long getExtend() {
 		// TODO
 		return 0;
 	}
 
 	@Override
-	public int getSize() {
+	public long getSize() {
 		// TODO
 		return 0;
 	}
