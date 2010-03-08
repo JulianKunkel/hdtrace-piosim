@@ -424,9 +424,6 @@ int createTraces(ConfigStruct *config) {
 				}
 			}
 		} else if (trace->ascii) {
-			// define FREE_PATH but not needed in ASCII mode
-#define FREE_PATH do { ; } while (0)
-
 			trace->fptr = fopen (trace->output,"w");
 		}
 		else {
@@ -435,7 +432,8 @@ int createTraces(ConfigStruct *config) {
 		}
 
 		// free memory allocated by parsePath()
-		FREE_PATH;
+		if (trace->hdstats)
+			FREE_PATH;
 
 #undef ADD_VALUE_ERROR_HANDLING
 #undef FREE_PATH
@@ -748,7 +746,7 @@ static int checkChannel(TraceStruct *trace, ConfigStruct *config) {
 	if (trace->channel >= 1 && trace->channel <= 4) {
 		return 0;
 	} else {
-		WARNMSG("Invalid channel %f, has to be in [1,4] for %s.",
+		WARNMSG("Invalid channel %d, has to be in [1,4] for %s.",
 				trace->channel, config->device);
 		return 1;
 	}

@@ -30,8 +30,7 @@ def build (bld):
 		source = ['ptmain.c', 'pt.c', 'tracing.c', 'trace.c', 'conf.c', 'LMG.c', 'serial.c', 'topo.c'],
 		includes = ['.', '../include'],
 		uselib = ['HDTRACING', 'PTHREAD', 'GLIB-2.0'],
-		target = 'pt',
-		install_path = '${PREFIX}/lib'
+		target = 'pt'
 	)
 
 	'''

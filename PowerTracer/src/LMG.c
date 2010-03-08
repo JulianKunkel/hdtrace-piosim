@@ -482,7 +482,7 @@ int LMG_readBinaryMessage(int fd, void *buffer, size_t bsize)
         }
 
         locbuffer[size_length] = '\0';
-        ret = sscanf(locbuffer, "%d", &block_size);
+        ret = sscanf(locbuffer, "%zu", &block_size);
         if (ret == EOF)
         {
             ERRNOMSG("sscanf()");
