@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+def configure (conf):
+	conf.check_tool('gcc')
+
+	conf.check_cfg(
+		package = 'glib-2.0',
+		args = '--cflags --libs',
+		atleast_version = '2.16',
+		mandatory = True
+	)
+
+	if conf.env.STATICLIB_HDTRACING:
+		conf.define('HAVE_HDTWLIB', 1)
+
+	conf.write_config_header('pt-pkg.h')
+
+def build (bld):
+	bld.new_task_gen(
+		features = 'cc cstaticlib',
+		source = ['pt.c', 'tracing.c', 'trace.c', 'conf.c', 'LMG.c', 'serial.c', 'topo.c'],
+		includes = ['.', '../include'],
+		uselib = ['HDTRACING', 'PTHREAD', 'GLIB-2.0'],
+		target = 'pt',
+		install_path = '${PREFIX}/lib'
+	)
+
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['ptmain.c', 'pt.c', 'tracing.c', 'trace.c', 'conf.c', 'LMG.c', 'serial.c', 'topo.c'],
+		includes = ['.', '../include'],
+		uselib = ['HDTRACING', 'PTHREAD', 'GLIB-2.0'],
+		target = 'pt',
+		install_path = '${PREFIX}/lib'
+	)
+
+	'''
+run_pt: pt
+	./pt
+	'''

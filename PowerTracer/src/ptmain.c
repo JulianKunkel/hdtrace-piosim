@@ -20,9 +20,7 @@
 #include "conf.h"
 #include "tracing.h"
 
-#ifdef HAVE_CONFIG_H
- #include "pt-pkg.h"
-#endif
+#include "pt-pkg.h"
 
 
 static struct {

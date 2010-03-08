@@ -16,9 +16,7 @@
 #include <errno.h>
 #include <assert.h>
 
-#ifdef HAVE_CONFIG_H
- #include "pt-pkg.h"
-#endif
+#include "pt-pkg.h"
 
 #include "conf.h"
 

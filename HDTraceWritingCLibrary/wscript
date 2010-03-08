@@ -73,6 +73,7 @@ def configure (conf):
 	'''
 
 def build (bld):
+	bld.add_subdirs('include')
 	bld.add_subdirs('src')
 	bld.add_subdirs('tests')
 	bld.add_subdirs('tools')

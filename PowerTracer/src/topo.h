@@ -8,9 +8,7 @@
 #ifndef TOPO_H_
 #define TOPO_H_
 
-#ifdef HAVE_CONFIG_H
- #include "pt-pkg.h"
-#endif
+#include "pt-pkg.h"
 
 #ifdef HAVE_HDTWLIB
 #include "hdTopo.h"
