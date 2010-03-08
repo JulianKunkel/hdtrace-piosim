@@ -1,3 +1,0 @@
-To add the source filename and the source line to the tracing of each MPI function include
-"hdMPITracerCodeLocator.h" AFTER mpi.h in each desired source file.
-
