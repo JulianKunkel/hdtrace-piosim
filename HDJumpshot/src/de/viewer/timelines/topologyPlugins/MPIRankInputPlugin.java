@@ -73,7 +73,7 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 				rank = Integer.parseInt(node.getName());
 			}catch(NumberFormatException e){
 				System.err.println("Warning, the topology RANK is found, however it contains non numerical content \"" + node.getName() + "\"");
-				System.err.println("Project file is broken!");
+				System.err.println("Project file is broken!	");
 				throw e;
 			}
 		}
@@ -133,6 +133,9 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 				if(min == max){ // found entry or stopped.
 					
 					final String fidStr = entry.getAttribute("fid");
+					
+					// here is a bug: actually all previous must be checked and compared with the fid! Or the list should contain only a particular fid.
+					// probably the best solution would be to compute these additional information on the fly while scanning all file commands.
 					if(fidStr.compareTo(fid) != 0 || entry.getEarliestTime().compareTo(earlierThan) > 0)
 						return -1;
 					
@@ -173,7 +176,7 @@ public class MPIRankInputPlugin extends TopologyInputPlugin{
 		
 		void threadSeesFileOpen(ITraceEntry fopen){
 			assert(! isOperationsSorted);
-
+						
 			fileOpens.add(fopen);
 		}
 

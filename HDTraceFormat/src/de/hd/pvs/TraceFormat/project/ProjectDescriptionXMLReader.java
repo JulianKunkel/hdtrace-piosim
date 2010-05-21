@@ -217,6 +217,14 @@ public class ProjectDescriptionXMLReader {
 			
 			datatype = new SubarrayDatatype(dimSpec, order, old);
 			break;
+		}case HINDEXED:{
+			// TODO fixme!!!
+			datatype = NamedDatatype.UNIMPLEMENTED;
+			break;
+		}case HVECTOR:{
+			// TODO fixme!!!
+			datatype = NamedDatatype.UNIMPLEMENTED;
+			break;			
 		}default:
 			throw new IllegalArgumentException("Datatype " + type + " not implemented, yet");
 		}		

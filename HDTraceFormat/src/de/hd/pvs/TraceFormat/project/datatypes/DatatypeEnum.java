@@ -20,7 +20,8 @@ package de.hd.pvs.TraceFormat.project.datatypes;
 public enum DatatypeEnum {
 	NAMED,
 	CONTIGUOUS,
-	//HVECTOR, deprecated
+	HVECTOR, // is deprecated actually...
+	HINDEXED,
 	STRUCT,
 	VECTOR,
 	SUBARRAY

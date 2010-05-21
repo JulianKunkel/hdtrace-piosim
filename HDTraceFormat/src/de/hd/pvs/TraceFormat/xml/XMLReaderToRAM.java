@@ -75,7 +75,7 @@ public class XMLReaderToRAM {
 		try{
 			DOMdocument = DOMbuilder.parse(file);
 		}catch(SAXException e){
-			throw new IllegalArgumentException(e);
+			throw new IOException(e);
 		}
 		
 		Element applicationNode = DOMdocument.getDocumentElement();

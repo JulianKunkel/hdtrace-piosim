@@ -25,10 +25,13 @@
 
 package de.hdTraceInput;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+
+import org.xml.sax.SAXParseException;
 
 import de.arrow.ArrowManager;
 import de.arrow.ManagedArrowGroup;
@@ -251,11 +254,16 @@ public class TraceFormatBufferedFileReader {
 	 * @throws Exception
 	 */	
 	public void loadAdditionalFile(String projectFileName) throws Exception{
-		TraceFormatFileOpener fileOpener = new TraceFormatFileOpener( projectFileName, 
+		TraceFormatFileOpener fileOpener ;
+		try{
+			fileOpener = new TraceFormatFileOpener( projectFileName, 
 				true, 
 				BufferedStatisticsFileReader.class, 
 				BufferedTraceFileReader.class, 
 				BufferedRelationReader.class );
+		}catch(IOException e){
+			throw new IllegalArgumentException("Error while reading file: " + projectFileName );
+		}
 
 		updateStatisticCategories(fileOpener);
 

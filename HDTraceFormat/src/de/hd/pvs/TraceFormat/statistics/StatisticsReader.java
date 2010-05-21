@@ -56,6 +56,8 @@ public class StatisticsReader implements StatisticsSource{
 	 */
 	Epoch lastTimeStamp;
 	
+	final String filename;
+	
 	/**
 	 * Create a new statistics reader.
 	 * 
@@ -84,6 +86,12 @@ public class StatisticsReader implements StatisticsSource{
 		file.readFully(headerXML);
 		final String str = new String(headerXML); 
 		
+		if(! str.endsWith("</Statistics>\n")){
+			System.err.println("Error: Statistics file is damaged, does not end with Statistics!");
+			System.err.println("File: " + filename);
+			System.err.println("Content:\"" + str +"\"");
+		}
+		
 		// parse header via DOM
 		final XMLReaderToRAM headerReader = new XMLReaderToRAM();
 		XMLTag root;
@@ -109,6 +117,8 @@ public class StatisticsReader implements StatisticsSource{
 		}
 		
 		lastTimeStamp = readTimeStamp();
+		
+		this.filename = filename;
 	}
 	
 	/**
@@ -172,14 +182,16 @@ public class StatisticsReader implements StatisticsSource{
 				value = new Double(file.readDouble());
 								
 				if (Double.isInfinite((Double) value) || Double.isNaN((Double) value)){
-					throw new IllegalArgumentException(" alue for " + statName + " is " + value + " at timestamp " + timeStamp); 
-				}				
+					System.err.println("Warning: Value for " + statName + " is " + value  + " at timestamp " + timeStamp + " file: " + filename); 
+				}		
+				value = 0;
 				break;
 			case FLOAT:
 				value = new Float(file.readFloat());		
 				if (Float.isInfinite((Float) value) || Float.isNaN((Float) value)){
-					throw new IllegalArgumentException("Value for " + statName + " is " + value  + " at timestamp " + timeStamp); 
+					System.err.println("Warning: Value for " + statName + " is " + value  + " at timestamp " + timeStamp + " file: " + filename); 
 				}
+				value = 0;
 				break;
 			case STRING:
 				final int length = file.readShort();

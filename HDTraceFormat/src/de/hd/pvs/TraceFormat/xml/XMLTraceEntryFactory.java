@@ -107,7 +107,7 @@ public class XMLTraceEntryFactory {
 
 			StateTraceEntry traceObj = new StateTraceEntry(traceXML.getName(), 
 					attributes, time, endTime, children, data);
-
+			
 			return traceObj;
 
 		}else if (type == TracableObjectType.EVENT){

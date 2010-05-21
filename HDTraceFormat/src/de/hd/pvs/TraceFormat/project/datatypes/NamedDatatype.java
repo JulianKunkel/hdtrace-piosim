@@ -37,7 +37,8 @@ public class NamedDatatype extends Datatype{
 		INT (4),
 		INTEGER (4),
 		LONG (4),
-		LONG_LONG (8)
+		LONG_LONG (8),
+		UNIMPLEMENTED(0),
 		;
 
 		final int size;
@@ -51,6 +52,7 @@ public class NamedDatatype extends Datatype{
 		}
 	}
 
+	// TODO fix the size of datatypes depending on the machine architecture
 	final static public NamedDatatype LB = new NamedDatatype(NamedDatatypeType.LB);
 	final static public NamedDatatype UB = new NamedDatatype(NamedDatatypeType.UB);
 	final static public NamedDatatype BYTE = new NamedDatatype(NamedDatatypeType.BYTE);
@@ -60,6 +62,7 @@ public class NamedDatatype extends Datatype{
 	final static public NamedDatatype INTEGER = new NamedDatatype(NamedDatatypeType.INTEGER);
 	final static public NamedDatatype LONG_LONG = new NamedDatatype(NamedDatatypeType.LONG_LONG);
 	final static public NamedDatatype LONG = new NamedDatatype(NamedDatatypeType.LONG);
+	final static public NamedDatatype UNIMPLEMENTED = new NamedDatatype(NamedDatatypeType.UNIMPLEMENTED);
 
 	final NamedDatatypeType primitiveType;
 
