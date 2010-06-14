@@ -1,9 +1,13 @@
 #!/bin/bash
 
-DIR=`dirname $0`
-TARGET=../lib
+DIR=`dirname $0`/../
+TARGET=lib
 
 CUR="$PWD"
+
+cd "$DIR"
+
+pwd
 
 if [ -z "$JAVA_HOME" ] && ! which java > /dev/null 2>&1 ; then
     echo "JAVA_HOME environment variable not found and java not in PATH, abort!"

@@ -90,7 +90,7 @@ public class Parameters
         user_homedir   = System.getProperty( "user.home" );
         file_sep       = System.getProperty( "file.separator" );
         setupfile_path = user_homedir + file_sep + ".jumpshot4.conf";
-        System.out.println( "Jumpshot-4 setup file : " + setupfile_path );
+        System.out.println( "Jumpshot setup file : " + setupfile_path );
     }
 
     public static void initStaticClasses()
@@ -166,7 +166,7 @@ public class Parameters
 
         try {
             FileOutputStream fouts = new FileOutputStream( setupfile_path );
-            pptys.store( fouts, " Jumpshot-4 setup file" );
+            pptys.store( fouts, " Jumpshot setup file" );
             fouts.close();
         } catch ( IOException ioerr ) {
             ioerr.printStackTrace();
@@ -187,9 +187,9 @@ public class Parameters
             fins.close();
             isFileFound = true;
         } catch ( FileNotFoundException ioerr ) {
-            System.out.println( "Creating Jumpshot-4 setup file ..." );
+            System.out.println( "Creating Jumpshot setup file ..." );
             Dialogs.info( parent_window,
-                     "It seems this is your first time using Jumpshot-4,\n"
+                     "It seems this is your first time using Jumpshot,\n"
                    + "a setup file will be created in your home directory\n"
                    + "with the default settings.", null );
             writeToSetupFile( parent_window );
@@ -201,7 +201,7 @@ public class Parameters
         ppty_val = pptys.getProperty( "VERSION_INFO" );
         if ( ! VERSION_INFO.equals( ppty_val ) && isFileFound )
             Dialogs.warn( parent_window,
-                          "Version mismatch! This Jumpshot-4 is of version "
+                          "Version mismatch! This Sunshot is of version "
                         + VERSION_INFO +" not version " + ppty_val + " that "
                         + "is specified in your setup file.\n"
                         + "You may want to SAVE your preferences again in the "

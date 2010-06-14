@@ -51,7 +51,7 @@ public class Jumpshot extends JFrame
 
     public Jumpshot(String filename)
     {    	
-        super( "HDJumpshot" );
+        super( "Sunshot" );
         super.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
 
         top_panel    = new FirstPanel( filename );
@@ -87,7 +87,7 @@ public class Jumpshot extends JFrame
         de.viewer.common.Debug.initTextArea();
         // viewer.zoomable.Profile.initTextArea();
 
-        System.out.println( "Starting HDJumpshot" );
+        System.out.println( "Starting Sunshot" );
         MainManager.init(filename);
     }
 

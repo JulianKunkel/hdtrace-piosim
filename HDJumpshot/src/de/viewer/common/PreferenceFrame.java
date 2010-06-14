@@ -93,7 +93,7 @@ implements ActionListener
 
 		save_btn = new JButton( "save" );
 		save_btn.setToolTipText(
-		"Save preference to Jumpshot-4 setup file" );
+		"Save preference to Sunshot setup file" );
 		// save_btn.setAlignmentX( Component.CENTER_ALIGNMENT );
 		save_btn.addActionListener( this );
 		mid_panel.add( save_btn );

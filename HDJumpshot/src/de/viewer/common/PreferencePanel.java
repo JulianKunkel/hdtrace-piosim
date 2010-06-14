@@ -106,7 +106,7 @@ public class PreferencePanel extends JPanel
         lst_AUTO_WINDOWS_LOCATION.addItem( Boolean.TRUE );
         lst_AUTO_WINDOWS_LOCATION.addItem( Boolean.FALSE );
         lst_AUTO_WINDOWS_LOCATION.setToolTipText(
-        "Whether to let Jumpshot-4 automatically set windows placement." );
+        "Whether to let Sunshot automatically set windows placement." );
         super.add( lst_AUTO_WINDOWS_LOCATION );
 
         super.add( Box.createVerticalStrut( VERTICAL_GAP_HEIGHT ) );
