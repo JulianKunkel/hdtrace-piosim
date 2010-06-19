@@ -224,7 +224,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 						final HashMap<String, String> attributes = entry.getAttributes();
 						final String comm = attributes.get("cid");
 
-						if(name.contains("Send")){							
+						if(name.equals("Send") || name.equals("Isend") || name.equals("Sendrecv")){							
 							final String rankStr = attributes.get("toRank");
 							final String tagStr = attributes.get("toTag");
 
@@ -233,7 +233,7 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 							}
 						}
 
-						if(name.toLowerCase().contains("recv")){
+						if(name.equals("Recv") || name.equals("Irecv") || name.equals("Sendrecv")){
 							final String rankStr = attributes.get("fromRank");
 							final String tagStr = attributes.get("fromTag");
 
