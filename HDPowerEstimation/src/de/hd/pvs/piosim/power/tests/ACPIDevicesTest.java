@@ -36,16 +36,11 @@ public class ACPIDevicesTest extends AbstractTestCase {
 		Time t = Time.getInstance();
 		t.reset();
 
-		@SuppressWarnings("unused")
-		ACPIDevice disk = new SimpleDisk();
-		@SuppressWarnings("unused")
-		ACPIDevice cpu = new SimpleCPU();
-		@SuppressWarnings("unused")
-		ACPIDevice vga = new SimpleVGA();
-		@SuppressWarnings("unused")
-		ACPIDevice ram = new SimpleMemory();
-		@SuppressWarnings("unused")
-		ACPIDevice nic = new SimpleNIC();
+		new SimpleDisk();
+		new SimpleCPU();
+		new SimpleVGA();
+		new SimpleMemory();
+		new SimpleNIC();
 
 		for(ACPIDevice device : ACPIDevice.getDevices()) {
 			try {

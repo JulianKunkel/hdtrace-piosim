@@ -65,7 +65,7 @@ public class ReplayDevice {
 		return utilization;
 	}
 
-	public BigDecimal getPowerConsumptionForStep(int step) {
+	public BigDecimal getPowerConsumptionForStep() {
 
 		return ACPICalculation.calculateInWatt(BaseCalculation.substract(device.getPowerConsumption(),
 				replayData.getTotalConsumption()), new BigDecimal(stepsize));
@@ -77,7 +77,7 @@ public class ReplayDevice {
 		if(step == 0)
 			return;
 
-		BigDecimal stepPowerConsumption = getPowerConsumptionForStep(step);
+		BigDecimal stepPowerConsumption = getPowerConsumptionForStep();
 
 		replayData.addConsumption(stepPowerConsumption);
 		replayData.setTotalConsumption(device.getPowerConsumption());
@@ -86,9 +86,9 @@ public class ReplayDevice {
 
 	}
 	
-	public void setPowerConsumptionForLastStep(int lastStep) {
+	public void setPowerConsumptionForLastStep() {
 
-		BigDecimal stepPowerConsumption = getPowerConsumptionForStep(lastStep);
+		BigDecimal stepPowerConsumption = getPowerConsumptionForStep();
 
 		replayData.addConsumption(stepPowerConsumption);
 		replayData.setTotalConsumption(device.getPowerConsumption());

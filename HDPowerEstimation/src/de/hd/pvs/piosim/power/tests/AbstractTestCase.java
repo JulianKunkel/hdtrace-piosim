@@ -126,6 +126,7 @@ public abstract class AbstractTestCase extends TestCase {
 	}
 	
 	@Before
+	@Override
 	public void setUp() {
 		Time.getInstance().reset();
 		ACPIStateChangesHistory.getInstance().reset();
@@ -133,6 +134,7 @@ public abstract class AbstractTestCase extends TestCase {
 	}
 	
 	@After
+	@Override
 	public void tearDown() { 
 		ACPIDevice.deregisterAllDevices();
 		testVisualizer.reset();
@@ -198,8 +200,8 @@ public abstract class AbstractTestCase extends TestCase {
 	private String getSimpleName(Method method) {
 		if(method.getName().contains("."))
 			return method.getName().substring(method.getName().lastIndexOf('.'));
-		else
-			return method.getName();
+		
+		return method.getName();
 	}
 	
 	private List<Method> getGetterMethods(Method[] methods) {

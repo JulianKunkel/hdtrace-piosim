@@ -26,7 +26,7 @@ public class Time {
 	private BigDecimal time = new BigDecimal("0");
 	private static Time instance = null;
 	
-	private Time() {};
+	private Time() {}
 	
 	public static Time getInstance() {
 		if(instance == null) {

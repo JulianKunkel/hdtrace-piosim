@@ -28,7 +28,7 @@ import de.hd.pvs.piosim.power.calculation.ACPICalculation;
 import de.hd.pvs.piosim.power.calculation.BaseCalculation;
 
 public abstract class ACPIDevice extends ACPIComponentFacade {
-	
+
 	public static final int RUNNING = 0;
 	public static final int IDLE = 1;
 
@@ -36,7 +36,7 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	private int deviceState = IDLE;
 	private BigDecimal devicePowerStateChangesOverhead = new BigDecimal("0");
 	private JobScheduler scheduler = new JobScheduler();
-	
+
 	/**
 	 * must be implemented from all extending devices with device specific power
 	 * settings (i.e. device power state 1 -> x watt)
@@ -49,14 +49,14 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	 */
 	public abstract BigDecimal convertToPercentualUtilization(double value,
 			String unit) throws ConvertingException;
-	
+
 	protected ACPIDevice() {
 		register(this);
 		initComponentPowerConsumption();
 	}
 
 	/* registering stuff */
-	
+
 	public static void register(ACPIDevice device) {
 		devices.add(device);
 	}
@@ -76,14 +76,15 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	public static List<ACPIDevice> getDevices() {
 		return devices;
 	}
-	
+
 	public static ACPIDevice getACPIDevice(String nodeName, String deviceName) {
-		
-		for(ACPIDevice device : devices) {
-			if(device.getName().equals(deviceName) && device.getNode().getName().equals(nodeName))
+
+		for (ACPIDevice device : devices) {
+			if (device.getName().equals(deviceName)
+					&& device.getNode().getName().equals(nodeName))
 				return device;
 		}
-		
+
 		return null;
 
 	}
@@ -108,23 +109,24 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 			if (scheduler.getCountScheduledJobs() > 0) {
 
 				devicePowerStateChangesOverhead = BaseCalculation.sum(
-						devicePowerStateChangesOverhead, scheduler
-								.finishAllJobsInQueue());
+						devicePowerStateChangesOverhead,
+						scheduler.finishAllJobsInQueue());
 			}
 
 			if (this.getDevicePowerState() != DevicePowerStates.DEVICE_POWER_STATE_0) {
-				scheduler.add(this.getACPIComponent(), DevicePowerStates.DEVICE_POWER_STATE_0);
+				scheduler.add(this.getACPIComponent(),
+						DevicePowerStates.DEVICE_POWER_STATE_0);
 
 				devicePowerStateChangesOverhead = BaseCalculation.sum(
-						devicePowerStateChangesOverhead, scheduler
-								.finishAllJobsInQueue());
+						devicePowerStateChangesOverhead,
+						scheduler.finishAllJobsInQueue());
 			}
 
 			this.deviceState = RUNNING;
 
 		} catch (JobException e) {
-			throw new ComponentException("Scheduler refresh failed", e
-					.getStackTrace());
+			throw new ComponentException("Scheduler refresh failed",
+					e.getStackTrace());
 		}
 	}
 
@@ -151,14 +153,14 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	public void toSleep() throws ACPIDeviceException {
 		if (this.isRunning()) {
 			throw new ACPIDeviceException("Device is running");
-		} else {
+		}
 
-			try {
-				scheduler.add(this.getACPIComponent(), DevicePowerStates.DEVICE_POWER_STATE_3);
-			} catch (JobException e) {
-				throw new ACPIDeviceException("Adding to scheduler failed", e
-						.getStackTrace());
-			}
+		try {
+			scheduler.add(this.getACPIComponent(),
+					DevicePowerStates.DEVICE_POWER_STATE_3);
+		} catch (JobException e) {
+			throw new ACPIDeviceException("Adding to scheduler failed",
+					e.getStackTrace());
 		}
 	}
 
@@ -169,10 +171,11 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	 */
 	public void toWork() throws ACPIDeviceException {
 		try {
-			scheduler.add(getACPIComponent(), DevicePowerStates.DEVICE_POWER_STATE_0);
+			scheduler.add(getACPIComponent(),
+					DevicePowerStates.DEVICE_POWER_STATE_0);
 		} catch (JobException e) {
-			throw new ACPIDeviceException("Adding to scheduler failed", e
-					.getStackTrace());
+			throw new ACPIDeviceException("Adding to scheduler failed",
+					e.getStackTrace());
 		}
 	}
 
@@ -182,18 +185,19 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	 * @throws ACPIDeviceException
 	 */
 	public void toSuspend() throws ACPIDeviceException {
-		if (this.isRunning()) {
+		if (this.isRunning())
 			throw new ACPIDeviceException("Device is running");
-		} else {
-			try {
-				scheduler.add(getACPIComponent(), DevicePowerStates.DEVICE_POWER_STATE_2);
-			} catch (JobException e) {
-				throw new ACPIDeviceException("Adding to scheduler failed", e
-						.getStackTrace());
-			}
+
+		try {
+			scheduler.add(getACPIComponent(),
+					DevicePowerStates.DEVICE_POWER_STATE_2);
+		} catch (JobException e) {
+			throw new ACPIDeviceException("Adding to scheduler failed",
+					e.getStackTrace());
 		}
+
 	}
-	
+
 	/**
 	 * Schedules a change to <code>state</code>, if device is running.
 	 * Otherwise, call run() first.
@@ -201,23 +205,23 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	 * @throws ACPIDeviceException
 	 */
 	public void toACPIState(int state) throws ACPIDeviceException {
-		if (state != DevicePowerStates.DEVICE_POWER_STATE_0 && this.isRunning()) {
+		if (state != DevicePowerStates.DEVICE_POWER_STATE_0 && this.isRunning())
 			throw new ACPIDeviceException("Device is running");
-		} else {
-			try {
-				scheduler.add(getACPIComponent(), state);
-			} catch (JobException e) {
-				throw new ACPIDeviceException("Adding to scheduler failed", e
-						.getStackTrace());
-			}
+
+		try {
+			scheduler.add(getACPIComponent(), state);
+		} catch (JobException e) {
+			throw new ACPIDeviceException("Adding to scheduler failed",
+					e.getStackTrace());
 		}
+
 	}
 
 	/**
 	 * 
 	 * Overwrites the acpiComponents getPowerConsumption() method to calculate
-	 * the accurate power consumption till now. If a device state change is 
-	 * running, the  (partial) power consumption for the change is included
+	 * the accurate power consumption till now. If a device state change is
+	 * running, the (partial) power consumption for the change is included
 	 * 
 	 * @return Power consumption for this device till now in watt-h
 	 */
@@ -234,14 +238,15 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 					Time.getInstance().getCurrentTimeInMillis())) {
 
 				// only if job is really running
-				
+
 				BigDecimal duration = job.getDuration(); // in ms
 				int targetACPIState = job.getTargetACPIState();
 
 				// in watt-h
 				BigDecimal powerConsumptionForChange = getPowerConsumptionForDevicePowerStateChange(targetACPIState);
 
-				currentPowerConsumption = ACPICalculation.calculateInWatt(powerConsumptionForChange, duration);
+				currentPowerConsumption = ACPICalculation.calculateInWatt(
+						powerConsumptionForChange, duration);
 
 			}
 		}
@@ -251,31 +256,28 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 		BigDecimal lastChangeTime = getLastChangeTime();
 
 		powerConsumption = ACPICalculation.sumPowerConsumptionTillNow(
-				powerConsumption, currentPowerConsumption, now,
-				lastChangeTime);
+				powerConsumption, currentPowerConsumption, now, lastChangeTime);
 
 		return powerConsumption;
 	}
 
 	/**
-	 * Overhead means the time, if device is not in
-	 * device state 0 and a call to run() is performed,
-	 * means device has to be powered on before doing
-	 * any work. This overhead has to be minimized,
-	 * to avoid changes of the resulting calculating time
+	 * Overhead means the time, if device is not in device state 0 and a call to
+	 * run() is performed, means device has to be powered on before doing any
+	 * work. This overhead has to be minimized, to avoid changes of the
+	 * resulting calculating time
 	 * 
 	 * @return the overhead for acpi state changes
 	 */
 	@Override
-	public BigDecimal getACPIStateChangesTimeOverhead() {		
+	public BigDecimal getACPIStateChangesTimeOverhead() {
 		return devicePowerStateChangesOverhead;
 	}
 
 	/**
-	 * Refresh this device.
-	 * This means, all scheduled acpi state changes till now
-	 * are performed and device is up to date. Should be called
-	 * when implementing any calculation method.
+	 * Refresh this device. This means, all scheduled acpi state changes till
+	 * now are performed and device is up to date. Should be called when
+	 * implementing any calculation method.
 	 */
 	@Override
 	public void refresh() {
@@ -298,24 +300,27 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 
 	@Override
 	public BigDecimal getMaxPowerConsumption() {
-		return this.getComponentPowerSchema().getStatePowerConsumption(0, new BigDecimal("1"));
+		return this.getComponentPowerSchema().getStatePowerConsumption(0,
+				new BigDecimal("1"));
 	}
 
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + ": " + this.getName();
 	}
-	
+
 	/**
 	 * Refreshed devices and changes utilization
 	 * 
-	 * @param utilization future utilization for this device
-	 * @throws ComponentException 
+	 * @param utilization
+	 *            future utilization for this device
+	 * @throws ComponentException
 	 */
 	@Override
-	public void changeUtilization(BigDecimal utilization) throws ComponentException{
+	public void changeUtilization(BigDecimal utilization)
+			throws ComponentException {
 		refresh();
-		super.changeUtilization(utilization);		
+		super.changeUtilization(utilization);
 	}
 
 }

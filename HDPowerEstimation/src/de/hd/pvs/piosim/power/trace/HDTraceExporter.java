@@ -105,12 +105,13 @@ public class HDTraceExporter {
 	public void writeStatistics(Node node, String replayName, BigDecimal value) throws HDTraceExporterException {
 		try {
 			logger.debug("Writing statistics for node " + node.getName() + "(" + replayName + ")");
-			writer.writeStatisticValue(set.getStatisticNode(node, replayName), set.getStatisticsDescription(node), value.floatValue());
+			writer.writeStatisticValue(set.getStatisticNode(node, replayName), set.getStatisticsDescription(), value.floatValue());
 		} catch (Exception e) {
 			throw new HDTraceExporterException("Unable to write Statistics : " + e.getMessage(),e.getStackTrace());
 		}
 	}
 	
+	@Override
 	public void finalize() throws HDTraceExporterException {
 		try {
 			writer.finalizeTrace();

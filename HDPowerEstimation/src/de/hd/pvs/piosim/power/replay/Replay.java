@@ -78,7 +78,7 @@ public class Replay {
 		// because powerConsumption can only read after utilization time period,
 		// so the last value is missing otherwise
 		for (ReplayItem item : items) {
-			item.getReplayDevice().setPowerConsumptionForLastStep(countSteps-1);
+			item.getReplayDevice().setPowerConsumptionForLastStep();
 		}
 		
 		StatisticData.getInstance().step(getNodes(),countSteps-1);

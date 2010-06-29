@@ -74,6 +74,7 @@ public class CalculateTracePowerTest extends AbstractTestCase {
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
+			return;
 		}
 
 		Map<String, String> nameToACPIDeviceMapping = new HashMap<String, String>();
@@ -159,7 +160,7 @@ public class CalculateTracePowerTest extends AbstractTestCase {
 
 				
 
-				if (!excludeProjectNames.contains(projectName) && (projectNames == null || projectNames.size() == 0 || projectNames.contains(projectName))) {
+				if (!excludeProjectNames.contains(projectName) && (projectNames.size() == 0 || projectNames.contains(projectName))) {
 
 					try {
 
@@ -213,7 +214,8 @@ public class CalculateTracePowerTest extends AbstractTestCase {
 						} catch (HDTraceImporterException e) {
 							System.err.println("Not possible to get original consumption for project file: " + projectFile);
 							//						e.printStackTrace();
-							//						fail(e.getMessage());
+							fail(e.getMessage());
+							return;
 						}
 
 						try {

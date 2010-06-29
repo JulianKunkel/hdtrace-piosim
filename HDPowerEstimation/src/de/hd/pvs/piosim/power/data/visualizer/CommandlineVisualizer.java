@@ -38,7 +38,7 @@ public class CommandlineVisualizer implements Visualizer {
 	private List<String> namesList = new ArrayList<String>();
 	private int countRows = 10;
 
-	public void addPanelValues(String panel, String name, BigDecimal[] values) {
+	public void addPanelValues(String name, BigDecimal[] values) {
 		double[] valuesArray = new double[values.length];
 
 		for (int i = 0; i < values.length; ++i) {
@@ -97,8 +97,8 @@ public class CommandlineVisualizer implements Visualizer {
 	@Override
 	public void copyReplayItems(List<ReplayItem> items) {
 		for(ReplayItem item : items) {
-			addPanelValues("Utilization", item.getReplayDevice().getACPIDevice().getName(), item.getReplayDevice().getUtilization());
-			addPanelValues("Power Consumption", item.getReplayDevice().getACPIDevice().getName(), item.getReplayDevice().getPowerConsumption());
+			addPanelValues(item.getReplayDevice().getACPIDevice().getName(), item.getReplayDevice().getUtilization());
+			addPanelValues(item.getReplayDevice().getACPIDevice().getName(), item.getReplayDevice().getPowerConsumption());
 		}
 	}
 

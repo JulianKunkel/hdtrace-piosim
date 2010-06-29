@@ -104,13 +104,11 @@ public class FileCopy {
 				try {
 					from.close();
 				} catch (IOException e) {
-					;
 				}
 			if (to != null)
 				try {
 					to.close();
 				} catch (IOException e) {
-					;
 				}
 		}
 	}

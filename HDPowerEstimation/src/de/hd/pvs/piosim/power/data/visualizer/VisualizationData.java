@@ -173,10 +173,12 @@ public class VisualizationData {
 		} catch (SecurityException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			return null;
 		} catch (NoSuchMethodException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}
+			return null;
+		} 
 
 		try {
 			return method.invoke(object, (Object[]) null).toString();
@@ -234,9 +236,9 @@ public class VisualizationData {
 		
 		if(ones >= 5) {
 			return tenth + 1;
-		} else {
-			return tenth;
-		}
+		} 
+		
+		return tenth;
 	}
 	
 	

@@ -144,7 +144,7 @@ public class TopologyNodeSet {
 		return statisticDescriptions.get(component.getName());
 	}
 	
-	public StatisticsDescription getStatisticsDescription(Node node) {
+	public StatisticsDescription getStatisticsDescription() {
 		return statisticDescriptions.get(nodeTotal);
 	}
 

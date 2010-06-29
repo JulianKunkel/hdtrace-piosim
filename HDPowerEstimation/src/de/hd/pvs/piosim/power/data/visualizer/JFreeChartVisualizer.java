@@ -41,6 +41,7 @@ public abstract class JFreeChartVisualizer implements Visualizer {
 	protected VisualizationData visualizationData;
 	protected boolean printLegend = true;
 	
+	@Override
 	public void isPrintLegend(boolean printLegend) {
 		this.printLegend = printLegend;
 	}
@@ -83,6 +84,7 @@ public abstract class JFreeChartVisualizer implements Visualizer {
 	public void visualize() throws VisualizerException {
 
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				createFrame();
 			}
@@ -90,6 +92,7 @@ public abstract class JFreeChartVisualizer implements Visualizer {
 
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
+				@Override
 				public void run() {
 					thread = Thread.currentThread();
 				}

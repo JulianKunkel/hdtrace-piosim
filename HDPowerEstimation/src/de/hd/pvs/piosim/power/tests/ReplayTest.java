@@ -33,27 +33,30 @@ import de.hd.pvs.piosim.power.replay.strategy.SimplePlayStrategy;
 import de.hd.pvs.piosim.power.tests.util.TestObjectCreator;
 
 public class ReplayTest extends AbstractTestCase {
-	
+
+	@SuppressWarnings("null")
 	@Test
 	public void testReplayWithOneDeviceAndOneStrategy() {
-		String[] deviceNames = {"CPU1"};
-		Map<String,String> mapping = new HashMap<String,String>();
+		String[] deviceNames = { "CPU1" };
+		Map<String, String> mapping = new HashMap<String, String>();
 		mapping.put("CPU1", "SimpleCPU");
-		Map<String,PlayStrategy> playStrategies = new HashMap<String,PlayStrategy>();
+		Map<String, PlayStrategy> playStrategies = new HashMap<String, PlayStrategy>();
 		playStrategies.put("CPU1", new SimplePlayStrategy());
-		Map<String,DeviceData> deviceData = new HashMap<String,DeviceData>();
-		
+		Map<String, DeviceData> deviceData = new HashMap<String, DeviceData>();
+
 		Node node = null;
 		Replay replay = null;
 		try {
 			node = TestObjectCreator.createSimpleNode(deviceNames, mapping);
-			deviceData = TestObjectCreator.createApproachDeviceData(deviceNames);
-			replay = TestObjectCreator.createReplay(node, playStrategies, deviceData);
+			deviceData = TestObjectCreator
+					.createApproachDeviceData(deviceNames);
+			replay = TestObjectCreator.createReplay(node, playStrategies,
+					deviceData);
 		} catch (BuildException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
-		
+
 		try {
 			replay.play();
 			replay.visualize(testVisualizer);
@@ -65,29 +68,32 @@ public class ReplayTest extends AbstractTestCase {
 			fail(e.getMessage());
 		}
 	}
-	
-  @Test
+
+	@Test
 	public void testReplayWithTwoDevicesAndOneStrategy() {
-		String[] deviceNames = {"CPU1","CPU2"};
-		Map<String,String> mapping = new HashMap<String,String>();
+		String[] deviceNames = { "CPU1", "CPU2" };
+		Map<String, String> mapping = new HashMap<String, String>();
 		mapping.put("CPU1", "SimpleCPU");
 		mapping.put("CPU2", "SimpleCPU");
-		Map<String,PlayStrategy> playStrategies = new HashMap<String,PlayStrategy>();
+		Map<String, PlayStrategy> playStrategies = new HashMap<String, PlayStrategy>();
 		playStrategies.put("CPU1", new SimplePlayStrategy());
 		playStrategies.put("CPU2", new SimplePlayStrategy());
-		Map<String,DeviceData> deviceData = new HashMap<String,DeviceData>();
-		
+		Map<String, DeviceData> deviceData = new HashMap<String, DeviceData>();
+
 		Node node = null;
 		Replay replay = null;
 		try {
 			node = TestObjectCreator.createSimpleNode(deviceNames, mapping);
-			deviceData = TestObjectCreator.createApproachDeviceData(deviceNames);
-			replay = TestObjectCreator.createReplay(node, playStrategies, deviceData);
+			deviceData = TestObjectCreator
+					.createApproachDeviceData(deviceNames);
+			replay = TestObjectCreator.createReplay(node, playStrategies,
+					deviceData);
 		} catch (BuildException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
+			return;
 		}
-		
+
 		try {
 			replay.play();
 			replay.visualize(testVisualizer);
@@ -99,29 +105,32 @@ public class ReplayTest extends AbstractTestCase {
 			fail(e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testReplayWithTwoDevicesAndTwoStrategies() {
-		String[] deviceNames = {"CPU1","CPU2"};
-		Map<String,String> mapping = new HashMap<String,String>();
+		String[] deviceNames = { "CPU1", "CPU2" };
+		Map<String, String> mapping = new HashMap<String, String>();
 		mapping.put("CPU1", "SimpleCPU");
 		mapping.put("CPU2", "SimpleCPU");
-		Map<String,PlayStrategy> playStrategies = new HashMap<String,PlayStrategy>();
+		Map<String, PlayStrategy> playStrategies = new HashMap<String, PlayStrategy>();
 		playStrategies.put("CPU1", new SimplePlayStrategy());
 		playStrategies.put("CPU2", new ApproachPlayStrategy());
-		Map<String,DeviceData> deviceData = new HashMap<String,DeviceData>();
-		
+		Map<String, DeviceData> deviceData = new HashMap<String, DeviceData>();
+
 		Node node = null;
 		Replay replay = null;
 		try {
 			node = TestObjectCreator.createSimpleNode(deviceNames, mapping);
-			deviceData = TestObjectCreator.createApproachDeviceData(deviceNames);
-			replay = TestObjectCreator.createReplay(node, playStrategies, deviceData);
+			deviceData = TestObjectCreator
+					.createApproachDeviceData(deviceNames);
+			replay = TestObjectCreator.createReplay(node, playStrategies,
+					deviceData);
 		} catch (BuildException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
+			return;
 		}
-		
+
 		try {
 			replay.play();
 			replay.visualize(testVisualizer);

@@ -24,14 +24,16 @@ import de.hd.pvs.piosim.power.calculation.BaseCalculation;
 
 public class TwoGigMainMemory extends MemoryDevice {
 	
+
 	private BigDecimal memorySize = new BigDecimal("2048");
 	private int countBanks = 2;
 	
-	
+	@Override
 	public BigDecimal getMemorySize() {
 		return memorySize;
 	}
 
+	@Override
 	public int getCountBanks() {
 		return countBanks;
 	}

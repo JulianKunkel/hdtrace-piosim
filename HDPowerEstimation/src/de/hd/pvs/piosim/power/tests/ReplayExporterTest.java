@@ -70,6 +70,7 @@ public class ReplayExporterTest extends AbstractTestCase {
 		} catch (BuildException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
+			return;
 		}
 		
 		try {
@@ -91,6 +92,7 @@ public class ReplayExporterTest extends AbstractTestCase {
 		} catch (ReplayExporterException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
+			return;
 		}
 
 		replay.reset();
@@ -143,6 +145,7 @@ public class ReplayExporterTest extends AbstractTestCase {
 		
 	}
 	
+	@SuppressWarnings("null")
 	@Test
 	public void testNodeExport() {
 		String[] deviceNames = {"CPU1","CPU2","DISK"};
@@ -240,6 +243,7 @@ public class ReplayExporterTest extends AbstractTestCase {
 		}
 	}
 	
+	@SuppressWarnings("null")
 	@Test
 	public void testNodeExportWithMultipleNodes() {
 		String[] deviceNames = {"CPU","DISK"};
