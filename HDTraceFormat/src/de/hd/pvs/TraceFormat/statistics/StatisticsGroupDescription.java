@@ -87,12 +87,12 @@ public class StatisticsGroupDescription{
 	}
 	
 	public void setTimeResolutionMultiplier(String name) {
-		if(name.equals("Mikroseconds")){
+		if(name == null){
+			timeResolutionMultiplier = 1;
+		} else if(name.equals("Mikroseconds") || name.equals("Microseconds")){
 			timeResolutionMultiplier = 1000;
 		}else if(name.equals("Milliseconds")){
 			timeResolutionMultiplier = 1000 * 1000;
-		}else if(name == null){
-			timeResolutionMultiplier = 1;
 		}else{
 			throw new IllegalArgumentException("Invalid timestampResulution " + name );
 		}

@@ -255,10 +255,7 @@ public class ProjectDescriptionXMLReader {
 			if (localRank == null){
 				throw new InvalidParameterException("Invalid XML, no local rank specified !");
 			}
-			final String cid = tag.getAttribute("cid");
-			if (rank == null){
-				throw new InvalidParameterException("Invalid XML, no communicator ID specified !");
-			}						
+			final String cid = tag.getAttribute("cid");					
 
 			try{
 				final int cidi = Integer.parseInt(cid);
