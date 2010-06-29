@@ -1,0 +1,29 @@
+<Program timeAdjustment='1247739333'>
+<Nested>
+  <Sendrecv size='65' toRank='2' toTag='7' fromRank='2' fromTag='7' cid='0' count='65' sendTid='0' recvTid='0'  time='0.356523' end='0.358879'/>
+  <Sendrecv size='130' toRank='1' toTag='7' fromRank='1' fromTag='7' cid='0' count='130' sendTid='0' recvTid='0'  time='0.358900' end='0.358934'/>
+</Nested>
+<Allgather size='65' recvSize='65' cid='0' count='65' tid='0' recvCount='65' recvtid='0'  time='0.356498' end='0.358953'/>
+<Init  time='0.401769' end='0.401773'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='0.458509' end='0.460874'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='2.433907' end='2.449417'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='3.457016' end='3.487519'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='4.500241' end='4.509394'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='5.520097' end='5.578112'/>
+<Nested>
+  <Send size='8' count='1' tid='1' toRank='2' toTag='11' cid='0'  time='6.588275' end='6.588355'/>
+</Nested>
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='1'  time='6.588220' end='6.588368'/>
+<Send size='328115344' count='41014418' tid='1' toRank='0' toTag='555' cid='0'  time='6.588374' end='15.051182'/>
+<Nested>
+  <Sendrecv size='0' toRank='0' toTag='1' fromRank='2' fromTag='1' cid='0' count='0' sendTid='2' recvTid='2'  time='15.218558' end='15.218704'/>
+  <Sendrecv size='0' toRank='1' toTag='1' fromRank='1' fromTag='1' cid='0' count='0' sendTid='2' recvTid='2'  time='15.218713' end='15.249807'/>
+</Nested>
+<Barrier cid='0'  time='15.218524' end='15.249813'/>
+<Nested>
+  <Sendrecv size='0' toRank='0' toTag='1' fromRank='2' fromTag='1' cid='1' count='0' sendTid='2' recvTid='2'  time='15.249821' end='15.250093'/>
+  <Sendrecv size='0' toRank='1' toTag='1' fromRank='1' fromTag='1' cid='1' count='0' sendTid='2' recvTid='2'  time='15.250098' end='15.250114'/>
+</Nested>
+<Finalize  time='15.249818' end='15.250740'/>
+</Program>
+

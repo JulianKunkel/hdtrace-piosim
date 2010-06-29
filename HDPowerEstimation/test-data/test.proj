@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Application name="result" processCount="3">
+<Description>normal description </Description>
+
+<FileList>
+<File name="pvfs2://pvfs2//visualization.dat">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+<File name="pvfs2://pvfs2//checkpoint.1">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+<File name="pvfs2://pvfs2//checkpoint.2">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+</FileList>  
+  
+<Topology>
+        <Level type="Hostname">
+        <Level type="Rank">
+        <Level type="Thread">
+        </Level>
+        </Level>
+        </Level> 
+
+        <Node name="host0">
+        </Node>            
+</Topology>
+
+<CommunicatorList> 
+<Communicator name="WORLD">
+<Rank global="0" local="0" cid="1"/>
+</Communicator>
+</CommunicatorList>
+
+<ExternalStatistics>
+	<Energy/>		
+	<Performance/>
+</ExternalStatistics>
+
+</Application>

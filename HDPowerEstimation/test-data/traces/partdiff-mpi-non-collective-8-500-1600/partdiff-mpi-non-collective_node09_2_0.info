@@ -1,0 +1,7 @@
+Type id='0' combiner='MPI_COMBINER_NAMED' name='MPI_CHAR'
+Comm map='0->0;1->1;2->2;3->3;4->4;5->5;6->6;7->7;' id=0 name='WORLD'
+Type id='1' combiner='MPI_COMBINER_NAMED' name='MPI_DOUBLE'
+Type id='2' combiner='MPI_COMBINER_NAMED' name='MPI_BYTE'
+Comm map='0->0;1->1;2->2;3->3;4->4;5->5;6->6;7->7;' id=1 name='MPI_ICOMM_WORLD'
+
+

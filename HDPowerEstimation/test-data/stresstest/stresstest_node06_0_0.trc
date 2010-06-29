@@ -1,0 +1,74 @@
+<Program timeAdjustment='1247419294'>
+<Nested>
+  <Sendrecv size='65' toRank='1' toTag='7' fromRank='1' fromTag='7' cid='0' count='65' sendTid='0' recvTid='0'  time='0.327684' end='0.333982'/>
+</Nested>
+<Allgather size='65' recvSize='65' cid='0' count='65' tid='0' recvCount='65' recvtid='0'  time='0.327664' end='0.334022'/>
+<Init  time='0.358281' end='0.358283'/>
+<Recv fromRank='1' fromTag='1' cid='0'  time='0.360131' end='50.595038'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='50.595057' end='51.488179'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='51.488190' end='52.379608'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='52.379619' end='53.271157'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='53.271168' end='54.162606'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='54.162616' end='55.054181'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='55.054194' end='55.945692'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='55.945704' end='56.837136'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='56.837147' end='57.728623'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='57.728634' end='58.620064'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='58.620076' end='59.511595'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='59.511606' end='60.403049'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='60.403059' end='61.294676'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='61.294687' end='62.186049'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='62.186061' end='63.077712'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='63.077723' end='63.969183'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='63.969194' end='64.860641'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='64.860653' end='65.752186'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='65.752197' end='66.643708'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='66.643719' end='67.535293'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='67.535304' end='68.426743'/>
+<Recv fromRank='1' fromTag='1' cid='0'  time='68.426753' end='219.222730'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='219.222739' end='220.167734'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='220.167744' end='221.059233'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='221.059245' end='221.950994'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='221.951005' end='222.867991'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='222.868001' end='223.759743'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='223.759754' end='224.652764'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='224.652775' end='225.544301'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='225.544312' end='226.454275'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='226.454287' end='227.345905'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='227.345915' end='228.238418'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='228.238429' end='229.130077'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='229.130087' end='230.021879'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='230.021891' end='230.913481'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='230.913492' end='231.804956'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='231.804968' end='232.696490'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='232.696500' end='233.587900'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='233.587910' end='234.479402'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='234.479414' end='235.372581'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='235.372592' end='236.266743'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='236.266753' end='237.174216'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='237.174226' end='238.065896'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='238.065908' end='238.957451'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='238.957462' end='239.849204'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='239.849215' end='240.769447'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='240.769458' end='241.679310'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='241.679338' end='242.570941'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='242.570951' end='243.462425'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='243.462434' end='244.354079'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='244.354101' end='245.245732'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='245.245742' end='246.158677'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='246.158687' end='247.058245'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='247.058257' end='247.949727'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='247.949739' end='248.856860'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='248.856871' end='249.748647'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='249.748658' end='250.640193'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='250.640204' end='251.531734'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='251.531744' end='252.423459'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='252.423470' end='253.315050'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='253.315061' end='254.206683'/>
+<Recv fromRank='1' fromTag='1313' cid='0'  time='254.206693' end='255.098326'/>
+<Nested>
+  <Sendrecv size='0' toRank='1' toTag='1' fromRank='1' fromTag='1' cid='1' count='0' sendTid='1' recvTid='1'  time='255.125128' end='385.995428'/>
+</Nested>
+<Finalize  time='255.125090' end='385.996159'/>
+</Program>
+

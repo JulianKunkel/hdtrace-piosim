@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><Application name="partdiff-mpi-non-collective">
+<Description></Description>
+ <FileList>
+ </FileList>
+
+ <Topology>
+  <Level type="Hostname">
+   <Level type="Rank">
+    <Level type="Thread">
+    </Level>
+   </Level>
+  </Level>
+
+  <Node name="node08">
+   <Node name="1">
+    <Node name="0" />
+   </Node>
+   <Node name="5">
+    <Node name="0" />
+   </Node>
+  </Node>
+  <Node name="node09">
+   <Node name="3">
+    <Node name="0" />
+   </Node>
+   <Node name="7">
+    <Node name="0" />
+   </Node>
+  </Node>
+  <Node name="node06">
+   <Node name="0">
+    <Node name="0" />
+   </Node>
+   <Node name="4">
+    <Node name="0" />
+   </Node>
+  </Node>
+  <Node name="node07">
+   <Node name="2">
+    <Node name="0" />
+   </Node>
+   <Node name="6">
+    <Node name="0" />
+   </Node>
+  </Node>
+ </Topology>
+
+ <CommunicatorList>
+  <Communicator name="WORLD">
+   <Rank global="2" local="2" cid="0" />
+   <Rank global="7" local="7" cid="0" />
+   <Rank global="3" local="3" cid="0" />
+   <Rank global="1" local="1" cid="0" />
+   <Rank global="4" local="4" cid="0" />
+   <Rank global="6" local="6" cid="0" />
+   <Rank global="0" local="0" cid="0" />
+   <Rank global="5" local="5" cid="0" />
+  </Communicator>
+  <Communicator name="MPI_ICOMM_WORLD">
+   <Rank global="2" local="2" cid="1" />
+   <Rank global="7" local="7" cid="1" />
+   <Rank global="3" local="3" cid="1" />
+   <Rank global="1" local="1" cid="1" />
+   <Rank global="4" local="4" cid="1" />
+   <Rank global="6" local="6" cid="1" />
+   <Rank global="0" local="0" cid="1" />
+   <Rank global="5" local="5" cid="1" />
+  </Communicator>
+ </CommunicatorList>
+
+ <Datatypes>
+  <Rank name="2" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+  <Rank name="7" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+  <Rank name="3" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+  <Rank name="1" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+  <Rank name="4" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+  <Rank name="6" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+  <Rank name="0" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+  <Rank name="5" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_DOUBLE"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  </Rank>
+ </Datatypes>
+
+ <ExternalStatistics>
+   <Energy/>
+   <Performance/>
+ </ExternalStatistics>
+
+</Application>

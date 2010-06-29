@@ -1,0 +1,222 @@
+<Program timeAdjustment='1246362518'>
+<Nested>
+  <Sendrecv size='255' toRank='0' toTag='7' fromRank='0' fromTag='7' cid='0' count='255' sendTid='0' recvTid='0'  time='0.327573' end='0.329871'/>
+  <Sendrecv size='510' toRank='3' toTag='7' fromRank='3' fromTag='7' cid='0' count='510' sendTid='0' recvTid='0'  time='0.329894' end='0.334261'/>
+</Nested>
+<Allgather size='255' recvSize='255' cid='0' count='255' tid='0' recvCount='255' recvtid='0'  time='0.327548' end='0.334300'/>
+<Init  time='0.347425' end='0.347428'/>
+<Nested>
+  <Sendrecv size='128' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='0.403472' end='0.409375'/>
+  <Sendrecv size='128' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='0.409385' end='0.409415'/>
+  <Nested>
+    <Send size='4' count='4' tid='2' toRank='0' toTag='3' cid='1'  time='0.409640' end='0.409745'/>
+  </Nested>
+  <Gather size='4' recvSize='4' root='0' cid='1' count='1' tid='1' recvCount='1' recvtid='1'  time='0.409625' end='0.409756'/>
+  <Nested>
+    <Send size='7' count='7' tid='0' toRank='0' toTag='4' cid='1'  time='0.409772' end='0.409786'/>
+  </Nested>
+  <Gatherv size='7' root='0' cid='1' count='7' tid='0'  time='0.409761' end='0.409793'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='1'  time='0.409809' end='0.429117'/>
+  </Nested>
+  <Bcast size='4' rootRank='0' cid='1' count='1' tid='1'  time='0.409799' end='0.429132'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='1'  time='0.429144' end='0.429164'/>
+  </Nested>
+  <Bcast size='16' rootRank='0' cid='1' count='4' tid='1'  time='0.429141' end='0.429171'/>
+  <Type_commit tid='3'  time='0.442209' end='0.442317'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='1'  time='0.442330' end='0.447219'/>
+  </Nested>
+  <Bcast size='20' rootRank='0' cid='1' count='1' tid='3'  time='0.442325' end='0.447240'/>
+  <Type_free tid='3'  time='0.447244' end='0.447260'/>
+  <Nested>
+    <Sendrecv size='4' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='1' count='1' sendTid='1' recvTid='1'  time='0.447273' end='0.447313'/>
+    <Sendrecv size='4' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='1' count='1' sendTid='1' recvTid='1'  time='0.447320' end='0.447457'/>
+  </Nested>
+  <Allreduce size='4' cid='1' count='1' tid='1'  time='0.447265' end='0.447465'/>
+</Nested>
+<File_open cid='0' name='pvfs2://pvfs2/visualization.dat' flags='5' fid='0'  time='0.403438' end='0.448815'/>
+<Type_vector oldTid='4'  time='0.448822' end='0.448843'/>
+<Type_commit tid='5'  time='0.448847' end='0.448873'/>
+<Nested>
+  <Recv fromRank='0' fromTag='2' cid='0'  time='0.448881' end='0.451950'/>
+</Nested>
+<Bcast size='4' rootRank='0' cid='0' count='1' tid='1'  time='0.448878' end='0.451958'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='0' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='0.451974' end='0.462361'/>
+<Sendrecv size='102472' toRank='0' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='0.462373' end='0.464496'/>
+<Nested>
+  <Sendrecv size='128' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='2.463874' end='2.491811'/>
+  <Sendrecv size='128' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='2.491820' end='2.491842'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='2'  time='2.491909' end='2.492127'/>
+  </Nested>
+  <Bcast size='4' rootRank='0' cid='2' count='1' tid='1'  time='2.491904' end='2.492136'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='2'  time='2.492143' end='2.492162'/>
+  </Nested>
+  <Bcast size='16' rootRank='0' cid='2' count='4' tid='1'  time='2.492142' end='2.492169'/>
+  <Type_commit tid='6'  time='2.492187' end='2.492243'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='2'  time='2.492251' end='2.497172'/>
+  </Nested>
+  <Bcast size='20' rootRank='0' cid='2' count='1' tid='6'  time='2.492247' end='2.497187'/>
+  <Type_free tid='6'  time='2.497192' end='2.497199'/>
+  <Nested>
+    <Sendrecv size='4' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='2' count='1' sendTid='1' recvTid='1'  time='2.497220' end='2.497253'/>
+    <Sendrecv size='4' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='2' count='1' sendTid='1' recvTid='1'  time='2.497259' end='2.497459'/>
+  </Nested>
+  <Allreduce size='4' cid='2' count='1' tid='1'  time='2.497214' end='2.497466'/>
+</Nested>
+<File_open cid='0' name='pvfs2://pvfs2/checkpoint.1' flags='5' fid='1'  time='2.463852' end='5.010957'/>
+<File_write_at fid='1' offset='328217816' size='328115344' count='41014418' tid='4'  time='5.010967' end='8.927461'/>
+<Nested>
+  <Comm_free cid='2'  time='8.927491' end='8.927502'/>
+</Nested>
+<File_close fid='1'  time='8.927473' end='8.927518'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='0' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='8.927523' end='9.013798'/>
+<Sendrecv size='102472' toRank='0' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='9.013811' end='9.253709'/>
+<Nested>
+  <Sendrecv size='128' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='10.625548' end='10.903266'/>
+  <Sendrecv size='128' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='10.903290' end='14.127323'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='3'  time='14.127416' end='14.127785'/>
+  </Nested>
+  <Bcast size='4' rootRank='0' cid='3' count='1' tid='1'  time='14.127410' end='14.127794'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='3'  time='14.127800' end='14.127813'/>
+  </Nested>
+  <Bcast size='16' rootRank='0' cid='3' count='4' tid='1'  time='14.127799' end='14.127820'/>
+  <Type_commit tid='7'  time='14.127839' end='14.127884'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='3'  time='14.127891' end='14.141646'/>
+  </Nested>
+  <Bcast size='20' rootRank='0' cid='3' count='1' tid='7'  time='14.127888' end='14.141673'/>
+  <Type_free tid='7'  time='14.141678' end='14.141686'/>
+  <Nested>
+    <Sendrecv size='4' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='3' count='1' sendTid='1' recvTid='1'  time='14.141707' end='14.141744'/>
+    <Sendrecv size='4' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='3' count='1' sendTid='1' recvTid='1'  time='14.141758' end='14.141924'/>
+  </Nested>
+  <Allreduce size='4' cid='3' count='1' tid='1'  time='14.141691' end='14.141932'/>
+</Nested>
+<File_open cid='0' name='pvfs2://pvfs2/checkpoint.2' flags='5' fid='2'  time='10.625512' end='17.387397'/>
+<File_write_at fid='2' offset='328217816' size='328115344' count='41014418' tid='4'  time='17.387406' end='23.195656'/>
+<Nested>
+  <Comm_free cid='3'  time='23.195680' end='23.195691'/>
+</Nested>
+<File_close fid='2'  time='23.195667' end='23.195707'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='0' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='23.195712' end='23.196815'/>
+<Sendrecv size='102472' toRank='0' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='23.196824' end='23.199772'/>
+<Nested>
+  <Sendrecv size='128' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='24.621872' end='24.621999'/>
+  <Sendrecv size='128' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='24.622008' end='28.103323'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='4'  time='28.103405' end='28.103690'/>
+  </Nested>
+  <Bcast size='4' rootRank='0' cid='4' count='1' tid='1'  time='28.103398' end='28.103701'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='4'  time='28.103707' end='28.103728'/>
+  </Nested>
+  <Bcast size='16' rootRank='0' cid='4' count='4' tid='1'  time='28.103706' end='28.103734'/>
+  <Type_commit tid='8'  time='28.103753' end='28.103811'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='4'  time='28.103818' end='28.104408'/>
+  </Nested>
+  <Bcast size='20' rootRank='0' cid='4' count='1' tid='8'  time='28.103815' end='28.104416'/>
+  <Type_free tid='8'  time='28.104446' end='28.104453'/>
+  <Nested>
+    <Sendrecv size='4' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='4' count='1' sendTid='1' recvTid='1'  time='28.104463' end='28.104500'/>
+    <Sendrecv size='4' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='4' count='1' sendTid='1' recvTid='1'  time='28.104506' end='28.104657'/>
+  </Nested>
+  <Allreduce size='4' cid='4' count='1' tid='1'  time='28.104457' end='28.104665'/>
+</Nested>
+<File_open cid='0' name='pvfs2://pvfs2/checkpoint.1' flags='5' fid='1'  time='24.621826' end='30.244092'/>
+<File_write_at fid='1' offset='328217816' size='328115344' count='41014418' tid='4'  time='30.244101' end='40.021184'/>
+<Nested>
+  <Comm_free cid='4'  time='40.021298' end='40.021309'/>
+</Nested>
+<File_close fid='1'  time='40.021283' end='40.021329'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='0' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='40.021335' end='40.022236'/>
+<Sendrecv size='102472' toRank='0' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='40.022245' end='40.514832'/>
+<Nested>
+  <Sendrecv size='128' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='41.543096' end='41.543269'/>
+  <Sendrecv size='128' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='41.543279' end='41.543299'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='5'  time='41.543380' end='41.543757'/>
+  </Nested>
+  <Bcast size='4' rootRank='0' cid='5' count='1' tid='1'  time='41.543375' end='41.543768'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='5'  time='41.543776' end='41.543788'/>
+  </Nested>
+  <Bcast size='16' rootRank='0' cid='5' count='4' tid='1'  time='41.543774' end='41.543795'/>
+  <Type_commit tid='9'  time='41.543814' end='41.543863'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='5'  time='41.543870' end='41.544667'/>
+  </Nested>
+  <Bcast size='20' rootRank='0' cid='5' count='1' tid='9'  time='41.543867' end='41.544677'/>
+  <Type_free tid='9'  time='41.544681' end='41.544711'/>
+  <Nested>
+    <Sendrecv size='4' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='5' count='1' sendTid='1' recvTid='1'  time='41.544723' end='41.544761'/>
+    <Sendrecv size='4' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='5' count='1' sendTid='1' recvTid='1'  time='41.544767' end='41.544793'/>
+  </Nested>
+  <Allreduce size='4' cid='5' count='1' tid='1'  time='41.544716' end='41.544801'/>
+</Nested>
+<File_open cid='0' name='pvfs2://pvfs2/checkpoint.2' flags='5' fid='2'  time='41.543056' end='41.545554'/>
+<File_write_at fid='2' offset='328217816' size='328115344' count='41014418' tid='4'  time='41.545562' end='56.269417'/>
+<Nested>
+  <Comm_free cid='5'  time='56.269440' end='56.269450'/>
+</Nested>
+<File_close fid='2'  time='56.269428' end='56.269465'/>
+<Sendrecv size='102472' toRank='2' toTag='111' fromRank='0' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='56.269471' end='56.270192'/>
+<Sendrecv size='102472' toRank='0' toTag='111' fromRank='2' fromTag='111' cid='0' count='12809' sendTid='4' recvTid='4'  time='56.270201' end='56.272805'/>
+<Nested>
+  <Sendrecv size='128' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='57.322680' end='57.376508'/>
+  <Sendrecv size='128' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='0' count='32' sendTid='1' recvTid='1'  time='57.376522' end='57.376552'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='6'  time='57.376654' end='57.376924'/>
+  </Nested>
+  <Bcast size='4' rootRank='0' cid='6' count='1' tid='1'  time='57.376649' end='57.376933'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='6'  time='57.376940' end='57.376953'/>
+  </Nested>
+  <Bcast size='16' rootRank='0' cid='6' count='4' tid='1'  time='57.376938' end='57.376960'/>
+  <Type_commit tid='10'  time='57.376982' end='57.377031'/>
+  <Nested>
+    <Recv fromRank='0' fromTag='2' cid='6'  time='57.377038' end='57.384368'/>
+  </Nested>
+  <Bcast size='20' rootRank='0' cid='6' count='1' tid='10'  time='57.377035' end='57.384419'/>
+  <Type_free tid='10'  time='57.384425' end='57.384435'/>
+  <Nested>
+    <Sendrecv size='4' toRank='0' toTag='14' fromRank='0' fromTag='14' cid='6' count='1' sendTid='1' recvTid='1'  time='57.384449' end='57.385468'/>
+    <Sendrecv size='4' toRank='3' toTag='14' fromRank='3' fromTag='14' cid='6' count='1' sendTid='1' recvTid='1'  time='57.385474' end='57.385491'/>
+  </Nested>
+  <Allreduce size='4' cid='6' count='1' tid='1'  time='57.384439' end='57.385499'/>
+</Nested>
+<File_open cid='0' name='pvfs2://pvfs2/checkpoint.1' flags='5' fid='1'  time='57.322628' end='57.386442'/>
+<File_write_at fid='1' offset='328217816' size='328115344' count='41014418' tid='4'  time='57.386449' end='65.700112'/>
+<Nested>
+  <Comm_free cid='6'  time='65.700136' end='65.700146'/>
+</Nested>
+<File_close fid='1'  time='65.700123' end='65.700163'/>
+<Nested>
+  <Send size='8' count='1' tid='4' toRank='0' toTag='11' cid='0'  time='65.708248' end='65.708301'/>
+</Nested>
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='4'  time='65.700167' end='65.708314'/>
+<Nested>
+  <Comm_free cid='1'  time='65.708335' end='65.708622'/>
+</Nested>
+<File_close fid='0'  time='65.708320' end='65.708639'/>
+<Type_free tid='5'  time='65.708644' end='65.708652'/>
+<Send size='328115344' count='41014418' tid='4' toRank='0' toTag='555' cid='0'  time='65.708655' end='71.578957'/>
+<Nested>
+  <Sendrecv size='0' toRank='2' toTag='1' fromRank='0' fromTag='1' cid='0' count='0' sendTid='2' recvTid='2'  time='71.746567' end='77.373924'/>
+  <Sendrecv size='0' toRank='3' toTag='1' fromRank='3' fromTag='1' cid='0' count='0' sendTid='2' recvTid='2'  time='77.373936' end='77.373959'/>
+</Nested>
+<Barrier cid='0'  time='71.746549' end='77.373966'/>
+<Nested>
+  <Sendrecv size='0' toRank='2' toTag='1' fromRank='0' fromTag='1' cid='7' count='0' sendTid='2' recvTid='2'  time='77.375133' end='77.376741'/>
+  <Sendrecv size='0' toRank='3' toTag='1' fromRank='3' fromTag='1' cid='7' count='0' sendTid='2' recvTid='2'  time='77.376750' end='77.376773'/>
+</Nested>
+<Finalize  time='77.373970' end='77.379704'/>
+</Program>
+

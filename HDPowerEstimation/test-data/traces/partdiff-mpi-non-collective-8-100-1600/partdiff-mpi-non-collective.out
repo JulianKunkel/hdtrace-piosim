@@ -1,0 +1,360 @@
+Params: -n 8 1 1600 1 2 100 0 0 /tmp
+Start performance tracer on host node02 by rank: 2
+6: Memory allocated: 328538064
+5: Memory allocated: 328538064
+Start performance tracer on host node01 by rank: 0
+Start performance tracer on host node04 by rank: 1
+Start performance tracer on host node03 by rank: 3
+7: Memory allocated: 328538064
+Testing power tracer configuration file partdiff-mpi.pt.cfg on host node04 by rank: 1
+Testing power tracer configuration file partdiff-mpi.pt.cfg on host node02 by rank: 2
+4: Memory allocated: 328538064
+PT Warning: Hostname found in configuration (node06) does not match this machine (node04) in pt_createTrace() (pt.c:489)
+Testing power tracer configuration file partdiff-mpi.pt.cfg on host node01 by rank: 0
+1: Memory allocated: 328538064
+Testing power tracer configuration file partdiff-mpi.pt.cfg on host node03 by rank: 3
+PT Warning: Hostname found in configuration (node06) does not match this machine (node03) in pt_createTrace() (pt.c:489)
+0: Memory allocated: 328743016
+PT Warning: Hostname found in configuration (node06) does not match this machine (node01) in pt_createTrace() (pt.c:489)
+3: Memory allocated: 328538064
+2: Memory allocated: 328538064
+PT Warning: Hostname found in configuration (node06) does not match this machine (node02) in pt_createTrace() (pt.c:489)
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+Anzahl Prozesse:    8
+Berechnungszeit:    67 Sekunden
+Berechnungsmethode: Jacobi
+Interlines:         1600
+Stoerfunktion:      f(x,y)=0
+Terminierung:       Anzahl der Iterationen
+Working Directory:  /tmp
+I/O collective:     0
+Iter/Checkpoint:    0 
+Iter/Visualization: 0 
+Anzahl Iterationen: 100
+Norm des Fehlers:   3.591478e-03
+Matrix
+ 1.0000 0.8750 0.7500 0.6250 0.5000 0.3750 0.2500 0.1250 0.0000
+ 0.8750 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.1250
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+ 0.7500 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.2500
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+ 0.6250 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.3750
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+ 0.5000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.5000
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+ 0.3750 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.6250
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+ 0.2500 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.7500
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+ 0.1250 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.8750
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+ 0.0000 0.1250 0.2500 0.3750 0.5000 0.6250 0.7500 0.8750 1.0000
+D: [TRACER][node02_2_0] flushLog (../src/hdTrace.c:980): flushing log length: 33227
+D: [TRACER][node01_4_0] flushLog (../src/hdTrace.c:980): flushing log length: 33305
+D: [TRACER][node03_3_0] flushLog (../src/hdTrace.c:980): flushing log length: 33149
+D: [TRACER][node02_6_0] flushLog (../src/hdTrace.c:980): flushing log length: 33227
+D: [TRACER][node04_1_0] flushLog (../src/hdTrace.c:980): flushing log length: 33149
+D: [TRACER][node03_7_0] flushLog (../src/hdTrace.c:980): flushing log length: 17577
+D: [TRACER][node01_0_0] flushLog (../src/hdTrace.c:980): flushing log length: 18134
+D: [TRACER][node04_5_0] flushLog (../src/hdTrace.c:980): flushing log length: 33149
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+glibtop: statvfs '/tmp/pvfs2-minartz' failed
+Success

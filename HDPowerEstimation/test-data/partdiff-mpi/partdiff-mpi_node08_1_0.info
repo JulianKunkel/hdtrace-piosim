@@ -1,0 +1,24 @@
+Type id='0' combiner='MPI_COMBINER_NAMED' name='MPI_CHAR'
+Comm map='0->0;1->1;2->2;3->3;' id=0 name='WORLD'
+Type id='1' combiner='MPI_COMBINER_NAMED' name='MPI_INT'
+Comm map='0->0;1->1;2->2;3->3;' id=1 name=''
+Type id='2' combiner='MPI_COMBINER_NAMED' name='MPI_BYTE'
+Type id='3' combiner='MPI_COMBINER_STRUCT' name='' integers='2;1;16;' addresses='-1078258748;-1078258744;' types='1;2;'
+File name="pvfs2://pvfs2/visualization.dat" Size=0 id=0
+Type id='4' combiner='MPI_COMBINER_NAMED' name='MPI_DOUBLE'
+Type id='5' combiner='MPI_COMBINER_VECTOR' name='' integers='3202;1;12810;' addresses='' types='4;'
+Comm map='0->0;1->1;2->2;3->3;' id=2 name=''
+Type id='6' combiner='MPI_COMBINER_STRUCT' name='' integers='2;1;16;' addresses='-1078258940;-1078258936;' types='1;2;'
+File name="pvfs2://pvfs2/checkpoint.1" Size=328204288 id=1
+Comm map='0->0;1->1;2->2;3->3;' id=3 name=''
+Type id='7' combiner='MPI_COMBINER_STRUCT' name='' integers='2;1;16;' addresses='-1078258940;-1078258936;' types='1;2;'
+File name="pvfs2://pvfs2/checkpoint.2" Size=328217816 id=2
+Comm map='0->0;1->1;2->2;3->3;' id=4 name=''
+Type id='8' combiner='MPI_COMBINER_STRUCT' name='' integers='2;1;16;' addresses='-1078258940;-1078258936;' types='1;2;'
+Comm map='0->0;1->1;2->2;3->3;' id=5 name=''
+Type id='9' combiner='MPI_COMBINER_STRUCT' name='' integers='2;1;16;' addresses='-1078258940;-1078258936;' types='1;2;'
+Comm map='0->0;1->1;2->2;3->3;' id=6 name=''
+Type id='10' combiner='MPI_COMBINER_STRUCT' name='' integers='2;1;16;' addresses='-1078258940;-1078258936;' types='1;2;'
+Comm map='0->0;1->1;2->2;3->3;' id=7 name='MPI_ICOMM_WORLD'
+
+

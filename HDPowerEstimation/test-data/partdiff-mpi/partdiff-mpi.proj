@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><Application name="partdiff-mpi">
+<Description></Description>
+ <FileList>
+ <File name="pvfs2://pvfs2/visualization.dat">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe" />
+  <ChunkSize>64K</ChunkSize>
+ </File>
+ <File name="pvfs2://pvfs2/checkpoint.1">
+  <InitialSize>328204288</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe" />
+  <ChunkSize>64K</ChunkSize>
+ </File>
+ <File name="pvfs2://pvfs2/checkpoint.2">
+  <InitialSize>328217816</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe" />
+  <ChunkSize>64K</ChunkSize>
+ </File>
+ </FileList>
+
+ <Topology>
+  <Level type="Hostname">
+   <Level type="Rank">
+    <Level type="Thread">
+    </Level>
+   </Level>
+  </Level>
+
+  <Node name="node08">
+   <Node name="1">
+    <Node name="0" />
+   </Node>
+  </Node>
+  <Node name="node09">
+   <Node name="2">
+    <Node name="0" />
+   </Node>
+  </Node>
+  <Node name="node06">
+   <Node name="0">
+    <Node name="0" />
+   </Node>
+  </Node>
+  <Node name="node07">
+   <Node name="3">
+    <Node name="0" />
+   </Node>
+  </Node>
+ </Topology>
+
+ <CommunicatorList>
+  <Communicator name="WORLD">
+   <Rank global="2" local="2" cid="0" />
+   <Rank global="0" local="0" cid="0" />
+   <Rank global="1" local="1" cid="0" />
+   <Rank global="3" local="3" cid="0" />
+  </Communicator>
+  <Communicator name="">
+   <Rank global="2" local="2" cid="1" />
+   <Rank global="0" local="0" cid="1" />
+   <Rank global="1" local="1" cid="1" />
+   <Rank global="3" local="3" cid="1" />
+  </Communicator>
+  <Communicator name="">
+   <Rank global="2" local="2" cid="2" />
+   <Rank global="0" local="0" cid="2" />
+   <Rank global="1" local="1" cid="2" />
+   <Rank global="3" local="3" cid="2" />
+  </Communicator>
+  <Communicator name="">
+   <Rank global="2" local="2" cid="3" />
+   <Rank global="0" local="0" cid="3" />
+   <Rank global="1" local="1" cid="3" />
+   <Rank global="3" local="3" cid="3" />
+  </Communicator>
+  <Communicator name="">
+   <Rank global="2" local="2" cid="4" />
+   <Rank global="0" local="0" cid="4" />
+   <Rank global="1" local="1" cid="4" />
+   <Rank global="3" local="3" cid="4" />
+  </Communicator>
+  <Communicator name="">
+   <Rank global="2" local="2" cid="5" />
+   <Rank global="0" local="0" cid="5" />
+   <Rank global="1" local="1" cid="5" />
+   <Rank global="3" local="3" cid="5" />
+  </Communicator>
+  <Communicator name="">
+   <Rank global="2" local="2" cid="6" />
+   <Rank global="0" local="0" cid="6" />
+   <Rank global="1" local="1" cid="6" />
+   <Rank global="3" local="3" cid="6" />
+  </Communicator>
+  <Communicator name="MPI_ICOMM_WORLD">
+   <Rank global="2" local="2" cid="7" />
+   <Rank global="0" local="0" cid="7" />
+   <Rank global="1" local="1" cid="7" />
+   <Rank global="3" local="3" cid="7" />
+  </Communicator>
+ </CommunicatorList>
+
+ <Datatypes>
+  <Rank name="2" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_INT"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  <STRUCT id="3" name="" count="2" >
+   <Type id="1" displacement="-1075911708" blocklen="1"/>
+   <Type id="2" displacement="-1075911704" blocklen="16"/>
+  </STRUCT>
+  <NAMED id="4" name="MPI_DOUBLE"  />
+  <VECTOR id="5" name="" count="3202" blocklength="1" stride="12810" oldType="4"  />
+  <STRUCT id="6" name="" count="2" >
+   <Type id="1" displacement="-1075911900" blocklen="1"/>
+   <Type id="2" displacement="-1075911896" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="7" name="" count="2" >
+   <Type id="1" displacement="-1075911900" blocklen="1"/>
+   <Type id="2" displacement="-1075911896" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="8" name="" count="2" >
+   <Type id="1" displacement="-1075911900" blocklen="1"/>
+   <Type id="2" displacement="-1075911896" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="9" name="" count="2" >
+   <Type id="1" displacement="-1075911900" blocklen="1"/>
+   <Type id="2" displacement="-1075911896" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="10" name="" count="2" >
+   <Type id="1" displacement="-1075911900" blocklen="1"/>
+   <Type id="2" displacement="-1075911896" blocklen="16"/>
+  </STRUCT>
+  </Rank>
+  <Rank name="0" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_INT"  />
+  <NAMED id="3" name="MPI_BYTE"  />
+  <STRUCT id="2" name="" count="2" >
+   <Type id="1" displacement="-1076497740" blocklen="1"/>
+   <Type id="3" displacement="-1076497736" blocklen="16"/>
+  </STRUCT>
+  <NAMED id="4" name="MPI_DOUBLE"  />
+  <VECTOR id="5" name="" count="3203" blocklength="1" stride="12810" oldType="4"  />
+  <STRUCT id="6" name="" count="2" >
+   <Type id="1" displacement="0" blocklen="1"/>
+   <Type id="5" displacement="4" blocklen="1"/>
+  </STRUCT>
+  <STRUCT id="7" name="" count="2" >
+   <Type id="1" displacement="-1076497932" blocklen="1"/>
+   <Type id="3" displacement="-1076497928" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="8" name="" count="2" >
+   <Type id="1" displacement="-1076497932" blocklen="1"/>
+   <Type id="3" displacement="-1076497928" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="9" name="" count="2" >
+   <Type id="1" displacement="-1076497932" blocklen="1"/>
+   <Type id="3" displacement="-1076497928" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="10" name="" count="2" >
+   <Type id="1" displacement="-1076497932" blocklen="1"/>
+   <Type id="3" displacement="-1076497928" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="11" name="" count="2" >
+   <Type id="1" displacement="-1076497932" blocklen="1"/>
+   <Type id="3" displacement="-1076497928" blocklen="16"/>
+  </STRUCT>
+  </Rank>
+  <Rank name="1" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_INT"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  <STRUCT id="3" name="" count="2" >
+   <Type id="1" displacement="-1078258748" blocklen="1"/>
+   <Type id="2" displacement="-1078258744" blocklen="16"/>
+  </STRUCT>
+  <NAMED id="4" name="MPI_DOUBLE"  />
+  <VECTOR id="5" name="" count="3202" blocklength="1" stride="12810" oldType="4"  />
+  <STRUCT id="6" name="" count="2" >
+   <Type id="1" displacement="-1078258940" blocklen="1"/>
+   <Type id="2" displacement="-1078258936" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="7" name="" count="2" >
+   <Type id="1" displacement="-1078258940" blocklen="1"/>
+   <Type id="2" displacement="-1078258936" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="8" name="" count="2" >
+   <Type id="1" displacement="-1078258940" blocklen="1"/>
+   <Type id="2" displacement="-1078258936" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="9" name="" count="2" >
+   <Type id="1" displacement="-1078258940" blocklen="1"/>
+   <Type id="2" displacement="-1078258936" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="10" name="" count="2" >
+   <Type id="1" displacement="-1078258940" blocklen="1"/>
+   <Type id="2" displacement="-1078258936" blocklen="16"/>
+  </STRUCT>
+  </Rank>
+  <Rank name="3" thread="0">
+  <NAMED id="0" name="MPI_CHAR"  />
+  <NAMED id="1" name="MPI_INT"  />
+  <NAMED id="2" name="MPI_BYTE"  />
+  <STRUCT id="3" name="" count="2" >
+   <Type id="1" displacement="-1075635164" blocklen="1"/>
+   <Type id="2" displacement="-1075635160" blocklen="16"/>
+  </STRUCT>
+  <NAMED id="4" name="MPI_DOUBLE"  />
+  <VECTOR id="5" name="" count="3202" blocklength="1" stride="12810" oldType="4"  />
+  <STRUCT id="6" name="" count="2" >
+   <Type id="1" displacement="-1075635356" blocklen="1"/>
+   <Type id="2" displacement="-1075635352" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="7" name="" count="2" >
+   <Type id="1" displacement="-1075635356" blocklen="1"/>
+   <Type id="2" displacement="-1075635352" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="8" name="" count="2" >
+   <Type id="1" displacement="-1075635356" blocklen="1"/>
+   <Type id="2" displacement="-1075635352" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="9" name="" count="2" >
+   <Type id="1" displacement="-1075635356" blocklen="1"/>
+   <Type id="2" displacement="-1075635352" blocklen="16"/>
+  </STRUCT>
+  <STRUCT id="10" name="" count="2" >
+   <Type id="1" displacement="-1075635356" blocklen="1"/>
+   <Type id="2" displacement="-1075635352" blocklen="16"/>
+  </STRUCT>
+  </Rank>
+ </Datatypes>
+<ExternalStatistics>
+	<Energy/>
+	<Performance/>
+</ExternalStatistics>
+</Application>

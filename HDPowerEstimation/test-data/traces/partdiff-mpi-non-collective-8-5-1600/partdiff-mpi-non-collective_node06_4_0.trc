@@ -1,0 +1,39 @@
+<Program timeAdjustment='1247739469'>
+<Nested>
+  <Sendrecv size='65' toRank='5' toTag='7' fromRank='5' fromTag='7' cid='0' count='65' sendTid='0' recvTid='0'  time='0.649766' end='0.701511'/>
+  <Sendrecv size='130' toRank='6' toTag='7' fromRank='6' fromTag='7' cid='0' count='130' sendTid='0' recvTid='0'  time='0.701531' end='0.729367'/>
+  <Sendrecv size='260' toRank='0' toTag='7' fromRank='0' fromTag='7' cid='0' count='260' sendTid='0' recvTid='0'  time='0.729380' end='0.729433'/>
+</Nested>
+<Allgather size='65' recvSize='65' cid='0' count='65' tid='0' recvCount='65' recvtid='0'  time='0.649740' end='0.729457'/>
+<Init  time='0.729464' end='0.729465'/>
+<Sendrecv size='102472' toRank='5' toTag='111' fromRank='3' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='0.757626' end='0.804941'/>
+<Sendrecv size='102472' toRank='3' toTag='111' fromRank='5' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='0.804951' end='0.806994'/>
+<Sendrecv size='102472' toRank='5' toTag='111' fromRank='3' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='1.990702' end='1.993021'/>
+<Sendrecv size='102472' toRank='3' toTag='111' fromRank='5' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='1.993036' end='1.995034'/>
+<Sendrecv size='102472' toRank='5' toTag='111' fromRank='3' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='2.701389' end='2.704760'/>
+<Sendrecv size='102472' toRank='3' toTag='111' fromRank='5' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='2.704774' end='2.707107'/>
+<Sendrecv size='102472' toRank='5' toTag='111' fromRank='3' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='3.364480' end='3.367913'/>
+<Sendrecv size='102472' toRank='3' toTag='111' fromRank='5' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='3.367934' end='3.369810'/>
+<Sendrecv size='102472' toRank='5' toTag='111' fromRank='3' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='4.084221' end='4.085885'/>
+<Sendrecv size='102472' toRank='3' toTag='111' fromRank='5' fromTag='111' cid='0' count='12809' sendTid='1' recvTid='1'  time='4.085910' end='4.088474'/>
+<Nested>
+  <Recv fromRank='5' fromTag='11' cid='0'  time='4.750719' end='4.750849'/>
+  <Recv fromRank='6' fromTag='11' cid='0'  time='4.750863' end='4.750870'/>
+  <Send size='8' count='1' tid='1' toRank='0' toTag='11' cid='0'  time='4.750874' end='4.751017'/>
+</Nested>
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='1'  time='4.750627' end='4.751026'/>
+<Send size='164057672' count='20507209' tid='1' toRank='0' toTag='555' cid='0'  time='4.751034' end='9.644560'/>
+<Nested>
+  <Sendrecv size='0' toRank='5' toTag='1' fromRank='3' fromTag='1' cid='0' count='0' sendTid='2' recvTid='2'  time='9.810330' end='9.810597'/>
+  <Sendrecv size='0' toRank='6' toTag='1' fromRank='2' fromTag='1' cid='0' count='0' sendTid='2' recvTid='2'  time='9.810607' end='9.810760'/>
+  <Sendrecv size='0' toRank='0' toTag='1' fromRank='0' fromTag='1' cid='0' count='0' sendTid='2' recvTid='2'  time='9.810765' end='13.934673'/>
+</Nested>
+<Barrier cid='0'  time='9.810272' end='13.934706'/>
+<Nested>
+  <Sendrecv size='0' toRank='5' toTag='1' fromRank='3' fromTag='1' cid='1' count='0' sendTid='2' recvTid='2'  time='13.934715' end='13.934835'/>
+  <Sendrecv size='0' toRank='6' toTag='1' fromRank='2' fromTag='1' cid='1' count='0' sendTid='2' recvTid='2'  time='13.934840' end='13.935044'/>
+  <Sendrecv size='0' toRank='0' toTag='1' fromRank='0' fromTag='1' cid='1' count='0' sendTid='2' recvTid='2'  time='13.935050' end='13.935222'/>
+</Nested>
+<Finalize  time='13.934711' end='13.936610'/>
+</Program>
+

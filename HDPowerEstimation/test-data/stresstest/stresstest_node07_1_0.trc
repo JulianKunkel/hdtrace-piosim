@@ -1,0 +1,12 @@
+<Program timeAdjustment='1247419294'>
+<Nested>
+  <Sendrecv size='65' toRank='0' toTag='7' fromRank='0' fromTag='7' cid='0' count='65' sendTid='0' recvTid='0'  time='0.305216' end='0.307021'/>
+</Nested>
+<Allgather size='65' recvSize='65' cid='0' count='65' tid='0' recvCount='65' recvtid='0'  time='0.305196' end='0.307059'/>
+<Init  time='0.322572' end='0.322575'/>
+<Nested>
+  <Sendrecv size='0' toRank='0' toTag='1' fromRank='0' fromTag='1' cid='1' count='0' sendTid='1' recvTid='1'  time='385.968266' end='385.968504'/>
+</Nested>
+<Finalize  time='385.919988' end='385.978547'/>
+</Program>
+

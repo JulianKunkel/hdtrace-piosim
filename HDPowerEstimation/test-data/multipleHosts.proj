@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Application name="result" processCount="3">
+<Description>normal description </Description>
+
+<FileList>
+<File name="pvfs2://pvfs2//visualization.dat">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+<File name="pvfs2://pvfs2//checkpoint.1">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+<File name="pvfs2://pvfs2//checkpoint.2">
+  <InitialSize>0</InitialSize>
+  <Distribution class="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+</File>
+</FileList>  
+  
+<Topology>
+		 <Level type="host">
+        </Level> 
+
+        <Node name="host0">
+        </Node>
+         <Node name="host1">
+        </Node>
+         
+</Topology>
+
+<ExternalStatistics>
+			<Energy timeResulution="Milliseconds" timestampDatatype="INT" timeOffset="-5.02ms"> <!-- implizit stored in a file stat_Energy -->
+				<Voltage type="float" multiplier="1000" unit="mV"/>
+				<Current type="float" multiplier="1000" unit="mA"/>				
+				<Power type="float" multiplier="1000" unit="mW"/>				
+			</Energy>
+<Performance timestampDatatype="EPOCH" timeOffset="-1241010300">
+  <CPU_TOTAL type="FLOAT" unit="%" grouping="CPU"/>
+  <CPU_TOTAL_0 type="FLOAT" unit="%" grouping="CPU"/>
+  <CPU_TOTAL_1 type="FLOAT" unit="%" grouping="CPU"/>
+  <MEM_USED type="FLOAT" unit="MB"/>
+  <MEM_FREE type="FLOAT" unit="MB" grouping="MEM"/>
+  <MEM_SHARED type="FLOAT" unit="MB" grouping="MEM"/>
+  <MEM_BUFFER type="FLOAT" unit="MB" grouping="MEM"/>
+  <MEM_CACHED type="FLOAT" unit="MB" grouping="MEM"/>
+</Performance>   
+</ExternalStatistics>
+
+</Application>
