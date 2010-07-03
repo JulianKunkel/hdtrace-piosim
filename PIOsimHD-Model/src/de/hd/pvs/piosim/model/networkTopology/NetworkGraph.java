@@ -61,6 +61,17 @@ public class NetworkGraph implements INetworkGraph{
 
 
 	public void addEdge(INetworkNode src, INetworkEdge via, INetworkNode tgt){
+		if(src == null){
+			throw new IllegalArgumentException("src == null");
+		}
+		if(via == null){
+			throw new IllegalArgumentException("via == null");
+		}
+		if(tgt == null){
+			throw new IllegalArgumentException("tgt == null");
+		}
+
+
 		LinkedList<INetworkEdge> tgts = graph.get(src);
 		if(tgts == null){
 			tgts = new LinkedList<INetworkEdge>();

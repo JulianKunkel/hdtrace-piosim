@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
+import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.base.ISNetworkComponent;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.AGNetworkNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
@@ -253,38 +254,50 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	@Override
 	public void submitNewMessage(Message msg, Epoch startTime) {
 		assert(msg.getSize() > 0);
-		final MessagePart msgP = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
-		if(msgP == null){
+		final MessagePart part = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+		if(part == null){
 			/* does not make any sense to send an empty message, it will be appended later */
 			return;
 		}
 
-		final Event<MessagePart> event = new Event(this, this, startTime,  msgP);
+		final Event<MessagePart> event = new Event(this, this, startTime,  part);
 		getSimulator().submitNewEvent(event);
 	}
 
 	@Override
+	public void packetIsTransferedToTarget(INetworkExit target) {
+		if( isBlockedByEndpoint(target)){
+			this.unblockFlow(target);
+		}
+		//System.out.println(this.getIdentifier() + " packetIsTransferedToTarget to " + target );
+	}
+
+	@Override
 	public void messagePartTransmitted(MessagePart part, Epoch endTime) {
-		//System.out.println(this.getIdentifier() + " messagePartTransmitted " + part.getSize());
+		//System.out.println(endTime + " " + this.getIdentifier() + " partial transmitted remaining: " + part.getMessage().getRemainingBytesToSend() );
 
 		if(part.getMessageSource() == this.getModelComponent()){
-			final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+			if( ! isBlockedByEndpoint(part.getMessageTarget())){
+				this.blockFlow(part.getMessageTarget());
 
-			final Message<InterProcessNetworkJob> msg = part.getMessage();
+				final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
 
-			final InterProcessNetworkJob job = msg.getContainedUserData();
+				final Message<InterProcessNetworkJob> msg = part.getMessage();
 
-			// partial send?
-			job.getCallbacks().messagePartSendCB(part, job, endTime);
+				final InterProcessNetworkJob job = msg.getContainedUserData();
 
-			if(newMsgPart != null){
-				/* create a new event to upload data */
-				Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
-				addNewEvent(partEvent);
-			}else{
-				assert(msg.getRemainingBytesToSend() == 0);
-				// all data is send => call callback.
-				job.getCallbacks().sendCompletedCB(job, endTime);
+				// partial send?
+				job.getCallbacks().messagePartSendCB(part, job, endTime);
+
+				if(newMsgPart != null){
+					/* create a new event to upload data */
+					Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
+					addNewEvent(partEvent);
+				}else{
+					assert(msg.getRemainingBytesToSend() == 0);
+					// all data is send => call callback.
+					job.getCallbacks().sendCompletedCB(job, endTime);
+				}
 			}
 		}
 		// we are the target

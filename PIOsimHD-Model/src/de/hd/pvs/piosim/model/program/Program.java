@@ -81,6 +81,7 @@ abstract public class Program {
 		return parentApplication;
 	}
 
+
 	/**
 	 * Create a new Program.
 	 */
@@ -116,4 +117,8 @@ abstract public class Program {
 		return (Communicator) commInfo.getMPICommunicator();
 	}
 
+
+	public Communicator getCommunicatorWorld(){
+		return (Communicator) parentApplication.getCommunicator("WORLD");
+	}
 }

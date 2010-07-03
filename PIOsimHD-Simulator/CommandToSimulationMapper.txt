@@ -5,6 +5,10 @@
 +NoOperation
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 
++GlobalSync
+de.hd.pvs.piosim.simulator.program.Global.NoOperation
+de.hd.pvs.piosim.simulator.program.Global.GlobalSync
+
 +Filesetview
 de.hd.pvs.piosim.simulator.program.Filesetview.FileSetViewNormal
 

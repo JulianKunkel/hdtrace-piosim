@@ -47,7 +47,7 @@ public class CommandLineInterface {
 
 	private void printHelpText(){
 		System.out.println("Syntax: \n" +
-				"  [options] -i <project.xml> \n"+
+				"  [options] -i <model.mxml> \n"+
 				"Options are a subset of: \n" +
 				"  --load-program-on-demand Load the program on demand (otherwise load it to RAM)\n " +
 				"  -m <time> min time in s between trace entries to create a new compute job" +

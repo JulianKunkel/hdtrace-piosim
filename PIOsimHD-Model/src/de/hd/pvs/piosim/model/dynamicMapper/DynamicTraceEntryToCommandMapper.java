@@ -33,6 +33,9 @@ public class DynamicTraceEntryToCommandMapper extends DynamicMapper {
 
 	static public CommandType getCommandForTraceEntryName(String name){
 		CommandType type = instance.traceEntryMap.get(name);
+		if(type == null){
+			return CommandType.NoOperation;
+		}
 		return type;
 	}
 

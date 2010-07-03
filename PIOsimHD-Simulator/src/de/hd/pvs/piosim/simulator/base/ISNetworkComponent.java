@@ -66,4 +66,9 @@ public interface ISNetworkComponent<Type extends IBasicComponent>
 	 */
 	public abstract void unblockFlow(INetworkExit target);
 
+	/**
+	 * This function is called once a packet is transfered by the next component.
+	 * @param target
+	 */
+	public abstract void packetIsTransferedToTarget(INetworkExit target);
 }

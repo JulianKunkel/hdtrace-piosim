@@ -2,6 +2,7 @@
 # i.e. multiple trace commands could be mapped to the same model command
 # by default the model command is added to the trace command   
 
+Init,Finalize:GlobalSync
 :Send
 :Recv
 :Sendrecv 

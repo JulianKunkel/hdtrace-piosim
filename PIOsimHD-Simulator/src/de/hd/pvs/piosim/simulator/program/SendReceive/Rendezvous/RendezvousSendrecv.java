@@ -56,6 +56,8 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 
 		switch(step){
 		case(CommandProcessing.STEP_START):{
+			System.out.println(client.getIdentifier() + " SCHUH will do START_RENDEZVOUS_RECV " + target);
+
 
 			if(cmd.getSize() <= client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize()){
 				//eager send:
@@ -95,6 +97,7 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 				client.debugFollowUpLine("Eager");
 				// eager protocoll
 			}else{
+
 				OUTresults.setNextStep(START_RENDEZVOUS_RECV);
 				//rendezvous protocol
 				/* identify the sender from the source */

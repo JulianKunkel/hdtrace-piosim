@@ -540,12 +540,16 @@ public class GClientProcess
 
 			final CommandProcessing newJob = cmdStep;
 			newJob.resetState();
-
 			cme.process(cmd, newJob, this, nextStep, oldJobs);
+
+			//System.out.println(getIdentifier() +  " processing step: " + nextStep + " cmd: " + cmd + " " +  newJob.isCommandWaitingForResponse());
 
 			// now iterate until a state can be found which does some work.
 			while(! newJob.isCommandWaitingForResponse() && newJob.getNextStep() != CommandProcessing.STEP_COMPLETED){
 				int nextPStep = newJob.getNextStep();
+
+				//System.out.println(getIdentifier() +  " -processing step: " + nextStep + " cmd: " + cmd + " " +  newJob.isCommandWaitingForResponse());
+
 				newJob.resetState();
 
 				cme.process(cmd, newJob, this, nextPStep, null);
@@ -587,6 +591,7 @@ public class GClientProcess
 						assert(j.getMatchingCriterion().getTargetComponent() != null);
 
 						pendingJobs.put(j, newJob.getNetworkJobs());
+						//System.out.println( "PENDING " + getIdentifier() );
 
 						if(j.getJobOperation() == InterProcessNetworkJobType.RECEIVE){
 							getNetworkInterface().initiateInterProcessReceive(j, curTime);

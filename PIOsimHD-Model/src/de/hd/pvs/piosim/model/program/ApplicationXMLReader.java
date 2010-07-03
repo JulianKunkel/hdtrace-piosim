@@ -189,6 +189,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		Epoch lastTimeForComputeJob = entry.getLatestTime();
 
 		while(entry != null) {
+			//System.out.println(entry);
 			// now read the particular command from the XML:
 			Command cmd = cmdReader.parseCommandXML(entry);
 			if(cmd.getClass() != NoOperation.class){

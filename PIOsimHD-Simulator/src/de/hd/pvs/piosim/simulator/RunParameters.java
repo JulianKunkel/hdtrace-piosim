@@ -37,7 +37,7 @@ public class RunParameters {
 	/**
 	 * is a trace of the simulation run created?
 	 */
-	boolean traceEnabled = true;
+	boolean traceEnabled = false;
 
 	/**
 	 * is internal communication traced, i.e. between a NIC and a Switch?
@@ -53,7 +53,7 @@ public class RunParameters {
 	/**
 	 * are any operations on an IOServer traced?
 	 */
-	boolean traceServers = true;
+	boolean traceServers = false;
 
 	/**
 	 * If more than this number of events got started, then the simulation is aborted.

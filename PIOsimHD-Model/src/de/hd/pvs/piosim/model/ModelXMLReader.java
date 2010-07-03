@@ -115,9 +115,9 @@ public class ModelXMLReader {
 			}
 		}
 
-		readTemplates(model, projectNode.getFirstNestedXMLTagWithName("Templates"));
-
 		serializationHandler.readXML(projectNode.getFirstNestedXMLTagWithName("GlobalSettings"), model.getGlobalSettings());
+
+		readTemplates(model, projectNode.getFirstNestedXMLTagWithName("Templates"));
 
 		ConsoleLogger.getInstance().debug(this, "Creating Components");
 		createAllComponents(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
@@ -195,7 +195,13 @@ public class ModelXMLReader {
 								srcID + " to " + targetID + " via " + edgeID, ex);
 					}
 
-					topology.addEdge(srcNode, edge, targetNode);
+					try{
+						topology.addEdge(srcNode, edge, targetNode);
+					}catch(IllegalArgumentException e){
+						System.err.println("Error: invalid connection from " + srcNode + " via " + edge + " to " + targetNode);
+						System.err.println(" Ids were: " + srcID + " via " + edgeID + " to " + targetID);
+						throw e;
+					}
 				}
 			}
 		}
@@ -260,7 +266,11 @@ public class ModelXMLReader {
 	 * @throws Exception
 	 */
 	private void readTemplates(Model model, XMLTag templateRoot)
-	throws Exception {
+		throws Exception
+	{
+		if(templateRoot == null){
+			throw new IllegalArgumentException("Template root is null");
+		}
 		List<XMLTag> elements = templateRoot.getNestedXMLTags();
 
 		for(XMLTag e: elements){

@@ -228,8 +228,12 @@ public final class Simulator implements IModelToSimulatorMapper {
 		for (INetworkTopology topo : model.getTopologies()) {
 
 			final GNetworkTopology gtopo = new GNetworkTopology();
-			final AGPaketRouting routing = (AGPaketRouting) instantiateSimObjectForModelObj(topo
-					.getRoutingAlgorithm());
+			final AGPaketRouting routing = (AGPaketRouting) instantiateSimObjectForModelObj(topo.getRoutingAlgorithm());
+
+			if(routing == null){
+				throw new IllegalArgumentException("Invalid routing algorithm.");
+			}
+
 			gtopo.setName(topo.getName());
 			gtopo.setRouting(routing);
 
@@ -240,14 +244,16 @@ public final class Simulator implements IModelToSimulatorMapper {
 
 				assert (tgtNode != null);
 
-				((IGNetworkEdge) (getSimulatedComponent(com)))
-				.setTargetNode(tgtNode);
+				((IGNetworkEdge) (getSimulatedComponent(com))).setTargetNode(tgtNode);
 			}
 
 			// now load the routing into the nodes
 			for (INetworkNode com : topo.getNetworkNodes()) {
-				((IGNetworkNode) (getSimulatedComponent(com)))
-				.setPaketRouting(routing);
+				if(com == null){
+					throw new IllegalArgumentException("Invalid network node, is Null! ");
+				}
+				ISPassiveComponent simComm = getSimulatedComponent(com);
+				((IGNetworkNode) (simComm)).setPaketRouting(routing);
 			}
 
 			routing.buildRoutingTable(topo, this);
@@ -626,7 +632,13 @@ public final class Simulator implements IModelToSimulatorMapper {
 			System.out.println(model);
 		}
 
-		sim.initModel(model, parameters);
+		try{
+			sim.initModel(model, parameters);
+		}catch(IllegalArgumentException e){
+			System.err.println("Model: ");
+			System.err.println(model);
+			throw e;
+		}
 		return sim.simulate();
 	}
 

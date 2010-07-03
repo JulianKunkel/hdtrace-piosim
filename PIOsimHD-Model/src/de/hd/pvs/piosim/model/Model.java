@@ -141,8 +141,12 @@ public class Model{
 	 * @return
 	 */
 	public Program getProgram(ClientProcess client){
-		return applicationNameMap.get(client.getApplication()).getClientProgram(
+		try{
+			return applicationNameMap.get(client.getApplication()).getClientProgram(
 				client.getRank(), client.getThread());
+		}catch(NullPointerException e){
+			throw new IllegalArgumentException("Program for client " + client.getIdentifier() + " not found!");
+		}
 	}
 
 	/**

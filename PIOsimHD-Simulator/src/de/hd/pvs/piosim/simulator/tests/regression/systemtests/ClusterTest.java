@@ -93,6 +93,7 @@ public class ClusterTest extends TestSuite {
 	protected void setup(int clients, int servers, ServerCacheLayer cacheLayer) throws Exception {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
 
+		parameters.setTraceFile("/tmp/output");
 		parameters.setTraceEnabled(true);
 		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);

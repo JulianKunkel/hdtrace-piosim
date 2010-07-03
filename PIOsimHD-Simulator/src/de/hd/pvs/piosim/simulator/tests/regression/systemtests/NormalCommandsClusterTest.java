@@ -72,7 +72,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 	@Test public void sendAndRecvCrossTest() throws Exception{
 		printStack();
-		setup(2, 0);
+		setup(10, 0);
 
 		pb.addSendAndRecv(world, 0, 1, 1 * MBYTE, 1);
 		pb.addSendAndRecv(world, 1, 0, 1 * MBYTE, 1);

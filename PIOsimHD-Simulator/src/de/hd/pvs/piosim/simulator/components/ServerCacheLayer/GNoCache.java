@@ -173,8 +173,6 @@ public class GNoCache
 		//decide which data actually is contained in the network packet
 		debug("amount " + amountToWrite);
 
-		//System.out.println(serverProcess.getIdentifier() +  " writeDataToCache " + amountToWrite);
-
 		nodeRessources.reserveMemory(amountToWrite);
 
 		ArrayList<SingleIOOperation> writeList = null;

@@ -167,7 +167,7 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 	 * By calling this method, the "first" blocked job is enabled in this component for further
 	 * processing.
 	 */
-	private final void continueProcessingOfFlow(
+	private void continueProcessingOfFlow(
 			INetworkExit target,
 			MessagePart part,
 			Epoch startTime,
@@ -215,10 +215,12 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 	 * @param target
 	 * @return true if this component is blocked.
 	 */
-	private boolean isBlockedByEndpoint(INetworkExit target){
+	protected boolean isBlockedByEndpoint(INetworkExit target){
 		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
 
-		if(pendingEvents == null) return false;
+		if(pendingEvents == null) {
+			return false;
+		}
 
 		if(isDirectlyControlledByBlockUnblock())
 			return pendingEvents.isBlocked();
@@ -281,6 +283,11 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 		return null;
 	}
 
+	@Override
+	public void packetIsTransferedToTarget(INetworkExit target) {
+
+	}
+
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#jobStarted(de.hd.pvs.piosim.simulator.event.Event, de.hd.pvs.TraceFormat.util.Epoch)
 	 */
@@ -295,12 +302,15 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 		/**
 		 * special case for NIC which generates new events.
 		 */
-		if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ) && this != source
-				&& ! ((ISNetworkComponent) source).isDirectlyControlledByBlockUnblock() ){
-			// manage flow control here:
+		if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ) && this != source)
+		{
+			SNetworkComponent ssource = (SNetworkComponent) source;
 			INetworkExit target = event.getEventData().getMessageTarget();
-			((SNetworkComponent) source).continueProcessingOfFlow(
+			if (! ((ISNetworkComponent) source).isDirectlyControlledByBlockUnblock()){
+			// manage flow control here:
+				ssource.continueProcessingOfFlow(
 					event.getEventData().getMessageTarget(), event.getEventData(), startTime, this );
+			}
 		}
 
 		if(isDirectlyControlledByBlockUnblock()){
@@ -359,12 +369,28 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 				event.getEventData());
 
 		getSimulator().submitNewEvent( newEvent);
+
+		ISPassiveComponent source =  event.getIssuingComponent();
+		if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ) && this != source)
+		{
+			SNetworkComponent ssource = (SNetworkComponent) source;
+			INetworkExit target = event.getEventData().getMessageTarget();
+			if (! ((ISNetworkComponent) source).isDirectlyControlledByBlockUnblock()){
+			// manage flow control here:
+				ssource.continueProcessingOfFlow(
+					event.getEventData().getMessageTarget(), event.getEventData(), endTime, this );
+			}
+
+			ssource.packetIsTransferedToTarget(target);
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#blockFlow(de.hd.pvs.piosim.model.networkTopology.INetworkExit)
 	 */
 	public void blockFlow(INetworkExit target){
+		//System.out.println(this.getIdentifier() + " block flow " + target);
+
 		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
 		assert(pendingEvents.blocked == false);
 		assert(isDirectlyControlledByBlockUnblock() == true);
@@ -375,6 +401,8 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#unblockFlow(de.hd.pvs.piosim.model.networkTopology.INetworkExit)
 	 */
 	public void unblockFlow(INetworkExit target){
+		//System.out.println(this.getIdentifier() + " unblock flow " + target);
+
 		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
 		assert(pendingEvents.blocked == true);
 		pendingEvents.blocked = false;

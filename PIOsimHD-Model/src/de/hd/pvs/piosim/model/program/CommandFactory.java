@@ -63,7 +63,7 @@ public class CommandFactory {
 			return ct.newInstance();
 		}
 		catch(Exception e){
-			throw new IllegalArgumentException("Invalid Command: " + type + " " + e.getMessage());
+			throw new IllegalArgumentException("Invalid command \"" + xmlEntryName + "\": Detailed error was: " + e.toString());
 		}
 	}
 
