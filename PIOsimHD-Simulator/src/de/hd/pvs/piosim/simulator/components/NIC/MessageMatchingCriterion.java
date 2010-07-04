@@ -2,6 +2,7 @@ package de.hd.pvs.piosim.simulator.components.NIC;
 
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
 /**
  * This class encapsulates the matching of receive network jobs with send jobs.
@@ -30,17 +31,23 @@ public class MessageMatchingCriterion{
 	 */
 	final private INodeHostedComponent sourceComponent;
 
+	final private Class<? extends IMessageUserData> matchMessageType;
+
 
 	public MessageMatchingCriterion(INodeHostedComponent sourceComponent,
-			INodeHostedComponent targetComponent, int tag, Communicator comm)
+			INodeHostedComponent targetComponent, int tag, Communicator comm,
+			Class<? extends IMessageUserData> matchMessageType)
 	{
 		assert(targetComponent != null);
 		assert(comm != null);
+		assert(matchMessageType != null);
 
 		this.sourceComponent = sourceComponent;
 		this.targetComponent = targetComponent;
 		this.tag = tag;
 		this.comm = comm;
+
+		this.matchMessageType = matchMessageType;
 	}
 
 	@Override
@@ -53,12 +60,14 @@ public class MessageMatchingCriterion{
 
 		ret &= getTargetComponent() == c.getTargetComponent();
 
+		ret &= this.matchMessageType == c.matchMessageType;
+
 		return ret;
 	}
 
 	@Override
 	public String toString() {
-		return getSourceComponent() + " - " + getTargetComponent().getIdentifier() + " " + getTag() + " " + getCommunicator();
+		return getSourceComponent() + " - " + getTargetComponent().getIdentifier() + " " + getTag() + " " + getCommunicator() + " " + matchMessageType;
 	}
 
 	@Override
@@ -87,4 +96,7 @@ public class MessageMatchingCriterion{
 		return comm;
 	}
 
+	public Class<? extends IMessageUserData> getMatchMessageType() {
+		return matchMessageType;
+	}
 }

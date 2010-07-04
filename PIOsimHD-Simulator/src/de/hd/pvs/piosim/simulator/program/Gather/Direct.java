@@ -52,7 +52,7 @@ extends CommandImplementation<Gather>
 			} else {
 				for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 					if (rank != myRank) {
-						OUTresults.addNetReceive(rank, 40000, Communicator.INTERNAL_MPI);
+						OUTresults.addNetReceive(rank, 40000, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
 					}
 				}
 			}

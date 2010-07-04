@@ -74,4 +74,13 @@ abstract public class SSequentialBlockingComponent<Type extends IBasicComponent,
 				System.out.println("    : \"" + e + " inc: " + e.getEarliestStartTime());
 			}
 	}
+
+	@Override
+	public void simulationFinished() {
+		super.simulationFinished();
+		if(waitingEvents.size() > 0){
+			System.err.println("ERROR: pending events on component " + this.getIdentifier() + " BlockedJobs: " + this.getNumberOfBlockedJobs());
+			printWaitingEvents();
+		}
+	}
 }

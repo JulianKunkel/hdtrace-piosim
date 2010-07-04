@@ -28,12 +28,13 @@
  */
 package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 
+import de.hd.pvs.piosim.model.program.commands.Recv;
+import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.model.program.commands.Sendrecv;
+import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -47,93 +48,25 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 {
 	public void process(Sendrecv cmd,  CommandProcessing OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
-		final int EAGER_ACK = 2;
-		final int RENDEZVOUS_ACK = 3;
-		final int START_RENDEZVOUS_RECV = 4;
-		/* second step ?, receive whole data */
+		// start concurrent send and receive operations.
 
-		int target = cmd.getToRank();
+		final Send send = new Send();
+		final Recv recv = new Recv();
 
-		switch(step){
-		case(CommandProcessing.STEP_START):{
-			System.out.println(client.getIdentifier() + " SCHUH will do START_RENDEZVOUS_RECV " + target);
+		send.setCommunicator(cmd.getCommunicator());
+		send.setToRank(cmd.getToRank());
+		send.setToTag(cmd.getToTag());
+		send.setSize(cmd.getSize());
 
+		recv.setCommunicator(cmd.getCommunicator());
+		recv.setFromRank(cmd.getFromRank());
+		recv.setFromTag(cmd.getFromTag());
 
-			if(cmd.getSize() <= client.getSimulator().getModel().getGlobalSettings().getMaxEagerSendSize()){
-				//eager send:
-				OUTresults.setNextStep(EAGER_ACK);
+		final Command [] sendRecv = new Command[2];
+		sendRecv[0] = send;
+		sendRecv[1] = recv;
 
-				/* data to transfer depends on actual command size, but is defined in send */
-				client.debug("eager send to " +  target );
-
-				OUTresults.addNetSend(target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getToTag(), cmd.getCommunicator());
-			}else{
-				//rendezvous protocol
-				/* determine application */
-				OUTresults.setNextStep(RENDEZVOUS_ACK);
-
-				/* data to transfer depends on actual command size, but is defined in send */
-				OUTresults.addNetSend(target, new NetworkSimpleData(100), cmd.getToTag(), cmd.getCommunicator());
-
-				/* wait for incoming msg (send ready) */
-				OUTresults.addNetReceive(target, cmd.getToTag(), cmd.getCommunicator());
-			}
-
-			// receiving part:
-			/* MATCH any Source */
-			if (cmd.getFromRank() >= 0){
-				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator());
-			}else{
-				OUTresults.addNetReceive(null, cmd.getFromTag(), cmd.getCommunicator());
-			}
-			return;
-		}case(RENDEZVOUS_ACK):{
-			// receiver path
-			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
-
-			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
-
-			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
-				client.debugFollowUpLine("Eager");
-				// eager protocoll
-			}else{
-
-				OUTresults.setNextStep(START_RENDEZVOUS_RECV);
-				//rendezvous protocol
-				/* identify the sender from the source */
-				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend(response.getMatchingCriterion().getSourceComponent(), new NetworkSimpleData(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
-			}
-
-			/* data to transfer depends on actual command size, but is defined in send */
-
-			client.debug("SEND got ACK from " +  target );
-
-			OUTresults.addNetSend( target,  new NetworkMessageRendezvousSendData( cmd.getSize() ), cmd.getToTag(), cmd.getCommunicator());
-			return;
-		}case(EAGER_ACK):{
-			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
-
-			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
-
-			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
-				client.debugFollowUpLine("Eager");
-				// eager protocol
-			}else{
-				//rendezvous protocol
-				/* identify the sender from the source */
-				OUTresults.setNextStep(START_RENDEZVOUS_RECV);
-
-				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend( response.getMatchingCriterion().getSourceComponent(), new NetworkSimpleData(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
-			}
-			return;
-		}case(START_RENDEZVOUS_RECV):{
-			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTargetComponent(),
-					compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTag(), cmd.getCommunicator());
-			return;
-		}
-		}
+		OUTresults.invokeChildOperations(sendRecv, CommandProcessing.STEP_COMPLETED, null);
 
 		return;
 	}

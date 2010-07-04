@@ -88,7 +88,7 @@ public class GClientProcess
 		public void recvCompletedCB(InterProcessNetworkJob remoteJob,
 				InterProcessNetworkJob announcedJob, Epoch endTime)
 		{
-			//System.out.println("RECV completed");
+			//System.out.println(endTime + " " + getIdentifier() +  " RECV completed " + announcedJob + "\n\tREMOTE: " + remoteJob);
 
 			final NetworkJobs status = pendingJobs.remove(announcedJob);
 			assert(status != null);
@@ -99,7 +99,7 @@ public class GClientProcess
 		@Override
 		public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime)
 		{
-			//System.out.println("SEND completed");
+			//System.out.println(endTime + " " + getIdentifier() +  " SEND completed " + myJob);
 
 			final NetworkJobs status = pendingJobs.remove(myJob);
 			assert(status != null);
@@ -291,9 +291,9 @@ public class GClientProcess
 		for (NetworkJobs jobs: pendingNetworkOperations.keySet()) {
 			System.err.println("\t" + pendingNetworkOperations.get(jobs) + " with NetworkOperations: ");
 			for(InterProcessNetworkJob job: jobs.getNetworkJobs()){
-				System.err.println("\t\t" + job);
+				System.err.println("\t\t " + job);
 			}
-			System.err.println("\tResponses");
+			System.err.println("\tpending Responses");
 			for(InterProcessNetworkJob job: jobs.getResponses()){
 				System.err.println("\t\t" + job);
 			}
@@ -376,8 +376,13 @@ public class GClientProcess
 		traceCommand(cmd, cme, false);
 		// check if it is a nested operation
 		if ( step.isNestedOperation() ){
-			// if yes remove last operation from stack trace.
-			processCommandStep(step.getParentOperation(), time, true);
+			final CommandProcessing parent = step.getParentOperation();
+			parent.childOperationCompleted();
+
+			if(parent.getUnfinishedChildOperationCount() == 0){
+				// if yes remove last operation from stack trace.
+				processCommandStep(step.getParentOperation(), time, true);
+			}
 			return;
 		}
 
@@ -564,11 +569,13 @@ public class GClientProcess
 			if (! newJob.isCommandWaitingForResponse()){ /* all blocking operation completed */
 				commandCompleted(cmdStep, cme, curTime);
 			}else{
-				if(newJob.getNestedOperation() != null){
-					// start nested operation.
+				if(newJob.getNestedOperations() != null){
+					// start nested operations.
 
-					assert(newJob.getNestedOperation().getParentOperation() == newJob);
-					processCommandStep(newJob.getNestedOperation(), curTime, true);
+					for(CommandProcessing child: newJob.getNestedOperations()){
+						assert(child.getParentOperation() == newJob);
+						processCommandStep(child, curTime, true);
+					}
 
 					return;
 				}
@@ -585,6 +592,7 @@ public class GClientProcess
 				assert(newJob.getNetworkJobs().getNetworkJobs() != null);
 
 				if(newJob.getNetworkJobs().getSize() > 0){
+
 					pendingNetworkOperations.put(newJob.getNetworkJobs(), newJob);
 
 					for(InterProcessNetworkJob j: newJob.getNetworkJobs().getNetworkJobs()){

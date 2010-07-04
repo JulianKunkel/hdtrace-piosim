@@ -2,24 +2,24 @@
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
-  * @version         $Revision$ 
+  * @version         $Revision$
   */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -35,10 +35,10 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
  * Binary Tree Algorithm, Root collects.
- * 
+ *
  * @author Julian M. Kunkel
  */
-public class BinaryTreeSimple 
+public class BinaryTreeSimple
 extends CommandImplementation<Reduce>
 {
 
@@ -68,51 +68,51 @@ extends CommandImplementation<Reduce>
 		final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
 		final int phaseStart = iterations - trailingZeros;
 
-		if(clientRankInComm != 0){				
+		if(clientRankInComm != 0){
 			// recv first, then send.
 			if (step == CommandProcessing.STEP_START){
-				// receive				
+				// receive
 				OUTresults.setNextStep(RECEIVED);
 
 				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
 					final int targetRank = (1<<iter | clientRankInComm);
-					if (targetRank >= commSize) 
+					if (targetRank >= commSize)
 						continue;
 					//System.out.println(clientRankInComm +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
 				}
 
-				if(OUTresults.getNetworkJobs().getSize() != 0 ) 
+				if(OUTresults.getNetworkJobs().getSize() != 0 )
 					return;
 			}
 
 			// step == RECEIVE or we don't have to receive anything
 
-			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);		
-			
+			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+
 			int sendTo = (clientRankInComm ^ 1<<trailingZeros);
-			
+
 			if(sendTo == 0){
 				sendTo = rootRank;
 			}else if(sendTo == rootRank){
 				sendTo = 0;
 			}
-			
+
 
 			//System.out.println(myRank + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " +  sendTo);
 
-			OUTresults.addNetSend(sendTo, 
-					new NetworkSimpleData(cmd.getSize() + 20),  
-					30001, Communicator.INTERNAL_MPI);				
+			OUTresults.addNetSend(sendTo,
+					new NetworkSimpleData(cmd.getSize() + 20),
+					30001, Communicator.INTERNAL_MPI);
 
 		}else{
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
-			// send to all receivers that we accept data.				
+			// send to all receivers that we accept data.
 			for (int iter = iterations-1 ; iter >= 0 ; iter--){
-				final int targetRank =  1<<iter; 
+				final int targetRank =  1<<iter;
 				//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
 			}
 		}
 	}

@@ -54,7 +54,7 @@ extends CommandImplementation<Allgather>
 
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 				if (rank != myRank) {
-					OUTresults.addNetReceive(rank, 40001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(rank, 40001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
 				}
 			}
 

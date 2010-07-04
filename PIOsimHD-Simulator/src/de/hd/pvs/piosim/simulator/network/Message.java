@@ -175,7 +175,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 	@Override
 	public String toString() {
-		return " to: " + targetComponent.getIdentifier();
+		return "Message from: " + sourceComponent.getIdentifier() + " to: " + targetComponent.getIdentifier() + " size " + getTotalSize() + " data " + containedData ;
 	}
 
 	/**

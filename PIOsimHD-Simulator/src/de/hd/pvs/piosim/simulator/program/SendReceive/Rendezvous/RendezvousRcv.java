@@ -33,7 +33,6 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -55,35 +54,32 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 			OUTresults.setNextStep(ACK_RECVD);
 
 			if (cmd.getFromRank() >= 0){
-				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator());
+				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator(), NetworkMessageRendezvousMsg.class);
 			}else{
-				OUTresults.addNetReceive(null,cmd.getFromTag(), cmd.getCommunicator());
+				OUTresults.addNetReceive(null,cmd.getFromTag(), cmd.getCommunicator(), NetworkMessageRendezvousMsg.class);
 			}
-
-			return;
-		}case(LAST):{
-
-			OUTresults.addNetReceive(compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTargetComponent(),
-					compNetJobs.getNetworkJobs().get(0).getMatchingCriterion().getTag(), cmd.getCommunicator());
 
 			return;
 		}case(ACK_RECVD):{
 			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
+			//System.out.println("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
+
 			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
-			if( response.getJobData().getClass() == NetworkMessageRendezvousSendData.class ){
-				client.debugFollowUpLine("Eager");
-				// eager protocoll
-				return;
-			}else{
+			if( ((NetworkMessageRendezvousMsg)response.getJobData()).isRequestRendezvous() ){
 				//rendezvous protocol
 				/* identify the sender from the source */
-				OUTresults.setNextStep(LAST);
 
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend(response.getMatchingCriterion().getSourceComponent(), new NetworkSimpleData(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend(response.getMatchingCriterion().getSourceComponent(), new Acknowledge(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
 
+				OUTresults.addNetReceive(response.getMatchingCriterion().getSourceComponent(), response.getMatchingCriterion().getTag() , cmd.getCommunicator(), NetworkMessageRendezvousMsg.class);
+
+				return;
+			}else{
+				client.debugFollowUpLine("Eager");
+				// eager protocol
 				return;
 			}
 		}

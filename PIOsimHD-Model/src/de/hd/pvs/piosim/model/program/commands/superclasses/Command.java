@@ -37,7 +37,6 @@ import de.hd.pvs.piosim.model.program.Program;
 /**
  * A command is a set of logical instructions which have a specific goal. A process performs a
  * sequence of instructions.
- *
  * @author Julian M. Kunkel
  *
  */

@@ -100,8 +100,88 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
+		pb.addSendRecv(world, 0, 1, 1, 200 * KBYTE, 1, 2);
+		pb.addSendRecv(world, 1, 0, 0, 1 * MBYTE, 2, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendRecvOneRendevouzSameTagsTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
 		pb.addSendRecv(world, 0, 1, 1, 200 * KBYTE, 1, 1);
 		pb.addSendRecv(world, 1, 0, 0, 1 * MBYTE, 1, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendrecvSendAndRecvOneRendevouzTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 200 * KBYTE, 1, 1);
+		pb.addRecv(world, 0, 1, 1);
+		pb.addSend(world, 1, 0, 1 * MBYTE, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendrecvSendRecvAndRecvOneRendevouzTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 200 * KBYTE, 1, 1);
+		pb.addSend(world, 1, 0, 1 * MBYTE, 1);
+		pb.addRecv(world, 0, 1, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void sendrecvSendAndRecvBothRendevouzTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
+		pb.addRecv(world, 0, 1, 1);
+		pb.addSend(world, 1, 0, 1 * MBYTE, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendrecvSendRecvAndRecvBothRendevouzTest() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
+
+		pb.addSend(world, 1, 0, 1 * MBYTE, 1);
+		pb.addRecv(world, 0, 1, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendrecvSendRecvAndRecvBothRendevouzTestDifferentTags() throws Exception{
+		printStack();
+		setup(2, 0);
+
+		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
+
+		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 2);
+
+		pb.addSend(world, 1, 0, 1 * MBYTE, 1);
+		pb.addRecv(world, 0, 1, 2);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -113,8 +193,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 		getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 
-		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
-		pb.addSendRecv(world, 1, 0, 0, 1 * MBYTE, 1, 1);
+		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 100, 1111);
+		pb.addSendRecv(world, 1, 0, 0, 1 * MBYTE, 1111, 100);
 
 		runSimulationAllExpectedToFinish();
 	}

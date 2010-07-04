@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: NetworkSimpleMessage.java 149 2009-03-27 13:55:56Z kunkel $
+  * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27. Mär 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 149 $
   */
 
 
@@ -31,21 +31,20 @@ package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
 /**
- * Very simple class indicating that data is transferred.
+ * An acknowledge to match only send/recv pairs.
  *
  * @author Julian M. Kunkel
  *
  */
-public class NetworkMessageRendezvousSendData implements IMessageUserData {
+public class Acknowledge implements IMessageUserData {
 
 	final private long size;
 
-	public NetworkMessageRendezvousSendData(long size) {
+	public Acknowledge(long size) {
 		this.size = size;
 	}
 
-	@Override
-	public long getSize() {
+	final public long getSize() {
 		return size;
 	}
 

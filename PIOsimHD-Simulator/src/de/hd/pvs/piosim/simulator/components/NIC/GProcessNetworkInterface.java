@@ -277,26 +277,26 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 		//System.out.println(endTime + " " + this.getIdentifier() + " partial transmitted remaining: " + part.getMessage().getRemainingBytesToSend() );
 
 		if(part.getMessageSource() == this.getModelComponent()){
-			if( ! isBlockedByEndpoint(part.getMessageTarget())){
-				this.blockFlow(part.getMessageTarget());
+			final Message<InterProcessNetworkJob> msg = part.getMessage();
+			final InterProcessNetworkJob job = msg.getContainedUserData();
 
-				final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+			// partial send?
+			job.getCallbacks().messagePartSendCB(part, job, endTime);
 
-				final Message<InterProcessNetworkJob> msg = part.getMessage();
 
-				final InterProcessNetworkJob job = msg.getContainedUserData();
+			if(msg.getRemainingBytesToSend() == 0){
+				// all data is send => call callback.
+				job.getCallbacks().sendCompletedCB(job, endTime);
+			}else{
+				if( ! isBlockedByEndpoint(part.getMessageTarget())){
+					this.blockFlow(part.getMessageTarget());
 
-				// partial send?
-				job.getCallbacks().messagePartSendCB(part, job, endTime);
-
-				if(newMsgPart != null){
-					/* create a new event to upload data */
-					Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
-					addNewEvent(partEvent);
-				}else{
-					assert(msg.getRemainingBytesToSend() == 0);
-					// all data is send => call callback.
-					job.getCallbacks().sendCompletedCB(job, endTime);
+					final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+					if(newMsgPart != null){
+						/* create a new event to upload data */
+						Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
+						addNewEvent(partEvent);
+					}
 				}
 			}
 		}
@@ -326,5 +326,26 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	@Override
 	public boolean isDirectlyControlledByBlockUnblock() {
 		return true;
+	}
+
+	@Override
+	public void simulationFinished() {
+		super.simulationFinished();
+		if(earlyRecvsMap.size() != 0 || announcedRecvMap.size() != 0){
+			System.err.println("Warning: Receives on NIC: " + this.getIdentifier());
+			System.err.println("\tEearly recvs");
+			for(LinkedList<Message> msgList: earlyRecvsMap.values()){
+				for(Message msg: msgList){
+					System.out.println("\t\t" + msg);
+				}
+			}
+			System.err.println("\tAnnounced, but pending recvs");
+
+			for(LinkedList<InterProcessNetworkJob> msgList:announcedRecvMap.values()){
+				for(InterProcessNetworkJob job: msgList){
+					System.out.println("\t\t" + job);
+				}
+			}
+		}
 	}
 }

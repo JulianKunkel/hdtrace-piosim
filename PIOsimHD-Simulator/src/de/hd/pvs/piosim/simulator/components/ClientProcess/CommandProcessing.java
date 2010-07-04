@@ -60,10 +60,11 @@ public class CommandProcessing{
 	private CommandProcessing parentOperation = null;
 
 	/**
-	 * By default no nested operation is set i.e. the operations are not stacked and independent.
+	 * By default no nested operation is set, i.e. the operations are not stacked and independent.
 	 */
-	private CommandProcessing nestedOperation = null;
+	private CommandProcessing [] nestedOperation = null;
 
+	private int unfinishedChildOperations = 0;
 
 	/**
 	 * Which client process started the command.
@@ -127,30 +128,63 @@ public class CommandProcessing{
 	}
 
 	/**
+	 * This method allows the command to create a set of nested operations, which are run concurrently .
+	 * The commands shall not be modified afterwards.
+	 */
+	public void invokeChildOperation(final Command nestedCmd, int nextStep, Class<? extends CommandImplementation> enforceProcessingMethod){
+		Class<? extends CommandImplementation> [] enforceProcessingMethods = null;
+		if(enforceProcessingMethod != null){
+			enforceProcessingMethods = new Class[1];
+			enforceProcessingMethods[0] = enforceProcessingMethod;
+		}
+
+		Command [] nestedCmds = new Command[1];
+		nestedCmds[0] = nestedCmd;
+
+		invokeChildOperations(nestedCmds, nextStep, enforceProcessingMethods);
+	}
+
+	/**
 	 * This method allows the command to create a nested operation.
 	 * The command shall not be modified afterwards.
 	 *
-	 * @param childOperation
+	 *
+	 * Child operations are always tagged as asynchronous operations if multiple are issued.
+	 * 	When one child operation is issued it is mapped as a nested operation, otherwise as an asynchronous operation.
+	 *
 	 */
-	public void invokeChildOperation(final Command nestedCmd, int nextStep, Class<? extends CommandImplementation>
-	enforceProcessingMethod){
-
+	public void invokeChildOperations(final Command [] nestedCmd, int nextStep, Class<? extends CommandImplementation> [] enforceProcessingMethod){
 		setNextStep(nextStep);
 
-		assert(nestedCmd.getAsynchronousID() == null);
+		assert(nestedCmd != null);
+		if(enforceProcessingMethod != null){
+			assert(nestedCmd.length == enforceProcessingMethod.length);
+		}
+		nestedOperation = new CommandProcessing[nestedCmd.length];
 
-		nestedCmd.setProgram(getInvokingCommand().getProgram());
+		unfinishedChildOperations = nestedCmd.length;
+		for(int i=0; i < nestedCmd.length; i++){
+			final Command cmd = nestedCmd[i];
 
-		CommandProcessing childOp = new CommandProcessing(
-				nestedCmd, getInvokingComponent(),
-				getInvokingComponent().getSimulator().getVirtualTime());
+			if(nestedCmd.length != 1){
+				cmd.setAsynchronousID(-1);
+			}
 
-		childOp.enforcedProcessingMethod = enforceProcessingMethod;
+			cmd.setProgram(getInvokingCommand().getProgram());
 
-		childOp.setNextStep(STEP_START);
-		childOp.parentOperation = this;
+			CommandProcessing childOp = new CommandProcessing(
+					cmd, getInvokingComponent(),
+					getInvokingComponent().getSimulator().getVirtualTime());
 
-		nestedOperation = childOp;
+			if(enforceProcessingMethod != null){
+				childOp.enforcedProcessingMethod = enforceProcessingMethod[i];
+			}
+
+			childOp.setNextStep(STEP_START);
+			childOp.parentOperation = this;
+
+			nestedOperation[i] = childOp;
+		}
 	}
 
 	/**
@@ -239,14 +273,14 @@ public class CommandProcessing{
 	 * @param tag
 	 * @param comm
 	 */
-	final public void addNetReceive(int rankFrom, int tag, Communicator comm){
-		addNetReceive(getTargetfromRank(rankFrom), tag, comm);
+	final public void addNetReceive(int rankFrom, int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
+		addNetReceive(getTargetfromRank(rankFrom), tag, comm, matchMessageType);
 	}
 
-	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm){
+	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createReceiveOperation( new MessageMatchingCriterion(
-						from, getInvokingComponent().getModelComponent(), tag, comm), getInvokingComponent().getCallback() ));
+						from, getInvokingComponent().getModelComponent(), tag, comm, matchMessageType), getInvokingComponent().getCallback() ));
 	}
 
 	/**
@@ -270,7 +304,7 @@ public class CommandProcessing{
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createSendOperation(
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
-								to, tag, comm),
+								to, tag, comm, jobData.getClass()),
 						jobData, getInvokingComponent().getCallback() ));
 	}
 
@@ -280,7 +314,7 @@ public class CommandProcessing{
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJobRoutable.createRoutableSendOperation(
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
-								nextHop, tag, comm),
+								nextHop, tag, comm, jobData.getClass()),
 						jobData, getInvokingComponent().getCallback(),
 						client, finalTarget)	);
 	}
@@ -293,12 +327,20 @@ public class CommandProcessing{
 		return parentOperation != null;
 	}
 
-	public CommandProcessing getNestedOperation() {
+	public CommandProcessing [] getNestedOperations() {
 		return nestedOperation;
 	}
 
 	public CommandProcessing getParentOperation() {
 		return parentOperation;
+	}
+
+	public void childOperationCompleted(){
+		unfinishedChildOperations--;
+	}
+
+	public int getUnfinishedChildOperationCount(){
+		return unfinishedChildOperations;
 	}
 
 	/**

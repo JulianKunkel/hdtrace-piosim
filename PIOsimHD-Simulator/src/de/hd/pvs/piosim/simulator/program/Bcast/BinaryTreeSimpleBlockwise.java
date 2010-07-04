@@ -91,8 +91,7 @@ extends CommandImplementation<Bcast>
 					recvFrom = 0;
 				}
 
-				OUTresults.addNetReceive(recvFrom,
-						30000, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive(recvFrom, 30000, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
 
 			}else{
 				// send same amount of data.
