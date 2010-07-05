@@ -59,6 +59,11 @@ public class ProjectDescription {
 	final private HashMap<Integer, HashMap<Integer, CommunicatorInformation>> rankCIDMap = new HashMap<Integer, HashMap<Integer,CommunicatorInformation>>();
 
 	/**
+	 * Contains named communicators.
+	 */
+	final private HashMap<String, MPICommunicator>  commNameMap = new HashMap<String, MPICommunicator>();
+	
+	/**
 	 * Map datatypes for each rank and each tid.
 	 */
 	final private HashMap<Integer, HashMap<Long, Datatype>> datatypeMap = new HashMap<Integer, HashMap<Long,Datatype>>();
@@ -183,10 +188,27 @@ public class ProjectDescription {
 			final CommunicatorInformation cinfo = cidMap.get(rank);
 			map.put(cinfo.getCid(), cinfo);
 		}
+		
+		if( comm.getName() != "" ){
+			if (commNameMap.containsKey(comm.getName()) ){
+				System.err.println("Warning: Communicator with name \"" + comm.getName() + "\" defined multiple times.");				
+			}else{
+				commNameMap.put(comm.getName(), comm);
+			}
+			
+		}
 	}
 
 	public List<MPICommunicator> getCommunicators() {
 		return communicators;
+	}
+	
+	public MPICommunicator getCommunicator(String name){
+		MPICommunicator c = commNameMap.get(name);
+		if (c == null){
+			throw new IllegalArgumentException("Communicator with name " + name + " not found.");
+		}
+		return c;
 	}
 
 	public CommunicatorInformation getCommunicator(int rank, int cid){
