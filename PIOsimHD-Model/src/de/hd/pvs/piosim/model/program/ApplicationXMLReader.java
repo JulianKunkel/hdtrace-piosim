@@ -40,6 +40,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.SerializationHandler;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.program.commands.Compute;
@@ -191,18 +192,21 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		while(entry != null) {
 			//System.out.println(entry);
 			// now read the particular command from the XML:
-			Command cmd = cmdReader.parseCommandXML(entry);
-			if(cmd.getClass() != NoOperation.class){
-				// add an appropriate compute job
-				long cycles = entry.getEarliestTime().subtract(lastTimeForComputeJob).getLongInNS() / 1000;
-				if(cycles > 0){
-					Compute compute = new Compute();
-					compute.setCycles( cycles );
-					program.addCommand(compute);
-				}
 
-				lastTimeForComputeJob = entry.getLatestTime();
-				program.addCommand(cmd);
+			if (DynamicTraceEntryToCommandMapper.isCommandAvailable(entry.getName())){
+				Command cmd = cmdReader.parseCommandXML(entry);
+				if(cmd.getClass() != NoOperation.class){
+					// add an appropriate compute job
+					long cycles = entry.getEarliestTime().subtract(lastTimeForComputeJob).getLongInNS() / 1000;
+					if(cycles > 0){
+						Compute compute = new Compute();
+						compute.setCycles( cycles );
+						program.addCommand(compute);
+					}
+
+					lastTimeForComputeJob = entry.getLatestTime();
+					program.addCommand(cmd);
+				}
 			}
 			entry = traceFileReader.getNextInputEntry();
 		}

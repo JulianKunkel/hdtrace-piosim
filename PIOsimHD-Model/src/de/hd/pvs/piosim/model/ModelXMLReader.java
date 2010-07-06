@@ -222,7 +222,7 @@ public class ModelXMLReader {
 		for (XMLTag e : list) {
 			final String alias = e.getAttribute("alias");
 
-			final String file = e.getAttribute("file");
+			String file = e.getAttribute("file");
 
 			if (alias == null) {
 				throw new IllegalArgumentException(
@@ -233,10 +233,13 @@ public class ModelXMLReader {
 				"No file attribute found in application");
 			}
 
+			if(dirname != null){
+				file = dirname +"/" + file;
+			}
 
-			ConsoleLogger.getInstance().debug(this, "Parsing application: " + alias + " " + dirname + "/" + file );
+			ConsoleLogger.getInstance().debug(this, "Parsing application: " + alias + " " +  file );
 
-			loadSingleApp(model, dirname + "/" + file, alias);
+			loadSingleApp(model, file, alias);
 		}
 	}
 
