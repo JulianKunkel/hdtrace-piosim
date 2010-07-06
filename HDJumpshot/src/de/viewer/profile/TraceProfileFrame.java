@@ -455,7 +455,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		visualizedMetricBox.setToolTipText("Select the visualized metric");
 		toolbar.add(visualizedMetricBox);
 
-		processNestedChkbox.setSelected(true);
+		processNestedChkbox.setSelected(false);
 
 		processNestedChkbox.setToolTipText("Are nested states used for the computation of the values?");
 		processNestedChkbox.addItemListener(new ItemListener(){
@@ -476,8 +476,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	@Override
 	protected ScrollableObject createCanvasArea() {
-		return new ProfileImagePanel(getScrollbarTimeModel(), getTimeCanvasVport(), 
-				getYModel(), getTopologyManager());		
+		ScrollableObject obj = new ProfileImagePanel(getScrollbarTimeModel(), getTimeCanvasVport(), 
+				getYModel(), getTopologyManager());
+		obj.setUseBackgroundThread(false);
+		return obj;
 	}
 
 	@Override
