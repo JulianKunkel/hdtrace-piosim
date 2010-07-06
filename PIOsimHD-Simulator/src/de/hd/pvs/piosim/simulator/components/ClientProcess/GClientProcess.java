@@ -313,6 +313,7 @@ public class GClientProcess
 	 */
 	@Override
 	public void simulationModelIsBuild(){
+
 		clientProgram = getSimulator().getModel().getProgram(getModelComponent());
 
 		if(clientProgram == null){

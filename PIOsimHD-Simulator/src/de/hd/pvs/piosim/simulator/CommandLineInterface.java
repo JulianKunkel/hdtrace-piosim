@@ -33,6 +33,7 @@ import java.util.Collections;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 
 
@@ -47,8 +48,9 @@ public class CommandLineInterface {
 
 	private void printHelpText(){
 		System.out.println("Syntax: \n" +
-				"  [options] -i <model.mxml> \n"+
+				"  [options] -i <model.mxml> -c <config-dir> \n"+
 				"Options are a subset of: \n" +
+				" <config-dir> must contain all the mapping files" +
 				"  --load-program-on-demand Load the program on demand (otherwise load it to RAM)\n " +
 				"  -m <time> min time in s between trace entries to create a new compute job" +
 				"  -t  enable tracing\n" +
@@ -75,6 +77,7 @@ public class CommandLineInterface {
     int i = 0;
 
     String inp_filename = null;
+    String config_dir = null;
 
     // create runtime parameters based on the arguments.
     RunParameters runParameters = new RunParameters();
@@ -95,6 +98,8 @@ public class CommandLineInterface {
 
         if(param.equals("-i")) {
         	inp_filename = stringArgument;
+        }else if(param.equals("-c")){
+        	config_dir = stringArgument;
         }else if(param.equals("-m")){
         	runParameters.setMinTimeDiffForComputation(Epoch.parseTime(stringArgument));
         }else if(param.equals("--load-program-on-demand")){
@@ -121,9 +126,12 @@ public class CommandLineInterface {
         }
     }
 
-		if(inp_filename == null) {
+		if(inp_filename == null ) {
+			System.err.println("Input filename and configuration files must be specified!");
 			printHelpText();
 		}
+
+		DynamicMapper.setInitPath(config_dir);
 
 		// load model and programs:
 		SimulationResults results = Simulator.runProjectDescription(inp_filename, runParameters);

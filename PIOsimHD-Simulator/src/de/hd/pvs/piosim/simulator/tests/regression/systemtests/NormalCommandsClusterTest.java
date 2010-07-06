@@ -52,7 +52,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 	@Test public void sendAndRecvEagerTest() throws Exception{
 		printStack();
-		setup(2, 0);
+		setup(20, 0);
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 

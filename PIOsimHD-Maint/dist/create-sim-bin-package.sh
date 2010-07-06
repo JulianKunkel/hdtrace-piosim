@@ -9,7 +9,7 @@ cd `dirname $0`
 VERSION=$(head -n 1 $MAINTF/dist/roottxt/VERSION)
 TARGET=/tmp/PIOsimHD-Bin-$VERSION
 
-SIMF_LIBFILES="CommandToSimulationMapper.txt  ModelToSimulationMapper.txt"
+SIMF_LIBFILES="CommandToSimulationMapper.txt  ModelToSimulationMapper.txt TraceEntryNameToCommandMapping.txt"
 
 ROOTFILES_LIB=
 ROOTFILES_DIST="" 
