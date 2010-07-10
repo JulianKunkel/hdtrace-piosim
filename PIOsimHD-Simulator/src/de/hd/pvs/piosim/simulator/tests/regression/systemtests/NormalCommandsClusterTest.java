@@ -57,6 +57,17 @@ public class NormalCommandsClusterTest extends ModelTest{
 				smtNodeT) );
 	}
 
+
+	protected void setupSMP(int smtPerNode) throws Exception {
+		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtPerNode),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI()
+				);
+		super.setup( smtNodeT );
+	}
+
 	private void printTiming(String header, double[] times) throws IOException{
 		final FileWriter fo = new FileWriter("/tmp/timing-" + this.getClass().getSimpleName() + ".txt", true);
 
@@ -67,6 +78,16 @@ public class NormalCommandsClusterTest extends ModelTest{
 		}
 		fo.write("\n");
 		fo.close();
+	}
+
+
+	@Test public void sendAndRecvSNMPinternalTest() throws Exception{
+		setupSMP(2);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendAndRecv(world, 0, 1, 100 * KBYTE, 1);
+
+		runSimulationAllExpectedToFinish();
 	}
 
 

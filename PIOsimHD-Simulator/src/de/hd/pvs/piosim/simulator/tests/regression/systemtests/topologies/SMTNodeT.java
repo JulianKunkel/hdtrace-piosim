@@ -46,6 +46,8 @@ public class SMTNodeT  extends HardwareConfiguration {
 
 		if( smpPerNode > 0 ){
 			// create crossbar switch
+			internalCrossbar.setName(prefix + "" + smpInterconnect.getName());
+
 			mb.addNetworkNode(internalCrossbar);
 		}
 
@@ -65,8 +67,10 @@ public class SMTNodeT  extends HardwareConfiguration {
 				// interconnect via crossbar switch
 				NetworkEdge e1 = mb.cloneFromTemplate(smpInterconnectEdge);
 				NetworkEdge e2 = mb.cloneFromTemplate(smpInterconnectEdge);
-				mb.connect(topology, internalCrossbar, e2, nm);
+				e1.setName(prefix + i + "E_TX");
+				e2.setName(prefix + i + "E_RX");
 				mb.connect(topology, nm, e1, internalCrossbar);
+				mb.connect(topology, internalCrossbar, e2, nm);
 
 			}else{
 				return nm;
