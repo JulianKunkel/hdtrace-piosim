@@ -30,12 +30,32 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-public class NormalCommandsClusterTest extends ClusterTest{
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NodesC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
+
+public class NormalCommandsClusterTest extends ModelTest{
 	public int minClient = 1;
 
 	public int maxClient = 10;
 
 	double [] times = new double[maxClient+1];
+
+	protected void setup(int nodeCount, int smtPerNode) throws Exception {
+		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtPerNode),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI()
+				);
+		super.setup( new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT) );
+	}
 
 	private void printTiming(String header, double[] times) throws IOException{
 		final FileWriter fo = new FileWriter("/tmp/timing-" + this.getClass().getSimpleName() + ".txt", true);
@@ -51,8 +71,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void sendAndRecvEagerTest() throws Exception{
-		printStack();
-		setup(20, 0);
+		setup(2,1);
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 
@@ -62,8 +81,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void sendAndRecvTest() throws Exception{
-		printStack();
-		setup(2, 0);
+		setup(2,1);
 
 		pb.addSendAndRecv(world, 0, 1, 1 * MBYTE, 1);
 
@@ -71,8 +89,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void sendAndRecvCrossTest() throws Exception{
-		printStack();
-		setup(10, 0);
+		setup(2,1);
 
 		pb.addSendAndRecv(world, 0, 1, 1 * MBYTE, 1);
 		pb.addSendAndRecv(world, 1, 0, 1 * MBYTE, 1);
@@ -82,8 +99,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void sendRecvEagerTest() throws Exception{
-		printStack();
-		setup(2, 0);
+		setup(2,1);
 
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
@@ -95,8 +111,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void sendRecvOneRendevouzTest() throws Exception{
-		printStack();
-		setup(2, 0);
+		setup(2,1);
 
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
@@ -107,8 +122,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void sendRecvOneRendevouzSameTagsTest() throws Exception{
-		printStack();
-		setup(2, 0);
+		setup(2,1);
 
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
@@ -119,8 +133,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void sendrecvSendAndRecvOneRendevouzTest() throws Exception{
-		printStack();
-		setup(2, 0);
+		setup(2,1);
 
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
@@ -132,9 +145,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void sendrecvSendRecvAndRecvOneRendevouzTest() throws Exception{
-		printStack();
-		setup(2, 0);
-
+		setup(2,1);
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
 		pb.addSendRecv(world, 0, 1, 1, 200 * KBYTE, 1, 1);
@@ -146,9 +157,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void sendrecvSendAndRecvBothRendevouzTest() throws Exception{
-		printStack();
-		setup(2, 0);
-
+		setup(2,1);
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
 		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
@@ -159,9 +168,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void sendrecvSendRecvAndRecvBothRendevouzTest() throws Exception{
-		printStack();
-		setup(2, 0);
-
+		setup(2,1);
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
 		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 1);
@@ -173,9 +180,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 	}
 
 	@Test public void sendrecvSendRecvAndRecvBothRendevouzTestDifferentTags() throws Exception{
-		printStack();
-		setup(2, 0);
-
+		setup(2,1);
 		getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 
 		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 1, 2);
@@ -188,9 +193,7 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void sendRecvRendevouzTest() throws Exception{
-		printStack();
-		setup(2, 0);
-
+		setup(2,1);
 		getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 
 		pb.addSendRecv(world, 0, 1, 1, 1 * MBYTE, 100, 1111);
@@ -201,9 +204,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void barrierTest() throws Exception{
-		printStack();
 		for(int i=minClient; i <= maxClient; i++){
-			setup(i, 0);
+			setup(i,1);
 
 			pb.addBarrier(world);
 			runSimulationAllExpectedToFinish();
@@ -215,9 +217,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void reduceTest() throws Exception{
-		printStack();
 		for(int i=minClient; i <= maxClient; i++){
-			setup(i, 0);
+			setup(i,1);
 
 			pb.addReduce(world, ( i - 2 >= 0 ? i -2 : 0 ), 10 * MBYTE);
 			runSimulationAllExpectedToFinish();
@@ -229,9 +230,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void gatherTest() throws Exception{
-		printStack();
 		for(int i=minClient; i <= maxClient; i++){
-			setup(i, 0);
+			setup(i,1);
 
 			pb.addGather(world, ( i - 2 >= 0 ? i -2 : 0 ), 10 * MBYTE);
 			runSimulationAllExpectedToFinish();
@@ -243,10 +243,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void bcastTest() throws Exception{
-		printStack();
-
 		for(int i=minClient; i <= maxClient; i++){
-			setup(i, 0);
+			setup(i,1);
 
 			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 10 * MBYTE);
 			runSimulationAllExpectedToFinish();
@@ -259,11 +257,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void allreduceTest() throws Exception{
-		printStack();
-
 		for(int i=minClient; i <= maxClient; i++){
-			setup(i, 0);
-
+			setup(i,1);
 			pb.addAllreduce(world, 10 * MBYTE);
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();
@@ -274,11 +269,8 @@ public class NormalCommandsClusterTest extends ClusterTest{
 
 
 	@Test public void allgatherTest() throws Exception{
-		printStack();
-
 		for(int i=minClient; i <= maxClient; i++){
-			setup(i, 0);
-
+			setup(i,1);
 			pb.addAllgather(world, 10 * MBYTE);
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();

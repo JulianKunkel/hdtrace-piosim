@@ -181,6 +181,18 @@ public class ModelBuilder {
 	}
 
 	/**
+	 * Add a Template to the model if it is not contained, yet.
+	 */
+	public void addTemplateIf(IBasicComponent template){
+		if(model.getTemplateManager().getTemplate(template.getName()) != null){
+			return;
+		}
+		model.getTemplateManager().addTemplate(template);
+	}
+
+
+
+	/**
 	 * Add a Template to the Model.
 	 *
 	 * @param template
