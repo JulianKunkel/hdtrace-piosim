@@ -28,12 +28,6 @@ public interface ISNetworkComponent<Type extends IBasicComponent>
 	public abstract void messagePartDestroyed(MessagePart part, Epoch endTime);
 
 	/**
-	 * The component can control the Flow either by sending at most a number of jobs with a runtime
-	 * of the latency + processing time OR by directly blocking and unblocking the Flow.
-	 */
-	public abstract boolean isDirectlyControlledByBlockUnblock();
-
-	/**
 	 * The time a job takes to arrive on the component it gets submitted, i.e. transfer time between
 	 * cable and receiver.
 	 * @return
@@ -58,17 +52,17 @@ public interface ISNetworkComponent<Type extends IBasicComponent>
 	 * Block the data flow to a specific target, the <code>unblockFlow</code> is used to restart it.
 	 * @param target
 	 */
-	public abstract void blockFlow(INetworkExit target);
+	public abstract void blockFlowManually(INetworkExit target);
 
 	/**
 	 * Unblock a flow which was blocked with blockFlow to a specific target
 	 * @param target
 	 */
-	public abstract void unblockFlow(INetworkExit target);
+	public abstract void unblockFlowManually(INetworkExit target);
 
 	/**
 	 * This function is called once a packet is transfered by the next component.
 	 * @param target
 	 */
-	public abstract void packetIsTransferedToTarget(INetworkExit target);
+	//public abstract void packetIsTransferedToTarget(INetworkExit target);
 }

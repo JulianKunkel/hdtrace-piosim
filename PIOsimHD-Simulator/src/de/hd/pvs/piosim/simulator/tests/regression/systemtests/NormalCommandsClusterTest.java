@@ -212,6 +212,15 @@ public class NormalCommandsClusterTest extends ModelTest{
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void sendRecvRendevouzLocal() throws Exception{
+		setup(1,1);
+		getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+
+		pb.addSendRecv(world, 0, 0, 0, 1 * MBYTE, 100, 100);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 
 	@Test public void sendRecvRendevouzTest() throws Exception{
 		setup(2,1);

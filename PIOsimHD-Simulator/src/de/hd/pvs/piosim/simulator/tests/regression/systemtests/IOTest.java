@@ -39,7 +39,7 @@ import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefinedDiskModelInformation;
 
-abstract public class IOTest extends ClusterTest {
+abstract public class IOTest extends ModelTest {
 
 	// number of I/O servers
 	protected int serverNum = 10;

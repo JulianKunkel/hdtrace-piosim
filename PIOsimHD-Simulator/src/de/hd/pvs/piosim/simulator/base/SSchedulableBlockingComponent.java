@@ -35,7 +35,8 @@ import de.hd.pvs.piosim.simulator.event.InternalEvent;
  * This class allows to define a specific data structure to hold the pending events.
  * A blocking component schedules only one "job" after another.
  * A job is defined by a start and end event.
- * If the component is busy it will queue up new events.
+ * All events will be queued up, once they are dispatched, this ensures that
+ * the event arrived at the component.
  *
  * The derived component can decide the scheduling order of the pending events.
  *
@@ -105,14 +106,6 @@ abstract public class SSchedulableBlockingComponent<Type extends IBasicComponent
 	abstract public void printWaitingEvents();
 
 	/**
-	 * gets called when a timer event forces the component to wake up.
-	 */
-	public void timerEvent(Epoch wakeUpTime){
-
-	}
-
-
-	/**
 	 * return the number of pending jobs
 	 * @return
 	 */
@@ -133,9 +126,22 @@ abstract public class SSchedulableBlockingComponent<Type extends IBasicComponent
 	}
 
 	/**
+	 * Reactivate the component if necessary.
+	 */
+	final protected void reactivateBlockingComponentNow(){
+		if(state == State.BUSY){
+			return;
+		}
+
+		startNextPendingEventIfPossible(getSimulator().getVirtualTime());
+	}
+
+	/**
 	 * Try to start a pending event.
 	 */
 	protected void startNextPendingEventIfPossible(Epoch curTime){
+		//System.out.println(this.getIdentifier() +  " startNextPendingEventIfPossible " + state);
+
 		if(state == State.BUSY){
 			return;
 		}
@@ -185,9 +191,6 @@ abstract public class SSchedulableBlockingComponent<Type extends IBasicComponent
 
 			return;
 		}
-
-		// internal trigger
-		timerEvent(time);
 	}
 
 	/**

@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id: SFlowComponent.java 611 2009-07-27 12:14:42Z kunkel $
-  * @lastmodified    $Date: 2009-07-27 14:14:42 +0200 (Mo, 27. Jul 2009) $
-  * @modifiedby      $LastChangedBy: kunkel $
-  * @version         $Revision: 611 $
-  */
+/** Version Control Information $Id: SFlowComponent.java 611 2009-07-27 12:14:42Z kunkel $
+ * @lastmodified    $Date: 2009-07-27 14:14:42 +0200 (Mo, 27. Jul 2009) $
+ * @modifiedby      $LastChangedBy: kunkel $
+ * @version         $Revision: 611 $
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -51,7 +51,7 @@ import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
  *
  */
 abstract public class SNetworkComponent<Type extends IBasicComponent>
-	extends SSequentialBlockingComponent<Type, MessagePart> implements ISNetworkComponent<Type>
+extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkComponent<Type>
 {
 	/**
 	 * This class describes the state of the connection to a particular endpoint.
@@ -63,7 +63,7 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 		/**
 		 * The jobs which are blocked right now.
 		 */
-		final LinkedList<Event> blockedJobs = new LinkedList<Event>();
+		final LinkedList<Event> pendingJobs = new LinkedList<Event>();
 
 		/**
 		 * The sum of the latency of all jobs which are processed in the following component.
@@ -78,31 +78,39 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 		/**
 		 * Is transfer to this endpoint blocked? This is the case if too many events are under way.
 		 */
-		boolean           blocked = false;
+		boolean           blockedByLatency = false;
+
+		/**
+		 * True if the user decided to block it
+		 */
+		boolean           blockedManually = false;
+
+		/**
+		 * True if this exit is contained in eventsPerExit.
+		 */
+		boolean           isScheduled = false;
 
 		@Override
 		public String toString() {
-			return " currentlyPendingLat:" + usedLatency + " blockedEvents: " + blockedJobs.size();
-		}
-
-		boolean isBlocked(){
-			return blocked;
-		}
-
-		void block(){
-			this.blocked = true;
-		}
-
-		void unblock(){
-			this.blocked = false;
+			return " currentlyPendingLat:" + usedLatency + " blockedEvents: " + pendingJobs.size();
 		}
 	};
 
 	/**
 	 * for each target endpoint the state of the events is observed.
 	 */
-	private HashMap<INetworkExit, ConcurrentEvents > concurrentEvents =
+	private HashMap<INetworkExit, ConcurrentEvents > eventsPerExit =
 		new HashMap<INetworkExit, ConcurrentEvents >();
+
+	/**
+	 * Contains all exits for which we have operations.
+	 */
+	private LinkedList<INetworkExit> pendingExits = new LinkedList<INetworkExit>();
+
+	/**
+	 * The total number of jobs.
+	 */
+	private int numberOfPendingJobs = 0;
 
 	/**
 	 * The maximum time a job can require in this component.
@@ -122,6 +130,41 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 		return maxTimeToTransferAJobToTheNextComponent;
 	}
 
+	@Override
+	final protected void addNewEvent(Event<MessagePart> job) {
+		INetworkExit target = job.getEventData().getMessageTarget();
+
+		ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+		if (pendingEvents == null){
+			pendingEvents = new ConcurrentEvents();
+			eventsPerExit.put(target, pendingEvents);
+		}
+
+		pendingEvents.pendingJobs.add(job);
+
+		numberOfPendingJobs++;
+
+		//System.out.println( this.getIdentifier() + " addNewEvent " + " " + job.getEventData() );
+
+		// should we activate the particular exit?
+		if(     ! pendingEvents.isScheduled
+				&& ! pendingEvents.blockedManually
+				&& !pendingEvents.blockedByLatency )
+		{
+			// now schedule the exit:
+			pendingEvents.isScheduled = true;
+			pendingExits.add(target);
+			reactivateBlockingComponentNow();
+		}
+
+	}
+
+	@Override
+	final public int getNumberOfBlockedJobs() {
+		return numberOfPendingJobs;
+	}
+
+
 	/**
 	 * Lookup the component the particular job must be delivered.
 	 * @param event
@@ -136,18 +179,20 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 
 	}
 
+	/**
+	 * The target got a message part from us, now it starts to process the message part.
+	 * @param part
+	 * @param endTime
+	 */
+	public void messagePartReceivedAndStartedProcessing(ISNetworkComponent target, MessagePart part, Epoch time){
+
+	}
+
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#eventDestroyed(de.hd.pvs.piosim.simulator.network.MessagePart, de.hd.pvs.TraceFormat.util.Epoch)
 	 */
 	public void messagePartDestroyed(MessagePart part, Epoch endTime){
 
-	}
-
-	/* (non-Javadoc)
-	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#isDirectlyControlledByBlockUnblock()
-	 */
-	public boolean isDirectlyControlledByBlockUnblock(){
-		return false;
 	}
 
 	/* (non-Javadoc)
@@ -167,71 +212,53 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 	 * By calling this method, the "first" blocked job is enabled in this component for further
 	 * processing.
 	 */
-	private void continueProcessingOfFlow(
+	protected void continueProcessingOfFlow(
 			INetworkExit target,
 			MessagePart part,
 			Epoch startTime,
 			ISNetworkComponent targetFlowComponent)
 	{
-		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
+		final ConcurrentEvents pendingEvents = eventsPerExit.get(target);
 
 		debug("criterion: " + target);
 
-		assert(isDirectlyControlledByBlockUnblock() == false);
-		assert(pendingEvents != null);
+		//System.out.println( this.getIdentifier() + " continueProcessingOfFlow " + " target " + target.getIdentifier() +  " " + part.getMessage());
+
+		assert(pendingEvents.jobsInTransit > 0);
+
 		pendingEvents.usedLatency = pendingEvents.usedLatency.subtract(getProcessingTime(part));
 		pendingEvents.jobsInTransit--;
 
-		if ( pendingEvents.blockedJobs.size() == 0 ){
-			debugFollowUpLine(" EMPTY: criterion: " + target);
+		if ( ! pendingEvents.blockedByLatency ){
+			debugFollowUpLine(" Target is not blocked: " + target);
 			return;
 		}
 
 		/* activate an object only if the pendingLatency is smaller than the ProcessingLatency */
 
-		if( pendingEvents.usedLatency.compareTo( getMaxTimeToTransferAJobToTheNextComponent()) >= 0 ){
+		if( pendingEvents.jobsInTransit > 0 && pendingEvents.usedLatency.compareTo( getMaxTimeToTransferAJobToTheNextComponent()) >= 0 ){
 			debugFollowUpLine("Pending latency is still too high");
 			return;
 		}
 
-		getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "ContinueFlowSucc", 0);
+		//getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "ContinueFlowSucc", 0);
 
-		Event<MessagePart> firstEvent = pendingEvents.blockedJobs.poll();
+		pendingEvents.blockedByLatency = false;
 
-		/*
-		 * it is imperative to add the event with the smallest incoming time, but this happens implicitly right now
-		 */
-		addNewEvent(firstEvent);
-		if(getState() == State.READY){
-			// reactivate the component
-			timerEvent(getSimulator().getVirtualTime());
+		if( pendingEvents.isScheduled
+				|| pendingEvents.pendingJobs.isEmpty()
+				|| pendingEvents.blockedManually ){
+			// if more operations are in transit, then the reactivation already happened in job_complete.
+			return;
 		}
 
-		debugFollowUpLine(  "sucessfullyReActivatedEvent for: " + firstEvent.getIssuingComponent().getIdentifier() +  " " +  firstEvent);
-	}
+		//System.out.println(" re-activating.");
 
-	/**
-	 * Check if there are jobs blocked for the particular target.
-	 * @param target
-	 * @return true if this component is blocked.
-	 */
-	protected boolean isBlockedByEndpoint(INetworkExit target){
-		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
+		// add to the exit
+		pendingExits.add(target);
+		pendingEvents.isScheduled = true;
 
-		if(pendingEvents == null) {
-			return false;
-		}
-
-		if(isDirectlyControlledByBlockUnblock())
-			return pendingEvents.isBlocked();
-
-		Epoch maxTime = getMaxTimeToTransferAJobToTheNextComponent();
-
-		int ret = pendingEvents.usedLatency.compareTo( maxTime);
-
-		debug(" return: " + ret + " " + pendingEvents + " MAXTIME " + maxTime + " pUSEDLAT: " +  pendingEvents.usedLatency);
-
-		return ret > 0 || (ret == 0 && maxTime.compareTo(Epoch.ZERO) > 0) ;
+		reactivateBlockingComponentNow();
 	}
 
 	/* (non-Javadoc)
@@ -239,41 +266,47 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 	 */
 	@Override
 	final public Event<MessagePart> getNextPendingAndSchedulableEvent() {
-		while(getNumberOfBlockedJobs() > 0){
-			Event<MessagePart> event = super.getNextPendingAndSchedulableEvent();
+		//System.out.println("getNextPendingAndSchedulableEvent " + this.getIdentifier());
+		while(! pendingExits.isEmpty() ){
+			final INetworkExit target = pendingExits.poll();
 
-			INetworkExit target = event.getEventData().getMessageTarget();
+			//System.out.println(" checking " + target.getIdentifier());
 
-			ConcurrentEvents pendingEvents = concurrentEvents.get(target);
-			if (pendingEvents == null){
-				pendingEvents = new ConcurrentEvents();
-				concurrentEvents.put(target, pendingEvents);
+			final ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+
+			assert(pendingEvents.pendingJobs.size() > 0);
+			assert(pendingEvents.isScheduled == true);
+			assert(pendingEvents.blockedByLatency == false);
+
+			pendingEvents.isScheduled = false;
+
+			// remove blocked events:
+			if(pendingEvents.blockedManually){
+				continue;
 			}
 
-			debug(  "pending events:" + pendingEvents + " " +  event.getEventData());
+			// dispatch event:
+			final Event<MessagePart> event = pendingEvents.pendingJobs.poll();
 
-			assert(getProcessingLatency() !=  null);
+			numberOfPendingJobs--;
+
+			debug(  "pending events:" + pendingEvents + " " +  event.getEventData());
 
 			/*
 			 * Block if the pending processed jobs time is bigger than the latency of this component.
 			 */
-			//System.out.println(getIdentifier().getName() + " " + pendingEvents.availableRuntimeToUse +" " +  jobRunTime);
+			//System.out.println( getIdentifier() + " getNextPendingAndSchedulableEvent");
 
-			// check if the flow to the target is blocked, then this event should not be scheduled at all.
-			if( isBlockedByEndpoint(target) ){
-				getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "Block", 1);
+			Epoch jobRunTime = getProcessingTime(event.getEventData());
 
-				pendingEvents.blockedJobs.add(event);
+			// manage flow control here:
+			pendingEvents.usedLatency = pendingEvents.usedLatency.add(jobRunTime);
+			pendingEvents.jobsInTransit++;
 
-				continue;
-			}
-
-			if(! isDirectlyControlledByBlockUnblock()){
-				Epoch jobRunTime = getProcessingTime(event.getEventData());
-
-				// manage flow control here:
-				pendingEvents.usedLatency = pendingEvents.usedLatency.add(jobRunTime);
-				pendingEvents.jobsInTransit++;
+			if( pendingEvents.usedLatency.compareTo(getMaxTimeToTransferAJobToTheNextComponent()) >= 0 ){
+				// now we have enough components in flight => block
+				pendingEvents.blockedByLatency = true;
+				//getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "Block", 1);
 			}
 
 			debugFollowUpLine("pending runtime: " + pendingEvents.usedLatency);
@@ -283,55 +316,36 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 		return null;
 	}
 
-	@Override
-	public void packetIsTransferedToTarget(INetworkExit target) {
-
-	}
-
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#jobStarted(de.hd.pvs.piosim.simulator.event.Event, de.hd.pvs.TraceFormat.util.Epoch)
 	 */
 	@Override
 	final public void jobStarted(Event<MessagePart> event, Epoch startTime) {
-		debug( "issuing comp: " +  event.getIssuingComponent().getIdentifier());
-
-		ISPassiveComponent source =  event.getIssuingComponent();
+		debug( this.getIdentifier() + " issuing comp: " +  event.getIssuingComponent().getIdentifier());
 
 		getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, buildTraceEntry(event.getEventData()));
 
 		/**
 		 * special case for NIC which generates new events.
 		 */
-		if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ) && this != source)
+		if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ))
 		{
+			final ISPassiveComponent source =  event.getIssuingComponent();
+			final MessagePart part = event.getEventData();
+
 			SNetworkComponent ssource = (SNetworkComponent) source;
-			INetworkExit target = event.getEventData().getMessageTarget();
-			if (! ((ISNetworkComponent) source).isDirectlyControlledByBlockUnblock()){
-			// manage flow control here:
-				ssource.continueProcessingOfFlow(
-					event.getEventData().getMessageTarget(), event.getEventData(), startTime, this );
+			INetworkExit target = part.getMessageTarget();
+
+			//System.out.println( this.getIdentifier() + " jobStarted issued by " + source.getIdentifier() );
+
+			if(source != this){
+				// special case, we created the new message
+				// manage flow control here:
+				ssource.continueProcessingOfFlow( part.getMessageTarget(), part , startTime, this );
 			}
+
+			ssource.messagePartReceivedAndStartedProcessing(this, part, startTime);
 		}
-
-		if(isDirectlyControlledByBlockUnblock()){
-			// then submit exactly one other job to the same target as long as it is not blocked.
-
-			ConcurrentEvents pendingEvents = concurrentEvents.get(event.getEventData().getMessageTarget());
-			if(pendingEvents.blockedJobs.size() != 0){
-				Event firstEvent = pendingEvents.blockedJobs.poll();
-				addNewEvent(firstEvent);
-			}
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#timerEvent(de.hd.pvs.TraceFormat.util.Epoch)
-	 */
-	@Override
-	public void timerEvent(Epoch wakeUpTime) {
-		// gets called if a component is idle and gets reactivated, to reactivate the component
-		// a new timerEvent is submitted.
-		startNextPendingEventIfPossible(wakeUpTime);
 	}
 
 	private String buildTraceEntry(MessagePart part){
@@ -347,73 +361,125 @@ abstract public class SNetworkComponent<Type extends IBasicComponent>
 
 		getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, buildTraceEntry(event.getEventData()));
 
-		if(event.getEventData().getMessageTarget() == getModelComponent()){
+		//System.out.println( this.getIdentifier() +  " jobCompleted " + " " + event.getEventData() );
+
+		// now reactivate exit if we are not blocked.
+
+		final MessagePart part = event.getEventData();
+		final INetworkExit target = part.getMessageTarget();
+		final ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+
+		if(     ! pendingEvents.isScheduled
+				&& ! pendingEvents.blockedByLatency
+				&& ! pendingEvents.blockedManually
+				&& ! pendingEvents.pendingJobs.isEmpty())
+		{
+			pendingExits.add(target);
+			pendingEvents.isScheduled = true;
+		}
+
+		// now reschedule
+
+		messagePartTransmitted(part, endTime);
+
+		if(part.getMessageTarget() == getModelComponent()){
 			// we are the target
 			// prevent endless loops in routing algorithm.
-			messagePartDestroyed(event.getEventData(), endTime);
+			messagePartDestroyed(part, endTime);
+			continueProcessingOfFlow(part.getMessageTarget(), part, endTime, this);
 			return;
 		}
 
-		final ISNetworkComponent targetComponent = getTargetFlowComponent(event.getEventData());
+		// now issue a new event on the target.
+
+		final ISNetworkComponent targetComponent = getTargetFlowComponent(part);
 
 		if( targetComponent == null ){
-			messagePartDestroyed(event.getEventData(), endTime);
+			messagePartDestroyed(part, endTime);
+			continueProcessingOfFlow(part.getMessageTarget(), part, endTime, this);
 			return;
 		}
 
-		messagePartTransmitted(event.getEventData(), endTime);
-
+		// transmit the packet to the target after it arrives (latency).
 		final Event newEvent = new Event(this,
 				targetComponent,
 				endTime.add(getProcessingLatency()),
 				event.getEventData());
 
 		getSimulator().submitNewEvent( newEvent);
-
-		ISPassiveComponent source =  event.getIssuingComponent();
-		if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ) && this != source)
-		{
-			SNetworkComponent ssource = (SNetworkComponent) source;
-			INetworkExit target = event.getEventData().getMessageTarget();
-			if (! ((ISNetworkComponent) source).isDirectlyControlledByBlockUnblock()){
-			// manage flow control here:
-				ssource.continueProcessingOfFlow(
-					event.getEventData().getMessageTarget(), event.getEventData(), endTime, this );
-			}
-
-			ssource.packetIsTransferedToTarget(target);
-		}
 	}
 
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#blockFlow(de.hd.pvs.piosim.model.networkTopology.INetworkExit)
 	 */
-	public void blockFlow(INetworkExit target){
+	public void blockFlowManually(INetworkExit target){
 		//System.out.println(this.getIdentifier() + " block flow " + target);
 
-		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
-		assert(pendingEvents.blocked == false);
-		assert(isDirectlyControlledByBlockUnblock() == true);
-		pendingEvents.blocked = true;
+		ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+
+		if (pendingEvents == null){
+			pendingEvents = new ConcurrentEvents();
+			eventsPerExit.put(target, pendingEvents);
+		}
+
+		assert(pendingEvents.blockedManually == false);
+		pendingEvents.blockedManually = true;
 	}
 
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#unblockFlow(de.hd.pvs.piosim.model.networkTopology.INetworkExit)
 	 */
-	public void unblockFlow(INetworkExit target){
+	public void unblockFlowManually(INetworkExit target){
 		//System.out.println(this.getIdentifier() + " unblock flow " + target);
 
-		ConcurrentEvents pendingEvents = concurrentEvents.get(target);
-		assert(pendingEvents.blocked == true);
-		pendingEvents.blocked = false;
+		ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+		assert(pendingEvents.blockedManually == true);
 
-		if(getState() == State.READY){
-			if(pendingEvents.blockedJobs.size() != 0){
-				Event firstEvent = pendingEvents.blockedJobs.poll();
-				addNewEvent(firstEvent);
+		pendingEvents.blockedManually = false;
 
-				timerEvent(getSimulator().getVirtualTime());
+		if(  pendingEvents.isScheduled
+				|| pendingEvents.blockedByLatency
+				|| pendingEvents.pendingJobs.size() == 0)
+		{
+			return;
+		}
+
+		pendingEvents.isScheduled = true;
+		// schedule the exit:
+		pendingExits.add(target);
+
+		// now reactivate component if possible:
+		reactivateBlockingComponentNow();
+	}
+
+	@Override
+	public void simulationFinished() {
+		super.simulationFinished();
+		if(getNumberOfBlockedJobs() > 0){
+			System.err.println("ERROR: pending events on component " + this.getIdentifier() + " BlockedJobs: " + getNumberOfBlockedJobs());
+			printWaitingEvents();
+
+			getSimulator().errorDuringProcessing();
+		}
+	}
+
+	/**
+	 * Print the queue of the pending events (for debugging)
+	 */
+	final public void printWaitingEvents(){
+		System.out.println("waiting exits for " + this.getIdentifier());
+		for (INetworkExit exit: eventsPerExit.keySet()) {
+			final ConcurrentEvents c = eventsPerExit.get(exit);
+			if( c.pendingJobs.isEmpty() && c.jobsInTransit == 0){
+				continue;
+			}
+
+			System.out.println("\t exit:" + exit.getIdentifier() + " jobsInTransit: " + c.jobsInTransit + " sched: " + c.isScheduled + " blockManually:" + c.blockedManually + " blockedlatency: "+ c.blockedByLatency);
+
+			for(Event event: c.pendingJobs){
+				System.out.println("\t\t" + event + " inc: " + event.getEarliestStartTime());
 			}
 		}
 	}
+
 }

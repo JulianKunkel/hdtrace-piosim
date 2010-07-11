@@ -28,28 +28,23 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
-
-public class SendRecvTest extends ClusterTest{
+public class SendRecvTest extends NormalCommandsClusterTest{
 
 	@Before public void setUp() throws Exception{
-		setup(new ClusterT(4));
+		setup(4, 1);
 	}
 
 	@Test public void empytAppTest() throws Exception{
-		printStack();
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void normalReceiveTest() throws Exception{
-		printStack();
 		pb.addRecv(world, 3, 0, 0);
 		pb.addSend(world, 3, 0, KBYTE, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void lateSenderTest() throws Exception{
-		printStack();
 		pb.addRecv(world, 3, 0, 0);
 
 		pb.addComputate(3, 1000000);
@@ -58,7 +53,6 @@ public class SendRecvTest extends ClusterTest{
 	}
 
 	@Test public void lateReceiverTest() throws Exception{
-		printStack();
 		pb.addComputate(0, 1000000);
 		pb.addRecv(world, 3, 0, 0);
 
@@ -67,7 +61,6 @@ public class SendRecvTest extends ClusterTest{
 	}
 
 	@Test public void doubleReceiveTest() throws Exception{
-		printStack();
 		pb.addComputate(0, 1000000);
 
 		// this works only for non-blocking !
@@ -81,15 +74,12 @@ public class SendRecvTest extends ClusterTest{
 
 
 	@Test public void anyReceiveTest() throws Exception{
-		printStack();
 		pb.addRecv(world, -1, 0, 0);
 		pb.addSend(world, 3, 0, KBYTE, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void sendRecvTestTwoClients() throws Exception{
-		printStack();
-
 		pb.addSendRecv(world, 0, 1, 1, MBYTE, 0, 1);
 
 		pb.addSendRecv(world, 1, 0, 0, KBYTE, 1, 0);
@@ -98,7 +88,6 @@ public class SendRecvTest extends ClusterTest{
 	}
 
 	@Test public void sendRecvTestTwoClientsEager() throws Exception{
-		printStack();
 		mb.getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
 		pb.addSendRecv(world, 0, 1, 1, KBYTE, 0, 1);
 
@@ -109,7 +98,6 @@ public class SendRecvTest extends ClusterTest{
 
 
 	@Test public void sendRecvTestThreeClients() throws Exception{
-		printStack();
 		pb.addSendRecv(world, 0, 1, 2, MBYTE, 0, 0);
 
 		pb.addSendRecv(world, 1, 2, 0, KBYTE, 0, 0);

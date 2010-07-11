@@ -4,7 +4,9 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigur
 /**
  * Contains archetypes for components.
  * Warning, each component should have an individual name, otherwise the template
- * managment will not work.
+ * management will not work.
+ *
+ * Once a component is defined here, its parameters shall never be modified!
  *
  * @author julian
  */

@@ -5,7 +5,6 @@ import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
-import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.base.ISNetworkComponent;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.AGNetworkNode;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
@@ -156,8 +155,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 		}
 
 		if(newPart != null){
-			Epoch time = getSimulator().getVirtualTime();
-			Event<MessagePart> event = new Event<MessagePart>(this, this, time ,newPart);
+			Event<MessagePart> event = new Event<MessagePart>(this, this, startTime ,newPart);
 
 			getSimulator().submitNewEvent(event);
 			return;
@@ -240,13 +238,13 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public void blockFurtherDataReceives() {
-		super.blockFlow(this.getModelComponent());
+		super.blockFlowManually(this.getModelComponent());
 	}
 
 
 	@Override
 	public void unblockFurtherDataReceives() {
-		super.unblockFlow(this.getModelComponent());
+		super.unblockFlowManually(this.getModelComponent());
 	}
 
 	// Entry code:
@@ -265,38 +263,25 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	}
 
 	@Override
-	public void packetIsTransferedToTarget(INetworkExit target) {
-		if( isBlockedByEndpoint(target)){
-			this.unblockFlow(target);
-		}
-		//System.out.println(this.getIdentifier() + " packetIsTransferedToTarget to " + target );
-	}
+	public void messagePartReceivedAndStartedProcessing(ISNetworkComponent target, MessagePart part, Epoch time) {
+		//System.out.println(sourceComponent.getIdentifier() + " - " + target.getIdentifier() + " announced " + time + " " + this.getIdentifier() + " partial transmitted remaining: " + part.getMessage().getRemainingBytesToSend() );
 
-	@Override
-	public void messagePartTransmitted(MessagePart part, Epoch endTime) {
-		//System.out.println(endTime + " " + this.getIdentifier() + " partial transmitted remaining: " + part.getMessage().getRemainingBytesToSend() );
-
-		if(part.getMessageSource() == this.getModelComponent()){
+		if(target == this){
 			final Message<InterProcessNetworkJob> msg = part.getMessage();
 			final InterProcessNetworkJob job = msg.getContainedUserData();
 
 			// partial send?
-			job.getCallbacks().messagePartSendCB(part, job, endTime);
-
+			job.getCallbacks().messagePartSendCB(part, job, time);
 
 			if(msg.getRemainingBytesToSend() == 0){
 				// all data is send => call callback.
-				job.getCallbacks().sendCompletedCB(job, endTime);
+				job.getCallbacks().sendCompletedCB(job, time);
 			}else{
-				if( ! isBlockedByEndpoint(part.getMessageTarget())){
-					this.blockFlow(part.getMessageTarget());
-
-					final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
-					if(newMsgPart != null){
-						/* create a new event to upload data */
-						Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
-						addNewEvent(partEvent);
-					}
+				final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+				if(newMsgPart != null){
+					/* create a new event to upload data */
+					Event<MessagePart> partEvent = new Event<MessagePart>( this, this, time, newMsgPart);
+					getSimulator().submitNewEvent(partEvent);
 				}
 			}
 		}
@@ -305,18 +290,17 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public ISNetworkComponent getTargetFlowComponent(MessagePart part) {
+		if(part.getMessage().getMessageSource() == part.getMessage().getMessageTarget()){
+			return this;
+		}
+
 		return routing.getTargetRouteForMessage(this.getModelComponent(), part);
 	}
 
-	@Override
-	public Epoch getProcessingTime(MessagePart part) {
-		return Epoch.ZERO;
-	}
 
 	@Override
 	public Epoch getMaximumProcessingTime() {
-		return Epoch.ZERO;
-	}
+		return new Epoch(((double) getSimulator().getModel().getGlobalSettings().getTransferGranularity()) / getModelComponent().getTotalBandwidth());	}
 
 	@Override
 	public Epoch getProcessingLatency() {
@@ -324,14 +308,16 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	}
 
 	@Override
-	public boolean isDirectlyControlledByBlockUnblock() {
-		return true;
+	public Epoch getProcessingTime(MessagePart part) {
+		return new Epoch(((double) part.getSize()) / getModelComponent().getTotalBandwidth());
 	}
 
 	@Override
 	public void simulationFinished() {
 		super.simulationFinished();
 		if(earlyRecvsMap.size() != 0 || announcedRecvMap.size() != 0){
+			getSimulator().errorDuringProcessing();
+
 			System.err.println("Warning: Receives on NIC: " + this.getIdentifier());
 			System.err.println("\tEearly recvs");
 			for(LinkedList<Message> msgList: earlyRecvsMap.values()){
@@ -348,4 +334,5 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			}
 		}
 	}
+
 }
