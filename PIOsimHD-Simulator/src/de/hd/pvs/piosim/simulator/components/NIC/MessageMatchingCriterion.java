@@ -40,7 +40,7 @@ public class MessageMatchingCriterion{
 	{
 		assert(targetComponent != null);
 		assert(comm != null);
-		assert(matchMessageType != null);
+		assert(matchMessageType != null || (tag == MessageMatchingCriterion.ANY_TAG  && sourceComponent == null) );
 
 		this.sourceComponent = sourceComponent;
 		this.targetComponent = targetComponent;

@@ -48,10 +48,10 @@ extends CommandImplementation<Fileread>
 		case(CommandProcessing.STEP_START):{
 			/* determine I/O targets */
 			final long actualFileSize = cmd.getFile().getSize();
-			final long amountOfDataToReadOriginal = cmd.getIOList().getTotalSize();
+			final long amountOfDataToReadOriginal = cmd.getListIO().getTotalSize();
 			/* check if the file is smaller than expected, if yes, crop data */
 
-			ArrayList<SingleIOOperation> ops = cmd.getIOList().getIOOperations();
+			ArrayList<SingleIOOperation> ops = cmd.getListIO().getIOOperations();
 
 			for(int i=ops.size()-1; i >= 0; i-- ){
 				if( ops.get(i).getOffset() + ops.get(i).getAccessSize() < actualFileSize){
@@ -65,11 +65,11 @@ extends CommandImplementation<Fileread>
 				}
 			}
 
-			if (amountOfDataToReadOriginal != cmd.getIOList().getTotalSize() ){
-				client.warn("Short read: " +  cmd.getIOList().getTotalSize() + " instead of " + amountOfDataToReadOriginal  +	" should be read => file too small \"" + actualFileSize + "\"") ;
+			if (amountOfDataToReadOriginal != cmd.getListIO().getTotalSize() ){
+				client.warn("Short read: " +  cmd.getListIO().getTotalSize() + " instead of " + amountOfDataToReadOriginal  +	" should be read => file too small \"" + actualFileSize + "\"") ;
 			}
 
-			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getIOList());
+			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getListIO());
 
 			final int tag = client.getNextUnusedTag();
 
@@ -78,8 +78,8 @@ extends CommandImplementation<Fileread>
 				/* data to transfer depends on actual command size, but is defined in send */
 				/* initial job request */
 				OUTresults.addNetSendRoutable(client.getModelComponent(),
-						io.getNextHop(),
 						io.getTargetServer(),
+						io.getNextHop(),
 						new RequestRead(io.getListIO(), cmd.getFile()),
 						tag, Communicator.IOSERVERS);
 

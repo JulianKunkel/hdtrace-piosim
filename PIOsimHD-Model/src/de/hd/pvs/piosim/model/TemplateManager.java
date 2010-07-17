@@ -122,6 +122,8 @@ public class TemplateManager {
 
 		T clone = (T) serializationHandler.createDynamicObjectFromXML(getXMLRepresentation(component));
 
+		clone.setTemplate(component.getName());
+
 		return clone;
 	}
 

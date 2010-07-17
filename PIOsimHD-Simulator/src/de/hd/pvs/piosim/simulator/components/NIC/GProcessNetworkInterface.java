@@ -176,6 +176,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 		if(job.getMatchingCriterion().getSourceComponent() == null){
 			assert(earlyRecvsMap.size() == 0);
 			assert(anySourceRecv == null); // only one any source/tag supported, yet
+
 			anySourceRecv = job;
 
 			return;

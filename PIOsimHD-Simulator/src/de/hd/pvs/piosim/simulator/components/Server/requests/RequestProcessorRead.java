@@ -37,6 +37,8 @@ public class RequestProcessorRead
 	public void process(RequestRead req, InterProcessNetworkJobRoutable request, Epoch time) {
 		final MessageMatchingCriterion reqCrit = request.getMatchingCriterion();
 
+		assert(reqCrit.getSourceComponent() != server.getModelComponent());
+
 		final InterProcessNetworkJobRoutable resp =  InterProcessNetworkJobRoutable.createRoutableSendOperation(
 				new MessageMatchingCriterion(server.getModelComponent(),
 						reqCrit.getSourceComponent(),

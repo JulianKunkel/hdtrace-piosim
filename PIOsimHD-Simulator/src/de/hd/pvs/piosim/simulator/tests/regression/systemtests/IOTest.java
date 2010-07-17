@@ -64,6 +64,8 @@ public class IOTest extends ModelTest {
 	protected void setupOneNodeOneServer(int smtClients, ServerCacheLayer cacheLayer)
 	throws Exception
 	{
+		System.err.println(new Exception().getStackTrace()[2]);
+
 		final IOServerCreator ios = new IOServerCreator(IOC.PVSServer(), IOC.PVSDisk(), cacheLayer);
 
 		SMTNodeT serverNodeT = new SMTNodeT(smtClients,
@@ -128,6 +130,17 @@ public class IOTest extends ModelTest {
 		pb.addFileOpen(f, world , false);
 
 		pb.addWriteSequential(0, f, 0, MiB);
+		pb.addFileClose(f, world);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void CollectiveWrite1Test() throws Exception{
+		setupOneNodeOneServer(2, IOC.SimpleNoCache());
+
+		pb.addFileOpen(f, world , false);
+
+		// TODO add Test
 		pb.addFileClose(f, world);
 
 		runSimulationAllExpectedToFinish();

@@ -53,7 +53,7 @@ abstract public class FileIOCommand extends FileCommand{
 	 * Return the ListIO
 	 * @return
 	 */
-	public ListIO getIOList() {
+	public ListIO getListIO() {
 		return io;
 	}
 

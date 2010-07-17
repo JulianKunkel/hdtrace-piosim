@@ -60,7 +60,7 @@ extends CommandImplementation<Filewrite>
 
 			assert(m.getServers().size() > 0);
 
-			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getIOList());
+			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getListIO());
 
 			/* create an I/O request for each of these servers */
 			OUTresults.setNextStep(RECV_ACK);
@@ -108,7 +108,7 @@ extends CommandImplementation<Filewrite>
 		case(UPDATE_SIZE):{
 			/* update the file size if necessary */
 
-			SingleIOOperation op = cmd.getIOList().getIOOperations().get( cmd.getIOList().getIOOperations().size() -1 );
+			SingleIOOperation op = cmd.getListIO().getIOOperations().get( cmd.getListIO().getIOOperations().size() -1 );
 
 			long lastWrittenByte = op.getAccessSize() + op.getOffset();
 

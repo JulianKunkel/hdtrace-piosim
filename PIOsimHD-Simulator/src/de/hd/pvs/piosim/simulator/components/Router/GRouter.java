@@ -41,7 +41,8 @@ public class GRouter extends SPassiveComponent<Router>
 			Message<InterProcessNetworkJobRoutable> forwardingMsg = sourceMap.get(remoteJob);
 
 			if(forwardingMsg == null){
-				// create mapped job:
+
+				// first packet of the given message => create mapped job:
 				final MessageMatchingCriterion crit = remoteJob.getMatchingCriterion();
 				final InterProcessNetworkJobRoutable request = (InterProcessNetworkJobRoutable) remoteJob;
 
@@ -49,9 +50,12 @@ public class GRouter extends SPassiveComponent<Router>
 
 				final InterProcessNetworkJobRoutable newJob = InterProcessNetworkJobRoutable.createRoutableSendOperation(
 						new MessageMatchingCriterion(getModelComponent(),
-								nextHop,	crit.getTag() , crit.getCommunicator()),
-								remoteJob.getJobData(), callback, request.getFinalTarget(),
-								request.getOriginalSource());
+								nextHop,	crit.getTag() , crit.getCommunicator(), crit.getMatchMessageType()),
+								remoteJob.getJobData(), callback,
+								request.getOriginalSource(), request.getFinalTarget());
+
+
+				//System.out.println("Forwarding from " + request.getOriginalSource() + " to " + request.getFinalTarget() + " via " + nextHop);
 
 				forwardingMsg = new Message<InterProcessNetworkJobRoutable>(newJob.getSize(),
 						newJob,
@@ -60,16 +64,15 @@ public class GRouter extends SPassiveComponent<Router>
 
 				forwardingMsg.setAvailableDataPosition(0);
 
-				 getNetworkInterface().initiateInterProcessSend(forwardingMsg, endTime);
+				getNetworkInterface().initiateInterProcessSend(forwardingMsg, endTime);
 
-				// first packet.
 				sourceMap.put(remoteJob, forwardingMsg);
 
+				// receive another message:
 				submitRecv();
 			}
 
 			getNetworkInterface().appendAvailableDataToIncompleteSend(forwardingMsg, part.getSize(), endTime);
-
 		}
 
 		public void recvCompletedCB(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime) {
@@ -80,7 +83,7 @@ public class GRouter extends SPassiveComponent<Router>
 	private void submitRecv(){
 		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
 				new MessageMatchingCriterion(null, this.getModelComponent(),
-					MessageMatchingCriterion.ANY_TAG,  Communicator.ANY_COMMUNICATOR),
+					MessageMatchingCriterion.ANY_TAG,  Communicator.ANY_COMMUNICATOR, null),
 				callback), getSimulator().getVirtualTime());
 	}
 

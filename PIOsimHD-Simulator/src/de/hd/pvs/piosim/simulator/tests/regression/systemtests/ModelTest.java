@@ -63,6 +63,8 @@ public class ModelTest extends TestSuite {
 	protected SimulationResults simRes;
 	protected Communicator world;
 
+	protected INetworkTopology topology;
+
 	RunParameters parameters = new RunParameters();
 
 	@After
@@ -91,7 +93,7 @@ public class ModelTest extends TestSuite {
 
 		mb = new ModelBuilder();
 
-		INetworkTopology topology = mb.createTopology("LAN");
+		topology = mb.createTopology("LAN");
 		topology.setRoutingAlgorithm(routingAlgorithm);
 
 		config.createModel("", mb, topology);
@@ -114,13 +116,16 @@ public class ModelTest extends TestSuite {
 		assert (world != null);
 
 		model = mb.getModel();
+	}
 
+	public void writeModelToTMP() throws Exception{
 		// write out model to /tmp
 		final ModelXMLWriter writer = new ModelXMLWriter();
 		writer.writeXMLFromModel(model, "/tmp/model.mxml");
 	}
 
 	protected SimulationResults runSimulationAllExpectedToFinish() throws Exception {
+
 		mb.setApplication("Jacobi", app);
 
 		//ModelSortIDbySubcomponents sorter = new ModelSortIDbySubcomponents();

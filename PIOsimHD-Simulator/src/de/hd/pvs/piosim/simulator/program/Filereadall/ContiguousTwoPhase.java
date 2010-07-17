@@ -255,7 +255,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 
 				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
 					// offset-length pairs
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(cmd.getIOList().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(cmd.getListIO().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
 				}
 			}
 
@@ -349,7 +349,7 @@ public class ContiguousTwoPhase extends CommandImplementation<Filereadall> {
 
 				if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
 					//System.out.println("send to " + c.getRank());
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(c.getCommand().getIOList().getPartition(myOffset, mySize).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(c.getCommand().getListIO().getPartition(myOffset, mySize).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
 				}
 
 				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {

@@ -116,6 +116,8 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 
 			getSimulator().getTraceWriter().event(TraceType.IOSERVER, getServer() , dataType.getSimpleName() + " start", 0);
 
+			assert( ((InterProcessNetworkJobRoutable) job).getOriginalSource() != getServer().getModelComponent());
+
 			processor.process(job.getJobData(), (InterProcessNetworkJobRoutable) job, endTime);
 
 			// start a new recv for unexpected msgs.
@@ -139,7 +141,10 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 						reqCrit.getSourceComponent(),
 						reqCrit.getTag(),
 						reqCrit.getCommunicator(), ServerAcknowledge.class),
-						new ServerAcknowledge(15), dummyCallback, getModelComponent(), request.getOriginalSource());
+						new ServerAcknowledge(15), dummyCallback,
+						getModelComponent(), request.getOriginalSource());
+
+		assert(getModelComponent() != request.getOriginalSource());
 
 		getNetworkInterface().initiateInterProcessSend(resp, getSimulator().getVirtualTime());
 	}
@@ -147,7 +152,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 
 	private void submitRecv(){
 		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
-				new MessageMatchingCriterion(null, this.getModelComponent(), -1 ,
+				new MessageMatchingCriterion(null, this.getModelComponent(), MessageMatchingCriterion.ANY_TAG ,
 						Communicator.IOSERVERS,  RequestIO.class),
 						unexpectedCallback), getSimulator().getVirtualTime());
 	}
