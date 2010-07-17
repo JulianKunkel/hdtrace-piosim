@@ -35,11 +35,13 @@ public class RequestProcessorRead
 
 	@Override
 	public void process(RequestRead req, InterProcessNetworkJobRoutable request, Epoch time) {
+		final MessageMatchingCriterion reqCrit = request.getMatchingCriterion();
+
 		final InterProcessNetworkJobRoutable resp =  InterProcessNetworkJobRoutable.createRoutableSendOperation(
 				new MessageMatchingCriterion(server.getModelComponent(),
-						request.getMatchingCriterion().getSourceComponent(),
-						RequestIO.IO_DATA_TAG,
-						request.getMatchingCriterion().getCommunicator()),
+						reqCrit.getSourceComponent(),
+						reqCrit.getTag(),
+						reqCrit.getCommunicator(), NetworkIOData.class),
 						new NetworkIOData(req),
 						dataCallback, server.getModelComponent(), request.getOriginalSource());
 
@@ -53,6 +55,6 @@ public class RequestProcessorRead
 		msg.setAvailableDataPosition(0);
 
 		server.getNetworkInterface().initiateInterProcessSend(msg, time);
-		server.getCacheLayer().announceIORequest( req, msg, ioCallback );
+		server.getCacheLayer().announceIORequest( req, msg, ioCallback, time );
 	}
 }

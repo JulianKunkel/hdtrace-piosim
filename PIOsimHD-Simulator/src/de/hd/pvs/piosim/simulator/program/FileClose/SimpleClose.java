@@ -26,14 +26,11 @@
 
 package de.hd.pvs.piosim.simulator.program.FileClose;
 
-import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Barrier;
 import de.hd.pvs.piosim.model.program.commands.Fileclose;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class SimpleClose
@@ -46,19 +43,8 @@ extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileclose>
 			Barrier barrier = new Barrier();
 			barrier.setCommunicator(cmd.getCommunicator());
 
-			OUTresults.invokeChildOperation(barrier, 1,
+			OUTresults.invokeChildOperation(barrier, CommandProcessing.STEP_COMPLETED,
 				de.hd.pvs.piosim.simulator.program.Global.VirtualSync.class);
-		}else{
-			if (client.getModelComponent().getRank() == 0){
-				for (Server s : client.getSimulator().getModel().getServers())
-				{
-					OUTresults.addNetSendRoutable(client.getModelComponent(),
-							s,
-							s,
-							// TODO IORedirectionHelper.getNextHopFor(s, , client.getSimulator().getModel())
-							new RequestFlush(cmd.getFile()), RequestFlush.TAG, Communicator.IOSERVERS);
-				}
-			}
 		}
 	}
 }

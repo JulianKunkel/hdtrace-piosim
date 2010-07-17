@@ -6,6 +6,7 @@ import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
+import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 
 /**
@@ -22,13 +23,20 @@ public class SMTNodeT  extends HardwareConfiguration {
 	final NetworkNode smpInterconnect;
 	final NetworkEdge smpInterconnectEdge;
 
+	final IOServerCreator ioServerAddon; // null if none
+
 	public SMTNodeT(int smpPerNode, NIC nic, Node node, NetworkNode smpInterconnect, NetworkEdge smpInterconnectEdge) {
+		this(smpPerNode, nic, node, smpInterconnect, smpInterconnectEdge, null);
+	}
+
+	public SMTNodeT(int smpPerNode, NIC nic, Node node, NetworkNode smpInterconnect, NetworkEdge smpInterconnectEdge, IOServerCreator ioServerAddon) {
 		this.nic = nic;
 		this.smpPerNode = smpPerNode;
 
 		this.node = node;
 		this.smpInterconnect = smpInterconnect;
 		this.smpInterconnectEdge = smpInterconnectEdge;
+		this.ioServerAddon  = ioServerAddon;
 	}
 
 	@Override
@@ -44,13 +52,13 @@ public class SMTNodeT  extends HardwareConfiguration {
 
 		final NetworkNode internalCrossbar = mb.cloneFromTemplate(smpInterconnect);
 
-		if( smpPerNode > 0 ){
-			// create crossbar switch
-			internalCrossbar.setName(prefix + "" + smpInterconnect.getName());
+		// create crossbar switch
+		internalCrossbar.setName(prefix + "" + smpInterconnect.getName());
 
-			mb.addNetworkNode(internalCrossbar);
-		}
+		mb.addNetworkNode(internalCrossbar);
 
+
+		// add all the clients:
 		for(int i=0; i < smpPerNode; i++){
 			NIC nm = mb.cloneFromTemplate(nic);
 
@@ -63,20 +71,35 @@ public class SMTNodeT  extends HardwareConfiguration {
 
 			mb.addClient(n, c);
 
-			if( smpPerNode > 0 ){
-				// interconnect via crossbar switch
-				NetworkEdge e1 = mb.cloneFromTemplate(smpInterconnectEdge);
-				NetworkEdge e2 = mb.cloneFromTemplate(smpInterconnectEdge);
-				e1.setName(prefix + i + "E_TX");
-				e2.setName(prefix + i + "E_RX");
-				mb.connect(topology, nm, e1, internalCrossbar);
-				mb.connect(topology, internalCrossbar, e2, nm);
+			// interconnect via crossbar switch
+			NetworkEdge e1 = mb.cloneFromTemplate(smpInterconnectEdge);
+			NetworkEdge e2 = mb.cloneFromTemplate(smpInterconnectEdge);
+			e1.setName(prefix + i + "_TX " + e1.getName());
+			e2.setName(prefix + i + "_RX " + e2.getName());
+			mb.connect(topology, nm, e1, internalCrossbar);
+			mb.connect(topology, internalCrossbar, e2, nm);
+		}
 
-			}else{
-				return nm;
-			}
+		if(ioServerAddon != null){
+			// add the I/O-server to the node:
+			Server s = ioServerAddon.createServer(prefix + "io", mb);
+			NIC nm = mb.cloneFromTemplate(nic);
+			nm.setName(prefix + "ioN");
+			s.setNetworkInterface(nm);
+
+			mb.addServer(n, s);
+
+			// interconnect via crossbar switch
+			NetworkEdge e1 = mb.cloneFromTemplate(smpInterconnectEdge);
+			NetworkEdge e2 = mb.cloneFromTemplate(smpInterconnectEdge);
+			e1.setName(prefix + "io_TX" + e1.getName());
+			e2.setName(prefix + "io_RX" + e2.getName());
+			mb.connect(topology, nm, e1, internalCrossbar);
+			mb.connect(topology, internalCrossbar, e2, nm);
+
 		}
 
 		return internalCrossbar;
 	}
+
 }

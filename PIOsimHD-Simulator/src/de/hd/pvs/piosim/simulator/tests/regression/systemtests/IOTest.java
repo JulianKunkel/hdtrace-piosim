@@ -23,186 +23,154 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.Test;
 
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
-import de.hd.pvs.piosim.simulator.SimulationResults;
-import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
-import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefinedDiskModelInformation;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NodesC;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.IODisjointConfiguration;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.IOServerCreator;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
 
-abstract public class IOTest extends ModelTest {
+public class IOTest extends ModelTest {
 
-	// number of I/O servers
-	protected int serverNum = 10;
+	MPIFile f;
 
-	// number of I/O clients
-	protected int clientNum = 10;
+	private void initGlobals(){
 
-	// number of outer iterations == repeats of the inner loop
-	protected int outerIterations = 1;
-
-	// number of data blocks accessed per inner iteration
-	protected int innerNonContigIterations = 100;
-
-	// number of files accessed
-	protected int fileNum = 1;
-
-	// block size of the contiguous access
-	protected long blockSize = 0;
-
-	// PVFS default
-	protected long stripeSize = 64 * KBYTE;
-
-	abstract public void doWrite(List<MPIFile> files) throws Exception;
-
-	abstract public void doRead(List<MPIFile> files) throws Exception;
-
-	protected long computeFileSize(){
-		return blockSize * innerNonContigIterations * outerIterations * clientNum;
-	}
-
-	protected ServerCacheLayer cacheLayer = null;
-
-	protected List<MPIFile> prepare(boolean isEmpty) throws Exception {
-		List<MPIFile> files = new ArrayList<MPIFile>();
-
-		assert(blockSize > 0);
-
-		printStack();
-		setup(clientNum, serverNum, cacheLayer);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		mb.getGlobalSettings().setTransferGranularity(100 * KiB);
+		mb.getGlobalSettings().setIOGranularity(MiB);
 
 		SimpleStripe dist = new SimpleStripe();
-		dist.setChunkSize(stripeSize);
+		dist.setChunkSize(100 * KiB);
 
-		final long fileSize = computeFileSize();
 
-		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, ((isEmpty) ? 0 : fileSize) , dist));
-		}
-
-		for (int i = 0; i < fileNum; i++) {
-			pb.addFileOpen(files.get(i), world, isEmpty);
-		}
-
-		return files;
+		f = aB.createFile("test", GBYTE, dist);
 	}
 
-	protected void unprepare (List<MPIFile> files) throws Exception {
-		for (MPIFile f : files) {
-			pb.addFileClose(f, world);
-		}
-	}
-
-	public SimulationResults writeTest() throws Exception {
-		List<MPIFile> files = prepare(true);
-		doWrite(files);
-		unprepare(files);
-		return runSimulationAllExpectedToFinish();
-	}
-
-	public SimulationResults readTest() throws Exception {
-		List<MPIFile> files = prepare(false);
-		doRead(files);
-		unprepare(files);
-		return runSimulationAllExpectedToFinish();
-	}
-
-	private void writeTestResults(String type, final FileWriter out, SimulationResults res) throws IOException{
-		final long fileSize = computeFileSize();
-		final long iosize = (fileNum * fileSize);
-		out.write("\n  Config<C,S,Inner,Outer,BS> <" + clientNum + "," + serverNum + "," + innerNonContigIterations + "," + outerIterations + "," + blockSize + ">\n");
-		out.write("   " + blockSize + " " +  type + "   " + iosize/1024/1024 + " MiB == " + iosize + " B " + res.getVirtualTime().getDouble() + " s\n");
-		out.write("   " + blockSize + " " +  type + "   " + iosize / res.getVirtualTime().getDouble() / 1024 / 1024 + " MiB/s\n");
-		// flush to write configuration in case of an error.
-		out.flush();
-
-		long accessedAmount = 0;
-
-		for (ComponentRuntimeInformation info : res.getComponentStatistics().values()) {
-			if (info.getClass() == GRefinedDiskModelInformation.class) {
-				out.write("    " + info + "\n");
-				GRefinedDiskModelInformation diskInfo = (GRefinedDiskModelInformation) info;
-				accessedAmount += diskInfo.getTotalAmountOfData();
-			}
-		}
-
-		out.write("   Accessed Data: " + accessedAmount + " isEqual: " + (accessedAmount == iosize) + "\n");
-
-		out.flush();
-	}
-
-	private void initTestConfiguration(ServerCacheLayer layer, long blockSize,
-			int clientNum, int serverNum, int files, int outerIterations,
-			int innerNonContigIterations)
+	/**
+	 * Configure one node with one server.
+	 * @param smtPerNode
+	 * @param cacheLayer
+	 * @throws Exception
+	 */
+	protected void setupOneNodeOneServer(int smtClients, ServerCacheLayer cacheLayer)
+	throws Exception
 	{
-		this.cacheLayer = layer;
-		this.blockSize = blockSize;
-		this.clientNum = clientNum;
-		this.serverNum = serverNum;
-		this.fileNum = files;
-		this.outerIterations = outerIterations;
-		this.innerNonContigIterations = innerNonContigIterations;
+		final IOServerCreator ios = new IOServerCreator(IOC.PVSServer(), IOC.PVSDisk(), cacheLayer);
+
+		SMTNodeT serverNodeT = new SMTNodeT(smtClients,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtClients),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI(), ios
+				);
+
+		super.setup( serverNodeT );
+
+		initGlobals();
 	}
 
-	public void runOneTestRead(ServerCacheLayer layer, long blockSize,
-			int clientNum, int ServerNum, int files, int outerIterations,
-			int innerNonContigIterations, FileWriter out ) throws Exception
+
+	protected void setup(int nodeCount, int smtPerNode, int serverCount, ServerCacheLayer cacheLayer)
+		throws Exception
 	{
-		initTestConfiguration(layer, blockSize, clientNum, ServerNum, files, outerIterations, innerNonContigIterations);
+		final IOServerCreator ios = new IOServerCreator(IOC.PVSServer(), IOC.PVSDisk(), cacheLayer);
 
-		writeTestResults("READ", out, readTest());
+		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtPerNode),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI()
+				);
+		ClusterT clientCluster =  new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT);
+
+
+		SMTNodeT serverNodeT = new SMTNodeT(0,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtPerNode),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI(), ios
+				);
+		ClusterT serverCluster =  new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				serverNodeT) ;
+
+
+		super.setup( new IODisjointConfiguration(NetworkEdgesC.TenGIGE(), NetworkNodesC.QPI(), clientCluster, serverCluster ) );
+
+		initGlobals();
+	}
+
+	@Test public void OpenCloseTest() throws Exception{
+		setupOneNodeOneServer(1, IOC.SimpleNoCache());
+
+		pb.addFileOpen(f, world , false);
+		pb.addFileClose(f, world);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void Writebehind1Test() throws Exception{
+		setupOneNodeOneServer(1, IOC.SimpleWriteBehindCache());
+
+		pb.addFileOpen(f, world , false);
+
+		pb.addWriteSequential(0, f, 0, MiB);
+		pb.addFileClose(f, world);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void Write1Test() throws Exception{
+		setupOneNodeOneServer(1, IOC.SimpleNoCache());
+
+		pb.addFileOpen(f, world , false);
+
+		pb.addWriteSequential(0, f, 0, MiB);
+		pb.addFileClose(f, world);
+
+		runSimulationAllExpectedToFinish();
 	}
 
 
-	public void runOneTestWrite(ServerCacheLayer layer, long blockSize,
-			int clientNum, int ServerNum, int files, int outerIterations,
-			int innerNonContigIterations, FileWriter out ) throws Exception
-	{
+	@Test public void Read1Test() throws Exception{
+		setupOneNodeOneServer(1, IOC.SimpleNoCache());
 
-		initTestConfiguration(layer, blockSize, clientNum, ServerNum, files, outerIterations, innerNonContigIterations);
+		pb.addFileOpen(f, world , false);
 
-		writeTestResults("WRITE", out, writeTest());
+		pb.addReadSequential(0, f, 0, MiB);
+		pb.addFileClose(f, world);
+
+		runSimulationAllExpectedToFinish();
 	}
 
-	public void benchmarkServers() throws Exception {
-		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
-		List<Long> sizes = new ArrayList<Long>();
 
-		cacheLayers.add(new NoCache());
-		cacheLayers.add(new SimpleWriteBehindCache());
-		cacheLayers.add(new AggregationCache());
-		cacheLayers.add(new ServerDirectedIO());
+	@Test public void Read1TestNonBlocking() throws Exception{
+		setupOneNodeOneServer(1, IOC.SimpleNoCache());
 
-		//		sizes.add((long)512);
-		sizes.add((long)5 * KBYTE);
-		//sizes.add((long)50 * KBYTE);
-		sizes.add((long)500 * KBYTE);
-		//sizes.add((long)5000 * KBYTE);
-		final FileWriter out = new FileWriter("/tmp/iotest.txt");
+		pb.addFileOpen(f, world , false);
 
-		for (ServerCacheLayer cacheLayer : cacheLayers) {
-			this.cacheLayer = cacheLayer;
+		pb.addReadSequential(0, f, 0, MiB);
+		pb.setLastCommandAsynchronous(0);
 
-			out.write(cacheLayer.getClass().getSimpleName() + "\n");
+		pb.addReadSequential(0, f, 0, MiB);
+		pb.setLastCommandAsynchronous(0);
 
-			System.out.println(cacheLayer.getClass().getSimpleName() + "\n");
+		pb.addWaitAll(0);
+		pb.addFileClose(f, world);
 
-			for (long size : sizes) {
-				runOneTestRead(cacheLayer, size, clientNum, serverNum, fileNum, outerIterations, innerNonContigIterations, out);
-				runOneTestWrite(cacheLayer, size, clientNum, serverNum, fileNum, outerIterations, innerNonContigIterations, out);
-			}
-
-		}
-
-		out.close();
+		runSimulationAllExpectedToFinish();
 	}
 }

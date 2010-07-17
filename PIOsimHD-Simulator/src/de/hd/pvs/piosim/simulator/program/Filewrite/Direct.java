@@ -37,9 +37,9 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.SClientListIO;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
+import de.hd.pvs.piosim.simulator.components.Server.requests.ServerAcknowledge;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -65,6 +65,8 @@ extends CommandImplementation<Filewrite>
 			/* create an I/O request for each of these servers */
 			OUTresults.setNextStep(RECV_ACK);
 
+			final int tag = client.getNextUnusedTag();
+
 			for(SClientListIO io: ioTargets){
 				/* data to transfer depends on actual command size, but is defined in send */
 				/* initial job request */
@@ -72,7 +74,7 @@ extends CommandImplementation<Filewrite>
 						io.getTargetServer(),
 						io.getNextHop(),
 						new RequestWrite(io.getListIO(), cmd.getFile()),
-						RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
+							tag, Communicator.IOSERVERS);
 			}
 
 			return;
@@ -93,11 +95,12 @@ extends CommandImplementation<Filewrite>
 						server,
 						job.getMatchingCriterion().getTargetComponent(),
 						new NetworkIOData( writeRequest ),
-						RequestIO.IO_DATA_TAG,
+						job.getMatchingCriterion().getTag(),
 						Communicator.IOSERVERS);
 
 				/* wait for incoming msg (write completion notification) */
-				OUTresults.addNetReceive(job.getMatchingCriterion().getTargetComponent(), RequestIO.IO_COMPLETION_TAG, Communicator.IOSERVERS);
+				OUTresults.addNetReceive(job.getMatchingCriterion().getTargetComponent(),
+						job.getMatchingCriterion().getTag(), Communicator.IOSERVERS, ServerAcknowledge.class);
 			}
 
 			return;

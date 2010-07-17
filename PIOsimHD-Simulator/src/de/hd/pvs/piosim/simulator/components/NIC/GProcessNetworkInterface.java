@@ -172,10 +172,10 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 		//System.out.println(this.getIdentifier() + " RECV initiate" + job);
 
-		// any source any tag match ? TODO fixme.
+		// any source any tag match:
 		if(job.getMatchingCriterion().getSourceComponent() == null){
 			assert(earlyRecvsMap.size() == 0);
-			assert(anySourceRecv == null);
+			assert(anySourceRecv == null); // only one any source/tag supported, yet
 			anySourceRecv = job;
 
 			return;

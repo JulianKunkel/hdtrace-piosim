@@ -28,6 +28,7 @@
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IGComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
@@ -96,7 +97,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestRead req, Object userData, IServerCacheLayerJobCallback callback);
+	public void announceIORequest( RequestRead req, Object userData, IServerCacheLayerJobCallback callback, Epoch time);
 
 	/**
 	 * This method is called once a new write request comes in.
@@ -104,7 +105,7 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestWrite req, Object userData, IServerCacheLayerJobCallback callback);
+	public void announceIORequest( RequestWrite req, Object userData, IServerCacheLayerJobCallback callback, Epoch time);
 
 	/**
 	 * This method is called once a new flush request comes in.
@@ -112,6 +113,5 @@ extends IGComponent<Type>
 	 * @param req
 	 * @param request
 	 */
-	public void announceIORequest( RequestFlush req, InterProcessNetworkJob request);
-
+	public void announceIORequest( RequestFlush req, Object userData, IServerCacheLayerJobCallback callback, Epoch time);
 }

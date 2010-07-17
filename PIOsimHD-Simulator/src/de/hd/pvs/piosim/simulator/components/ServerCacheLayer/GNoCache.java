@@ -40,13 +40,13 @@ import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IGIOSubsystem;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
-import de.hd.pvs.piosim.simulator.components.Server.IGServer;
+import de.hd.pvs.piosim.simulator.components.Server.IGRequestProcessingServerInterface;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 
@@ -66,7 +66,7 @@ public class GNoCache
 	extends SPassiveComponent<NoCache>
 	implements  IGServerCacheLayer<SPassiveComponent<NoCache>>, IIOSubsystemCaller
 {
-	static protected class InternalIOData<RequestType extends RequestIO> {
+	static protected class InternalIOData<RequestType extends FileRequest> {
 		final IServerCacheLayerJobCallback callback;
 		final RequestType request;
 		final Object userData;
@@ -88,13 +88,11 @@ public class GNoCache
 	 */
 	LinkedList<IOJob<InternalIOData<RequestRead>>> queuedReadJobs = new LinkedList<IOJob<InternalIOData<RequestRead>>>();
 
-	LinkedList<IOJob<InternalIOData<RequestWrite>>> queuedWriteJobs = new LinkedList<IOJob<InternalIOData<RequestWrite>>>();
+	LinkedList<IOJob<InternalIOData>> queuedWriteJobs = new LinkedList<IOJob<InternalIOData>>();
 
-	IGServer<?> serverProcess;
+	IGRequestProcessingServerInterface serverProcess;
 	INodeRessources nodeRessources;
 	IGIOSubsystem ioSubsystem;
-
-
 
 	protected int getNumberOfQueuedOperations(){
 		return queuedReadJobs.size() + queuedWriteJobs.size();
@@ -134,7 +132,7 @@ public class GNoCache
 					size += io.getSize();
 				}
 
-				io = new IOJob(io.getFile(), io.getUserData(), size, offset, IOOperation.WRITE);
+				io = new IOJob(io.getFile(), io.getUserData(), size, offset, io.getType());
 			}
 		}
 
@@ -251,17 +249,22 @@ public class GNoCache
 	}
 
 	@Override
-	public void announceIORequest(RequestFlush req, InterProcessNetworkJob request) {
-		addFlush(req);
+	public void announceIORequest(RequestFlush req, Object userData, IServerCacheLayerJobCallback callback, Epoch time) {
+		final InternalIOData downLayerUserData = new InternalIOData(req, userData, callback);
+
+		queuedWriteJobs.add(new IOJob<InternalIOData>(
+				req.getFile(), downLayerUserData, 0, 0,  IOOperation.FLUSH));
+
+		scheduleNextIOJobIfPossible();
 	}
 
 	@Override
-	public void announceIORequest(RequestWrite req, Object userData, IServerCacheLayerJobCallback callback) {
+	public void announceIORequest(RequestWrite req, Object userData, IServerCacheLayerJobCallback callback, Epoch time) {
 
 	}
 
 	@Override
-	public void announceIORequest(RequestRead req, Object userData, IServerCacheLayerJobCallback callback) {
+	public void announceIORequest(RequestRead req, Object userData, IServerCacheLayerJobCallback callback, Epoch time) {
 		final long iogran = getSimulator().getModel().getGlobalSettings().getIOGranularity();
 
 		/**
@@ -285,10 +288,6 @@ public class GNoCache
 		}
 	}
 
-	protected void addFlush(RequestFlush req){
-		scheduleNextIOJobIfPossible();
-	}
-
 	protected void addReadIOJob(long size, long offset,  RequestRead req, Object userData, IServerCacheLayerJobCallback callback){
 		final InternalIOData<RequestRead> downLayerUserData = new InternalIOData<RequestRead>(req, userData, callback);
 
@@ -301,7 +300,7 @@ public class GNoCache
 	protected void addWriteIOJob(long size, long offset, RequestWrite req, Object userData, IServerCacheLayerJobCallback callback){
 		final InternalIOData<RequestWrite> internalUserData = new InternalIOData<RequestWrite>(req, userData, callback);
 
-		queuedWriteJobs.add(new IOJob<InternalIOData<RequestWrite>>(
+		queuedWriteJobs.add(new IOJob<InternalIOData>(
 				req.getFile(), internalUserData, size, offset,  IOOperation.WRITE));
 		scheduleNextIOJobIfPossible();
 	}
@@ -310,11 +309,20 @@ public class GNoCache
 	public void IOComplete(Epoch endTime, IOJob job) {
 		debug("I/O done " + job);
 
-		if(job.getType() == IOOperation.READ){
+		switch(job.getType()){
+		case READ:{
 			dataReadCompletelyFromDisk(job, endTime);
-		}else{
+			break;
+		}case WRITE:{
 			// write request
 			dataWrittenCompletelyToDisk(job, endTime);
+			break;
+		}case FLUSH:{
+			final InternalIOData<RequestFlush> userData = (InternalIOData<RequestFlush>) job.getUserData();
+			userData.callback.JobCompleted(userData.request, userData.userData, endTime);
+			break;
+		}default:
+			assert(false);
 		}
 
 		numberOfScheduledIOOperations--;
@@ -329,7 +337,10 @@ public class GNoCache
 
 		final Simulator sim = getSimulator();
 
-		serverProcess = (IGServer) sim.getSimulatedComponent(comp.getParentComponent());
+		assert(comp.getParentComponent() != null);
+		assert(comp.getParentComponent().getParentComponent() != null);
+
+		serverProcess = (IGRequestProcessingServerInterface) sim.getSimulatedComponent(comp.getParentComponent());
 		nodeRessources = (INodeRessources) sim.getSimulatedComponent(comp.getParentComponent().getParentComponent());
 
 		ioSubsystem = (IGIOSubsystem)  sim.instantiateSimObjectForModelObj(comp.getParentComponent().getIOsubsystem());

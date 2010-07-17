@@ -35,15 +35,20 @@ public class ClusterT extends HardwareConfiguration {
 		// /// NOW BUILD OBJECTS BASED ON PREVIOUS SETUP...
 		NetworkNode testSW = mb.cloneFromTemplate(Switch);
 
+		testSW.setName(prefix + "Switch" + testSW.getName());
+
 		mb.addNetworkNode(testSW);
 
 		for (int i = 0; i < nodeCount; i++) {
 			NetworkNode n = smtNodeT.createModel(prefix + i, mb, topology);
 
 			NetworkEdge edge1 = mb.cloneFromTemplate(nodeEdge);
+			NetworkEdge edge2 = mb.cloneFromTemplate(nodeEdge);
+			edge1.setName(prefix + i + "_TX " + edge1.getName());
+			edge2.setName(prefix + i + "_RX "+ edge2.getName());
 			mb.connect(topology, n, edge1 , testSW);
 
-			NetworkEdge edge2 = mb.cloneFromTemplate(nodeEdge);
+
 			mb.connect(topology, testSW, edge2 , n);
 		}
 

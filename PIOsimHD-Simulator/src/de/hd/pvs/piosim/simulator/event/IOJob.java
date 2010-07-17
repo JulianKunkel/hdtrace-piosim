@@ -37,7 +37,8 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 public class IOJob<UserData extends Object> implements EventData {
 	static public enum IOOperation{
 		READ,
-		WRITE
+		WRITE,
+		FLUSH
 	}
 
 	final private long size;

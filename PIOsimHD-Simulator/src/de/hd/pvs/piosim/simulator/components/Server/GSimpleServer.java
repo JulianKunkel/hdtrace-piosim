@@ -40,9 +40,14 @@ import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
+import de.hd.pvs.piosim.simulator.components.Server.requests.ServerAcknowledge;
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IGServerCacheLayer;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IServerCacheLayerJobCallback;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.ServerCacheLayerJobCallbackAdaptor;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
+import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
 /**
  * Simulates a server process together with an I/O subsystem.
@@ -65,6 +70,24 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 	 * Processors for different data requests
 	 */
 	final private HashMap<Class<IMessageUserData>, IServerRequestProcessor> requestProcessors = new HashMap<Class<IMessageUserData>, IServerRequestProcessor>();
+
+	private final IInterProcessNetworkJobCallback dummyCallback = new InterProcessNetworkJobCallbackAdaptor();
+
+	private final IServerCacheLayerJobCallback acknowledgeCallback = new ServerCacheLayerJobCallbackAdaptor() {
+		@Override
+		public void JobCompleted(FileRequest req, Object data, Epoch time) {
+			sendAcknowledgeToClient((InterProcessNetworkJobRoutable) data);
+		}
+	};
+
+	public IServerCacheLayerJobCallback getDefaultAcknowledgeCallback() {
+		return acknowledgeCallback;
+	};
+
+
+	private GSimpleServer getServer(){
+		return this;
+	}
 
 	final private IInterProcessNetworkJobCallback unexpectedCallback = new InterProcessNetworkJobCallbackAdaptor() {
 		@Override
@@ -91,6 +114,8 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 
 			assert(InterProcessNetworkJobRoutable.class.isInstance(job));
 
+			getSimulator().getTraceWriter().event(TraceType.IOSERVER, getServer() , dataType.getSimpleName() + " start", 0);
+
 			processor.process(job.getJobData(), (InterProcessNetworkJobRoutable) job, endTime);
 
 			// start a new recv for unexpected msgs.
@@ -102,10 +127,29 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 		return this;
 	}
 
+	/**
+	 * Call this method to issue an acknowledge to the client
+	 * @param request
+	 */
+	@Override
+	public void sendAcknowledgeToClient(InterProcessNetworkJobRoutable request) {
+		final MessageMatchingCriterion reqCrit = request.getMatchingCriterion();
+		final InterProcessNetworkJob resp = InterProcessNetworkJobRoutable.createRoutableSendOperation(
+				new MessageMatchingCriterion(getModelComponent(),
+						reqCrit.getSourceComponent(),
+						reqCrit.getTag(),
+						reqCrit.getCommunicator(), ServerAcknowledge.class),
+						new ServerAcknowledge(15), dummyCallback, getModelComponent(), request.getOriginalSource());
+
+		getNetworkInterface().initiateInterProcessSend(resp, getSimulator().getVirtualTime());
+	}
+
+
 	private void submitRecv(){
 		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
-				new MessageMatchingCriterion(null, this.getModelComponent(),  RequestIO.INITIAL_REQUEST_TAG,  Communicator.IOSERVERS),
-				unexpectedCallback), getSimulator().getVirtualTime());
+				new MessageMatchingCriterion(null, this.getModelComponent(), -1 ,
+						Communicator.IOSERVERS,  RequestIO.class),
+						unexpectedCallback), getSimulator().getVirtualTime());
 	}
 
 	@Override

@@ -6,25 +6,25 @@ import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 
 /**
- * Create a grid configuration.
- * Clusters of a given size are interconnected by a different network.
+ * Use a client cluster and interconnect it with an I/O server cluster.
  *
  * @author julian
  */
-public class GridConfiguration extends HardwareConfiguration {
+public class IODisjointConfiguration extends HardwareConfiguration {
 
-	final int clusters;
 	final NetworkEdge clusterInterconnectEdges;
 	final NetworkNode clusterInterconnectSwitch;
-	final ClusterT clusterT;
+	final ClusterT clusterClients;
+	final ClusterT clusterServers;
 
-	public GridConfiguration(int clusters, 	NetworkEdge clusterInterconnectEdges,
+	public IODisjointConfiguration(NetworkEdge clusterInterconnectEdges,
 			NetworkNode clusterInterconnectSwitch,
-			ClusterT clusterT ) {
-		this.clusters = clusters;
+			ClusterT clusterClients,  ClusterT clusterServers)
+	{
 		this.clusterInterconnectEdges = clusterInterconnectEdges;
 		this.clusterInterconnectSwitch = clusterInterconnectSwitch;
-		this.clusterT = clusterT;
+		this.clusterClients = clusterClients;
+		this.clusterServers = clusterServers;
 	}
 
 	@Override
@@ -34,17 +34,39 @@ public class GridConfiguration extends HardwareConfiguration {
 
 		// /// NOW BUILD OBJECTS BASED ON PREVIOUS SETUP...
 		NetworkNode testSW = mb.cloneFromTemplate(clusterInterconnectSwitch);
+		testSW.setName(prefix + "storageHub" + testSW.getName());
 
-		for (int i = 0; i < clusters; i++) {
-			NetworkNode n = clusterT.createModel("" + i, mb, topology);
+		mb.addNetworkNode(testSW);
+
+		{
+			NetworkNode n = clusterClients.createModel("c", mb, topology);
 
 			NetworkEdge edge1 = mb.cloneFromTemplate(clusterInterconnectEdges);
 			NetworkEdge edge2 = mb.cloneFromTemplate(clusterInterconnectEdges);
+
+			edge1.setName(prefix + "c_TX " + edge1.getName());
+			edge2.setName(prefix + "c_RX "+ edge2.getName());
 
 			mb.connect(topology, n, edge1 , testSW);
 
 			mb.connect(topology, testSW, edge2 , n);
 		}
+
+
+		{
+			NetworkNode n = clusterServers.createModel("s", mb, topology);
+
+			NetworkEdge edge1 = mb.cloneFromTemplate(clusterInterconnectEdges);
+			NetworkEdge edge2 = mb.cloneFromTemplate(clusterInterconnectEdges);
+
+			edge1.setName(prefix + "s_TX " + edge1.getName());
+			edge2.setName(prefix + "s_RX "+ edge2.getName());
+
+			mb.connect(topology, n, edge1 , testSW);
+
+			mb.connect(topology, testSW, edge2 , n);
+		}
+
 
 		return testSW;
 	}

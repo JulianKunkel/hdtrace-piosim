@@ -61,6 +61,11 @@ public class Communicator extends MPICommunicator{
 	 */
 	static private int cur_comm_unique_ID = 0;
 
+	/**
+	 * the first WORLD rank participating in this communicator
+	 */
+	private int firstRank = -1;
+
 	public Communicator() {
 		//Create a unique ID
 		this("comm_" + cur_comm_unique_ID);
@@ -91,5 +96,18 @@ public class Communicator extends MPICommunicator{
 	 */
 	public int getIdentity() {
 		return comm_unique_ID;
+	}
+
+	public int getFirstRank(){
+		if(firstRank != -1){
+			return firstRank;
+		}
+
+		// determine first rank:
+		firstRank = Integer.MAX_VALUE;
+		for(int rank:getParticipatingRanks()){
+			firstRank = firstRank > rank ? rank : firstRank;
+		}
+		return firstRank;
 	}
 }

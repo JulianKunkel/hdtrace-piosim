@@ -80,6 +80,51 @@ public class NormalCommandsClusterTest extends ModelTest{
 		fo.close();
 	}
 
+	@Test public void asynchronousTest() throws Exception{
+		setupSMP(1);
+		pb.addBarrier(world);
+		pb.setLastCommandAsynchronous(0, 0);
+
+		pb.addWaitAll(0);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void asynchronousReadWriteTest() throws Exception{
+		setupSMP(2);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendAndRecv(world, 0, 1, 100 * KBYTE, 1);
+
+		pb.setLastCommandAsynchronous(0, 0);
+		pb.setLastCommandAsynchronous(1, 0);
+
+		pb.addWaitAll(0);
+		pb.addWaitAll(1);
+
+		// should not do anything:
+		pb.addWaitAll(1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void asynchronousReadWriteSyncTest() throws Exception{
+		setupSMP(2);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendAndRecv(world, 0, 1, 100 * KBYTE, 1);
+
+		pb.setLastCommandAsynchronous(0, 0);
+		pb.setLastCommandAsynchronous(1, 0);
+
+		pb.addSendAndRecv(world, 1, 0, 100 * KBYTE, 1);
+
+		pb.addWaitAll(0);
+		pb.addWaitAll(1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 
 	@Test public void sendAndRecvSNMPinternalTest() throws Exception{
 		setupSMP(2);
@@ -117,7 +162,6 @@ public class NormalCommandsClusterTest extends ModelTest{
 
 		runSimulationAllExpectedToFinish();
 	}
-
 
 	@Test public void sendRecvEagerTest() throws Exception{
 		setup(2,1);

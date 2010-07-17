@@ -27,6 +27,7 @@ de.hd.pvs.piosim.simulator.program.Wait.Blocking
 
 +de.hd.pvs.piosim.model.program.commands.Fileclose
 de.hd.pvs.piosim.simulator.program.FileClose.SimpleClose
+de.hd.pvs.piosim.simulator.program.FileClose.FlushClose
 
 +de.hd.pvs.piosim.model.program.commands.Fileopen
 de.hd.pvs.piosim.simulator.program.FileOpen.SimpleFlagOpener

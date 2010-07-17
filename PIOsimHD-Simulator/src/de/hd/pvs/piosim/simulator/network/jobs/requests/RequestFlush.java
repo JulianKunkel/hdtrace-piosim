@@ -26,42 +26,15 @@
 package de.hd.pvs.piosim.simulator.network.jobs.requests;
 
 import de.hd.pvs.piosim.model.inputOutput.MPIFile;
-import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
-public class RequestFlush implements IMessageUserData {
-	/// Internal states of the server.
-
-	/**
-	 * An initial request gets this tag:
-	 */
-	public static final int TAG = 0;
-
-	/**
-	 * The file on which the I/O should be performed.
-	 */
-	private final MPIFile file;
-
-	/**
-	 * Return the total size of this request.
-	 */
-	@Override
-	public long getSize() {
-		return 20;
-	}
-
-	/**
-	 * Create a complete Request:
-	 * @param listio
-	 * @param file
-	 */
-	public RequestFlush(MPIFile file) {
-		this.file = file;
-	}
-
-	/**
-	 * @return the file to perform I/O on.
-	 */
-	public MPIFile getFile() {
-		return file;
+/**
+ * Request to flush a file to disk.
+ *
+ * @author julian
+ *
+ */
+public class RequestFlush extends FileRequest {
+	public RequestFlush(MPIFile file){
+		super(file, 20);
 	}
 }

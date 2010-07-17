@@ -38,6 +38,7 @@ import de.hd.pvs.piosim.simulator.base.SSchedulableBlockingComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IOJobRefined.IOEfficiency;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.IOJob;
+import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
 
 /**
@@ -206,7 +207,13 @@ public class GRefinedDiskModel
 
 	@Override
 	protected Epoch getProcessingTimeOfScheduledJob(IOJobRefined job) {
-		double avgRotationalLatency = 30.0 / getModelComponent().getRPM();
+		final double avgRotationalLatency = 30.0 / getModelComponent().getRPM();
+
+		if(job.getType() == IOOperation.FLUSH){
+			job.setEfficiency(IOEfficiency.NOSEEK);
+			return new Epoch(avgRotationalLatency / 100);
+		}
+
 		double latency = 0;
 		double transferTime = job.getSize() / (double) getModelComponent().getSequentialTransferRate();
 

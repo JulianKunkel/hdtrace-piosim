@@ -35,20 +35,6 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
  */
 public class RequestIO extends FileRequest {
 	/// Internal states of the server.
-
-	/**
-	 * An initial request gets this tag:
-	 */
-	public static final int INITIAL_REQUEST_TAG = 0;
-	/**
-	 * Data transfer is started.
-	 */
-	public static final int IO_DATA_TAG = 1;
-	/**
-	 * I/O is completed.
-	 */
-	public static final int IO_COMPLETION_TAG = 2;
-
 	/**
 	 * List of <size, offset> tuple for the I/O
 	 */

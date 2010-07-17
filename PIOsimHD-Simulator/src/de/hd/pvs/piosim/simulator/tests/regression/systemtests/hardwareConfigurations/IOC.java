@@ -4,6 +4,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.IOSubsystem.IOSubsystem;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.components.Server.Server;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 
@@ -31,6 +32,15 @@ public class IOC implements HardwareComponents{
 	static public ServerCacheLayer SimpleWriteBehindCache(){
 		ServerCacheLayer layer = new SimpleWriteBehindCache();
 		layer.setMaxNumberOfConcurrentIOOps(1);
+		layer.setName("WBHND");
+
+		return layer;
+	}
+
+	static public ServerCacheLayer SimpleNoCache(){
+		ServerCacheLayer layer = new NoCache();
+		layer.setMaxNumberOfConcurrentIOOps(1);
+		layer.setName("NoCache");
 		return layer;
 	}
 }

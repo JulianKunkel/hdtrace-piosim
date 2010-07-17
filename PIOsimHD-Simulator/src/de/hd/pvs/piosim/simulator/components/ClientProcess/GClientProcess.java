@@ -78,6 +78,19 @@ public class GClientProcess
 	private IProcessNetworkInterface networkInterface;
 	private INodeRessources   nodeRessources;
 
+	private int  lastUsedTag = 0;
+
+	/**
+	 * Use this function to create unique communication among a communicator.
+	 * Return a tag which was not used on this client. (Besides overflow of the long).
+	 * @return
+	 */
+	public int getNextUnusedTag() {
+		lastUsedTag++;
+		if(lastUsedTag < 0) lastUsedTag = 0;
+		return lastUsedTag;
+	}
+
 	/**
 	 * If applicable.
 	 */
@@ -394,13 +407,15 @@ public class GClientProcess
 			if(blockedCommand == null){
 				checkSetFinishState();
 			}else if(blockedCommand.getInvokingCommand().getClass() == Wait.class){ // check if we are blocked with a WAIT command right now
-				CommandImplementation<Wait> wcme = commandMap.get(blockedCommand.getClass());
+				CommandImplementation<Wait> wcme = commandMap.get(Wait.class);
+				assert(wcme != null);
 				((IWaitCommand) wcme).pendingAIOfinished((Wait) blockedCommand.getInvokingCommand(),
-						step, this, cmd.getAsynchronousID());
+						blockedCommand, this, cmd.getAsynchronousID());
 			}
 
 		}else{ // blocking command:
 			// simple start the next command:
+			blockedCommand = null;
 			processNextCommands();
 		}
 	}
@@ -583,7 +598,6 @@ public class GClientProcess
 
 				if(newJob.isBlockingEnforced()){
 					/* just block, the job SHOULD wake up itself... ! */
-
 					//System.out.println("blocking on " +  cmd + " " + this.getIdentifier());
 
 					blockedCommands.add(newJob);

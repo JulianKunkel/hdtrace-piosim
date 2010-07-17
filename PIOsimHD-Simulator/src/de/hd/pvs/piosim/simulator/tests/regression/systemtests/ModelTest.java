@@ -32,7 +32,6 @@ import de.hd.pvs.piosim.model.Model;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.ModelXMLWriter;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
-import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
@@ -47,6 +46,10 @@ import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.HardwareConfiguration;
 
 public class ModelTest extends TestSuite {
+	protected final long KiB = 1000;
+	protected final long MiB = 1000 * KiB;
+	protected final long GiB = 1000 * MiB;
+
 	protected final long KBYTE = 1024;
 	protected final long MBYTE = 1024 * KBYTE;
 	protected final long GBYTE = 1024 * MBYTE;
@@ -79,9 +82,9 @@ public class ModelTest extends TestSuite {
 
 		parameters.setTraceFile("/tmp/output");
 		parameters.setTraceEnabled(true);
-		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 		parameters.setTraceClientSteps(true);
+		parameters.setTraceServers(true);
 //		parameters.setDebugEverything(true);
 
 		PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
@@ -91,7 +94,7 @@ public class ModelTest extends TestSuite {
 		INetworkTopology topology = mb.createTopology("LAN");
 		topology.setRoutingAlgorithm(routingAlgorithm);
 
-		NetworkNode rootNode = config.createModel("", mb, topology);
+		config.createModel("", mb, topology);
 
 		aB = new ApplicationBuilder("Jacobi", "Example Jacobi", mb.getModel().getClientProcesses().size(), 1);
 		app = aB.getApplication();

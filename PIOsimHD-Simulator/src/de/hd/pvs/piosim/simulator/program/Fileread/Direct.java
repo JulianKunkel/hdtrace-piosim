@@ -35,7 +35,7 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.SClientListIO;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -71,6 +71,8 @@ extends CommandImplementation<Fileread>
 
 			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getIOList());
 
+			final int tag = client.getNextUnusedTag();
+
 			/* create an I/O request for each of these servers */
 			for(SClientListIO io: ioTargets){
 				/* data to transfer depends on actual command size, but is defined in send */
@@ -78,9 +80,10 @@ extends CommandImplementation<Fileread>
 				OUTresults.addNetSendRoutable(client.getModelComponent(),
 						io.getNextHop(),
 						io.getTargetServer(),
-						new RequestRead(io.getListIO(), cmd.getFile()),  RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
+						new RequestRead(io.getListIO(), cmd.getFile()),
+						tag, Communicator.IOSERVERS);
 
-				OUTresults.addNetReceive(io.getNextHop(),  RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
+				OUTresults.addNetReceive(io.getNextHop(), tag , Communicator.IOSERVERS, NetworkIOData.class);
 			}
 			return;
 		}

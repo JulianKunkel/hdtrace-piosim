@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: NetworkSimpleMessage.java 149 2009-03-27 13:55:56Z kunkel $
+  * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27. Mär 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 149 $
   */
 
 
@@ -26,25 +26,27 @@
 /**
  *
  */
-package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
+package de.hd.pvs.piosim.simulator.components.Server.requests;
 
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
-
-
-
+import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
 /**
- * Implements a simple write back strategy. Does not do any read-ahead.
+ * An acknowledge for completed server requests.
+ * The tag of these messages differs, therefore no concurrency problem.
  *
  * @author Julian M. Kunkel
+ *
  */
+public class ServerAcknowledge implements IMessageUserData {
 
-public class GSimpleWriteBehind
-extends GNoCache
-{
-	@Override
-	public boolean canIPutDataIntoCache(RequestWrite clientJob, long bytesOfWrite) {
-		return serverProcess.getNodeRessources().isEnoughFreeMemory(bytesOfWrite);
+	final private long size;
+
+	public ServerAcknowledge(long size) {
+		this.size = size;
 	}
-}
 
+	final public long getSize() {
+		return size;
+	}
+
+}

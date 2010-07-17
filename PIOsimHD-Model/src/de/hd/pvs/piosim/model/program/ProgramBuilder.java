@@ -230,6 +230,12 @@ public class ProgramBuilder {
 		this.appBuilder = appBuilder;
 	}
 
+
+	public int setLastCommandAsynchronous(int process){
+		return setLastCommandAsynchronous(process, 0);
+	}
+
+
 	/**
 	 * Set the last non AIO command as asynchronous == non-blocking.
 	 *
@@ -244,6 +250,10 @@ public class ProgramBuilder {
 		}
 
 		Command lastCmd = program.getCommands().get(program.getSize()-1);
+
+		if (lastCmd.getClass() == Wait.class){
+			throw new IllegalArgumentException("Wait cannot be set to be asynchronous.");
+		}
 
 		int asynchronousID = 1;
 		// create a unique AIO ID for this command.
@@ -303,10 +313,12 @@ public class ProgramBuilder {
 	public void addWaitAll(int rank){
 		ArrayList<Integer> pendingIds =  pendingAsynchronousIDsForClient.remove(rank);
 		if (pendingIds == null){
-			throw new IllegalArgumentException("No pending asynchronous operations");
+			//throw new IllegalArgumentException("No pending asynchronous operations");
+			pendingIds = new ArrayList<Integer>();
 		}
 
 		Wait w = new Wait();
+
 		w.setWaitFor(pendingIds);
 		appBuilder.addCommand(rank, w);
 	}

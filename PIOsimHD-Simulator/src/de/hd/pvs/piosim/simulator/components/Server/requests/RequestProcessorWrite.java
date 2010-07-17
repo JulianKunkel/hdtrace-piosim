@@ -12,7 +12,6 @@ import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IServerCacheLayerJ
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.ServerCacheLayerJobCallbackAdaptor;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 
@@ -24,8 +23,6 @@ public class RequestProcessorWrite
 extends RequestProcessor<RequestWrite>
 {
 	private final LinkedList<MessagePart> blockedReceives = new LinkedList<MessagePart>();
-
-	private final IInterProcessNetworkJobCallback dummyCallback = new InterProcessNetworkJobCallbackAdaptor();
 
 	private final IInterProcessNetworkJobCallback dataCallback = new InterProcessNetworkJobCallbackAdaptor() {
 		@Override
@@ -71,15 +68,6 @@ extends RequestProcessor<RequestWrite>
 		}
 	};
 
-	public InterProcessNetworkJobRoutable prepareFinalWriteAcknowledge(InterProcessNetworkJobRoutable request) {
-		return InterProcessNetworkJobRoutable.createRoutableSendOperation(
-				new MessageMatchingCriterion(server.getModelComponent(),
-						request.getMatchingCriterion().getSourceComponent(),
-						RequestIO.IO_COMPLETION_TAG,
-						request.getMatchingCriterion().getCommunicator()),
-						new NetworkSimpleData(15), dummyCallback, server.getModelComponent(), request.getOriginalSource());
-	}
-
 	private void processWritePart(MessagePart part, Epoch endTime){
 		InterProcessNetworkJobRoutable job = (InterProcessNetworkJobRoutable) part.getMessage().getContainedUserData();
 		server.getCacheLayer().writeDataToCache((NetworkIOData) job.getJobData(),  job, part.getSize(), part.getMessage(), ioCallback);
@@ -88,24 +76,22 @@ extends RequestProcessor<RequestWrite>
 			/*
 			 * Send an acknowledge to the client.
 			 */
-			final InterProcessNetworkJob resp = prepareFinalWriteAcknowledge(job);
-
-			if(resp != null){
-				server.getNetworkInterface().initiateInterProcessSend(resp, endTime);
-			}
+			server.sendAcknowledgeToClient(job);
 		}
 	}
 
 	@Override
 	public void process(RequestWrite req, InterProcessNetworkJobRoutable request, Epoch time) {
-		server.getCacheLayer().announceIORequest( req, null, ioCallback);
+		server.getCacheLayer().announceIORequest( req, null, ioCallback, time);
 
+		final MessageMatchingCriterion reqCrit = request.getMatchingCriterion();
 		/* post receive of further message parts as fragmented flow parts */
 		final InterProcessNetworkJob resp =  InterProcessNetworkJob.createReceiveOperation(
 				new MessageMatchingCriterion(
-						request.getMatchingCriterion().getSourceComponent(), server.getModelComponent(),
-						RequestIO.IO_DATA_TAG,
-						request.getMatchingCriterion().getCommunicator()),
+						reqCrit.getSourceComponent(), server.getModelComponent(),
+						reqCrit.getTag(),
+						reqCrit.getCommunicator(), NetworkIOData.class
+						),
 						dataCallback);
 
 		server.getNetworkInterface().initiateInterProcessReceive(resp, time);
