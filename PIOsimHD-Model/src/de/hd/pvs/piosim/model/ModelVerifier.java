@@ -28,6 +28,8 @@ package de.hd.pvs.piosim.model;
 
 import java.lang.reflect.Field;
 
+import de.hd.pvs.piosim.model.components.Node.Node;
+import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.Application;
@@ -93,6 +95,17 @@ public class ModelVerifier {
 			}catch(IllegalArgumentException e) {
 				//e.printStackTrace();
 				System.err.print(e.getMessage());
+				err = true;
+			}
+		}
+
+		// check that nodes with servers have enough memory to store at least two I/O blocks:
+		final long minMemSize = model.getGlobalSettings().getIOGranularity() * 2;
+		for(Server s: model.getServers()){
+			final Node n = s.getParentComponent();
+			if(n.getMemorySize() < minMemSize){
+				System.err.println("Node " + n.getIdentifier() + " has only " + n.getMemorySize() +
+						" bytes of memory but needs more than 2*IOGranularity, which is " + model.getGlobalSettings().getIOGranularity());
 				err = true;
 			}
 		}

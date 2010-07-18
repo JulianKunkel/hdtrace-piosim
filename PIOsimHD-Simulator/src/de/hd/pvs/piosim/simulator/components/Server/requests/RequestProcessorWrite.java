@@ -32,6 +32,8 @@ extends RequestProcessor<RequestWrite>
 			//this function is called right now only for writes
 			boolean doesFit = server.getCacheLayer().canIPutDataIntoCache( (RequestWrite) ((NetworkIOData) remoteJob.getJobData()).getIORequest(), part.getSize());
 
+			//System.out.println("messagePartReceivedCB  does fit " + doesFit + " " + part);
+
 			if (doesFit){
 				processWritePart( part, endTime);
 			}else{
@@ -46,6 +48,8 @@ extends RequestProcessor<RequestWrite>
 
 		@Override
 		public void IORequestPartiallyCompleted(RequestIO req, Object data, Epoch time, long size) {
+			//System.out.println("IORequestPartiallyCompleted " + req);
+
 			if( blockedReceives.size() > 0 ){
 				while( ! blockedReceives.isEmpty() ){
 

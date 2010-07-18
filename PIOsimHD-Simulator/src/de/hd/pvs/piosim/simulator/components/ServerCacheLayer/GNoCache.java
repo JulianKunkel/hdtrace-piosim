@@ -102,6 +102,7 @@ public class GNoCache
 	protected IOJob getNextSchedulableJob() {
 		// prefer read requests for write requests
 		IOJob io = null;
+
 		if(  ! queuedReadJobs.isEmpty() &&
 				nodeRessources.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
 		{
@@ -128,6 +129,7 @@ public class GNoCache
 						&& size + queuedWriteJobs.peek().getSize()  <= getSimulator().getModel().getGlobalSettings().getIOGranularity()
 				)
 				{
+					// TODO: check proper working:
 					io = queuedWriteJobs.poll();
 					size += io.getSize();
 				}
@@ -135,7 +137,6 @@ public class GNoCache
 				io = new IOJob(io.getFile(), io.getUserData(), size, offset, io.getType());
 			}
 		}
-
 		return io;
 	}
 
@@ -309,6 +310,10 @@ public class GNoCache
 	public void IOComplete(Epoch endTime, IOJob job) {
 		debug("I/O done " + job);
 
+		// it is mandatory to first schedule new operations internally!
+		numberOfScheduledIOOperations--;
+		scheduleNextIOJobIfPossible();
+
 		switch(job.getType()){
 		case READ:{
 			dataReadCompletelyFromDisk(job, endTime);
@@ -324,10 +329,6 @@ public class GNoCache
 		}default:
 			assert(false);
 		}
-
-		numberOfScheduledIOOperations--;
-
-		scheduleNextIOJobIfPossible();
 	}
 
 

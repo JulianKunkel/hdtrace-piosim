@@ -27,6 +27,7 @@ import java.util.LinkedList;
 
 import org.junit.Test;
 
+import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
@@ -69,7 +70,7 @@ public class IOTest extends ModelTest {
 	protected void setupOneNodeOneServer(int smtClients, ServerCacheLayer cacheLayer)
 	throws Exception
 	{
-		System.err.println(new Exception().getStackTrace()[2]);
+		System.err.println(new Exception().getStackTrace()[1]);
 
 		final IOServerCreator ios = new IOServerCreator(IOC.PVSServer(), IOC.PVSDisk(), cacheLayer);
 
@@ -155,6 +156,22 @@ public class IOTest extends ModelTest {
 		FileDescriptor fd = pb.addFileOpen(f, world , false);
 		for(int i= 0 ; i < 3; i++){
 			pb.addWriteSequential(i, fd, i*MiB, MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void Writebehind3OverflowTest() throws Exception{
+		setupOneNodeOneServer(3, IOC.SimpleWriteBehindCache());
+
+		for(Node node: mb.getModel().getNodes()){
+			node.setMemorySize(2 * MiB);
+		}
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 3; i++){
+			pb.addWriteSequential(i, fd, i*MiB, 2*MiB);
 		}
 		pb.addFileClose(fd);
 
