@@ -29,7 +29,7 @@ package de.hd.pvs.piosim.model;
 import java.lang.reflect.Field;
 
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.Program;
@@ -59,7 +59,7 @@ public class ModelVerifier {
 				return;
 			}
 
-			if(field.getType() == MPIFile.class){
+			if(field.getType() == FileMetadata.class){
 				return;
 			}
 
@@ -124,7 +124,7 @@ public class ModelVerifier {
 
 		boolean err = false;
 
-		for(MPIFile file: app.getFiles()) {
+		for(FileMetadata file: app.getFiles()) {
 			try{
 				checkConsistency(file);
 			}catch(Exception e){
@@ -169,7 +169,7 @@ public class ModelVerifier {
 		commonAttributeHandler.checkAttributeConsistency(cmd, false);
 	}
 
-	public void checkConsistency(MPIFile file) throws Exception{
+	public void checkConsistency(FileMetadata file) throws Exception{
 		commonAttributeHandler.checkAttributeConsistency(file, false);
 		commonAttributeHandler.checkAttributeConsistency(file.getDistribution(), false);
 	}

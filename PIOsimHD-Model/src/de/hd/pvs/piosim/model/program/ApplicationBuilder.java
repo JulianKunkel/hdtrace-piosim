@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.MPICommunicator;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
@@ -123,8 +124,8 @@ public class ApplicationBuilder {
 		return comm;
 	}
 
-	public MPIFile createFile(String name, long initialSize, Distribution distribution){
-		final MPIFile file = new MPIFile();
+	public FileMetadata createFile(String name, long initialSize, Distribution distribution){
+		final FileMetadata file = new FileMetadata();
 		file.setSize(initialSize);
 		file.setName(name);
 		file.setDistribution(distribution);
@@ -154,12 +155,14 @@ public class ApplicationBuilder {
 		}
 	}
 
-	public void addCommand(int rank, FileCommand cmd, MPIFile file){
-		if (! app.getFiles().contains(file)){
-			throw new IllegalArgumentException("File " + file + " not contained in application");
+
+
+	public void addCommand(int rank, FileCommand cmd, FileDescriptor fd){
+		if (! app.getFiles().contains(fd.getFile())){
+			throw new IllegalArgumentException("File " + fd.getFile() + " not contained in application");
 		}
 
-		cmd.setFile(file);
+		cmd.setFileDescriptor(fd);
 
 		addCommand(rank, cmd);
 	}

@@ -26,14 +26,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
 
 public class Collective extends IOTest {
-	public void doWrite(List<MPIFile> files) throws Exception {
+	public void doWrite(List<FileMetadata> files) throws Exception {
 		//assert(iterNum % perIteration == 0);
 
-		for (MPIFile file : files) {
+		for (FileMetadata file : files) {
 			for (int i = 0; i < iterNum; i += perIteration) {
 				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 
@@ -52,13 +52,13 @@ public class Collective extends IOTest {
 		}
 	}
 
-	public void doRead(List<MPIFile> files) throws Exception {
+	public void doRead(List<FileMetadata> files) throws Exception {
 		int perIteration = perIteration();
 		int iterNum = (int)(fileSize / elementSize / clientNum);
 
 		//assert(iterNum % perIteration == 0);
 
-		for (MPIFile file : files) {
+		for (FileMetadata file : files) {
 			for (int i = 0; i < iterNum; i += perIteration) {
 				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 

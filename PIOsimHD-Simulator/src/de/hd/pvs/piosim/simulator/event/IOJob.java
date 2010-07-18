@@ -25,7 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.event;
 
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 
 
 /**
@@ -48,10 +48,10 @@ public class IOJob<UserData extends Object> implements EventData {
 
 	final private UserData userData;
 
-	final private MPIFile file;
+	final private FileMetadata file;
 
 
-	public IOJob(MPIFile file, UserData userData, long size, long offset, IOOperation operation) {
+	public IOJob(FileMetadata file, UserData userData, long size, long offset, IOOperation operation) {
 		this.userData = userData;
 		this.size = size;
 		this.offset = offset;
@@ -94,7 +94,7 @@ public class IOJob<UserData extends Object> implements EventData {
 		return "<" + userData + "> " + getType() + "  <offset, size> = " + getOffset() + "," +  getSize() + ">";
 	}
 
-	public MPIFile getFile() {
+	public FileMetadata getFile() {
 		return file;
 	}
 }

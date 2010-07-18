@@ -27,22 +27,22 @@ package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 
 public class Sync  extends Command{
 	@NotNull
 	@Attribute
-	protected  MPIFile file;
+	protected  FileMetadata file;
 	
 	/**
 	 * @return the file
 	 */
-	public MPIFile getFile() {
+	public FileMetadata getFile() {
 		return file;
 	}
 	
-	public void setFile(MPIFile file) {
+	public void setFile(FileMetadata file) {
 		this.file = file;
 	}
 }

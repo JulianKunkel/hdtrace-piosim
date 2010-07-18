@@ -32,12 +32,14 @@ import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.Fileclose;
 import de.hd.pvs.piosim.model.program.commands.Fileopen;
 import de.hd.pvs.piosim.model.program.commands.Filesetview;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.model.program.fileView.FileView;
 
@@ -49,14 +51,12 @@ public class CommandXMLReader {
 	 * It gets populated by File_open and removed by File_close
 	 */
 	final private static class LocalFileStructure{
-		final MPIFile file;
-		final Communicator openedCommunicator;
+		final FileDescriptor fd;
 		// Maps the file id to the corresponding file view (if any)
 		FileView currentView = null;
 
-		public LocalFileStructure(MPIFile file, Communicator openedCommunicator) {
-			this.file = file;
-			this.openedCommunicator = openedCommunicator;
+		public LocalFileStructure(FileDescriptor fd) {
+			this.fd = fd;
 		}
 	}
 
@@ -77,9 +77,7 @@ public class CommandXMLReader {
 
 		// extend reader.
 		public Object parseXMLString(java.lang.Class<?> type, String what) throws IllegalArgumentException {
-			if (type == MPIFile.class) {
-				return fidToFileMap.get(Integer.parseInt(what)).file;
-			}else if (type == Communicator.class) {
+			if (type == Communicator.class) {
 				return getCommunicator(what);
 			}
 			return super.parseXMLString(type, what);
@@ -106,13 +104,12 @@ public class CommandXMLReader {
 		// special care for file open / close to update fids
 		if(cmd.getClass() == Fileopen.class){
 			final String name = commandXMLElement.getAttribute("name");
-			final MPIFile file = program.getApplication().getFile(name);
+			final FileMetadata file = program.getApplication().getFile(name);
 			final int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
 			final Communicator comm = getCommunicator(commandXMLElement.getAttribute("cid"));
-			fidToFileMap.put(fid, new LocalFileStructure(file, comm));
+			fidToFileMap.put(fid, new LocalFileStructure(new FileDescriptor(file, comm)));
 		}
 
-		// TODO: handle file set view (!)
 		cmd.setXMLTag(commandXMLElement);
 
 		// read non-standard attributes:
@@ -128,55 +125,68 @@ public class CommandXMLReader {
 		}
 		cmd.setProgram(program);
 
-		// special care for file open / close to update fids
-		if(cmd.getClass() == Fileclose.class){
-			int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
+		if(FileCommand.class.isAssignableFrom(cmd.getClass())){
+			final String fids = commandXMLElement.getAttribute("fid");
+			final int fid = Integer.parseInt(fids);
 
-			final LocalFileStructure openend = fidToFileMap.remove(fid);
-			if(openend != null && ((Fileclose) cmd).getCommunicator() == null ){
-				((Fileclose) cmd).setCommunicator(openend.openedCommunicator);
-			}else{
-				System.err.println("Warning: fid: " + fid + " not open but closed !");
+			LocalFileStructure openendFilestructure = fidToFileMap.get(fid);
+			if(openendFilestructure == null){
+				throw new IllegalArgumentException("Error fid " + fid + ", but file was not opened previously!");
 			}
-		}else if(cmd.getClass() == Filesetview.class){
-			final int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
-			//final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
-			final long filetid = Long.parseLong(commandXMLElement.getAttribute("filetid"));
-			final int displacement = Integer.parseInt(commandXMLElement.getAttribute("offset"));
-			Datatype datatype = program.getApplication().getDatatypeMap(program.getRank()).get(filetid);
-			assert(datatype != null);
+			((FileCommand) cmd).setFileDescriptor(openendFilestructure.fd);
 
-			final LocalFileStructure openend = fidToFileMap.get(fid);
-			if(openend != null){
-				FileView view = new FileView(datatype, displacement);
-				openend.currentView = view;
-			}else{
-				System.err.println("Warning: " + fid + " not open but setView !");
-			}
-		}
+			// special care for file open / close to update fids
+			if(cmd.getClass() == Fileclose.class){
 
-		// parse File I/O command type id:
-		if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
-			final FileIOCommand fcmd = (FileIOCommand) cmd;
-			final long offset = Long.parseLong(commandXMLElement.getAttribute("offset"));
-			final long size = Long.parseLong(commandXMLElement.getAttribute("size"));
-			final int fid = Integer.parseInt(commandXMLElement.getAttribute("fid"));
-
-			// now check if a fileview is set on the file
-			final LocalFileStructure openend = fidToFileMap.get(fid);
-
-			if(openend != null){
-				final ListIO list =  new ListIO();
-
-				if(openend.currentView == null){
-					list.addIOOperation(offset, size);
+				final LocalFileStructure openend = fidToFileMap.remove(fid);
+				if(openend != null){
+					// error checking that fid specified on close matches proper open
+					String cCid = commandXMLElement.getAttribute("cid");
+					if(cCid != null){
+						final Communicator comm = getCommunicator(cCid);
+						if(openend.fd.getCommunicator() != comm){
+							System.err.println("Warning close of fid: " + fid + ", but is open with a different communicator." );
+						}
+					}
 				}else{
-					openend.currentView.createIOOperation(list, offset, size);
+					System.err.println("Warning: fid: " + fid + " not open, but closed !");
 				}
+			}else if(cmd.getClass() == Filesetview.class){
+				//final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
+				final long filetid = Long.parseLong(commandXMLElement.getAttribute("filetid"));
+				final int displacement = Integer.parseInt(commandXMLElement.getAttribute("offset"));
+				Datatype datatype = program.getApplication().getDatatypeMap(program.getRank()).get(filetid);
+				assert(datatype != null);
 
-				fcmd.setListIO(list);
-			}else{
-				System.err.println("Warning: " + fid + " not open but I/O should be done !");
+				final LocalFileStructure openend = fidToFileMap.get(fid);
+				if(openend != null){
+					FileView view = new FileView(datatype, displacement);
+					openend.currentView = view;
+				}else{
+					System.err.println("Warning: " + fid + " not open but setView !");
+				}
+			}
+
+			// parse File I/O command type id:
+			if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
+				final FileIOCommand fcmd = (FileIOCommand) cmd;
+				final long offset = Long.parseLong(commandXMLElement.getAttribute("offset"));
+				final long size = Long.parseLong(commandXMLElement.getAttribute("size"));
+
+				if(openendFilestructure != null){
+					final ListIO list =  new ListIO();
+
+					if(openendFilestructure.currentView == null){
+						list.addIOOperation(offset, size);
+					}else{
+						openendFilestructure.currentView.createIOOperation(list, offset, size);
+						fcmd.setFileView(openendFilestructure.currentView);
+					}
+
+					fcmd.setListIO(list);
+				}else{
+					System.err.println("Warning: " + fid + " not open but I/O should be done !");
+				}
 			}
 		}
 

@@ -41,7 +41,7 @@ import de.hd.pvs.TraceFormat.xml.XMLReaderToRAM;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.SerializationHandler;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.distribution.Distribution;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.NoOperation;
@@ -83,12 +83,20 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 		// parse files
 		elements = elements.get(0).getNestedXMLTagsWithName("File");
 		for (int i = 0; i < elements.size(); i++) {
-			final MPIFile f = new MPIFile();
+			final FileMetadata f = new FileMetadata();
 
 			serializationHandler.readXML(elements.get(i), f);
 
-			final Distribution dist = (Distribution) serializationHandler.createDynamicObjectFromXML(elements.get(i).getFirstNestedXMLTagWithName("Distribution"));
-			f.setDistribution(dist);
+			try{
+				final Distribution dist = (Distribution) serializationHandler.createDynamicObjectFromXML(elements.get(i).getFirstNestedXMLTagWithName("Distribution"));
+				f.setDistribution(dist);
+			}catch(IllegalArgumentException e){
+				System.err.println("Error on creation of distribution for file \"" + f.getName()+ "\"");
+				throw e;
+			}catch(NullPointerException e){
+				System.err.println("Error on creation of distribution for file \"" + f.getName()+ "\"");
+				throw e;
+			}
 
 			app.addFile(f);
 		}

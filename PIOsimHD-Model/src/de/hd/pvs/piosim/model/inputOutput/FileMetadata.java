@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: MPIFile.java 724 2009-10-24 08:41:04Z kunkel $
+  * @lastmodified    $Date: 2009-10-24 10:41:04 +0200 (Sa, 24. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 724 $
   */
 
 
@@ -46,7 +46,7 @@ import de.hd.pvs.piosim.model.interfaces.ISerializableObject;
  * @author Julian M. Kunkel
  *
  */
-public class MPIFile implements ISerializableObject{
+public class FileMetadata implements ISerializableObject{
 
 	@Attribute(type=AttributeXMLType.ATTRIBUTE)
 	@NotNull

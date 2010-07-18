@@ -11,7 +11,7 @@ public class CommandType implements Comparable<CommandType>{
 
 	static final public CommandType NoOperation = new CommandType("NoOperation");
 
-	CommandType(String commandName) {
+	public CommandType(String commandName) {
 		this.commandName = commandName;
 	}
 

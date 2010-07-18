@@ -40,7 +40,7 @@ import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
 import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
@@ -146,7 +146,7 @@ public class GClientProcess
 	 * @param listIO
 	 * @return
 	 */
-	public List<SClientListIO> distributeIOOperations(MPIFile file, ListIO listIO){
+	public List<SClientListIO> distributeIOOperations(FileMetadata file, ListIO listIO){
 		final HashMap<Server, ListIO> IOtargets = file.getDistribution().distributeIOOperation(listIO,	getSimulator().getModel().getServers()  );
 
 		final LinkedList<SClientListIO> newTargets = new LinkedList<SClientListIO>();

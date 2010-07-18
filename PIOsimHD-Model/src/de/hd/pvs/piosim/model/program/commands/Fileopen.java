@@ -26,10 +26,7 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileCommand;
-import de.hd.pvs.piosim.model.program.commands.superclasses.ICommunicatorCommand;
 
 /**
  * Simulates a file open (i.e. might truncate the file).
@@ -38,34 +35,13 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.ICommunicatorCommand
  *
  */
 public class Fileopen
-extends FileCommand
-implements ICommunicatorCommand
+	extends FileCommand
 {
 	@Attribute
 	/**
 	 * If the file must be truncated on open
 	 */
 	boolean truncate;
-
-	@NotNull
-	@Attribute(xmlName="cid")
-	protected Communicator comm;
-
-	/**
-	 * Get the Communicator the Command should work on
-	 * @return
-	 */
-	public Communicator getCommunicator(){
-		return comm;
-	}
-
-	/**
-	 * Set the Communicator the Command should work on
-	 * @param communicator
-	 */
-	public void setCommunicator(Communicator communicator) {
-		this.comm = communicator;
-	}
 
 	public boolean isTruncateOnOpen() {
 		return truncate;

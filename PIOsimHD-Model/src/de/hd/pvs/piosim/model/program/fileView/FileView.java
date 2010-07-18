@@ -103,7 +103,10 @@ public class FileView {
 		// first one might be partial:
 		if(offsetInDatatype != 0){
 			final long remainder = typeSize - offsetInDatatype;
+			assert(remainder >= 0);
 			final long preReadSize = (accessSize > remainder) ? remainder : accessSize;
+
+			assert(preReadSize >= 0);
 
 			addDatatypeIOOperation(cur, prevdatatype, offsetInDatatype, preReadSize);
 			accessSize -= preReadSize;
@@ -176,6 +179,8 @@ public class FileView {
 	 * @param accessSize
 	 */
 	private void addDatatypeIOOperation(CurrentPosition cur, Datatype datatype, long offsetInDatatype, long accessSize){
+		System.out.println("addDatatypeIOOperation " + datatype.getType() + " " + datatype.getTid() + " " + accessSize);
+
 		assert(offsetInDatatype >= 0);
 		assert(accessSize > 0);
 		final long typeSize = datatype.getSize();

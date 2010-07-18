@@ -32,7 +32,7 @@ import java.util.PriorityQueue;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SSchedulableBlockingComponent;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.IOJobRefined.IOEfficiency;
@@ -109,7 +109,7 @@ public class GRefinedDiskModel
 	/**
 	 * The last file accessed
 	 */
-	MPIFile lastFile = null;
+	FileMetadata lastFile = null;
 
 	/**
 	 * The last offset used
@@ -136,10 +136,10 @@ public class GRefinedDiskModel
 	/**
 	 * Pending file list, first element get scheduled when pendingJobsWithLargerOffset is empty
 	 */
-	LinkedList<MPIFile> pendingFiles = new LinkedList<MPIFile>();
+	LinkedList<FileMetadata> pendingFiles = new LinkedList<FileMetadata>();
 
-	HashMap<MPIFile, PriorityQueue<Event<IOJobRefined>>> pendingOps =
-		new HashMap<MPIFile, PriorityQueue<Event<IOJobRefined>>>();
+	HashMap<FileMetadata, PriorityQueue<Event<IOJobRefined>>> pendingOps =
+		new HashMap<FileMetadata, PriorityQueue<Event<IOJobRefined>>>();
 
 
 	@Override
@@ -166,7 +166,7 @@ public class GRefinedDiskModel
 			return pendingJobsWithLargerOffset.poll();
 		}
 
-		MPIFile nextFile = pendingFiles.poll();
+		FileMetadata nextFile = pendingFiles.poll();
 		assert(nextFile != null);
 
 		pendingJobsWithLargerOffset = pendingOps.remove(nextFile);
@@ -180,7 +180,7 @@ public class GRefinedDiskModel
 
 		final IOJobRefined io = job.getEventData();
 
-		final MPIFile file = io.getFile();
+		final FileMetadata file = io.getFile();
 
 		// if the same file is accessed with a larger offset add it to the jobs currently to process
 		if(file == lastFile && io.getOffset() >= lastAccessPosition){
@@ -219,7 +219,7 @@ public class GRefinedDiskModel
 
 		// compute if it is close to the old region.
 
-		final MPIFile file = job.getFile();
+		final FileMetadata file = job.getFile();
 
 		if(	lastFile == file	) {
 			if (job.getOffset() == lastAccessPosition){

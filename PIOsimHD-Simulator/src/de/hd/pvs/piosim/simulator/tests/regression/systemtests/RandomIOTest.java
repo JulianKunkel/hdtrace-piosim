@@ -35,17 +35,17 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 
 public class RandomIOTest extends IOTest {
 	final class TestTuple {
 		int rank;
-		MPIFile file;
+		FileMetadata file;
 		long offset;
 		long size;
 
-		public TestTuple(int rank, MPIFile file, long offset, long size) {
+		public TestTuple(int rank, FileMetadata file, long offset, long size) {
 			this.rank = rank;
 			this.file = file;
 			this.offset = offset;
@@ -55,14 +55,14 @@ public class RandomIOTest extends IOTest {
 
 	private Random random = null;
 
-	public void doWrite(List<MPIFile> files) throws Exception {
+	public void doWrite(List<FileMetadata> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
 		int iterNum = (int)(fileSize / blockSize / clientNum);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
+				for (FileMetadata f : files) {
 					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * blockSize, blockSize);
 					tuples.add(tuple);
 				}
@@ -76,14 +76,14 @@ public class RandomIOTest extends IOTest {
 		}
 	}
 
-	public void doRead(List<MPIFile> files) throws Exception {
+	public void doRead(List<FileMetadata> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
 		int iterNum = (int)(fileSize / blockSize / clientNum);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
+				for (FileMetadata f : files) {
 					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * blockSize, blockSize);
 					tuples.add(tuple);
 				}

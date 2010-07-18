@@ -35,7 +35,7 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.simulator.SimulationResults;
@@ -64,7 +64,7 @@ public class Individual extends IOTest {
 		return getDataPerIteration(elementSize) * iterNum * clientNum;
 	}
 
-	private MPIFile getFile (List<MPIFile> files) {
+	private FileMetadata getFile (List<FileMetadata> files) {
 		int i = random.nextInt(files.size());
 		return files.get(i);
 	}
@@ -80,14 +80,14 @@ public class Individual extends IOTest {
 		return Math.min((i + 1) * blockSize, fileSize - offset);
 	}
 
-	public void doWrite(List<MPIFile> files) throws Exception {
+	public void doWrite(List<FileMetadata> files) throws Exception {
 		int perIteration = perIteration();
 
 		assert(iterNum % perIteration == 0);
 
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				MPIFile f = getFile(files);
+				FileMetadata f = getFile(files);
 				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
@@ -117,14 +117,14 @@ public class Individual extends IOTest {
 		}
 	}
 
-	public void doRead(List<MPIFile> files) throws Exception {
+	public void doRead(List<FileMetadata> files) throws Exception {
 		int perIteration = perIteration();
 
 		assert(iterNum % perIteration == 0);
 
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				MPIFile f = getFile(files);
+				FileMetadata f = getFile(files);
 				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
@@ -154,14 +154,14 @@ public class Individual extends IOTest {
 		}
 	}
 
-	public void doReadWrite(List<MPIFile> files) throws Exception {
+	public void doReadWrite(List<FileMetadata> files) throws Exception {
 		int perIteration = perIteration();
 
 		assert(iterNum % perIteration == 0);
 
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				MPIFile f = getFile(files);
+				FileMetadata f = getFile(files);
 				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
@@ -200,21 +200,21 @@ public class Individual extends IOTest {
 	}
 
 	public SimulationResults writeTest() throws Exception {
-		List<MPIFile> files = prepare(false);
+		List<FileMetadata> files = prepare(false);
 		doWrite(files);
 		unprepare(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
-		List<MPIFile> files = prepare(false);
+		List<FileMetadata> files = prepare(false);
 		doRead(files);
 		unprepare(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readWriteTest() throws Exception {
-		List<MPIFile> files = prepare(false);
+		List<FileMetadata> files = prepare(false);
 		doReadWrite(files);
 		unprepare(files);
 		return runSimulationAllExpectedToFinish();

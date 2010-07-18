@@ -23,10 +23,15 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.util.LinkedList;
+
 import org.junit.Test;
 
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
@@ -40,7 +45,7 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNod
 
 public class IOTest extends ModelTest {
 
-	MPIFile f;
+	FileMetadata f;
 
 	private void initGlobals(){
 
@@ -118,8 +123,8 @@ public class IOTest extends ModelTest {
 	@Test public void OpenCloseTest() throws Exception{
 		setupOneNodeOneServer(1, IOC.SimpleNoCache());
 
-		pb.addFileOpen(f, world , false);
-		pb.addFileClose(f, world);
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -127,21 +132,89 @@ public class IOTest extends ModelTest {
 	@Test public void Writebehind1Test() throws Exception{
 		setupOneNodeOneServer(1, IOC.SimpleWriteBehindCache());
 
-		pb.addFileOpen(f, world , false);
-
-		pb.addWriteSequential(0, f, 0, MiB);
-		pb.addFileClose(f, world);
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addWriteSequential(0, fd, 0, MiB);
+		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
 	}
 
-	@Test public void CollectiveWrite1Test() throws Exception{
+
+	@Test public void OpenCloseTest3() throws Exception{
+		setupOneNodeOneServer(3, IOC.SimpleNoCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void Writebehind3Test() throws Exception{
+		setupOneNodeOneServer(3, IOC.SimpleWriteBehindCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 3; i++){
+			pb.addWriteSequential(i, fd, i*MiB, MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void NoCache2Test() throws Exception{
 		setupOneNodeOneServer(2, IOC.SimpleNoCache());
 
-		pb.addFileOpen(f, world , false);
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 2; i++){
+			pb.addWriteSequential(i, fd, 0, 200*KiB);
+		}
+		pb.addFileClose(fd);
 
-		// TODO add Test
-		pb.addFileClose(f, world);
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void CollectiveWrite2Test() throws Exception{
+		setupOneNodeOneServer(2, IOC.SimpleNoCache());
+
+		mb.getGlobalSettings().setClientFunctionImplementation(new CommandType("Filewriteall"), "de.hd.pvs.piosim.simulator.program.Filewriteall.Direct");
+
+		LinkedList<ListIO> listIO = new LinkedList<ListIO>();
+
+		ListIO ios = new ListIO();
+		ios.addIOOperation(0, MiB);
+		listIO.add(ios);
+
+		ios = new ListIO();
+		ios.addIOOperation(0, MiB);
+		listIO.add(ios);
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addWriteCollective(fd, listIO);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void CollectiveRead2Test() throws Exception{
+		setupOneNodeOneServer(2, IOC.SimpleNoCache());
+
+		mb.getGlobalSettings().setClientFunctionImplementation(new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.Direct");
+
+		LinkedList<ListIO> listIO = new LinkedList<ListIO>();
+
+		ListIO ios = new ListIO();
+		ios.addIOOperation(0, MiB);
+		listIO.add(ios);
+
+		ios = new ListIO();
+		ios.addIOOperation(0, MiB);
+		listIO.add(ios);
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addReadCollective(fd, listIO);
+		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -149,10 +222,9 @@ public class IOTest extends ModelTest {
 	@Test public void Write1Test() throws Exception{
 		setupOneNodeOneServer(1, IOC.SimpleNoCache());
 
-		pb.addFileOpen(f, world , false);
-
-		pb.addWriteSequential(0, f, 0, MiB);
-		pb.addFileClose(f, world);
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addWriteSequential(0, fd, 0, MiB);
+		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -161,10 +233,9 @@ public class IOTest extends ModelTest {
 	@Test public void Read1Test() throws Exception{
 		setupOneNodeOneServer(1, IOC.SimpleNoCache());
 
-		pb.addFileOpen(f, world , false);
-
-		pb.addReadSequential(0, f, 0, MiB);
-		pb.addFileClose(f, world);
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addReadSequential(0, fd, 0, MiB);
+		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -172,17 +243,16 @@ public class IOTest extends ModelTest {
 
 	@Test public void Read1TestNonBlocking() throws Exception{
 		setupOneNodeOneServer(1, IOC.SimpleNoCache());
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
 
-		pb.addFileOpen(f, world , false);
-
-		pb.addReadSequential(0, f, 0, MiB);
+		pb.addReadSequential(0, fd, 0, MiB);
 		pb.setLastCommandAsynchronous(0);
 
-		pb.addReadSequential(0, f, 0, MiB);
+		pb.addReadSequential(0, fd, 0, MiB);
 		pb.setLastCommandAsynchronous(0);
 
 		pb.addWaitAll(0);
-		pb.addFileClose(f, world);
+		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
 	}

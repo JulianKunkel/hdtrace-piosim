@@ -23,48 +23,10 @@
 
 package de.hd.pvs.piosim.model.program.commands;
 
-import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 
-public class Filewriteall extends FileIOCommand {
-	Communicator comm;
+public class Filewriteall
+	extends FileIOCommand
+{
 
-	long startOffset;
-	long endOffset;
-
-	public Filewriteall(Communicator comm) {
-		this.comm = comm;
-
-		startOffset = -1;
-		endOffset = -1;
-	}
-
-	public Communicator getCommunicator() {
-		return this.comm;
-	}
-
-	public void setListIO(ListIO io) {
-		this.io = io;
-
-		if (io.getIOOperations().size() > 0) {
-			startOffset = io.getIOOperations().get(0).getOffset();
-			endOffset = io.getIOOperations().get(0).getOffset() + io.getIOOperations().get(0).getAccessSize();
-
-			for (SingleIOOperation op : io.getIOOperations())
-			{
-				startOffset = Math.min(startOffset, op.getOffset());
-				endOffset = Math.max(endOffset, op.getOffset() + op.getAccessSize());
-			}
-		}
-	}
-
-	public long getStartOffset() {
-		return startOffset;
-	}
-
-	public long getEndOffset() {
-		return endOffset;
-	}
 }

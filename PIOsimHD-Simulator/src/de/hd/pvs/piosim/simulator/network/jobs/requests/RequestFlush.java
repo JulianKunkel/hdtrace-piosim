@@ -25,7 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.network.jobs.requests;
 
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 
 /**
  * Request to flush a file to disk.
@@ -34,7 +34,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
  *
  */
 public class RequestFlush extends FileRequest {
-	public RequestFlush(MPIFile file){
+	public RequestFlush(FileMetadata file){
 		super(file, 20);
 	}
 }

@@ -28,29 +28,38 @@
  */
 package de.hd.pvs.piosim.model.program.commands.superclasses;
 
-import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNull;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
+import de.hd.pvs.piosim.model.program.Communicator;
 
 /**
  * Superclass for all I/O related operations.
  *
  * @author Julian M. Kunkel
  */
-abstract public class FileCommand extends Command{
-
-	@NotNull
-	@Attribute(xmlName="fid")
-	protected MPIFile file;
+abstract public class FileCommand
+	extends Command
+{
 
 	/**
-	 * @return the file the command should operate on.
+	 * The filedescriptor this file was opened with.
+	 * If it is a file open or close, then the communicator is set explicitly.
 	 */
-	public MPIFile getFile() {
-		return file;
+	private FileDescriptor fd;
+
+	public void setFileDescriptor(FileDescriptor fd) {
+		this.fd = fd;
 	}
 
-	public void setFile(MPIFile file) {
-		this.file = file;
+	public FileDescriptor getFileDescriptor() {
+		return fd;
+	}
+
+	public FileMetadata getFile(){
+		return fd.getFile();
+	}
+
+	public Communicator getCommunicator(){
+		return fd.getCommunicator();
 	}
 }

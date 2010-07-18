@@ -27,9 +27,12 @@ package de.hd.pvs.piosim.model.program;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 import de.hd.pvs.piosim.model.program.commands.Allgather;
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.model.program.commands.Barrier;
@@ -79,30 +82,33 @@ public class ProgramBuilder {
 		appBuilder.addCommand(rank, com);
 	}
 
-	public void addFileOpen(MPIFile file, Communicator communicator, boolean shallTruncate) {
+	public FileDescriptor addFileOpen(FileMetadata file, Communicator communicator, boolean shallTruncate) {
 		Fileopen com = new Fileopen();
-		com.setFile(file);
-		com.setCommunicator(communicator);
+		com.setFileDescriptor( new FileDescriptor(file, communicator));
 		com.setTruncateOnOpen(shallTruncate);
 
-		appBuilder.addCommand(communicator, com);
+		for (Integer rank : communicator.getParticipatingRanks()) {
+			appBuilder.addCommand(rank, com);
+		}
+
+		return new FileDescriptor(file, communicator);
 	}
 
-	public void addFileClose(MPIFile file, Communicator communicator) {
+	public void addFileClose(FileDescriptor fd) {
 		Fileclose com = new Fileclose();
-		com.setFile(file);
-		com.setCommunicator(communicator);
+		com.setFileDescriptor(fd);
 
-		appBuilder.addCommand(communicator, com);
+		for (Integer rank : fd.getCommunicator().getParticipatingRanks()) {
+			appBuilder.addCommand(rank, com);
+		}
 	}
 
-	public void addReadSequential(int rank, MPIFile file, long offset, long seqSize) {
-		addReadFileView(rank, file, null, offset, seqSize);
+	public void addReadSequential(int rank, FileDescriptor fd, long offset, long seqSize) {
+		addReadFileView(rank, fd, null, offset, seqSize);
 	}
 
-	public void addReadFileView(int rank, MPIFile file, FileView view, long offset, long accessSize){
+	public void addReadFileView(int rank, FileDescriptor fd, FileView view, long offset, long accessSize){
 		Fileread com = new Fileread();
-		com.setFile(file);
 		ListIO lio = new ListIO();
 
 		if(view != null){
@@ -111,35 +117,36 @@ public class ProgramBuilder {
 			lio.addIOOperation(offset, accessSize);
 		}
 		com.setListIO(lio);
-		appBuilder.addCommand(rank, com);
+		appBuilder.addCommand(rank, com, fd);
 	}
 
-	public void addWriteSequential(int rank, MPIFile file, long offset, long seqSize) {
+	public void addWriteSequential(int rank, FileDescriptor fd, long offset, long seqSize) {
 		Filewrite com = new Filewrite();
-		com.setFile(file);
 		ListIO lio = new ListIO();
 		lio.addIOOperation(offset, seqSize);
 		com.setListIO(lio);
-		appBuilder.addCommand(rank, com);
+		appBuilder.addCommand(rank, com, fd);
 	}
 
-	public void addReadCollective(Communicator comm, MPIFile file, HashMap<Integer,ListIO> io) {
-		for (Integer rank : comm.getParticipatingRanks()) {
-			Filereadall com = new Filereadall(comm);
-			com.setFile(file);
+	public void addReadCollective(FileDescriptor fd, LinkedList<ListIO> io) {
+		assert(io.size() ==  fd.getCommunicator().getParticipiants().size());
 
-			com.setListIO(io.get(rank));
-			appBuilder.addCommand(rank, com);
+		final Iterator<ListIO> iter =  io.iterator();
+		for (Integer rank : fd.getCommunicator().getParticipatingRanks()) {
+			Filereadall com = new Filereadall();
+			com.setListIO(iter.next());
+			appBuilder.addCommand(rank, com, fd);
 		}
 	}
 
-	public void addWriteCollective(Communicator comm, MPIFile file, HashMap<Integer,ListIO> io) {
-		for (Integer rank : comm.getParticipatingRanks()) {
-			Filewriteall com = new Filewriteall(comm);
-			com.setFile(file);
+	public void addWriteCollective(FileDescriptor fd, LinkedList<ListIO> io) {
+		assert(io.size() ==  fd.getCommunicator().getParticipiants().size());
 
-			com.setListIO(io.get(rank));
-			appBuilder.addCommand(rank, com);
+		final Iterator<ListIO> iter =  io.iterator();
+		for (Integer rank : fd.getCommunicator().getParticipatingRanks()) {
+			Filewriteall com = new Filewriteall();
+			com.setListIO(iter.next());
+			appBuilder.addCommand(rank, com, fd);
 		}
 	}
 

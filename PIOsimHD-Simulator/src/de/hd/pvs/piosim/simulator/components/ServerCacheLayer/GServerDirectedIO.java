@@ -34,7 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
@@ -62,13 +62,13 @@ public class GServerDirectedIO extends GAggregationCache {
 
 	/* Remember the last file and offset to perform contiguous operations,
 	 * when possible. */
-	MPIFile lastFile = null;
+	FileMetadata lastFile = null;
 	long lastOffset = -1;
 	Epoch lastFlush = null;
 
 	/* Use per-file queues to make merging easier. */
-	HashMap<MPIFile, LinkedList<IOJob>> queuedReadJobs = new HashMap<MPIFile, LinkedList<IOJob>>();
-	HashMap<MPIFile, LinkedList<IOJob>> queuedWriteJobs = new HashMap<MPIFile, LinkedList<IOJob>>();
+	HashMap<FileMetadata, LinkedList<IOJob>> queuedReadJobs = new HashMap<FileMetadata, LinkedList<IOJob>>();
+	HashMap<FileMetadata, LinkedList<IOJob>> queuedWriteJobs = new HashMap<FileMetadata, LinkedList<IOJob>>();
 
 	/* Combine as many IOJobs as possible. */
 	private LinkedList<IOJob> mergeReadJobs(LinkedList<IOJob> l) {
@@ -79,7 +79,7 @@ public class GServerDirectedIO extends GAggregationCache {
 		Iterator<IOJob> it;
 		IOJob io = null;
 		List<PendingReadRequest> map = new ArrayList<PendingReadRequest>();
-		MPIFile file = null;
+		FileMetadata file = null;
 
 		/* FIXME: Sort job queue. Real implementations should probably keep the list sorted on insert. */
 		Collections.sort(l, new IOJobComparator());
@@ -205,7 +205,7 @@ public class GServerDirectedIO extends GAggregationCache {
 		LinkedList<IOJob> nl = new LinkedList<IOJob>();
 		Iterator<IOJob> it;
 		IOJob io = null;
-		MPIFile file = null;
+		FileMetadata file = null;
 
 		it = l.iterator();
 
@@ -271,7 +271,7 @@ public class GServerDirectedIO extends GAggregationCache {
 	}
 
 	private IOJob getJob(IOOperation type) {
-		HashMap<MPIFile, LinkedList<IOJob>> queue = null;
+		HashMap<FileMetadata, LinkedList<IOJob>> queue = null;
 
 		LinkedList<IOJob> list = null;
 		LinkedList<IOJob> lastFileList = null;

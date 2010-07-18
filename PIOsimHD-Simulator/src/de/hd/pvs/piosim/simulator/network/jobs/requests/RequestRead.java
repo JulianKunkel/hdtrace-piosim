@@ -26,7 +26,7 @@
 package de.hd.pvs.piosim.simulator.network.jobs.requests;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 
 /**
  * Read a List of I/Os from the server.
@@ -35,7 +35,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
  *
  */
 public class RequestRead extends RequestIO {
-	public RequestRead(ListIO listio, MPIFile file) {
+	public RequestRead(ListIO listio, FileMetadata file) {
 		super(listio, file);
 	}
 }

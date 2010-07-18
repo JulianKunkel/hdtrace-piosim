@@ -31,7 +31,7 @@ import org.junit.Test;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
@@ -97,10 +97,10 @@ public class Individual extends IOTest {
 		super.benchmarkServers();
 	}
 
-	private void createIOOps(List<MPIFile> files, Class ioClass) throws Exception{
+	private void createIOOps(List<FileMetadata> files, Class ioClass) throws Exception{
 		for (int i = 0; i < outerIterations; i += 1) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (MPIFile f : files) {
+				for (FileMetadata f : files) {
 					final FileIOCommand com = (FileIOCommand) ioClass.newInstance();
 
 					final ListIO lio = new ListIO();
@@ -121,11 +121,11 @@ public class Individual extends IOTest {
 		}
 	}
 
-	public void doWrite(List<MPIFile> files) throws Exception {
+	public void doWrite(List<FileMetadata> files) throws Exception {
 		createIOOps(files, Filewrite.class);
 	}
 
-	public void doRead(List<MPIFile> files) throws Exception {
+	public void doRead(List<FileMetadata> files) throws Exception {
 		createIOOps(files, Fileread.class);
 	}
 

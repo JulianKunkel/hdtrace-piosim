@@ -26,7 +26,7 @@
 package de.hd.pvs.piosim.simulator.network.jobs.requests;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 
 /**
  * Write a List of I/Os from the Server.
@@ -34,7 +34,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
  *
  */
 public class RequestWrite extends RequestIO {
-	public RequestWrite(ListIO listio, MPIFile file) {
+	public RequestWrite(ListIO listio, FileMetadata file) {
 		super(listio, file);
 	}
 }

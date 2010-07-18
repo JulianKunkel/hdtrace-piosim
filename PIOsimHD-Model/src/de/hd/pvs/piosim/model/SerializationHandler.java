@@ -42,6 +42,10 @@ public class SerializationHandler {
 	public IDynamicModelComponent createDynamicObjectFromXML(XMLTag xml) throws Exception{
 		final String implementation = xml.getAttribute("implementation");
 
+		if(implementation == null){
+			throw new IllegalArgumentException("Error implementation not found: " + implementation);
+		}
+
 		ConsoleLogger.getInstance().debug(this, "will create: " + implementation);
 
 		return (IDynamicModelComponent) createSerializableObjectFromXML(xml, ((Class<IDynamicModelComponent>) Class.forName(implementation)));

@@ -26,7 +26,7 @@
 package de.hd.pvs.piosim.simulator.network.jobs.requests;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 
 /**
  * Superclass for all different types of I/O requests a server can perform.
@@ -45,7 +45,7 @@ public class RequestIO extends FileRequest {
 	 * @param listio
 	 * @param file
 	 */
-	public RequestIO(ListIO listio, MPIFile file) {
+	public RequestIO(ListIO listio, FileMetadata file) {
 		super(file, 20 + listio.getIOOperations().size() * 8);
 		this.listIO = listio;
 	}

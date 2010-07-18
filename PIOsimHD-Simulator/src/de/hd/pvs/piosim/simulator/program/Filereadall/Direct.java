@@ -47,7 +47,7 @@ public class Direct extends CommandImplementation<Filereadall> {
 		}
 		case (SEND_REQUEST): {
 			Fileread rd = new Fileread();
-			rd.setFile(cmd.getFile());
+			rd.setFileDescriptor(cmd.getFileDescriptor());
 			rd.setListIO(cmd.getListIO());
 
 			OUTresults.invokeChildOperation(rd, CommandProcessing.STEP_COMPLETED, null);

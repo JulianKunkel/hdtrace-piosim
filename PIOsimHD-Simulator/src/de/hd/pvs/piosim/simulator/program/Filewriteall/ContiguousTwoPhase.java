@@ -49,6 +49,21 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class ContiguousTwoPhase extends CommandImplementation<Filewriteall> {
 	final long twoPhaseBufferSize = 8388608;
 
+	public void setListIO(ListIO io) {
+		this.io = io;
+
+		if (io.getIOOperations().size() > 0) {
+			startOffset = io.getIOOperations().get(0).getOffset();
+			endOffset = io.getIOOperations().get(0).getOffset() + io.getIOOperations().get(0).getAccessSize();
+
+			for (SingleIOOperation op : io.getIOOperations())
+			{
+				startOffset = Math.min(startOffset, op.getOffset());
+				endOffset = Math.max(endOffset, op.getOffset() + op.getAccessSize());
+			}
+		}
+	}
+
 	final class FilewriteallWrapper {
 		private Filewriteall command;
 

@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 
 /**
  * Contains the description of an application, i.e. a parallel program consisting of several
@@ -44,7 +44,7 @@ import de.hd.pvs.piosim.model.inputOutput.MPIFile;
 public class Application extends ProjectDescription{
 	private Program [][] processThreadProgramMap = null;
 
-	private HashMap<String, MPIFile>  files = new HashMap<String, MPIFile>();
+	private HashMap<String, FileMetadata>  files = new HashMap<String, FileMetadata>();
 
 	public int getProcessCount() {
 		return processThreadProgramMap.length;
@@ -56,7 +56,7 @@ public class Application extends ProjectDescription{
 		return processThreadProgramMap[process][thread];
 	}
 
-	public Collection<MPIFile> getFiles() {
+	public Collection<FileMetadata> getFiles() {
 		return files.values();
 	}
 
@@ -67,7 +67,7 @@ public class Application extends ProjectDescription{
 	/**
 	 * @return a single file
 	 */
-	public MPIFile getFile(String file) {
+	public FileMetadata getFile(String file) {
 		return files.get(file);
 	}
 
@@ -79,7 +79,7 @@ public class Application extends ProjectDescription{
 	 * Add a new file to the application
 	 * @param file
 	 */
-	public void addFile(MPIFile file) {
+	public void addFile(FileMetadata file) {
 		if(files.containsKey(file.getName())){
 			throw new IllegalArgumentException("File exists multiple times: " + file.getName());
 		}

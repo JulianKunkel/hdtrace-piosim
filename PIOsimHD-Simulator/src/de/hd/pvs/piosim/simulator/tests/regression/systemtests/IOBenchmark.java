@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
-import de.hd.pvs.piosim.model.inputOutput.MPIFile;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
@@ -71,9 +71,9 @@ abstract public class IOBenchmark extends ModelTest {
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
 
-	abstract public void doWrite(List<MPIFile> files) throws Exception;
+	abstract public void doWrite(List<FileMetadata> files) throws Exception;
 
-	abstract public void doRead(List<MPIFile> files) throws Exception;
+	abstract public void doRead(List<FileMetadata> files) throws Exception;
 
 	protected long computeFileSize(){
 		return blockSize * innerNonContigIterations * outerIterations * clientNum;
@@ -112,8 +112,8 @@ abstract public class IOBenchmark extends ModelTest {
 		super.setup( new IODisjointConfiguration(NetworkEdgesC.TenGIGE(), NetworkNodesC.QPI(), clientCluster, serverCluster ) );
 	}
 
-	protected List<MPIFile> prepare(boolean isEmpty) throws Exception {
-		List<MPIFile> files = new ArrayList<MPIFile>();
+	protected List<FileMetadata> prepare(boolean isEmpty) throws Exception {
+		List<FileMetadata> files = new ArrayList<FileMetadata>();
 
 		assert(blockSize > 0);
 
@@ -136,21 +136,21 @@ abstract public class IOBenchmark extends ModelTest {
 		return files;
 	}
 
-	protected void unprepare (List<MPIFile> files) throws Exception {
-		for (MPIFile f : files) {
+	protected void unprepare (List<FileMetadata> files) throws Exception {
+		for (FileMetadata f : files) {
 			pb.addFileClose(f, world);
 		}
 	}
 
 	public SimulationResults writeTest() throws Exception {
-		List<MPIFile> files = prepare(true);
+		List<FileMetadata> files = prepare(true);
 		doWrite(files);
 		unprepare(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
-		List<MPIFile> files = prepare(false);
+		List<FileMetadata> files = prepare(false);
 		doRead(files);
 		unprepare(files);
 		return runSimulationAllExpectedToFinish();
