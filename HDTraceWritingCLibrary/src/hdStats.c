@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <assert.h>
+#include <math.h>
 
 #include "config.h"
 #include "common.h"
@@ -582,6 +583,9 @@ int hdS_commitGroup (
 	int hlen = group->offset - HDS_HEADER_SIZE_LENGTH -1;
 
 	sret = snprintf(group->buffer, HDS_HEADER_SIZE_LENGTH + 1, "%05u", hlen);
+
+	/* printf("Buffer in group %s length: %d \n %s \n END Buffer\n", group->name, hlen, group->buffer); */
+
 	/* since we have already written behind, this cannot happen */
 	assert(sret <= HDS_HEADER_BUF_SIZE - group->offset);
 	assert(sret >= 0);
@@ -941,6 +945,8 @@ int hdS_writeFloatValue (
         float value              /* FLOAT value to write */
         )
 {
+	assert(value != NAN && value != INFINITY);
+
 	assert(sizeof(value) == getValueLength(FLOAT));
 
 	float v = value; /* for debugging output */

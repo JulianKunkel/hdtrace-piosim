@@ -486,6 +486,8 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 	{
 		if (tracingData->sources.CPU_UTIL)
 		{
+			assert(CPUDIFF(total[i]) != 0);
+
 			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
 			WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
@@ -495,6 +497,8 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 		{
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{
+				assert(CPUDIFF(xcpu_total[i]) != 0);
+
 				/* TODO: Check CPU enable state (flags) */
 				valuef = (gfloat)(1.0 - (CPUDIFF(xcpu_idle[i])
 						/ CPUDIFF(xcpu_total[i])));
