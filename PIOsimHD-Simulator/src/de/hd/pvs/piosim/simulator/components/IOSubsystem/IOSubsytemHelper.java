@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: IOSubsytemHelper.java 718 2009-10-16 13:22:41Z kunkel $
+  * @lastmodified    $Date: 2009-10-16 15:22:41 +0200 (Fr, 16. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 718 $
   */
 
 
@@ -25,7 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.components.IOSubsystem;
 
-import de.hd.pvs.piosim.simulator.event.IOJob;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
 public class IOSubsytemHelper {
@@ -35,12 +35,12 @@ public class IOSubsytemHelper {
 	}
 
 	public static void traceIOStart(IGIOSubsystem<?> subsystem, IOJob job, String postFix){
-		subsystem.getSimulator().getTraceWriter().startState(TraceType.IOSERVER, subsystem, job.getType().toString() + postFix);
+		subsystem.getSimulator().getTraceWriter().startState(TraceType.IOSERVER, subsystem, job.getOperationType().toString() + postFix);
 	}
 
 
 	public static void traceIOEnd(IGIOSubsystem<?> subsystem, IOJob job, String postFix){
-		subsystem.getSimulator().getTraceWriter().endState(TraceType.IOSERVER, subsystem, job.getType().toString() + postFix);
+		subsystem.getSimulator().getTraceWriter().endState(TraceType.IOSERVER, subsystem, job.getOperationType().toString() + postFix);
 	}
 
 	public static void traceIOEnd(IGIOSubsystem<?> subsystem, IOJob job){

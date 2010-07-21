@@ -136,6 +136,15 @@ public class NormalCommandsClusterTest extends ModelTest{
 	}
 
 
+
+	@Test public void sendAndRecvEagerTestSMP() throws Exception{
+		setupSMP(2);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendAndRecv(world, 0, 1, 100 * KBYTE, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 	@Test public void sendAndRecvEagerTest() throws Exception{
 		setup(2,1);
 

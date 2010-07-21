@@ -19,11 +19,13 @@ public interface INodeRessources {
 	public void addComputeJob(ComputeJob job);
 
 	/**
-	 * Memory managment, check if enough memory is free
+	 * Memory management, check if enough memory is free
 	 * @param required
 	 * @return
 	 */
 	public boolean isEnoughFreeMemory(long required);
+
+	public long getFreeMemory();
 
 	/**
 	 * Reserve an amount of main memory on this node.

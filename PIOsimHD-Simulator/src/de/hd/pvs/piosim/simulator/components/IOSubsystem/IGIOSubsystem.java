@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: IGIOSubsystem.java 718 2009-10-16 13:22:41Z kunkel $
+  * @lastmodified    $Date: 2009-10-16 15:22:41 +0200 (Fr, 16. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 718 $
   */
 
 
@@ -27,7 +27,7 @@ package de.hd.pvs.piosim.simulator.components.IOSubsystem;
 
 import de.hd.pvs.piosim.model.components.IOSubsystem.IOSubsystem;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
-import de.hd.pvs.piosim.simulator.event.IOJob;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
 
 public interface IGIOSubsystem<Type extends IOSubsystem>

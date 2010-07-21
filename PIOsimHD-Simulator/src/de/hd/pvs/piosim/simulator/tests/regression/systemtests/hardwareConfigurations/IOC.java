@@ -3,12 +3,24 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigur
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.IOSubsystem.IOSubsystem;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
+import de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
 
 public class IOC implements HardwareComponents{
+
+	static public IOSubsystem PVSDiskSimple(){
+		final SimpleDisk iosub = new SimpleDisk();
+
+		iosub.setMaxThroughput(50 * MBYTE);
+		iosub.setMaxConcurrentRequests(1);
+		iosub.setAvgAccessTime(new Epoch(0.005));
+		iosub.setName("IBM");
+
+		return iosub;
+	}
 
 	static public IOSubsystem PVSDisk(){
 		final RefinedDiskModel iosub = new RefinedDiskModel();

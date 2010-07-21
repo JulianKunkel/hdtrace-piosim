@@ -1,8 +1,8 @@
 
-/** Version Control Information $Id$
- * @lastmodified    $Date$
- * @modifiedby      $LastChangedBy$
- * @version         $Revision$
+/** Version Control Information $Id: GSimpleServer.java 779 2010-07-17 18:49:10Z kunkel $
+ * @lastmodified    $Date: 2010-07-17 20:49:10 +0200 (Sa, 17. Jul 2010) $
+ * @modifiedby      $LastChangedBy: kunkel $
+ * @version         $Revision: 779 $
  */
 
 
@@ -75,7 +75,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 
 	private final IServerCacheLayerJobCallback acknowledgeCallback = new ServerCacheLayerJobCallbackAdaptor() {
 		@Override
-		public void JobCompleted(FileRequest req, Object data, Epoch time) {
+		public void JobCompleted(Epoch time, FileRequest req, Object data) {
 			sendAcknowledgeToClient((InterProcessNetworkJobRoutable) data);
 		}
 	};

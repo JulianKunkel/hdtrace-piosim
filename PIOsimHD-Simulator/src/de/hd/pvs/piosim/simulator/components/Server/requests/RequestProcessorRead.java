@@ -11,7 +11,7 @@ import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.ServerCacheLayerJo
 import de.hd.pvs.piosim.simulator.network.Message;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 
 public class RequestProcessorRead
@@ -19,8 +19,8 @@ public class RequestProcessorRead
 {
 	private final IServerCacheLayerJobCallback<Message> ioCallback = new ServerCacheLayerJobCallbackAdaptor<Message>() {
 		@Override
-		public void IORequestPartiallyCompleted(RequestIO req, Message msg, Epoch time, long size) {
-			server.getNetworkInterface().appendAvailableDataToIncompleteSend(msg, size, time);
+		public void ReadPartialData(Epoch time, FileRequest req, Message userdata, long size) {
+			server.getNetworkInterface().appendAvailableDataToIncompleteSend(userdata, size, time);
 		}
 	};
 

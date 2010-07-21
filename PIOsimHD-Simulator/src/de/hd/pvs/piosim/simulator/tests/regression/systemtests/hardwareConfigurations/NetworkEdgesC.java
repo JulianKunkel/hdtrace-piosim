@@ -10,8 +10,9 @@ public class NetworkEdgesC implements HardwareComponents{
 
 	static public SimpleNetworkEdge QPI(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
-		conn.setName("1GBit Ethernet");
+		conn.setName("QPI");
 		conn.setLatency(new Epoch(0.0000001));
+		//conn.setLatency(new Epoch(1.0));
 		conn.setBandwidth(12800 * M);
 		return conn;
 	}
@@ -19,7 +20,7 @@ public class NetworkEdgesC implements HardwareComponents{
 	static public SimpleNetworkEdge GIGE(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("1GBit Ethernet");
-		conn.setLatency(new Epoch(0.00003));
+		conn.setLatency(new Epoch(0.0000003));
 		conn.setBandwidth(117 * MBYTE);
 		return conn;
 	}

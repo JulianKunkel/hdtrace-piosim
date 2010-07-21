@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: GSimpleDisk.java 718 2009-10-16 13:22:41Z kunkel $
+  * @lastmodified    $Date: 2009-10-16 15:22:41 +0200 (Fr, 16. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 718 $
   */
 
 
@@ -28,8 +28,10 @@ package de.hd.pvs.piosim.simulator.components.IOSubsystem;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk;
 import de.hd.pvs.piosim.simulator.base.SSequentialBlockingComponent;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.IOOperationType;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.StreamIOOperation;
 import de.hd.pvs.piosim.simulator.event.Event;
-import de.hd.pvs.piosim.simulator.event.IOJob;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
 
 /**
@@ -52,16 +54,17 @@ public class GSimpleDisk extends SSequentialBlockingComponent<SimpleDisk, IOJob>
 
 	@Override
 	protected Epoch getProcessingTimeOfScheduledJob(IOJob job) {
+		if(job.getOperationType() == IOOperationType.FLUSH){
+			return Epoch.ZERO;
+		}
+
 		return getModelComponent().getAvgAccessTime().add(
-				job.getSize() / (float) getModelComponent().getMaxThroughput()
-				);
+				((StreamIOOperation) job.getOperationData()).getSize() / (float) getModelComponent().getMaxThroughput());
 	}
 
 	@Override
 	protected void jobStarted(Event<IOJob> event, Epoch startTime) {
-		IOJob job = event.getEventData();
-
-		IOSubsytemHelper.traceIOStart(this, job);
+		IOSubsytemHelper.traceIOStart(this, event.getEventData());
 	}
 
 	@Override
@@ -72,7 +75,11 @@ public class GSimpleDisk extends SSequentialBlockingComponent<SimpleDisk, IOJob>
 		IOSubsytemHelper.traceIOEnd(this, job);
 
 		totalOperations++;
-		totalAmountOfData += job.getSize();
+		switch(job.getOperationType()){
+		case READ:
+		case WRITE:
+			totalAmountOfData += ((StreamIOOperation) job.getOperationData()).getSize();
+		}
 
 		//System.out.println(getIdentifier() +  " IOSubsystem " + job);
 

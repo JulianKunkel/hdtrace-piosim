@@ -12,7 +12,7 @@ import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IServerCacheLayerJ
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.ServerCacheLayerJobCallbackAdaptor;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 
 /**
@@ -45,9 +45,8 @@ extends RequestProcessor<RequestWrite>
 	};
 
 	private final IServerCacheLayerJobCallback ioCallback = new ServerCacheLayerJobCallbackAdaptor() {
-
 		@Override
-		public void IORequestPartiallyCompleted(RequestIO req, Object data, Epoch time, long size) {
+		public void WritePartialData(Epoch time, FileRequest req, Object userdata, long size) {
 			//System.out.println("IORequestPartiallyCompleted " + req);
 
 			if( blockedReceives.size() > 0 ){

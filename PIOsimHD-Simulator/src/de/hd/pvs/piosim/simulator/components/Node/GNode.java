@@ -1,8 +1,8 @@
 
-/** Version Control Information $Id$
- * @lastmodified    $Date$
- * @modifiedby      $LastChangedBy$
- * @version         $Revision$
+/** Version Control Information $Id: GNode.java 730 2009-11-01 21:04:35Z kunkel $
+ * @lastmodified    $Date: 2009-11-01 22:04:35 +0100 (So, 01 Nov 2009) $
+ * @modifiedby      $LastChangedBy: kunkel $
+ * @version         $Revision: 730 $
  */
 
 
@@ -89,6 +89,11 @@ implements INodeRessources
 	@Override
 	public boolean isEnoughFreeMemory(long required){
 		return freeMemory > required;
+	}
+
+	@Override
+	public long getFreeMemory() {
+		return freeMemory;
 	}
 
 	/**

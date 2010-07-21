@@ -35,8 +35,8 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
-import de.hd.pvs.piosim.simulator.event.IOJob;
-import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob.IOOperation;
+import de.hd.pvs.piosim.simulator.event.EventData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 
@@ -270,7 +270,7 @@ public class GServerDirectedIO extends GAggregationCache {
 		return nl;
 	}
 
-	private IOJob getJob(IOOperation type) {
+	private EventData getJob(IOOperation type) {
 		HashMap<FileMetadata, LinkedList<IOJob>> queue = null;
 
 		LinkedList<IOJob> list = null;

@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: GNoCache.java 782 2010-07-18 12:42:38Z kunkel $
+  * @lastmodified    $Date: 2010-07-18 14:42:38 +0200 (So, 18. Jul 2010) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 782 $
   */
 
 
@@ -30,7 +30,6 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
@@ -41,8 +40,8 @@ import de.hd.pvs.piosim.simulator.components.IOSubsystem.IGIOSubsystem;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Server.IGRequestProcessingServerInterface;
-import de.hd.pvs.piosim.simulator.event.IOJob;
-import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.IOOperationType;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.StreamIOOperation;
 import de.hd.pvs.piosim.simulator.interfaces.IIOSubsystemCaller;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
@@ -66,12 +65,18 @@ public class GNoCache
 	extends SPassiveComponent<NoCache>
 	implements  IGServerCacheLayer<SPassiveComponent<NoCache>>, IIOSubsystemCaller
 {
-	static protected class InternalIOData<RequestType extends FileRequest> {
+	static protected class InternalIOData {
+		/**
+		 * Callback invoked, once the operation completed.
+		 */
 		final IServerCacheLayerJobCallback callback;
-		final RequestType request;
+		final FileRequest request;
+		/**
+		 * The user data is the data from the layer using the cache layer.
+		 */
 		final Object userData;
 
-		public InternalIOData(RequestType request, Object userData, IServerCacheLayerJobCallback callback) {
+		public InternalIOData(FileRequest request, Object userData, IServerCacheLayerJobCallback callback) {
 			this.request = request;
 			this.callback = callback;
 			this.userData = userData;
@@ -81,80 +86,58 @@ public class GNoCache
 	/**
 	 * How many operations are in the IOsubsystem
 	 */
-	int numberOfScheduledIOOperations = 0;
+	private int numberOfScheduledIOOperations = 0;
 
 	/**
-	 * Queued read operations, read and write operations are split.
+	 *
 	 */
-	LinkedList<IOJob<InternalIOData<RequestRead>>> queuedReadJobs = new LinkedList<IOJob<InternalIOData<RequestRead>>>();
+	private int numberOfPendingIOOperations = 0;
 
-	LinkedList<IOJob<InternalIOData>> queuedWriteJobs = new LinkedList<IOJob<InternalIOData>>();
+	/**
+	 * The I/O Job queue
+	 */
+	private IOJobQueue jobQueue;
 
 	IGRequestProcessingServerInterface serverProcess;
 	INodeRessources nodeRessources;
 	IGIOSubsystem ioSubsystem;
 
-	protected int getNumberOfQueuedOperations(){
-		return queuedReadJobs.size() + queuedWriteJobs.size();
+
+	public GNoCache() {
+		jobQueue = initJobQueue();
 	}
 
-
-	protected IOJob getNextSchedulableJob() {
-		// prefer read requests for write requests
-		IOJob io = null;
-
-		if(  ! queuedReadJobs.isEmpty() &&
-				nodeRessources.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
-		{
-			// reserve memory for READ requests
-			io = queuedReadJobs.poll();
-			nodeRessources.reserveMemory(io.getSize());
-		}
-
-		if(io == null){
-			// pick up a write call
-			long size;
-			long offset;
-
-			io = queuedWriteJobs.poll();
-
-			if(true){
-				size = io.getSize();
-				offset = io.getOffset();
-
-				// try to combine several write operations.
-				while (! queuedWriteJobs.isEmpty()
-						&& io.getFile() == queuedWriteJobs.peek().getFile()
-						&& size + offset ==  queuedWriteJobs.peek().getOffset()
-						&& size + queuedWriteJobs.peek().getSize()  <= getSimulator().getModel().getGlobalSettings().getIOGranularity()
-				)
-				{
-					// TODO: check proper working:
-					io = queuedWriteJobs.poll();
-					size += io.getSize();
-				}
-
-				io = new IOJob(io.getFile(), io.getUserData(), size, offset, io.getType());
-			}
-		}
-		return io;
+	/**
+	 * Override this method to change the job queue.
+	 * @return
+	 */
+	protected IOJobQueue initJobQueue(){
+		return new JobQueueSimple();
 	}
 
 	protected void scheduleNextIOJobIfPossible() {
 		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps()
-				&& getNumberOfQueuedOperations() > 0)
+				&& numberOfPendingIOOperations > 0)
 		{
-			IOJob io = getNextSchedulableJob();
+			final IOJob io = jobQueue.getNextSchedulableJob(nodeRessources.getFreeMemory(),
+					getSimulator().getModel().getGlobalSettings());
 
 			if (io == null){
 				// might happen if there are only read requests but no RAM is available to cache data.
 				return;
 			}
 
-			//logger.info(time + " " + this.getIdentifier() +  " starting I/O " + io);
-			ioSubsystem.startNewIO( io);
+			if(io.getOperationType() == IOOperationType.READ){
+				StreamIOOperation op = (StreamIOOperation) io.getOperationData();
+				assert(nodeRessources.isEnoughFreeMemory(op.getSize()));
+				nodeRessources.reserveMemory(op.getSize());
+			}
 
+			//logger.info(time + " " + this.getIdentifier() +  " starting I/O " + io);
+			numberOfPendingIOOperations-= io.getNumberOfJobs();
 			numberOfScheduledIOOperations++;
+
+			ioSubsystem.startNewIO( io);
 		}
 	}
 
@@ -164,7 +147,7 @@ public class GNoCache
 	@Override
 	public boolean canIPutDataIntoCache(RequestWrite clientJob, long bytesOfWrite) {
 		//System.out.println(numberOfPendingWrites);
-		return queuedWriteJobs.size() == 0;
+		return numberOfPendingIOOperations == 0;
 	}
 
 	@Override
@@ -226,13 +209,20 @@ public class GNoCache
 		}
 	}
 
-	public void dataWrittenCompletelyToDisk(IOJob<InternalIOData<RequestWrite>> job, Epoch endTime) {
-		nodeRessources.freeMemory(job.getSize());
+	public void dataWrittenCompletelyToDisk(IOJob<InternalIOData,?> job, Epoch endTime) {
+		nodeRessources.freeMemory(((StreamIOOperation) (job.getOperationData())).getSize());
 
 		debug("job " + job);
 
-		final InternalIOData<RequestWrite> userData = job.getUserData();
-		userData.callback.IORequestPartiallyCompleted(userData.request, userData.userData, endTime, job.getSize());
+		if(job.getNumberOfJobs() == 1){
+			final InternalIOData data = ((InternalIOData) job.getUserData());
+			data.callback.WritePartialData(endTime, data.request, data.userData, ((StreamIOOperation) job.getOperationData()).getSize() );
+		}else{
+			for(IOJob<InternalIOData,?> sjob  : ((IOJobCoalesced) job).getAggregatedJobs()){
+				final InternalIOData data = sjob.getUserData();
+				data.callback.WritePartialData(endTime, data.request, data.userData,   ((StreamIOOperation) sjob.getOperationData()).getSize());
+			}
+		}
 	}
 
 	///////////////////////////////////READ PATH////////////////////////////////////////////////////////////////
@@ -244,17 +234,27 @@ public class GNoCache
 	}
 
 
-	public void dataReadCompletelyFromDisk(IOJob<InternalIOData<RequestRead>> job, Epoch endTime) {
-		final InternalIOData<RequestRead> data = job.getUserData();
-		data.callback.IORequestPartiallyCompleted(data.request, data.userData, endTime, job.getSize());
+	private void dataReadCompletelyFromDisk(IOJob<InternalIOData,?> job, Epoch endTime) {
+		if(job.getNumberOfJobs() == 1){
+			final InternalIOData data = job.getUserData();
+			data.callback.ReadPartialData(endTime, data.request, data.userData, ((StreamIOOperation) job.getOperationData()).getSize() );
+		}else{
+			for(IOJob<InternalIOData, ?> sjob  : ((IOJobCoalesced) job).getAggregatedJobs()){
+				final InternalIOData data = sjob.getUserData();
+				data.callback.ReadPartialData(endTime, data.request, data.userData,   ((StreamIOOperation) sjob.getOperationData()).getSize());
+			}
+		}
 	}
 
 	@Override
 	public void announceIORequest(RequestFlush req, Object userData, IServerCacheLayerJobCallback callback, Epoch time) {
 		final InternalIOData downLayerUserData = new InternalIOData(req, userData, callback);
 
-		queuedWriteJobs.add(new IOJob<InternalIOData>(
-				req.getFile(), downLayerUserData, 0, 0,  IOOperation.FLUSH));
+		numberOfPendingIOOperations++;
+
+		jobQueue.addIOJob(new IOJob<InternalIOData,IOOperationData>(
+				req.getFile(), downLayerUserData,
+				IOOperationType.FLUSH, null));
 
 		scheduleNextIOJobIfPossible();
 	}
@@ -290,19 +290,26 @@ public class GNoCache
 	}
 
 	protected void addReadIOJob(long size, long offset,  RequestRead req, Object userData, IServerCacheLayerJobCallback callback){
-		final InternalIOData<RequestRead> downLayerUserData = new InternalIOData<RequestRead>(req, userData, callback);
+		final InternalIOData downLayerUserData = new InternalIOData(req, userData, callback);
 
-		queuedReadJobs.add(new IOJob<InternalIOData<RequestRead>>(
-				req.getFile(), downLayerUserData, size, offset,  IOOperation.READ));
+		numberOfPendingIOOperations++;
+
+		jobQueue.addIOJob(new IOJob<InternalIOData,IOOperationData>(
+				req.getFile(), downLayerUserData, IOOperationType.READ,
+				new StreamIOOperation(size, offset)));
 
 		scheduleNextIOJobIfPossible();
 	}
 
 	protected void addWriteIOJob(long size, long offset, RequestWrite req, Object userData, IServerCacheLayerJobCallback callback){
-		final InternalIOData<RequestWrite> internalUserData = new InternalIOData<RequestWrite>(req, userData, callback);
+		final InternalIOData internalUserData = new InternalIOData(req, userData, callback);
 
-		queuedWriteJobs.add(new IOJob<InternalIOData>(
-				req.getFile(), internalUserData, size, offset,  IOOperation.WRITE));
+		numberOfPendingIOOperations++;
+
+		jobQueue.addIOJob(new IOJob<InternalIOData,IOOperationData>(
+				req.getFile(), internalUserData, IOOperationType.WRITE,
+				new StreamIOOperation(size, offset)));
+
 		scheduleNextIOJobIfPossible();
 	}
 
@@ -314,7 +321,7 @@ public class GNoCache
 		numberOfScheduledIOOperations--;
 		scheduleNextIOJobIfPossible();
 
-		switch(job.getType()){
+		switch(job.getOperationType()){
 		case READ:{
 			dataReadCompletelyFromDisk(job, endTime);
 			break;
@@ -323,8 +330,16 @@ public class GNoCache
 			dataWrittenCompletelyToDisk(job, endTime);
 			break;
 		}case FLUSH:{
-			final InternalIOData<RequestFlush> userData = (InternalIOData<RequestFlush>) job.getUserData();
-			userData.callback.JobCompleted(userData.request, userData.userData, endTime);
+
+			if(job.getNumberOfJobs() == 1){
+				final InternalIOData data = ((InternalIOData) job.getUserData());
+				data.callback.JobCompleted(endTime, data.request, data.userData);
+			}else{
+				for(IOJob<InternalIOData,IOOperationData> sjob  : ((IOJobCoalesced) job).getAggregatedJobs()){
+					final InternalIOData data = sjob.getUserData();
+					data.callback.JobCompleted(endTime, data.request, data.userData);
+				}
+			}
 			break;
 		}default:
 			assert(false);

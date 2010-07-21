@@ -2,22 +2,17 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 
 public interface IServerCacheLayerJobCallback<UserData extends Object>
 {
 	/**
-	 * Called if the complete request completed
-	 * @param req
+	 * Called if the request completed, except for read / write path!
 	 * @param time
+	 * @param req
 	 */
-	public void JobCompleted(FileRequest req, UserData data, Epoch time);
+	public void JobCompleted(Epoch time, FileRequest req, UserData data);
 
-	/**
-	 * Called if some data from an IO Request is read/or written
-	 * @param req
-	 * @param time
-	 * @param size
-	 */
-	public void IORequestPartiallyCompleted(RequestIO req, UserData data, Epoch time, long size);
+	public void WritePartialData(Epoch time, FileRequest req, UserData userdata, long size);
+
+	public void ReadPartialData(Epoch time, FileRequest req, UserData userdata, long size);
 }

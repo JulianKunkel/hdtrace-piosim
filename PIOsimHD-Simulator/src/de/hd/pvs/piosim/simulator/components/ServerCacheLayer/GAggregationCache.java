@@ -1,8 +1,8 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
+ /** Version Control Information $Id: GAggregationCache.java 718 2009-10-16 13:22:41Z kunkel $
+  * @lastmodified    $Date: 2009-10-16 15:22:41 +0200 (Fr, 16. Okt 2009) $
+  * @modifiedby      $LastChangedBy: kunkel $
+  * @version         $Revision: 718 $
   */
 
 
@@ -33,8 +33,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.hd.pvs.piosim.simulator.event.IOJob;
-import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob.IOOperation;
+import de.hd.pvs.piosim.simulator.event.EventData;
 
 
 /**
@@ -47,7 +47,7 @@ import de.hd.pvs.piosim.simulator.event.IOJob.IOOperation;
  */
 public class GAggregationCache extends GSimpleWriteBehind {
 
-	private IOJob combineOperation(LinkedList<IOJob> jobQueue, IOOperation type) {
+	private EventData combineOperation(LinkedList<IOJob> jobQueue, IOOperation type) {
 	// pick up a write call
 		long size;
 		long offset;
@@ -109,7 +109,7 @@ public class GAggregationCache extends GSimpleWriteBehind {
 			}
 		}
 
-		IOJob tmp = new IOJob(io.getFile(), size, offset, type);
+		EventData tmp = new IOJob(io.getFile(), size, offset, type);
 
 		if (type == IOOperation.READ) {
 			if (pendingReadRequestMap.get(tmp) == null) {
