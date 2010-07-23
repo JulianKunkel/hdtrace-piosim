@@ -81,6 +81,7 @@ public class GNoCache
 			this.callback = callback;
 			this.userData = userData;
 		}
+
 	}
 
 	/**
@@ -115,7 +116,7 @@ public class GNoCache
 		return new JobQueueSimple();
 	}
 
-	protected void scheduleNextIOJobIfPossible() {
+	final void scheduleNextIOJobIfPossible() {
 		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps()
 				&& numberOfPendingIOOperations > 0)
 		{

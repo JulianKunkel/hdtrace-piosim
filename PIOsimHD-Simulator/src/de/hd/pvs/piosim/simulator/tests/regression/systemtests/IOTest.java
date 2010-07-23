@@ -162,6 +162,33 @@ public class IOTest extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void AggregationCache3Test() throws Exception{
+		setupOneNodeOneServer(3, IOC.AggregationCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 3; i++){
+			pb.addWriteSequential(i, fd, i*MiB, MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void AggregationCache3V10Test() throws Exception{
+		ServerCacheLayer cache = IOC.AggregationCache();
+		cache.setMaxNumberOfConcurrentIOOps(10);
+		setupOneNodeOneServer(3, cache);
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 3; i++){
+			pb.addWriteSequential(i, fd, i*MiB, MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
 	@Test public void Writebehind3OverflowTest() throws Exception{
 		setupOneNodeOneServer(3, IOC.SimpleWriteBehindCache());
 

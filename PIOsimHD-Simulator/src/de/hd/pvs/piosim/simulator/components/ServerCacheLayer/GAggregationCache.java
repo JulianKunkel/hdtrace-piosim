@@ -1,9 +1,9 @@
 
- /** Version Control Information $Id: GAggregationCache.java 718 2009-10-16 13:22:41Z kunkel $
-  * @lastmodified    $Date: 2009-10-16 15:22:41 +0200 (Fr, 16. Okt 2009) $
-  * @modifiedby      $LastChangedBy: kunkel $
-  * @version         $Revision: 718 $
-  */
+/** Version Control Information $Id: GAggregationCache.java 718 2009-10-16 13:22:41Z kunkel $
+ * @lastmodified    $Date: 2009-10-16 15:22:41 +0200 (Fr, 16. Okt 2009) $
+ * @modifiedby      $LastChangedBy: kunkel $
+ * @version         $Revision: 718 $
+ */
 
 
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
@@ -28,17 +28,19 @@
  */
 package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
-import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob.IOOperation;
-import de.hd.pvs.piosim.simulator.event.EventData;
+import de.hd.pvs.piosim.model.GlobalSettings;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.IOOperationType;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.StreamIOOperation;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 
 
 /**
  * Always takes the earliest submitted I/O operation and tries to combine it with as many (overlapping) operations.
+ * First a file is selected, then all READ operations are scheduled, then WRITE operations or FLUSH operations.
+ * Flush operations are not combined at all.
  *
  * No starvation of jobs.
  *
@@ -47,97 +49,123 @@ import de.hd.pvs.piosim.simulator.event.EventData;
  */
 public class GAggregationCache extends GSimpleWriteBehind {
 
-	private EventData combineOperation(LinkedList<IOJob> jobQueue, IOOperation type) {
-	// pick up a write call
-		long size;
-		long offset;
+	@Override
+	protected IOJobQueue initJobQueue(){
+		return new IOJobQueue() {
 
-		List<PendingReadRequest> map = new ArrayList<PendingReadRequest>();
-		IOJob io = jobQueue.poll();
+			/**
+			 * Queued read operations, read and write operations are split.
+			 */
+			final LinkedList<IOJob<?,IOOperationData>> queuedReadJobs = new LinkedList<IOJob<?,IOOperationData>>();
 
-		if(io == null){
-			return null;
-		}
+			/**
+			 * Contains write or flush operations.
+			 */
+			final LinkedList<IOJob<?,IOOperationData>> queuedWriteJobs = new LinkedList<IOJob<?,IOOperationData>>();
 
-		if (type == IOOperation.READ) {
-			map.addAll(pendingReadRequestMap.remove(io));
-		}
+			private IOJob combineIOJobs(LinkedList<IOJob<?,IOOperationData>> list){
+				final IOJob scheduledJob = list.poll();
 
-		size = io.getSize();
-		offset = io.getOffset();
-
-		// try to combine several operations. Runtime: N^2
-		boolean changed = true;
-		outer: while(changed) {
-			Iterator<IOJob> it = jobQueue.iterator();
-			changed = false;
-
-			while(it.hasNext()) {
-				IOJob akt = it.next();
-
-				if( io.getFile() == akt.getFile()) {
-
-					if(size + offset == akt.getOffset()) {
-						// forward combination.
-						if (size + akt.getSize()  > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
-							break outer;
-						}
-
-						size += akt.getSize();
-						if (type == IOOperation.READ) {
-							map.addAll(pendingReadRequestMap.remove(akt));
-						}
-						it.remove();
-						changed = true;
-					}else if( akt.getOffset() + akt.getSize() == offset ) {
-						// backwards combination
-						if (size + akt.getSize()  > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
-							break outer;
-						}
-
-						size += akt.getSize();
-						offset = akt.getOffset();
-
-						if (type == IOOperation.READ) {
-							map.addAll(pendingReadRequestMap.remove(akt));
-						}
-						it.remove();
-						changed = true;
-					}
+				if(scheduledJob == null){
+					return null;
 				}
 
+				if(scheduledJob.getOperationType() ==  IOOperationType.FLUSH){
+					return scheduledJob;
+				}
+
+				// stream I/O:
+				long size;
+				long offset;
+
+				final StreamIOOperation opdata = ((IOJob<?, StreamIOOperation>) scheduledJob).getOperationData();
+
+				final LinkedList<IOJob> combinedOps = new LinkedList<IOJob>();
+
+				size = opdata.getSize();
+				offset = opdata.getOffset();
+
+				// try to combine several operations. Once the data is combined, rerun - Runtime: N^2
+				boolean changed = true;
+				outer:
+					while(changed) {
+						Iterator<IOJob<?, IOOperationData>> it = list.iterator();
+						changed = false;
+
+						while(it.hasNext()) {
+							final IOJob cur = it.next();
+
+							if( cur.getOperationType() == scheduledJob.getOperationType()
+									&& scheduledJob.getFile() == cur.getFile()
+									&& cur.getOperationType() != IOOperationType.FLUSH )
+							{
+								final StreamIOOperation akt = (StreamIOOperation) cur.getOperationData();
+
+								if(size + offset == akt.getOffset()) {
+									// forward combination.
+									if (size + akt.getSize()  > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
+										break outer;
+									}
+
+									size += akt.getSize();
+
+									it.remove();
+									combinedOps.add(cur);
+
+									changed = true;
+								}else if( akt.getOffset() + akt.getSize() == offset ) {
+									// backwards combination
+									if (size + akt.getSize()  > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
+										break outer;
+									}
+
+									size += akt.getSize();
+									offset = akt.getOffset();
+
+									it.remove();
+									combinedOps.add(cur);
+									changed = true;
+								}
+							}
+						}
+					}
+				if( combinedOps.size() == 0){
+					// no manipulation made
+					return scheduledJob;
+				}else{
+					// use a combined operation.
+					return new IOJobCoalesced(scheduledJob.getFile(), scheduledJob.getOperationType(), new StreamIOOperation(size, offset));
+				}
 			}
-		}
 
-		EventData tmp = new IOJob(io.getFile(), size, offset, type);
+			@Override
+			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
+				if(  ! queuedReadJobs.isEmpty() &&
+						freeMemory > (((StreamIOOperation) queuedReadJobs.peek().getOperationData()).getSize())  )
+				{
+					// reserve memory for READ requests
+					return combineIOJobs(queuedReadJobs);
+				}
 
-		if (type == IOOperation.READ) {
-			if (pendingReadRequestMap.get(tmp) == null) {
-				pendingReadRequestMap.put(tmp, new ArrayList<PendingReadRequest>());
+				return combineIOJobs(queuedWriteJobs);
 			}
-			pendingReadRequestMap.get(tmp).addAll(map);
-		}
 
-		return tmp;
+			@Override
+			public void addIOJob(IOJob<InternalIOData, IOOperationData> job) {
+				switch(job.getOperationType()){
+				case FLUSH:
+				case WRITE:
+					queuedWriteJobs.add(job);
+					break;
+				case READ:
+					queuedReadJobs.add(job);
+				}
+			}
+		};
 	}
 
 	@Override
-	protected IOJob getNextSchedulableJob() {
-		// prefer read requests for write requests
-		IOJob io = null;
-		if(  ! queuedReadJobs.isEmpty() &&
-				nodeRessources.isEnoughFreeMemory(queuedReadJobs.peek().getSize())  )
-		{
-			// reserve memory for READ requests
-			io = combineOperation(queuedReadJobs, IOOperation.READ);
-
-			nodeRessources.reserveMemory(io.getSize());
-		}
-
-		if(io == null){
-			io = combineOperation(queuedWriteJobs, IOOperation.WRITE);
-		}
-
-		return io;
+	public boolean canIPutDataIntoCache(RequestWrite clientJob, long bytesOfWrite) {
+		return serverProcess.getNodeRessources().isEnoughFreeMemory(bytesOfWrite);
 	}
 }

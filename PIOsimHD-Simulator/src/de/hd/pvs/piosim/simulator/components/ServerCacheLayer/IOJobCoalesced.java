@@ -16,11 +16,17 @@ import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.IO
  *
  */
 public class IOJobCoalesced extends IOJob<InternalIOData, IOOperationData>{
-	final LinkedList<IOJob<InternalIOData, IOOperationData>> aggregatedJobs = new LinkedList<IOJob<InternalIOData, IOOperationData>>();
+	final LinkedList<IOJob<InternalIOData, IOOperationData>> aggregatedJobs;
 
 	public IOJobCoalesced(FileMetadata file, IOOperationType operationType, IOOperationData operationData) {
 		// does not have any user data!
 		super(file, null, operationType, operationData);
+		aggregatedJobs = new LinkedList<IOJob<InternalIOData, IOOperationData>>();
+	}
+
+	public IOJobCoalesced(FileMetadata file, IOOperationType operationType, IOOperationData operationData,  LinkedList<IOJob<InternalIOData, IOOperationData>> aggregatedJobs) {
+		super(file, null, operationType, operationData);
+		this.aggregatedJobs = aggregatedJobs;
 	}
 
 	protected void addJob(IOJob<InternalIOData, IOOperationData> newJob){

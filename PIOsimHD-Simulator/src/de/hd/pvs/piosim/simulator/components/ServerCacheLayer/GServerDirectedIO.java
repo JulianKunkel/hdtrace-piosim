@@ -34,8 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.piosim.model.GlobalSettings;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
-import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob.IOOperation;
 import de.hd.pvs.piosim.simulator.event.EventData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
@@ -46,6 +46,47 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
  * @author Michael Kuhn
  */
 public class GServerDirectedIO extends GAggregationCache {
+	@Override
+	protected IOJobQueue initJobQueue(){
+		return new IOJobQueue() {
+
+			/**
+			 * Queued read operations, read and write operations are split.
+			 */
+			final LinkedList<IOJob<?,IOOperationData>> queuedReadJobs = new LinkedList<IOJob<?,IOOperationData>>();
+
+			/**
+			 * Contains write or flush operations.
+			 */
+			final LinkedList<IOJob<?,IOOperationData>> queuedWriteJobs = new LinkedList<IOJob<?,IOOperationData>>();
+
+			final LinkedList<IOJob<?,IOOperationData>> queuedFlushJobs = new LinkedList<IOJob<?,IOOperationData>>();
+
+			final FileMetadata fileScheduled = null;
+
+			@Override
+			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
+				return null;
+			}
+
+			@Override
+			public void addIOJob(IOJob<InternalIOData, IOOperationData> job) {
+				switch(job.getOperationType()){
+				case FLUSH:
+					queuedFlushJobs.add(job);
+					break;
+				case WRITE:
+					queuedWriteJobs.add(job);
+					break;
+				case READ:
+					queuedReadJobs.add(job);
+				}
+			}
+
+
+		};
+	}
+
 	final class IOJobComparator implements Comparator<IOJob> {
 		public int compare(IOJob a, IOJob b) {
 			if (a.getOffset() < b.getOffset()) {

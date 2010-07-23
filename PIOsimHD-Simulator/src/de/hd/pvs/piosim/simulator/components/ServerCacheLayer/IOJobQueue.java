@@ -12,6 +12,8 @@ public interface IOJobQueue {
 	/**
 	 * Return the next schedulable job, make sure the amount of memory fits (if read!)
 	 * The job might coalesce many subjobs even from disjoint requests.
+	 * The memory for the job is reserved automatically.
+	 *
 	 * @param freeMemory
 	 * @param settings
 	 * @return
@@ -24,6 +26,4 @@ public interface IOJobQueue {
 	 */
 	public void addIOJob(IOJob<InternalIOData, IOOperationData> job);
 
-	// TODO
-	public boolean shallIScheduleRead();
 }
