@@ -115,7 +115,7 @@ public class RelationXMLWriter {
 	
 	
 	public void startState(RelationToken relation, Epoch time, String name){
-		startState(relation, time, name, null, null, true);
+		startStateInternal(relation, time, name, null, null);
 	}
 
 	/**
@@ -127,6 +127,11 @@ public class RelationXMLWriter {
 	 * @param attrNameValues, vector with name, value pairs.
 	 */
 	public void startState(RelationToken relation, Epoch time,  String name, String childTags, String [] attrNameValues){
+		if(attrNameValues == null){
+			startStateInternal(relation, time, name, childTags, null);
+			return;
+		}
+		
 		if(attrNameValues.length % 2 != 0){
 			throw new IllegalArgumentException("The attributes must be pairs of name and values!");
 		}
@@ -134,13 +139,13 @@ public class RelationXMLWriter {
 		final StringBuffer buff = new StringBuffer();
 		
 		for(int i=0; i < attrNameValues.length; i+=2){
-			buff.append(attrNameValues[i] + "=\"" + attrNameValues[i+1] + "\"");
+			buff.append(" " + attrNameValues[i] + "=\"" + attrNameValues[i+1] + "\"");
 		}
 		
-		startState(relation, time, name, childTags, buff.toString(), true);	
+		startStateInternal(relation, time, name, childTags, buff.toString());	
 	}
 
-	private void startState(RelationToken relation, Epoch time, String name, String childTags, String attributes, boolean f){
+	private void startStateInternal(RelationToken relation, Epoch time, String name, String childTags, String attributes){
 		relation.startedStates++;
 		
 		try{
@@ -148,7 +153,7 @@ public class RelationXMLWriter {
 			writeTokenAndTime(relation.id, time);
 			
 			if(attributes != null){
-				file.write(attributes);
+				file.write(" " + attributes);
 			}
 			
 			if(childTags != null){
@@ -185,7 +190,7 @@ public class RelationXMLWriter {
 			writeTokenAndTime(relation.id, time);
 			
 			if(attributes != null){
-				file.write(attributes);
+				file.write(" " + attributes);
 			}
 			
 			if(childTags != null){

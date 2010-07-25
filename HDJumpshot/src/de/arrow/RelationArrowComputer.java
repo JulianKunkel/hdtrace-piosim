@@ -64,7 +64,10 @@ public class RelationArrowComputer implements ArrowComputer{
 				relManager.addFile(m.getRelationReaderForTimeline(timeline), (TopologyRelationTreeNode) m.getTreeNodeForTimeline(timeline));
 				break;
 			}
-			case RELATION_EXPANDED:{ 		
+			case RELATION_EXPANDED:{
+				if( ((TopologyRelationExpandedTreeNode) m.getTreeNodeForTimeline(timeline)).isTheOnlyRelation()){
+					relManager.addFile(m.getRelationReaderForTimeline(timeline), (TopologyRelationTreeNode) m.getTreeNodeForTimeline(timeline));
+				}
 				relManager.addTopologyTreeNode((TopologyRelationExpandedTreeNode) m.getTreeNodeForTimeline(timeline));
 				break;
 			}			

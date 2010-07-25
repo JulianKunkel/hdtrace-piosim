@@ -42,6 +42,16 @@ public class TopologyRelationExpandedTreeNode extends TopologyRelationTreeNode
 	private static final long serialVersionUID = 3518866075690297655L;
 	
 	private final int line;
+		
+	public TopologyRelationExpandedTreeNode(
+			String label, 
+			TopologyNode topNode,
+			TraceFormatFileOpener file
+	) 
+	{
+		super(label, topNode, file);
+		this.line = 0;		
+	}
 	
 	public TopologyRelationExpandedTreeNode(
 			int line, 
@@ -50,6 +60,10 @@ public class TopologyRelationExpandedTreeNode extends TopologyRelationTreeNode
 	) {
 		super(Integer.toString(line), topNode, file);
 		this.line = line;
+	}
+	
+	public boolean isTheOnlyRelation() {
+		return getRelationSource().getMaximumConcurrentRelationEntries() == 1;
 	}
 
 	@Override

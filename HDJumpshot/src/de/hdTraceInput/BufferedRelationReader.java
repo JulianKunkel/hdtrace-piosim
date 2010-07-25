@@ -48,7 +48,8 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 			// try to check if it fits on a existing line.
 			for(ArrayList<RelationEntry> list: layoutedEntriesSorted){
 				// compare entry time with last entry in the list
-				if(list.get(list.size() -1).getLatestTime().compareTo(entry.getEarliestTime()) <= 0){
+				final Epoch earliest = list.get(list.size() -1).getLatestTime();
+				if(earliest.compareTo(entry.getEarliestTime()) <= 0){
 					// it fits into the old timeline.
 					list.add(entry);
 					continue outer;

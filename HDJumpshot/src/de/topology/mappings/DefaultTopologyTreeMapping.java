@@ -19,8 +19,10 @@ package de.topology.mappings;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hdTraceInput.BufferedRelationReader;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
 import de.topology.TopologyInnerNode;
+import de.topology.TopologyRelationExpandedTreeNode;
 import de.topology.TopologyRelationTreeNode;
 import de.topology.TopologyTraceTreeNode;
 import de.topology.TopologyTreeNode;
@@ -50,8 +52,13 @@ public class DefaultTopologyTreeMapping extends TopologyTreeMapping{
 			node = new TopologyTraceTreeNode(topology.getName(), topology, file);
 		}else if (topology.getRelationSource() != null){
 			// TODO fix case:  Trace != null AND relation != null
-			node = new TopologyRelationTreeNode(topology.getName(), topology, file);
-			addRelationTreeNodeChildrenTo((TopologyRelationTreeNode) node);
+			
+			if(((BufferedRelationReader) topology.getRelationSource()).getMaximumConcurrentRelationEntries() == 1){
+				node = new TopologyRelationExpandedTreeNode(topology.getName(), topology , file);
+			}else{				
+				node = new TopologyRelationTreeNode(topology.getName(), topology, file);
+				addRelationTreeNodeChildrenTo((TopologyRelationTreeNode) node);
+			}
 		}else{
 			node = new TopologyInnerNode(topology, file);			
 		}
