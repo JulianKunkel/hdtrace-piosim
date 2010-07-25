@@ -38,9 +38,9 @@ import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
@@ -60,6 +60,7 @@ import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.event.InternalEvent;
 import de.hd.pvs.piosim.simulator.inputOutput.IORedirectionHelper;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.output.STraceWriter;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 import de.hd.pvs.piosim.simulator.program.IWaitCommand;
@@ -353,21 +354,26 @@ public class GClientProcess
 		}
 	}
 
-	private void traceCommand(Command cmd, CommandImplementation cme, boolean start){
+	private void traceCommand(CommandProcessing step, Command cmd, CommandImplementation cme, boolean start){
+		if(cmd.getClass() == Compute.class){
+			return;
+		}
+
 		final String string = cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName();
 
+		final STraceWriter tw = getSimulator().getTraceWriter();
+
 		if(start == false) {
-			if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class){
-				getSimulator().getTraceWriter().endState(TraceType.CLIENT, this, string);
-			}else{
-				getSimulator().getTraceWriter().event(TraceType.CLIENT, this, string + " end", 0);
-			}
+			tw.relEndState(TraceType.CLIENT, this, step.getRelationToken());
+			tw.relDestroy(TraceType.CLIENT, this, step.getRelationToken());
 		}else {
-			if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class){
-				getSimulator().getTraceWriter().startState(TraceType.CLIENT, this, string);
+			if(step.getParentOperation() != null){
+				step.setRelationToken(tw.relRelateProcessLocalToken(step.getParentOperation().getRelationToken(), TraceType.CLIENT, this));
 			}else{
-				getSimulator().getTraceWriter().event(TraceType.CLIENT, this, string + " start", 0);
+				step.setRelationToken(tw.relCreateTopLevelRelation(TraceType.CLIENT, this));
 			}
+
+			tw.relStartState(TraceType.CLIENT, this, step.getRelationToken(), string);
 		}
 	}
 
@@ -387,7 +393,7 @@ public class GClientProcess
 		//TODO statistic.totalTimeSpend =  new Time(time.subtract(commandStartTime), statistic.totalTimeSpend);
 		statistic.calls++;
 
-		traceCommand(cmd, cme, false);
+		traceCommand(step, cmd, cme, false);
 		// check if it is a nested operation
 		if ( step.isNestedOperation() ){
 			final CommandProcessing parent = step.getParentOperation();
@@ -523,13 +529,14 @@ public class GClientProcess
 		try{
 			if(shallCompute){
 				if(nextStep == CommandProcessing.STEP_START){
-					traceCommand(cmd, cme, true);
+					traceCommand(cmdStep, cmd, cme, true);
 				}
 
-				if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
-					getSimulator().getTraceWriter().startState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);
-				}
+				//if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
+				//	getSimulator().getTraceWriter().startState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);
+				//}
 
+				getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, this, cmdStep.getRelationToken(), cmd.getClass().getSimpleName() + " s" + nextStep);
 
 				/*
 				 * in order to make a single call visible we have to make sure that the simulator time increases between two
@@ -550,9 +557,11 @@ public class GClientProcess
 				pendingComputeJobs.put(job, cmdStep);
 
 				return ; /* we shall not run the command directly, instead wait for a time */
-			}else if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
-				getSimulator().getTraceWriter().endState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);
 			}
+			//else if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
+			//	getSimulator().getTraceWriter().endState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);
+			//}
+			getSimulator().getTraceWriter().relEndState(TraceType.CLIENT_STEP, this, cmdStep.getRelationToken());
 
 			/* now run the appropriate command to generate new events */
 			debug("processing step: " + nextStep + " cmd: " + cmd);

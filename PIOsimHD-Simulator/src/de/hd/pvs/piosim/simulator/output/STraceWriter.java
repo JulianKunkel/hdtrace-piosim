@@ -188,6 +188,8 @@ abstract public class STraceWriter {
 		if(! isTracableComponent(type))
 			return;
 
+		assert(relation != null);
+
 		relDestroyInternal(comp, relation, getTimeEpoch());
 	}
 

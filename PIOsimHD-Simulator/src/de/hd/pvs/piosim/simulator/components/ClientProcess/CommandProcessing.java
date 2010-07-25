@@ -25,6 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.components.ClientProcess;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
@@ -101,6 +102,9 @@ public class CommandProcessing{
 	 */
 	boolean     blockingForced ;
 
+
+	RelationToken 	relationToken;
+
 	/**
 	 * Create a new result of a command
 	 * @param networkJobs
@@ -115,6 +119,14 @@ public class CommandProcessing{
 		this.invokingComponent = invokingComponent;
 		this.startTime = startTime;
 		resetState();
+	}
+
+	public RelationToken getRelationToken() {
+		return relationToken;
+	}
+
+	public void setRelationToken(RelationToken relationToken) {
+		this.relationToken = relationToken;
 	}
 
 	/**
