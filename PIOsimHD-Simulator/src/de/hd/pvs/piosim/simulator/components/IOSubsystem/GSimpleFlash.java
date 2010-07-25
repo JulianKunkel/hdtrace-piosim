@@ -93,7 +93,7 @@ public class GSimpleFlash extends SSequentialBlockingComponent<SimpleFlash, IOJo
 	@Override
 	public void startNewIO(IOJob job) {
 		Epoch time = getSimulator().getVirtualTime();
-		addNewEvent(new Event<IOJob>(this, this,  time, job));
+		addNewEvent(new Event<IOJob>(this, this,  time, job, null));
 
 		startNextPendingEventIfPossible(time);
 	}

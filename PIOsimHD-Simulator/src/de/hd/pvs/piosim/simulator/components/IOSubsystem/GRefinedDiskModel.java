@@ -181,13 +181,13 @@ implements IGIOSubsystem<RefinedDiskModel>
 		// first run I/O jobs, then flush operations:
 		if(pendingJobsWithLargerOffset.size() > 0){
 			pendingIOs--;
-			return new Event(this, this, Epoch.ZERO, pendingJobsWithLargerOffset.poll());
+			return new Event(this, this, Epoch.ZERO, pendingJobsWithLargerOffset.poll(), null);
 		}
 
 		if(pendingFlushOperations.size() > 0){
 			pendingIOs--;
 			// run flush operations.
-			return new Event(this, this, Epoch.ZERO, pendingFlushOperations.poll());
+			return new Event(this, this, Epoch.ZERO, pendingFlushOperations.poll(), null);
 		}
 
 		// no more ops for current file

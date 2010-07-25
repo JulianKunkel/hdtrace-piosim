@@ -358,22 +358,21 @@ public class GClientProcess
 		if(cmd.getClass() == Compute.class){
 			return;
 		}
-
-		final String string = cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName();
-
 		final STraceWriter tw = getSimulator().getTraceWriter();
 
 		if(start == false) {
-			tw.relEndState(TraceType.CLIENT, this, step.getRelationToken());
-			tw.relDestroy(TraceType.CLIENT, this, step.getRelationToken());
-		}else {
-			if(step.getParentOperation() != null){
-				step.setRelationToken(tw.relRelateProcessLocalToken(step.getParentOperation().getRelationToken(), TraceType.CLIENT, this));
+			if(cmd.isAsynchronous()){
+				tw.relEndState(TraceType.CLIENT, this, step.getRelationToken(), null, new String[] {"aid", "" + cmd.getAsynchronousID()});
 			}else{
-				step.setRelationToken(tw.relCreateTopLevelRelation(TraceType.CLIENT, this));
+				tw.relEndState(TraceType.CLIENT, this, step.getRelationToken());
 			}
 
-			tw.relStartState(TraceType.CLIENT, this, step.getRelationToken(), string);
+			if(step.getParentOperation() == null || step.getParentOperation().getNestedOperations().length > 1){
+				tw.relDestroy(TraceType.CLIENT, this, step.getRelationToken());
+			}
+		}else {
+			tw.relStartState(TraceType.CLIENT, this, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
+					cme.getAdditionalTraceTag(cmd), cme.getAdditionalTraceAttributes(cmd));
 		}
 	}
 
@@ -652,7 +651,7 @@ public class GClientProcess
 			if (cmd == null)
 				return;
 
-			newJob = new CommandProcessing(cmd, this, time);
+			newJob = new CommandProcessing(cmd, this, time, getSimulator().getTraceWriter().relCreateTopLevelRelation(TraceType.CLIENT, this));
 			newJob.setNextStep(CommandProcessing.STEP_START);
 			processCommandStep(newJob, time, true);
 

@@ -45,13 +45,13 @@ public class RequestProcessorRead
 						reqCrit.getTag(),
 						reqCrit.getCommunicator(), NetworkIOData.class),
 						new NetworkIOData(req),
-						dataCallback, server.getModelComponent(), request.getOriginalSource());
+						dataCallback, server.getModelComponent(), request.getOriginalSource(), request.getRelationToken());
 
 		final Message<InterProcessNetworkJobRoutable> msg = new Message<InterProcessNetworkJobRoutable>(
 				resp.getSize(),
 				resp,
 				server.getNetworkInterface().getModelComponent(),
-				resp.getMatchingCriterion().getTargetComponent().getNetworkInterface() );
+				resp.getMatchingCriterion().getTargetComponent().getNetworkInterface(), request.getRelationToken() );
 
 		// wait for data to send:
 		msg.setAvailableDataPosition(0);

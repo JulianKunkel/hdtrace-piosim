@@ -129,7 +129,7 @@ abstract public class STraceWriter {
 	 * @param type
 	 * @return
 	 */
-	private boolean isTracableComponent(TraceType type){
+	public boolean isTracableComponent(TraceType type){
 		if(! sim.getRunParameters().isTraceEnabled())
 			return false;
 

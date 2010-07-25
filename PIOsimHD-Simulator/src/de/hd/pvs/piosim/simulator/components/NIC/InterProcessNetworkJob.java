@@ -28,6 +28,7 @@
  */
 package de.hd.pvs.piosim.simulator.components.NIC;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
 /**
@@ -54,18 +55,20 @@ public class InterProcessNetworkJob implements IMessageUserData{
 
 	final private IInterProcessNetworkJobCallback callbacks;
 
+	final RelationToken relationToken;
+
 	/**
 	 * Creates a new NewNetworkJob which receives data from the source.
 	 * @return
 	 */
-	static public InterProcessNetworkJob createReceiveOperation(MessageMatchingCriterion matchingCriterion, IInterProcessNetworkJobCallback callback)
+	static public InterProcessNetworkJob createReceiveOperation(MessageMatchingCriterion matchingCriterion, IInterProcessNetworkJobCallback callback, RelationToken relationToken)
 	{
-		return new InterProcessNetworkJob(InterProcessNetworkJobType.RECEIVE, null, matchingCriterion, callback);
+		return new InterProcessNetworkJob(InterProcessNetworkJobType.RECEIVE, null, matchingCriterion, callback, relationToken);
 	}
 
-	static public InterProcessNetworkJob createSendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, IInterProcessNetworkJobCallback callback)
+	static public InterProcessNetworkJob createSendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, IInterProcessNetworkJobCallback callback, RelationToken relationToken)
 	{
-		return new InterProcessNetworkJob(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, callback);
+		return new InterProcessNetworkJob(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, callback, relationToken);
 	}
 
 	/**
@@ -75,7 +78,8 @@ public class InterProcessNetworkJob implements IMessageUserData{
 	 */
 	protected InterProcessNetworkJob(InterProcessNetworkJobType operation, IMessageUserData jobData,
 			MessageMatchingCriterion matchingCriterion,
-			IInterProcessNetworkJobCallback callbacks)
+			IInterProcessNetworkJobCallback callbacks,
+			RelationToken relationToken)
 	{
 
 		assert(matchingCriterion != null);
@@ -86,6 +90,7 @@ public class InterProcessNetworkJob implements IMessageUserData{
 
 		this.jobData = jobData;
 		this.callbacks = callbacks;
+		this.relationToken = relationToken;
 	}
 
 	public MessageMatchingCriterion getMatchingCriterion() {
@@ -111,6 +116,10 @@ public class InterProcessNetworkJob implements IMessageUserData{
 	@Override
 	public String toString() {
 		return getJobOperation() + "<" + matchingCriterion.toString() + " data:" + jobData  + ">";
+	}
+
+	public RelationToken getRelationToken() {
+		return relationToken;
 	}
 
 	@Override

@@ -25,6 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.network;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 
@@ -41,6 +42,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	final private INetworkExit targetComponent;
 
 	final private INetworkEntry sourceComponent;
+
+	final RelationToken relationToken;
 
 	/**
 	 * The total size of this message.
@@ -103,7 +106,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param job
 	 * @param flowPart
 	 */
-	public Message(long size, Data containedData, INetworkEntry sourceComponent, INetworkExit targetComponent) {
+	public Message(long size, Data containedData, INetworkEntry sourceComponent, INetworkExit targetComponent, RelationToken parentToken) {
 		assert(targetComponent != null);
 		assert(sourceComponent != null);
 
@@ -112,6 +115,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 		this.containedData = containedData;
 		this.targetComponent = targetComponent;
 		this.sourceComponent = sourceComponent;
+		this.relationToken = parentToken;
 	}
 
 	public void setAvailableDataPosition(long size){
@@ -189,5 +193,9 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	@Override
 	public INetworkEntry getMessageSource() {
 		return sourceComponent;
+	}
+
+	public RelationToken getRelationToken() {
+		return relationToken;
 	}
 }

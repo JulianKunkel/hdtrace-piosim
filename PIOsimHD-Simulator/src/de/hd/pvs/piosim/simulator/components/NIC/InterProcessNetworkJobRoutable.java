@@ -28,6 +28,7 @@
  */
 package de.hd.pvs.piosim.simulator.components.NIC;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 
@@ -43,14 +44,14 @@ public class InterProcessNetworkJobRoutable extends InterProcessNetworkJob{
 	final private INodeHostedComponent originalSource;
 	final private INodeHostedComponent finalTarget;
 
-	static public InterProcessNetworkJobRoutable createRoutableSendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, IInterProcessNetworkJobCallback callback, INodeHostedComponent originalSource, INodeHostedComponent finalTarget)
+	static public InterProcessNetworkJobRoutable createRoutableSendOperation(MessageMatchingCriterion matchingCriterion, IMessageUserData jobData, IInterProcessNetworkJobCallback callback, INodeHostedComponent originalSource, INodeHostedComponent finalTarget, RelationToken relationToken)
 	{
-		return new InterProcessNetworkJobRoutable(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, callback, originalSource, finalTarget);
+		return new InterProcessNetworkJobRoutable(InterProcessNetworkJobType.SEND, jobData, matchingCriterion, callback, originalSource, finalTarget, relationToken);
 	}
 
 	public InterProcessNetworkJobRoutable(InterProcessNetworkJobType operation, IMessageUserData jobData,
-			MessageMatchingCriterion matchingCriterion,	IInterProcessNetworkJobCallback callback, INodeHostedComponent originalSource, INodeHostedComponent finalTarget) {
-		super(operation, jobData, matchingCriterion, callback);
+			MessageMatchingCriterion matchingCriterion,	IInterProcessNetworkJobCallback callback, INodeHostedComponent originalSource, INodeHostedComponent finalTarget, RelationToken relationToken) {
+		super(operation, jobData, matchingCriterion, callback, relationToken);
 		this.originalSource = originalSource;
 		this.finalTarget = finalTarget;
 	}

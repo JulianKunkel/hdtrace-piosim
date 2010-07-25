@@ -36,6 +36,7 @@ import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -103,7 +104,7 @@ public class CommandProcessing{
 	boolean     blockingForced ;
 
 
-	RelationToken 	relationToken;
+	final RelationToken 	relationToken;
 
 	/**
 	 * Create a new result of a command
@@ -113,20 +114,18 @@ public class CommandProcessing{
 	public CommandProcessing(
 			Command invokingCommand,
 			GClientProcess invokingComponent,
-			Epoch startTime)
+			Epoch startTime,
+			RelationToken relationToken)
 	{
 		this.invokingCommand = invokingCommand;
 		this.invokingComponent = invokingComponent;
 		this.startTime = startTime;
 		resetState();
+		this.relationToken = relationToken;
 	}
 
 	public RelationToken getRelationToken() {
 		return relationToken;
-	}
-
-	public void setRelationToken(RelationToken relationToken) {
-		this.relationToken = relationToken;
 	}
 
 	/**
@@ -178,15 +177,22 @@ public class CommandProcessing{
 		for(int i=0; i < nestedCmd.length; i++){
 			final Command cmd = nestedCmd[i];
 
-			if(nestedCmd.length != 1){
-				cmd.setAsynchronousID(-1);
+			cmd.setProgram(getInvokingCommand().getProgram());
+
+			final RelationToken relation;
+
+			if(nestedCmd.length == 1){
+				relation = this.relationToken;
+			}else{ // > 0
+				// create a new relation token.
+				relation = this.getInvokingComponent().getSimulator().getTraceWriter().relRelateProcessLocalToken(getRelationToken(), TraceType.CLIENT, this.getInvokingComponent());
 			}
 
-			cmd.setProgram(getInvokingCommand().getProgram());
 
 			CommandProcessing childOp = new CommandProcessing(
 					cmd, getInvokingComponent(),
-					getInvokingComponent().getSimulator().getVirtualTime());
+					getInvokingComponent().getSimulator().getVirtualTime(),
+					relation);
 
 			if(enforceProcessingMethod != null){
 				childOp.enforcedProcessingMethod = enforceProcessingMethod[i];
@@ -292,7 +298,8 @@ public class CommandProcessing{
 	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createReceiveOperation( new MessageMatchingCriterion(
-						from, getInvokingComponent().getModelComponent(), tag, comm, matchMessageType), getInvokingComponent().getCallback() ));
+						from, getInvokingComponent().getModelComponent(), tag, comm, matchMessageType), getInvokingComponent().getCallback()
+						,relationToken ) );
 	}
 
 	/**
@@ -317,7 +324,7 @@ public class CommandProcessing{
 				InterProcessNetworkJob.createSendOperation(
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
 								to, tag, comm, jobData.getClass()),
-						jobData, getInvokingComponent().getCallback() ));
+						jobData, getInvokingComponent().getCallback() ,relationToken ));
 	}
 
 	final public void addNetSendRoutable(ClientProcess client, INodeHostedComponent finalTarget,
@@ -328,7 +335,7 @@ public class CommandProcessing{
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
 								nextHop, tag, comm, jobData.getClass()),
 						jobData, getInvokingComponent().getCallback(),
-						client, finalTarget)	);
+						client, finalTarget ,relationToken )	);
 	}
 
 	final public void addNetJob(InterProcessNetworkJob job){

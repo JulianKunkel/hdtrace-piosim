@@ -38,7 +38,7 @@ public class GEntryNode extends AGNetworkNode<NetworkNode>
 
 		if(newPart != null){
 			Epoch time = getSimulator().getVirtualTime();
-			Event<MessagePart> event = new Event<MessagePart>(this, this, time ,newPart);
+			Event<MessagePart> event = new Event<MessagePart>(this, this, time ,newPart, message.getRelationToken());
 
 			getSimulator().submitNewEvent(event);
 			return;
@@ -55,7 +55,7 @@ public class GEntryNode extends AGNetworkNode<NetworkNode>
 		msgP = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
 		assert (msgP != null); /* does not make any sense to send an empty message */
 
-		final Event<MessagePart> event = new Event(this, this, time,  msgP);
+		final Event<MessagePart> event = new Event(this, this, time,  msgP, msg.getRelationToken());
 		getSimulator().submitNewEvent(event);
 	}
 
@@ -65,7 +65,7 @@ public class GEntryNode extends AGNetworkNode<NetworkNode>
 
 		if(newMsgPart != null){
 			/* create a new event to upload */
-			Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart);
+			Event<MessagePart> partEvent = new Event<MessagePart>( this, this, endTime, newMsgPart, part.getMessage().getRelationToken());
 			addNewEvent(partEvent);
 		}
 	}

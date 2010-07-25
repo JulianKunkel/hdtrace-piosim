@@ -31,11 +31,13 @@ package de.hd.pvs.piosim.simulator.base;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
+import de.hd.pvs.piosim.simulator.output.STraceWriter;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
 /**
@@ -111,6 +113,8 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	 * The total number of jobs.
 	 */
 	private int numberOfPendingJobs = 0;
+
+	private RelationToken jobToken;
 
 	/**
 	 * The maximum time a job can require in this component.
@@ -306,7 +310,6 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 			if( pendingEvents.usedLatency.compareTo(getMaxTimeToTransferAJobToTheNextComponent()) >= 0 ){
 				// now we have enough components in flight => block
 				pendingEvents.blockedByLatency = true;
-				//getSimulator().getTraceWriter().event(TraceType.INTERNAL, this, "Block", 1);
 			}
 
 			debugFollowUpLine("pending runtime: " + pendingEvents.usedLatency);
@@ -323,7 +326,18 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	final public void jobStarted(Event<MessagePart> event, Epoch startTime) {
 		debug( this.getIdentifier() + " issuing comp: " +  event.getIssuingComponent().getIdentifier());
 
-		getSimulator().getTraceWriter().startState(TraceType.INTERNAL, this, buildTraceEntry(event.getEventData()));
+		final STraceWriter tw = getSimulator().getTraceWriter();
+		if(tw.isTracableComponent(TraceType.INTERNAL)){
+			if(event.getRelationToken() != null){
+				jobToken = tw.relRelateProcessLocalToken(event.getRelationToken(), TraceType.INTERNAL, this);
+			}else{
+				jobToken = tw.relCreateTopLevelRelation(TraceType.INTERNAL, this);
+			}
+			tw.relStartState(TraceType.INTERNAL, this, jobToken, buildTraceEntry(event.getEventData()));
+		}else{
+			jobToken = event.getRelationToken();
+		}
+
 
 		/**
 		 * special case for NIC which generates new events.
@@ -359,7 +373,9 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	final public void jobCompleted(Event<MessagePart> event, Epoch endTime) {
 		debug( " event " + event);
 
-		getSimulator().getTraceWriter().endState(TraceType.INTERNAL, this, buildTraceEntry(event.getEventData()));
+		final STraceWriter tw = getSimulator().getTraceWriter();
+		tw.relEndState(TraceType.INTERNAL, this, jobToken);
+		tw.relDestroy(TraceType.INTERNAL, this, jobToken);
 
 		//System.out.println( this.getIdentifier() +  " jobCompleted " + " " + event.getEventData() );
 
@@ -397,6 +413,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		if( targetComponent == null ){
 			messagePartDestroyed(part, endTime);
 			continueProcessingOfFlow(part.getMessageTarget(), part, endTime, this);
+
 			return;
 		}
 
@@ -404,7 +421,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		final Event newEvent = new Event(this,
 				targetComponent,
 				endTime.add(getProcessingLatency()),
-				event.getEventData());
+				event.getEventData(), jobToken);
 
 		getSimulator().submitNewEvent( newEvent);
 	}

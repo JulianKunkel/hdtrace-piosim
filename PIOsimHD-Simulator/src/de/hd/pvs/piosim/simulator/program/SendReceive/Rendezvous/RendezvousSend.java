@@ -81,4 +81,9 @@ public class RendezvousSend extends CommandImplementation<Send>
 
 		return;
 	}
+
+	@Override
+	public String[] getAdditionalTraceAttributes(Send cmd) {
+		return new String[] { "toRank",  cmd.getToRank() + "", "size", cmd.getSize() + "", "toTag", ""+ cmd.getToTag() };
+	}
 }

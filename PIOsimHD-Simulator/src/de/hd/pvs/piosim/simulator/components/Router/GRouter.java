@@ -49,18 +49,18 @@ public class GRouter extends SPassiveComponent<Router>
 				final INodeHostedComponent nextHop = IORedirectionHelper.getNextHopFor(request.getFinalTarget(), ioRedirection, getSimulator().getModel());
 
 				final InterProcessNetworkJobRoutable newJob = InterProcessNetworkJobRoutable.createRoutableSendOperation(
-						new MessageMatchingCriterion(getModelComponent(),
-								nextHop,	crit.getTag() , crit.getCommunicator(), crit.getMatchMessageType()),
+						new MessageMatchingCriterion(getModelComponent(), nextHop,	crit.getTag() , crit.getCommunicator(), crit.getMatchMessageType()),
 								remoteJob.getJobData(), callback,
-								request.getOriginalSource(), request.getFinalTarget());
-
+								request.getOriginalSource(), request.getFinalTarget(),
+								remoteJob.getRelationToken()
+								);
 
 				//System.out.println("Forwarding from " + request.getOriginalSource() + " to " + request.getFinalTarget() + " via " + nextHop);
 
 				forwardingMsg = new Message<InterProcessNetworkJobRoutable>(newJob.getSize(),
 						newJob,
 						getNetworkInterface().getModelComponent(),
-						request.getFinalTarget().getNetworkInterface());
+						request.getFinalTarget().getNetworkInterface(), part.getMessage().getRelationToken());
 
 				forwardingMsg.setAvailableDataPosition(0);
 
@@ -81,10 +81,11 @@ public class GRouter extends SPassiveComponent<Router>
 	};
 
 	private void submitRecv(){
-		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
-				new MessageMatchingCriterion(null, this.getModelComponent(),
-					MessageMatchingCriterion.ANY_TAG,  Communicator.ANY_COMMUNICATOR, null),
-				callback), getSimulator().getVirtualTime());
+		networkInterface.initiateInterProcessReceive(
+				InterProcessNetworkJob.createReceiveOperation(
+				new MessageMatchingCriterion(null, this.getModelComponent(),	MessageMatchingCriterion.ANY_TAG,  Communicator.ANY_COMMUNICATOR, null)
+				,callback, null),
+				getSimulator().getVirtualTime());
 	}
 
 	@Override

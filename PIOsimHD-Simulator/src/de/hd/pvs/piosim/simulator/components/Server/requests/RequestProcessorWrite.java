@@ -93,9 +93,8 @@ extends RequestProcessor<RequestWrite>
 				new MessageMatchingCriterion(
 						reqCrit.getSourceComponent(), server.getModelComponent(),
 						reqCrit.getTag(),
-						reqCrit.getCommunicator(), NetworkIOData.class
-						),
-						dataCallback);
+						reqCrit.getCommunicator(), NetworkIOData.class),
+						dataCallback, request.getRelationToken());
 
 		server.getNetworkInterface().initiateInterProcessReceive(resp, time);
 	}

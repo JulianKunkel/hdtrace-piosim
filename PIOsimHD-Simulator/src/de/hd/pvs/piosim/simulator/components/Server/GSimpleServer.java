@@ -142,7 +142,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 						reqCrit.getTag(),
 						reqCrit.getCommunicator(), ServerAcknowledge.class),
 						new ServerAcknowledge(15), dummyCallback,
-						getModelComponent(), request.getOriginalSource());
+						getModelComponent(), request.getOriginalSource(), request.getRelationToken());
 
 		assert(getModelComponent() != request.getOriginalSource());
 
@@ -152,9 +152,9 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 
 	private void submitRecv(){
 		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
-				new MessageMatchingCriterion(null, this.getModelComponent(), MessageMatchingCriterion.ANY_TAG ,
-						Communicator.IOSERVERS,  RequestIO.class),
-						unexpectedCallback), getSimulator().getVirtualTime());
+				new MessageMatchingCriterion(null, this.getModelComponent(), MessageMatchingCriterion.ANY_TAG , Communicator.IOSERVERS,  RequestIO.class),
+						unexpectedCallback, null),
+						getSimulator().getVirtualTime());
 	}
 
 	@Override

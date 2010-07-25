@@ -155,7 +155,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 		}
 
 		if(newPart != null){
-			Event<MessagePart> event = new Event<MessagePart>(this, this, startTime ,newPart);
+			Event<MessagePart> event = new Event<MessagePart>(this, this, startTime, newPart, msg.getRelationToken());
 
 			getSimulator().submitNewEvent(event);
 			return;
@@ -216,7 +216,8 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 				job.getSize(),
 				job,
 				this.getModelComponent(),
-				job.getMatchingCriterion().getTargetComponent().getNetworkInterface()
+				job.getMatchingCriterion().getTargetComponent().getNetworkInterface(),
+				job.getRelationToken()
 			);
 		initiateInterProcessSend(msg, startTime);
 	}
@@ -259,7 +260,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			return;
 		}
 
-		final Event<MessagePart> event = new Event(this, this, startTime,  part);
+		final Event<MessagePart> event = new Event(this, this, startTime,  part, msg.getRelationToken());
 		getSimulator().submitNewEvent(event);
 	}
 
@@ -281,7 +282,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 				final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
 				if(newMsgPart != null){
 					/* create a new event to upload data */
-					Event<MessagePart> partEvent = new Event<MessagePart>( this, this, time, newMsgPart);
+					Event<MessagePart> partEvent = new Event<MessagePart>( this, this, time, newMsgPart, part.getMessage().getRelationToken());
 					getSimulator().submitNewEvent(partEvent);
 				}
 			}

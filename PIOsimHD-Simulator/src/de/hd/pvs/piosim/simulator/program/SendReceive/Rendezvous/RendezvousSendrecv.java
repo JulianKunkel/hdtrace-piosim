@@ -70,5 +70,10 @@ public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 
 		return;
 	}
+
+	@Override
+	public String[] getAdditionalTraceAttributes(Sendrecv cmd) {
+		return new String[] { "toRank",  cmd.getToRank() + "", "size", cmd.getSize() + "", "toTag", ""+ cmd.getToTag() };
+	}
 }
 

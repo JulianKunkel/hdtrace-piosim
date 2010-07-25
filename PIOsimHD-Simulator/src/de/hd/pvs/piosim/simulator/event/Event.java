@@ -25,6 +25,7 @@
 
 package de.hd.pvs.piosim.simulator.event;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.simulator.base.ISBasicComponent;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
@@ -53,6 +54,11 @@ extends InternalEvent
 	final EventType event;
 
 	/**
+	 * Track the path of the events i.e. which event caused this event.
+	 */
+	final RelationToken relationToken;
+
+	/**
 	 * Return information about the event.
 	 * @return
 	 */
@@ -64,12 +70,18 @@ extends InternalEvent
 	 * This constructor creates a  new event.
 	 */
 	public Event(ISPassiveComponent issueingComponent, ISBasicComponent targetComponent,
-			Epoch earlistStartTime, EventType eventData){
+			Epoch earlistStartTime, EventType eventData, RelationToken previousToken){
 		super(targetComponent, earlistStartTime);
 		this.issueingComponent = issueingComponent;
 		this.event = eventData;
 		assert(issueingComponent != null);
 		assert(earlistStartTime != null);
+
+		relationToken = previousToken;
+	}
+
+	public RelationToken getRelationToken() {
+		return relationToken;
 	}
 
 	/**
