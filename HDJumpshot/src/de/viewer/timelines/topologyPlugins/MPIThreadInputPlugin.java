@@ -61,7 +61,10 @@ public class MPIThreadInputPlugin extends TopologyInputPlugin{
 				return;
 			}
 			
-			parseTraceFile( (BufferedTraceFileReader) node.getTraceSource() );
+			if(node.getTraceSource() != null){
+				// might be null if only a relation is defined.
+				parseTraceFile( (BufferedTraceFileReader) node.getTraceSource() );
+			}
 		}
 		
 		public MPIRankObject getParentRankObject(){

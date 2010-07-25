@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.ComponentIdentifier;
 import de.hd.pvs.piosim.simulator.Simulator;
@@ -241,5 +242,56 @@ public class STauTraceWriter extends STraceWriter {
 		}
 
 		tauWriter.closeTrace();
+	}
+
+	@Override
+	protected RelationToken relCreateTopLevelRelationInternal(ISPassiveComponent comp, Epoch time) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected void relDestroyInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String childTags,
+			String[] attrNameValues) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp,
+			RelationToken[] parents, Epoch time) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected RelationToken relRelateProcessLocalTokenInternal(ISPassiveComponent comp, RelationToken parent, Epoch time) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name,
+			String childTags, String[] attrNameValues) {
+		// TODO Auto-generated method stub
+
 	}
 }

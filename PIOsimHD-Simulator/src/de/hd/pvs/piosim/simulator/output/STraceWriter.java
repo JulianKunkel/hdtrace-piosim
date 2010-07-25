@@ -31,6 +31,7 @@ package de.hd.pvs.piosim.simulator.output;
 import java.util.Collection;
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.Simulator;
@@ -151,6 +152,70 @@ abstract public class STraceWriter {
 
 		return false;
 	}
+
+
+	abstract protected RelationToken relCreateTopLevelRelationInternal(ISPassiveComponent comp, Epoch time);
+	abstract protected RelationToken relRelateProcessLocalTokenInternal(ISPassiveComponent comp,RelationToken parent, Epoch time);
+	abstract protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp,RelationToken[] parents, Epoch time);
+	abstract protected void relDestroyInternal(ISPassiveComponent comp,RelationToken relation, Epoch time);
+	abstract protected void relStartStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time, String name);
+	abstract protected void relStartStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time, String name, String childTags, String[] attrNameValues);
+	abstract protected void relEndStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time);
+	abstract protected void relEndStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time, String childTags, String[] attrNameValues);
+
+	public RelationToken relCreateTopLevelRelation(TraceType type, ISPassiveComponent comp){
+		if(! isTracableComponent(type))
+			return null;
+
+		return relCreateTopLevelRelationInternal(comp, getTimeEpoch());
+	}
+
+	public RelationToken relRelateProcessLocalToken(RelationToken parent, TraceType type, ISPassiveComponent comp){
+		if(! isTracableComponent(type))
+			return parent;
+
+		return relRelateProcessLocalTokenInternal(comp, parent, getTimeEpoch());
+	}
+
+	public RelationToken relRelateMultipleProcessLocalTokens(TraceType type, ISPassiveComponent comp, RelationToken[] parents){
+		if(! isTracableComponent(type))
+			return null;
+
+		return relRelateMultipleProcessLocalTokensInternal(comp, parents, getTimeEpoch());
+	}
+
+	public void relDestroy(TraceType type, ISPassiveComponent comp, RelationToken relation){
+		if(! isTracableComponent(type))
+			return;
+
+		relDestroyInternal(comp, relation, getTimeEpoch());
+	}
+
+	public void relStartState(TraceType type, ISPassiveComponent comp, RelationToken relation, String name){
+		if(! isTracableComponent(type))
+			return;
+		relStartStateInternal(comp, relation, getTimeEpoch(), name);
+	}
+
+	public void relStartState(TraceType type, ISPassiveComponent comp, RelationToken relation, String name, String childTags, String[] attrNameValues){
+		if(! isTracableComponent(type))
+			return;
+
+		relStartStateInternal(comp, relation, getTimeEpoch(), name, childTags, attrNameValues);
+	}
+
+	public void relEndState(TraceType type, ISPassiveComponent comp, RelationToken relation){
+		if(! isTracableComponent(type))
+			return;
+		relEndStateInternal(comp, relation, getTimeEpoch());
+	}
+
+	public void relEndState(TraceType type, ISPassiveComponent comp, RelationToken relation, String childTags, String[] attrNameValues){
+		if(! isTracableComponent(type))
+			return;
+		relEndStateInternal(comp, relation, getTimeEpoch(), childTags, attrNameValues);
+	}
+
 
 	abstract protected void startStateInternal(Epoch time, ISPassiveComponent comp, String eventDesc);
 

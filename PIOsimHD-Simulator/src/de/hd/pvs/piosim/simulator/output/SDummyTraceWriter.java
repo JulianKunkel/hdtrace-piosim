@@ -2,6 +2,7 @@ package de.hd.pvs.piosim.simulator.output;
 
 import java.util.Collection;
 
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
 import de.hd.pvs.piosim.simulator.Simulator;
@@ -51,6 +52,56 @@ public class SDummyTraceWriter extends STraceWriter {
 	@Override
 	protected void startStateInternal(Epoch time, ISPassiveComponent comp,
 			String eventDesc) {
+
+	}
+
+	@Override
+	protected RelationToken relCreateTopLevelRelationInternal(ISPassiveComponent comp, Epoch time) {
+
+		return null;
+	}
+
+	@Override
+	protected void relDestroyInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+
+
+	}
+
+	@Override
+	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+
+
+	}
+
+	@Override
+	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String childTags,
+			String[] attrNameValues) {
+
+
+	}
+
+	@Override
+	protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp,
+			RelationToken[] parents, Epoch time) {
+
+		return null;
+	}
+
+	@Override
+	protected RelationToken relRelateProcessLocalTokenInternal(ISPassiveComponent comp, RelationToken parent, Epoch time) {
+
+		return null;
+	}
+
+	@Override
+	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name) {
+
+
+	}
+
+	@Override
+	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name,
+			String childTags, String[] attrNameValues) {
 
 	}
 

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.TraceFormatWriter;
+import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLHelper;
@@ -49,14 +50,12 @@ public class SHDTraceWriter extends STraceWriter {
 	 */
 	final HashMap<ISPassiveComponent<?>, ComponentTraceInfo> topMap = new HashMap<ISPassiveComponent<?>, ComponentTraceInfo>();
 
-	// root component, component.., (final) component
-	// other hierarchical information is dropped.
-	final static int MAX_COMPONENT_NESTING = 5;
+	final static int MAX_COMPONENT_NESTING = 7;
 
 	public SHDTraceWriter(String filename, Simulator sim) {
 		super(filename, sim);
 
-		writer = new TraceFormatWriter(filename, "", "", new String []{ "Root Component", "Component", "Component", "Component", "Component"});
+		writer = new TraceFormatWriter(filename, "", "", new String []{ "Root Component", "Component", "Component", "Component", "Component", "Component", "Component"});
 	}
 
 	@Override
@@ -105,7 +104,8 @@ public class SHDTraceWriter extends STraceWriter {
 	@Override
 	protected void arrowEndInternal(Epoch time, ISPassiveComponent src,
 			ISPassiveComponent tgt, long messageSize, int messageTag,
-			int messageComm) {
+			int messageComm)
+	{
 		// TODO Auto-generated method stub
 
 	}
@@ -113,7 +113,8 @@ public class SHDTraceWriter extends STraceWriter {
 	@Override
 	protected void arrowStartInternal(Epoch time, ISPassiveComponent src,
 			ISPassiveComponent tgt, long messageSize, int messageTag,
-			int messageComm) {
+			int messageComm)
+	{
 		// TODO Auto-generated method stub
 
 	}
@@ -129,7 +130,6 @@ public class SHDTraceWriter extends STraceWriter {
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-
 	}
 
 	@Override
@@ -167,6 +167,51 @@ public class SHDTraceWriter extends STraceWriter {
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
 		}
+	}
+
+	@Override
+	protected RelationToken relCreateTopLevelRelationInternal(ISPassiveComponent comp, Epoch time) {
+		return writer.getRelationForTopology(topMap.get(comp).topology).createTopLevelRelation(time);
+	}
+
+	@Override
+	protected void relDestroyInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+		writer.getRelationForTopology(topMap.get(comp).topology).destroyRelation(relation, time);
+	}
+
+	@Override
+	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+		writer.getRelationForTopology(topMap.get(comp).topology).endState(relation, time);
+	}
+
+	@Override
+	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String childTags,
+			String[] attrNameValues) {
+		writer.getRelationForTopology(topMap.get(comp).topology).endState(relation, time, childTags, attrNameValues);
+	}
+
+	@Override
+	protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp,
+			RelationToken[] parents, Epoch time) {
+		return writer.getRelationForTopology(topMap.get(comp).topology).relateMultipleProcessLocalTokens(parents, time);
+	}
+
+	@Override
+	protected RelationToken relRelateProcessLocalTokenInternal(ISPassiveComponent comp, RelationToken parent, Epoch time) {
+		return writer.getRelationForTopology(topMap.get(comp).topology).relateProcessLocalToken(parent, time);
+	}
+
+	@Override
+	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name) {
+		writer.getRelationForTopology(topMap.get(comp).topology).startState(relation, time,
+				XMLHelper.validTag(name));
+	}
+
+	@Override
+	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name,
+			String childTags, String[] attrNameValues) {
+		writer.getRelationForTopology(topMap.get(comp).topology).startState(relation, time,
+				XMLHelper.validTag(name), childTags, attrNameValues);
 	}
 
 }

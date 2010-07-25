@@ -34,6 +34,8 @@ import java.util.List;
 
 import de.hd.pvs.TraceFormat.project.ProjectDescription;
 import de.hd.pvs.TraceFormat.project.ProjectDescriptionXMLWriter;
+import de.hd.pvs.TraceFormat.relation.RelationToken;
+import de.hd.pvs.TraceFormat.relation.RelationXMLWriter;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
@@ -61,8 +63,15 @@ public class TraceFormatWriter {
 	static class OutFiles{
 		NestedTraceWriter traceWriter;
 		HashMap<StatisticsGroupDescription, StatisticsWriter> registeredStatisticWriter = new HashMap<StatisticsGroupDescription, StatisticsWriter>();
+		RelationXMLWriter relationWriter;
 	}
 
+	/**
+	 * For a relation, all topologies within a local node have a unique id.
+	 * Track the last topology number used. 
+	 */
+	int lastTopologyNumber = 0;
+	
 	/**
 	 *  map a single topology to the corresponding output files.
 	 */
@@ -176,12 +185,13 @@ public class TraceFormatWriter {
 
 	private NestedTraceWriter getOrCreateTraceForTopology(TopologyNode topology, Epoch time){
 		//lookup topology in project description and create missing topologies				
-		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
 
 		OutFiles files = traceWriterMap.get(topology);
 		if(files.traceWriter != null){
 			return files.traceWriter;
 		}
+		final String file = outProject.getParentDir() + "/" + topology.getTraceFileName();
+
 		try {
 			files.traceWriter =  new NestedTraceWriter(file, time);
 			return files.traceWriter;
@@ -190,6 +200,27 @@ public class TraceFormatWriter {
 					"Trace file could not be created: " + file);
 		}		
 	}
+	
+	public RelationXMLWriter getRelationForTopology(TopologyNode topology){
+		//lookup topology in project description and create missing topologies				
+
+		OutFiles files = traceWriterMap.get(topology);
+		if(files.traceWriter != null){
+			return files.relationWriter;
+		}
+		final String file = outProject.getParentDir() + "/" + topology.getRelationFileName();
+
+		try {
+			// because we know all the topologies, we do not need any local or remote tokens.
+			files.relationWriter =  new RelationXMLWriter(file, "","", lastTopologyNumber, Epoch.ZERO);
+			lastTopologyNumber++;
+			return files.relationWriter;
+		} catch (Exception e) {
+			throw new IllegalArgumentException(
+					"Relation file could not be created: " + file);
+		}		
+	}
+	
 
 	void initalizeTopologyIfNeeded(TopologyNode topology) {
 		if(traceWriterMap.containsKey(topology)){
@@ -197,8 +228,8 @@ public class TraceFormatWriter {
 		}
 		initalizeTopologyInternal(topology);
 	}
-
-
+	
+	
 	/**
 	 * Announce that an already existing topology will create some statistics or a trace.
 	 * The parent topologies must be added before.
@@ -365,6 +396,9 @@ public class TraceFormatWriter {
 		for (OutFiles files : traceWriterMap.values()) {
 			if(files.traceWriter != null)
 				files.traceWriter.finalize();
+			
+			if(files.relationWriter != null)
+				files.relationWriter.finalize();
 
 			for (StatisticsWriter writer : files.registeredStatisticWriter.values()) {
 				writer.finalize();
