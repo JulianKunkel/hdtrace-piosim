@@ -26,7 +26,9 @@ import de.hd.pvs.TraceFormat.TraceFormatWriter;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.TraceFormat.xml.XMLHelper;
+import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
+import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 
@@ -43,7 +45,7 @@ public class SHDTraceWriter extends STraceWriter {
 	}
 
 	/**
-	 * Maps the passive component to the initalized topology of the trace writer
+	 * Maps the passive component to the initialized topology of the trace writer
 	 */
 	final HashMap<ISPassiveComponent<?>, ComponentTraceInfo> topMap = new HashMap<ISPassiveComponent<?>, ComponentTraceInfo>();
 
@@ -61,7 +63,24 @@ public class SHDTraceWriter extends STraceWriter {
 	public void preregister(ISPassiveComponent<IBasicComponent> component) {
 		// manufacture topology and cache it.
 
-		final LinkedList<IBasicComponent> path = component.getModelComponent().getParentComponentsPlusMe();
+		LinkedList<IBasicComponent> path = null;
+
+		if(component.getModelComponent().getObjectType().equals("NetworkEdge")){
+			NetworkEdge edge = (NetworkEdge) component.getModelComponent();
+			INetworkNode node = edge.getTopology().getEdgeTarget(edge);
+
+
+			if (node.getObjectType().equals( "NIC") || node.getObjectType().equals("NetworkNode")){
+				path = node.getParentComponentsPlusMe();
+				path.add(edge);
+			}
+		}
+
+		if(path == null){
+			path = component.getModelComponent().getParentComponentsPlusMe();
+		}
+
+
 
 		final String [] strPath = new String[path.size()];
 

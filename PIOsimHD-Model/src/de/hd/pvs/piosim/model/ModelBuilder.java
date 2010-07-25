@@ -112,6 +112,8 @@ public class ModelBuilder {
 		node.getHostedComponents().add(client);
 		client.setParentComponent(node);
 
+		client.getNetworkInterface().setParentComponent(client);
+
 		if (model.isComponentInModel(node)){
 			model.addComponent(client);
 		}
@@ -126,6 +128,8 @@ public class ModelBuilder {
 	public void addServer(Node node, Server server) {
 		node.getHostedComponents().add(server);
 		server.setParentComponent(node);
+
+		server.getNetworkInterface().setParentComponent(server);
 
 		if (model.isComponentInModel(node)){
 			model.addComponent(server);
@@ -157,7 +161,11 @@ public class ModelBuilder {
 		if(! model.isComponentInModel(tgt)){
 			throw new IllegalArgumentException("Tgt component not part of the model, add it!");
 		}
+		if(via.getTopology() != null){
+			throw new IllegalArgumentException("Edge is already contained in topology: " + via.getTopology().getName());
+		}
 		((NetworkTopology) topology).addEdge(src, via, tgt);
+		via.setTopology(topology);
 	}
 
 	public INetworkTopology createTopology(String name){
