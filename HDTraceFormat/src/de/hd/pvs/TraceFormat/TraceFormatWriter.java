@@ -205,14 +205,15 @@ public class TraceFormatWriter {
 		//lookup topology in project description and create missing topologies				
 
 		OutFiles files = traceWriterMap.get(topology);
-		if(files.traceWriter != null){
+		if(files.relationWriter != null){
 			return files.relationWriter;
 		}
 		final String file = outProject.getParentDir() + "/" + topology.getRelationFileName();
 
 		try {
 			// because we know all the topologies, we do not need any local or remote tokens.
-			files.relationWriter =  new RelationXMLWriter(file, "","", lastTopologyNumber, Epoch.ZERO);
+			files.relationWriter =  new RelationXMLWriter(file, "", 
+					"", lastTopologyNumber, Epoch.ZERO);
 			lastTopologyNumber++;
 			return files.relationWriter;
 		} catch (Exception e) {
@@ -397,8 +398,9 @@ public class TraceFormatWriter {
 			if(files.traceWriter != null)
 				files.traceWriter.finalize();
 			
-			if(files.relationWriter != null)
+			if(files.relationWriter != null){
 				files.relationWriter.finalize();
+			}
 
 			for (StatisticsWriter writer : files.registeredStatisticWriter.values()) {
 				writer.finalize();

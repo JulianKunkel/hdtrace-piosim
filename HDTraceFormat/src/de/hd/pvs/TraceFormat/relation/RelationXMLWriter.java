@@ -1,5 +1,6 @@
 package de.hd.pvs.TraceFormat.relation;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -20,6 +21,7 @@ public class RelationXMLWriter {
 	private final String localToken;
 	private final String hostID;
 	private final int topologyNumber;
+	private final String filename;
 
 	private long curToken = 0;
 	
@@ -35,12 +37,13 @@ public class RelationXMLWriter {
 	 */
 	public RelationXMLWriter(String filename, String hostID, String localToken, int topologyNumber, Epoch timeAdjustment) throws IOException {		
 		file = new FileWriter(filename);
-		file.write("<relation version=\"" + version + "\" hostID=\"" + version + "\" localToken=\"" + version + "\" topologyNumber=\"" + version + "\" timeAdjustment=\"" + timeAdjustment + "\">\n");			
+		file.write("<relation version=\"" + version + "\" hostID=\"" + hostID + "\" localToken=\"" + localToken + "\" topologyNumber=\"" + topologyNumber + "\" timeAdjustment=\"" + timeAdjustment + "\">\n");			
 
 		this.timeAdjustment = timeAdjustment;
 		this.topologyNumber = topologyNumber;
 		this.hostID = hostID;
 		this.localToken = localToken;
+		this.filename = filename;
 	}
 
 	public RelationToken createTopLevelRelation(Epoch time){
@@ -207,6 +210,11 @@ public class RelationXMLWriter {
 		try {
 			file.write("</relation>\n");
 			file.close();
+			
+			if(curToken == 0){
+				// nothing done, delete the file
+				(new File(filename)).delete();
+			}
 		} catch (IOException e) { 		
 			throw new IllegalArgumentException(e);
 		}
