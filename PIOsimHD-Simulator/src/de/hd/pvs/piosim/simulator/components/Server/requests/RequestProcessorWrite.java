@@ -13,6 +13,7 @@ import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.ServerCacheLayerJo
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
+import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 
 /**
@@ -35,7 +36,7 @@ extends RequestProcessor<RequestWrite>
 			//System.out.println("messagePartReceivedCB  does fit " + doesFit + " " + part);
 
 			if (doesFit){
-				processWritePart( part, endTime);
+				processWritePart( part, endTime, ((NetworkIOData) remoteJob.getJobData()).getIORequest() );
 			}else{
 				blockedReceives.add(part);
 
@@ -54,14 +55,16 @@ extends RequestProcessor<RequestWrite>
 
 					MessagePart p = blockedReceives.get(0);
 
-					if (! server.getCacheLayer().canIPutDataIntoCache((RequestWrite) ((NetworkIOData) ((InterProcessNetworkJob) p.getMessage().getContainedUserData()).getJobData())
-							.getIORequest(), p.getSize())){
+					NetworkIOData data = (NetworkIOData) ((InterProcessNetworkJob) p.getMessage().getContainedUserData()).getJobData();
+					RequestWrite writeReq = (RequestWrite) data.getIORequest();
+
+					if (! server.getCacheLayer().canIPutDataIntoCache(writeReq, p.getSize())){
 						break;
 					}
 
 					blockedReceives.remove(0);
 
-					processWritePart(p, time);
+					processWritePart(p, time,  writeReq);
 				}
 
 				if(blockedReceives.size() == 0){
@@ -71,8 +74,9 @@ extends RequestProcessor<RequestWrite>
 		}
 	};
 
-	private void processWritePart(MessagePart part, Epoch endTime){
+	private void processWritePart(MessagePart part, Epoch endTime,  RequestIO remoteJob){
 		InterProcessNetworkJobRoutable job = (InterProcessNetworkJobRoutable) part.getMessage().getContainedUserData();
+
 		server.getCacheLayer().writeDataToCache((NetworkIOData) job.getJobData(),  job, part.getSize(), part.getMessage(), ioCallback);
 
 		if(part.getMessage().isReceivedCompletely()){
@@ -80,12 +84,16 @@ extends RequestProcessor<RequestWrite>
 			 * Send an acknowledge to the client.
 			 */
 			server.sendAcknowledgeToClient(job);
+
+			finishRequest(remoteJob);
 		}
 	}
 
 	@Override
 	public void process(RequestWrite req, InterProcessNetworkJobRoutable request, Epoch time) {
 		server.getCacheLayer().announceIORequest( req, null, ioCallback, time);
+
+		startRequest(req, request);
 
 		final MessageMatchingCriterion reqCrit = request.getMatchingCriterion();
 		/* post receive of further message parts as fragmented flow parts */

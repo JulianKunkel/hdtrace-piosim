@@ -42,12 +42,8 @@ import de.hd.pvs.piosim.simulator.components.Node.ComputeJob;
 import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Server.requests.ServerAcknowledge;
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IGServerCacheLayer;
-import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IServerCacheLayerJobCallback;
-import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.ServerCacheLayerJobCallbackAdaptor;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
-import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
 /**
  * Simulates a server process together with an I/O subsystem.
@@ -72,18 +68,6 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 	final private HashMap<Class<IMessageUserData>, IServerRequestProcessor> requestProcessors = new HashMap<Class<IMessageUserData>, IServerRequestProcessor>();
 
 	private final IInterProcessNetworkJobCallback dummyCallback = new InterProcessNetworkJobCallbackAdaptor();
-
-	private final IServerCacheLayerJobCallback acknowledgeCallback = new ServerCacheLayerJobCallbackAdaptor() {
-		@Override
-		public void JobCompleted(Epoch time, FileRequest req, Object data) {
-			sendAcknowledgeToClient((InterProcessNetworkJobRoutable) data);
-		}
-	};
-
-	public IServerCacheLayerJobCallback getDefaultAcknowledgeCallback() {
-		return acknowledgeCallback;
-	};
-
 
 	private GSimpleServer getServer(){
 		return this;
@@ -113,8 +97,6 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 			}
 
 			assert(InterProcessNetworkJobRoutable.class.isInstance(job));
-
-			getSimulator().getTraceWriter().event(TraceType.IOSERVER, getServer() , dataType.getSimpleName() + " start", 0);
 
 			assert( ((InterProcessNetworkJobRoutable) job).getOriginalSource() != getServer().getModelComponent());
 

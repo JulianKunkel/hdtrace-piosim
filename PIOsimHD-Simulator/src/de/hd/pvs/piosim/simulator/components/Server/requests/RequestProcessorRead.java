@@ -21,6 +21,10 @@ public class RequestProcessorRead
 		@Override
 		public void ReadPartialData(Epoch time, FileRequest req, Message userdata, long size) {
 			server.getNetworkInterface().appendAvailableDataToIncompleteSend(userdata, size, time);
+
+			if(userdata.isAllMessageDataAvailable()){
+				finishRequest(req);
+			}
 		}
 	};
 
@@ -38,6 +42,8 @@ public class RequestProcessorRead
 		final MessageMatchingCriterion reqCrit = request.getMatchingCriterion();
 
 		assert(reqCrit.getSourceComponent() != server.getModelComponent());
+
+		startRequest(req, request);
 
 		final InterProcessNetworkJobRoutable resp =  InterProcessNetworkJobRoutable.createRoutableSendOperation(
 				new MessageMatchingCriterion(server.getModelComponent(),
