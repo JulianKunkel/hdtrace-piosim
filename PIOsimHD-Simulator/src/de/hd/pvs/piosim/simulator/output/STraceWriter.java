@@ -292,11 +292,11 @@ abstract public class STraceWriter {
 	 * @param comp
 	 * @param eventDesc
 	 */
-	final public void endState(TraceType type, ISPassiveComponent comp, String eventDesc){
-		endState(type,comp, eventDesc, getTimeEpoch());
+	final public void endState(TraceType type, ISPassiveComponent comp, String eventDesc, String[] attrNameValues){
+		endState(type,comp, eventDesc, getTimeEpoch(),attrNameValues);
 	}
 
-	abstract protected void endStateInternal(Epoch time, ISPassiveComponent comp, String eventDesc);
+	abstract protected void endStateInternal(Epoch time, ISPassiveComponent comp, String eventDesc, String[] attrNameValues);
 
 	/**
 	 * End a job which got started with start.
@@ -305,14 +305,14 @@ abstract public class STraceWriter {
 	 * @param comp
 	 * @param eventDesc
 	 */
-	final public void endState(TraceType type, ISPassiveComponent comp, String eventDesc, Epoch endTime){
+	final public void endState(TraceType type, ISPassiveComponent comp, String eventDesc, Epoch endTime, String[] attrNameValues){
 		if(! isTracableComponent(type))
 			return;
 
 		pendingStarts--;
 
 		assert(logEndOfEvent(comp, eventDesc));
-		endStateInternal(endTime, comp, eventDesc);
+		endStateInternal(endTime, comp, eventDesc, attrNameValues);
 	}
 
 	abstract protected void eventInternal(Epoch time, ISPassiveComponent comp, String eventDesc, long userEventValue);

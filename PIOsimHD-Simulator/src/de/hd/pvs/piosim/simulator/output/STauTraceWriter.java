@@ -157,7 +157,7 @@ public class STauTraceWriter extends STraceWriter {
 
 	@Override
 	public void endStateInternal(Epoch time, ISPassiveComponent comp,
-			String eventDesc)
+			String eventDesc, String[] attrNameValues)
 	{
 		ComponentIdentifier cid = comp.getIdentifier();
 
@@ -237,7 +237,7 @@ public class STauTraceWriter extends STraceWriter {
 		final Epoch nendTime = new Epoch(endTime.getDouble() * 1.2);
 		for(ISPassiveComponent component: existingComponents){
 			if(usedCIDs.contains(component.getIdentifier())){
-				endState(TraceType.ALWAYS, component, component.getClass().getSimpleName(), nendTime);
+				endState(TraceType.ALWAYS, component, component.getClass().getSimpleName(), nendTime, null);
 			}
 		}
 

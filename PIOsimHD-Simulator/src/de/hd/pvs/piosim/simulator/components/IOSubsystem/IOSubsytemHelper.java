@@ -26,6 +26,8 @@
 package de.hd.pvs.piosim.simulator.components.IOSubsystem;
 
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOJob;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.IOOperationType;
+import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IOOperationData.StreamIOOperation;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
 
 public class IOSubsytemHelper {
@@ -40,7 +42,12 @@ public class IOSubsytemHelper {
 
 
 	public static void traceIOEnd(IGIOSubsystem<?> subsystem, IOJob job, String postFix){
-		subsystem.getSimulator().getTraceWriter().endState(TraceType.IOSERVER, subsystem, job.getOperationType().toString() + postFix);
+		if(job.getOperationType() == IOOperationType.FLUSH){
+			subsystem.getSimulator().getTraceWriter().endState(TraceType.IOSERVER, subsystem, "FLUSH" + postFix, null);
+		}else{
+			final StreamIOOperation io = (StreamIOOperation) job.getOperationData();
+			subsystem.getSimulator().getTraceWriter().endState(TraceType.IOSERVER, subsystem, job.getOperationType().toString() + postFix, new String[]{"size", ""+io.getSize(), "offset", ""+io.getOffset()});
+		}
 	}
 
 	public static void traceIOEnd(IGIOSubsystem<?> subsystem, IOJob job){

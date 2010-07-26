@@ -32,7 +32,7 @@ public class SDummyTraceWriter extends STraceWriter {
 
 	@Override
 	protected void endStateInternal(Epoch time, ISPassiveComponent comp,
-			String eventDesc) {
+			String eventDesc, String[] attrNameValues) {
 	}
 
 	@Override

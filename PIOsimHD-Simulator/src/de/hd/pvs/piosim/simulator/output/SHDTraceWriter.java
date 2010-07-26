@@ -134,13 +134,21 @@ public class SHDTraceWriter extends STraceWriter {
 
 	@Override
 	protected void endStateInternal(Epoch time, ISPassiveComponent comp,
-			String eventDesc) {
+			String eventDesc, String[] attrNameValues) {
 		final ComponentTraceInfo info = topMap.get(comp);
 
 		final String validText = XMLHelper.validTag(eventDesc);
 
 		try{
-			writer.writeStateEnd(info.topology, validText, time );
+			HashMap<String, String> attributes = null;
+			if(attrNameValues != null){
+				attributes = new HashMap<String, String>();
+				for(int i=0; i < attrNameValues.length; i+=2){
+					attributes.put(attrNameValues[i], attrNameValues[i+1]);
+				}
+			}
+
+			writer.writeStateEnd(info.topology, validText, time, attributes, null );
 		}catch(IOException e){
 			e.printStackTrace();
 		}
