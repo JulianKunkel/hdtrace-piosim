@@ -110,7 +110,7 @@ public class IOTest extends ModelTest {
 				NetworkNodesC.QPI(),
 				NetworkEdgesC.QPI(), ios
 				);
-		ClusterT serverCluster =  new ClusterT(nodeCount,
+		ClusterT serverCluster =  new ClusterT(serverCount,
 				NetworkEdgesC.GIGE(),
 				NetworkNodesC.GIGSwitch(),
 				serverNodeT) ;
