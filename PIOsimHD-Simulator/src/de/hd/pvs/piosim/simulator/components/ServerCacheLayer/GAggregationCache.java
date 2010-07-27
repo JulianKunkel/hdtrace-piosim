@@ -80,7 +80,7 @@ public class GAggregationCache extends GSimpleWriteBehind {
 
 				final StreamIOOperation opdata = ((IOJob<?, StreamIOOperation>) scheduledJob).getOperationData();
 
-				final LinkedList<IOJob> combinedOps = new LinkedList<IOJob>();
+				final LinkedList<IOJob<InternalIOData, IOOperationData>> combinedOps = new LinkedList<IOJob<InternalIOData, IOOperationData>>();
 
 				size = opdata.getSize();
 				offset = opdata.getOffset();
@@ -133,8 +133,9 @@ public class GAggregationCache extends GSimpleWriteBehind {
 					// no manipulation made
 					return scheduledJob;
 				}else{
+					combinedOps.add(scheduledJob);
 					// use a combined operation.
-					return new IOJobCoalesced(scheduledJob.getFile(), scheduledJob.getOperationType(), new StreamIOOperation(size, offset));
+					return new IOJobCoalesced(scheduledJob.getFile(), scheduledJob.getOperationType(), new StreamIOOperation(size, offset), combinedOps);
 				}
 			}
 
