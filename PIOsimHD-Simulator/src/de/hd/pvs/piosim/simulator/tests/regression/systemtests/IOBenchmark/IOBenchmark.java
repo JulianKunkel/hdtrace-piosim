@@ -78,11 +78,16 @@ abstract public class IOBenchmark extends ModelTest {
 
 	protected ServerCacheLayer cacheLayer = null;
 
+	protected boolean traceEnabled = false;
+
 	protected void initGlobals(){
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setTransferGranularity(100 * KiB);
 		mb.getGlobalSettings().setIOGranularity(MiB);
+
+		// disable tracing for faster processing
+		parameters.setTraceEnabled(traceEnabled);
 	}
 
 	protected void setup(int nodeCount, int smtPerNode, int serverCount, ServerCacheLayer cacheLayer)
