@@ -61,9 +61,31 @@ public class Individual extends IOBenchmark {
 	}
 
 	@Test
-	public void runTest2x2WriteBug() throws Exception{
+	public void runTest2x2WriteETest() throws Exception{
 		final FileWriter out = new FileWriter("/tmp/test-write-2x1.txt");
 		runOneTestWrite(IOC.SimpleNoCache(), 	120000, 2, 2, 1, 1, 2, out);
+		out.close();
+	}
+
+	@Test
+	public void runTest2x2WriteWriteBehindTest() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-write-2x1.txt");
+		runOneTestWrite(IOC.SimpleWriteBehindCache(), 	120000, 2, 2, 1, 1, 2, out);
+		out.close();
+	}
+
+
+	@Test
+	public void runTest2x2WriteWriteBehindExtendedTest() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-write-2x1E-WB.txt");
+		runOneTestWrite(IOC.SimpleWriteBehindCache(), 	MiB, 2, 2, 1, 10, 10, out);
+		out.close();
+	}
+
+	@Test
+	public void runTest2x2WriteNoCacheExtendedTest() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-write-2x1E-nocache.txt");
+		runOneTestWrite(IOC.SimpleNoCache(), MiB, 2, 2, 1, 10, 10, out);
 		out.close();
 	}
 
@@ -98,13 +120,28 @@ public class Individual extends IOBenchmark {
 	}
 
 	@Test
-	public void benchmarkServers() throws Exception{
-		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
-		List<Long> sizes = new ArrayList<Long>();
+	public void runTest10x10WriteAggregationCacheExt() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-10x10AggregationExtW.txt");
+		runOneTestWrite(IOC.AggregationCache(),  5 * KBYTE , 10, 10, 1, 1, 100, out);
+		out.close();
+	}
 
-		cacheLayers.add(IOC.SimpleNoCache());
-		cacheLayers.add(IOC.SimpleWriteBehindCache());
-		cacheLayers.add(IOC.AggregationCache());
+	@Test
+	public void runTest10x10ReadAggregationCache() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-10x10AggregationR.txt");
+		runOneTestRead(IOC.AggregationCache(),  1, 3, 1, 1, 1, 1, out);
+		out.close();
+	}
+
+	@Test
+	public void benchmarkServers() throws Exception{
+		final List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
+		final List<Long> sizes = new ArrayList<Long>();
+
+		//cacheLayers.add(IOC.SimpleNoCache());
+		//cacheLayers.add(IOC.SimpleWriteBehindCache());
+		//cacheLayers.add(IOC.AggregationCache());
+		cacheLayers.add(IOC.AggregationReorderCache());
 		//cacheLayers.add(new ServerDirectedIO());
 
 		//		sizes.add((long)512);
@@ -112,7 +149,6 @@ public class Individual extends IOBenchmark {
 		sizes.add((long)50 * KBYTE);
 		sizes.add((long)500 * KBYTE);
 		sizes.add((long)5000 * KBYTE);
-
 
 		super.benchmarkServers("/tmp/benchmark.txt", cacheLayers, sizes);
 	}

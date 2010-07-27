@@ -167,7 +167,6 @@ abstract public class IOBenchmark extends ModelTest {
 	private void writeTestResults(String type, final FileWriter out, SimulationResults res) throws IOException{
 		final long fileSize = computeFileSize();
 		final long iosize = (fileNum * fileSize);
-		out.write("\n  Config<C,S,Inner,Outer,BS> <" + clientNum + "," + serverNum + "," + innerNonContigIterations + "," + outerIterations + "," + blockSize + ">\n");
 		out.write("   " + blockSize + " " +  type + "   " + iosize/1024/1024 + " MiB == " + iosize + " B " + res.getVirtualTime().getDouble() + " s\n");
 		out.write("   " + blockSize + " " +  type + "   " + iosize / res.getVirtualTime().getDouble() / 1024 / 1024 + " MiB/s\n");
 		// flush to write configuration in case of an error.
@@ -207,6 +206,8 @@ abstract public class IOBenchmark extends ModelTest {
 	{
 		initTestConfiguration(layer, blockSize, clientNum, ServerNum, files, outerIterations, innerNonContigIterations);
 
+		out.write("\n Read Config<C,S,Inner,Outer,BS> <" + clientNum + "," + serverNum + "," + innerNonContigIterations + "," + outerIterations + "," + blockSize + ">\n");
+		out.flush();
 		writeTestResults("READ", out, readTest());
 	}
 
@@ -218,6 +219,8 @@ abstract public class IOBenchmark extends ModelTest {
 
 		initTestConfiguration(layer, blockSize, clientNum, ServerNum, files, outerIterations, innerNonContigIterations);
 
+		out.write("\n Write Config<C,S,Inner,Outer,BS> <" + clientNum + "," + serverNum + "," + innerNonContigIterations + "," + outerIterations + "," + blockSize + ">\n");
+		out.flush();
 		writeTestResults("WRITE", out, writeTest());
 	}
 
@@ -227,6 +230,7 @@ abstract public class IOBenchmark extends ModelTest {
 			this.cacheLayer = cacheLayer;
 
 			out.write(cacheLayer.getClass().getSimpleName() + "\n");
+			out.flush();
 
 			System.out.println(cacheLayer.getClass().getSimpleName() + "\n");
 

@@ -217,6 +217,58 @@ public class IOTest extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void AggregationReorderReRead2Test() throws Exception{
+		setupOneNodeOneServer(2, IOC.AggregationReorderCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 2; i++){
+			pb.addReadSequential(i, fd, 0, 10*MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void AggregationReorderRead2Test() throws Exception{
+		setupOneNodeOneServer(2, IOC.AggregationReorderCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 2; i++){
+			pb.addReadSequential(i, fd, 10*MiB * i, 10*MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void AggregationReorderOverwrite2Test() throws Exception{
+		setupOneNodeOneServer(2, IOC.AggregationReorderCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 2; i++){
+			pb.addWriteSequential(i, fd, 0, 10*MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void AggregationReorderNoOverwrite2Test() throws Exception{
+		setupOneNodeOneServer(2, IOC.AggregationReorderCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 2; i++){
+			pb.addWriteSequential(i, fd, 10*MiB * i, 10*MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
+
 
 	@Test public void CollectiveWrite2Test() throws Exception{
 		setupOneNodeOneServer(2, IOC.SimpleNoCache());

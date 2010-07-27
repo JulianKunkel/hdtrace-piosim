@@ -6,6 +6,7 @@ import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.components.IOSubsystem.SimpleDisk;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationReorderCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
@@ -62,6 +63,13 @@ public class IOC implements HardwareComponents{
 		ServerCacheLayer layer = new AggregationCache();
 		layer.setMaxNumberOfConcurrentIOOps(1);
 		layer.setName("AggregationCache");
+		return layer;
+	}
+
+	static public ServerCacheLayer AggregationReorderCache(){
+		ServerCacheLayer layer = new AggregationReorderCache();
+		layer.setMaxNumberOfConcurrentIOOps(1);
+		layer.setName("AReorderCache");
 		return layer;
 	}
 }

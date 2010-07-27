@@ -80,7 +80,7 @@ public class GAggregationCache extends GSimpleWriteBehind {
 
 				final StreamIOOperation opdata = ((IOJob<?, StreamIOOperation>) scheduledJob).getOperationData();
 
-				final LinkedList<IOJob<InternalIOData, IOOperationData>> combinedOps = new LinkedList<IOJob<InternalIOData, IOOperationData>>();
+				final LinkedList<IOJob> combinedOps = new LinkedList<IOJob>();
 
 				size = opdata.getSize();
 				offset = opdata.getOffset();
@@ -101,7 +101,7 @@ public class GAggregationCache extends GSimpleWriteBehind {
 							{
 								final StreamIOOperation akt = (StreamIOOperation) cur.getOperationData();
 
-								if(size + offset == akt.getOffset()) {
+								if( (size + offset) == akt.getOffset()) {
 									// forward combination.
 									if (size + akt.getSize()  > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
 										break outer;
@@ -142,7 +142,7 @@ public class GAggregationCache extends GSimpleWriteBehind {
 			@Override
 			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
 				if(  ! queuedReadJobs.isEmpty() &&
-						freeMemory > (((StreamIOOperation) queuedReadJobs.peek().getOperationData()).getSize())  )
+						freeMemory > getSimulator().getModel().getGlobalSettings().getIOGranularity()  )
 				{
 					// reserve memory for READ requests
 					return combineIOJobs(queuedReadJobs);

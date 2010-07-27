@@ -334,6 +334,7 @@ public class GNoCache
 
 			if(job.getNumberOfJobs() == 1){
 				final InternalIOData data = ((InternalIOData) job.getUserData());
+
 				data.callback.JobCompleted(endTime, data.request, data.userData);
 			}else{
 				for(IOJob<InternalIOData,IOOperationData> sjob  : ((IOJobCoalesced) job).getAggregatedJobs()){
