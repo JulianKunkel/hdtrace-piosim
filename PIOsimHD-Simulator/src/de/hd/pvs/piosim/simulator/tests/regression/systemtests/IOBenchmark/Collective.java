@@ -20,16 +20,15 @@
 //
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-package de.hd.pvs.piosim.simulator.tests.regression.systemtests.ClusterIOTest;
+package de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOBenchmark;
 
 import java.util.HashMap;
 import java.util.List;
 
-import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
-import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 
-public class Collective extends IOTest {
+public class Collective extends IOBenchmark {
 	public void doWrite(List<FileMetadata> files) throws Exception {
 		//assert(iterNum % perIteration == 0);
 

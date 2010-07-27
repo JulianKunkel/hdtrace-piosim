@@ -21,23 +21,20 @@
 //
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
+package de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOBenchmark;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
-import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.components.IOSubsystem.GRefinedDiskModel.GRefinedDiskModelInformation;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.ModelTest;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
@@ -71,15 +68,22 @@ abstract public class IOBenchmark extends ModelTest {
 	// PVFS default
 	protected long stripeSize = 64 * KBYTE;
 
-	abstract public void doWrite(List<FileMetadata> files) throws Exception;
+	abstract public void doWrite(List<FileDescriptor> files) throws Exception;
 
-	abstract public void doRead(List<FileMetadata> files) throws Exception;
+	abstract public void doRead(List<FileDescriptor> files) throws Exception;
 
 	protected long computeFileSize(){
 		return blockSize * innerNonContigIterations * outerIterations * clientNum;
 	}
 
 	protected ServerCacheLayer cacheLayer = null;
+
+	protected void initGlobals(){
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		mb.getGlobalSettings().setTransferGranularity(100 * KiB);
+		mb.getGlobalSettings().setIOGranularity(MiB);
+	}
 
 	protected void setup(int nodeCount, int smtPerNode, int serverCount, ServerCacheLayer cacheLayer)
 		throws Exception
@@ -109,16 +113,24 @@ abstract public class IOBenchmark extends ModelTest {
 				NetworkNodesC.GIGSwitch(),
 				serverNodeT) ;
 
+
+		try{
 		super.setup( new IODisjointConfiguration(NetworkEdgesC.TenGIGE(), NetworkNodesC.QPI(), clientCluster, serverCluster ) );
+		}catch(IllegalArgumentException e){
+			System.err.println("setup error - nodes: " + nodeCount + " smt: " + smtPerNode + " servers: " + serverCount + " " + cacheLayer);
+			e.printStackTrace();
+		}
+
+		initGlobals();
 	}
 
-	protected List<FileMetadata> prepare(boolean isEmpty) throws Exception {
-		List<FileMetadata> files = new ArrayList<FileMetadata>();
+	protected List<FileDescriptor> prepare(boolean isEmpty) throws Exception {
+		List<FileDescriptor> files = new ArrayList<FileDescriptor>();
 
 		assert(blockSize > 0);
 
 		printStack();
-		setup(clientNum, serverNum, cacheLayer);
+		setup(clientNum, 1, serverNum, cacheLayer);
 
 		SimpleStripe dist = new SimpleStripe();
 		dist.setChunkSize(stripeSize);
@@ -126,33 +138,29 @@ abstract public class IOBenchmark extends ModelTest {
 		final long fileSize = computeFileSize();
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(aB.createFile("testfile" + i, ((isEmpty) ? 0 : fileSize) , dist));
-		}
-
-		for (int i = 0; i < fileNum; i++) {
-			pb.addFileOpen(files.get(i), world, isEmpty);
+			files.add(pb.addFileOpen(aB.createFile("testfile" + i, ((isEmpty) ? 0 : fileSize) , dist), world, isEmpty));
 		}
 
 		return files;
 	}
 
-	protected void unprepare (List<FileMetadata> files) throws Exception {
-		for (FileMetadata f : files) {
-			pb.addFileClose(f, world);
+	protected void closeFiles (List<FileDescriptor> files) throws Exception {
+		for (FileDescriptor f : files) {
+			pb.addFileClose(f);
 		}
 	}
 
 	public SimulationResults writeTest() throws Exception {
-		List<FileMetadata> files = prepare(true);
+		List<FileDescriptor> files = prepare(true);
 		doWrite(files);
-		unprepare(files);
+		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
-		List<FileMetadata> files = prepare(false);
+		List<FileDescriptor> files = prepare(false);
 		doRead(files);
-		unprepare(files);
+		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
@@ -213,22 +221,8 @@ abstract public class IOBenchmark extends ModelTest {
 		writeTestResults("WRITE", out, writeTest());
 	}
 
-	public void benchmarkServers() throws Exception {
-		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
-		List<Long> sizes = new ArrayList<Long>();
-
-		cacheLayers.add(new NoCache());
-		cacheLayers.add(new SimpleWriteBehindCache());
-		cacheLayers.add(new AggregationCache());
-		cacheLayers.add(new ServerDirectedIO());
-
-		//		sizes.add((long)512);
-		sizes.add((long)5 * KBYTE);
-		//sizes.add((long)50 * KBYTE);
-		sizes.add((long)500 * KBYTE);
-		//sizes.add((long)5000 * KBYTE);
-		final FileWriter out = new FileWriter("/tmp/iotest.txt");
-
+	public void benchmarkServers(String filename, List<ServerCacheLayer> cacheLayers, List<Long> sizes) throws Exception {
+		final FileWriter out = new FileWriter(filename);
 		for (ServerCacheLayer cacheLayer : cacheLayers) {
 			this.cacheLayer = cacheLayer;
 

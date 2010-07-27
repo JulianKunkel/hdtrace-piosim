@@ -202,21 +202,21 @@ public class Individual extends IOTest {
 	public SimulationResults writeTest() throws Exception {
 		List<FileMetadata> files = prepare(false);
 		doWrite(files);
-		unprepare(files);
+		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
 		List<FileMetadata> files = prepare(false);
 		doRead(files);
-		unprepare(files);
+		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readWriteTest() throws Exception {
 		List<FileMetadata> files = prepare(false);
 		doReadWrite(files);
-		unprepare(files);
+		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
