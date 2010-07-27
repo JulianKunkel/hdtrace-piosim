@@ -42,6 +42,9 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
  * First a file is selected, then all READ operations are scheduled, then WRITE operations or FLUSH operations.
  * Flush operations are not combined at all.
  *
+ * Complexity to pick next job is O(N^2)
+ * Complexity to add a new job is O(1)
+ *
  * No starvation of jobs.
  *
  * @author Julian M. Kunkel
@@ -63,14 +66,16 @@ public class GAggregationCache extends GSimpleWriteBehind {
 			 */
 			final LinkedList<IOJob<?,IOOperationData>> queuedWriteJobs = new LinkedList<IOJob<?,IOOperationData>>();
 
-			private IOJob combineIOJobs(LinkedList<IOJob<?,IOOperationData>> list){
+			private IOJob combineIOJobs(LinkedList<IOJob<?,IOOperationData>> list, final long ioGranularity, final long memFree){
 				final IOJob scheduledJob = list.poll();
+
+				final IOOperationType ioType = scheduledJob.getOperationType();
 
 				if(scheduledJob == null){
 					return null;
 				}
 
-				if(scheduledJob.getOperationType() ==  IOOperationType.FLUSH){
+				if(ioType ==  IOOperationType.FLUSH){
 					return scheduledJob;
 				}
 
@@ -84,6 +89,10 @@ public class GAggregationCache extends GSimpleWriteBehind {
 
 				size = opdata.getSize();
 				offset = opdata.getOffset();
+
+				if (ioType == IOOperationType.READ){
+					nodeRessources.reserveMemory(size);
+				}
 
 				// try to combine several operations. Once the data is combined, rerun - Runtime: N^2
 				boolean changed = true;
@@ -101,30 +110,48 @@ public class GAggregationCache extends GSimpleWriteBehind {
 							{
 								final StreamIOOperation akt = (StreamIOOperation) cur.getOperationData();
 
-								if( (size + offset) == akt.getOffset()) {
-									// forward combination.
-									if (size + akt.getSize()  > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
-										break outer;
+								final long myOffset = akt.getOffset();
+								final long mySize = akt.getSize();
+
+								// check if we want to front-merge:
+								if(offset <= myOffset){
+									final long overlapSize = (offset + size) -  myOffset;
+
+									if((offset + size) >= myOffset && memFree > mySize ){
+										if(mySize + size - overlapSize > ioGranularity){
+											break outer;
+										}
+
+										if (ioType == IOOperationType.READ){
+											nodeRessources.reserveMemory(mySize);
+										}
+
+										size += mySize - overlapSize;
+
+										it.remove();
+										combinedOps.add(cur);
+										changed = true;
 									}
+								}else{
+									// offset > akt.getOffset
+									final long overlapSize = (myOffset + mySize) -  offset;
 
-									size += akt.getSize();
+									if((myOffset + mySize) >= offset && memFree > mySize ){
+										if(mySize + size - overlapSize > ioGranularity){
+											break outer;
+										}
 
-									it.remove();
-									combinedOps.add(cur);
+										if (ioType == IOOperationType.READ){
+											nodeRessources.reserveMemory(mySize);
+										}
 
-									changed = true;
-								}else if( akt.getOffset() + akt.getSize() == offset ) {
-									// backwards combination
-									if (size + akt.getSize()  > getSimulator().getModel().getGlobalSettings().getIOGranularity()) {
-										break outer;
+										size += mySize - overlapSize;
+										offset = myOffset;
+
+										it.remove();
+										combinedOps.add(cur);
+										changed = true;
 									}
-
-									size += akt.getSize();
-									offset = akt.getOffset();
-
-									it.remove();
-									combinedOps.add(cur);
-									changed = true;
 								}
 							}
 						}
@@ -142,13 +169,13 @@ public class GAggregationCache extends GSimpleWriteBehind {
 			@Override
 			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
 				if(  ! queuedReadJobs.isEmpty() &&
-						freeMemory > getSimulator().getModel().getGlobalSettings().getIOGranularity()  )
+						freeMemory > settings.getIOGranularity()  )
 				{
 					// reserve memory for READ requests
-					return combineIOJobs(queuedReadJobs);
+					return combineIOJobs(queuedReadJobs, settings.getIOGranularity(), freeMemory);
 				}
 
-				return combineIOJobs(queuedWriteJobs);
+				return combineIOJobs(queuedWriteJobs,settings.getIOGranularity(), freeMemory);
 			}
 
 			@Override

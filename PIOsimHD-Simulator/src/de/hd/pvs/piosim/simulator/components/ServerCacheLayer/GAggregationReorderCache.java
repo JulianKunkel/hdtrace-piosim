@@ -146,6 +146,12 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 				size = scheduledJob.getOperationData().getSize();
 				offset = scheduledJob.getOperationData().getOffset();
 
+				final IOOperationType ioType = scheduledJob.getOperationType();
+
+				if (ioType == IOOperationType.READ){
+					nodeRessources.reserveMemory(size);
+				}
+
 				// try to combine several operations. Once the data is combined, rerun - Runtime: N^2
 
 				IOJob<InternalIOData, StreamIOOperation> nextJob = list.peek();
@@ -163,7 +169,9 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 						if((offset + size) >= myOffset && mySize + size - overlapSize <= ioGranularity && memFree > mySize ){
 
 							// reserve additional memory for the I/O operation, because we will free it, once data is sent completely!
-							nodeRessources.reserveMemory(mySize);
+							if (ioType == IOOperationType.READ){
+								nodeRessources.reserveMemory(mySize);
+							}
 
 							list.poll(); // nextJob = list.poll() is identical!
 

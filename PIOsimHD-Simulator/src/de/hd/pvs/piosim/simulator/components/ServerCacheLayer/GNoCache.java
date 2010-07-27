@@ -30,8 +30,10 @@ package de.hd.pvs.piosim.simulator.components.ServerCacheLayer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hd.pvs.piosim.model.GlobalSettings;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.simulator.Simulator;
@@ -113,7 +115,55 @@ public class GNoCache
 	 * @return
 	 */
 	protected IOJobQueue initJobQueue(){
-		return new JobQueueSimple();
+		return new IOJobQueue() {
+
+			/**
+			 * Queued read operations, read and write operations are split.
+			 */
+			final LinkedList<IOJob<InternalIOData,IOOperationData>> queuedReadJobs = new LinkedList<IOJob<InternalIOData,IOOperationData>>();
+
+			/**
+			 * Contains write or flush operations.
+			 */
+			final LinkedList<IOJob<InternalIOData,IOOperationData>> queuedWriteJobs = new LinkedList<IOJob<InternalIOData,IOOperationData>>();
+
+			@Override
+			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
+				// prefer read requests for write requests
+				IOJob io = null;
+
+				if(  ! queuedReadJobs.isEmpty() &&
+						freeMemory > (((StreamIOOperation) queuedReadJobs.peek().getOperationData()).getSize())  )
+				{
+					// reserve memory for READ requests
+					io = queuedReadJobs.poll();
+
+					nodeRessources.reserveMemory( ((StreamIOOperation) io.getOperationData()).getSize());
+				}
+
+				if(io == null){
+					// pick up a write call
+
+					io = queuedWriteJobs.poll();
+				}
+
+				return io;
+			}
+
+			@Override
+			public void addIOJob(IOJob<InternalIOData,IOOperationData> job){
+				switch(job.getOperationType()){
+				case FLUSH:
+				case WRITE:
+					queuedWriteJobs.add(job);
+					break;
+				case READ:
+					queuedReadJobs.add(job);
+				}
+			}
+
+
+		};
 	}
 
 	final void scheduleNextIOJobIfPossible() {
@@ -126,12 +176,6 @@ public class GNoCache
 			if (io == null){
 				// might happen if there are only read requests but no RAM is available to cache data.
 				return;
-			}
-
-			if(io.getOperationType() == IOOperationType.READ){
-				StreamIOOperation op = (StreamIOOperation) io.getOperationData();
-				assert(nodeRessources.isEnoughFreeMemory(op.getSize()));
-				nodeRessources.reserveMemory(op.getSize());
 			}
 
 			//logger.info(time + " " + this.getIdentifier() +  " starting I/O " + io);

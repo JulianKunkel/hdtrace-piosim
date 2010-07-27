@@ -189,6 +189,20 @@ public class IOTest extends ModelTest {
 	}
 
 
+	@Test public void AggregationCache3OverlapsTest() throws Exception{
+		ServerCacheLayer cache = IOC.AggregationCache();
+		setupOneNodeOneServer(3, cache);
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		for(int i= 0 ; i < 3; i++){
+			pb.addWriteSequential(i, fd, 0, MiB);
+		}
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
 	@Test public void Writebehind3OverflowTest() throws Exception{
 		setupOneNodeOneServer(3, IOC.SimpleWriteBehindCache());
 
