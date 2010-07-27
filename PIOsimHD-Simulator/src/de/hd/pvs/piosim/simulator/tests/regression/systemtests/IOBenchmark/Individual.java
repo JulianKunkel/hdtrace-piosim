@@ -61,6 +61,13 @@ public class Individual extends IOBenchmark {
 	}
 
 	@Test
+	public void runTest2x1Write() throws Exception{
+		final FileWriter out = new FileWriter("/tmp/test-write-2x1.txt");
+		runOneTestWrite(IOC.SimpleNoCache(), 	100000, 2, 2, 1, 1, 2, out);
+		out.close();
+	}
+
+	@Test
 	public void runTest2x2Read() throws Exception{
 		final FileWriter out = new FileWriter("/tmp/test-read-2x2.txt");
 		runOneTestRead(IOC.SimpleNoCache(), 	MBYTE, 2, 2, 1, 1, 20, out);
