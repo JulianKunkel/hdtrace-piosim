@@ -65,7 +65,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 	/**
 	 * Processors for different data requests
 	 */
-	final private HashMap<Class<IMessageUserData>, IServerRequestProcessor> requestProcessors = new HashMap<Class<IMessageUserData>, IServerRequestProcessor>();
+	final private HashMap<Class<? extends IMessageUserData>, IServerRequestProcessor> requestProcessors = new HashMap<Class<? extends IMessageUserData>, IServerRequestProcessor>();
 
 	private final IInterProcessNetworkJobCallback dummyCallback = new InterProcessNetworkJobCallbackAdaptor();
 
@@ -91,6 +91,8 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 				try{
 					processor = (IServerRequestProcessor) Class.forName("de.hd.pvs.piosim.simulator.components.Server.requests.RequestProcessor" + dataType.getSimpleName().replace("Request", "") ).newInstance();
 					processor.setServerInterface(getMe());
+
+					requestProcessors.put(dataType, processor);
 				}catch(Exception e){
 					throw new IllegalArgumentException(e);
 				}

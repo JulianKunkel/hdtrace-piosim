@@ -61,9 +61,9 @@ public class Individual extends IOBenchmark {
 	}
 
 	@Test
-	public void runTest2x1Write() throws Exception{
+	public void runTest2x2WriteBug() throws Exception{
 		final FileWriter out = new FileWriter("/tmp/test-write-2x1.txt");
-		runOneTestWrite(IOC.SimpleNoCache(), 	100000, 2, 2, 1, 1, 2, out);
+		runOneTestWrite(IOC.SimpleNoCache(), 	120000, 2, 2, 1, 1, 2, out);
 		out.close();
 	}
 
@@ -128,8 +128,7 @@ public class Individual extends IOBenchmark {
 					com.setFileDescriptor(f);
 
 					for (long j = 0; j < innerNonContigIterations; j++) {
-						final long offset = blockSize * (i * innerNonContigIterations * clientNum
-							+ j * clientNum + rank);
+						final long offset = blockSize * (i * innerNonContigIterations * clientNum + j * clientNum + rank);
 
 						lio.addIOOperation(offset, blockSize);
 					}

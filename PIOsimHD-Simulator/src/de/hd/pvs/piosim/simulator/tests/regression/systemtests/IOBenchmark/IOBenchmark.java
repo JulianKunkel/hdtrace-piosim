@@ -66,7 +66,7 @@ abstract public class IOBenchmark extends ModelTest {
 	protected long blockSize = 0;
 
 	// PVFS default
-	protected long stripeSize = 64 * KBYTE;
+	protected long stripeSize = 100 * KiB;
 
 	abstract public void doWrite(List<FileDescriptor> files) throws Exception;
 

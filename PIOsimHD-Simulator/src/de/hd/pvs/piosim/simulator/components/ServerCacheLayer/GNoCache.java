@@ -148,7 +148,7 @@ public class GNoCache
 	@Override
 	public boolean canIPutDataIntoCache(RequestWrite clientJob, long bytesOfWrite) {
 		//System.out.println(numberOfPendingWrites);
-		return numberOfPendingIOOperations == 0;
+		return numberOfPendingIOOperations == 0 && numberOfScheduledIOOperations  == 0;
 	}
 
 	@Override
