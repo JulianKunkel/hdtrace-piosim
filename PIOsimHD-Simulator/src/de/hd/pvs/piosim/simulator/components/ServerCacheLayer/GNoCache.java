@@ -255,16 +255,18 @@ public class GNoCache
 	}
 
 	public void dataWrittenCompletelyToDisk(IOJob<InternalIOData,?> job, Epoch endTime) {
-		nodeRessources.freeMemory(((StreamIOOperation) (job.getOperationData())).getSize());
-
 		debug("job " + job);
 
 		if(job.getNumberOfJobs() == 1){
 			final InternalIOData data = ((InternalIOData) job.getUserData());
 			data.callback.WritePartialData(endTime, data.request, data.userData, ((StreamIOOperation) job.getOperationData()).getSize() );
+
+			nodeRessources.freeMemory(((StreamIOOperation) (job.getOperationData())).getSize());
 		}else{
 			for(IOJob<InternalIOData,?> sjob  : ((IOJobCoalesced) job).getAggregatedJobs()){
 				final InternalIOData data = sjob.getUserData();
+
+				nodeRessources.freeMemory(((StreamIOOperation) (sjob.getOperationData())).getSize());
 				data.callback.WritePartialData(endTime, data.request, data.userData,   ((StreamIOOperation) sjob.getOperationData()).getSize());
 			}
 		}
