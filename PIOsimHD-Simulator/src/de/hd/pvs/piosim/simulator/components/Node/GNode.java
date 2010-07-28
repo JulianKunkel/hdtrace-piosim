@@ -338,4 +338,12 @@ implements INodeRessources
 		return minInstructions;
 	}
 
+	@Override
+	public void simulationFinished() {
+		if(getModelComponent().getMemorySize() != freeMemory){
+			System.err.println("Node " + getIdentifier() + " has only " + freeMemory + " Bytes free, but should be " + getModelComponent().getMemorySize());
+			getSimulator().errorDuringProcessing();
+		}
+	}
+
 }
