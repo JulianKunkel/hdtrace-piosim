@@ -132,7 +132,7 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 			}
 
 
-			private IOJob combineIOJobs(PriorityQueue<IOJob> list, final long ioGranularity, final long memFree){
+			private IOJob combineIOJobs(PriorityQueue<IOJob> list, final long ioGranularity){
 				final IOJob<InternalIOData, StreamIOOperation> scheduledJob = list.poll();
 
 				assert(scheduledJob.getOperationType() !=  IOOperationType.FLUSH);
@@ -166,11 +166,15 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 						// check if we read data multiple times:
 						long overlapSize = (offset + size) -  myOffset;
 
-						if((offset + size) >= myOffset && mySize + size - overlapSize <= ioGranularity && memFree > mySize ){
+						if((offset + size) >= myOffset && mySize + size - overlapSize <= ioGranularity ){
 
 							// reserve additional memory for the I/O operation, because we will free it, once data is sent completely!
-							if (ioType == IOOperationType.READ){
-								nodeRessources.reserveMemory(mySize);
+							if (ioType == IOOperationType.READ ){
+								if(nodeRessources.isEnoughFreeMemory(mySize)){
+									nodeRessources.reserveMemory(mySize);
+								}else{
+									break;
+								}
 							}
 
 							list.poll(); // nextJob = list.poll() is identical!
@@ -201,8 +205,8 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 			}
 
 			@Override
-			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
-				final boolean enoughMemoryFreeForReads = freeMemory > settings.getIOGranularity();
+			public IOJob getNextSchedulableJob(GlobalSettings settings) {
+				final boolean enoughMemoryFreeForReads = nodeRessources.isEnoughFreeMemory( settings.getIOGranularity() );
 
 				if(scheduledType == IOOperationType.READ){
 					if(enoughMemoryFreeForReads){
@@ -217,7 +221,7 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 								pendingJobs = pendingReadOps.get(lastFileScheduled);
 							}
 
-							IOJob job = combineIOJobs(pendingJobs, settings.getIOGranularity(), freeMemory);
+							IOJob job = combineIOJobs(pendingJobs, settings.getIOGranularity());
 							if(pendingJobs.size() == 0){
 								scheduledReadFiles.remove(lastFileScheduled);
 								pendingReadOps.remove(lastFileScheduled);
@@ -247,7 +251,7 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 
 					// try to schedule pending write operations
 					if(pendingJobs.pendingWriteJobs.size() > 0 ){
-						return combineIOJobs(pendingJobs.pendingWriteJobs, settings.getIOGranularity(), freeMemory);
+						return combineIOJobs(pendingJobs.pendingWriteJobs, settings.getIOGranularity());
 					}
 
 					// now start flush:
@@ -271,7 +275,7 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 
 					// check if other files have data to write:
 					if(scheduledModifyingFiles.size() > 0){
-						return getNextSchedulableJob(freeMemory, settings);
+						return getNextSchedulableJob(settings);
 					}
 					// no more write operations.
 				}
@@ -279,7 +283,7 @@ public class GAggregationReorderCache extends GSimpleWriteBehind {
 				// check if there are further read operations.
 				scheduledType = IOOperationType.READ;
 				if( scheduledReadFiles.size() > 0 && enoughMemoryFreeForReads ){
-					return getNextSchedulableJob(freeMemory, settings);
+					return getNextSchedulableJob(settings);
 				}
 
 				return null;

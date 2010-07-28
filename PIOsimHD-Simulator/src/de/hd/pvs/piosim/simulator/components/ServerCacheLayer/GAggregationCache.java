@@ -66,7 +66,7 @@ public class GAggregationCache extends GSimpleWriteBehind {
 			 */
 			final LinkedList<IOJob<?,IOOperationData>> queuedWriteJobs = new LinkedList<IOJob<?,IOOperationData>>();
 
-			private IOJob combineIOJobs(LinkedList<IOJob<?,IOOperationData>> list, final long ioGranularity, final long memFree){
+			private IOJob combineIOJobs(LinkedList<IOJob<?,IOOperationData>> list, final long ioGranularity){
 				final IOJob scheduledJob = list.poll();
 
 				final IOOperationType ioType = scheduledJob.getOperationType();
@@ -117,13 +117,17 @@ public class GAggregationCache extends GSimpleWriteBehind {
 								if(offset <= myOffset){
 									final long overlapSize = (offset + size) -  myOffset;
 
-									if((offset + size) >= myOffset && memFree > mySize ){
+									if((offset + size) >= myOffset  ){
 										if(mySize + size - overlapSize > ioGranularity){
 											break outer;
 										}
 
-										if (ioType == IOOperationType.READ){
-											nodeRessources.reserveMemory(mySize);
+										if (ioType == IOOperationType.READ ){
+											if(nodeRessources.isEnoughFreeMemory(mySize)){
+												nodeRessources.reserveMemory(mySize);
+											}else{
+												break outer;
+											}
 										}
 
 										size += mySize - overlapSize;
@@ -136,13 +140,17 @@ public class GAggregationCache extends GSimpleWriteBehind {
 									// offset > akt.getOffset
 									final long overlapSize = (myOffset + mySize) -  offset;
 
-									if((myOffset + mySize) >= offset && memFree > mySize ){
+									if((myOffset + mySize) >= offset ){
 										if(mySize + size - overlapSize > ioGranularity){
 											break outer;
 										}
 
-										if (ioType == IOOperationType.READ){
-											nodeRessources.reserveMemory(mySize);
+										if (ioType == IOOperationType.READ ){
+											if(nodeRessources.isEnoughFreeMemory(mySize)){
+												nodeRessources.reserveMemory(mySize);
+											}else{
+												break outer;
+											}
 										}
 
 										size += mySize - overlapSize;
@@ -167,15 +175,15 @@ public class GAggregationCache extends GSimpleWriteBehind {
 			}
 
 			@Override
-			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
+			public IOJob getNextSchedulableJob(GlobalSettings settings) {
 				if(  ! queuedReadJobs.isEmpty() &&
-						freeMemory > settings.getIOGranularity()  )
+						nodeRessources.isEnoughFreeMemory( settings.getIOGranularity() ) )
 				{
 					// reserve memory for READ requests
-					return combineIOJobs(queuedReadJobs, settings.getIOGranularity(), freeMemory);
+					return combineIOJobs(queuedReadJobs, settings.getIOGranularity());
 				}
 
-				return combineIOJobs(queuedWriteJobs,settings.getIOGranularity(), freeMemory);
+				return combineIOJobs(queuedWriteJobs,settings.getIOGranularity());
 			}
 
 			@Override

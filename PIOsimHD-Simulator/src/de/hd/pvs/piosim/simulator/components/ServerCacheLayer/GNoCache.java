@@ -128,12 +128,12 @@ public class GNoCache
 			final LinkedList<IOJob<InternalIOData,IOOperationData>> queuedWriteJobs = new LinkedList<IOJob<InternalIOData,IOOperationData>>();
 
 			@Override
-			public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings) {
+			public IOJob getNextSchedulableJob(GlobalSettings settings) {
 				// prefer read requests for write requests
 				IOJob io = null;
 
 				if(  ! queuedReadJobs.isEmpty() &&
-						freeMemory > (((StreamIOOperation) queuedReadJobs.peek().getOperationData()).getSize())  )
+						nodeRessources.isEnoughFreeMemory((((StreamIOOperation) queuedReadJobs.peek().getOperationData()).getSize()))  )
 				{
 					// reserve memory for READ requests
 					io = queuedReadJobs.poll();
@@ -170,8 +170,7 @@ public class GNoCache
 		while(numberOfScheduledIOOperations < getModelComponent().getMaxNumberOfConcurrentIOOps()
 				&& numberOfPendingIOOperations > 0)
 		{
-			final IOJob io = jobQueue.getNextSchedulableJob(nodeRessources.getFreeMemory(),
-					getSimulator().getModel().getGlobalSettings());
+			final IOJob io = jobQueue.getNextSchedulableJob(getSimulator().getModel().getGlobalSettings());
 
 			if (io == null){
 				// might happen if there are only read requests but no RAM is available to cache data.

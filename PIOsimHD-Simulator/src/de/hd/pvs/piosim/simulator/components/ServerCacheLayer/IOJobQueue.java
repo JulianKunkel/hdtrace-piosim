@@ -18,7 +18,7 @@ public interface IOJobQueue {
 	 * @param settings
 	 * @return
 	 */
-	public IOJob getNextSchedulableJob(long freeMemory, GlobalSettings settings);
+	public IOJob getNextSchedulableJob(GlobalSettings settings);
 
 	/**
 	 * Add an I/O job
