@@ -34,10 +34,14 @@
 import re
 import sys
 
-if len(sys.argv) != 3:
-  print "usage: %s <header.h> <output:c-bridge file>"
+if len(sys.argv) < 3:
+  print "usage: %s <header.h> <output:c-bridge file> [DEBUG]"
   sys.exit(0)
 
+
+DEBUG = False
+if len(sys.argv) == 4:
+  DEBUG = True
 
 # defines the maximum length an translated array might have.
 MAXARRAY_LENGTH = 1024;
@@ -56,6 +60,10 @@ funcs = open(sys.argv[1]).readlines()
 
 # output file
 bridge = open(sys.argv[2], "w")
+
+bridge.write("#include <string.h>\n")
+bridge.write("#include <assert.h>\n")
+bridge.write("#include <stdio.h>\n")
 
 for i in xrange(0, len(funcs)):
   f = funcs[i].strip()
@@ -107,6 +115,13 @@ for i in xrange(0, len(funcs)):
 	multipointer = True
       changePointer = False
 
+    if datatype == "...":
+	sys.stderr.write("[Warning] var_list arguments not supported, yet! In line %d Content: %s\n Will ignore that function!\n" % (i, f))
+	continue;
+
+    if param == "void":
+      continue;
+
     paramTransition.append( [ param, "key" + str(I), changePointer, multipointer, datatype, datatype == "char" and not changePointer and not multipointer
  ] )
     I+=1
@@ -152,8 +167,11 @@ for i in xrange(0, len(funcs)):
   for param in paramTransition:
     if param[STRARRAYLENGTHADDED]:
       bridge.write("assert(%slen < %d);\n" % (param[VARNAME], MAXARRAY_LENGTH));
-      bridge.write("memcpy(%smod, %s, %slen);\n" % (param[VARNAME], param[VARNAME], param[VARNAME]));
+      bridge.write("memcpy(%smod, %s, %slen * sizeof(%s));\n" % (param[VARNAME], param[VARNAME], param[VARNAME], param[TYPE]));
       bridge.write("%smod[%slen] = 0;\n" % (param[VARNAME], param[VARNAME]));
+
+  if DEBUG:
+    bridge.write("printf(\"Entering wrapper function %s\\n\");" % ( tName ));
 
   # generate representation of new parameters:
   if returnData:
@@ -191,8 +209,11 @@ for i in xrange(0, len(funcs)):
 
 
   # generate aliases:
-  bridge.write(tReturn + " " + tName.upper() + "_ () __attribute__ ((weak, alias (\"" + tName + "_\")));\n" );
-  bridge.write(tReturn + " " + tName.upper() + "__ () __attribute__ ((weak, alias (\"" + tName + "_\")));\n" );
-  bridge.write(tReturn + " " + tName + "__ () __attribute__ ((weak, alias (\"" + tName + "_\")));\n\n" );
+  suffix = "_ () __attribute__ ((weak, alias (\"" + tName + "_\")));\n"
+  bridge.write(tReturn + " " + tName.lower() + suffix);
+  bridge.write(tReturn + " " + tName.lower() + "_" + suffix);
+  bridge.write(tReturn + " " + tName.upper() + "_" + suffix );
+  bridge.write(tReturn + " " + tName.upper() + suffix);
+  bridge.write(tReturn + " " + tName + "_" + suffix );
 
 bridge.close();
