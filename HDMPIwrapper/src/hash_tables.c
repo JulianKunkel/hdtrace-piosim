@@ -335,7 +335,7 @@ __thread gint type_id_counter = 0;
 
 guint hash_MPI_Type(gconstpointer key)
 {
-	return (guint)*(MPI_Datatype*)key;
+	return (gint)*(MPI_Datatype*)key;
 }
 
 gboolean equal_MPI_Type(gconstpointer a, gconstpointer b)
@@ -350,8 +350,6 @@ gboolean equal_MPI_Type(gconstpointer a, gconstpointer b)
  */
 static gint getTypeId(MPI_Datatype type)
 {
-	assert(sizeof(gint) >= sizeof(MPI_Datatype));
-
 	if(type_table == NULL)
 	{
 		// TODO: use datatype hash, implement == for datatypes
@@ -420,7 +418,7 @@ static gint getRequestId(MPI_Request request)
 	if(result == NULL)
 	{
 		gint *g_request = malloc(sizeof(gint));
-		*g_request = (gint)request;
+		*g_request = (glong)request;
 		gint *g_id = malloc(sizeof(gint));
 		*g_id = (gint)request_counter;
 		g_hash_table_insert(request_to_id, g_request, g_id);
