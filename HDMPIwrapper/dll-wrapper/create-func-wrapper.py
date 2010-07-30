@@ -193,13 +193,13 @@ def add_functions(groupFiles, output, varDef):
   return
 
 
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
   print "usage: %s <inputSkeleton> <output:c-wrapper file> <group-file-to-trace:group-file...>  [Debug yes?]"
   sys.exit(0)
 
 
 DEBUG = False
-if len(sys.argv) == 4:
+if len(sys.argv) == 5:
   DEBUG = True
 
 lines = []
