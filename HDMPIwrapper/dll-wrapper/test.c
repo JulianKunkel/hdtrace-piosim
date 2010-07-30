@@ -4,9 +4,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "sotracer.h"
 
 int main(int argc, char ** argv) {
-  initDynamicLoader();
+  sotracer_initalize();
 
   int fd;
   fd = open("MYFILE.txt", O_RDWR | O_TRUNC | O_CREAT, 0x777);
@@ -17,9 +18,9 @@ int main(int argc, char ** argv) {
   close(fd) ;
 
     FILE *fp;
-										
+
     fp = fopen("MYFILE.txt", "r");
-	
+
     fclose(fp );
 
   return 0;

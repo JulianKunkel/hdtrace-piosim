@@ -16,6 +16,6 @@ attributes = {
 }
 
 conditions = {
-  "write" : "fd > 2",
-  "read" : "fd != 1",
+#  "write" : "fd > 2",
+#  "read" : "fd != 1",
 }

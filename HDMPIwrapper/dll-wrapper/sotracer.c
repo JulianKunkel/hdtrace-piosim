@@ -32,12 +32,20 @@
 // maps memory positions of the functions i.e. & write to the corresponding dlsym openend.
 
 static int started_tracing = 0;
+static int initalized_tracing = 0;
 
 PYTHON_ADD_FUNCTIONS
 
-void initDynamicLoader(void){
+void sotracer_initalize(void){
   void * dllFile;
   void * symbol;
+
+ /* allow only one initialization */
+  if (initalized_tracing)
+    return;
+
+  initalized_tracing = 1;
+
 
 #ifdef DEBUG
   printf("Initalizing!\n");
@@ -67,6 +75,14 @@ void initDynamicLoader(void){
   started_tracing = 1;
 }
 
-void closeDynamicLoader(){
+void sotracer_disable(){
   started_tracing = 0;
+}
+
+void sotracer_enable(){
+  started_tracing = 1;
+}
+
+void sotracer_finalize(){
+
 }
