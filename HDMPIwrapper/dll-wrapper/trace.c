@@ -6,7 +6,11 @@
 
 #include <glib.h>
 
-#ifndef HDTRACE
+#ifdef HDTRACE
+#include <mpi.h>
+#include <hdMPITracer.h>
+#else
+#warning Not using hdTrace
 #define hdMPI_threadLogAttributes(...)
 #define hdMPI_threadLogStateStart(...)
 #define hdMPI_threadLogStateEnd(...)
@@ -26,15 +30,18 @@
 #endif
 
 // maps memory positions of the functions i.e. & write to the corresponding dlsym openend.
-static GHashTable * loadedSymbols = NULL;
+
+static int started_tracing = 0;
 
 PYTHON_ADD_FUNCTIONS
 
 void initDynamicLoader(void){
-  loadedSymbols = g_hash_table_new(g_direct_hash, g_direct_equal);
-
   void * dllFile;
   void * symbol;
+
+#ifdef DEBUG
+  printf("Initalizing!\n");
+#endif
 
 #define OPEN_DLL(file)  dllFile = dlopen(file, RTLD_LAZY); \
   if (dllFile == NULL){ \
@@ -46,8 +53,7 @@ void initDynamicLoader(void){
   symbol = dlsym(dllFile, #name);\
   if (symbol == NULL){ \
      printf("[Error] trace wrapper - symbol not found %s\n", #name); \
-  } \
-  g_hash_table_insert(loadedSymbols, & name, symbol);
+  }
 
 
   PYTHON_ADD_DLL_OPEN
@@ -58,8 +64,9 @@ void initDynamicLoader(void){
   **/
 #undef ADD_SYMBOL
 #undef OPEN_DLL
+  started_tracing = 1;
 }
 
 void closeDynamicLoader(){
-  // TODO
+  started_tracing = 0;
 }

@@ -34,7 +34,7 @@
 import re
 import sys
 
-from wrapper_conf import before, after, attributes, Options
+from wrapper_conf import before, after, attributes, conditions, Options
 
 TRACE = Options["Trace"]
 
@@ -66,13 +66,14 @@ def add_dll_opens(groupFiles, output):
 
 	tName = regex.group(2).strip()
 	output.write("ADD_SYMBOL(%s);\n" %( tName ))
+	output.write("static_%s = symbol;\n" %( tName ))
 
 
       output.write("#endif\n")
 
   return
 
-def add_functions(groupFiles, output):
+def add_functions(groupFiles, output, varDef):
   for group in groupFiles:
     f = open(group)
     funcs = f.readlines()
@@ -81,7 +82,8 @@ def add_functions(groupFiles, output):
     groupName = funcs[0].strip()
     groupFunction = funcs[1].strip()
 
-    output.write("#ifdef " + groupName + "\n")
+    output.append("#ifdef " + groupName + "\n")
+    varDef.append("#ifdef " + groupName + "\n")
 
     for i in xrange(2, len(funcs)):
       f = funcs[i].strip()
@@ -137,44 +139,56 @@ def add_functions(groupFiles, output):
       # int ret = (*func)(fd, buf, count);
       # return ret;
 
+
+      varDef.append("static %s (* static_%s) ( %s ) = NULL;\n" % (tReturn, tName, ",".join(paramTypes)))
+
       # output.write("#undef %s\n" % (tName) );
-      output.write(f.rstrip(";") + "{\n");
+      output.append(f.rstrip(";") + "{\n");
+
+      if tName in conditions:
+	output.append("if (started_tracing && %s ){\n" % (conditions[tName]));
+      else:
+	output.append("if (started_tracing){\n");
 
       if DEBUG:
-	output.write("printf(\"Entering " + groupFunction + " " + tName + "\\n\");\n")
+	output.append("printf(\"Entering " + groupFunction + " " + tName + "\\n\");\n")
 
       if TRACE:
-	output.write("hdMPI_threadLogStateStart(\"" + groupFunction + "_" + tName + "\");\n");
-
-      # lookup dynamic symbol:
-      output.write(tReturn + " (*func) ( %s ) = g_hash_table_lookup(loadedSymbols, %s);\n" % (",".join(paramTypes), tName) );
+	output.append("hdMPI_threadLogStateStart(\"" + groupFunction + "_" + tName + "\");\n");
+      output.append("}\n");
 
       if tName in before:
-	output.write(before[tName] + "\n")
+	output.append(before[tName] + "\n")
 
       if returnDatatype:
-	output.write(tReturn + " ret = ")
+	output.append(tReturn + " ret = ")
 
-      output.write("(*func) (%s);\n" % ",".join(paramNames));
+      output.append("(* static_%s) (%s);\n" % (tName, ",".join(paramNames)));
 
+      if tName in conditions:
+	output.append("if (started_tracing && %s ){\n" % (conditions[tName]));
+      else:
+	output.append("if (started_tracing){\n");
       if TRACE and tName in attributes:
-	output.write("hdMPI_threadLogAttributes(\"%s\", %s);\n" % ( attributes[tName][0], attributes[tName][1] ) )
+	output.append("hdMPI_threadLogAttributes(\"%s\", %s);\n" % ( attributes[tName][0], attributes[tName][1] ) )
 
       if TRACE:
-	output.write("hdMPI_threadLogStateEnd();\n");
+	output.append("hdMPI_threadLogStateEnd();\n");
 
       if tName in after:
-	output.write(after[tName] + "\n");
+	output.append(after[tName] + "\n");
 
+      output.append("}\n");
 
       if returnDatatype:
-	output.write("return ret;\n");
+	output.append("return ret;\n");
 
-      output.write("}\n\n");
+      output.append("}\n\n");
 
       # end group
 
-    output.write("#endif\n")
+    varDef.append("#endif\n")
+    output.append("#endif\n")
 
   return
 
@@ -206,10 +220,15 @@ groupFilesToTrace = sys.argv[3].split(":")
 print "I will trace " + str(groupFilesToTrace) + " input " + sys.argv[1]
 
 for line in inputSkeleton.readlines():
+
   if line.find("PYTHON_ADD_DLL_OPEN") != -1 :
     add_dll_opens(groupFilesToTrace, output)
   elif line.find("PYTHON_ADD_FUNCTIONS") != -1 :
-    add_functions(groupFilesToTrace, output)
+    outArray = []
+    varDef = []
+    add_functions(groupFilesToTrace, outArray, varDef)
+    output.write("".join(varDef))
+    output.write("".join(outArray))
   else:
     output.write(line)
 
