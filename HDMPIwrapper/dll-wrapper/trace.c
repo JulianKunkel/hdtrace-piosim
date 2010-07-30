@@ -16,6 +16,7 @@
 
 #ifdef HDF5LIB
 #warning Will use HDF5LIB
+#include <hdf5.h>
 #endif
 
 // maps memory positions of the functions i.e. & write to the corresponding dlsym openend.

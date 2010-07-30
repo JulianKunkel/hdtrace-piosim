@@ -55,10 +55,12 @@ def add_dll_opens(groupFiles, output):
 	#ignore comments
 	if len(f) < 5 :
 	  continue;
+	if f[0] == "/":
+	  continue
 
-	regex = re.match("(.*)[\t ]([^(]+)\(", f)
+	regex = re.match("(.*)[\t *]([a-zA-Z0-9_]+)[\t ]*\(", f)
 	if not regex:
-	  sys.stderr.write("[WARNING] regex does not match in file '%s', line %d:\n" % (group, i))
+	  sys.stderr.write("[WARNING] regex does not match in file '%s', line %d:\n" % (group, i+1))
 	  sys.stderr.write("\tContent: %s\n" % f)
 	  continue
 
@@ -90,9 +92,9 @@ def add_functions(groupFiles, output):
       if f[0] == "/":
 	continue
 
-      regex = re.match("(.*)[\t ]([^(]+)\(([^)]*)\)[\t ]*;", f)
+      regex = re.match("(.*[\t *])([a-zA-Z0-9_]+)[\t ]*\(([^)]*)\)[\t ]*;", f)
       if not regex:
-	sys.stderr.write("[WARNING] add functions regex does not match in file '%s', line %d:\n" % (group, i))
+	sys.stderr.write("[WARNING] file '%s', line %d add functions regex does not match in file:\n" % (group, i+1))
 	sys.stderr.write("\tContent: %s\n" % f)
 	continue
 
@@ -106,14 +108,21 @@ def add_functions(groupFiles, output):
       paramTypes = []
 
       for param in tParam:
-	regex = re.match("(.*[ \t*])([a-zA-Z0-9_]+)$", param)
+	if param == "void":
+	  continue;
+
+	regex = re.match("(.*[ \t*])([a-zA-Z0-9_]+)[ \t]*(\[[ \t]*\])?$", param)
 	if not regex:
-	  sys.stderr.write("[WARNING] parameter %s in file '%s', line %d:\n" % (param, group, i))
+	  sys.stderr.write("[WARNING] file '%s', line %d,  parameter %s in\n" % (group, i+1, param))
 	  sys.stderr.write("\tContent: %s\n" % f)
 	  continue
 
 	paramNames.append(regex.group(2))
-	paramTypes.append(regex.group(1))
+
+	if regex.group(3) != None:
+	  paramTypes.append(regex.group(1) + "*")
+	else:
+	  paramTypes.append(regex.group(1))
 
       # does the function return sth useful?
       returnDatatype = True
@@ -127,6 +136,8 @@ def add_functions(groupFiles, output):
       # int (*func)(int, void*, size_t) = g_hash_table_lookup(loadedSymbols, read);
       # int ret = (*func)(fd, buf, count);
       # return ret;
+
+      # output.write("#undef %s\n" % (tName) );
       output.write(f.rstrip(";") + "{\n");
 
       if DEBUG:

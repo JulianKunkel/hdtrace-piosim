@@ -1,9 +1,130 @@
 GLIBCLIB
 IO
 
+// obtained via cpp /usr/include/unistd.h|grep -v "#" | uniq|grep extern -C2|cut -d " " -f 2-
+int faccessat (int fd, const char *file, int type, int flag);
+off_t lseek (int fd, off_t offset, int whence);
+
+unsigned int alarm (unsigned int seconds);
+unsigned int sleep (unsigned int seconds);
+int usleep (useconds_t useconds);
+int pause (void);
+int chown (const char *file, uid_t owner, gid_t group);
+int fchown (int fd, uid_t owner, gid_t group);
+int lchown (const char *file, uid_t owner, gid_t group);
+
+int fchownat (int fd, const char *file, uid_t owner, gid_t group, int flag);
+int chdir (const char *path);
+int fchdir (int fd);
+int dup (int fd);
+int dup2 (int fd, int fd2);
+
+int execve (const char *path, char *const argv[], char *const envp[]);
+int fexecve (int fd, char *const argv[], char *const envp[]);
+int execv (const char *path, char *const argv[]);
+int execvp (const char *file, char *const argv[]);
+int nice (int inc);
+long int pathconf (const char *path, int name);
+long int fpathconf (int fd, int name);
+pid_t fork (void);
+pid_t vfork (void);
+int link (const char *from, const char *to);
+
+int linkat (int fromfd, const char *from, int tofd, const char *to, int flags);
+int symlink (const char *from, const char *to);
+ssize_t readlink (const char *path, char *buf, size_t len);
+int symlinkat (const char *from, int tofd, const char *to);
+
+ssize_t readlinkat (int fd, const char * path,     char * buf, size_t len);
+int unlink (const char *name);
+int unlinkat (int fd, const char *name, int flag);
+int rmdir (const char *path);
+int revoke (const char *file);
+int fsync (int fd);
+void sync (void);
+int truncate (const char *file, off_t length);
+int ftruncate (int fd, off_t length);
+int brk (void *addr);
+void *sbrk (intptr_t delta);
+int fdatasync (int fildes);
+
+// TODO: why does it not work?
+//int lockf (int fd, int cmd, off_t len);
+
+
+// obtained via cpp /usr/include/stdio.h|grep -v "#" | uniq|grep extern -C2|cut -d " " -f 2-
+
+int openat (int fd,const char *file, int oflag, mode_t mode);
+int openat64 (int fd,const char *file, int oflag, mode_t mode);
+int lockf (int fd, int cmd, off_t len);
+int posix_fadvise (int fd,off_t offset,off_t len,int advise);
+int posix_fallocate (int fd,off_t offset,off_t len);
+
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 int open(const char *pathname, int flags, mode_t mode);
 int close(int fd);
 int creat(const char *pathname, mode_t mode);
-
+int remove (const char *filename);
+int rename (const char *old, const char *new);
+int renameat (int oldfd, const char *old, int newfd,const char *new);
+FILE *tmpfile (void) ;
+char *tmpnam (char *s) ;
+char *tmpnam_r (char *s) ;
+char *tempnam (const char *dir, const char *pfx);
+int fclose (FILE *stream);
+int fflush (FILE *stream);
+int fflush_unlocked (FILE *stream);
+FILE *fopen (const char * filename,const char * modes) ;
+FILE *freopen (const char * filename, const char * modes, FILE * stream) ;
+FILE *fdopen (int fd, const char *modes) ;
+FILE *fmemopen (void *s, size_t len, const char *modes);
+FILE *open_memstream (char **bufloc, size_t *sizeloc) ;
+void setbuf (FILE * stream, char * buf);
+int setvbuf (FILE * stream, char * buf,int modes, size_t n);
+void setbuffer (FILE * stream, char * buf,size_t size);
+void setlinebuf (FILE *stream);
+int fgetc (FILE *stream);
+int getc (FILE *stream);
+int getchar (void);
+int getc_unlocked (FILE *stream);
+int getchar_unlocked (void);
+int fgetc_unlocked (FILE *stream);
+int fputc (int c, FILE *stream);
+int putc (int c, FILE *stream);
+int putchar (int c);
+int fputc_unlocked (int c, FILE *stream);
+int putc_unlocked (int c, FILE *stream);
+int putchar_unlocked (int c);
+int getw (FILE *stream);
+int putw (int w, FILE *stream);
+char *fgets (char * s, int n, FILE * stream);
+char *gets (char *s) ;
+ssize_t getdelim (char ** lineptr, size_t * n, int delimiter, FILE * stream) ;
+ssize_t getline (char ** lineptr, size_t * n, FILE * stream) ;
+int fputs (const char * s, FILE * stream);
+int ungetc (int c, FILE *stream);
+size_t fread (void * ptr, size_t size,      size_t n, FILE * stream) ;
+size_t fwrite (const void * ptr, size_t size,       size_t n, FILE * s);
+size_t fread_unlocked (void * ptr, size_t size,        size_t n, FILE * stream) ;
+size_t fwrite_unlocked (const void * ptr, size_t size,         size_t n, FILE * stream);
+int fseek (FILE *stream, long int off, int whence);
+long int ftell (FILE *stream) ;
+void rewind (FILE *stream);
+int fseeko (FILE *stream, off_t off, int whence);
+off_t ftello (FILE *stream) ;
+int fgetpos (FILE * stream, fpos_t * pos);
+int fsetpos (FILE *stream, const fpos_t *pos);
+void clearerr (FILE *stream);
+int feof (FILE *stream) ;
+int ferror (FILE *stream) ;
+void clearerr_unlocked (FILE *stream);
+int feof_unlocked (FILE *stream) ;
+int ferror_unlocked (FILE *stream) ;
+int fileno (FILE *stream) ;
+int fileno_unlocked (FILE *stream) ;
+FILE *popen (const char *command, const char *modes) ;
+int pclose (FILE *stream);
+void flockfile (FILE *stream);
+int ftrylockfile (FILE *stream) ;
+void funlockfile (FILE *stream);

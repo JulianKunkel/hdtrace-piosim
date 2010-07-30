@@ -1,6 +1,8 @@
 NETCDFLIB
 NCDF
 
+// netcdf-4.1.1
+
 int nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size);
 int nc__create(const char *path, int cmode, size_t initialsz, size_t *chunksizehintp, int *ncidp);
 int nc_create(const char *path, int cmode, int *ncidp);
