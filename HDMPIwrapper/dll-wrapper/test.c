@@ -17,5 +17,11 @@ int main(int argc, char ** argv) {
   write(fd,buff, 255);
   close(fd) ;
 
+    FILE *fp;
+										
+    fp = fopen("MYFILE.txt", "r");
+	
+    fclose(fp );
+
   return 0;
 }

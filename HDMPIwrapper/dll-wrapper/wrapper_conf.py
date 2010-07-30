@@ -2,7 +2,7 @@
 
 
 Options = {
-  "Trace" : False
+  "Trace" : True
 }
 
 before = {}

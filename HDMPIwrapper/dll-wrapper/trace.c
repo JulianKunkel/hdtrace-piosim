@@ -6,6 +6,12 @@
 
 #include <glib.h>
 
+#ifndef HDTRACE
+#define hdMPI_threadLogAttributes(...)
+#define hdMPI_threadLogStateStart(...)
+#define hdMPI_threadLogStateEnd(...)
+#endif
+
 #ifndef GLIBCLIB
 #define GLIBCLIB "/lib/libc.so.6"
 #endif
