@@ -26,7 +26,6 @@
 package de.hd.pvs.piosim.model.inputOutput;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 /**
@@ -116,6 +115,10 @@ public class ListIO{
 			}
 		}
 
+		assert(ioOperations.size() == 0 ||  offset >=
+			ioOperations.get(ioOperations.size()-1).accessSize +
+			ioOperations.get(ioOperations.size()-1).offset  );
+
 		ioOperations.add(new SingleIOOperation(offset, accessSize));
 	}
 
@@ -131,49 +134,12 @@ public class ListIO{
 		return totalSize;
 	}
 
-	public ListIO getPartition (long offset, long size) {
-		ListIO list = new ListIO();
-
-		if (size == 0) {
-			return list;
-		}
-
-		for (SingleIOOperation op : ioOperations) {
-			if (op.getOffset() >= offset) {
-				if (op.getOffset() + op.getAccessSize() <= offset + size) {
-					list.addIOOperation(op.getOffset(), op.getAccessSize());
-				} else {
-					long newSize = (offset + size) - op.getOffset();
-
-					if (newSize > 0) {
-						list.addIOOperation(op.getOffset(), newSize);
-					}
-				}
-			} else {
-				if (op.getOffset() + op.getAccessSize() <= offset + size) {
-					long newSize = (op.getOffset() + op.getAccessSize()) - offset;
-
-					if (newSize > 0) {
-						list.addIOOperation(offset, newSize);
-					}
-				} else {
-					list.addIOOperation(offset, size);
-				}
-			}
-		}
-
-		return list;
+	public long getFirstAccessedByte(){
+		return ioOperations.get(0).getOffset();
 	}
 
-	public ListIO getSorted () {
-		ListIO list = new ListIO();
-
-		for (SingleIOOperation op : ioOperations) {
-			list.addIOOperation(op.getOffset(), op.getAccessSize());
-		}
-
-		Collections.sort(list.ioOperations, new SingleIOOperationComparator());
-
-		return list;
+	public long getLastAccessedByte(){
+		final SingleIOOperation last = ioOperations.get(ioOperations.size()-1);
+		return last.getAccessSize() + last.getOffset();
 	}
 }

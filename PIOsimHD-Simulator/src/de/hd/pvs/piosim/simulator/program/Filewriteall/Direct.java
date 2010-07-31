@@ -4,7 +4,7 @@
  * @version         $Revision$
  */
 
-//	Copyright (C) 2009 Michael Kuhn
+//	Copyright (C) 2010 Julian Kunkel
 //
 //	This file is part of PIOsimHD.
 //

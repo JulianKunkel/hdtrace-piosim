@@ -4,7 +4,8 @@
  * @version         $Revision$
  */
 
-//	Copyright (C) 2009 Michael Kuhn
+//	Copyright (C) 2010 Julian Kunkel
+//          based on the version of Michael Kuhn in 2009.
 //
 //	This file is part of PIOsimHD.
 //
@@ -22,348 +23,397 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.program.Filereadall;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 
-import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.program.Communicator;
-import de.hd.pvs.piosim.model.program.commands.Allgather;
+import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
+import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filereadall;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.Node.ISNodeHostedComponent;
-import de.hd.pvs.piosim.simulator.components.Server.IGServer;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
+/**
+ * Simplyfied two phase protocol.
+ * First synchronize all processes with an virtual barrier i.e. fastest synchronization possible.
+ * If all I/Os overlapp i.e. no hole is in the client access then perform Two-Phase:
+ *  prepare: combine and sort I/O operations from all clients.
+ *  phases: read in buffersize, transfer data to responsible client (if not self).
+ *
+ * If a client does not need any data but uses a collective call, then this client will not participate in the multi-phase.
+ *
+ * Assumptions: The ListIOs of all commands are sorted!
+ *
+ * @author julian
+ */
 public class TwoPhase extends CommandImplementation<Filereadall> {
-	final long twoPhaseBufferSize = 8388608;
+	final protected long twoPhaseBufferSize = 8388608;
 
-	final class FilereadallWrapper {
-		private Filereadall command;
+	static protected class MultiPhaseClientOP{
+		final GClientProcess client;
+		final FileIOCommand cmd;
 
-		public FilereadallWrapper(Filereadall cmd) {
-			command = cmd;
+		final long firstByteAccessed;
+		final long lastByteAccessed;
+
+		public MultiPhaseClientOP(GClientProcess client, FileIOCommand cmd) {
+			this.cmd = cmd;
+			this.client = client;
+
+			// set first and last byte accessed
+			firstByteAccessed = cmd.getListIO().getFirstAccessedByte();
+			lastByteAccessed = cmd.getListIO().getLastAccessedByte();
+		}
+	}
+
+	/**
+	 * Maps each block range to one or multiple clients which have data in this range.
+	 * @author julian
+	 */
+	static protected class IOData{
+		long size;
+		long offset;
+
+		// if it is only one, then:
+		MultiPhaseClientOP one;
+
+		HashMap<MultiPhaseClientOP, Long> amountOfDataPerProcess = null;
+	}
+
+	static protected class MultiPhaseContainer{
+		boolean useMultiPhase;
+
+		/**
+		 * the current phase
+		 */
+		int phase = 0;
+
+		int max_phases;
+
+		long totalAccessSize = 0;
+
+		LinkedList<IOData> dataCollectivlyToAccess = null;
+		LinkedList<MultiPhaseClientOP> clients = new LinkedList<MultiPhaseClientOP>();
+
+		public void addClientCommand(GClientProcess client, FileIOCommand cmd){
+			clients.add(new MultiPhaseClientOP(client, cmd));
 		}
 
 		/**
-		 * Used to determine the right Communicator command. Different clients using
-		 * the same command e.g. a particular barrier. It does not test class
-		 * specific parameters for instance tags.
+		 * This method can be invoked to compute the data accessed by this collection of nodes.
 		 */
+		public void groupCollectiveData(){
+			LinkedList<IOData> tmpList = new LinkedList<IOData>();
+
+			// populate:
+			for(MultiPhaseClientOP client: clients){
+				for(SingleIOOperation op:  client.cmd.getListIO().getIOOperations()){
+					IOData newData = new IOData();
+					newData.size = op.getAccessSize();
+					newData.offset = op.getOffset();
+					newData.one = client;
+
+					tmpList.add(newData);
+				}
+			}
+
+
+			// now sort the list based on the offset
+			Collections.sort( tmpList, new Comparator<IOData>(){
+				@Override
+				public int compare(IOData o1, IOData o2) {
+					return (int) (o1.offset - o2.offset);
+				}
+			});
+
+			// now combine the operations into the output:
+			dataCollectivlyToAccess = new LinkedList<IOData>();
+
+			IOData last = null;
+
+			for(IOData op : tmpList){
+				if( last != null){
+					// check if we can combine them:
+					long overlap = last.offset + last.size - op.offset;
+					if ( overlap >= 0 ){
+						// combination possible:
+						last.size += op.size - overlap;
+
+						// add all clients of op:
+						assert(op.amountOfDataPerProcess == null);
+
+						if ( last.one != null ){
+							assert(last.one != op.one);	// the same client as before (huh?), should not happen.
+
+							last.amountOfDataPerProcess = new HashMap<MultiPhaseClientOP, Long>();
+							last.amountOfDataPerProcess.put(last.one, last.size);
+							last.one = null;
+						}
+
+						Long lastSize = last.amountOfDataPerProcess.get(op.one);
+						if(lastSize != null){
+							last.amountOfDataPerProcess.put(op.one, op.size + lastSize);
+						}else{
+							last.amountOfDataPerProcess.put(op.one, op.size);
+						}
+
+
+					}else{
+						// no combination possible: add op:
+						dataCollectivlyToAccess.add(last);
+						totalAccessSize += last.size;
+						last = op;
+					}
+				}else{
+					last = op;
+				}
+			}
+
+			assert(last != null); // should never happen
+			dataCollectivlyToAccess.add(last);
+			totalAccessSize += last.size;
+		}
+	}
+
+	/**
+	 * In addition to the synchronize wrapper compare the files as well.
+	 */
+	static protected class FileIOCommandWrapper{
+		final private FileIOCommand command;
+		protected MultiPhaseContainer globalPhaseContainer;
+		HashMap<GClientProcess, CommandProcessing> clientsStarted = null;
+
+
+		public void initMultiPhaseContainer(){
+			globalPhaseContainer = new MultiPhaseContainer();
+		}
+
+		public FileIOCommand getCommand() {
+			return command;
+		}
+
+		public FileIOCommandWrapper(FileIOCommand cmd) {
+			command = cmd;
+		}
+
 		@Override
 		public boolean equals(Object obj) {
-			if (obj.getClass() != getClass()) {
+			if (obj.getClass() != getClass()){
 				return false;
 			}
 
-			FilereadallWrapper compare = (FilereadallWrapper) obj;
+			final FileIOCommandWrapper compare = (FileIOCommandWrapper) obj;
 
-			return (compare.command.getCommunicator() == this.command.getCommunicator())
-					&& (compare.command.getProgram().getApplication() == this.command.getProgram().getApplication())
-					&& (compare.command.getClass() == this.command.getClass());
+			return (compare.command.getCommunicator() == this.command.getCommunicator()) &&
+				(compare.command.getProgram().getApplication() == this.command.getProgram().getApplication())
+				&& (compare.command.getClass() == this.command.getClass())
+				&& compare.command.getFile() == this.command.getFile();
 		}
 
 		@Override
 		public int hashCode() {
-			return command.getCommunicator().hashCode() + command.getClass().hashCode();
+			return command.getCommunicator().hashCode() + command.getClass().hashCode() + command.getFile().hashCode();
 		}
 	}
 
-	final class FilereadallContainer {
-		private Filereadall command;
-		private GClientProcess clientProcess;
-		private CommandProcessing commandProcessing;
+	/**
+	 *  Maps the state of one Collective I/O operation to a global state is used to perform a global synchronization as well.
+	 */
+	protected static HashMap<FileIOCommandWrapper,FileIOCommandWrapper> sync_blocked_clients = new HashMap<FileIOCommandWrapper, FileIOCommandWrapper>();
 
-		private long twoPhaseIteration;
+	/**
+	 * Maps all client commands to the global state of the two phase protocol.
+	 */
+	protected static HashMap<FileIOCommand, MultiPhaseContainer> globalState = new HashMap<FileIOCommand, MultiPhaseContainer>();
 
-		public FilereadallContainer(Filereadall command, GClientProcess clientProcess, CommandProcessing commandProcessing) {
-			this.command = command;
-			this.clientProcess = clientProcess;
-			this.commandProcessing = commandProcessing;
+	/**
+	 * This function is called once, when it became clear we will use a multi-phase.
 
-			twoPhaseIteration = 0;
-		}
+	 * @return the number of phases
+	 */
+	protected int initMultiphasesOnce(MultiPhaseContainer mp){
+		int maxIter = (int) (mp.totalAccessSize / mp.clients.size() / twoPhaseBufferSize);
 
-		public Filereadall getCommand() {
-			return command;
-		}
 
-		public GClientProcess getClientProcess() {
-			return clientProcess;
-		}
-
-		public CommandProcessing getCommandProcessing() {
-			return commandProcessing;
-		}
-
-		public Integer getRank() {
-			return clientProcess.getModelComponent().getRank();
-		}
-
-		public long getTwoPhaseIteration() {
-			return twoPhaseIteration;
-		}
-
-		public void setTwoPhaseIteration(long twoPhaseIteration) {
-			this.twoPhaseIteration = twoPhaseIteration;
-		}
+		return  maxIter;
 	}
 
-	final class FilereadallContainerComparator implements Comparator<FilereadallContainer> {
-		public int compare(FilereadallContainer a, FilereadallContainer b) {
-			return a.getRank().compareTo(b.getRank());
+	/**
+	 * @param cmd
+	 * @return true if blocked (i.e. sync with further)
+	 */
+	protected boolean synchronizeClientsWithoutCommunication(CommandProcessing cmdResults){
+		final GClientProcess client = cmdResults.getInvokingComponent();
+		final FileIOCommand cmd = (FileIOCommand) cmdResults.getInvokingCommand();
+		final FileIOCommandWrapper dummyWrapper = new FileIOCommandWrapper(cmd);
+
+		FileIOCommandWrapper wrapper = sync_blocked_clients.get(dummyWrapper);
+
+		HashMap<GClientProcess, CommandProcessing> waitingClients;
+		if (wrapper == null){
+			/* first client waiting */
+			waitingClients = new HashMap<GClientProcess, CommandProcessing>();
+			dummyWrapper.clientsStarted = waitingClients;
+			sync_blocked_clients.put(dummyWrapper, dummyWrapper);
+			dummyWrapper.initMultiPhaseContainer();
+
+			wrapper = dummyWrapper;
+		}else{
+			waitingClients = wrapper.clientsStarted;
 		}
+
+		if(cmd.getListIO().getTotalSize() != 0){
+			// then we will participate in I/O
+			wrapper.globalPhaseContainer.addClientCommand(client, cmd);
+			globalState.put(cmd, wrapper.globalPhaseContainer);
+		}
+
+		if (waitingClients.size() == cmd.getCommunicator().getSize() -1){
+			client.debug("Activate other clients for two phase " + cmd + " by " + client.getIdentifier() );
+
+			/* we finish, therefore reactivate all other clients! */
+			for(GClientProcess c: waitingClients.keySet()){
+				c.activateBlockedCommand(waitingClients.get(c));
+			}
+
+			/* remove Barrier */
+			sync_blocked_clients.remove(wrapper);
+
+			// check if multiphase shall be applied
+			if(wrapper.globalPhaseContainer.clients.size() > 1){
+				wrapper.globalPhaseContainer.useMultiPhase = checkMultiPhase(wrapper.globalPhaseContainer);
+			}else{
+				wrapper.globalPhaseContainer.useMultiPhase = false;
+			}
+
+			// now group operations:
+			if(wrapper.globalPhaseContainer.useMultiPhase){
+				wrapper.globalPhaseContainer.groupCollectiveData();
+
+				wrapper.globalPhaseContainer.max_phases = initMultiphasesOnce(wrapper.globalPhaseContainer);
+			}
+
+		}else{
+			waitingClients.put(client, cmdResults);
+
+			/* just block up */
+			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
+			return true;
+		}
+
+		return false;
 	}
 
-	private static HashMap<FilereadallWrapper, List<FilereadallContainer>> sync_blocked_clients = new HashMap<FilereadallWrapper, List<FilereadallContainer>>();
-	private static HashMap<Filereadall, List<FilereadallContainer>> meta_info = new HashMap<Filereadall, List<FilereadallContainer>>();
+	/**
+	 * This method is invoked, once all clients entered two-phase mode and synchronized virtually.
+	 * @param container
+	 * @return
+	 */
+	protected boolean checkMultiPhase(MultiPhaseContainer container){
+		// sort the list of the I/O operations by the offset.
+		Collections.sort(container.clients, new
+			Comparator<MultiPhaseClientOP>() {
+				@Override
+				public int compare(MultiPhaseClientOP arg0, MultiPhaseClientOP arg1) {
+					return arg0.firstByteAccessed < arg1.firstByteAccessed ? -1 :
+						arg0.lastByteAccessed < arg1.lastByteAccessed ? -1 : +1; // maybe both starts are identical...
+				}
+			});
+
+		boolean twoPhase = true;
+
+		// check if the operations overlaps with the current op:
+		long lastByteAccessed = container.clients.getFirst().firstByteAccessed;
+
+		for(MultiPhaseClientOP client: container.clients){
+			// the real two phase would have checked lastByteAccessed < client.firstByteAccessed ...
+			if(lastByteAccessed > client.lastByteAccessed ){
+				twoPhase = false;
+				break;
+			}
+			lastByteAccessed = client.lastByteAccessed;
+		}
+
+		//System.out.println(this.getClass() + " MultiPhase: " + twoPhase);
+
+		return twoPhase;
+	}
+
 
 	@Override
-	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
-		final int SEND_REQUEST = 2;
-		final int CHECK_TWO_PHASE = 3;
-		final int TWO_PHASE = 4;
-		final int TWO_PHASE_RECV = 5;
+	public void process(Filereadall cmd, CommandProcessing outCommand, GClientProcess client, int step,
+			NetworkJobs compNetJobs)
+	{
+		final int CHECK_TWO_PHASE = 2;
+		final int READ_PHASE = 3;
+		final int COMMUNICATION_PHASE = 4;
 
 		switch (step) {
 		case (CommandProcessing.STEP_START): {
-			FilereadallWrapper wrapper = new FilereadallWrapper(cmd);
-			List<FilereadallContainer> waitingClients = sync_blocked_clients.get(wrapper);
-			FilereadallContainer container = new FilereadallContainer(cmd, client, OUTresults);
+			boolean ret = synchronizeClientsWithoutCommunication(outCommand);
 
-			if (waitingClients == null) {
-				/* first client waiting */
-				waitingClients = new ArrayList<FilereadallContainer>();
-				sync_blocked_clients.put(wrapper, waitingClients);
+			outCommand.setNextStep(CHECK_TWO_PHASE);
+
+			// gather all ops into the MultiPhaseContainer
+
+			if (ret == true){
+				/* just block */
+				outCommand.setBlocking();
+				return;
 			}
-
-			waitingClients.add(container);
-
-			if (waitingClients.size() < cmd.getCommunicator().getSize()) {
-				/* just block up */
-				client.debug("Block for " + cmd + " by " + client.getIdentifier());
-				OUTresults.setBlocking();
-			} else {
-				List<FilereadallContainer> cmds = new ArrayList<FilereadallContainer>();
-
-				for (FilereadallContainer c : waitingClients) {
-					cmds.add(c);
-				}
-
-				Collections.sort(cmds, new FilereadallContainerComparator());
-
-				for (FilereadallContainer c : waitingClients) {
-					meta_info.put(c.getCommand(), cmds);
-				}
-
-				waitingClients.remove(container);
-
-				client.debug("Activate other clients for barrier " + cmd + " by " + client.getIdentifier());
-
-				/* we finish, therefore reactivate all other clients! */
-				for (FilereadallContainer c : waitingClients) {
-					c.getClientProcess().activateBlockedCommand(c.getCommandProcessing());
-				}
-
-				/* remove Barrier */
-				sync_blocked_clients.remove(wrapper);
-			}
-
-			OUTresults.setNextStep(CHECK_TWO_PHASE);
-
 			return;
-		}
-		case (CHECK_TWO_PHASE): {
-			boolean twoPhase = false;
+		}case (CHECK_TWO_PHASE): {
+			final MultiPhaseContainer mp = globalState.get(cmd);
 
-			Allgather gather = new Allgather();
-			gather.setCommunicator(cmd.getCommunicator());
-			// Two 64 bit offsets
-			gather.setSize(16);
-
-			OUTresults.invokeChildOperation(gather, CommandProcessing.STEP_START, null);
-
-			for (int i = 1; i < meta_info.get(cmd).size(); i++) {
-				if (meta_info.get(cmd).get(i).getCommand().getStartOffset() <= meta_info.get(cmd).get(i - 1).getCommand().getEndOffset()) {
-					twoPhase = true;
-				}
+			if( mp == null){
+				// we do not need any data.
+				assert(cmd.getListIO().getTotalSize() == 0);
+				// we finish
+				return;
 			}
 
-			if (twoPhase) {
-				OUTresults.setNextStep(TWO_PHASE);
-			} else {
-				OUTresults.invokeChildOperation(cmd, SEND_REQUEST, de.hd.pvs.piosim.simulator.program.Filereadall.Direct.class);
-				meta_info.remove(cmd);
+			boolean useTwoPhase = mp.useMultiPhase;
+
+			if(useTwoPhase){
+				outCommand.setNextStep(READ_PHASE);
+			}else{
+				// don't use two phase, we use the normal read operation.
+				Fileread rd = new Fileread();
+				rd.setFileDescriptor(cmd.getFileDescriptor());
+				rd.setListIO(cmd.getListIO());
+				outCommand.invokeChildOperation(rd, CommandProcessing.STEP_COMPLETED, null);
+
+				// remove command mapping.
+				globalState.remove(cmd);
 			}
 
 			return;
-		}
-		case (TWO_PHASE): {
-			long minOffset = meta_info.get(cmd).get(0).getCommand().getStartOffset();
-			long maxOffset = meta_info.get(cmd).get(0).getCommand().getEndOffset();
-			long perRank;
-			long myOffset;
-			long mySize;
-			long nextOffset;
-			int myIndex = -1;
-			FilereadallContainer myContainer = null;
 
-			for (FilereadallContainer c : meta_info.get(cmd)) {
-				minOffset = Math.min(minOffset, c.getCommand().getStartOffset());
-				maxOffset = Math.max(maxOffset, c.getCommand().getEndOffset());
+		}case (READ_PHASE):{
+			final MultiPhaseContainer mp = globalState.get(cmd);
 
-				if (c.getCommand() == cmd) {
-					myIndex = meta_info.get(cmd).indexOf(c);
-					myContainer = c;
-				}
-			}
+			System.out.println(mp.totalAccessSize);
 
-			assert(myIndex >= 0);
-			assert(myContainer != null);
-
-			// FIXME Alltoall
-
-			perRank = (maxOffset - minOffset) / meta_info.get(cmd).size();
-
-			myOffset = minOffset + (myIndex * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
-			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
-			mySize = Math.min(twoPhaseBufferSize, nextOffset - myOffset);
-			mySize = Math.max(mySize, 0);
-
-			//System.out.println("min " + minOffset + " max " + maxOffset);
-			//System.out.println("myOffset " + myOffset);
-			//System.out.println("mySize " + mySize);
-
-			//System.out.println("twoPhaseOffset " + myContainer.getTwoPhaseOffset());
-			//System.out.println("twoPhaseSize " + myContainer.getTwoPhaseSize());
-
-			if (myOffset < nextOffset) {
-				ListIO list = new ListIO();
-				HashMap<Server, ListIO> servers;
-
-				list.addIOOperation(myOffset, mySize);
-				servers = cmd.getFile().getDistribution().distributeIOOperation(list, client.getSimulator().getModel().getServers());
-
-				for (Server server : servers.keySet()) {
-					IGServer sserver = (IGServer)client.getSimulator().getSimulatedComponent(server);
-					ISNodeHostedComponent targetNIC = sserver;
-					ListIO iolist = servers.get(server);
-
-					//for (SingleIOOperation op : iolist.getIOOperations()) {
-					//	System.out.println(server + ": " + op);
-					//}
-
-					// FIXME optimize
-					OUTresults.addNetSend(targetNIC, new RequestRead(iolist, cmd.getFile()), RequestIO.INITIAL_REQUEST_TAG, Communicator.IOSERVERS);
-					OUTresults.addNetReceive(targetNIC, RequestIO.IO_DATA_TAG, Communicator.IOSERVERS);
-				}
-
-				for (FilereadallContainer c : meta_info.get(cmd)) {
-					long theirOffset;
-					long theirSize;
-					long theirNextOffset;
-
-					if (c.getRank() == myContainer.getRank()) {
-						continue;
-					}
-
-					theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
-					theirNextOffset = Math.min(minOffset + ((meta_info.get(cmd).indexOf(c) + 1) * perRank), maxOffset);
-					theirSize = Math.min(twoPhaseBufferSize, theirNextOffset - theirOffset);
-					theirSize = Math.max(theirSize, 0);
-
-					if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
-						OUTresults.addNetReceive(c.getRank(), 50001, Communicator.INTERNAL_MPI);
-					}
-
-					if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
-						// offset-length pairs
-						OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(cmd.getListIO().getPartition(theirOffset, theirSize).getIOOperations().size() * 16 + 20), 50001, Communicator.INTERNAL_MPI);
-					}
-				}
-
-				OUTresults.setNextStep(TWO_PHASE_RECV);
-			} else {
-				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
-				meta_info.remove(cmd);
-			}
+//			for (IOData data:  mp.dataCollectivlyToAccess){
+//				System.out.println(data.size + " " + data.offset);
+//				for(MultiPhaseClientOP cop: data.amountOfDataPerProcess.keySet()){
+//					System.out.println( cop.client.getIdentifier() + " " + data.amountOfDataPerProcess.get(cop));
+//				}
+//			}
 
 			return;
-		}
-		case (TWO_PHASE_RECV): {
-			long minOffset = meta_info.get(cmd).get(0).getCommand().getStartOffset();
-			long maxOffset = meta_info.get(cmd).get(0).getCommand().getEndOffset();
-			long perRank;
-			long myOffset;
-			long mySize;
-			long nextOffset;
-			int myIndex = -1;
-			FilereadallContainer myContainer = null;
 
-			for (FilereadallContainer c : meta_info.get(cmd)) {
-				minOffset = Math.min(minOffset, c.getCommand().getStartOffset());
-				maxOffset = Math.max(maxOffset, c.getCommand().getEndOffset());
-
-				if (c.getCommand() == cmd) {
-					myIndex = meta_info.get(cmd).indexOf(c);
-					myContainer = c;
-				}
-			}
-
-			assert(myIndex >= 0);
-			assert(myContainer != null);
-
-			perRank = (maxOffset - minOffset) / meta_info.get(cmd).size();
-
-			myOffset = minOffset + (myIndex * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
-			nextOffset = Math.min(minOffset + ((myIndex + 1) * perRank), maxOffset);
-			mySize = Math.min(twoPhaseBufferSize, nextOffset - myOffset);
-			mySize = Math.max(mySize, 0);
-
-			//System.out.println("rank " + myContainer.getRank());
-
-			for (FilereadallContainer c : meta_info.get(cmd)) {
-				long theirOffset;
-				long theirSize;
-				long theirNextOffset;
-
-				if (c.getRank() == myContainer.getRank()) {
-					continue;
-				}
-
-				theirOffset = minOffset + (meta_info.get(cmd).indexOf(c) * perRank) + (myContainer.getTwoPhaseIteration() * twoPhaseBufferSize);
-				theirNextOffset = Math.min(minOffset + ((meta_info.get(cmd).indexOf(c) + 1) * perRank), maxOffset);
-				theirSize = Math.min(twoPhaseBufferSize, theirNextOffset - theirOffset);
-				theirSize = Math.max(theirSize, 0);
-
-				if (c.getCommand().getStartOffset() < myOffset + mySize && c.getCommand().getEndOffset() > myOffset) {
-					//System.out.println("send to " + c.getRank());
-					OUTresults.addNetSend(c.getRank(), new NetworkSimpleData(c.getCommand().getListIO().getPartition(myOffset, mySize).getTotalSize() + 20), 50000, Communicator.INTERNAL_MPI);
-				}
-
-				if (cmd.getStartOffset() < theirOffset + theirSize && cmd.getEndOffset() > theirOffset) {
-					//System.out.println("recv from " + c.getRank());
-					OUTresults.addNetReceive(c.getRank(), 50000, Communicator.INTERNAL_MPI);
-				}
-			}
-
-			myContainer.setTwoPhaseIteration(myContainer.getTwoPhaseIteration() + 1);
-
-			OUTresults.setNextStep(TWO_PHASE);
+		}case (COMMUNICATION_PHASE):{
 
 			return;
+
 		}
 		}
 
-		return;
+		assert(false);
 	}
-
 }

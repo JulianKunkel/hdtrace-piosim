@@ -310,7 +310,8 @@ public class IOTest extends ModelTest {
 	@Test public void CollectiveRead2Test() throws Exception{
 		setupOneNodeOneServer(2, IOC.SimpleNoCache());
 
-		mb.getGlobalSettings().setClientFunctionImplementation(new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.Direct");
+		//mb.getGlobalSettings().setClientFunctionImplementation(new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.Direct");
+		mb.getGlobalSettings().setClientFunctionImplementation(new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
 
 		LinkedList<ListIO> listIO = new LinkedList<ListIO>();
 
@@ -320,6 +321,29 @@ public class IOTest extends ModelTest {
 
 		ios = new ListIO();
 		ios.addIOOperation(0, MiB);
+		//ios.addIOOperation(MiB, MiB);
+		listIO.add(ios);
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addReadCollective(fd, listIO);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void CollectiveRead2OneEmptyTest() throws Exception{
+		setupOneNodeOneServer(2, IOC.SimpleNoCache());
+
+		//mb.getGlobalSettings().setClientFunctionImplementation(new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.Direct");
+		mb.getGlobalSettings().setClientFunctionImplementation(new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+
+		LinkedList<ListIO> listIO = new LinkedList<ListIO>();
+
+		ListIO ios = new ListIO();
+		ios.addIOOperation(0, MiB);
+		listIO.add(ios);
+
+		ios = new ListIO();
 		listIO.add(ios);
 
 		FileDescriptor fd = pb.addFileOpen(f, world , false);
