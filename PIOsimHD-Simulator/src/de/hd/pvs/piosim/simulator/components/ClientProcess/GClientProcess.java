@@ -583,9 +583,9 @@ public class GClientProcess
 
 				cme.process(cmd, newJob, this, nextPStep, null);
 
-				if (newJob.nextStep == nextPStep){
-					throw new IllegalArgumentException("(likely) endless iteration detected in command " + cmd);
-				}
+				//if (newJob.nextStep == nextPStep){
+				//	throw new IllegalArgumentException("(likely) endless iteration detected in command " + cmd);
+				//}
 			}
 
 			//System.out.println(this + " " + nextStep + " starting " + newJob.nextStep + " " + newJob.getNetworkJobs().getSize());
