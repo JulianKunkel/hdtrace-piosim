@@ -34,6 +34,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
+import de.hd.pvs.piosim.simulator.program.Filereadall.Splitter.IOSplitter;
 
 /**
  * Simplyfied Multi-phase superclass.
@@ -45,25 +46,20 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  * @author julian
  */
 abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends CommandImplementation<FileCOMMAND> {
-	static final protected long twoPhaseBufferSize = 8 * 1024 * 1024; // 8 MiB
-	final protected int  ioaggregators = 0; // <= 0 means all !
+	abstract protected IOSplitter initalizeIOSplitter();
 
-	/**
-	 * This function is called once, when it became clear we will use a multi-phase.
-	 * It must set the number of ioaggregators used and maxIter
-	 * @return the number of phases
-	 */
-	abstract protected MultiPhaseRun initMultiphasesOnce(final long totalsize, MultiPhaseContainer mp,  LinkedList<IOData> iops);
-
-	/**
-	 * This method is invoked, once all clients entered two-phase mode and synchronized virtually.
-	 * @param container
-	 * @return
-	 */
-	abstract protected boolean checkMultiPhase(MultiPhaseContainer container);
+	private IOSplitter splitter = null;
 
 
-	static protected class MultiPhaseClientOP{
+	private IOSplitter getIOSplitter(){
+		if(splitter != null){
+			return splitter;
+		}
+		splitter = initalizeIOSplitter();
+		return splitter;
+	}
+
+	static public class MultiPhaseClientOP{
 		final public GClientProcess client;
 		final public FileIOCommand cmd;
 
@@ -84,7 +80,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 	 * Maps each block range to one or multiple clients which have data in this range.
 	 * @author julian
 	 */
-	static protected class IOData{
+	static public class IOData{
 		public long size;
 		public long offset;
 	}
@@ -205,7 +201,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 		}
 	}
 
-	static protected class MultiPhaseContainer{
+	static public class MultiPhaseContainer{
 		private boolean useMultiPhase;
 
 		public MultiPhaseRun phaseRun;
@@ -462,7 +458,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 
 			// check if multiphase shall be applied
 			if(wrapper.globalPhaseContainer.clients.size() > 1){
-				wrapper.globalPhaseContainer.useMultiPhase = checkMultiPhase(wrapper.globalPhaseContainer);
+				wrapper.globalPhaseContainer.useMultiPhase = getIOSplitter().checkMultiPhase(wrapper.globalPhaseContainer);
 			}else{
 				wrapper.globalPhaseContainer.useMultiPhase = false;
 			}
@@ -471,7 +467,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			if(wrapper.globalPhaseContainer.useMultiPhase){
 				// initalize structures
 				long totalSize = wrapper.globalPhaseContainer.groupCollectiveData();
-				final MultiPhaseRun mpr = initMultiphasesOnce(totalSize, wrapper.globalPhaseContainer, wrapper.globalPhaseContainer.dataCollectivlyToAccess);
+				final MultiPhaseRun mpr = getIOSplitter().initMultiphasesOnce(totalSize, wrapper.globalPhaseContainer, wrapper.globalPhaseContainer.dataCollectivlyToAccess);
 				wrapper.globalPhaseContainer.phaseRun = mpr;
 
 				assert(wrapper.globalPhaseContainer.clients.size() == mpr.clientOps.size());
