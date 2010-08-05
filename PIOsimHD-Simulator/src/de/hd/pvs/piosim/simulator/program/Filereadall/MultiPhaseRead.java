@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.Global.MultiPhase;
 
 /**
- * Simplyfied two phase protocol.
+ * Multi-phase protocol abstract class.
  *
  * First synchronize all processes with an virtual barrier i.e. fastest synchronization possible.
  * If all I/Os overlapp i.e. no hole is in the client access then perform any Multi-Phase:
@@ -107,11 +107,12 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 			if (cpo.phasesCompleted()){
 				outCommand.setNextStep(CommandProcessing.STEP_COMPLETED);
+				globalState.remove(cmd);
 				return;
 			}
 
 			// issue reads for each client:
-			final ClientSinglePhaseOperations ops = mp.phaseRun.clientOps.get(client).getCurPhase();
+			final ClientSinglePhaseOperations ops = cpo.getCurPhase();
 			if(ops.phaseAggregatorIOOperation == null){
 				// no further ops => recv if necessary:
 				outCommand.setNextStep(COMMUNICATION_PHASE_RECV);
@@ -142,6 +143,7 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 			if (cpo.phasesCompleted()){
 				outCommand.setNextStep(CommandProcessing.STEP_COMPLETED);
+				globalState.remove(cmd);
 				return;
 			}
 
@@ -173,7 +175,7 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 			final ClientSinglePhaseOperations spops = mp.phaseRun.clientOps.get(client).getCurPhase();
 			cpo.goToNextPhase();
 
-			// perform communication, receive data from clients.
+			// perform communication, receive my data from aggregators.
 			if (spops.clientOps != null){
 				for(GClientProcess recvFromAggregator: spops.clientOps.keySet()){
 					outCommand.addNetReceive(recvFromAggregator.getModelComponent(), 30004, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
