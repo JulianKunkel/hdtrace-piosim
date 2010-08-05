@@ -1,7 +1,5 @@
 package de.hd.pvs.piosim.simulator.program.Filereadall.Splitter;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
@@ -12,26 +10,18 @@ import de.hd.pvs.piosim.simulator.program.Global.MultiPhase.MultiPhaseContainer;
 import de.hd.pvs.piosim.simulator.program.Global.MultiPhase.MultiPhaseRun;
 
 /**
- *
- * Range divided by 3 clients: 00000 111111  22222 2
- * Operations per phase:       01234 012345  01234 5 (the 5 phase is partial, the last client might read partial twoPhaseBufferSize)
- *
- * Operations are only performed if all clients data overlap (i.e. no holes).
- *
- * @author julian
- */
-public class TwoPhaseIOSplitter extends IOSplitter {
-	/**
-	 * This function is called once, when it became clear we will use a multi-phase.
-	 * It must set the number of i/o-aggregators used and maxIter
-	 * @return the number of phases
-	 */
+ * Range divided by 3 clients: 012 012 012 0
+ * Operations per phase:       000 111 222 3 (the 3 phase is partial, the last client might read partial twoPhaseBufferSize)
+ **/
+public class ContiguousIOSplitter extends TwoPhaseIOSplitter {
 	public MultiPhaseRun initMultiphasesOnce(final long totalsize, MultiPhaseContainer mp, LinkedList<IOData> iops){
 		final MultiPhaseRun mpr = new MultiPhaseRun(totalsize);
 		mpr.ioAggregators = this.ioaggregators < 1 ? mp.clients.size() :  ( this.ioaggregators >  mp.clients.size() ?  mp.clients.size() : this.ioaggregators) ;
-		mpr.fullPhases = (int) (mpr.totalAccessSize / mpr.ioAggregators / twoPhaseBufferSize);
 
-		final long lastPhaseBytes = mpr.totalAccessSize - mpr.fullPhases *   mpr.ioAggregators * twoPhaseBufferSize;
+		final long bytesPerFullPhase  =  mpr.ioAggregators * twoPhaseBufferSize;
+		mpr.fullPhases = (int) (mpr.totalAccessSize / bytesPerFullPhase);
+
+		final long lastPhaseBytes = mpr.totalAccessSize - mpr.fullPhases *  bytesPerFullPhase;
 		// assign the jobs to the clients AND to the phases
 
 		mpr.lastAndPartialPhaseAggregators = (int) ((lastPhaseBytes + twoPhaseBufferSize -1) / twoPhaseBufferSize);
@@ -40,20 +30,11 @@ public class TwoPhaseIOSplitter extends IOSplitter {
 
 		final int totalPhaseCount = mpr.getPhaseCount();
 
-		//long bytesToPerform = totalsize;
-		// this iterator points to the next item to perform.
-		//final Iterator<IOData> it = iops.iterator();
-		//IOData curIO = it.next();
-
 		final long startOffset = iops.get(0).offset;
-		final long endOffset = iops.get(iops.size()-1).size + iops.get(iops.size()-1).offset;
-
-		final long bytesPerClient = mpr.fullPhases * twoPhaseBufferSize;
 
 		final int lastAggregator =  mpr.lastAndPartialPhaseAggregators - 1;
 
 		// assign the I/O jobs to the clients and phases
-
 
 		// client number
 		int c = 0;
@@ -77,7 +58,7 @@ public class TwoPhaseIOSplitter extends IOSplitter {
 				ListIO io = new ListIO();
 
 				// remainder from lastPhase (some clients might do).
-				final long offset = startOffset + i * twoPhaseBufferSize + c * bytesPerClient;
+				final long offset = startOffset + i * bytesPerFullPhase + c * twoPhaseBufferSize;
 
 				io.addIOOperation(offset + remainderLastPhase , twoPhaseBufferSize);
 
@@ -92,7 +73,7 @@ public class TwoPhaseIOSplitter extends IOSplitter {
 				final ListIO io = new ListIO();
 
 				// remainder from lastPhase (some clients might do).
-				final long offset = startOffset + mpr.fullPhases * twoPhaseBufferSize +	c * bytesPerClient;
+				final long offset = startOffset + mpr.fullPhases * bytesPerFullPhase + c * twoPhaseBufferSize;
 				final long size = (c < clientsTillPartial ? twoPhaseBufferSize :  remainderForLastAggregator) ;
 
 				io.addIOOperation(offset + remainderLastPhase, size);
@@ -105,38 +86,4 @@ public class TwoPhaseIOSplitter extends IOSplitter {
 		return mpr;
 	}
 
-	/**
-	 * This method is invoked, once all clients entered two-phase mode and synchronized virtually.
-	 * @param container
-	 * @return
-	 */
-	public boolean checkMultiPhase(MultiPhaseContainer container){
-		// sort the list of the I/O operations by the offset.
-		Collections.sort(container.clients, new
-			Comparator<MultiPhaseClientOP>() {
-				@Override
-				public int compare(MultiPhaseClientOP arg0, MultiPhaseClientOP arg1) {
-					return arg0.firstByteAccessed < arg1.firstByteAccessed ? -1 :
-						arg0.lastByteAccessed < arg1.lastByteAccessed ? -1 : +1; // maybe both starts are identical...
-				}
-			});
-
-		boolean twoPhase = true;
-
-		// check if the operations overlaps with the current op:
-		long lastByteAccessed = container.clients.getFirst().firstByteAccessed;
-
-		for(MultiPhaseClientOP client: container.clients){
-			// the real two phase would have checked lastByteAccessed < client.firstByteAccessed ...
-			if(lastByteAccessed > client.lastByteAccessed ){
-				twoPhase = false;
-				break;
-			}
-			lastByteAccessed = client.lastByteAccessed;
-		}
-
-		//System.out.println(this.getClass() + " MultiPhase: " + twoPhase);
-
-		return twoPhase;
-	}
 }
