@@ -5,8 +5,12 @@ Options = {
   "Trace" : True
 }
 
-before = {}
-after = {}
+
+before = {
+  # make write reentrant !
+  "write" :  "static int write_entered = 0;\n if (write_entered){ return (* static_write) (fd,buf,count);}\n write_entered = 1;"
+	 }
+after = { "write" : "write_entered = 0;"}
 
 attributes = {
   "read" : ["fd='%d' size='%lld' ret='%lld'", "fd, (long long int) count, (long long int) ret" ],

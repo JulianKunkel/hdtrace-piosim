@@ -145,6 +145,9 @@ def add_functions(groupFiles, output, varDef):
       # output.write("#undef %s\n" % (tName) );
       output.append(f.rstrip(";") + "{\n");
 
+      if tName in before:
+	output.append(before[tName] + "\n")
+
       if tName in conditions:
 	output.append("if (started_tracing && %s ){\n" % (conditions[tName]));
       else:
@@ -156,9 +159,6 @@ def add_functions(groupFiles, output, varDef):
       if TRACE:
 	output.append("hdMPI_threadLogStateStart(\"" + groupFunction + "_" + tName + "\");\n");
       output.append("}\n");
-
-      if tName in before:
-	output.append(before[tName] + "\n")
 
       if returnDatatype:
 	output.append(tReturn + " ret = ")
