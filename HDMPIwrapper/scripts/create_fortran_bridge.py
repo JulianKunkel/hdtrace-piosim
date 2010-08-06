@@ -46,6 +46,8 @@ if len(sys.argv) == 4:
 # defines the maximum length an translated array might have.
 MAXARRAY_LENGTH = 1024;
 
+
+excludeFunctionGeneration = {"MPI_Init" : ""}; # MPI_Init takes only one parameter in Fortran...
 lines = []
 lastFunction = ""
 
@@ -97,6 +99,20 @@ for i in xrange(0, len(funcs)):
     returnData = False
 
 
+
+
+  # generate aliases:
+  suffix = "_ () __attribute__ ((weak, alias (\"" + tName + "_\")));\n"
+  bridge.write(tReturn + " " + tName.lower() + suffix);
+  bridge.write(tReturn + " " + tName.lower() + "_" + suffix);
+  bridge.write(tReturn + " " + tName.upper() + "_" + suffix );
+  bridge.write(tReturn + " " + tName.upper() + suffix);
+  bridge.write(tReturn + " " + tName + "_" + suffix );
+
+  if tName in excludeFunctionGeneration:
+    continue;
+
+
   # parse parameters and perform transitions
   paramTransition = []
 
@@ -126,6 +142,7 @@ for i in xrange(0, len(funcs)):
  ] )
     I+=1
 
+
   TYPE=0
   VARNAME=1
   CHANGEPOINTER=2
@@ -133,8 +150,13 @@ for i in xrange(0, len(funcs)):
   DATATYPE=4
   STRARRAYLENGTHADDED=5
 
+  if returnData:
+    # add parameter at the end:
+    paramTransition.append( [ tReturn , "retData", True, False, tReturn + "*", False ] )
+
   # generate bridge:
-  bridge.write(tReturn + " " + tName + "_ (" )
+  #bridge.write(tReturn + " " + tName + "_ (" )
+  bridge.write("void " + tName + "_ (" )
 
   # generate new parameters:
   firstParam = True
@@ -183,6 +205,9 @@ for i in xrange(0, len(funcs)):
 
   firstParam = True
   for param in paramTransition:
+    if param[VARNAME] == "retData":
+      continue;
+
     if not firstParam:
       bridge.write (", ")
     firstParam = False
@@ -203,17 +228,9 @@ for i in xrange(0, len(funcs)):
   bridge.write(");\n" )
 
   if returnData:
-     bridge.write("return ret;\n");
+     bridge.write(" *retData = ret;\n");
 
   bridge.write("}\n")
 
-
-  # generate aliases:
-  suffix = "_ () __attribute__ ((weak, alias (\"" + tName + "_\")));\n"
-  bridge.write(tReturn + " " + tName.lower() + suffix);
-  bridge.write(tReturn + " " + tName.lower() + "_" + suffix);
-  bridge.write(tReturn + " " + tName.upper() + "_" + suffix );
-  bridge.write(tReturn + " " + tName.upper() + suffix);
-  bridge.write(tReturn + " " + tName + "_" + suffix );
 
 bridge.close();
