@@ -38,6 +38,7 @@ public class NamedDatatype extends Datatype{
 		INTEGER (4),
 		LONG (4),
 		LONG_LONG (8),
+		DOUBLE_PRECISION (8),
 		UNIMPLEMENTED(0),
 		;
 
@@ -61,6 +62,7 @@ public class NamedDatatype extends Datatype{
 	final static public NamedDatatype CHAR = new NamedDatatype(NamedDatatypeType.CHAR);
 	final static public NamedDatatype INTEGER = new NamedDatatype(NamedDatatypeType.INTEGER);
 	final static public NamedDatatype LONG_LONG = new NamedDatatype(NamedDatatypeType.LONG_LONG);
+	final static public NamedDatatype DOUBLE_PRECISION = new NamedDatatype(NamedDatatypeType.DOUBLE_PRECISION);
 	final static public NamedDatatype LONG = new NamedDatatype(NamedDatatypeType.LONG);
 	final static public NamedDatatype UNIMPLEMENTED = new NamedDatatype(NamedDatatypeType.UNIMPLEMENTED);
 
@@ -122,6 +124,8 @@ public class NamedDatatype extends Datatype{
 			return LONG;
 		case LONG_LONG:
 			return LONG_LONG;
+		case DOUBLE_PRECISION:
+			return DOUBLE_PRECISION;			
 		default:
 			return null;
 		}		
