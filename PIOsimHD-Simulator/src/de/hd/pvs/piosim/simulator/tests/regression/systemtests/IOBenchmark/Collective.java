@@ -1,10 +1,4 @@
-/** Version Control Information $Id$
- * @lastmodified    $Date$
- * @modifiedby      $LastChangedBy$
- * @version         $Revision$
- */
-
-//	Copyright (C) 2009 Michael Kuhn
+//	Copyright (C) 2009 Michael Kuhn, 2010 Julian Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -22,61 +16,61 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOBenchmark;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 
-import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
-import de.hd.pvs.piosim.model.inputOutput.ListIO;
+import org.junit.Test;
 
-public class Collective extends IOBenchmark {
-	public void doWrite(List<FileMetadata> files) throws Exception {
-		//assert(iterNum % perIteration == 0);
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
+import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.program.commands.Filereadall;
+import de.hd.pvs.piosim.model.program.commands.Filewriteall;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 
-		for (FileMetadata file : files) {
-			for (int i = 0; i < iterNum; i += perIteration) {
-				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
 
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					io.put(rank, new ListIO());
-				}
+public class Collective extends Individual {
 
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					for (int j = 0; j < perIteration; j++) {
-						io.get(rank).addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
-					}
-				}
+	/**
+	 * The current client implementation for read/writeall.
+	 */
+	String currentImpl;
 
-				pb.addWriteCollective(aB.getWorldCommunicator(), file, io);
-			}
+	@Test
+	public void benchmarkServers() throws Exception{
+		final List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
+		final List<Long> sizes = new ArrayList<Long>();
+
+		cacheLayers.add(IOC.SimpleNoCache());
+		cacheLayers.add(IOC.SimpleWriteBehindCache());
+		cacheLayers.add(IOC.AggregationCache());
+		cacheLayers.add(IOC.AggregationReorderCache());
+		//cacheLayers.add(new ServerDirectedIO());
+
+		//		sizes.add((long)512);
+		sizes.add((long)5 * KBYTE);
+		sizes.add((long)50 * KBYTE);
+		sizes.add((long)500 * KBYTE);
+		sizes.add((long)5000 * KBYTE);
+
+		for (String impl: new String []{"Direct", "TwoPhase", "ContiguousTwoPhase"} ){
+			this.currentImpl = impl;
+			super.benchmarkServers("/tmp/benchmark-collective-" + impl + ".txt", cacheLayers, sizes);
 		}
 	}
 
-	public void doRead(List<FileMetadata> files) throws Exception {
-		int perIteration = perIteration();
-		int iterNum = (int)(fileSize / elementSize / clientNum);
+	@Override
+	public void doWrite(List<FileDescriptor> files) throws Exception {
+		getGlobalSettings().setClientFunctionImplementation(new CommandType("Filewriteall"), "de.hd.pvs.piosim.simulator.program.Filewriteall." + currentImpl);
 
-		//assert(iterNum % perIteration == 0);
-
-		for (FileMetadata file : files) {
-			for (int i = 0; i < iterNum; i += perIteration) {
-				HashMap<Integer, ListIO> io = new HashMap<Integer, ListIO>();
-
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					io.put(rank, new ListIO());
-				}
-
-				for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-					for (int j = 0; j < perIteration; j++) {
-						io.get(rank).addIOOperation((((i + j) * clientNum) + rank) * elementSize, elementSize);
-					}
-				}
-
-				pb.addReadCollective(aB.getWorldCommunicator(), file, io);
-			}
-		}
+		createIOOps(files, Filewriteall.class);
 	}
 
-	public static void main(String[] args) throws Exception {
-		new Collective().run();
+	@Override
+	public void doRead(List<FileDescriptor> files) throws Exception {
+		getGlobalSettings().setClientFunctionImplementation(new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall." + currentImpl);
+		createIOOps(files, Filereadall.class);
 	}
+
+
 }

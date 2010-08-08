@@ -1,10 +1,4 @@
-/** Version Control Information $Id$
- * @lastmodified    $Date$
- * @modifiedby      $LastChangedBy$
- * @version         $Revision$
- */
-
-//	Copyright (C) 2009 Michael Kuhn
+//	Copyright (C) 2009 Michael Kuhn, 2010 Julian Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -20,7 +14,7 @@
 //
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-package de.hd.pvs.piosim.simulator.tests.regression.systemtests.DatabaseIOTest;
+package de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOBenchmark;
 
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -29,27 +23,25 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.simulator.SimulationResults;
-import de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOTest;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 
-public class Individual extends IOTest {
+public class DatabaseIOTest extends IOBenchmark {
 	private int iterNum = 10;
 
 	private Random random = null;
 
-	public Individual() {
+	final long fileSize;
+
+	public DatabaseIOTest() {
 		super();
 		fileNum = 10;
-		fileSize = 1250000 * KBYTE;
+		fileSize = 1250 * MBYTE;
 	}
 
 	private int perIteration () {
@@ -64,7 +56,7 @@ public class Individual extends IOTest {
 		return getDataPerIteration(elementSize) * iterNum * clientNum;
 	}
 
-	private FileMetadata getFile (List<FileMetadata> files) {
+	private FileDescriptor getFile (List<FileDescriptor> files) {
 		int i = random.nextInt(files.size());
 		return files.get(i);
 	}
@@ -80,21 +72,22 @@ public class Individual extends IOTest {
 		return Math.min((i + 1) * blockSize, fileSize - offset);
 	}
 
-	public void doWrite(List<FileMetadata> files) throws Exception {
+	@Override
+	public void doWrite(List<FileDescriptor> files) throws Exception {
 		int perIteration = perIteration();
 
 		assert(iterNum % perIteration == 0);
 
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				FileMetadata f = getFile(files);
+				FileDescriptor f = getFile(files);
 				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
 					Filewrite com = new Filewrite();
 					ListIO lio = new ListIO();
 
-					com.setFile(f);
+					com.setFileDescriptor(f);
 
 					for (int j = 0; j < perIteration; j++) {
 						long offset = getBlockOffset();
@@ -117,21 +110,22 @@ public class Individual extends IOTest {
 		}
 	}
 
-	public void doRead(List<FileMetadata> files) throws Exception {
+	@Override
+	public void doRead(List<FileDescriptor> files) throws Exception {
 		int perIteration = perIteration();
 
 		assert(iterNum % perIteration == 0);
 
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				FileMetadata f = getFile(files);
+				FileDescriptor f = getFile(files);
 				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
 					Fileread com = new Fileread();
 					ListIO lio = new ListIO();
 
-					com.setFile(f);
+					com.setFileDescriptor(f);
 
 					for (int j = 0; j < perIteration; j++) {
 						long offset = getBlockOffset();
@@ -154,14 +148,14 @@ public class Individual extends IOTest {
 		}
 	}
 
-	public void doReadWrite(List<FileMetadata> files) throws Exception {
+	public void doReadWrite(List<FileDescriptor> files) throws Exception {
 		int perIteration = perIteration();
 
 		assert(iterNum % perIteration == 0);
 
 		for (int i = 0; i < iterNum; i += perIteration) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				FileMetadata f = getFile(files);
+				FileDescriptor f = getFile(files);
 				long dataToAccess = getDataPerIteration(blockSize);
 
 				while (dataToAccess > 0) {
@@ -184,13 +178,13 @@ public class Individual extends IOTest {
 					if (random.nextBoolean()) {
 						Fileread com = new Fileread();
 
-						com.setFile(f);
+						com.setFileDescriptor(f);
 						com.setListIO(lio);
 						aB.addCommand(rank, com);
 					} else {
 						Filewrite com = new Filewrite();
 
-						com.setFile(f);
+						com.setFileDescriptor(f);
 						com.setListIO(lio);
 						aB.addCommand(rank, com);
 					}
@@ -199,22 +193,24 @@ public class Individual extends IOTest {
 		}
 	}
 
+	@Override
 	public SimulationResults writeTest() throws Exception {
-		List<FileMetadata> files = prepare(false);
+		List<FileDescriptor> files = prepareFilelist(false, fileSize);
 		doWrite(files);
 		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
+	@Override
 	public SimulationResults readTest() throws Exception {
-		List<FileMetadata> files = prepare(false);
+		List<FileDescriptor> files = prepareFilelist(false, fileSize);
 		doRead(files);
 		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readWriteTest() throws Exception {
-		List<FileMetadata> files = prepare(false);
+		List<FileDescriptor> files = prepareFilelist(false, fileSize);
 		doReadWrite(files);
 		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
@@ -241,14 +237,14 @@ public class Individual extends IOTest {
 		List<Long> sizes = new ArrayList<Long>();
 		List<Long> seeds = new ArrayList<Long>();
 
-		cacheLayers.add(new NoCache());
-		cacheLayers.add(new SimpleWriteBehindCache());
-		cacheLayers.add(new AggregationCache());
-		cacheLayers.add(new ServerDirectedIO());
+		cacheLayers.add(IOC.SimpleNoCache());
+		cacheLayers.add(IOC.SimpleWriteBehindCache());
+		cacheLayers.add(IOC.AggregationCache());
+		cacheLayers.add(IOC.AggregationReorderCache());
 
 		sizes.add((long)512);
-//		sizes.add((long)5 * KBYTE);
-//		sizes.add((long)50 * KBYTE);
+		sizes.add((long)5 * KBYTE);
+		sizes.add((long)50 * KBYTE);
 //		sizes.add((long)512 * KBYTE);
 
 		for (long i = 0; i < 10; i++) {
@@ -277,11 +273,7 @@ public class Individual extends IOTest {
 
 					random = new Random(seed);
 					r = readTest();
-
-					random = new Random(seed);
 					w = writeTest();
-
-					random = new Random(seed);
 					rw = readWriteTest();
 
 					readAvg += r.getVirtualTime().getDouble();
@@ -319,25 +311,27 @@ public class Individual extends IOTest {
 			results.add(res);
 		}
 
-		FileWriter out = new FileWriter("/tmp/iotest.txt");
+		FileWriter out = new FileWriter("/tmp/databaseiotest.txt");
 
 		for (CacheLayerResults res : results) {
 			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
 
 			for (int i = 0; i < sizes.size(); i++) {
+				final long totalSize =  getDataTotal(sizes.get(i));
+
 				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " READ  " + getDataTotal(sizes.get(i)) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " READ  " + (getDataTotal(sizes.get(i)) / res.readAvgs.get(i) / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " READ  " + totalSize + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " READ  " + (totalSize / res.readAvgs.get(i) / 1024 / 1024) + " MiB/s\n");
 				}
 
 				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " WRITE " + getDataTotal(sizes.get(i)) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " WRITE " + (getDataTotal(sizes.get(i)) / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " WRITE " + totalSize + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " WRITE " + (totalSize / res.writeAvgs.get(i) / 1024 / 1024) + " MiB/s\n");
 				}
 
 				if (res.readWriteAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " RW  " + getDataTotal(sizes.get(i)) + " B, " + res.readWriteAvgs.get(i) + " s (" + res.readWriteDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " RW  " + (getDataTotal(sizes.get(i)) / res.readWriteAvgs.get(i) / 1024 / 1024) + " MB/s\n");
+					out.write("  " + sizes.get(i) + " RW  " + totalSize + " B, " + res.readWriteAvgs.get(i) + " s (" + res.readWriteDevs.get(i) + " s)\n");
+					out.write("  " + sizes.get(i) + " RW  " + (totalSize / res.readWriteAvgs.get(i) / 1024 / 1024) + " MiB/s\n");
 				}
 			}
 		}
@@ -346,6 +340,6 @@ public class Individual extends IOTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new Individual().run();
+		new DatabaseIOTest().run();
 	}
 }

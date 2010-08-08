@@ -48,7 +48,7 @@ public class IOTest extends ModelTest {
 
 	FileMetadata f;
 
-	private void initGlobals(){
+	protected void postSetup(){
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setTransferGranularity(100 * KiB);
@@ -82,8 +82,6 @@ public class IOTest extends ModelTest {
 				);
 
 		super.setup( serverNodeT );
-
-		initGlobals();
 	}
 
 
@@ -117,8 +115,6 @@ public class IOTest extends ModelTest {
 
 
 		super.setup( new IODisjointConfiguration(NetworkEdgesC.TenGIGE(), NetworkNodesC.QPI(), clientCluster, serverCluster ) );
-
-		initGlobals();
 	}
 
 	@Test public void OpenCloseTest() throws Exception{

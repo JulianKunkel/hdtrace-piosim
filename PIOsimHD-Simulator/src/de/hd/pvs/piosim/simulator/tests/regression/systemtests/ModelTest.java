@@ -45,7 +45,7 @@ import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.HardwareConfiguration;
 
-public class ModelTest extends TestSuite {
+abstract public class ModelTest extends TestSuite {
 	protected final long KiB = 1000;
 	protected final long MiB = 1000 * KiB;
 	protected final long GiB = 1000 * MiB;
@@ -65,7 +65,7 @@ public class ModelTest extends TestSuite {
 
 	protected INetworkTopology topology;
 
-	RunParameters parameters = new RunParameters();
+	protected RunParameters parameters = new RunParameters();
 
 	@After
 	public void tearDown() {
@@ -76,6 +76,8 @@ public class ModelTest extends TestSuite {
 	protected void printStack() {
 		System.err.println(new Exception().getStackTrace()[1]);
 	}
+
+	abstract protected void postSetup();
 
 	protected void setup(HardwareConfiguration config) throws Exception {
 		System.err.println(new Exception().getStackTrace()[1]);
@@ -116,6 +118,8 @@ public class ModelTest extends TestSuite {
 		assert (world != null);
 
 		model = mb.getModel();
+
+		postSetup();
 	}
 
 	public void writeModelToTMP() throws Exception{

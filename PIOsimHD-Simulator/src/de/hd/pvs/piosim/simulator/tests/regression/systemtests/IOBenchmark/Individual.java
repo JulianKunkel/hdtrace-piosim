@@ -1,10 +1,4 @@
-/** Version Control Information $Id$
- * @lastmodified    $Date$
- * @modifiedby      $LastChangedBy$
- * @version         $Revision$
- */
-
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	Copyright (C) 2008, 2009, 2010 Julian M. Kunkel
 //	Copyright (C) 2009 Michael Kuhn
 //
 //	This file is part of PIOsimHD.
@@ -138,9 +132,9 @@ public class Individual extends IOBenchmark {
 		final List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		final List<Long> sizes = new ArrayList<Long>();
 
-		//cacheLayers.add(IOC.SimpleNoCache());
-		//cacheLayers.add(IOC.SimpleWriteBehindCache());
-		//cacheLayers.add(IOC.AggregationCache());
+		cacheLayers.add(IOC.SimpleNoCache());
+		cacheLayers.add(IOC.SimpleWriteBehindCache());
+		cacheLayers.add(IOC.AggregationCache());
 		cacheLayers.add(IOC.AggregationReorderCache());
 		//cacheLayers.add(new ServerDirectedIO());
 
@@ -153,7 +147,7 @@ public class Individual extends IOBenchmark {
 		super.benchmarkServers("/tmp/benchmark.txt", cacheLayers, sizes);
 	}
 
-	private void createIOOps(List<FileDescriptor> files, Class ioClass) throws Exception{
+	protected void createIOOps(List<FileDescriptor> files, Class<? extends FileIOCommand> ioClass) throws Exception{
 		for (int i = 0; i < outerIterations; i += 1) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
 				for (FileDescriptor f : files) {
@@ -176,10 +170,12 @@ public class Individual extends IOBenchmark {
 		}
 	}
 
+	@Override
 	public void doWrite(List<FileDescriptor> files) throws Exception {
 		createIOOps(files, Filewrite.class);
 	}
 
+	@Override
 	public void doRead(List<FileDescriptor> files) throws Exception {
 		createIOOps(files, Fileread.class);
 	}

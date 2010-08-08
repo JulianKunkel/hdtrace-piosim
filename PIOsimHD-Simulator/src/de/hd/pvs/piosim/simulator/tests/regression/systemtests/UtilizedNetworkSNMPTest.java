@@ -35,6 +35,11 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigura
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
 
 public class UtilizedNetworkSNMPTest extends ModelTest{
+	@Override
+	protected void postSetup() {
+
+	}
+
 	protected void setupSMP(int smtPerNode) throws Exception {
 		StoreForwardNode sw = new StoreForwardNode();
 		sw.setName("SLOWSwitch");
