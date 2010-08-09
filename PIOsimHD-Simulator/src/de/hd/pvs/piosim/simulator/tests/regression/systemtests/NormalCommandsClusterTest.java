@@ -44,6 +44,10 @@ public class NormalCommandsClusterTest extends ModelTest{
 
 	double [] times = new double[maxClient+1];
 
+	@Override
+	protected void postSetup() {
+	}
+
 	protected void setup(int nodeCount, int smtPerNode) throws Exception {
 		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
 				NICC.PVSNIC(),

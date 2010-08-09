@@ -1,10 +1,4 @@
-/** Version Control Information $Id$
- * @lastmodified    $Date$
- * @modifiedby      $LastChangedBy$
- * @version         $Revision$
- */
-
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	Copyright (C) 2008, 2009, 2010 Julian M. Kunkel
 //	Copyright (C) 2009 Michael Kuhn
 //
 //	This file is part of PIOsimHD.
@@ -30,6 +24,7 @@ import java.util.List;
 
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.simulator.SimulationResults;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
@@ -56,6 +51,9 @@ abstract public class IOBenchmark extends ModelTest {
 	// number of outer iterations == repeats of the inner loop
 	protected int outerIterations = 1;
 
+	// minimal file size for the test.
+	protected long minimumFileSize = 100 * 1024 * 1024;
+
 	// number of data blocks accessed per inner iteration
 	protected int innerNonContigIterations = 100;
 
@@ -72,6 +70,12 @@ abstract public class IOBenchmark extends ModelTest {
 
 	abstract public void doRead(List<FileDescriptor> files) throws Exception;
 
+	private long fileSize;
+
+	protected long getFileSize() {
+		return fileSize;
+	}
+
 	protected long computeFileSize(){
 		return blockSize * innerNonContigIterations * outerIterations * clientNum;
 	}
@@ -80,8 +84,8 @@ abstract public class IOBenchmark extends ModelTest {
 
 	protected boolean traceEnabled = false;
 
-	protected void initGlobals(){
-
+	@Override
+	protected void postSetup() {
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setTransferGranularity(100 * KiB);
 		mb.getGlobalSettings().setIOGranularity(MiB);
@@ -120,16 +124,14 @@ abstract public class IOBenchmark extends ModelTest {
 
 
 		try{
-		super.setup( new IODisjointConfiguration(NetworkEdgesC.TenGIGE(), NetworkNodesC.QPI(), clientCluster, serverCluster ) );
+			super.setup( new IODisjointConfiguration(NetworkEdgesC.TenGIGE(), NetworkNodesC.QPI(), clientCluster, serverCluster ) );
 		}catch(IllegalArgumentException e){
 			System.err.println("setup error - nodes: " + nodeCount + " smt: " + smtPerNode + " servers: " + serverCount + " " + cacheLayer);
 			e.printStackTrace();
 		}
-
-		initGlobals();
 	}
 
-	protected List<FileDescriptor> prepare(boolean isEmpty) throws Exception {
+	protected List<FileDescriptor> prepareFilelist(boolean filesAreEmpty, long initialFileSize) throws Exception {
 		List<FileDescriptor> files = new ArrayList<FileDescriptor>();
 
 		assert(blockSize > 0);
@@ -140,10 +142,11 @@ abstract public class IOBenchmark extends ModelTest {
 		SimpleStripe dist = new SimpleStripe();
 		dist.setChunkSize(stripeSize);
 
-		final long fileSize = computeFileSize();
+		this.fileSize = initialFileSize;
 
 		for (int i = 0; i < fileNum; i++) {
-			files.add(pb.addFileOpen(aB.createFile("testfile" + i, ((isEmpty) ? 0 : fileSize) , dist), world, isEmpty));
+			FileMetadata file = aB.createFile("testfile" + i, ((filesAreEmpty) ? 0 : fileSize), dist);
+			files.add(pb.addFileOpen( file, world, filesAreEmpty));
 		}
 
 		return files;
@@ -156,21 +159,22 @@ abstract public class IOBenchmark extends ModelTest {
 	}
 
 	public SimulationResults writeTest() throws Exception {
-		List<FileDescriptor> files = prepare(true);
+		List<FileDescriptor> files = prepareFilelist(true, computeFileSize());
 		doWrite(files);
 		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	public SimulationResults readTest() throws Exception {
-		List<FileDescriptor> files = prepare(false);
+		List<FileDescriptor> files = prepareFilelist(false, computeFileSize());
 		doRead(files);
 		closeFiles(files);
 		return runSimulationAllExpectedToFinish();
 	}
 
 	private void writeTestResults(String type, final FileWriter out, SimulationResults res) throws IOException{
-		final long fileSize = computeFileSize();
+		final long fileSize = this.fileSize;
+
 		final long iosize = (fileNum * fileSize);
 		out.write("   " + blockSize + " " +  type + "   " + iosize/1024/1024 + " MiB == " + iosize + " B " + res.getVirtualTime().getDouble() + " s\n");
 		out.write("   " + blockSize + " " +  type + "   " + iosize / res.getVirtualTime().getDouble() / 1024 / 1024 + " MiB/s\n");

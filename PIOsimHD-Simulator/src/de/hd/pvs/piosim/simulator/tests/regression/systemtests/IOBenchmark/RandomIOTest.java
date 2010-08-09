@@ -4,7 +4,7 @@
  * @version         $Revision$
  */
 
-//	Copyright (C) 2009 Michael Kuhn
+//	Copyright (C) 2009 Michael Kuhn, 2010 Julian Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -20,7 +20,7 @@
 //
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
-package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
+package de.hd.pvs.piosim.simulator.tests.regression.systemtests.IOBenchmark;
 
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -30,22 +30,23 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerDirectedIO;
-import de.hd.pvs.piosim.model.components.ServerCacheLayer.SimpleWriteBehindCache;
-import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.simulator.SimulationResults;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 
-public class RandomIOTest extends IOTest {
+/**
+ * In the random I/O Test the whole file is read or written, however the
+ * order in which reads/writes occur is determined randomly.
+ */
+public class RandomIOTest extends IOBenchmark {
 	final class TestTuple {
 		int rank;
-		FileMetadata file;
+		FileDescriptor file;
 		long offset;
 		long size;
 
-		public TestTuple(int rank, FileMetadata file, long offset, long size) {
+		public TestTuple(int rank, FileDescriptor file, long offset, long size) {
 			this.rank = rank;
 			this.file = file;
 			this.offset = offset;
@@ -55,14 +56,18 @@ public class RandomIOTest extends IOTest {
 
 	private Random random = null;
 
-	public void doWrite(List<FileMetadata> files) throws Exception {
+
+
+	@Override
+	public void doWrite(List<FileDescriptor> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
+		final long fileSize = computeFileSize();
 		int iterNum = (int)(fileSize / blockSize / clientNum);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (FileMetadata f : files) {
+				for (FileDescriptor f : files) {
 					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * blockSize, blockSize);
 					tuples.add(tuple);
 				}
@@ -76,14 +81,16 @@ public class RandomIOTest extends IOTest {
 		}
 	}
 
-	public void doRead(List<FileMetadata> files) throws Exception {
+	@Override
+	public void doRead(List<FileDescriptor> files) throws Exception {
 		ArrayList<TestTuple> tuples = new ArrayList<TestTuple>();
 
+		final long fileSize = computeFileSize();
 		int iterNum = (int)(fileSize / blockSize / clientNum);
 
 		for (int i = 0; i < iterNum; i++) {
 			for (Integer rank : aB.getWorldCommunicator().getParticipatingRanks()) {
-				for (FileMetadata f : files) {
+				for (FileDescriptor f : files) {
 					TestTuple tuple = new TestTuple(rank, f, ((i * clientNum) + rank) * blockSize, blockSize);
 					tuples.add(tuple);
 				}
@@ -98,13 +105,15 @@ public class RandomIOTest extends IOTest {
 	}
 
 	@Test
-	public void run() throws Exception {
+	public void benchmark() throws Exception {
+
 		final class CacheLayerResults {
 			ServerCacheLayer cacheLayer = null;
 			List<Double> readAvgs = new ArrayList<Double>();
 			List<Double> readDevs = new ArrayList<Double>();
 			List<Double> writeAvgs = new ArrayList<Double>();
 			List<Double> writeDevs = new ArrayList<Double>();
+			List<Long>   fileSizes = new ArrayList<Long>();
 
 			public CacheLayerResults(ServerCacheLayer cacheLayer) {
 				this.cacheLayer = cacheLayer;
@@ -116,15 +125,15 @@ public class RandomIOTest extends IOTest {
 		List<Long> sizes = new ArrayList<Long>();
 		List<Long> seeds = new ArrayList<Long>();
 
-		cacheLayers.add(new NoCache());
-		cacheLayers.add(new SimpleWriteBehindCache());
-		cacheLayers.add(new AggregationCache());
-		cacheLayers.add(new ServerDirectedIO());
+		cacheLayers.add(IOC.SimpleNoCache());
+		cacheLayers.add(IOC.SimpleWriteBehindCache());
+		cacheLayers.add(IOC.AggregationCache());
+		cacheLayers.add(IOC.AggregationReorderCache());
 
 //		sizes.add((long)512);
 		sizes.add((long)5 * KBYTE);
 		sizes.add((long)50 * KBYTE);
-		sizes.add((long)512 * KBYTE);
+		sizes.add((long)500 * KBYTE);
 
 		for (long i = 0; i < 10; i++) {
 			seeds.add(i);
@@ -146,10 +155,12 @@ public class RandomIOTest extends IOTest {
 					SimulationResults w;
 
 					blockSize = size;
-					random = new Random(seed);
+					this.random = new Random(seed);
 
 					r = readTest();
 					w = writeTest();
+
+					res.fileSizes.add(computeFileSize());
 
 					readAvg += r.getVirtualTime().getDouble();
 					readDev += Math.pow(r.getVirtualTime().getDouble(), 2);
@@ -182,6 +193,8 @@ public class RandomIOTest extends IOTest {
 			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
 
 			for (int i = 0; i < sizes.size(); i++) {
+				final long fileSize = res.fileSizes.get(i);
+
 				if (res.readAvgs.size() > i) {
 					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
 					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize / res.readAvgs.get(i) / 1024 / 1024) + " MB/s\n");
@@ -198,6 +211,6 @@ public class RandomIOTest extends IOTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new RandomIOTest().run();
+		new RandomIOTest().benchmark();
 	}
 }
