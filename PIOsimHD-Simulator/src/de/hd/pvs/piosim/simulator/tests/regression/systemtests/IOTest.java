@@ -146,6 +146,26 @@ public class IOTest extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void ReadWrite2TestAll() throws Exception{
+		final List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
+		cacheLayers.add(IOC.SimpleNoCache());
+		cacheLayers.add(IOC.SimpleWriteBehindCache());
+		cacheLayers.add(IOC.AggregationCache());
+		cacheLayers.add(IOC.AggregationReorderCache());
+
+		for (ServerCacheLayer cache: cacheLayers){
+			setupOneNodeOneServer(2, cache);
+
+			FileDescriptor fd = pb.addFileOpen(f, world , false);
+
+			pb.addReadSequential(1, fd, 0, 100 * KBYTE);
+			pb.addWriteSequential(0, fd, 0, 100 * KBYTE);
+			pb.addFileClose(fd);
+
+			runSimulationAllExpectedToFinish();
+		}
+	}
+
 	@Test public void Writebehind3Test() throws Exception{
 		setupOneNodeOneServer(3, IOC.SimpleWriteBehindCache());
 

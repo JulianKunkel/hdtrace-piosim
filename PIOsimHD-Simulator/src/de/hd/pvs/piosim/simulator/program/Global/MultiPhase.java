@@ -348,7 +348,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			int curPhase = 0;
 			for (ClientSinglePhaseOperations spops: pop.phases){
 
-				if(spops == null){
+				if(spops == null || spops.phaseAggregatorIOOperation == null){
 					// we are a regular client
 					continue;
 				}

@@ -245,11 +245,13 @@ public class DatabaseIOTest extends IOBenchmark {
 		sizes.add((long)512);
 		sizes.add((long)5 * KBYTE);
 		sizes.add((long)50 * KBYTE);
-//		sizes.add((long)512 * KBYTE);
+		//		sizes.add((long)512 * KBYTE);
 
 		for (long i = 0; i < 10; i++) {
 			seeds.add(i);
 		}
+
+		FileWriter out = new FileWriter("/tmp/databaseiotest.txt");
 
 		for (ServerCacheLayer cacheLayer : cacheLayers) {
 			CacheLayerResults res = new CacheLayerResults(cacheLayer);

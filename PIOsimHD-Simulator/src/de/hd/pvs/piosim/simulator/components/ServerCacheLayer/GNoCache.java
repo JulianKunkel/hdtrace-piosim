@@ -91,10 +91,9 @@ public class GNoCache
 	 */
 	private int numberOfScheduledIOOperations = 0;
 
-	/**
-	 *
-	 */
 	private int numberOfPendingIOOperations = 0;
+
+	private int numberOfPendingOrScheduledWriteOperations = 0;
 
 	/**
 	 * The I/O Job queue
@@ -191,7 +190,7 @@ public class GNoCache
 	@Override
 	public boolean canIPutDataIntoCache(RequestWrite clientJob, long bytesOfWrite) {
 		//System.out.println(numberOfPendingWrites);
-		return numberOfPendingIOOperations == 0 && numberOfScheduledIOOperations  == 0;
+		return numberOfPendingOrScheduledWriteOperations == 0;
 	}
 
 	@Override
@@ -352,6 +351,8 @@ public class GNoCache
 
 		numberOfPendingIOOperations++;
 
+		numberOfPendingOrScheduledWriteOperations++;
+
 		jobQueue.addIOJob(new IOJob<InternalIOData,IOOperationData>(
 				req.getFile(), internalUserData, IOOperationType.WRITE,
 				new StreamIOOperation(size, offset)));
@@ -373,7 +374,9 @@ public class GNoCache
 			break;
 		}case WRITE:{
 			// write request
+			numberOfPendingOrScheduledWriteOperations--;
 			dataWrittenCompletelyToDisk(job, endTime);
+
 			break;
 		}case FLUSH:{
 
