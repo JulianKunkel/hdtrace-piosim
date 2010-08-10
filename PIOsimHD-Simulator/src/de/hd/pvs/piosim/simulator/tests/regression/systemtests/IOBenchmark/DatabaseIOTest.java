@@ -257,6 +257,9 @@ public class DatabaseIOTest extends IOBenchmark {
 
 			this.cacheLayer = cacheLayer;
 
+
+			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
+
 			for (long size : sizes) {
 				double readAvg = 0;
 				double readDev = 0;
@@ -264,6 +267,7 @@ public class DatabaseIOTest extends IOBenchmark {
 				double writeDev = 0;
 				double readWriteAvg = 0;
 				double readWriteDev = 0;
+
 
 				for (long seed : seeds) {
 					SimulationResults r;
@@ -307,27 +311,16 @@ public class DatabaseIOTest extends IOBenchmark {
 
 				res.readWriteAvgs.add(readWriteAvg);
 				res.readWriteDevs.add(readWriteDev);
-			}
 
-			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
+				out.write("  " + size + " READ  " + (fileNum * fileSize) + " B, " + readAvg + " s (" + readDev + " s)\n");
+				out.write("  " + size + " READ  " + (fileNum * fileSize / readAvg / 1024 / 1024) + " MB/s\n");
+				out.write("  " + size + " WRITE " + (fileNum * fileSize) + " B, " + writeAvg + " s (" + writeDev + " s)\n");
+				out.write("  " + size + " WRITE " + (fileNum * fileSize / writeAvg / 1024 / 1024) + " MB/s\n");
 
-			for (int i = 0; i < sizes.size(); i++) {
-				final long totalSize =  getDataTotal(sizes.get(i));
+				out.write("  " + size + " RW  " + fileSize + " B, " + readWriteAvg + " s (" + readWriteDev + " s)\n");
+				out.write("  " + size + " RW  " + (fileSize / readWriteAvg / 1024 / 1024) + " MiB/s\n");
 
-				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " READ  " + totalSize + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " READ  " + (totalSize / res.readAvgs.get(i) / 1024 / 1024) + " MiB/s\n");
-				}
-
-				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " WRITE " + totalSize + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " WRITE " + (totalSize / res.writeAvgs.get(i) / 1024 / 1024) + " MiB/s\n");
-				}
-
-				if (res.readWriteAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " RW  " + totalSize + " B, " + res.readWriteAvgs.get(i) + " s (" + res.readWriteDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " RW  " + (totalSize / res.readWriteAvgs.get(i) / 1024 / 1024) + " MiB/s\n");
-				}
+				out.flush();
 			}
 		}
 

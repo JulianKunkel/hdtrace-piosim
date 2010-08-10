@@ -144,23 +144,25 @@ public class RandomIOTest extends IOBenchmark {
 
 			this.cacheLayer = cacheLayer;
 
+			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
+
 			for (long size : sizes) {
 				double readAvg = 0;
 				double readDev = 0;
 				double writeAvg = 0;
 				double writeDev = 0;
 
+				this.blockSize = size;
+				long fileSize = computeFileSize();
+
 				for (long seed : seeds) {
 					SimulationResults r;
 					SimulationResults w;
 
-					blockSize = size;
 					this.random = new Random(seed);
 
 					r = readTest();
 					w = writeTest();
-
-					res.fileSizes.add(computeFileSize());
 
 					readAvg += r.getVirtualTime().getDouble();
 					readDev += Math.pow(r.getVirtualTime().getDouble(), 2);
@@ -182,23 +184,12 @@ public class RandomIOTest extends IOBenchmark {
 
 				res.writeAvgs.add(writeAvg);
 				res.writeDevs.add(writeDev);
-			}
 
-
-			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
-
-			for (int i = 0; i < sizes.size(); i++) {
-				final long fileSize = res.fileSizes.get(i);
-
-				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize) + " B, " + res.readAvgs.get(i) + " s (" + res.readDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " READ  " + (fileNum * fileSize / res.readAvgs.get(i) / 1024 / 1024) + " MB/s\n");
-				}
-
-				if (res.readAvgs.size() > i) {
-					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize) + " B, " + res.writeAvgs.get(i) + " s (" + res.writeDevs.get(i) + " s)\n");
-					out.write("  " + sizes.get(i) + " WRITE " + (fileNum * fileSize / res.writeAvgs.get(i) / 1024 / 1024) + " MB/s\n");
-				}
+				out.write("  " + size + " READ  " + (fileNum * fileSize) + " B, " + readAvg + " s (" + readDev + " s)\n");
+				out.write("  " + size + " READ  " + (fileNum * fileSize / readAvg / 1024 / 1024) + " MB/s\n");
+				out.write("  " + size + " WRITE " + (fileNum * fileSize) + " B, " + writeAvg + " s (" + writeDev + " s)\n");
+				out.write("  " + size + " WRITE " + (fileNum * fileSize / writeAvg / 1024 / 1024) + " MB/s\n");
+				out.flush();
 			}
 		}
 		out.close();
