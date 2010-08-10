@@ -120,7 +120,6 @@ public class RandomIOTest extends IOBenchmark {
 			}
 		}
 
-		List<CacheLayerResults> results = new ArrayList<CacheLayerResults>();
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 		List<Long> seeds = new ArrayList<Long>();
@@ -139,6 +138,7 @@ public class RandomIOTest extends IOBenchmark {
 			seeds.add(i);
 		}
 
+		FileWriter out = new FileWriter("/tmp/iotest.txt");
 		for (ServerCacheLayer cacheLayer : cacheLayers) {
 			CacheLayerResults res = new CacheLayerResults(cacheLayer);
 
@@ -184,12 +184,7 @@ public class RandomIOTest extends IOBenchmark {
 				res.writeDevs.add(writeDev);
 			}
 
-			results.add(res);
-		}
 
-		FileWriter out = new FileWriter("/tmp/iotest.txt");
-
-		for (CacheLayerResults res : results) {
 			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
 
 			for (int i = 0; i < sizes.size(); i++) {
@@ -206,7 +201,6 @@ public class RandomIOTest extends IOBenchmark {
 				}
 			}
 		}
-
 		out.close();
 	}
 

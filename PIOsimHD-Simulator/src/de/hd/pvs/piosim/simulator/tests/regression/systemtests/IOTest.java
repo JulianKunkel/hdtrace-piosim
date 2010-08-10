@@ -147,7 +147,7 @@ public class IOTest extends ModelTest {
 	}
 
 	@Test public void ReadWrite2TestAll() throws Exception{
-		final List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
+		final LinkedList<ServerCacheLayer> cacheLayers = new LinkedList<ServerCacheLayer>();
 		cacheLayers.add(IOC.SimpleNoCache());
 		cacheLayers.add(IOC.SimpleWriteBehindCache());
 		cacheLayers.add(IOC.AggregationCache());

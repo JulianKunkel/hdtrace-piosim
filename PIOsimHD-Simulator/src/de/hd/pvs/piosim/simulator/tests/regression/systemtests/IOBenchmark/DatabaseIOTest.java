@@ -232,7 +232,6 @@ public class DatabaseIOTest extends IOBenchmark {
 			}
 		}
 
-		List<CacheLayerResults> results = new ArrayList<CacheLayerResults>();
 		List<ServerCacheLayer> cacheLayers = new ArrayList<ServerCacheLayer>();
 		List<Long> sizes = new ArrayList<Long>();
 		List<Long> seeds = new ArrayList<Long>();
@@ -310,12 +309,6 @@ public class DatabaseIOTest extends IOBenchmark {
 				res.readWriteDevs.add(readWriteDev);
 			}
 
-			results.add(res);
-		}
-
-		FileWriter out = new FileWriter("/tmp/databaseiotest.txt");
-
-		for (CacheLayerResults res : results) {
 			out.write(res.cacheLayer.getClass().getSimpleName() + "\n");
 
 			for (int i = 0; i < sizes.size(); i++) {
