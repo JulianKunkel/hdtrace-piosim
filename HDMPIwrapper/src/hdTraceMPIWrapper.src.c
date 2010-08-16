@@ -74,7 +74,29 @@ static PowerTrace *ptStatistics = NULL;
 
 #ifdef ENABLE_PVFS2_INTERNAL_TRACING
 #include "pint-event-hd-client.h"
+
+#warning "Using PVFS internal tracing"
 #endif
+
+#ifdef ENABLE_LIKWID_HDTRACE
+#include "hdtraceLikwid.h"
+
+#warning "Using Likwid"
+#endif
+
+#ifdef ENABLE_SOTRACER
+#include "sotracer.h"
+
+#warning "Using soTracer"
+
+#ifdef ENABLE_UTILIZATION_TRACE
+#warning "soTracer & RUT should not be used simultainiously! This will lead to race conditions if GlibC is traced by soTracer!"
+#endif
+
+#endif
+
+static int enabledTracing = 0;
+static int mpiTraceNesting = 1;
 
 
 /**
@@ -183,6 +205,82 @@ static char * trace_file_prefix;
 
 #include "../src/common.c"
 
+
+#ifdef ENABLE_LIKWID_HDTRACE
+void hdMPI_threadLogStateStart(const char * stateName){
+  if(! enabledTracing) return;
+
+    mpiTraceNesting++;
+#ifdef ENABLE_SOTRACER
+    sotracer_disable();
+#endif
+    if(mpiTraceNesting == 1){
+      hdLikwidResults results;
+
+      hdLikwid_end(& results);
+
+      if (results.runtime != 0.0){
+	hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
+      }
+
+      hdT_logStateEnd(hdMPI_getThreadTracefile());
+      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
+    }else{
+      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
+    }
+
+#ifdef ENABLE_SOTRACER
+    sotracer_enable();
+#endif
+}
+
+void hdMPI_threadLogStateEnd(void){
+  if(! enabledTracing) return;
+
+    mpiTraceNesting--;
+#ifdef ENABLE_SOTRACER
+    sotracer_disable();
+#endif
+    if(mpiTraceNesting == 0){
+      hdT_logStateEnd(hdMPI_getThreadTracefile());
+      hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
+      hdLikwid_start();
+    } else {
+      hdT_logStateEnd(hdMPI_getThreadTracefile());
+    }
+
+#ifdef ENABLE_SOTRACER
+    sotracer_enable();
+#endif
+}
+
+#else
+void hdMPI_threadLogStateStart(const char * name){
+  if(! enabledTracing) return;
+
+#ifdef ENABLE_SOTRACER
+    sotracer_disable();
+#endif
+      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
+#ifdef ENABLE_SOTRACER
+    sotracer_enable();
+#endif
+}
+
+void hdMPI_threadLogStateEnd(void){
+  if(! enabledTracing) return;
+
+#ifdef ENABLE_SOTRACER
+    sotracer_disable();
+#endif
+      hdT_logStateEnd(hdMPI_getThreadTracefile());
+#ifdef ENABLE_SOTRACER
+    sotracer_enable();
+#endif
+}
+
+#endif
+
 /**
  * This function translates \a rank from the MPI communicator
  * \a comm to the rank of the process in the MPI_COMM_WORLD
@@ -288,6 +386,13 @@ static long long int getByteOffset(MPI_File v1)
 	return (long long int)real_offset;
 }
 
+static void before_Init()
+{
+#ifdef ENABLE_SOTRACER
+  sotracer_initalize();
+#endif
+}
+
 /**
  * This function is called after a call to \a MPI_Init(...) or \a MPI_Init_thread(...).
  * It initializes the global variable \a tracefile by calling
@@ -348,8 +453,8 @@ static void after_Init(int *argc, char ***argv)
         int rank;
         int rankForThisHost = -1;
 
-        MPI_Comm_size(MPI_COMM_WORLD, &size);
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        PMPI_Comm_size(MPI_COMM_WORLD, &size);
+        PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
         char hostname[HOST_NAME_MAX+1];
         ret = gethostname(hostname, HOST_NAME_MAX+1);
@@ -365,7 +470,7 @@ static void after_Init(int *argc, char ***argv)
                 PMPI_Abort(MPI_COMM_WORLD, 2);
         }
 
-        MPI_Allgather(hostname, (HOST_NAME_MAX+1), MPI_CHAR, recvBuff,
+        PMPI_Allgather(hostname, (HOST_NAME_MAX+1), MPI_CHAR, recvBuff,
         		(HOST_NAME_MAX+1), MPI_CHAR, MPI_COMM_WORLD);
 
         /* Scan results to lookup first occurence of hostname */
@@ -466,6 +571,67 @@ static void after_Init(int *argc, char ***argv)
         PVFS_HD_client_trace_initialize(topology, pvfs2parentNode);
         }
 #endif
+
+#ifdef ENABLE_LIKWID_HDTRACE
+	{
+	  /**
+	   * Determine the core number on which the process should be pinned.
+	   * Algorithm: enumerate processes located on each node by their rank => local rank.
+	   */
+
+	  int size;
+	  int ret;
+	  int rank;
+
+	  PMPI_Comm_size(MPI_COMM_WORLD, &size);
+	  PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	  char hostname[HOST_NAME_MAX+1];
+	  ret = gethostname(hostname, HOST_NAME_MAX+1);
+	  if( ret != 0){
+		  printf("Error while determine hostname in rank: %d\n", rank);
+		  PMPI_Abort(MPI_COMM_WORLD, 2);
+	  }
+
+	  /* send hostname to each process */
+	  char * recvBuff = malloc(size * (HOST_NAME_MAX+1));
+	  if (recvBuff == 0){
+		  printf("Error while reserving memory for recv buffer: %d\n", rank);
+		  PMPI_Abort(MPI_COMM_WORLD, 2);
+	  }
+
+	  PMPI_Allgather(hostname, (HOST_NAME_MAX+1), MPI_CHAR, recvBuff,
+			  (HOST_NAME_MAX+1), MPI_CHAR, MPI_COMM_WORLD);
+
+	  /* Scan results to lookup all occurences of hostname */
+	  int i;
+	  int core = 0;
+	  for (i=0; i < rank; i++){
+	      char * cur =  & recvBuff[(HOST_NAME_MAX+1)*i];
+	      /* printf("got %s \n", cur); */
+	      if (strcmp(cur, hostname) == 0){
+		 core++;
+	      }
+	  }
+	  free(recvBuff);
+
+	  printf("[%d] run on CPU: %d\n", rank, core);
+
+	  hdLikwid_init(core);
+
+	  // start first compute phase:
+	  mpiTraceNesting = 0;
+
+	  hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
+	  hdLikwid_start();
+	}
+  #endif
+
+  #ifdef ENABLE_SOTRACER
+  sotracer_enable();
+  #endif
+
+  enabledTracing = 1;
 }
 
 /**
@@ -475,6 +641,28 @@ static void after_Init(int *argc, char ***argv)
  */
 static void after_Finalize(void)
 {
+  // ensure that we will not trace anything from MPI any more.
+  enabledTracing = 0;
+#ifdef ENABLE_SOTRACER
+  sotracer_finalize();
+#endif
+
+#ifdef ENABLE_LIKWID_HDTRACE
+	{
+	  // end ecompute:
+	  hdLikwidResults results;
+
+	  hdLikwid_end(& results);
+
+	  if (results.runtime != 0.0){
+	    hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
+	  }
+
+	  hdT_logStateEnd(hdMPI_getThreadTracefile());
+	  hdLikwid_finalize();
+	}
+#endif
+
 	hdMPI_threadFinalizeTracing();
 
 #ifdef ENABLE_UTILIZATION_TRACE

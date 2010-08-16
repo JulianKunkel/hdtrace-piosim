@@ -70,7 +70,7 @@ AC_ARG_ENABLE(warnings,
 		fi
 	       ]
 	      )
-	      
+
 AC_ARG_ENABLE(asserts,
 	      AC_HELP_STRING([--disable-asserts],[disable assertion code (should produce faster code)]),
 	      [
@@ -82,7 +82,7 @@ AC_ARG_ENABLE(asserts,
 	     )
 
 
-       
+
 # PVFS2 path:
 dnl set the pvfs2 library path
 AC_ARG_WITH(hdPVFS2,
@@ -93,11 +93,53 @@ AC_ARG_WITH(hdPVFS2,
        CFLAGS="$CFLAGS -I$withval/include"
        CPPFLAGS="$CPPFLAGS -I$withval/include"
        LDFLAGS="$LDFLAGS -L$withval/lib"
-       
+
        AC_DEFINE(ENABLE_PVFS2_INTERNAL_TRACING, 1, [Define if PVFS2 enabled tracing shall be used])
 
     fi
 )
+
+
+# hdtraceLikwid path:
+dnl set the hdtrace library path
+AC_ARG_WITH(hdLikwid,
+[  --with-hdLikwid=path         Use HD-patched Likwid library installed in "path"],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-hdLikwid must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       CPPFLAGS="$CPPFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+
+       AC_DEFINE(ENABLE_LIKWID_HDTRACE, 1, [Define if hd modified likwid shall be enabled])
+
+       AC_TRY_LINK([
+		#include <hdtraceLikwid.h>
+		],
+		[return (0);], , [AC_MSG_ERROR("Cannot link with libhdtraceLikwid")])
+    fi
+)
+
+# sotracer path:
+dnl set the hdtrace library path
+AC_ARG_WITH(hdsoTracer,
+[  --with-hdsoTracer=path         Use Sotracer to intercept glibc library (and others) installed in "path"],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-hdsoTracer must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       CPPFLAGS="$CPPFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+
+       AC_DEFINE(ENABLE_SOTRACER, 1, [Define if sotracer shall be enabled])
+
+       AC_TRY_LINK([
+		#include <sotracer.h>
+		],
+		[return (0);], , [AC_MSG_ERROR("Cannot link with hdSotracer")])
+    fi
+)
+
 
 # HDTrace path:
 dnl set the hdtrace library path
@@ -154,7 +196,7 @@ AC_ARG_WITH(hdutiltrace,
        AC_TRY_LINK([
 		#include <RUT.h>
 		],
-		[return (0);], , [AC_MSG_ERROR("Cannot link with libRUT")])   
+		[return (0);], , [AC_MSG_ERROR("Cannot link with libRUT")])
     fi
 )
 
@@ -173,7 +215,7 @@ AC_ARG_WITH(hdpowertrace,
        AC_TRY_LINK([
 		#include <pt.h>
 		],
-		[return (0);], , [AC_MSG_ERROR("Cannot link with libPT")])   
+		[return (0);], , [AC_MSG_ERROR("Cannot link with libPT")])
     fi
 )
 

@@ -1,0 +1,533 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..e32ecd8
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,14 @@
++# git-ls-files --others --exclude-from=.git/info/exclude
++# Lines that start with '#' are comments.
++# For a project mostly in C, the following would be a good set of
++# exclude patterns (uncomment them if you want to use them):
++*.[oa]
++*~
++lib*
++GCC
++hdtraceLikwid
++likwid-features
++likwid-perfCtr
++likwid-pin
++likwid-topology
++
+diff --git a/Makefile b/Makefile
+index 497c42a..e8c48cf 100644
+--- a/Makefile
++++ b/Makefile
+@@ -15,12 +15,12 @@
+ #     This program is free software; you can redistribute it and/or modify
+ #     it under the terms of the GNU General Public License, v2, as
+ #     published by the Free Software Foundation
+-#    
++#
+ #     This program is distributed in the hope that it will be useful,
+ #     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ #     GNU General Public License for more details.
+-#    
++#
+ #     You should have received a copy of the GNU General Public License
+ #     along with this program; if not, write to the Free Software
+ #     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+@@ -72,14 +72,24 @@ APPS      = likwid-perfCtr  \
+ 			likwid-pin      \
+             likwid-bench
+ 
+-CPPFLAGS := $(CPPFLAGS) $(DEFINES) $(INCLUDES) 
+ 
+-all: $(BUILD_DIR) $(GENGROUPLOCK) $(OBJ) $(filter-out likwid-bench,$(APPS)) $(TARGET_LIB)  $(PINLIB) 
++CPPFLAGS := $(CPPFLAGS) $(DEFINES) $(INCLUDES)
++CFLAGS := $(CFLAGS) -fPIC
++
++all: $(BUILD_DIR) $(GENGROUPLOCK) $(OBJ) $(filter-out likwid-bench,$(APPS)) $(TARGET_LIB)  $(PINLIB) libhdtraceLikwid.so
+ 
+ tags:
+ 	@echo "===>  GENERATE  TAGS"
+ 	$(Q)ctags -R
+ 
++hdtraceLikwid: $(SRC_DIR)/hdtrace/hdtraceLikwid.c
++	$(Q)${CC} $(CFLAGS) $(ANSI_CFLAGS) $(CPPFLAGS) ${LFLAGS} -o hdtraceLikwid $(SRC_DIR)/hdtrace/hdtraceLikwid.c $(LIBS) $(OBJ)
++
++libhdtraceLikwid.so:
++	@echo "===>  CREATE LIB libhdtraceLikwid.so"
++	$(Q)${CC} $(CFLAGS) $(ANSI_CFLAGS) $(CPPFLAGS) ${LFLAGS} -fPIC -o libhdtraceLikwid.so $(SRC_DIR)/hdtrace/hdtraceLikwid.c $(LIBS) $(OBJ) -shared -Wl,-soname,libhdtraceLikwid.so
++
++
+ $(APPS):  $(addprefix $(SRC_DIR)/applications/,$(addsuffix  .c,$(APPS))) $(BUILD_DIR)  $(OBJ)
+ 	@echo "===>  LINKING  $@"
+ 	$(Q)${CC} $(CFLAGS) $(ANSI_CFLAGS) $(CPPFLAGS) ${LFLAGS} -o $@  $(addprefix $(SRC_DIR)/applications/,$(addsuffix  .c,$@)) $(OBJ) $(LIBS)
+@@ -91,9 +101,9 @@ $(TARGET_LIB): $(OBJ)
+ $(BUILD_DIR):
+ 	@mkdir $(BUILD_DIR)
+ 
+-$(PINLIB): 
++$(PINLIB):
+ 	@echo "===>  CREATE LIB  $(PINLIB)"
+-	$(Q)$(MAKE) -s -C src/pthread-overload/ $(PINLIB) 
++	$(Q)$(MAKE) -s -C src/pthread-overload/ $(PINLIB)
+ 
+ $(GENGROUPLOCK): $(foreach directory,$(shell ls $(GROUP_DIR)), $(wildcard $(GROUP_DIR)/$(directory)/*.txt))
+ 	@echo "===>  GENERATE GROUP HEADERS"
+@@ -134,6 +144,7 @@ distclean: clean
+ 	@rm -f $(TARGET_LIB)
+ 	@rm -f $(PINLIB)
+ 	@rm -f $(GENGROUPLOCK)
++	@rm -f libhdtraceLikwid*
+ 
+ install:
+ 	@echo "===> INSTALL applications to $(PREFIX)/bin"
+@@ -149,20 +160,21 @@ install:
+ 	@echo "===> INSTALL header to $(PREFIX)/include"
+ 	@mkdir -p $(PREFIX)/include
+ 	@cp -f src/includes/likwid.h  $(PREFIX)/include
++	@cp -f src/includes/hdtraceLikwid.h  $(PREFIX)/include
+ 	@chmod 644 $(MANPREFIX)/man1/likwid-*
+ 	@echo "===> INSTALL libraries to $(PREFIX)/lib"
+ 	@mkdir -p $(PREFIX)/lib
+-	@cp -f liblikwid*  $(PREFIX)/lib
++	@cp -f liblikwid* libhdtraceLikwid* $(PREFIX)/lib
+ 	@chmod 755 $(PREFIX)/lib/$(PINLIB)
+ 
+-	
++
+ uninstall:
+ 	@echo "===> REMOVING applications from $(PREFIX)/bin"
+-	@rm -f $(addprefix $(PREFIX)/bin/,$(APPS)) 
++	@rm -f $(addprefix $(PREFIX)/bin/,$(APPS))
+ 	@echo "===> REMOVING man pages from $(MANPREFIX)/man1"
+-	@rm -f $(addprefix $(MANPREFIX)/man1/,$(addsuffix  .1,$(APPS))) 
++	@rm -f $(addprefix $(MANPREFIX)/man1/,$(addsuffix  .1,$(APPS)))
+ 	@echo "===> REMOVING libs from $(PREFIX)/lib"
+-	@rm -f $(PREFIX)/lib/$(TARGET_LIB) $(PREFIX)/lib/$(PINLIB)
++	@rm -f $(PREFIX)/lib/$(TARGET_LIB) $(PREFIX)/lib/$(PINLIB) $(PREFIX)/lib/libhdtraceLikwid.so
+ 
+ 
+ 
+diff --git a/config.mk b/config.mk
+index be0e2f9..4fc9392 100644
+--- a/config.mk
++++ b/config.mk
+@@ -7,7 +7,7 @@ COMPILER = GCC
+ COLOR = CYAN
+ 
+ # Path were to install likwid
+-PREFIX =  /home/hpc/unrz/unrz254/local
++PREFIX =  /home/julian/Dokumente/Projekte/PIOsimHD/installed
+ MANPREFIX = $(PREFIX)/man
+ 
+ MAX_NUM_THREADS = 128
+diff --git a/groups/westmere/JK.txt b/groups/westmere/JK.txt
+new file mode 100644
+index 0000000..e540fa9
+--- /dev/null
++++ b/groups/westmere/JK.txt
+@@ -0,0 +1,47 @@
++SHORT Main memory bandwidth in MBytes/s + Double Precision MFlops/s
++
++EVENTSET
++FIXC0 INSTR_RETIRED_ANY
++FIXC1 CPU_CLK_UNHALTED_CORE
++FIXC2 CPU_CLK_UNHALTED_REF
++UPMC0  UNC_QMC_NORMAL_READS_ANY
++UPMC1  UNC_QMC_WRITES_FULL_ANY
++UPMC2 UNC_QHL_REQUESTS_REMOTE_READS
++UPMC3 UNC_QHL_REQUESTS_LOCAL_READS
++PMC0  FP_COMP_OPS_EXE_SSE_FP_PACKED
++PMC1  FP_COMP_OPS_EXE_SSE_FP_SCALAR
++PMC2  FP_COMP_OPS_EXE_SSE_SINGLE_PRECISION
++PMC3  FP_COMP_OPS_EXE_SSE_DOUBLE_PRECISION
++
++
++METRICS
++Runtime [s] FIXC1*inverseClock
++IPC  FIXC0/FIXC1
++Memory bandwidth [MBytes/s] 1.0E-06*(UPMC0+UPMC1)*64/time;
++Remote Read BW [MBytes/s] 1.0E-06*(UPMC2)*64/time;
++DP MFlops/s (DP assumed) 1.0E-06*(PMC0*2.0+PMC1)/time
++Packed MUOPS/s   1.0E-06*PMC0/time
++Scalar MUOPS/s 1.0E-06*PMC1/time
++SP MUOPS/s 1.0E-06*PMC2/time
++DP MUOPS/s 1.0E-06*PMC3/time
++Clock [MHz]  1.E-06*(FIXC1/FIXC2)/inverseClock
++
++LONG
++Formulas:
++Memory bandwidth [MBytes/s] = 1.0E-06*(UNC_QMC_NORMAL_READS_ANY+UNC_QMC_WRITES_FULL_ANY)*64/time
++Remote Read BW [MBytes/s] =  1.0E-06*(UNC_QHL_REQUESTS_REMOTE_READS)*64/time;
++DP MFlops/s =  (FP_COMP_OPS_EXE_SSE_FP_PACKED*2 +  FP_COMP_OPS_EXE_SSE_FP_SCALAR)/ runtime
++Clock [MHz]  1.E-06*(CPU_CLK_UNHALTED_CORE/CPU_CLK_UNHALTED_REF)/inverseClock
++-
++This group gives you the actual core frequency in the measured time period. This is 
++important because due to Speedstep and Turbo mode the frequency can vary significantly.
+++
++Profiling group to measure memory bandwidth drawn by all cores of a socket.
++This group will be measured by one core per socket. The Remote  Read BW  tells you if
++cachelines are transfered between sockets, meaning that cores access data owned by a remote
++NUMA domain.
+++
++The Nehalem has not possibility to measure MFlops if mixed precision calculations are done.
++Therefore both Single as well as Double precision are measured to ensure the correctness
++of the measurements. You can check if your code was vectorized on the number of
++FP_COMP_OPS_EXE_SSE_FP_PACKED versus the  FP_COMP_OPS_EXE_SSE_FP_SCALAR.
+diff --git a/likwid-features b/likwid-features
+deleted file mode 100755
+index e056eec..0000000
+Binary files a/likwid-features and /dev/null differ
+diff --git a/likwid-perfCtr b/likwid-perfCtr
+deleted file mode 100755
+index 0f9effc..0000000
+Binary files a/likwid-perfCtr and /dev/null differ
+diff --git a/likwid-pin b/likwid-pin
+deleted file mode 100755
+index 556ddce..0000000
+Binary files a/likwid-pin and /dev/null differ
+diff --git a/likwid-topology b/likwid-topology
+deleted file mode 100755
+index 48e0cc4..0000000
+Binary files a/likwid-topology and /dev/null differ
+diff --git a/src/hdtrace/hdtraceLikwid.c b/src/hdtrace/hdtraceLikwid.c
+new file mode 100644
+index 0000000..442f5c3
+--- /dev/null
++++ b/src/hdtrace/hdtraceLikwid.c
+@@ -0,0 +1,157 @@
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <sched.h>
++#include <sys/types.h>
++#include <unistd.h>
++#include <ctype.h>
++
++#include <error.h>
++#include <types.h>
++#include <msr.h>
++#include <timer.h>
++#include <cpuid.h>
++#include <cpuFeatures.h>
++#include <perfmon.h>
++#include <strUtil.h>
++#include <bstrlib.h>
++
++#include "hdtraceLikwid.h"
++
++#define VERSION_MSG \
++printf("likwid-perfCtr  %d.%d \n\n",VERSION, RELEASE);
++
++//#define DEBUG
++
++#ifdef DEBUG
++#warning "Debug is enabled!"
++#endif
++
++static int myCoreNumber = 0;
++static CyclesData timeData;
++
++extern PerfmonThread* perfmon_threadData;
++
++
++// copied from likwid-pin.c
++static void pinPid(int cpuid)
++{
++	cpu_set_t cpuset;
++
++	CPU_ZERO(&cpuset);
++	CPU_SET(cpuid, &cpuset);
++	printf("[likwid-pin] Main PID -> core %d - ",  cpuid);
++	if (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == -1)
++	{
++		printf("sched_setaffinity failed : %s \n",strerror(errno));
++	}
++	else
++	{
++		printf("OK\n");
++	}
++}
++
++
++
++
++void hdLikwid_init    (int coreNumber){
++  myCoreNumber = coreNumber;
++
++  int threads[1] = {myCoreNumber};
++
++  timer_init();
++
++  // init monitor only for the local thread.
++  perfmon_init(1, threads);
++
++
++  if( coreNumber == 0){
++    printf("CPU type:\t%s \n",cpuid_info.name);
++    printf("CPU clock:\t%3.2f GHz \n",  (float) timer_getCpuClock() * 1.E-09);
++  }
++
++  perfmon_setupEventSet(bformat("JK"));
++
++  // pin PID to coreNumber
++  pinPid(coreNumber);
++}
++
++void hdLikwid_start   (void){
++   perfmon_startCountersThread(0);
++   timer_startCycles(&timeData);
++}
++
++void hdLikwid_end     (hdLikwidResults * measured){
++   timer_stopCycles(&timeData);
++   perfmon_stopCountersThread(0);
++
++#ifdef DEBUG
++  perfmon_printCounterResults();
++#endif
++  uint64_t FIXC0 = perfmon_threadData[0].counters[0].counterData; // FIXC0 see nehalem_counter_map
++  uint64_t FIXC1 = perfmon_threadData[0].counters[1].counterData;
++  uint64_t FIXC2 = perfmon_threadData[0].counters[2].counterData;
++  uint64_t PMC0 = perfmon_threadData[0].counters[3].counterData;
++  uint64_t PMC1 = perfmon_threadData[0].counters[4].counterData;
++  uint64_t PMC2 = perfmon_threadData[0].counters[5].counterData;
++  uint64_t PMC3 = perfmon_threadData[0].counters[6].counterData;
++  uint64_t UPMC0 = perfmon_threadData[0].counters[7].counterData;
++  uint64_t UPMC1 = perfmon_threadData[0].counters[8].counterData;
++  uint64_t UPMC2 = perfmon_threadData[0].counters[9].counterData;
++  uint64_t UPMC3 = perfmon_threadData[0].counters[10].counterData;
++
++  double iClock = 1.0 / timer_getCpuClock();
++  double time =  FIXC1 * iClock;  // real CPU runtime!
++
++  measured->runtime = FIXC1 * iClock; // real CPU runtime!
++  measured->wallclocktime = (double) timer_printCycles(& timeData) / timer_getCpuClock();
++  measured->IPC 		= (double) FIXC0 / FIXC1;
++  measured->clock 		= (double) 1e-6 * FIXC1 / FIXC2 / iClock;
++  measured->memBandwidth 	= (double) 1e-6 * (UPMC0 + UPMC1) * 64 / time;
++  measured->remReadBW 		= (double) 1e-6 * UPMC2 * 64 / time;
++  measured->sse_packed 		= (double) 1e-6 * PMC0 / time;
++  measured->sse_scalar 		= (double) 1e-6 * PMC1 / time;
++  measured->sse_sp 		= (double) 1e-6 * PMC2 / time;
++  measured->sse_dp 		= (double) 1e-6 * PMC3 / time;
++}
++
++void hdLikwid_finalize(){
++    perfmon_finalize();
++}
++
++int hdLikwidTest()
++{
++    int c;
++    int coreNum = 0;
++
++    // the rank of the process on this node: nodeRank_i < nodeRank_j  <=>  world_rank_i < world_rank_j, but enumerated from 0.
++    int processNodeRank = 0;
++
++    hdLikwid_init(coreNum);
++
++    hdLikwidResults results;
++
++    for(c=0; c < 1 ; c++){
++	hdLikwid_start();
++
++	int i;
++	double a=1;
++	double b=0;
++	for (i=0; i < (c+1)*100000 ; i++){
++	  a=b+i * a;
++	  b=a;
++	}
++
++	//sleep (1);
++
++	hdLikwid_end(& results);
++
++#ifdef DEBUG
++	printf("wc: %f - runtime: %f  ipc: %f  cpu: %f mem: %f remMem: %f scal: %f packed: %f sp: %f dp: %f \n", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
++#endif
++    }
++
++    hdLikwid_finalize();
++    return EXIT_SUCCESS;
++}
++
+diff --git a/src/includes/hdtraceLikwid.h b/src/includes/hdtraceLikwid.h
+new file mode 100644
+index 0000000..bfe3774
+--- /dev/null
++++ b/src/includes/hdtraceLikwid.h
+@@ -0,0 +1,24 @@
++#ifndef HAVE_LIKWID_HDTRACE
++#define HAVE_LIKWID_HDTRACE
++
++typedef struct hdLikwidResults{
++  double wallclocktime;
++  double runtime;
++  double IPC; // per Cycle
++  double clock; // avg Value in MHz
++  double memBandwidth; // MiB/s
++  double remReadBW; // MiB/s
++  double sse_scalar; // Ops/s
++  double sse_packed; // Ops/s
++  double sse_sp;
++  double sse_dp;
++} hdLikwidResults;
++
++void hdLikwid_init    (int coreNumber);
++
++void hdLikwid_start   ();
++void hdLikwid_end     (hdLikwidResults * measured);
++
++void hdLikwid_finalize();
++
++#endif
+\ No newline at end of file
+diff --git a/src/includes/perfmon_nehalem.h b/src/includes/perfmon_nehalem.h
+index be64f0d..06474a4 100644
+--- a/src/includes/perfmon_nehalem.h
++++ b/src/includes/perfmon_nehalem.h
+@@ -353,7 +353,7 @@ perfmon_stopCountersThread_nehalem(int thread_id)
+     }
+ 
+     flags = msr_read(cpu_id,MSR_PERF_GLOBAL_STATUS);
+-    printf ("Status: 0x%llX \n", LLU_CAST flags);
++    //printf ("Status: 0x%llX \n", LLU_CAST flags);
+     if((flags & 0x3) || (flags & (0x3ULL<<32)) ) 
+     {
+         printf ("Overflow occured \n");
+diff --git a/src/perfmon.c b/src/perfmon.c
+index 045e7da..73e6386 100644
+--- a/src/perfmon.c
++++ b/src/perfmon.c
+@@ -16,12 +16,12 @@
+  *      This program is free software; you can redistribute it and/or modify
+  *      it under the terms of the GNU General Public License, v2, as
+  *      published by the Free Software Foundation
+- *     
++ *
+  *      This program is distributed in the hope that it will be useful,
+  *      but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *      GNU General Public License for more details.
+- *     
++ *
+  *      You should have received a copy of the GNU General Public License
+  *      along with this program; if not, write to the Free Software
+  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+@@ -103,7 +103,7 @@ static void initThread(int , int );
+     for (i=0; i<numRows; i++) \
+     { \
+         fc->entry[1+i] = \
+-           bfromcstr(perfmon_set.events[i].event.name); } 
++           bfromcstr(perfmon_set.events[i].event.name); }
+ 
+ #define INIT_BASIC  \
+     fc = bstrListCreate(); \
+@@ -254,7 +254,7 @@ readMarkerFile(bstring filename, LikwidResults** resultsRef)
+ 	FILE * fp;
+     LikwidResults* results = *resultsRef;
+ 
+-	if (NULL != (fp = fopen (bdata(filename), "r"))) 
++	if (NULL != (fp = fopen (bdata(filename), "r")))
+ 	{
+ 		bstring src = bread ((bNread) fread, fp);
+ 
+@@ -362,7 +362,7 @@ getGroupId(bstring groupStr,PerfmonGroup* group)
+ 
+     for (int i=0; i<perfmon_numGroups; i++)
+     {
+-        if (biseqcstr(groupStr,group_map[i].key)) 
++        if (biseqcstr(groupStr,group_map[i].key))
+         {
+             *group = group_map[i].index;
+             return i;
+@@ -416,7 +416,7 @@ freeResultTable(PerfmonResultTable* tableData)
+     free(tableData->rows);
+ }
+ 
+-static void 
++static void
+ initResultTable(PerfmonResultTable* tableData,
+         bstrList* firstColumn,
+         int numRows,
+@@ -529,7 +529,7 @@ perfmon_initEventSet(StrUtilEventSet* eventSetConfig, PerfmonEventSet* set)
+         {
+             ERROR_PMSG(Event %s not found for current architecture,bdata(eventSetConfig->events[i].eventName));
+         }
+-        
++
+         /* is counter allowed for event */
+         if (!checkCounter(eventSetConfig->events[i].counterName,
+                     set->events[i].event.limit))
+@@ -539,7 +539,7 @@ perfmon_initEventSet(StrUtilEventSet* eventSetConfig, PerfmonEventSet* set)
+     }
+ }
+ 
+-void 
++void
+ perfmon_printMarkerResults(bstring filepath)
+ {
+     int i;
+@@ -596,7 +596,7 @@ perfmon_printMarkerResults(bstring filepath)
+     freeResultTable(&tableData);
+ }
+ 
+-void 
++void
+ perfmon_printCounterResults()
+ {
+     int i;
+@@ -617,7 +617,6 @@ perfmon_printCounterResults()
+         }
+     }
+     printResultTable(&tableData);
+-    printf("RDTSC timing: %g s\n",rdtscTime);
+     printDerivedMetrics(groupSet);
+     freeResultTable(&tableData);
+ }
+@@ -712,8 +711,6 @@ perfmon_stopCounters(void)
+     {
+         perfmon_stopCountersThread(i);
+     }
+-
+-    rdtscTime = timer_printCyclesTime(&timeData);
+ }
+ 
+ void
+@@ -757,11 +754,11 @@ perfmon_init(int numThreads_local, int threads[])
+     perfmon_threadData = (PerfmonThread*) malloc(perfmon_numThreads * sizeof(PerfmonThread));
+     cpuid_init();
+ 
+-    switch ( cpuid_info.family ) 
++    switch ( cpuid_info.family )
+     {
+         case P6_FAMILY:
+ 
+-            switch ( cpuid_info.model ) 
++            switch ( cpuid_info.model )
+             {
+                 case PENTIUM_M_BANIAS:
+ 
+@@ -854,7 +851,7 @@ perfmon_init(int numThreads_local, int threads[])
+                     break;
+ 
+                 case NEHALEM_WESTMERE_M:
+-                    
++
+                 case NEHALEM_WESTMERE:
+ 
+                     eventHash = westmere_arch_events;
+@@ -922,7 +919,7 @@ perfmon_init(int numThreads_local, int threads[])
+     }
+ 
+ 
+-    for (i=0; i<perfmon_numThreads; i++) 
++    for (i=0; i<perfmon_numThreads; i++)
+     {
+         initThread(i,threads[i]);
+     }

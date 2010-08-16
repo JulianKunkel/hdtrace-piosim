@@ -92,6 +92,8 @@ createFktHeaders = {"Send":"", "Recv":"", "Sendrecv":"", "Isend":"", "Irecv":""}
 # """                                                                              #
 ####################################################################################
 beforeMpi = {
+  "Init" : "before_Init();",
+
   "Abort" : """hdMPI_threadLogStateStart("Abort");
                hdMPI_threadLogAttributes("cid='%d'", getCommId(v1));
                hdMPI_threadLogStateEnd(); before_Abort()""",

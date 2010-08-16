@@ -34,6 +34,9 @@
 static int started_tracing = 0;
 static int initalized_tracing = 0;
 
+// ensures that we will never nest calls.
+static int isNested = 0;
+
 PYTHON_ADD_FUNCTIONS
 
 void sotracer_initalize(void){
@@ -72,7 +75,6 @@ void sotracer_initalize(void){
   **/
 #undef ADD_SYMBOL
 #undef OPEN_DLL
-  started_tracing = 1;
 }
 
 void sotracer_disable(){
@@ -84,5 +86,11 @@ void sotracer_enable(){
 }
 
 void sotracer_finalize(){
-
+  sotracer_disable();
 }
+
+void sotracer_initalize_ () __attribute__ ((weak, alias ("sotracer_initalize")));
+void sotracer_initalize__ () __attribute__ ((weak, alias ("sotracer_initalize")));
+void sotracer_finalize_ () __attribute__ ((weak, alias ("sotracer_initalize")));
+void sotracer_finalize__ () __attribute__ ((weak, alias ("sotracer_finalize")));
+

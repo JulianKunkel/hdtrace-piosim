@@ -44,14 +44,20 @@ void hdMPI_threadInitTracing();
 void hdMPI_threadFinalizeTracing();
 
 /**
+ * Mark the start of a new state
+ */
+void hdMPI_threadLogStateStart(const char * name);
+
+/**
+ * Mark the end of a state and write it
+ */
+void hdMPI_threadLogStateEnd(void);
+
+
+/**
  * Log Attributes
  */
 #define hdMPI_threadLogAttributes(valueFormat, ...) hdT_logAttributes(hdMPI_getThreadTracefile(), valueFormat, __VA_ARGS__)
-
-/**
- * Mark the start of a new state
- */
-#define hdMPI_threadLogStateStart(stateName ) hdT_logStateStart(hdMPI_getThreadTracefile(), stateName)
 
 /* Log Element
 *
@@ -60,11 +66,6 @@ void hdMPI_threadFinalizeTracing();
 * has been called.
 */
 #define hdMPI_threadLogElement(name, valueFormat, ... ) hdT_logElement(hdMPI_getThreadTracefile(), name, valueFormat, __VA_ARGS__)
-
-/**
- * Mark the end of a state and write it
- */
-#define hdMPI_threadLogStateEnd() hdT_logStateEnd(hdMPI_getThreadTracefile())
 
 #define hdMPI_threadWriteInfo(format, ...) hdT_writeInfo(hdMPI_getThreadTracefile(), format, __VA_ARGS__)
 
