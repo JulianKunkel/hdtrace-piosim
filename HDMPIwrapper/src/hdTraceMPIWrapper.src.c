@@ -406,7 +406,7 @@ static void before_Init()
 static void after_Init(int *argc, char ***argv)
 {
 
-	if(*argc < 1)
+	if(argc == NULL || *argc < 1)
 	{
 		//we don't know what the program's name is, so call this "trace"
 		trace_file_prefix = malloc(6);
