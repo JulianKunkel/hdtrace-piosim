@@ -138,3 +138,6 @@ int MPI_File_set_view(MPI_File, MPI_Offset, MPI_Datatype, MPI_Datatype, char *, 
 
 int MPI_Type_free(MPI_Datatype *);
 int MPI_Comm_free(MPI_Comm *);
+int MPI_Comm_create(MPI_Comm, MPI_Group, MPI_Comm *);
+int MPI_Comm_dup(MPI_Comm, MPI_Comm *);
+int MPI_Comm_split(MPI_Comm, int, int, MPI_Comm *);

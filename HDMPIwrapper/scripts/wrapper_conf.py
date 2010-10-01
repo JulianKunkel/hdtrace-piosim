@@ -131,7 +131,6 @@ beforeMpi = {
 """,
 
   "Type_free" : """gint old_tid = getTypeId(*v1); removeType(*v1)""",
-
   "Comm_free" : """gint old_cid = getCommId(*v1); removeComm(*v1)""",
 }
 
@@ -520,7 +519,11 @@ logAttributes = {
                  "old_tid"),
 
   "Comm_free" : ("cid='%d'",
-                 "old_cid")
+                 "old_cid"),
+# trace communicator creation, because it is a synchronization point.
+  "Comm_create" : ("cid='%d'", "getCommId(*v3)"),
+  "Comm_dup" : ("cid='%d'", "getCommId(*v2)"),
+  "Comm_split" : ("cid='%d'", "getCommId(*v4)")
 }
 
 
