@@ -138,7 +138,7 @@ public class RandomIOTest extends IOBenchmark {
 			seeds.add(i);
 		}
 
-		FileWriter out = new FileWriter("/tmp/iotest.txt");
+		FileWriter out = new FileWriter("/tmp/randomiotest.txt");
 		for (ServerCacheLayer cacheLayer : cacheLayers) {
 			CacheLayerResults res = new CacheLayerResults(cacheLayer);
 
