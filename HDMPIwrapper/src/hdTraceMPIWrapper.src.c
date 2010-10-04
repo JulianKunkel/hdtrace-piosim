@@ -255,7 +255,7 @@ void hdMPI_threadLogStateEnd(void){
 }
 
 #else
-void hdMPI_threadLogStateStart(const char * name){
+void hdMPI_threadLogStateStart(const char * stateName){
   if(! enabledTracing) return;
 
 #ifdef ENABLE_SOTRACER
