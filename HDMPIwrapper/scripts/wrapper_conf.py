@@ -521,9 +521,9 @@ logAttributes = {
   "Comm_free" : ("cid='%d'",
                  "old_cid"),
 # trace communicator creation, because it is a synchronization point.
-  "Comm_create" : ("cid='%d'", "getCommId(*v3)"),
-  "Comm_dup" : ("cid='%d'", "getCommId(*v2)"),
-  "Comm_split" : ("cid='%d'", "getCommId(*v4)")
+  "Comm_create" : ("cid='%d' newcid='%d'", "getCommId(v1), getCommId(*v3)"),
+  "Comm_dup" : ("cid='%d' newcid='%d'", "getCommId(v1), getCommId(*v2)"),
+  "Comm_split" : ("cid='%d' newcid='%d'", "getCommId(v1), getCommId(*v4)")
 }
 
 

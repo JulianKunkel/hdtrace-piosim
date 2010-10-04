@@ -73,6 +73,10 @@ static __thread gint comm_id_counter = 0;
  */
 static gint getCommId(MPI_Comm comm)
 {
+	if (comm == MPI_COMM_NULL){
+	  return -1;
+	}
+
 	if(comm_to_id == NULL)
 	{
 		comm_to_id = g_hash_table_new_full(g_int_hash, g_int_equal, free, free);
