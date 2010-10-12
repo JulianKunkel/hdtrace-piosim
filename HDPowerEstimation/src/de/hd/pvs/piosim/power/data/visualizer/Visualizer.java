@@ -35,5 +35,6 @@ public interface Visualizer {
 	public void setUtilizationYAxisTitle(String utilizationYAxisTitle);
 	public void setPowerConsumptionYAxisTitle(String powerConsumptionYAxisTitle);
 	public void isPrintLegend(boolean printLegend);
+	public void printDetails(boolean printDetails);
 
 }

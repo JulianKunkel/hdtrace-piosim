@@ -37,6 +37,7 @@ public class CommandlineVisualizer implements Visualizer {
 	private List<double[]> valuesList = new ArrayList<double[]>();
 	private List<String> namesList = new ArrayList<String>();
 	private int countRows = 10;
+	private boolean printDetails = true;
 
 	public void addPanelValues(String name, BigDecimal[] values) {
 		double[] valuesArray = new double[values.length];
@@ -141,6 +142,11 @@ public class CommandlineVisualizer implements Visualizer {
 	public void isPrintLegend(boolean printLegend) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void printDetails(boolean printDetails) {
+		this.printDetails = printDetails;
 	}
 
 }

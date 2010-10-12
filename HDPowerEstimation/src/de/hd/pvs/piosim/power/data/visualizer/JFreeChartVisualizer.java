@@ -40,6 +40,7 @@ public abstract class JFreeChartVisualizer implements Visualizer {
 	protected String powerConsumptionYAxisTitle;
 	protected VisualizationData visualizationData;
 	protected boolean printLegend = true;
+	protected boolean printDetails = true;
 	
 	@Override
 	public void isPrintLegend(boolean printLegend) {
@@ -145,6 +146,12 @@ public abstract class JFreeChartVisualizer implements Visualizer {
 	@Override
 	public void reset() {
 		visualizationData = null;
+	}
+	
+
+	@Override
+	public void printDetails(boolean printDetails) {
+		this.printDetails = printDetails;
 	}
 	
 }
