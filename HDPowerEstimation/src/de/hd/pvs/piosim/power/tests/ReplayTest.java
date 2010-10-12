@@ -34,7 +34,6 @@ import de.hd.pvs.piosim.power.tests.util.TestObjectCreator;
 
 public class ReplayTest extends AbstractTestCase {
 
-	@SuppressWarnings("null")
 	@Test
 	public void testReplayWithOneDeviceAndOneStrategy() {
 		String[] deviceNames = { "CPU1" };
