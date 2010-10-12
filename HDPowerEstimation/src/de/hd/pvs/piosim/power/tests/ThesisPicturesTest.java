@@ -204,7 +204,7 @@ public class ThesisPicturesTest extends AbstractTestCase {
 
 			reader.setUtilization(componentNames);
 			BigDecimal offset = BaseCalculation.multiply(new BigDecimal(reader
-					.getMinValue()), BaseCalculation.THOUSAND);
+					.getMinTimestamp() + 1), BaseCalculation.THOUSAND);
 
 			Map<ACPIDevice, DeviceData> data = reader.getDeviceData();
 

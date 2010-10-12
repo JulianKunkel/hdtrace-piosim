@@ -109,7 +109,7 @@ public class ImportAndExportTest extends AbstractTestCase {
 
 			reader.setUtilization(componentNames);
 			offset = BaseCalculation.multiply(new BigDecimal(reader
-					.getMinValue()), BaseCalculation.THOUSAND);
+					.getMinTimestamp() + 1), BaseCalculation.THOUSAND);
 			
 			System.err.println(reader.getMinStepsize());
 			System.err.println(reader.getMaxStepsize());

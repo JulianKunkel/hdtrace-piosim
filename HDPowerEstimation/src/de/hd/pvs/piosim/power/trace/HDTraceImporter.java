@@ -39,8 +39,8 @@ public class HDTraceImporter {
 	private Map<ACPIDevice, DeviceData> deviceData = new HashMap<ACPIDevice, DeviceData>();
 	private Map<String, Node> nodes = new HashMap<String, Node>();
 	private Map<Node,BigDecimal> nodePowerConsumption;
-	private double min = Double.MAX_VALUE;
-	private double max = Double.MIN_VALUE;
+	private double minTimestamp = Double.MAX_VALUE;
+	private double maxTimestamp = Double.MIN_VALUE;
 	private double minStepsize = Double.MAX_VALUE;
 	private double maxStepsize = Double.MIN_VALUE;
 	private Logger logger = Logger.getLogger(HDTraceImporter.class);
@@ -125,11 +125,11 @@ public class HDTraceImporter {
 				for (int i = 0; i < componentNames.length; ++i) {
 					try {
 					if(statisticName.equals("Utilization")) {
-						if(inputEntry.getEarliestTime().getDouble() < min)
-							min = inputEntry.getEarliestTime().getDouble();
+						if(inputEntry.getEarliestTime().getDouble() < minTimestamp)
+							minTimestamp = inputEntry.getEarliestTime().getDouble();
 						
-						if(inputEntry.getLatestTime().getDouble() > max)
-							max = inputEntry.getLatestTime().getDouble();
+						if(inputEntry.getLatestTime().getDouble() > maxTimestamp)
+							maxTimestamp = inputEntry.getLatestTime().getDouble();
 						
 						if(inputEntry.getDurationTime().getDouble() > maxStepsize)
 							maxStepsize = inputEntry.getDurationTime().getDouble();
@@ -184,16 +184,20 @@ public class HDTraceImporter {
 
 	}
 
-	public double getMinValue() {
-		return min + 1;
-	}
-
 	public double getMinStepsize() {
 		return minStepsize;
 	}
 
 	public double getMaxStepsize() {
 		return maxStepsize;
+	}
+
+	public double getMinTimestamp() {
+		return minTimestamp;
+	}
+
+	public double getMaxTimestamp() {
+		return maxTimestamp;
 	}
 
 }
