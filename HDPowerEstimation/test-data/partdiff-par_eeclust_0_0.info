@@ -1,0 +1,9 @@
+File name="/tmp/visualization.dat" Size=0 id=0
+Comm map='0->0;' id=0 name='WORLD'
+Type id='0' combiner='MPI_COMBINER_NAMED' name='MPI_INT'
+Type id='1' combiner='MPI_COMBINER_NAMED' name='MPI_CHAR'
+Type id='2' combiner='MPI_COMBINER_NAMED' name='MPI_DOUBLE'
+Type id='3' combiner='MPI_COMBINER_VECTOR' name='' integers='809;1;810;' addresses='' types='2;'
+Type id='4' combiner='MPI_COMBINER_STRUCT' name='' integers='2;1;1;' addresses='0;4;' types='0;3;'
+
+

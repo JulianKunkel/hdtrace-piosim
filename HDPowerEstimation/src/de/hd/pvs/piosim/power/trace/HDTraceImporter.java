@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.piosim.power.acpi.ACPIDevice;
@@ -41,6 +43,7 @@ public class HDTraceImporter {
 	private double max = Double.MIN_VALUE;
 	private double minStepsize = Double.MAX_VALUE;
 	private double maxStepsize = Double.MIN_VALUE;
+	private Logger logger = Logger.getLogger(HDTraceImporter.class);
 
 	/* set this variables */
 	private String filename;
@@ -65,8 +68,20 @@ public class HDTraceImporter {
 		reader.setFilename(filename);
 	}
 	
+	/**
+	 * 
+	 * @return Hostnames read from ExternalStatisticsReader or null in case of HDTraceImporterException
+	 */
+	public List<String> getHostnames() {
+		try {
+			return reader.getHostnames();
+		} catch (HDTraceImporterException e) {
+			return null;
+		}
+	}
+	
 	public void setUtilization(String[] componentNames) throws HDTraceImporterException {
-		setExternalStatistic(componentNames, "Performance");
+		setExternalStatistic(componentNames, "Utilization");
 	}
 	
 	public Map<Node,BigDecimal> getOriginalPowerConsumption() throws HDTraceImporterException {
@@ -98,6 +113,7 @@ public class HDTraceImporter {
 						indexPermutation[i] = description
 								.getNumberInGroup();
 						unit[i] = description.getUnit();
+						logger.debug("Read unit " + unit[i] + " for component " + componentNames[i]);
 					}
 				}
 			}
@@ -108,7 +124,7 @@ public class HDTraceImporter {
 				
 				for (int i = 0; i < componentNames.length; ++i) {
 					try {
-					if(statisticName.equals("Performance")) {
+					if(statisticName.equals("Utilization")) {
 						if(inputEntry.getEarliestTime().getDouble() < min)
 							min = inputEntry.getEarliestTime().getDouble();
 						

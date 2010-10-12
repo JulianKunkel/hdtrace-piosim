@@ -17,6 +17,7 @@
 package de.hd.pvs.piosim.power.trace;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -37,6 +38,7 @@ public class ExternalStatisticReader {
 	private String filename;
 	private List<StatisticsGroupEntry> statisticGroupEntries;
 	private List<StatisticsDescription> statisticsDescriptions;
+	private List<String> hostnames = null;
 	
 	public List<StatisticsGroupEntry> getStatisticGroupEntries() {
 		return statisticGroupEntries;
@@ -58,6 +60,26 @@ public class ExternalStatisticReader {
 		setStatistics();		
 	}
 	
+	public List<String> getHostnames() throws HDTraceImporterException {
+		try {
+			
+			hostnames = new LinkedList<String>();
+
+			logger.info("Opening File: " + filename);
+
+			TraceFormatFileOpener traceReader = new TraceFormatFileOpener(
+					filename, false, StatisticsReader.class,
+					StAXTraceFileReader.class, null);
+			
+			traverseHostnames(traceReader.getProjectDescription().getTopologyRoot());
+			
+			return hostnames;
+
+		} catch (Exception e) {
+			throw new HDTraceImporterException(e);
+		}
+	}
+	
 	private void setStatistics() throws HDTraceImporterException {
 
 		try {
@@ -74,6 +96,33 @@ public class ExternalStatisticReader {
 			throw new HDTraceImporterException(e);
 		}
 	}
+	
+	private void traverseHostnames(TopologyNode topologyNode) {
+
+		if (topologyNode == null)
+			return;
+		
+		if(topologyNode.getType().equals("Hostname")) {
+			
+			logger.debug("Found Hostname topology node: " + topologyNode.getName());
+			
+			if(!hostnames.contains(topologyNode.getName())) {
+				hostnames.add(topologyNode.getName());
+				logger.debug("Added hostname: " + topologyNode.getName());
+			} else if (topologyNode.getChildElements().size() > 0) {
+				for (TopologyNode childNode : topologyNode.getChildElements()
+						.values()) {
+					traverseHostnames(childNode);
+				}
+			}
+		} else if (topologyNode.getChildElements().size() > 0) {
+			for (TopologyNode childNode : topologyNode.getChildElements()
+					.values()) {
+				traverseHostnames(childNode);
+			}
+		}
+				
+	}
 
 
 	private void traverse(TopologyNode topologyNode)
@@ -83,7 +132,7 @@ public class ExternalStatisticReader {
 			return;
 
 		if (topologyNode.getStatisticsSource(statisticName) != null) {
-
+			
 			if (topologyNode.getName().equals(hostname) && topologyNode.getType().equals("Hostname")) {
 
 				logger.info("Reading " + statisticName + " statistic from file: "

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><Application name="partdiff-par">
+<Description></Description>
+ <FileList>
+ <File name="/tmp/visualization.dat">
+  <InitialSize>0</InitialSize>
+  <Distribution implementation="de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe">
+  <ChunkSize>64K</ChunkSize>
+  </Distribution>
+ </File>
+ </FileList>
+
+ <Topology>
+  <Level type="Hostname">
+   <Level type="Rank">
+    <Level type="Thread">
+    </Level>
+   </Level>
+  </Level>
+
+  <Node name="eeclust">
+   <Node name="0">
+    <Node name="0" />
+   </Node>
+  </Node>
+ </Topology>
+
+ <CommunicatorList>
+  <Communicator name="WORLD">
+   <Rank global="0" local="0" cid="0" />
+  </Communicator>
+ </CommunicatorList>
+
+ <Datatypes>
+  <Rank name="0" thread="0">
+  <NAMED id="0" name="MPI_INT"  />
+  <NAMED id="1" name="MPI_CHAR"  />
+  <NAMED id="2" name="MPI_DOUBLE"  />
+  <VECTOR id="3" name="" count="809" blocklength="1" stride="810" oldType="2"  />
+  <STRUCT id="4" name="" count="2" >
+   <Type id="0" displacement="0" blocklen="1"/>
+   <Type id="3" displacement="4" blocklen="1"/>
+  </STRUCT>
+  </Rank>
+ </Datatypes>
+
+<ExternalStatistics>
+        <Utilization/>
+</ExternalStatistics>
+
+</Application>
