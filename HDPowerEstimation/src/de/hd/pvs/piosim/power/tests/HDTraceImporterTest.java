@@ -107,15 +107,16 @@ public class HDTraceImporterTest extends AbstractTestCase {
 			fail(e.getMessage());
 		}
 		
-		assertEquals(2.0, reader.getMaxStepsize(), 00.1);
-		assertEquals(2.0, reader.getMinStepsize(), 00.1);
+		System.out.println("max: " + reader.getMaxStepsize() + " min: " + reader.getMinStepsize());
+		
+		assertEquals(2.0, reader.getMaxStepsize(), 0.01);
+		assertEquals(1.0, reader.getMinStepsize(), 0.01);
 		
 		Map<ACPIDevice, DeviceData> data = reader.getDeviceData();
 		
 		for (ACPIDevice device : data.keySet()) {
 			DeviceData deviceData = data.get(device);
-			int countValues = deviceData.getCountValues();
-			System.out.println("Device " + device.getNode() + "." + device.getName() + ": " + countValues);
+			assertEquals(26,deviceData.getCountValues());
 		}
 		
 	}

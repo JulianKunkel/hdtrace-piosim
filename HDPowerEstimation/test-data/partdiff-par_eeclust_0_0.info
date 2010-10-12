@@ -1,4 +1,4 @@
-File name="/tmp/visualization.dat" Size=0 id=0
+File name="/tmp/visualization.dat" Size=44 id=0
 Comm map='0->0;' id=0 name='WORLD'
 Type id='0' combiner='MPI_COMBINER_NAMED' name='MPI_INT'
 Type id='1' combiner='MPI_COMBINER_NAMED' name='MPI_CHAR'

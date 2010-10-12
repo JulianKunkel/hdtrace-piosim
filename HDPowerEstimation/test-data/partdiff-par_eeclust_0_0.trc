@@ -1,19 +1,19 @@
-<Program timeAdjustment='1286823120'>
-<Init  time='0.669081' end='0.669083'/>
-<File_open cid='0' name='/tmp/visualization.dat' flags='5' fid='0'  time='0.672495' end='0.672999'/>
-<File_write fid='0' offset='0' size='4' count='1' tid='0'  time='0.673006' end='0.673070'/>
-<File_write fid='0' offset='4' size='4' count='1' tid='0'  time='0.673076' end='0.673081'/>
-<File_write fid='0' offset='8' size='32' count='32' tid='1'  time='0.673083' end='0.673093'/>
-<File_get_position  time='0.673097' end='0.673098'/>
-<Type_vector oldTid='2'  time='0.673101' end='0.673114'/>
-<Type_commit tid='3'  time='0.673116' end='0.673143'/>
-<Bcast size='4' rootRank='0' cid='0' count='1' tid='0'  time='0.673147' end='0.673152'/>
-<Type_commit tid='4'  time='0.673158' end='0.673217'/>
-<Reduce size='8' rootRank='0' cid='0' count='1' tid='2'  time='0.938428' end='0.938459'/>
-<File_write_at fid='0' offset='40' size='4' count='1' tid='0'  time='0.938464' end='0.938486'/>
-<File_close fid='0'  time='0.938489' end='0.938555'/>
-<Type_free tid='4'  time='0.938557' end='0.938565'/>
-<Barrier cid='0'  time='0.939807' end='0.939813'/>
-<Finalize  time='0.939816' end='1.940087'/>
+<Program timeAdjustment='1286872510'>
+<Init  time='0.460126' end='0.460128'/>
+<File_open cid='0' name='/tmp/visualization.dat' flags='5' fid='0'  time='0.463608' end='0.463926'/>
+<File_write fid='0' offset='0' size='4' count='1' tid='0'  time='0.463933' end='0.463990'/>
+<File_write fid='0' offset='4' size='4' count='1' tid='0'  time='0.463996' end='0.464001'/>
+<File_write fid='0' offset='8' size='32' count='32' tid='1'  time='0.464003' end='0.464012'/>
+<File_get_position  time='0.464016' end='0.464017'/>
+<Type_vector oldTid='2'  time='0.464020' end='0.464033'/>
+<Type_commit tid='3'  time='0.464035' end='0.464062'/>
+<Bcast size='4' rootRank='0' cid='0' count='1' tid='0'  time='0.464066' end='0.464071'/>
+<Type_commit tid='4'  time='0.464077' end='0.464170'/>
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='2'  time='25.711738' end='25.711769'/>
+<File_write_at fid='0' offset='40' size='4' count='1' tid='0'  time='25.711775' end='25.711794'/>
+<File_close fid='0'  time='25.711798' end='25.711835'/>
+<Type_free tid='4'  time='25.711837' end='25.711845'/>
+<Barrier cid='0'  time='25.721752' end='25.721764'/>
+<Finalize  time='25.721769' end='26.721953'/>
 </Program>
 
