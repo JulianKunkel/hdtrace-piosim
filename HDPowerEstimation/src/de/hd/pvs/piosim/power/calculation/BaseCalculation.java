@@ -106,6 +106,11 @@ public class BaseCalculation {
 	public static BigDecimal toSec(BigDecimal msValue) {
 		return BaseCalculation.divide(msValue, THOUSAND);
 	}
+
+	public static BigDecimal getAverage(BigDecimal[] utilization) {
+		BigDecimal sum = sum(utilization);
+		return BaseCalculation.divide(sum, new BigDecimal(utilization.length));
+	}
 	
 	
 }
