@@ -17,12 +17,21 @@
 
 package de.hd.pvs.piosim.power;
 
+import java.io.File;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -35,7 +44,7 @@ import de.hd.pvs.piosim.power.cluster.Node;
 import de.hd.pvs.piosim.power.cluster.NodeFactory;
 import de.hd.pvs.piosim.power.cluster.PowerSupply;
 import de.hd.pvs.piosim.power.data.DeviceData;
-import de.hd.pvs.piosim.power.data.visualizer.CommandlineVisualizer;
+import de.hd.pvs.piosim.power.data.visualizer.StepChartVisualizer;
 import de.hd.pvs.piosim.power.data.visualizer.Visualizer;
 import de.hd.pvs.piosim.power.data.visualizer.VisualizerException;
 import de.hd.pvs.piosim.power.replay.Replay;
@@ -43,6 +52,8 @@ import de.hd.pvs.piosim.power.replay.ReplayDevice;
 import de.hd.pvs.piosim.power.replay.ReplayException;
 import de.hd.pvs.piosim.power.replay.ReplayItem;
 import de.hd.pvs.piosim.power.replay.strategy.SimplePlayStrategy;
+import de.hd.pvs.piosim.power.tools.MappingFileReader;
+import de.hd.pvs.piosim.power.tools.MappingFileReaderException;
 import de.hd.pvs.piosim.power.trace.HDTraceImporter;
 import de.hd.pvs.piosim.power.trace.HDTraceImporterException;
 
@@ -51,15 +62,19 @@ import de.hd.pvs.piosim.power.trace.HDTraceImporterException;
  * 
  */
 public class Simulator {
-	
-	private static List<Node> createEEclustNodes(List<String> hostnames, Map<String, String> nameToACPIDeviceMapping) {
-		
+
+	private static String applicationName = "Power Estimator";
+	private static String commandLineSyntax = "java de.hd.pvs.piosim.power.Simulator <args>";
+
+	private static List<Node> createEEclustNodes(List<String> hostnames,
+			Map<String, String> nameToACPIDeviceMapping) {
+
 		PowerSupply powerSupply = new PowerSupply();
 
 		powerSupply.setProcentualOverhead(new BigDecimal("0.35"));
 
 		BigDecimal overhead = new BigDecimal("6.305");
-		
+
 		List<Node> nodes = new ArrayList<Node>();
 
 		for (String hostname : hostnames) {
@@ -74,15 +89,53 @@ public class Simulator {
 				e.printStackTrace();
 				return null;
 			}
-			
+
 		}
-		
+
 		return nodes;
 	}
+	
+	public static String[] getVisualizers() {
+		List<String> visualizers = new ArrayList<String>();
+		
+		String packageName = "de.hd.pvs.piosim.power.data.visualizer";
 
-	private static void printUsage() {
-		System.out
-				.println("usage: Simulator projectFile timestep [Visualizer]\nargs:\n\tprojectFile: Path to .proj File\n\ttimestep: Optional - Duration of one timestep\n\tVisualizer: Optional - one out of CommandlineVisualizer (std), StepCharVisualizer\n");
+		File folder = new File("src/" + packageName.replace('.', '/'));
+
+		String[] filenames = folder.list();
+
+		for (String filename : filenames) {
+			if (filename.endsWith("Visualizer.java")) {
+				filename = filename.substring(0, filename.lastIndexOf(".java"));
+				if(!filename.equals("Visualizer"))
+					visualizers.add(filename);
+			}
+		}
+
+		String[] visualizer = new String[visualizers.size()];
+		return visualizers.toArray(visualizer);
+	}
+	
+	public static String[] getLogLevels() {
+		
+		Field[] fields;
+		try {
+			fields = Class.forName("org.apache.log4j.Level").getFields();
+		} catch (ClassNotFoundException e) {
+			return null;
+		}
+		
+		Set<String> set = new HashSet<String>();
+		
+		for(Field field : fields) {
+			if(!field.getName().contains("_")) {
+				set.add(field.getName());
+			}
+		}
+		
+		String[] loglevels = new String[set.size()];
+		
+		return set.toArray(loglevels);
 	}
 
 	public static void main(String[] args) {
@@ -93,84 +146,136 @@ public class Simulator {
 		Logger logger = Logger.getLogger(Simulator.class);
 
 		logger.info("Simulator started");
-
-		if (args.length < 1) {
-			System.err.println("Not enough arguments specified.");
-			printUsage();
-			return;
-		}
-
-		if (args[0].equals("-h") || args[0].equals("--help")
-				|| args[0].equals("--usage")) {
-			printUsage();
-			return;
-		}
-
+		
+		// params to be read from commandline
 		String inputProject = "";
+		String mappingFile = "";
 		int stepsize = -1;
-		Visualizer visualizer = null;
-		String visualizerString = "StepChartVisualizer";
+		Visualizer visualizer = new StepChartVisualizer();
+
+		Options opt = new Options();
+
+		opt.addOption("h", false, "Print help for " + applicationName);
+		opt.addOption("p", true, "Path to .proj file");
+		opt.addOption("m", true, "Path to device mapping file");
+		opt.addOption("t", true,
+				"Optional - Duration of one timestep, default reading from trace file");
+		opt.addOption("v", true,
+				"Optional - Visualizer for output, default " + visualizer.getClass().getSimpleName());
+		opt.addOption("l", true,
+				"Optional - Sets the loglevel to argument. Default: "
+						+ Logger.getRootLogger().getLevel().toString());
+
+		HelpFormatter f = new HelpFormatter();
+
+		
 
 		try {
-			inputProject = args[0];
-			
-			if(args.length >= 2) {
-				stepsize = Integer.parseInt(args[1]);
+
+			BasicParser parser = new BasicParser();
+			CommandLine cl = parser.parse(opt, args);
+
+			if (cl.hasOption('h')) {
+				f.printHelp(commandLineSyntax, opt);
+			} else {
+				// process needed arguments
+				if (!cl.hasOption('p')) {
+					System.err.println("Missing argument -p");
+					f.printHelp(commandLineSyntax, opt);
+					return;
+				} else {
+					inputProject = cl.getOptionValue('p');
+				}
+				if (!cl.hasOption('m')) {
+					System.err.println("Missing argument -m");
+					f.printHelp(commandLineSyntax, opt);
+					return;
+				} else {
+					mappingFile = cl.getOptionValue('m');
+				}
+
+				if (cl.hasOption('t')) {
+					try {
+						stepsize = Integer.parseInt(cl.getOptionValue('t'));
+					} catch (NumberFormatException e) {
+						System.err
+								.println("Please specify integer value for param -t");
+						throw e;
+					}
+				}
+				if (cl.hasOption('v')) {
+					try {
+						if(cl.getOptionValue('v').contains("."))
+							visualizer = (Visualizer) Class.forName(cl.getOptionValue('v')).newInstance();
+						else
+							visualizer = (Visualizer) Class.forName("de.hd.pvs.piosim.power.data.visualizer." + cl.getOptionValue('v')).newInstance();
+						
+						visualizer.printDetails(false);
+					} catch (ClassNotFoundException e) {
+						System.err.println("No such visualizer: "
+								+ cl.getOptionValue('v') + ". Has to be one out of:");
+						String[] visualizers = getVisualizers();
+						for(String visualizerString : visualizers)
+							System.err.print(visualizerString + " ");
+						System.err.println();
+						throw e;
+					}
+
+				}
+				if (cl.hasOption('l')) {
+					try {
+						Level level = null;
+						Logger.getRootLogger().setLevel(
+								(Level) Class.forName("org.apache.log4j.Level")
+										.getField(cl.getOptionValue('l'))
+										.get(level));
+					} catch (NoSuchFieldException e) {
+						System.err.println("No such loglevel: "
+								+ cl.getOptionValue('l') + ". Has to be one out of:");
+						String[] loglevels = getLogLevels();
+						for(String level : loglevels)
+							System.err.print(level + " ");
+						System.err.println();
+						
+						throw e;
+					}
+
+				}
+
 			}
-
-			if (args.length == 3) {
-				visualizerString = args[2];
-			} else if (args.length > 3)
-				throw new Exception("Invalid count of arguments.");
-
-			Class<?> clazz = Class
-					.forName("de.hd.pvs.piosim.power.data.visualizer."
-							+ visualizerString);
-			visualizer = (Visualizer) clazz.newInstance();
-			visualizer.printDetails(false);
-		} catch (Exception ex) {
-			System.err.println("Problem with commandline args: "
-					+ ex.getMessage());
-			ex.printStackTrace();
-			printUsage();
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			f.printHelp(commandLineSyntax, opt);
+			return;
+		} catch (Exception e) {
+			f.printHelp(commandLineSyntax, opt);
 			return;
 		}
 
-		Map<String, String> nameToACPIDeviceMapping = new HashMap<String, String>();
+		Map<String, String> nameToACPIDeviceMapping;
+		try {
+			nameToACPIDeviceMapping = MappingFileReader
+					.readNameToACPIDeviceMapping(mappingFile);
+		} catch (MappingFileReaderException ex) {
+			System.err.println("Problems while trying to read mappingFile: "
+					+ mappingFile);
+			ex.printStackTrace();
+			return;
+		}
 
-		nameToACPIDeviceMapping.put("CPU_TOTAL", "pvscluster.CPU");
-		nameToACPIDeviceMapping.put("CPU_TOTAL_0", "pvscluster.CPU");
-		nameToACPIDeviceMapping.put("CPU_TOTAL_1", "pvscluster.CPU");
-		nameToACPIDeviceMapping.put("CPU_TOTAL_2", "pvscluster.CPU");
-		nameToACPIDeviceMapping.put("CPU_TOTAL_3", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_4", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_5", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_6", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_7", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_8", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_9", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_10", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_11", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_12", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_13", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_14", "pvscluster.CPU");
-//		nameToACPIDeviceMapping.put("CPU_TOTAL_15", "pvscluster.CPU");
-		nameToACPIDeviceMapping.put("MEM_USED", "eeclust.Memory");
-		nameToACPIDeviceMapping.put("NET_OUT_eth0", "pvscluster.NIC");
-		nameToACPIDeviceMapping.put("NET_IN_eth0", "pvscluster.NIC");
-		nameToACPIDeviceMapping.put("HDD_WRITE", "eeclust.Disk");
-		
 		String[] componentNames = new String[nameToACPIDeviceMapping.size()];
-		componentNames = nameToACPIDeviceMapping.keySet().toArray(componentNames);
-		
+		componentNames = nameToACPIDeviceMapping.keySet().toArray(
+				componentNames);
+
 		HDTraceImporter reader = new HDTraceImporter();
-		
+
 		reader.setFilename(inputProject);
 		List<String> hostnames = reader.getHostnames();
-		
-		List<Node> nodes = createEEclustNodes(hostnames, nameToACPIDeviceMapping);
-		
-		for(Node node : nodes)
+
+		List<Node> nodes = createEEclustNodes(hostnames,
+				nameToACPIDeviceMapping);
+
+		for (Node node : nodes)
 			reader.addNode(node);
 
 		long before_read, after_read, before_sim, after_sim;
@@ -197,9 +302,10 @@ public class Simulator {
 			logger.info("The stepsize is varying from "
 					+ reader.getMinStepsize() + " to "
 					+ reader.getMaxStepsize());
-			
-			if(stepsize <= 0) 
-				stepsize = (int) (reader.getMinStepsize() + reader.getMaxStepsize()) / 2;
+
+			if (stepsize <= 0)
+				stepsize = (int) (reader.getMinStepsize() + reader
+						.getMaxStepsize()) / 2;
 
 			Map<ACPIDevice, DeviceData> data = reader.getDeviceData();
 
