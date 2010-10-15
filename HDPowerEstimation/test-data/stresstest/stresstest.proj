@@ -47,6 +47,6 @@
 
  <ExternalStatistics>
    <Energy/>
-   <Performance/>
+   <Utilization/>
  </ExternalStatistics>
 </Application>
