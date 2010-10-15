@@ -24,12 +24,12 @@ import de.hd.pvs.piosim.power.trace.TopologyNodeSet;
 
 public class HDTraceImporterTest extends AbstractTestCase {
 	
-	private Map<String, String> createNameToACPIDeviceMapping() {
+	private Map<String, String> createNameToACPIDeviceMapping(int countCPUs) {
 		Map<String, String> nameToACPIDeviceMapping = new HashMap<String, String>();
 
 		nameToACPIDeviceMapping.put("CPU_TOTAL", "pvscluster.CPU");
 		
-		for(int i=0; i<4; ++i) {
+		for(int i=0; i<countCPUs; ++i) {
 			nameToACPIDeviceMapping.put("CPU_TOTAL_" + i, "pvscluster.CPU");
 		}
 		
@@ -70,16 +70,16 @@ public class HDTraceImporterTest extends AbstractTestCase {
 	}
 
 	@Test
-	public void testWithEEclustExample() {
+	public void testWithSmallEEclustExample() {
 		
 		Logger.getRootLogger().setLevel(Level.OFF);
 		Logger.getLogger(TopologyNodeSet.class).setLevel(Level.DEBUG);
 		Logger.getLogger(ExternalStatisticReader.class).setLevel(Level.DEBUG);
 		Logger.getLogger(HDTraceImporter.class).setLevel(Level.DEBUG);
 		
-		String inputProject = this.inputFolder + "/partdiff-par.proj";
+		String inputProject = this.inputFolder + "/partdiff-par_eeclust/partdiff-par.proj";
 		
-		Map<String, String> nameToACPIDeviceMapping = createNameToACPIDeviceMapping();
+		Map<String, String> nameToACPIDeviceMapping = createNameToACPIDeviceMapping(4);
 		
 		String[] componentNames = new String[nameToACPIDeviceMapping.size()];
 		componentNames = nameToACPIDeviceMapping.keySet().toArray(componentNames);
@@ -117,6 +117,56 @@ public class HDTraceImporterTest extends AbstractTestCase {
 		for (ACPIDevice device : data.keySet()) {
 			DeviceData deviceData = data.get(device);
 			assertEquals(26,deviceData.getCountValues());
+		}
+		
+	}
+	
+	@Test
+	public void testWithLargeEEclustExample() {
+		
+		Logger.getRootLogger().setLevel(Level.OFF);
+		Logger.getLogger(TopologyNodeSet.class).setLevel(Level.DEBUG);
+		Logger.getLogger(ExternalStatisticReader.class).setLevel(Level.DEBUG);
+		Logger.getLogger(HDTraceImporter.class).setLevel(Level.DEBUG);
+		
+		String inputProject = this.inputFolder + "/partdiff-par_eeclust_large/partdiff-par.proj";
+		
+		Map<String, String> nameToACPIDeviceMapping = createNameToACPIDeviceMapping(16);
+		
+		String[] componentNames = new String[nameToACPIDeviceMapping.size()];
+		componentNames = nameToACPIDeviceMapping.keySet().toArray(componentNames);
+		
+		HDTraceImporter reader = new HDTraceImporter();
+		
+		reader.setFilename(inputProject);
+		List<String> hostnames = reader.getHostnames();
+		
+		assertEquals(5, hostnames.size());
+		
+		List<Node> nodes = createEEclustNodes(hostnames, nameToACPIDeviceMapping);
+		
+		for(Node node : nodes)
+			reader.addNode(node);
+		
+		assertEquals(5, nodes.size());
+		
+		try {
+			reader.setUtilization(componentNames);
+		} catch (HDTraceImporterException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		
+		System.out.println("max: " + reader.getMaxStepsize() + " min: " + reader.getMinStepsize());
+		
+		assertEquals(2.0, reader.getMaxStepsize(), 0.01);
+		assertEquals(1.0, reader.getMinStepsize(), 0.01);
+		
+		Map<ACPIDevice, DeviceData> data = reader.getDeviceData();
+		
+		for (ACPIDevice device : data.keySet()) {
+			DeviceData deviceData = data.get(device);
+			assertEquals(2,deviceData.getCountValues());
 		}
 		
 	}

@@ -1,0 +1,114 @@
+<Program timeAdjustment='1286976639'>
+<Init  time='0.127062' end='0.127063'/>
+<File_open cid='0' name='/tmp/visualization.dat' flags='5' fid='0'  time='0.127117' end='0.136177'/>
+<Type_vector oldTid='0'  time='0.136182' end='0.136209'/>
+<Type_commit tid='1'  time='0.136211' end='0.136221'/>
+<Bcast size='4' rootRank='0' cid='0' count='1' tid='2'  time='0.136232' end='0.136267'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.136272' end='0.137514'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.137517' end='0.138822'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.139222' end='0.139930'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.139932' end='0.141242'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.141638' end='0.141730'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.141732' end='0.142905'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.143248' end='0.143262'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.143264' end='0.143557'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.143900' end='0.144100'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.144102' end='0.144653'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.144997' end='0.145027'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.145029' end='0.145352'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.145701' end='0.145738'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.145740' end='0.146020'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.146365' end='0.146441'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.146443' end='0.146660'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.147004' end='0.147089'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.147091' end='0.147471'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.147815' end='0.349547'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.349550' end='0.349564'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.349912' end='0.350330'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.350332' end='0.399727'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.400071' end='0.400085'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.400087' end='0.400935'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.401280' end='0.401294'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.401295' end='0.402341'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.402684' end='0.402699'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.402701' end='0.403045'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.403389' end='0.403497'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.403499' end='0.404301'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.404644' end='0.404668'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.404670' end='0.405423'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.405770' end='0.405799'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.405801' end='0.406350'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.406693' end='0.406723'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.406725' end='0.407304'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.407648' end='0.407677'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.407679' end='0.408593'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.408936' end='0.408948'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.408950' end='0.409459'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.409806' end='0.409836'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.409838' end='0.410186'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.410530' end='0.410558'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.410560' end='0.410991'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.411335' end='0.605587'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.605590' end='0.605611'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.605955' end='0.606878'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.606880' end='0.606894'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.607249' end='0.608390'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.608393' end='0.608405'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.608748' end='0.610074'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.610078' end='0.610091'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.610433' end='0.611283'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.611285' end='0.611297'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.611639' end='0.612158'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.612160' end='0.612172'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.612517' end='0.613053'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.613055' end='0.613066'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.613410' end='0.818709'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.818711' end='0.818725'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.819067' end='0.819663'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.819664' end='0.820255'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.820598' end='0.857394'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.857396' end='0.857408'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.857758' end='0.858205'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.858208' end='0.858222'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.858566' end='0.858961'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.858963' end='0.858975'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.859318' end='0.859871'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.859873' end='0.859885'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.860228' end='0.860966'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.860968' end='0.860980'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.861324' end='0.862323'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.862325' end='0.862338'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.862681' end='0.863060'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.863062' end='0.863269'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.863614' end='0.864263'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.864265' end='0.864276'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.864623' end='0.865575'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.865577' end='0.865588'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.865936' end='0.866491'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.866493' end='0.866505'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.866847' end='0.867348'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.867350' end='0.867365'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.867708' end='0.868126'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='0.868128' end='1.074267'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.074609' end='1.074623'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.074625' end='1.282070'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.282412' end='1.282426'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.282428' end='1.282983'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.283326' end='1.283442'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.283444' end='1.283843'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.284231' end='1.284266'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.284268' end='1.284796'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.285168' end='1.285196'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.285198' end='1.285816'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.286195' end='1.286224'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.286226' end='1.322931'/>
+<Sendrecv size='6472' toRank='32' toTag='111' fromRank='30' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.323275' end='1.323290'/>
+<Sendrecv size='6472' toRank='30' toTag='111' fromRank='32' fromTag='111' cid='0' count='809' sendTid='0' recvTid='0'  time='1.323292' end='1.324077'/>
+<Reduce size='8' rootRank='0' cid='0' count='1' tid='0'  time='1.324422' end='1.334445'/>
+<File_close fid='0'  time='1.334447' end='1.535888'/>
+<Type_free tid='1'  time='1.535890' end='1.535891'/>
+<Send size='64720' count='8090' tid='0' toRank='0' toTag='555' cid='0'  time='1.535892' end='1.535949'/>
+<Barrier cid='0'  time='1.535970' end='2.183472'/>
+<Finalize  time='2.183475' end='2.185221'/>
+</Program>
+
