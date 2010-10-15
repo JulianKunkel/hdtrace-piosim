@@ -1,0 +1,9 @@
+CPU_TOTAL pvscluster.CPU
+CPU_TOTAL_0 pvscluster.CPU
+CPU_TOTAL_1 pvscluster.CPU
+CPU_TOTAL_2 pvscluster.CPU
+CPU_TOTAL_3 pvscluster.CPU
+MEM_USED eeclust.Memory 
+NET_OUT_eth0 pvscluster.NIC
+NET_IN_eth0 pvscluster.NIC
+HDD_WRITE eeclust.Disk
