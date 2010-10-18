@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="HDPowerEstimation" default="jar">
+    <import file="../build-common.xml"/>
+    
+    <property name="main-class" value="de.hd.pvs.piosim.power.Simulator" />
+    
+    <path id="classpath">
+	<fileset dir="${dir.lib}" includes="**/*.jar" />
+	<fileset dir="../HDTraceFormat/bin" includes="**/*.jar" />
+    </path>
+    
+</project>

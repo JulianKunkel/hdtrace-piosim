@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="dependencies" default="depend.all">
+    <dirname property="dependencies.basedir" file="${ant.file.dependencies}"/>
+
+    <target name="depend.all"
+            depends="depend.HDTraceFormat, depend.HDPowerEstimation, depend.HDJumpshot">
+    </target>
+
+    <target name="depend.HDPowerEstimation"
+            depends="depend.HDTraceFormat">
+        <ant dir="${dependencies.basedir}/HDPowerEstimation" inheritAll="false"/>
+    </target>
+
+    <target name="depend.HDJumpshot"
+            depends="depend.HDTraceFormat">
+        <ant dir="${dependencies.basedir}/HDJumpshot" inheritAll="false"/>
+    </target>
+    
+     <target name="depend.HDTraceFormat">
+        <ant dir="${dependencies.basedir}/HDTraceFormat" inheritAll="false"/>
+    </target>
+</project>

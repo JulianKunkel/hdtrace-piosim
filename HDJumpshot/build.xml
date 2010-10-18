@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="HDJumpshot" default="jar">
+    <import file="../build-common.xml"/>
+    
+    <property name="main-class" value="de.viewer.first.Jumpshot" />
+    
+    <path id="classpath">
+	<fileset dir="../HDTraceFormat/bin" includes="**/*.jar" />
+    </path>
+    
+</project>

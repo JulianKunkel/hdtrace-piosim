@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build-common" default="jar">
+
+    <import file="dependencies.xml"/>
+    
+    <property name="dir.src" value="src" />
+    <property name="dir.build" value="build" />
+    <property name="dir.dest" value="bin" />
+    <property name="dir.lib" value="lib" />
+    
+    <path id="classpath">
+	<fileset dir="${dir.lib}" includes="**/*.jar" />
+    </path>
+
+    <target name="clean" description="Removing the all generated files.">
+	<delete dir="${dir.build}" />
+	<delete dir="${dir.dest}" />
+    </target>
+
+    <target name="prepare">
+	<mkdir dir="${dir.build}" />
+	<mkdir dir="${dir.dest}" />
+	<mkdir dir="${dir.src}" />
+    </target>
+
+    <target name="compile" depends="prepare">
+        <javac srcdir="${dir.src}" destdir="${dir.build}" classpathref="classpath"/>
+    </target>
+
+   <target name="jar" depends="compile" description="Generates ${ant.project.name}.jar file in to the ${dir.dest} directory.">
+		<jar jarfile="${dir.dest}/${ant.project.name}.jar" basedir="${dir.build}" />
+    </target>
+    
+    <target name="run" depends="jar">
+        <java fork="true" classname="${main-class}">
+            <classpath>
+                <path refid="classpath"/>
+                <path location="${dir.dest}/${ant.project.name}.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="jar.depend">
+        <antcall target="depend.${ant.project.name}"/>
+    </target>
+
+</project>
