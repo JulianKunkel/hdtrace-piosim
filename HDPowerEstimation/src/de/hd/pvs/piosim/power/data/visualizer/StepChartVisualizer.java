@@ -76,7 +76,7 @@ public class StepChartVisualizer extends JFreeChartVisualizer {
 		
 		NumberAxis domainAxis = new NumberAxis();
         
-        NumberTickUnit domainTickUnit = new NumberTickUnit(10);//visualizationData.getUtilizationScaling());
+        NumberTickUnit domainTickUnit = new NumberTickUnit(visualizationData.getTimeScaling());
         
         domainAxis.setTickUnit(domainTickUnit);
         domainAxis.setLabelFont(deriveFont(domainAxis.getLabelFont()));
@@ -90,7 +90,7 @@ public class StepChartVisualizer extends JFreeChartVisualizer {
         NumberAxis rangeAxis = new NumberAxis();
 
         if(isPowerConsumptionAxis) {
-        	NumberTickUnit rangeTickUnit = new NumberTickUnit(0.1);	
+        	NumberTickUnit rangeTickUnit = new NumberTickUnit(visualizationData.getUtilizationScaling());
         	rangeAxis.setTickUnit(rangeTickUnit);
         } else {
         	NumberTickUnit rangeTickUnit = new NumberTickUnit(visualizationData.getPowerConsumptionScaling());	

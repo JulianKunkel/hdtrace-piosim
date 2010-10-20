@@ -43,7 +43,7 @@ public class VisualizationData {
 	private Map<String, String> details;
 	private XYSeriesCollection utilizationSeries = new XYSeriesCollection();
 	private XYSeriesCollection powerConsumptionSeries = new XYSeriesCollection();
-	private double utilizationScaling = -1;
+	private double timeScaling = -1;
 	private double maxPowerConsumption = Double.MIN_VALUE;
 	
 	private static Logger logger = Logger.getLogger(VisualizationData.class);
@@ -78,26 +78,23 @@ public class VisualizationData {
 			
 			XYSeries utilizationSerie = new XYSeries(deviceName);		
 			XYSeries powerConsumptionSerie = new XYSeries(deviceName);
-
 			
-			if(utilizationScaling == -1) {
+			if(timeScaling == -1) {
 	
 				int countValues = utilizationArray.length;
 				
-				logger.debug("countValues: " + countValues);
+				logger.debug("countValues for timeScaling: " + countValues);
 				
 				int digits = (new Integer(utilizationArray.length)).toString().length();
 				
-				String utilizationScalingString = "1";
-				for(int i = 1; i<digits; ++i)
-					utilizationScalingString += "0";
+				String timeScalingString = "1";
+				for(int i = 1; i<digits-1; ++i)
+					timeScalingString += "0";
 				
-				utilizationScaling = Integer.parseInt(utilizationScalingString);
+				timeScaling = Integer.parseInt(timeScalingString) * 2;
 				
 			}
 			
-			
-
 			for (int i = 0; i < utilizationArray.length; ++i) {		
 				
 				utilizationDataset.addValue(utilizationArray[i].doubleValue(),
@@ -226,8 +223,8 @@ public class VisualizationData {
 		return powerConsumptionSeries;
 	}
 
-	public double getUtilizationScaling() {
-		return utilizationScaling;
+	public double getTimeScaling() {
+		return timeScaling;
 	}
 	
 	public double getPowerConsumptionScaling() {
@@ -239,6 +236,10 @@ public class VisualizationData {
 		} 
 		
 		return tenth;
+	}
+
+	public double getUtilizationScaling() {
+		return 0.1; // constant, because utilization ranges from 0 to 1
 	}
 	
 	

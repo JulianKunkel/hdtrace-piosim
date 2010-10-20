@@ -24,6 +24,7 @@ import de.hd.pvs.piosim.power.cluster.Node;
 import de.hd.pvs.piosim.power.cluster.SimpleNode;
 import de.hd.pvs.piosim.power.data.DeviceData;
 import de.hd.pvs.piosim.power.data.visualizer.VisualizationData;
+import de.hd.pvs.piosim.power.data.visualizer.VisualizerException;
 import de.hd.pvs.piosim.power.devices.MockDevice;
 import de.hd.pvs.piosim.power.replay.Replay;
 import de.hd.pvs.piosim.power.replay.ReplayException;
@@ -35,20 +36,20 @@ public class VisualizationDataTest extends AbstractTestCase {
 	@Test
 	public void testScaling() {
 		
-		// 110 items -> y Axis should label every tenth value
+		// 110 items -> x Axis should label every twentieth value -> 5 values
 		VisualizationData visData = createVisualizationData(110);
 		
-		assertEquals(10.0,visData.getUtilizationScaling());
+		assertEquals(20.0,visData.getTimeScaling());
 		
-		// 20 items -> every value
+		// 20 items -> every second value -> 10 labels on x axis
 		visData = createVisualizationData(20);
 		
-		assertEquals(1.0,visData.getUtilizationScaling());
+		assertEquals(2.0,visData.getTimeScaling());
 		
-		// 199999 items -> every tenthousands value
-		visData = createVisualizationData(199999);
+		// 1999 items -> every two-hundreds value -> 10 labels on x axis
+		visData = createVisualizationData(1999);
 		
-		assertEquals(10000.0,visData.getUtilizationScaling());
+		assertEquals(200.0,visData.getTimeScaling());
 	}
 	
 	private VisualizationData createVisualizationData(int countSteps) {
@@ -63,9 +64,13 @@ public class VisualizationDataTest extends AbstractTestCase {
 		replay.setPlayStrategy(new SimplePlayStrategy());
 		try {
 			replay.play();
+			replay.visualize(testVisualizer);
 		} catch (ReplayException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fail(e.getMessage());
+		} catch (VisualizerException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 		
 		VisualizationData visData = new VisualizationData();
