@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import de.hd.pvs.piosim.power.DeviceBuilder;
 import de.hd.pvs.piosim.power.acpi.ACPIDevice;
 import de.hd.pvs.piosim.power.cluster.BuildException;
@@ -146,10 +148,12 @@ public class TestObjectCreator {
 
 			for (int i = 0; i < countSteps; ++i) {
 				MathContext mc = new MathContext(2);
-				data[i] = new BigDecimal(0.01 * i * j, mc);
+				data[i] = new BigDecimal(Math.random(), mc);
 			}
 
 			deviceData.setUtilization(data);
+			
+			
 
 			map.put(names[j], deviceData);
 		}
