@@ -77,27 +77,29 @@ public class Simulator {
 
 		List<Node> nodes = new ArrayList<Node>();
 
-		for (String hostname : hostnames) {
+		if (hostnames != null) {
+			for (String hostname : hostnames) {
 
-			try {
-				ExtendedNode node = NodeFactory.createExtendedNode(
-						nameToACPIDeviceMapping, hostname);
-				node.setPowerSupply(powerSupply);
-				node.setOverhead(overhead);
-				nodes.add(node);
-			} catch (BuildException e) {
-				e.printStackTrace();
-				return null;
+				try {
+					ExtendedNode node = NodeFactory.createExtendedNode(
+							nameToACPIDeviceMapping, hostname);
+					node.setPowerSupply(powerSupply);
+					node.setOverhead(overhead);
+					nodes.add(node);
+				} catch (BuildException e) {
+					e.printStackTrace();
+					return null;
+				}
+
 			}
-
 		}
 
 		return nodes;
 	}
-	
+
 	public static String[] getVisualizers() {
 		List<String> visualizers = new ArrayList<String>();
-		
+
 		String packageName = "de.hd.pvs.piosim.power.data.visualizer";
 
 		File folder = new File("src/" + packageName.replace('.', '/'));
@@ -107,7 +109,7 @@ public class Simulator {
 		for (String filename : filenames) {
 			if (filename.endsWith("Visualizer.java")) {
 				filename = filename.substring(0, filename.lastIndexOf(".java"));
-				if(!filename.equals("Visualizer"))
+				if (!filename.equals("Visualizer"))
 					visualizers.add(filename);
 			}
 		}
@@ -115,26 +117,26 @@ public class Simulator {
 		String[] visualizer = new String[visualizers.size()];
 		return visualizers.toArray(visualizer);
 	}
-	
+
 	public static String[] getLogLevels() {
-		
+
 		Field[] fields;
 		try {
 			fields = Class.forName("org.apache.log4j.Level").getFields();
 		} catch (ClassNotFoundException e) {
 			return null;
 		}
-		
+
 		Set<String> set = new HashSet<String>();
-		
-		for(Field field : fields) {
-			if(!field.getName().contains("_")) {
+
+		for (Field field : fields) {
+			if (!field.getName().contains("_")) {
 				set.add(field.getName());
 			}
 		}
-		
+
 		String[] loglevels = new String[set.size()];
-		
+
 		return set.toArray(loglevels);
 	}
 
@@ -146,7 +148,7 @@ public class Simulator {
 		Logger logger = Logger.getLogger(Simulator.class);
 
 		logger.info("Simulator started");
-		
+
 		// params to be read from commandline
 		String inputProject = "";
 		String mappingFile = "";
@@ -160,15 +162,13 @@ public class Simulator {
 		opt.addOption("m", true, "Path to device mapping file");
 		opt.addOption("t", true,
 				"Optional - Duration of one timestep, default reading from trace file");
-		opt.addOption("v", true,
-				"Optional - Visualizer for output, default " + visualizer.getClass().getSimpleName());
+		opt.addOption("v", true, "Optional - Visualizer for output, default "
+				+ visualizer.getClass().getSimpleName());
 		opt.addOption("l", true,
 				"Optional - Sets the loglevel to argument. Default: "
 						+ Logger.getRootLogger().getLevel().toString());
 
 		HelpFormatter f = new HelpFormatter();
-
-		
 
 		try {
 
@@ -205,17 +205,22 @@ public class Simulator {
 				}
 				if (cl.hasOption('v')) {
 					try {
-						if(cl.getOptionValue('v').contains("."))
-							visualizer = (Visualizer) Class.forName(cl.getOptionValue('v')).newInstance();
+						if (cl.getOptionValue('v').contains("."))
+							visualizer = (Visualizer) Class.forName(
+									cl.getOptionValue('v')).newInstance();
 						else
-							visualizer = (Visualizer) Class.forName("de.hd.pvs.piosim.power.data.visualizer." + cl.getOptionValue('v')).newInstance();
-						
+							visualizer = (Visualizer) Class.forName(
+									"de.hd.pvs.piosim.power.data.visualizer."
+											+ cl.getOptionValue('v'))
+									.newInstance();
+
 						visualizer.printDetails(false);
 					} catch (ClassNotFoundException e) {
 						System.err.println("No such visualizer: "
-								+ cl.getOptionValue('v') + ". Has to be one out of:");
+								+ cl.getOptionValue('v')
+								+ ". Has to be one out of:");
 						String[] visualizers = getVisualizers();
-						for(String visualizerString : visualizers)
+						for (String visualizerString : visualizers)
 							System.err.print(visualizerString + " ");
 						System.err.println();
 						throw e;
@@ -231,12 +236,13 @@ public class Simulator {
 										.get(level));
 					} catch (NoSuchFieldException e) {
 						System.err.println("No such loglevel: "
-								+ cl.getOptionValue('l') + ". Has to be one out of:");
+								+ cl.getOptionValue('l')
+								+ ". Has to be one out of:");
 						String[] loglevels = getLogLevels();
-						for(String level : loglevels)
+						for (String level : loglevels)
 							System.err.print(level + " ");
 						System.err.println();
-						
+
 						throw e;
 					}
 

@@ -142,6 +142,11 @@ public class ExternalStatisticReader {
 						.getStatisticsSource(statisticName);
 
 				statisticsDescriptions = reader.getGroup().getStatisticsOrdered();
+				if(statisticsDescriptions == null) {
+					logger.debug("No descriptions for statistic " + statisticName + " found for host " + hostname);
+				} else {
+					logger.debug(statisticsDescriptions.size() + " descriptions for statistic " + statisticName + " added for host " + hostname);
+				}
 
 				try {
 					StatisticsGroupEntry inputEntry = reader

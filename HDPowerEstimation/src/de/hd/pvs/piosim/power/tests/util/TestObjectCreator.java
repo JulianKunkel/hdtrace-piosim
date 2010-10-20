@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 import de.hd.pvs.piosim.power.DeviceBuilder;
 import de.hd.pvs.piosim.power.acpi.ACPIDevice;
 import de.hd.pvs.piosim.power.cluster.BuildException;

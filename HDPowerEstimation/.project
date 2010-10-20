@@ -3,6 +3,7 @@
 	<name>HDPowerConsumption</name>
 	<comment></comment>
 	<projects>
+		<project>HDTraceFormat</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
