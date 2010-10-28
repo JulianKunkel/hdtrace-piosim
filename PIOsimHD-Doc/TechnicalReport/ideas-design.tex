@@ -250,6 +250,38 @@ A GUI is planned to easy generation of a cluster model for teaching.
 \section{XML Generation}
 * serialization of annotated attributes
 
+\section{Command Execution}
+MPI-Commands are executed as statemachines, for each type of commands (e.g. broadcast operations) one class instance is loaded and responsible to run commands on all clients. 
+Therefore, the class instance knows the status of all client operations of the same type.
+The processing of a operation is encoded in the method process of the particular class:
+\begin{verbatim} 
+	public void process(Bcast cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs)
+\end{verbatim}
+Arguments to the command (for example communicator in broadcast or data size) is contained in \texttt{cmd}.
+The result of process must be stored in \texttt{OUTresults}.
+Upon initial startup of a command the \texttt{step} number is \texttt{CommandProcessing.STEP_START}.
+
+An operation can access answers of other clients in the \texttt{compNetJobs} datastructure.
+
+A command can decide to invoke other commands to process a command,
+assume a dynamic broadcast, which chooses existing MPI implementations for a broadcast, based on the given parameters.
+\begin{verbatim}
+ OUTresults.invokeChildOperation(cmd, CommandProcessing.STEP_COMPLETED, de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimple.class);
+\end{verbatim}
+
+To communicate with other processes, messages can be either sent or received to another process number of the
+given communicator:
+\begin{verbatim}
+OUTresults.addNetSend(1, new NetworkSimpleData(20), // just 20 Bytes or something.
+  30002, Communicator.INTERNAL_MPI);
+\end{verbatim}
+The tag and communicator on sender and receiver side must match, then the receiver gets the message.
+
+The statemachine will not proceed to the next step until all messages of one step are sent and received.
+
+Therefore, to create a parallel pipeline to multiple clients it is required to create a pipelined point to point connection,
+then for each participating host spawn one pipelined child operation. 
+Now all pipelines could process concurrently.
 
 \section{Choosing Component and Command Implementations}
 The component and command implementations can be chosen dynamically.
