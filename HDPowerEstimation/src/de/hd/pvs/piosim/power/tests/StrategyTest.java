@@ -87,21 +87,21 @@ public class StrategyTest extends AbstractTestCase {
 		replay.reset();
 		replay.setPlayStrategy(new SimplePlayStrategy());
 		replay.play();
-		return node.getPowerConsumption();
+		return node.getEnergyConsumption();
 	}
 
 	private BigDecimal getOptimalStrategyConsumption() throws ReplayException {
 		replay.reset();
 		replay.setPlayStrategy(new OptimalPlayStrategy());
 		replay.play();
-		return node.getPowerConsumption();
+		return node.getEnergyConsumption();
 	}
 
 	private BigDecimal getApproachStrategyConsumption() throws ReplayException {
 		replay.reset();
 		replay.setPlayStrategy(new ApproachPlayStrategy());
 		replay.play();
-		return node.getPowerConsumption();
+		return node.getEnergyConsumption();
 	}
 
 }

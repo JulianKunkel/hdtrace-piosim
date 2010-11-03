@@ -369,7 +369,7 @@ public class Simulator {
 									.getUtilization()) + " %");
 
 					System.out.println("Total energy consumption: "
-							+ device.getPowerConsumption() + " Wh");
+							+ device.getEnergyConsumption() + " Wh");
 				}
 			}
 

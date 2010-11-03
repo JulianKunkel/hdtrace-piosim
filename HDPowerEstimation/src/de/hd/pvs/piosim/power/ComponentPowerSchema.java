@@ -38,11 +38,11 @@ public class ComponentPowerSchema {
 	//power consumption for component at 100 percent utilization in watt
 	private BigDecimal loadPowerConsumption = null;
 	
-	// power consumption for incrementing the state in watt-h, last index not used
-	private BigDecimal[] incStatePowerConsumption;
+	// energy consumption for incrementing the state in watt-h, last index not used
+	private BigDecimal[] incStateEnergyConsumption;
 	
-	// power consumption for decrementing the state in watt-h, first index not used
-	private BigDecimal[] decStatePowerConsumption;
+	// energy consumption for decrementing the state in watt-h, first index not used
+	private BigDecimal[] decStateEnergyConsumption;
 	
 	// time for incrementing the state in ms, last index not used
 	private BigDecimal[] incStateDuration;
@@ -60,8 +60,8 @@ public class ComponentPowerSchema {
 	public ComponentPowerSchema(int countStates) {
 		this.countStates = countStates;
 		statePowerConsumption = new BigDecimal[countStates];
-		incStatePowerConsumption = new BigDecimal[countStates];
-		decStatePowerConsumption = new BigDecimal[countStates];
+		incStateEnergyConsumption = new BigDecimal[countStates];
+		decStateEnergyConsumption = new BigDecimal[countStates];
 		incStateDuration = new BigDecimal[countStates];
 		decStateDuration = new BigDecimal[countStates];	
 		
@@ -144,41 +144,41 @@ public class ComponentPowerSchema {
 	}
 
 	/**
-	 * power consumption for incrementing the state, last index not used
-	 * @return power consumption in watt-h for incrementing the state
+	 * energy consumption for incrementing the state, last index not used
+	 * @return energy consumption in watt-h for incrementing the state
 	 */
-	public BigDecimal[] getIncStatePowerConsumption() {
-		return incStatePowerConsumption;
+	public BigDecimal[] getIncStateEnergyConsumption() {
+		return incStateEnergyConsumption;
 	}
 
 	/**
-	 * power consumption for incrementing the state, last index not used
-	 * @param incStatePowerConsumption power consumption in watt for incrementing the state
+	 * energy consumption for incrementing the state, last index not used
+	 * @param incStateEnergyConsumption energy consumption in watt-h for incrementing the state
 	 * @throws InvalidValueException if array size doesn't correspond to countStates
 	 */
-	public void setIncStatePowerConsumption(BigDecimal[] incStatePowerConsumption) throws InvalidValueException {
-		if(incStatePowerConsumption.length != countStates)
+	public void setIncStateEnergyConsumption(BigDecimal[] incStateEnergyConsumption) throws InvalidValueException {
+		if(incStateEnergyConsumption.length != countStates)
 			throw new InvalidValueException("Invalid size. Array size has to be " + countStates);
-		this.incStatePowerConsumption = incStatePowerConsumption;
+		this.incStateEnergyConsumption = incStateEnergyConsumption;
 	}
 
 	/**
-	 * power consumption for decrementing the state, last index not used
-	 * @return power consumption in watt-h for decrementing the state
+	 * energy consumption for decrementing the state, last index not used
+	 * @return energy consumption in watt-h for decrementing the state
 	 */
-	public BigDecimal[] getDecStatePowerConsumption() {
-		return decStatePowerConsumption;
+	public BigDecimal[] getDecStateEnergyConsumption() {
+		return decStateEnergyConsumption;
 	}
 
 	/**
-	 * power consumption for decrementing the state, first index not used
-	 * @param decStatePowerConsumption power consumption in watt-h for decrementing the state
+	 * energy consumption for decrementing the state, first index not used
+	 * @param decStateEnergyConsumption energy consumption in watt-h for decrementing the state
 	 * @throws InvalidValueException if array size doesn't correspond to countStates
 	 */
-	public void setDecStatePowerConsumption(BigDecimal[] decStatePowerConsumption) throws InvalidValueException {
-		if(decStatePowerConsumption.length != countStates)
+	public void setDecStateEnergyConsumption(BigDecimal[] decStateEnergyConsumption) throws InvalidValueException {
+		if(decStateEnergyConsumption.length != countStates)
 			throw new InvalidValueException("Invalid size. Array size has to be " + countStates);
-		this.decStatePowerConsumption = decStatePowerConsumption;
+		this.decStateEnergyConsumption = decStateEnergyConsumption;
 	}
 
 	/**

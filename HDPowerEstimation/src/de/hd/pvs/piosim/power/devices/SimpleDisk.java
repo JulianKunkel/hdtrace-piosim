@@ -31,9 +31,9 @@ public class SimpleDisk extends ACPIDevice {
 		
 		BigDecimal[] statePowerConsumption = {new BigDecimal("80"), new BigDecimal("60"), new BigDecimal("10"), new BigDecimal("0.1")};
 		BigDecimal[] decStateDuration = {new BigDecimal("0"), new BigDecimal("20"), new BigDecimal("200"), new BigDecimal("2000")};
-		BigDecimal[] decStatePowerConsumption = {new BigDecimal("0"), new BigDecimal("0.01"), new BigDecimal("0.02"), new BigDecimal("0.03")};
+		BigDecimal[] decStateEnergyConsumption = {new BigDecimal("0"), new BigDecimal("0.01"), new BigDecimal("0.02"), new BigDecimal("0.03")};
 		BigDecimal[] incStateDuration = {new BigDecimal("10"), new BigDecimal("100"), new BigDecimal("1000"), new BigDecimal("0")};
-		BigDecimal[] incStatePowerConsumption = {new BigDecimal("0.05"), new BigDecimal("0.015"), new BigDecimal("0.025"), new BigDecimal("0")};
+		BigDecimal[] incStateEnergyConsumption = {new BigDecimal("0.05"), new BigDecimal("0.015"), new BigDecimal("0.025"), new BigDecimal("0")};
 		
 		BigDecimal idlePowerConsumption = new BigDecimal("64");
 		BigDecimal loadPowerConsumption = new BigDecimal("80");
@@ -41,9 +41,9 @@ public class SimpleDisk extends ACPIDevice {
 		try {
 			this.getComponentPowerSchema().setStatePowerConsumption(statePowerConsumption);
 			this.getComponentPowerSchema().setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(decStateEnergyConsumption);
 			this.getComponentPowerSchema().setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(incStateEnergyConsumption);
 			this.getComponentPowerSchema().setLoadPowerConsumption(loadPowerConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {

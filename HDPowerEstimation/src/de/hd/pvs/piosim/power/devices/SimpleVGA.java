@@ -28,9 +28,9 @@ public class SimpleVGA extends ACPIDevice {
 	public void initComponentPowerConsumption() {
 		BigDecimal[] statePowerConsumption = {new BigDecimal("150"), new BigDecimal("130"), new BigDecimal("60"), new BigDecimal("10")};
 		BigDecimal[] decStateDuration = {new BigDecimal("0"), new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("50")};
-		BigDecimal[] decStatePowerConsumption = {new BigDecimal("0"), new BigDecimal("0.1"), new BigDecimal("0.1"), new BigDecimal("0.1")};
+		BigDecimal[] decStateEnergyConsumption = {new BigDecimal("0"), new BigDecimal("0.1"), new BigDecimal("0.1"), new BigDecimal("0.1")};
 		BigDecimal[] incStateDuration = {new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("0")};
-		BigDecimal[] incStatePowerConsumption = {new BigDecimal("0.1"), new BigDecimal("0.1"), new BigDecimal("0.1"), new BigDecimal("0")};
+		BigDecimal[] incStateEnergyConsumption = {new BigDecimal("0.1"), new BigDecimal("0.1"), new BigDecimal("0.1"), new BigDecimal("0")};
 		
 		BigDecimal idlePowerConsumption = new BigDecimal("120");
 		BigDecimal loadPowerConsumption = new BigDecimal("150");
@@ -38,9 +38,9 @@ public class SimpleVGA extends ACPIDevice {
 		try {
 			this.getComponentPowerSchema().setStatePowerConsumption(statePowerConsumption);
 			this.getComponentPowerSchema().setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(decStateEnergyConsumption);
 			this.getComponentPowerSchema().setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(incStateEnergyConsumption);
 			this.getComponentPowerSchema().setLoadPowerConsumption(loadPowerConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {

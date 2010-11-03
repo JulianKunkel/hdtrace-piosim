@@ -26,7 +26,7 @@ public class ACPIStateChange {
 	private BigDecimal time;
 	private int state;
 	private ACPIComponent component;
-	private BigDecimal powerConsumption;
+	private BigDecimal energyConsumption;
 	
 	
 	public BigDecimal getTime() {
@@ -41,15 +41,15 @@ public class ACPIStateChange {
 		return component;
 	}
 	
-	public BigDecimal getPowerConsumption() {
-		return powerConsumption;
+	public BigDecimal getEnergyConsumption() {
+		return energyConsumption;
 	}
 
-	public ACPIStateChange(BigDecimal time, ACPIComponent component, int state, BigDecimal powerConsumption) {
+	public ACPIStateChange(BigDecimal time, ACPIComponent component, int state, BigDecimal energyConsumption) {
 		this.time = time;
 		this.state = state;
 		this.component = component;
-		this.powerConsumption = powerConsumption;
+		this.energyConsumption = energyConsumption;
 		
 		if(state == ACPIStateChangesHistory.STATE_END) {
 			StatisticData.getInstance().endState(time, component);
@@ -60,11 +60,11 @@ public class ACPIStateChange {
 
 	public void print() {
 		if(state == ACPIStateChangesHistory.STATE_END) {
-			System.out.println(time + ": " + component.getName() + " State finished. powerConsumption: " + powerConsumption);
+			System.out.println(time + ": " + component.getName() + " State finished. energyConsumption: " + energyConsumption);
 		} else if(state == ACPIStateChangesHistory.STATE_CHANGE) {
-			System.out.println(time + ": " + component.getName() + " new StateChange. powerConsumption: " + powerConsumption);
+			System.out.println(time + ": " + component.getName() + " new StateChange. energyConsumption: " + energyConsumption);
 		} else {
-			System.out.println(time + ": " + component.getName() + " new State " + state + ". powerConsumption: " + powerConsumption);
+			System.out.println(time + ": " + component.getName() + " new State " + state + ". energyConsumption: " + energyConsumption);
 		}
 	}
 

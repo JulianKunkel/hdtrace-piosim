@@ -40,15 +40,15 @@ public class StatisticData {
 	private int countValues;
 	private Logger logger = Logger.getLogger(StatisticData.class);
 
-	private Map<Node, BigDecimal[]> nodeConsumption;
-	private Map<Node, BigDecimal> totalNodeConsumption;
+	private Map<Node, BigDecimal[]> nodePowerConsumption;
+	private Map<Node, BigDecimal> nodeEnergyConsumption;
 	private Set<Node> nodes;
 
 	private StatisticData() {
 		nodeDataset = new HashMap<Node, StatisticNodeData>();
 		componentDataset = new HashMap<ACPIComponent, StatisticComponentData>();
-		nodeConsumption = new HashMap<Node, BigDecimal[]>();
-		totalNodeConsumption = new HashMap<Node, BigDecimal>();
+		nodePowerConsumption = new HashMap<Node, BigDecimal[]>();
+		nodeEnergyConsumption = new HashMap<Node, BigDecimal>();
 		nodes = new HashSet<Node>();
 		reset();
 	}
@@ -87,7 +87,7 @@ public class StatisticData {
 		nodeData.addValues(stepUtilization, stepPowerConsumption);
 		
 		if(device.getNode() != null && !nodes.contains(device.getNode()))
-			setNodeConsumptionForStep(device.getNode(),step);
+			setNodePowerConsumptionForStep(device.getNode(),step);
 	}
 
 	public BigDecimal[] getMeanUtilizationForEachStep(Node node) {
@@ -95,14 +95,14 @@ public class StatisticData {
 	}
 
 	public BigDecimal[] getSumPowerConsumptionForEachStep(Node node) {
-		return nodeConsumption.get(node);
+		return nodePowerConsumption.get(node);
 	}
 
 	public void reset() {
 		nodeDataset.clear();
 		componentDataset.clear();
-		nodeConsumption.clear();
-		totalNodeConsumption.clear();
+		nodePowerConsumption.clear();
+		nodeEnergyConsumption.clear();
 		nodes.clear();
 		currentStep = 0;
 	}
@@ -139,37 +139,37 @@ public class StatisticData {
 		for (ACPIComponent component : componentDataset.keySet()) {
 			System.out.print(component.getName() + ": ");
 			componentDataset.get(component).print();
-			System.out.println(component.getPowerConsumption() + " Watt-h");
+			System.out.println(component.getEnergyConsumption() + " Watt-h");
 		}
 	}
 	
-	private void setNodeConsumptionForStep(Node node, int step) {
+	private void setNodePowerConsumptionForStep(Node node, int step) {
 		
-		BigDecimal[] powerConsumption = nodeConsumption.get(node);
+		BigDecimal[] powerConsumption = nodePowerConsumption.get(node);
 
 		if (powerConsumption == null) {
 			powerConsumption = new BigDecimal[countValues];
-			nodeConsumption.put(node, powerConsumption);
+			nodePowerConsumption.put(node, powerConsumption);
 		}
 
-		BigDecimal totalConsumption = totalNodeConsumption.get(node);
+		BigDecimal energyConsumption = nodeEnergyConsumption.get(node);
 
-		if (totalConsumption == null)
-			totalConsumption = new BigDecimal("0");
+		if (energyConsumption == null)
+			energyConsumption = new BigDecimal("0");
 		
 		if(step == 0) {
-			logger.debug(totalConsumption);
+			logger.debug(energyConsumption);
 		}
 
 		powerConsumption[step] = ACPICalculation.calculateInWatt(BaseCalculation.substract(node
-				.getPowerConsumption(), totalConsumption),new BigDecimal("1000"));
+				.getEnergyConsumption(), energyConsumption),new BigDecimal("1000"));
 
-		totalNodeConsumption.put(node, node.getPowerConsumption());
+		nodeEnergyConsumption.put(node, node.getEnergyConsumption());
 	}
 
 	public void step(Set<Node> nodes, int step) {
 		for (Node node : nodes) {
-			setNodeConsumptionForStep(node, step);
+			setNodePowerConsumptionForStep(node, step);
 		}
 	}
 }

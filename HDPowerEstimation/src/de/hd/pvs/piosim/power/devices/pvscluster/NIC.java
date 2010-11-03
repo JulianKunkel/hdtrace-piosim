@@ -39,12 +39,12 @@ public class NIC extends ACPIDevice {
 				new BigDecimal("0.2") };
 		BigDecimal[] decStateDuration = { new BigDecimal("0"),
 				new BigDecimal("0"), new BigDecimal("0"), new BigDecimal("0.1") };
-		BigDecimal[] decStatePowerConsumption = { new BigDecimal("0"),
+		BigDecimal[] decStateEnergyConsumption = { new BigDecimal("0"),
 				new BigDecimal("0"), new BigDecimal("0"),
 				new BigDecimal("0.001") };
 		BigDecimal[] incStateDuration = { new BigDecimal("0.1"),
 				new BigDecimal("0"), new BigDecimal("0"), new BigDecimal("0") };
-		BigDecimal[] incStatePowerConsumption = { new BigDecimal("0.000001"),
+		BigDecimal[] incStateEnergyConsumption = { new BigDecimal("0.000001"),
 				new BigDecimal("0"), new BigDecimal("0"),
 				new BigDecimal("0") };
 		
@@ -55,12 +55,12 @@ public class NIC extends ACPIDevice {
 					statePowerConsumption);
 			this.getComponentPowerSchema()
 					.setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(
-					decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(
+					decStateEnergyConsumption);
 			this.getComponentPowerSchema()
 					.setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(
-					incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(
+					incStateEnergyConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {
 			// TODO Auto-generated catch block

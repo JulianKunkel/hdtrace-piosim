@@ -31,18 +31,18 @@ public class Memory extends MemoryDevice {
 
 		BigDecimal[] statePowerConsumption = {new BigDecimal("13.585"), new BigDecimal("7.5"), new BigDecimal("5"), new BigDecimal("2.5")};
 		BigDecimal[] decStateDuration = {new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0.006")};
-		BigDecimal[] decStatePowerConsumption = {new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0.000000011")};
+		BigDecimal[] decStateEnergyConsumption = {new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0.000000011")};
 		BigDecimal[] incStateDuration = {new BigDecimal("0.006"),new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
-		BigDecimal[] incStatePowerConsumption = {new BigDecimal("0.000000011"), new BigDecimal("0"), new BigDecimal("0"), new BigDecimal("0")};
+		BigDecimal[] incStateEnergyConsumption = {new BigDecimal("0.000000011"), new BigDecimal("0"), new BigDecimal("0"), new BigDecimal("0")};
 		BigDecimal idlePowerConsumption = new BigDecimal("11");
 		
 		
 		try {
 			this.getComponentPowerSchema().setStatePowerConsumption(statePowerConsumption);
 			this.getComponentPowerSchema().setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(decStateEnergyConsumption);
 			this.getComponentPowerSchema().setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(incStateEnergyConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {
 			// TODO Auto-generated catch block

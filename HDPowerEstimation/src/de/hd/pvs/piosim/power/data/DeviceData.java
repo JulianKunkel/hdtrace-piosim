@@ -22,8 +22,8 @@ public class DeviceData {
 
 	private ComponentData componentData = new ComponentData();
 	
-	// total power consumption for this device in watt-h
-	private BigDecimal totalPowerConsumption = new BigDecimal("0");
+	// total energy consumption for this device in watt-h
+	private BigDecimal energyConsumption = new BigDecimal("0");
 	
 	public DeviceData() {
 	}
@@ -54,8 +54,8 @@ public class DeviceData {
 		return componentData.getUtilization(step);
 	}
 
-	public BigDecimal getTotalConsumption() {
-		return totalPowerConsumption;
+	public BigDecimal getEnergyConsumption() {
+		return energyConsumption;
 	}
 
 	public void setConsumption(BigDecimal[] powerConsumption) {
@@ -78,8 +78,8 @@ public class DeviceData {
 		return componentData.getSize();
 	}
 
-	public void setTotalConsumption(BigDecimal powerConsumption) {
-		this.totalPowerConsumption = powerConsumption;
+	public void setEnergyConsumption(BigDecimal energyConsumption) {
+		this.energyConsumption = energyConsumption;
 	}
 
 }

@@ -33,6 +33,13 @@ public class ACPICalculation {
 	private static BigDecimal msInHour = new BigDecimal("3600000");
 	private static BigDecimal secInHour = new BigDecimal("3600");
 	
+	/**
+	 * 
+	 * @param list of ACPIDevice to process
+	 * @param fromState 
+	 * @param toState
+	 * @return sum duration of all devices in the list in ms
+	 */
 	public static BigDecimal calculateSumDurationForDevicePowerStateChange(List<ACPIDevice> list, int fromState, int toState) {
 		BigDecimal sum = new BigDecimal("0");
 		for (ACPIDevice device : list) {
@@ -42,15 +49,27 @@ public class ACPICalculation {
 		return sum;
 	}
 	
-	public static BigDecimal calculateSumPowerConsumptionForDevicePowerStateChange(List<ACPIDevice> list, int fromState,int toState) {
+	/**
+	 * 
+	 * @param list of ACPIDevice to process
+	 * @param fromState
+	 * @param toState
+	 * @return sum energy consumption of all devices in the list in watt-h
+	 */
+	public static BigDecimal calculateSumEnergyConsumptionForDevicePowerStateChange(List<ACPIDevice> list, int fromState,int toState) {
 		BigDecimal sum = new BigDecimal("0");
 		for (ACPIDevice device : list) {
-			sum = BaseCalculation.sum(sum, device.getPowerConsumptionForDevicePowerStateChange(fromState, toState));
+			sum = BaseCalculation.sum(sum, device.getEnergyConsumptionForDevicePowerStateChange(fromState, toState));
 		}
 
 		return sum;
 	}
 
+	/**
+	 * 
+	 * @param list of IACPIAnalyzable to process
+	 * @return sum overhead of all analyzables in the list in ms
+	 */
 	public static BigDecimal calculateSumACPIStateChangesTimeOverhead(
 			List<IACPIAnalyzable> list) {
 		BigDecimal sum = new BigDecimal("0");
@@ -62,6 +81,11 @@ public class ACPICalculation {
 		return sum;
 	}
 
+	/**
+	 * 
+	 * @param list of IACPIAnalyzable to process
+	 * @return sum maximum power consumption of all analyzables in the list in watt
+	 */
 	public static BigDecimal calculateSumMaxPowerConsumption(
 			List<IACPIAnalyzable> list) {
 		BigDecimal sum = new BigDecimal("0");
@@ -72,11 +96,16 @@ public class ACPICalculation {
 		return sum;
 	}
 
-	public static BigDecimal calculateSumPowerConsumption(
+	/**
+	 * 
+	 * @param list of IACPIAnalyzable to process
+	 * @return sum energy consumption of all analyzables in the list in watt-h
+	 */
+	public static BigDecimal calculateSumEnergyConsumption(
 			List<IACPIAnalyzable> list) {
 		BigDecimal sum = new BigDecimal("0");
 		for (IACPIAnalyzable acpiAnalyzable : list) {
-			sum = BaseCalculation.sum(sum, acpiAnalyzable.getPowerConsumption());
+			sum = BaseCalculation.sum(sum, acpiAnalyzable.getEnergyConsumption());
 		}
 
 		return sum;
@@ -85,13 +114,13 @@ public class ACPICalculation {
 	/**
 	 * 
 	 * @param maxPowerConsumption maxPowerConsumption in watt
-	 * @param durationInMs duration in watt
-	 * @param powerConsumption powerConsumption in watt-h
-	 * @return absolute savings in watt-h
+	 * @param durationInMs duration in ms
+	 * @param energyConsumption energy consumption in watt-h
+	 * @return absolute energy savings in watt-h
 	 */
-	public static BigDecimal calculateAbsoluteACPIPowerSaving(
-			BigDecimal maxPowerConsumption, BigDecimal durationInMs, BigDecimal powerConsumption) {
-		return BaseCalculation.substract(calculateInWattH(maxPowerConsumption, durationInMs), powerConsumption);
+	public static BigDecimal calculateAbsoluteACPIEnergySaving(
+			BigDecimal maxPowerConsumption, BigDecimal durationInMs, BigDecimal energyConsumption) {
+		return BaseCalculation.substract(calculateInWattH(maxPowerConsumption, durationInMs), energyConsumption);
 	}
 
 	public static BigDecimal calculateAbsoluteACPITime(BigDecimal timePassed,
@@ -127,18 +156,18 @@ public class ACPICalculation {
 
 	/**
 	 * 
-	 * @param powerConsumptionInWattH
-	 * @param currentPowerConsumption
-	 * @param startTimeInMs
-	 * @param lastChangeTimeInMs
-	 * @return power consumption in watt-h
+	 * @param energyConsumption energy consumption in watt-h
+	 * @param currentPowerConsumption in watt
+	 * @param startTime in ms
+	 * @param lastChangeTime in ms
+	 * @return energy consumption in watt-h
 	 */
-	public static BigDecimal sumPowerConsumptionTillNow(BigDecimal powerConsumptionInWattH, BigDecimal currentPowerConsumption, BigDecimal startTimeInMs, BigDecimal lastChangeTimeInMs) {	
+	public static BigDecimal sumEnergyConsumptionTillNow(BigDecimal energyConsumption, BigDecimal currentPowerConsumption, BigDecimal startTime, BigDecimal lastChangeTime) {	
 		// powerConsumption + ((startTimeInMs - lastChangeTimeInMs) * currentPowerConsumption / msInHour);
 		//return BaseCalculation.sum(powerConsumption, BaseCalculation.divide(BaseCalculation.multiply(BaseCalculation.substract(startTimeInMs, lastChangeTimeInMs),currentPowerConsumption),msInHour));
 		
 		// powerConsumption + ((startTimeInSec - lastChangeTimeInSec) * currentPowerConsumption) / 3600;
-		return BaseCalculation.sum(powerConsumptionInWattH, BaseCalculation.divide(BaseCalculation.multiply(BaseCalculation.toSec(BaseCalculation.substract(startTimeInMs, lastChangeTimeInMs)),currentPowerConsumption),secInHour));
+		return BaseCalculation.sum(energyConsumption, BaseCalculation.divide(BaseCalculation.multiply(BaseCalculation.toSec(BaseCalculation.substract(startTime, lastChangeTime)),currentPowerConsumption),secInHour));
 	}
 	
 	public static BigDecimal calculateMaxPowerConsumption(BigDecimal time, BigDecimal powerConsumptionInStateZeroWithFullUtilization) {
@@ -148,14 +177,14 @@ public class ACPICalculation {
 
 	/**
 	 * 
-	 * @param powerConsumption power consumption without overhead in watt-h
-	 * @param overhead Overhead in watt 
+	 * @param energyConsumption energy consumption without overhead in watt-h
+	 * @param powerOverhead Overhead in watt 
 	 * @param time Time in ms for the overhead
-	 * @return powerConsumption + (overhead * (time/1000));
+	 * @return energyConsumption + (powerOverhead * (time/1000));
 	 */
-	public static BigDecimal calculateExtendedNotePowerConsumption(
-			BigDecimal powerConsumption, BigDecimal overhead, BigDecimal time) {
-		return BaseCalculation.sum(powerConsumption, calculateInWattH(overhead, time));
+	public static BigDecimal calculateExtendedNoteEnergyConsumption(
+			BigDecimal energyConsumption, BigDecimal powerOverhead, BigDecimal time) {
+		return BaseCalculation.sum(energyConsumption, calculateInWattH(powerOverhead, time));
 	}
 	
 	/**
@@ -180,9 +209,9 @@ public class ACPICalculation {
 		
 		// power consumption in watt-h for state change
 		BigDecimal powerConsumption = BaseCalculation.sum(device
-				.getPowerConsumptionForDevicePowerStateChange(fromState, toState),
+				.getEnergyConsumptionForDevicePowerStateChange(fromState, toState),
 				device
-						.getPowerConsumptionForDevicePowerStateChange(toState,
+						.getEnergyConsumptionForDevicePowerStateChange(toState,
 								fromState));
 		
 		// power saving in watt
@@ -213,8 +242,6 @@ public class ACPICalculation {
 	}
 	
 	/**
-	 * 
-	 * watt * durationInSec / 
 	 * 
 	 * @param powerConsumptionInWatt
 	 * @param durationInMs

@@ -111,7 +111,7 @@ public class ExtendedNodeTest extends AbstractTestCase {
 			fail(e.getMessage());
 		}
 		
-		assertEquals(true, node.getPowerConsumption().doubleValue() < extNode.getPowerConsumption().doubleValue());
+		assertEquals(true, node.getEnergyConsumption().doubleValue() < extNode.getEnergyConsumption().doubleValue());
 	}
 		
 
@@ -130,11 +130,11 @@ public class ExtendedNodeTest extends AbstractTestCase {
 			
 			// mock consumption = 0.6 * 60 * 60 / 3600 = 0.6 watt-h
 			
-			assertEquals(0.6, mock.getPowerConsumption().doubleValue());
+			assertEquals(0.6, mock.getEnergyConsumption().doubleValue());
 			
 			// node consumption = 120 * 60 / 3600 + 0.6 watt-h = 2.6 watt-h
 			
-			assertEquals(2.6, node.getPowerConsumption().doubleValue());
+			assertEquals(2.6, node.getEnergyConsumption().doubleValue());
 
 		} catch (ComponentException e) {
 			e.printStackTrace();
@@ -163,11 +163,11 @@ public class ExtendedNodeTest extends AbstractTestCase {
 			
 			// mock consumption = 0.6 * 60 * 60 / 3600 = 0.6 watt-h
 			
-			assertEquals(0.6, mock.getPowerConsumption().doubleValue());
+			assertEquals(0.6, mock.getEnergyConsumption().doubleValue());
 			
 			// node consumption = 0.6 * 1.1 = 0.66
 			
-			assertEquals(0.66, node.getPowerConsumption().doubleValue());
+			assertEquals(0.66, node.getEnergyConsumption().doubleValue());
 
 		} catch (ComponentException e) {
 			e.printStackTrace();
@@ -199,11 +199,11 @@ public class ExtendedNodeTest extends AbstractTestCase {
 			
 			// mock consumption = 0.6 * 60 * 60 / 3600 = 0.6 watt-h
 			
-			assertEquals(0.6, mock.getPowerConsumption().doubleValue());
+			assertEquals(0.6, mock.getEnergyConsumption().doubleValue());
 			
 			// 36 watt => 36 % utilization for the power supply => 64 % overhead => 36 * 1.64 * 60 / 3600 * 1.1 = 0.984 * 1.1 = 1.0824
 			
-			assertEquals(1.0824, node.getPowerConsumption().doubleValue());
+			assertEquals(1.0824, node.getEnergyConsumption().doubleValue());
 
 		} catch (ComponentException e) {
 			e.printStackTrace();
@@ -234,11 +234,11 @@ public class ExtendedNodeTest extends AbstractTestCase {
 			
 			// mock consumption = 0.6 * 60 * 60 / 3600 = 0.6 watt-h
 			
-			assertEquals(0.6, mock.getPowerConsumption().doubleValue());
+			assertEquals(0.6, mock.getEnergyConsumption().doubleValue());
 			
 			// 36 watt => 36 % utilization for the power supply => 64 % overhead => 36 * 1.64 * 60 / 3600 = 0.984
 			
-			assertEquals(0.984, node.getPowerConsumption().doubleValue());
+			assertEquals(0.984, node.getEnergyConsumption().doubleValue());
 
 		} catch (ComponentException e) {
 			e.printStackTrace();

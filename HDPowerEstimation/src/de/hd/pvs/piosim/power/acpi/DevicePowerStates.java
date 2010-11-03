@@ -28,6 +28,17 @@ public interface DevicePowerStates {
 	
 	
 	public int getDevicePowerState();
+	
+
 	public BigDecimal getDurationForDevicePowerStateChange(int fromState, int toState);
-	public BigDecimal getPowerConsumptionForDevicePowerStateChange(int fromState, int toState);
+	
+	/**
+	 * Return energy consumption for the acpi state change based on the components
+	 * power schema. 
+	 * 
+	 * @param fromState acpi state to start from
+	 * @param toState acpi state to switch to
+	 * @return energy consumption for the state change in watt-h
+	 */
+	public BigDecimal getEnergyConsumptionForDevicePowerStateChange(int fromState, int toState);
 }

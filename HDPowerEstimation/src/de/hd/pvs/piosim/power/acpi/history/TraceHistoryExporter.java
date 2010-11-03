@@ -40,7 +40,7 @@ public class TraceHistoryExporter {
 
 	private Logger logger = Logger.getLogger(TraceHistoryExporter.class);
 	private Map<String, ACPIStateChange> startedStates;
-	private Map<ACPIComponent, BigDecimal> componentTotalPowerConsumption = new HashMap<ACPIComponent, BigDecimal>();
+	private Map<ACPIComponent, BigDecimal> componentEnergyConsumption = new HashMap<ACPIComponent, BigDecimal>();
 	private Map<ACPIComponent, BigDecimal> componentLastChangeTime = new HashMap<ACPIComponent, BigDecimal>();
 	private TopologyNodeSet set = new TopologyNodeSet();
 	private TraceFormatWriter writer;
@@ -93,6 +93,7 @@ public class TraceHistoryExporter {
 		this.offset = offset;
 	}
 
+	//TODO: test and fix method implementation
 	private void export(ACPIStateChange entry, String replayName) {
 
 		try {
@@ -116,19 +117,19 @@ public class TraceHistoryExporter {
 					.getStatisticsGroupDescription(), buildEpoch(entry
 					.getTime()));
 
-			BigDecimal totalPowerConsumption = componentTotalPowerConsumption
+			BigDecimal energyConsumption = componentEnergyConsumption
 					.get(entry.getACPIComponent());
 			BigDecimal lastChangeTime = componentLastChangeTime.get(entry
 					.getACPIComponent());
 
-			if (totalPowerConsumption == null)
-				totalPowerConsumption = new BigDecimal("0");
+			if (energyConsumption == null)
+				energyConsumption = new BigDecimal("0");
 
 			if (lastChangeTime == null)
 				lastChangeTime = new BigDecimal("0");
 
 			BigDecimal powerConsumptionInWattH = BaseCalculation.substract(
-					entry.getPowerConsumption(), totalPowerConsumption);
+					entry.getEnergyConsumption(), energyConsumption);
 			BigDecimal durationInMs = BaseCalculation.substract(
 					entry.getTime(), lastChangeTime);
 
@@ -142,11 +143,11 @@ public class TraceHistoryExporter {
 					.getStatisticsDescription(entry.getACPIComponent()),
 					stepPowerConsumption.floatValue());
 
-			totalPowerConsumption = entry.getPowerConsumption();
+			energyConsumption = entry.getEnergyConsumption();
 			lastChangeTime = entry.getTime();
 
-			componentTotalPowerConsumption.put(entry.getACPIComponent(),
-					totalPowerConsumption);
+			componentEnergyConsumption.put(entry.getACPIComponent(),
+					energyConsumption);
 			componentLastChangeTime.put(entry.getACPIComponent(),
 					lastChangeTime);
 

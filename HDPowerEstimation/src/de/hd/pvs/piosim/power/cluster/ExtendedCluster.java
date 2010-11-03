@@ -42,8 +42,8 @@ public class ExtendedCluster extends Cluster {
 	}
 
 	@Override
-	public BigDecimal getPowerConsumption() {
-		return BaseCalculation.sum(super.getPowerConsumption(),simpleSwitch.getPowerConsumption());
+	public BigDecimal getEnergyConsumption() {
+		return BaseCalculation.sum(super.getEnergyConsumption(),simpleSwitch.getEnergyConsumption());
 	}
 
 	@Override

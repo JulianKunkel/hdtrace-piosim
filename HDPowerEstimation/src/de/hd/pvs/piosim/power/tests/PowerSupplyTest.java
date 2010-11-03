@@ -37,33 +37,33 @@ public class PowerSupplyTest extends AbstractTestCase {
 		BigDecimal lastChangeTime = new BigDecimal("0");
 		BigDecimal time = new BigDecimal("3600000");
 		
-		assertEquals(200.0, powerSupply.getPowerConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
+		assertEquals(200.0, powerSupply.getEnergyConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
 		
 		time = new BigDecimal("1800000");
 		
-		assertEquals(100.0, powerSupply.getPowerConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
+		assertEquals(100.0, powerSupply.getEnergyConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
 		
 		powerSupply.setProcentualOverhead(new BigDecimal("0.5"));
 		
-		assertEquals(150.0, powerSupply.getPowerConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
+		assertEquals(150.0, powerSupply.getEnergyConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
 		
 		powerSupply.setProcentualOverhead(new BigDecimal("0"));
 		
-		assertEquals(100.0, powerSupply.getPowerConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
+		assertEquals(100.0, powerSupply.getEnergyConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
 		
 		powerSupply.setMaxEfficiency(new BigDecimal("1"));
 		powerSupply.setMinEfficiency(new BigDecimal("0"));
 		powerSupply.setMaxPower(new BigDecimal("200"));
 		
-		assertEquals(100.0, powerSupply.getPowerConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
+		assertEquals(100.0, powerSupply.getEnergyConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
 		
 		powerSupply.setMaxPower(new BigDecimal("400"));
 		
-		assertEquals(150.0, powerSupply.getPowerConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
+		assertEquals(150.0, powerSupply.getEnergyConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
 		
 		powerSupply.setMinEfficiency(new BigDecimal("1"));
 		
-		assertEquals(100.0, powerSupply.getPowerConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
+		assertEquals(100.0, powerSupply.getEnergyConsumption(currentPowerConsumption, lastChangeTime, time).doubleValue());
 		
 	}
 }

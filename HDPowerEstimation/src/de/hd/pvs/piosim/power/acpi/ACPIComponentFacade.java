@@ -43,15 +43,15 @@ public abstract class ACPIComponentFacade implements IACPIAnalyzable {
 	/**
 	 * 
 	 * @param toState
-	 * @return power consumption for change in watt-h
+	 * @return energy consumption for change in watt-h
 	 */
-	protected BigDecimal getPowerConsumptionForDevicePowerStateChange(int toState) {
-		return component.getPowerConsumptionForDevicePowerStateChange(toState);
+	protected BigDecimal getEnergyConsumptionForDevicePowerStateChange(int toState) {
+		return component.getEnergyConsumptionForDevicePowerStateChange(toState);
 	}
 
-	public BigDecimal getPowerConsumptionForDevicePowerStateChange(
+	public BigDecimal getEnergyConsumptionForDevicePowerStateChange(
 			int fromState, int toState) {
-		return component.getPowerConsumptionForDevicePowerStateChange(fromState, toState);
+		return component.getEnergyConsumptionForDevicePowerStateChange(fromState, toState);
 	}
 
 	public ComponentPowerSchema getComponentPowerSchema() {
@@ -105,8 +105,8 @@ public abstract class ACPIComponentFacade implements IACPIAnalyzable {
 	/* inherited from interface IACPIAnalyzable */
 	
 	@Override
-	public BigDecimal getPowerConsumption() {
-		return component.getPowerConsumption();
+	public BigDecimal getEnergyConsumption() {
+		return component.getEnergyConsumption();
 	}
 
 	/**

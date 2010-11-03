@@ -60,7 +60,14 @@ public class PowerSupply {
 		this.maxPower = maxPower;
 	}
 
-	public BigDecimal getPowerConsumption(BigDecimal currentPowerConsumption,
+	/**
+	 * 
+	 * @param currentPowerConsumption
+	 * @param lastChangeTime
+	 * @param time
+	 * @return energy consumption in watt-h
+	 */
+	public BigDecimal getEnergyConsumption(BigDecimal currentPowerConsumption,
 			BigDecimal lastChangeTime, BigDecimal time) {
 		
 		BigDecimal powerConsumption = currentPowerConsumption;
@@ -73,13 +80,13 @@ public class PowerSupply {
 			powerConsumption = BaseCalculation.multiply(currentPowerConsumption, BaseCalculation.sum(efficiency, BaseCalculation.ONE));
 		} 
 		
-		powerConsumption = ACPICalculation.calculateInWattH(powerConsumption,duration);
+		BigDecimal energyConsumption = ACPICalculation.calculateInWattH(powerConsumption,duration);
 	
 		if(procentualOverhead != null) {
-			powerConsumption = BaseCalculation.multiply(powerConsumption, BaseCalculation.sum(procentualOverhead, BaseCalculation.ONE));
+			energyConsumption = BaseCalculation.multiply(energyConsumption, BaseCalculation.sum(procentualOverhead, BaseCalculation.ONE));
 		}	
 		
-		return powerConsumption;
+		return energyConsumption;
 	}
 
 }

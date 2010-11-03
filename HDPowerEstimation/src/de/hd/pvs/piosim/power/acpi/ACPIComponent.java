@@ -36,7 +36,7 @@ public class ACPIComponent extends Component implements DevicePowerStates {
 
 	public ACPIComponent() {
 		componentPowerSchema = new ComponentPowerSchema(DEVICE_POWER_STATE_COUNT);
-		history.add(Time.getInstance().getCurrentTimeInMillis(), this, currentACPIDevicePowerState, componentPowerConsumption);
+		history.add(Time.getInstance().getCurrentTimeInMillis(), this, currentACPIDevicePowerState, componentEnergyConsumption);
 		for(int i=0; i<acpiStateDescription.length; ++i) {
 			acpiStateDescription[i] = "DEVICE_POWER_STATE_" + i;
 		}
@@ -50,23 +50,23 @@ public class ACPIComponent extends Component implements DevicePowerStates {
 		// use later time from both changing times
 		BigDecimal lastChangeTime = getLastChangeTime();
 
-		// add power consumption for the last period
-		componentPowerConsumption = ACPICalculation.sumPowerConsumptionTillNow(componentPowerConsumption, getCurrentPowerConsumption(), endTime, lastChangeTime);
+		// add energy consumption for the last period
+		componentEnergyConsumption = ACPICalculation.sumEnergyConsumptionTillNow(componentEnergyConsumption, getCurrentPowerConsumption(), endTime, lastChangeTime);
 
 		// end state for last period 
-		history.add(endTime, this,ACPIStateChangesHistory.STATE_END, componentPowerConsumption);
+		history.add(endTime, this,ACPIStateChangesHistory.STATE_END, componentEnergyConsumption);
 		
 		// add time for last period to statistic
 		statistic.addStateTime(currentACPIDevicePowerState, BaseCalculation.substract(endTime, lastChangeTime));
 		
 		// start state for the change 
-		history.add(endTime, this,ACPIStateChangesHistory.STATE_CHANGE, componentPowerConsumption);
+		history.add(endTime, this,ACPIStateChangesHistory.STATE_CHANGE, componentEnergyConsumption);
 		
 		// remember changing times
 		setLastACPIChangeTime(setLastUtilizationChangeTime(endTime));
 		
 		if(this.getNode() != null)
-			this.getNode().updatePowerConsumption(endTime);
+			this.getNode().updateEnergyConsumption(endTime);
 
 	}
 	
@@ -79,23 +79,23 @@ public class ACPIComponent extends Component implements DevicePowerStates {
 		// add time for this change to statistic
 		statistic.addChangeTime(getDurationForDevicePowerStateChange(state));
 		
-		// add power consumption for the change
-		componentPowerConsumption = BaseCalculation.sum(componentPowerConsumption, getPowerConsumptionForDevicePowerStateChange(state));
+		// add energy consumption for the change
+		componentEnergyConsumption = BaseCalculation.sum(componentEnergyConsumption, getEnergyConsumptionForDevicePowerStateChange(state));
 		
 		// update the acpi state
 		currentACPIDevicePowerState = state;
 		
 		// end state for the change
-		history.add(startTime, this,ACPIStateChangesHistory.STATE_END, componentPowerConsumption);
+		history.add(startTime, this,ACPIStateChangesHistory.STATE_END, componentEnergyConsumption);
 		
 		// start state for the next period
-		history.add(startTime,this,currentACPIDevicePowerState, componentPowerConsumption);
+		history.add(startTime,this,currentACPIDevicePowerState, componentEnergyConsumption);
 		
 		// remember changing times
 		setLastACPIChangeTime(setLastUtilizationChangeTime(startTime));
 		
 		if(this.getNode() != null)
-			this.getNode().updatePowerConsumption(startTime);
+			this.getNode().updateEnergyConsumption(startTime);
 
 	}
 	
@@ -104,20 +104,20 @@ public class ACPIComponent extends Component implements DevicePowerStates {
 	}
 
 	/**
-	 * Returns power consumption in watt
+	 * Returns energy consumption in watt
 	 * 
-	 * @return power consumption for this component in watt
+	 * @return energy consumption for this component in watt-h
 	 */
-	public BigDecimal getPowerConsumption() {	
-		return componentPowerConsumption;
+	public BigDecimal getEnergyConsumption() {	
+		return componentEnergyConsumption;
 	}
 	
 	public void finalizeComponent() {
 		BigDecimal lastChangeTime = getLastUtilizationChangeTime().max(getLastACPIChangeTime());
 
-		componentPowerConsumption = ACPICalculation.sumPowerConsumptionTillNow(componentPowerConsumption, getCurrentPowerConsumption(), Time.getInstance().getCurrentTimeInMillis(), lastChangeTime);
+		componentEnergyConsumption = ACPICalculation.sumEnergyConsumptionTillNow(componentEnergyConsumption, getCurrentPowerConsumption(), Time.getInstance().getCurrentTimeInMillis(), lastChangeTime);
 		
-		history.add(Time.getInstance().getCurrentTimeInMillis(), this,ACPIStateChangesHistory.STATE_END, componentPowerConsumption);
+		history.add(Time.getInstance().getCurrentTimeInMillis(), this,ACPIStateChangesHistory.STATE_END, componentEnergyConsumption);
 		
 		setLastACPIChangeTime(setLastUtilizationChangeTime(Time.getInstance().getCurrentTimeInMillis()));
 	}
@@ -142,7 +142,7 @@ public class ACPIComponent extends Component implements DevicePowerStates {
 	 * @param fromState acpi state to start from
 	 * @param toState
 	 *            acpi state to switch to
-	 * @return time needed for the state change
+	 * @return time needed for the state change in ms
 	 */
 	@Override
 	public BigDecimal getDurationForDevicePowerStateChange(int fromState, int toState) {
@@ -169,49 +169,40 @@ public class ACPIComponent extends Component implements DevicePowerStates {
 	}
 	
 	/**
-	 * Return power consumption for the acpi state change based on the components
-	 * power schema. Calls <code>getPowerConsumptionForACPIStateChange(int fromState, int toState)</code> with
+	 * Return energy consumption for the acpi state change based on the components
+	 * power schema. Calls <code>getEnergyConsumptionForACPIStateChange(int fromState, int toState)</code> with
 	 * fromState = actualState
 	 * 
 	 * @param toState
 	 *            acpi state to switch to
-	 * @return power consumption for the state change in watt-h
+	 * @return energy consumption for the state change in watt-h
 	 */
-	public BigDecimal getPowerConsumptionForDevicePowerStateChange(int toState) {
-		return getPowerConsumptionForDevicePowerStateChange(this.currentACPIDevicePowerState, toState);
+	public BigDecimal getEnergyConsumptionForDevicePowerStateChange(int toState) {
+		return getEnergyConsumptionForDevicePowerStateChange(this.currentACPIDevicePowerState, toState);
 	}
 	
-	/**
-	 * Return power consumption for the acpi state change based on the components
-	 * power schema. 
-	 * 
-	 * @param fromState acpi state to start from
-	 * @param toState
-	 *            acpi state to switch to
-	 * @return power consumption for the state change in watt-h
-	 */
 	@Override
-	public BigDecimal getPowerConsumptionForDevicePowerStateChange(int fromState, int toState) {
-		BigDecimal powerConsumption = new BigDecimal("0");
+	public BigDecimal getEnergyConsumptionForDevicePowerStateChange(int fromState, int toState) {
+		BigDecimal energyConsumption = new BigDecimal("0");
 
 		if (toState == fromState)
-			return powerConsumption;
+			return energyConsumption;
 
 		if (toState < fromState) {
 			// decrement state
 			for (int i = fromState; i > toState; i--) {
-				powerConsumption = BaseCalculation.sum(powerConsumption,componentPowerSchema
-						.getDecStatePowerConsumption()[i]);
+				energyConsumption = BaseCalculation.sum(energyConsumption,componentPowerSchema
+						.getDecStateEnergyConsumption()[i]);
 			}
 		} else {
 			// increment state
 			for (int i = fromState; i < toState; i++) {
-				powerConsumption = BaseCalculation.sum(powerConsumption,componentPowerSchema
-						.getIncStatePowerConsumption()[i]);
+				energyConsumption = BaseCalculation.sum(energyConsumption,componentPowerSchema
+						.getIncStateEnergyConsumption()[i]);
 			}
 		}
 
-		return powerConsumption;
+		return energyConsumption;
 	}
 
 	/**
@@ -238,7 +229,7 @@ public class ACPIComponent extends Component implements DevicePowerStates {
 		super.reset();
 		currentACPIDevicePowerState = 0; // working mode
 		setLastACPIChangeTime(new BigDecimal("0"));	
-		history.add(Time.getInstance().getCurrentTimeInMillis(), this, currentACPIDevicePowerState, componentPowerConsumption);
+		history.add(Time.getInstance().getCurrentTimeInMillis(), this, currentACPIDevicePowerState, componentEnergyConsumption);
 	}
 	
 	public String getStateName(int state) {

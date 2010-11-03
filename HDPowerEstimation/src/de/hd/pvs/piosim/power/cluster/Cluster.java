@@ -41,8 +41,8 @@ public class Cluster implements IACPIAnalyzable {
 	}
 
 	@Override
-	public BigDecimal getPowerConsumption() {
-		return ACPICalculation.calculateSumPowerConsumption(new ArrayList<IACPIAnalyzable>(nodes));
+	public BigDecimal getEnergyConsumption() {
+		return ACPICalculation.calculateSumEnergyConsumption(new ArrayList<IACPIAnalyzable>(nodes));
 	}
 
 	@Override
