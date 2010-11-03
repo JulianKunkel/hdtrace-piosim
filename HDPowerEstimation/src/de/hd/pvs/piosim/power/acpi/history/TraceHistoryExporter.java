@@ -40,8 +40,8 @@ public class TraceHistoryExporter {
 
 	private Logger logger = Logger.getLogger(TraceHistoryExporter.class);
 	private Map<String, ACPIStateChange> startedStates;
-	private Map<ACPIComponent, BigDecimal> componentEnergyConsumption = new HashMap<ACPIComponent, BigDecimal>();
-	private Map<ACPIComponent, BigDecimal> componentLastChangeTime = new HashMap<ACPIComponent, BigDecimal>();
+	private Map<ACPIComponent, BigDecimal> componentEnergyConsumptionMap = new HashMap<ACPIComponent, BigDecimal>();
+	private Map<ACPIComponent, BigDecimal> componentLastChangeTimeMap = new HashMap<ACPIComponent, BigDecimal>();
 	private TopologyNodeSet set = new TopologyNodeSet();
 	private TraceFormatWriter writer;
 	private BigDecimal offset = new BigDecimal("0");
@@ -93,7 +93,7 @@ public class TraceHistoryExporter {
 		this.offset = offset;
 	}
 
-	//TODO: test and fix method implementation
+	//TODO test and fix method implementation
 	private void export(ACPIStateChange entry, String replayName) {
 
 		try {
@@ -116,40 +116,47 @@ public class TraceHistoryExporter {
 			writer.writeStatisticsTimestamp(statisticNode, set
 					.getStatisticsGroupDescription(), buildEpoch(entry
 					.getTime()));
+			
+			// get old values
 
-			BigDecimal energyConsumption = componentEnergyConsumption
+			BigDecimal componentLastEnergyConsumption = componentEnergyConsumptionMap
 					.get(entry.getACPIComponent());
-			BigDecimal lastChangeTime = componentLastChangeTime.get(entry
+			BigDecimal componentLastChangeTime = componentLastChangeTimeMap.get(entry
 					.getACPIComponent());
+			
+			if (componentLastEnergyConsumption == null)
+				componentLastEnergyConsumption = new BigDecimal("0");
 
-			if (energyConsumption == null)
-				energyConsumption = new BigDecimal("0");
+			if (componentLastChangeTime == null)
+				componentLastChangeTime = new BigDecimal("0");
 
-			if (lastChangeTime == null)
-				lastChangeTime = new BigDecimal("0");
-
-			BigDecimal powerConsumptionInWattH = BaseCalculation.substract(
-					entry.getEnergyConsumption(), energyConsumption);
+			
+			// calculate power consumption
+			
+			BigDecimal energyConsumption = BaseCalculation.substract(
+					entry.getEnergyConsumption(), componentLastEnergyConsumption);
 			BigDecimal durationInMs = BaseCalculation.substract(
-					entry.getTime(), lastChangeTime);
-
+					entry.getTime(), componentLastChangeTime);
+			
 			BigDecimal stepPowerConsumption = new BigDecimal("0");
 
 			if (durationInMs.compareTo(BigDecimal.ZERO) > 0)
-				ACPICalculation.calculateInWatt(powerConsumptionInWattH,
+				stepPowerConsumption = ACPICalculation.calculateInWatt(energyConsumption,
 						durationInMs);
 
 			writer.writeStatisticValue(statisticNode, set
 					.getStatisticsDescription(entry.getACPIComponent()),
 					stepPowerConsumption.floatValue());
-
-			energyConsumption = entry.getEnergyConsumption();
-			lastChangeTime = entry.getTime();
-
-			componentEnergyConsumption.put(entry.getACPIComponent(),
-					energyConsumption);
-			componentLastChangeTime.put(entry.getACPIComponent(),
-					lastChangeTime);
+			
+			// save values
+			
+			componentLastEnergyConsumption = entry.getEnergyConsumption();
+			componentLastChangeTime = entry.getTime();
+			
+			componentEnergyConsumptionMap.put(entry.getACPIComponent(),
+					componentLastEnergyConsumption);
+			componentLastChangeTimeMap.put(entry.getACPIComponent(),
+					componentLastChangeTime);
 
 		} catch (IOException ex) {
 
