@@ -40,10 +40,12 @@ import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.math.BigDecimal;
 import java.util.Enumeration;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
+import javax.xml.datatype.Duration;
 
 import de.arrow.Arrow;
 import de.drawable.Category;
@@ -410,7 +412,38 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				vStartTime.add(getModelTime().getGlobalMinimum()),
 				vEndTime.add(getModelTime().getGlobalMinimum()));
 
-		while(entries.hasMoreElements()){			
+		// aggregate overlapping stuff to form a median.
+		BigDecimal aggregatedValue = null;
+		// number of values we aggregate due to overlap
+		double lastDuration = 0;
+		
+		Epoch aggregatedTimes = null;
+		
+		// The old value
+		double lastValue = -1;
+		
+		// where does the last processed entry start and end.		
+		int lastStartX = -1;
+		
+		boolean lastIsOnePixel = false;
+
+		// minimum and maximum heights
+		int minAggregateY = 100000;
+		int maxAggregateY = 0;
+		
+		// variables valid for the whole computation
+		// height of the timeline
+		final int maxHeight = (coord_xform.getTimelineHeight() );
+		// start position of the timeline
+		final int y1   = coord_xform.convertTimelineToPixel( timeline + 1 );
+		
+		
+		// the colors used to print min/max
+		final Color minColor = new  Color(backGroundColor.getBlue(), backGroundColor.getGreen(), backGroundColor.getRed() );
+		final Color maxColor = new  Color(backGroundColor.getGreen(), backGroundColor.getRed(), backGroundColor.getBlue());
+
+		// walk through all entries and compute values.
+		while(entries.hasMoreElements()){
 			final StatisticsGroupEntry entry = entries.nextElement();
 			double value;
 			final double input = entry.getNumeric(statNumber);
@@ -431,14 +464,97 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				value = 1.0f;
 			}
 
-			final Epoch adaptedTime = entry.getLatestTime().subtract(globalMinTime) ;
+			Epoch endTime = entry.getLatestTime().subtract(globalMinTime) ;
+			final Epoch startTime = entry.getEarliestTime().subtract(globalMinTime);	
+			final Epoch durationE = endTime.subtract(startTime);
+			double duration = durationE.getDouble();
+			
 
-			DrawObjects.drawStatistic(offGraphics, coord_xform, entry.getEarliestTime().subtract(globalMinTime),  
-					adaptedTime,	(float) value , timeline);
+			// where does the current value start.
+			int x1 = coord_xform.convertTimeToPixel( startTime.getDouble() );
+			// where does the current value end.
+			int x2 =  coord_xform.convertTimeToPixel( endTime.getDouble() );
+			
+			final double currentValue = (float) value;			
 
+			if(lastIsOnePixel && lastStartX == x1){
+				
+				if(lastStartX < x2){
+					// draw the new value, this part could be right of the overlapping area
+					offGraphics.fillRect( lastStartX, y1 - (int) (maxHeight * currentValue), x2-lastStartX +1, (int) (maxHeight * currentValue) );
+					
+				    // we are multiple pixel width => account duration properly, the next pixel will start with a different time.
+					endTime = new Epoch(coord_xform.convertPixelToTime(x1 + 1));
+					duration = endTime.subtract(startTime).getDouble();
+					
+					aggregatedTimes.add(duration);
+				}// else lastStartX == x1
+				else{
+					// this is a bit fuzzy in case the lastStartX < x2...
+					aggregatedTimes.add(endTime.subtract(startTime));
+				}
+				
+				// draw overlapping area
+				if (aggregatedValue != null){
+					aggregatedValue = aggregatedValue.add(new BigDecimal(currentValue * duration));											
+				}else{
+					// we could multiply the lastValue with the 
+					aggregatedValue = new BigDecimal(currentValue * duration  + lastValue * lastDuration);					
+				}
+				
+				
+				// draw the current aggregate, value depends on start / end time.
+				final double aggregateVal = aggregatedValue.doubleValue() /  endTime.subtract(aggregatedTimes).getDouble();
+				
+				final int valueHeight = (int) (maxHeight * currentValue);
+				if(valueHeight < minAggregateY){
+					minAggregateY = valueHeight;
+				}
+				
+				if(valueHeight > maxAggregateY){
+					maxAggregateY = valueHeight;
+				}
+
+				
+				final int curHeight = (int) (maxHeight * aggregateVal);
+
+				// draw the line:				
+				offGraphics.fillRect( x1, y1 - curHeight, 1, curHeight );			
+				
+				// draw min / max if necessary
+				
+				if (minAggregateY < valueHeight){
+					offGraphics.setColor(minColor);
+					offGraphics.fillRect(x1, y1 - minAggregateY - 1, 1, 3);
+				}
+				if(maxAggregateY > valueHeight){
+					offGraphics.setColor(minColor);
+					offGraphics.fillRect(x1, y1 - maxAggregateY - 1, 1, 3);
+				}
+				
+				offGraphics.setColor(color);
+				
+			}else{
+				// it does not overlap (at least completely)
+				// draw the rectangle
+				final int curHeight = (int) (maxHeight * currentValue);
+				
+				offGraphics.fillRect( x1, y1 - curHeight, x2-x1 +1, curHeight);
+				aggregatedTimes = durationE;
+				minAggregateY = curHeight;
+				maxAggregateY = curHeight;
+				aggregatedValue = null;
+			} 
+			
 			drawedStatistics++;
+			
+			lastIsOnePixel = (x2 == x1);
+			lastStartX = x1;
+			lastValue = currentValue;
+			lastDuration = duration;
 		}
-
+				
+		
 		if( cat.isShowAverageLine() ){ // draw average line... TODO cleanup the whole code here...
 			Color avgLineColor = backGroundColor.brighter();
 
@@ -446,8 +562,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			int x2   = coord_xform.convertTimeToPixel( vEndTime.getDouble() );
 
 			int height = (coord_xform.getTimelineHeight() );
-
-			int y1   = coord_xform.convertTimelineToPixel( timeline + 1) ;
 
 			// Fill the color of the rectangle
 

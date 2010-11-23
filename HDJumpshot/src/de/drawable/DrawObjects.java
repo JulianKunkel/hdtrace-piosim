@@ -138,30 +138,7 @@ public class DrawObjects{
 
 		g.setColor( color );
 	}
-
-	public static int  drawStatistic( 
-			Graphics2D g,
-			CoordPixelXform  coord_xform,
-			Epoch startTime,
-			Epoch endTime,
-			float normalizedHeight,
-			int timeline)
-	{
-
-		int x1   = coord_xform.convertTimeToPixel( startTime.getDouble() );
-		int x2   = coord_xform.convertTimeToPixel( endTime.getDouble() );
-
-		int height = (coord_xform.getTimelineHeight() );
-
-		int y1   = coord_xform.convertTimelineToPixel( timeline + 1 );
-
-		// Fill the color of the rectangle
-
-		g.fillRect( x1, y1 - (int) (height * normalizedHeight), x2-x1 +1, (int) (height * normalizedHeight) );
-
-		return 1;
-	}
-
+	
 	//  assume this Primitive overlaps with coord_xform.TimeBoundingBox
 	public static int  drawArrow(			
 			Graphics2D g, 
