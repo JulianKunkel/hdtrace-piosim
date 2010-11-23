@@ -93,18 +93,18 @@ public class ACPIStateChangesHistoryTest extends AbstractTestCase {
 		MockDevice mock = new MockDevice();
 		mock.setName("mock");
 		
-		mock.setStatePowerConsumption(0, 100);
-		mock.setStatePowerConsumption(1, 10);
+		mock.setStateEnergyConsumption(0, 100);
+		mock.setStateEnergyConsumption(1, 10);
 		
 		mock.setIncStateDuration(0, 1000);
-		mock.setIncStatePowerConsumption(0, 50);
+		mock.setIncStateEnergyConsumption(0, 50);
 		
-		assertEquals(0.0, mock.getPowerConsumption().doubleValue());
+		assertEquals(0.0, mock.getEnergyConsumption().doubleValue());
 		assertEquals(0, mock.getDevicePowerState());
 		
 		Time.getInstance().timePassed(3600000);
 		
-		assertEquals(100.0, mock.getPowerConsumption().doubleValue());
+		assertEquals(100.0, mock.getEnergyConsumption().doubleValue());
 		assertEquals(0, mock.getDevicePowerState());
 		
 		try {
@@ -116,17 +116,17 @@ public class ACPIStateChangesHistoryTest extends AbstractTestCase {
 		
 		Time.getInstance().timePassed(1000);
 		
-		assertEquals(150.0, mock.getPowerConsumption().doubleValue());
+		assertEquals(150.0, mock.getEnergyConsumption().doubleValue());
 		assertEquals(1, mock.getDevicePowerState());
 		
 		Time.getInstance().timePassed(3600000);
 		
-		assertEquals(160.0, mock.getPowerConsumption().doubleValue());
+		assertEquals(160.0, mock.getEnergyConsumption().doubleValue());
 		assertEquals(1, mock.getDevicePowerState());
 		
 		mock.getACPIComponent().finalizeComponent();
 		
-		assertEquals(160.0, mock.getPowerConsumption().doubleValue());
+		assertEquals(160.0, mock.getEnergyConsumption().doubleValue());
 		assertEquals(1, mock.getDevicePowerState());
 		
 		ACPIStateChangesHistory.getInstance().print();

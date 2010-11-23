@@ -33,11 +33,11 @@ public class SimpleCPU extends ACPIDevice {
 				new BigDecimal("0.1") };
 		BigDecimal[] decStateDuration = { new BigDecimal("0"),
 				new BigDecimal("5"), new BigDecimal("5"), new BigDecimal("5") };
-		BigDecimal[] decStatePowerConsumption = { new BigDecimal("0"),
+		BigDecimal[] decStateEnergyConsumption = { new BigDecimal("0"),
 				new BigDecimal("0"), new BigDecimal("0"), new BigDecimal("0") };
 		BigDecimal[] incStateDuration = { new BigDecimal("10"),
 				new BigDecimal("10"), new BigDecimal("10"), new BigDecimal("0") };
-		BigDecimal[] incStatePowerConsumption = { new BigDecimal("0.01"),
+		BigDecimal[] incStateEnergyConsumption = { new BigDecimal("0.01"),
 				new BigDecimal("0.015"), new BigDecimal("0.025"),
 				new BigDecimal("0") };
 		
@@ -47,9 +47,9 @@ public class SimpleCPU extends ACPIDevice {
 		try {
 			this.getComponentPowerSchema().setStatePowerConsumption(statePowerConsumption);
 			this.getComponentPowerSchema().setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(decStateEnergyConsumption);
 			this.getComponentPowerSchema().setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(incStateEnergyConsumption);
 			this.getComponentPowerSchema().setLoadPowerConsumption(loadPowerConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {

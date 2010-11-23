@@ -108,7 +108,7 @@ public class ACPICalculationTest extends AbstractTestCase {
 		
 		assertEquals(0.0, duration.doubleValue());
 		
-		mock.setIncStatePowerConsumption(0, new BigDecimal("9"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("9"));
 		
 		try {
 			duration = ACPICalculation.calculateMinimalStateTimeForEfficiency(mock, 0, 3);
@@ -119,8 +119,8 @@ public class ACPICalculationTest extends AbstractTestCase {
 		// after one hour
 		assertEquals(1.0, BaseCalculation.divide(duration, new BigDecimal("3600000")).doubleValue());
 		
-		mock.setIncStatePowerConsumption(0, new BigDecimal("4.5"));
-		mock.setDecStatePowerConsumption(3, new BigDecimal("4.5"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("4.5"));
+		mock.setDecStateEnergyConsumption(3, new BigDecimal("4.5"));
 		
 		try {
 			duration = ACPICalculation.calculateMinimalStateTimeForEfficiency(mock, 0, 3);
@@ -131,8 +131,8 @@ public class ACPICalculationTest extends AbstractTestCase {
 		// also after one hour
 		assertEquals(1.0, BaseCalculation.divide(duration, new BigDecimal("3600000")).doubleValue());
 		
-		mock.setIncStatePowerConsumption(0, new BigDecimal("0"));
-		mock.setDecStatePowerConsumption(3, new BigDecimal("0"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("0"));
+		mock.setDecStateEnergyConsumption(3, new BigDecimal("0"));
 		
 		mock.setIncStateDuration(0, new BigDecimal("3600000"));
 		
@@ -159,7 +159,7 @@ public class ACPICalculationTest extends AbstractTestCase {
 		// after one hour
 		assertEquals(1.0, BaseCalculation.divide(duration, new BigDecimal("3600000")).doubleValue());
 		
-		mock.setIncStatePowerConsumption(0, new BigDecimal("9"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("9"));
 		
 		try {
 			duration = ACPICalculation.calculateMinimalStateTimeForEfficiency(mock, 0, 3);
@@ -179,7 +179,7 @@ public class ACPICalculationTest extends AbstractTestCase {
 		
 		mock.setLoadPowerConsumption(100);
 		mock.setIdlePowerConsumption(80);
-		mock.setStatePowerConsumption(3, 85);
+		mock.setStateEnergyConsumption(3, 85);
 		
 		try {
 			ACPICalculation.calculateMinimalStateTimeForEfficiency(mock, 0, 3);

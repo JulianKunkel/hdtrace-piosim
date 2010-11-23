@@ -31,9 +31,9 @@ public class MockDeviceTest extends AbstractTestCase {
 		
 		for(int i=0; i<mock.getComponentPowerSchema().getCountStates(); ++i) {
 			assertEquals(0.0, mock.getComponentPowerSchema().getDecStateDuration()[i].doubleValue());
-			assertEquals(0.0, mock.getComponentPowerSchema().getDecStatePowerConsumption()[i].doubleValue());
+			assertEquals(0.0, mock.getComponentPowerSchema().getDecStateEnergyConsumption()[i].doubleValue());
 			assertEquals(0.0, mock.getComponentPowerSchema().getIncStateDuration()[i].doubleValue());
-			assertEquals(0.0, mock.getComponentPowerSchema().getIncStatePowerConsumption()[i].doubleValue());
+			assertEquals(0.0, mock.getComponentPowerSchema().getIncStateEnergyConsumption()[i].doubleValue());
 			assertEquals(0.0, mock.getComponentPowerSchema().getStatePowerConsumption()[i].doubleValue());
 		}
 		
@@ -46,9 +46,9 @@ public class MockDeviceTest extends AbstractTestCase {
 		
 		for(int i=0; i<mock.getComponentPowerSchema().getCountStates(); ++i) {
 			assertEquals(0.0, mock.getComponentPowerSchema().getDecStateDuration()[i].doubleValue());
-			assertEquals(0.0, mock.getComponentPowerSchema().getDecStatePowerConsumption()[i].doubleValue());
+			assertEquals(0.0, mock.getComponentPowerSchema().getDecStateEnergyConsumption()[i].doubleValue());
 			assertEquals(0.0, mock.getComponentPowerSchema().getIncStateDuration()[i].doubleValue());
-			assertEquals(0.0, mock.getComponentPowerSchema().getIncStatePowerConsumption()[i].doubleValue());
+			assertEquals(0.0, mock.getComponentPowerSchema().getIncStateEnergyConsumption()[i].doubleValue());
 			assertEquals(0.0, mock.getComponentPowerSchema().getStatePowerConsumption()[i].doubleValue());
 		}
 		

@@ -89,7 +89,7 @@ public class ACPIAnalyzer {
 	public BigDecimal getPowerConsumption() {
 		refresh();
 		
-		return ACPICalculation.calculateSumPowerConsumption(acpiAnalyzablesList);
+		return ACPICalculation.calculateSumEnergyConsumption(acpiAnalyzablesList);
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class ACPIAnalyzer {
 	public BigDecimal getAbsoluteACPIPowerSaving() {
 		refresh();
 		
-		return ACPICalculation.calculateAbsoluteACPIPowerSaving(getMaxPowerConsumption(), getTimePassed(),getPowerConsumption());
+		return ACPICalculation.calculateAbsoluteACPIEnergySaving(getMaxPowerConsumption(), getTimePassed(),getPowerConsumption());
 	}
 
 	/**

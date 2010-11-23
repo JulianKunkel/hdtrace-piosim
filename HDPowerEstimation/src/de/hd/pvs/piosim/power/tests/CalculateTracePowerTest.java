@@ -256,7 +256,7 @@ public class CalculateTracePowerTest extends AbstractTestCase {
 							int i=0;
 							BigDecimal[] powerConsumption = new BigDecimal[replay.getNodes().size()];
 							for(Node node : replay.getNodes())
-								powerConsumption[i++] = node.getPowerConsumption();
+								powerConsumption[i++] = node.getEnergyConsumption();
 
 							powerConsumptions.put("EstimatedSimple", powerConsumption);
 
@@ -269,7 +269,7 @@ public class CalculateTracePowerTest extends AbstractTestCase {
 							i=0;
 							powerConsumption = new BigDecimal[replay.getNodes().size()];
 							for(Node node : replay.getNodes())
-								powerConsumption[i++] = node.getPowerConsumption();
+								powerConsumption[i++] = node.getEnergyConsumption();
 
 							powerConsumptions.put("EstimatedOptimal", powerConsumption);
 
@@ -282,7 +282,7 @@ public class CalculateTracePowerTest extends AbstractTestCase {
 							i=0;
 							powerConsumption = new BigDecimal[replay.getNodes().size()];
 							for(Node node : replay.getNodes())
-								powerConsumption[i++] = node.getPowerConsumption();
+								powerConsumption[i++] = node.getEnergyConsumption();
 
 							powerConsumptions.put("EstimatedApproach", powerConsumption);
 							
@@ -296,7 +296,7 @@ public class CalculateTracePowerTest extends AbstractTestCase {
 							i=0;
 							powerConsumption = new BigDecimal[replay.getNodes().size()];
 							for(Node node : replay.getNodes())
-								powerConsumption[i++] = node.getPowerConsumption();
+								powerConsumption[i++] = node.getEnergyConsumption();
 
 							powerConsumptions.put("EstimatedEfficientDevices", powerConsumption);
 

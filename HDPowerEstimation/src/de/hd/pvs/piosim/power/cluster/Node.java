@@ -44,8 +44,10 @@ public abstract class Node implements IACPIAnalyzable, GlobalSystemStates {
 	// overhead in watt per node (mainboard etc.)
 	protected BigDecimal overhead = new BigDecimal("0");
 	
-	// powerConsumption of this node
-	protected BigDecimal powerConsumption = new BigDecimal("0");
+	// energy consumption of this node in watt-h
+	protected BigDecimal energyConsumption = new BigDecimal("0");
+	
+	// current power consumption in watt of this node
 	protected BigDecimal currentPowerConsumption = new BigDecimal("0");
 	
 	protected PowerSupply powerSupply = new PowerSupply();
@@ -132,9 +134,9 @@ public abstract class Node implements IACPIAnalyzable, GlobalSystemStates {
 	}
 
 	@Override
-	public BigDecimal getPowerConsumptionForGlobalSystemStateChange(
+	public BigDecimal getEnergyConsumptionForGlobalSystemStateChange(
 			int fromState, int toState) {
-		return ACPICalculation.calculateSumPowerConsumptionForDevicePowerStateChange(nodeDevices, fromState, toState);
+		return ACPICalculation.calculateSumEnergyConsumptionForDevicePowerStateChange(nodeDevices, fromState, toState);
 	}
 
 	public void run() throws ComponentException {
@@ -169,7 +171,7 @@ public abstract class Node implements IACPIAnalyzable, GlobalSystemStates {
 
 	public void reset() {
 		lastChangeTime = new BigDecimal("0");
-		powerConsumption = new BigDecimal("0");
+		energyConsumption = new BigDecimal("0");
 		currentPowerConsumption = new BigDecimal("0");
 			
 		for(ACPIDevice device : getNodeDevices())
@@ -194,9 +196,13 @@ public abstract class Node implements IACPIAnalyzable, GlobalSystemStates {
 		return overhead;
 	}
 
-	public void updatePowerConsumption(BigDecimal time) {
+	/**
+	 * update the total energy consumption for the node
+	 * @param time actual time in ms
+	 */
+	public void updateEnergyConsumption(BigDecimal time) {
 		
-		powerConsumption = BaseCalculation.sum(powerConsumption, powerSupply.getPowerConsumption(currentPowerConsumption,lastChangeTime, time));
+		energyConsumption = BaseCalculation.sum(energyConsumption, powerSupply.getEnergyConsumption(currentPowerConsumption,lastChangeTime, time));
 		
 		currentPowerConsumption = new BigDecimal("0");
 		
@@ -209,9 +215,9 @@ public abstract class Node implements IACPIAnalyzable, GlobalSystemStates {
 	}
 	
 	@Override
-	public BigDecimal getPowerConsumption() {
+	public BigDecimal getEnergyConsumption() {
 		refresh();
-		BigDecimal tmp = BaseCalculation.sum(powerConsumption, powerSupply.getPowerConsumption(currentPowerConsumption,lastChangeTime, Time.getInstance().getCurrentTimeInMillis()));
+		BigDecimal tmp = BaseCalculation.sum(energyConsumption, powerSupply.getEnergyConsumption(currentPowerConsumption,lastChangeTime, Time.getInstance().getCurrentTimeInMillis()));
 		return tmp;
 	}
 	

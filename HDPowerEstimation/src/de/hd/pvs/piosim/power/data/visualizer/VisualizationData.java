@@ -55,7 +55,7 @@ public class VisualizationData {
 		
 		summary = new ArrayList<String>();
 		details = new HashMap<String,String>();
-		details.put("PowerConsumption","Watt-h");
+		details.put("EnergyConsumption","Watt-h");
 //		details.put("ACPIStateChangesTime","ms");
 //		details.put("ACPIStateChangesTimeOverhead","ms");
 	}
@@ -136,7 +136,7 @@ public class VisualizationData {
 				for (String detail : details.keySet()) {
 					summary.add(detail + " (" + details.get(detail) + ")");
 					summary.add(getAttribut(node, detail));
-					sum = BaseCalculation.sum(sum, node.getPowerConsumption());
+					sum = BaseCalculation.sum(sum, node.getEnergyConsumption());
 				}
 			}
 			

@@ -332,8 +332,8 @@ public class PVSClusterTest extends AbstractTestCase {
 
 		for (Node node : nodes) {
 			System.out.println(node.getName() + ": "
-					+ node.getPowerConsumption() + " watt-h");
-			sum = BaseCalculation.sum(sum, node.getPowerConsumption());
+					+ node.getEnergyConsumption() + " watt-h");
+			sum = BaseCalculation.sum(sum, node.getEnergyConsumption());
 		}
 
 		System.out.println("Sum: " + sum + " watt-h");

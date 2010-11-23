@@ -64,7 +64,7 @@ public class ExporterTest extends AbstractTestCase {
 		// + state changes consumptions
 		// + 1 watt-h + 1 watt-h + 1 watt-h = 9.5 watt-h
 		
-		assertEquals(9.5,mock.getPowerConsumption().doubleValue());
+		assertEquals(9.5,mock.getEnergyConsumption().doubleValue());
 		
 		BigDecimal[] powerConsumption = replay.getReplayItems().get(0).getReplayDevice().getPowerConsumption();
 		
@@ -81,7 +81,7 @@ public class ExporterTest extends AbstractTestCase {
 				assertEquals(1.0, stepPowerConsumption.doubleValue());
 		}
 		
-		assertEquals(mock.getPowerConsumption().doubleValue(), sum.doubleValue());
+		assertEquals(mock.getEnergyConsumption().doubleValue(), sum.doubleValue());
 		
 		try {
 			replay.visualize(testVisualizer);
@@ -121,9 +121,9 @@ public class ExporterTest extends AbstractTestCase {
 		node.setName("node");
 		node.add(mock);
 		
-		mock.setStatePowerConsumption(1, 10000);
-		mock.setStatePowerConsumption(2, 10000);
-		mock.setStatePowerConsumption(3, 3600);
+		mock.setStateEnergyConsumption(1, 10000);
+		mock.setStateEnergyConsumption(2, 10000);
+		mock.setStateEnergyConsumption(3, 3600);
 		
 		mock.setLoadPowerConsumption(10000);
 		mock.setIdlePowerConsumption(10000);
@@ -132,9 +132,9 @@ public class ExporterTest extends AbstractTestCase {
 		mock.setIncStateDuration(1, 1000);
 		mock.setIncStateDuration(2, 500);
 		
-		mock.setIncStatePowerConsumption(0, 1);
-		mock.setIncStatePowerConsumption(1, 1);
-		mock.setIncStatePowerConsumption(2, 1);
+		mock.setIncStateEnergyConsumption(0, 1);
+		mock.setIncStateEnergyConsumption(1, 1);
+		mock.setIncStateEnergyConsumption(2, 1);
 		
 		ReplayDevice replayDevice = new ReplayDevice();
 		replayDevice.setACPIDevice(mock);

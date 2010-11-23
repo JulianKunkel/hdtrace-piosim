@@ -41,7 +41,7 @@ public class ACPIStateChangesHistory {
 		entries = new ArrayList<ACPIStateChange>();
 		for(int i=0; i<history.getSize(); ++i) {
 			ACPIStateChange entry = history.get(i);
-			entries.add(new ACPIStateChange(entry.getTime(),entry.getACPIComponent(),entry.getState(),entry.getPowerConsumption()));
+			entries.add(new ACPIStateChange(entry.getTime(),entry.getACPIComponent(),entry.getState(),entry.getEnergyConsumption()));
 		}
 		name = history.getName();
 	}

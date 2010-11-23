@@ -38,18 +38,18 @@ public class MockDevice extends MemoryDevice {
 		
 		BigDecimal[] statePowerConsumption = {new BigDecimal("0"), new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
 		BigDecimal[] decStateDuration = {new BigDecimal("0"), new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
-		BigDecimal[] decStatePowerConsumption = {new BigDecimal("0"), new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
+		BigDecimal[] decStateEnergyConsumption = {new BigDecimal("0"), new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
 		BigDecimal[] incStateDuration = {new BigDecimal("0"), new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
-		BigDecimal[] incStatePowerConsumption = {new BigDecimal("0"), new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
+		BigDecimal[] incStateEnergyConsumption = {new BigDecimal("0"), new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0")};
 		BigDecimal idlePowerConsumption = new BigDecimal("0");
 		BigDecimal loadPowerConsumption = new BigDecimal("0");
 		
 		try {
 			this.getComponentPowerSchema().setStatePowerConsumption(statePowerConsumption);
 			this.getComponentPowerSchema().setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(decStateEnergyConsumption);
 			this.getComponentPowerSchema().setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(incStateEnergyConsumption);
 			this.getComponentPowerSchema().setLoadPowerConsumption(loadPowerConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {
@@ -58,7 +58,7 @@ public class MockDevice extends MemoryDevice {
 		}
 	}
 	
-	public void setStatePowerConsumption(int state, double wattPerHour) {
+	public void setStateEnergyConsumption(int state, double wattPerHour) {
 		setStatePowerConsumption(state, new BigDecimal(Double.toString(wattPerHour)));
 	}
 	public void setDecStateDuration(int state, double durationInMs) {
@@ -69,12 +69,12 @@ public class MockDevice extends MemoryDevice {
 		setIncStateDuration(state, new BigDecimal(Double.toString(durationInMs)));
 	}
 	
-	public void setDecStatePowerConsumption(int state, double wattPerHour) {
-		setDecStatePowerConsumption(state, new BigDecimal(Double.toString(wattPerHour)));
+	public void setDecStateEnergyConsumption(int state, double wattPerHour) {
+		setDecStateEnergyConsumption(state, new BigDecimal(Double.toString(wattPerHour)));
 	}
 	
-	public void setIncStatePowerConsumption(int state, double wattPerHour) {
-		setIncStatePowerConsumption(state, new BigDecimal(Double.toString(wattPerHour)));
+	public void setIncStateEnergyConsumption(int state, double wattPerHour) {
+		setIncStateEnergyConsumption(state, new BigDecimal(Double.toString(wattPerHour)));
 	}
 	
 	public void setStatePowerConsumption(int state, BigDecimal watt) {
@@ -92,12 +92,12 @@ public class MockDevice extends MemoryDevice {
 		this.getComponentPowerSchema().getIncStateDuration()[state] = durationInMs;
 	}
 	
-	public void setDecStatePowerConsumption(int state, BigDecimal wattPerHour) {
-		this.getComponentPowerSchema().getDecStatePowerConsumption()[state] = wattPerHour;
+	public void setDecStateEnergyConsumption(int state, BigDecimal wattPerHour) {
+		this.getComponentPowerSchema().getDecStateEnergyConsumption()[state] = wattPerHour;
 	}
 	
-	public void setIncStatePowerConsumption(int state, BigDecimal wattPerHour) {
-		this.getComponentPowerSchema().getIncStatePowerConsumption()[state] = wattPerHour;
+	public void setIncStateEnergyConsumption(int state, BigDecimal wattPerHour) {
+		this.getComponentPowerSchema().getIncStateEnergyConsumption()[state] = wattPerHour;
 	}
 	
 	

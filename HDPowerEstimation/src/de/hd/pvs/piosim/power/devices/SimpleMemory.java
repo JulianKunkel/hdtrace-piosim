@@ -42,9 +42,9 @@ public class SimpleMemory extends ACPIDevice {
 		// corresponds to 3 banks: state 0 -> all banks used, state 1 -> one bank without power...
 		BigDecimal[] statePowerConsumption = {new BigDecimal("40"), new BigDecimal("30"), new BigDecimal("20"), new BigDecimal("10")};
 		BigDecimal[] decStateDuration = {new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("5"),new BigDecimal("15")};
-		BigDecimal[] decStatePowerConsumption = {new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0.10"),new BigDecimal("0.15")};
+		BigDecimal[] decStateEnergyConsumption = {new BigDecimal("0"),new BigDecimal("0"),new BigDecimal("0.10"),new BigDecimal("0.15")};
 		BigDecimal[] incStateDuration = {new BigDecimal("15"),new BigDecimal("0"),new BigDecimal("15"),new BigDecimal("0")};
-		BigDecimal[] incStatePowerConsumption = {new BigDecimal("0.05"), new BigDecimal("0"), new BigDecimal("0.15"), new BigDecimal("0")};
+		BigDecimal[] incStateEnergyConsumption = {new BigDecimal("0.05"), new BigDecimal("0"), new BigDecimal("0.15"), new BigDecimal("0")};
 		
 		BigDecimal idlePowerConsumption = new BigDecimal("32");
 		BigDecimal loadPowerConsumption = new BigDecimal("40");
@@ -52,9 +52,9 @@ public class SimpleMemory extends ACPIDevice {
 		try {
 			this.getComponentPowerSchema().setStatePowerConsumption(statePowerConsumption);
 			this.getComponentPowerSchema().setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(decStateEnergyConsumption);
 			this.getComponentPowerSchema().setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(incStateEnergyConsumption);
 			this.getComponentPowerSchema().setLoadPowerConsumption(loadPowerConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {

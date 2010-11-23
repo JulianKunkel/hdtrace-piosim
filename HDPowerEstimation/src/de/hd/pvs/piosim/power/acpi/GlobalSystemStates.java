@@ -29,6 +29,6 @@ public interface GlobalSystemStates {
 	public int getGlobalSystemState();
 	public void switchToGlobalSystemState(int state) throws ACPIDeviceException;
 	public BigDecimal getDurationForGlobalSystemStateChange(int fromState, int toState);
-	public BigDecimal getPowerConsumptionForGlobalSystemStateChange(int fromState, int toState);
+	public BigDecimal getEnergyConsumptionForGlobalSystemStateChange(int fromState, int toState);
 
 }

@@ -97,7 +97,7 @@ public class SimpleReplayTest extends AbstractTestCase {
 		}
 		
 		logger.info("Time passed: " + Time.getInstance().getCurrentTimeInMillis() + " ms");
-		logger.info("Simple Node consumption: " + node.getPowerConsumption());
+		logger.info("Simple Node consumption: " + node.getEnergyConsumption());
 		
 	}
 	
@@ -146,7 +146,7 @@ public class SimpleReplayTest extends AbstractTestCase {
 		}
 		
 		logger.info("Time passed: " + Time.getInstance().getCurrentTimeInMillis() + " ms");
-		logger.info("Extended Node consumption: " + node.getPowerConsumption());
+		logger.info("Extended Node consumption: " + node.getEnergyConsumption());
 
 	}
 	

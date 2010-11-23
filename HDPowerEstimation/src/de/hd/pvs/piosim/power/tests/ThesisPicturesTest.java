@@ -269,8 +269,8 @@ public class ThesisPicturesTest extends AbstractTestCase {
 			BigDecimal simpleSumConsumption = new BigDecimal("0");
 			
 			for(ACPIDevice device : nodes.get(0).getNodeDevices()) {
-				simple.put(device,device.getPowerConsumption());
-				simpleSumConsumption = BaseCalculation.sum(simpleSumConsumption, device.getPowerConsumption());
+				simple.put(device,device.getEnergyConsumption());
+				simpleSumConsumption = BaseCalculation.sum(simpleSumConsumption, device.getEnergyConsumption());
 			}
 			
 			replay.visualize(new StepChartVisualizer());
@@ -291,7 +291,7 @@ public class ThesisPicturesTest extends AbstractTestCase {
 				
 				for(ACPIDevice device : nodes.get(0).getNodeDevices()) {
 					BigDecimal simpleConsumption = simple.get(device);
-					BigDecimal thisConsumption = device.getPowerConsumption();
+					BigDecimal thisConsumption = device.getEnergyConsumption();
 					ACPIComponent component = device.getACPIComponent();
 					System.out.println(device.getName() + " " + formattedString(simpleConsumption) + " " + 
 							formattedString(thisConsumption) + " " + formattedString(BaseCalculation.multiply(BaseCalculation.substract(BaseCalculation.ONE,BaseCalculation.divide(thisConsumption, simpleConsumption)),BaseCalculation.HUNDRED))
@@ -343,14 +343,14 @@ public class ThesisPicturesTest extends AbstractTestCase {
 		mock.setLoadPowerConsumption(100);
 		mock.setIdlePowerConsumption(80);
 		
-		mock.setStatePowerConsumption(1, 75);
-		mock.setStatePowerConsumption(2, 50);
-		mock.setStatePowerConsumption(3, 25);
+		mock.setStateEnergyConsumption(1, 75);
+		mock.setStateEnergyConsumption(2, 50);
+		mock.setStateEnergyConsumption(3, 25);
 		
 		mock.setDecStateDuration(0, 2000);
 		mock.setIncStateDuration(3, 0);
 		
-		mock.setDecStatePowerConsumption(0, 2);
+		mock.setDecStateEnergyConsumption(0, 2);
 	}
 	
 	private Replay buildReplay(PlayStrategy playStrategy) {

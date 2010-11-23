@@ -36,7 +36,7 @@ public class CPU extends ACPIDevice {
 				new BigDecimal("0"), new BigDecimal("0"),
 				new BigDecimal("0") };
 
-		BigDecimal[] incStatePowerConsumption = { new BigDecimal("0.000000274"),
+		BigDecimal[] incStateEnergyConsumption = { new BigDecimal("0.000000274"),
 				new BigDecimal("0"), new BigDecimal("0"),
 				new BigDecimal("0") };
 		
@@ -44,7 +44,7 @@ public class CPU extends ACPIDevice {
 				new BigDecimal("0"), new BigDecimal("0"),
 				new BigDecimal("0.017") };
 
-		BigDecimal[] decStatePowerConsumption = { new BigDecimal("0"),
+		BigDecimal[] decStateEnergyConsumption = { new BigDecimal("0"),
 				new BigDecimal("0"), new BigDecimal("0"),
 				new BigDecimal("0.000000274") };
 
@@ -55,12 +55,12 @@ public class CPU extends ACPIDevice {
 					statePowerConsumption);
 			this.getComponentPowerSchema()
 					.setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(
-					decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(
+					decStateEnergyConsumption);
 			this.getComponentPowerSchema()
 					.setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(
-					incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(
+					incStateEnergyConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {
 			// TODO Auto-generated catch block

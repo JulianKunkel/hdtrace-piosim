@@ -147,7 +147,7 @@ public class ACPIStatesTest extends AbstractTestCase {
 		mock.setStatePowerConsumption(2, new BigDecimal("10"));
 		mock.setStatePowerConsumption(3, new BigDecimal("10000000"));
 		mock.setIncStateDuration(0, new BigDecimal("3600000"));
-		mock.setIncStatePowerConsumption(0, new BigDecimal("1"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("1"));
 
 		// 1h acpi 0, 1h change to acpi 1; change to acpi 2; 1h acpi 2
 		// 100 + 1 + 0 + 10
@@ -165,8 +165,8 @@ public class ACPIStatesTest extends AbstractTestCase {
 		mock.setStatePowerConsumption(2, new BigDecimal("10"));
 		mock.setStatePowerConsumption(3, new BigDecimal("10000000"));
 		mock.setIncStateDuration(0, new BigDecimal("3600000"));
-		mock.setIncStatePowerConsumption(0, new BigDecimal("1"));
-		mock.setIncStatePowerConsumption(1, new BigDecimal("5"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("1"));
+		mock.setIncStateEnergyConsumption(1, new BigDecimal("5"));
 
 		// 1h acpi 0, 1h change to acpi 1; change to acpi 2; 1h acpi 2
 		// 100 + 1 + 5 + 10
@@ -185,8 +185,8 @@ public class ACPIStatesTest extends AbstractTestCase {
 		mock.setStatePowerConsumption(3, new BigDecimal("10000000"));
 		mock.setIncStateDuration(0, new BigDecimal("3600000"));
 		mock.setIncStateDuration(1, new BigDecimal("3600000"));
-		mock.setIncStatePowerConsumption(0, new BigDecimal("1"));
-		mock.setIncStatePowerConsumption(1, new BigDecimal("5"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("1"));
+		mock.setIncStateEnergyConsumption(1, new BigDecimal("5"));
 
 		// 1h acpi 0, 1h change to acpi 1; 1h change to acpi 2; 0h acpi 2
 		// 100 + 1 + 5 + 0
@@ -244,7 +244,7 @@ public class ACPIStatesTest extends AbstractTestCase {
 		mock.setStatePowerConsumption(2, new BigDecimal("10"));
 		mock.setStatePowerConsumption(3, new BigDecimal("10000000"));
 		mock.setDecStateDuration(1, new BigDecimal("3600000"));
-		mock.setDecStatePowerConsumption(1, new BigDecimal("1"));
+		mock.setDecStateEnergyConsumption(1, new BigDecimal("1"));
 
 		// change to acpi 1,2; 1h acpi 2; 1h change to acpi 1; change to acpi 0;
 		// 1h acpi 0
@@ -263,8 +263,8 @@ public class ACPIStatesTest extends AbstractTestCase {
 		mock.setStatePowerConsumption(2, new BigDecimal("10"));
 		mock.setStatePowerConsumption(3, new BigDecimal("10000000"));
 		mock.setDecStateDuration(1, new BigDecimal("3600000"));
-		mock.setDecStatePowerConsumption(1, new BigDecimal("1"));
-		mock.setDecStatePowerConsumption(2, new BigDecimal("5"));
+		mock.setDecStateEnergyConsumption(1, new BigDecimal("1"));
+		mock.setDecStateEnergyConsumption(2, new BigDecimal("5"));
 
 		// change to acpi 1,2; 1h acpi 2; 1h change to acpi 1; change to acpi 0;
 		// 1h acpi 0
@@ -284,8 +284,8 @@ public class ACPIStatesTest extends AbstractTestCase {
 		mock.setStatePowerConsumption(3, new BigDecimal("10000000"));
 		mock.setDecStateDuration(1, new BigDecimal("3600000"));
 		mock.setDecStateDuration(2, new BigDecimal("3600000"));
-		mock.setDecStatePowerConsumption(1, new BigDecimal("1"));
-		mock.setDecStatePowerConsumption(2, new BigDecimal("5"));
+		mock.setDecStateEnergyConsumption(1, new BigDecimal("1"));
+		mock.setDecStateEnergyConsumption(2, new BigDecimal("5"));
 
 		// change to acpi 1,2; 1h acpi 2; 1h change to acpi 1; 1h change to acpi
 		// 0; 0h acpi 0
@@ -323,10 +323,10 @@ public class ACPIStatesTest extends AbstractTestCase {
 		analyzer = new ACPIAnalyzer();
 		analyzer.setIACPIAnalyzable(mock);
 
-		mock.setStatePowerConsumption(0, 100);
-		mock.setStatePowerConsumption(1, 10000000);
-		mock.setStatePowerConsumption(2, 10);
-		mock.setStatePowerConsumption(3, 10000000);
+		mock.setStateEnergyConsumption(0, 100);
+		mock.setStateEnergyConsumption(1, 10000000);
+		mock.setStateEnergyConsumption(2, 10);
+		mock.setStateEnergyConsumption(3, 10000000);
 
 		mock.setIdlePowerConsumption(80);
 
@@ -372,7 +372,7 @@ public class ACPIStatesTest extends AbstractTestCase {
 
 		mock.setStatePowerConsumption(0, new BigDecimal("0"));
 		mock.setStatePowerConsumption(1, new BigDecimal("0"));
-		mock.setIncStatePowerConsumption(0, new BigDecimal("100"));
+		mock.setIncStateEnergyConsumption(0, new BigDecimal("100"));
 
 		try {
 			mock.run();

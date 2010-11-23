@@ -27,10 +27,10 @@ import java.math.BigDecimal;
 public interface IACPIAnalyzable {
 	
 	/**
-	 * calculates the power consumption for all subcomponents
-	 * @return total power consumption in watt
+	 * calculates the energy consumption for all subcomponents
+	 * @return total energy consumption in watt-h
 	 */
-	public BigDecimal getPowerConsumption();
+	public BigDecimal getEnergyConsumption();
 	
 	/**
 	 * calculates the time spend for acpi state changes

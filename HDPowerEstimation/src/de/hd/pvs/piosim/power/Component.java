@@ -41,8 +41,8 @@ public abstract class Component {
 	// global time from last utilization change
 	private BigDecimal lastUtilizationChangeTime = new BigDecimal("0");
 
-	// power consumption for device till time(0)
-	protected BigDecimal componentPowerConsumption = new BigDecimal("0");
+	// energy consumption for device till time(0) in watt-h
+	protected BigDecimal componentEnergyConsumption = new BigDecimal("0");
 	
 	private Node node = null;
 	
@@ -86,15 +86,15 @@ public abstract class Component {
 		if (currentUtilization.doubleValue() == utilization.doubleValue())
 			return;
 
-		componentPowerConsumption = ACPICalculation.sumPowerConsumptionTillNow(
-				componentPowerConsumption, getCurrentPowerConsumption(), time,
+		componentEnergyConsumption = ACPICalculation.sumEnergyConsumptionTillNow(
+				componentEnergyConsumption, getCurrentPowerConsumption(), time,
 				getLastUtilizationChangeTime());
 
 		this.currentUtilization = utilization;
 		setLastUtilizationChangeTime(time);
 		
 		if(this.getNode() != null)
-			this.getNode().updatePowerConsumption(time);
+			this.getNode().updateEnergyConsumption(time);
 	}
 
 	/**
@@ -126,7 +126,7 @@ public abstract class Component {
 	public void reset() {
 		currentUtilization = new BigDecimal("1");
 		setLastUtilizationChangeTime(new BigDecimal("0"));
-		componentPowerConsumption = new BigDecimal("0");
+		componentEnergyConsumption = new BigDecimal("0");
 	}
 
 	public BigDecimal setLastUtilizationChangeTime(

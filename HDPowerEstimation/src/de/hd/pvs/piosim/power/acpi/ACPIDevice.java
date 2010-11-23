@@ -226,10 +226,10 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 	 * @return Power consumption for this device till now in watt-h
 	 */
 	@Override
-	public BigDecimal getPowerConsumption() {
+	public BigDecimal getEnergyConsumption() {
 		refresh();
 		BigDecimal currentPowerConsumption = super.getCurrentPowerConsumption();
-		BigDecimal powerConsumption = super.getPowerConsumption();
+		BigDecimal powerConsumption = super.getEnergyConsumption();
 
 		if (scheduler.getCountScheduledJobs() > 0) {
 			ACPIStateChangeJob job = scheduler.getActiveJob();
@@ -243,7 +243,7 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 				int targetACPIState = job.getTargetACPIState();
 
 				// in watt-h
-				BigDecimal powerConsumptionForChange = getPowerConsumptionForDevicePowerStateChange(targetACPIState);
+				BigDecimal powerConsumptionForChange = getEnergyConsumptionForDevicePowerStateChange(targetACPIState);
 
 				currentPowerConsumption = ACPICalculation.calculateInWatt(
 						powerConsumptionForChange, duration);
@@ -255,7 +255,7 @@ public abstract class ACPIDevice extends ACPIComponentFacade {
 
 		BigDecimal lastChangeTime = getLastChangeTime();
 
-		powerConsumption = ACPICalculation.sumPowerConsumptionTillNow(
+		powerConsumption = ACPICalculation.sumEnergyConsumptionTillNow(
 				powerConsumption, currentPowerConsumption, now, lastChangeTime);
 
 		return powerConsumption;

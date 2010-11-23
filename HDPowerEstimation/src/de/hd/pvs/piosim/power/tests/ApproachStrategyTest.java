@@ -319,8 +319,8 @@ public class ApproachStrategyTest extends AbstractTestCase {
 		mockDevice.setName(name);
 		mockDevice.setIncStateDuration(0, new BigDecimal("2000"));
 		mockDevice.setDecStateDuration(3, new BigDecimal("2000"));
-		mockDevice.setIncStatePowerConsumption(0, new BigDecimal("0.05"));
-		mockDevice.setDecStatePowerConsumption(3, new BigDecimal("0.05"));
+		mockDevice.setIncStateEnergyConsumption(0, new BigDecimal("0.05"));
+		mockDevice.setDecStateEnergyConsumption(3, new BigDecimal("0.05"));
 		mockDevice.setIdlePowerConsumption(70);
 		mockDevice.setLoadPowerConsumption(100);
 		mockDevice.setStatePowerConsumption(3, new BigDecimal("10"));

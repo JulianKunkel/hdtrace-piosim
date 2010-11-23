@@ -64,7 +64,7 @@ public class IntelCentrinoDuo extends ACPIDevice {
 		/*
 		 * use incStateDuration[i]*statePowerConsumption[i-1]
 		 */
-		BigDecimal[] incStatePowerConsumption = { new BigDecimal("0"),
+		BigDecimal[] incStateEnergyConsumption = { new BigDecimal("0"),
 				new BigDecimal("0.0000533"), new BigDecimal("0"), new BigDecimal("0.0001216") };
 		
 		/*
@@ -72,15 +72,15 @@ public class IntelCentrinoDuo extends ACPIDevice {
 		 */
 		BigDecimal[] decStateDuration = new BigDecimal[incStateDuration.length];
 		System.arraycopy(incStateDuration, 0, decStateDuration, 0, incStateDuration.length);
-		BigDecimal[] decStatePowerConsumption = new BigDecimal[incStatePowerConsumption.length];
-		System.arraycopy(incStatePowerConsumption, 0, decStatePowerConsumption, 0, incStatePowerConsumption.length);
+		BigDecimal[] decStateEnergyConsumption = new BigDecimal[incStateEnergyConsumption.length];
+		System.arraycopy(incStateEnergyConsumption, 0, decStateEnergyConsumption, 0, incStateEnergyConsumption.length);
 
 		try {
 			this.getComponentPowerSchema().setStatePowerConsumption(statePowerConsumption);
 			this.getComponentPowerSchema().setDecStateDuration(decStateDuration);
-			this.getComponentPowerSchema().setDecStatePowerConsumption(decStatePowerConsumption);
+			this.getComponentPowerSchema().setDecStateEnergyConsumption(decStateEnergyConsumption);
 			this.getComponentPowerSchema().setIncStateDuration(incStateDuration);
-			this.getComponentPowerSchema().setIncStatePowerConsumption(incStatePowerConsumption);
+			this.getComponentPowerSchema().setIncStateEnergyConsumption(incStateEnergyConsumption);
 			this.getComponentPowerSchema().setLoadPowerConsumption(loadPowerConsumption);
 			this.getComponentPowerSchema().setIdlePowerConsumption(idlePowerConsumption);
 		} catch (InvalidValueException e) {
