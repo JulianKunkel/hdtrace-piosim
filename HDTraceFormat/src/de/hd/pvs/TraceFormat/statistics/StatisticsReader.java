@@ -184,14 +184,12 @@ public class StatisticsReader implements StatisticsSource{
 				if (Double.isInfinite((Double) value) || Double.isNaN((Double) value)){
 					System.err.println("Warning: Value for " + statName + " is " + value  + " at timestamp " + timeStamp + " file: " + filename); 
 				}		
-				value = 0;
 				break;
 			case FLOAT:
 				value = new Float(file.readFloat());		
 				if (Float.isInfinite((Float) value) || Float.isNaN((Float) value)){
 					System.err.println("Warning: Value for " + statName + " is " + value  + " at timestamp " + timeStamp + " file: " + filename); 
 				}
-				value = 0;
 				break;
 			case STRING:
 				final int length = file.readShort();
