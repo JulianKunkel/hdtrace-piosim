@@ -58,6 +58,7 @@ public class DrawObjects{
 
 
 	public static  int  drawState( Graphics2D g,
+			String name,
 			CoordPixelXform  coord_xform,
 			IStateTraceEntry state,                            
 			Color color,
@@ -73,7 +74,7 @@ public class DrawObjects{
 		int jStart   = coord_xform.convertTimelineToPixel( timeline ) + (coord_xform.getTimelineHeight() - height) / 2;
 		int jFinal   = jStart + height;
 		
-		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal );
+		return StateDrawer.drawForward( g, color, null , iStart, jStart, iFinal, jFinal, name );
 	}
 	
 	public static void  drawBox(			

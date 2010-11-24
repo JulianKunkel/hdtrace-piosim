@@ -622,6 +622,19 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 				g.setColor( color );											
 
 				g.fillRect( x1, yPos, x2-x1, height );
+				
+				
+				// draw name if possible.
+				if(height > 8){
+					final String name = profile.getCategory().getName();
+					int length = g.getFontMetrics().bytesWidth(name.getBytes(), 0, name.length());
+					if (length <= x2 - x1){
+						g.setColor( Color.BLACK );
+						// does it fit:
+						g.drawBytes(name.getBytes(), 0, name.length(), x1, yPos-2+height);
+					}
+				}
+				
 
 				border.paintStateBorder( g, color,	x1, yPos, true, x2, yPos + height, true );
 

@@ -613,14 +613,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 				final Category category = reader.getCategory(event);
 				if(category.isVisible())
-					DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
+					DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, category.getColor(), globalMinTime);
 
 			}else if(entry.getType() == TracableObjectType.STATE){
 				final IStateTraceEntry state = (IStateTraceEntry) entry;
 				final Category category = reader.getCategory(state);
 
 				if(category.isVisible())
-					DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 
+					DrawObjects.drawState(offGraphics, category.getName(),  coord_xform, state , category.getColor(), 
 							depth, timeline, globalMinTime);
 			}
 
@@ -661,7 +661,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				
 				final Category stateCategory = reader.getCategory(rstate);
 				if(stateCategory.isVisible())
-					DrawObjects.drawState(offGraphics, coord_xform, rstate , stateCategory.getColor(), 
+					DrawObjects.drawState(offGraphics, stateCategory.getName(), coord_xform, rstate , stateCategory.getColor(), 
 							0, timeline, globalMinTime);
 				
 				final ForwardStateEnumeration stateEnum = rstate.childForwardEnumeration();
@@ -678,14 +678,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 						final Category category = reader.getCategory(event);
 						if(category.isVisible())
-							DrawObjects.drawEvent(offGraphics, coord_xform, event, timeline, category.getColor(), globalMinTime);
+							DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, category.getColor(), globalMinTime);
 
 					}else if(entry.getType() == TracableObjectType.STATE){
 						final IStateTraceEntry state = (IStateTraceEntry) entry;
 						final Category category = reader.getCategory(state);
 
 						if(category.isVisible())
-							DrawObjects.drawState(offGraphics, coord_xform, state , category.getColor(), 
+							DrawObjects.drawState(offGraphics,category.getName(),  coord_xform, state , category.getColor(), 
 									depth, timeline, globalMinTime);
 					}
 				}

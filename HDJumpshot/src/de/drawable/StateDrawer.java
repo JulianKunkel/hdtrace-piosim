@@ -55,7 +55,7 @@ public class StateDrawer
 	 */
 	public static int  drawForward( Graphics2D g, Color color, Insets insets,
 			int x1, int y1,
-			int x2, int y2)
+			int x2, int y2, String name)
 	{
 		if ( insets != null ) {
 			x1 += insets.left;
@@ -69,7 +69,19 @@ public class StateDrawer
 		int height = y2-y1+1;
 		g.fillRect( x1, y1, x2-x1+1, height );
 
+		// draw name if possible.
+		if(y2 - y1 > 8){
+			int length = g.getFontMetrics().bytesWidth(name.getBytes(), 0, name.length());
+			if (length <= x2 - x1){
+				g.setColor( Color.BLACK );
+				// does it fit:
+				g.drawBytes(name.getBytes(), 0, name.length(), x1, y1-2+height);
+			}
+		}
+		
+		
 		BorderStyle.paintStateBorder( g, color,	x1, y1, true, x2, y2, true );
+				
 		return 1;
 	}
 }
