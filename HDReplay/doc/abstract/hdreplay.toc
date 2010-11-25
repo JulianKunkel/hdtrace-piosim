@@ -1,0 +1,7 @@
+\select@language {english}
+\contentsline {section}{\numberline {1}What is HDReplay?}{3}
+\contentsline {section}{\numberline {2}Operation breakdown}{3}
+\contentsline {subsection}{\numberline {2.1}Brief explanation of the traces}{3}
+\contentsline {subsection}{\numberline {2.2}Reading the project file}{3}
+\contentsline {subsection}{\numberline {2.3}Reading the trace file}{3}
+\contentsline {subsection}{\numberline {2.4}Replay the trace file}{3}
