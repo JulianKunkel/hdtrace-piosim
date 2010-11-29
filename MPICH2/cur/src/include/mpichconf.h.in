@@ -1,7 +1,7 @@
 /* src/include/mpichconf.h.in.  Generated from configure.in by autoheader.  */
 
 /* -*- Mode: C; c-basic-offset:4 ; -*- */
-/*  
+/*
  *  (C) 2001 by Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
@@ -181,6 +181,15 @@
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
+
+/* Define if HDRut library is used */
+#undef HAVE_HDRUT
+
+/* Define if HDTrace library is used */
+#undef HAVE_HDTRACE
+
+/* Define if HDTrace MPI Wrapper is used */
+#undef HAVE_HDTRACE_WRAPPER
 
 /* Define if int16_t is supported by the C compiler */
 #undef HAVE_INT16_T
@@ -448,6 +457,18 @@
 
 /* Define if we have __va_copy */
 #undef HAVE___VA_COPY
+
+/* Define if more ROMIO internals shall be traced */
+#undef HDTRACE_DETAILED_ROMIO_INTERNALS
+
+/* Define if MPI collective call internals shall be traced */
+#undef HDTRACE_MPI_COLLECTIVE
+
+/* Define if more ROMIO internals shall be traced */
+#undef HDTRACE_ROMIO
+
+/* Define if HDTrace wrapper should include source code line in each call */
+#undef HDTRACE_TRACE_SOURCECODE_POSITION
 
 /* Define which x86 cycle counter to use */
 #undef LINUX86_CYCLE_CPUID_RDTSC32
@@ -778,6 +799,12 @@
 
 /* Define if the NMPI names should use MPI instead of PMPI */
 #undef USE_MPI_FOR_NMPI
+
+/* Define if ROMIO shall use MPI calls for the wrapper */
+#undef USE_MPI_VERSIONS
+
+/* Multi-threaded implementation selected at compile time */
+#undef USE_THREAD_IMPL
 
 /* Define if PMI2 API must be used */
 #undef USE_PMI2_API

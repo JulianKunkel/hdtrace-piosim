@@ -1,5 +1,5 @@
 #! @BASH_SHELL@
-# 
+#
 # (C) 2006 by Argonne National Laboratory.
 #     See COPYRIGHT in top-level directory.
 #
@@ -11,12 +11,12 @@
 #    includedir, libdir - Directories containing an *installed* mpich2
 #    prefix, execprefix - Often used to define includedir and libdir
 #    CXX                - C compiler
-#    WRAPPER_CXXFLAGS      - Any special flags needed to compile 
+#    WRAPPER_CXXFLAGS      - Any special flags needed to compile
 #    WRAPPER_LDFLAGS       - Any special flags needed to link
 #    WRAPPER_LIBS          - Any special libraries needed in order to link
 #    MPILIBNAME         - Name of the MPI library
 #    MPICXXLIBNAME      - Name of the C++ binding part of the MPI library
-#    
+#
 # We assume that (a) the C++ compiler can both compile and link programs
 #
 # Handling of command-line options:
@@ -48,19 +48,19 @@ NEEDSPLIB="@NEEDSPLIB@"
 MPICH2_VERSION="@MPICH2_VERSION@"
 #
 # Internal variables
-# Show is set to echo to cause the compilation command to be echoed instead 
+# Show is set to echo to cause the compilation command to be echoed instead
 # of executed.
 Show=
 #
 # End of initialization of variables
 #---------------------------------------------------------------------
 # Environment Variables.
-# The environment variables MPICH_CXX may be used to override the 
+# The environment variables MPICH_CXX may be used to override the
 # default choices.
-# In addition, if there is a file $sysconfdir/mpicxx-$CXXname.conf, 
+# In addition, if there is a file $sysconfdir/mpicxx-$CXXname.conf,
 # where CXXname is the name of the compiler with all spaces replaced by hyphens
 # (e.g., "CC -64" becomes "CC--64", that file is sources, allowing other
-# changes to the compilation environment.  See the variables used by the 
+# changes to the compilation environment.  See the variables used by the
 # script (defined above)
 # Added MPICH_CXX_OLD, MPICH_CXX can be used to prefix CXX
 # with external utility, e.g. setenv MPICH_CXX 'eval linkcache $MPICH_CXX_OLD'
@@ -80,10 +80,10 @@ fi
 # ------------------------------------------------------------------------
 # Argument processing.
 # This is somewhat awkward because of the handling of arguments within
-# the shell.  We want to handle arguments that include spaces without 
+# the shell.  We want to handle arguments that include spaces without
 # loosing the spacing (an alternative would be to use a more powerful
-# scripting language that would allow us to retain the array of values, 
-# which the basic (rather than enhanced) Bourne shell does not.  
+# scripting language that would allow us to retain the array of values,
+# which the basic (rather than enhanced) Bourne shell does not.
 #
 # Look through the arguments for arguments that indicate compile only.
 # If these are *not* found, add the library options
@@ -94,7 +94,7 @@ argno=0
 for arg in "$@" ; do
     # Set addarg to no if this arg should be ignored by the C compiler
     addarg=yes
-    case "$arg" in 
+    case "$arg" in
  	# ----------------------------------------------------------------
 	# Compiler options that affect whether we are linking or no
     -c|-S|-E|-M|-MM)
@@ -102,7 +102,7 @@ for arg in "$@" ; do
     linking=no
     ;;
 	# ----------------------------------------------------------------
-	# Options that control how we use mpicxx (e.g., -show, 
+	# Options that control how we use mpicxx (e.g., -show,
 	# -cxx=* -config=*
     -echo)
     addarg=no
@@ -240,7 +240,7 @@ if [ -n "$profConf" ] ; then
 fi
 # A temporary statement to invoke the compiler
 # Place the -L before any args incase there are any mpi libraries in there.
-# Eventually, we'll want to move this after any non-MPI implementation 
+# Eventually, we'll want to move this after any non-MPI implementation
 # libraries
 if [ "$linking" = yes ] ; then
     if [ -n "$CXX_LINKPATH_SHL" ] ; then

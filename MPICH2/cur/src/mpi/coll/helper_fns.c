@@ -9,6 +9,19 @@
 #include "datatype.h"
 
 #define COPY_BUFFER_SZ 16384
+#ifdef HDTRACE_MPI_COLLECTIVE
+#include "hdMPITracer.h"
+
+#define LOG_START(name) hdMPI_threadLogStateStart(name);
+#define LOG_END(X) X ; hdMPI_threadLogStateEnd();
+
+#else
+/* no tracing therefore discard macros: */
+
+#define LOG_START(name)
+#define LOG_END(X)
+
+#endif
 
 /* These functions are used in the implementation of collective
    operations. They are wrappers around MPID send/recv functions. They do
@@ -29,7 +42,7 @@ int MPIC_Probe(int source, int tag, MPI_Comm comm, MPI_Status *status)
 
     context_id = (comm_ptr->comm_kind == MPID_INTRACOMM) ?
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
-    
+
     mpi_errno = MPID_Probe(source, tag, comm_ptr, context_id, status);
     if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 
@@ -58,8 +71,11 @@ int MPIC_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
     context_id = (comm_ptr->comm_kind == MPID_INTRACOMM) ?
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
 
+    LOG_START ("Send")
+
     mpi_errno = MPID_Send(buf, count, datatype, dest, tag, comm_ptr,
-                          context_id, &request_ptr); 
+                          context_id, &request_ptr);
+
     if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
     if (request_ptr) {
         mpi_errno = MPIC_Wait(request_ptr);
@@ -68,6 +84,8 @@ int MPIC_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
     }
  fn_exit:
     MPIDI_PT2PT_FUNC_EXIT(MPID_STATE_MPIC_SEND);
+    LOG_END(hdMPI_logInternalsMPI_Send( buf,  count,  datatype,  dest,  tag,  comm))
+
     return mpi_errno;
  fn_fail:
     if (request_ptr) {
@@ -94,8 +112,9 @@ int MPIC_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
     context_id = (comm_ptr->comm_kind == MPID_INTRACOMM) ?
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
 
+    LOG_START ("Recv")
     mpi_errno = MPID_Recv(buf, count, datatype, source, tag, comm_ptr,
-                          context_id, status, &request_ptr); 
+                          context_id, status, &request_ptr);
     if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
     if (request_ptr) {
         mpi_errno = MPIC_Wait(request_ptr);
@@ -111,9 +130,11 @@ int MPIC_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
     }
  fn_exit:
     MPIDI_PT2PT_FUNC_EXIT_BACK(MPID_STATE_MPIC_RECV);
+    LOG_END(hdMPI_logInternalsMPI_Recv( buf,  count,  datatype,  source,  tag, comm, status))
+
     return mpi_errno;
  fn_fail:
-    if (request_ptr) { 
+    if (request_ptr) {
 	MPID_Request_release(request_ptr);
     }
     goto fn_exit;
@@ -138,7 +159,7 @@ int MPIC_Ssend(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
 
     mpi_errno = MPID_Ssend(buf, count, datatype, dest, tag, comm_ptr,
-                           context_id, &request_ptr); 
+                           context_id, &request_ptr);
     if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
     if (request_ptr) {
         mpi_errno = MPIC_Wait(request_ptr);
@@ -162,7 +183,7 @@ int MPIC_Ssend(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
 int MPIC_Sendrecv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                   int dest, int sendtag, void *recvbuf, int recvcount,
                   MPI_Datatype recvtype, int source, int recvtag,
-                  MPI_Comm comm, MPI_Status *status) 
+                  MPI_Comm comm, MPI_Status *status)
 {
     MPID_Request *recv_req_ptr=NULL, *send_req_ptr=NULL;
     int mpi_errno, context_id;
@@ -175,17 +196,25 @@ int MPIC_Sendrecv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
     context_id = (comm_ptr->comm_kind == MPID_INTRACOMM) ?
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
 
+
+
+    LOG_START ("Sendrecv")
     mpi_errno = MPID_Irecv(recvbuf, recvcount, recvtype, source, recvtag,
                            comm_ptr, context_id, &recv_req_ptr);
     if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
-    mpi_errno = MPID_Isend(sendbuf, sendcount, sendtype, dest, sendtag, 
-                           comm_ptr, context_id, &send_req_ptr); 
+    mpi_errno = MPID_Isend(sendbuf, sendcount, sendtype, dest, sendtag,
+                           comm_ptr, context_id, &send_req_ptr);
     if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
 
-    mpi_errno = MPIC_Wait(send_req_ptr); 
+    mpi_errno = MPIC_Wait(send_req_ptr);
     if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
-    
+
     mpi_errno = MPIC_Wait(recv_req_ptr);
+
+    LOG_END(hdMPI_logInternalsMPI_Sendrecv( sendbuf,  sendcount,  sendtype,  dest,  sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status))
+
+
+
     if (mpi_errno) { MPIU_ERR_POPFATAL(mpi_errno); }
     if (status != MPI_STATUS_IGNORE)
         *status = recv_req_ptr->status;
@@ -226,7 +255,7 @@ int MPIC_Sendrecv_replace(void *buf, int count, MPI_Datatype datatype,
 #endif
 
     MPIDI_PT2PT_FUNC_ENTER_BOTH(MPID_STATE_MPIC_SENDRECV_REPLACE);
-    
+
     MPID_Comm_get_ptr( comm, comm_ptr );
     context_id_offset = (comm_ptr->comm_kind == MPID_INTRACOMM) ?
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
@@ -326,7 +355,7 @@ int MPIR_Localcopy(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
     if (!sdata_sz || !rdata_sz)
         goto fn_exit;
-    
+
     if (sdata_sz > rdata_sz)
     {
         MPIU_ERR_SET2(mpi_errno, MPI_ERR_TRUNCATE, "**truncate", "**truncate %d %d", sdata_sz, rdata_sz);
@@ -389,7 +418,7 @@ int MPIR_Localcopy(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	sfirst = 0;
 	rfirst = 0;
 	buf_off = 0;
-	
+
 	while (1)
 	{
 	    MPI_Aint last;
@@ -403,13 +432,13 @@ int MPIR_Localcopy(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	    {
 		last = copy_sz;
 	    }
-	    
+
 	    MPID_Segment_pack(&sseg, sfirst, &last, buf + buf_off);
 	    MPIU_Assert(last > sfirst);
-	    
+
 	    buf_end = buf + buf_off + (last - sfirst);
 	    sfirst = last;
-	    
+
 	    MPID_Segment_unpack(&rseg, rfirst, &last, buf);
 	    MPIU_Assert(last > rfirst);
 
@@ -422,7 +451,7 @@ int MPIR_Localcopy(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	    }
 
             /* if the send side finished, but the recv side couldn't unpack it, there's a datatype mismatch */
-            MPIU_ERR_CHKANDJUMP(sfirst == copy_sz, mpi_errno, MPI_ERR_TYPE, "**dtypemismatch");        
+            MPIU_ERR_CHKANDJUMP(sfirst == copy_sz, mpi_errno, MPI_ERR_TYPE, "**dtypemismatch");
 
             /* if not all data was unpacked, copy it to the front of the buffer for next time */
 	    buf_off = sfirst - rfirst;
@@ -432,8 +461,8 @@ int MPIR_Localcopy(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	    }
 	}
     }
-    
-    
+
+
   fn_exit:
     MPIU_CHKLMEM_FREEALL();
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPIR_LOCALCOPY);
@@ -461,10 +490,11 @@ int MPIC_Isend(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
     MPID_Comm_get_ptr( comm, comm_ptr );
     context_id = (comm_ptr->comm_kind == MPID_INTRACOMM) ?
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
-
+    LOG_START ("ISend")
     mpi_errno = MPID_Isend(buf, count, datatype, dest, tag, comm_ptr,
-                          context_id, &request_ptr); 
-    if (mpi_errno) { MPIU_ERR_POP(mpi_errno); } 
+                          context_id, &request_ptr);
+    if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
+    LOG_END(hdMPI_logInternalsMPI_Isend( buf,  count,  datatype,  dest,  tag, comm, request))
 
     *request = request_ptr->handle;
 
@@ -492,8 +522,13 @@ int MPIC_Irecv(void *buf, int count, MPI_Datatype datatype, int
     context_id = (comm_ptr->comm_kind == MPID_INTRACOMM) ?
         MPID_CONTEXT_INTRA_COLL : MPID_CONTEXT_INTER_COLL;
 
+
+    LOG_START ("Irecv")
     mpi_errno = MPID_Irecv(buf, count, datatype, source, tag, comm_ptr,
-                          context_id, &request_ptr); 
+                          context_id, &request_ptr);
+    LOG_END(hdMPI_logInternalsMPI_Irecv( buf,  count,  datatype,  source,  tag, comm, request))
+
+
     if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
 
     *request = request_ptr->handle;
@@ -520,7 +555,7 @@ int MPIC_Wait(MPID_Request * request_ptr)
     if (!MPID_Request_is_complete(request_ptr))
     {
 	MPID_Progress_state progress_state;
-	
+
 	MPID_Progress_start(&progress_state);
         while (!MPID_Request_is_complete(request_ptr))
 	{

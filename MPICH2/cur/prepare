@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# aclocal -I confdb
+autoheader -B confdb/ && autoconf -B confdb/

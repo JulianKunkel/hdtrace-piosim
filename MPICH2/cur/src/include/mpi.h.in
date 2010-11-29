@@ -1238,7 +1238,19 @@ int PMPIX_Grequest_start(MPI_Grequest_query_function *,
                        MPI_Grequest_cancel_function *, 
 		       MPIX_Grequest_poll_function *,
 		       MPIX_Grequest_wait_function *, void *, MPI_Request *);
+
 #endif
 /* END: non-standard but public extensions to MPI */
+
+/* load HDTrace MPI wrapper defines to include source file and line number to each MPI call */
+#ifndef ROMIOCONF_H_INCLUDED
+@MPI_INCLUDE_HDTRACE_CODE_LOCATOR@
+#endif
+
+/* load HDTrace MPI wrapper defines to include source file and line number to each MPI call, it is also used inside ROMIO */
+#ifdef ROMIOCONF_H_INCLUDED
+@MPI_INCLUDE_HDTRACE_CODE_LOCATOR_INSIDE_ROMIO@
+#endif
+
 
 #endif

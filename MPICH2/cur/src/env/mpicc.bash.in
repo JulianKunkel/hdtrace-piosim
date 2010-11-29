@@ -1,5 +1,5 @@
 #! @BASH_SHELL@
-# 
+#
 # (C) 2006 by Argonne National Laboratory.
 #     See COPYRIGHT in top-level directory.
 #
@@ -11,11 +11,11 @@
 #    includedir, libdir - Directories containing an *installed* mpich2
 #    prefix, execprefix - Often used to define includedir and libdir
 #    CC                 - C compiler
-#    WRAPPER_CFLAGS        - Any special flags needed to compile 
+#    WRAPPER_CFLAGS        - Any special flags needed to compile
 #    WRAPPER_LDFLAGS       - Any special flags needed to link
 #    WRAPPER_LIBS          - Any special libraries needed in order to link
 #    MPILIBNAME         - Name of the MPI library
-#    
+#
 # We assume that (a) the C compiler can both compile and link programs
 #
 # Handling of command-line options:
@@ -50,19 +50,19 @@ NEEDSPLIB="@NEEDSPLIB@"
 MPICH2_VERSION="@MPICH2_VERSION@"
 #
 # Internal variables
-# Show is set to echo to cause the compilation command to be echoed instead 
+# Show is set to echo to cause the compilation command to be echoed instead
 # of executed.
 Show=
 #
 # End of initialization of variables
 #---------------------------------------------------------------------
 # Environment Variables.
-# The environment variables MPICH_CC may be used to override the 
+# The environment variables MPICH_CC may be used to override the
 # default choices.
-# In addition, if there is a file $sysconfdir/mpicc-$CCname.conf, 
+# In addition, if there is a file $sysconfdir/mpicc-$CCname.conf,
 # where CCname is the name of the compiler with all spaces replaced by hyphens
 # (e.g., "cc -64" becomes "cc--64", that file is sources, allowing other
-# changes to the compilation environment.  See the variables used by the 
+# changes to the compilation environment.  See the variables used by the
 # script (defined above)
 # Added MPICH_CC_OLD, MPICH_CC can be used to prefix CC with external utility,
 # e.g. setenv MPICH_CC 'eval linkcache $MPICH_CC_OLD'
@@ -82,10 +82,10 @@ fi
 # ------------------------------------------------------------------------
 # Argument processing.
 # This is somewhat awkward because of the handling of arguments within
-# the shell.  We want to handle arguments that include spaces without 
+# the shell.  We want to handle arguments that include spaces without
 # loosing the spacing (an alternative would be to use a more powerful
-# scripting language that would allow us to retain the array of values, 
-# which the basic (rather than enhanced) Bourne shell does not.  
+# scripting language that would allow us to retain the array of values,
+# which the basic (rather than enhanced) Bourne shell does not.
 #
 # Look through the arguments for arguments that indicate compile only.
 # If these are *not* found, add the library options
@@ -96,7 +96,7 @@ argno=0
 for arg in "$@" ; do
     # Set addarg to no if this arg should be ignored by the C compiler
     addarg=yes
-    case "$arg" in 
+    case "$arg" in
  	# ----------------------------------------------------------------
 	# Compiler options that affect whether we are linking or no
     -c|-S|-E|-M|-MM)
@@ -104,7 +104,7 @@ for arg in "$@" ; do
     linking=no
     ;;
 	# ----------------------------------------------------------------
-	# Options that control how we use mpicc (e.g., -show, 
+	# Options that control how we use mpicc (e.g., -show,
 	# -cc=* -config=*
     -echo)
     addarg=no
@@ -236,7 +236,7 @@ fi
 #
 # A temporary statement to invoke the compiler
 # Place the -L before any args incase there are any mpi libraries in there.
-# Eventually, we'll want to move this after any non-MPI implementation 
+# Eventually, we'll want to move this after any non-MPI implementation
 # libraries.
 # We use a single invocation of the compiler.  This will be adequate until
 # we run into a system that uses a separate linking command.  With any luck,
@@ -249,7 +249,6 @@ if [ "$linking" = yes ] ; then
 	# prepend the path for the shared libraries to the library list
 	mpilibs="$C_LINKPATH_SHL$libdir $mpilibs"
     fi
-
     path_list=""
     for path in "-L$libdir" ; do
 	found_path=0
