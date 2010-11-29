@@ -24,8 +24,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-/* Use the memory defintions from mpich2/src/include */
-#include "mpimem.h"
 #include "pmutil.h"
 #include "process.h"
 #include "cmnargs.h"
@@ -96,7 +94,7 @@ static int PMIUBufferedReadLine( PMIProcess *, char *, int );
  * the command.  New PMI commands can be added by updating this table.
  */
 typedef struct {
-    char *cmdName;
+    const char *cmdName;
     int (*handler)( PMIProcess * );
 } PMICmdMap;
 

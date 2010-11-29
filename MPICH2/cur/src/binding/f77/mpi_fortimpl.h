@@ -1,6 +1,5 @@
 /* -*- Mode: C; c-basic-offset:4 ; -*- */
-/*  $Id: mpi_fortimpl.h,v 1.36 2006/07/10 15:51:55 gropp Exp $
- *
+/*
  *  (C) 2001 by Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
@@ -88,11 +87,20 @@
 
 /* mpi.h includes the definitions of MPI_Fint */
 #include "mpi.h"
+#include "mpitypedefs.h"
 
 /* Include prototypes of helper functions.
    These include MPIR_Keyval_set_fortran, fortran90, and 
    Grequest_set_lang_f77 */
 #include "mpi_f77interface.h"
+/* Include the attribute access routines that permit access to the 
+   attribute or its pointer, needed for cross-language access to attributes */
+#include "mpi_attr.h"
+
+/* mpi_lang.h - Prototypes for language specific routines. Currently used to
+ * set keyval attribute callbacks
+ */
+#include "mpi_lang.h"
 
 /* If there is no MPI I/O support, and we are still using MPIO_Request,
    make sure that one is defined */
@@ -126,6 +134,7 @@ typedef MPI_Aint MPI_FAint;
 extern FORT_DLL_SPEC int  MPIR_F_NeedInit;
 extern FORT_DLL_SPEC void *MPIR_F_MPI_BOTTOM;
 extern FORT_DLL_SPEC void *MPIR_F_MPI_IN_PLACE;
+extern FORT_DLL_SPEC void *MPIR_F_MPI_UNWEIGHTED;
 /* MPI_F_STATUS(ES)_IGNORE are defined in mpi.h and are intended for C 
    programs. */
 /*
@@ -186,6 +195,8 @@ typedef char *MPID_FCHAR_T;
 #define MPIU_Free(a)      free((void *)(a))
 #endif
 
+/* To avoid constant allocation/deallocation of temporary arrays, define
+   a small default, predefined array size. */
 #ifndef MPIR_USE_LOCAL_ARRAY
 #define MPIR_USE_LOCAL_ARRAY 32
 #endif

@@ -22,11 +22,12 @@ CPLUSPLUS_BEGIN
 /* config header file */
 #include "mpidu_sock_conf.h"
 /* Load just the utility definitions that we need */
+#include "mpichconf.h"
 #include "mpibase.h"
 #include "mpiutil.h"
 #include "mpitypedefs.h"
 
-/* implemenatation specific header file */    
+/* implementation specific header file */    
 #include "mpidu_socki.h"
 
 
@@ -410,7 +411,7 @@ Event errors: a MPI error code with a Sock extended error class
 . MPIDU_SOCK_ERR_NOMEM - unable to allocate required memory
 - MPIDU_SOCK_ERR_FAIL - other error?
 
-<BRT> Any other event errors?  Does the sock/ssm channel require finer granularity?
+<BRT> Any other event errors?  Does the sock channel require finer granularity?
 
 Notes:
 The host description of the listening host is supplied MPIDU_Sock_get_host_description().  The intention is that the description
@@ -1094,7 +1095,7 @@ The returned string is the generic error message for the supplied error code.
 Module:
 Utility-Sock
 @*/
-int MPIDU_Sock_get_error_class_string(int error, char *error_string, int length);
+int MPIDU_Sock_get_error_class_string(int error, char *error_string, size_t length);
 
 
 CPLUSPLUS_END

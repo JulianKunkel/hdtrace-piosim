@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Iterator;
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
@@ -24,7 +23,7 @@ import base.drawable.NestingStacks;
 import base.drawable.DrawnBoxSet;
 import base.drawable.Method;
 import base.statistics.BufForTimeAveBoxes;
-import logformat.slog2.LineIDMap;
+// import logformat.slog2.LineIDMap;
 import logformat.slog2.input.TreeNode;
 import logformat.slog2.input.TreeTrunk;
 import viewer.common.Dialogs;
@@ -48,17 +47,22 @@ import viewer.histogram.StatlineDialog;
 public class CanvasTimeline extends ScrollableObject
                             implements SearchableView, SummarizableView
 {
+    private static final  long   serialVersionUID = 13300L;
+
     private static final Drawable.Order INCRE_STARTTIME_ORDER
                                         = Drawable.INCRE_STARTTIME_ORDER;
     private static final Drawable.Order DECRE_STARTTIME_ORDER
                                         = Drawable.DECRE_STARTTIME_ORDER;
+    /*
     private static final int            MIN_VISIBLE_ROW_COUNT = 2;
     private static       GradientPaint  BackgroundPaint       = null;
+    */
 
     private TreeTrunk          treetrunk;
     private YaxisMaps          y_maps;
     private YaxisTree          tree_view;
     private BoundedRangeModel  y_model;
+    private ModelTime          t_model;
     private Method[]           methods;
     private String[]           y_colnames;
 
@@ -92,6 +96,7 @@ public class CanvasTimeline extends ScrollableObject
         TreeNode   treeroot;
         short      depth_max, depth_init;
 
+        t_model         = time_model;
         treetrunk       = treebody;
         y_maps          = yaxis_maps;
         tree_view       = y_maps.getTreeView();
@@ -432,6 +437,7 @@ public class CanvasTimeline extends ScrollableObject
                                                        clicked_time,
                                                        map_line2treeleaf,
                                                        y_colnames,
+                                                       t_model,
                                                        clicked_dobj );
                 }
             }
@@ -454,6 +460,7 @@ public class CanvasTimeline extends ScrollableObject
                                                        clicked_time,
                                                        map_line2treeleaf,
                                                        y_colnames,
+                                                       t_model,
                                                        clicked_dobj );
                 }
             }
@@ -476,6 +483,7 @@ public class CanvasTimeline extends ScrollableObject
                                                        clicked_time,
                                                        map_line2treeleaf,
                                                        y_colnames,
+                                                       t_model,
                                                        clicked_dobj );
                 }
             }
@@ -498,6 +506,7 @@ public class CanvasTimeline extends ScrollableObject
                                                        clicked_time,
                                                        map_line2treeleaf,
                                                        y_colnames,
+                                                       t_model,
                                                        clicked_dobj );
                 }
             }

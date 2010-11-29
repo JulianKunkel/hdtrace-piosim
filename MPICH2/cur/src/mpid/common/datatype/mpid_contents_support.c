@@ -18,8 +18,7 @@ void MPID_Type_access_contents(MPI_Datatype type,
     MPID_Datatype *dtp;
     MPID_Datatype_contents *cp;
 
-    NMPI_Type_get_envelope(type, &nr_ints, &nr_aints, &nr_types, &combiner);
-    DLOOP_Assert(combiner != MPI_COMBINER_NAMED);
+    MPIR_Type_get_envelope_impl(type, &nr_ints, &nr_aints, &nr_types, &combiner);
 
     /* hardcoded handling of MPICH2 contents format... */
     MPID_Datatype_get_ptr(type, dtp);
@@ -55,6 +54,9 @@ void MPID_Type_access_contents(MPI_Datatype type,
     return;
 }
 
+/* FIXME: Is this routine complete?  Why is it needed? If it is needed, it 
+   must have a comment that describes why it is needed and the arguments 
+   must have ATTRIBUTE((unused)) */
 void MPID_Type_release_contents(MPI_Datatype type,
 				int **ints_p,
 				MPI_Aint **aints_p,

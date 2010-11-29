@@ -12,12 +12,31 @@
 #endif
 
 /* Preallocated group objects */
-MPID_Group MPID_Group_builtin[MPID_GROUP_N_BUILTIN] = {
-    { MPI_GROUP_EMPTY, 1, 0, MPI_UNDEFINED, -1, 0, } };
+MPID_Group MPID_Group_builtin[MPID_GROUP_N_BUILTIN] = { {0} };
 MPID_Group MPID_Group_direct[MPID_GROUP_PREALLOC] = { {0} };
 MPIU_Object_alloc_t MPID_Group_mem = { 0, 0, 0, 0, MPID_GROUP, 
 				      sizeof(MPID_Group), MPID_Group_direct,
 				       MPID_GROUP_PREALLOC};
+
+int MPIR_Group_init(void)
+{
+    int mpi_errno = MPI_SUCCESS;
+
+    MPIU_Assert(MPID_GROUP_N_BUILTIN == 1); /* update this func if this ever triggers */
+
+    MPID_Group_builtin[0].handle = MPI_GROUP_EMPTY;
+    MPIU_Object_set_ref(&MPID_Group_builtin[0], 1);
+    MPID_Group_builtin[0].size = 0;
+    MPID_Group_builtin[0].rank = MPI_UNDEFINED;
+    MPID_Group_builtin[0].idx_of_first_lpid = -1;
+    MPID_Group_builtin[0].lrank_to_lpid = NULL;
+
+    /* the mutex is probably never used, but initializing it doesn't hurt */
+    MPIU_THREAD_MPI_OBJ_INIT(&MPID_Group_builtin[0]);
+
+    /* TODO hook for device here? */
+    return mpi_errno;
+}
 
 
 int MPIR_Group_release(MPID_Group *group_ptr)
@@ -51,8 +70,6 @@ int MPIR_Group_create( int nproc, MPID_Group **new_group_ptr )
 	return mpi_errno;
     }
     /* --END ERROR HANDLING-- */
-    /* printf( "new group ptr is %x handle %x\n", (int)*new_group_ptr,
-       (*new_group_ptr)->handle );fflush(stdout); */
     MPIU_Object_set_ref( *new_group_ptr, 1 );
     (*new_group_ptr)->lrank_to_lpid = 
 	(MPID_Group_pmap_t *)MPIU_Malloc( nproc * sizeof(MPID_Group_pmap_t) );
@@ -69,14 +86,19 @@ int MPIR_Group_create( int nproc, MPID_Group **new_group_ptr )
     /* Make sure that there is no question that the list of ranks sorted
        by pids is marked as uninitialized */
     (*new_group_ptr)->idx_of_first_lpid = -1;
+
+    (*new_group_ptr)->is_local_dense_monotonic = FALSE;
     return mpi_errno;
 }
 /*
  * return value is the first index in the list
  *
- * This sorts an lpid array by lpid value, using a simple merge sort
+ * This "sorts" an lpid array by lpid value, using a simple merge sort
  * algorithm.
  *
+ * In actuality, it does not reorder the elements of maparray (these must remain
+ * in group rank order).  Instead it builds the traversal order (in increasing
+ * lpid order) through the maparray given by the "next_lpid" fields.
  */
 static int MPIR_Mergesort_lpidarray( MPID_Group_pmap_t maparray[], int n )
 {
@@ -345,4 +367,68 @@ int MPIR_Group_check_valid_ranges( MPID_Group *group_ptr,
 
     return mpi_errno;
 }
+/* Given a group and a VCR, check that the group is a subset of the processes
+   defined by the VCR.
+
+   We sort the lpids for the group and the vcr.  If the group has an
+   lpid that is not in the vcr, then report an error.
+*/
+int MPIR_GroupCheckVCRSubset( MPID_Group *group_ptr, int vsize, MPID_VCR *vcr,
+			      int *idx )
+{
+    int mpi_errno = MPI_SUCCESS;
+    int g1_idx, g2_idx, l1_pid, l2_pid, i;
+    MPID_Group_pmap_t *vmap=0;
+    MPIU_CHKLMEM_DECL(1);
+
+    MPIU_Assert(group_ptr != NULL);
+    MPIU_Assert(vcr != NULL);
+
+    MPIU_CHKLMEM_MALLOC(vmap,MPID_Group_pmap_t*,
+			vsize*sizeof(MPID_Group_pmap_t),mpi_errno, "" );
+    /* Initialize the vmap */
+    for (i=0; i<vsize; i++) {
+	MPID_VCR_Get_lpid( vcr[i], &vmap[i].lpid );
+	vmap[i].lrank     = i;
+	vmap[i].next_lpid = 0;
+	vmap[i].flag      = 0;
+    }
+    
+    MPIR_Group_setup_lpid_list( group_ptr );
+    g1_idx = group_ptr->idx_of_first_lpid;
+    g2_idx = MPIR_Mergesort_lpidarray( vmap, vsize );
+    MPIU_DBG_MSG_FMT(COMM,VERBOSE,(MPIU_DBG_FDEST,
+			   "initial indices: %d %d\n", g1_idx, g2_idx ));
+    while (g1_idx >= 0 && g2_idx >= 0) {
+	l1_pid = group_ptr->lrank_to_lpid[g1_idx].lpid;
+	l2_pid = vmap[g2_idx].lpid;
+	MPIU_DBG_MSG_FMT(COMM,VERBOSE,(MPIU_DBG_FDEST,
+				       "Lpids are %d, %d\n", l1_pid, l2_pid ));
+	if (l1_pid < l2_pid) {
+	    /* If we have to advance g1, we didn't find a match, so
+	       that's an error. */
+	    break;
+	}
+	else if (l1_pid > l2_pid) {
+	    g2_idx = vmap[g2_idx].next_lpid;
+	}
+	else {
+	    /* Equal */
+	    g1_idx = group_ptr->lrank_to_lpid[g1_idx].next_lpid;
+	    g2_idx = vmap[g2_idx].next_lpid;
+	}
+	MPIU_DBG_MSG_FMT(COMM,VERBOSE,(MPIU_DBG_FDEST,
+				       "g1 = %d, g2 = %d\n", g1_idx, g2_idx ));
+    }
+
+    if (g1_idx >= 0) {
+	MPIU_ERR_SET1(mpi_errno, MPI_ERR_GROUP,
+		      "**groupnotincomm", "**groupnotincomm %d", g1_idx );
+    }
+
+ fn_fail:
+    MPIU_CHKLMEM_FREEALL();
+    return mpi_errno;
+}
+
 #endif  /* HAVE_ERROR_CHECKING */

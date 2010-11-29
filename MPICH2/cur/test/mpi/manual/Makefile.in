@@ -6,7 +6,6 @@
 all: all-redirect
 
 SHELL           = @SHELL@
-VERBOSE         = 1
 abs_builddir    = @abs_builddir@
 srcdir          = @srcdir@
 abs_srcdir      = @abs_srcdir@
@@ -15,7 +14,7 @@ CPPFLAGS        = @CPPFLAGS@
 LIBS            = @LIBS@
 MAKE            = @MAKE@
 CC              = @CC@
-CFLAGS          = @CFLAGS@
+CFLAGS          = @CFLAGS@ $(MPICH2_MAKE_CFLAGS)
 C_COMPILE       = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 C_LINK         = $(CC)
 LDFLAGS     =  @LDFLAGS@ 
@@ -24,51 +23,28 @@ VPATH = .:@srcdir@
 INCLUDES = -I../include -I${srcdir}/../include
 
 .SUFFIXES:
-.SUFFIXES: .o .c .txt 
+.SUFFIXES: .o .c 
 .c.o:
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  CC              $<" ; \
 	else \
 	  echo $(C_COMPILE) -c $< ; \
 	fi
 	@$(C_COMPILE) -c $<
-.c.txt:
-	$(CPP) $(INCLUDES) $(CPPFLAGS) $< >$*.txt
 .c:
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  CC              $<" ; \
 	else \
 	  echo $(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS) ; \
 	fi
 	@$(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS)
-
-# --------------------------------------------------------------------------
-${srcdir}/Makefile.in: ${srcdir}/Makefile.sm
-	( cd ${srcdir} && ${master_top_srcdir}/maint/simplemake \
-	-rootdir=../../../ \
-	-configdir=test/mpi/ \
-	-common=${master_top_srcdir}/maint/makedefs \
-	-docnamedefs=${master_top_srcdir}/maint/docnotes \
-	"-autoconf=-I ROOTDIR/confdb" \
-	-libdir='$${MPILIBNAME}=ROOTDIR/lib' \
-	-smroot=${master_top_srcdir}/maint \
-	-distcleanfiles="Makefile" \
-	-smvar_doc_attop=0 \
-		Makefile.sm )
-Makefile: ${srcdir}/Makefile.in
-	-cd ../ && \
-	if [ -x config.status ] ; then CONFIG_FILES=manual/Makefile CONFIG_HEADERS= ${SHELL} ./config.status ; fi
-# --------------------------------------------------------------------------
 apply: 
 	$(ACTION) $(ACTION_INPUT)
 clean:  clean-local
-	-@rm -f *.o ${srcdir}/*.o testconnect singjoin testconnectserial dimsbalanced
-	-@rm -f testconnect.exe singjoin.exe testconnectserial.exe dimsbalanced.exe
+	-@rm -f *.o ${srcdir}/*.o testconnect singjoin spawntest_child testconnectserial dimsbalanced spawntest_master
+	-@rm -f testconnect.exe singjoin.exe spawntest_child.exe testconnectserial.exe dimsbalanced.exe spawntest_master.exe
 	-@rm -f core core.[0-9]*
 	-@rm -f *.lo ${srcdir}/*.lo
-	-@rm -f ${srcdir}/*.bb ${srcdir}/*.bbg ${srcdir}/*.da
-	-@rm -f ${srcdir}/*.gcda ${srcdir}/*.gcno
-	-@rm -f *.gcov *.bb *.bbg *.da *.gcda *.gcno
 	-@rm -f *.irlog*
 distclean:  clean distclean-xxx remove-makefile
 distclean-xxx:
@@ -76,45 +52,32 @@ distclean-xxx:
 	-@rm -rf autom4te*.cache
 	-@rm -rf $(DEPS_DIR)
 	-@rm -f TAGS
-maintainer-clean:  distclean-xxx remove-genmakefiles
 remove-makefile:
 	rm -f Makefile
 remove-genmakefiles:
-	rm -f  Makefile.in Makefile
-all-redirect: singjoin testconnect testconnectserial dimsbalanced
+	rm -f  Makefile
+all-redirect: singjoin testconnect testconnectserial dimsbalanced spawntest_master spawntest_child
 
-coverage: 
 testconnect: testconnect.o   
 	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o testconnect testconnect.o  ${LIBS}
 singjoin: singjoin.o   
 	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o singjoin singjoin.o  ${LIBS}
+spawntest_child: spawntest_child.o   
+	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o spawntest_child spawntest_child.o  ${LIBS}
 testconnectserial: testconnectserial.o tchandlers.o tcutil.o   
-	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o testconnectserial \
-	testconnectserial.o tchandlers.o tcutil.o  -lm ${LIBS} 
+	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o testconnectserial testconnectserial.o tchandlers.o \
+	tcutil.o  -lm ${LIBS} 
 dimsbalanced: dimsbalanced.o   
-	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o dimsbalanced dimsbalanced.o  \
-	${LIBS} 
-# --------------------------------------------------------------------------
-htmldoc:
-mandoc:
-latexdoc:
+	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o dimsbalanced dimsbalanced.o  ${LIBS}
+spawntest_master: spawntest_master.o   
+	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o spawntest_master spawntest_master.o  ${LIBS}
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-# Dependencies
-dependencies:
-# End of Dependencies
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-SOURCES         =  singjoin.c testconnect.c testconnectserial.c tchandlers.c \
-	tcutil.c dimsbalanced.c 
-ETAGS           = @ETAGS@ @ETAGSADD@
+SOURCES         =  singjoin.c testconnect.c testconnectserial.c tchandlers.c tcutil.c \
+	dimsbalanced.c spawntest_master.c spawntest_child.c 
 HEADERFILES     = $(HEADERS)
 SOURCEFILES     = $(SOURCES)
-tags: TAGS
-TAGS: Makefile${HEADERFILES} ${SOURCEFILES}
-	here=`cd ../../.. && pwd` ; cd ${srcdir} && $(ETAGS) -o $$here/TAGS --append ${HEADERFILES} ${SOURCEFILES}
 # --------------------------------------------------------------------------
 
 

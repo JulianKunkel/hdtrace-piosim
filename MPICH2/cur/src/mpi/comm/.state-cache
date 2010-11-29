@@ -1,21 +1,21 @@
 <dir>
-<file name="comm_size.c" info="1194043819"/>
-<file name="comm_get_name.c" info="1194043819"/>
-<file name="comm_group.c" info="1194043819"/>
-<file name="comm_remote_group.c" info="1194043819"/>
-<file name="commutil.c" info="1217900800"/>
+<file name="comm_size.c" info="1280329775"/>
+<file name="comm_get_name.c" info="1280329775"/>
+<file name="comm_group.c" info="1289055764"/>
+<file name="comm_remote_group.c" info="1289055764"/>
+<file name="commutil.c" info="1280864247"/>
 <file name="comm_test_inter.c" info="1194043819"/>
-<file name="comm_split.c" info="1217900800"/>
-<file name="comm_free.c" info="1194043819"/>
-<file name="comm_rank.c" info="1194043819"/>
-<file name="comm_create.c" info="1220294077"/>
-<file name="comm_dup.c" info="1194043819"/>
-<file name="comm_set_name.c" info="1216852446"/>
-<file name="intercomm_create.c" info="1194043819"/>
+<file name="comm_split.c" info="1280864247"/>
+<file name="comm_free.c" info="1280329775"/>
+<file name="comm_rank.c" info="1280329775"/>
+<file name="comm_create.c" info="1281126932"/>
+<file name="comm_dup.c" info="1280329775"/>
+<file name="comm_set_name.c" info="1280864247"/>
+<file name="intercomm_create.c" info="1285685493"/>
 <file name="comm_remote_size.c" info="1194043819"/>
-<file name="comm_compare.c" info="1194043819"/>
-<file name="mpicomm.h" info="1194043819"/>
-<file name="intercomm_merge.c" info="1207337896"/>
+<file name="comm_compare.c" info="1280329775"/>
+<file name="mpicomm.h" info="1289055764"/>
+<file name="intercomm_merge.c" info="1276116872"/>
 </dir>
 <data>
 <fileinfo name="comm_size.c">
@@ -33,11 +33,14 @@ MPID_STATE_MPI_COMM_REMOTE_GROUP MPI_Comm_remote_group
 <fileinfo name="commutil.c">
 MPID_STATE_MPIR_COMM_CREATE MPIR_Comm_create
 MPID_STATE_MPIR_SETUP_INTERCOMM_LOCALCOMM MPIR_Setup_intercomm_localcomm
-MPID_STATE_MPIR_GET_CONTEXTID MPIR_Get_contextid
+MPID_STATE_MPIR_COMM_COMMIT MPIR_Setup_intercomm_localcomm
+MPID_STATE_MPIR_GET_CONTEXTID MPIR_Get_contextid_sparse
 MPID_STATE_MPIR_GET_INTERCOMM_CONTEXTID MPIR_Get_intercomm_contextid
 MPID_STATE_MPIR_FREE_CONTEXTID MPIR_Free_contextid
 MPID_STATE_MPIR_COMM_COPY MPIR_Comm_copy
+MPID_STATE_COMM_DELETE comm_delete
 MPID_STATE_MPIR_COMM_RELEASE MPIR_Comm_release
+MPID_STATE_MPIR_COMM_RELEASE_ALWAYS MPIR_Comm_release_always
 </fileinfo>
 <fileinfo name="comm_test_inter.c">
 MPID_STATE_MPI_COMM_TEST_INTER MPI_Comm_test_inter
@@ -52,6 +55,9 @@ MPID_STATE_MPI_COMM_FREE MPI_Comm_free
 MPID_STATE_MPI_COMM_RANK MPI_Comm_rank
 </fileinfo>
 <fileinfo name="comm_create.c">
+MPID_STATE_MPIR_COMM_CREATE_CALCULATE_MAPPING MPIR_Comm_create_calculate_mapping
+MPID_STATE_MPIR_COMM_CREATE_INTRA MPIR_Comm_create_intra
+MPID_STATE_MPIR_COMM_CREATE_INTER MPIR_Comm_create_inter
 MPID_STATE_MPI_COMM_CREATE MPI_Comm_create
 </fileinfo>
 <fileinfo name="comm_dup.c">

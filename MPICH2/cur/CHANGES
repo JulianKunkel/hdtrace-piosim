@@ -1,21 +1,253 @@
 ===============================================================================
-                               Changes in 1.0.8
+                               Changes in 1.3.1
 ===============================================================================
 
-- Added support for MPI 2.1
+ # OVERALL: MPICH2 is now fully compliant with the CIFTS FTB standard
+   MPI events (based on the draft standard).
 
-- Added support for MPI_Type_create_resized and
+ # OVERALL: Major improvements to RMA performance for long lists of
+   RMA operations.
+
+ # OVERALL: Performance improvements for Group_translate_ranks.
+
+ # COLLECTIVES: Collective algorithm selection thresholds can now be controlled
+   at runtime via environment variables.
+
+ # ROMIO: PVFS error codes are now mapped to MPI error codes.
+
+ # Several other minor bug fixes, memory leak fixes, and code cleanup.
+   A full list of changes is available using:
+
+     svn log -r7350:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/tags/release/mpich2-1.3.1
+
+     ... or at the following link:
+
+     https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/tags/release/mpich2-1.3.1?action=follow_copy&rev=HEAD&stop_rev=7350&mode=follow_copy
+
+
+===============================================================================
+                               Changes in 1.3
+===============================================================================
+
+ # OVERALL: Initial support for fine-grained threading in
+   ch3:nemesis:tcp.
+
+ # OVERALL: Support for Asynchronous Communication Progress.
+
+ # OVERALL: The ssm and shm channels have been removed.
+
+ # OVERALL: Checkpoint/restart support using BLCR.
+
+ # OVERALL: Improved tolerance to process and communication failures
+   when error handler is set to MPI_ERRORS_RETURN.  If a communication
+   operation fails (e.g., due to a process failure) MPICH2 will return
+   an error, and further communication to that process is not
+   possible.  However, communication with other processes will still
+   proceed normally.  Note, however, that the behavior collective
+   operations on communicators containing the failed process is
+   undefined, and may give incorrect results or hang some processes.
+
+ # OVERALL: Experimental support for inter-library dependencies.
+
+ # PM/PMI: Hydra is now the default process management framework
+   replacing MPD.
+
+ # PM/PMI: Added dynamic process support for Hydra.
+
+ # PM/PMI: Added support for LSF, SGE and POE in Hydra.
+
+ # PM/PMI: Added support for CPU and memory/cache topology aware
+   process-core binding.
+
+ # DEBUGGER: Improved support and bug fixes in the Totalview support.
+
+ # Build system: Replaced F90/F90FLAGS by FC/FCFLAGS. F90/F90FLAGS are
+   not longer supported in the configure.
+
+ # Multi-compiler support: On systems where C compiler that is used to
+   build mpich2 libraries supports multiple weak symbols and multiple aliases,
+   the Fortran binding built in the mpich2 libraries can handle different
+   Fortran compilers (than the one used to build mpich2).  Details in README.
+
+ # Several other minor bug fixes, memory leak fixes, and code cleanup.
+   A full list of changes is available using:
+
+     svn log -r5762:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/tags/release/mpich2-1.3
+
+     ... or at the following link:
+
+     https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/tags/release/mpich2-1.3?action=follow_copy&rev=HEAD&stop_rev=5762&mode=follow_copy
+
+
+===============================================================================
+                               Changes in 1.2.1
+===============================================================================
+
+ # OVERALL: Improved support for fine-grained multithreading.
+
+ # OVERALL: Improved integration with Valgrind for debugging builds of MPICH2.
+
+ # PM/PMI: Initial support for hwloc process-core binding library in
+   Hydra.
+
+ # PM/PMI: Updates to the PMI-2 code to match the PMI-2 API and
+   wire-protocol draft.
+
+ # Several other minor bug fixes, memory leak fixes, and code cleanup.
+   A full list of changes is available using:
+
+     svn log -r5425:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/tags/release/mpich2-1.2.1
+
+     ... or at the following link:
+
+     https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/tags/release/mpich2-1.2.1?action=follow_copy&rev=HEAD&stop_rev=5425&mode=follow_copy
+
+
+===============================================================================
+                               Changes in 1.2
+===============================================================================
+
+ # OVERALL: Support for MPI-2.2
+
+ # OVERALL: Several fixes to Nemesis/MX.
+
+ # WINDOWS: Performance improvements to Nemesis/windows.
+
+ # PM/PMI: Scalability and performance improvements to Hydra using
+   PMI-1.1 process-mapping features.
+
+ # PM/PMI: Support for process-binding for hyperthreading enabled
+   systems in Hydra.
+
+ # PM/PMI: Initial support for PBS as a resource management kernel in
+   Hydra.
+
+ # PM/PMI: PMI2 client code is now officially included in the release.
+
+ # TEST SUITE: Support to run the MPICH2 test suite through valgrind.
+
+ # Several other minor bug fixes, memory leak fixes, and code cleanup.
+   A full list of changes is available using:
+
+     svn log -r5025:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/tags/release/mpich2-1.2
+
+     ... or at the following link:
+
+     https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/tags/release/mpich2-1.2?action=follow_copy&rev=HEAD&stop_rev=5025&mode=follow_copy
+
+
+===============================================================================
+                               Changes in 1.1.1p1
+===============================================================================
+
+ - OVERALL: Fixed an invalid read in the dataloop code for zero count types.
+
+ - OVERALL: Fixed several bugs in ch3:nemesis:mx (tickets #744,#760;
+   also change r5126).
+
+ - BUILD SYSTEM: Several fixes for functionality broken in 1.1.1 release,
+   including MPICH2LIB_xFLAGS and extra libraries living in $LIBS instead of
+   $LDFLAGS.  Also, '-lpthread' should no longer be duplicated in link lines.
+
+ - BUILD SYSTEM: MPICH2 shared libraries are now compatible with glibc versioned
+   symbols on Linux, such as those present in the MX shared libraries.
+
+ - BUILD SYSTEM: Minor tweaks to improve compilation under the nvcc CUDA
+   compiler.
+
+ - PM/PMI: Fix mpd incompatibility with python2.3 introduced in mpich2-1.1.1.
+
+ - PM/PMI: Several fixes to hydra, including memory leak fixes and process
+   binding issues.
+
+ - TEST SUITE: Correct invalid arguments in the coll2 and coll3 tests.
+
+ - Several other minor bug fixes, memory leak fixes, and code cleanup.  A full
+   list of changes is available using:
+
+     svn log -r5032:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/tags/release/mpich2-1.1.1p1
+
+     ... or at the following link:
+
+     https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/tags/release/mpich2-1.1.1p1?action=follow_copy&rev=HEAD&stop_rev=5032&mode=follow_copy
+
+
+===============================================================================
+                               Changes in 1.1.1
+===============================================================================
+
+ # OVERALL: Improved support for Boost MPI.
+
+ # PM/PMI: Significantly improved time taken by MPI_Init with Nemesis and MPD on
+   large numbers of processes.
+
+ # PM/PMI: Improved support for hybrid MPI-UPC program launching with
+   Hydra.
+
+ # PM/PMI: Improved support for process-core binding with Hydra.
+
+ # PM/PMI: Preliminary support for PMI-2. Currently supported only
+   with Hydra.
+
+ # Many other bug fixes, memory leak fixes and code cleanup. A full
+   list of changes is available using:
+
+  svn log -r4655:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/tags/release/mpich2-1.1.1
+
+  ... or at the following link:
+
+  https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/tags/release/mpich2-1.1.1?action=follow_copy&rev=HEAD&stop_rev=4655&mode=follow_copy
+
+
+===============================================================================
+                               Changes in 1.1
+===============================================================================
+
+- OVERALL: Added MPI 2.1 support.
+
+- OVERALL: Nemesis is now the default configuration channel with a
+  completely new TCP communication module.
+
+- OVERALL: Windows support for nemesis.
+
+- OVERALL: Added a new Myrinet MX network module for nemesis.
+
+- OVERALL: Initial support for shared-memory aware collective
+  communication operations.  Currently MPI_Bcast, MPI_Reduce, MPI_Allreduce,
+  and MPI_Scan.
+
+- OVERALL: Improved handling of MPI Attributes.
+
+- OVERALL: Support for BlueGene/P through the DCMF library (thanks to
+  IBM for the patch).
+
+- OVERALL: Experimental support for fine-grained multithreading
+
+- OVERALL: Added dynamic processes support for Nemesis.
+
+- OVERALL: Added automatic as well as statically runtime configurable
+  receive timeout variation for MPD (thanks to OSU for the patch).
+
+- OVERALL: Improved performance for MPI_Allgatherv, MPI_Gatherv, and MPI_Alltoall.
+
+- PM/PMI: Initial support for the new Hydra process management
+  framework (current support is for ssh, rsh, fork and a preliminary
+  version of slurm).
+
+- ROMIO: Added support for MPI_Type_create_resized and
   MPI_Type_create_indexed_block datatypes in ROMIO.
 
-- Many other bug fixes, memory leak fixes and code cleanup. A full
-list of changes is available using:
-  https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/branches/release/MPICH2_1_0_8?rev=HEAD&stop_rev=887&mode=follow_copy
-    or
-  svn log -r887:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/branches/release/MPICH2_1_0_8
+- ROMIO: Optimized Lustre ADIO driver (thanks to Weikuan Yu for
+  initial work and Sun for further improvements).
 
-- Autoconf-2.62 instead of 2.59 is used in this release.
-  The install directory structure is slightly modified to conform to
-  autoconf-2.62.
+- Many other bug fixes, memory leak fixes and code cleanup. A full
+  list of changes is available using:
+
+  svn log -r813:HEAD https://svn.mcs.anl.gov/repos/mpi/mpich2/tags/release/mpich2-1.1
+
+  ... or at the following link:
+
+  https://trac.mcs.anl.gov/projects/mpich2/log/mpich2/tags/release/mpich2-1.1?action=follow_copy&rev=HEAD&stop_rev=813&mode=follow_copy
 
 
 ===============================================================================

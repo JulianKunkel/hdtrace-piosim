@@ -13,9 +13,9 @@
 #    CXX                - C compiler
 #    WRAPPER_CXXFLAGS      - Any special flags needed to compile 
 #    WRAPPER_LDFLAGS       - Any special flags needed to link
+#    WRAPPER_LIBS          - Any special libraries needed in order to link
 #    MPILIBNAME         - Name of the MPI library
 #    MPICXXLIBNAME      - Name of the C++ binding part of the MPI library
-#    MPI_OTHERLIBS      - Other libraries needed in order to link 
 #    
 # We assume that (a) the C++ compiler can both compile and link programs
 #
@@ -33,19 +33,19 @@ exec_prefix=@exec_prefix@
 sysconfdir=@sysconfdir@
 includedir=@includedir@
 libdir=@libdir@
-#
+
 # Default settings for compiler, flags, and libraries
 CXX="@CXX@"
 CXX_LINKPATH_SHL="@CXX_LINKPATH_SHL@"
-WRAPPER_CXXFLAGS="@WRAPPER_CXXFLAGS@"
-WRAPPER_LDFLAGS="@WRAPPER_LDFLAGS@"
+CXXFLAGS="@WRAPPER_CXXFLAGS@"
+LDFLAGS="@WRAPPER_LDFLAGS@"
+LIBS="@WRAPPER_LIBS@"
 MPILIBNAME="@MPILIBNAME@"
 PMPILIBNAME="@PMPILIBNAME@"
 MPICXXLIBNAME="@MPICXXLIBNAME@"
-MPI_OTHERLIBS="@LIBS@"
 NEEDSPLIB="@NEEDSPLIB@"
-# MPIVERSION is the version of the MPICH2 library that mpicxx is intended for
-MPIVERSION="@VERSION@"
+# MPICH2_VERSION is the version of the MPICH2 library that mpicxx is intended for
+MPICH2_VERSION="@MPICH2_VERSION@"
 #
 # Internal variables
 # Show is set to echo to cause the compilation command to be echoed instead 
@@ -62,7 +62,10 @@ Show=
 # (e.g., "CC -64" becomes "CC--64", that file is sources, allowing other
 # changes to the compilation environment.  See the variables used by the 
 # script (defined above)
+# Added MPICH_CXX_OLD, MPICH_CXX can be used to prefix CXX
+# with external utility, e.g. setenv MPICH_CXX 'eval linkcache $MPICH_CXX_OLD'
 if [ -n "$MPICH_CXX" ] ; then
+    MPICH_CXX_OLD="$CXX"
     CXX="$MPICH_CXX"
     CXXname=`echo $CXX | sed 's/ /-/g'`
     if [ -s $sysconfdir/mpicxx-$CXXname.conf ] ; then
@@ -139,7 +142,7 @@ for arg in "$@" ; do
     ;;
     -v)
     # Pass this argument to the compiler as well.
-    echo "mpicxx for $MPIVERSION"
+    echo "mpicxx for MPICH2 version $MPICH2_VERSION"
     # if there is only 1 argument, it must be -v.
     if [ "$#" -eq "1" ] ; then
         linking=no
@@ -160,6 +163,11 @@ for arg in "$@" ; do
     profConf="mpe_$profConf"
     addarg=no
     # Loading the profConf file is handled below
+    ;;
+    -nativelinking)
+    # Internal option to use native compiler for linking without MPI libraries
+    nativelinking=yes
+    addarg=no
     ;;
     -help)
     NC=`echo "$CXX" | sed 's%\/% %g' | awk '{print $NF}' -`
@@ -204,12 +212,7 @@ cxxlibs=
 if [ "$MPICXXLIBNAME" != "$MPILIBNAME" ] ; then
     cxxlibs="-l$MPICXXLIBNAME"
 fi
-#
-# Init with the ones needed by MPI
-CXXFLAGS="$WRAPPER_CXXFLAGS"
-LDFLAGS="$WRAPPER_LDFLAGS"
-#
-#
+
 # Handle the case of a profile switch
 if [ -n "$profConf" ] ; then
     profConffile=
@@ -244,8 +247,23 @@ if [ "$linking" = yes ] ; then
         # Prepend the path for the shared libraries to the library list
         shllibpath="$CXX_LINKPATH_SHL$libdir"
     fi
-    $Show $CXX $CXXFLAGS $LDFLAGS "${allargs[@]}" -I$includedir -L$libdir $shllibpath $cxxlibs $mpilibs $MPI_OTHERLIBS
-    rc=$?
+
+    path_list=""
+    for path in "-L$libdir" ; do
+	found_path=0
+	for p in $path_list ; do
+	    if [ "$path" = "$p" ] ; then found_path=1 ; break ; fi
+	done
+	if [ "$found_path" = "0" ] ; then path_list="$path_list $path" ; fi
+    done
+
+    if [ "$nativelinking" = yes ] ; then
+        $Show $CXX $CXXFLAGS $LDFLAGS "${allargs[@]}" -I$includedir
+        rc=$?
+    else
+        $Show $CXX $CXXFLAGS $LDFLAGS "${allargs[@]}" -I$includedir ${path_list} $shllibpath $cxxlibs $mpilibs $LIBS
+        rc=$?
+    fi
 else
     $Show $CXX $CXXFLAGS "${allargs[@]}" -I$includedir
     rc=$?

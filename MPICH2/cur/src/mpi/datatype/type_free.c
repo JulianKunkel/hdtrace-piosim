@@ -23,13 +23,25 @@
 #undef MPI_Type_free
 #define MPI_Type_free PMPI_Type_free
 
+#undef FUNCNAME
+#define FUNCNAME MPIR_Type_free_impl
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
+void MPIR_Type_free_impl(MPI_Datatype *datatype)
+{
+    MPID_Datatype *datatype_ptr = NULL;
+
+    MPID_Datatype_get_ptr( *datatype, datatype_ptr );
+    MPID_Datatype_release(datatype_ptr);
+    *datatype = MPI_DATATYPE_NULL;
+}
+
 #endif
 
 #undef FUNCNAME
 #define FUNCNAME MPI_Type_free
 #undef FCNAME
-#define FCNAME "MPI_Type_free"
-
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 /*@
     MPI_Type_free - Frees the datatype
 
@@ -64,7 +76,7 @@ int MPI_Type_free(MPI_Datatype *datatype)
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("datatype");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_TYPE_FREE);
     
     /* Validate parameters, especially handles needing to be converted */
@@ -124,9 +136,8 @@ int MPI_Type_free(MPI_Datatype *datatype)
 #   endif /* HAVE_ERROR_CHECKING */
 
     /* ... body of routine ...  */
-    
-    MPID_Datatype_release(datatype_ptr);
-    *datatype = MPI_DATATYPE_NULL;
+
+    MPIR_Type_free_impl(datatype);
 
     /* ... end of body of routine ... */
 
@@ -134,7 +145,7 @@ int MPI_Type_free(MPI_Datatype *datatype)
   fn_exit:
 #endif
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_TYPE_FREE);
-    MPIU_THREAD_SINGLE_CS_EXIT("datatype");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
     /* --BEGIN ERROR HANDLING-- */

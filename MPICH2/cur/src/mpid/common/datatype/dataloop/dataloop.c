@@ -29,7 +29,7 @@
  *
  * OPTIMIZATIONS:
  *
- * There are spots in the code with OPT tags that indicate where we could 
+ * There are spots in the code with OPT tags that indicate where we could
  * optimize particular calculations or avoid certain checks.
  *
  * NOTES:
@@ -107,14 +107,14 @@ void PREPEND_PREFIX(Dataloop_copy)(void *dest,
 #endif
 
     /* copy region first */
-    memcpy(dest, src, size);
+    DLOOP_Memcpy(dest, src, size);
 
     /* Calculate difference in starting locations. DLOOP_Dataloop_update()
      * then traverses the new structure and updates internal pointers by
      * adding this difference to them. This way we can just copy the
      * structure, including pointers, in one big block.
      */
-    ptrdiff = (char *) dest - (char *) src;
+    ptrdiff = (DLOOP_Offset) ((char *) dest - (char *) src);
 
     /* traverse structure updating pointers */
     PREPEND_PREFIX(Dataloop_update)(dest, ptrdiff);
@@ -150,53 +150,111 @@ void PREPEND_PREFIX(Dataloop_update)(DLOOP_Dataloop *dataloop,
 	     *
 	     * However, some compilers spit out warnings about casting on the
 	     * LHS, so we get this much nastier form instead (using common
-	     * struct for contig and vector): 
+	     * struct for contig and vector):
 	     */
-	    dataloop->loop_params.cm_t.dataloop = (DLOOP_Dataloop *) 
-		((char *) dataloop->loop_params.cm_t.dataloop + ptrdiff);
 
-	    if (!(dataloop->kind & DLOOP_FINAL_MASK))
+	    if (!(dataloop->kind & DLOOP_FINAL_MASK)) {
+		DLOOP_Assert(dataloop->loop_params.cm_t.dataloop);
+
+		DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.cm_t.dataloop + ptrdiff);
+	    
+		dataloop->loop_params.cm_t.dataloop =
+		    (DLOOP_Dataloop *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		    (DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.cm_t.dataloop + ptrdiff);
+
 		PREPEND_PREFIX(Dataloop_update)(dataloop->loop_params.cm_t.dataloop, ptrdiff);
+	    }
 	    break;
 
 	case DLOOP_KIND_BLOCKINDEXED:
-	    dataloop->loop_params.bi_t.offset_array = (DLOOP_Offset *)
-		((char *) dataloop->loop_params.bi_t.offset_array + ptrdiff);
-	    dataloop->loop_params.bi_t.dataloop = (DLOOP_Dataloop *)
-		((char *) dataloop->loop_params.bi_t.dataloop + ptrdiff);
+	    DLOOP_Assert(dataloop->loop_params.bi_t.offset_array);
 
-	    if (!(dataloop->kind & DLOOP_FINAL_MASK))
+	    DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.bi_t.offset_array + ptrdiff);
+
+	    dataloop->loop_params.bi_t.offset_array =
+		(DLOOP_Offset *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.bi_t.offset_array + ptrdiff);
+
+	    if (!(dataloop->kind & DLOOP_FINAL_MASK)) {
+		DLOOP_Assert(dataloop->loop_params.bi_t.dataloop);
+
+		DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.bi_t.dataloop + ptrdiff);
+
+		dataloop->loop_params.bi_t.dataloop =
+		    (DLOOP_Dataloop *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		    (DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.bi_t.dataloop + ptrdiff);
+
 		PREPEND_PREFIX(Dataloop_update)(dataloop->loop_params.bi_t.dataloop, ptrdiff);
+	    }
 	    break;
 
 	case DLOOP_KIND_INDEXED:
-	    dataloop->loop_params.i_t.blocksize_array = (DLOOP_Count *)
-		((char *) dataloop->loop_params.i_t.blocksize_array + ptrdiff);
-	    dataloop->loop_params.i_t.offset_array = (DLOOP_Offset *)
-		((char *) dataloop->loop_params.i_t.offset_array + ptrdiff);
-	    dataloop->loop_params.i_t.dataloop = (DLOOP_Dataloop *)
-		((char *) dataloop->loop_params.i_t.dataloop + ptrdiff);
+	    DLOOP_Assert(dataloop->loop_params.i_t.blocksize_array);
 
-	    if (!(dataloop->kind & DLOOP_FINAL_MASK))
+	    DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.i_t.blocksize_array + ptrdiff);
+
+	    dataloop->loop_params.i_t.blocksize_array =
+		(DLOOP_Count *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.i_t.blocksize_array + ptrdiff);
+
+	    DLOOP_Assert(dataloop->loop_params.i_t.offset_array);
+
+	    DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.i_t.offset_array + ptrdiff);
+
+	    dataloop->loop_params.i_t.offset_array =
+		(DLOOP_Offset *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.i_t.offset_array + ptrdiff);
+
+	    if (!(dataloop->kind & DLOOP_FINAL_MASK)) {
+		DLOOP_Assert(dataloop->loop_params.i_t.dataloop);
+
+		DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.i_t.dataloop + ptrdiff);
+
+		dataloop->loop_params.i_t.dataloop =
+		    (DLOOP_Dataloop *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		    (DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.i_t.dataloop + ptrdiff);
+
 		PREPEND_PREFIX(Dataloop_update)(dataloop->loop_params.i_t.dataloop, ptrdiff);
+	    }
 	    break;
 
 	case DLOOP_KIND_STRUCT:
-	    dataloop->loop_params.s_t.blocksize_array = (DLOOP_Count *)
-		((char *) dataloop->loop_params.s_t.blocksize_array + ptrdiff);
-	    dataloop->loop_params.s_t.offset_array = (DLOOP_Offset *)
-		((char *) dataloop->loop_params.s_t.offset_array + ptrdiff);
-	    dataloop->loop_params.s_t.dataloop_array = (DLOOP_Dataloop **)
-		((char *) dataloop->loop_params.s_t.dataloop_array + ptrdiff);
+	    DLOOP_Assert(dataloop->loop_params.s_t.blocksize_array);
+
+	    DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.s_t.blocksize_array + ptrdiff);
+
+	    dataloop->loop_params.s_t.blocksize_array =
+		(DLOOP_Count *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.s_t.blocksize_array + ptrdiff);
+
+	    DLOOP_Assert(dataloop->loop_params.s_t.offset_array);
+
+	    DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.s_t.offset_array + ptrdiff);
+
+	    dataloop->loop_params.s_t.offset_array =
+		(DLOOP_Offset *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.s_t.offset_array + ptrdiff);
+
+	    if (dataloop->kind & DLOOP_FINAL_MASK) break;
+
+	    DLOOP_Assert(dataloop->loop_params.s_t.dataloop_array);
+
+	    DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.s_t.dataloop_array + ptrdiff);
+
+	    dataloop->loop_params.s_t.dataloop_array =
+		(DLOOP_Dataloop **) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) dataloop->loop_params.s_t.dataloop_array + ptrdiff);
 
 	    /* fix the N dataloop pointers too */
 	    looparray = dataloop->loop_params.s_t.dataloop_array;
 	    for (i=0; i < dataloop->loop_params.s_t.count; i++) {
-		looparray[i] = (DLOOP_Dataloop *)
-		    ((char *) looparray[i] + ptrdiff);
-	    }
+		DLOOP_Assert(looparray[i]);
 
-	    if (dataloop->kind & DLOOP_FINAL_MASK) break;
+		DLOOP_Ensure_Offset_fits_in_pointer(DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) looparray[i] + ptrdiff);
+
+		looparray[i] = (DLOOP_Dataloop *) DLOOP_OFFSET_CAST_TO_VOID_PTR
+		    (DLOOP_VOID_PTR_CAST_TO_OFFSET (char *) looparray[i] + ptrdiff);
+	    }
 
 	    for (i=0; i < dataloop->loop_params.s_t.count; i++) {
 		PREPEND_PREFIX(Dataloop_update)(looparray[i], ptrdiff);
@@ -552,7 +610,7 @@ void PREPEND_PREFIX(Dataloop_dup)(DLOOP_Dataloop *old_loop,
 
     DLOOP_Assert(old_loop != NULL);
     DLOOP_Assert(old_loop_sz > 0);
-    
+
     new_loop = (DLOOP_Dataloop *) DLOOP_Malloc(old_loop_sz);
     if (new_loop == NULL) {
 	*new_loop_p = NULL;
@@ -577,19 +635,18 @@ DLOOP_Offset
 PREPEND_PREFIX(Dataloop_stream_size)(struct DLOOP_Dataloop *dl_p,
 				     DLOOP_Offset (*sizefn)(DLOOP_Type el_type))
 {
-    DLOOP_Offset ret;
     DLOOP_Offset tmp_sz, tmp_ct = 1;
- 
+
     for (;;)
     {
         if ((dl_p->kind & DLOOP_KIND_MASK) == DLOOP_KIND_STRUCT)
         {
             int i;
-            
+
             tmp_sz = 0;
             for (i = 0; i < dl_p->loop_params.s_t.count; i++)
             {
-                tmp_sz += dl_p->loop_params.s_t.blocksize_array[i] *
+                tmp_sz += (DLOOP_Offset)(dl_p->loop_params.s_t.blocksize_array[i]) *
                     PREPEND_PREFIX(Dataloop_stream_size)(dl_p->loop_params.s_t.dataloop_array[i], sizefn);
             }
             return tmp_sz * tmp_ct;
@@ -597,36 +654,38 @@ PREPEND_PREFIX(Dataloop_stream_size)(struct DLOOP_Dataloop *dl_p,
 
         switch (dl_p->kind & DLOOP_KIND_MASK) {
         case DLOOP_KIND_CONTIG:
-            tmp_ct *= dl_p->loop_params.c_t.count;
+            tmp_ct *= (DLOOP_Offset)(dl_p->loop_params.c_t.count);
 #ifdef DLOOP_DEBUG_SIZE
-            DLOOP_dbg_printf("stream_size: contig: ct = %d; new tot_ct = %d\n",
-                             (int) dl_p->loop_params.c_t.count, (int) tmp_ct);
+            DLOOP_dbg_printf("stream_size: contig: ct = %d; new tot_ct = " DLOOP_OFFSET_FMT_DEC_SPEC "\n",
+                             (int) dl_p->loop_params.c_t.count, (DLOOP_Offset) tmp_ct);
 #endif
             break;
         case DLOOP_KIND_VECTOR:
-            tmp_ct *= dl_p->loop_params.v_t.count * dl_p->loop_params.v_t.blocksize;
+            tmp_ct *= (DLOOP_Offset)(dl_p->loop_params.v_t.count) *
+		      (DLOOP_Offset)(dl_p->loop_params.v_t.blocksize);
 #ifdef DLOOP_DEBUG_SIZE
-            DLOOP_dbg_printf("stream_size: vector: ct = %d; blk = %d; new tot_ct = %d\n",
+            DLOOP_dbg_printf("stream_size: vector: ct = %d; blk = %d; new tot_ct = " DLOOP_OFFSET_FMT_DEC_SPEC "\n",
                              (int) dl_p->loop_params.v_t.count,
                              (int) dl_p->loop_params.v_t.blocksize,
-                             (int) tmp_ct);
+                             (DLOOP_Offset) tmp_ct);
 #endif
             break;
         case DLOOP_KIND_BLOCKINDEXED:
-            tmp_ct *= dl_p->loop_params.bi_t.count * dl_p->loop_params.bi_t.blocksize;
+            tmp_ct *= (DLOOP_Offset)(dl_p->loop_params.bi_t.count) *
+		      (DLOOP_Offset)(dl_p->loop_params.bi_t.blocksize);
 #ifdef DLOOP_DEBUG_SIZE
-            DLOOP_dbg_printf("stream_size: blkindexed: blks = %d; new tot_ct = %d\n",
+            DLOOP_dbg_printf("stream_size: blkindexed: blks = %d; new tot_ct = " DLOOP_OFFSET_FMT_DEC_SPEC "\n",
                              (int) dl_p->loop_params.bi_t.count *
                              (int) dl_p->loop_params.bi_t.blocksize,
-                             (int) tmp_ct);
+                             (DLOOP_Offset) tmp_ct);
 #endif
             break;
         case DLOOP_KIND_INDEXED:
-            tmp_ct *= dl_p->loop_params.i_t.total_blocks;
+            tmp_ct *= (DLOOP_Offset)(dl_p->loop_params.i_t.total_blocks);
 #ifdef DLOOP_DEBUG_SIZE
-            DLOOP_dbg_printf("stream_size: contig: blks = %d; new tot_ct = %d\n",
+            DLOOP_dbg_printf("stream_size: contig: blks = %d; new tot_ct = " DLOOP_OFFSET_FMT_DEC_SPEC "\n",
                              (int) dl_p->loop_params.i_t.total_blocks,
-                             (int) tmp_ct);
+                             (DLOOP_Offset) tmp_ct);
 #endif
             break;
         default:
@@ -669,29 +728,29 @@ void PREPEND_PREFIX(Dataloop_print)(struct DLOOP_Dataloop *dataloop,
         return;
     }
 
-    DLOOP_dbg_printf("loc=%p, treedepth=%d, kind=%d, el_extent=%ld\n",
-		     dataloop, (int) depth, (int) dataloop->kind, (long) dataloop->el_extent);
+    DLOOP_dbg_printf("loc=%p, treedepth=%d, kind=%d, el_extent=" DLOOP_OFFSET_FMT_DEC_SPEC "\n",
+		     dataloop, (int) depth, (int) dataloop->kind, (DLOOP_Offset) dataloop->el_extent);
     switch(dataloop->kind & DLOOP_KIND_MASK) {
 	case DLOOP_KIND_CONTIG:
-	    DLOOP_dbg_printf("\tCONTIG: count=%d, datatype=%p\n", 
-			     (int) dataloop->loop_params.c_t.count, 
+	    DLOOP_dbg_printf("\tCONTIG: count=%d, datatype=%p\n",
+			     (int) dataloop->loop_params.c_t.count,
 			     dataloop->loop_params.c_t.dataloop);
 	    if (!(dataloop->kind & DLOOP_FINAL_MASK))
 		PREPEND_PREFIX(Dataloop_print)(dataloop->loop_params.c_t.dataloop, depth+1);
 	    break;
 	case DLOOP_KIND_VECTOR:
-	    DLOOP_dbg_printf("\tVECTOR: count=%d, blksz=%d, stride=%d, datatype=%p\n",
-			     (int) dataloop->loop_params.v_t.count, 
-			     (int) dataloop->loop_params.v_t.blocksize, 
-			     (int) dataloop->loop_params.v_t.stride,
+	    DLOOP_dbg_printf("\tVECTOR: count=%d, blksz=%d, stride=" DLOOP_OFFSET_FMT_DEC_SPEC ", datatype=%p\n",
+			     (int) dataloop->loop_params.v_t.count,
+			     (int) dataloop->loop_params.v_t.blocksize,
+			     (DLOOP_Offset) dataloop->loop_params.v_t.stride,
 			     dataloop->loop_params.v_t.dataloop);
 	    if (!(dataloop->kind & DLOOP_FINAL_MASK))
 		PREPEND_PREFIX(Dataloop_print)(dataloop->loop_params.v_t.dataloop, depth+1);
 	    break;
 	case DLOOP_KIND_BLOCKINDEXED:
 	    DLOOP_dbg_printf("\tBLOCKINDEXED: count=%d, blksz=%d, datatype=%p\n",
-			     (int) dataloop->loop_params.bi_t.count, 
-			     (int) dataloop->loop_params.bi_t.blocksize, 
+			     (int) dataloop->loop_params.bi_t.count,
+			     (int) dataloop->loop_params.bi_t.blocksize,
 			     dataloop->loop_params.bi_t.dataloop);
 	    /* print out offsets later */
 	    if (!(dataloop->kind & DLOOP_FINAL_MASK))
@@ -712,7 +771,7 @@ void PREPEND_PREFIX(Dataloop_print)(struct DLOOP_Dataloop *dataloop,
 		DLOOP_dbg_printf("\t\t%d\n", (int) dataloop->loop_params.s_t.blocksize_array[i]);
 	    DLOOP_dbg_printf("\toffsets:\n");
 	    for (i=0; i < dataloop->loop_params.s_t.count; i++)
-		DLOOP_dbg_printf("\t\t%d\n", (int) dataloop->loop_params.s_t.offset_array[i]);
+		DLOOP_dbg_printf("\t\t" DLOOP_OFFSET_FMT_DEC_SPEC "\n", (DLOOP_Offset) dataloop->loop_params.s_t.offset_array[i]);
 	    DLOOP_dbg_printf("\tdatatypes:\n");
 	    for (i=0; i < dataloop->loop_params.s_t.count; i++)
 		DLOOP_dbg_printf("\t\t%p\n", dataloop->loop_params.s_t.dataloop_array[i]);

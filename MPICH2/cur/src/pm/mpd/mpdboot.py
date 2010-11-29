@@ -5,10 +5,10 @@
 #
 
 """
-usage:  mpdboot --totalnum=<n_to_start> [--file=<hostsfile>]  [--help] \ 
-                [--rsh=<rshcmd>] [--user=<user>] [--mpd=<mpdcmd>]      \ 
-                [--loccons] [--remcons] [--shell] [--verbose] [-1]     \
-                [--ncpus=<ncpus>] [--ifhn=<ifhn>] [--chkup] [--chkuponly] \
+usage:  mpdboot --totalnum=<n_to_start> [--file=<hostsfile>]  [--help]        \ 
+                [--rsh=<rshcmd>] [--user=<user>] [--mpd=<mpdcmd>]             \ 
+                [--loccons] [--remcons] [--shell] [--verbose] [-1]            \ 
+                [--ncpus=<ncpus>] [--ifhn=<ifhn>] [--chkup] [--chkuponly]     \ 
                 [--maxbranch=<maxbranch>]
  or, in short form, 
         mpdboot -n n_to_start [-f <hostsfile>] [-h] [-r <rshcmd>] [-u <user>] \ 
@@ -43,6 +43,12 @@ usage:  mpdboot --totalnum=<n_to_start> [--file=<hostsfile>]  [--help] \
 --maxbranch indicates the maximum number of mpds to enter the ring under another;
   the default is 4
 """
+
+# workaround to suppress deprecated module warnings in python2.6
+# see https://trac.mcs.anl.gov/projects/mpich2/ticket/362 for tracking
+import warnings
+warnings.filterwarnings('ignore', '.*the popen2 module is deprecated.*', DeprecationWarning)
+
 from time import ctime
 __author__ = "Ralph Butler and Rusty Lusk"
 __date__ = ctime()
@@ -59,7 +65,7 @@ from select   import select, error
 from signal   import SIGKILL
 from commands import getoutput, getstatusoutput
 from mpdlib   import mpd_set_my_id, mpd_get_my_username, mpd_same_ips, \
-                     mpd_get_ranks_in_binary_tree, mpd_print, MPDSock
+                     mpd_get_ranks_in_binary_tree, mpd_print, MPDSock, MPDParmDB
 
 global myHost, fullDirName, rshCmd, user, mpdCmd, debug, verbose
 
@@ -194,6 +200,12 @@ def mpdboot():
         else:
             print 'mpdboot: unrecognized argument:', argv[argidx]
             usage()
+
+    # Fix for tt#662, make sure the config file is available to avoid some very
+    # confusing error messages.  We don't actually need these values here.
+    parmdb = MPDParmDB()
+    parmdb.get_parms_from_rcfile(parmsToOverride={}, errIfMissingFile=1)
+
     if debug:
         print 'debug: starting'
 
@@ -268,6 +280,10 @@ def mpdboot():
     except:
         pass
 
+    if environ.has_key('MPD_TMPDIR'):
+        tmpdir = environ['MPD_TMPDIR']
+    else:
+        tmpdir = ''
     if myIfhn:
         ifhn = '--ifhn=%s' % (myIfhn)
     else:
@@ -275,6 +291,8 @@ def mpdboot():
     hostsAndInfo[0]['entry_host'] = ''
     hostsAndInfo[0]['entry_port'] = ''
     mpdArgs = '%s %s --ncpus=%d' % (localConArg,ifhn,myNcpus)
+    if tmpdir:
+        mpdArgs += ' --tmpdir=%s' % (tmpdir)
     (mpdPID,mpdFD) = launch_one_mpd(0,0,mpdArgs,hostsAndInfo)
     fd2idx = {mpdFD : 0}
 
@@ -309,6 +327,8 @@ def mpdboot():
                 if ifhn:
                     ifhn = '--ifhn=%s' % (ifhn)
                 mpdArgs = '%s -h %s -p %s %s --ncpus=%d' % (remoteConArg,entryHost,entryPort,ifhn,myNcpus)
+                if tmpdir:
+                    mpdArgs += ' --tmpdir=%s' % (tmpdir)
                 (mpdPID,mpdFD) = launch_one_mpd(idxToStart,currRoot,mpdArgs,hostsAndInfo)
                 numStarting += 1
                 numUnderCurrRoot += 1

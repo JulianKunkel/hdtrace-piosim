@@ -160,38 +160,6 @@ PMPI_LOCAL int MPIR_ChooseFactors( int nfactors, Factors factors[],
 {
     int i, j;
 
-#if 0
-    int nodes_needed = nnodes;
-    int target_size = nodes_needed / needed;
-    int factor;
-    /* First, distribute the factors into the chosen array */
-    j = 0;
-    for (i=0; i<needed; i++) {
-	if (j >= nfactors) break;
-	if (i == needed-1) {
-	    /* Dump all of the remaining factors into this
-	       entry */
-	    factor = 1;
-	    while (j < nfactors) {
-		factor *= factors[j].val;
-		if (--factors[j].cnt == 0) j++;
-	    }
-	}
-	else {
-	    /* Get the current target size */
-	    factor = 1;
-	    while (j < nfactors && factor < target_size) {
-		factor *= factors[j].val;
-		if (--factors[j].cnt == 0) j++;
-	    }
-	}
-	chosen[i] = factor;
-	nodes_needed /= factor;
-	target_size = nodes_needed / (needed - i);
-    }
-    /* finish up */
-    for (; i<needed; i++) chosen[i] = 1;
-#else
     /* Initialize the chosen factors to all 1 */
     for (i=0; i<needed; i++) {
 	chosen[i] = 1;
@@ -227,7 +195,6 @@ PMPI_LOCAL int MPIR_ChooseFactors( int nfactors, Factors factors[],
 	    if (i >= needed) i = 0;
 	}
     }
-#endif
 
     /* Second, sort the chosen array in non-increasing order.  Use
        a simple bubble sort because the number of elements is always small */
@@ -336,13 +303,6 @@ int MPIR_Dims_create( int nnodes, int ndims, int *dims )
 		dims[i] = chosen[j++];
 	    }
 	}
-#if 0
-	/* Any remaining unset dims are set to one */
-	for (i++;i<ndims; i++) {
-	    if (dims[i] == 0) 
-		dims[i] = 1;
-	}
-#endif
     }
     else {
 	/* We must combine some of the factors */
@@ -453,6 +413,7 @@ int MPI_Dims_create(int nnodes, int ndims, int *dims)
     else {
 	mpi_errno = MPIR_Dims_create( nnodes, ndims, dims );
     }
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
     /* ... end of body of routine ... */
 
   fn_exit:
@@ -460,16 +421,16 @@ int MPI_Dims_create(int nnodes, int ndims, int *dims)
     return mpi_errno;
 
     /* --BEGIN ERROR HANDLING-- */
-#   ifdef HAVE_ERROR_CHECKING
   fn_fail:
+#   ifdef HAVE_ERROR_CHECKING
     {
 	mpi_errno = MPIR_Err_create_code(
 	    mpi_errno, MPIR_ERR_RECOVERABLE, FCNAME, __LINE__, MPI_ERR_OTHER, 
 	    "**mpi_dims_create",
 	    "**mpi_dims_create %d %d %p", nnodes, ndims, dims);
     }
+#   endif
     mpi_errno = MPIR_Err_return_comm( NULL, FCNAME, mpi_errno );
     goto fn_exit;
-#   endif
     /* --END ERROR HANDLING-- */
 }

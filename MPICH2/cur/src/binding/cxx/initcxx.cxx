@@ -388,155 +388,249 @@ void Op::Init( User_function *f, bool commute )
 	MPIR_Op_set_cxx( the_real_op, (mpircallback) MPIR_Call_op_fn );
 
     }
+#include "mpi_attr.h"
+#include "mpi_lang.h"
+static
+int
+MPIR_Comm_delete_attr_cxx_proxy(
+    MPI_Comm_delete_attr_function* user_function,
+    MPI_Comm comm,
+    int keyval,
+    MPIR_AttrType attrib_type,
+    void* attrib,
+    void* extra_state
+    )
+{
+    void *value = NULL;
+    /* Make sure that the attribute value is delivered as a pointer */
+    if(MPIR_ATTR_KIND(attrib_type) == MPIR_ATTR_KIND(MPIR_ATTR_INT)){
+        value = &attrib;
+    }
+    else{
+        value = attrib;
+    }
+    MPI::Comm::Delete_attr_function* f = (MPI::Comm::Delete_attr_function*)user_function;
+    
+    int ttype;
+    MPI_Topo_test( comm, &ttype );
+    if (ttype == MPI_UNDEFINED)
+    {
+        MPI_Comm_test_inter( comm, &ttype );
+        if (ttype)
+        {
+            MPI::Intercomm c = comm;
+            return f( c, keyval, value, extra_state );
+        }
+        else
+        {
+            MPI::Intracomm c = comm;
+            return f( c, keyval, value, extra_state );
+        }
+    }
+    else if (ttype == MPI_CART)
+    {
+        MPI::Cartcomm c = comm;
+        return f( c, keyval, value, extra_state );
+    }
+    else
+    {
+        MPI::Graphcomm c = comm;
+        return f( c, keyval, value, extra_state );
+    }
+}
 
-#include "mpihandlemem.h"
-extern "C" int MPIR_Call_delfn( int handleType, int handle, int keyval,
-				  void *value, void *extra_state, 
-				  void (*f)(void) )
+static
+int
+MPIR_Comm_copy_attr_cxx_proxy(
+    MPI_Comm_copy_attr_function* user_function,
+    MPI_Comm comm,
+    int keyval,
+    void* extra_state,
+    MPIR_AttrType attrib_type,
+    void* attrib,
+    void** new_value,
+    int* flag
+    )
 {
-    int err;
-    switch (handleType) {
-	case MPID_COMM:
-	{
-	    int ttype;
-	    MPI::Comm::Delete_attr_function *f1 = (MPI::Comm::Delete_attr_function *)f;
-	    
-	    MPI_Topo_test( handle, &ttype );
-	    if (ttype == MPI_UNDEFINED) {
-		MPI_Comm_test_inter( handle, &ttype );
-		if (ttype) {
-		    MPI::Intercomm comm1 = (MPI_Comm)handle;
-		    err=(*f1)( comm1, keyval, value, extra_state );
-		}
-		else {
-		    MPI::Intracomm comm1 = (MPI_Comm)handle;
-		    err=(*f1)( comm1, keyval, value, extra_state );
-		}
-	    }
-	    else if (ttype == MPI_CART) {
-		MPI::Cartcomm comm1 = (MPI_Comm)handle;
-		err=(*f1)( comm1, keyval, value, extra_state );
-	    }
-	    else {
-		MPI::Graphcomm comm1 = (MPI_Comm)handle;
-		err=(*f1)( comm1, keyval, value, extra_state );
-	    }
-        }
-	break;
-	case MPID_DATATYPE:
-	{
-	MPI::Datatype cxxtype = handle;
-        MPI::Datatype::Delete_attr_function *f1 = (MPI::Datatype::Delete_attr_function *)f;
-	err=(*f1)( cxxtype, keyval, value, extra_state );
-        }
-	break;
-	case MPID_WIN:
-	{
-	MPI::Win cxxwin = handle;
-        MPI::Win::Delete_attr_function *f1 = (MPI::Win::Delete_attr_function *)f;
-	err=(*f1)( cxxwin, keyval, value, extra_state );
-        }
-	break;
+    void *value = NULL;
+    /* Make sure that the attribute value is delivered as a pointer */
+    if(MPIR_ATTR_KIND(attrib_type) == MPIR_ATTR_KIND(MPIR_ATTR_INT)){
+        value = &attrib;
     }
-    return err;  
+    else{
+        value = attrib;
+    }
+
+    *flag = 0;
+    MPI::Comm::Copy_attr_function* f = (MPI::Comm::Copy_attr_function*)user_function;
+    
+    int ttype;
+    MPI_Topo_test( comm, &ttype );
+    if (ttype == MPI_UNDEFINED)
+    {
+        MPI_Comm_test_inter( comm, &ttype );
+        if (ttype)
+        {
+            MPI::Intercomm c = comm;
+            return f( c, keyval, extra_state, value, new_value, *(bool*)flag );
+        }
+        else
+        {
+            MPI::Intracomm c = comm;
+            return f( c, keyval, extra_state, value, new_value, *(bool*)flag );
+        }
+    }
+    else if (ttype == MPI_CART)
+    {
+        MPI::Cartcomm c = comm;
+        return f( c, keyval, extra_state, value, new_value, *(bool*)flag );
+    }
+    else
+    {
+        MPI::Graphcomm c = comm;
+        return f( c, keyval, extra_state, value, new_value, *(bool*)flag );
+    }
 }
-extern "C" int MPIR_Call_copyfn( int handleType, int handle, int keyval,
-				   void *extra_state, void *value,
-				   void *new_value, int *cflag,
-				   void (*f)(void) )
+
+
+int Comm::Create_keyval( Copy_attr_function *cf, Delete_attr_function *df, void *extra_state )
 {
-    int err;
-    bool flag;
-    switch (handleType) {
-	case MPID_COMM:
-	{
-	    int ttype;
-	    MPI::Comm::Copy_attr_function *f1 = (MPI::Comm::Copy_attr_function *)f;
-	    
-	    MPI_Topo_test( handle, &ttype );
-	    if (ttype == MPI_UNDEFINED) {
-		MPI_Comm_test_inter( handle, &ttype );
-		if (ttype) {
-		    MPI::Intercomm comm1 = (MPI_Comm)handle;
-		    err=(*f1)( comm1, keyval, extra_state, value, new_value, flag );
-		}
-		else {
-		    MPI::Intracomm comm1 = (MPI_Comm)handle;
-		    err=(*f1)( comm1, keyval, extra_state, value, new_value, flag );
-		}
-	    }
-	    else if (ttype == MPI_CART) {
-		MPI::Cartcomm comm1 = (MPI_Comm)handle;
-		err=(*f1)( comm1, keyval, extra_state, value, new_value, flag );
-	    }
-	    else {
-		MPI::Graphcomm comm1 = (MPI_Comm)handle;
-	        err=(*f1)( comm1, keyval, extra_state, value, new_value, flag );
-	    }
-        }
-	break;
-	case MPID_DATATYPE:
-	{
-	MPI::Datatype cxxtype = handle;
-        MPI::Datatype::Copy_attr_function *f1 = (MPI::Datatype::Copy_attr_function *)f;
-	err=(*f1)( cxxtype, keyval, extra_state, value, new_value, flag );
-        }
-	break;
-	case MPID_WIN:
-	{
-	MPI::Win cxxwin = handle;
-        MPI::Win::Copy_attr_function *f1 = (MPI::Win::Copy_attr_function *)f;
-	err=(*f1)( cxxwin, keyval, extra_state, value, new_value, flag );
-        }
-	break;
-    }
-    *cflag = flag;
-    return err;
-}
-extern "C" void MPIR_Keyval_set_cxx( int, void (*)(void), void (*)(void) );
-int Comm::Create_keyval( Copy_attr_function *cf, Delete_attr_function *df, 
-			void *extra_state ) {
     int keyval;
 
     if (cf == MPI::Comm::NULL_COPY_FN) cf = 0;
     if (df == MPI::Comm::NULL_DELETE_FN) df = 0;
-
     MPIX_CALL( MPI_Comm_create_keyval( (MPI_Comm_copy_attr_function *)cf, 
 				       (MPI_Comm_delete_attr_function *)df,
 				      &keyval, extra_state ) );
-    MPIR_Keyval_set_cxx( keyval, (mpircallback) MPIR_Call_delfn, 
-			         (mpircallback) MPIR_Call_copyfn );
-
+    MPIR_Keyval_set_proxy( keyval, MPIR_Comm_copy_attr_cxx_proxy, MPIR_Comm_delete_attr_cxx_proxy );
     return keyval;
 }
-int Datatype::Create_keyval( Copy_attr_function *cf, Delete_attr_function *df, 
-			void *extra_state ) {
+
+static
+int
+MPIR_Type_delete_attr_cxx_proxy(
+    MPI_Type_delete_attr_function* user_function,
+    MPI_Datatype datatype,
+    int keyval,
+    MPIR_AttrType attrib_type,
+    void* attrib,
+    void* extra_state
+    )
+{
+    MPI::Datatype d = datatype;
+    MPI::Datatype::Delete_attr_function* f = (MPI::Datatype::Delete_attr_function*)user_function;
+    void *value = NULL;
+    /* Make sure that the attribute value is delivered as a pointer */
+    if(MPIR_ATTR_KIND(attrib_type) == MPIR_ATTR_KIND(MPIR_ATTR_INT)){
+        value = &attrib;
+    }
+    else{
+        value = attrib;
+    }
+    return f( d, keyval, value, extra_state );
+}
+
+static
+int
+MPIR_Type_copy_attr_cxx_proxy(
+    MPI_Type_copy_attr_function* user_function,
+    MPI_Datatype datatype,
+    int keyval,
+    void* extra_state,
+    MPIR_AttrType attrib_type,
+    void* attrib,
+    void** new_value,
+    int* flag
+    )
+{
+    *flag = 0;
+    MPI::Datatype d = datatype;
+    MPI::Datatype::Copy_attr_function* f = (MPI::Datatype::Copy_attr_function*)user_function;
+    void *value = NULL;
+    /* Make sure that the attribute value is delivered as a pointer */
+    if(MPIR_ATTR_KIND(attrib_type) == MPIR_ATTR_KIND(MPIR_ATTR_INT)){
+        value = &attrib;
+    }
+    else{
+        value = attrib;
+    }
+    return f( d, keyval, extra_state, value, new_value, *(bool*)flag );
+}
+
+int Datatype::Create_keyval( Copy_attr_function *cf, Delete_attr_function *df, void *extra_state )
+{
     int keyval;
 
     if (cf == MPI::Datatype::NULL_COPY_FN) cf = 0;
     if (df == MPI::Datatype::NULL_DELETE_FN) df = 0;
-
     MPIX_CALL( MPI_Type_create_keyval( (MPI_Type_copy_attr_function *)cf, 
 				       (MPI_Type_delete_attr_function *)df,
 				      &keyval, extra_state ) );
-    MPIR_Keyval_set_cxx( keyval, (mpircallback) MPIR_Call_delfn, 
-			         (mpircallback) MPIR_Call_copyfn );
-
+    MPIR_Keyval_set_proxy( keyval, MPIR_Type_copy_attr_cxx_proxy, MPIR_Type_delete_attr_cxx_proxy );
     return keyval;
 }
-int Win::Create_keyval( Copy_attr_function *cf, Delete_attr_function *df, 
-			void *extra_state ) {
+
+static
+int
+MPIR_Win_delete_attr_cxx_proxy(
+    MPI_Win_delete_attr_function* user_function,
+    MPI_Win win,
+    int keyval,
+    MPIR_AttrType attrib_type,
+    void* attrib,
+    void* extra_state
+    )
+{
+    MPI::Win w = win;
+    MPI::Win::Delete_attr_function* f = (MPI::Win::Delete_attr_function*)user_function;
+    void *value = NULL;
+    /* Make sure that the attribute value is delivered as a pointer */
+    if(MPIR_ATTR_KIND(attrib_type) == MPIR_ATTR_KIND(MPIR_ATTR_INT)){
+        value = &attrib;
+    }
+    else{
+        value = attrib;
+    }
+    return f( w, keyval, value, extra_state );
+}
+
+static
+int
+MPIR_Win_copy_attr_cxx_proxy(
+    MPI_Win_copy_attr_function* user_function,
+    MPI_Win win,
+    int keyval,
+    void* extra_state,
+    MPIR_AttrType attrib_type,
+    void* attrib,
+    void** new_value,
+    int* flag
+    )
+{
+    *flag = 0;
+    MPI::Win w = win;
+    MPI::Win::Copy_attr_function* f = (MPI::Win::Copy_attr_function*)user_function;
+    void *value = NULL;
+    /* Make sure that the attribute value is delivered as a pointer */
+    if(MPIR_ATTR_KIND(attrib_type) == MPIR_ATTR_KIND(MPIR_ATTR_INT)){
+        value = &attrib;
+    }
+    else{
+        value = attrib;
+    }
+    return f( w, keyval, extra_state, value, new_value, *(bool*)flag );
+}
+
+int Win::Create_keyval( Copy_attr_function *cf, Delete_attr_function *df, void *extra_state )
+{
     int keyval;
 
     if (cf == MPI::Win::NULL_COPY_FN) cf = 0;
     if (df == MPI::Win::NULL_DELETE_FN) df = 0;
-
     MPIX_CALL( MPI_Win_create_keyval( (MPI_Win_copy_attr_function *)cf, 
 				       (MPI_Win_delete_attr_function *)df,
 				      &keyval, extra_state ) );
-    MPIR_Keyval_set_cxx( keyval, (mpircallback) MPIR_Call_delfn, 
-			         (mpircallback) MPIR_Call_copyfn );
-
+    MPIR_Keyval_set_proxy( keyval, MPIR_Win_copy_attr_cxx_proxy, MPIR_Win_delete_attr_cxx_proxy );
     return keyval;
 }
 
@@ -544,7 +638,7 @@ int Win::Create_keyval( Copy_attr_function *cf, Delete_attr_function *df,
 // any calling-sequence change.  
 extern "C" void MPIR_Errhandler_set_cxx( MPI_Errhandler, void (*)(void) );
 extern "C" 
-void MPIR_Call_errhandler_fn( int kind, int *handle, int *errcode, 
+void MPIR_Call_errhandler_function( int kind, int *handle, int *errcode, 
 			      void (*cxxfn)(void) )
 {
     // Use horrible casts to get the correct routine signature
@@ -553,7 +647,7 @@ void MPIR_Call_errhandler_fn( int kind, int *handle, int *errcode,
 	    {
 		MPI_Comm *ch = (MPI_Comm *)handle;
 		int flag;
-		MPI::Comm::Errhandler_fn *f = (MPI::Comm::Errhandler_fn *)cxxfn;
+		MPI::Comm::Errhandler_function *f = (MPI::Comm::Errhandler_function *)cxxfn;
 		// Make an actual Comm (inter or intra-comm)
 		MPI_Comm_test_inter( *ch, &flag );
 		if (flag) {
@@ -570,7 +664,7 @@ void MPIR_Call_errhandler_fn( int kind, int *handle, int *errcode,
     case 1: // file
 	    {
 		MPI::File fh = (MPI_File)*(MPI_File*)handle;
-		MPI::File::Errhandler_fn *f = (MPI::File::Errhandler_fn *)cxxfn;
+		MPI::File::Errhandler_function *f = (MPI::File::Errhandler_function *)cxxfn;
 		(*f)( fh, errcode );
 	    }
 	    break;
@@ -578,41 +672,41 @@ void MPIR_Call_errhandler_fn( int kind, int *handle, int *errcode,
     case 2: // win
 	    {
 		MPI::Win fh = (MPI_Win)*(MPI_Win*)handle;
-		MPI::Win::Errhandler_fn *f = (MPI::Win::Errhandler_fn *)cxxfn;
+		MPI::Win::Errhandler_function *f = (MPI::Win::Errhandler_function *)cxxfn;
 		(*f)( fh, errcode );
 	    }
 	    break;
     }
 }
 #ifdef MPI_MODE_RDONLY
-Errhandler File::Create_errhandler( Errhandler_fn *f )
+Errhandler File::Create_errhandler( Errhandler_function *f )
 {
     MPI_Errhandler eh;
     MPI::Errhandler e1;
-    MPI_File_create_errhandler( (MPI_File_errhandler_fn *)f, &eh );
+    MPI_File_create_errhandler( (MPI_File_errhandler_function *)f, &eh );
     MPIR_Errhandler_set_cxx( eh, 
-			     (mpircallback)MPIR_Call_errhandler_fn );
+			     (mpircallback)MPIR_Call_errhandler_function );
     e1.the_real_errhandler = eh;
     return e1;
 }
 #endif // IO
-Errhandler Comm::Create_errhandler( Errhandler_fn *f )
+Errhandler Comm::Create_errhandler( Errhandler_function *f )
 {
     MPI_Errhandler eh;
     MPI::Errhandler e1;
-    MPI_Comm_create_errhandler( (MPI_Comm_errhandler_fn *)f, &eh );
+    MPI_Comm_create_errhandler( (MPI_Comm_errhandler_function *)f, &eh );
     MPIR_Errhandler_set_cxx( eh, 
-			     (mpircallback)MPIR_Call_errhandler_fn );
+			     (mpircallback)MPIR_Call_errhandler_function );
     e1.the_real_errhandler = eh;
     return e1;
 }
-Errhandler Win::Create_errhandler( Errhandler_fn *f )
+Errhandler Win::Create_errhandler( Errhandler_function *f )
 {
     MPI_Errhandler eh;
     MPI::Errhandler e1;
-    MPI_Win_create_errhandler( (MPI_Win_errhandler_fn *)f, &eh );
+    MPI_Win_create_errhandler( (MPI_Win_errhandler_function *)f, &eh );
     MPIR_Errhandler_set_cxx( eh, 
-			     (mpircallback)MPIR_Call_errhandler_fn );
+			     (mpircallback)MPIR_Call_errhandler_function );
     e1.the_real_errhandler = eh;
     return e1;
 }
@@ -622,16 +716,32 @@ Errhandler Win::Create_errhandler( Errhandler_fn *f )
 // cover the ERRORS_THROW_EXCEPTIONS case.
 void Comm::Call_errhandler( int errorcode ) const
 {
-    if (Get_errhandler() == ERRORS_THROW_EXCEPTIONS) {
+    // we must free the Errhandler object returned from Get_errhandler because
+    // Get_errhandler adds a reference (the MPI Standard says as though a new
+    // object were created)
+    Errhandler current = Get_errhandler();
+    if (current == ERRORS_THROW_EXCEPTIONS) {
+        current.Free();
         throw Exception(errorcode); // throw by value, catch by reference
+    }
+    else {
+        current.Free();
     }
     MPIX_CALL( MPI_Comm_call_errhandler( (MPI_Comm) the_real_comm, errorcode ));
 }
 
 void Win::Call_errhandler( int errorcode ) const
 {
-    if (Get_errhandler() == ERRORS_THROW_EXCEPTIONS) {
+    // we must free the Errhandler object returned from Get_errhandler because
+    // Get_errhandler adds a reference (the MPI Standard says as though a new
+    // object were created)
+    Errhandler current = Get_errhandler();
+    if (current == ERRORS_THROW_EXCEPTIONS) {
+        current.Free();
         throw Exception(errorcode); // throw by value, catch by reference
+    }
+    else {
+        current.Free();
     }
     MPIX_CALL( MPI_Win_call_errhandler( (MPI_Win) the_real_win, errorcode ));
 }
@@ -639,8 +749,16 @@ void Win::Call_errhandler( int errorcode ) const
 #ifdef MPI_MODE_RDONLY
 void File::Call_errhandler( int errorcode ) const
 {
-    if (Get_errhandler() == ERRORS_THROW_EXCEPTIONS) {
+    // we must free the Errhandler object returned from Get_errhandler because
+    // Get_errhandler adds a reference (the MPI Standard says as though a new
+    // object were created)
+    Errhandler current = Get_errhandler();
+    if (current == ERRORS_THROW_EXCEPTIONS) {
+        current.Free();
         throw Exception(errorcode); // throw by value, catch by reference
+    }
+    else {
+        current.Free();
     }
     MPIX_CALL( MPI_File_call_errhandler( (MPI_File) the_real_file, errorcode ));
 }
@@ -909,9 +1027,9 @@ extern "C" int MPIR_Grequest_call_cancel_fn( void *extra_data, int done )
     err = (d->cancel_fn)( d->orig_extra_data, done ? true : false );
     return err;
 }
-Grequest Grequest::Start( Grequest::Query_function query_fn,
-                          Grequest::Free_function free_fn,
-                          Grequest::Cancel_function cancel_fn,
+Grequest Grequest::Start( Grequest::Query_function  *query_fn,
+                          Grequest::Free_function   *free_fn,
+                          Grequest::Cancel_function *cancel_fn,
                           void *extra_state ) 
 {
     MPI::Grequest req;

@@ -158,9 +158,11 @@
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				OutputFile=""
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -203,7 +205,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="..\..\include,..\..\include\win32"
+				AdditionalIncludeDirectories="..\..\include;..\..\include\win32;..\f90;..\f90\win32"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_WINCONF_H;USE_FORT_CDECL;USE_MSC_DLLSPEC;FORTRAN_EXPORTS;F77_NAME_UPPER;HAVE_C_API"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -222,7 +224,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="mpi.lib mpich2ff.lib"
+				AdditionalDependencies="fmpich2p.lib mpi.lib mpich2ff.lib"
 				OutputFile="../../../lib/fmpich2.dll"
 				AdditionalLibraryDirectories="../../../lib"
 				ModuleDefinitionFile="mpich2f.def"
@@ -236,9 +238,11 @@
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				OutputFile=""
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -251,7 +255,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
 				CommandLine=""
 			/>
 		</Configuration>
@@ -475,9 +478,11 @@
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				OutputFile=""
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -718,9 +723,11 @@
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				OutputFile=""
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -1215,6 +1222,153 @@
 				CommandLine="copy ..\..\..\lib\fmpich2.dll %SystemRoot%\system32\fmpich2.dll"
 			/>
 		</Configuration>
+		<Configuration
+			Name="ch3nemesisPRelease|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				AdditionalIncludeDirectories="..\..\include,..\..\include\win32"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_WINCONF_H;USE_FORT_CDECL;USE_MSC_DLLSPEC;FORTRAN_EXPORTS;FORTRANDOUBLEUNDERSCORE;F77_NAME_LOWER_2USCORE;HAVE_C_API"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="0"
+				BrowseInformation="1"
+				WarningLevel="0"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="mpi.lib mpich2ffg.lib"
+				OutputFile="../../../lib/fmpich2g.dll"
+				AdditionalLibraryDirectories="../../../lib"
+				ModuleDefinitionFile="mpich2fg.def"
+				GenerateDebugInformation="false"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="copying fmpich2gd.dll to the system32 directory"
+				CommandLine="copy ..\..\..\lib\fmpich2gd.dll %SystemRoot%\system32\fmpich2gd.dll"
+			/>
+		</Configuration>
+		<Configuration
+			Name="fortPRelease|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				AdditionalIncludeDirectories="..\..\include;..\..\include\win32;..\f90;..\f90\win32"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_WINCONF_H;USE_FORT_CDECL;USE_MSC_DLLSPEC;FORTRAN_EXPORTS;F77_NAME_UPPER;HAVE_C_API;MPICH_MPI_FROM_PMPI;USE_ONLY_MPI_NAMES"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="0"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\lib\fmpich2p.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+				OutputFile=""
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine=""
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -1333,6 +1487,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -1467,6 +1637,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\allgathervf.c"
@@ -1573,6 +1759,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -1695,6 +1897,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\alltoallf.c"
@@ -1801,6 +2019,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -1919,6 +2153,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\alltoallwf.c"
@@ -2025,6 +2275,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -2159,6 +2425,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\bsend_initf.c"
@@ -2265,6 +2547,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -2383,6 +2681,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\bufattachf.c"
@@ -2495,6 +2809,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\bufdetachf.c"
@@ -2601,6 +2931,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -2765,6 +3111,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dist_graph_create_adjacentf.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dist_graph_createf.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dist_graph_neighbors_countf.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dist_graph_neighborsf.c"
+				>
+			</File>
+			<File
 				RelativePath=".\dup_comm_fnf.c"
 				>
 			</File>
@@ -2909,6 +3271,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -3259,6 +3637,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\gathervf.c"
@@ -3365,6 +3759,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -3493,6 +3903,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -3695,6 +4121,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\iccreatef.c"
@@ -3867,6 +4309,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\irsendf.c"
@@ -3973,6 +4431,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -4091,6 +4565,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\issendf.c"
@@ -4203,6 +4693,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\isthrmainf.c"
@@ -4303,6 +4809,14 @@
 						Name="VCCustomBuildTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mpich2fg.def"
@@ -4341,6 +4855,14 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -4535,6 +5057,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\query_threadf.c"
@@ -4645,6 +5183,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -4763,6 +5317,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\redscatf.c"
@@ -4875,6 +5445,26 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\reduce_localf.c"
+				>
 			</File>
 			<File
 				RelativePath=".\reducef.c"
@@ -4981,6 +5571,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -5111,6 +5717,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\rsendf.c"
@@ -5217,6 +5839,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -5335,6 +5973,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\scatterf.c"
@@ -5441,6 +6095,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -5559,6 +6229,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\send_initf.c"
@@ -5665,6 +6351,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -5783,6 +6485,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\sendrecvf.c"
@@ -5889,6 +6607,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -6011,6 +6745,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\spawnmultf.c"
@@ -6127,6 +6877,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\ssendf.c"
@@ -6233,6 +6999,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -6378,6 +7160,18 @@
 			</File>
 			<File
 				RelativePath=".\typedelattrf.c"
+				>
+			</File>
+			<File
+				RelativePath="..\f90\typef90cmplxf.c"
+				>
+			</File>
+			<File
+				RelativePath="..\f90\typef90intf.c"
+				>
+			</File>
+			<File
+				RelativePath="..\f90\typef90realf.c"
 				>
 			</File>
 			<File
@@ -6553,6 +7347,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -6763,6 +7573,22 @@
 						AdditionalIncludeDirectories="..\..\mpi\romio\mpi-io,..\..\mpi\romio\adio\include,..\..\include,..\..\include\win32,..\..\mpid\common\datatype,..\..\mpid\common\sock,..\..\mpid\common\sock\iocp,..\..\mpid\ch3\include,..\..\mpid\common\locks,..\..\mpid\ch3\channels\sock\include"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="..\..\mpi\romio\mpi-io,..\..\mpi\romio\adio\include,..\..\include,..\..\include\win32,..\..\mpid\common\datatype,..\..\mpid\common\sock,..\..\mpid\common\sock\iocp,..\..\mpid\ch3\include,..\..\mpid\common\locks,..\..\mpid\ch3\channels\sock\include"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="..\..\mpi\romio\mpi-io,..\..\mpi\romio\adio\include,..\..\include,..\..\include\win32,..\..\mpid\common\datatype,..\..\mpid\common\sock,..\..\mpid\common\sock\iocp,..\..\mpid\ch3\include,..\..\mpid\common\locks,..\..\mpid\ch3\channels\sock\include"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\wtimef.c"
@@ -6881,6 +7707,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="..\..\mpi\romio\mpi-io,..\..\mpi\romio\adio\include,..\..\include,..\..\include\win32,..\..\mpid\common\datatype,..\..\mpid\common\sock,..\..\mpid\common\sock\iocp,..\..\mpid\ch3\include,..\..\mpid\common\locks,..\..\mpid\ch3\channels\sock\include"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="..\..\mpi\romio\mpi-io,..\..\mpi\romio\adio\include,..\..\include,..\..\include\win32,..\..\mpid\common\datatype,..\..\mpid\common\sock,..\..\mpid\common\sock\iocp,..\..\mpid\ch3\include,..\..\mpid\common\locks,..\..\mpid\ch3\channels\sock\include"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

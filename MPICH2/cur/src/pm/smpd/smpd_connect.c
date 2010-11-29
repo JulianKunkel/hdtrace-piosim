@@ -51,7 +51,7 @@ smpd_global_t smpd_process =
       NULL,             /* process_list           */
       SMPD_FALSE,       /* closing                */
       SMPD_FALSE,       /* root_smpd              */
-      MPIDU_SOCK_INVALID_SET, /* set                    */
+      SMPDU_SOCK_INVALID_SET, /* set                    */
       "",               /* host                   */
       "",               /* pszExe                 */
       SMPD_FALSE,       /* bService               */
@@ -97,6 +97,11 @@ smpd_global_t smpd_process =
       0,                /* nproc_launched         */
       0,                /* nproc_exited           */
       SMPD_FALSE,       /* verbose                */
+#ifdef HAVE_WINDOWS_H
+      SMPD_FALSE,       /* set_affinity             */
+      NULL,             /* affinity_map             */
+      0,                /* affinity_map_sz          */
+#endif
       /*SMPD_FALSE,*/       /* shutdown               */
       /*SMPD_FALSE,*/       /* restart                */
       /*SMPD_FALSE,*/       /* validate               */
@@ -166,8 +171,8 @@ smpd_global_t smpd_process =
 #endif
 #endif
       -1,               /* timeout                 */
-      MPIDU_SOCK_INVALID_SOCK, /* timeout_sock     */
-      MPIDU_SOCK_INVALID_SOCK, /* mpiexec_abort_sock */
+      SMPDU_SOCK_INVALID_SOCK, /* timeout_sock     */
+      SMPDU_SOCK_INVALID_SOCK, /* mpiexec_abort_sock */
       SMPD_TRUE,        /* use_pmi_server          */
       NULL,             /* mpiexec_argv0           */
       "dummy",          /* encrypt_prefix          */
@@ -175,6 +180,7 @@ smpd_global_t smpd_process =
       SMPD_FALSE,       /* use_sspi                */
       SMPD_FALSE,       /* use_delegation          */
       SMPD_FALSE,       /* use_sspi_job_key        */
+      SMPD_FALSE,       /* use_ms_hpc              */
 #ifdef HAVE_WINDOWS_H
       NULL,             /* sec_fn                  */
 #endif
@@ -186,6 +192,7 @@ smpd_global_t smpd_process =
       "",               /* val                     */
       SMPD_FALSE,       /* do_console_returns      */
       "",               /* env_channel             */
+      "",               /* env_netmod              */
       "",               /* env_dll                 */
       "",               /* env_wrap_dll            */
       NULL,             /* delayed_spawn_queue     */
@@ -224,7 +231,13 @@ int smpd_post_abort_command(char *fmt, ...)
 	smpd_exit_fn(FCNAME);
 	return SMPD_FAIL;
     }
-    smpd_command_destination(0, &context);
+    result = smpd_command_destination(0, &context);
+    if(result != SMPD_SUCCESS){
+        smpd_err_printf("Unable to find destination for command...Aborting: %s\n", error_str);
+        smpd_exit_fn(FCNAME);
+        return SMPD_FAIL;
+    }
+
     if (context == NULL)
     {
 	if (smpd_process.left_context == NULL)
@@ -561,7 +574,7 @@ int smpd_init_process(void)
     smpd_process.left_context = NULL;
     smpd_process.right_context = NULL;
     smpd_process.parent_context = NULL;
-    smpd_process.set = MPIDU_SOCK_INVALID_SET;
+    smpd_process.set = SMPDU_SOCK_INVALID_SET;
 
     /* local data */
 #ifdef HAVE_WINDOWS_H
@@ -636,7 +649,7 @@ int smpd_init_process(void)
 
 #undef FCNAME
 #define FCNAME "smpd_init_context"
-int smpd_init_context(smpd_context_t *context, smpd_context_type_t type, MPIDU_Sock_set_t set, MPIDU_Sock_t sock, int id)
+int smpd_init_context(smpd_context_t *context, smpd_context_type_t type, SMPDU_Sock_set_t set, SMPDU_Sock_t sock, int id)
 {
     int result;
 
@@ -674,6 +687,7 @@ int smpd_init_context(smpd_context_t *context, smpd_context_type_t type, MPIDU_S
     context->session_header[0] = '\0';
     context->singleton_init_hostname[0] = '\0';
     context->singleton_init_kvsname[0] = '\0';
+    context->singleton_init_domainname[0] = '\0';
     context->singleton_init_pm_port = -1;
     context->smpd_pwd[0] = '\0';
 #ifdef HAVE_WINDOWS_H
@@ -690,10 +704,10 @@ int smpd_init_context(smpd_context_t *context, smpd_context_type_t type, MPIDU_S
     context->first_output_stderr = SMPD_TRUE;
     context->first_output_stdout = SMPD_TRUE;
 
-    if (sock != MPIDU_SOCK_INVALID_SOCK)
+    if (sock != SMPDU_SOCK_INVALID_SOCK)
     {
-	result = MPIDU_Sock_set_user_ptr(sock, context);
-	if (result != MPI_SUCCESS)
+	result = SMPDU_Sock_set_user_ptr(sock, context);
+	if (result != SMPD_SUCCESS)
 	{
 	    smpd_err_printf("unable to set the sock user ptr while initializing context,\nsock error: %s\n",
 		get_sock_error_string(result));
@@ -966,7 +980,7 @@ void smpd_get_account_and_password(char *account, char *password)
 
 #undef FCNAME
 #define FCNAME "smpd_get_credentials_from_parent"
-int smpd_get_credentials_from_parent(MPIDU_Sock_set_t set, MPIDU_Sock_t sock)
+int smpd_get_credentials_from_parent(SMPDU_Sock_set_t set, SMPDU_Sock_t sock)
 {
     smpd_enter_fn(FCNAME);
     SMPD_UNREFERENCED_ARG(set);
@@ -977,7 +991,7 @@ int smpd_get_credentials_from_parent(MPIDU_Sock_set_t set, MPIDU_Sock_t sock)
 
 #undef FCNAME
 #define FCNAME "smpd_get_smpd_password_from_parent"
-int smpd_get_smpd_password_from_parent(MPIDU_Sock_set_t set, MPIDU_Sock_t sock)
+int smpd_get_smpd_password_from_parent(SMPDU_Sock_set_t set, SMPDU_Sock_t sock)
 {
     smpd_enter_fn(FCNAME);
     SMPD_UNREFERENCED_ARG(set);

@@ -1,6 +1,5 @@
 /* -*- Mode: C; c-basic-offset:4 ; -*- */
-/*  $Id: greq_complete.c,v 1.20 2006/12/09 16:42:26 gropp Exp $
- *
+/*
  *  (C) 2001 by Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
@@ -28,11 +27,26 @@
    are used by both the MPI and PMPI versions, use PMPI_LOCAL instead of 
    static; this macro expands into "static" if weak symbols are supported and
    into nothing otherwise. */
+#undef FUNCNAME
+#define FUNCNAME MPIR_Grequest_complete
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
+void MPIR_Grequest_complete_impl(MPID_Request *request_ptr)
+{
+    /* Set the request as completed.  This does not change the
+       reference count on the generalized request */
+    MPID_Request_set_completed( request_ptr );
+
+    /* The request release comes with the wait/test, not this complete
+       routine, so we don't call the MPID_Request_release routine */
+}
+
 #endif
 
 #undef FUNCNAME
 #define FUNCNAME MPI_Grequest_complete
-
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 /*@
    MPI_Grequest_complete - Notify MPI that a user-defined request is complete
 
@@ -50,16 +64,13 @@
 @*/
 int MPI_Grequest_complete( MPI_Request request )
 {
-#ifdef HAVE_ERROR_CHECKING
-    static const char FCNAME[] = "MPI_Grequest_complete";
-#endif
     int mpi_errno = MPI_SUCCESS;
     MPID_Request *request_ptr;
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_GREQUEST_COMPLETE);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("pt2pt");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_GREQUEST_COMPLETE);
     
     /* Validate handle parameters needing to be converted */
@@ -95,12 +106,7 @@ int MPI_Grequest_complete( MPI_Request request )
 
     /* ... body of routine ...  */
     
-    /* Set the request as completed.  This does not change the
-       reference count on the generalized request */
-    MPID_Request_set_completed( request_ptr );
-
-    /* The request release comes with the wait/test, not this complete
-       routine, so we don't call the MPID_Request_release routine */
+    MPIR_Grequest_complete_impl(request_ptr);
     
     /* ... end of body of routine ... */
 
@@ -108,7 +114,7 @@ int MPI_Grequest_complete( MPI_Request request )
   fn_exit:
 #endif
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_GREQUEST_COMPLETE);
-    MPIU_THREAD_SINGLE_CS_EXIT("pt2pt");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
     
     /* --BEGIN ERROR HANDLING-- */

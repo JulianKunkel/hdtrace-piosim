@@ -74,14 +74,14 @@ void MPIDI_CH3U_Buffer_copy(
     if (sdt_contig && rdt_contig)
     {
 	MPIDI_FUNC_ENTER(MPID_STATE_MEMCPY);
-	memcpy((char *)rbuf + rdt_true_lb, (const char *)sbuf + sdt_true_lb, sdata_sz);
+	MPIU_Memcpy((char *)rbuf + rdt_true_lb, (const char *)sbuf + sdt_true_lb, sdata_sz);
 	MPIDI_FUNC_EXIT(MPID_STATE_MEMCPY);
 	*rsz = sdata_sz;
     }
     else if (sdt_contig)
     {
 	MPID_Segment seg;
-	MPIDI_msg_sz_t last;
+	MPI_Aint last;
 
 	MPID_Segment_init(rbuf, rcount, rdt, &seg, 0);
 	last = sdata_sz;
@@ -102,7 +102,7 @@ void MPIDI_CH3U_Buffer_copy(
     else if (rdt_contig)
     {
 	MPID_Segment seg;
-	MPIDI_msg_sz_t last;
+	MPI_Aint last;
 
 	MPID_Segment_init(sbuf, scount, sdt, &seg, 0);
 	last = sdata_sz;
@@ -150,7 +150,7 @@ void MPIDI_CH3U_Buffer_copy(
 	
 	for(;;)
 	{
-	    MPIDI_msg_sz_t last;
+	    MPI_Aint last;
 	    char * buf_end;
 
 	    if (sdata_sz - sfirst > MPIDI_COPY_BUFFER_SZ - buf_off)
@@ -252,7 +252,8 @@ int MPIDI_CH3_RecvFromSelf( MPID_Request *rreq, void *buf, int count,
     
     /* no other thread can possibly be waiting on rreq, so it is safe to 
        reset ref_count and cc */
-    rreq->cc = 0;
+    /* FIXME DJG really? shouldn't we at least decr+assert? */
+    MPID_cc_set(rreq->cc_ptr, 0);
     MPIU_Object_set_ref(rreq, 1);
 
     return MPI_SUCCESS;

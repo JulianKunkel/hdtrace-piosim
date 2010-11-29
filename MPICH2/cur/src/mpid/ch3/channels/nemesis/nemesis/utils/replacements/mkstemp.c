@@ -11,6 +11,12 @@
 #include <unistd.h>
 #include "mpidi_ch3i_nemesis_conf.h"
 
+/* for ATTRIBUTE */
+#include "mpichconf.h"
+#include "mpibase.h"
+/* here to prevent "has no symbols" warnings from ranlib on OS X */
+static int dummy ATTRIBUTE((unused,used)) = 0;
+
 #if !defined (HAVE_MKSTEMP) || !HAVE_MKSTEMP
 
 #warning The mkstemp function is not provided in the standard library.
@@ -73,35 +79,4 @@ int mkstemp (char *template)
     errno = EEXIST;
     return -1;
 }
-
-#if 0
-#include <stdio.h>
-#include <string.h>
-
-int main()
-{
-    int fd;
-    char fname[]     = "/tmp/TEMPXXXXXX";
-    char fnameorig[] = "/tmp/TEMPXXXXXX";
-    int i;
-    
-    for (i = 0; i < 100; ++i)
-    {
-        strcpy (fname, fnameorig);
-        fd = mkstemp (fname);
-        if (fd == -1)
-        {
-            perror ("mkstemp");
-            return -1;
-        }
-
-        printf ("%d: %s\n", i, fname);
-        close (fd);
-    }
-    return 0;
-}
-
-        
-#endif
-
 #endif

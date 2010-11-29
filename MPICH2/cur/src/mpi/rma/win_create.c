@@ -59,12 +59,11 @@ int MPI_Win_create(void *base, MPI_Aint size, int disp_unit, MPI_Info info,
     MPID_Win *win_ptr = NULL;
     MPID_Comm *comm_ptr = NULL;
     MPID_Info *info_ptr = NULL;
-
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_WIN_CREATE);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("rma");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_RMA_FUNC_ENTER(MPID_STATE_MPI_WIN_CREATE);
 
     /* Validate parameters, especially handles needing to be converted */
@@ -122,13 +121,13 @@ int MPI_Win_create(void *base, MPI_Aint size, int disp_unit, MPI_Info info,
     win_ptr->errhandler = 0;
 
     /* return the handle of the window object to the user */
-    *win = win_ptr->handle;
+    MPIU_OBJ_PUBLISH_HANDLE(*win, win_ptr->handle);
 
     /* ... end of body of routine ... */
 
   fn_exit:
     MPID_MPI_RMA_FUNC_EXIT(MPID_STATE_MPI_WIN_CREATE);
-    MPIU_THREAD_SINGLE_CS_EXIT("rma");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

@@ -73,13 +73,14 @@ int MPI_Intercomm_merge(MPI_Comm intercomm, int high, MPI_Comm *newintracomm)
     int mpi_errno = MPI_SUCCESS;
     MPID_Comm *comm_ptr = NULL;
     MPID_Comm *newcomm_ptr;
-    int  local_high, remote_high, i, j, new_size, new_context_id;
+    int  local_high, remote_high, i, j, new_size;
+    MPIR_Context_id_t new_context_id;
     MPIU_THREADPRIV_DECL;
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_INTERCOMM_MERGE);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("comm");  
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);  
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_INTERCOMM_MERGE);
 
     MPIU_THREADPRIV_GET;
@@ -135,10 +136,8 @@ int MPI_Intercomm_merge(MPI_Comm intercomm, int high, MPI_Comm *newintracomm)
 	     The Intel test suite checks for this; it is also an easy
 	     error to make */
 	    acthigh = high ? 1 : 0;   /* Clamp high into 1 or 0 */
-	    MPIR_Nest_incr();
-	    mpi_errno = NMPI_Allreduce( MPI_IN_PLACE, &acthigh, 1, MPI_INT, 
-				MPI_SUM, comm_ptr->local_comm->handle );
-	    MPIR_Nest_decr();
+	    mpi_errno = MPIR_Allreduce_impl( MPI_IN_PLACE, &acthigh, 1, MPI_INT,
+                                             MPI_SUM, comm_ptr->local_comm );
 	    if (mpi_errno) goto fn_fail;
 	    /* acthigh must either == 0 or the size of the local comm */
 	    if (acthigh != 0 && acthigh != comm_ptr->local_size) {
@@ -197,10 +196,8 @@ int MPI_Intercomm_merge(MPI_Comm intercomm, int high, MPI_Comm *newintracomm)
        value of local_high, which may have changed if both groups
        of processes had the same value for high
     */
-    MPIR_Nest_incr();
-    mpi_errno = NMPI_Bcast( &local_high, 1, MPI_INT, 0, 
-			    comm_ptr->local_comm->handle );
-    MPIR_Nest_decr();
+    mpi_errno = MPIR_Bcast_impl( &local_high, 1, MPI_INT, 0, 
+                                 comm_ptr->local_comm );
     if (mpi_errno) goto fn_fail;
 
     mpi_errno = MPIR_Comm_create( &newcomm_ptr );
@@ -257,15 +254,18 @@ int MPI_Intercomm_merge(MPI_Comm intercomm, int high, MPI_Comm *newintracomm)
     /* printf( "About to get context id \n" ); fflush( stdout ); */
     /* In the multi-threaded case, MPIR_Get_contextid assumes that the
        calling routine already holds the single criticial section */
-    new_context_id = MPIR_Get_contextid( newcomm_ptr );
-    MPIU_ERR_CHKANDJUMP(new_context_id == 0,mpi_errno,MPI_ERR_OTHER,
-			"**toomanycomm" );
+    new_context_id = 0;
+    mpi_errno = MPIR_Get_contextid( newcomm_ptr, &new_context_id );
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+    MPIU_Assert(new_context_id != 0);
 
     newcomm_ptr->context_id	= new_context_id;
     newcomm_ptr->recvcontext_id	= new_context_id;
 
     /* Notify the device of this new communicator */
     MPID_Dev_comm_create_hook( newcomm_ptr );
+    mpi_errno = MPIR_Comm_commit(newcomm_ptr);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
 
     *newintracomm = newcomm_ptr->handle;
 
@@ -273,7 +273,7 @@ int MPI_Intercomm_merge(MPI_Comm intercomm, int high, MPI_Comm *newintracomm)
     
   fn_exit:
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_INTERCOMM_MERGE);
-    MPIU_THREAD_SINGLE_CS_EXIT("comm");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

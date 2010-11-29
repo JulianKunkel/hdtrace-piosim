@@ -23,11 +23,18 @@
 #undef MPI_Close_port
 #define MPI_Close_port PMPI_Close_port
 
+int MPIR_Close_port_impl(char *port_name)
+{
+    return MPID_Close_port(port_name);
+}
+
+
 #endif
 
 #undef FUNCNAME
 #define FUNCNAME MPI_Close_port
-
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 /*@
    MPI_Close_port - close port
 
@@ -43,25 +50,24 @@
 @*/
 int MPI_Close_port(char *port_name)
 {
-    static const char FCNAME[] = "MPI_Close_port";
     int mpi_errno = MPI_SUCCESS;
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_CLOSE_PORT);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("spawn");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_CLOSE_PORT);
 
     /* ... body of routine ...  */
     
-    mpi_errno = MPID_Close_port(port_name);
+    mpi_errno = MPIR_Close_port_impl(port_name);
     if (mpi_errno != MPI_SUCCESS) goto fn_fail;
     
     /* ... end of body of routine ... */
 
   fn_exit:
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_CLOSE_PORT);
-    MPIU_THREAD_SINGLE_CS_EXIT("spawn");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

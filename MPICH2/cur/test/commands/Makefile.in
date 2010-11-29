@@ -6,7 +6,6 @@
 all: all-redirect
 
 SHELL           = @SHELL@
-VERBOSE         = 1
 bindir          = @bindir@
 exec_prefix     = @exec_prefix@
 prefix          = @prefix@
@@ -19,7 +18,7 @@ CPPFLAGS        = @CPPFLAGS@
 LIBS            = @LIBS@
 MAKE            = @MAKE@
 CC              = @CC@
-CFLAGS          = @CFLAGS@
+CFLAGS          = @CFLAGS@ $(MPICH2_MAKE_CFLAGS)
 C_COMPILE       = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 CC_SHL          = @CC_SHL@
 C_COMPILE_SHL   = $(CC_SHL) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
@@ -29,12 +28,12 @@ CXX_COMPILE     = $(CXX) $(DEFS) $(INCLUDES) $(CXXFLAGS) $(CPPFLAGS)
 CXX_LINK       = $(CXX)
 CXX_SHL         = @CXX_SHL@
 CXX_COMPILE_SHL = $(CXX_SHL) $(DEFS) $(INCLUDES) $(CXXFLAGS) $(CPPFLAGS)
-FC              = @FC@
+F77             = @F77@
 FFLAGS          = @FFLAGS@
-F77_COMPILE     = $(FC) $(FFLAGS) $(F77INCLUDES)
-F77_LINK       = $(FC)
-FC_SHL          = @FC_SHL@
-F77_COMPILE_SHL = $(FC_SHL) $(FFLAGS)
+F77_COMPILE     = $(F77) $(FFLAGS) $(F77INCLUDES)
+F77_LINK       = $(F77)
+F77_SHL         = @F77_SHL@
+F77_COMPILE_SHL = $(F77_SHL) $(FFLAGS) $(F77INCLUDES)
 LDFLAGS     =  @LDFLAGS@ 
 
 VPATH = .:@srcdir@
@@ -44,25 +43,7 @@ MPICXX = $(bindir)/mpicxx
 MPIF77 = $(bindir)/mpif77
 
 .SUFFIXES:
-.SUFFIXES: .o .lo .c .cxx .f .txt 
-
-# --------------------------------------------------------------------------
-${srcdir}/Makefile.in: ${srcdir}/Makefile.sm
-	( cd ${srcdir} && ${master_top_srcdir}/maint/simplemake \
-	-rootdir=../../ \
-	-configdir=. \
-	-common=${master_top_srcdir}/maint/makedefs \
-	-docnamedefs=${master_top_srcdir}/maint/docnotes \
-	"-autoconf=-I ROOTDIR/confdb" \
-	-libdir='$${MPILIBNAME}=ROOTDIR/lib' \
-	-smroot=${master_top_srcdir}/maint \
-	-distcleanfiles="Makefile" \
-	-smvar_doc_attop=0 \
-		Makefile.sm )
-Makefile: ${srcdir}/Makefile.in
-	-cd ../../ && \
-	if [ -x config.status ] ; then CONFIG_FILES=test/commands/Makefile CONFIG_HEADERS= ${SHELL} ./config.status ; fi
-# --------------------------------------------------------------------------
+.SUFFIXES: .o .lo .c .cxx .f 
 apply: 
 	$(ACTION) $(ACTION_INPUT)
 clean:  clean-local
@@ -70,9 +51,6 @@ clean:  clean-local
 	-@rm -f rtest.exe stdintest.exe checkenv1.exe stdintest2.exe rtestx.exe stdiotest.exe testout.exe rtestf.exe
 	-@rm -f core core.[0-9]*
 	-@rm -f *.lo ${srcdir}/*.lo
-	-@rm -f ${srcdir}/*.bb ${srcdir}/*.bbg ${srcdir}/*.da
-	-@rm -f ${srcdir}/*.gcda ${srcdir}/*.gcno
-	-@rm -f *.gcov *.bb *.bbg *.da *.gcda *.gcno
 	-@rm -f *.irlog*
 distclean:  clean distclean-xxx remove-makefile
 distclean-xxx:
@@ -80,15 +58,12 @@ distclean-xxx:
 	-@rm -rf autom4te*.cache
 	-@rm -rf $(DEPS_DIR)
 	-@rm -f TAGS
-maintainer-clean:  distclean-xxx remove-genmakefiles
 remove-makefile:
 	rm -f Makefile
 remove-genmakefiles:
-	rm -f  Makefile.in Makefile
-all-redirect: stdiotest stdintest stdintest2 checkenv1 rtest rtestf rtestx\
-	 testout
+	rm -f  Makefile
+all-redirect: stdiotest stdintest stdintest2 checkenv1 rtest rtestf rtestx testout
 
-coverage: 
 rtest: rtest.o   
 	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o rtest rtest.o  ${LIBS}
 stdintest: stdintest.o   
@@ -106,26 +81,12 @@ testout: testout.o
 rtestf: rtestf.o   
 	$(F77_LINK) $(FFLAGS) $(LDFLAGS) -o rtestf rtestf.o  ${LIBS}
 # --------------------------------------------------------------------------
-htmldoc:
-mandoc:
-latexdoc:
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-# Dependencies
-dependencies:
-# End of Dependencies
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-SOURCES         =  stdiotest.c stdintest.c stdintest2.c checkenv1.c rtest.c \
-	rtestf.f rtestx.cxx testout.c 
-ETAGS           = @ETAGS@ @ETAGSADD@
+SOURCES         =  stdiotest.c stdintest.c stdintest2.c checkenv1.c rtest.c rtestf.f rtestx.cxx \
+	testout.c 
 HEADERFILES     = $(HEADERS)
 SOURCEFILES     = $(SOURCES)
-tags: TAGS
-TAGS: Makefile${HEADERFILES} ${SOURCEFILES}
-	here=`cd ../.. && pwd` ; cd ${srcdir} && $(ETAGS) -o $$here/TAGS --append ${HEADERFILES} ${SOURCEFILES}
 # --------------------------------------------------------------------------
 
 

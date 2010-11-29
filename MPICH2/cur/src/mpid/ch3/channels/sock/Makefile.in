@@ -6,12 +6,15 @@
 all: all-redirect
 
 SHELL           = @SHELL@
-VERBOSE         = 1
 LIBTOOL         = @LIBTOOL@
 CREATESHLIB     = @CREATESHLIB@
+ABIVERSION      = @ABIVERSION@
+LIBS            = @LIBS@
+LDFLAGS         = @LDFLAGS@
 C_LINK_SHL      = @C_LINK_SHL@
 INSTALL         = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_SCRIPT  = @INSTALL_SCRIPT@
 INSTALL_DATA    = @INSTALL_DATA@
 MKDIR_P         = @MKDIR_P@
 abs_builddir    = @abs_builddir@
@@ -26,61 +29,30 @@ MPILIBNAME      = @MPILIBNAME@
 VPATH = .:@srcdir@
 
 .SUFFIXES:
-.SUFFIXES:  .txt 
-
-${srcdir}/include/mpidi_ch3i_sock_conf.h  ${srcdir}/configure: \
-	${srcdir}/configure.in 
-	@rm -rf autom4te*.cache
-	(cd ${srcdir} && /homes/chan/autoconf/2.62/bin/autoheader -I \
-	../../../../../confdb && \
-	/homes/chan/autoconf/2.62/bin/autoconf -I \
-	../../../../../confdb ) 
-
-# --------------------------------------------------------------------------
-${srcdir}/Makefile.in: ${srcdir}/Makefile.sm
-	( cd ${srcdir} && ${master_top_srcdir}/maint/simplemake \
-	-rootdir=../../../../../ \
-	-configdir=src/mpid/ch3/channels/sock/ \
-	-common=${master_top_srcdir}/maint/makedefs \
-	-docnamedefs=${master_top_srcdir}/maint/docnotes \
-	"-autoconf=-I ROOTDIR/confdb" \
-	-libdir='$${MPILIBNAME}=ROOTDIR/lib' \
-	-smroot=${master_top_srcdir}/maint \
-	-distcleanfiles="Makefile src/Makefile localdefs config.status config.log config.cache *conf.cache config.system" \
-	-smvar_doc_attop=0 \
-		Makefile.sm )
-Makefile: ${srcdir}/Makefile.in
-	-if [ -x config.status ] ; then CONFIG_FILES=Makefile CONFIG_HEADERS= ${SHELL} ./config.status ; fi
-# --------------------------------------------------------------------------
+# Some make programs complain if no suffixes are set
+.SUFFIXES: .c .o
 apply: 
 	$(ACTION) $(ACTION_INPUT)
-	(cd ../../../common/sock && $(MAKE) apply )
-	(cd src && $(MAKE) apply )
+	(cd ../../../common/sock && ${MAKE} apply )
+	(cd src && ${MAKE} apply )
 clean: 
 	-@rm -f *.o ${srcdir}/*.o 
 	-@rm -f *.lo ${srcdir}/*.lo
-	-@rm -f ${srcdir}/*.bb ${srcdir}/*.bbg ${srcdir}/*.da
-	-@rm -f ${srcdir}/*.gcda ${srcdir}/*.gcno
-	-@rm -f *.gcov *.bb *.bbg *.da *.gcda *.gcno
-	(cd ../../../common/sock && $(MAKE) clean )
-	(cd src && $(MAKE) clean )
+	(cd ../../../common/sock && ${MAKE} clean )
+	(cd src && ${MAKE} clean )
 distclean:  clean distclean-local distclean-xxx remove-makefile
 distclean-xxx:
-	if [ -s ../../../common/sock/Makefile ] ; then (cd ../../../common/sock && $(MAKE) distclean ) ; fi
-	if [ -s src/Makefile ] ; then (cd src && $(MAKE) distclean ) ; fi
+	if [ -s ../../../common/sock/Makefile ] ; then (cd ../../../common/sock && ${MAKE} distclean ) ; fi
+	if [ -s src/Makefile ] ; then (cd src && ${MAKE} distclean ) ; fi
 	-@rm -f Makefile src/Makefile localdefs config.status config.log config.cache *conf.cache config.system
 	-@rm -rf autom4te*.cache
 	-@rm -f include/mpidi_ch3i_sock_conf.h
 	-@rm -rf $(DEPS_DIR)
 	-@rm -f TAGS
-maintainer-clean:  maintainer-clean-local distclean-xxx remove-genmakefiles
-	(cd ../../../common/sock && $(MAKE) maintainer-clean )
-	(cd src && $(MAKE) maintainer-clean )
-	-rm -f include/mpidi_ch3i_sock_conf.h.in 
 remove-makefile:
 	rm -f Makefile
 remove-genmakefiles:
-	rm -f  Makefile.in Makefile
+	rm -f  Makefile
 all-redirect:
 	@(cd ../../../common/sock && ${MAKE} all )
 	@(cd src && ${MAKE} all )
@@ -92,30 +64,16 @@ all-redirect:
 	fi
 
 CC              = @CC@
-CFLAGS          = @CFLAGS@
+CFLAGS          = @CFLAGS@ $(MPICH2_MAKE_CFLAGS)
 C_COMPILE       = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 # Build the shared library from the shared object files
 ./libmpich2-ch3-sock.@SHLIB_EXT@: ./libmpich2-ch3-sock.la
-	(cd . && $(CREATESHLIB) --mode=link -version-info "@ABIVERSION@" -o libmpich2-ch3-sock.la  -rpath $(libdir) )
-coverage: 
-	(cd ../../../common/sock && $(MAKE) coverage )
-	(cd src && $(MAKE) coverage )
-# --------------------------------------------------------------------------
-htmldoc:
-	(cd ../../../common/sock && $(MAKE) htmldoc )
-	(cd src && $(MAKE) htmldoc )
-mandoc:
-	(cd ../../../common/sock && $(MAKE) mandoc )
-	(cd src && $(MAKE) mandoc )
-latexdoc:
-	(cd ../../../common/sock && $(MAKE) latexdoc )
-	(cd src && $(MAKE) latexdoc )
-# --------------------------------------------------------------------------
+	(cd . && $(CREATESHLIB) --mode=link  -version-info "$(ABIVERSION)" -o libmpich2-ch3-sock.la  -rpath $(libdir) -L../../../../../lib -lmpl -ldflags "$(LDFLAGS)" $(LIBS))
 # --------------------------------------------------------------------------
 # Install target
 install:  FORCE_TARGET 
 	if [ ! -d ${DESTDIR}${libdir} ] ; then $(MKDIR_P) ${DESTDIR}${libdir} ; fi
-	if [ -s libmpich2-ch3-sock.@SHLIB_EXT@ ] ; then $(CREATESHLIB) --mode=install libmpich2-ch3-sock.@SHLIB_EXT@ ${DESTDIR}${libdir}/libmpich2-ch3-sock.@SHLIB_EXT@ ; fi
+	if [ -s libmpich2-ch3-sock.@SHLIB_EXT@ ] ; then $(CREATESHLIB) -version-info $(ABIVERSION) --mode=install  libmpich2-ch3-sock.@SHLIB_EXT@ ${DESTDIR}${libdir}/libmpich2-ch3-sock.@SHLIB_EXT@ ; fi
 
 install-strip:
 	$(MAKE) INSTALL_STRIP_FLAG=-s install
@@ -124,18 +82,8 @@ uninstall:
 installcheck: 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-# Dependencies
-dependencies:
-	(cd ../../../common/sock && $(MAKE) dependencies )
-	(cd src && $(MAKE) dependencies )
-# End of Dependencies
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
 HEADERFILES     = $(HEADERS)
 SOURCEFILES     = $(SOURCES)
-tags: TAGS
-TAGS: Makefile
-	(cd src && $(MAKE) TAGS )
 # --------------------------------------------------------------------------
 
 distclean-local:
@@ -144,6 +92,7 @@ distclean-local:
 maintainer-clean-local:
 	-rm -f include/mpidi_ch3i_sock_conf.h.in
 
+# We need to build the sock libary with libmpl
 
 
 FORCE_TARGET:

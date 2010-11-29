@@ -72,7 +72,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("pt2pt");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_PT2PT_FUNC_ENTER_BACK(MPID_STATE_MPI_RECV);
     
     /* Validate handle parameters needing to be converted */
@@ -144,12 +144,12 @@ int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
     
     /* If a request was returned, then we need to block until the request is 
        complete */
-    if ((*(request_ptr)->cc_ptr) != 0)
+    if (!MPID_Request_is_complete(request_ptr))
     {
 	MPID_Progress_state progress_state;
 	    
 	MPID_Progress_start(&progress_state);
-	while((*(request_ptr)->cc_ptr) != 0)
+        while (!MPID_Request_is_complete(request_ptr))
 	{
 	    /* MT: Progress_wait may release the SINGLE_CS while it
 	       waits */
@@ -175,7 +175,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
     
   fn_exit:
     MPID_MPI_PT2PT_FUNC_EXIT_BACK(MPID_STATE_MPI_RECV);
-    MPIU_THREAD_SINGLE_CS_EXIT("pt2pt");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

@@ -382,9 +382,6 @@ void MPE_Req_wait_test( MPI_Request, MPI_Status *, char *, MPE_State *,
 */
 #define MPE_LOG_SWITCH_DECL \
     register       int              is_thisfn_logged = 0;
-
-#ifdef GCC_WALL
-
 #define MPE_LOG_STATE_DECL \
     register       MPE_State       *state   = 0; \
     register const CLOG_CommIDs_t  *commIDs = 0; \
@@ -397,23 +394,6 @@ void MPE_Req_wait_test( MPI_Request, MPI_Status *, char *, MPE_State *,
 #define MPE_LOG_BYTEBUF_DECL \
                    MPE_LOG_BYTES    bytebuf = {0};  \
                    int              bytebuf_pos = 0;
-
-#else
-
-#define MPE_LOG_STATE_DECL \
-    register       MPE_State       *state; \
-    register const CLOG_CommIDs_t  *commIDs; \
-    MPE_LOG_SWITCH_DECL
-#define MPE_LOG_COMM_DECL \
-    register       MPE_Event       *solo_event; \
-    register const CLOG_CommIDs_t  *new_commIDs;
-#define MPE_LOG_SOLO_EVENT_DECL \
-    register       MPE_Event       *solo_event;
-#define MPE_LOG_BYTEBUF_DECL \
-                   MPE_LOG_BYTES    bytebuf;  \
-                   int              bytebuf_pos;
-
-#endif
 
 extern MPEU_DLL_SPEC CLOG_CommSet_t  *CLOG_CommSet;
 
@@ -481,51 +461,74 @@ extern MPEU_DLL_SPEC CLOG_CommSet_t  *CLOG_CommSet;
     MPE_Req_wait_test( request, status, note, state, THREADID, IS_MPELOG_ON );
 
 /*
+   MPE_LOG_COMM_CHECK is needed in MPI_Comm_free() and MPI_Intercomm_create()
+   where commIDs could be NULL if users disable logging with MPI_Pcontrol(0).
+   But the 2 MPI functions needs commIDs to do some bookkeeping operations.
+*/
+#define MPE_LOG_COMM_CHECK(comm) \
+    if (!commIDs) \
+        commIDs = CLOG_CommSet_get_IDs( CLOG_CommSet, comm ); \
+
+#define MPE_LOG_COMMFREE(new_comm,comm_etype) \
+    if ( new_comm == MPI_COMM_NULL ) { \
+        MPE_Log_commIDs_nullcomm( commIDs, THREADID, comm_etype ); \
+        MPE_LOG_SOLO_EVENT( commIDs, THREADID, MPE_COMM_FINALIZE_ID ) \
+    }
+
+/*
    Update commIDs after CLOG_CommSet_add_intracomm() which may have invoked
    realloc() on CLOG_CommSet's table[] of commIDs, because invocation
    of realloc() may invalidate all commIDs handed out by CLOG_CommSet.
+
+   Communicator creation/destruction needs to be tracked even when
+   user turns off logging through MPI_Pcontrol(0), otherwise subsequent
+   logging of MPI calls that use the communicator after MPI_Pcontrol(1)
+   would fail during logging.  CLOG_CommSet_add_intracomm() is
+   needed to avoid logging failure.  But MPE_Log_commIDs_intracomm()
+   is needed so enough information is written to clog2 file so clog2TOslog2
+   won't fail.  This means MPI_Pcontrol(0) of the communicator creation
+   function will not log the MPI communicator creation state but CLOG2
+   buffer(disk) is still updated/modified with the communicator creation info.
 */
 /*    if (is_mpilog_on && IS_MPELOG_ON && state->is_active) { \ */
 #define MPE_LOG_INTRACOMM(comm,new_comm,comm_etype) \
-    if (is_thisfn_logged) { \
-        if ( new_comm != MPI_COMM_NULL ) { \
-            IS_MPELOG_ON = 0; \
-            new_commIDs = CLOG_CommSet_add_intracomm( CLOG_CommSet, \
-                                                      new_comm ); \
-            IS_MPELOG_ON = 1; \
-            commIDs = CLOG_CommSet_get_IDs( CLOG_CommSet, comm ); \
-            MPE_Log_commIDs_intracomm( commIDs, THREADID, \
-                                       comm_etype, new_commIDs ); \
-            MPE_LOG_SOLO_EVENT( new_commIDs, THREADID, MPE_COMM_INIT_ID ) \
-        } \
-        else { \
-            MPE_Log_commIDs_nullcomm( commIDs, THREADID, comm_etype ); \
-            MPE_LOG_SOLO_EVENT( commIDs, THREADID, MPE_COMM_FINALIZE_ID ) \
-        } \
+    if ( new_comm != MPI_COMM_NULL ) { \
+        IS_MPELOG_ON = 0; \
+        new_commIDs = CLOG_CommSet_add_intracomm( CLOG_CommSet, \
+                                                  new_comm ); \
+        IS_MPELOG_ON = 1; \
+        commIDs = CLOG_CommSet_get_IDs( CLOG_CommSet, comm ); \
+        MPE_Log_commIDs_intracomm( commIDs, THREADID, \
+                                   comm_etype, new_commIDs ); \
+        MPE_LOG_SOLO_EVENT( new_commIDs, THREADID, MPE_COMM_INIT_ID ) \
     }
 
 /*
    Update commIDs after CLOG_CommSet_add_intercomm() which may have invoked
    realloc() on CLOG_CommSet's table[] of commIDs, because invocation
    of realloc() may invalidate all commIDs handed out by CLOG_CommSet.
+
+   Communicator creation/destruction needs to be tracked even when
+   user turns off logging through MPI_Pcontrol(0), otherwise subsequent
+   logging of MPI calls that use the communicator after MPI_Pcontrol(1)
+   would fail during logging.  CLOG_CommSet_add_intercomm() is
+   needed to avoid logging failure.  But MPE_Log_commIDs_intercomm()
+   is needed so enough information is written to clog2 file so clog2TOslog2
+   won't fail.  This means MPI_Pcontrol(0) of the communicator creation
+   function will not log the MPI communicator creation state but CLOG2
+   buffer(disk) is still updated/modified with the communicator creation info.
 */
 /*    if (is_mpilog_on && IS_MPELOG_ON && state->is_active) { \ */
 #define MPE_LOG_INTERCOMM(comm,new_comm,comm_etype) \
-    if (is_thisfn_logged) { \
-        if ( new_comm != MPI_COMM_NULL ) { \
-            IS_MPELOG_ON = 0; \
-            new_commIDs = CLOG_CommSet_add_intercomm( CLOG_CommSet, \
-                                                      new_comm, commIDs ); \
-            IS_MPELOG_ON = 1; \
-            commIDs = CLOG_CommSet_get_IDs( CLOG_CommSet, comm ); \
-            MPE_Log_commIDs_intercomm( commIDs, THREADID, \
-                                       comm_etype, new_commIDs ); \
-            MPE_LOG_SOLO_EVENT( new_commIDs, THREADID, MPE_COMM_INIT_ID ) \
-        } \
-        else { \
-            MPE_Log_commIDs_nullcomm( commIDs, THREADID, comm_etype ); \
-            MPE_LOG_SOLO_EVENT( commIDs, THREADID, MPE_COMM_FINALIZE_ID ) \
-        } \
+    if ( new_comm != MPI_COMM_NULL ) { \
+        IS_MPELOG_ON = 0; \
+        new_commIDs = CLOG_CommSet_add_intercomm( CLOG_CommSet, \
+                                                  new_comm, commIDs ); \
+        IS_MPELOG_ON = 1; \
+        commIDs = CLOG_CommSet_get_IDs( CLOG_CommSet, comm ); \
+        MPE_Log_commIDs_intercomm( commIDs, THREADID, \
+                                   comm_etype, new_commIDs ); \
+        MPE_LOG_SOLO_EVENT( new_commIDs, THREADID, MPE_COMM_INIT_ID ) \
     }
 
 #define MPE_LOG_ON \
@@ -2433,7 +2436,7 @@ MPI_Comm * comm;
 {
   int   returnVal;
   MPE_LOG_STATE_DECL
-  MPE_LOG_COMM_DECL
+  MPE_LOG_SOLO_EVENT_DECL
   MPE_LOG_THREADSTM_DECL
 
 /*
@@ -2444,6 +2447,7 @@ MPI_Comm * comm;
   MPE_LOG_THREADSTM_GET
   MPE_LOG_THREAD_LOCK
   MPE_LOG_STATE_BEGIN(*comm,MPE_COMM_FREE_ID)
+  MPE_LOG_COMM_CHECK(*comm)
   MPE_LOG_THREAD_UNLOCK
 
 #if defined( MAKE_SAFE_PMPI_CALL )
@@ -2457,9 +2461,7 @@ MPI_Comm * comm;
 #endif
 
   MPE_LOG_THREAD_LOCK
-  if ( *comm == MPI_COMM_NULL ) {
-      MPE_LOG_INTRACOMM(*comm,MPI_COMM_NULL,CLOG_COMM_FREE)
-  }
+  MPE_LOG_COMMFREE(*comm,CLOG_COMM_FREE)
 
   MPE_LOG_STATE_END(*comm,NULL)
   MPE_LOG_THREAD_UNLOCK
@@ -3173,6 +3175,7 @@ MPI_Comm * comm_out;
   MPE_LOG_THREADSTM_GET
   MPE_LOG_THREAD_LOCK
   MPE_LOG_STATE_BEGIN(local_comm,MPE_INTERCOMM_CREATE_ID)
+  MPE_LOG_COMM_CHECK(local_comm)
   MPE_LOG_THREAD_UNLOCK
 
 #if defined( MAKE_SAFE_PMPI_CALL )
@@ -3554,33 +3557,8 @@ MPI_Errhandler errhandler;
 
 #define MAKE_PROCNAME_FILE 1
 
-/* Copy of CLOG_Util_getenvbool() */
-static int MPE_Util_getenvbool( char *env_var, int default_value )
-{
-    char *env_val;
-
-    env_val = (char *) getenv( env_var );
-    if ( env_val != NULL ) {
-        if (    strcmp( env_val, "true" ) == 0
-             || strcmp( env_val, "TRUE" ) == 0
-             || strcmp( env_val, "yes" ) == 0
-             || strcmp( env_val, "YES" ) == 0 )
-            return 1;
-        else if (    strcmp( env_val, "false" ) == 0
-                  || strcmp( env_val, "FALSE" ) == 0
-                  || strcmp( env_val, "no" ) == 0
-                  || strcmp( env_val, "NO" ) == 0 )
-            return 0;
-        else {
-            fprintf( stderr, __FILE__":MPE_Util_getenvbool() - \n"
-                             "\t""Environment variable %s has invalid boolean "
-                             "value %s and will be set to %d.\n",
-                             env_var, env_val, default_value );
-            fflush( stderr );
-        }
-    }
-    return default_value;
-}
+/* Copy of CLOG_Util_getenvbool() in log_mpi_util.c */
+int MPE_Util_getenvbool( char *env_var, int default_value );
 
 int  MPI_Finalize( )
 {
@@ -3786,6 +3764,22 @@ int * resultlen;
 }
 
 /*
+int is_mpe_f2c = 0;
+int MPE_Init_mpi( int *argc, char ***argv );
+int MPE_Init_mpi( int *argc, char ***argv )
+{
+    if ( is_mpe_f2c ) {
+        MPI_Fint ierr;
+        printf( "calling fortran pmpi_init_()\n" );
+        pmpi_init_( &ierr );
+        return (int) ierr;
+    }
+    else
+        return PMPI_Init( argc, argv );
+}
+*/
+
+/*
  * Replacement for MPI_Init.  Initializes logging and sets up basic
  * state definitions, including default color/pattern values
  */
@@ -3808,6 +3802,9 @@ char  ***argv;
     MPE_LOG_OFF
 #endif
 
+    /*
+    returnVal = MPE_Init_mpi( argc, argv );
+    */
     returnVal = PMPI_Init( argc, argv );
 
     MPE_Init_log();

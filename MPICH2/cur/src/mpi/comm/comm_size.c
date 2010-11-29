@@ -1,6 +1,5 @@
 /* -*- Mode: C; c-basic-offset:4 ; -*- */
-/*  $Id: comm_size.c,v 1.18 2006/12/09 16:42:24 gropp Exp $
- *
+/*
  *  (C) 2001 by Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
@@ -27,7 +26,7 @@
 #undef FUNCNAME
 #define FUNCNAME MPI_Comm_size
 #undef FCNAME
-#define FCNAME "MPI_Comm_size"
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 
 /*@
 
@@ -94,7 +93,7 @@ int MPI_Comm_size( MPI_Comm comm, int *size )
 
     /* ... body of routine ...  */
     
-    *size = comm_ptr->local_size;
+    *size = MPIR_Comm_size(comm_ptr);
     
     /* ... end of body of routine ... */
 

@@ -28,22 +28,22 @@
 #define FUNCNAME MPI_Type_create_subarray
 
 /*@
-   MPI_Type_create_subarray - Create a datatype for a subarray of a regular, 
+   MPI_Type_create_subarray - Create a datatype for a subarray of a regular,
     multidimensional array
 
    Input Parameters:
-+ ndims - number of array dimensions (positive integer) 
++ ndims - number of array dimensions (positive integer)
 . array_of_sizes - number of elements of type oldtype in each dimension of the
-  full array (array of positive integers) 
+  full array (array of positive integers)
 . array_of_subsizes - number of elements of type oldtype in each dimension of
-  the subarray (array of positive integers) 
+  the subarray (array of positive integers)
 . array_of_starts - starting coordinates of the subarray in each dimension
-  (array of nonnegative integers) 
-. order - array storage order flag (state) 
-- oldtype - array element datatype (handle) 
+  (array of nonnegative integers)
+. order - array storage order flag (state)
+- oldtype - array element datatype (handle)
 
    Output Parameter:
-. newtype - new datatype (handle) 
+. newtype - new datatype (handle)
 
 .N ThreadSafe
 
@@ -64,31 +64,33 @@ int MPI_Type_create_subarray(int ndims,
 {
     static const char FCNAME[] = "MPI_Type_create_subarray";
     int mpi_errno = MPI_SUCCESS, i;
+    MPI_Datatype new_handle;
 
     /* these variables are from the original version in ROMIO */
     MPI_Aint size, extent, disps[3];
     int blklens[3];
     MPI_Datatype tmp1, tmp2, types[3];
 
+#   ifdef HAVE_ERROR_CHECKING
+    MPI_Aint   size_with_aint;
+    MPI_Offset size_with_offset;
+#   endif
+
     /* for saving contents */
     int *ints;
     MPID_Datatype *new_dtp;
 
     MPID_Datatype *datatype_ptr = NULL;
-    MPIU_THREADPRIV_DECL;
     MPIU_CHKLMEM_DECL(1);
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_TYPE_CREATE_SUBARRAY);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
-    
-    MPIU_THREAD_SINGLE_CS_ENTER("datatype");
+
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_TYPE_CREATE_SUBARRAY);
 
-    MPIU_THREADPRIV_GET;
-    MPIR_Nest_incr();
-    
     /* Get handles to MPI objects. */
-    MPID_Datatype_get_ptr( oldtype, datatype_ptr );
+    MPID_Datatype_get_ptr(oldtype, datatype_ptr);
 #   ifdef HAVE_ERROR_CHECKING
     {
         MPID_BEGIN_ERROR_CHECKS;
@@ -140,11 +142,9 @@ int MPI_Type_create_subarray(int ndims,
 						 "order");
 	    }
 
-#if 0
-	    /* TODO: INTEGRATE THIS CHECK AS WELL */
-	    NMPI_Type_extent(oldtype, &extent);
+	    MPIR_Type_extent_impl(oldtype, &extent);
 
-	    /* check if MPI_Aint is large enough for size of global array. 
+	    /* check if MPI_Aint is large enough for size of global array.
 	       if not, complain. */
 
 	    size_with_aint = extent;
@@ -152,10 +152,15 @@ int MPI_Type_create_subarray(int ndims,
 	    size_with_offset = extent;
 	    for (i=0; i<ndims; i++) size_with_offset *= array_of_sizes[i];
 	    if (size_with_aint != size_with_offset) {
-		FPRINTF(stderr, "MPI_Type_create_subarray: Can't use an array of this size unless the MPI implementation defines a 64-bit MPI_Aint\n");
-		MPI_Abort(MPI_COMM_WORLD, 1);
-    }
-#endif
+		mpi_errno = MPIR_Err_create_code(MPI_SUCCESS,
+						 MPIR_ERR_FATAL,
+						 FCNAME,
+						 __LINE__,
+						 MPI_ERR_ARG,
+						 "**subarrayoflow",
+						 "**subarrayoflow %L",
+						 size_with_offset);
+            }
 
             /* Validate datatype_ptr */
             MPID_Datatype_valid_ptr(datatype_ptr, mpi_errno);
@@ -167,11 +172,11 @@ int MPI_Type_create_subarray(int ndims,
 #   endif /* HAVE_ERROR_CHECKING */
 
     /* ... body of routine ... */
-    
+
     /* TODO: CHECK THE ERROR RETURNS FROM ALL THESE!!! */
 
     /* TODO: GRAB EXTENT WITH A MACRO OR SOMETHING FASTER */
-    NMPI_Type_extent(oldtype, &extent);
+    MPIR_Type_extent_impl(oldtype, &extent);
 
     if (order == MPI_ORDER_FORTRAN) {
 	if (ndims == 1)
@@ -181,33 +186,33 @@ int MPI_Type_create_subarray(int ndims,
 	else {
 	    mpi_errno = MPID_Type_vector(array_of_subsizes[1],
 					 array_of_subsizes[0],
-					 array_of_sizes[0],
+					 (MPI_Aint)(array_of_sizes[0]),
 					 0, /* stride in types */
 					 oldtype,
 					 &tmp1);
-	    
-	    size = array_of_sizes[0]*extent;
+
+	    size = ((MPI_Aint)(array_of_sizes[0])) * extent;
 	    for (i=2; i<ndims; i++) {
-		size *= array_of_sizes[i-1];
+		size *= (MPI_Aint)(array_of_sizes[i-1]);
 		mpi_errno = MPID_Type_vector(array_of_subsizes[i],
 					     1,
 					     size,
 					     1, /* stride in bytes */
 					     tmp1,
 					     &tmp2);
-		NMPI_Type_free(&tmp1);
+		MPIR_Type_free_impl(&tmp1);
 		tmp1 = tmp2;
 	    }
 	}
 	
 	/* add displacement and UB */
 	
-	disps[1] = array_of_starts[0];
+	disps[1] = (MPI_Aint)(array_of_starts[0]);
 	size = 1;
 	for (i=1; i<ndims; i++) {
-	    size *= array_of_sizes[i-1];
-	    disps[1] += size*array_of_starts[i];
-	}  
+	    size *= (MPI_Aint)(array_of_sizes[i-1]);
+	    disps[1] += size * (MPI_Aint)(array_of_starts[i]);
+	}
         /* rest done below for both Fortran and C order */
     }
     else /* MPI_ORDER_C */ {
@@ -221,15 +226,14 @@ int MPI_Type_create_subarray(int ndims,
 	else {
 	    mpi_errno = MPID_Type_vector(array_of_subsizes[ndims-2],
 					 array_of_subsizes[ndims-1],
-					 array_of_sizes[ndims-1],
+					 (MPI_Aint)(array_of_sizes[ndims-1]),
 					 0, /* stride in types */
 					 oldtype,
 					 &tmp1);
-	    
 
-	    size = array_of_sizes[ndims-1]*extent;
+	    size = (MPI_Aint)(array_of_sizes[ndims-1]) * extent;
 	    for (i=ndims-3; i>=0; i--) {
-		size *= array_of_sizes[i+1];
+		size *= (MPI_Aint)(array_of_sizes[i+1]);
 		mpi_errno = MPID_Type_vector(array_of_subsizes[i],
 					     1,    /* blocklen */
 					     size, /* stride */
@@ -237,32 +241,32 @@ int MPI_Type_create_subarray(int ndims,
 					     tmp1, /* old type */
 					     &tmp2);
 
-		NMPI_Type_free(&tmp1);
+		MPIR_Type_free_impl(&tmp1);
 		tmp1 = tmp2;
 	    }
 	}
 	
 	/* add displacement and UB */
 	
-	disps[1] = array_of_starts[ndims-1];
+	disps[1] = (MPI_Aint)(array_of_starts[ndims-1]);
 	size = 1;
 	for (i=ndims-2; i>=0; i--) {
-	    size *= array_of_sizes[i+1];
-	    disps[1] += size*array_of_starts[i];
+	    size *= (MPI_Aint)(array_of_sizes[i+1]);
+	    disps[1] += size * (MPI_Aint)(array_of_starts[i]);
 	}
     }
 
     disps[1] *= extent;
-    
+
     disps[2] = extent;
-    for (i=0; i<ndims; i++) disps[2] *= array_of_sizes[i];
-    
+    for (i=0; i<ndims; i++) disps[2] *= (MPI_Aint)(array_of_sizes[i]);
+
     disps[0] = 0;
     blklens[0] = blklens[1] = blklens[2] = 1;
     types[0] = MPI_LB;
     types[1] = tmp1;
     types[2] = MPI_UB;
-    
+
     /* TODO:
      * if we were to do all this as an mpid function, we could just
      * directly adjust the LB and UB in the MPID_Datatype structure
@@ -270,16 +274,16 @@ int MPI_Type_create_subarray(int ndims,
      *
      * i suppose we could do the same thing here...
      *
-     * another alternative would be to use MPID_Type_create_resized() 
+     * another alternative would be to use MPID_Type_create_resized()
      * instead of building the struct.  that would also be cleaner.
      */
     mpi_errno = MPID_Type_struct(3,
 				 blklens,
 				 disps,
 				 types,
-				 newtype);
+				 &new_handle);
 
-    NMPI_Type_free(&tmp1);
+    MPIR_Type_free_impl(&tmp1);
 
     /* at this point we have the new type, and we've cleaned up any
      * intermediate types created in the process.  we just need to save
@@ -301,7 +305,7 @@ int MPI_Type_create_subarray(int ndims,
     }
     ints[3*ndims + 1] = order;
 
-    MPID_Datatype_get_ptr(*newtype, new_dtp);
+    MPID_Datatype_get_ptr(new_handle, new_dtp);
     mpi_errno = MPID_Datatype_set_contents(new_dtp,
 					   MPI_COMBINER_SUBARRAY,
 					   3 * ndims + 2, /* ints */
@@ -313,27 +317,26 @@ int MPI_Type_create_subarray(int ndims,
 
     if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 
+    MPIU_OBJ_PUBLISH_HANDLE(*newtype, new_handle);
     /* ... end of body of routine ... */
-    MPIR_Nest_decr();
-    
+
   fn_exit:
     MPIU_CHKLMEM_FREEALL();
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_TYPE_CREATE_SUBARRAY);
-    MPIU_THREAD_SINGLE_CS_EXIT("datatype");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:
     /* --BEGIN ERROR HANDLING-- */
-    MPIR_Nest_decr();
 #   ifdef HAVE_ERROR_CHECKING
     {
 	mpi_errno = MPIR_Err_create_code(
-	    mpi_errno, MPIR_ERR_RECOVERABLE, FCNAME, __LINE__, MPI_ERR_OTHER, "**mpi_type_create_subarray", 
+	    mpi_errno, MPIR_ERR_RECOVERABLE, FCNAME, __LINE__, MPI_ERR_OTHER, "**mpi_type_create_subarray",
 	    "**mpi_type_create_subarray %d %p %p %p %d %D %p", ndims, array_of_sizes, array_of_subsizes,
 	    array_of_starts, order, oldtype, newtype);
     }
 #   endif
-    mpi_errno = MPIR_Err_return_comm( NULL, FCNAME, mpi_errno );
+    mpi_errno = MPIR_Err_return_comm(NULL, FCNAME, mpi_errno);
     goto fn_exit;
     /* --END ERROR HANDLING-- */
 }

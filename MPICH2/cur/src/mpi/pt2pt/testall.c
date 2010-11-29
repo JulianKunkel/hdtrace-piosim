@@ -90,7 +90,7 @@ int MPI_Testall(int count, MPI_Request array_of_requests[], int *flag,
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("pt2pt");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_PT2PT_FUNC_ENTER(MPID_STATE_MPI_TESTALL);
 
     /* Check the arguments */
@@ -113,7 +113,8 @@ int MPI_Testall(int count, MPI_Request array_of_requests[], int *flag,
 
 	    for (i = 0; i < count; i++)
 	    {
-		MPIR_ERRTEST_REQUEST_OR_NULL(array_of_requests[i], mpi_errno);
+		MPIR_ERRTEST_ARRAYREQUEST_OR_NULL(array_of_requests[i], 
+						  i, mpi_errno);
 	    }
             if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 	}
@@ -168,7 +169,7 @@ int MPI_Testall(int count, MPI_Request array_of_requests[], int *flag,
 			    &(array_of_statuses[i]));
 	    if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 	}
-	if (request_ptrs[i] != NULL && *request_ptrs[i]->cc_ptr == 0)
+	if (request_ptrs[i] != NULL && MPID_Request_is_complete(request_ptrs[i]))
 	{
 	    n_completed++;
 	    if (MPIR_Request_get_error(request_ptrs[i]) != MPI_SUCCESS)
@@ -185,7 +186,7 @@ int MPI_Testall(int count, MPI_Request array_of_requests[], int *flag,
 	{
 	    if (request_ptrs[i] != NULL)
 	    {
-		if (*request_ptrs[i]->cc_ptr == 0) 
+                if (MPID_Request_is_complete(request_ptrs[i]))
 		{
 		    n_completed ++;
 		    status_ptr = (array_of_statuses != MPI_STATUSES_IGNORE) ? &array_of_statuses[i] : MPI_STATUS_IGNORE;
@@ -238,7 +239,7 @@ int MPI_Testall(int count, MPI_Request array_of_requests[], int *flag,
     }
     
     MPID_MPI_PT2PT_FUNC_EXIT(MPID_STATE_MPI_TESTALL);
-    MPIU_THREAD_SINGLE_CS_EXIT("pt2pt");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

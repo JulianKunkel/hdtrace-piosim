@@ -6,7 +6,6 @@
 all: all-redirect
 
 SHELL           = @SHELL@
-VERBOSE         = 1
 abs_builddir    = @abs_builddir@
 srcdir          = @srcdir@
 abs_srcdir      = @abs_srcdir@
@@ -16,7 +15,7 @@ CPPFLAGS        = @CPPFLAGS@
 LIBS            = @LIBS@
 MAKE            = @MAKE@
 CC              = @CC@
-CFLAGS          = @CFLAGS@
+CFLAGS          = @CFLAGS@ $(MPICH2_MAKE_CFLAGS)
 C_COMPILE       = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 C_LINK         = $(CC)
 LDFLAGS     =  @LDFLAGS@ 
@@ -25,51 +24,28 @@ VPATH = .:@srcdir@
 INCLUDES = -I../include -I${top_srcdir}/include
 
 .SUFFIXES:
-.SUFFIXES: .o .c .txt 
+.SUFFIXES: .o .c 
 .c.o:
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  CC              $<" ; \
 	else \
 	  echo $(C_COMPILE) -c $< ; \
 	fi
 	@$(C_COMPILE) -c $<
-.c.txt:
-	$(CPP) $(INCLUDES) $(CPPFLAGS) $< >$*.txt
 .c:
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  CC              $<" ; \
 	else \
 	  echo $(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS) ; \
 	fi
 	@$(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS)
-
-# --------------------------------------------------------------------------
-${srcdir}/Makefile.in: ${srcdir}/Makefile.sm
-	( cd ${srcdir} && ${master_top_srcdir}/maint/simplemake \
-	-rootdir=../../../ \
-	-configdir=test/mpi/ \
-	-common=${master_top_srcdir}/maint/makedefs \
-	-docnamedefs=${master_top_srcdir}/maint/docnotes \
-	"-autoconf=-I ROOTDIR/confdb" \
-	-libdir='$${MPILIBNAME}=ROOTDIR/lib' \
-	-smroot=${master_top_srcdir}/maint \
-	-distcleanfiles="Makefile" \
-	-smvar_doc_attop=0 \
-		Makefile.sm )
-Makefile: ${srcdir}/Makefile.in
-	-cd ../ && \
-	if [ -x config.status ] ; then CONFIG_FILES=group/Makefile CONFIG_HEADERS= ${SHELL} ./config.status ; fi
-# --------------------------------------------------------------------------
 apply: 
 	$(ACTION) $(ACTION_INPUT)
 clean: 
-	-@rm -f *.o ${srcdir}/*.o glpid groupcreate grouptest2 grouptest gtranks groupnullincl
-	-@rm -f glpid.exe groupcreate.exe grouptest2.exe grouptest.exe gtranks.exe groupnullincl.exe
+	-@rm -f *.o ${srcdir}/*.o glpid groupcreate grouptest2 grouptest gtranksperf gtranks groupnullincl
+	-@rm -f glpid.exe groupcreate.exe grouptest2.exe grouptest.exe gtranksperf.exe gtranks.exe groupnullincl.exe
 	-@rm -f core core.[0-9]*
 	-@rm -f *.lo ${srcdir}/*.lo
-	-@rm -f ${srcdir}/*.bb ${srcdir}/*.bbg ${srcdir}/*.da
-	-@rm -f ${srcdir}/*.gcda ${srcdir}/*.gcno
-	-@rm -f *.gcov *.bb *.bbg *.da *.gcda *.gcno
 	-@rm -f *.irlog*
 distclean:  clean distclean-xxx remove-makefile
 distclean-xxx:
@@ -77,14 +53,12 @@ distclean-xxx:
 	-@rm -rf autom4te*.cache
 	-@rm -rf $(DEPS_DIR)
 	-@rm -f TAGS
-maintainer-clean:  distclean-xxx remove-genmakefiles
 remove-makefile:
 	rm -f Makefile
 remove-genmakefiles:
-	rm -f  Makefile.in Makefile
-all-redirect: grouptest grouptest2 groupcreate gtranks groupnullincl
+	rm -f  Makefile
+all-redirect: grouptest grouptest2 groupcreate gtranks groupnullincl gtranksperf
 
-coverage: 
 glpid: glpid.o   @MPILIBLOC@
 	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o glpid glpid.o  ${LIBS}
 groupcreate: groupcreate.o   @MPILIBLOC@
@@ -93,33 +67,19 @@ grouptest2: grouptest2.o   @MPILIBLOC@
 	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o grouptest2 grouptest2.o  ${LIBS}
 grouptest: grouptest.o   @MPILIBLOC@
 	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o grouptest grouptest.o  ${LIBS}
+gtranksperf: gtranksperf.o   @MPILIBLOC@
+	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o gtranksperf gtranksperf.o  ../util/mtest.o ${LIBS}
 gtranks: gtranks.o   @MPILIBLOC@
-	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o gtranks gtranks.o  ../util/mtest.o \
-	${LIBS} 
+	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o gtranks gtranks.o  ../util/mtest.o ${LIBS}
 groupnullincl: groupnullincl.o   @MPILIBLOC@
-	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o groupnullincl groupnullincl.o  \
-	../util/mtest.o ${LIBS} 
-# --------------------------------------------------------------------------
-htmldoc:
-mandoc:
-latexdoc:
+	$(C_LINK) $(CFLAGS) $(LDFLAGS) -o groupnullincl groupnullincl.o  ../util/mtest.o ${LIBS}
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-# Dependencies
-dependencies:
-# End of Dependencies
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-SOURCES         =  glpid.c grouptest.c grouptest2.c groupcreate.c gtranks.c \
-	groupnullincl.c 
-ETAGS           = @ETAGS@ @ETAGSADD@
+SOURCES         =  glpid.c grouptest.c grouptest2.c groupcreate.c gtranks.c groupnullincl.c \
+	gtranksperf.c 
 HEADERFILES     = $(HEADERS)
 SOURCEFILES     = $(SOURCES)
-tags: TAGS
-TAGS: Makefile${HEADERFILES} ${SOURCEFILES}
-	here=`cd ../../.. && pwd` ; cd ${srcdir} && $(ETAGS) -o $$here/TAGS --append ${HEADERFILES} ${SOURCEFILES}
 # --------------------------------------------------------------------------
 
 # glpid requires mpiimpl.h and hence special compile options.

@@ -73,12 +73,11 @@ int MPI_Attr_put(MPI_Comm comm, int keyval, void *attr_value)
     static const char FCNAME[] = "MPI_Attr_put";
     int mpi_errno = MPI_SUCCESS;
     MPID_Comm *comm_ptr = NULL;
-    MPIU_THREADPRIV_DECL;
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_ATTR_PUT);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("attr");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_ATTR_PUT);
 
     /* Validate parameters, especially handles needing to be converted */
@@ -87,6 +86,8 @@ int MPI_Attr_put(MPI_Comm comm, int keyval, void *attr_value)
         MPID_BEGIN_ERROR_CHECKS;
         {
 	    MPIR_ERRTEST_COMM(comm, mpi_errno);
+            MPIR_ERRTEST_KEYVAL(keyval, MPID_COMM, "communicator", mpi_errno);
+            MPIR_ERRTEST_KEYVAL_PERM(keyval, mpi_errno);
             if (mpi_errno != MPI_SUCCESS) goto fn_fail;
         }
         MPID_END_ERROR_CHECKS;
@@ -112,17 +113,14 @@ int MPI_Attr_put(MPI_Comm comm, int keyval, void *attr_value)
 
     /* ... body of routine ...  */
 
-    MPIU_THREADPRIV_GET;
-    MPIR_Nest_incr();
-    mpi_errno = NMPI_Comm_set_attr( comm, keyval, attr_value );
-    MPIR_Nest_decr();
+    mpi_errno = MPIR_Comm_set_attr_impl( comm_ptr, keyval, attr_value, MPIR_ATTR_PTR );
     if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 
     /* ... end of body of routine ... */
 
   fn_exit:
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_ATTR_PUT);
-    MPIU_THREAD_SINGLE_CS_EXIT("attr");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

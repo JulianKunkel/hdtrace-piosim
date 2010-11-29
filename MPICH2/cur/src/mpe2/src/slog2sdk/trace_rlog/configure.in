@@ -10,6 +10,7 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT()
 AC_PREREQ(2.52)
+AC_CONFIG_MACRO_DIR([confdb])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_HEADER([trace_impl.h])
  
@@ -110,10 +111,17 @@ if test "$JDK_TOPDIR" = "no" ; then
     PAC_MSG_ERROR($enable_softerror, [--without-java is specified, exit!])
 fi
 
+AC_ARG_VAR(TRACE_CC,[TRACE_CC overrides CC if it exists.])
+AC_ARG_VAR(TRACE_CFLAGS,[TRACE_CFLAGS overrides CFLAGS if it exists.])
 dnl Check if TRACE_CC has been set before AC_PROG_CC
 if test -n "$TRACE_CC" ; then
     TRACE_ORIG_CC="$CC"
     CC="$TRACE_CC"
+fi
+dnl Check if TRACE_CFLAGS has been set before AC_PROG_CC
+if test -n "$TRACE_CFLAGS" ; then
+    TRACE_ORIG_CFLAGS="$CFLAGS"
+    CFLAGS="$TRACE_CFLAGS"
 fi
 dnl Checks for programs.
 AC_PROG_CC
@@ -125,11 +133,11 @@ AC_C_CONST
 dnl SIZEOF_VOID_P, SIZEOF_LONG, SIZEOF_LONG_LONG and SIZEOF__INT64 created
 dnl by AC_CHECK_SIZEOF( *, * ) are needed to compile
 dnl slog2sdk/src/logformat/trace/logformat_trace_InputLog.c
-AC_CHECK_SIZEOF( void *, $CROSS_SIZEOF_VOID_P )
-AC_CHECK_SIZEOF( int, $CROSS_SIZEOF_INT )
-AC_CHECK_SIZEOF( long, $CROSS_SIZEOF_LONG )
-AC_CHECK_SIZEOF( long long, $CROSS_SIZEOF_LONG_LONG )
-AC_CHECK_SIZEOF( __int64, $CROSS_SIZEOF___INT64 )
+AC_CHECK_SIZEOF(void *)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(__int64)
 dnl   -- Check if byteswapping needs to be done.
 if test "$cross_compiling" = "yes" -o "$cross_compiling" = 1 ; then
     AC_MSG_CHECKING([for byte ordering])
@@ -162,27 +170,25 @@ case "$host_os" in
     aix4* | aix5* )
         dnl  temporary fix to force libtool on AIX to generate .so file,
         dnl  i.e. inform libtool to do runtime linking.
-        LDFLAGS="$LDFLAGS -brtl"
+        LIBSO_LDFLAGS="-brtl"
         ;;
     *darwin* )
         dnl  force libtool to build .jnilib which is needed by Mac's JVM
-        LDFLAGS="$LDFLAGS -shrext .jnilib"
+        LIBSO_LDFLAGS="-shrext .jnilib"
         ;;
     *cygwin* )
         dnl  Since SUN's JDK assumes a win32 compiler, so force cygwin/gcc
         dnl  to be in MINGW32 mode. 
-        CC="gcc -mno-cygwin"
-        LDFLAGS="$LDFLAGS -Wl,--enable-stdcall-fixup"
+        LIBSO_CFLAGS="-mno-cygwin"
+        LIBSO_LDFLAGS="-Wl,--enable-stdcall-fixup"
         LIBSO_PREFIX=""
         ;;
 esac
+dnl Strictly speaking, we need to test LIBSO_CFLAGS and LIBSO_LDFLAGS
+dnl with libtool before using them in Makefile. **FIXME**
+AC_SUBST(LIBSO_CFLAGS)
+AC_SUBST(LIBSO_LDFLAGS)
 AC_SUBST(LIBSO_PREFIX)
-
-dnl  set COPTS equal to CFLAGS during configuration
-if test "x$CFLAGS" != "x" ; then
-    COPTS="$CFLAGS"
-    AC_SUBST(COPTS)
-fi
 
 dnl  intel compiler does not need shared library symbol exported.
 EXPORT_SYMBOLS=yes
@@ -321,4 +327,8 @@ fi
 dnl Restore the original CC if it is needed
 if test -n "$TRACE_CC" ; then
     CC="$TRACE_ORIG_CC"
+fi
+dnl Restore the original CFLAGS if it is needed
+if test -n "$TRACE_CFLAGS" ; then
+    CFLAGS="$TRACE_ORIG_CFLAGS"
 fi

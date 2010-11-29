@@ -22,98 +22,103 @@ static int MPIR_Topology_finalize ( void * );
 */
 MPIR_Topology *MPIR_Topology_get( MPID_Comm *comm_ptr )
 {
+    int mpi_errno = MPI_SUCCESS;
     MPIR_Topology *topo_ptr;
     int flag;
-    MPIU_THREADPRIV_DECL;
 
     if (MPIR_Topology_keyval == MPI_KEYVAL_INVALID) {
 	return 0;
     }
 
-    MPIU_THREADPRIV_GET;
-    MPIR_Nest_incr();
-    (void)NMPI_Comm_get_attr(comm_ptr->handle, MPIR_Topology_keyval,
-			     &topo_ptr, &flag );
-    MPIR_Nest_decr();
-
-    if (flag) return topo_ptr;
-    return 0;
+    mpi_errno = MPIR_CommGetAttr(comm_ptr->handle, MPIR_Topology_keyval,
+                                 &topo_ptr, &flag, MPIR_ATTR_PTR );
+    if (mpi_errno) return NULL;
+    
+    if (flag)
+        return topo_ptr;
+    return NULL;
 }
 
+#undef FUNCNAME
+#define FUNCNAME MPIR_Topology_put
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 int MPIR_Topology_put( MPID_Comm *comm_ptr, MPIR_Topology *topo_ptr )
 {
-    int mpi_errno;
-    MPIU_THREADPRIV_DECL;
+    int mpi_errno = MPI_SUCCESS;
 
-    MPIU_THREADPRIV_GET;
+    MPIU_Assert(comm_ptr != NULL);
 
     if (MPIR_Topology_keyval == MPI_KEYVAL_INVALID) {
 	/* Create a new keyval */
 	/* FIXME - thread safe code needs a thread lock here, followed
 	   by another test on the keyval to see if a different thread
 	   got there first */
-	MPIR_Nest_incr();
-	mpi_errno = NMPI_Comm_create_keyval( MPIR_Topology_copy_fn, 
-					     MPIR_Topology_delete_fn,
-					     &MPIR_Topology_keyval, 0 );
-	MPIR_Nest_decr();
+	mpi_errno = MPIR_Comm_create_keyval_impl( MPIR_Topology_copy_fn,
+                                                  MPIR_Topology_delete_fn,
+                                                  &MPIR_Topology_keyval, 0 );
 	/* Register the finalize handler */
-	if (mpi_errno) return mpi_errno;
-	MPIR_Add_finalize( MPIR_Topology_finalize, (void*)0, 
+        if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+        MPIR_Add_finalize( MPIR_Topology_finalize, (void*)0,
 			   MPIR_FINALIZE_CALLBACK_PRIO-1);
     }
-    MPIR_Nest_incr();
-    mpi_errno = NMPI_Comm_set_attr(comm_ptr->handle, MPIR_Topology_keyval, 
-				   topo_ptr );
-    MPIR_Nest_decr();
+    mpi_errno = MPIR_Comm_set_attr_impl(comm_ptr, MPIR_Topology_keyval, topo_ptr, MPIR_ATTR_PTR);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+    
+ fn_exit:
     return mpi_errno;
+ fn_fail:
+    goto fn_exit;
 }
 
 /* Ignore p */
-/* begin:nested */
+
 static int MPIR_Topology_finalize( void *p ATTRIBUTE((unused)) )
 {
-    MPIU_THREADPRIV_DECL;
-
-    MPIU_THREADPRIV_GET;
-
-    MPIR_Nest_incr();
-
     MPIU_UNREFERENCED_ARG(p);
 
     if (MPIR_Topology_keyval != MPI_KEYVAL_INVALID) {
 	/* Just in case */
-	NMPI_Comm_free_keyval( &MPIR_Topology_keyval );
+	MPIR_Comm_free_keyval_impl(MPIR_Topology_keyval);
+        MPIR_Topology_keyval = MPI_KEYVAL_INVALID;
     }
-    MPIR_Nest_decr();
     return 0;
 }
-/* end:nested */
+
 
 static int *MPIR_Copy_array( int n, const int a[], int *err )
 {
-    int *new_p = (int *)MPIU_Malloc( n * sizeof(int) );
-    int i;
-    
+    int *new_p;
+
+    /* the copy of NULL is NULL */
+    if (a == NULL) {
+        MPIU_Assert(n == 0);
+        return NULL;
+    }
+
+    new_p = (int *)MPIU_Malloc( n * sizeof(int) );
+
     /* --BEGIN ERROR HANDLING-- */
     if (!new_p) {
 	*err = MPI_ERR_OTHER;
 	return 0;
     }
     /* --END ERROR HANDLING-- */
-    for (i=0; i<n; i++) {
-	new_p[i] = a[i];
-    }
+    MPIU_Memcpy(new_p, a, n * sizeof(int));
     return new_p;
 }
 
 /* The keyval copy and delete functions must handle copying and deleting 
-   the assoicated topology structures 
+   the associated topology structures 
    
    We can reduce the number of allocations by making a single allocation
    of enough integers for all fields (including the ones in the structure)
    and freeing the single object later.
 */
+#undef FUNCNAME
+#define FUNCNAME MPIR_Topology_copy_fn
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 static int MPIR_Topology_copy_fn ( MPI_Comm comm ATTRIBUTE((unused)), 
 				   int keyval ATTRIBUTE((unused)), 
 				   void *extra_data ATTRIBUTE((unused)),
@@ -121,41 +126,51 @@ static int MPIR_Topology_copy_fn ( MPI_Comm comm ATTRIBUTE((unused)),
 				   int *flag )
 {
     MPIR_Topology *old_topology = (MPIR_Topology *)attr_in;
-    MPIR_Topology *copy_topology = (MPIR_Topology *)MPIU_Malloc( sizeof( MPIR_Topology) );
+    MPIR_Topology *copy_topology = NULL;
+    MPIU_CHKPMEM_DECL(5);
     int mpi_errno = 0;
 
     MPIU_UNREFERENCED_ARG(comm);
     MPIU_UNREFERENCED_ARG(keyval);
     MPIU_UNREFERENCED_ARG(extra_data);
 
-    /* --BEGIN ERROR HANDLING-- */
-    if (!copy_topology) {
-	return MPI_ERR_OTHER;
-    }
-    /* --END ERROR HANDLING-- */
+    *flag = 0;
+    *(void **)attr_out = NULL;
+
+    MPIU_CHKPMEM_MALLOC(copy_topology, MPIR_Topology *, sizeof(MPIR_Topology), mpi_errno, "copy_topology");
+
+    /* simplify copying and error handling */
+#define MPIR_ARRAY_COPY_HELPER(kind_,array_field_,count_field_) \
+        do { \
+            copy_topology->topo.kind_.array_field_ = \
+                MPIR_Copy_array(old_topology->topo.kind_.count_field_, \
+                                old_topology->topo.kind_.array_field_, \
+                                &mpi_errno); \
+            if (mpi_errno) MPIU_ERR_POP(mpi_errno); \
+            MPIU_CHKPMEM_REGISTER(copy_topology->topo.kind_.array_field_); \
+        } while (0)
 
     copy_topology->kind = old_topology->kind;
     if (old_topology->kind == MPI_CART) {
-	int ndims = old_topology->topo.cart.ndims;
-	copy_topology->topo.cart.nnodes = old_topology->topo.cart.nnodes;
-	copy_topology->topo.cart.ndims  = ndims;
-	copy_topology->topo.cart.dims   = MPIR_Copy_array( ndims,
-				     old_topology->topo.cart.dims, 
-				     &mpi_errno );
-	copy_topology->topo.cart.periodic = MPIR_Copy_array( ndims,
-			       old_topology->topo.cart.periodic, &mpi_errno );
-	copy_topology->topo.cart.position = MPIR_Copy_array( ndims, 
-			       old_topology->topo.cart.position, &mpi_errno );
+        copy_topology->topo.cart.ndims  = old_topology->topo.cart.ndims;
+        copy_topology->topo.cart.nnodes = old_topology->topo.cart.nnodes;
+        MPIR_ARRAY_COPY_HELPER(cart, dims, ndims);
+        MPIR_ARRAY_COPY_HELPER(cart, periodic, ndims);
+        MPIR_ARRAY_COPY_HELPER(cart, position, ndims);
     }
     else if (old_topology->kind == MPI_GRAPH) {
-	int nnodes = old_topology->topo.graph.nnodes;
-	copy_topology->topo.graph.nnodes = nnodes;
-	copy_topology->topo.graph.nedges = old_topology->topo.graph.nedges;
-	copy_topology->topo.graph.index  = MPIR_Copy_array( nnodes,
-				 old_topology->topo.graph.index, &mpi_errno );
-	copy_topology->topo.graph.edges = MPIR_Copy_array( 
-				 old_topology->topo.graph.nedges, 
-				 old_topology->topo.graph.edges, &mpi_errno );
+        copy_topology->topo.graph.nnodes = old_topology->topo.graph.nnodes;
+        copy_topology->topo.graph.nedges = old_topology->topo.graph.nedges;
+        MPIR_ARRAY_COPY_HELPER(graph, index, nnodes);
+        MPIR_ARRAY_COPY_HELPER(graph, edges, nedges);
+    }
+    else if (old_topology->kind == MPI_DIST_GRAPH) {
+        copy_topology->topo.dist_graph.indegree = old_topology->topo.dist_graph.indegree;
+        copy_topology->topo.dist_graph.outdegree = old_topology->topo.dist_graph.outdegree;
+        MPIR_ARRAY_COPY_HELPER(dist_graph, in, indegree);
+        MPIR_ARRAY_COPY_HELPER(dist_graph, in_weights, indegree);
+        MPIR_ARRAY_COPY_HELPER(dist_graph, out, outdegree);
+        MPIR_ARRAY_COPY_HELPER(dist_graph, out_weights, outdegree);
     }
     /* --BEGIN ERROR HANDLING-- */
     else {
@@ -163,13 +178,23 @@ static int MPIR_Topology_copy_fn ( MPI_Comm comm ATTRIBUTE((unused)),
 	return MPI_ERR_TOPOLOGY;
     }
     /* --END ERROR HANDLING-- */
+#undef MPIR_ARRAY_COPY_HELPER
 
     *(void **)attr_out = (void *)copy_topology;
     *flag = 1;
+    MPIU_CHKPMEM_COMMIT();
+fn_exit:
     /* Return mpi_errno in case one of the copy array functions failed */
     return mpi_errno;
+fn_fail:
+    MPIU_CHKPMEM_REAP();
+    goto fn_exit;
 }
 
+#undef FUNCNAME
+#define FUNCNAME MPIR_Topology_delete_fn
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 static int MPIR_Topology_delete_fn ( MPI_Comm comm ATTRIBUTE((unused)), 
 				     int keyval ATTRIBUTE((unused)), 
 				     void *attr_val, 
@@ -193,6 +218,15 @@ static int MPIR_Topology_delete_fn ( MPI_Comm comm ATTRIBUTE((unused)),
 	MPIU_Free( topology->topo.graph.index );
 	MPIU_Free( topology->topo.graph.edges );
 	MPIU_Free( topology );
+    }
+    else if (topology->kind == MPI_DIST_GRAPH) {
+        MPIU_Free(topology->topo.dist_graph.in);
+        MPIU_Free(topology->topo.dist_graph.out);
+        if (topology->topo.dist_graph.in_weights)
+            MPIU_Free(topology->topo.dist_graph.in_weights);
+        if (topology->topo.dist_graph.out_weights)
+            MPIU_Free(topology->topo.dist_graph.out_weights);
+        MPIU_Free(topology );
     }
     /* --BEGIN ERROR HANDLING-- */
     else {

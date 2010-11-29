@@ -5,34 +5,6 @@
  *      See COPYRIGHT in top-level directory.
  */
 
-#if 0
-/* FIXME: Who uses this and why? */
-#undef FUNCNAME
-#define FUNCNAME MPIDU_Sock_hostname_to_host_description
-#undef FCNAME
-#define FCNAME MPIU_QUOTE(FUNCNAME)
-int MPIDU_Sock_hostname_to_host_description(char *hostname, char *host_description, int len)
-{
-    int mpi_errno = MPI_SUCCESS;
-    MPIDI_STATE_DECL(MPID_STATE_MPIDU_SOCK_HOSTNAME_TO_HOST_DESCRIPTION);
-
-    MPIDI_FUNC_ENTER(MPID_STATE_MPIDU_SOCK_HOSTNAME_TO_HOST_DESCRIPTION);
-    
-    MPIDU_SOCKI_VERIFY_INIT(mpi_errno, fn_exit);
-    
-    if (MPIU_Strncpy(host_description, hostname, len))
-    /* --BEGIN ERROR HANDLING-- */
-    {
-	mpi_errno = MPIR_Err_create_code(MPI_SUCCESS, MPIR_ERR_RECOVERABLE, FCNAME, __LINE__, MPIDU_SOCK_ERR_BAD_LEN,
-					 "**sock|badhdmax", 0);
-    }
-    /* --END ERROR HANDLING-- */
- fn_exit:
-    MPIDI_FUNC_EXIT(MPID_STATE_MPIDU_SOCK_HOSTNAME_TO_HOST_DESCRIPTION);
-    return mpi_errno;
-}
-#endif
-
 /* This routine is called in mpid/ch3/util/sock/ch3u_connect_sock.c */
 /* FIXME: This routine is misnamed; it is really get_interface_name (in the 
    case where there are several networks available to the calling process,
@@ -83,7 +55,7 @@ int MPIDU_Sock_get_host_description(int myRank,
 
     if (env_hostname != NULL)
     {
-	rc = MPIU_Strncpy(host_description, env_hostname, len);
+	rc = MPIU_Strncpy(host_description, env_hostname, (size_t) len);
 	/* --BEGIN ERROR HANDLING-- */
 	if (rc != 0)
 	{
@@ -309,7 +281,7 @@ int MPIDU_Sock_get_sock_set_id(struct MPIDU_Sock_set * sock_set)
 #undef FCNAME
 #define FCNAME MPIU_QUOTE(FUNCNAME)
 /* --BEGIN ERROR HANDLING-- */
-int MPIDU_Sock_get_error_class_string(int error, char *error_string, int length)
+int MPIDU_Sock_get_error_class_string(int error, char *error_string, size_t length)
 {
     MPIDI_STATE_DECL(MPID_STATE_MPIDU_SOCK_GET_ERROR_CLASS_STRING);
 

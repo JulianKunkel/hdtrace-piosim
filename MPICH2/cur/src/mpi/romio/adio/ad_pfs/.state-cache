@@ -3,10 +3,10 @@
 <file name="ad_pfs.h" info="1194043819"/>
 <file name="ad_pfs_fcntl.c" info="1194043819"/>
 <file name="ad_pfs_wait.c" info="1194043819"/>
-<file name="ad_pfs_open.c" info="1194043819"/>
+<file name="ad_pfs_open.c" info="1274813953"/>
 <file name="ad_pfs_done.c" info="1194043819"/>
 <file name="ad_pfs_iread.c" info="1194043819"/>
-<file name="ad_pfs_hints.c" info="1194043819"/>
+<file name="ad_pfs_hints.c" info="1274813953"/>
 <file name="ad_pfs_iwrite.c" info="1194043819"/>
 <file name="ad_pfs_read.c" info="1194043819"/>
 <file name="ad_pfs_flush.c" info="1194043819"/>

@@ -5,7 +5,13 @@
  */
 
 #include "mpidimpl.h"
+#ifdef USE_PMI2_API
+#include "pmi2.h"
+#else
 #include "pmi.h"
+#endif
+
+#define MAX_JOBID_LEN 1024
 
 /* FIXME: These routines need a description.  What is their purpose?  Who
    calls them and why?  What does each one do?
@@ -88,6 +94,10 @@ int MPIDI_PG_Finalize(void)
     /* FIXME - straighten out the use of PMI_Finalize - no use after 
        PG_Finalize */
     if (pg_world->connData) {
+#ifdef USE_PMI2_API
+        mpi_errno = PMI2_Finalize();
+        if (mpi_errno) MPIU_ERR_SET(mpi_errno, MPI_ERR_OTHER, "**ch3|pmi_finalize");
+#else
 	int rc;
 	rc = PMI_Finalize();
 	if (rc) {
@@ -95,6 +105,7 @@ int MPIDI_PG_Finalize(void)
 			  "**ch3|pmi_finalize", 
 			  "**ch3|pmi_finalize %d", rc);
 	}
+#endif
     }
 
     /* Free the storage associated with the process groups */
@@ -106,10 +117,13 @@ int MPIDI_PG_Finalize(void)
 	   the ref count is not zero.  This can happen if the user
 	   fails to use MPI_Comm_disconnect on communicators that
 	   were created with the dynamic process routines.*/
-	if (pg->ref_count == 0 || 1) {
+        /* XXX DJG FIXME-MT should we be checking this? */
+	if (MPIU_Object_get_ref(pg) == 0 || 1) {
 	    if (pg == MPIDI_Process.my_pg)
 		MPIDI_Process.my_pg = NULL;
-	    MPIDI_PG_Destroy(pg);
+
+	    MPIU_Object_set_ref(pg, 0); /* satisfy assertions in PG_Destroy */
+	    MPIDI_PG_Destroy( pg );
 	}
 	pg     = pgNext;
     }
@@ -130,9 +144,7 @@ int MPIDI_PG_Finalize(void)
        That reference is released
        only after ch3_finalize returns. If I release it before ch3_finalize, 
        the ssm channel crashes. */
-
 #if 0
-
     if (MPIDI_PG_list != NULL)
     { 
 	
@@ -260,6 +272,8 @@ int MPIDI_PG_Destroy(MPIDI_PG_t * pg)
 
     MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_PG_DESTROY);
 
+    MPIU_Assert(MPIU_Object_get_ref(pg) == 0);
+
     pg_prev = NULL;
     pg_cur = MPIDI_PG_list;
     while(pg_cur != NULL)
@@ -276,18 +290,33 @@ int MPIDI_PG_Destroy(MPIDI_PG_t * pg)
             else
                 pg_prev->next = pg->next;
 
-	    /* FIXME: This is a temp debugging print (and should use
-	       one of the standard debug macros instead */
-	    if (verbose) {
-		fprintf( stdout, "Destroying process group %s\n", 
-			 (char *)pg->id ); fflush(stdout);
-	    }
+            MPIU_DBG_MSG_FMT(CH3_DISCONNECT, VERBOSE, (MPIU_DBG_FDEST, "destroying pg=%p pg->id=%s", pg, (char *)pg->id));
 
             for (i = 0; i < pg->size; ++i) {
+                /* FIXME it would be good if we could make this assertion.
+                   Unfortunately, either:
+                   1) We're not being disciplined and some caller of this
+                      function doesn't bother to manage all the refcounts
+                      because he thinks he knows better.  Annoying, but not
+                      strictly a bug.
+		      (wdg - actually, that is a bug - managing the ref
+		      counts IS required and missing one is a bug.)
+                   2) There is a real bug lurking out there somewhere and we
+                      just haven't hit it in the tests yet.  */
+                /*MPIU_Assert(MPIU_Object_get_ref(pg->vct[i]) == 0);*/
+
+                MPIU_DBG_MSG_FMT(CH3_DISCONNECT, VERBOSE, (MPIU_DBG_FDEST, "about to free pg->vct=%p which contains vc=%p", pg->vct, &pg->vct[i]));
+
                 /* This used to be handled in MPID_VCRT_Release, but that was
                    not the right place to do this.  The VC should only be freed
                    when the PG that it belongs to is freed, not just when the
                    VC's refcount drops to zero. [goodell@ 2008-06-13] */
+		/* In that case, the fact that the VC is in the PG should
+		   increment the ref count - reflecting the fact that the
+		   use in the PG constitutes a reference-count-incrementing
+		   use.  Alternately, if the PG is able to recreate a VC, 
+		   and can thus free unused (or idle) VCs, it should be allowed
+		   to do so.  [wdg 2008-08-31] */
                 mpi_errno = MPIU_CALL(MPIDI_CH3,VC_Destroy(&(pg->vct[i])));
                 if (mpi_errno) { MPIU_ERR_POP(mpi_errno); }
             }
@@ -364,28 +393,37 @@ int MPIDI_PG_Id_compare(void * id1, void *id2)
     return MPIDI_PG_Compare_ids_fn(id1, id2);
 }
 
+/* iter always points at the next element */
 #undef FUNCNAME
 #define FUNCNAME MPIDI_PG_Get_next
 #undef FCNAME
 #define FCNAME MPIDI_QUOTE(FUNCNAME)
-int MPIDI_PG_Get_next(MPIDI_PG_t ** pg_ptr)
+int MPIDI_PG_Get_next(MPIDI_PG_iterator *iter, MPIDI_PG_t ** pg_ptr)
 {
-    *pg_ptr = MPIDI_PG_iterator_next;
-    if (MPIDI_PG_iterator_next != NULL)
-    { 
-	MPIDI_PG_iterator_next = MPIDI_PG_iterator_next->next;
+    *pg_ptr = (*iter);
+    if ((*iter) != NULL) {
+        (*iter) = (*iter)->next;
     }
 
     return MPI_SUCCESS;
 }
 
 #undef FUNCNAME
-#define FUNCNAME MPIDI_PG_Iterate_reset
+#define FUNCNAME MPIDI_PG_Has_next
 #undef FCNAME
 #define FCNAME MPIDI_QUOTE(FUNCNAME)
-int MPIDI_PG_Iterate_reset()
+int MPIDI_PG_Has_next(MPIDI_PG_iterator *iter)
 {
-    MPIDI_PG_iterator_next = MPIDI_PG_list;
+    return (*iter != NULL);
+}
+
+#undef FUNCNAME
+#define FUNCNAME MPIDI_PG_Get_iterator
+#undef FCNAME
+#define FCNAME MPIDI_QUOTE(FUNCNAME)
+int MPIDI_PG_Get_iterator(MPIDI_PG_iterator *iter)
+{
+    *iter = MPIDI_PG_list;
     return MPI_SUCCESS;
 }
 
@@ -454,9 +492,7 @@ int MPIDI_PG_Create_from_string(const char * str, MPIDI_PG_t ** pg_pptr,
        it to the find routine */
     /* printf( "Looking for pg with id %s\n", str );fflush(stdout); */
     mpi_errno = MPIDI_PG_Find((void *)str, &existing_pg);
-    if (mpi_errno != PMI_SUCCESS) {
-	MPIU_ERR_POP(mpi_errno);
-    }
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
 
     if (existing_pg != NULL) {
 	/* return the existing PG */
@@ -550,6 +586,29 @@ void MPIDI_PG_IdToNum( MPIDI_PG_t *pg, int *id )
 #define FCNAME MPIDI_QUOTE(FUNCNAME)
 int MPIDI_PG_SetConnInfo( int rank, const char *connString )
 {
+#ifdef USE_PMI2_API
+    int mpi_errno = MPI_SUCCESS;
+    int len;
+    char key[PMI2_MAX_KEYLEN];
+    MPIDI_STATE_DECL(MPID_STATE_MPIDI_PG_SetConnInfo);
+
+    MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_PG_SetConnInfo);
+
+    len = MPIU_Snprintf(key, sizeof(key), "P%d-businesscard", rank);
+    MPIU_ERR_CHKANDJUMP1(len < 0 || len > sizeof(key), mpi_errno, MPI_ERR_OTHER, "**snprintf", "**snprintf %d", len);
+
+    mpi_errno = PMI2_KVS_Put(key, connString);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+
+    mpi_errno = PMI2_KVS_Fence();
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+    
+ fn_exit:
+    MPIDI_FUNC_EXIT(MPID_STATE_MPIDI_PG_SetConnInfo);
+    return mpi_errno;
+ fn_fail:
+    goto fn_exit;
+#else
     int mpi_errno = MPI_SUCCESS;
     int pmi_errno;
     int len;
@@ -586,6 +645,7 @@ int MPIDI_PG_SetConnInfo( int rank, const char *connString )
     return mpi_errno;
  fn_fail:
     goto fn_exit;
+#endif
 }
 
 /* For all of these routines, the format of the process group description
@@ -610,20 +670,48 @@ int MPIDI_PG_SetConnInfo( int rank, const char *connString )
 /* The "KVS" versions are for the process group to which the calling 
    process belongs.  These use the PMI_KVS routines to access the
    process information */
+#undef FUNCNAME
+#define FUNCNAME getConnInfoKVS
+#undef FCNAME
+#define FCNAME MPIDI_QUOTE(FUNCNAME)
 static int getConnInfoKVS( int rank, char *buf, int bufsize, MPIDI_PG_t *pg )
 {
+#ifdef USE_PMI2_API
     char key[MPIDI_MAX_KVS_KEY_LEN];
-    int  mpi_errno = MPI_SUCCESS, rc, pmi_errno;;
+    int  mpi_errno = MPI_SUCCESS, rc;
+    int vallen;
 
     rc = MPIU_Snprintf(key, MPIDI_MAX_KVS_KEY_LEN, "P%d-businesscard", rank );
     if (rc < 0 || rc > MPIDI_MAX_KVS_KEY_LEN) {
 	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER,"**nomem");
     }
+
+    mpi_errno = PMI2_KVS_Get(pg->connData, PMI2_ID_NULL, key, buf, bufsize, &vallen);
+    if (mpi_errno) {
+	MPIDI_PG_CheckForSingleton();
+	mpi_errno = PMI2_KVS_Get(pg->connData, PMI2_ID_NULL, key, buf, bufsize, &vallen);
+        if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+    }
+ fn_exit:
+    return mpi_errno;
+ fn_fail:
+    goto fn_exit;
+#else
+    char key[MPIDI_MAX_KVS_KEY_LEN];
+    int  mpi_errno = MPI_SUCCESS, rc, pmi_errno;
+
+    rc = MPIU_Snprintf(key, MPIDI_MAX_KVS_KEY_LEN, "P%d-businesscard", rank );
+    if (rc < 0 || rc > MPIDI_MAX_KVS_KEY_LEN) {
+	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER,"**nomem");
+    }
+
+    MPIU_THREAD_CS_ENTER(PMI,);
     pmi_errno = PMI_KVS_Get(pg->connData, key, buf, bufsize );
     if (pmi_errno) {
 	MPIDI_PG_CheckForSingleton();
 	pmi_errno = PMI_KVS_Get(pg->connData, key, buf, bufsize );
     }
+    MPIU_THREAD_CS_EXIT(PMI,);
     if (pmi_errno) {
 	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER,"**pmi_kvs_get");
     }
@@ -632,6 +720,7 @@ static int getConnInfoKVS( int rank, char *buf, int bufsize, MPIDI_PG_t *pg )
     return mpi_errno;
  fn_fail:
     goto fn_exit;
+#endif
 }
 
 /* *slen is the length of the string, including the null terminator.  So if the
@@ -715,7 +804,8 @@ static int connToStringKVS( char **buf_p, int *slen, MPIDI_PG_t *pg )
     if (string) MPIU_Free(string);
     goto fn_exit;
 }
-static int connFromStringKVS( const char *buf, MPIDI_PG_t *pg )
+static int connFromStringKVS( const char *buf ATTRIBUTE((unused)), 
+			      MPIDI_PG_t *pg ATTRIBUTE((unused)) )
 {
     /* Fixme: this should be a failure to call this routine */
     return MPI_SUCCESS;
@@ -735,6 +825,17 @@ static int connFreeKVS( MPIDI_PG_t *pg )
 #define FCNAME MPIDI_QUOTE(FUNCNAME)
 int MPIDI_PG_InitConnKVS( MPIDI_PG_t *pg )
 {
+#ifdef USE_PMI2_API
+    int mpi_errno = MPI_SUCCESS;
+    
+    pg->connData = (char *)MPIU_Malloc(MAX_JOBID_LEN);
+    if (pg->connData == NULL) {
+	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER, "**nomem");
+    }
+    
+    mpi_errno = PMI2_Job_GetId(pg->connData, MAX_JOBID_LEN);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+#else
     int pmi_errno, kvs_name_sz;
     int mpi_errno = MPI_SUCCESS;
 
@@ -756,7 +857,7 @@ int MPIDI_PG_InitConnKVS( MPIDI_PG_t *pg )
 			     "**pmi_kvs_get_my_name", 
 			     "**pmi_kvs_get_my_name %d", pmi_errno);
     }
-    
+#endif
     pg->getConnInfo        = getConnInfoKVS;
     pg->connInfoToString   = connToStringKVS;
     pg->connInfoFromString = connFromStringKVS;
@@ -806,15 +907,21 @@ static int getConnInfo( int rank, char *buf, int bufsize, MPIDI_PG_t *pg )
     MPIU_Strncpy( buf, connInfo->connStrings[rank], bufsize );
     return MPI_SUCCESS;
 }
+
+#undef FUNCNAME
+#define FUNCNAME connToString
+#undef FCNAME
+#define FCNAME MPIDI_QUOTE(FUNCNAME)
 static int connToString( char **buf_p, int *slen, MPIDI_PG_t *pg )
 {
+    int mpi_errno = MPI_SUCCESS;
     char *str = NULL, *pg_id;
     int  i, len=0;
-    
+    MPIU_CHKPMEM_DECL(1);
     MPIDI_ConnInfo *connInfo = (MPIDI_ConnInfo *)pg->connData;
 
     /* Create this from the string array */
-    str = (char *)MPIU_Malloc( connInfo->toStringLen );
+    MPIU_CHKPMEM_MALLOC(str, char *, connInfo->toStringLen, mpi_errno, "str");
 
 #if defined(MPICH_DEBUG_MEMINIT)
     memset(str, 0, connInfo->toStringLen);
@@ -828,8 +935,13 @@ static int connToString( char **buf_p, int *slen, MPIDI_PG_t *pg )
        to a non-singleton. */
     /* XXX DJG TODO figure out what this little bit is all about. */
     if (strstr( pg_id, "singinit_kvs" ) == pg_id) {
+#ifdef USE_PMI2_API
+        MPIU_Assertp(0); /* don't know what to do here for pmi2 yet.  DARIUS */
+#else
 	PMI_Get_id( pg->id, 256 );
+#endif
     }
+    
     while (*pg_id) str[len++] = *pg_id++;
     str[len++] = 0;
     
@@ -847,14 +959,19 @@ static int connToString( char **buf_p, int *slen, MPIDI_PG_t *pg )
     if (len > connInfo->toStringLen) {
 	*buf_p = 0;
 	*slen  = 0;
-	return MPIR_Err_create_code(MPI_SUCCESS,MPIR_ERR_FATAL,"connToString",
-			    __LINE__, MPI_ERR_INTERN, "**intern", NULL);
+        MPIU_ERR_INTERNALANDJUMP(mpi_errno, "len > connInfo->toStringLen");
     }
 
     *buf_p = str;
     *slen = len;
 
-    return MPI_SUCCESS;
+fn_exit:
+    MPIU_CHKPMEM_COMMIT();
+    return mpi_errno;
+fn_fail:
+    MPIU_CHKPMEM_REAP();
+    goto fn_exit;
+    
 }
 static int connFromString( const char *buf, MPIDI_PG_t *pg )
 {
@@ -912,8 +1029,8 @@ int MPIDI_PrintConnStr( const char *file, int line,
 {
     int pg_size, i;
 
-    MPIU_DBG_Outevent( file, line, MPIU_DBG_CH3_CONNECT, 0, label );
-    MPIU_DBG_Outevent( file, line, MPIU_DBG_CH3_CONNECT, 0, str );
+    MPIU_DBG_Outevent( file, line, MPIU_DBG_CH3_CONNECT, 0, "%s", label );
+    MPIU_DBG_Outevent( file, line, MPIU_DBG_CH3_CONNECT, 0, "%s", str );
     
     /* Skip the pg id */
     while (*str) str++; str++;
@@ -923,7 +1040,7 @@ int MPIDI_PrintConnStr( const char *file, int line,
     while (*str) str++; str++;
 
     for (i=0; i<pg_size; i++) {
-	MPIU_DBG_Outevent( file, line, MPIU_DBG_CH3_CONNECT, 0, str );
+	MPIU_DBG_Outevent( file, line, MPIU_DBG_CH3_CONNECT, 0, "%s", str );
 	while (*str) str++;
 	str++;
     }
@@ -1017,8 +1134,8 @@ int MPIDI_PG_Dup_vcr( MPIDI_PG_t *pg, int rank, MPIDI_VC_t **vc_p )
        increases from 0 to 1, increase the reference count of the 
        process group *and* the reference count of the vc (this
        allows us to distinquish between Comm_free and Comm_disconnect) */
-    /* FIXME: This should be a fetch and increment for thread-safety */
-    if (vc->ref_count == 0) {
+    /* FIXME-MT: This should be a fetch and increment for thread-safety */
+    if (MPIU_Object_get_ref(vc) == 0) {
 	MPIDI_PG_add_ref(pg);
 	MPIDI_VC_add_ref(vc);
     }
@@ -1051,49 +1168,48 @@ int MPIDI_PG_Close_VCs( void )
     MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_PG_CLOSE_VCS);
 
     while (pg) {
-	int i, inuse;
+	int i, inuse, n, i_start;
 
 	MPIU_DBG_MSG_S(CH3_DISCONNECT,VERBOSE,"Closing vcs for pg %s",
 		       (char *)pg->id );
 
-
-	for (i = 0; i < pg->size; i++)
+        /* We want to reduce the chance of having all processes send
+           close requests to the same process at once.  We do this by
+           having processes start at different indices, namely
+           (my_pg_rank+1) mod pg->size. */
+        i_start = (MPIDI_Process.my_pg_rank+1) % pg->size;
+	for (n = 0; n < pg->size; n++)
 	{
-	    MPIDI_VC_t * vc = &pg->vct[i];
+            MPIDI_VC_t * vc;
+            i = (n + i_start) % pg->size;
+	    vc = &pg->vct[i];
 	    /* If the VC is myself then skip the close message */
 	    if (pg == MPIDI_Process.my_pg && i == MPIDI_Process.my_pg_rank) {
-                if (vc->ref_count != 0) {
+                /* XXX DJG FIXME-MT should we be checking this? */
+                if (MPIU_Object_get_ref(vc) != 0) {
                     MPIDI_PG_release_ref(pg, &inuse);
                 }
 		continue;
 	    }
 
-	    if (vc->state == MPIDI_VC_STATE_ACTIVE || 
-		vc->state == MPIDI_VC_STATE_REMOTE_CLOSE
-#if defined(MPIDI_CH3_USES_SSHM) && 0
-		/* FIXME: Remove this IFDEF */
-		/* sshm queues are uni-directional.  A VC that is connected 
-		 * in the read direction is marked MPIDI_VC_STATE_INACTIVE
-		 * so that a connection will be formed on the first write.  
-		 * Since the other side is marked MPIDI_VC_STATE_ACTIVE for 
-		 * writing 
-		 * we need to initiate the close protocol on the read side 
-		 * even if the write state is MPIDI_VC_STATE_INACTIVE. */
-		|| ((vc->state == MPIDI_VC_STATE_INACTIVE) && 
-		    ((MPIDI_CH3I_VC *)(vc->channel_private))->shm_read_connected)
-#endif
-		)
-	    {
+	    if (vc->state == MPIDI_VC_STATE_ACTIVE ||
+		vc->state == MPIDI_VC_STATE_REMOTE_CLOSE) {
 		MPIDI_CH3U_VC_SendClose( vc, i );
-	    }
-	    else
-	    {
-                if (vc->state == MPIDI_VC_STATE_INACTIVE && vc->ref_count != 0) {
+	    } else if (vc->state == MPIDI_VC_STATE_INACTIVE ||
+                       vc->state == MPIDI_VC_STATE_MORIBUND) {
+                /* XXX DJG FIXME-MT should we be checking this? */
+                if (MPIU_Object_get_ref(vc) != 0) {
 		    /* FIXME: If the reference count for the vc is not 0,
 		       something is wrong */
                     MPIDI_PG_release_ref(pg, &inuse);
                 }
-
+                /* Inactive connections need to be marked
+                   INACTIVE_CLOSED, so that if a connection request
+                   comes in during the close protocol, we know to
+                   reject it. */
+                if (vc->state == MPIDI_VC_STATE_INACTIVE)
+                    MPIDI_CHANGE_VC_STATE(vc, INACTIVE_CLOSED);
+            } else {
 		MPIU_DBG_MSG_FMT(CH3_DISCONNECT,VERBOSE,(MPIU_DBG_FDEST,
 		     "vc=%p: not sending a close to %d, vc in state %s", vc,i,
 		     MPIDI_VC_GetStateString(vc->state)));
@@ -1123,11 +1239,12 @@ int MPIU_PG_Printall( FILE *fp )
 
     fprintf( fp, "Process groups:\n" );
     while (pg) {
+        /* XXX DJG FIXME-MT should we be checking this? */
 	fprintf( fp, "size = %d, refcount = %d, id = %s\n", 
-		 pg->size, pg->ref_count, (char *)pg->id );
+		 pg->size, MPIU_Object_get_ref(pg), (char *)pg->id );
 	for (i=0; i<pg->size; i++) {
 	    fprintf( fp, "\tVCT rank = %d, refcount = %d, lpid = %d, state = %d \n", 
-		     pg->vct[i].pg_rank, pg->vct[i].ref_count,
+		     pg->vct[i].pg_rank, MPIU_Object_get_ref(&pg->vct[i]),
 		     pg->vct[i].lpid, (int)pg->vct[i].state );
 	}
 	fflush(fp);
@@ -1139,6 +1256,10 @@ int MPIU_PG_Printall( FILE *fp )
 
 int MPIDI_PG_CheckForSingleton( void )
 {
+
+#ifdef USE_PMI2_API
+    /* PMI2 FIXME for now we just always assume we aren't doing singleton init */
+#else
     if (strstr((char*)pg_world->id,"singinit_kvs") == (char *)pg_world->id) {
 	char buf[256];
 	/* Force an enroll */
@@ -1146,5 +1267,6 @@ int MPIDI_PG_CheckForSingleton( void )
 	PMI_Get_id( pg_world->id, 256 );
 	PMI_KVS_Get_my_name( pg_world->connData, 256 );
     }
+#endif
     return MPI_SUCCESS;
 }

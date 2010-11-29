@@ -30,30 +30,28 @@ int MPID_Irecv(void * buf, int count, MPI_Datatype datatype, int rank, int tag,
 	rreq = MPID_Request_create();
 	if (rreq != NULL)
 	{
+            /* MT FIXME should these be handled by MPID_Request_create? */
 	    MPIU_Object_set_ref(rreq, 1);
-	    rreq->cc = 0;
+            MPID_cc_set(&rreq->cc, 0);
 	    rreq->kind = MPID_REQUEST_RECV;
 	    MPIR_Status_set_procnull(&rreq->status);
 	}
 	else
 	{
-	    MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_NO_MEM, "**nomem");
+	    MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER,"**nomemreq");
 	}
 	goto fn_exit;
     }
 
-    rreq = MPIDI_CH3U_Recvq_FDU_or_AEP(
-	rank, tag, comm->recvcontext_id + context_offset, &found);
+    MPIU_THREAD_CS_ENTER(MSGQUEUE,);
+    rreq = MPIDI_CH3U_Recvq_FDU_or_AEP(rank, tag, 
+				       comm->recvcontext_id + context_offset,
+                                       comm, buf, count, datatype, &found);
     if (rreq == NULL)
     {
-	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_NO_MEM, "**nomem");
+	MPIU_THREAD_CS_EXIT(MSGQUEUE,);
+	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER,"**nomemreq");
     }
-
-    rreq->comm		 = comm;
-    MPIR_Comm_add_ref(comm);
-    rreq->dev.user_buf	 = buf;
-    rreq->dev.user_count = count;
-    rreq->dev.datatype	 = datatype;
 
     if (found)
     {
@@ -61,6 +59,10 @@ int MPID_Irecv(void * buf, int count, MPI_Datatype datatype, int rank, int tag,
 	
 	/* Message was found in the unexepected queue */
 	MPIU_DBG_MSG(CH3_OTHER,VERBOSE,"request found in unexpected queue");
+
+	/* Release the message queue - we've removed this request from 
+	   the queue already */
+	MPIU_THREAD_CS_EXIT(MSGQUEUE,);
 
 	if (MPIDI_Request_get_msg_type(rreq) == MPIDI_REQUEST_EAGER_MSG)
 	{
@@ -73,29 +75,36 @@ int MPID_Irecv(void * buf, int count, MPI_Datatype datatype, int rank, int tag,
 	       acknowledgement back to the sender. */
 	    if (MPIDI_Request_get_sync_send_flag(rreq))
 	    {
-		MPIDI_Comm_get_vc(comm, rreq->dev.match.rank, &vc);
+		MPIDI_Comm_get_vc_set_active(comm, rreq->dev.match.parts.rank, &vc);
 		mpi_errno = MPIDI_CH3_EagerSyncAck( vc, rreq );
 		if (mpi_errno) MPIU_ERR_POP(mpi_errno);
 	    }
 
-            MPIDI_Request_recv_pending(rreq, &recv_pending);
-	    if (!recv_pending)
-	    {
-		/* All of the data has arrived, we need to copy the data and 
-		   then free the buffer. */
-		/* FIXME: if the user buffer is contiguous, just move the
-		   data without using a separate routine call */
-		if (rreq->dev.recv_data_sz > 0)
-		{
-		    MPIDI_CH3U_Request_unpack_uebuf(rreq);
-		    MPIU_Free(rreq->dev.tmpbuf);
-		}
+            /* the request was found in the unexpected queue, so it has a
+               recv_pending_count of at least 1 */
+            MPIDI_Request_decr_pending(rreq);
+            MPIDI_Request_check_pending(rreq, &recv_pending);
 
-		mpi_errno = rreq->status.MPI_ERROR;
-		goto fn_exit;
-	    }
+            if (MPID_Request_is_complete(rreq)) {
+                /* is it ever possible to have (cc==0 && recv_pending>0) ? */
+                MPIU_Assert(!recv_pending);
+
+                /* All of the data has arrived, we need to copy the data and 
+                   then free the buffer. */
+                if (rreq->dev.recv_data_sz > 0)
+                {
+                    MPIDI_CH3U_Request_unpack_uebuf(rreq);
+                    MPIU_Free(rreq->dev.tmpbuf);
+                }
+
+                mpi_errno = rreq->status.MPI_ERROR;
+                goto fn_exit;
+            }
 	    else
 	    {
+                /* there should never be outstanding completion events for an unexpected
+                 * recv without also having a "pending recv" */
+                MPIU_Assert(recv_pending);
 		/* The data is still being transfered across the net.  We'll 
 		   leave it to the progress engine to handle once the
 		   entire message has arrived. */
@@ -109,7 +118,7 @@ int MPID_Irecv(void * buf, int count, MPI_Datatype datatype, int rank, int tag,
 	}
 	else if (MPIDI_Request_get_msg_type(rreq) == MPIDI_REQUEST_RNDV_MSG)
 	{
-	    MPIDI_Comm_get_vc(comm, rreq->dev.match.rank, &vc);
+	    MPIDI_Comm_get_vc_set_active(comm, rreq->dev.match.parts.rank, &vc);
 	
 	    mpi_errno = vc->rndvRecv_fn( vc, rreq );
 	    if (mpi_errno) MPIU_ERR_POP( mpi_errno );
@@ -148,6 +157,11 @@ int MPID_Irecv(void * buf, int count, MPI_Datatype datatype, int rank, int tag,
 	}
 
 	rreq->dev.recv_pending_count = 1;
+
+	/* We must wait until here to exit the msgqueue critical section
+	   on this request (we needed to set the recv_pending_count
+	   and the datatype pointer) */
+	MPIU_THREAD_CS_EXIT(MSGQUEUE,rreq);
     }
 
   fn_exit:

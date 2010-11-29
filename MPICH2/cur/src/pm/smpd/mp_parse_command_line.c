@@ -30,6 +30,9 @@
 #include <ctype.h>
 #endif
 
+/* The supported values right now are "newtcp" & "nd" */
+#define SMPD_MAX_NEMESIS_NETMOD_LENGTH  10
+
 void mp_print_options(void)
 {
     printf("\n");
@@ -100,6 +103,9 @@ void mp_print_extra_options(void)
     printf("-hosts n host1 m1 host2 m2 ... hostn mn\n");
     printf("  launch on the specified hosts\n");
     printf("  In the second version the number of processes = m1 + m2 + ... + mn\n");
+    printf("-binding proc_binding_scheme\n");
+    printf("  Set the proc binding for each of the launched processes to a single core.\n");
+    printf("  Currently \"auto\" and \"user\" are supported as the proc_binding_schemes \n"); 
     printf("-map drive:\\\\host\\share\n");
     printf("  map a drive on all the nodes\n");
     printf("  this mapping will be removed when the processes exit\n");
@@ -314,6 +320,74 @@ static int mpiexec_assert_hook( int reportType, char *message, int *returnValue 
 	exit(*returnValue);
     exit(-1);
 }
+
+/* This function reads the user binding option and sets the affinity map.
+ * The user option is of the form "user:a,b,c" where a, b, c are integers denoting
+ * the cores in the affinity map
+ */
+static int read_user_affinity_map(char *option)
+{
+    char *p = NULL, *q = NULL, *context = NULL;
+    int i=0, map_sz = 0;
+
+    if(smpd_process.affinity_map != NULL){
+        printf("Error: duplicate user affinity map option\n");
+        return SMPD_FAIL;
+    }
+    if(option == NULL){
+        printf("Error: NULL user affinity option\n");
+        return SMPD_FAIL;
+    }
+
+    /* option = "user:1,2,3" */
+    p = option;
+    p = strtok_s(p, ":", &context);
+    if(p == NULL){
+        printf("Error parsing user affinity map\n");
+        return SMPD_FAIL;
+    }
+    p = strtok_s(NULL, ":", &context);
+    if(p == NULL){
+        printf("Error parsing user affinity map\n");
+        return SMPD_FAIL;
+    }
+
+    /* p should now point to the affinity map separated by comma's */
+    map_sz = 1;
+    q = p;
+    /* parse to find the number of elements in the map */
+    while(*q != '\0'){
+        if(*q == ','){
+            map_sz++;
+        }
+        q++;
+    }
+
+    /* Allocate the mem for map */
+    smpd_process.affinity_map = (int *)MPIU_Malloc(sizeof(int) * map_sz);
+    if(smpd_process.affinity_map == NULL){
+        printf("Unable to allocate memory for affinity map\n");
+        return SMPD_FAIL;
+    }
+    smpd_process.affinity_map_sz = map_sz;
+
+    context = NULL;
+    p = strtok_s(p, ",", &context);
+    i = 0;
+    while(p != NULL){
+        /* FIXME: We don't detect overflow case in atoi */
+        smpd_process.affinity_map[i++] = atoi(p);
+        p = strtok_s(NULL, ",", &context);
+    }
+
+    smpd_dbg_printf("The user affinity map is : [ ");
+    for(i=0; i<map_sz; i++){
+        smpd_dbg_printf(" %d ,",smpd_process.affinity_map[i]);
+    }
+    smpd_dbg_printf(" ] \n");
+
+    return SMPD_SUCCESS;
+}
 #endif
 
 #undef FCNAME
@@ -321,6 +395,7 @@ static int mpiexec_assert_hook( int reportType, char *message, int *returnValue 
 int mp_parse_command_args(int *argcp, char **argvp[])
 {
     int cur_rank;
+    int affinity_map_index;
     int argc, next_argc;
     char **next_argv;
     char *exe_ptr;
@@ -366,6 +441,8 @@ int mp_parse_command_args(int *argcp, char **argvp[])
     SMPD_BOOL smpd_setting_priority = SMPD_INVALID_SETTING;
     char smpd_setting_path[SMPD_MAX_PATH_LENGTH] = "";
     SMPD_BOOL smpd_setting_localonly = SMPD_INVALID_SETTING;
+    char nemesis_netmod[SMPD_MAX_NEMESIS_NETMOD_LENGTH];
+
 #ifdef HAVE_WINDOWS_H
     int user_index;
     char user_index_str[20];
@@ -384,12 +461,18 @@ int mp_parse_command_args(int *argcp, char **argvp[])
     {
 	if (strcmp((*argvp)[1], "-register") == 0)
 	{
+        char register_filename[SMPD_MAX_FILENAME];
 	    user_index = 0;
 	    smpd_get_opt_int(argcp, argvp, "-user", &user_index);
 	    if (user_index < 0)
 	    {
 		user_index = 0;
 	    }
+        register_filename[0] = '\0';
+        if(smpd_get_opt_string(argcp, argvp, "-file", register_filename, SMPD_MAX_FILENAME))
+        {
+            smpd_dbg_printf("Registering username/password to a file\n");
+        }
 	    for (;;)
 	    {
 		smpd_get_account_and_password(smpd_process.UserAccount, smpd_process.UserPassword);
@@ -399,6 +482,18 @@ int mp_parse_command_args(int *argcp, char **argvp[])
 		    break;
 		printf("passwords don't match, please try again.\n");
 	    }
+        if(strlen(register_filename) > 0)
+        {
+            if(smpd_save_cred_to_file(register_filename, smpd_process.UserAccount, smpd_process.UserPassword))
+            {
+                printf("Username/password encrypted and saved to registry file\n");
+            }
+            else
+            {
+                smpd_err_printf("Error saving username/password to registry file\n");
+            }
+            smpd_exit(0);
+        }
 	    if (smpd_save_password_to_registry(user_index, smpd_process.UserAccount, smpd_process.UserPassword, SMPD_TRUE)) 
 	    {
 		printf("Password encrypted into the Registry.\n");
@@ -588,6 +683,8 @@ int mp_parse_command_args(int *argcp, char **argvp[])
 	    char host[100];
 	    int id;
 
+        smpd_process.use_pmi_server = SMPD_TRUE;
+
 	    if (smpd_get_opt(argcp, argvp, "-verbose"))
 	    {
 		smpd_process.verbose = SMPD_TRUE;
@@ -600,6 +697,18 @@ int mp_parse_command_args(int *argcp, char **argvp[])
 #endif
         }
 
+#ifdef HAVE_WINDOWS_H
+        if(smpd_get_opt(argcp, argvp, "-impersonate"))
+        {
+            smpd_process.use_sspi = SMPD_TRUE;
+            smpd_process.use_delegation = SMPD_FALSE;
+        }
+        if(smpd_get_opt(argcp, argvp, "-delegate"))
+        {
+            smpd_process.use_sspi = SMPD_TRUE;
+            smpd_process.use_delegation = SMPD_TRUE;
+        }
+#endif
 	    smpd_process.nproc = atoi((*argvp)[2]);
 	    if (smpd_process.nproc < 1)
 	    {
@@ -737,7 +846,7 @@ int mp_parse_command_args(int *argcp, char **argvp[])
      * -hosts <n host1 m1 host2 m2 ... hostn mn>
      * -machinefile <filename> - one host per line, #commented
      * -localonly <numprocs>
-     * -nompi - don't require processes to be MPI processes (don't have to call MPI_Init or PMI_Init)
+     * -nompi - don't require processes to be SMPD processes (don't have to call SMPD_Init or PMI_Init)
      * -exitcodes - print the exit codes of processes as they exit
      * -verbose - same as setting environment variable to SMPD_DBG_OUTPUT=stdout
      * -quiet_abort - minimize the output when a job is aborted
@@ -765,6 +874,7 @@ int mp_parse_command_args(int *argcp, char **argvp[])
     smpd_get_default_hosts(); 
 
     cur_rank = 0;
+    affinity_map_index = 0;
     gdrive_map_list = NULL;
     genv_list = NULL;
     gwdir[0] = '\0';
@@ -953,25 +1063,6 @@ configfile_loop:
 			num_args_to_strip = 2;
 		    }
 		}
-#if 0
-		/* the run_local flag + the rsh_mpiexec flag causes the rsh code to launch the processes locally */
-		smpd_process.mpiexec_run_local = SMPD_TRUE;
-		smpd_process.rsh_mpiexec = SMPD_TRUE;
-		if (smpd_process.mpiexec_inorder_launch == SMPD_FALSE)
-		{
-		    smpd_launch_node_t *temp_node, *ordered_list = NULL;
-		    /* sort any existing reverse order nodes to be in order */
-		    while (smpd_process.launch_list)
-		    {
-			temp_node = smpd_process.launch_list->next;
-			smpd_process.launch_list->next = ordered_list;
-			ordered_list = smpd_process.launch_list;
-			smpd_process.launch_list = temp_node;
-		    }
-		    smpd_process.launch_list = ordered_list;
-		}
-		smpd_process.mpiexec_inorder_launch = SMPD_TRUE;
-#else
 		/* Use localroot to implement localonly */
 		smpd_process.local_root = SMPD_TRUE;
 		/* create a host list of one and set nproc to -1 to be replaced by nproc after parsing the block */
@@ -991,7 +1082,6 @@ configfile_loop:
 		host_list->nproc = -1;
 		host_list->alt_host[0] = '\0';
 		smpd_get_hostname(host_list->host, SMPD_MAX_HOST_LENGTH);
-#endif
 	    }
 	    else if (strcmp(&(*argvp)[1][1], "machinefile") == 0)
 	    {
@@ -1012,6 +1102,33 @@ configfile_loop:
 		smpd_parse_machine_file(machine_file_name);
 		num_args_to_strip = 2;
 	    }
+#ifdef HAVE_WINDOWS_H
+        else if (strcmp(&(*argvp)[1][1], "binding") == 0)
+        {
+            if(strcmp(&(*argvp)[2][0], "auto") == 0)
+            {
+                smpd_process.set_affinity = TRUE;
+                smpd_process.affinity_map = NULL;
+                smpd_process.affinity_map_sz = 0;
+            }
+            else if(strncmp(&(*argvp)[2][0], "user", 4) == 0)
+            {
+                smpd_process.set_affinity = TRUE;
+                if(read_user_affinity_map(&(*argvp)[2][0]) != SMPD_SUCCESS)
+                {
+                    printf("Error parsing user binding scheme\n");
+                    smpd_exit_fn(FCNAME);
+                }
+            }
+            else
+            {
+                printf("Error: Process binding schemes supported are \"auto\", \"user\" \n");
+                smpd_exit_fn(FCNAME);
+                return SMPD_FAIL;
+            }
+            num_args_to_strip = 2;
+        }
+#endif
 	    else if (strcmp(&(*argvp)[1][1], "map") == 0)
 	    {
 		if (argc < 3)
@@ -1291,6 +1408,25 @@ configfile_loop:
 		smpd_get_pwd_from_file(pwd_file_name);
 		num_args_to_strip = 2;
 	    }
+#ifdef HAVE_WINDOWS_H
+	    else if (strcmp(&(*argvp)[1][1], "registryfile") == 0)
+	    {
+        char reg_file_name[SMPD_MAX_FILENAME];
+		if (argc < 3)
+		{
+		    printf("Error: no filename specified after -registryfile option\n");
+		    smpd_exit_fn(FCNAME);
+		    return SMPD_FAIL;
+		}
+		strncpy(reg_file_name, (*argvp)[2], SMPD_MAX_FILENAME);
+        if(!smpd_read_cred_from_file(reg_file_name, smpd_process.UserAccount, SMPD_MAX_ACCOUNT_LENGTH, smpd_process.UserPassword, SMPD_MAX_PASSWORD_LENGTH)){
+            printf("Error: Could not read credentials from registry file\n");
+            smpd_exit_fn(FCNAME);
+            return SMPD_FAIL;
+        }
+		num_args_to_strip = 2;
+	    }
+#endif
 	    else if (strcmp(&(*argvp)[1][1], "configfile") == 0)
 	    {
 		printf("Error: The -configfile option must be the first and only option specified in a block.\n");
@@ -1393,6 +1529,19 @@ configfile_loop:
 		num_args_to_strip = 2;
 		smpd_add_host_to_default_list((*argvp)[2]);
 	    }
+#ifdef HAVE_WINDOWS_H
+        else if (strcmp(&(*argvp)[1][1], "ms_hpc") == 0)
+        {
+            smpd_process.use_ms_hpc = SMPD_TRUE;
+            /* Enable SSPI for authenticating PMs */
+            smpd_process.use_sspi = SMPD_TRUE;
+            smpd_process.use_delegation = SMPD_FALSE;
+            /* Use mpiexec as PMI server */
+            smpd_process.use_pmi_server = SMPD_TRUE;
+
+            num_args_to_strip = 1;
+        }
+#endif
 	    else if (strcmp(&(*argvp)[1][1], "hosts") == 0)
 	    {
 		if (nproc != 0)
@@ -1721,6 +1870,11 @@ configfile_loop:
 		    return SMPD_FAIL;
 		}
 		strncpy(channel, (*argvp)[2], SMPD_MAX_NAME_LENGTH);
+        if((strcmp(channel, "shm") == 0) || (strcmp(channel, "ssm") == 0))
+        {
+            printf("WARNING: SHM & SSM channels are no longer available. Use the NEMESIS channel instead.\n");
+            return SMPD_FAIL;
+        }
 		num_args_to_strip = 2;
 	    }
 	    else if (strcmp(&(*argvp)[1][1], "log") == 0)
@@ -1974,6 +2128,7 @@ configfile_loop:
 	    host_list->nproc = nproc;
 	}
 
+    smpd_dbg_printf("Processing environment variables \n");
 	/* add environment variables */
 	env_data[0] = '\0';
 	env_str = env_data;
@@ -2009,6 +2164,7 @@ configfile_loop:
 	    *env_str = '\0';
 	}
 
+    smpd_dbg_printf("Processing drive mappings\n");
 	/* merge global drive mappings with the local drive mappings */
 	gmap_node = gdrive_map_list;
 	while (gmap_node)
@@ -2058,6 +2214,7 @@ configfile_loop:
 	    gmap_node = gmap_node->next;
 	}
 
+    smpd_dbg_printf("Creating launch nodes (%d)\n", nproc);
 	for (i=0; i<nproc; i++)
 	{
 	    /* create a launch_node */
@@ -2070,7 +2227,18 @@ configfile_loop:
 	    }
 	    launch_node->clique[0] = '\0';
 	    smpd_get_next_host(&host_list, launch_node);
+        smpd_dbg_printf("Adding host (%s) to launch list \n", launch_node->hostname);
 	    launch_node->iproc = cur_rank++;
+#ifdef HAVE_WINDOWS_H
+        if(smpd_process.affinity_map_sz > 0){
+            launch_node->binding_proc =
+                smpd_process.affinity_map[affinity_map_index % smpd_process.affinity_map_sz];
+            affinity_map_index++;
+        }
+        else{
+            launch_node->binding_proc = -1;
+        }
+#endif
 	    launch_node->appnum = appnum;
 	    launch_node->priority_class = n_priority_class;
 	    launch_node->priority_thread = n_priority;
@@ -2188,12 +2356,12 @@ configfile_loop:
 	    **argvp = exe_ptr;
     } while (*next_argv);
 
-    /* add nproc to all the launch nodes */
     launch_node_iter = smpd_process.launch_list;
     while (launch_node_iter)
     {
-	launch_node_iter->nproc = cur_rank;
-	launch_node_iter = launch_node_iter->next;
+        /* add nproc to all the launch nodes */
+        launch_node_iter->nproc = cur_rank;
+    	launch_node_iter = launch_node_iter->next;
     }
 
     /* create the cliques */
@@ -2211,55 +2379,31 @@ configfile_loop:
 	    smpd_launch_node_t *iter;
 	    /* If the user specified auto channel selection then set the channel here */
 	    /* shm < 8 processes on one node
-	    * sshm >= 8 processes on one node
 	    * ssm multiple nodes
 	    */
 	    if ((strcmp(channel, "auto") == 0) && (smpd_process.launch_list != NULL))
 	    {
-		int id;
-		int multiple_nodes = 0;
-
-		/* determine whether or not there are multiple nodes */
-		id = smpd_process.launch_list->host_id;
-		iter = smpd_process.launch_list;
-		while (iter)
-		{
-		    if (iter->host_id != id)
-		    {
-			multiple_nodes = 1;
-			break;
-		    }
-		    iter = iter->next;
-		}
-
-		/* set the channel */
-		if (multiple_nodes)
-		{
-		    if (smpd_setting_internode_channel[0] != '\0')
-		    {
-			/* Use the internode channel specified in the smpd settings */
-			strncpy(channel, smpd_setting_internode_channel, 20);
-		    }
-		    else
-		    {
-			/* Use the default sock-shared-memory internode channel */
-			strcpy(channel, "ssm");
-		    }
-		}
-		else
-		{
-		    if (smpd_process.launch_list->nproc < 8)
-		    {
-			/* small jobs use the shared memory channel */
-			strcpy(channel, "shm");
-		    }
-		    else
-		    {
-			/* larger jobs use the scalable shared memory channel */
-			strcpy(channel, "ssm");
-		    }
-		}
+            strncpy(channel, "nemesis", SMPD_MAX_NAME_LENGTH);
 	    }
+
+        nemesis_netmod[0] = '\0';
+#ifdef HAVE_WINDOWS_H
+        /* See if there is a netmod specified with the channel
+         * eg: -channel nemesis:newtcp | -channel nemesis:nd
+         */
+        if(strlen(channel) > 0){
+            char seps[]=":";
+            char *tok, *ctxt;
+
+            tok = strtok_s(channel, seps, &ctxt);
+            if(tok != NULL){
+                tok = strtok_s(NULL, seps, &ctxt);
+                if(tok != NULL){
+                    MPIU_Strncpy(nemesis_netmod, tok, SMPD_MAX_NEMESIS_NETMOD_LENGTH);
+                }
+            }
+        }
+#endif
 
 	    /* add the channel to the environment of each process */
 	    iter = smpd_process.launch_list;
@@ -2268,6 +2412,7 @@ configfile_loop:
 		maxlen = (int)strlen(iter->env);
 		env_str = &iter->env[maxlen];
 		maxlen = SMPD_MAX_ENV_LENGTH - maxlen - 1;
+
 		if (maxlen > 15) /* At least 16 characters are needed to store MPICH2_CHANNEL=x */
 		{
 		    *env_str = ' ';
@@ -2277,10 +2422,24 @@ configfile_loop:
 		    env_str--;
 		    *env_str = '\0';
 		}
+		if ((strlen(nemesis_netmod) > 0) && (maxlen > 32)) /* At least 31 characters are needed to store " MPICH_NEMESIS_NETMOD=x" */
+		{
+		    *env_str = ' ';
+		    env_str++;
+		    MPIU_Str_add_string_arg(&env_str, &maxlen, "MPICH_NEMESIS_NETMOD", nemesis_netmod);
+		    /* trim the trailing white space */
+		    env_str--;
+		    *env_str = '\0';
+		}
+
 		iter = iter->next;
 	    }
+
 	    /* Save the channel to be used by spawn commands */
 	    MPIU_Strncpy(smpd_process.env_channel, channel, 10);
+        if(strlen(nemesis_netmod) > 0){
+            MPIU_Strncpy(smpd_process.env_netmod, nemesis_netmod, 10);
+        }
 	}
     }
 

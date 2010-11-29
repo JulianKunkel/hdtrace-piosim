@@ -69,12 +69,11 @@ int MPI_Keyval_create(MPI_Copy_function *copy_fn,
 {
     static const char FCNAME[] = "MPI_Keyval_create";
     int mpi_errno = MPI_SUCCESS;
-    MPIU_THREADPRIV_DECL;
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_KEYVAL_CREATE);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("attr");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_KEYVAL_CREATE);
 
     /* Validate parameters and objects (post conversion) */
@@ -91,18 +90,14 @@ int MPI_Keyval_create(MPI_Copy_function *copy_fn,
 
     /* ... body of routine ...  */
 
-    MPIU_THREADPRIV_GET;
-    MPIR_Nest_incr();
-    mpi_errno = NMPI_Comm_create_keyval( copy_fn, delete_fn, keyval, 
-					extra_state );
-    MPIR_Nest_decr();
+    mpi_errno = MPIR_Comm_create_keyval_impl( copy_fn, delete_fn, keyval, extra_state );
     if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 
     /* ... end of body of routine ... */
 
   fn_exit:
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_KEYVAL_CREATE);
-    MPIU_THREAD_SINGLE_CS_EXIT("attr");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

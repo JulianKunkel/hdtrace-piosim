@@ -6,8 +6,8 @@
 all: all-redirect
 
 SHELL           = @SHELL@
-VERBOSE         = 1
 AR              = @AR@
+AR_FLAGS        = @AR_FLAGS@
 RANLIB          = @RANLIB@
 master_top_srcdir  = @master_top_srcdir@
 top_builddir    = @master_top_builddir@
@@ -22,14 +22,13 @@ MPILIBNAME      = @MPILIBNAME@
 PMPILIBNAME     = @PMPILIBNAME@
 
 CC              = @CC@
-CFLAGS          = @CFLAGS@
+CFLAGS          = @CFLAGS@ $(MPICH2_MAKE_CFLAGS)
 C_COMPILE       = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 LIBTOOL         = @LIBTOOL@
 CC_SHL          = @CC_SHL@
 C_COMPILE_SHL   = $(CC_SHL) $(DEFS) $(INCLUDES) $(CFLAGS) $(CPPFLAGS)
 
 VPATH = .:@srcdir@
-DOCTEXT         = @DOCTEXT@
 mpi_sources = attr_delete.c attr_get.c attr_put.c \
  comm_create_keyval.c comm_delete_attr.c comm_free_keyval.c \
  comm_get_attr.c comm_set_attr.c keyval_create.c keyval_free.c \
@@ -40,16 +39,16 @@ HEADERS = attr.h
 INCLUDES = -I../../include -I${top_srcdir}/src/include
 
 .SUFFIXES:
-.SUFFIXES: .o .lo .c .man .html .latex .txt 
+.SUFFIXES: .o .lo .c 
 .c.o:
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  CC              $<" ; \
 	else \
 	  echo $(C_COMPILE) -c $< ; \
 	fi
 	@$(C_COMPILE) -c $<
 .c.lo:
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  CC              $<" ; \
 	else \
 	  echo $(C_COMPILE_SHL) -c $< -o _s$*.o ; \
@@ -57,442 +56,394 @@ INCLUDES = -I../../include -I${top_srcdir}/src/include
 	fi
 	@$(C_COMPILE_SHL) -c $< -o _s$*.o
 	@mv -f _s$*.o $*.lo
-.c.txt:
-	$(CPP) $(INCLUDES) $(CPPFLAGS) $< >$*.txt
 .c:
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  CC              $<" ; \
 	else \
 	  echo $(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS) ; \
 	fi
 	@$(C_COMPILE) -o $* $< $(LDFLAGS) $(LIBS)
-.c.man:
-	$(DOCTEXT) -man -mpath ../../../man/man3 -ext 3 -heading MPI \
-		-quotefmt ${master_top_srcdir}/maint/docnotes $<
-.c.html:
-	$(DOCTEXT) -html -mpath ../../../www/www3  -heading MPI \
-		-quotefmt ${master_top_srcdir}/maint/docnotes $<
-.c.latex:
-	$(DOCTEXT) -latex -mpath ../../../doc/refman  -heading MPI \
-		-quotefmt ${master_top_srcdir}/maint/docnotes $<
-
-# --------------------------------------------------------------------------
-${srcdir}/Makefile.in: ${srcdir}/Makefile.sm
-	( cd ${srcdir} && ${master_top_srcdir}/maint/simplemake \
-	-rootdir=../../../ \
-	-configdir=. \
-	-common=${master_top_srcdir}/maint/makedefs \
-	-docnamedefs=${master_top_srcdir}/maint/docnotes \
-	"-autoconf=-I ROOTDIR/confdb" \
-	-libdir='$${MPILIBNAME}=ROOTDIR/lib' \
-	-smroot=${master_top_srcdir}/maint \
-	-distcleanfiles="Makefile" \
-	-smvar_doc_attop=0 \
-		Makefile.sm )
-Makefile: ${srcdir}/Makefile.in
-	-cd ../../../ && \
-	if [ -x config.status ] ; then CONFIG_FILES=src/mpi/attr/Makefile CONFIG_HEADERS= ${SHELL} ./config.status ; fi
-# --------------------------------------------------------------------------
 apply: 
 	$(ACTION) $(ACTION_INPUT)
 clean: 
 	-@rm -f *.o ${srcdir}/*.o 
 	-@rm -f .libstamp0 .libstamp1 .libstamp2 .libstamp3 
 	-@rm -f *.lo ${srcdir}/*.lo
-	-@rm -f ${srcdir}/*.bb ${srcdir}/*.bbg ${srcdir}/*.da
-	-@rm -f ${srcdir}/*.gcda ${srcdir}/*.gcno
-	-@rm -f *.gcov *.bb *.bbg *.da *.gcda *.gcno
 distclean:  clean distclean-xxx remove-makefile
 distclean-xxx:
 	-@rm -f Makefile
 	-@rm -rf autom4te*.cache
 	-@rm -rf $(DEPS_DIR)
 	-@rm -f TAGS
-maintainer-clean:  distclean-xxx remove-genmakefiles
 remove-makefile:
 	rm -f Makefile
 remove-genmakefiles:
-	rm -f  Makefile.in Makefile
+	rm -f  Makefile
 all-redirect: .libstamp0 ../../../lib/lib${MPILIBNAME}.a
 	@if [ -n "@NO_WEAK_SYM@" ] ; then \
-	    ${MAKE} .libstamp2 ; \
+	    ${MAKE} .libstamp2 || exit 1; \
 	fi
 	@if [ "@ENABLE_SHLIB@" != "none" ] ; then \
-	    ${MAKE} .libstamp1 ; \
+	    ${MAKE} .libstamp1 || exit 1; \
 	    if [ -n "@NO_WEAK_SYM@" ] ; then \
-	        ${MAKE} .libstamp3 ; \
+	        ${MAKE} .libstamp3 || exit 1; \
 	    fi ; \
 	fi
 
-.libstamp0 ../../../lib/lib${MPILIBNAME}.a: attr_delete.o attr_get.o \
-	attr_put.o comm_create_keyval.o comm_delete_attr.o comm_free_keyval.o \
-	comm_get_attr.o comm_set_attr.o keyval_create.o keyval_free.o \
-	type_create_keyval.o type_delete_attr.o type_free_keyval.o \
-	type_get_attr.o type_set_attr.o win_create_keyval.o win_delete_attr.o \
+.libstamp0 ../../../lib/lib${MPILIBNAME}.a: attr_delete.o attr_get.o attr_put.o \
+	comm_create_keyval.o comm_delete_attr.o comm_free_keyval.o comm_get_attr.o \
+	comm_set_attr.o keyval_create.o keyval_free.o type_create_keyval.o type_delete_attr.o \
+	type_free_keyval.o type_get_attr.o type_set_attr.o win_create_keyval.o win_delete_attr.o \
 	win_free_keyval.o win_get_attr.o win_set_attr.o attrutil.o dup_fn.o 
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  AR cr ../../../lib/lib${MPILIBNAME}.a $?" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  AR ${AR_FLAGS} ../../../lib/lib${MPILIBNAME}.a $?" ; \
 	else \
-	  echo ${AR} cr ../../../lib/lib${MPILIBNAME}.a $? ; \
+	  echo ${AR} ${AR_FLAGS} ../../../lib/lib${MPILIBNAME}.a $? ; \
 	fi
-	@${AR} cr ../../../lib/lib${MPILIBNAME}.a $?
-	${RANLIB} ../../../lib/lib${MPILIBNAME}.a
+	@${AR} ${AR_FLAGS} ../../../lib/lib${MPILIBNAME}.a $?
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  RANLIB          lib${MPILIBNAME}.a" ; \
+	else \
+	  echo ${RANLIB} ../../../lib/lib${MPILIBNAME}.a ; \
+	fi
+	@${RANLIB} ../../../lib/lib${MPILIBNAME}.a
 	date > .libstamp0
-.libstamp1 ../../../lib/lib${MPILIBNAME}.la: attr_delete.lo attr_get.lo \
-	attr_put.lo comm_create_keyval.lo comm_delete_attr.lo \
-	comm_free_keyval.lo comm_get_attr.lo comm_set_attr.lo \
-	keyval_create.lo keyval_free.lo type_create_keyval.lo \
-	type_delete_attr.lo type_free_keyval.lo type_get_attr.lo \
-	type_set_attr.lo win_create_keyval.lo win_delete_attr.lo \
-	win_free_keyval.lo win_get_attr.lo win_set_attr.lo attrutil.lo \
-	dup_fn.lo 
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  AR cr ../../../lib/lib${MPILIBNAME}.la $?" ; \
+.libstamp1 ../../../lib/lib${MPILIBNAME}.la: attr_delete.lo attr_get.lo attr_put.lo \
+	comm_create_keyval.lo comm_delete_attr.lo comm_free_keyval.lo comm_get_attr.lo \
+	comm_set_attr.lo keyval_create.lo keyval_free.lo type_create_keyval.lo \
+	type_delete_attr.lo type_free_keyval.lo type_get_attr.lo type_set_attr.lo \
+	win_create_keyval.lo win_delete_attr.lo win_free_keyval.lo win_get_attr.lo \
+	win_set_attr.lo attrutil.lo dup_fn.lo 
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  AR ${AR_FLAGS} ../../../lib/lib${MPILIBNAME}.la $?" ; \
 	else \
-	  echo ${AR} cr ../../../lib/lib${MPILIBNAME}.la $? ; \
+	  echo ${AR} ${AR_FLAGS} ../../../lib/lib${MPILIBNAME}.la $? ; \
 	fi
-	@${AR} cr ../../../lib/lib${MPILIBNAME}.la $?
+	@${AR} ${AR_FLAGS} ../../../lib/lib${MPILIBNAME}.la $?
 	date > .libstamp1
 
 # --------------------------------------------------------------------------
-.libstamp2: _attr_delete.o _attr_get.o _attr_put.o _comm_create_keyval.o \
-	_comm_delete_attr.o _comm_free_keyval.o _comm_get_attr.o \
-	_comm_set_attr.o _keyval_create.o _keyval_free.o \
-	_type_create_keyval.o _type_delete_attr.o _type_free_keyval.o \
-	_type_get_attr.o _type_set_attr.o _win_create_keyval.o \
-	_win_delete_attr.o _win_free_keyval.o _win_get_attr.o _win_set_attr.o 
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+.libstamp2: _attr_delete.o _attr_get.o _attr_put.o _comm_create_keyval.o _comm_delete_attr.o \
+	_comm_free_keyval.o _comm_get_attr.o _comm_set_attr.o _keyval_create.o _keyval_free.o \
+	_type_create_keyval.o _type_delete_attr.o _type_free_keyval.o _type_get_attr.o \
+	_type_set_attr.o _win_create_keyval.o _win_delete_attr.o _win_free_keyval.o \
+	_win_get_attr.o _win_set_attr.o 
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  AR cr ../../../lib/lib${PMPILIBNAME}.a $?" ; \
 	else \
 	  echo ${AR} cr ../../../lib/lib${PMPILIBNAME}.a $? ; \
 	fi
 	@${AR} cr ../../../lib/lib${PMPILIBNAME}.a $?
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  RANLIB          lib${PMPILIBNAME}.a" ; \
 	else \
 	  echo ${RANLIB} ../../../lib/lib${PMPILIBNAME}.a ; \
 	fi
 	@${RANLIB} ../../../lib/lib${PMPILIBNAME}.a
 	date > .libstamp2
-.libstamp3: _attr_delete.lo _attr_get.lo _attr_put.lo _comm_create_keyval.lo \
-	_comm_delete_attr.lo _comm_free_keyval.lo _comm_get_attr.lo \
-	_comm_set_attr.lo _keyval_create.lo _keyval_free.lo \
-	_type_create_keyval.lo _type_delete_attr.lo _type_free_keyval.lo \
-	_type_get_attr.lo _type_set_attr.lo _win_create_keyval.lo \
-	_win_delete_attr.lo _win_free_keyval.lo _win_get_attr.lo \
-	_win_set_attr.lo 
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
+.libstamp3: _attr_delete.lo _attr_get.lo _attr_put.lo _comm_create_keyval.lo _comm_delete_attr.lo \
+	_comm_free_keyval.lo _comm_get_attr.lo _comm_set_attr.lo _keyval_create.lo \
+	_keyval_free.lo _type_create_keyval.lo _type_delete_attr.lo _type_free_keyval.lo \
+	_type_get_attr.lo _type_set_attr.lo _win_create_keyval.lo _win_delete_attr.lo \
+	_win_free_keyval.lo _win_get_attr.lo _win_set_attr.lo 
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
 	  echo "  AR cr ../../../lib/lib${PMPILIBNAME}.la $?" ; \
 	else \
-	  echo ${AR} cr ../../../lib/lib${PMPILIBNAME}.la $?; \
+	  echo ${AR} cr ../../../lib/lib${PMPILIBNAME}.la $? ; \
 	fi
 	@${AR} cr ../../../lib/lib${PMPILIBNAME}.la $?
 	date > .libstamp3
 _attr_delete.o: attr_delete.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/attr_delete.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/attr_delete.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_delete.c -o _attr_delete.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_delete.c -o _attr_delete.o
 _attr_delete.lo: attr_delete.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_delete.c -o _attr_delete.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/attr_delete.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_delete.c -o _attr_delete.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_delete.c -o _attr_delete.lo
 _attr_get.o: attr_get.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/attr_get.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/attr_get.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_get.c -o _attr_get.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_get.c -o _attr_get.o
 _attr_get.lo: attr_get.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_get.c -o _attr_get.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/attr_get.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_get.c -o _attr_get.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_get.c -o _attr_get.lo
 _attr_put.o: attr_put.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/attr_put.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/attr_put.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_put.c -o _attr_put.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_put.c -o _attr_put.o
 _attr_put.lo: attr_put.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_put.c -o _attr_put.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/attr_put.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_put.c -o _attr_put.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/attr_put.c -o _attr_put.lo
 _comm_create_keyval.o: comm_create_keyval.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/comm_create_keyval.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/comm_create_keyval.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_create_keyval.c -o _comm_create_keyval.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_create_keyval.c -o _comm_create_keyval.o
 _comm_create_keyval.lo: comm_create_keyval.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_create_keyval.c -o _comm_create_keyval.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/comm_create_keyval.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_create_keyval.c -o _comm_create_keyval.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_create_keyval.c -o _comm_create_keyval.lo
 _comm_delete_attr.o: comm_delete_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/comm_delete_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/comm_delete_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_delete_attr.c -o _comm_delete_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_delete_attr.c -o _comm_delete_attr.o
 _comm_delete_attr.lo: comm_delete_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_delete_attr.c -o _comm_delete_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/comm_delete_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_delete_attr.c -o _comm_delete_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_delete_attr.c -o _comm_delete_attr.lo
 _comm_free_keyval.o: comm_free_keyval.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/comm_free_keyval.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/comm_free_keyval.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_free_keyval.c -o _comm_free_keyval.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_free_keyval.c -o _comm_free_keyval.o
 _comm_free_keyval.lo: comm_free_keyval.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_free_keyval.c -o _comm_free_keyval.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/comm_free_keyval.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_free_keyval.c -o _comm_free_keyval.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_free_keyval.c -o _comm_free_keyval.lo
 _comm_get_attr.o: comm_get_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/comm_get_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/comm_get_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_get_attr.c -o _comm_get_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_get_attr.c -o _comm_get_attr.o
 _comm_get_attr.lo: comm_get_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_get_attr.c -o _comm_get_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/comm_get_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_get_attr.c -o _comm_get_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_get_attr.c -o _comm_get_attr.lo
 _comm_set_attr.o: comm_set_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/comm_set_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/comm_set_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_set_attr.c -o _comm_set_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_set_attr.c -o _comm_set_attr.o
 _comm_set_attr.lo: comm_set_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_set_attr.c -o _comm_set_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/comm_set_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_set_attr.c -o _comm_set_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/comm_set_attr.c -o _comm_set_attr.lo
 _keyval_create.o: keyval_create.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/keyval_create.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/keyval_create.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_create.c -o _keyval_create.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_create.c -o _keyval_create.o
 _keyval_create.lo: keyval_create.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_create.c -o _keyval_create.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/keyval_create.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_create.c -o _keyval_create.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_create.c -o _keyval_create.lo
 _keyval_free.o: keyval_free.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/keyval_free.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/keyval_free.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_free.c -o _keyval_free.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_free.c -o _keyval_free.o
 _keyval_free.lo: keyval_free.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_free.c -o _keyval_free.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/keyval_free.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_free.c -o _keyval_free.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/keyval_free.c -o _keyval_free.lo
 _type_create_keyval.o: type_create_keyval.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/type_create_keyval.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/type_create_keyval.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_create_keyval.c -o _type_create_keyval.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_create_keyval.c -o _type_create_keyval.o
 _type_create_keyval.lo: type_create_keyval.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_create_keyval.c -o _type_create_keyval.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/type_create_keyval.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_create_keyval.c -o _type_create_keyval.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_create_keyval.c -o _type_create_keyval.lo
 _type_delete_attr.o: type_delete_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/type_delete_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/type_delete_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_delete_attr.c -o _type_delete_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_delete_attr.c -o _type_delete_attr.o
 _type_delete_attr.lo: type_delete_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_delete_attr.c -o _type_delete_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/type_delete_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_delete_attr.c -o _type_delete_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_delete_attr.c -o _type_delete_attr.lo
 _type_free_keyval.o: type_free_keyval.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/type_free_keyval.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/type_free_keyval.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_free_keyval.c -o _type_free_keyval.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_free_keyval.c -o _type_free_keyval.o
 _type_free_keyval.lo: type_free_keyval.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_free_keyval.c -o _type_free_keyval.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/type_free_keyval.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_free_keyval.c -o _type_free_keyval.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_free_keyval.c -o _type_free_keyval.lo
 _type_get_attr.o: type_get_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/type_get_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/type_get_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_get_attr.c -o _type_get_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_get_attr.c -o _type_get_attr.o
 _type_get_attr.lo: type_get_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_get_attr.c -o _type_get_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/type_get_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_get_attr.c -o _type_get_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_get_attr.c -o _type_get_attr.lo
 _type_set_attr.o: type_set_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/type_set_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/type_set_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_set_attr.c -o _type_set_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/type_set_attr.c -o _type_set_attr.o
 _type_set_attr.lo: type_set_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_set_attr.c -o _type_set_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/type_set_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_set_attr.c -o _type_set_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/type_set_attr.c -o _type_set_attr.lo
 _win_create_keyval.o: win_create_keyval.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/win_create_keyval.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/win_create_keyval.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_create_keyval.c -o _win_create_keyval.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_create_keyval.c -o _win_create_keyval.o
 _win_create_keyval.lo: win_create_keyval.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_create_keyval.c -o _win_create_keyval.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/win_create_keyval.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_create_keyval.c -o _win_create_keyval.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_create_keyval.c -o _win_create_keyval.lo
 _win_delete_attr.o: win_delete_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/win_delete_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/win_delete_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_delete_attr.c -o _win_delete_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_delete_attr.c -o _win_delete_attr.o
 _win_delete_attr.lo: win_delete_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_delete_attr.c -o _win_delete_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/win_delete_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_delete_attr.c -o _win_delete_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_delete_attr.c -o _win_delete_attr.lo
 _win_free_keyval.o: win_free_keyval.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/win_free_keyval.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/win_free_keyval.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_free_keyval.c -o _win_free_keyval.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_free_keyval.c -o _win_free_keyval.o
 _win_free_keyval.lo: win_free_keyval.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_free_keyval.c -o _win_free_keyval.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/win_free_keyval.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_free_keyval.c -o _win_free_keyval.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_free_keyval.c -o _win_free_keyval.lo
 _win_get_attr.o: win_get_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/win_get_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/win_get_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_get_attr.c -o _win_get_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_get_attr.c -o _win_get_attr.o
 _win_get_attr.lo: win_get_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_get_attr.c -o _win_get_attr.lo
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/win_get_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_get_attr.c -o _win_get_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_get_attr.c -o _win_get_attr.lo
 _win_set_attr.o: win_set_attr.c
-	@if [ "x$(VERBOSE)" != "x1" ] ; then \
-	  echo "  CC              ${srcdir}/win_set_attr.c" ; \
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo "  CC             -D<profiling> ${srcdir}/win_set_attr.c" ; \
 	else \
 	  echo $(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_set_attr.c -o _win_set_attr.o ; \
 	fi
 	@$(C_COMPILE) -c @PROFILE_DEF_MPI@ $(srcdir)/win_set_attr.c -o _win_set_attr.o
 _win_set_attr.lo: win_set_attr.c
-	$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_set_attr.c -o _win_set_attr.lo
-# --------------------------------------------------------------------------
-coverage: 
-	-@for file in ${mpi_sources} attrutil.c dup_fn.c  ; do \
-		gcov -b -f $$file ; done
-# --------------------------------------------------------------------------
-mandoc: ${mpi_sources:.c=.man}
-htmldoc: ${mpi_sources:.c=.html}
-latexdoc: ${mpi_sources:.c=.latex}
+	@if [ "x$(VERBOSE)" != "x1" -a "x$(V)" != "x1" ] ; then \
+	  echo " CC           -D<profiling> $(srcdir)/win_set_attr.c" ; \
+	else \
+	  echo $(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_set_attr.c -o _win_set_attr.lo ; \
+	fi
+	@$(C_COMPILE_SHL) -c @PROFILE_DEF_MPI@ $(srcdir)/win_set_attr.c -o _win_set_attr.lo
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-# Dependencies
-DEPS_DIR = .deps
-MAKE_DEPEND_C   = @MAKE_DEPEND_C@ $(DEFS) $(INCLUDES) $(CPPFLAGS)
-
-dependencies: $(DEPS_DIR)/timestamp
-$(DEPS_DIR)/attr_delete.d: $(srcdir)/attr_delete.c
-	$(MAKE_DEPEND_C) -MT '_attr_delete.o attr_delete.o' $(srcdir)/attr_delete.c >$(DEPS_DIR)/attr_delete.d
-$(DEPS_DIR)/attr_get.d: $(srcdir)/attr_get.c
-	$(MAKE_DEPEND_C) -MT '_attr_get.o attr_get.o' $(srcdir)/attr_get.c >$(DEPS_DIR)/attr_get.d
-$(DEPS_DIR)/attr_put.d: $(srcdir)/attr_put.c
-	$(MAKE_DEPEND_C) -MT '_attr_put.o attr_put.o' $(srcdir)/attr_put.c >$(DEPS_DIR)/attr_put.d
-$(DEPS_DIR)/comm_create_keyval.d: $(srcdir)/comm_create_keyval.c
-	$(MAKE_DEPEND_C) -MT '_comm_create_keyval.o comm_create_keyval.o' $(srcdir)/comm_create_keyval.c >$(DEPS_DIR)/comm_create_keyval.d
-$(DEPS_DIR)/comm_delete_attr.d: $(srcdir)/comm_delete_attr.c
-	$(MAKE_DEPEND_C) -MT '_comm_delete_attr.o comm_delete_attr.o' $(srcdir)/comm_delete_attr.c >$(DEPS_DIR)/comm_delete_attr.d
-$(DEPS_DIR)/comm_free_keyval.d: $(srcdir)/comm_free_keyval.c
-	$(MAKE_DEPEND_C) -MT '_comm_free_keyval.o comm_free_keyval.o' $(srcdir)/comm_free_keyval.c >$(DEPS_DIR)/comm_free_keyval.d
-$(DEPS_DIR)/comm_get_attr.d: $(srcdir)/comm_get_attr.c
-	$(MAKE_DEPEND_C) -MT '_comm_get_attr.o comm_get_attr.o' $(srcdir)/comm_get_attr.c >$(DEPS_DIR)/comm_get_attr.d
-$(DEPS_DIR)/comm_set_attr.d: $(srcdir)/comm_set_attr.c
-	$(MAKE_DEPEND_C) -MT '_comm_set_attr.o comm_set_attr.o' $(srcdir)/comm_set_attr.c >$(DEPS_DIR)/comm_set_attr.d
-$(DEPS_DIR)/keyval_create.d: $(srcdir)/keyval_create.c
-	$(MAKE_DEPEND_C) -MT '_keyval_create.o keyval_create.o' $(srcdir)/keyval_create.c >$(DEPS_DIR)/keyval_create.d
-$(DEPS_DIR)/keyval_free.d: $(srcdir)/keyval_free.c
-	$(MAKE_DEPEND_C) -MT '_keyval_free.o keyval_free.o' $(srcdir)/keyval_free.c >$(DEPS_DIR)/keyval_free.d
-$(DEPS_DIR)/type_create_keyval.d: $(srcdir)/type_create_keyval.c
-	$(MAKE_DEPEND_C) -MT '_type_create_keyval.o type_create_keyval.o' $(srcdir)/type_create_keyval.c >$(DEPS_DIR)/type_create_keyval.d
-$(DEPS_DIR)/type_delete_attr.d: $(srcdir)/type_delete_attr.c
-	$(MAKE_DEPEND_C) -MT '_type_delete_attr.o type_delete_attr.o' $(srcdir)/type_delete_attr.c >$(DEPS_DIR)/type_delete_attr.d
-$(DEPS_DIR)/type_free_keyval.d: $(srcdir)/type_free_keyval.c
-	$(MAKE_DEPEND_C) -MT '_type_free_keyval.o type_free_keyval.o' $(srcdir)/type_free_keyval.c >$(DEPS_DIR)/type_free_keyval.d
-$(DEPS_DIR)/type_get_attr.d: $(srcdir)/type_get_attr.c
-	$(MAKE_DEPEND_C) -MT '_type_get_attr.o type_get_attr.o' $(srcdir)/type_get_attr.c >$(DEPS_DIR)/type_get_attr.d
-$(DEPS_DIR)/type_set_attr.d: $(srcdir)/type_set_attr.c
-	$(MAKE_DEPEND_C) -MT '_type_set_attr.o type_set_attr.o' $(srcdir)/type_set_attr.c >$(DEPS_DIR)/type_set_attr.d
-$(DEPS_DIR)/win_create_keyval.d: $(srcdir)/win_create_keyval.c
-	$(MAKE_DEPEND_C) -MT '_win_create_keyval.o win_create_keyval.o' $(srcdir)/win_create_keyval.c >$(DEPS_DIR)/win_create_keyval.d
-$(DEPS_DIR)/win_delete_attr.d: $(srcdir)/win_delete_attr.c
-	$(MAKE_DEPEND_C) -MT '_win_delete_attr.o win_delete_attr.o' $(srcdir)/win_delete_attr.c >$(DEPS_DIR)/win_delete_attr.d
-$(DEPS_DIR)/win_free_keyval.d: $(srcdir)/win_free_keyval.c
-	$(MAKE_DEPEND_C) -MT '_win_free_keyval.o win_free_keyval.o' $(srcdir)/win_free_keyval.c >$(DEPS_DIR)/win_free_keyval.d
-$(DEPS_DIR)/win_get_attr.d: $(srcdir)/win_get_attr.c
-	$(MAKE_DEPEND_C) -MT '_win_get_attr.o win_get_attr.o' $(srcdir)/win_get_attr.c >$(DEPS_DIR)/win_get_attr.d
-$(DEPS_DIR)/win_set_attr.d: $(srcdir)/win_set_attr.c
-	$(MAKE_DEPEND_C) -MT '_win_set_attr.o win_set_attr.o' $(srcdir)/win_set_attr.c >$(DEPS_DIR)/win_set_attr.d
-$(DEPS_DIR)/attrutil.d: $(srcdir)/attrutil.c
-	$(MAKE_DEPEND_C) -MT '_attrutil.o attrutil.o' $(srcdir)/attrutil.c >$(DEPS_DIR)/attrutil.d
-$(DEPS_DIR)/dup_fn.d: $(srcdir)/dup_fn.c
-	$(MAKE_DEPEND_C) -MT '_dup_fn.o dup_fn.o' $(srcdir)/dup_fn.c >$(DEPS_DIR)/dup_fn.d
-$(DEPS_DIR)/timestamp: ${mpi_sources} attrutil.c dup_fn.c  Makefile
-	rm -f $(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_attr_delete.o attr_delete.o' $(srcdir)/attr_delete.c >$(DEPS_DIR)/attr_delete.d
-	echo "include $(DEPS_DIR)/attr_delete.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_attr_get.o attr_get.o' $(srcdir)/attr_get.c >$(DEPS_DIR)/attr_get.d
-	echo "include $(DEPS_DIR)/attr_get.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_attr_put.o attr_put.o' $(srcdir)/attr_put.c >$(DEPS_DIR)/attr_put.d
-	echo "include $(DEPS_DIR)/attr_put.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_comm_create_keyval.o comm_create_keyval.o' $(srcdir)/comm_create_keyval.c >$(DEPS_DIR)/comm_create_keyval.d
-	echo "include $(DEPS_DIR)/comm_create_keyval.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_comm_delete_attr.o comm_delete_attr.o' $(srcdir)/comm_delete_attr.c >$(DEPS_DIR)/comm_delete_attr.d
-	echo "include $(DEPS_DIR)/comm_delete_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_comm_free_keyval.o comm_free_keyval.o' $(srcdir)/comm_free_keyval.c >$(DEPS_DIR)/comm_free_keyval.d
-	echo "include $(DEPS_DIR)/comm_free_keyval.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_comm_get_attr.o comm_get_attr.o' $(srcdir)/comm_get_attr.c >$(DEPS_DIR)/comm_get_attr.d
-	echo "include $(DEPS_DIR)/comm_get_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_comm_set_attr.o comm_set_attr.o' $(srcdir)/comm_set_attr.c >$(DEPS_DIR)/comm_set_attr.d
-	echo "include $(DEPS_DIR)/comm_set_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_keyval_create.o keyval_create.o' $(srcdir)/keyval_create.c >$(DEPS_DIR)/keyval_create.d
-	echo "include $(DEPS_DIR)/keyval_create.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_keyval_free.o keyval_free.o' $(srcdir)/keyval_free.c >$(DEPS_DIR)/keyval_free.d
-	echo "include $(DEPS_DIR)/keyval_free.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_type_create_keyval.o type_create_keyval.o' $(srcdir)/type_create_keyval.c >$(DEPS_DIR)/type_create_keyval.d
-	echo "include $(DEPS_DIR)/type_create_keyval.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_type_delete_attr.o type_delete_attr.o' $(srcdir)/type_delete_attr.c >$(DEPS_DIR)/type_delete_attr.d
-	echo "include $(DEPS_DIR)/type_delete_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_type_free_keyval.o type_free_keyval.o' $(srcdir)/type_free_keyval.c >$(DEPS_DIR)/type_free_keyval.d
-	echo "include $(DEPS_DIR)/type_free_keyval.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_type_get_attr.o type_get_attr.o' $(srcdir)/type_get_attr.c >$(DEPS_DIR)/type_get_attr.d
-	echo "include $(DEPS_DIR)/type_get_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_type_set_attr.o type_set_attr.o' $(srcdir)/type_set_attr.c >$(DEPS_DIR)/type_set_attr.d
-	echo "include $(DEPS_DIR)/type_set_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_win_create_keyval.o win_create_keyval.o' $(srcdir)/win_create_keyval.c >$(DEPS_DIR)/win_create_keyval.d
-	echo "include $(DEPS_DIR)/win_create_keyval.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_win_delete_attr.o win_delete_attr.o' $(srcdir)/win_delete_attr.c >$(DEPS_DIR)/win_delete_attr.d
-	echo "include $(DEPS_DIR)/win_delete_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_win_free_keyval.o win_free_keyval.o' $(srcdir)/win_free_keyval.c >$(DEPS_DIR)/win_free_keyval.d
-	echo "include $(DEPS_DIR)/win_free_keyval.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_win_get_attr.o win_get_attr.o' $(srcdir)/win_get_attr.c >$(DEPS_DIR)/win_get_attr.d
-	echo "include $(DEPS_DIR)/win_get_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_win_set_attr.o win_set_attr.o' $(srcdir)/win_set_attr.c >$(DEPS_DIR)/win_set_attr.d
-	echo "include $(DEPS_DIR)/win_set_attr.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_attrutil.o attrutil.o' $(srcdir)/attrutil.c >$(DEPS_DIR)/attrutil.d
-	echo "include $(DEPS_DIR)/attrutil.d" >>$(DEPS_DIR)/newalldeps
-	$(MAKE_DEPEND_C) -MT '_dup_fn.o dup_fn.o' $(srcdir)/dup_fn.c >$(DEPS_DIR)/dup_fn.d
-	echo "include $(DEPS_DIR)/dup_fn.d" >>$(DEPS_DIR)/newalldeps
-	if [ -s $(DEPS_DIR)/newalldeps ] ; then mv -f $(DEPS_DIR)/newalldeps $(DEPS_DIR)/alldeps ; fi
-	date >$(DEPS_DIR)/timestamp
-include $(DEPS_DIR)/alldeps
-# End of Dependencies
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-SOURCES         =  attr_delete.c attr_get.c attr_put.c comm_create_keyval.c \
-	comm_delete_attr.c comm_free_keyval.c comm_get_attr.c comm_set_attr.c \
-	keyval_create.c keyval_free.c type_create_keyval.c type_delete_attr.c \
-	type_free_keyval.c type_get_attr.c type_set_attr.c \
-	win_create_keyval.c win_delete_attr.c win_free_keyval.c \
-	win_get_attr.c win_set_attr.c attrutil.c dup_fn.c 
-ETAGS           = @ETAGS@ @ETAGSADD@
+SOURCES         =  attr_delete.c attr_get.c attr_put.c comm_create_keyval.c comm_delete_attr.c \
+	comm_free_keyval.c comm_get_attr.c comm_set_attr.c keyval_create.c keyval_free.c \
+	type_create_keyval.c type_delete_attr.c type_free_keyval.c type_get_attr.c \
+	type_set_attr.c win_create_keyval.c win_delete_attr.c win_free_keyval.c win_get_attr.c \
+	win_set_attr.c attrutil.c dup_fn.c 
 HEADERFILES     = $(HEADERS)
 SOURCEFILES     = $(SOURCES)
-tags: TAGS
-TAGS: Makefile${HEADERFILES} ${SOURCEFILES}
-	here=`cd ../../.. && pwd` ; cd ${srcdir} && $(ETAGS) -o $$here/TAGS --append ${HEADERFILES} ${SOURCEFILES}
 # --------------------------------------------------------------------------
 
 

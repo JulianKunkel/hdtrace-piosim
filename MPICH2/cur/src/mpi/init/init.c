@@ -1,6 +1,5 @@
 /* -*- Mode: C; c-basic-offset:4 ; -*- */
-/*  $Id: init.c,v 1.34 2007/08/03 21:02:32 buntinas Exp $
- *
+/*
  *  (C) 2001 by Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
@@ -30,6 +29,8 @@
 
 /* Any internal routines can go here.  Make them static if possible */
 #endif
+
+int MPIR_async_thread_initialized = 0;
 
 #undef FUNCNAME
 #define FUNCNAME MPI_Init
@@ -69,23 +70,15 @@ int MPI_Init( int *argc, char ***argv )
 {
     static const char FCNAME[] = "MPI_Init";
     int mpi_errno = MPI_SUCCESS;
+    int rc;
+    int threadLevel, provided;
     MPID_MPI_INIT_STATE_DECL(MPID_STATE_MPI_INIT);
 
-    MPID_CS_INITIALIZE();
-    /* FIXME: Can we get away without locking every time.  Now, we
-       need a MPID_CS_ENTER/EXIT around MPI_Init and MPI_Init_thread.
-       Progress may be called within MPI_Init, e.g., by a spawned
-       child process.  Within progress, the lock is released and
-       reacquired when blocking.  If the lock isn't acquired before
-       then, the release in progress is incorrect.  Furthermore, if we
-       don't release the lock after progress, we'll deadlock the next
-       time this process tries to acquire the lock.
-       MPID_CS_ENTER/EXIT functions are used here instead of
-       MPIU_THREAD_SINGLE_CS_ENTER/EXIT because
-       MPIR_ThreadInfo.isThreaded hasn't been initialized yet.
-    */
-    MPID_CS_ENTER();
-    
+    rc = MPID_Wtime_init();
+#ifdef USE_DBG_LOGGING
+    MPIU_DBG_PreInit( argc, argv, rc );
+#endif
+
     MPID_MPI_INIT_FUNC_ENTER(MPID_STATE_MPI_INIT);
 #   ifdef HAVE_ERROR_CHECKING
     {
@@ -102,16 +95,57 @@ int MPI_Init( int *argc, char ***argv )
 #   endif /* HAVE_ERROR_CHECKING */
 
     /* ... body of routine ... */
-    
-    mpi_errno = MPIR_Init_thread( argc, argv, MPI_THREAD_SINGLE, (int *)0 );
+
+#if (MPICH_THREAD_LEVEL == MPI_THREAD_MULTIPLE)
+    /* If we support all thread levels, allow the use of an environment 
+       variable to set the default thread level */
+    {
+	const char *str = 0;
+	threadLevel = MPI_THREAD_SINGLE;
+	if (MPL_env2str( "MPICH_THREADLEVEL_DEFAULT", &str )) {
+	    if (strcmp(str,"MULTIPLE") == 0 || strcmp(str,"multiple") == 0) {
+		threadLevel = MPI_THREAD_MULTIPLE;
+	    }
+	    else if (strcmp(str,"SERIALIZED") == 0 || strcmp(str,"serialized") == 0) {
+		threadLevel = MPI_THREAD_SERIALIZED;
+	    }
+	    else if (strcmp(str,"FUNNELED") == 0 || strcmp(str,"funneled") == 0) {
+		threadLevel = MPI_THREAD_FUNNELED;
+	    }
+	    else if (strcmp(str,"SINGLE") == 0 || strcmp(str,"single") == 0) {
+		threadLevel = MPI_THREAD_SINGLE;
+	    }
+	    else {
+		MPIU_Error_printf( "Unrecognized thread level %s\n", str );
+		exit(1);
+	    }
+	}
+    }
+#else 
+    threadLevel = MPI_THREAD_SINGLE;
+#endif
+
+    /* If the user requested for asynchronous progress, request for
+     * THREAD_MULTIPLE. */
+    rc = 0;
+    MPL_env2bool("MPICH_ASYNC_PROGRESS", &rc);
+    if (rc)
+        threadLevel = MPI_THREAD_MULTIPLE;
+
+    mpi_errno = MPIR_Init_thread( argc, argv, threadLevel, &provided );
     if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 
+    if (rc && provided == MPI_THREAD_MULTIPLE) {
+        mpi_errno = MPIR_Init_async_thread();
+        if (mpi_errno) goto fn_fail;
+
+        MPIR_async_thread_initialized = 1;
+    }
+
     /* ... end of body of routine ... */
-    
     MPID_MPI_INIT_FUNC_EXIT(MPID_STATE_MPI_INIT);
-    MPID_CS_EXIT();
     return mpi_errno;
-    
+
   fn_fail:
     /* --BEGIN ERROR HANDLING-- */
 #   ifdef HAVE_ERROR_REPORTING
@@ -122,8 +156,6 @@ int MPI_Init( int *argc, char ***argv )
     }
 #   endif
     mpi_errno = MPIR_Err_return_comm( 0, FCNAME, mpi_errno );
-    MPID_CS_EXIT();
-    MPID_CS_FINALIZE();
     return mpi_errno;
     /* --END ERROR HANDLING-- */
 }

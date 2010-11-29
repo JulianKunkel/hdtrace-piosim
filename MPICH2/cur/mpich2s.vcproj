@@ -134,9 +134,11 @@
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				OutputFile=""
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -378,7 +380,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="src\mpi\romio\mpi-io,src\mpi\romio\adio\include,src\include,src\include\win32,src\mpid\common\datatype,src\mpid\common\sock,src\mpid\common\sock\iocp,src\mpid\ch3\include,src\mpid\common\locks,src\mpid\ch3\channels\sock\include,src\mpi\datatype"
+				AdditionalIncludeDirectories="&quot;src\mpi\romio\mpi-io&quot;;src\mpi\romio\adio\include;src\include;src\include\win32;src\mpl\include;src\mpid\common\datatype;src\mpid\common\sock;src\mpid\common\sock\iocp;src\mpid\ch3\include;src\mpid\common\locks;src\mpid\ch3\channels\sock\include;src\mpi\datatype"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_WINCONF_H;MPIO_BUILD_PROFILING;HAVE_FORTRAN_BINDING;MPI_EXPORTS;WORDS_LITTLEENDIAN"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -407,9 +409,11 @@
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				OutputFile=""
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -1438,6 +1442,140 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
+		<Configuration
+			Name="ch3nemesisPRelease|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				OmitFramePointers="true"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_LIB;USE_WINCONF_H"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="4"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="lib/mpich2s.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="fortPRelease|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				OmitFramePointers="true"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_LIB;USE_WINCONF_H"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="4"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="lib/mpich2s.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+				OutputDocumentFile=""
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+				OutputFile=""
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -1624,6 +1762,10 @@
 			</File>
 			<File
 				RelativePath="src\mpi\coll\alltoallw.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpi\init\async.c"
 				>
 			</File>
 			<File
@@ -2013,6 +2155,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\src\mpid\common\datatype\dataloop\darray_support.c"
@@ -2056,6 +2214,22 @@
 			</File>
 			<File
 				RelativePath="src\mpi\topo\dims_create.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpi\topo\dist_gr_create.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpi\topo\dist_gr_create_adj.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpi\topo\dist_gr_neighb.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpi\topo\dist_gr_neighb_count.c"
 				>
 			</File>
 			<File
@@ -2281,6 +2455,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="src\mpi\errhan\file_create_errhandler.c"
@@ -2447,6 +2637,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -2629,6 +2835,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="src\mpi\errhan\file_set_errhandler.c"
@@ -2801,6 +3023,22 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="src\mpi\io\fileutil.c"
@@ -2967,6 +3205,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -3381,6 +3635,22 @@
 						PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;F77_NAME_UPPER"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;F77_NAME_UPPER"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;F77_NAME_UPPER"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="src\mpi\comm\intercomm_create.c"
@@ -3464,6 +3734,10 @@
 			</File>
 			<File
 				RelativePath="src\mpi\attr\keyval_free.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\util\procmap\local_proc.c"
 				>
 			</File>
 			<File
@@ -3559,6 +3833,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\mpi\romio\mpi-io\mpir-mpioinit.c"
+				>
+			</File>
+			<File
 				RelativePath="src\mpi\pt2pt\mpir_request.c"
 				>
 			</File>
@@ -3568,6 +3846,10 @@
 			</File>
 			<File
 				RelativePath="src\mpid\common\datatype\mpir_type_get_contig_blocks.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpi\coll\op_commutative.c"
 				>
 			</File>
 			<File
@@ -3849,6 +4131,22 @@
 						AdditionalIncludeDirectories="src\mpi\spawn"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="src\mpi\spawn"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="src\mpi\spawn"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="src\mpi\romio\mpi-io\prealloc.c"
@@ -3931,7 +4229,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\mpi\coll\red_scat_block.c"
+				>
+			</File>
+			<File
 				RelativePath="src\mpi\coll\reduce.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpi\coll\reduce_local.c"
 				>
 			</File>
 			<File
@@ -3987,7 +4293,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\mpid\common\datatype\dataloop\segment_ops.c"
+				RelativePath=".\src\mpid\common\datatype\dataloop\segment_count.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpid\common\datatype\dataloop\segment_flatten.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\mpid\common\datatype\dataloop\segment_packunpack.c"
 				>
 			</File>
 			<File
@@ -4223,6 +4537,22 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="fortDebugConfig_1_0_5|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ch3nemesisPRelease|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="fortPRelease|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool

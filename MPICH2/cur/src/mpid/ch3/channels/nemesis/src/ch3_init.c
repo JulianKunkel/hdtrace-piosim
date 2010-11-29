@@ -34,11 +34,6 @@ int MPIDI_CH3_Init(int has_parent, MPIDI_PG_t *pg_p, int pg_rank)
 
     MPIU_Assert(sizeof(MPIDI_CH3I_VC) <= sizeof(((MPIDI_VC_t*)0)->channel_private));
 
-    /* There are hard-coded copy routines that depend on the size of the mpich2 header
-       We only handle the 32- and 40-byte cases.
-    */
-    MPIU_Assert (sizeof(MPIDI_CH3_Pkt_t) >= 32 && sizeof(MPIDI_CH3_Pkt_t) <= 40);
-
     mpi_errno = MPID_nem_init (pg_rank, pg_p, has_parent);
     if (mpi_errno) MPIU_ERR_POP (mpi_errno);
 
@@ -55,10 +50,8 @@ int MPIDI_CH3_Init(int has_parent, MPIDI_PG_t *pg_p, int pg_rank)
 
     for (i = 0; i < pg_p->size; i++)
     {
-	MPIDI_VC_t *vc;
-	MPIDI_PG_Get_vc (pg_p, i, &vc);
-	mpi_errno = MPIDI_CH3_VC_Init (vc);
-        if (mpi_errno) MPIU_ERR_POP (mpi_errno);
+	mpi_errno = MPIDI_CH3_VC_Init(&pg_p->vct[i]);
+        if (mpi_errno) MPIU_ERR_POP(mpi_errno);
     }
 
     mpi_errno = MPID_nem_coll_barrier_init();
@@ -97,6 +90,28 @@ int MPIDI_CH3_RMAFnsInit( MPIDI_RMAFns *a )
     return 0;
 }
 
+
+#undef FUNCNAME
+#define FUNCNAME MPIDI_CH3_Get_business_card
+#undef FCNAME
+#define FCNAME MPIDI_QUOTE(FUNCNAME)
+int MPIDI_CH3_Get_business_card(int myRank, char *value, int length)
+{
+    int mpi_errno = MPI_SUCCESS;
+    MPIDI_STATE_DECL(MPIDI_STATE_MPIDI_CH3_GET_BUSINESS_CARD);
+
+    MPIDI_FUNC_ENTER(MPIDI_STATE_MPIDI_CH3_GET_BUSINESS_CARD);
+
+    mpi_errno = MPID_nem_get_business_card(myRank, value, length);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+
+fn_exit:
+    MPIDI_FUNC_EXIT(MPIDI_STATE_MPIDI_CH3_GET_BUSINESS_CARD);
+    return mpi_errno;
+fn_fail:
+    goto fn_exit;
+}
+
 /* Perform the channel-specific vc initialization */
 #undef FUNCNAME
 #define FUNCNAME MPIDI_CH3_VC_Init
@@ -105,7 +120,6 @@ int MPIDI_CH3_RMAFnsInit( MPIDI_RMAFns *a )
 int MPIDI_CH3_VC_Init( MPIDI_VC_t *vc )
 {
     int mpi_errno = MPI_SUCCESS;
-    char bc[MPID_NEM_MAX_KEY_VAL_LEN];
     MPIDI_STATE_DECL(MPID_STATE_MPIDI_CH3_VC_INIT);
 
     MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_CH3_VC_INIT);
@@ -135,7 +149,6 @@ int MPIDI_CH3_VC_Init( MPIDI_VC_t *vc )
         goto fn_exit;
 
     ((MPIDI_CH3I_VC *)vc->channel_private)->recv_active = NULL;
-    vc->state = MPIDI_VC_STATE_ACTIVE;
 
     mpi_errno = MPID_nem_vc_init (vc);
     if (mpi_errno) MPIU_ERR_POP (mpi_errno);
@@ -159,8 +172,10 @@ int MPIDI_CH3_VC_Destroy(MPIDI_VC_t *vc )
 
     /* no need to destroy vc to self, this corresponds to the optimization above
      * in MPIDI_CH3_VC_Init */
-    if (vc->pg == MPIDI_CH3I_my_pg && vc->pg_rank == MPIDI_CH3I_my_rank)
+    if (vc->pg == MPIDI_CH3I_my_pg && vc->pg_rank == MPIDI_CH3I_my_rank) {
+        MPIU_DBG_MSG_P(NEM_SOCK_DET, VERBOSE, "skipping self vc=%p", vc);
         goto fn_exit;
+    }
 
     mpi_errno = MPID_nem_vc_destroy(vc);
 
@@ -182,23 +197,23 @@ int MPIDI_CH3_Connect_to_root (const char *port_name, MPIDI_VC_t **new_vc)
     MPIDI_STATE_DECL(MPID_STATE_MPIDI_CH3_CONNECT_TO_ROOT);
 
     MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_CH3_CONNECT_TO_ROOT);
+
+    *new_vc = NULL; /* so that the err handling knows to cleanup */
+
     MPIU_CHKPMEM_MALLOC (vc, MPIDI_VC_t *, sizeof(MPIDI_VC_t), mpi_errno, "vc");
     /* FIXME - where does this vc get freed?
-     * ANSWER (goodell@) - ch3u_port.c FreeNewVC */
-
-    *new_vc = vc;
+       ANSWER (goodell@) - ch3u_port.c FreeNewVC
+                           (but the VC_Destroy is in this file) */
 
     /* init ch3 portion of vc */
     MPIDI_VC_Init (vc, NULL, 0);
 
     /* init channel portion of vc */
-    MPIU_ERR_CHKANDJUMP (!nemesis_initialized, mpi_errno, MPI_ERR_OTHER, "**intern");
-
+    MPIU_ERR_CHKINTERNAL(!nemesis_initialized, mpi_errno, "Nemesis not initialized");
     ((MPIDI_CH3I_VC *)vc->channel_private)->recv_active = NULL;
-    vc->state = MPIDI_VC_STATE_ACTIVE;
+    MPIDI_CHANGE_VC_STATE(vc, ACTIVE);
 
-    mpi_errno = MPID_nem_vc_init (vc);
-    if (mpi_errno) MPIU_ERR_POP (mpi_errno);
+    *new_vc = vc; /* we now have a valid, disconnected, temp VC */
 
     mpi_errno = MPID_nem_connect_to_root (port_name, vc);
     if (mpi_errno) MPIU_ERR_POP (mpi_errno);
@@ -208,6 +223,10 @@ int MPIDI_CH3_Connect_to_root (const char *port_name, MPIDI_VC_t **new_vc)
     MPIDI_FUNC_EXIT(MPID_STATE_MPIDI_CH3_CONNECT_TO_ROOT);
     return mpi_errno;
  fn_fail:
+    /* freeing without giving the lower layer a chance to cleanup can lead to
+       leaks on error */
+    if (*new_vc)
+        MPIDI_CH3_VC_Destroy(*new_vc);
     MPIU_CHKPMEM_REAP();
     goto fn_exit;
 }
@@ -216,27 +235,8 @@ int MPIDI_CH3_Connect_to_root (const char *port_name, MPIDI_VC_t **new_vc)
 #ifdef USE_DBG_LOGGING
 const char * MPIDI_CH3_VC_GetStateString( struct MPIDI_VC *vc )
 {
-    const char *name = "unknown";
-    static char asdigits[20];
-    MPIDI_CH3I_VC *vcch = (MPIDI_CH3I_VC *)vc->channel_private;
-    int    state = vcch->state;
-    MPIDI_STATE_DECL(MPID_STATE_MPIDI_CH3_VC_GETSTATESTRING);
-
-    MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_CH3_VC_GETSTATESTRING);
-
-    switch (state) {
-    case MPIDI_CH3I_VC_STATE_UNCONNECTED: name = "CH3I_VC_STATE_UNCONNECTED"; break;
-    case MPIDI_CH3I_VC_STATE_CONNECTING:  name = "CH3I_VC_STATE_CONNECTING"; break;
-    case MPIDI_CH3I_VC_STATE_CONNECTED:   name = "CH3I_VC_STATE_CONNECTED"; break;
-    case MPIDI_CH3I_VC_STATE_FAILED:      name = "CH3I_VC_STATE_FAILED"; break;
-    default:
-	MPIU_Snprintf( asdigits, sizeof(asdigits), "%d", state );
-	asdigits[20-1] = 0;
-	name = (const char *)asdigits;
-    }
-
-    MPIDI_FUNC_EXIT(MPID_STATE_MPIDI_CH3_VC_GETSTATESTRING);
-    return name;
+    /* Nemesis doesn't have connection state associated with the VC */
+    return "N/A";
 }
 #endif
 #endif
@@ -247,6 +247,7 @@ int MPIDI_CH3_PG_Init(MPIDI_PG_t *pg_p)
     MPIDI_STATE_DECL(MPID_STATE_MPIDI_CH3_PG_INIT);
 
     MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_CH3_PG_INIT);
+    MPIU_UNREFERENCED_ARG(pg_p);
 
     MPIDI_FUNC_EXIT(MPID_STATE_MPIDI_CH3_PG_INIT);
     return MPI_SUCCESS;
@@ -257,6 +258,7 @@ int MPIDI_CH3_PG_Destroy(MPIDI_PG_t *pg_p)
     MPIDI_STATE_DECL(MPID_STATE_MPIDI_CH3_PG_DESTROY);
 
     MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_CH3_PG_DESTROY);
+    MPIU_UNREFERENCED_ARG(pg_p);
 
     MPIDI_FUNC_EXIT(MPID_STATE_MPIDI_CH3_PG_DESTROY);
     return MPI_SUCCESS;
@@ -305,7 +307,7 @@ int MPID_nem_register_initcomp_cb(int (* callback)(void))
 #define FUNCNAME MPIDI_CH3_InitCompleted
 #undef FCNAME
 #define FCNAME MPIDI_QUOTE(FUNCNAME)
-int MPIDI_CH3_InitCompleted()
+int MPIDI_CH3_InitCompleted(void)
 {
     int mpi_errno = MPI_SUCCESS;
     initcomp_cb_t *ep;

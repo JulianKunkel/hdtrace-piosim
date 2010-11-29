@@ -9,6 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* FIXME: We really should consider internationalizing the output from this
+   program */
+/* style: allow:fprintf:1 sig:0 */
+/* style: allow:printf:8 sig:0 */
+
 /*
  * This program reports on properties of the MPICH library, such as the
  * version, device, and what patches have been applied.  This is available
@@ -28,7 +33,7 @@ extern const char MPIR_Version_device[];
 extern const char MPIR_Version_CC[];
 extern const char MPIR_Version_CXX[];
 extern const char MPIR_Version_F77[];
-extern const char MPIR_Version_F90[];
+extern const char MPIR_Version_FC[];
 
 typedef enum { Version_number=0, Date=1, 
 	       Patches=2, Configure_args=3, Device=4,
@@ -108,7 +113,7 @@ int main( int argc, char *argv[] )
 	printf( "MPICH2 CC: \t%s\n", MPIR_Version_CC );
 	printf( "MPICH2 CXX: \t%s\n", MPIR_Version_CXX );
 	printf( "MPICH2 F77: \t%s\n", MPIR_Version_F77 );
-	printf( "MPICH2 F90: \t%s\n", MPIR_Version_F90 );
+	printf( "MPICH2 FC: \t%s\n", MPIR_Version_FC );
     }
 
     return 0;

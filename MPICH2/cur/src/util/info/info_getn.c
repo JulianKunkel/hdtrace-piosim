@@ -1,6 +1,5 @@
 /* -*- Mode: C; c-basic-offset:4 ; -*- */
-/*  $Id: info_getn.c,v 1.16 2006/12/09 17:05:30 gropp Exp $
- *
+/*
  *  (C) 2001 by Argonne National Laboratory.
  *      See COPYRIGHT in top-level directory.
  */
@@ -23,10 +22,29 @@
 #ifndef MPICH_MPI_FROM_PMPI
 #undef MPI_Info_get_nkeys
 #define MPI_Info_get_nkeys PMPI_Info_get_nkeys
-#endif
 
 #undef FUNCNAME
-#define FUNCNAME MPI_Info_get_nkeys
+#define FUNCNAME MPIR_Info_get_nkeys_impl
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
+void MPIR_Info_get_nkeys_impl(MPID_Info *info_ptr, int *nkeys)
+{
+    int n;
+    
+    info_ptr = info_ptr->next;
+    n = 0;
+
+    while (info_ptr) {
+        info_ptr = info_ptr->next;
+        n ++;
+    }
+    *nkeys = n;
+
+    return;
+}
+
+#endif
+
 
 /*@
     MPI_Info_get_nkeys - Returns the number of currently defined keys in info
@@ -45,19 +63,19 @@ Output Parameters:
 .N MPI_SUCCESS
 .N MPI_ERR_OTHER
 @*/
+#undef FUNCNAME
+#define FUNCNAME MPI_Info_get_nkeys
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 int MPI_Info_get_nkeys( MPI_Info info, int *nkeys )
 {
-#ifdef HAVE_ERROR_CHECKING
-    static const char FCNAME[] = "MPI_Info_get_nkeys";
-#endif
     MPID_Info *info_ptr=0;
-    int      n;
     int mpi_errno = MPI_SUCCESS;
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_INFO_GET_NKEYS);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("info");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_INFO_GET_NKEYS);
     
     /* Validate parameters, especially handles needing to be converted */
@@ -93,15 +111,7 @@ int MPI_Info_get_nkeys( MPI_Info info, int *nkeys )
 
     /* ... body of routine ...  */
     
-    info_ptr = info_ptr->next;
-    n = 0;
-
-    while (info_ptr) {
-	/*printf( "Looking at %x\n", info_ptr->id );*/
-	info_ptr = info_ptr->next;
-	n ++;
-    }
-    *nkeys = n;
+    MPIR_Info_get_nkeys_impl(info_ptr, nkeys);
     
     /* ... end of body of routine ... */
 
@@ -109,7 +119,7 @@ int MPI_Info_get_nkeys( MPI_Info info, int *nkeys )
   fn_exit:
 #endif
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_INFO_GET_NKEYS);
-    MPIU_THREAD_SINGLE_CS_EXIT("info");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
     
     /* --BEGIN ERROR HANDLING-- */

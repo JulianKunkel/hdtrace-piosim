@@ -57,7 +57,7 @@ int MPI_Win_get_errhandler(MPI_Win win, MPI_Errhandler *errhandler)
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("errhan");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_WIN_GET_ERRHANDLER);
 
     /* Validate parameters, especially handles needing to be converted */
@@ -91,7 +91,9 @@ int MPI_Win_get_errhandler(MPI_Win win, MPI_Errhandler *errhandler)
 #   endif /* HAVE_ERROR_CHECKING */
 
     /* ... body of routine ...  */
-    
+
+    MPIU_THREAD_CS_ENTER(MPI_OBJ, win_ptr);
+
     if (win_ptr->errhandler) {
 	*errhandler = win_ptr->errhandler->handle;
 	MPIR_Errhandler_add_ref(win_ptr->errhandler);
@@ -100,14 +102,16 @@ int MPI_Win_get_errhandler(MPI_Win win, MPI_Errhandler *errhandler)
 	/* Use the default */
 	*errhandler = MPI_ERRORS_ARE_FATAL;
     }
-    
+
+    MPIU_THREAD_CS_EXIT(MPI_OBJ, win_ptr);
+
     /* ... end of body of routine ... */
 
 #ifdef HAVE_ERROR_CHECKING
   fn_exit:
 #endif
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_WIN_GET_ERRHANDLER);
-    MPIU_THREAD_SINGLE_CS_EXIT("errhan");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
     /* --BEGIN ERROR HANDLING-- */

@@ -59,13 +59,13 @@ typedef struct pmi_process_t
     int local_kvs;
     char kvs_name[PMI_MAX_KVS_NAME_LENGTH];
     char domain_name[PMI_MAX_KVS_NAME_LENGTH];
-    MPIDU_Sock_t sock;
-    MPIDU_Sock_set_t set;
+    SMPDU_Sock_t sock;
+    SMPDU_Sock_set_t set;
     int iproc;
     int nproc;
     PMIState init_finalized;
     int smpd_id;
-    MPIDU_SOCK_NATIVE_FD smpd_fd;
+    SMPDU_SOCK_NATIVE_FD smpd_fd;
     int smpd_key;
     smpd_context_t *context;
     int clique_size;
@@ -92,8 +92,8 @@ static pmi_process_t pmi_process =
     PMI_FALSE,           /* local_kvs      */
     "",                  /* kvs_name       */
     "",                  /* domain_name    */
-    MPIDU_SOCK_INVALID_SOCK,  /* sock           */
-    MPIDU_SOCK_INVALID_SET,   /* set            */
+    SMPDU_SOCK_INVALID_SOCK,  /* sock           */
+    SMPDU_SOCK_INVALID_SET,   /* set            */
     -1,                  /* iproc          */
     -1,                  /* nproc          */
     PMI_UNINITIALIZED,       /* init_finalized */
@@ -109,6 +109,19 @@ static pmi_process_t pmi_process =
     PMII_PROCESS_INVALID_HANDLE, /* singleton mpiexec proc handle/pid */
     ""                      /* kvs_name of singleton proc with no PM */
 };
+
+
+void pmi_init_printf(void)
+{
+    char *env;
+    
+    env = getenv("SMPD_DBG_OUTPUT");
+    if(env != NULL){
+        /* We only support tracing for now */
+        smpd_process.verbose = SMPD_TRUE;
+        smpd_process.dbg_state |= SMPD_DBG_STATE_ERROUT | SMPD_DBG_STATE_STDOUT | SMPD_DBG_STATE_TRACE;
+    }
+}
 
 static int silence = 0;
 static int pmi_err_printf(char *str, ...)
@@ -244,7 +257,7 @@ static int pmi_create_post_command(const char *command, const char *name, const 
     /* post the write of the command */
     /*
     printf("posting write of dbs command to %s context, sock %d: '%s'\n",
-	smpd_get_context_str(pmi_process.context), MPIDU_Sock_getid(pmi_process.context->sock), cmd_ptr->cmd);
+	smpd_get_context_str(pmi_process.context), SMPDU_Sock_getid(pmi_process.context->sock), cmd_ptr->cmd);
     fflush(stdout);
     */
     /* If proc_info command add the proc_info args */
@@ -309,18 +322,33 @@ static int uPMI_ConnectToHost(char *host, int port, smpd_state_t state)
     char error_msg[MPI_MAX_ERROR_STRING];
     int len;
 
+    /* Make sure that we have the smpd passphrase before connecting to PM */
+    if (smpd_process.passphrase[0] == '\0'){
+        smpd_get_smpd_data("phrase", smpd_process.passphrase, SMPD_PASSPHRASE_MAX_LENGTH);
+    }
+    if (smpd_process.passphrase[0] == '\0'){
+        if (smpd_process.noprompt){
+            pmi_err_printf("Error: No smpd passphrase specified through the registry or .smpd file, exiting.\n");
+            return PMI_FAIL;
+        }
+        else{
+            printf("Please specify an authentication passphrase for smpd: "); fflush(stdout);
+            smpd_get_password(smpd_process.passphrase);
+        }
+    }
+
     /*printf("posting a connect to %s:%d\n", host, port);fflush(stdout);*/
-    result = smpd_create_context(SMPD_CONTEXT_PMI, pmi_process.set, MPIDU_SOCK_INVALID_SOCK/*pmi_process.sock*/, smpd_process.id, &pmi_process.context);
+    result = smpd_create_context(SMPD_CONTEXT_PMI, pmi_process.set, SMPDU_SOCK_INVALID_SOCK/*pmi_process.sock*/, smpd_process.id, &pmi_process.context);
     if (result != SMPD_SUCCESS)
     {
 	pmi_err_printf("PMI_ConnectToHost failed: unable to create a context to connect to %s:%d with.\n", host, port);
 	return PMI_FAIL;
     }
 
-    result = MPIDU_Sock_post_connect(pmi_process.set, pmi_process.context, host, port, &pmi_process.sock);
-    if (result != MPI_SUCCESS)
+    result = SMPDU_Sock_post_connect(pmi_process.set, pmi_process.context, host, port, &pmi_process.sock);
+    if (result != SMPD_SUCCESS)
     {
-	printf("MPIDU_Sock_post_connect failed.\n");fflush(stdout);
+	printf("SMPDU_Sock_post_connect failed.\n");fflush(stdout);
 	len = MPI_MAX_ERROR_STRING;
 	PMPI_Error_string(result, error_msg, &len);
 	pmi_err_printf("PMI_ConnectToHost failed: unable to post a connect to %s:%d, error: %s\n", host, port, error_msg);
@@ -462,8 +490,8 @@ static PMII_PROCESS_HANDLE_TYPE launch_mpiexec_process(int portNo){
 #define PMII_MAX_ERR_MSG_LENGTH     100
 
 static int PMIi_InitSingleton(void ){
-    MPIDU_Sock_set_t singleton_client_set;
-    MPIDU_Sock_t singleton_client_sock;
+    SMPDU_Sock_set_t singleton_client_set;
+    SMPDU_Sock_t singleton_client_sock;
     smpd_context_t *p_singleton_context=NULL;
     char err_msg[PMII_MAX_ERR_MSG_LENGTH];
     int singleton_client_lport;
@@ -477,17 +505,17 @@ static int PMIi_InitSingleton(void ){
 	smpd_process.dbg_state |= SMPD_DBG_STATE_ERROUT | SMPD_DBG_STATE_STDOUT | SMPD_DBG_STATE_TRACE;
     */
 
-    result = MPIDU_Sock_create_set(&singleton_client_set);
-    if(result != MPI_SUCCESS){
-        MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "MPIDU_Sock_create_set failed: unable to create a sock set, error: %d\n", result);
+    result = SMPDU_Sock_create_set(&singleton_client_set);
+    if(result != SMPD_SUCCESS){
+        MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "SMPDU_Sock_create_set failed: unable to create a sock set, error: %d\n", result);
 	    PMII_ERR_SETPRINTANDJUMP(err_msg, result);
     }
 
     /* Assign an ephemeral port */
     singleton_client_lport = 0;
-    result = MPIDU_Sock_listen(singleton_client_set, NULL, &singleton_client_lport, &singleton_client_sock);
-    if (result != MPI_SUCCESS){
-        MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "MPIDU_Sock_listen failed,\nsock error: %s\n", get_sock_error_string(result));
+    result = SMPDU_Sock_listen(singleton_client_set, NULL, &singleton_client_lport, &singleton_client_sock);
+    if (result != SMPD_SUCCESS){
+        MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "SMPDU_Sock_listen failed,\nsock error: %s\n", get_sock_error_string(result));
 	    PMII_ERR_SETPRINTANDJUMP(err_msg, result);
     }
 
@@ -498,9 +526,9 @@ static int PMIi_InitSingleton(void ){
 	    PMII_ERR_SETPRINTANDJUMP(err_msg, result);
     }
 
-    result = MPIDU_Sock_set_user_ptr(singleton_client_sock, p_singleton_context);
-    if (result != MPI_SUCCESS){
-        MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "MPIDU_Sock_set_user_ptr failed,\nsock error: %s\n", get_sock_error_string(result));
+    result = SMPDU_Sock_set_user_ptr(singleton_client_sock, p_singleton_context);
+    if (result != SMPD_SUCCESS){
+        MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "SMPDU_Sock_set_user_ptr failed,\nsock error: %s\n", get_sock_error_string(result));
 	    PMII_ERR_SETPRINTANDJUMP(err_msg, result);
     }
 
@@ -529,8 +557,7 @@ static int PMIi_InitSingleton(void ){
         MPIU_Strncpy(pmi_process.kvs_name_singleton_nopm, pmi_process.kvs_name, PMI_MAX_KVS_NAME_LENGTH);
         /* Update the pmi process structs with the new remote KVS info */
         MPIU_Strncpy(pmi_process.kvs_name, smpd_process.kvs_name, PMI_MAX_KVS_NAME_LENGTH);
-        MPIU_Strncpy(pmi_process.domain_name, smpd_process.kvs_name, PMI_MAX_KVS_NAME_LENGTH);
-        MPIU_Strncpy(smpd_process.domain_name, smpd_process.kvs_name, PMI_MAX_KVS_NAME_LENGTH);
+        MPIU_Strncpy(pmi_process.domain_name, smpd_process.domain_name, PMI_MAX_KVS_NAME_LENGTH);
         MPIU_Strncpy(pmi_process.host, smpd_process.host, PMI_MAX_HOST_NAME_LENGTH);
         MPIU_Strncpy(pmi_process.root_host, smpd_process.host, PMI_MAX_HOST_NAME_LENGTH);
         pmi_process.root_port = smpd_process.port;
@@ -542,22 +569,17 @@ static int PMIi_InitSingleton(void ){
 
         smpd_process.id = 1;
         pmi_process.smpd_id = 1;
+        pmi_process.smpd_key = 0;
         pmi_process.rpmi = PMI_TRUE;
         pmi_process.local_kvs = PMI_FALSE;
         pmi_process.iproc = 0;
         pmi_process.nproc = 1;
-        smpd_process.nproc = 1;
 
         smpd_process.is_singleton_client = SMPD_TRUE;
-		/* Get passphrase for PM */
-		result = smpd_get_smpd_data("phrase", smpd_process.passphrase, SMPD_PASSPHRASE_MAX_LENGTH);
-		if(result != SMPD_SUCCESS){
-			PMII_ERR_SETPRINTANDJUMP("Unable to obtain the smpd passphrase\n", result);
-		}
 
-        result = MPIDU_Sock_create_set(&pmi_process.set);
-	    if (result != MPI_SUCCESS){
-            MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "MPIDU_Sock_create_set failed: unable to create a sock set, error: %d\n", result);
+        result = SMPDU_Sock_create_set(&pmi_process.set);
+	    if (result != SMPD_SUCCESS){
+            MPIU_Snprintf(err_msg, PMII_MAX_ERR_MSG_LENGTH, "SMPDU_Sock_create_set failed: unable to create a sock set, error: %d\n", result);
     	    PMII_ERR_SETPRINTANDJUMP(err_msg, result);
 		}
 
@@ -631,9 +653,9 @@ static int PMIi_InitSingleton(void ){
 
 fn_exit:
     if(singleton_client_set){
-        result = MPIDU_Sock_destroy_set(singleton_client_set);
-        if(result != MPI_SUCCESS){
-            pmi_err_printf("MPIDU_Sock_destroy_set failed: unable to destroy a sock set, error: %d\n", result);
+        result = SMPDU_Sock_destroy_set(singleton_client_set);
+        if(result != SMPD_SUCCESS){
+            pmi_err_printf("SMPDU_Sock_destroy_set failed: unable to destroy a sock set, error: %d\n", result);
         }
     }
     /* Make sure we return the error code set within the funcn */
@@ -772,6 +794,11 @@ static int rPMI_Init(int *spawned)
 
     if (spawned == NULL)
 	return PMI_ERR_INVALID_ARG;
+
+    /* Enable state machine tracing 
+    smpd_process.verbose = SMPD_TRUE;
+    smpd_process.dbg_state |= SMPD_DBG_STATE_ERROUT | SMPD_DBG_STATE_STDOUT | SMPD_DBG_STATE_TRACE;
+    */
 
     /* initialize to defaults */
     smpd_process.id = 1;
@@ -939,8 +966,8 @@ static int rPMI_Init(int *spawned)
 
     /* connect to the root */
 
-    result = MPIDU_Sock_create_set(&pmi_process.set);
-    if (result != MPI_SUCCESS)
+    result = SMPDU_Sock_create_set(&pmi_process.set);
+    if (result != SMPD_SUCCESS)
     {
 	pmi_err_printf("PMI_Init failed: unable to create a sock set, error: %d\n", result);
 	return PMI_FAIL;
@@ -1007,7 +1034,7 @@ static int rPMI_Finalize()
 #endif	
     }
 
-	result = MPIDU_Sock_finalize();
+	result = SMPDU_Sock_finalize();
 	pmi_process.init_finalized = PMI_FINALIZED;
 	return PMI_SUCCESS;
     }
@@ -1071,12 +1098,12 @@ static int rPMI_Finalize()
 #endif
     }
 
-    /*if (pmi_process.sock != MPIDU_SOCK_INVALID_SOCK)*/
+    /*if (pmi_process.sock != SMPDU_SOCK_INVALID_SOCK)*/
     {
-	result = MPIDU_Sock_finalize();
-	if (result != MPI_SUCCESS)
+	result = SMPDU_Sock_finalize();
+	if (result != SMPD_SUCCESS)
 	{
-	    /*pmi_err_printf("MPIDU_Sock_finalize failed, error: %d\n", result);*/
+	    /*pmi_err_printf("SMPDU_Sock_finalize failed, error: %d\n", result);*/
 	}
     }
 
@@ -1102,16 +1129,18 @@ int iPMI_Init(int *spawned)
 	smpd_process.dbg_state |= SMPD_DBG_STATE_ERROUT | SMPD_DBG_STATE_STDOUT | SMPD_DBG_STATE_TRACE;
     */
 
+    pmi_init_printf();
+
     /* don't allow pmi_init to be called more than once */
     if (pmi_process.init_finalized == PMI_INITIALIZED)
 	return PMI_SUCCESS;
 
     /* initialize to defaults */
 
-    result = MPIDU_Sock_init();
-    if (result != MPI_SUCCESS)
+    result = SMPDU_Sock_init();
+    if (result != SMPD_SUCCESS)
     {
-	pmi_err_printf("MPIDU_Sock_init failed,\nsock error: %s\n", get_sock_error_string(result));
+	pmi_err_printf("SMPDU_Sock_init failed,\nsock error: %s\n", get_sock_error_string(result));
 	return PMI_FAIL;
     }
 
@@ -1184,12 +1213,15 @@ int iPMI_Init(int *spawned)
 #ifdef HAVE_WINDOWS_H
 	    pmi_process.smpd_fd = smpd_decode_handle(p);
 #else
-	    pmi_process.smpd_fd = (MPIDU_SOCK_NATIVE_FD)atoi(p);
+	    pmi_process.smpd_fd = (SMPDU_SOCK_NATIVE_FD)atoi(p);
 #endif
         if(pmi_process.smpd_fd <= 0){
             /* FIXME: hack - Is there a better way ? */
             /* mpiexec sets smpd_fd<=0 to distinguish itself from
              * a singleton MPI process
+             */
+            /* FIXME: Get rid of this hack - we already create 
+             * local KVS for all singleton clients by default
              */
             pmi_process.smpd_fd = 0;
             putenv("PMI_SMPD_FD=");
@@ -1261,18 +1293,18 @@ int iPMI_Init(int *spawned)
     p = getenv("PMI_SMPD_FD");
     if (p != NULL)
     {
-	    result = MPIDU_Sock_create_set(&pmi_process.set);
-	    if (result != MPI_SUCCESS)
+	    result = SMPDU_Sock_create_set(&pmi_process.set);
+	    if (result != SMPD_SUCCESS)
 	    {
 	    pmi_err_printf("PMI_Init failed: unable to create a sock set, error:\n%s\n",
 		get_sock_error_string(result));
 	    return PMI_FAIL;
 	    }
         /* pmi_process.smpd_fd is decoded when checking for Singleton Init */
-	    result = MPIDU_Sock_native_to_sock(pmi_process.set, pmi_process.smpd_fd, NULL, &pmi_process.sock);
-	    if (result != MPI_SUCCESS)
+	    result = SMPDU_Sock_native_to_sock(pmi_process.set, pmi_process.smpd_fd, NULL, &pmi_process.sock);
+	    if (result != SMPD_SUCCESS)
 	    {
-	    pmi_err_printf("MPIDU_Sock_native_to_sock failed, error %s\n", get_sock_error_string(result));
+	    pmi_err_printf("SMPDU_Sock_native_to_sock failed, error %s\n", get_sock_error_string(result));
 	    return PMI_FAIL;
 	    }
 	    result = smpd_create_context(SMPD_CONTEXT_PMI, pmi_process.set, pmi_process.sock, pmi_process.smpd_id, &pmi_process.context);
@@ -1293,8 +1325,8 @@ int iPMI_Init(int *spawned)
 	    {
 		pmi_process.port = atoi(p);
 
-		result = MPIDU_Sock_create_set(&pmi_process.set);
-		if (result != MPI_SUCCESS)
+		result = SMPDU_Sock_create_set(&pmi_process.set);
+		if (result != SMPD_SUCCESS)
 		{
 		    pmi_err_printf("PMI_Init failed: unable to create a sock set, error: %d\n", result);
 		    return PMI_FAIL;
@@ -1404,7 +1436,7 @@ int iPMI_Finalize()
 	if(pmi_destroy_localKVS() != PMI_SUCCESS){
         pmi_dbg_printf("Failed to destroy local KVS\n");
     }
-	result = MPIDU_Sock_finalize();
+	result = SMPDU_Sock_finalize();
 	pmi_process.init_finalized = PMI_FINALIZED;
 	return PMI_SUCCESS;
     }
@@ -1439,12 +1471,12 @@ int iPMI_Finalize()
 	goto fn_fail;
     }
 
-    /*if (pmi_process.sock != MPIDU_SOCK_INVALID_SOCK)*/
+    /*if (pmi_process.sock != SMPDU_SOCK_INVALID_SOCK)*/
     {
-	result = MPIDU_Sock_finalize();
-	if (result != MPI_SUCCESS)
+	result = SMPDU_Sock_finalize();
+	if (result != SMPD_SUCCESS)
 	{
-	    /*pmi_err_printf("MPIDU_Sock_finalize failed,\nsock error: %s\n", get_sock_error_string(result));*/
+	    /*pmi_err_printf("SMPDU_Sock_finalize failed,\nsock error: %s\n", get_sock_error_string(result));*/
 	}
     }
 
@@ -2047,8 +2079,8 @@ int iPMI_KVS_Get(const char kvsname[], const char key[], char value[], int lengt
     }
     if (strcmp(str, DBS_SUCCESS_STR))
     {
-	/* FIXME: If we are going to use pmi for the publish/lookup interface then gets should be allowed to fail without printing errors */
-	pmi_err_printf("PMI_KVS_Get failed: '%s'\n", str);
+        /* Unable to find the keyval in db. The caller should handle this error */
+	pmi_dbg_printf("PMI_KVS_Get failed: '%s'\n", str);
 	return PMI_FAIL;
     }
     if (MPIU_Str_get_string_arg(pmi_process.context->read_cmd.cmd, "value", value, length) != MPIU_STR_SUCCESS)
@@ -2399,125 +2431,131 @@ int iPMI_Spawn_multiple(int count,
     }
 
     /* add the keyvals */
-    if (info_keyval_sizes && info_keyval_vectors)
-    {
-	for (i=0; i<count; i++)
-	{
-	    path_specified = 0;
-	    wdir_specified = 0;
-	    buffer[0] = '\0';
-	    iter = buffer;
-	    maxlen = SMPD_MAX_CMD_LENGTH;
-	    for (j=0; j<info_keyval_sizes[i]; j++)
-	    {
-		keyval_buf[0] = '\0';
-		iter2 = keyval_buf;
-		maxlen2 = SMPD_MAX_CMD_LENGTH;
-		if (strcmp(info_keyval_vectors[i][j].key, "path") == 0)
-		{
-		    size_t val2len;
-		    char *val2;
-		    val2len = sizeof(char) * strlen(info_keyval_vectors[i][j].val) + 1 + strlen(path) + 1;
-		    val2 = (char*)MPIU_Malloc(val2len);
-		    if (val2 == NULL)
-		    {
-			pmi_err_printf("unable to allocate memory for the path key.\n");
-			return PMI_FAIL;
-		    }
-		    /*printf("creating path %d: <%s>;<%s>\n", val2len, info_keyval_vectors[i][j].val, path);fflush(stdout);*/
-		    MPIU_Snprintf(val2, val2len, "%s;%s", info_keyval_vectors[i][j].val, path);
-		    result = MPIU_Str_add_string_arg(&iter2, &maxlen2, info_keyval_vectors[i][j].key, val2);
-		    if (result != MPIU_STR_SUCCESS)
-		    {
-			pmi_err_printf("unable to add %s=%s to the spawn command.\n", info_keyval_vectors[i][j].key, val2);
-			MPIU_Free(val2);
-			return PMI_FAIL;
-		    }
-		    MPIU_Free(val2);
-		    path_specified = 1;
-		}
-		else
-		{
-		    if(strcmp(info_keyval_vectors[i][j].key, "wdir") == 0)
-		    {
-		        wdir_specified = 1;
-		    }
-		    result = MPIU_Str_add_string_arg(&iter2, &maxlen2, info_keyval_vectors[i][j].key, info_keyval_vectors[i][j].val);
-		    if (result != MPIU_STR_SUCCESS)
-		    {
-			pmi_err_printf("unable to add %s=%s to the spawn command.\n", info_keyval_vectors[i][j].key, info_keyval_vectors[i][j].val);
-			return PMI_FAIL;
-		    }
-		}
-		if (iter2 > keyval_buf)
-		{
-		    iter2--;
-		    *iter2 = '\0'; /* remove the trailing space */
-		}
-		sprintf(key, "%d", j);
-		result = MPIU_Str_add_string_arg(&iter, &maxlen, key, keyval_buf);
-		if (result != MPIU_STR_SUCCESS)
-		{
-		    pmi_err_printf("unable to add %s=%s to the spawn command.\n", key, keyval_buf);
-		    return PMI_FAIL;
-		}
-	    }
-	    /* add the current directory as the default path if a path has not been specified */
-	    if (!path_specified)
-	    {
-		keyval_buf[0] = '\0';
-		iter2 = keyval_buf;
-		maxlen2 = SMPD_MAX_CMD_LENGTH;
-		result = MPIU_Str_add_string_arg(&iter2, &maxlen2, "path", path);
-		iter2--;
-		*iter2 = '\0';
-		sprintf(key, "%d", j++);
-		result = MPIU_Str_add_string_arg(&iter, &maxlen, key, keyval_buf);
-		if (result != MPIU_STR_SUCCESS)
-		{
-		    pmi_err_printf("unable to add %s=%s to the spawn command.\n", key, keyval_buf);
-		    return PMI_FAIL;
-		}
-		info_keyval_sizes[i]++;
-	    }
-	    if(!wdir_specified)
-	    {
-		char wdir[SMPD_MAX_DIR_LENGTH];
-		if(getcwd(wdir, SMPD_MAX_DIR_LENGTH))
-		{
-	            keyval_buf[0] = '\0';
-		    iter2 = keyval_buf;
-		    maxlen2 = SMPD_MAX_CMD_LENGTH;
-		    result = MPIU_Str_add_string_arg(&iter2, &maxlen2, "wdir", wdir);
-		    if(result != MPIU_STR_SUCCESS)
-		    {
-			pmi_err_printf("Unable to add wdir to keyval_buf\n");
-			return PMI_FAIL;
-		    }
-		    *(--iter2) = '\0';
-		    sprintf(key, "%d", j);
-		    result = MPIU_Str_add_string_arg(&iter, &maxlen, key, keyval_buf);
-		    if(result != MPIU_STR_SUCCESS)
-		    {
-			pmi_err_printf("unable to add %s=%s to the spawn command\n", key, keyval_buf);
-			return PMI_FAIL;
-		    }
-		    info_keyval_sizes[i]++;
-		}
-	    }
-	    if (iter != buffer)
-	    {
-		iter--;
-		*iter = '\0'; /* remove the trailing space */
-	    }
-	    sprintf(key, "keyvals%d", i);
-	    result = smpd_add_command_arg(cmd_ptr, key, buffer);
-	    if (result != SMPD_SUCCESS)
-	    {
-		pmi_err_printf("unable to add %s(%s) to the spawn command.\n", key, buffer);
-		return PMI_FAIL;
-	    }
-	}
+    if (info_keyval_sizes && info_keyval_vectors){
+        for (i=0; i<count; i++){
+            path_specified = 0;
+            wdir_specified = 0;
+            buffer[0] = '\0';
+            iter = buffer;
+            maxlen = SMPD_MAX_CMD_LENGTH;
+	    
+            for (j=0; j<info_keyval_sizes[i]; j++){
+                keyval_buf[0] = '\0';
+                iter2 = keyval_buf;
+                maxlen2 = SMPD_MAX_CMD_LENGTH;
+                if (strcmp(info_keyval_vectors[i][j].key, "path") == 0){
+                    size_t val2len;
+                    char *val2;
+                    val2len = sizeof(char) * strlen(info_keyval_vectors[i][j].val) + 1 + strlen(path) + 1;
+                    val2 = (char*)MPIU_Malloc(val2len);
+                    if (val2 == NULL){
+                        pmi_err_printf("unable to allocate memory for the path key.\n");
+                        return PMI_FAIL;
+                    }
+                    /*printf("creating path %d: <%s>;<%s>\n", val2len, info_keyval_vectors[i][j].val, path);fflush(stdout);*/
+                    MPIU_Snprintf(val2, val2len, "%s;%s", info_keyval_vectors[i][j].val, path);
+                    result = MPIU_Str_add_string_arg(&iter2, &maxlen2, info_keyval_vectors[i][j].key, val2);
+                    if (result != MPIU_STR_SUCCESS){
+                        pmi_err_printf("unable to add %s=%s to the spawn command.\n", info_keyval_vectors[i][j].key, val2);
+                        MPIU_Free(val2);
+                        return PMI_FAIL;
+                    }
+                    MPIU_Free(val2);
+                    path_specified = 1;
+                }
+                else{
+                    if(strcmp(info_keyval_vectors[i][j].key, "wdir") == 0){
+                        wdir_specified = 1;
+                    }
+                    result = MPIU_Str_add_string_arg(&iter2, &maxlen2, info_keyval_vectors[i][j].key, info_keyval_vectors[i][j].val);
+                    if (result != MPIU_STR_SUCCESS){
+                        pmi_err_printf("unable to add %s=%s to the spawn command.\n", info_keyval_vectors[i][j].key, info_keyval_vectors[i][j].val);
+                        return PMI_FAIL;
+                    }
+                }
+                if (iter2 > keyval_buf){
+                    iter2--;
+                    *iter2 = '\0'; /* remove the trailing space */
+                }
+                sprintf(key, "%d", j);
+                result = MPIU_Str_add_string_arg(&iter, &maxlen, key, keyval_buf);
+                if (result != MPIU_STR_SUCCESS){
+                    pmi_err_printf("unable to add %s=%s to the spawn command.\n", key, keyval_buf);
+                    return PMI_FAIL;
+                }
+            }
+            /* add the current directory as the default path if a path has not been specified */
+            if (!path_specified){
+                keyval_buf[0] = '\0';
+                iter2 = keyval_buf;
+                maxlen2 = SMPD_MAX_CMD_LENGTH;
+                result = MPIU_Str_add_string_arg(&iter2, &maxlen2, "path", path);
+                iter2--;
+                *iter2 = '\0';
+                sprintf(key, "%d", j++);
+                result = MPIU_Str_add_string_arg(&iter, &maxlen, key, keyval_buf);
+                if (result != MPIU_STR_SUCCESS){
+                    pmi_err_printf("unable to add %s=%s to the spawn command.\n", key, keyval_buf);
+                    return PMI_FAIL;
+                }
+                info_keyval_sizes[i]++;
+            }
+            if(!wdir_specified){
+                char wdir[SMPD_MAX_DIR_LENGTH];
+                if(getcwd(wdir, SMPD_MAX_DIR_LENGTH)){
+                    keyval_buf[0] = '\0';
+                    iter2 = keyval_buf;
+                    maxlen2 = SMPD_MAX_CMD_LENGTH;
+                    result = MPIU_Str_add_string_arg(&iter2, &maxlen2, "wdir", wdir);
+                    if(result != MPIU_STR_SUCCESS){
+                        pmi_err_printf("Unable to add wdir to keyval_buf\n");
+                        return PMI_FAIL;
+                    }
+                    *(--iter2) = '\0';
+                    sprintf(key, "%d", j++);
+                    result = MPIU_Str_add_string_arg(&iter, &maxlen, key, keyval_buf);
+                    if(result != MPIU_STR_SUCCESS){
+                        pmi_err_printf("unable to add %s=%s to the spawn command\n", key, keyval_buf);
+                        return PMI_FAIL;
+                    }
+                    info_keyval_sizes[i]++;
+                }
+            }
+#ifdef HAVE_WINDOWS_H
+            /* FIXME: We don't support user environment infos for spawn() */
+            if(pmi_process.rpmi == PMI_TRUE){
+                /* Add channel environment for rpmi/singleton_init procs */
+                char *env, env_str[SMPD_MAX_ENV_LENGTH];
+                env = getenv("MPICH2_CHANNEL");
+                if(env != NULL){
+                    snprintf(env_str, SMPD_MAX_ENV_LENGTH, "MPICH2_CHANNEL=%s", env);
+                    keyval_buf[0] = '\0';
+                    iter2 = keyval_buf;
+                    maxlen2 = SMPD_MAX_CMD_LENGTH;
+                    result = MPIU_Str_add_string_arg(&iter2, &maxlen2, "env", env_str);
+                    iter2--;
+                    *iter2 = '\0';
+                    sprintf(key, "%d", j++);
+                    result = MPIU_Str_add_string_arg(&iter, &maxlen, key, keyval_buf);
+                    if (result != MPIU_STR_SUCCESS){
+                        pmi_err_printf("unable to add %s=%s to the spawn command.\n", key, keyval_buf);
+                        return PMI_FAIL;
+                    }
+                    info_keyval_sizes[i]++;
+                }
+            }
+#endif
+            if (iter != buffer){
+                iter--;
+                *iter = '\0'; /* remove the trailing space */
+            }
+            sprintf(key, "keyvals%d", i);
+            result = smpd_add_command_arg(cmd_ptr, key, buffer);
+            if (result != SMPD_SUCCESS){
+                pmi_err_printf("unable to add %s(%s) to the spawn command.\n", key, buffer);
+                return PMI_FAIL;
+            }
+        }
     }
     else
     {
@@ -2638,9 +2676,10 @@ int iPMI_Spawn_multiple(int count,
     /* post the write of the command */
     /*
     printf("posting write of spawn command to %s context, sock %d: '%s'\n",
-	smpd_get_context_str(pmi_process.context), MPIDU_Sock_get_sock_id(pmi_process.context->sock), cmd_ptr->cmd);
+	smpd_get_context_str(pmi_process.context), SMPDU_Sock_get_sock_id(pmi_process.context->sock), cmd_ptr->cmd);
     fflush(stdout);
     */
+    
     result = smpd_post_write_command(pmi_process.context, cmd_ptr);
     if (result != SMPD_SUCCESS)
     {
@@ -2972,11 +3011,14 @@ int PMIX_Stop_root_smpd()
     return PMI_SUCCESS;
 }
 
+/* FIXME: Why is this func defined here ? 
+ * - shouldn't this be in smpd_util*.lib ?
+ */
 static int root_smpd(void *p)
 {
     int result;
-    MPIDU_Sock_set_t set;
-    MPIDU_Sock_t listener;
+    SMPDU_Sock_set_t set;
+    SMPDU_Sock_t listener;
     smpd_process_group_t *pg;
     int i;
 #ifndef HAVE_WINDOWS_H
@@ -2991,18 +3033,18 @@ static int root_smpd(void *p)
     smpd_process.root_smpd = SMPD_FALSE;
     smpd_process.map0to1 = SMPD_TRUE;
 
-    result = MPIDU_Sock_create_set(&set);
-    if (result != MPI_SUCCESS)
+    result = SMPDU_Sock_create_set(&set);
+    if (result != SMPD_SUCCESS)
     {
-	pmi_mpi_err_printf(result, "MPIDU_Sock_create_set failed.\n");
+	pmi_mpi_err_printf(result, "SMPDU_Sock_create_set failed.\n");
 	return PMI_FAIL;
     }
     smpd_process.set = set;
-    smpd_dbg_printf("created a set for the listener: %d\n", MPIDU_Sock_get_sock_set_id(set));
-    result = MPIDU_Sock_listen(set, NULL, &pmi_process.root_port, &listener); 
-    if (result != MPI_SUCCESS)
+    smpd_dbg_printf("created a set for the listener: %d\n", SMPDU_Sock_get_sock_set_id(set));
+    result = SMPDU_Sock_listen(set, NULL, &pmi_process.root_port, &listener); 
+    if (result != SMPD_SUCCESS)
     {
-	pmi_mpi_err_printf(result, "MPIDU_Sock_listen failed.\n");
+	pmi_mpi_err_printf(result, "SMPDU_Sock_listen failed.\n");
 	return PMI_FAIL;
     }
     smpd_dbg_printf("smpd listening on port %d\n", pmi_process.root_port);
@@ -3013,10 +3055,10 @@ static int root_smpd(void *p)
 	pmi_err_printf("unable to create a context for the smpd listener.\n");
 	return PMI_FAIL;
     }
-    result = MPIDU_Sock_set_user_ptr(listener, smpd_process.listener_context);
-    if (result != MPI_SUCCESS)
+    result = SMPDU_Sock_set_user_ptr(listener, smpd_process.listener_context);
+    if (result != SMPD_SUCCESS)
     {
-	pmi_mpi_err_printf(result, "MPIDU_Sock_set_user_ptr failed.\n");
+	pmi_mpi_err_printf(result, "SMPDU_Sock_set_user_ptr failed.\n");
 	return PMI_FAIL;
     }
     smpd_process.listener_context->state = SMPD_SMPD_LISTENING;
@@ -3099,8 +3141,8 @@ static int root_smpd(void *p)
 	return PMI_FAIL;
     }
 
-    result = MPIDU_Sock_destroy_set(set);
-    if (result != MPI_SUCCESS)
+    result = SMPDU_Sock_destroy_set(set);
+    if (result != SMPD_SUCCESS)
     {
 	pmi_mpi_err_printf(result, "unable to destroy the set.\n");
     }

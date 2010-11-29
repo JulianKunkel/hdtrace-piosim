@@ -114,7 +114,7 @@ int MPIDU_Sock_post_connect_ifaddr( struct MPIDU_Sock_set * sock_set,
     addr.sin_family = AF_INET;
     memcpy(&addr.sin_addr.s_addr, ifaddr->ifaddr, 
 	   sizeof(addr.sin_addr.s_addr));
-    addr.sin_port = htons(port);
+    addr.sin_port = htons( (unsigned short)port);
 
     /*
      * Set and verify the socket buffer size
@@ -337,13 +337,13 @@ int MPIDU_Sock_listen(struct MPIDU_Sock_set * sock_set, void * user_ptr,
 	/* Get range here.  These leave low_port, high_port unchanged
 	   if the env variable is not set */
 	/* FIXME: Use the parameter interface and document this */
-	MPIU_GetEnvRange( "MPICH_PORT_RANGE", &low_port, &high_port );
+	MPL_env2range( "MPICH_PORT_RANGE", &low_port, &high_port );
 
 	for (portnum=low_port; portnum<=high_port; portnum++) {
 	    memset( (void *)&addr, 0, sizeof(addr) );
-	    addr.sin_family = AF_INET;
+	    addr.sin_family      = AF_INET;
 	    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	    addr.sin_port	   = htons( portnum );
+	    addr.sin_port	 = htons( (unsigned short)portnum );
 	    
 	    rc = bind(fd, (struct sockaddr *) &addr, sizeof(addr));
 	    if (rc < 0) {
@@ -358,9 +358,9 @@ int MPIDU_Sock_listen(struct MPIDU_Sock_set * sock_set, void * user_ptr,
     }
     else {
 	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
+	addr.sin_family      = AF_INET;
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	addr.sin_port = htons((unsigned short) *port);
+	addr.sin_port        = htons((unsigned short) *port);
 	rc = bind(fd, (struct sockaddr *) &addr, sizeof(addr));
     }
     /* --BEGIN ERROR HANDLING-- */

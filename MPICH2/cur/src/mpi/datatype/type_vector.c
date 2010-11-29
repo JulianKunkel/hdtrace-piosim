@@ -23,11 +23,54 @@
 #undef MPI_Type_vector
 #define MPI_Type_vector PMPI_Type_vector
 
+#undef FUNCNAME
+#define FUNCNAME MPIR_Type_vector_impl
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
+int MPIR_Type_vector_impl(int count, int blocklength, int stride, MPI_Datatype old_type, MPI_Datatype *newtype_p)
+{
+    int mpi_errno = MPI_SUCCESS;
+    MPI_Datatype new_handle;
+    MPID_Datatype *new_dtp;
+    int ints[3];
+
+    mpi_errno = MPID_Type_vector(count,
+				 blocklength,
+				 (MPI_Aint) stride,
+				 0, /* stride not in bytes, in extents */
+				 old_type,
+				 &new_handle);
+
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+
+    ints[0] = count;
+    ints[1] = blocklength;
+    ints[2] = stride;
+    MPID_Datatype_get_ptr(new_handle, new_dtp);
+    mpi_errno = MPID_Datatype_set_contents(new_dtp,
+                                           MPI_COMBINER_VECTOR,
+                                           3, /* ints (cnt, blklen, str) */
+                                           0, /* aints */
+                                           1, /* types */
+                                           ints,
+                                           NULL,
+                                           &old_type);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+
+    MPIU_OBJ_PUBLISH_HANDLE(*newtype_p, new_handle);
+    
+ fn_exit:
+    return mpi_errno;
+ fn_fail:
+    goto fn_exit;
+}
+
 #endif
 
 #undef FUNCNAME
 #define FUNCNAME MPI_Type_vector
-
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 /*@
     MPI_Type_vector - Creates a vector (strided) datatype
 
@@ -54,13 +97,12 @@ int MPI_Type_vector(int count,
 		    MPI_Datatype old_type,
 		    MPI_Datatype *newtype_p)
 {
-    static const char FCNAME[] = "MPI_Type_vector";
     int mpi_errno = MPI_SUCCESS;
     MPID_MPI_STATE_DECL(MPID_STATE_MPI_TYPE_VECTOR);
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("datatype");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_TYPE_VECTOR);
 
     /* Validate parameters, especially handles needing to be converted */
@@ -86,39 +128,15 @@ int MPI_Type_vector(int count,
 #   endif /* HAVE_ERROR_CHECKING */
 
     /* ... body of routine ...  */
+
+    mpi_errno = MPIR_Type_vector_impl(count, blocklength, stride, old_type, newtype_p);
+    if (mpi_errno) goto fn_fail;
     
-    mpi_errno = MPID_Type_vector(count,
-				 blocklength,
-				 (MPI_Aint) stride,
-				 0, /* stride not in bytes, in extents */
-				 old_type,
-				 newtype_p);
-
-    if (mpi_errno == MPI_SUCCESS) {
-	MPID_Datatype *new_dtp;
-	int ints[3];
-
-	ints[0] = count;
-	ints[1] = blocklength;
-	ints[2] = stride;
-	MPID_Datatype_get_ptr(*newtype_p, new_dtp);
-	mpi_errno = MPID_Datatype_set_contents(new_dtp,
-					       MPI_COMBINER_VECTOR,
-					       3, /* ints (cnt, blklen, str) */
-					       0, /* aints */
-					       1, /* types */
-					       ints,
-					       NULL,
-					       &old_type);
-    }
-
-    if (mpi_errno != MPI_SUCCESS) goto fn_fail;
-
     /* ... end of body of routine ... */
 
   fn_exit:
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_TYPE_VECTOR);
-    MPIU_THREAD_SINGLE_CS_EXIT("datatype");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:
@@ -134,10 +152,3 @@ int MPI_Type_vector(int count,
     goto fn_exit;
     /* --END ERROR HANDLING-- */
 }
-
-
-
-
-
-
-

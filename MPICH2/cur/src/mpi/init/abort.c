@@ -68,7 +68,7 @@ int MPI_Abort(MPI_Comm comm, int errorcode)
        since that could result in the Abort hanging if another routine is
        hung holding the critical section.  Also note the "not thread-safe"
        comment in the description of MPI_Abort above. */
-    MPIU_THREAD_SINGLE_CS_ENTER("init");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_ABORT);
     
     /* Validate parameters, especially handles needing to be converted */
@@ -108,7 +108,8 @@ int MPI_Abort(MPI_Comm comm, int errorcode)
 	comm_ptr = MPIR_Process.comm_world;
     }
 
-    NMPI_Comm_get_name(comm, comm_name, &len);
+    
+    MPIR_Comm_get_name_impl(comm_ptr, comm_name, &len);
     if (len == 0)
     {
 	MPIU_Snprintf(comm_name, MPI_MAX_OBJECT_NAME, "comm=0x%X", comm);
@@ -125,7 +126,7 @@ int MPI_Abort(MPI_Comm comm, int errorcode)
     
   fn_exit:
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_ABORT);
-    MPIU_THREAD_SINGLE_CS_EXIT("init");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
     
   fn_fail:

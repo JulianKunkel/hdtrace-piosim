@@ -33,7 +33,7 @@
    MPI_Request_get_status - Nondestructive test for the completion of a Request
 
 Input Parameter:
-.  request - request (handle)
+.  request - request (handle).  May be 'MPI_REQUEST_NULL'.
 
 Output Parameters:
 +  flag - true if operation has completed (logical)
@@ -67,7 +67,7 @@ int MPI_Request_get_status(MPI_Request request, int *flag, MPI_Status *status)
     {
         MPID_BEGIN_ERROR_CHECKS;
         {
-	    MPIR_ERRTEST_REQUEST(request, mpi_errno);
+	    MPIR_ERRTEST_REQUEST_OR_NULL(request, mpi_errno);
 	    MPIR_ERRTEST_ARGNULL(flag, "flag", mpi_errno);
 	    /* NOTE: MPI_STATUS_IGNORE != NULL */
 	    MPIR_ERRTEST_ARGNULL(status, "status", mpi_errno);
@@ -76,7 +76,17 @@ int MPI_Request_get_status(MPI_Request request, int *flag, MPI_Status *status)
         MPID_END_ERROR_CHECKS;
     }
 #   endif /* HAVE_ERROR_CHECKING */
-    
+
+    /* If this is a null request handle, then return an empty status */
+    if (request == MPI_REQUEST_NULL) {
+        *flag = 1;
+        MPIR_Status_set_empty(status);
+        /* the above macro doesn't set MPI_ERROR */
+        if (status != MPI_STATUS_IGNORE)
+            status->MPI_ERROR = MPI_SUCCESS;
+        goto fn_exit;
+    }
+
     /* Convert MPI object handles to object pointers */
     MPID_Request_get_ptr( request, request_ptr );
 
@@ -95,13 +105,13 @@ int MPI_Request_get_status(MPI_Request request, int *flag, MPI_Status *status)
 
     /* ... body of routine ...  */
 
-    if (*request_ptr->cc_ptr != 0) {
+    if (!MPID_Request_is_complete(request_ptr)) {
 	/* request not complete. poke the progress engine. Req #3130 */
 	mpi_errno = MPID_Progress_test();
 	if (mpi_errno != MPI_SUCCESS) goto fn_fail;
     }
     
-    if (*request_ptr->cc_ptr == 0)
+    if (MPID_Request_is_complete(request_ptr))
     {
 	switch(request_ptr->kind)
 	{
@@ -139,27 +149,21 @@ int MPI_Request_get_status(MPI_Request request, int *flag, MPI_Status *status)
 		else
 		{
 		    /* This is needed for persistent Bsend requests */
-		    MPIU_THREADPRIV_DECL;
-		    MPIU_THREADPRIV_GET;
-		    MPIR_Nest_incr();
-		    {
-			int rc;
-			
-			rc = MPIR_Grequest_query(prequest_ptr);
-			if (mpi_errno == MPI_SUCCESS)
-			{
-			    mpi_errno = rc;
-			}
-			if (status != MPI_STATUS_IGNORE)
-			{
-			    status->cancelled = prequest_ptr->status.cancelled;
-			}
-			if (mpi_errno == MPI_SUCCESS)
-			{
-			    mpi_errno = prequest_ptr->status.MPI_ERROR;
-			}
-		    }
-		    MPIR_Nest_decr();
+                    int rc;
+                    
+                    rc = MPIR_Grequest_query(prequest_ptr);
+                    if (mpi_errno == MPI_SUCCESS)
+                    {
+                        mpi_errno = rc;
+                    }
+                    if (status != MPI_STATUS_IGNORE)
+                    {
+                        status->cancelled = prequest_ptr->status.cancelled;
+                    }
+                    if (mpi_errno == MPI_SUCCESS)
+                    {
+                        mpi_errno = prequest_ptr->status.MPI_ERROR;
+                    }
 		}
             }
             else
@@ -205,24 +209,18 @@ int MPI_Request_get_status(MPI_Request request, int *flag, MPI_Status *status)
 
         case MPID_UREQUEST:
         {
-	    MPIU_THREADPRIV_DECL;
-	    MPIU_THREADPRIV_GET;
-	    MPIR_Nest_incr();
-	    {
-		int rc;
-		
-		rc = MPIR_Grequest_query(request_ptr);
-		if (mpi_errno == MPI_SUCCESS)
-		{
-		    mpi_errno = rc;
-		}
-		if (status != MPI_STATUS_IGNORE)
-		{
-		    status->cancelled = request_ptr->status.cancelled;
-		}
-		MPIR_Request_extract_status(request_ptr, status);
-	    }
-	    MPIR_Nest_decr();
+            int rc;
+            
+            rc = MPIR_Grequest_query(request_ptr);
+            if (mpi_errno == MPI_SUCCESS)
+            {
+                mpi_errno = rc;
+            }
+            if (status != MPI_STATUS_IGNORE)
+            {
+                status->cancelled = request_ptr->status.cancelled;
+            }
+            MPIR_Request_extract_status(request_ptr, status);
 	    
             break;
         }

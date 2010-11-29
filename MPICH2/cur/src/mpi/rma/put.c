@@ -67,7 +67,7 @@ int MPI_Put(void *origin_addr, int origin_count, MPI_Datatype
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("rma");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_RMA_FUNC_ENTER(MPID_STATE_MPI_PUT);
 
     /* Validate parameters, especially handles needing to be converted */
@@ -122,7 +122,7 @@ int MPI_Put(void *origin_addr, int origin_count, MPI_Datatype
                 MPID_Datatype_committed_ptr(datatype_ptr, mpi_errno);
             }
 
-	    MPID_Comm_get_ptr(win_ptr->comm, comm_ptr);
+	    comm_ptr = win_ptr->comm_ptr;
 	    MPIR_ERRTEST_SEND_RANK(comm_ptr, target_rank, mpi_errno);
 	    
             if (mpi_errno != MPI_SUCCESS) goto fn_fail;
@@ -145,7 +145,7 @@ int MPI_Put(void *origin_addr, int origin_count, MPI_Datatype
 
   fn_exit:
     MPID_MPI_RMA_FUNC_EXIT(MPID_STATE_MPI_PUT);
-    MPIU_THREAD_SINGLE_CS_EXIT("rma");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

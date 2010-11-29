@@ -36,7 +36,7 @@ int MPID_Isend(const void * buf, int count, MPI_Datatype datatype, int rank,
     MPI_Aint dt_true_lb;
     MPID_Datatype * dt_ptr;
     MPID_Request * sreq;
-    MPIDI_VC_t * vc;
+    MPIDI_VC_t * vc=0;
 #if defined(MPID_USE_SEQUENCE_NUMBERS)
     MPID_Seqnum_t seqnum;
 #endif    
@@ -55,21 +55,32 @@ int MPID_Isend(const void * buf, int count, MPI_Datatype datatype, int rank,
 			    context_offset, MPIDI_REQUEST_TYPE_SEND, &sreq);
 	goto fn_exit;
     }
-    
+
+    if (rank != MPI_PROC_NULL) {
+        MPIDI_Comm_get_vc_set_active(comm, rank, &vc);
+#ifdef ENABLE_COMM_OVERRIDES
+        /* this needs to come before the sreq is created, since the override
+         * function is responsible for creating its own request */
+        if (vc->comm_ops && vc->comm_ops->isend)
+        {
+            mpi_errno = vc->comm_ops->isend( vc, buf, count, datatype, rank, tag, comm, context_offset, &sreq);
+            goto fn_exit;
+        }
+#endif
+    }
+
     MPIDI_Request_create_sreq(sreq, mpi_errno, goto fn_exit);
     MPIDI_Request_set_type(sreq, MPIDI_REQUEST_TYPE_SEND);
-    
+
     if (rank == MPI_PROC_NULL)
     {
 	MPIU_Object_set_ref(sreq, 1);
-	sreq->cc = 0;
+        MPID_cc_set(&sreq->cc, 0);
 	goto fn_exit;
     }
 
     MPIDI_Datatype_get_info(count, datatype, dt_contig, data_sz, dt_ptr, 
 			    dt_true_lb);
-    
-    MPIDI_Comm_get_vc(comm, rank, &vc);
     
     if (data_sz == 0)
     {
@@ -81,9 +92,9 @@ int MPID_Isend(const void * buf, int count, MPI_Datatype datatype, int rank,
 	    
 	MPIU_DBG_MSG(CH3_OTHER,VERBOSE,"sending zero length message");
 	MPIDI_Pkt_init(eager_pkt, MPIDI_CH3_PKT_EAGER_SEND);
-	eager_pkt->match.rank = comm->rank;
-	eager_pkt->match.tag = tag;
-	eager_pkt->match.context_id = comm->context_id + context_offset;
+	eager_pkt->match.parts.rank = comm->rank;
+	eager_pkt->match.parts.tag = tag;
+	eager_pkt->match.parts.context_id = comm->context_id + context_offset;
 	eager_pkt->sender_req_id = sreq->handle;
 	eager_pkt->data_sz = 0;
 	
@@ -91,16 +102,17 @@ int MPID_Isend(const void * buf, int count, MPI_Datatype datatype, int rank,
 	MPIDI_Pkt_set_seqnum(eager_pkt, seqnum);
 	MPIDI_Request_set_seqnum(sreq, seqnum);
 	
+	MPIU_THREAD_CS_ENTER(CH3COMM,vc);
 	mpi_errno = MPIU_CALL(MPIDI_CH3,iSend(vc, sreq, eager_pkt, 
 					      sizeof(*eager_pkt)));
+	MPIU_THREAD_CS_EXIT(CH3COMM,vc);
 	/* --BEGIN ERROR HANDLING-- */
 	if (mpi_errno != MPI_SUCCESS)
 	{
 	    MPIU_Object_set_ref(sreq, 0);
 	    MPIDI_CH3_Request_destroy(sreq);
 	    sreq = NULL;
-	    mpi_errno = MPIR_Err_create_code(mpi_errno, MPIR_ERR_FATAL, FCNAME,
-			 __LINE__, MPI_ERR_OTHER, "**ch3|eagermsg", 0);
+            MPIU_ERR_SET(mpi_errno, MPI_ERR_OTHER, "**ch3|eagermsg");
 	    goto fn_exit;
 	}
 	/* --END ERROR HANDLING-- */

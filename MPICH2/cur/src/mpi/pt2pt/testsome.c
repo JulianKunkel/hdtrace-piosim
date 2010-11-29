@@ -81,7 +81,7 @@ int MPI_Testsome(int incount, MPI_Request array_of_requests[], int *outcount,
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("pt2pt");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_PT2PT_FUNC_ENTER(MPID_STATE_MPI_TESTSOME);
 
     /* Check the arguments */
@@ -103,7 +103,8 @@ int MPI_Testsome(int incount, MPI_Request array_of_requests[], int *outcount,
  
 	    for (i = 0; i < incount; i++)
 	    {
-		MPIR_ERRTEST_REQUEST_OR_NULL(array_of_requests[i], mpi_errno);
+		MPIR_ERRTEST_ARRAYREQUEST_OR_NULL(array_of_requests[i], 
+						  i, mpi_errno);
 	    }
             if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 	}
@@ -170,7 +171,7 @@ int MPI_Testsome(int incount, MPI_Request array_of_requests[], int *outcount,
 			    array_of_statuses);
 	    if (mpi_errno != MPI_SUCCESS) goto fn_fail;
 	}
-	if (request_ptrs[i] != NULL && *request_ptrs[i]->cc_ptr == 0)
+	if (request_ptrs[i] != NULL && MPID_Request_is_complete(request_ptrs[i]))
 	{
 	    status_ptr = (array_of_statuses != MPI_STATUSES_IGNORE) ? &array_of_statuses[n_active] : MPI_STATUS_IGNORE;
 	    rc = MPIR_Request_complete(&array_of_requests[i], request_ptrs[i],
@@ -235,7 +236,7 @@ int MPI_Testsome(int incount, MPI_Request array_of_requests[], int *outcount,
     }
 
     MPID_MPI_PT2PT_FUNC_EXIT(MPID_STATE_MPI_TESTSOME);
-    MPIU_THREAD_SINGLE_CS_EXIT("pt2pt");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

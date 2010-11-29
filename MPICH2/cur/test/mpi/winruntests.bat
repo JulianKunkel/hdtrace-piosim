@@ -5,7 +5,8 @@ REM Usage: winruntests [config]
 REM config = Debug or Release
 GOTO END:
 :RUN_RELEASE
-cscript //T:3600 runtests.wsf /config:Release
+cscript //T:3600 runtests.wsf /config:Release /channel:nemesis /out:summary_nemesis.xml
+cscript //T:3600 runtests.wsf /config:Release /channel:sock /out:summary.xml
 GOTO RUN_END
 :RUN_DEBUG
 cscript //T:3600 runtests.wsf /config:Debug

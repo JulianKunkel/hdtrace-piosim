@@ -27,7 +27,8 @@
 
 #undef FUNCNAME
 #define FUNCNAME MPI_Isend
-
+#undef FCNAME
+#define FCNAME MPIU_QUOTE(FUNCNAME)
 /*@
     MPI_Isend - Begins a nonblocking send
 
@@ -57,7 +58,6 @@ Output Parameter:
 int MPI_Isend(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
 	      MPI_Comm comm, MPI_Request *request)
 {
-    static const char FCNAME[] = "MPI_Isend";
     int mpi_errno = MPI_SUCCESS;
     MPID_Comm *comm_ptr = NULL;
     MPID_Request *request_ptr = NULL;
@@ -65,7 +65,7 @@ int MPI_Isend(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("pt2pt");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_PT2PT_FUNC_ENTER_FRONT(MPID_STATE_MPI_ISEND);
 
     /* Validate handle parameters needing to be converted */
@@ -128,13 +128,16 @@ int MPI_Isend(void *buf, int count, MPI_Datatype datatype, int dest, int tag,
     MPIR_SENDQ_REMEMBER(request_ptr,dest,tag,comm_ptr->context_id);
 
     /* return the handle of the request to the user */
+    /* MPIU_OBJ_HANDLE_PUBLISH is unnecessary for isend, lower-level access is
+     * responsible for its own consistency, while upper-level field access is
+     * controlled by the completion counter */
     *request = request_ptr->handle;
 
     /* ... end of body of routine ... */
     
   fn_exit:
     MPID_MPI_PT2PT_FUNC_EXIT(MPID_STATE_MPI_ISEND);
-    MPIU_THREAD_SINGLE_CS_EXIT("pt2pt");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
     
   fn_fail:

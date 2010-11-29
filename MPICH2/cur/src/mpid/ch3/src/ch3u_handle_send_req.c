@@ -42,7 +42,7 @@ int MPIDI_CH3U_Handle_send_req(MPIDI_VC_t * vc, MPID_Request * sreq,
  */
 /* ----------------------------------------------------------------------- */
 
-int MPIDI_CH3_ReqHandler_GetSendRespComplete( MPIDI_VC_t *vc, 
+int MPIDI_CH3_ReqHandler_GetSendRespComplete( MPIDI_VC_t *vc ATTRIBUTE((unused)), 
 					      MPID_Request *sreq, 
 					      int *complete )
 {
@@ -74,11 +74,14 @@ int MPIDI_CH3_ReqHandler_GetSendRespComplete( MPIDI_VC_t *vc,
     return mpi_errno;
 }
 
-int MPIDI_CH3_ReqHandler_SendReloadIOV( MPIDI_VC_t *vc, MPID_Request *sreq, 
+int MPIDI_CH3_ReqHandler_SendReloadIOV( MPIDI_VC_t *vc ATTRIBUTE((unused)), MPID_Request *sreq, 
 					int *complete )
 {
     int mpi_errno;
 
+    /* setting the iov_offset to 0 here is critical, since it is intentionally
+     * not set in the _load_send_iov function */
+    sreq->dev.iov_offset = 0;
     sreq->dev.iov_count = MPID_IOV_LIMIT;
     mpi_errno = MPIDI_CH3U_Request_load_send_iov(sreq, sreq->dev.iov, 
 						 &sreq->dev.iov_count);

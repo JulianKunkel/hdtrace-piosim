@@ -24,9 +24,6 @@ struct MPID_Request;
 typedef MPIR_Pint MPIDI_msg_sz_t;
 
 #include "mpid_dataloop.h"
-#if 0
-struct MPID_Datatype; 
-#endif
 
 /* Include definitions from the channel which must exist before items in this 
    file (mpidpre.h) or the file it includes (mpiimpl.h) can be defined. */
@@ -50,13 +47,49 @@ typedef unsigned long MPID_Seqnum_t;
 
 #include "mpichconf.h"
 
-typedef struct MPIDI_Message_match
-{
+#if CH3_RANK_BITS == 16
+typedef int16_t MPIR_Rank_t;
+#elif CH3_RANK_BITS == 32
+typedef int32_t MPIR_Rank_t;
+#endif /* CH3_RANK_BITS */
+
+/* Indicates that this device is topology aware and implements the
+   MPID_Get_node_id function (and friends). */
+#define MPID_USE_NODE_IDS
+typedef MPIR_Rank_t MPID_Node_id_t;
+
+
+/* For the typical communication system for which the ch3 channel is
+   appropriate, 16 bits is sufficient for the rank.  By also using 16
+   bits for the context, we can reduce the size of the match
+   information, which is beneficial for slower communication
+   links. Further, this allows the total structure size to be 64 bits
+   and the search operations can be optimized on 64-bit platforms. We
+   use a union of the actual required structure with a MPIR_Upint, so
+   in this optimized case, the "whole" field can be used for
+   comparisons.
+
+   Note that the MPICH2 code (in src/mpi) uses int for rank (and usually for 
+   contextids, though some work is needed there).  
+
+   Note:  We need to check for truncation of rank in MPID_Init - it should 
+   confirm that the size of comm_world is less than 2^15, and in an communicator
+   create (that may make use of dynamically created processes) that the
+   size of the communicator is within range.
+
+   If any part of the definition of this type is changed, those changes
+   must be reflected in the debugger interface in src/mpi/debugger/dll_mpich2.c
+   and dbgstub.c
+*/
+typedef struct MPIDI_Message_match_parts {
     int32_t tag;
-    int16_t rank;
-    int16_t context_id;
-}
-MPIDI_Message_match;
+    MPIR_Rank_t rank;
+    MPIR_Context_id_t context_id;
+} MPIDI_Message_match_parts_t;
+typedef union {
+    MPIDI_Message_match_parts_t parts;
+    MPIR_Upint whole;
+} MPIDI_Message_match;
 #define MPIDI_TAG_UB (0x7fffffff)
 
 /* Packet types are defined in mpidpkt.h .  The intent is to remove the
@@ -137,7 +170,9 @@ typedef struct MPIDI_VC * MPID_VCR;
     int *disp_units;      /* array of displacement units of all windows */\
     MPI_Win *all_win_handles;    /* array of handles to the window objects\
                                           of all processes */            \
-    struct MPIDI_RMA_ops *rma_ops_list; /* list of outstanding RMA requests */  \
+    struct MPIDI_RMA_ops *rma_ops_list_head; /* list of outstanding \
+                                                RMA requests */ \
+    struct MPIDI_RMA_ops *rma_ops_list_tail; \
     volatile int lock_granted;  /* flag to indicate whether lock has     \
                                    been granted to this process (as source) for         \
                                    passive target rma */                 \
@@ -165,6 +200,7 @@ MPIDI_DEV_WIN_DECL
 
 typedef struct MPIDI_Request {
     MPIDI_Message_match match;
+    MPIDI_Message_match mask;
 
     /* user_buf, user_count, and datatype needed to process 
        rendezvous messages. */
@@ -183,19 +219,11 @@ typedef struct MPIDI_Request {
     struct MPID_Datatype * datatype_ptr;
 
     /* iov and iov_count define the data to be transferred/received.  
-       iov_offset points to the current head eleemnt in the IOV */
+       iov_offset points to the current head element in the IOV */
     MPID_IOV iov[MPID_IOV_LIMIT];
     int iov_count;
     int iov_offset;
 
-#if 0
-    /* FIXME: RDMA values are specific to some channels? */
-    /* FIXME: Remove these (obsolete)? */
-    MPID_IOV rdma_iov[MPID_IOV_LIMIT];
-    int rdma_iov_count;
-    int rdma_iov_offset;
-    MPI_Request rdma_request;
-#endif
     /* OnDataAvail is the action to take when data is now available.
        For example, when an operation described by an iov has 
        completed.  This replaces the MPIDI_CA_t (completion action)
@@ -223,6 +251,16 @@ typedef struct MPIDI_Request {
 
     unsigned int   state;
     int            cancel_pending;
+
+    /* This field seems to be used for unexpected messages.  Unexpected messages
+     * need to go through two steps: matching and receiving the data.  These
+     * steps could happen in either order though, so this field is initialized
+     * to 2.  It is decremented when the request is matched and also when all of
+     * the data is available.  Once it reaches 0 it should be safe to copy from
+     * the temporary buffer (if there is one) to the user buffer.  This field is
+     * related to, but not quite the same thing as the completion counter (cc). */
+    /* MT access should be controlled by the MSGQUEUE CS when the req is still
+     * unexpected, exclusive access otherwise */
     int            recv_pending_count;
 
     /* The next 8 are for RMA */

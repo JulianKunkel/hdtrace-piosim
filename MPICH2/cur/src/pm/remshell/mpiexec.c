@@ -82,7 +82,8 @@
 #include "simple_pmiutil.h"
 #include "env.h"             /* MPIE_Putenv */
 /* mpimem.h contains prototypes for MPIU_Strncpy etc. */
-#include "mpimem.h"
+/* We no longer can use these because they are MPI device specific */
+/* #include "mpimem.h" */
 
 typedef struct { PMISetup pmiinfo; IOLabelSetup labelinfo; } SetupInfo;
 
@@ -266,7 +267,7 @@ int mypostfork( void *predata, void *data, ProcessState *pState )
 	char rankStr[12];
 
 	/* Insert into app->args */
-	newargs = (const char **) malloc( (app->nArgs + 14 + 1) * 
+	newargs = (const char **) MPIU_Malloc( (app->nArgs + 14 + 1) * 
 					  sizeof(char *) );
 	if (!pState->hostname) {
 	    MPIU_Error_printf( "No hostname avaliable for %s\n", app->exename );
@@ -276,7 +277,7 @@ int mypostfork( void *predata, void *data, ProcessState *pState )
 	snprintf( rankStr, sizeof(rankStr)-1, "%d", pState->id );
 	rankStr[12-1] = 0;
 	curarg = 0;
-        newargs[curarg++] = strdup( "-Y" );
+        newargs[curarg++] = MPIU_Strdup( "-Y" );
 
 	newargs[curarg++] = pState->hostname;
 	curarg += AddEnvSetToCmdLine( "PMI_PORT", s->pmiinfo.portName, 
@@ -294,7 +295,7 @@ int mypostfork( void *predata, void *data, ProcessState *pState )
 	    newargs[j+curarg] = app->args[j];
 	}
 	newargs[j+curarg] = 0;
-	app->exename = strdup( "/usr/bin/ssh" );
+	app->exename = MPIU_Strdup( "/usr/bin/ssh" );
 
 	app->args = newargs;
 	app->nArgs += curarg;
@@ -405,73 +406,6 @@ int myspawn( ProcessWorld *pWorld, void *data )
  * 
  */
 
-#if 0
-/* ----------------------------------------------------------------------- */
-/* Convert the remote shell command into argv format                       */
-/* The command may be specified as a string with blanks separating the     */
-/* arguments, either from the default, an environment variable, or         */
-/* eventually the machines file (allowing different options for each host  */
-/* or the command line.                                                    */
-/* Returns the number of arguments                                         */
-/* For example, this allows "ssh -2" as a command                          */
-/* Allow the environment variable MPIEXEC_REMSHELL to set the remote shell */
-/* program to use                                                          */
-/* ----------------------------------------------------------------------- */
-const char defaultRemoteshell[] = DEFAULT_REMOTE_SHELL;
-
-#define MAX_REMSHELL_ARGS 10
-int MPIE_GetRemshellArgv( char *argv[], int nargv )
-{
-    static char *(remshell[MAX_REMSHELL_ARGS]);
-    static int  remargs = 0;
-    int i;
-
-    /* Convert the string for the remote shell command into an argv list */
-    if (!remargs) {
-	const char *rem = getenv( "MPIEXEC_REMSHELL" );
-	char *next_parm;
-	if (!rem) rem = defaultRemoteshell;
-	
-	/* Unpack the string into remshell.  Allow 10 tokens */
-	while (rem) {
-	    int len;
-	    next_parm = strchr( rem, ' ' );
-	    if (next_parm) 
-		len = next_parm - rem;
-	    else 
-		len = strlen(rem);
-
-	    remshell[remargs] = (char *)MPIU_Malloc( len + 1 ); 
-	    MPIU_Strncpy( remshell[remargs], rem, len );
-	    remshell[remargs][len] = 0;
-	    remargs++;
-	    if (next_parm) {
-		rem = next_parm + 1;
-		while (*rem == ' ') rem++;
-		if (remargs >= MAX_REMSHELL_ARGS) {
-		    /* FIXME */
-		    MPIU_Error_printf( "Remote shell command is too complex\n" );
-		    exit(1);
-		}
-	    }
-	    else {
-		rem = 0;
-	    }
-	}
-    }
-
-    /* remshell contains the command.  Copy into argv and return the
-       number of args.  We just copy *pointers* because any variable 
-       fields will be replaced by the other commands */
-    for (i=0; i<remargs; i++) 
-	argv[i] = remshell[i];
-    return remargs;
-}
-#endif
-
-/* 
-   
- */
 static int AddEnvSetToCmdLine( const char *envName, const char *envValue, 
 			       const char **args )
 {
@@ -499,19 +433,19 @@ static int AddEnvSetToCmdLine( const char *envName, const char *envValue,
     }
 
     if (useCSHFormat) {
-	args[nArgs++] = strdup( "setenv" );
-	args[nArgs++] = strdup( envName );
-	args[nArgs++] = strdup( envValue ); 
-	args[nArgs++] = strdup( ";" );
+	args[nArgs++] = MPIU_Strdup( "setenv" );
+	args[nArgs++] = MPIU_Strdup( envName );
+	args[nArgs++] = MPIU_Strdup( envValue ); 
+	args[nArgs++] = MPIU_Strdup( ";" );
     }
     else {
 	char tmpBuf[1024];
-	args[nArgs++] = strdup( "export" );
+	args[nArgs++] = MPIU_Strdup( "export" );
 	MPIU_Strncpy( tmpBuf, envName, sizeof(tmpBuf) );
 	MPIU_Strnapp( tmpBuf, "=", sizeof(tmpBuf) );
 	MPIU_Strnapp( tmpBuf, envValue, sizeof(tmpBuf) );
-	args[nArgs++] = strdup( tmpBuf );
-	args[nArgs++] = strdup( ";" );
+	args[nArgs++] = MPIU_Strdup( tmpBuf );
+	args[nArgs++] = MPIU_Strdup( ";" );
     }
     return nArgs;
 }

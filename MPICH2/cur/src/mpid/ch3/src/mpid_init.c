@@ -6,6 +6,8 @@
 
 #include "mpidimpl.h"
 
+#define MAX_JOBID_LEN 1024
+
 #if defined(HAVE_LIMITS_H)
 #include <limits.h>
 #endif
@@ -20,7 +22,14 @@ char *MPIU_DBG_parent_str = "?";
 
 /* FIXME: the PMI init function should ONLY do the PMI operations, not the 
    process group or bc operations.  These should be in a separate routine */
+#ifdef USE_PMI2_API
+#include "pmi2.h"
+#else
 #include "pmi.h"
+#endif
+
+int MPIDI_Use_pmi2_api = 0;
+
 static int InitPG( int *argc_p, char ***argv_p,
 		   int *has_args, int *has_env, int *has_parent, 
 		   int *pg_rank_p, MPIDI_PG_t **pg_p );
@@ -50,13 +59,24 @@ int MPID_Init(int *argc, char ***argv, int requested, int *provided,
 
     /* FIXME: This is a good place to check for environment variables
        and command line options that may control the device */
-
+    MPIDI_Use_pmi2_api = FALSE;
+#ifdef USE_PMI2_API
+    MPIDI_Use_pmi2_api = TRUE;
+#else
+    {
+        int ret, val;
+        ret = MPL_env2bool("MPICH_USE_PMI2_API", &val);
+        if (ret == 1 && val)
+            MPIDI_Use_pmi2_api = TRUE;
+    }
+#endif
+    
 #if 1
     /* This is a sanity check because we define a generic packet size
      */
     if (sizeof(MPIDI_CH3_PktGeneric_t) < sizeof(MPIDI_CH3_Pkt_t)) {
-	fprintf( stderr, "Internal error - packet definition is too small.  Generic is %d bytes, MPIDI_CH3_Pkt_t is %d\n", sizeof(MPIDI_CH3_PktGeneric_t),
-		 sizeof(MPIDI_CH3_Pkt_t) );
+	fprintf( stderr, "Internal error - packet definition is too small.  Generic is %ld bytes, MPIDI_CH3_Pkt_t is %ld\n", (long int)sizeof(MPIDI_CH3_PktGeneric_t),
+		 (long int)sizeof(MPIDI_CH3_Pkt_t) );
 	exit(1);
     }
 #endif
@@ -82,7 +102,28 @@ int MPID_Init(int *argc, char ***argv, int requested, int *provided,
     if (mpi_errno) {
 	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER, "**ch3|ch3_init");
     }
+    
+    /* FIXME: Why are pg_size and pg_rank handled differently? */
+    pg_size = MPIDI_PG_Get_size(pg);
+    MPIDI_Process.my_pg = pg;  /* brad : this is rework for shared memories 
+				* because they need this set earlier
+                                * for getting the business card
+                                */
+    MPIDI_Process.my_pg_rank = pg_rank;
+    /* FIXME: Why do we add a ref to pg here? */
+    MPIDI_PG_add_ref(pg);
 
+    /* We intentionally call this before the channel init so that the channel
+       can use the node_id info. */
+    /* Ideally this wouldn't be needed.  Once we have PMIv2 support for node
+       information we should probably eliminate this function. */
+    mpi_errno = MPIDI_Populate_vc_node_ids(pg, pg_rank);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+
+    /* Initialize FTB after PMI init */
+    mpi_errno = MPIDU_Ftb_init();
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+    
     /*
      * Let the channel perform any necessary initialization
      * The channel init should assume that PMI_Init has been called and that
@@ -93,16 +134,6 @@ int MPID_Init(int *argc, char ***argv, int requested, int *provided,
     if (mpi_errno != MPI_SUCCESS) {
 	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER, "**ch3|ch3_init");
     }
-
-    /* FIXME: Why are pg_size and pg_rank handled differently? */
-    pg_size = MPIDI_PG_Get_size(pg);
-    MPIDI_Process.my_pg = pg;  /* brad : this is rework for shared memories 
-				* because they need this set earlier
-                                * for getting the business card
-                                */
-    MPIDI_Process.my_pg_rank = pg_rank;
-    /* FIXME: Why do we add a ref to pg here? */
-    MPIDI_PG_add_ref(pg);
 
     /*
      * Initialize the MPI_COMM_WORLD object
@@ -135,6 +166,8 @@ int MPID_Init(int *argc, char ***argv, int requested, int *provided,
     }
 
     MPID_Dev_comm_create_hook (comm);
+    mpi_errno = MPIR_Comm_commit(comm);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
 
     /*
      * Initialize the MPI_COMM_SELF object
@@ -171,33 +204,13 @@ int MPID_Init(int *argc, char ***argv, int requested, int *provided,
     comm->rank        = pg_rank;
     comm->remote_size = pg_size;
     comm->local_size  = pg_size;
-#if 0    
-    mpi_errno = MPID_VCRT_Create(comm->remote_size, &comm->vcrt);
-    if (mpi_errno != MPI_SUCCESS)
-    {
-	MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER,"**dev|vcrt_create", 
-			     "**dev|vcrt_create %s", "MPI_COMM_WORLD");
-    }
-    
-    mpi_errno = MPID_VCRT_Get_ptr(comm->vcrt, &comm->vcr);
-    if (mpi_errno != MPI_SUCCESS)
-    {
-	MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER,"**dev|vcrt_get_ptr", 
-			     "dev|vcrt_get_ptr %s", "MPI_COMM_WORLD");
-    }
-    
-    /* Initialize the connection table on COMM_WORLD from the process group's
-       connection table */
-    for (p = 0; p < pg_size; p++)
-    {
-	MPID_VCR_Dup(&pg->vct[p], &comm->vcr[p]);
-    }
-#endif
     MPID_VCRT_Add_ref( MPIR_Process.comm_world->vcrt );
     comm->vcrt = MPIR_Process.comm_world->vcrt;
     comm->vcr  = MPIR_Process.comm_world->vcr;
     
     MPID_Dev_comm_create_hook (comm);
+    mpi_errno = MPIR_Comm_commit(comm);
+    if (mpi_errno) MPIU_ERR_POP(mpi_errno);
 #endif
     
     /*
@@ -214,7 +227,7 @@ int MPID_Init(int *argc, char ***argv, int requested, int *provided,
 	char * parent_port;
 
 	/* FIXME: To allow just the "root" process to 
-	   request the port and then use MPIR_Bcast to 
+	   request the port and then use MPIR_Bcast_intra to 
 	   distribute it to the rest of the processes,
 	   we need to perform the Bcast after MPI is
 	   otherwise initialized.  We could do this
@@ -328,6 +341,11 @@ static int InitPG( int *argc, char ***argv,
 	 * Initialize the process manangement interface (PMI), 
 	 * and get rank and size information about our process group
 	 */
+
+#ifdef USE_PMI2_API
+        mpi_errno = PMI2_Init(has_parent, &pg_size, &pg_rank, &appnum);
+        if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+#else
 	pmi_errno = PMI_Init(has_parent);
 	if (pmi_errno != PMI_SUCCESS) {
 	    MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER, "**pmi_init",
@@ -351,13 +369,27 @@ static int InitPG( int *argc, char ***argv,
 	    MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER, "**pmi_get_appnum",
 				 "**pmi_get_appnum %d", pmi_errno);
 	}
-
+#endif
 	/* Note that if pmi is not availble, the value of MPI_APPNUM is 
 	   not set */
 	if (appnum != -1) {
 	    MPIR_Process.attrs.appnum = appnum;
 	}
-	
+
+#ifdef USE_PMI2_API
+        
+        /* This memory will be freed by the PG_Destroy if there is an error */
+	pg_id = MPIU_Malloc(MAX_JOBID_LEN);
+	if (pg_id == NULL) {
+	    MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER,"**nomem","**nomem %d",
+				 MAX_JOBID_LEN);
+	}
+
+        mpi_errno = PMI2_Job_GetId(pg_id, MAX_JOBID_LEN);
+        if (mpi_errno) MPIU_ERR_POP(mpi_errno);
+        
+
+#else
 	/* Now, initialize the process group information with PMI calls */
 	/*
 	 * Get the process group id
@@ -372,7 +404,8 @@ static int InitPG( int *argc, char ***argv,
 	/* This memory will be freed by the PG_Destroy if there is an error */
 	pg_id = MPIU_Malloc(pg_id_sz + 1);
 	if (pg_id == NULL) {
-	    MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER, "**nomem");
+	    MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER,"**nomem","**nomem %d",
+				 pg_id_sz+1);
 	}
 
 	/* Note in the singleton init case, the pg_id is a dummy.
@@ -383,6 +416,7 @@ static int InitPG( int *argc, char ***argv,
 	    MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER, "**pmi_get_id",
 				 "**pmi_get_id %d", pmi_errno);
 	}
+#endif
     }
     else {
 	/* Create a default pg id */
@@ -414,23 +448,8 @@ static int InitPG( int *argc, char ***argv,
        connection information by passing the pg to the channel init routine */
     if (usePMI) {
 	/* Tell the process group how to get connection information */
-	MPIDI_PG_InitConnKVS( pg );
-
-#if 0
-	/* If we're supporting the debugger, we can save our host and 
-	   pid here.  This publishes the data in the kvs space. 
-	   This allows the MPI processes to access the information 
-	   about the other processes without any PMI changes. */
-#ifdef HAVE_DEBUGGER_SUPPORT
-	{
-	    char key[64];
-	    char myinfo[512];
-	    MPIU_Snprintf( key, sizeof(key), "hpid-%d", pg_rank );
-	    MPIU_Snpritnf( myinfo, sizeof(key), "%s:%d", hostname, getpid() );
-	    PMI_KVS_Put( pg->world->connData, key, myinfo );
-	}
-#endif
-#endif
+        mpi_errno = MPIDI_PG_InitConnKVS( pg );
+        if (mpi_errno) MPIU_ERR_POP(mpi_errno);
     }
 
     /* FIXME: Who is this for and where does it belong? */
@@ -470,19 +489,22 @@ int MPIDI_CH3I_BCInit( char **bc_val_p, int *val_max_sz_p )
 {
     int pmi_errno;
     int mpi_errno = MPI_SUCCESS;
-
+#ifdef USE_PMI2_API
+    *val_max_sz_p = PMI2_MAX_VALLEN;
+#else
     pmi_errno = PMI_KVS_Get_value_length_max(val_max_sz_p);
     if (pmi_errno != PMI_SUCCESS)
     {
-	MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER, 
-			     "**pmi_kvs_get_value_length_max",
-			     "**pmi_kvs_get_value_length_max %d", pmi_errno);
+        MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER,
+                             "**pmi_kvs_get_value_length_max",
+                             "**pmi_kvs_get_value_length_max %d", pmi_errno);
     }
-
+#endif
     /* This memroy is returned by this routine */
     *bc_val_p = MPIU_Malloc(*val_max_sz_p);
     if (*bc_val_p == NULL) {
-	MPIU_ERR_SETANDJUMP(mpi_errno,MPI_ERR_OTHER, "**nomem");
+	MPIU_ERR_SETANDJUMP1(mpi_errno,MPI_ERR_OTHER, "**nomem","**nomem %d",
+			     *val_max_sz_p);
     }
     
     /* Add a null to simplify looking at the bc */

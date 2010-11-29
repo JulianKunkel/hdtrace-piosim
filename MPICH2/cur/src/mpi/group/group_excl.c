@@ -71,7 +71,7 @@ int MPI_Group_excl(MPI_Group group, int n, int *ranks, MPI_Group *newgroup)
 
     MPIR_ERRTEST_INITIALIZED_ORDIE();
     
-    MPIU_THREAD_SINGLE_CS_ENTER("group");
+    MPIU_THREAD_CS_ENTER(ALLFUNC,);
     MPID_MPI_FUNC_ENTER(MPID_STATE_MPI_GROUP_EXCL);
     /* Validate parameters, especially handles needing to be converted */
 #   ifdef HAVE_ERROR_CHECKING
@@ -144,14 +144,15 @@ int MPI_Group_excl(MPI_Group group, int n, int *ranks, MPI_Group *newgroup)
 
     new_group_ptr->size = size - n;
     new_group_ptr->idx_of_first_lpid = -1;
+    /* TODO calculate is_local_dense_monotonic */
 
-    *newgroup = new_group_ptr->handle;
-    
+    MPIU_OBJ_PUBLISH_HANDLE(*newgroup, new_group_ptr->handle);
+
     /* ... end of body of routine ... */
 
   fn_exit:
     MPID_MPI_FUNC_EXIT(MPID_STATE_MPI_GROUP_EXCL);
-    MPIU_THREAD_SINGLE_CS_EXIT("group");
+    MPIU_THREAD_CS_EXIT(ALLFUNC,);
     return mpi_errno;
 
   fn_fail:

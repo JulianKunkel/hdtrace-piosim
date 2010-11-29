@@ -7,8 +7,8 @@
 <file name="ad_ntfs.h" info="1194043819"/>
 <file name="ad_ntfs_read.c" info="1194043819"/>
 <file name="ad_ntfs_wait.c" info="1194043819"/>
-<file name="ad_ntfs.c" info="1194043819"/>
-<file name="ad_ntfs_iwrite.c" info="1194043819"/>
+<file name="ad_ntfs.c" info="1221684388"/>
+<file name="ad_ntfs_iwrite.c" info="1281541879"/>
 <file name="ad_ntfs_fcntl.c" info="1194043819"/>
 <file name="ad_ntfs_write.c" info="1194043819"/>
 <file name="ad_ntfs_close.c" info="1194043819"/>

@@ -6,12 +6,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "mpi.h"
+#include "mpithreadtest.h"
 
 int rank;
 
-void run_test(void * arg)
+MTEST_THREAD_RETURN_TYPE run_test(void * arg)
 {
     MPI_Status  reqstat;
     int i, j;
@@ -31,11 +31,11 @@ void run_test(void * arg)
 		MPI_Send(NULL, 0, MPI_CHAR, peer, j, MPI_COMM_WORLD);
 	}
     }
+    return (MTEST_THREAD_RETURN_TYPE)NULL;
 }
 
 int main(int argc, char ** argv)
 {
-    pthread_t thread;
     int i, zero = 0, pmode, nprocs;
 
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &pmode);
@@ -52,9 +52,9 @@ int main(int argc, char ** argv)
 	MPI_Abort(MPI_COMM_WORLD, -1);
     }
 
-    pthread_create(&thread, NULL, (void*) run_test, NULL);
+    MTest_Start_thread(run_test, NULL);
     run_test(&zero);
-    pthread_join(thread, NULL);
+    MTest_Join_threads();
 
     MPI_Finalize();
 

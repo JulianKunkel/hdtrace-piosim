@@ -162,16 +162,14 @@ void PREPEND_PREFIX(Type_calc_footprint)(MPI_Datatype type,
     int ndims;
     MPI_Datatype tmptype;
 
-    mpi_errno = NMPI_Type_get_envelope(type, &nr_ints, &nr_aints,
-				       &nr_types, &combiner);
-    DLOOP_Assert(mpi_errno == MPI_SUCCESS);
+    MPIR_Type_get_envelope_impl(type, &nr_ints, &nr_aints, &nr_types, &combiner);
 
     if (combiner == MPI_COMBINER_NAMED) {
 	int mpisize;
 	MPI_Aint mpiextent;
 
-	NMPI_Type_size(type, &mpisize);
-	NMPI_Type_extent(type, &mpiextent);
+	MPIR_Type_size_impl(type, &mpisize);
+	MPIR_Type_extent_impl(type, &mpiextent);
 	tfp->size    = (DLOOP_Offset) mpisize;
 	tfp->lb      = 0;
 	tfp->ub      = (DLOOP_Offset) mpiextent;
@@ -256,15 +254,15 @@ void PREPEND_PREFIX(Type_calc_footprint)(MPI_Datatype type,
 					tfp->lb, tfp->ub);
 	    tfp->true_lb = tfp->lb + (true_lb - lb);
 	    tfp->true_ub = tfp->ub + (true_ub - ub);
-	    tfp->size    = ints[0] * size;
+	    tfp->size    = (DLOOP_Offset) ints[0] * size;
 	    tfp->extent  = tfp->ub - tfp->lb;
 	    break;
 	case MPI_COMBINER_VECTOR:
 	case MPI_COMBINER_HVECTOR:
 	case MPI_COMBINER_HVECTOR_INTEGER:
-	    if (combiner == MPI_COMBINER_VECTOR) stride = ints[2] * extent;
+	    if (combiner == MPI_COMBINER_VECTOR) stride = (DLOOP_Offset) ints[2] * extent;
 	    else if (combiner == MPI_COMBINER_HVECTOR) stride = aints[0];
-	    else /* HVECTOR_INTEGER */ stride = ints[2];
+	    else /* HVECTOR_INTEGER */ stride = (DLOOP_Offset) ints[2];
 
 	    DLOOP_DATATYPE_VECTOR_LB_UB(ints[0] /* count */,
 					stride /* stride in bytes */,
@@ -273,25 +271,25 @@ void PREPEND_PREFIX(Type_calc_footprint)(MPI_Datatype type,
 					tfp->lb, tfp->ub);
 	    tfp->true_lb = tfp->lb + (true_lb - lb);
 	    tfp->true_ub = tfp->ub + (true_ub - ub);
-	    tfp->size    = ints[0] * ints[1] * size;
+	    tfp->size    = (DLOOP_Offset) ints[0] * (DLOOP_Offset) ints[1] * size;
 	    tfp->extent  = tfp->ub - tfp->lb;
 	    break;
 	case MPI_COMBINER_INDEXED_BLOCK:
 	    /* prime min_lb and max_ub */
 	    DLOOP_DATATYPE_BLOCK_LB_UB(ints[1] /* blklen */,
-				       ints[2] * extent /* disp */,
+				       (DLOOP_Offset) ints[2] * extent /* disp */,
 				       lb, ub, extent,
 				       min_lb, max_ub);
 
 	    for (i=1; i < ints[0]; i++) {
 		DLOOP_DATATYPE_BLOCK_LB_UB(ints[1] /* blklen */,
-					   ints[i+2] * extent /* disp */,
+					   (DLOOP_Offset) ints[i+2] * extent /* disp */,
 					   lb, ub, extent,
 					   tmp_lb, tmp_ub);
 		if (tmp_lb < min_lb) min_lb = tmp_lb;
 		if (tmp_ub > max_ub) max_ub = tmp_ub;
 	    }
-	    tfp->size    = ints[0] * ints[1] * size;
+	    tfp->size    = (DLOOP_Offset) ints[0] * (DLOOP_Offset) ints[1] * size;
 	    tfp->lb      = min_lb;
 	    tfp->ub      = max_ub;
 	    tfp->true_lb = min_lb + (true_lb - lb);
@@ -312,9 +310,9 @@ void PREPEND_PREFIX(Type_calc_footprint)(MPI_Datatype type,
 		/* prime min_lb, max_ub, count */
 		ntypes = ints[i+1];
 		if (combiner == MPI_COMBINER_INDEXED)
-		    disp = ints[ints[0]+i+1] * extent;
+		    disp = (DLOOP_Offset) ints[ints[0]+i+1] * extent;
 		else if (combiner == MPI_COMBINER_HINDEXED_INTEGER)
-		    disp = ints[ints[0]+i+1];
+		    disp = (DLOOP_Offset) ints[ints[0]+i+1];
 		else /* MPI_COMBINER_HINDEXED */
 		    disp = aints[i];
 
@@ -329,9 +327,9 @@ void PREPEND_PREFIX(Type_calc_footprint)(MPI_Datatype type,
 
 		    ntypes += ints[i+1];
 		    if (combiner == MPI_COMBINER_INDEXED)
-			disp = ints[ints[0]+i+1] * extent;
+			disp = (DLOOP_Offset) ints[ints[0]+i+1] * extent;
 		    else if (combiner == MPI_COMBINER_HINDEXED_INTEGER)
-			disp = ints[ints[0]+i+1];
+			disp = (DLOOP_Offset) ints[ints[0]+i+1];
 		    else /* MPI_COMBINER_HINDEXED */
 			disp = aints[i];
 
@@ -369,7 +367,7 @@ void PREPEND_PREFIX(Type_calc_footprint)(MPI_Datatype type,
 						  types[0],
 						  &tmptype);
 	    PREPEND_PREFIX(Type_calc_footprint)(tmptype, tfp);
-	    NMPI_Type_free(&tmptype);
+	    MPIR_Type_free_impl(&tmptype);
 	    break;
 	case MPI_COMBINER_DARRAY:
 	    ndims = ints[2];
@@ -386,7 +384,7 @@ void PREPEND_PREFIX(Type_calc_footprint)(MPI_Datatype type,
 						&tmptype);
 
 	    PREPEND_PREFIX(Type_calc_footprint)(tmptype, tfp);
-	    NMPI_Type_free(&tmptype);
+	    MPIR_Type_free_impl(&tmptype);
 	    break;
 	case MPI_COMBINER_F90_REAL:
 	case MPI_COMBINER_F90_COMPLEX:
@@ -432,13 +430,12 @@ static void DLOOP_Type_calc_footprint_struct(MPI_Datatype type,
 	tfp->has_sticky_lb = tfp->has_sticky_ub = 0;
 	return;
     }
-    
+
     for (; i < ints[0]; i++) {
 	/* skip zero blocklength elements */
 	if (ints[i+1] == 0) continue;
 
-	NMPI_Type_get_envelope(types[i], &nr_ints, &nr_aints, &nr_types,
-			       &combiner);
+	MPIR_Type_get_envelope_impl(types[i], &nr_ints, &nr_aints, &nr_types, &combiner);
 
 	/* opt: could just inline assignments for combiner == NAMED case */
 
@@ -460,12 +457,12 @@ static void DLOOP_Type_calc_footprint_struct(MPI_Datatype type,
 
 	tmp_true_lb = tmp_lb + (true_lb - lb);
 	tmp_true_ub = tmp_ub + (true_ub - ub);
-	tmp_size += size * ints[i+1];
+	tmp_size += size * (DLOOP_Offset) ints[i+1];
 
 	if (combiner == MPI_COMBINER_NAMED) {
 	    /* NOTE: This is a special case. If a user creates a struct
 	     *       with a named type at a non-zero displacement, the
-	     *       alignment may be different than expected due to 
+	     *       alignment may be different than expected due to
 	     *       special compiler rules for this case. Thus we must
 	     *       over-ride the value that we obtained from
 	     *       Type_calc_footprint() above.
@@ -474,7 +471,7 @@ static void DLOOP_Type_calc_footprint_struct(MPI_Datatype type,
 	}
 
 	if (max_alignsz < alignsz) max_alignsz = alignsz;
-  
+
 	/* We save this LB if:
 	 * (1) this is our first iteration where we saw a nonzero blklen,
 	 * (2) we haven't found a sticky LB and this LB is lower than
@@ -530,10 +527,6 @@ static void DLOOP_Type_calc_footprint_struct(MPI_Datatype type,
 	}
     }
 
-#if 0
-    printf("size = %d, extent = %d\n", (int) tmp_size, (int) tmp_extent);
-#endif
-
     tfp->size    = tmp_size;
     tfp->lb      = min_lb;
     tfp->ub      = max_ub;
@@ -576,7 +569,7 @@ static int DLOOP_Named_type_alignsize(MPI_Datatype type, MPI_Aint disp)
     if (type == MPI_LB || type == MPI_UB)
 	return 0;
 
-    NMPI_Type_size(type, &alignsize);
+    MPIR_Type_size_impl(type, &alignsize);
 
     switch(type)
     {
@@ -587,7 +580,7 @@ static int DLOOP_Named_type_alignsize(MPI_Datatype type, MPI_Aint disp)
 	case MPI_DOUBLE:
 	    if (alignsize > max_doublealign)
 		alignsize = max_doublealign;
-	    
+
 	    if (have_double_pos_align && disp != (MPI_Aint) 0)
 		alignsize = 4; /* would be better to test */
 	    break;
@@ -596,9 +589,9 @@ static int DLOOP_Named_type_alignsize(MPI_Datatype type, MPI_Aint disp)
 		alignsize = max_longdoublealign;
 	    break;
 	default:
-	    if (alignsize > max_intalign) 
+	    if (alignsize > max_intalign)
 		alignsize = max_intalign;
-	    
+
 	    if (have_llint_pos_align &&
 		type == MPI_LONG_LONG_INT &&
 		disp != (MPI_Aint) 0)
@@ -654,22 +647,22 @@ static int DLOOP_Structalign_integer_max()
     size = sizeof(char) + sizeof(int);
     extent = sizeof(char_int);
     if (size != extent) is_packed = 0;
-    if ( (extent % 2) != 0) is_two = 0;
-    if ( (extent % 4) != 0) is_four = 0;
+    if ((extent % 2) != 0) is_two = 0;
+    if ((extent % 4) != 0) is_four = 0;
     if (sizeof(int) == 8 && (extent % 8) != 0) is_eight = 0;
 
     size = sizeof(char) + sizeof(short);
     extent = sizeof(char_short);
     if (size != extent) is_packed = 0;
-    if ( (extent % 2) != 0) is_two = 0;
+    if ((extent % 2) != 0) is_two = 0;
     if (sizeof(short) == 4 && (extent % 4) != 0) is_four = 0;
     if (sizeof(short) == 8 && (extent % 8) != 0) is_eight = 0;
 
     size = sizeof(char) + sizeof(long);
     extent = sizeof(char_long);
     if (size != extent) is_packed = 0;
-    if ( (extent % 2) != 0) is_two = 0;
-    if ( (extent % 4) != 0) is_four = 0;
+    if ((extent % 2) != 0) is_two = 0;
+    if ((extent % 4) != 0) is_four = 0;
     if (sizeof(long) == 8 && (extent % 8) != 0) is_eight = 0;
 
 #ifdef HAVE_LONG_LONG_INT
@@ -677,8 +670,8 @@ static int DLOOP_Structalign_integer_max()
     extent = sizeof(lli_c);
     extent2 = sizeof(c_lli);
     if (size != extent) is_packed = 0;
-    if ( (extent % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
-    if ( (extent % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
+    if ((extent % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
+    if ((extent % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
     if (sizeof(long long int) >= 8 && (extent % 8) != 0 && (extent2 % 8) != 0)
 	is_eight = 0;
 #endif
@@ -686,14 +679,14 @@ static int DLOOP_Structalign_integer_max()
     size = sizeof(char) + sizeof(int) + sizeof(char);
     extent = sizeof(char_int_char);
     if (size != extent) is_packed = 0;
-    if ( (extent % 2) != 0) is_two = 0;
-    if ( (extent % 4) != 0) is_four = 0;
+    if ((extent % 2) != 0) is_two = 0;
+    if ((extent % 4) != 0) is_four = 0;
     if (sizeof(int) == 8 && (extent % 8) != 0) is_eight = 0;
 
     size = sizeof(char) + sizeof(short) + sizeof(char);
     extent = sizeof(char_short_char);
     if (size != extent) is_packed = 0;
-    if ( (extent % 2) != 0) is_two = 0;
+    if ((extent % 2) != 0) is_two = 0;
     if (sizeof(short) == 4 && (extent % 4) != 0) is_four = 0;
     if (sizeof(short) == 8 && (extent % 8) != 0) is_eight = 0;
 
@@ -731,8 +724,8 @@ static int DLOOP_Structalign_float_max()
     extent1 = sizeof(char_float);
     extent2 = sizeof(float_char);
     if (size != extent1) is_packed = 0;
-    if ( (extent1 % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
-    if ( (extent1 % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
+    if ((extent1 % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
+    if ((extent1 % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
     if (sizeof(float) == 8 && (extent1 % 8) != 0 && (extent2 % 8) != 0)
 	is_eight = 0;
 
@@ -769,8 +762,8 @@ static int DLOOP_Structalign_double_max()
     extent1 = sizeof(char_double);
     extent2 = sizeof(double_char);
     if (size != extent1) is_packed = 0;
-    if ( (extent1 % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
-    if ( (extent1 % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
+    if ((extent1 % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
+    if ((extent1 % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
     if (sizeof(double) == 8 && (extent1 % 8) != 0 && (extent2 % 8) != 0)
 	is_eight = 0;
 
@@ -807,16 +800,16 @@ static int DLOOP_Structalign_long_double_max()
     extent1 = sizeof(char_long_double);
     extent2 = sizeof(long_double_char);
     if (size != extent1) is_packed = 0;
-    if ( (extent1 % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
-    if ( (extent1 % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
+    if ((extent1 % 2) != 0 && (extent2 % 2) != 0) is_two = 0;
+    if ((extent1 % 4) != 0 && (extent2 % 4) != 0) is_four = 0;
     if (sizeof(long double) >= 8 && (extent1 % 8) != 0 && (extent2 % 8) != 0)
 	is_eight = 0;
     if (sizeof(long double) > 8 && (extent1 % 16) != 0
 	&& (extent2 % 16) != 0) is_sixteen = 0;
 
     extent1 = sizeof(long_double_int_char);
-    if ( (extent1 % 2) != 0) is_two = 0;
-    if ( (extent1 % 4) != 0) is_four = 0;
+    if ((extent1 % 2) != 0) is_two = 0;
+    if ((extent1 % 4) != 0) is_four = 0;
     if (sizeof(long double) >= 8 && (extent1 % 8) != 0)	is_eight = 0;
     if (sizeof(long double) > 8 && (extent1 % 16) != 0) is_sixteen = 0;
 
@@ -840,7 +833,7 @@ static int DLOOP_Structalign_long_double_max()
  * double value is at front of type.
  *
  * Search for "Power alignment mode" for more details.
- * 
+ *
  * Return value is 1 or 0.
  */
 static int DLOOP_Structalign_double_position()
@@ -863,7 +856,7 @@ static int DLOOP_Structalign_double_position()
  * padding when long long int value is at front of type.
  *
  * Search for "Power alignment mode" for more details.
- * 
+ *
  * Return value is 1 or 0.
  */
 static int DLOOP_Structalign_llint_position()
@@ -882,46 +875,3 @@ static int DLOOP_Structalign_llint_position()
     if (padding_varies_by_pos) return 1;
     else                       return 0;
 }
-
-#if 0
-/* from MPICH2 PAC_C_DOUBLE_ALIGNMENT_EXCEPTION test:
- *
- * Other tests assume that there is potentially a maximum alignment
- * and that if there is no maximum alignment, or a type is smaller than
- * that value, then we align on the size of the value, with the exception
- * of the "position-based alignment" rules we test for separately.
- * 
- * It turns out that these assumptions have fallen short in at least one
- * case, on MacBook Pros, where doubles are aligned on 4-byte boundaries
- * even when long doubles are aligned on 16-byte boundaries. So this test
- * is here specifically to handle this case.
- * 
- * Return value is 4 or 0.
-*/
-static int double_align_exception()
-{
-    struct { char a; double b; } char_double;
-    struct { double b; char a; } double_char;
-    int extent1, extent2, align_4 = 0;
-
-    extent1 = sizeof(char_double);
-    extent2 = sizeof(double_char);
-
-    /* we're interested in the largest value, will let separate test
-     * deal with position-based issues.
-     */
-    if (extent1 < extent2) extent1 = extent2;
-    if ((sizeof(double) == 8) && (extent1 % 8) != 0) {
-       if (extent1 % 4 == 0) {
-#ifdef HAVE_MAX_FP_ALIGNMENT
-          if (HAVE_MAX_FP_ALIGNMENT >= 8) align_4 = 1;
-#else
-          align_4 = 1;
-#endif
-       }
-    }
-
-    if (align_4) return 4;
-    else         return 0;
-}
-#endif
