@@ -1,0 +1,1031 @@
+			MPICH2 Release 1.3.1
+
+MPICH2 is a high-performance and widely portable implementation of the
+MPI-2.2 standard from the Argonne National Laboratory. This release
+has all MPI 2.2 functions and features required by the standard with
+the exception of support for the "external32" portable I/O format and
+user-defined data representations for I/O.
+
+The distribution has been tested by us on a variety of machines in our
+environments as well as our partner institutes. If you have problems
+with the installation or usage of MPICH2, please send an email to
+mpich-discuss@mcs.anl.gov (you need to subscribe to this list
+(https://lists.mcs.anl.gov/mailman/listinfo/mpich-discuss) before
+sending an email). If you have found a bug in MPICH2, we request that
+you report it at our bug tracking system:
+(https://trac.mcs.anl.gov/projects/mpich2/newticket).
+
+This README file should contain enough information to get you started
+with MPICH2. More extensive installation and user guides can be found
+in the doc/installguide/install.pdf and doc/userguide/user.pdf files
+respectively. Additional information regarding the contents of the
+release can be found in the CHANGES file in the top-level directory,
+and in the RELEASE_NOTES file, where certain restrictions are
+detailed. Finally, the MPICH2 web site,
+http://www.mcs.anl.gov/research/projects/mpich2, contains information
+on bug fixes and new releases.
+
+  
+I.    Getting Started
+II.   Alternate Configure Options
+III.  Compiler Flags
+IV.   Alternate Channels and Devices
+V.    Alternate Process Managers
+VI.   VPATH Builds
+VII.  Shared Libraries
+VIII. Other Features
+IX.   Checkpoint/Restart
+X.    Environment Variables
+XI.   Developer Builds
+XII.  Building ROMIO into MPICH2
+XIII. Testing the MPICH2 installation
+XIV.  Installing MPICH2 on windows
+XV.   Multiple Fortran compiler support.
+
+
+-------------------------------------------------------------------------
+
+I. Getting Started
+==================
+
+The following instructions take you through a sequence of steps to get
+the default configuration (ch3 device, nemesis channel (with TCP and
+shared memory), Hydra process management) of MPICH2 up and running.
+
+1.  You will need the following prerequisites.
+
+    - This tar file mpich2-1.3.1.tar.gz
+
+    - A C compiler (gcc is sufficient)
+
+    - A Fortran compiler if Fortran applications are to be used
+      (g77 or gfortran is sufficient) 
+
+    - A C++ compiler for the C++ MPI bindings (g++ is sufficient)
+
+    - If a Fortran 90 compiler is found, by default MPICH2 will
+      attempt to build a basic MPI module.  This module contains the
+      MPI routines that do not contain "choice" arguments; i.e., the module
+      does not contain any of the communication routines, such as
+      MPI_Send, that can take arguments of different type.  You may still
+      use those routines, however, the MPI module does not contain
+      interface specifications for them. If you have trouble with the
+      configuration step and do not need Fortran 90, configure with
+      --disable-fc .
+
+    Configure will check for these prerequisites and try to work around
+    deficiencies if possible.  (If you don't have Fortran, you will
+    still be able to use MPICH2, just not with Fortran applications.)
+
+    Also, you need to know what shell you are using since different shell
+    has different command syntax. Command "echo $SHELL" prints out the
+    current shell used by your terminal program.
+
+2.  Unpack the tar file and go to the top level directory:
+
+      tar xzf mpich2-1.3.1.tar.gz
+      cd mpich2-1.3.1
+
+    If your tar doesn't accept the z option, use
+
+      gunzip mpich2-1.3.1.tar.gz
+      tar xf mpich2-1.3.1.tar
+      cd mpich2-1.3.1
+
+3.  Choose an installation directory, say /home/<USERNAME>/mpich2-install,
+    which is assumed to non-existent or empty. It will be most
+    convenient if this directory is shared by all of the machines
+    where you intend to run processes.  If not, you will have 
+    to duplicate it on the other machines after installation.
+
+4.  Configure MPICH2 specifying the installation directory (the steps
+    described here are called inpath build; we recommend user to do
+    a vpath build if possible, see further below):
+
+    for csh and tcsh:
+
+      ./configure --prefix=/home/<USERNAME>/mpich2-install |& tee c.txt
+
+    for bash and sh:
+
+      ./configure --prefix=/home/<USERNAME>/mpich2-install 2>&1 | tee c.txt
+
+    Bourne-like shells, sh and bash, accept "2>&1 |".  Csh-like shell,
+    csh and tcsh, accept "|&".  File c.txt is used to store all messages
+    generated configure command and is useful for diagnosis if something
+    goes wrong.  Other configure options are described below.  You might
+    also prefer to do a VPATH build (see below).  Check the c.txt file
+    to make sure everything went well.  Problems should be self-explanatory,
+    but if not, please attach c.txt to your bug report.
+
+5.  Build MPICH2:
+
+    for csh and tcsh:
+
+      make |& tee m.txt
+
+    for bash and sh:
+
+      make 2>&1 | tee m.txt
+
+    This step should succeed if there were no problems with the
+    preceding step.  Check file m.txt. If there were problems,
+    do a "make clean" and then run make again with V=1
+
+      make V=1 |& tee m.txt       (for csh and tcsh)
+
+      OR
+
+      make V=1 2>&1 | tee m.txt   (for bash and sh)
+
+    and then attach m.txt and c.txt to your bug report.
+
+6.  Install the MPICH2 commands:
+
+    for csh and tcsh:
+
+      make install |& tee mi.txt
+
+    for bash and sh:
+
+      make install 2>&1 | tee mi.txt
+
+    This step collects all required executables and scripts in the bin
+    subdirectory of the directory specified by the prefix argument to
+    configure. 
+
+    (For users who want an install directory structure compliant to
+     GNU coding standards (i.e., documentation files go to 
+     ${datarootdir}/doc/${PACKAGE}, architecture-independent
+     read-only files go to ${datadir}/${PACKAGE}), replace
+     "make install" by
+
+       make install PACKAGE=mpich2-<versrion>
+
+     and corresponding installcheck step should be
+
+       make installcheck PACKAGE=mpich2-<version>
+
+    Setting PACKAGE in "make install" or "installcheck" step is optional
+    and unnecessary for typical MPI users.)
+
+7.  Add the bin subdirectory of the installation directory to your path:
+
+    for csh and tcsh:
+
+      setenv PATH /home/<USERNAME>/mpich2-install/bin:$PATH
+
+    for bash and sh:
+  
+      PATH=/home/<USERNAME>/mpich2-install/bin:$PATH ; export PATH
+
+    Check that everything is in order at this point by doing 
+
+      which mpicc
+      which mpiexec
+
+    All should refer to the commands in the bin subdirectory of your
+    install directory.  It is at this point that you will need to
+    duplicate this directory on your other machines if it is not
+    in a shared file system such as NFS.
+
+8.  MPICH2 uses an external process manager for scalable startup of
+    large MPI jobs.  The default process manager is called Hydra. More
+    details on interacting with Hydra can be found at
+    http://wiki.mcs.anl.gov/mpich2/index.php/Using_the_Hydra_Process_Manager
+
+    To start a job on your local machine, you can use:
+
+      mpiexec -n <number> ./examples/cpi
+
+9. Test that you can run a multi-node job:
+
+      mpiexec -f machinefile -n <number> ./examples/cpi
+
+10. Now we will run an MPI job, using the mpiexec command as specified
+    in the MPI-2 standard.  There are some examples in the install
+    directory, which you have already put in your path, as well as in
+    the directory mpich2-1.3.1/examples.  One of them is the
+    classic cpi example, which computes the value of pi by numerical
+    integration in parallel.
+
+      mpiexec -f machinefile -n 5 ./examples/cpi
+
+    The cpi example will tell you which hosts it is running on.
+
+    For additional mpiexec options, do:
+
+      mpiexec --help
+
+If you have completed all of the above steps, you have successfully
+installed MPICH2 and run an MPI example.  
+
+More details on arguments to mpiexec are given in the User's Guide in
+the doc subdirectory. Also in the User's Guide you will find help on
+debugging. MPICH2 has support for the TotalView debugger, as well as
+some other approaches described there.
+
+-------------------------------------------------------------------------
+
+II. Alternate Configure Options
+===============================
+
+The above steps utilized the MPICH2 defaults, which included choosing
+TCP and shared memory for communication (via the "nemesis" channel)
+and the Hydra process manager. Other alternatives are available.  You
+can find out about configuration alternatives with
+
+   ./configure --help
+
+in the mpich2 directory.  The alternatives described below are
+configured by adding arguments to the configure step.
+
+-------------------------------------------------------------------------
+
+III. Compiler Flags
+===================
+
+MPICH2 allows several sets of compiler flags to be used. The first
+three sets are configure-time options for MPICH2, while the fourth is
+only relevant when compiling applications with mpicc and friends.
+
+1. CFLAGS, CPPFLAGS, CXXFLAGS, FFLAGS, FCFLAGS, LDFLAGS and LIBS
+(abbreviated as xFLAGS): Setting these flags would result in the
+MPICH2 library being compiled/linked with these flags and the flags
+internally being used in mpicc and friends.
+
+2. MPICH2LIB_CFLAGS, MPICH2LIB_CPPFLAGS, MPICH2LIB_CXXFLAGS,
+MPICH2LIB_FFLAGS, MPICH2LIB_FCFLAGS, MPICH2LIB_LDFLAGS and
+MPICH2LIB_LIBS (abbreviated as MPICH2LIB_xFLAGS): Setting these flags
+would result in the MPICH2 library being compiled/linked with these
+flags. However, these flags will *not* be used by mpicc and friends.
+
+3. MPICH2_MAKE_CFLAGS: Setting these flags would result in MPICH2's
+configure tests to not use these flags, but the makefile's to use
+them. This is a temporary hack for certain cases that advanced
+developers might be interested in which break existing configure tests
+(e.g., -Werror) and are not recommended for regular users.
+
+4. MPICH2_MPICC_FLAGS, MPICH2_MPICPP_FLAGS, MPICH2_MPICXX_FLAGS,
+MPICH2_MPIF77_FLAGS, MPICH2_MPIFC_FLAGS, MPICH2_LDFLAGS and
+MPICH2_LIBS (abbreviated as MPICH2_MPIX_FLAGS): These flags do *not*
+affect the compilation of the MPICH2 library itself, but will be
+internally used by mpicc and friends.
+
+
+  +--------------------------------------------------------------------+
+  |                    |                      |                        |
+  |                    |    MPICH2 library    |    mpicc and friends   |
+  |                    |                      |                        |
+  +--------------------+----------------------+------------------------+
+  |                    |                      |                        |
+  |     xFLAGS         |         Yes          |           Yes          |
+  |                    |                      |                        |
+  +--------------------+----------------------+------------------------+
+  |                    |                      |                        |
+  |  MPICH2LIB_xFLAGS  |         Yes          |           No           |
+  |                    |                      |                        |
+  +--------------------+----------------------+------------------------+
+  |                    |                      |                        |
+  | MPICH2_MAKE_xFLAGS |         Yes          |           No           |
+  |                    |                      |                        |
+  +--------------------+----------------------+------------------------+
+  |                    |                      |                        |
+  | MPICH2_MPIX_FLAGS  |         No           |           Yes          |
+  |                    |                      |                        |
+  +--------------------+----------------------+------------------------+
+
+
+All these flags can be set as part of configure command or through
+environment variables.
+
+
+Default flags
+--------------
+By default, MPICH2 automatically adds certain compiler optimizations
+to MPICH2LIB_CFLAGS. The currently used optimization level is -O2.
+
+** IMPORTANT NOTE: Remember that this only affects the compilation of
+the MPICH2 library and is not used in the wrappers (mpicc and friends)
+that are used to compile your applications or other libraries.
+
+This optimization level can be changed with the --enable-fast option
+passed to configure. For example, to build an MPICH2 environment with
+-O3 for all language bindings, one can simply do:
+
+  ./configure --enable-fast=O3
+
+Or to disable all compiler optimizations, one can do:
+
+  ./configure --disable-fast
+
+For more details of --enable-fast, see the output of "configure
+--help".
+
+
+Examples
+--------
+
+Example 1:
+
+  ./configure --disable-fast MPICH2LIB_CFLAGS=-O3 MPICH2LIB_FFLAGS=-O3 MPICH2LIB_CXXFLAGS=-O3 MPICH2LIB_FCFLAGS=-O3
+
+This will cause the MPICH2 libraries to be built with -O3, and -O3
+will *not* be included in the mpicc and other MPI wrapper script.
+
+Example 2:
+
+  ./configure --disable-fast CFLAGS=-O3 FFLAGS=-O3 CXXFLAGS=-O3 FCFLAGS=-O3
+
+This will cause the MPICH2 libraries to be built with -O3, and -O3
+will be included in the mpicc and other MPI wrapper script.
+
+Example 3:
+
+There are certain compiler flags that should not be used with MPICH2's
+configure, e.g. gcc's -Werror, which would confuse configure and cause
+certain configure tests to fail to detect the correct system features.
+To use -Werror in building MPICH2 libraries, you can pass the compiler
+flags during the make step through the Makefile variable
+MPICH2_MAKE_CFLAGS as follows:
+
+  make MPICH2_MAKE_CFLAGS="-Wall -Werror"
+
+The content of MPICH2_MAKE_CFLAGS is appended to the CFLAGS in all
+relevant Makefiles.
+
+-------------------------------------------------------------------------
+
+IV. Alternate Channels and Devices
+==================================
+
+The communication mechanisms in MPICH2 are called "devices". MPICH2
+supports several internal devices including ch3 (default), dcmfd (for
+Blue Gene/P) and globus (for Globus), as well as many third-party
+devices that are released and maintained by other institutes such as
+osu_ch3 (from Ohio State University for InfiniBand and iWARP), ch_mx
+(from Myricom for Myrinet MX), etc.
+
+                   *************************************
+
+ch3 device
+**********
+The ch3 device contains different internal communication options
+called "channels". We currently support nemesis (default) and sock
+channels, and experimentally provide a dllchan channel within the ch3
+device.
+
+nemesis channel
+---------------
+Nemesis provides communication using different networks (tcp, mx) as
+well as various shared-memory optimizations. To configure MPICH2 with
+nemesis, you can use the following configure option:
+
+  --with-device=ch3:nemesis
+
+The TCP network module gets configured in by default. To specify a
+different network module such as MX, you can use:
+
+  --with-device=ch3:nemesis:mx
+
+If the MX include files and libraries are not in the normal search
+paths, you can specify them with the following options:
+
+  --with-mx-include= and --with-mx-lib=
+
+... or the if lib/ and include/ are in the same directory, you can use
+the following option:
+
+  --with-mx=
+
+If the MX libraries are shared libraries, they need to be in the
+shared library search path. This can be done by adding the path to
+/etc/ld.so.conf, or by setting the LD_LIBRARY_PATH variable in your
+.bashrc (or .tcshrc) file.  It's also possible to set the shared
+library search path in the binary. If you're using gcc, you can do
+this by adding
+
+  LD_LIBRARY_PATH=/path/to/lib
+
+  (and)
+
+  LDFLAGS="-Wl,-rpath -Wl,/path/to/lib"
+
+... as arguments to configure.
+
+By default, MX allows for only eight endpoints per node causing
+ch3:nemesis:mx to give initialization errors with greater than 8
+processes on the same node (this is an MX error and not an inherent
+limitation in the MPICH2/Nemesis design). If needed, this can be set
+to a higher number when MX is loaded. We recommend the user to contact
+help@myri.com for details on how to do this.
+
+Shared-memory optimizations are enabled by default to improve
+performance for multi-processor/multi-core platforms. They can be
+disabled (at the cost of performance) either by setting the
+environment variable MPICH_NO_LOCAL to 1, or using the following
+configure option:
+
+  --enable-nemesis-dbg-nolocal
+
+The --with-shared-memory= configure option allows you to choose how
+Nemesis allocates shared memory.  The options are "auto", "sysv", and
+"mmap".  Using "sysv" will allocate shared memory using the System V
+shmget(), shmat(), etc. functions.  Using "mmap" will allocate shared
+memory by creating a file (in /dev/shm if it exists, otherwise /tmp),
+then mmap() the file.  The default is "auto". Note that System V
+shared memory has limits on the size of shared memory segments so
+using this for Nemesis may limit the number of processes that can be
+started on a single node.
+
+
+sock channel
+------------
+sock is the traditional TCP sockets based communication channel. It
+uses TCP/IP sockets for all communication including intra-node
+communication. So, though the performance of this channel is worse
+than that of nemesis, it should work on almost every platform. This
+channel can be configured using the following option:
+
+  --with-device=ch3:sock
+
+sctp channel
+------------
+The SCTP channel is a new channel using the Stream Control
+Transmission Protocol (SCTP). This channel supports regular MPI-1
+operations as well as dynamic processes and RMA from MPI-2; it
+currently does not offer support for multiple threads.
+
+Configure the sctp channel by using the following option:
+
+  --with-device=ch3:sctp
+
+If the SCTP include files and libraries are not in the normal search
+paths, you can specify them with the --with-sctp-include= and
+--with-sctp-lib= options, or the --with-sctp= option if lib/ and
+include/ are in the same directory.
+
+SCTP stack specific instructions:
+
+  For FreeBSD 7 and onward, SCTP comes with CURRENT and is enabled with
+  the "option SCTP" in the kernel configuration file.  The sctp_xxx()
+  calls are contained within libc so to compile ch3:sctp, make a soft-link
+  named libsctp.a to the target libc.a, then pass the path of the 
+  libsctp.a soft-link to --with-sctp-lib.
+  
+  For FreeBSD 6.x, kernel patches and instructions can be downloaded at
+  http://www.sctp.org/download.html .  These kernels place libsctp and
+  headers in /usr, so nothing needs to be specified for --with-sctp
+  since /usr is often in the default search path.
+
+  For Mac OS X, the SCTP Network Kernel Extension (NKE) can be
+  downloaded at http://sctp.fh-muenster.de/sctp-nke.html .  This places
+  the lib and include in /usr, so nothing needs to be specified for
+  --with-sctp since /usr is often in the default search path.
+
+  For Linux, SCTP comes with the default kernel from 2.4.23 and later as
+  a module.  This module can be loaded as root using "modprobe sctp".
+  After this is loaded,  you can verify it is loaded using "lsmod".
+  Once loaded, the SCTP socket lib and include files must be downloaded
+  and installed from http://lksctp.sourceforge.net/ .  The prefix 
+  location must then be passed into --with-sctp.  This bundle is called 
+  lksctp-tools and is available for download off their website.
+
+  For Solaris, SCTP comes with the default Solaris 10 kernel; the lib
+  and include in /usr, so nothing needs to be specified for --with-sctp
+  since /usr is often in the default search path.  In order to compile
+  under Solaris, MPICH2LIB_CFLAGS must have
+  -DMPICH_SCTP_CONCATENATES_IOVS set when running MPICH2's configure
+  script.
+
+                   *************************************
+
+IBM Blue Gene/P device
+**********************
+MPICH2 also supports the IBM Blue Gene/P systems. Since BG/P's
+front-end uses a different architecture than the actual compute nodes,
+MPICH2 has to be cross-compiled for this platform. The configuration
+of MPICH2 on BG/P relies on the availability of the DCMF driver stack
+and cross compiler binaries on the system. These are packaged by IBM
+in their driver releases (default installation path is
+/bgsys/drivers/ppcfloor) and are not released with MPICH2.
+
+Assuming DRIVER_PATH points to the driver installation path (e.g.,
+/bgsys/drivers/ppcfloor), the following is an example configure
+command-line for MPICH2:
+
+  GCC=${DRIVER_PATH}/gnu-linux/bin/powerpc-bgp-linux-gcc \
+  CC=${DRIVER_PATH}/gnu-linux/bin/powerpc-bgp-linux-gcc \
+  CXX=${DRIVER_PATH}/gnu-linux/bin/powerpc-bgp-linux-g++ \
+  F77=${DRIVER_PATH}/gnu-linux/bin/powerpc-bgp-linux-gfortran \
+  FC=${DRIVER_PATH}/gnu-linux/bin/powerpc-bgp-linux-gfortran \
+  CFLAGS="-mcpu=450fp2" \
+  CXXFLAGS="-mcpu=450fp2" \
+  FFLAGS="-mcpu=450fp2" \
+  FCFLAGS="-mcpu=450fp2" \
+  AR=${DRIVER_PATH}/gnu-linux/bin/powerpc-bgp-linux-ar \
+  LD=${DRIVER_PATH}/gnu-linux/bin/powerpc-bgp-linux-ld \
+  MSGLAYER_INCLUDE="-I${DRIVER_PATH}/comm/include" \
+  MSGLAYER_LIB="-L${DRIVER_PATH}/comm/lib -ldcmfcoll.cnk -ldcmf.cnk -lpthread -lrt -L$DRIVER_PATH/runtime/SPI -lSPI.cna" \
+  ./configure --with-device=dcmfd:BGP --with-pmi=no --with-pm=no --with-file-system=bgl \
+  	      --enable-timer-type=device --with-cross=src/mpid/dcmfd/cross \
+	      --host=powerpc-bgp-linux --target=powerpc-bgp-linux --build=powerpc64-linux-gnu
+
+-------------------------------------------------------------------------
+
+V. Alternate Process Managers
+=============================
+
+hydra
+-----
+Hydra is the default process management framework that uses existing
+daemons on nodes (e.g., ssh, pbs, slurm, sge) to start MPI
+processes. More information on Hydra can be found at
+http://wiki.mcs.anl.gov/mpich2/index.php/Using_the_Hydra_Process_Manager
+
+mpd
+---
+MPD was the traditional process manager in MPICH2. The file
+mpich2-1.3.1/src/pm/mpd/README has more information about
+interactive commands for managing the ring of MPDs.
+
+smpd
+---- 
+SMPD is a process management system for both Microsoft Windows and UNIX.
+SMPD is capable of starting a job where some processes are running on
+Windows and others are running on a variant of UNIX.  For more
+information, please see mpich2-1.3.1/src/pm/smpd/README.
+
+gforker
+-------
+gforker is a process manager that creates processes on a single machine,
+by having mpiexec directly fork and exec them.  This mechanism is
+particularly appropriate for shared-memory multiprocessors (SMPs) where
+you want to create all the processes on the same machine.  gforker is
+also useful for debugging, where running all the processes on a single
+machine is often convenient.
+
+slurm
+-----
+SLURM is an external process manager not distributed with
+MPICH2. However, we provide configure options that allow integration
+with SLURM. To enable this support, use "--with-pmi=slurm
+--with-pm=no" option with configure.
+
+-------------------------------------------------------------------------
+
+VI. VPATH Builds
+================
+MPICH2 supports building MPICH in a different directory tree than the
+one where the MPICH2 source is installed. This often allows faster
+building, as the sources can be placed in a shared filesystem and the
+builds done in a local (and hence usually much faster) filesystem.  To
+make this clear, the following example assumes that the sources are
+placed in /home/me/mpich2-<VERSION>, the build is done in
+/tmp/me/mpich2, and the installed version goes into
+/usr/local/mpich2-<VERSION>:
+
+  shell$ cd /home/me
+  shell$ tar xzf mpich2-<VERSION>.tar.gz
+  shell$ cd /tmp/me
+
+  shell$ mkdir mpich2
+  shell$ cd mpich2
+  shell$ /home/me/mpich2-<VERSION>/configure --prefix=/usr/local/mpich2-<VERSION>
+  shell$ make
+  shell$ make install
+
+-------------------------------------------------------------------------
+
+VII. Shared Libraries
+=====================
+Shared libraries are currently only supported for gcc (and gcc-like
+compilers) on Linux and Mac and for cc on Solaris. To have shared
+libraries created when MPICH2 is built, specify the following when
+MPICH2 is configured:
+
+    configure --enable-shared
+
+For users who wish to manually control the linker parameters, this can
+be done using:
+
+    configure --enable-sharedlibs=gcc         (on Linux)
+    configure --enable-sharedlibs=osx-gcc     (on Mac OS X)
+    configure --enable-sharedlibs=solaris-cc  (on Solaris)
+
+-------------------------------------------------------------------------
+
+VIII. Other Features
+====================
+
+MPICH2 has a number of other features. If you are exploring MPICH2 as
+part of a development project the following configure options are
+important:
+
+Performance Options:
+
+ --enable-fast - Turns off error checking and collection of internal
+                 timing information
+
+ --enable-timing=no - Turns off just the collection of internal timing
+                 information
+
+ --enable-ndebug - Turns on NDEBUG, which disables asserts. This is a
+		subset of the optimizations provided by enable-fast,
+		but is useful in environments where the user wishes
+		to retain the debug symbols, e.g., this can be combined
+		with the --enable-g option.
+
+MPI Features:
+
+  --enable-romio - Build the ROMIO implementation of MPI-IO.  This is
+                 the default
+
+  --with-file-system - When used with --enable-romio, specifies
+                 filesystems ROMIO should support.  See README.romio.
+
+  --enable-threads - Build MPICH2 with support for multi-threaded
+                 applications. Only the sock and nemesis channels support
+                 MPI_THREAD_MULTIPLE. 
+
+  --with-thread-package - When used with --enable-threads, this option
+                 specifies the thread package to use.  This option
+                 defaults to "posix".  At the moment, only POSIX
+                 threads are supported on UNIX platforms.  We plan to
+                 support Solaris threads in the future.
+
+Language bindings:
+
+  --enable-f77 - Build the Fortran 77 bindings.  This is the default.
+                 It has been tested with the Fortran parts of the Intel
+                 test suite.
+
+  --enable-fc  - Build the Fortran 90 bindings.  This is on by default.
+
+  --enable-cxx - Build the C++ bindings.  This has been tested with the
+                 Notre Dame C++ test suite and some additional tests.
+
+Cross compilation:
+
+  --with-cross=filename - Provide values for the tests that required
+                 running a program, such as the tests that configure
+                 uses to determine the sizes of the basic types.  This
+                 should be a fine in Bourne shell format containing
+                 variable assignment of the form
+
+                     CROSS_SIZEOF_INT=2
+
+                 for all of the CROSS_xxx variables.  A list will be
+                 provided in later releases; for now, look at the
+                 configure.in files.  This has not been completely
+                 tested.
+
+Error checking and reporting:
+
+  --enable-error-checking=level - Control the amount of error checking.
+                 Currently, only "no" and "all" is supported; all is the
+                 default.
+
+  --enable-error-messages=level - Control the aount of detail in error
+                 messages.  By default, MPICH2 provides
+                 instance-specific error messages; but, with this
+                 option, MPICH2 can be configured to provide less
+                 detailed messages.  This may be desirable on small
+                 systems, such as clusters built from game consoles or
+                 high-density massively parallel systems.  This is still
+                 under active development.
+
+Compilation options for development:
+
+  --enable-g=value - Controls the amount of debugging information
+                 collected by the code.  The most useful choice here is
+                 dbg, which compiles with -g.
+
+  --enable-coverage - An experimental option that enables GNU coverage
+                 analysis.
+
+  --with-logging=name - Select a logging library for recording the
+                 timings of the internal routines.  We have used this to
+                 understand the performance of the internals of MPICH2.
+                 More information on the logging options, capabilities
+                 and usage can be found in doc/logging/logging.pdf.
+
+  --enable-timer-type=name -  Select the timer to use for MPI_Wtime
+                 and internal timestamps.  name may be one of:
+                     gethrtime        - Solaris timer (Solaris systems
+                                        only) 
+                     clock_gettime    - Posix timer (where available)
+                     gettimeofday     - Most Unix systems
+                     linux86_cycle    - Linux x86; returns cycle
+                                        counts, not time in seconds*
+                     linuxalpha_cycle - Like linux86_cycle, but for
+                                        Linux Alpha* 
+                     gcc_ia64_cycle   - IPF ar.itc timer*
+                     device           - The timer is provided by the device
+                 *Note that the cycle timers are intended to be used by
+                  MPICH2 developers for internal low-level timing.
+                  Normal users should not use these as they are not
+                  guaranteed to be accurate in certain situations.
+
+-------------------------------------------------------------------------
+
+IX. Checkpoint/Restart
+======================
+
+MPICH2 supports checkpointing and restart fault-tolerance using BLCR.
+
+Configuration
+-------------
+
+First, you need to have BLCR version 0.8.2 installed on your machine.
+If it's installed in the default system location, add the following
+two options to your configure command:
+
+  --enable-checkpointing 
+  --with-hydra-ckpointlib=blcr
+
+If BLCR is not installed in the default system location, you'll need
+to tell MPICH2's configure where to find it.  You might also need to
+set the LD_LIBRARY_PATH environment variable so that BLCR's shared
+libraries can be found.  In this case add the following options to
+your configure comment:
+
+  --enable-checkpointing 
+  --with-hydra-ckpointlib=blcr 
+  --with-blcr=<BLCR_INSTALL_DIR> 
+  LD_LIBRARY_PATH=<BLCR_INSTALL_DIR>/lib
+
+where <BLCR_INSTALL_DIR> is the directory where BLCR has been
+installed (whatever was specified in --prefix when BLCR was
+configured).
+
+Note, checkpointing is only supported with the Hydra process manager.
+(Hyrda will configured by default, unless you choose something else
+with the --with-pm= configure option.)
+
+After it's configured compile as usual (e.g., make; make install).
+
+Running an Application
+----------------------
+
+Hydra provides checkpoint/restart capability.  Currently, only BLCR is
+being experimented with.  You can pick these through the mpiexec
+option -ckpointlib to specify the checkpointing library to use and
+-ckpoint-prefix to specify the prefix of the file to write the
+checkpoint image to:
+
+  mpiexec -ckpointlib blcr -ckpoint-prefix /tmp/app.ckpoint -f hosts \
+  -n 4 ./app
+
+While the application is running, the user can request for a
+checkpoint at any time by sending a SIGUSR1 signal to mpiexec.
+
+You can also automatically checkpoint the application at regular
+intervals using the mpiexec option -ckpoint-interval (seconds):
+
+  mpiexec -ckpointlib blcr -ckpoint-prefix /tmp/app.ckpoint \
+  -ckpoint-interval 3600 -f hosts -n 4 ./app
+
+The checkpoint/restart parameters can be controlled with the
+environment variables HYDRA_CKPOINTLIB, HYDRA_CKPOINT_PREFIX and
+HYDRA_CKPOINT_INTERVAL.
+
+To restart a process:
+
+  mpiexec -ckpointlib blcr -ckpoint-prefix /tmp/app.ckpoint -f hosts -n 4 -ckpoint-num <N>
+
+where <N> is the checkpoint number you want to restart from.
+
+These instructions can also be found on the MPICH2 wiki:
+
+  http://wiki.mcs.anl.gov/mpich2/index.php/Checkpointing
+
+-------------------------------------------------------------------------
+
+X. Environment Variables
+========================
+
+MPICH2 provides several environment variables that have different
+purposes.
+
+Generic Environment Variables
+-----------------------------
+
+  MPICH_NO_LOCAL - Disable shared-memory communication. With this
+         option, even communication within a node will use the network
+         stack.
+
+               ************************************
+
+  MPICH_INTERFACE_HOSTNAME - Network interface to use for
+         communication. By default MPICH2 picks the network interface
+         representing the hostname (gotten by gethostbyname). Consider
+         the following example:
+
+% /sbin/ifconfig
+
+eth0      Link encap:Ethernet  HWaddr 00:14:5E:57:C4:FA
+          inet addr:192.148.3.182  Bcast:192.148.248.255  Mask:255.255.255.0
+          inet6 addr: fe80::214:5eff:fe57:c4fa/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:989925894 errors:0 dropped:7186 overruns:0 frame:0
+          TX packets:1480277023 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:441568994866 (411.2 GiB)  TX bytes:1864173370054 (1.6 TiB)
+          Interrupt:185 Memory:e2000000-e2012100
+
+myri0     Link encap:Ethernet  HWaddr 00:14:5E:57:C4:F8
+          inet addr:10.21.3.182  Bcast:10.21.255.255  Mask:255.255.0.0
+          inet6 addr: fe80::214:5eff:fe57:c4f8/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:3068986439 errors:0 dropped:7841 overruns:0 frame:0
+          TX packets:2288060450 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:3598751494497 (3.2 TiB)  TX bytes:1744058613150 (1.5 TiB)
+          Interrupt:185 Memory:e4000000-e4012100
+
+In the above case the 192.148.x.x IP series refers to the standard
+Ethernet (or Gigabit Ethernet) network, AND the 10.21.x.x series
+refers to Myrinet.
+
+To run over the Myrinet network use:
+
+% mpiexec -np 1 -env MPICH_INTERFACE_HOSTNAME 10.21.3.182 ./foo
+
+               ************************************
+
+  MPICH_INTERFACE_HOSTNAME_R%d - Network interface to use for rank %d.
+
+               ************************************
+
+  MPICH_PORT_RANGE - Port range to use for MPICH2 internal TCP
+         connections. This is useful when some of the host ports are
+         blocked by a firewall. For example, setting MPICH_PORT_RANGE
+         to "2000:3000" will ensure that MPICH2 will internally only
+         uses ports between 2000 and 3000.
+
+               ************************************
+
+  MPICH_ASYNC_PROGRESS - Initiates a spare thread to provide
+         asynchronous progress. This improves progress semantics for
+         all MPI operations including point-to-point, collective,
+         one-sided operations and I/O. Setting this variable would
+         increase the thread-safety level to
+         MPI_THREAD_MULTIPLE. While this improves the progress
+         semantics, it might cause a small amount of performance
+         overhead for regular MPI operations.
+
+-------------------------------------------------------------------------
+
+XI. Developer Builds
+====================
+For MPICH2 developers who want to directly work on the svn, there are
+a few additional steps involved (people using the release tarballs do
+not have to follow these steps). Details about these steps can be
+found here:
+http://wiki.mcs.anl.gov/mpich2/index.php/Getting_And_Building_MPICH2
+
+-------------------------------------------------------------------------
+
+XII. Building ROMIO into MPICH2
+===============================
+By default, ROMIO, an implementation of the I/O portion of MPI-2 will
+be built as a part of MPICH2. The file systems to be built can be
+speicified by passing them in a '+'-delimited list to the
+--with-file-system configure option. For example:
+
+  --with-file-system="pvfs+nfs+ufs"
+
+If you have installed version 2 of the PVFS file system, you can use
+the '--with-pvfs2=<prefix>' configure option to specify where
+libraries, headers, and utilities have been installed. If you have
+added the pvfs utilities to your PATH, then ROMIO will detect this and
+build support for PVFS automatically.
+
+-------------------------------------------------------------------------
+
+XIII. Testing the MPICH2 installation
+=====================================
+To test MPICH2, use the following options after installing mpich2.
+These will assume that mpich2 is installed into /usr/local/mpich2.
+
+1. MPICH2 test suite:
+
+   shell$ make testing
+
+The results summary will be placed in test/summary.xml 
+
+-------------------------------------------------------------------------
+
+XIV. Installing MPICH2 on Windows
+=================================
+
+Here are the instructions for setting up MPICH2 on a Windows machine:
+
+0) Install:
+    Microsoft Developer Studio 2003 or later
+    Intel Fortran 8.0 or later
+    cygwin
+	choose the dos file format option
+	install perl and cvs
+
+1) Checkout mpich2:
+
+    Bring up a command prompt.
+    (replace "yourname" with your MCS login name):
+    svn co https://svn.mcs.anl.gov/repos/mpi/mpich2/trunk mpich2
+
+2) Generate *.h.in
+
+    Bring up a cygwin bash shell.
+    cd mpich2
+    maint/updatefiles
+    exit
+
+3) Execute winconfigure.wsf
+
+4) Open Developer Studio
+
+    open mpich2\mpich2.sln
+    build the ch3sockDebug mpich2 solution
+    build the ch3sockDebug mpich2s project
+    build the ch3sockRelease mpich2 solution
+    build the ch3sockRelease mpich2s project
+    build the Debug mpich2 solution
+    build the Release mpich2 solution
+    build the fortDebug mpich2 solution
+    build the fortRelease mpich2 solution
+    build the gfortDebug mpich2 solution
+    build the gfortRelease mpich2 solution
+    build the sfortDebug mpich2 solution
+    build the sfortRelease mpich2 solution
+
+5) Open a command prompt
+
+    cd to mpich2\maint
+    execute "makegcclibs.bat"
+
+6) Open another Developer Studio instance
+
+    open mpich2\examples\examples.sln
+    build the Release target of the cpi project
+
+7) Return to Developer Studio with the mpich2 solution
+
+    set the version numbers in the Installer project
+    build the Installer mpich2 solution
+
+8) Test and distribute mpich2\maint\ReleaseMSI\mpich2.msi
+
+    mpich2.msi can be renamed, eg mpich2-1.1.msi
+
+9) To install the launcher:
+
+    Copy smpd.exe to a local directory on all the nodes.
+    Log on to each node as an administrator and execute "smpd.exe -install"
+
+10) Compile and run an MPI application:
+
+    Compile an mpi application.  Use mpi.h from mpich2\src\include\win32 
+    and mpi.lib in mpich2\lib
+    
+    Place your executable along with the mpich2 dlls somewhere accessable
+    to all the machines.
+    
+    Execute a job by running something like: mpiexec -n 3 myapp.exe
+
+-------------------------------------------------------------------------
+
+XIV. Multiple Fortran compiler support
+======================================
+
+If the C compiler that is used to build MPICH2 libraries supports both
+multiple weak symbols and multiple aliases of common symbols, the Fortran 77
+binding can support multiple Fortran compilers.  The multiple weak symbols
+support allow MPICH2 to provide different name mangling scheme (of
+subroutine names) required by differen Fortran compilers.  The multiple
+aliases of common symbols support enables MPICH2 to equal different common
+block symbols of the MPI Fortran constant, e.g. MPI_IN_PLACE,
+MPI_STATUS_IGNORE...  So they are understood by different Fortran compilers.
+
+Since the support of multiple aliases of common symbols is new/experimental,
+users can disable the feature by using configure option --disable-multi-aliases
+if it causes any undesirable effect, e.g. linker warnings of different sizes
+of common symbols, MPIFCMB* (the warning should be harmless).
+
+We have only tested this support on a limited set of platforms/compilers.
+On linux, if the C compiler that builds MPICH2 is either gcc or icc,
+the above support will be enabled by configure.  At the time of this
+writing, pgcc does not seem to have this multiple aliases of common symbols,
+so configure will detect the deficiency and disable the feature automatically.
+The tested Fortran compiler includes GNU Forran compilers(gfortan, g77),
+Intel Fortran compiler(ifort), Portland Group Fortran compilers(pgf77, pgf90), 
+Absoft Fortran compilers (af77, af90), and IBM XL fortran compiler(xlf).
+What this mean is that if mpich2 is built by gcc/gfortran, the resulting
+mpich2 library can be used to link a Fortran program compiled/linked by
+another fortran compiler, say pgf77, say through mpif77 -f77=pgf77.
+As long as the Fortran program is linked without any errors by
+one of these compilers, the program shall be running fine.
+
+Ref: http://trac.mcs.anl.gov/projects/mpich2/ticket/502.
+

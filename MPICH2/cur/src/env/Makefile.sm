@@ -1,0 +1,22 @@
+INCLUDES = -I../include
+doc_sources = mpicc.txt mpif77.txt mpicxx.txt mpif90.txt mpiexec.txt
+DOCDESTDIRS = html:www/www1,man:man/man1,latex:doc/refman
+doc_HTML_SOURCES  = ${doc_sources}
+doc_MAN_SOURCES   = ${doc_sources}
+doc_LATEX_SOURCES = ${doc_sources}
+
+mpich2version_SOURCES = mpich2version.c
+mpich2version_LDADD = ../../lib/lib@MPILIBNAME@.a
+
+install_SCRIPT = mpicc parkill
+install_BIN = mpich2version
+install_ETC = mpixxx_opts.conf mpicc.conf
+optinstall_SCRIPT = mpicxx mpif77 mpif90
+optinstall_ETC = mpicxx.conf mpif77.conf mpif90.conf
+# Provide an alias for mpicxx to support tools that assume that mpicxx is
+# called mpic++
+install-postamble:
+	if [ -x ${DESTDIR}${bindir}/mpicxx ] ; then \
+	    cd ${DESTDIR}${bindir} && ln -f -s mpicxx mpic++ ; fi
+uninstall-postamble:
+	rm -f ${DESTDIR}${bindir}/mpic++
