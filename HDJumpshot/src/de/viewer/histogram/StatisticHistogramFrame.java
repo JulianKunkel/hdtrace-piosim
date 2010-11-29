@@ -118,15 +118,16 @@ public class StatisticHistogramFrame extends StatisticHistogram<HistogramIntData
 		g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 
 		// draw stddevs
-		g.setColor(Color.WHITE);
+		g.setColor(Color.BLACK);
 		for (int i=1; i <= 3; i++){
-			g.setColor(g.getColor().darker());
-			x = xaxis.convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
+			g.setColor(g.getColor().brighter());
+			
+			x = xaxis.convertValueToPixel( i * statistics.getStddevValue() + statistics.getAverageValue()) ;
 			g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
 
-			x = xaxis.convertValueToPixel(i * statistics.getStddevValue() + statistics.getAverageValue()) ;
+			x = xaxis.convertValueToPixel(-i * statistics.getStddevValue() + statistics.getAverageValue()) ;
 
-			g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());
+			g.drawLine(x, yaxis.getDrawOffset() + yaxis.getDrawSize(), x, yaxis.getDrawOffset());		
 		}
 	}
 }
