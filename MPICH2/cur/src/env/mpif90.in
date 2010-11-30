@@ -385,7 +385,7 @@ if [ "$linking" = yes ] ; then
         $Show $FC $FCFLAGS $LDFLAGS $allargs
         rc=$?
     else
-        $Show $FC $FCFLAGS $LDFLAGS $allargs $FCINCDIRS $FCMODDIRS ${path_list} $FCMODLIBS $mpilibs $LIBS
+        $Show $FC $FCFLAGS $LDFLAGS $allargs $FCINCDIRS $FCMODDIRS ${path_list} $FCMODLIBS $mpilibs $LIBS $mpilibs
         rc=$?
     fi
 else

@@ -332,7 +332,7 @@ if [ "$linking" = yes ] ; then
         $Show $F77 $FFLAGS $LDFLAGS $allargs -I$includedir
         rc=$?
     else
-        $Show $F77 $FFLAGS $LDFLAGS $allargs -I$includedir ${path_list} $mpilibs $LIBS
+        $Show $F77 $FFLAGS $LDFLAGS $allargs -I$includedir ${path_list} $mpilibs $LIBS $mpilibs
         rc=$?
     fi
 else
