@@ -30,10 +30,10 @@
 # */
 
 """
-This script takes an output file and a number of HDTraceMPIWrapper logfiles as 
-an argument. 
-It then writes the information found in the process-specific *.info files into 
-the output file. 
+This script takes an output file and a number of HDTraceMPIWrapper logfiles as
+an argument.
+It then writes the information found in the process-specific *.info files into
+the output file.
 
 ### Example #####################################################################
 #
@@ -54,7 +54,7 @@ mpi-io-test_node02_3_0.trc
 
 #
 # to process the output, call this script:
-# 
+#
 
 $ project-description-merger.py -o mpi-io-test.proj mpi-io-test_*.info
 
@@ -72,14 +72,14 @@ import os
 
 def split_filename(d):
    """
-   Split a HDTraceWrapper filename into its main components. 
+   Split a HDTraceWrapper filename into its main components.
    A filename looks like this:
-         
+
       <project>_<hostname>_<rank>_<thread>
 
    note: <project> may not contain underscores
 
-   Example: 
+   Example:
    split_filename('trace_mpi-io-test_pvs-cluster.informatik.uni-heidelberg.de_0_0')
     == ["trace_mpi-io-test", "pvs-cluster.informatik.uni-heidelberg.de", "0", "0"]
    """
@@ -96,21 +96,21 @@ def split_filename(d):
 
    return split_name
 
-   
+
 def usage():
    """
    print usage information for the program
    """
    print "Syntax: -o <outfile.xml> [-d <description>] [--distribution-class=<class>] \\"
    print "[--chunk-size=<size>] <log1>.info <log2>.info ... <logN>.info"
-   print 
+   print
    print "  -o <outfile>                : write output to <outfile>. "
    print "                                this argument is mandatory"
    print "  -d <description>            : description for the project "
    print "  --distribution-class=<class>: piosim distribution class for MPI-IO files"
    print "  --chunk-size=<size>         : chunk size for MPI-IO files"
-   print 
-   print 
+   print
+   print
 
 
 
@@ -129,15 +129,15 @@ def get_options():
 
    output_fname = None
    project_description = ""
-   file_distribution_class = "de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe"         
+   file_distribution_class = "de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe"
    file_chunk_size = "64K"
 
-   for opt, arg in opts:                
-      if opt in ("-h", "--help"):      
-         usage()                     
-         sys.exit()                  
-      elif opt in ("-o", "--output_fname"): 
-         output_fname = arg               
+   for opt, arg in opts:
+      if opt in ("-h", "--help"):
+         usage()
+         sys.exit()
+      elif opt in ("-o", "--output_fname"):
+         output_fname = arg
       elif opt in ("-d", "--description"):
          project_description = arg
       elif opt in ("--distribution-class"):
@@ -173,12 +173,12 @@ class File:
       self.chunk_size = chunk_size
 
    def xmlString(self):
-      return ((' <File name="%s">\n' % self.name)  + 
+      return ((' <File name="%s">\n' % self.name)  +
               ('  <InitialSize>%s</InitialSize>\n' % self.size) +
               ('  <Distribution implementation="%s">\n' % self.distribution_class) +
               ('  <ChunkSize>%s</ChunkSize>\n' % self.chunk_size) +
 	       '  </Distribution>\n' +
-              (' </File>\n' )) 
+              (' </File>\n' ))
 
 
 class Comm:
@@ -195,7 +195,7 @@ class Comm:
          assert len(t) == 2
          self.map[t[0]] = t[1]
 
-         
+
 
 class Type:
    """
@@ -236,13 +236,13 @@ def parse_info_files(file_basenames, distclass, chunksize):
       for line in inp:
          res = re.match("File name=\"([^\"]*)\" .*Size=(\d*) id=(\d*)", line)
          if res :
-            print "File: " + res.group(1) + " " + res.group(2) + " " + res.group(3)    
+            print "File: " + res.group(1) + " " + res.group(2) + " " + res.group(3)
             # only store unique files (unique name)
             files[res.group(1)] = File(res.group(1), res.group(2), res.group(3), distclass, chunksize)
             continue
 
          res = re.match("Comm map='([^']*)' id=(\d*) name='([^']*)'", line)
-         if res : 
+         if res :
             print "Comm " + res.group(1) + " " + res.group(2) + " " + res.group(3)
             comms[name].append( Comm(res.group(1), res.group(2), res.group(3)) )
             continue
@@ -275,7 +275,7 @@ def get_project_name(files):
          print "[ERROR]: all filenames must have the same project name, but"
          print '         "%s" differs from "%s"' % (name[0], split_filenames[0][0])
          print
-         sys.exit(0) 
+         sys.exit(0)
 
    pname = split_filenames[0][0]
    last_slash = pname.rfind("/")
@@ -373,7 +373,7 @@ def comm_string(comms):
    """
    This function finds out, which communicator definitions in the
    different logfiles belong together i.e. represent the same
-   communicator. Then it returns an xml string representing 
+   communicator. Then it returns an xml string representing
    each communicator, and the internal mapping between the world rank
    (called Rank name) and the communicator rank (called cid)
    """
@@ -397,7 +397,7 @@ def comm_string(comms):
 
                if not comms[filename][cc]:
                   continue
-               
+
                # if maps match, search no further, delete this map
                if comms[filename][cc].map == current_map:
                   rank_nr = split_filename(filename)[2]
@@ -414,25 +414,25 @@ out.write(comm_string(comms))
 
 
 ###############################################################################
-# 
+#
 # Now, we have to document the used filetypes. There are the simple ones with
-# a fixed number of arguments: those are listed in type_format, using 
-# the tuple (<list of integer names>, <list of address names>, 
-# <list of type names>) and then written out by the function type_string(...). 
-# 
-# The somewhat more complicated types have their own formatting functions. Which 
-# function is being called for which type is listed in the dictionary 
+# a fixed number of arguments: those are listed in type_format, using
+# the tuple (<list of integer names>, <list of address names>,
+# <list of type names>) and then written out by the function type_string(...).
+#
+# The somewhat more complicated types have their own formatting functions. Which
+# function is being called for which type is listed in the dictionary
 # file_format_functions below.
 #
 ###############################################################################
 
 type_format = {
    "DUP" : ([], [], ["oldType"]),
-   "CONTIGUOUS" : (["count"], 
-                   [], 
-                   ["oldType"]), 
-   "VECTOR" : (["count", "blocklength", "stride"], 
-               [], 
+   "CONTIGUOUS" : (["count"],
+                   [],
+                   ["oldType"]),
+   "VECTOR" : (["count", "blocklength", "stride"],
+               [],
                ["oldType"]),
    "HVECTOR" : (["count", "blocklength"], ["stride"], ["oldType"]),
    "HVECTOR_INTEGER" : (["count", "blocklength"], ["stride"], ["oldType"]),
@@ -450,7 +450,7 @@ def indexed_string(id, combiner, name, integers, addresses, types):
    result += '  </%s>\n' % combiner
 
    return result
-                                                      
+
 
 def hindexed_string(id, combiner, name, integers, addresses, types):
    assert int(integers[0]) + 1 == len(integers)
@@ -494,9 +494,9 @@ def struct_string(id, combiner, name, integers, addresses, types):
 
 def subarray_string(id, combiner, name, integers, addresses, types):
    assert int(integers[0])*3 + 2 == len(integers)
-   
+
    size = int(integers[0])
-   
+
    result = ""
    result += '  <%s id="%s" name="%s" ndims="%s" order="%s" oldType="%s" >\n' % (combiner, id, name, size, integers[-1], types[0])
 
@@ -504,7 +504,7 @@ def subarray_string(id, combiner, name, integers, addresses, types):
       result += '   <Dimension size="%s" subsize="%s" start="%s" />\n' % (integers[1 + i], integers[1 + size + i], integers[1 + size*2 + i])
    result += '  </%s>\n' % combiner
 
-   return result      
+   return result
 
 
 def darray_string(id, combiner, name, integers, addresses, types):
@@ -519,22 +519,22 @@ def darray_string(id, combiner, name, integers, addresses, types):
 
    result += '  </%s>\n' % combiner
 
-   return result      
-   
-   
+   return result
+
+
 type_format_functions = {
    "INDEXED" : indexed_string,
-   "HINDEXED" : hindexed_string, 
+   "HINDEXED" : hindexed_string,
    "INDEXED_BLOCK" : indexed_block_string,
-   "STRUCT" : struct_string, 
-   "STRUCT_INTEGER" : struct_string, 
-   "SUBARRAY" : subarray_string, 
-   "DARRAY" : darray_string, 
+   "STRUCT" : struct_string,
+   "STRUCT_INTEGER" : struct_string,
+   "SUBARRAY" : subarray_string,
+   "DARRAY" : darray_string,
 }
 
 def type_string(id, combiner, name, integers = [], addresses = [], types = []):
    """
-   Assemble the type information into an xml representation and return it. 
+   Assemble the type information into an xml representation and return it.
    Types with a fixed argument count are listed in the dictionary type_format.
    Types with a variable argument count are processed by custom functions, as
    listed in the dict type_format_functions
@@ -563,14 +563,14 @@ def type_string(id, combiner, name, integers = [], addresses = [], types = []):
 
          for i in xrange(0, len(type_names)):
             result += '%s="%s" ' % (type_names[i], types[i])
-         
+
          if len(int_names) == len(integers) and len(add_names) == len(addresses) and  len(type_names) == len(types):
-            result += " />\n" 
+            result += " />\n"
          else:
             result += " >\n"
-            
+
             result += "  </%s>\n" % combiner
-         
+
          pass
       elif combiner in type_format_functions:
          result = type_format_functions[combiner](id, combiner, name, integers, addresses, types)
@@ -580,13 +580,13 @@ def type_string(id, combiner, name, integers = [], addresses = [], types = []):
          else:
             result += " >\n"
             for i in integers:
-               result += '    <Integer>%s</Integer>\n' % i 
+               result += '    <Integer>%s</Integer>\n' % i
             for a in addresses:
                result += '    <Address>%s</Address>\n' % a
             for t in types:
-               result += '    <Type>%s</Type>\n' % t 
+               result += '    <Type>%s</Type>\n' % t
             result += "  </%s>\n" % combiner
-            
+
    else:
       print "unknown combiner " + combiner
       return ""
@@ -611,6 +611,7 @@ for i in types:
    out.write('  </Rank>\n')
 
 out.write(" </Datatypes>\n")
+out.write("<ExternalStatistics>\n\t<Energy/>\n\t<Utilization/>\n</ExternalStatistics\n>")
 out.write("</Application>\n");
 out.close()
 
