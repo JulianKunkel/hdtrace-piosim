@@ -9,6 +9,7 @@ int main(int argc, char** argv)
   GSList * traceFile;
   GSList * comms;
   
+  struct Element* element;
 
   MPI_Init(&argc,&argv);
   
@@ -25,8 +26,11 @@ int main(int argc, char** argv)
   }
   
   init(&traceFile, &comms, rank, size, argc, argv);
-
-  //printf("Hostname: %s\n", topo->hostname);
+  
+   element = (struct Element*) g_slist_nth_data(traceFile,0);
+   
+   printf("%i\n",element->type);
+  
   MPI_Finalize();
   return 0;
 }

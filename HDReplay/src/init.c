@@ -34,6 +34,8 @@ int argc, char** argv)
   genTraceFileName(traceFilePath ,traceFileFolderPath, programName,hostname,rank);
   
   printf("trc: %s\n", traceFilePath);
+  
+  readTrace(traceFile, traceFilePath);
 
 }
 
