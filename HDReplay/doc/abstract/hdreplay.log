@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.10.23)  25 NOV 2010 15:09
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.10.23)  30 NOV 2010 10:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -738,6 +738,14 @@ Package minitoc Info: I0033
 (minitoc)             Writing hdreplay.stc2 on input line 74.
 \openout3 = `hdreplay.stc2'.
 
+Package minitoc Info: I0033
+(minitoc)             Writing hdreplay.stc3 on input line 74.
+\openout3 = `hdreplay.stc3'.
+
+Package minitoc Info: I0033
+(minitoc)             Writing hdreplay.stc4 on input line 74.
+\openout3 = `hdreplay.stc4'.
+
 LaTeX Font Info:    Try loading font information for T1+cmss on input line 75.
  (/usr/share/texmf-texlive/tex/latex/base/t1cmss.fd
 File: t1cmss.fd 1999/05/25 v2.5h Standard LaTeX font definitions
@@ -761,12 +769,19 @@ Class scrartcl Info: You've told me to use the font selection of the element
 Class scrartcl Info: You've told me to use the font selection of the element
 (scrartcl)           `sectioning' that is an alias of element `disposition'
 (scrartcl)            on input line 3.
+Class scrartcl Info: You've told me to use the font selection of the element
+(scrartcl)           `sectioning' that is an alias of element `disposition'
+(scrartcl)            on input line 4.
+Class scrartcl Info: You've told me to use the font selection of the element
+(scrartcl)           `sectioning' that is an alias of element `disposition'
+(scrartcl)            on input line 9.
 )
 \tf@toc=\write4
 \openout4 = `hdreplay.toc'.
 
  [2]
-LaTeX Font Info:    Try loading font information for T1+cmtt on input line 99.
+LaTeX Font Info:    Try loading font information for T1+cmtt on input line 103.
+
 
 (/usr/share/texmf-texlive/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
@@ -797,8 +812,8 @@ Package minitoc(hints) Warning: W0024
 
 [3] (./hdreplay.aux) ) 
 Here is how much of TeX's memory you used:
- 7703 strings out of 493848
- 101184 string characters out of 1152822
+ 7709 strings out of 493848
+ 101214 string characters out of 1152822
  216561 words of memory out of 3000000
  10649 multiletter control sequences out of 15000+50000
  18802 words of font info for 52 fonts, out of 3000000 for 9000
@@ -813,7 +828,7 @@ onts/type1/public/cm-super/sfsx0900.pfb></usr/share/texmf/fonts/type1/public/cm
 -super/sfsx1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfsx1440.pfb>
 </usr/share/texmf/fonts/type1/public/cm-super/sfsx2074.pfb></usr/share/texmf/fo
 nts/type1/public/cm-super/sftt0900.pfb>
-Output written on hdreplay.pdf (3 pages, 155572 bytes).
+Output written on hdreplay.pdf (3 pages, 160860 bytes).
 PDF statistics:
  53 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
