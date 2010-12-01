@@ -196,7 +196,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 	trace->buffer_pos = 0;
 	trace->buffer[0] = '\0';
 	trace->topoNode = topoNode;
-	trace->enabledTrace = 1;
+	trace->enabled = 1;
 
 	trace->always_flush = 0;
 	trace->trace_nested_operations = 0;
@@ -223,7 +223,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 			(unsigned) trace->init_time.tv_sec
 			);
 
-	trace->enabledTrace = 0;
+	trace->enabled = 0;
 	return trace;
 }
 
@@ -790,7 +790,7 @@ int hdT_logEventEnd(
  */
 int hdT_finalize(hdTrace *trace)
 {
-	trace->enabledTrace = 1;
+	trace->enabled = 1;
 	if (trace == NULL)
 	{
 		errno = HD_ERR_INVALID_ARGUMENT;
