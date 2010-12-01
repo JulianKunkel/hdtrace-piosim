@@ -393,9 +393,6 @@ int hdT_writeInfo(hdTrace *trace, const char *format, ...)
 		return -1;
 	}
 
-	if (!hdT_isEnabled(trace))
-		return 0;
-
 	char buffer[HD_TMP_BUF_SIZE];
 	va_list argptr;
 	size_t count;
