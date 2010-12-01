@@ -95,9 +95,7 @@ static PowerTrace *ptStatistics = NULL;
 
 #endif
 
-static int enabledTracing = 0;
 static int mpiTraceNesting = 1;
-
 
 /**
  * This is a global variable that regulates whether all functions listed in
@@ -208,7 +206,7 @@ static char * trace_file_prefix;
 
 #ifdef ENABLE_LIKWID_HDTRACE
 void hdMPI_threadLogStateStart(const char * stateName){
-  if(! enabledTracing) return;
+  if(! hdT_isEnabled(hdMPI_getThreadTracefile())) return;
 
     mpiTraceNesting++;
 #ifdef ENABLE_SOTRACER
@@ -235,7 +233,7 @@ void hdMPI_threadLogStateStart(const char * stateName){
 }
 
 void hdMPI_threadLogStateEnd(void){
-  if(! enabledTracing) return;
+    if(! hdT_isEnabled(hdMPI_getThreadTracefile())) return;
 
     mpiTraceNesting--;
 #ifdef ENABLE_SOTRACER
@@ -256,7 +254,7 @@ void hdMPI_threadLogStateEnd(void){
 
 #else
 void hdMPI_threadLogStateStart(const char * stateName){
-  if(! enabledTracing) return;
+    if(! hdT_isEnabled(hdMPI_getThreadTracefile())) return;
 
 #ifdef ENABLE_SOTRACER
     sotracer_disable();
@@ -268,7 +266,7 @@ void hdMPI_threadLogStateStart(const char * stateName){
 }
 
 void hdMPI_threadLogStateEnd(void){
-  if(! enabledTracing) return;
+  if(! hdT_isEnabled(hdMPI_getThreadTracefile())) return;
 
 #ifdef ENABLE_SOTRACER
     sotracer_disable();
@@ -631,7 +629,7 @@ static void after_Init(int *argc, char ***argv)
   sotracer_enable();
   #endif
 
-  enabledTracing = 1;
+  hdT_enableTrace(hdMPI_getThreadTracefile());
 }
 
 /**
@@ -642,7 +640,8 @@ static void after_Init(int *argc, char ***argv)
 static void after_Finalize(void)
 {
   // ensure that we will not trace anything from MPI any more.
-  enabledTracing = 0;
+  hdT_disableTrace(hdMPI_getThreadTracefile());
+
 #ifdef ENABLE_SOTRACER
   sotracer_finalize();
 #endif

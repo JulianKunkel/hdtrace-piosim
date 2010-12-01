@@ -198,7 +198,6 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 	trace->topoNode = topoNode;
 
 	trace->always_flush = 0;
-	trace->isEnabled = 1;
 	trace->trace_nested_operations = 0;
 
 
@@ -470,6 +469,9 @@ int hdT_logElement(hdTrace *trace, const char * name,
 		return -1;
 	}
 
+	if (!hdT_isEnabled(trace))
+		return 0;
+
 	if (trace->function_depth > trace->trace_nested_operations ||
 		trace->function_depth > HD_LOG_MAX_DEPTH)
 	{
@@ -557,6 +559,9 @@ int hdT_logAttributes(hdTrace *trace, const char * valueFormat, ...)
 		return -1;
 	}
 
+	if (!hdT_isEnabled(trace))
+		return 0;
+
 	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
 	{
 		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d",
@@ -626,6 +631,9 @@ int hdT_logStateStart(hdTrace *trace, const char * stateName)
 		errno = HD_ERR_INVALID_ARGUMENT;
 		return -1;
 	}
+
+	if (!hdT_isEnabled(trace))
+		return 0;
 
 	trace->function_depth++;
 	if (trace->trace_nested_operations < trace->function_depth)
