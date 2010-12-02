@@ -29,6 +29,9 @@ int main(int argc, char** argv)
   
    element = (struct Element*) g_slist_nth_data(traceFile,0);
    
+   GSList* last = g_slist_last(comms);
+   struct Communicator* comm = (struct Communicator*) last->data;
+   printf("%s\n", comm->name);
    printf("%i\n",element->type);
   
   MPI_Finalize();

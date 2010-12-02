@@ -116,11 +116,16 @@ struct Element
   }u;
 };
 
+struct Rank
+{
+  int global;
+  int local;
+  int cid;
+};
 
 struct Communicator
 {
   char name[COMM_NAME_LEN];
-  struct Rank* rank;
-  struct Communicator* next;
+  GSList* ranks;
 };
 #endif 

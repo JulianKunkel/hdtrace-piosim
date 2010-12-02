@@ -3,6 +3,7 @@
 
 static char* hostnameBuf;
 static char* programNameBuf;
+static GSList* commsBuf;
 static int foundHostname = 0;
 static int rankBuf;
 
@@ -44,6 +45,49 @@ startElement(int* depth, const char *name, const char** attributes)
   {
     strncpy(programNameBuf, attributes[1], PROGRAMM_NAME_LEN);
   }
+  
+  // reading the communicators
+  
+  else if(strcmp(name,"Communicator") == 0)
+  {
+    struct Communicator* com;
+    com = (struct Communicator*) malloc(sizeof(struct Communicator));
+    
+    strncpy(com->name, attributes[1], COMM_NAME_LEN);
+    
+    commsBuf = g_slist_append(commsBuf, (gpointer) com);
+  }
+  else if(strcmp(name,"Rank") == 0)
+  {
+    struct Rank* comRank;
+    comRank = (struct Rank*) malloc(sizeof(struct Rank));
+    
+    GSList* last;
+    last =  g_slist_last(commsBuf);
+    
+    struct Communicator* com;
+    com = (struct Communicator*) last->data;
+    
+    GSList* ranks;
+    
+    for(int i = 0; attributes[i]; i+=2)
+    {
+      if(strcmp(attributes[i], "global") == 0)
+      {
+        comRank->global = atoi(attributes[i+1]);
+      }
+      else if(strcmp(attributes[i], "local") == 0)
+      {
+        comRank->local = atoi(attributes[i+1]);
+      }
+      else if(strcmp(attributes[i], "cid") == 0)
+      {
+        comRank->cid = atoi(attributes[i+1]);
+      }
+    }
+    ranks = g_slist_append(ranks, (gpointer) comRank);
+    com->ranks = ranks;
+  }
   depth[0]++;
 }
 
@@ -60,7 +104,7 @@ endElement(int* depth, const char* name)
 }
 
 void
-readproject(char* programName, char* hostname, GSList** com,int rank ,char* filename)
+readproject(char* programName, char* hostname, GSList** comms,int rank ,char* filename)
 {
    XML_Parser parser = XML_ParserCreate(NULL);
   char buf[BUFSIZ];
@@ -81,9 +125,6 @@ readproject(char* programName, char* hostname, GSList** com,int rank ,char* file
   XML_SetElementHandler(parser,
   (XML_StartElementHandler) startElement, (XML_EndElementHandler) endElement);
 
-  
-  
-  
   do {
       int len = (int)fread(buf, 1, sizeof(buf), projectFile);
       done = len < sizeof(buf);
@@ -95,5 +136,7 @@ readproject(char* programName, char* hostname, GSList** com,int rank ,char* file
               break;
       }
     } while (!done);
+    
+  comms[0] = commsBuf;
   XML_ParserFree(parser);
 }
