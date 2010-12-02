@@ -35,5 +35,28 @@ int main(int argc, char** argv)
    printf("%i\n",element->type);
   
   MPI_Finalize();
+  
+  cleanUp(traceFile, comms);
   return 0;
 }
+
+void cleanUp(GSList* traceFile, GSList* comms)
+{
+  g_slist_foreach( traceFile, (GFunc)free, NULL);
+  g_slist_free(traceFile);
+  
+  g_slist_foreach(comms, (GFunc)freeComms, NULL);
+  g_slist_foreach(comms, (GFunc)free, NULL);
+  g_slist_free(comms);
+  
+}
+
+void freeComms(gpointer data)
+{
+  struct Communicator* element = (struct Communicator*) data;
+  
+  g_slist_foreach(element->ranks, (GFunc)free, NULL);
+  g_slist_free(element->ranks);
+}
+
+

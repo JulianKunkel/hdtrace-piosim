@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "structures.h"
 #include "readproject.h"
+#include "readtrace.h"
 #include "stdlib.h"
 #include "error.h"
 #include "constant.h"

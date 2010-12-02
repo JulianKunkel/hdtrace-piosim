@@ -36,7 +36,12 @@ int argc, char** argv)
   printf("trc: %s\n", traceFilePath);
   
   readTrace(traceFile, traceFilePath);
-
+  
+  free(projectFile);
+  free(traceFileFolderPath);
+  free(traceFilePath);
+  free(hostname);
+  free(programName);
 }
 
 int readCliArgs

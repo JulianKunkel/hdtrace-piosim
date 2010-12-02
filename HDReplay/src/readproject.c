@@ -68,8 +68,6 @@ startElement(int* depth, const char *name, const char** attributes)
     struct Communicator* com;
     com = (struct Communicator*) last->data;
     
-    GSList* ranks;
-    
     for(int i = 0; attributes[i]; i+=2)
     {
       if(strcmp(attributes[i], "global") == 0)
@@ -85,8 +83,8 @@ startElement(int* depth, const char *name, const char** attributes)
         comRank->cid = atoi(attributes[i+1]);
       }
     }
-    ranks = g_slist_append(ranks, (gpointer) comRank);
-    com->ranks = ranks;
+    com->ranks = g_slist_append(com->ranks, (gpointer) comRank);
+    
   }
   depth[0]++;
 }
