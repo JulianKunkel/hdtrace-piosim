@@ -90,7 +90,7 @@ public class CommandLineInterface {
         String  stringArgument = "";
 
         if(i < args.length &&  ! args[i].startsWith("-")) {
-        	boolArgument = args[i].equals("1");
+        	boolArgument = args[i].equals("1") || args[i].equals("true") ;
         	stringArgument = args[i];
 
         	i++;
