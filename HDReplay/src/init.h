@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "structures.h"
 #include "readproject.h"
+#include "readtrace.h"
 #include "stdlib.h"
 #include "error.h"
 #include "constant.h"
@@ -25,7 +26,7 @@ int readCliArgs(char* projectFile, char* traceFileFolderPath, int argc, char** a
 
 
 void init
-(GSList** traceFile, GSList** comms, int rank, int size,
+(GSList** traceFile, GSList** comms, GSList** fileList, int rank, int size,
 int argc, char** argv);
 
 void genTraceFileName

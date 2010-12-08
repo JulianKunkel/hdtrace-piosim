@@ -5,7 +5,7 @@
 
 #include "readtrace.h"
 
-static GSList* elements;
+static GSList* elements = NULL;
 static int isNested = 0;
 
 

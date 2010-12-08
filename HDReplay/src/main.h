@@ -24,5 +24,7 @@
   \brief Mian function.
 */
 int main(int, char**);
+void cleanUp(GSList* traceFile, GSList* comms);
+void freeComms(gpointer data);
 
 #endif

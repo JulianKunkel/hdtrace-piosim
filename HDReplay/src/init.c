@@ -4,7 +4,7 @@
 char numbuf[10];
 
 void init
-(GSList** traceFile, GSList** comms, int rank, int size,
+(GSList** traceFile, GSList** comms, GSList ** fileList, int rank, int size,
 int argc, char** argv)
 {
   char* projectFile;
@@ -27,16 +27,20 @@ int argc, char** argv)
     crash(ERR, err,"");
   }
   
-  readproject(programName ,hostname, comms,rank ,projectFile);
+  readproject(programName ,hostname, comms, fileList, rank ,projectFile);
   
-  printf("%s\n",programName);
-
   genTraceFileName(traceFilePath ,traceFileFolderPath, programName,hostname,rank);
   
   printf("trc: %s\n", traceFilePath);
   
+  
   readTrace(traceFile, traceFilePath);
-
+  
+  free(projectFile);
+  free(traceFileFolderPath);
+  free(traceFilePath);
+  free(hostname);
+  free(programName);
 }
 
 int readCliArgs
