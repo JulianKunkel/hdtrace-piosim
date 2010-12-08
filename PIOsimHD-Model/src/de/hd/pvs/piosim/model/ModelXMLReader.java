@@ -197,6 +197,8 @@ public class ModelXMLReader {
 
 					try{
 						topology.addEdge(srcNode, edge, targetNode);
+
+						edge.setTopology(topology);
 					}catch(IllegalArgumentException e){
 						System.err.println("Error: invalid connection from " + srcNode + " via " + edge + " to " + targetNode);
 						System.err.println(" Ids were: " + srcID + " via " + edgeID + " to " + targetID);
