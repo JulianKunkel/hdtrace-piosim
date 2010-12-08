@@ -128,4 +128,12 @@ struct Communicator
   char name[COMM_NAME_LEN];
   GSList* ranks;
 };
+
+struct FileList
+{
+  char name[PATH_LEN];
+  int initialSize;
+  char implementation[PATH_LEN];
+};
+
 #endif 

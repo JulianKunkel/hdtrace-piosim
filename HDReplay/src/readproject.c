@@ -1,11 +1,35 @@
 #include "readproject.h"
 
+static void XMLCALL
+  readTopology(struct UserData* data, const char* name,
+    const char** attributes);
 
+static void XMLCALL
+  startElement(struct UserData* data, const char* name, 
+    const char** attributes);
+  
+static void XMLCALL
+  readFileList(struct UserData* data, const char*name,
+    const char** attributes);
+    
+static void XMLCALL
+  readCommunicator(struct UserData* data, char* name, char** attributes);
+  
+static void XMLCALL
+  endElement(struct UserData* data, const char* name);
+static void XMLCALL
+  charhndl(struct UserData* data, const XML_Char* string, int len);
+
+/*
 static char* hostnameBuf;
 static char* programNameBuf;
 static GSList* commsBuf;
 static int foundHostname = 0;
 static int rankBuf;
+static GSList* fileListBuf;
+*/
+
+XML_Parser parser;
 
 /**
   The GSList represents the topology of the mpi program.  
@@ -25,37 +49,142 @@ static int rankBuf;
   \param[in] name The name of the XML-element.
   \param[in] attributes A list of the attributes of a element.
 */
-static void XMLCALL
-startElement(int* depth, const char *name, const char** attributes)
+
+void
+readproject(char* programName, char* hostname, GSList** comms, GSList** fileList,
+  int rank ,char* filename)
 {
-  // read the hostname form the file
-  if(strcmp(name,"Node") == 0 && depth[0] == 2 && foundHostname == 0)
+  parser = XML_ParserCreate(NULL);
+  char buf[BUFSIZ];
+  FILE* projectFile;
+  int done;
+    
+  struct UserData* data = (struct UserData*) malloc(sizeof(struct UserData));  
+  data->depth = 0;
+  data->checkFlag = 0;
+  data->programName = programName;
+  data->hostname = hostname;
+  data->rank = rank;
+  data->comms = NULL;
+  data->fileList = NULL;
+  
+  if((projectFile = fopen(filename, "r")) == NULL)
   {
-    strncpy(hostnameBuf,attributes[1],HOST_NAME_LEN);
+    crash(SYS_ERR, errno, "%s", filename);
+  }
+  
+  XML_SetUserData(parser, data);
+  XML_SetElementHandler(parser,
+    (XML_StartElementHandler) startElement, (XML_EndElementHandler) endElement);
+  XML_SetCharacterDataHandler(parser,
+    (XML_CharacterDataHandler) charhndl);
+
+
+  do {
+      int len = (int)fread(buf, 1, sizeof(buf), projectFile);
+      done = len < sizeof(buf);
+      if (XML_Parse(parser, buf, len, done) == XML_STATUS_ERROR) {
+        crash(ERR, XML_PARSE, "%s in %s at line %"XML_FMT_INT_MOD"u",
+                XML_ErrorString(XML_GetErrorCode(parser)),
+                filename,
+                XML_GetCurrentLineNumber(parser));
+              break;
+      }
+    } while (!done);
+    
+  XML_ParserFree(parser);
+  
+  fileList[0] = data->fileList;
+  comms[0] = data->comms;
+}
+
+
+static void XMLCALL
+startElement(struct UserData* data, const char *name, const char** attributes)
+{
+  if(strcmp(name, "Application") == 0 && data->depth == 0)
+  {
+    strncpy(data->programName, attributes[1], PROGRAMM_NAME_LEN);
+  }
+  else if(strcmp(name,"FileList") == 0 && data->depth == 1)
+  {
+    XML_SetElementHandler(parser,
+    (XML_StartElementHandler) readFileList, (XML_EndElementHandler) endElement);
+  }
+  else if(strcmp(name,"Topology") == 0 && data->depth == 1)
+  {
+    XML_SetElementHandler(parser,
+    (XML_StartElementHandler) readTopology, (XML_EndElementHandler) endElement);
+  }
+  else if(strcmp(name, "CommunicatorList") == 0 && data->depth == 1)
+  {
+    XML_SetElementHandler(parser,
+    (XML_StartElementHandler) readCommunicator, (XML_EndElementHandler) endElement);
+  }
+  data->depth++;
+}
+
+/**
+  \brief Only decrease the depth if a XML-element is closed.
+  
+  \param[in] depth Indicates the depth of the XML-element.
+  \param[in] name The name of the XML-element.
+*/
+static void XMLCALL
+endElement(struct UserData* data, const char* name)
+{
+  if(strcmp(name,"FileList") == 0 && data->depth == 2)
+  {
+    XML_SetElementHandler(parser,
+    (XML_StartElementHandler) startElement, (XML_EndElementHandler) endElement);
+  }
+  else if(strcmp(name,"Topology") == 0 && data->depth == 2)
+  {
+    XML_SetElementHandler(parser,
+    (XML_StartElementHandler) startElement, (XML_EndElementHandler) endElement);
+  }
+  else if(strcmp(name, "CommunicatorList") == 0 && data->depth == 2)
+  {
+    XML_SetElementHandler(parser,
+    (XML_StartElementHandler) startElement, (XML_EndElementHandler) endElement);
+  }
+  data->depth--;
+}
+
+
+static void XMLCALL
+readTopology(struct UserData* data, const char* name, const char** attributes)
+{
+  // read the hostname
+  if(strcmp(name,"Node") == 0 && data->depth == 2 && data->checkFlag == 0)
+  {
+    strncpy(data->hostname, attributes[1],HOST_NAME_LEN);
   }
   // read the rank(s) inside the hostname element
-  else if(strcmp(name,"Node") == 0 && foundHostname == 0 && depth[0] == 3)
+  else if
+  (strcmp(name,"Node") == 0 && data->checkFlag == 0 && data->depth == 3)
   {
-    if(rankBuf == atoi(attributes[1]))
+    if(data->rank == atoi(attributes[1]))
     {
-      foundHostname = 1;
+      data->checkFlag = 1;
     }
   }
-  else if(strcmp(name, "Application") == 0)
-  {
-    strncpy(programNameBuf, attributes[1], PROGRAMM_NAME_LEN);
-  }
-  
+  data->depth++;
+}
+
+static void XMLCALL
+readCommunicator(struct UserData* data, char* name, char** attributes)
+{
   // reading the communicators
   
-  else if(strcmp(name,"Communicator") == 0)
+  if(strcmp(name,"Communicator") == 0 && data->depth == 2)
   {
     struct Communicator* com;
     com = (struct Communicator*) malloc(sizeof(struct Communicator));
     
     strncpy(com->name, attributes[1], COMM_NAME_LEN);
     
-    commsBuf = g_slist_append(commsBuf, (gpointer) com);
+    data->comms = g_slist_append(data->comms, (gpointer) com);
   }
   else if(strcmp(name,"Rank") == 0)
   {
@@ -63,10 +192,11 @@ startElement(int* depth, const char *name, const char** attributes)
     comRank = (struct Rank*) malloc(sizeof(struct Rank));
     
     GSList* last;
-    last =  g_slist_last(commsBuf);
+    last =  g_slist_last(data->comms);
     
     struct Communicator* com;
     com = (struct Communicator*) last->data;
+    com->ranks = NULL;
     
     for(int i = 0; attributes[i]; i+=2)
     {
@@ -84,57 +214,53 @@ startElement(int* depth, const char *name, const char** attributes)
       }
     }
     com->ranks = g_slist_append(com->ranks, (gpointer) comRank);
-    
   }
-  depth[0]++;
+  data->depth++;
 }
 
-/**
-  \brief Only decrease the depth if a XML-element is closed.
-  
-  \param[in] depth Indicates the depth of the XML-element.
-  \param[in] name The name of the XML-element.
-*/
 static void XMLCALL
-endElement(int* depth, const char* name)
+readFileList(struct UserData* data, const char* name, const char** attributes)
 {
-  depth[0]--;
-}
-
-void
-readproject(char* programName, char* hostname, GSList** comms,int rank ,char* filename)
-{
-   XML_Parser parser = XML_ParserCreate(NULL);
-  char buf[BUFSIZ];
-  FILE* projectFile;
-  int depth = 0;
-  int done;  
-  
-  programNameBuf = programName;
-  hostnameBuf = hostname;
-  rankBuf = rank;
-  
-  if((projectFile = fopen(filename, "r")) == NULL)
+  if(strcmp(name, "File") == 0 && data->depth == 2)
   {
-    crash(SYS_ERR, errno, "%s", filename);
-  }
-  
-  XML_SetUserData(parser, &depth);
-  XML_SetElementHandler(parser,
-  (XML_StartElementHandler) startElement, (XML_EndElementHandler) endElement);
-
-  do {
-      int len = (int)fread(buf, 1, sizeof(buf), projectFile);
-      done = len < sizeof(buf);
-      if (XML_Parse(parser, buf, len, done) == XML_STATUS_ERROR) {
-        crash(ERR, XML_PARSE, "%s in %s at line %"XML_FMT_INT_MOD"u",
-                XML_ErrorString(XML_GetErrorCode(parser)),
-                filename,
-                XML_GetCurrentLineNumber(parser));
-              break;
-      }
-    } while (!done);
+    struct FileList* file = (struct FileList*) malloc(sizeof(struct FileList));
+   
+    strncpy(file->name, attributes[1], PATH_LEN);
     
-  comms[0] = commsBuf;
-  XML_ParserFree(parser);
+    data->fileList = g_slist_append(data->fileList, (gpointer) file);
+  }
+  else if(strcmp(name,"InitalSize") == 0 && data->depth == 3)
+  {
+    data->checkFlag = 2;
+  }
+  else if(strcmp(name, "Distribution") == 0 && data->depth == 3)
+  {
+    GSList* last;
+    struct FileList* file;
+    
+    last = g_slist_last(data->fileList);
+    file = (struct FileList*) last->data;
+    
+    strncpy(file->implementation, attributes[1], PATH_LEN);
+  }
+  data->depth++;
 }
+
+static void XMLCALL
+charhndl(struct UserData* data, const XML_Char* string, int len)
+{
+  if(data->checkFlag == 2)
+  {
+    GSList* last;
+    struct FileList* file;
+    
+    last = g_slist_last(data->fileList);
+    file = (struct FileList*) last->data;
+    
+    file->initialSize = atoi(string);
+  
+    data->checkFlag = 0;
+  }  
+}
+
+

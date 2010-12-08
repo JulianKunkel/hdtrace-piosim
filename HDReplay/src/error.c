@@ -28,6 +28,9 @@ char* getErrorString(int errorCode)
       break;
     case PROGRAMM_NAME:
       errorString = "No programm name given.";
+      break;
+    default:
+      errorString = "";
   }
   return errorString;
 }
@@ -48,7 +51,8 @@ void crash(enum ErrorMode errorMode, int errorNo, const char* fmt, ...)
   switch(errorMode)
   {
     case WARN:
-    // TODO: Warining for a wrong oder of timestamps and or missing elements (no recv for a send)
+      strncat(buffer, "PROGRAMM WARNING: ", errorLen-1);
+      vsprintf(buffer+strlen(buffer), fmt, al);
     break;
     
     case ERR:
@@ -64,7 +68,7 @@ void crash(enum ErrorMode errorMode, int errorNo, const char* fmt, ...)
     case SYS_ERR:
       strncat(buffer,"SYSTEM ERROR: ", errorLen-1);
       vsprintf(buffer+strlen(buffer), fmt, al);
-      sprintf(buffer, strerror(errorNo), errorLen-1); 
+      strncat(buffer, strerror(errorNo), errorLen-1); 
     break;
     
     case MPI_WARN:
