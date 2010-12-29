@@ -198,7 +198,7 @@ int trove_collection_create(char *collname,
     
     ret = mgmt_method_table[method_id]->collection_create(
         collname, new_coll_id, user_ptr, out_op_id_p);
-    
+
     return ((ret < 0) ? ret : 1);
 }
 
@@ -221,7 +221,7 @@ int trove_collection_lookup(TROVE_method_id method_id,
 {
     int ret = mgmt_method_table[method_id]->collection_lookup(
         collname, coll_id_p, user_ptr, out_op_id_p);
-    
+
     return (ret < 0) ? ret : 1;
 }
 

@@ -229,8 +229,6 @@ void *PINT_sm_pop_frame(struct PINT_smcb *smcb,
                         int *error_code,
                         int *remaining);
 
-
- 
 /**
  * Assign the relation to it
  */
@@ -243,7 +241,10 @@ hdR_token PINT_smcb_get_token(struct PINT_smcb *smcb);
 
 void set_hd_sm_trace_enabled(int hd_trace_enabled);
 
-
+/**
+ * 
+ */
+			
 /* This macro is used in calls to PINT_sm_frame() */
 #define PINT_FRAME_CURRENT 0
 #define PINT_FRAME_TOP 1

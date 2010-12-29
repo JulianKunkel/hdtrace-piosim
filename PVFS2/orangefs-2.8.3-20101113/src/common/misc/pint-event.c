@@ -315,7 +315,7 @@ int PINT_event_disable(const char *events)
     char **event_strings;
     int count, i;
     int ret = 0;
-    
+
     count = PINT_split_string_list(&event_strings, events);
 
     for(i = 0; i < count; ++i)
@@ -460,16 +460,16 @@ int PINT_event_start_event(
         return 0;
     }
 
-    event = id_gen_fast_lookup(type);
+event = id_gen_fast_lookup(type);
     printf("event = %s\n",event->name); // by Duc
     printf("event = %d\n",(int)event->group); // by Duc
     printf("pint-event.c test\n"); // by Duc
     if(event && (event->mask & PINT_event_enabled_mask))
     {
         va_start(ap, id);
-		#ifdef HAVE_TAU
+#ifdef HAVE_TAU
         Ttf_EnterState_info_va(event->type, process_id, thread_id, (int *)id, ap);
-		#endif
+#endif
         va_end(ap);
     }
     return 0;

@@ -217,7 +217,7 @@ int PVFS_hint_add(
     const char *type,
     int length,
     void *value)
-{	
+{
     int ret;
     const struct PINT_hint_info *info;
 
@@ -245,7 +245,7 @@ int PVFS_hint_add(
         return -PVFS_ENOMEM;
     }
     memcpy(new_hint->value, value, length);
-    
+
     if(info)
     {
         new_hint->type_string = NULL;

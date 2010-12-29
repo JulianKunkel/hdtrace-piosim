@@ -640,8 +640,6 @@ LINUX24_KERNEL_SRC
 LINUX_KERNEL_SRC
 THREADED_KMOD_HELPER
 BUILD_KERNEL
-BUILD_HDTRACEPTL
-BUILD_HDTRACE
 BUILD_TAU
 TAU_INCS
 MISC_TROVE_FLAGS
@@ -748,8 +746,6 @@ enable_aio_threaded_callbacks
 with_mtrace
 with_berkdb_debug
 with_tau
-with_hdtrace
-with_hdrut
 with_kernel
 with_kernel24
 enable_kernel_aio
@@ -1451,8 +1447,6 @@ Optional Packages:
   --with-mtrace           Use mtrace (must set MALLOC_TRACE to output file)
   --with-berkdb-debug     Use berkeley db error reporting (if detected).
   --with-tau=path         Use TAU trace library installed in "path"
-  --with-hdtrace=path         Use HDTrace library installed in "path"
-  --with-hdrut=path         Use Ressource Utilization Tracing installed in "path"
   --with-kernel=srcpath   Build pvfs2 kernel module against 2.6.x src
   --with-kernel24=srcpath Build pvfs2 kernel module against 2.4.x src
   --with-efence=<path>    Use electric fence for malloc debugging.
@@ -5744,88 +5738,6 @@ $as_echo "#define HAVE_TAU 1" >>confdefs.h
 
 fi
 
-
-
-
-
-
-
-BUILD_HDTRACE=
-
-# Check whether --with-hdtrace was given.
-if test "${with_hdtrace+set}" = set; then :
-  withval=$with_hdtrace; if test "x$withval" = "xyes" ; then
-           as_fn_error "--with-hdtrace must be given a pathname" "$LINENO" 5
-    else
-       CFLAGS="$CFLAGS -I$withval/include $(pkg-config --cflags glib-2.0)"
-       LDFLAGS="$LDFLAGS -L$withval/lib $(pkg-config --cflags glib-2.0)"
-       LIBS="$LIBS -lhdStats -lhdTrace -lhdRelation $(pkg-config --libs glib-2.0)"
-
-$as_echo "#define HAVE_HDTRACE 1" >>confdefs.h
-
-       BUILD_HDTRACE=1
-
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include "hdTopo.h"
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-else
-  as_fn_error "hdtrace library is not usable" "$LINENO" 5
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    fi
-
-fi
-
-
-
-
-BUILD_HDTRACEPTL=
-
-# Check whether --with-hdrut was given.
-if test "${with_hdrut+set}" = set; then :
-  withval=$with_hdrut; if test "x$withval" = "xyes" ; then
-           as_fn_error "--with-hdrut must be given a pathname" "$LINENO" 5
-    else
-       CFLAGS="$CFLAGS -I$withval/include -I$withval/src  $(pkg-config --cflags gthread-2.0) $(pkg-config --cflags libgtop-2.0)"
-       LDFLAGS="$LDFLAGS -L$withval/lib -L/usr/lib"
-       LIBS="-lRUT $LIBS $(pkg-config --libs gthread-2.0) $(pkg-config --libs libgtop-2.0)"
-
-$as_echo "#define HAVE_HDPTL 1" >>confdefs.h
-
-       BUILD_HDTRACEPTL=1
-
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include "RUT.h"
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-else
-  as_fn_error "RUT library is not usable" "$LINENO" 5
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    fi
-
-fi
 
 
 
@@ -12303,25 +12215,6 @@ $as_echo "PVFS2 configured for the 2.6.x kernel module      :  no" >&6; }
 else
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: PVFS2 configured for the 2.6.x kernel module      : yes" >&5
 $as_echo "PVFS2 configured for the 2.6.x kernel module      : yes" >&6; }
-fi
-
-if test "x$BUILD_HDTRACE" = "x" ; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: PVFS2 configured for hdtrace module               :  no" >&5
-$as_echo "PVFS2 configured for hdtrace module               :  no" >&6; }
-else
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: PVFS2 configured for hdtrace module               : yes" >&5
-$as_echo "PVFS2 configured for hdtrace module               : yes" >&6; }
-fi
-
-if test "x$BUILD_HDTRACEPTL" = "x" ; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: configured to use PTL together with hdtrace module:  no" >&5
-$as_echo "configured to use PTL together with hdtrace module:  no" >&6; }
-else
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: configured to use PTL together with hdtrace module: yes" >&5
-$as_echo "configured to use PTL together with hdtrace module: yes" >&6; }
-   if test "x$BUILD_HDTRACE" = "x" ; then
-   	as_fn_error "Error hdtrace module is required for PTL" "$LINENO" 5
-   fi
 fi
 
 if test "x$LINUX24_KERNEL_SRC" = "x" -a "x$BUILD_BMI_ONLY" != "x1"; then

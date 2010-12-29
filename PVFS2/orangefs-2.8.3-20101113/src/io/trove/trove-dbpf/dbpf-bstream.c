@@ -378,7 +378,7 @@ static void start_delayed_ops_if_any(int dec_first)
         }
         // trick: put the hint into the structure
         aiocb_ptr_array[aiocb_inuse_count] = (struct aiocb *)cur_op->op.hints;
-        
+
         if(gossip_debug_enabled(GOSSIP_TROVE_DEBUG))
         {
 
@@ -761,7 +761,7 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
         tmp_type = BSTREAM_WRITE_LIST;
         event_type = trove_dbpf_write_event_id;
     }
-    
+
     /* initialize all the common members */
     dbpf_queued_op_init(q_op_p,
                         tmp_type,
@@ -775,7 +775,7 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
                         user_ptr,
                         flags,
                         context_id);
-    
+
     if(PINT_EVENT_ENABLED)
     {
         count_mem = 0;
@@ -842,7 +842,7 @@ inline int dbpf_bstream_rw_list(TROVE_coll_id coll_id,
     q_op_p->op.u.b_rw_list.stream_size_array = stream_size_array;
     q_op_p->op.hints = hints;
     q_op_p->op.u.b_rw_list.aio_ops = aio_ops;
-    
+
     /* initialize the out size to 0 */
     *out_size_p = 0;
     q_op_p->op.u.b_rw_list.out_size_p = out_size_p;
@@ -1269,7 +1269,7 @@ static int dbpf_bstream_rw_list_op_svc(struct dbpf_op *op_p)
         {
             aiocb_ptr_array[i] = &aiocb_p[i];
         }
-        
+
         // trick: put the hint into the structure
         aiocb_ptr_array[aiocb_inuse_count] = (struct aiocb *)op_p->hints;
         

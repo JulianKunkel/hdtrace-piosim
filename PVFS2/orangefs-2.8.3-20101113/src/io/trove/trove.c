@@ -104,7 +104,7 @@ int trove_bstream_write_at(
     {
 	return -TROVE_EINVAL;
     }
-    
+
     PINT_HD_update_counter_inc(TROVE);
 
     int ret = bstream_method_table[method_id]->bstream_write_at(
@@ -288,7 +288,7 @@ int trove_bstream_write_list(
     {
 	return -TROVE_EINVAL;
     }
-    
+
     PINT_HD_update_counter_inc(TROVE);
     
     int ret = bstream_method_table[method_id]->bstream_write_list(
@@ -333,7 +333,7 @@ int trove_bstream_flush(
     {
 	return -TROVE_EINVAL;
     }
-    
+
     PINT_HD_update_counter_inc(TROVE);
     
     int ret = bstream_method_table[method_id]->bstream_flush(
@@ -381,7 +381,7 @@ int trove_keyval_read(
         if (((char *)key_p->buffer)[key_p->buffer_sz-1] != 0)
 	    return -TROVE_EINVAL;
     }
-    
+
     PINT_HD_update_counter_inc(TROVE);
         
     int ret = keyval_method_table[method_id]->keyval_read(
@@ -437,7 +437,7 @@ int trove_keyval_write(
         if (((char *)key_p->buffer)[key_p->buffer_sz-1] != 0)
 	    return -TROVE_EINVAL;
     }
-    
+
     PINT_HD_update_counter_inc(TROVE);
             
     int  ret = keyval_method_table[method_id]->keyval_write(
@@ -661,7 +661,7 @@ int trove_keyval_read_list(
 	        return -TROVE_EINVAL;
         }
     }
-    
+
     PINT_HD_update_counter_inc(TROVE);
         
     int ret = keyval_method_table[method_id]->keyval_read_list(

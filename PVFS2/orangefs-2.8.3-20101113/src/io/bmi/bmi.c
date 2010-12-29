@@ -687,7 +687,7 @@ int BMI_post_recv(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-    
+
     PINT_HD_update_counter_inc(BMI);
     
     ret = tmp_ref->interface->post_recv(
@@ -732,7 +732,7 @@ int BMI_post_send(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-    
+
     PINT_HD_update_counter_inc(BMI);
     
     ret = tmp_ref->interface->post_send(
@@ -777,7 +777,7 @@ int BMI_post_sendunexpected(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-    
+
     PINT_HD_update_counter_inc(BMI);
     
     ret = tmp_ref->interface->post_sendunexpected(
@@ -1451,7 +1451,7 @@ int BMI_get_info(BMI_addr_t addr,
     int tmp_maxsize;
     int ret = 0;
     ref_st_p tmp_ref = NULL;
-    
+
     switch (option)
     {
 	/* check to see if the interface is initialized */
@@ -1792,7 +1792,7 @@ int BMI_post_send_list(bmi_op_id_t * id,
             id, tmp_ref->method_addr, buffer_list, size_list,
             list_count, total_size, buffer_type, tag, user_ptr,
             context_id, (PVFS_hint)hints);
-	
+
 	if (ret < 0 || ret == 1)
 	    PINT_HD_update_counter_dec(BMI);
 

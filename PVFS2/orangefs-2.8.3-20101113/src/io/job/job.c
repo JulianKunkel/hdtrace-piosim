@@ -506,14 +506,14 @@ int job_bmi_send_list(PVFS_BMI_addr_t addr,
 
     /* post appropriate type of send */
     if (!send_unexpected)
-    {	
+    {
         ret = BMI_post_send_list(&(jd->u.bmi.id), addr,
                                  (const void **) buffer_list, size_list,
                                  list_count, total_size, buffer_type,
                                  tag, user_ptr_internal, global_bmi_context, hints);
     }
     else
-    {	
+    {
         ret = BMI_post_sendunexpected_list(&(jd->u.bmi.id), addr,
                                            (const void **) buffer_list,
                                            size_list, list_count,
@@ -680,7 +680,7 @@ int job_bmi_recv_list(PVFS_BMI_addr_t addr,
     jd->bmi_callback.fn = bmi_thread_mgr_callback;
     jd->bmi_callback.data = (void*)jd;
     user_ptr_internal = &jd->bmi_callback;
-    
+
     ret = BMI_post_recv_list(&(jd->u.bmi.id), addr, buffer_list,
                              size_list, list_count, total_expected_size,
                              &(jd->u.bmi.actual_size), buffer_type, tag,
@@ -1496,6 +1496,7 @@ int job_trove_bstream_write_list(TROVE_coll_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
+
     return (0);
 } 
 
@@ -2003,7 +2004,6 @@ int job_trove_keyval_write_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2082,6 +2082,7 @@ int job_trove_keyval_remove_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
+
     return (0);
 }
 
@@ -3237,7 +3238,6 @@ int job_trove_dspace_remove_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3321,6 +3321,7 @@ int job_trove_dspace_remove(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
+
     return (0);
 }
 
