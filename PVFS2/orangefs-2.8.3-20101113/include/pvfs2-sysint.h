@@ -22,6 +22,7 @@
 
 #include "pvfs2-types.h"
 #include "pvfs2-request.h"
+#include "hdTopo.h"
 
 /** Options supported by get_info() and set_info(). */
 enum PVFS_sys_setinfo_opt
@@ -237,6 +238,8 @@ int PVFS_sys_fs_remove(
 int PVFS_sys_finalize(
     void);
 
+//int PVFS_hd_client_trace_initialize(
+//		hdTopoNode topoNode);
 /*
   NOTE: the following values are to be used by
   PVFS_sys(.*)_lookup as the "follow_link" argument.

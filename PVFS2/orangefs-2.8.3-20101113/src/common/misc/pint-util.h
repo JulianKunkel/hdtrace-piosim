@@ -12,6 +12,7 @@
 #include "pvfs2-config.h"
 #include "pvfs2-types.h"
 #include "pvfs2-attr.h"
+#include "pint-event-hd.h"
 
 /* converts common fields between sys attr and obj attr structures */
 #define PINT_CONVERT_ATTR(dest, src, extra_amask)       \

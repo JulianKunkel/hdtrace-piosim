@@ -27,6 +27,9 @@
 #include "acache.h"
 #include "pint-event.h"
 #include "pint-hint.h"
+#include "hdRelation.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 #define MAX_RETURNED_JOBS   256
 
@@ -406,9 +409,9 @@ PVFS_error PINT_client_state_machine_post(
     job_status_s js;
     int pvfs_sys_op = PINT_smcb_op(smcb);
     PINT_client_sm *sm_p = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
-
+    
     PVFS_hint_add_internal(&sm_p->hints, PINT_HINT_OP_ID, sizeof(pvfs_sys_op), &pvfs_sys_op);
-
+    
     PINT_EVENT_START(PINT_client_sys_event_id, pint_client_pid, NULL, &sm_p->event_id,
                      PINT_HINT_GET_CLIENT_ID(sm_p->hints),
                      PINT_HINT_GET_RANK(sm_p->hints),
@@ -431,9 +434,23 @@ PVFS_error PINT_client_state_machine_post(
     }
 
     memset(&js, 0, sizeof(js));
-
+    
     /* save operation type; mark operation as unfinished */
     sm_p->user_ptr = user_ptr;
+    
+    HD_CLIENT_RELATION(CLIENT,
+    		hdR_token token = hdR_createTopLevelRelation(topoTokenArray[CLIENT]);
+    		PINT_smcb_set_token(smcb, token);
+    		char * relation = hdR_getRemoteToken(token); 
+    		PVFS_hint_add(&sm_p->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, strlen(relation)+1, relation);
+    		free(relation);
+
+    		int p ;
+    		for (p = 0 ; p < smcb->stackptr; p++){
+        		hdR_startS(smcb->smToken, smcb->state_stack[p].state->parent_machine->name);
+    		}
+	)
+	
 
     gen_mutex_lock(&test_mutex);
     /*

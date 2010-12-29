@@ -10,6 +10,13 @@
 #include "pvfs2-types.h"
 #include "quickhash.h"
 
+#ifdef __PVFS2_CLIENT__
+#include "pint-event-hd-client.h"
+#endif /* __PVFS2_CLIENT__ */
+
+#include "pint-event-hd.h"
+#include "pint-hint.h"
+
 typedef PVFS_id_gen_t PINT_event_type;
 typedef PVFS_id_gen_t PINT_event_id;
 typedef PVFS_id_gen_t PINT_event_group;

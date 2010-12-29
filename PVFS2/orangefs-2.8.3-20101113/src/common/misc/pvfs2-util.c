@@ -1106,6 +1106,7 @@ int PVFS_util_init_defaults(void)
 
     /* initialize pvfs system interface */
     ret = PVFS_sys_initialize(GOSSIP_NO_DEBUG);
+    //PINT_client_state_machine_post
     if (ret < 0)
     {
         return(ret);

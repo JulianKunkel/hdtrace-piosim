@@ -25,6 +25,7 @@
 #include "id-generator.h"
 #include "job-time-mgr.h"
 #include "pvfs2-internal.h"
+#include "pint-event.h"
 
 /* contexts for use within the job interface */
 static bmi_context_id global_bmi_context = -1;
@@ -505,14 +506,14 @@ int job_bmi_send_list(PVFS_BMI_addr_t addr,
 
     /* post appropriate type of send */
     if (!send_unexpected)
-    {
+    {	
         ret = BMI_post_send_list(&(jd->u.bmi.id), addr,
                                  (const void **) buffer_list, size_list,
                                  list_count, total_size, buffer_type,
                                  tag, user_ptr_internal, global_bmi_context, hints);
     }
     else
-    {
+    {	
         ret = BMI_post_sendunexpected_list(&(jd->u.bmi.id), addr,
                                            (const void **) buffer_list,
                                            size_list, list_count,
@@ -546,6 +547,7 @@ int job_bmi_send_list(PVFS_BMI_addr_t addr,
      */
     *id = jd->job_id;
     bmi_pending_count++;
+
     return(job_time_mgr_add(jd, timeout_sec));
 }
 
@@ -593,7 +595,6 @@ int job_bmi_recv(PVFS_BMI_addr_t addr,
     jd->bmi_callback.fn = bmi_thread_mgr_callback;
     jd->bmi_callback.data = (void*)jd;
     user_ptr_internal = &jd->bmi_callback;
-
 
     ret = BMI_post_recv(&(jd->u.bmi.id), addr, buffer, size,
                         &(jd->u.bmi.actual_size), buffer_type, tag,
@@ -679,7 +680,7 @@ int job_bmi_recv_list(PVFS_BMI_addr_t addr,
     jd->bmi_callback.fn = bmi_thread_mgr_callback;
     jd->bmi_callback.data = (void*)jd;
     user_ptr_internal = &jd->bmi_callback;
-
+    
     ret = BMI_post_recv_list(&(jd->u.bmi.id), addr, buffer_list,
                              size_list, list_count, total_expected_size,
                              &(jd->u.bmi.actual_size), buffer_type, tag,
@@ -1338,6 +1339,7 @@ int job_flow(flow_descriptor * flow_d,
     flow_d->callback = flow_callback;
 
     /* post the flow */
+    PINT_HD_update_counter_inc(FLOW);
     ret = PINT_flow_post(flow_d);
     if (ret < 0)
     {
@@ -1345,6 +1347,7 @@ int job_flow(flow_descriptor * flow_d,
         out_status_p->status_user_tag = status_user_tag;
         dealloc_job_desc(jd);
         jd = NULL;
+        PINT_HD_update_counter_dec(FLOW);
         return (1);
     }
     if (ret == 1)
@@ -1355,6 +1358,7 @@ int job_flow(flow_descriptor * flow_d,
         out_status_p->actual_size = flow_d->total_transferred;
         dealloc_job_desc(jd);
         jd = NULL;
+        PINT_HD_update_counter_dec(FLOW);
         return (1);
     }
 
@@ -1492,7 +1496,6 @@ int job_trove_bstream_write_list(TROVE_coll_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 } 
 
@@ -1583,7 +1586,6 @@ int job_trove_bstream_read_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -1656,7 +1658,6 @@ int job_trove_bstream_flush(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -1741,7 +1742,6 @@ int job_trove_keyval_read(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -1829,7 +1829,6 @@ int job_trove_keyval_read_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -1915,7 +1914,6 @@ int job_trove_keyval_write(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2084,7 +2082,6 @@ int job_trove_keyval_remove_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2159,7 +2156,6 @@ int job_trove_keyval_flush(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2241,7 +2237,6 @@ int job_trove_keyval_get_handle_info(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2326,7 +2321,6 @@ int job_trove_dspace_getattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2416,7 +2410,6 @@ int job_trove_dspace_getattr_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2499,7 +2492,6 @@ int job_trove_dspace_setattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2583,7 +2575,6 @@ int job_trove_bstream_resize(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2690,7 +2681,6 @@ int job_trove_keyval_remove(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2805,7 +2795,6 @@ int job_trove_keyval_iterate(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2897,7 +2886,6 @@ int job_trove_keyval_iterate_keys(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -2985,7 +2973,6 @@ int job_trove_dspace_iterate_handles(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3076,7 +3063,6 @@ int job_trove_dspace_create(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3166,7 +3152,6 @@ int job_trove_dspace_create_list(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3336,7 +3321,6 @@ int job_trove_dspace_remove(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3420,7 +3404,6 @@ int job_trove_dspace_verify(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3531,7 +3514,6 @@ int job_trove_fs_create(char *collname,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3707,7 +3689,6 @@ int job_trove_fs_seteattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3787,7 +3768,6 @@ int job_trove_fs_geteattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -3868,7 +3848,6 @@ int job_trove_fs_deleattr(PVFS_fs_id coll_id,
      */
     *id = jd->job_id;
     trove_pending_count++;
-
     return (0);
 }
 
@@ -4793,7 +4772,6 @@ static void precreate_pool_fill_thread_mgr_callback(
                             jd->hints);
     
     trove_pending_count++;
-
     if(ret < 0)
     {
         gossip_err("Error: unable to write all precreated handles to pool.\n");
@@ -5377,6 +5355,7 @@ static void flow_callback(flow_descriptor* flow_d, int cancel_path)
     tmp_desc->completed_flag = 1;
 
     flow_pending_count--;
+    PINT_HD_update_counter_dec(FLOW);
     gossip_debug(GOSSIP_FLOW_DEBUG, "Job flows in progress (callback time): %d\n",
             flow_pending_count);
 

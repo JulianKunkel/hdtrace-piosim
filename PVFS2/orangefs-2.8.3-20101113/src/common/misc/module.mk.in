@@ -11,6 +11,7 @@ LIBSRC += $(DIR)/server-config.c \
           $(DIR)/pvfs2-debug.c \
 	  $(DIR)/pint-perf-counter.c \
 	  $(DIR)/pint-event.c \
+	  $(DIR)/pint-event-hd.c \
 	  $(DIR)/pint-cached-config.c \
 	  $(DIR)/pint-util.c \
 	  $(DIR)/msgpairarray.c \
@@ -31,6 +32,7 @@ SERVERSRC += $(DIR)/server-config.c \
              $(DIR)/pvfs2-debug.c \
 	     $(DIR)/pint-perf-counter.c \
 	     $(DIR)/pint-event.c \
+	     $(DIR)/pint-event-hd.c \
 	     $(DIR)/pint-cached-config.c \
 	     $(DIR)/pint-util.c \
 	     $(DIR)/tcache.c \
@@ -44,6 +46,7 @@ SERVERSRC += $(DIR)/server-config.c \
 
 LIBBMISRC += $(DIR)/str-utils.c \
 	  $(DIR)/pint-event.c \
+	  $(DIR)/pint-event-hd.c \
 	  $(DIR)/errno-mapping.c \
 	  $(DIR)/pint-mem.c
 

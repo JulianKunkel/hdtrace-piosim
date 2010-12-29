@@ -32,76 +32,78 @@
 #include "pint-mgmt.h"
 #include "pint-context.h"
 #include "pint-op.h"
+#include "pint-event.h"
+
 
 static gen_mutex_t dbpf_update_size_lock = GEN_MUTEX_INITIALIZER;
 
 typedef struct
 {
-    char *buffer;
-    TROVE_size size;
-    TROVE_offset offset;
+	char *buffer;
+	TROVE_size size;
+	TROVE_offset offset;
 } dbpf_stream_extents_t;
 
 static int dbpf_bstream_get_extents(
-    char **mem_offset_array,
-    TROVE_size *mem_size_array,
-    int mem_count,
-    TROVE_offset *stream_offset_array,
-    TROVE_size *stream_size_array,
-    int stream_count,
-    int *ext_count,
-    dbpf_stream_extents_t *extents);
+		char **mem_offset_array,
+		TROVE_size *mem_size_array,
+		int mem_count,
+		TROVE_offset *stream_offset_array,
+		TROVE_size *stream_size_array,
+		int stream_count,
+		int *ext_count,
+		dbpf_stream_extents_t *extents);
 
 static size_t direct_aligned_write(int fd, 
-                                    void *buf,
-                                    off_t buf_offset,
-                                    size_t size,
-                                    off_t write_offset,
-                                    off_t stream_size);
+		void *buf,
+		off_t buf_offset,
+		size_t size,
+		off_t write_offset,
+		off_t stream_size);
 
 static size_t direct_locked_write(int fd,
-                            void * buf,
-                            off_t buf_offset,
-                            size_t size,
-                            off_t write_offset,
-                            off_t stream_size);
+		void * buf,
+		off_t buf_offset,
+		size_t size,
+		off_t write_offset,
+		off_t stream_size);
 
 #if 0
 static size_t new_direct_write(int fd,
-                               void * buf,
-                               off_t buf_offset,
-                               size_t size,
-                               off_t write_offset,
-                               off_t stream_size);
+		void * buf,
+		off_t buf_offset,
+		size_t size,
+		off_t write_offset,
+		off_t stream_size);
 #endif
 
 static size_t direct_write(int fd,
-                           void * buf,
-                           off_t buf_offset,
-                           size_t size,
-                           off_t write_offset,
-                           off_t stream_size);
+		void * buf,
+		off_t buf_offset,
+		size_t size,
+		off_t write_offset,
+		off_t stream_size);
 
 static size_t direct_aligned_read(int fd,
-                                  void *buf,
-                                  off_t buf_offset,
-                                  size_t size,
-                                  off_t file_offset,
-                                  off_t stream_size);
+		void *buf,
+		off_t buf_offset,
+		size_t size,
+		off_t file_offset,
+		off_t stream_size);
 
 static size_t direct_locked_read(int fd,
-                            void * buf,
-                            off_t buf_offset,
-                            size_t size,
-                            off_t file_offset,
-                            off_t stream_size);
+		void * buf,
+		off_t buf_offset,
+		size_t size,
+		off_t file_offset,
+		off_t stream_size);
 
 static size_t direct_read(int fd, 
-                          void * buf, 
-                          off_t buf_offset,
-                          size_t size,
-                          off_t file_offset, 
-                          off_t stream_size);
+		void * buf, 
+		off_t buf_offset,
+		size_t size,
+		off_t file_offset, 
+		off_t stream_size);
 
 #define BLOCK_SIZE 4096
 
@@ -119,11 +121,11 @@ static size_t direct_read(int fd,
  * still greater than or equal to the requested size
  */
 #define ALIGNED_SIZE(__offset, __size) \
-    (((__offset + __size + BLOCK_SIZE - 1) \
-      & BLOCK_MULTIPLES_MASK) - ALIGNED_OFFSET(__offset))
+	(((__offset + __size + BLOCK_SIZE - 1) \
+			& BLOCK_MULTIPLES_MASK) - ALIGNED_OFFSET(__offset))
 
 #define IS_ALIGNED_PTR(__ptr) \
-    ((((uintptr_t)__ptr) & BLOCK_MULTIPLES_MASK) == (uintptr_t)__ptr)
+	((((uintptr_t)__ptr) & BLOCK_MULTIPLES_MASK) == (uintptr_t)__ptr)
 
 extern PINT_manager_t io_thread_mgr;
 extern PINT_worker_id io_worker_id;
@@ -132,8 +134,8 @@ extern PINT_queue_id io_queue_id;
 #if 0
 struct aligned_block
 {
-    void *ptr;
-    struct qlist_head link;
+	void *ptr;
+	struct qlist_head link;
 };
 static struct aligned_block *blocks;
 static void *aligned_blocks_buffer;
@@ -171,338 +173,338 @@ int dbpf_aligned_blocks_finalize(void);
  * @returns bytes written, otherwise a negative errno error code
  */
 static size_t direct_aligned_write(int fd, 
-                                    void *buf, 
-                                    off_t buf_offset,
-                                    size_t size, 
-                                    off_t write_offset,
-                                    off_t stream_size)
+		void *buf, 
+		off_t buf_offset,
+		size_t size, 
+		off_t write_offset,
+		off_t stream_size)
 {
-    int ret;
+	int ret;
 
 #ifndef NDEBUG
-    /* if debug is enabled, check that fd was opened with O_DIRECT */
+	/* if debug is enabled, check that fd was opened with O_DIRECT */
 
-    if(!(fcntl(fd, F_GETFL) & O_DIRECT))
-    {
-        return -EINVAL;
-    }
+	if(!(fcntl(fd, F_GETFL) & O_DIRECT))
+	{
+		return -EINVAL;
+	}
 #endif
 
-    /* verify that the buffer is aligned properly */
-    assert(IS_ALIGNED_PTR(buf));
+	/* verify that the buffer is aligned properly */
+	assert(IS_ALIGNED_PTR(buf));
 
-    /* verify that the offset is aligned as well */
-    assert(ALIGNED_OFFSET(buf_offset) == buf_offset);
+	/* verify that the offset is aligned as well */
+	assert(ALIGNED_OFFSET(buf_offset) == buf_offset);
 
-    /* and the size */
-    assert(ALIGNED_SIZE(write_offset, size) == size);
+	/* and the size */
+	assert(ALIGNED_SIZE(write_offset, size) == size);
 
-    /* and the offset into the file */
-    assert(ALIGNED_OFFSET(write_offset) == write_offset);
+	/* and the offset into the file */
+	assert(ALIGNED_OFFSET(write_offset) == write_offset);
 
-    ret = dbpf_pwrite(fd, (((char *)buf) + buf_offset), size, write_offset);
-    if(ret < 0)
-    {
-        gossip_err(
-            "dbpf_direct_write: failed to perform aligned write\n");
-        return ret;
-    }
+	ret = dbpf_pwrite(fd, (((char *)buf) + buf_offset), size, write_offset);
+	if(ret < 0)
+	{
+		gossip_err(
+				"dbpf_direct_write: failed to perform aligned write\n");
+		return ret;
+	}
 
-    return ret;
+	return ret;
 }
 
 /* static int writes_outstanding = 0; 
 gen_mutex_t writes_lock = GEN_MUTEX_INITIALIZER; */
 
 static size_t direct_locked_write(int fd,
-                            void * buf,
-                            off_t buf_offset,
-                            size_t size,
-                            off_t write_offset,
-                            off_t stream_size)
+		void * buf,
+		off_t buf_offset,
+		size_t size,
+		off_t write_offset,
+		off_t stream_size)
 {
-    struct flock writelock;
-    int ret, write_ret;
-/*	struct timeval start, end; */
+	struct flock writelock;
+	int ret, write_ret;
+	/*	struct timeval start, end; */
 
-    writelock.l_type = F_WRLCK;
-    writelock.l_whence = SEEK_SET;
-    writelock.l_start = (off_t)ALIGNED_OFFSET(write_offset);
-    writelock.l_len = (off_t)ALIGNED_SIZE(write_offset, size);
-    ret = fcntl(fd, F_SETLKW, &writelock);
-    if(ret < 0 && errno == EINTR)
-    {
-        gossip_err("%s: failed to lock flock before writing\n", __func__);
-        return -trove_errno_to_trove_error(errno);
-    }
-    writelock.l_type = F_UNLCK;
+	writelock.l_type = F_WRLCK;
+	writelock.l_whence = SEEK_SET;
+	writelock.l_start = (off_t)ALIGNED_OFFSET(write_offset);
+	writelock.l_len = (off_t)ALIGNED_SIZE(write_offset, size);
+	ret = fcntl(fd, F_SETLKW, &writelock);
+	if(ret < 0 && errno == EINTR)
+	{
+		gossip_err("%s: failed to lock flock before writing\n", __func__);
+		return -trove_errno_to_trove_error(errno);
+	}
+	writelock.l_type = F_UNLCK;
 
-    write_ret = direct_write(
-        fd, buf, buf_offset, size, write_offset, stream_size);
+	write_ret = direct_write(
+			fd, buf, buf_offset, size, write_offset, stream_size);
 
-    ret = fcntl(fd, F_SETLK, &writelock);
-    if (ret < 0)
-    {
-        gossip_err("%s: failed to unlock flock after writing\n", __func__);
-        return -trove_errno_to_trove_error (errno);
-    }
+	ret = fcntl(fd, F_SETLK, &writelock);
+	if (ret < 0)
+	{
+		gossip_err("%s: failed to unlock flock after writing\n", __func__);
+		return -trove_errno_to_trove_error (errno);
+	}
 
 #if 0
-    if(write_ret > 0)
-    {
-        if((write_offset + size) > stream_size)
+	if(write_ret > 0)
 	{
-            ret = DBPF_RESIZE(fd, (write_offset + size));
-	    if(ret < 0)
-	    {
-		gossip_err("failed ftruncate of O_DIRECT fd to size: %d\n",
-			   (write_offset + size));
-		return -trove_errno_to_trove_error(errno);
-	    }
+		if((write_offset + size) > stream_size)
+		{
+			ret = DBPF_RESIZE(fd, (write_offset + size));
+			if(ret < 0)
+			{
+				gossip_err("failed ftruncate of O_DIRECT fd to size: %d\n",
+						(write_offset + size));
+				return -trove_errno_to_trove_error(errno);
+			}
+		}
 	}
-    }
 #endif
 
-    return write_ret;
+	return write_ret;
 }
 
 #if 0
 static size_t new_direct_write(int fd,
-                               void * buf,
-                               off_t buf_offset,
-                               size_t size,
-                               off_t write_offset,
-                               off_t stream_size)
+		void * buf,
+		off_t buf_offset,
+		size_t size,
+		off_t write_offset,
+		off_t stream_size)
 {
-    size_t ret;
-    void *aligned_buf;
-    size_t aligned_size;
-    off_t aligned_offset, end_offset, aligned_end_offset;
+	size_t ret;
+	void *aligned_buf;
+	size_t aligned_size;
+	off_t aligned_offset, end_offset, aligned_end_offset;
 
-    aligned_size = ALIGNED_SIZE(write_offset, size);
-    aligned_offset = ALIGNED_OFFSET(write_offset);
+	aligned_size = ALIGNED_SIZE(write_offset, size);
+	aligned_offset = ALIGNED_OFFSET(write_offset);
 
-    /* if the buffer passed in, the offsets, and the size are all
-     * aligned properly, just pass through directly
-     */
-    if(IS_ALIGNED_PTR(buf) && 
-       ALIGNED_OFFSET(buf_offset) == buf_offset &&
-       aligned_size == size)
-    {
-        return direct_aligned_write(fd, buf, buf_offset,
-                                   size, write_offset, stream_size);
-    }
+	/* if the buffer passed in, the offsets, and the size are all
+	 * aligned properly, just pass through directly
+	 */
+	if(IS_ALIGNED_PTR(buf) && 
+			ALIGNED_OFFSET(buf_offset) == buf_offset &&
+			aligned_size == size)
+	{
+		return direct_aligned_write(fd, buf, buf_offset,
+				size, write_offset, stream_size);
+	}
 
-    gossip_debug(GOSSIP_DIRECTIO_DEBUG, 
-                 "requested write is not aligned, doing memcpy:\n\t"
-                 "buf: %p, "
-                 "buf_offset: %llu, "
-                 "size: %zu, \n\t"
-                 "write_offset: %llu, "
-                 "stream_size: %zu\n",
-                 buf, 
-                 llu(buf_offset), 
-                 size,
-                 llu(write_offset),
-                 stream_size);
+	gossip_debug(GOSSIP_DIRECTIO_DEBUG, 
+			"requested write is not aligned, doing memcpy:\n\t"
+			"buf: %p, "
+			"buf_offset: %llu, "
+			"size: %zu, \n\t"
+			"write_offset: %llu, "
+			"stream_size: %zu\n",
+			buf, 
+			llu(buf_offset), 
+			size,
+			llu(write_offset),
+			stream_size);
 
-    aligned_buf = dbpf_aligned_block_get();
-    if(!aligned_buf)
-    {
-        return -ENOMEM;
-    }
+	aligned_buf = dbpf_aligned_block_get();
+	if(!aligned_buf)
+	{
+		return -ENOMEM;
+	}
 
-    /* Do read-modify-write on the ends of the buffer if
-     * the offsets and sizes aren't aligned properly
-     */
-    if(aligned_offset < write_offset)
-    {
-        ret = 0;
-        if(ALIGNED_SIZE(0, stream_size) > aligned_offset)
-        {
-            gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at front\n");
-            /* read the first block */
-            ret = dbpf_pread(fd, aligned_buf, BLOCK_SIZE, aligned_offset);
-            if(ret < 0)
-            {
-                int pread_errno = errno;
-                gossip_err(
-                    "direct_memcpy_write: RMW failed at "
-                    "beginning of request\n");
-		dbpf_aligned_block_put(aligned_buf);
+	/* Do read-modify-write on the ends of the buffer if
+	 * the offsets and sizes aren't aligned properly
+	 */
+	if(aligned_offset < write_offset)
+	{
+		ret = 0;
+		if(ALIGNED_SIZE(0, stream_size) > aligned_offset)
+		{
+			gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at front\n");
+			/* read the first block */
+			ret = dbpf_pread(fd, aligned_buf, BLOCK_SIZE, aligned_offset);
+			if(ret < 0)
+			{
+				int pread_errno = errno;
+				gossip_err(
+						"direct_memcpy_write: RMW failed at "
+						"beginning of request\n");
+				dbpf_aligned_block_put(aligned_buf);
 
-                return -trove_errno_to_trove_error(pread_errno);
-            }
-        }
-        else
-        {
-            memset(aligned_buf, 0, BLOCK_SIZE);
-        }
+				return -trove_errno_to_trove_error(pread_errno);
+			}
+		}
+		else
+		{
+			memset(aligned_buf, 0, BLOCK_SIZE);
+		}
 
-        memcpy(((char *)buf) - (write_offset - aligned_offset),
-               aligned_buf, (write_offset - aligned_offset));
-    }
+		memcpy(((char *)buf) - (write_offset - aligned_offset),
+				aligned_buf, (write_offset - aligned_offset));
+	}
 
-    end_offset = write_offset + size;
-    aligned_end_offset = aligned_offset + aligned_size;
+	end_offset = write_offset + size;
+	aligned_end_offset = aligned_offset + aligned_size;
 
-    if(aligned_end_offset > end_offset)
-    {
-        ret = 0;
-        if(ALIGNED_SIZE(0, stream_size) >= aligned_end_offset)
-        {
-            gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at end\n");
-            ret = dbpf_pread(fd,
-                             aligned_buf,
-                             BLOCK_SIZE,
-                             aligned_end_offset - BLOCK_SIZE);
-            if(ret < 0)
-            {
-                int pread_errno = errno;
-                gossip_err(
-                    "direct_memcpy_write: RMW failed at end of request\n");
-                dbpf_aligned_block_put(aligned_buf);
+	if(aligned_end_offset > end_offset)
+	{
+		ret = 0;
+		if(ALIGNED_SIZE(0, stream_size) >= aligned_end_offset)
+		{
+			gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at end\n");
+			ret = dbpf_pread(fd,
+					aligned_buf,
+					BLOCK_SIZE,
+					aligned_end_offset - BLOCK_SIZE);
+			if(ret < 0)
+			{
+				int pread_errno = errno;
+				gossip_err(
+						"direct_memcpy_write: RMW failed at end of request\n");
+				dbpf_aligned_block_put(aligned_buf);
 
-                return -trove_errno_to_trove_error(pread_errno);
-            }
-        }
-        else
-        {
-            memset(aligned_buf, 0, BLOCK_SIZE);
-        }
+				return -trove_errno_to_trove_error(pread_errno);
+			}
+		}
+		else
+		{
+			memset(aligned_buf, 0, BLOCK_SIZE);
+		}
 
-        memcpy(((char *)buf) + size,
-               ((char *)aligned_buf) + (end_offset % BLOCK_SIZE),
-               (aligned_end_offset - end_offset));
-    }
+		memcpy(((char *)buf) + size,
+				((char *)aligned_buf) + (end_offset % BLOCK_SIZE),
+				(aligned_end_offset - end_offset));
+	}
 
-    ret = direct_aligned_write(
-        fd,
-        ((char *)buf) - (write_offset - aligned_offset), 0,
-        aligned_size, aligned_offset, stream_size);
+	ret = direct_aligned_write(
+			fd,
+			((char *)buf) - (write_offset - aligned_offset), 0,
+			aligned_size, aligned_offset, stream_size);
 
-    dbpf_aligned_block_put(aligned_buf);
+	dbpf_aligned_block_put(aligned_buf);
 
-    return size;
+	return size;
 }
 #endif
 
 static size_t direct_write(int fd,
-                           void * buf,
-                           off_t buf_offset,
-                           size_t size,
-                           off_t write_offset,
-                           off_t stream_size)
+		void * buf,
+		off_t buf_offset,
+		size_t size,
+		off_t write_offset,
+		off_t stream_size)
 {
-    size_t ret;
-    void * aligned_buf;
-    size_t aligned_size;
-    off_t aligned_offset, end_offset, aligned_end_offset;
+	size_t ret;
+	void * aligned_buf;
+	size_t aligned_size;
+	off_t aligned_offset, end_offset, aligned_end_offset;
 
-    aligned_size = ALIGNED_SIZE(write_offset, size);
-    aligned_offset = ALIGNED_OFFSET(write_offset);
+	aligned_size = ALIGNED_SIZE(write_offset, size);
+	aligned_offset = ALIGNED_OFFSET(write_offset);
 
-    /* if the buffer passed in, the offsets, and the size are all
-     * aligned properly, just pass through directly
-     */
-    if(IS_ALIGNED_PTR(buf) && 
-       ALIGNED_OFFSET(buf_offset) == buf_offset &&
-       aligned_size == size)
-    {
-        return direct_aligned_write(fd, buf, buf_offset,
-                                   size, write_offset, stream_size);
-    }
+	/* if the buffer passed in, the offsets, and the size are all
+	 * aligned properly, just pass through directly
+	 */
+	if(IS_ALIGNED_PTR(buf) && 
+			ALIGNED_OFFSET(buf_offset) == buf_offset &&
+			aligned_size == size)
+	{
+		return direct_aligned_write(fd, buf, buf_offset,
+				size, write_offset, stream_size);
+	}
 
-    gossip_debug(GOSSIP_DIRECTIO_DEBUG, 
-                 "requested write is not aligned, doing memcpy:\n\t"
-                 "buf: %p, "
-                 "buf_offset: %llu, "
-                 "size: %zu, \n\t"
-                 "write_offset: %llu, "
-                 "stream_size: %llu\n",
-                 buf, 
-                 llu(buf_offset), 
-                 size,
-                 llu(write_offset),
-                 llu(stream_size));
+	gossip_debug(GOSSIP_DIRECTIO_DEBUG, 
+			"requested write is not aligned, doing memcpy:\n\t"
+			"buf: %p, "
+			"buf_offset: %llu, "
+			"size: %zu, \n\t"
+			"write_offset: %llu, "
+			"stream_size: %llu\n",
+			buf, 
+			llu(buf_offset), 
+			size,
+			llu(write_offset),
+			llu(stream_size));
 
-    aligned_buf = PINT_mem_aligned_alloc(aligned_size, BLOCK_SIZE);
-    if(!aligned_buf)
-    {
-        return -ENOMEM;
-    }
+	aligned_buf = PINT_mem_aligned_alloc(aligned_size, BLOCK_SIZE);
+	if(!aligned_buf)
+	{
+		return -ENOMEM;
+	}
 
-    /* Do read-modify-write on the ends of the buffer if
-     * the offsets and sizes aren't aligned properly
-     */
-    if(aligned_offset < write_offset)
-    {
-        ret = 0;
-        if(ALIGNED_SIZE(0, stream_size) > aligned_offset)
-        {
-            /* read the first block */
-            gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at front\n");
-            ret = dbpf_pread(fd, aligned_buf, BLOCK_SIZE, aligned_offset);
-            if(ret < 0)
-            {
-                int pread_errno = errno;
-                gossip_err(
-                    "direct_memcpy_write: RMW failed at "
-                    "beginning of request\n");
-                PINT_mem_aligned_free(aligned_buf);
+	/* Do read-modify-write on the ends of the buffer if
+	 * the offsets and sizes aren't aligned properly
+	 */
+	if(aligned_offset < write_offset)
+	{
+		ret = 0;
+		if(ALIGNED_SIZE(0, stream_size) > aligned_offset)
+		{
+			/* read the first block */
+			gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at front\n");
+			ret = dbpf_pread(fd, aligned_buf, BLOCK_SIZE, aligned_offset);
+			if(ret < 0)
+			{
+				int pread_errno = errno;
+				gossip_err(
+						"direct_memcpy_write: RMW failed at "
+						"beginning of request\n");
+				PINT_mem_aligned_free(aligned_buf);
 
-                return -trove_errno_to_trove_error(pread_errno);
-            }
-        }
-        else
-        {
-            memset(aligned_buf, 0, BLOCK_SIZE);
-        }
-    }
+				return -trove_errno_to_trove_error(pread_errno);
+			}
+		}
+		else
+		{
+			memset(aligned_buf, 0, BLOCK_SIZE);
+		}
+	}
 
-    end_offset = write_offset + size;
-    aligned_end_offset = aligned_offset + aligned_size;
+	end_offset = write_offset + size;
+	aligned_end_offset = aligned_offset + aligned_size;
 
-    if(aligned_end_offset > end_offset)
-    {
-        ret = 0;
-        if(ALIGNED_SIZE(0, stream_size) >= aligned_end_offset)
-        {
-            gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at end\n");
-            ret = dbpf_pread(
-                fd,
-                ((char *)aligned_buf) + aligned_size - BLOCK_SIZE,
-                BLOCK_SIZE,
-                aligned_end_offset - BLOCK_SIZE);
-            if(ret < 0)
-            {
-                int pread_errno = errno;
-                gossip_err(
-                    "direct_memcpy_write: RMW failed at end of request\n");
-                PINT_mem_aligned_free(aligned_buf);
+	if(aligned_end_offset > end_offset)
+	{
+		ret = 0;
+		if(ALIGNED_SIZE(0, stream_size) >= aligned_end_offset)
+		{
+			gossip_debug(GOSSIP_DIRECTIO_DEBUG, "Doing RMW at end\n");
+			ret = dbpf_pread(
+					fd,
+					((char *)aligned_buf) + aligned_size - BLOCK_SIZE,
+					BLOCK_SIZE,
+					aligned_end_offset - BLOCK_SIZE);
+			if(ret < 0)
+			{
+				int pread_errno = errno;
+				gossip_err(
+						"direct_memcpy_write: RMW failed at end of request\n");
+				PINT_mem_aligned_free(aligned_buf);
 
-                return -trove_errno_to_trove_error(pread_errno);
-            }
-        }
-        else
-        {
-            memset(((char *)aligned_buf) + aligned_size - BLOCK_SIZE, 
-                   0, BLOCK_SIZE);
-        }
-    }
+				return -trove_errno_to_trove_error(pread_errno);
+			}
+		}
+		else
+		{
+			memset(((char *)aligned_buf) + aligned_size - BLOCK_SIZE, 
+					0, BLOCK_SIZE);
+		}
+	}
 
-    /* now we're read to memcpy the actual (unaligned) request into the
-     * aligned buffer
-     */
-    memcpy(((char *)aligned_buf) + (write_offset - aligned_offset),
-           ((char *)buf) + buf_offset, size);
+	/* now we're read to memcpy the actual (unaligned) request into the
+	 * aligned buffer
+	 */
+	memcpy(((char *)aligned_buf) + (write_offset - aligned_offset),
+			((char *)buf) + buf_offset, size);
 
-    ret = direct_aligned_write(fd, aligned_buf, 0,
-                                aligned_size, aligned_offset, stream_size);
+	ret = direct_aligned_write(fd, aligned_buf, 0,
+			aligned_size, aligned_offset, stream_size);
 
-    PINT_mem_aligned_free(aligned_buf);
+	PINT_mem_aligned_free(aligned_buf);
 
-    return (ret < 0) ? ret : size;
+	return (ret < 0) ? ret : size;
 }
 
 /**

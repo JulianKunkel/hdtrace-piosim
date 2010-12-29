@@ -11,6 +11,7 @@
 #include "trove-internal.h"
 #include "gen-locks.h"
 #include "trove-handle-mgmt/trove-handle-mgmt.h"
+#include "pint-event.h"
 
 TROVE_method_callback global_trove_method_callback;
 
@@ -194,9 +195,10 @@ int trove_collection_create(char *collname,
     }
 
     method_id = global_trove_method_callback(new_coll_id);
+    
     ret = mgmt_method_table[method_id]->collection_create(
         collname, new_coll_id, user_ptr, out_op_id_p);
-
+    
     return ((ret < 0) ? ret : 1);
 }
 
@@ -219,7 +221,7 @@ int trove_collection_lookup(TROVE_method_id method_id,
 {
     int ret = mgmt_method_table[method_id]->collection_lookup(
         collname, coll_id_p, user_ptr, out_op_id_p);
-
+    
     return (ret < 0) ? ret : 1;
 }
 

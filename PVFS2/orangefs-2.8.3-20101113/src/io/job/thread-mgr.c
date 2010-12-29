@@ -267,6 +267,7 @@ static void *bmi_thread_function(void *ptr)
             return NULL;
 	}
 
+	
 	for(i=0; i<bmi_test_count; i++)
 	{
 	    /* execute a callback for each completed BMI operation */

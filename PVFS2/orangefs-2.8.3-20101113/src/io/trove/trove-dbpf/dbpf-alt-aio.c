@@ -6,7 +6,8 @@
 #include <string.h>
 
 static int alt_lio_listio(int mode, struct aiocb * const list[],
-                          int nent, struct sigevent *sig);
+        				  int nent, struct sigevent *sig);
+
 static int alt_aio_error(const struct aiocb *aiocbp);
 static ssize_t alt_aio_return(struct aiocb *aiocbp);
 static int alt_aio_cancel(int filedesc, struct aiocb * aiocbp);
@@ -26,26 +27,29 @@ struct alt_aio_item
     int master;
     pthread_t *tids;
     int nent;
+    PVFS_hint hints; 
 };
 static void* alt_lio_thread(void*);
 
-int alt_lio_listio(int mode, struct aiocb * const list[], 
-                   int nent, struct sigevent *sig) 
+int alt_lio_listio(int mode, struct aiocb * const list[],
+				   int nent, struct sigevent *sig) 
 {
     struct alt_aio_item* tmp_item;
+    PVFS_hint hints = (PVFS_hint) list[nent];
     int ret, i;
     pthread_t *tids;
     pthread_attr_t attr;
     pthread_t master_tid;
-
+    
     tids = (pthread_t *)malloc(sizeof(pthread_t) * nent);
     if(!tids)
     {
         return (-1);
     }
-
+    
     for(i = 0; i < nent; ++i)
     {
+    	
 	int spawnmode= PTHREAD_CREATE_JOINABLE;
         tmp_item = (struct alt_aio_item*)malloc(sizeof(struct alt_aio_item)*nent);
         if(!tmp_item)
@@ -69,6 +73,8 @@ int alt_lio_listio(int mode, struct aiocb * const list[],
 
         tmp_item->cb_p = list[i];
         tmp_item->sig = sig;
+        
+        tmp_item->hints = hints;
 
         /* setup state */
 #ifdef HAVE_AIOCB_ERROR_CODE
@@ -206,15 +212,20 @@ static int alt_aio_fsync(int operation, struct aiocb * aiocbp)
 
 static void* alt_lio_thread(void* foo)
 {
-    struct alt_aio_item* tmp_item = (struct alt_aio_item*)foo;
+    struct alt_aio_item* tmp_item = (struct alt_aio_item*) foo;
     int ret = 0;
-
+    
     if(tmp_item->cb_p->aio_lio_opcode == LIO_READ)
-    {
-        ret = pread(tmp_item->cb_p->aio_fildes,
-                    (void*)tmp_item->cb_p->aio_buf,
-                    tmp_item->cb_p->aio_nbytes,
-                    tmp_item->cb_p->aio_offset);
+    {	
+    	
+    	HD_SERVER_TROVE_RELATION(tmp_item->hints,"alt-io-read",
+    			ret = pread(tmp_item->cb_p->aio_fildes,
+    					(void*)tmp_item->cb_p->aio_buf,
+    					tmp_item->cb_p->aio_nbytes,
+    					tmp_item->cb_p->aio_offset);,
+    			"%d",tmp_item->cb_p->aio_nbytes,
+    			"%lld",lld(tmp_item->cb_p->aio_offset)
+    	)
     }
     else if(tmp_item->cb_p->aio_lio_opcode == LIO_WRITE)
     {
@@ -224,11 +235,15 @@ static void* alt_lio_thread(void* foo)
                      tmp_item->cb_p, tmp_item->cb_p->aio_fildes, 
                      tmp_item->cb_p->aio_buf, tmp_item->cb_p->aio_nbytes,
 		     llu(tmp_item->cb_p->aio_offset));
-
-        ret = pwrite(tmp_item->cb_p->aio_fildes,
-                     (const void*)tmp_item->cb_p->aio_buf,
-                     tmp_item->cb_p->aio_nbytes,
-                     tmp_item->cb_p->aio_offset);
+        
+        HD_SERVER_TROVE_RELATION(tmp_item->hints,"alt-io-write",
+        		ret = pwrite(tmp_item->cb_p->aio_fildes,
+        				(const void*)tmp_item->cb_p->aio_buf,
+        				tmp_item->cb_p->aio_nbytes,
+        				tmp_item->cb_p->aio_offset);
+        		,"%d",tmp_item->cb_p->aio_nbytes,
+        		"%lld",lld(tmp_item->cb_p->aio_offset)
+        )
     }
     else
     {

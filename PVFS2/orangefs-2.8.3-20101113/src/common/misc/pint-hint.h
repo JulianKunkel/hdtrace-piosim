@@ -24,14 +24,15 @@ enum PINT_hint_type
     PINT_HINT_HANDLE,
     PINT_HINT_OP_ID,
     PINT_HINT_RANK,
-    PINT_HINT_SERVER_ID
+    PINT_HINT_SERVER_ID,
 };
 
 typedef struct PVFS_hint_s
 {
     enum PINT_hint_type type;
     char *type_string;
-    char *value;
+//    char *value;
+    void * value; 
     int32_t length;
 
     void (*encode)(char **pptr, void *value);

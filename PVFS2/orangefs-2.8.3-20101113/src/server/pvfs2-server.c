@@ -50,6 +50,7 @@
 #include "src/server/request-scheduler/request-scheduler.h"
 #include "pint-event.h"
 #include "pint-util.h"
+#include "gen-locks.h"
 
 #ifndef PVFS2_VERSION
 #define PVFS2_VERSION "Unknown"
@@ -1912,10 +1913,28 @@ int server_state_machine_start(
     else if (ret == 0)
     {
         s_op->req  = (struct PVFS_server_req *)s_op->decoded.buffer;
+        
+        HD_CLIENT_SERVER_RELATION(SERVER,
+        	// check if client sent token information or not!
+        	char * relation = PINT_hint_get_value_by_name(s_op->req->hints, PVFS_HINT_CLIENT_RELATION_TOKEN_NAME, NULL);
+        	
+        	if(relation)
+        	{
+        		printf("SERVER : %s\n",relation);
+        		PINT_smcb_set_token(smcb, hdR_relateRemoteToken(topoTokenArray[SERVER], relation));
+        	}else{
+        		// create new token
+        		PINT_smcb_set_token(smcb, hdR_createTopLevelRelation(topoTokenArray[SERVER]));
+        	}
+        	PVFS_hint_add(&s_op->req->hints, PVFS_HINT_RELATION_TOKEN_NAME, sizeof(hdR_token), 
+        			& smcb->smToken);
+        )
+        
         ret = PINT_smcb_set_op(smcb, s_op->req->op);
         s_op->op = s_op->req->op;
         PVFS_hint_add(&s_op->req->hints, PVFS_HINT_SERVER_ID_NAME, sizeof(uint32_t), &server_config.host_index);
         PVFS_hint_add(&s_op->req->hints, PVFS_HINT_OP_ID_NAME, sizeof(uint32_t), &s_op->req->op);
+        
     }
     else
     {

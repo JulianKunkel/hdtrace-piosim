@@ -189,7 +189,8 @@ SERVER_LDFLAGS += @SERVER_LDFLAGS@
 DB_CFLAGS = @DB_CFLAGS@
 LDSHARED = $(CC) -shared
 PICFLAGS = -fPIC
-LIBS += -lpvfs2 @LIBS@ 
+#LIBS += -lpvfs2 @LIBS@ 
+LIBS += -lpvfs2 @LIBS@ -L../../HDTraceWritingCLibrary/lib
 LIBS_THREADED += -lpvfs2-threaded @LIBS@
 # need to include external dependency libs when building shared libraries
 DEPLIBS := @LIBS@
@@ -1097,6 +1098,7 @@ install:: all install_doc
 	install -m 644 $(srcdir)/include/pvfs2-encode-stubs.h $(includedir)
 	install -m 644 $(srcdir)/include/pvfs2-hint.h $(includedir)
 	install -m 644 $(srcdir)/include/pvfs2-compat.h $(includedir)
+	install -m 644 $(srcdir)/src/common/misc/pint-event-hd-client.h $(includedir)
 	install -m 644 $(srcdir)/include/pvfs2-mirror.h $(includedir)
 
 	install -d $(libdir)

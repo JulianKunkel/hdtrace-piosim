@@ -19,7 +19,6 @@
 #include "server-config-mgr.h"
 #include "PINT-reqproto-encode.h"
 #include "client-state-machine.h"
-#include "src/server/request-scheduler/request-scheduler.h"
 #include "job-time-mgr.h"
 #include "pint-util.h"
 #include "pint-event.h"
@@ -64,6 +63,10 @@ int PVFS_sys_finalize()
 
     PINT_dist_finalize();
 
+#ifdef HAVE_HDTRACE
+    PINT_HD_event_finalize(); /* for client */
+#endif
+    
     PINT_event_finalize();
 
     PINT_release_pvfstab();

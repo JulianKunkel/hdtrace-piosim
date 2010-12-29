@@ -10,6 +10,8 @@
  *  Top-level BMI network interface routines.
  */
 
+/* DUC for svn commit only*/
+
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
@@ -28,6 +30,8 @@
 #include "id-generator.h"
 #include "pvfs2-internal.h"
 #include "pvfs2-debug.h"
+#include "pint-event.h"
+#include "state-machine.h"
 
 static int bmi_initialized_count = 0;
 static gen_mutex_t bmi_initialize_mutex = GEN_MUTEX_INITIALIZER;
@@ -172,6 +176,7 @@ int BMI_initialize(const char *method_list,
     int addr_count = 0;
 
     gen_mutex_lock(&bmi_initialize_mutex);
+    
     if(bmi_initialized_count > 0)
     {
         /* Already initialized! Just increment ref count and return. */
@@ -616,7 +621,6 @@ int BMI_open_context(bmi_context_id* context_id)
     *context_id = context_index;
 
 out:
-
     gen_mutex_unlock(&context_mutex);
     return(ret);
 }
@@ -675,6 +679,7 @@ int BMI_post_recv(bmi_op_id_t * id,
     *id = 0;
 
     gen_mutex_lock(&ref_mutex);
+    
     tmp_ref = ref_list_search_addr(cur_ref_list, src);
     if (!tmp_ref)
     {
@@ -682,10 +687,16 @@ int BMI_post_recv(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-
+    
+    PINT_HD_update_counter_inc(BMI);
+    
     ret = tmp_ref->interface->post_recv(
         id, tmp_ref->method_addr, buffer, expected_size, actual_size,
         buffer_type, tag, user_ptr, context_id, (PVFS_hint)hints);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(BMI);
+    
     return (ret);
 }
 
@@ -721,10 +732,16 @@ int BMI_post_send(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-
+    
+    PINT_HD_update_counter_inc(BMI);
+    
     ret = tmp_ref->interface->post_send(
         id, tmp_ref->method_addr, buffer, size, buffer_type, tag,
         user_ptr, context_id, (PVFS_hint)hints);
+    
+    if (ret < 0 || ret == 1)
+    	PINT_HD_update_counter_dec(BMI);
+    
     return (ret);
 }
 
@@ -760,10 +777,16 @@ int BMI_post_sendunexpected(bmi_op_id_t * id,
 	return (bmi_errno_to_pvfs(-EPROTO));
     }
     gen_mutex_unlock(&ref_mutex);
-
+    
+    PINT_HD_update_counter_inc(BMI);
+    
     ret = tmp_ref->interface->post_sendunexpected(
         id, tmp_ref->method_addr, buffer, size, buffer_type, tag,
         user_ptr, context_id, (PVFS_hint)hints);
+    
+    if (ret < 0 || ret == 1)
+        PINT_HD_update_counter_dec(BMI);
+    
     return (ret);
 }
 
@@ -801,6 +824,7 @@ int BMI_test(bmi_op_id_t id,
     {
 	gossip_debug(GOSSIP_BMI_DEBUG_CONTROL,
                      "BMI_test completing: %llu\n", llu(id));
+    PINT_HD_update_counter_dec_multiple(BMI,*outcount);
 	return (1);
     }
     return (ret);
@@ -916,7 +940,10 @@ int BMI_testsome(int incount,
     free(tmp_id_array);
 
     if(ret == 0 && *outcount > 0)
+    {
+	PINT_HD_update_counter_dec_multiple(BMI,*outcount);
 	return(1);
+    }
     else
 	return(0);
 }
@@ -1143,6 +1170,7 @@ int BMI_testcontext(int incount,
 	    gossip_debug(GOSSIP_BMI_DEBUG_CONTROL, 
 		"BMI_testcontext completing: %llu\n", llu(out_id_array[i]));
 	}
+	PINT_HD_update_counter_dec_multiple(BMI,*outcount);
 	return (1);
     }
     return (0);
@@ -1423,7 +1451,7 @@ int BMI_get_info(BMI_addr_t addr,
     int tmp_maxsize;
     int ret = 0;
     ref_st_p tmp_ref = NULL;
-
+    
     switch (option)
     {
 	/* check to see if the interface is initialized */
@@ -1447,6 +1475,7 @@ int BMI_get_info(BMI_addr_t addr,
                 option, &tmp_maxsize);
 	    if (ret < 0)
 	    {
+	    PINT_HD_update_counter_dec(BMI);
 		return (ret);
 	    }
 	    if (i == 0)
@@ -1479,6 +1508,7 @@ int BMI_get_info(BMI_addr_t addr,
         if(!tmp_ref)
         {
             gen_mutex_unlock(&ref_mutex);
+            PINT_HD_update_counter_dec(BMI);
             return (bmi_errno_to_pvfs(-EINVAL));
         }
         gen_mutex_unlock(&ref_mutex);
@@ -1486,6 +1516,7 @@ int BMI_get_info(BMI_addr_t addr,
             option, inout_parameter);
         if(ret < 0)
         {
+        	PINT_HD_update_counter_dec(BMI);
             return ret;
         }
         break;
@@ -1754,10 +1785,16 @@ int BMI_post_send_list(bmi_op_id_t * id,
 
     if (tmp_ref->interface->post_send_list)
     {
+    
+    PINT_HD_update_counter_inc(BMI);
+    
 	ret = tmp_ref->interface->post_send_list(
             id, tmp_ref->method_addr, buffer_list, size_list,
             list_count, total_size, buffer_type, tag, user_ptr,
             context_id, (PVFS_hint)hints);
+	
+	if (ret < 0 || ret == 1)
+	    PINT_HD_update_counter_dec(BMI);
 
 	return (ret);
     }
@@ -1822,11 +1859,17 @@ int BMI_post_recv_list(bmi_op_id_t * id,
 
     if (tmp_ref->interface->post_recv_list)
     {
+    	
+    PINT_HD_update_counter_inc(BMI);
+    	
 	ret = tmp_ref->interface->post_recv_list(
             id, tmp_ref->method_addr, buffer_list, size_list,
             list_count, total_expected_size, total_actual_size,
             buffer_type, tag, user_ptr, context_id, (PVFS_hint)hints);
 
+	if (ret < 0 || ret == 1)
+	    PINT_HD_update_counter_dec(BMI);
+	
 	return (ret);
     }
 
@@ -1889,11 +1932,13 @@ int BMI_post_sendunexpected_list(bmi_op_id_t * id,
 
     if (tmp_ref->interface->post_send_list)
     {
+    PINT_HD_update_counter_inc(BMI);
 	ret = tmp_ref->interface->post_sendunexpected_list(
             id, tmp_ref->method_addr, buffer_list, size_list,
             list_count, total_size, buffer_type, tag, user_ptr,
             context_id, (PVFS_hint)hints);
-
+	if (ret < 0 || ret == 1)
+		PINT_HD_update_counter_dec(BMI);
 	return (ret);
     }
 

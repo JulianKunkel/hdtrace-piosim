@@ -11,17 +11,28 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef __PVFS2_SERVER__
+#include "../../server/pvfs2-server.h"
+#include "pvfs2-req-proto.h"
+#endif
+
 #include "gossip.h"
 #include "pvfs2-debug.h"
 #include "state-machine.h"
 #include "client-state-machine.h"
+#include "hdRelation.h"
+
+static int hd_sm_trace_enabled;
+
+#define HD_STMT_TOKEN(stmt) \
+	do{ if( smcb->op_get_state_machine != NULL && hd_sm_trace_enabled){ stmt } } while(0);
 
 struct PINT_frame_s
 {
-    int task_id;
-    void *frame;
-    int error;
-    struct qlist_head link;
+	int task_id;
+	void *frame;
+	int error;
+	struct qlist_head link;
 };
 
 static struct PINT_state_s *PINT_pop_state(struct PINT_smcb *);
@@ -36,7 +47,7 @@ static void PINT_sm_start_child_frames(struct PINT_smcb *smcb, int* children_sta
  */
 int PINT_state_machine_halt(void)
 {
-    return 0;
+	return 0;
 }
 
 /* Function: PINT_state_machine_terminate
@@ -109,77 +120,91 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
         returned)
  */
 PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
-                                         job_status_s *r)
+		job_status_s *r)
 {
-    PINT_sm_action retval;
-    const char * state_name;
-    const char * machine_name;
-    int children_started = 0;
+	PINT_sm_action retval;
+	const char * state_name;
+	const char * machine_name;
+	int children_started = 0;
+	int ret = -1;
 
-    if (!(smcb) || !(smcb->current_state) ||
-            !(smcb->current_state->flag == SM_RUN ||
-              smcb->current_state->flag == SM_PJMP) ||
-            !(smcb->current_state->action.func))
-    {
-        gossip_err("SM invoke called on invalid smcb or state\n");
-        return SM_ERROR;
-    }
+	if (!(smcb) || !(smcb->current_state) ||
+			!(smcb->current_state->flag == SM_RUN ||
+					smcb->current_state->flag == SM_PJMP) ||
+					!(smcb->current_state->action.func))
+	{
+		gossip_err("SM invoke called on invalid smcb or state\n");
+		return SM_ERROR;
+	}
+	
+	state_name = PINT_state_machine_current_state_name(smcb);
+	machine_name = PINT_state_machine_current_machine_name(smcb);
 
-    state_name = PINT_state_machine_current_state_name(smcb);
-    machine_name = PINT_state_machine_current_machine_name(smcb);
+	HD_STMT_TOKEN(
+			/* new state */
+			ret = hdR_startS(smcb->smToken, state_name);
+	)
 
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
-                 "[SM Entering]: (%p) %s:%s (status: %d)\n",
-                 smcb,
-                 /* skip pvfs2_ */
-                 machine_name,
-                 state_name,
-                 (int32_t)r->status_user_tag);
-     
-    /* call state action function */
-    retval = (smcb->current_state->action.func)(smcb,r);
-    /* process return code */
-    switch (retval)
-    {
-    case SM_ACTION_TERMINATE :
-            smcb->op_terminate = 1;
-            break;
-    case SM_ACTION_COMPLETE :
-    case SM_ACTION_DEFERRED :
-            break;
-    default :
-            /* error */
-            gossip_err("SM Action %s:%s returned invalid return code %d (%p)\n",
-                       machine_name, state_name, retval, smcb);
-            break;
-    }
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
+			"[SM Entering]: (%p) %s:%s (status: %d)\n",
+			smcb,
+			/* skip pvfs2_ */
+			machine_name,
+			state_name,
+			(int32_t)r->status_user_tag);
 
-    /* print post-call debugging info */
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
-                 "[SM Exiting]: (%p) %s:%s (error code: %d), (action: %s)\n",
-                 smcb,
-                 /* skip pvfs2_ */
-                 machine_name,
-                 state_name,
-                 r->error_code,
-                 SM_ACTION_STRING(retval));
+	/* call state action function */
+	retval = (smcb->current_state->action.func)(smcb,r);
 
-    if (retval == SM_ACTION_COMPLETE && smcb->current_state->flag == SM_PJMP)
-    {
-        /* start child SMs */
-        PINT_sm_start_child_frames(smcb, &children_started);
-        /* if any children were started, then we return DEFERRED (even
-         * though they may have all completed immediately).  The last child
-         * issues a job_null that will drive progress from here and we don't
-         * want to cause a double transition.
-         */
-        if (children_started > 0)
-            retval = SM_ACTION_DEFERRED;
-        else
-            retval = SM_ACTION_COMPLETE;
-    }
+	HD_STMT_TOKEN(
+			/*end state*/
+			if(ret == 0){
+				hdR_endS(smcb->smToken);
+			}
+	)
 
-    return retval;
+	/* process return code */
+	switch (retval)
+	{
+	case SM_ACTION_TERMINATE :
+		smcb->op_terminate = 1;
+		break;
+	case SM_ACTION_COMPLETE :
+	case SM_ACTION_DEFERRED :
+		break;
+	default :
+		/* error */
+		gossip_err("SM Action %s:%s returned invalid return code %d (%p)\n",
+				machine_name, state_name, retval, smcb);
+		break;
+	}
+
+	/* print post-call debugging info */
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
+			"[SM Exiting]: (%p) %s:%s (error code: %d), (action: %s)\n",
+			smcb,
+			/* skip pvfs2_ */
+			machine_name,
+			state_name,
+			r->error_code,
+			SM_ACTION_STRING(retval));
+
+	if (retval == SM_ACTION_COMPLETE && smcb->current_state->flag == SM_PJMP)
+	{
+		/* start child SMs */
+		PINT_sm_start_child_frames(smcb, &children_started);
+		/* if any children were started, then we return DEFERRED (even
+		 * though they may have all completed immediately).  The last child
+		 * issues a job_null that will drive progress from here and we don't
+		 * want to cause a double transition.
+		 */
+		if (children_started > 0)
+			retval = SM_ACTION_DEFERRED;
+		else
+			retval = SM_ACTION_COMPLETE;
+	}
+
+	return retval;
 }
 
 /* Function: PINT_state_machine_start()
@@ -192,31 +217,57 @@ PINT_sm_action PINT_state_machine_invoke(struct PINT_smcb *smcb,
 
 PINT_sm_action PINT_state_machine_start(struct PINT_smcb *smcb, job_status_s *r)
 {
-    PINT_sm_action ret;
+	PINT_sm_action ret;
 
-    /* set the state machine to being completed immediately.  We
-     * unset this bit once the state machine is deferred.
-     */
-    smcb->immediate = 1;
+	/* set the state machine to being completed immediately.  We
+	 * unset this bit once the state machine is deferred.
+	 */
+	smcb->immediate = 1;
 
-    /* set the base frame to be the current TOS, which should be 0 */
-    smcb->base_frame = smcb->frame_count - 1;
+	/* set the base frame to be the current TOS, which should be 0 */
+	
+	
+	smcb->base_frame = smcb->frame_count - 1;
+	
+	HD_STMT_TOKEN(
+			hdR_startS(smcb->smToken, PINT_state_machine_current_machine_name(smcb));
+	)
+	
+	/* run the current state action function */
+	ret = PINT_state_machine_invoke(smcb, r);
+	if (ret == SM_ACTION_COMPLETE || ret == SM_ACTION_TERMINATE)
+	{
+		/* keep running until state machine deferrs or terminates */
+		ret = PINT_state_machine_continue(smcb, r);
+	}
 
-    /* run the current state action function */
-    ret = PINT_state_machine_invoke(smcb, r);
-    if (ret == SM_ACTION_COMPLETE || ret == SM_ACTION_TERMINATE)
-    {
-        /* keep running until state machine deferrs or terminates */
-        ret = PINT_state_machine_continue(smcb, r);
-    }
+	if(ret == SM_ACTION_DEFERRED)
+	{
+		/* this state machine isn't completing immediately */
+		smcb->immediate = 0;
+	}
 
-    if(ret == SM_ACTION_DEFERRED)
-    {
-        /* this state machine isn't completing immediately */
-        smcb->immediate = 0;
-    }
+	return ret;
+}
 
-    return ret;
+
+void set_hd_sm_trace_enabled(int enabled){
+	hd_sm_trace_enabled = enabled;
+}
+
+/**
+ * Assign the relation to it
+ */
+int PINT_smcb_set_token(struct PINT_smcb *smcb, hdR_token token){
+	smcb->smToken = token;
+	return 0;
+}
+
+/**
+ * Return the hdR_token assigned to the state machine
+ */
+hdR_token PINT_smcb_get_token(struct PINT_smcb *smcb){
+	return smcb->smToken;
 }
 
 /* Function: PINT_state_machine_next()
@@ -228,95 +279,104 @@ PINT_sm_action PINT_state_machine_start(struct PINT_smcb *smcb, job_status_s *r)
  */
 PINT_sm_action PINT_state_machine_next(struct PINT_smcb *smcb, job_status_s *r)
 {
-    int i; /* index for transition table */
-    struct PINT_tran_tbl_s *transtbl;
-    PINT_sm_action ret;   /* holds state action return code */
+	int i; /* index for transition table */
+	struct PINT_tran_tbl_s *transtbl;
+	PINT_sm_action ret;   /* holds state action return code */
 
-    if (!smcb)
-    {
-        gossip_err("SM next called on invald smcb\n");
-        return -1;
-    }
-    if(PINT_smcb_cancelled(smcb))
-    {
-        return SM_ACTION_TERMINATE;
-    }
+	if (!smcb)
+	{
+		gossip_err("SM next called on invald smcb\n");
+		return -1;
+	}
+	if(PINT_smcb_cancelled(smcb))
+	{
+		return SM_ACTION_TERMINATE;
+	}
 
-    /* loop while invoke of new state returns COMPLETED */
-    do {
-        /* loop while returning from nested SM */
-        do {
-            if (!smcb->current_state || !smcb->current_state->trtbl)
-            {
-                gossip_err("SM current state or trtbl is invalid "
-                           "(smcb = %p)\n", smcb);
-                gossip_backtrace();
-                assert(0);
-                return -1;
-            }
-            transtbl = smcb->current_state->trtbl;
+	/* loop while invoke of new state returns COMPLETED */
+	do {
+		/* loop while returning from nested SM */
+		do {
+			if (!smcb->current_state || !smcb->current_state->trtbl)
+			{
+				gossip_err("SM current state or trtbl is invalid "
+						"(smcb = %p)\n", smcb);
+				gossip_backtrace();
+				assert(0);
+				return -1;
+			}
+			transtbl = smcb->current_state->trtbl;
 
-            /* for each entry in the transition table there is a return
-             * code followed by a next state pointer to the new state.
-             * This loops through each entry, checking for a match on the
-             * return address, and then sets the new current_state and calls
-             * the new state action function */
-            for (i = 0; transtbl[i].return_value != DEFAULT_ERROR; i++)
-            {
-                if (transtbl[i].return_value == r->error_code)
-                    break;
-            }
-	    /* we expect the last state action function to return
-            * SM_ACTION_TERMINATE which sets the smcb->op_terminate
-            * flag.  ALSO the state machine must direct the next state
-            * to be terminate, which sets loc->flag to SM_TERMINATE.
-	    * We'll terminate for EITHER, but print an error if not
-            * both.
-	    */
-	    if(transtbl[i].flag == SM_TERM || smcb->op_terminate)
-	    {
-                if (!(transtbl[i].flag == SM_TERM))
-                {
-	            gossip_lerr("Error: state machine returned"
-                           " SM_ACTION_TERMINATE but didn't reach terminate\n");
-                }
-                if (!smcb->op_terminate)
-                {
-	            gossip_lerr("Error: state machine reached terminate"
-                            " without returning SM_ACTION_TERMINATE\n");
-                    smcb->op_terminate = 1;
-                }
-                return SM_ACTION_TERMINATE;
-	    }
-	    if (transtbl[i].flag == SM_RETURN)
-	    {
-                /* if this is a return pop the stack
-                 * and we'll continue from the state returned to
-                 */
-	        smcb->current_state = PINT_pop_state(smcb);
-                if(!smcb->current_state ||
-                   smcb->current_state->trtbl[0].flag == SM_TERM)
-                {
-                    /* assume nested state machine was invoked without
-                     * a parent */
-                    return SM_ACTION_TERMINATE;
-                }
-	    }
-        } while (transtbl[i].flag == SM_RETURN);
-        smcb->current_state = transtbl[i].next_state;
-        /* To do nested states, we check to see if the next state is
-        * a nested state machine, and if so we push the return state
-        * onto a stack */
-        while (smcb->current_state->flag == SM_JUMP)
-        {
-	    PINT_push_state(smcb, smcb->current_state);
-	    smcb->current_state =
-                    smcb->current_state->action.nested->first_state;
-        }
-        /* runs state_action and returns the return code */
-        ret = PINT_state_machine_invoke(smcb, r);
-    } while (ret == SM_ACTION_COMPLETE || ret == SM_ACTION_TERMINATE);
-    return ret;
+			/* for each entry in the transition table there is a return
+			 * code followed by a next state pointer to the new state.
+			 * This loops through each entry, checking for a match on the
+			 * return address, and then sets the new current_state and calls
+			 * the new state action function */
+			for (i = 0; transtbl[i].return_value != DEFAULT_ERROR; i++)
+			{
+				if (transtbl[i].return_value == r->error_code)
+					break;
+			}
+			/* we expect the last state action function to return
+			 * SM_ACTION_TERMINATE which sets the smcb->op_terminate
+			 * flag.  ALSO the state machine must direct the next state
+			 * to be terminate, which sets loc->flag to SM_TERMINATE.
+			 * We'll terminate for EITHER, but print an error if not
+			 * both.
+			 */
+			if(transtbl[i].flag == SM_TERM || smcb->op_terminate)
+			{
+				if (!(transtbl[i].flag == SM_TERM))
+				{
+					gossip_lerr("Error: state machine returned"
+							" SM_ACTION_TERMINATE but didn't reach terminate\n");
+				}
+				if (!smcb->op_terminate)
+				{
+					gossip_lerr("Error: state machine reached terminate"
+							" without returning SM_ACTION_TERMINATE\n");
+					smcb->op_terminate = 1;
+				}
+				return SM_ACTION_TERMINATE;
+			}
+			if (transtbl[i].flag == SM_RETURN)
+			{        
+				/* if this is a return pop the stack
+				 * and we'll continue from the state returned to
+				 */
+				smcb->current_state = PINT_pop_state(smcb);
+				if(!smcb->current_state ||
+						smcb->current_state->trtbl[0].flag == SM_TERM)
+				{
+					/* assume nested state machine was invoked without
+					 * a parent */
+					return SM_ACTION_TERMINATE;
+				}
+			}
+		} while (transtbl[i].flag == SM_RETURN);
+		smcb->current_state = transtbl[i].next_state;
+		/* To do nested states, we check to see if the next state is
+		 * a nested state machine, and if so we push the return state
+		 * onto a stack */
+		while (smcb->current_state->flag == SM_JUMP)
+		{
+			const char * machine_name;
+			machine_name = PINT_state_machine_current_machine_name(smcb);
+
+			PINT_push_state(smcb, smcb->current_state);
+			smcb->current_state =
+				smcb->current_state->action.nested->first_state;
+
+			HD_STMT_TOKEN(
+					hdR_startS(smcb->smToken, PINT_state_machine_current_machine_name(smcb));
+			)
+		}	
+
+		/* runs state_action and returns the return code */
+		ret = PINT_state_machine_invoke(smcb, r);
+
+	} while (ret == SM_ACTION_COMPLETE || ret == SM_ACTION_TERMINATE);
+	return ret;
 }
 
 /* Function: PINT_state_machine_continue
@@ -327,20 +387,20 @@ PINT_sm_action PINT_state_machine_next(struct PINT_smcb *smcb, job_status_s *r)
              This allows separation from the start call (which calls
              next but does not call terminate if the state machine
              terminates).
-*/
+ */
 PINT_sm_action PINT_state_machine_continue(struct PINT_smcb *smcb, job_status_s *r)
 {
-    PINT_sm_action ret;
+	PINT_sm_action ret;
 
-    ret = PINT_state_machine_next(smcb, r);
+	ret = PINT_state_machine_next(smcb, r);
 
-    if(ret == SM_ACTION_TERMINATE)
-    {
-        /* process terminating SM */
-        PINT_state_machine_terminate(smcb, r);
-    }
+	if(ret == SM_ACTION_TERMINATE)
+	{
+		/* process terminating SM */
+		PINT_state_machine_terminate(smcb, r);
+	}
 
-    return ret;
+	return ret;
 }
 
 /* Function: PINT_state_machine_locate(void)
@@ -352,46 +412,83 @@ PINT_sm_action PINT_state_machine_continue(struct PINT_smcb *smcb, job_status_s 
  */
 int PINT_state_machine_locate(struct PINT_smcb *smcb)
 {
-    struct PINT_state_s *current_tmp;
-    struct PINT_state_machine_s *op_sm;
-    const char *state_name;
-    const char *machine_name;
+	struct PINT_state_s *current_tmp;
+	struct PINT_state_machine_s *op_sm;
+	const char *state_name;
+	const char *machine_name;
 
-    /* check for valid inputs */
-    if (!smcb || smcb->op < 0 || !smcb->op_get_state_machine)
-    {
-	gossip_err("State machine requested not valid\n");
-	return -PVFS_EINVAL;
-    }
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
-            "[SM Locating]: (%p) op-id: %d\n",smcb,(smcb)->op);
-    /* this is a the usage dependant routine to look up the SM */
-    op_sm = (*smcb->op_get_state_machine)(smcb->op);
-    if (op_sm != NULL)
-    {
-	current_tmp = op_sm->first_state;
-	/* handle the case in which the first state points to a nested
-	 * machine, rather than a simple function
-	 */
-	while(current_tmp->flag == SM_JUMP)
+	/* check for valid inputs */
+	if (!smcb || smcb->op < 0 || !smcb->op_get_state_machine)
 	{
-	    PINT_push_state(smcb, current_tmp);
-	    current_tmp = ((struct PINT_state_machine_s *)
-                           current_tmp->action.nested)->first_state;
+		gossip_err("State machine requested not valid\n");
+		return -PVFS_EINVAL;
 	}
-        smcb->current_state = current_tmp;
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
+			"[SM Locating]: (%p) op-id: %d\n",smcb,(smcb)->op);
+	/* this is a the usage dependant routine to look up the SM */
+	op_sm = (*smcb->op_get_state_machine)(smcb->op);
+	if (op_sm != NULL)
+	{
+		current_tmp = op_sm->first_state;
+		/* handle the case in which the first state points to a nested
+		 * machine, rather than a simple function
+		 */
 
-        state_name = PINT_state_machine_current_state_name(smcb);
-        machine_name = PINT_state_machine_current_machine_name(smcb);
+		/* the code is called only from the server, because the client did not set the smToken yet */
 
-        gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
-                     "[SM Locating]: (%p) located: %s:%s\n",
-                     smcb, machine_name, state_name);
+		HD_STMT_TOKEN(
+#ifdef __PVFS2_SERVER__			
+			PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
+				switch(smcb->op)
+				{
+				case (PVFS_SERV_IO):{
+					if(s_op->req->u.io.io_type == PVFS_IO_READ){
+						hdR_startS(smcb->smToken, "read_sm");
+					}else{
+						hdR_startS(smcb->smToken, "write_sm");
+					}
+					break;
+				}
+				case (PVFS_SERV_SMALL_IO):
+					if(s_op->req->u.io.io_type == PVFS_IO_READ){
+						hdR_startS(smcb->smToken, "small_read_sm");
+					}else{
+						hdR_startS(smcb->smToken, "small_write_sm");
+					}
+					break;
+				default:
+					hdR_startS(smcb->smToken, smcb->op_get_state_machine(smcb->op)->name);
+				}
+#endif /* __PVFS2_SERVER__ */
+		)
+		
+		while(current_tmp->flag == SM_JUMP)
+		{
+			machine_name = PINT_state_machine_current_machine_name(smcb);
 
-	return 1; /* indicates successful locate */
-    }
-    gossip_err("State machine not found for operation %d\n",smcb->op);
-    return 0; /* indicates failed to locate */
+			PINT_push_state(smcb, current_tmp);
+			
+			current_tmp = ((struct PINT_state_machine_s *)
+					current_tmp->action.nested)->first_state;
+
+			HD_STMT_TOKEN(
+					hdR_startS(smcb->smToken, current_tmp->parent_machine->name);
+			)
+			
+		}
+		smcb->current_state = current_tmp;
+
+		state_name = PINT_state_machine_current_state_name(smcb);
+		machine_name = PINT_state_machine_current_machine_name(smcb);
+
+		gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
+				"[SM Locating]: (%p) located: %s:%s\n",
+				smcb, machine_name, state_name);
+
+		return 1; /* indicates successful locate */
+	}
+	gossip_err("State machine not found for operation %d\n",smcb->op);
+	return 0; /* indicates failed to locate */
 }
 
 /* Function: PINT_smcb_set_op
@@ -402,13 +499,14 @@ int PINT_state_machine_locate(struct PINT_smcb *smcb)
  */
 int PINT_smcb_set_op(struct PINT_smcb *smcb, int op)
 {
-    smcb->op = op;
-    return PINT_state_machine_locate(smcb);
+	smcb->op = op;
+
+	return PINT_state_machine_locate(smcb);
 }
 
 int PINT_smcb_immediate_completion(struct PINT_smcb *smcb)
 {
-    return smcb->immediate;
+	return smcb->immediate;
 }
 
 /* Function: PINT_smcb_op
@@ -457,7 +555,7 @@ int PINT_smcb_invalid_op(struct PINT_smcb *smcb)
  */
 void PINT_smcb_set_complete(struct PINT_smcb *smcb)
 {
-    smcb->op_terminate = 1;
+	smcb->op_terminate = 1;
 }
 
 /* Function: PINT_smcb_complete
@@ -467,7 +565,7 @@ void PINT_smcb_set_complete(struct PINT_smcb *smcb)
  */
 int PINT_smcb_complete(struct PINT_smcb *smcb)
 {
-    return smcb->op_terminate;
+	return smcb->op_terminate;
 }
 
 /* Function: PINT_smcb_set_cancelled
@@ -477,7 +575,7 @@ int PINT_smcb_complete(struct PINT_smcb *smcb)
  */
 void PINT_smcb_set_cancelled(struct PINT_smcb *smcb)
 {
-    smcb->op_cancelled = 1;
+	smcb->op_cancelled = 1;
 }
 
 /* Function: PINT_smcb_cancelled
@@ -487,7 +585,7 @@ void PINT_smcb_set_cancelled(struct PINT_smcb *smcb)
  */
 int PINT_smcb_cancelled(struct PINT_smcb *smcb)
 {
-    return smcb->op_cancelled;
+	return smcb->op_cancelled;
 }
 
 /* Function: PINT_smcb_alloc
@@ -498,48 +596,48 @@ int PINT_smcb_cancelled(struct PINT_smcb *smcb)
              and sets the op code so you can start the state machine
  */
 int PINT_smcb_alloc(
-        struct PINT_smcb **smcb,
-        int op,
-        int frame_size,
-        struct PINT_state_machine_s *(*getmach)(int),
-        int (*term_fn)(struct PINT_smcb *, job_status_s *),
-        job_context_id context_id)
+		struct PINT_smcb **smcb,
+		int op,
+		int frame_size,
+		struct PINT_state_machine_s *(*getmach)(int),
+		int (*term_fn)(struct PINT_smcb *, job_status_s *),
+		job_context_id context_id)
 {
-    *smcb = (struct PINT_smcb *)malloc(sizeof(struct PINT_smcb));
-    if (!(*smcb))
-    {
-        return -PVFS_ENOMEM;
-    }
-    /* zero out all members */
-    memset(*smcb, 0, sizeof(struct PINT_smcb));
+	*smcb = (struct PINT_smcb *)malloc(sizeof(struct PINT_smcb));
+	if (!(*smcb))
+	{
+		return -PVFS_ENOMEM;
+	}
+	/* zero out all members */
+	memset(*smcb, 0, sizeof(struct PINT_smcb));
 
-    INIT_QLIST_HEAD(&(*smcb)->frames);
-    (*smcb)->base_frame = -1; /* no frames yet */
-    (*smcb)->frame_count = 0;
+	INIT_QLIST_HEAD(&(*smcb)->frames);
+	(*smcb)->base_frame = -1; /* no frames yet */
+	(*smcb)->frame_count = 0;
 
-    /* if frame_size given, allocate a frame */
-    if (frame_size > 0)
-    {
-        void *new_frame = malloc(frame_size);
-        if (!new_frame)
-        {
-            free(*smcb);
-            *smcb = NULL;
-            return -PVFS_ENOMEM;
-        }
-        /* zero out all members */
-        memset(new_frame, 0, frame_size);
-        PINT_sm_push_frame(*smcb, 0, new_frame);
-        (*smcb)->base_frame = 0;
-    }
-    (*smcb)->op = op;
-    (*smcb)->op_get_state_machine = getmach;
-    (*smcb)->terminate_fn = term_fn;
-    (*smcb)->context = context_id;
-    /* if a getmach given, lookup state machine */
-    if (getmach)
-        return PINT_state_machine_locate(*smcb);
-    return 0; /* success */
+	/* if frame_size given, allocate a frame */
+	if (frame_size > 0)
+	{
+		void *new_frame = malloc(frame_size);
+		if (!new_frame)
+		{
+			free(*smcb);
+			*smcb = NULL;
+			return -PVFS_ENOMEM;
+		}
+		/* zero out all members */
+		memset(new_frame, 0, frame_size);
+		PINT_sm_push_frame(*smcb, 0, new_frame);
+		(*smcb)->base_frame = 0;
+	}
+	(*smcb)->op = op;
+	(*smcb)->op_get_state_machine = getmach;
+	(*smcb)->terminate_fn = term_fn;
+	(*smcb)->context = context_id;
+	/* if a getmach given, lookup state machine */
+	if (getmach)
+		return PINT_state_machine_locate(*smcb);
+	return 0; /* success */
 }
 
 /* Function: PINT_smcb_free
@@ -588,20 +686,27 @@ void PINT_smcb_free(struct PINT_smcb *smcb)
  */
 static struct PINT_state_s *PINT_pop_state(struct PINT_smcb *smcb)
 {
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
-            "[SM pop_state]: (%p) op-id: %d stk-ptr: %d base-frm: %d\n",
-            smcb, smcb->op, smcb->stackptr, smcb->base_frame);
-    
-    if(smcb->stackptr == 0)
-    {
-        /* this is not an error, we terminate if we return NULL */
-        /* this is return from main */
-        return NULL;
-    }
 
-    smcb->stackptr--;
-    smcb->base_frame = smcb->state_stack[smcb->stackptr].prev_base_frame;
-    return smcb->state_stack[smcb->stackptr].state;
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
+			"[SM pop_state]: (%p) op-id: %d stk-ptr: %d base-frm: %d\n",
+			smcb, smcb->op, smcb->stackptr, smcb->base_frame);
+
+	if(smcb->stackptr == 0)
+	{
+		/* this is not an error, we terminate if we return NULL */
+		/* this is return from main */
+		return NULL;
+	}
+
+	smcb->stackptr--;
+	smcb->base_frame = smcb->state_stack[smcb->stackptr].prev_base_frame;
+
+	HD_STMT_TOKEN(
+			/*end old sm */
+			hdR_endS(smcb->smToken);
+	)
+	
+	return smcb->state_stack[smcb->stackptr].state;
 }
 
 /* Function: PINT_push_state
@@ -612,18 +717,18 @@ static struct PINT_state_s *PINT_pop_state(struct PINT_smcb *smcb)
  *      "next" routine above
  */
 static void PINT_push_state(struct PINT_smcb *smcb,
-                            struct PINT_state_s *p)
+		struct PINT_state_s *p)
 {
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
-            "[SM push_state]: (%p) op-id: %d stk-ptr: %d base-frm: %d\n",
-            smcb, smcb->op, smcb->stackptr, smcb->base_frame);
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
+			"[SM push_state]: (%p) op-id: %d stk-ptr: %d base-frm: %d\n",
+			smcb, smcb->op, smcb->stackptr, smcb->base_frame);
 
-    assert(smcb->stackptr < PINT_STATE_STACK_SIZE);
+	assert(smcb->stackptr < PINT_STATE_STACK_SIZE);
 
-    smcb->state_stack[smcb->stackptr].prev_base_frame = smcb->base_frame;
-    smcb->base_frame = smcb->frame_count - 1;
-    smcb->state_stack[smcb->stackptr].state = p;
-    smcb->stackptr++;
+	smcb->state_stack[smcb->stackptr].prev_base_frame = smcb->base_frame;
+	smcb->base_frame = smcb->frame_count - 1;
+	smcb->state_stack[smcb->stackptr].state = p;
+	smcb->stackptr++;
 }
 
 /* Function: PINT_sm_frame
@@ -638,38 +743,38 @@ static void PINT_push_state(struct PINT_smcb *smcb,
  */
 void *PINT_sm_frame(struct PINT_smcb *smcb, int index)
 {
-    struct PINT_frame_s *frame_entry;
-    struct qlist_head *prev;
-    int target = smcb->base_frame + index;
+	struct PINT_frame_s *frame_entry;
+	struct qlist_head *prev;
+	int target = smcb->base_frame + index;
 
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
-            "[SM frame get]: (%p) op-id: %d index: %d base-frm: %d\n",
-            smcb, smcb->op, index, smcb->base_frame);
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
+			"[SM frame get]: (%p) op-id: %d index: %d base-frm: %d\n",
+			smcb, smcb->op, index, smcb->base_frame);
 
-    if(qlist_empty(&smcb->frames))
-    {
-        gossip_err("FRAME GET smcb %p index %d target %d -> List empty\n",
-                     smcb, index, target);
-        return NULL;
-    }
-    else
-    {
-        /* target should be 0 .. frame_count-1 now */
-        if (target < 0 || target >= smcb->frame_count)
-        {
-            gossip_err("FRAME GET smcb %p index %d target %d -> Out of range\n",
-                     smcb, index, target);
-            return NULL;
-        }
-        prev = smcb->frames.prev;
-        while(target)
-        {
-            target--;
-            prev = prev->prev;
-        }
-        frame_entry = qlist_entry(prev, struct PINT_frame_s, link);
-        return frame_entry->frame;
-    }
+	if(qlist_empty(&smcb->frames))
+	{
+		gossip_err("FRAME GET smcb %p index %d target %d -> List empty\n",
+				smcb, index, target);
+		return NULL;
+	}
+	else
+	{
+		/* target should be 0 .. frame_count-1 now */
+		if (target < 0 || target >= smcb->frame_count)
+		{
+			gossip_err("FRAME GET smcb %p index %d target %d -> Out of range\n",
+					smcb, index, target);
+			return NULL;
+		}
+		prev = smcb->frames.prev;
+		while(target)
+		{
+			target--;
+			prev = prev->prev;
+		}
+		frame_entry = qlist_entry(prev, struct PINT_frame_s, link);
+		return frame_entry->frame;
+	}
 }
 
 /* Function: PINT_sm_push_frame
@@ -679,21 +784,21 @@ void *PINT_sm_frame(struct PINT_smcb *smcb, int index)
  */
 int PINT_sm_push_frame(struct PINT_smcb *smcb, int task_id, void *frame_p)
 {
-    struct PINT_frame_s *newframe;
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
-                 "[SM Frame PUSH]: (%p) frame: %p\n",
-                 smcb, frame_p);
-    newframe = malloc(sizeof(struct PINT_frame_s));
-    if(!newframe)
-    {
-        return -PVFS_ENOMEM;
-    }
-    newframe->task_id = task_id;
-    newframe->frame = frame_p;
-    newframe->error = 0;
-    qlist_add(&newframe->link, &smcb->frames);
-    smcb->frame_count++;
-    return 0;
+	struct PINT_frame_s *newframe;
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
+			"[SM Frame PUSH]: (%p) frame: %p\n",
+			smcb, frame_p);
+	newframe = malloc(sizeof(struct PINT_frame_s));
+	if(!newframe)
+	{
+		return -PVFS_ENOMEM;
+	}
+	newframe->task_id = task_id;
+	newframe->frame = frame_p;
+	newframe->error = 0;
+	qlist_add(&newframe->link, &smcb->frames);
+	smcb->frame_count++;
+	return 0;
 }
 
 /* Function: PINT_sm_pop_frame
@@ -705,37 +810,37 @@ int PINT_sm_push_frame(struct PINT_smcb *smcb, int task_id, void *frame_p)
  * Synopsis: pops a frame pointer from the frame_stack and returns it
  */
 void *PINT_sm_pop_frame(struct PINT_smcb *smcb, 
-                        int *task_id,
-                        int *error_code,
-                        int *remaining)
+		int *task_id,
+		int *error_code,
+		int *remaining)
 {
-    struct PINT_frame_s *frame_entry;
-    void *frame;
+	struct PINT_frame_s *frame_entry;
+	void *frame;
 
-    if(qlist_empty(&smcb->frames))
-    {
-        return NULL;
-    }
+	if(qlist_empty(&smcb->frames))
+	{
+		return NULL;
+	}
 
-    frame_entry = qlist_entry(smcb->frames.next, struct PINT_frame_s, link);
-    qlist_del(smcb->frames.next);
-    smcb->frame_count--;
+	frame_entry = qlist_entry(smcb->frames.next, struct PINT_frame_s, link);
+	qlist_del(smcb->frames.next);
+	smcb->frame_count--;
 
-    if(remaining)
-    {
-        *remaining = smcb->frame_count;
-    }
+	if(remaining)
+	{
+		*remaining = smcb->frame_count;
+	}
 
-    frame = frame_entry->frame;
-    *error_code = frame_entry->error;
-    *task_id = frame_entry->task_id;
+	frame = frame_entry->frame;
+	*error_code = frame_entry->error;
+	*task_id = frame_entry->task_id;
 
-    free(frame_entry);
+	free(frame_entry);
 
-    gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
-            "[SM Frame POP]: (%p) frame: %p\n",
-            smcb, frame);
-    return frame;
+	gossip_debug(GOSSIP_STATE_MACHINE_DEBUG,
+			"[SM Frame POP]: (%p) frame: %p\n",
+			smcb, frame);
+	return frame;
 }
 
 /* Function: PINT_sm_task_map
@@ -867,4 +972,5 @@ char * PINT_sm_action_string[3] =
  */
 
 #endif
+
 

@@ -36,6 +36,7 @@
 #include "gossip.h"
 #include "id-generator.h"
 #include "pvfs2-internal.h"
+#include "pint-event.h"
 
 /* we need the server header because it defines the operations that
  * we use to determine whether to schedule or queue.  
@@ -550,6 +551,15 @@ int PINT_req_sched_post(enum PVFS_server_op op,
 		     llu(handle), tmp_element);
     }
     sched_count++;
+    
+    if (ret == 0)
+    {
+    	PINT_HD_UPDATE_COUNTER_INC_SERVER(BREQ);
+    }
+    else if (ret == 1){
+    	PINT_HD_UPDATE_COUNTER_INC_SERVER(REQ);
+    }
+    	
     return (ret);
 }
 
@@ -737,6 +747,8 @@ int PINT_req_sched_unpost(
     free(tmp_element);
 
     PINT_req_sched_schedule_mode_change();
+    
+    // TODO fix case in which this function gets called.
     return (0);
 }
 
@@ -755,6 +767,8 @@ int PINT_req_sched_release(
     struct req_sched_list *tmp_list = NULL;
     struct req_sched_element *next_element = NULL;
 
+	int deblocked = 0;
+	
     /* NOTE: for now, this function always returns immediately- no
      * need to fill in the out_id
      */
@@ -793,6 +807,7 @@ int PINT_req_sched_release(
 	}
 	else
 	{
+		
 	    /* something is queued behind this request */
 	    /* find the next request, change its state, and add it to
 	     * the queue of requests that are ready to be scheduled
@@ -807,6 +822,7 @@ int PINT_req_sched_release(
 		next_element->state != REQ_SCHEDULED)
 	    {
 		next_element->state = REQ_READY_TO_SCHEDULE;
+		deblocked++;
 		qlist_add_tail(&(next_element->ready_link), &ready_queue);
 
                 if(next_element->op == PVFS_SERV_IO)
@@ -831,6 +847,7 @@ int PINT_req_sched_release(
                                 "handle: %llu\n", llu(next_element->handle));
                             assert(next_element->state == REQ_QUEUED);
                             next_element->state = REQ_READY_TO_SCHEDULE;
+                            deblocked++;
                             qlist_add_tail(
                                 &(next_element->ready_link), &ready_queue);
                         }
@@ -858,6 +875,7 @@ int PINT_req_sched_release(
                                 "handle: %llu\n", llu(next_element->handle));
                             assert(next_element->state == REQ_QUEUED);
                             next_element->state = REQ_READY_TO_SCHEDULE;
+                            deblocked++;
                             qlist_add_tail(
                                 &(next_element->ready_link), &ready_queue);
                         }
@@ -876,6 +894,14 @@ int PINT_req_sched_release(
     free(tmp_element);
 
     PINT_req_sched_schedule_mode_change();
+    
+    if (deblocked > 0){
+    	PINT_HD_UPDATE_COUNTER_DEC_MULTIPLE_SERVER(BREQ, deblocked); 
+    	PINT_HD_UPDATE_COUNTER_INC_MULTIPLE_SERVER(REQ, deblocked); 
+    }
+    /* one got released i.e. is finished */
+    PINT_HD_UPDATE_COUNTER_DEC_SERVER(REQ);
+    
     return (1);
 }
 

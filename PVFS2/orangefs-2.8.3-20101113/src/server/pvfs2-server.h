@@ -501,6 +501,9 @@ struct PINT_server_getconfig_op
 struct PINT_server_io_op
 {
     flow_descriptor* flow_d;
+#ifdef HAVE_HDTRACE
+    PVFS_size io_size;
+#endif
 };
 
 struct PINT_server_small_io_op

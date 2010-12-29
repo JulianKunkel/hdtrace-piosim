@@ -1,0 +1,379 @@
+--- src/common/misc/state-machine-fns.c
++++ src/common/misc/state-machine-fns.c
+@@ -60,47 +71,82 @@
+  */
+ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
+ {
+-    struct PINT_frame_s *f;
+-    void *my_frame;
+-    job_id_t id;
+-
+-    /* notify parent */
+-    if (smcb->parent_smcb)
+-    {
+-        gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
+-                     "[SM Terminating Child]: (%p) (error_code: %d)\n",
+-                     smcb,
+-                     /* skip pvfs2_ */
+-                     (int32_t)r->error_code);
+-         assert(smcb->parent_smcb->children_running > 0);
+-
+-         my_frame = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
+-         /* this will loop from TOS down to the base frame */
+-         /* base frame will not be processed */
+-         qlist_for_each_entry(f, &smcb->parent_smcb->frames, link)
+-         {
+-             if(my_frame == f->frame)
+-             {
+-                 f->error = r->error_code;
+-                 break;
+-             }
+-         }
+-
+-        if (--smcb->parent_smcb->children_running <= 0)
+-        {
+-            /* no more child state machines running, so we can
+-             * start up the parent state machine again
+-             */
+-            job_null(0, smcb->parent_smcb, 0, r, &id, smcb->context);
+-        }
+-        return SM_ACTION_DEFERRED;
+-    }
+-    /* call state machine completion function */
+-    if (smcb->terminate_fn)
+-    {
+-        (*smcb->terminate_fn)(smcb, r);
+-    }
+-    return 0;
++
++	struct PINT_frame_s *f;
++	void *my_frame;
++	job_id_t id;
++
++	/* notify parent */
++	if (smcb->parent_smcb)
++	{
++		gossip_debug(GOSSIP_STATE_MACHINE_DEBUG, 
++				"[SM Terminating Child]: (%p) (error_code: %d)\n",
++				smcb,
++				/* skip pvfs2_ */
++				(int32_t)r->error_code);
++		assert(smcb->parent_smcb->children_running > 0);
++
++		my_frame = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
++		/* this will loop from TOS down to the base frame */
++		/* base frame will not be processed */
++		qlist_for_each_entry(f, &smcb->parent_smcb->frames, link)
++		{
++			if(my_frame == f->frame)
++			{
++				f->error = r->error_code;
++				break;
++			}
++		}
++
++		if (--smcb->parent_smcb->children_running <= 0)
++		{
++			/* no more child state machines running, so we can
++			 * start up the parent state machine again
++			 */
++			job_null(0, smcb->parent_smcb, 0, r, &id, smcb->context);
++		}
++		return SM_ACTION_DEFERRED;
++	}
++
++#ifdef __PVFS2_SERVER__	
++	char attr1[15]; 
++
++	const char * io_keys[] = {"size"};
++	char * io_values[] = {attr1}; // for using snprintf, no const char !
++	const char * c_io_values[1]; // passing to const char !
++	
++#endif
++	HD_STMT_TOKEN(
++#ifdef __PVFS2_SERVER__			
++			PINT_server_op *s_op = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
++			switch(smcb->op)
++			{
++			case (PVFS_SERV_IO):{
++				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.io_size));
++				c_io_values[0] = io_values[0]; 
++				hdR_end(smcb->smToken, 1, io_keys, c_io_values);
++				break;
++			}
++			case (PVFS_SERV_SMALL_IO):
++				snprintf(io_values[0], 15, "%lld", lld(s_op->resp.u.small_io.result_size));
++				c_io_values[0] = io_values[0]; 
++				hdR_end(smcb->smToken, 1, io_keys, c_io_values);	
++				break;
++			default:
++				hdR_endS(smcb->smToken);	
++			}
++#else /* __PVFS2_CLIENT__ */
++			hdR_endS(smcb->smToken);
++#endif /* __PVFS2_SERVER__ */
++			hdR_destroyRelation(& smcb->smToken);
++	)
++	
++	/* call state machine completion function */
++	if (smcb->terminate_fn)
++	{
++		(*smcb->terminate_fn)(smcb, r);
++	}
++	return 0;
+ }
+ 
+ /* Function: PINT_state_machine_invoke
+@@ -508,37 +641,37 @@
+  */
+ int PINT_smcb_op(struct PINT_smcb *smcb)
+ {
+-    return smcb->op;
++	return smcb->op;
+ }
+ 
+ static int PINT_smcb_sys_op(struct PINT_smcb *smcb)
+ {
+-    if (smcb->op > 0 && smcb->op < PVFS_OP_SYS_MAXVALID)
+-        return 1;
+-    return 0;
++	if (smcb->op > 0 && smcb->op < PVFS_OP_SYS_MAXVALID)
++		return 1;
++	return 0;
+ }
+ 
+ static int PINT_smcb_mgmt_op(struct PINT_smcb *smcb)
+ {
+-    if (smcb->op > PVFS_OP_SYS_MAXVAL && smcb->op < PVFS_OP_MGMT_MAXVALID)
+-        return 1;
+-    return 0;
++	if (smcb->op > PVFS_OP_SYS_MAXVAL && smcb->op < PVFS_OP_MGMT_MAXVALID)
++		return 1;
++	return 0;
+ }
+ 
+ static int PINT_smcb_misc_op(struct PINT_smcb *smcb)
+ {
+-    return smcb->op == PVFS_SERVER_GET_CONFIG 
+-        || smcb->op == PVFS_SERVER_FETCH_CONFIG
+-        || smcb->op == PVFS_CLIENT_JOB_TIMER 
+-        || smcb->op == PVFS_CLIENT_PERF_COUNT_TIMER 
+-        || smcb->op == PVFS_DEV_UNEXPECTED;
++	return smcb->op == PVFS_SERVER_GET_CONFIG 
++	|| smcb->op == PVFS_SERVER_FETCH_CONFIG
++	|| smcb->op == PVFS_CLIENT_JOB_TIMER 
++	|| smcb->op == PVFS_CLIENT_PERF_COUNT_TIMER 
++	|| smcb->op == PVFS_DEV_UNEXPECTED;
+ }
+ 
+ int PINT_smcb_invalid_op(struct PINT_smcb *smcb)
+ {
+-    if (!PINT_smcb_sys_op(smcb) && !PINT_smcb_mgmt_op(smcb) && !PINT_smcb_misc_op(smcb))
+-        return 1;
+-    return 0;
++	if (!PINT_smcb_sys_op(smcb) && !PINT_smcb_mgmt_op(smcb) && !PINT_smcb_misc_op(smcb))
++		return 1;
++	return 0;
+ }
+ 
+ /* Function: PINT_smcb_set_complete
+@@ -641,19 +774,20 @@
+  */
+ void PINT_smcb_free(struct PINT_smcb *smcb)
+ {
+-    struct PINT_frame_s *frame_entry, *tmp;
+-    assert(smcb);
+-    qlist_for_each_entry_safe(frame_entry, tmp, &smcb->frames, link)
+-    {
+-        if (frame_entry->frame && frame_entry->task_id == 0)
+-        {
+-            /* only free if task_id is 0 */
+-            free(frame_entry->frame);
+-        }
+-        qlist_del(&frame_entry->link);
+-        free(frame_entry);
+-    }
+-    free(smcb);
++
++	struct PINT_frame_s *frame_entry, *tmp;
++	assert(smcb);
++	qlist_for_each_entry_safe(frame_entry, tmp, &smcb->frames, link)
++	{
++		if (frame_entry->frame && frame_entry->task_id == 0)
++		{
++			/* only free if task_id is 0 */
++			free(frame_entry->frame);
++		}
++		qlist_del(&frame_entry->link);
++		free(frame_entry);
++	}
++	free(smcb);
+ }
+ 
+ /* Function: PINT_pop_state
+@@ -831,21 +972,21 @@
+  */
+ static struct PINT_state_s *PINT_sm_task_map(struct PINT_smcb *smcb, int task_id)
+ {
+-    struct PINT_pjmp_tbl_s *pjmptbl;
+-    int i;
+-
+-    pjmptbl = smcb->current_state->pjtbl;
+-    for (i = 0; ; i++)
+-    { if (pjmptbl[i].return_value == task_id ||
+-                pjmptbl[i].return_value == -1)
+-            return pjmptbl[i].state_machine->first_state;
+-    }
++	struct PINT_pjmp_tbl_s *pjmptbl;
++	int i;
++
++	pjmptbl = smcb->current_state->pjtbl;
++	for (i = 0; ; i++)
++	{ if (pjmptbl[i].return_value == task_id ||
++			pjmptbl[i].return_value == -1)
++		return pjmptbl[i].state_machine->first_state;
++	}
+ }
+ 
+ static int child_sm_frame_terminate(struct PINT_smcb * smcb, job_status_s * js_p)
+ {
+-    PINT_smcb_free(smcb);
+-    return 0;
++	PINT_smcb_free(smcb);
++	return 0;
+ }
+ 
+ /* Function: PINT_sm_start_child_frames
+@@ -859,71 +1000,71 @@
+  */
+ static void PINT_sm_start_child_frames(struct PINT_smcb *smcb, int* children_started)
+ {
+-    int retval;
+-    struct PINT_smcb *new_sm;
+-    job_status_s r;
+-    struct PINT_frame_s *f;
+-    void *my_frame;
+-
+-    assert(smcb);
+-
+-    memset(&r, 0, sizeof(job_status_s));
+-
+-    *children_started = 0;
+-
+-    my_frame = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
+-    /* Iterate once up front to determine how many children we are going to
+-     * run.  This has to be set before starting any children, otherwise if
+-     * the first one immediately completes it will mistakenly believe it is
+-     * the last one and signal the parent.
+-     */
+-    qlist_for_each_entry(f, &smcb->frames, link)
+-    {
+-        /* run from TOS until the parent frame */
+-        if(f->frame == my_frame)
+-        {
+-            break;
+-        }
+-        /* increment parent's counter */
+-        smcb->children_running++;
+-    }
+-
+-    /* let the caller know how many children are being started; it won't be
+-     * able to tell from the running_count because they may all immediately
+-     * complete before we leave this function.
+-     */
+-    *children_started = smcb->children_running;
+-
+-    qlist_for_each_entry(f, &smcb->frames, link)
+-    {
+-        /* run from TOS until the parent frame */
+-        if(f->frame == my_frame)
+-        {
+-            break;
+-        }
+-        /* allocate smcb */
+-        PINT_smcb_alloc(&new_sm, smcb->op, 0, NULL,
+-                child_sm_frame_terminate, smcb->context);
+-        /* set parent smcb pointer */
+-        new_sm->parent_smcb = smcb;
+-        /* assign frame */
+-        PINT_sm_push_frame(new_sm, f->task_id, f->frame);
+-        /* locate SM to run */
+-        new_sm->current_state = PINT_sm_task_map(smcb, f->task_id);
+-        /* invoke SM */
+-        retval = PINT_state_machine_start(new_sm, &r);
+-        if(retval < 0)
+-        {
+-            gossip_err("PJMP child state machine failed to start.\n");
+-        }
+-    }
++	int retval;
++	struct PINT_smcb *new_sm;
++	job_status_s r;
++	struct PINT_frame_s *f;
++	void *my_frame;
++
++	assert(smcb);
++
++	memset(&r, 0, sizeof(job_status_s));
++
++	*children_started = 0;
++
++	my_frame = PINT_sm_frame(smcb, PINT_FRAME_CURRENT);
++	/* Iterate once up front to determine how many children we are going to
++	 * run.  This has to be set before starting any children, otherwise if
++	 * the first one immediately completes it will mistakenly believe it is
++	 * the last one and signal the parent.
++	 */
++	qlist_for_each_entry(f, &smcb->frames, link)
++	{
++		/* run from TOS until the parent frame */
++		if(f->frame == my_frame)
++		{
++			break;
++		}
++		/* increment parent's counter */
++		smcb->children_running++;
++	}
++
++	/* let the caller know how many children are being started; it won't be
++	 * able to tell from the running_count because they may all immediately
++	 * complete before we leave this function.
++	 */
++	*children_started = smcb->children_running;
++
++	qlist_for_each_entry(f, &smcb->frames, link)
++	{
++		/* run from TOS until the parent frame */
++		if(f->frame == my_frame)
++		{
++			break;
++		}
++		/* allocate smcb */
++		PINT_smcb_alloc(&new_sm, smcb->op, 0, NULL,
++				child_sm_frame_terminate, smcb->context);
++		/* set parent smcb pointer */
++		new_sm->parent_smcb = smcb;
++		/* assign frame */
++		PINT_sm_push_frame(new_sm, f->task_id, f->frame);
++		/* locate SM to run */
++		new_sm->current_state = PINT_sm_task_map(smcb, f->task_id);
++		/* invoke SM */
++		retval = PINT_state_machine_start(new_sm, &r);
++		if(retval < 0)
++		{
++			gossip_err("PJMP child state machine failed to start.\n");
++		}
++	}
+ }
+ 
+ char * PINT_sm_action_string[3] =
+ {
+-    "DEFERRED",
+-    "COMPLETE",
+-    "TERMINATE"
++		"DEFERRED",
++		"COMPLETE",
++		"TERMINATE"
+ };
+ 
+ /*
