@@ -1414,6 +1414,7 @@ int trove_collection_seteattr(
            user_ptr,
            context_id,
            out_op_id_p);
+    return ret;
 }
 
 int trove_collection_deleattr(
@@ -1432,7 +1433,7 @@ int trove_collection_deleattr(
 	return -TROVE_EINVAL;
     }
 
-    return mgmt_method_table[method_id]->collection_deleattr(
+    int ret = mgmt_method_table[method_id]->collection_deleattr(
            coll_id,
            key_p,
            flags,
