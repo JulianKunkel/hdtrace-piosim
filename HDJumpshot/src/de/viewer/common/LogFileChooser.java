@@ -51,6 +51,6 @@ public class LogFileChooser extends JFileChooser
 
 		filter = new LogPermitDirFilter( new String[]{ "proj" } );
 		super.addChoosableFileFilter( filter );
-
+		super.setFileFilter(filter);
 	}
 }
