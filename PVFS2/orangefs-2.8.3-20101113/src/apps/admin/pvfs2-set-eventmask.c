@@ -29,8 +29,8 @@ struct options
     int mnt_point_set;
     char *event_string;
     int events_set;
-	int events_disable;
-	char * location;
+    int events_disable;
+    char * location;
 };
 
 static struct options* parse_args(int argc, char* argv[]);
@@ -90,9 +90,9 @@ int main(int argc, char **argv)
 			user_opts->location = "";
     }
 
-		param_value.u.string_value = malloc(strlen(user_opts->event_string)+ strlen(",fileXUL=") + strlen(user_opts->location));
-		sprintf(param_value.u.string_value, "%s,fileXUL=%s" , user_opts->event_string,user_opts->location);
-		printf("%s\n",param_value.u.string_value);
+    param_value.u.string_value = malloc(strlen(user_opts->event_string)+ strlen(",fileXUL=") + strlen(user_opts->location) + 1);
+    sprintf(param_value.u.string_value, "%s,fileXUL=%s" , user_opts->event_string,user_opts->location);
+    printf("Parameter send to server is: %s\n",param_value.u.string_value);
 
     ret = PVFS_mgmt_setparam_all(
         cur_fs, &creds,
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
  */
 static struct options* parse_args(int argc, char* argv[])
 {
-	char flags[] = "vm:e:dl:";
+    char flags[] = "vm:e:dl:";
     int one_opt = 0;
     int len = 0;
 
