@@ -1,0 +1,10 @@
+/bmi-tcp-addressing.h/1.19/Thu Feb 19 19:38:29 2009//Torangefs-2-8-3-20101113
+/bmi-tcp.c/1.142.8.1/Fri Aug 14 21:13:35 2009//Torangefs-2-8-3-20101113
+/module.mk.in/1.6/Wed Nov 19 19:00:17 2008//Torangefs-2-8-3-20101113
+/socket-collection-epoll.c/1.10.8.1/Fri Aug 14 21:13:35 2009//Torangefs-2-8-3-20101113
+/socket-collection-epoll.h/1.9/Fri Feb 20 16:25:39 2009//Torangefs-2-8-3-20101113
+/socket-collection.c/1.19.8.1/Fri Apr 30 20:00:48 2010//Torangefs-2-8-3-20101113
+/socket-collection.h/1.16/Fri Feb 20 16:25:39 2009//Torangefs-2-8-3-20101113
+/sockio.c/1.32/Thu Feb 19 19:24:01 2009//Torangefs-2-8-3-20101113
+/sockio.h/1.16/Tue Oct 16 22:13:48 2007//Torangefs-2-8-3-20101113
+D

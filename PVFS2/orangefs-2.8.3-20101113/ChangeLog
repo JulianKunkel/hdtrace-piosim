@@ -1,0 +1,21 @@
+-----------------------
+OrangeFS Release ChangeLog
+-----------------------
+orangefs-2.8.2-20100920
+* Changed unstuff state machine to handle writing to files with read-only
+permissions on create 
+	CVS: Orange-Branch:bligon:20100920181650
+
+* Bug fix for kernel panics from list corruption
+	CVS: Orange-Branch:mtmoore:20100915132022 
+
+* Trove version increase to 0.1.5 to support precreate pools of multiple types
+	CVS: Orange-Branch:mtmoore:20100908153740
+
+* PJMP memory leak fix
+	CVS: Orange-Branch:bligon:20100906203050
+
+* BMI memory leak fix
+	CVS: Orange-Branch:bligon:20100831190531,
+	     Orange-Branch:bligon:20100831190748,
+	     Orange-Branch:bligon:20100902155433
