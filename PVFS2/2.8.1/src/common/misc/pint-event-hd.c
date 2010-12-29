@@ -198,6 +198,7 @@ int PINT_HD_event_initalize(const char * traceWhat, const char * projectFile)
 			statistics.MEM_USED = 1;
 			statistics.MEM_FREE = 1;
 			statistics.MEM_BUFFER = 1;
+			statistics.MEM_CACHED = 1;
 			enableStats = 1;
 		}
 
