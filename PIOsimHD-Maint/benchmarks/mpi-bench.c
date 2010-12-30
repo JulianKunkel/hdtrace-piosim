@@ -234,7 +234,8 @@ int main (argc, argv)
   
   /* output results */
   printf("Total runtime: %fs\n", getTime() - t);
-  printf("Testname\tMin\t\tMax\t\tAverage\n");
+  printf("Values are provided for P0 and aggregated for all other processes\n");
+  printf("Testname\tMin\t\tMax\t\tAverage\t\tMinAll\t\tMaxAll\t\tAverageAll\tMinAll/AvgAll\tAvgAll/MaxAll\n");
   for(int t = 0; t < testCount; t++){
     double sum = 0;
     double min = 10e300;
@@ -247,7 +248,16 @@ int main (argc, argv)
       max = cur > max ? cur : max;
     }
     
-    printf("%s\t%10.9f\t%10.9f\t%10.9f\n", tests[t].name, min, max, sum / options.repeats);
+    /* Now gather results */
+    double minTotal, maxTotal, sumTotal;
+    MPI_Reduce(&min, & minTotal, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&max, & maxTotal, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&sum, & sumTotal, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    
+    if(rank == 0){
+      const double avgTotal = sumTotal / options.repeats / nproc;
+      printf("%s\t%10.7f\t%10.7f\t%10.7f\t%10.7f\t%10.7f\t%10.7f\t%2.2f%%\t%2.2f%%\n", tests[t].name, min, max, sum / options.repeats, minTotal, maxTotal, avgTotal , minTotal/avgTotal*100, avgTotal / maxTotal * 100);
+    }
   }
   
   MPI_Finalize();
