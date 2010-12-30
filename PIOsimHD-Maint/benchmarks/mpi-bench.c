@@ -141,7 +141,7 @@ double sendRecvRightNeighbour(long size){
   memset(sendbuf, 0, size*8);
   
   const int dest = rank + 1 == nproc ? 0 : rank + 1 ;
-  const int source = rank - 1 > 0 ? rank - 1 : nproc -1;
+  const int source = rank - 1 >= 0 ? rank - 1 : nproc -1;
   
   double t = getTime();
   int ret =       MPI_Sendrecv( sendbuf, size, MPI_DOUBLE, dest, 4711,
