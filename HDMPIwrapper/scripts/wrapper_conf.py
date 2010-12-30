@@ -324,7 +324,7 @@ logAttributes = {
   "Gatherv" : ("size='%lld' root='%d' cid='%d' count='%d' tid='%d'",
                "getTypeSize(v2, v3), getWorldRank(v8, v9), getCommId(v9), v2, getTypeId(v3)"),
 
-  "Scatter" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' tid='%d' recvCount'%d' recvtid='%d'",
+  "Scatter" : ("size='%lld' recvSize='%lld' root='%d' cid='%d' count='%d' tid='%d' recvCount='%d' recvtid='%d'",
                "getTypeSize(v2, v3), getTypeSize(v5, v6), getWorldRank(v7, v8), getCommId(v8), v2, getTypeId(v3), v5, getTypeId(v6)"),
 
   "Scatterv" : ("recvSize='%lld' root='%d' cid='%d' recvCount='%d' recvtid='%d'",
