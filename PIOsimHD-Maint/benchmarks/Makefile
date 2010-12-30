@@ -1,2 +1,11 @@
+all: mpi-bench mpi-bench1G
+
 mpi-bench: mpi-bench.c
 	mpicc -Wall -std=c99 mpi-bench.c -o mpi-bench
+
+
+mpi-bench1G: mpi-bench.c
+	mpicc -Wall -std=c99 mpi-bench.c -o mpi-bench -DGByte
+	
+clean:
+	rm mpi-bench1G mpi-bench

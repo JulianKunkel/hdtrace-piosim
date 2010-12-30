@@ -186,15 +186,21 @@ const Test tests[] = {
 {reduceTo0, "Reduce10K", 10*1024 / 8}, 
 {reduceTo0, "Reduce1M", 1024*1024 / 8}, 
 {reduceTo0, "Reduce100M", 100*1024*1024 / 8}, 
+#ifdef GByte
 {reduceTo0, "Reduce1000M", 1000*1024*1024 / 8},
+#endif
 {allreduce, "Allreduce10K", 10*1024 / 8}, 
 {allreduce, "Allreduce1M",  1024*1024 / 8}, 
 {allreduce, "Allreduce100M", 100*1024*1024 / 8}, 
+#ifdef GByte
 {allreduce, "Allreduce1000M", 1000*1024*1024 / 8},
+#endif
 {bcast, "Broadcast10K", 10*1024 / 8},
 {bcast, "Broadcast1M",   1*1024*1024 / 8},
 {bcast, "Broadcast100M", 100*1024*1024 / 8},
+#ifdef GByte
 {bcast, "Broadcast1000M", 1000*1024*1024 / 8},
+#endif
 
 {barrier, "Barrier\t", 0},
 
@@ -209,17 +215,23 @@ const Test tests[] = {
 {sendRecvRightNeighbour, "sendRecvRightNeighbour10K", 10*1024 / 8},
 {sendRecvRightNeighbour, "sendRecvRightNeighbour1M", 1*1024*1024 / 8},
 {sendRecvRightNeighbour, "sendRecvRightNeighbour100M", 100*1024*1024 / 8},
+#ifdef GByte
 {sendRecvRightNeighbour, "sendRecvRightNeighbour1000M", 1000*1024*1024 / 8},
-
+#endif
 {sendRecvPaired, "sendRecvPaired10K", 10*1024 / 8},
 {sendRecvPaired, "sendRecvPaired1M", 1*1024*1024 / 8},
 {sendRecvPaired, "sendRecvPaired100M", 100*1024*1024 / 8},
+#ifdef GByte
 {sendRecvPaired, "sendRecvPaired1000M", 1000*1024*1024 / 8},
-
+#endif
 };
 
 
-const int  testCount = 4+4+4+1+3+3+4+4;
+const int  testCount = 4+4+4+1+3+3+4+4 
+#ifndef GByte
+-5
+#endif
+;
 
 int main (int argc, char *argv[])
 {
