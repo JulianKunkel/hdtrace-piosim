@@ -140,8 +140,8 @@ double sendRecvRightNeighbour(long size){
   
   memset(sendbuf, 0, size*8);
   
-  const int dest = rank + 1 == size ? 0 : rank +1 ;
-  const int source = rank - 1 > 0 ? rank - 1 : size -1;
+  const int dest = rank + 1 == nproc ? 0 : rank + 1 ;
+  const int source = rank - 1 > 0 ? rank - 1 : nproc -1;
   
   double t = getTime();
   int ret =       MPI_Sendrecv( sendbuf, size, MPI_DOUBLE, dest, 4711,
@@ -157,7 +157,7 @@ double sendRecvRightNeighbour(long size){
 
 double sendRecvPaired(long size){
   
-  if(size % 2 == 1){
+  if(nproc % 2 == 1){
     /* test is run only with equal number of processes */
     return 0;
   }
