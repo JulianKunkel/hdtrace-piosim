@@ -5,7 +5,7 @@ mpi-bench: mpi-bench.c
 
 
 mpi-bench1G: mpi-bench.c
-	mpicc -Wall -std=c99 mpi-bench.c -o mpi-bench -DGByte
+	mpicc -Wall -std=c99 mpi-bench.c -o mpi-bench1G -DGByte
 	
 clean:
 	rm mpi-bench1G mpi-bench
