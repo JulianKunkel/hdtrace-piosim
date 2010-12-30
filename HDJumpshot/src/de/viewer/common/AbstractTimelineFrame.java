@@ -26,12 +26,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -103,6 +106,21 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 	private   JRadioButton          zoom_btn;
 	private   JRadioButton          hand_btn;
+	
+	private JCheckBox processNestedChkbox;	
+
+	/**
+	 * This function gets called, when the user changes the nested state in the toolbar
+	 */
+	abstract protected void fireNestedStateChanged();
+	
+	public void setProcessNested(boolean value){
+		processNestedChkbox.setSelected(value);
+	}
+	
+	public boolean isProcessNested(){
+		return processNestedChkbox.isSelected();
+	}
 
 
 	/**
@@ -244,6 +262,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 			}
 		} );
 
+		
 		buttonGroup.add(hand_btn);
 		buttonGroup.add(zoom_btn);
 
@@ -349,10 +368,23 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 				y_scrollbar, topologyManager, scrollbarTime, modelTime, row_adjs, iconManager );
 
 		addToToolbarMenu(toolbar, iconManager, toolbar.getInsets());
+		
+
+		processNestedChkbox = new JCheckBox("Nested");	
+		processNestedChkbox.setSelected(false);
+
+		processNestedChkbox.setToolTipText("Are nested states used for the computation of the values?");
+		processNestedChkbox.addItemListener(new ItemListener(){
+			@Override
+			public void itemStateChanged(ItemEvent e) {				
+				fireNestedStateChanged();
+			}
+		});
+		toolbar.add(processNestedChkbox);
+		
 		toolbar.addRightButtons(iconManager, getFrame());
-
 		toolbar.init();
-
+		
 		final JPanel top_panel = new JPanel();
 		top_panel.setLayout( new BoxLayout( top_panel, BoxLayout.Y_AXIS ) );
 		top_panel.add(toolbar);

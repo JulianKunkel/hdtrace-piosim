@@ -119,7 +119,6 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	JButton timeRefreshBtn;
 
 	JComboBox visualizedMetricBox ;
-	JCheckBox processNestedChkbox;	
 
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
@@ -354,7 +353,7 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 	private TraceObjectProfile ComputeTraceProfile(Epoch starttime, Epoch endtime){
 		final TraceObjectProfile profile = new TraceObjectProfile();
 		final TopologyManager    topologyManager = getTopologyManager();
-		final boolean profileNested = processNestedChkbox.isSelected();
+		final boolean profileNested = isProcessNested();
 		
 		for(int timeline=0; timeline < topologyManager.getTimelineNumber(); timeline++){			
 			final HashMap<CategoryState, TraceCategoryStateProfile> catMap = new HashMap<CategoryState, TraceCategoryStateProfile>();
@@ -442,7 +441,6 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		toolbar.add( timeRefreshBtn );
 
 		visualizedMetricBox = new JComboBox(VisualizedMetric.values());
-		processNestedChkbox = new JCheckBox("Nested");	
 
 		visualizedMetricBox.setFont(Const.FONT);
 
@@ -455,19 +453,14 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 		visualizedMetricBox.setToolTipText("Select the visualized metric");
 		toolbar.add(visualizedMetricBox);
 
-		processNestedChkbox.setSelected(false);
-
-		processNestedChkbox.setToolTipText("Are nested states used for the computation of the values?");
-		processNestedChkbox.addItemListener(new ItemListener(){
-			@Override
-			public void itemStateChanged(ItemEvent e) {				
-				triggerRecomputeTraceProfile();
-			}
-		});
-		toolbar.add(processNestedChkbox);
-
 		toolbar.addSeparator();
 	}
+	
+	@Override
+	protected void fireNestedStateChanged() {
+		triggerRecomputeTraceProfile();
+	}
+	
 
 	@Override
 	protected ModelInfoPanel<TraceCategoryStateProfile> createModelInfoPanel() {

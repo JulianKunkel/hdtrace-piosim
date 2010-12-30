@@ -81,6 +81,11 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 	protected void addOwnPanelsOrToolbars(JPanel menuPanel) {
 		// no own toolbars.
 	}
+	
+	@Override
+	protected void fireNestedStateChanged() {
+		getCanvasArea().redrawIfAutoRedraw();
+	}
 
 	@Override
 	protected void addToToolbarMenu(TimelineToolBar toolbar, IconManager iconManager, Insets insets) {
@@ -120,7 +125,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 	@Override
 	protected ScrollableObject createCanvasArea() {
 		return new CanvasTimeline( getScrollbarTimeModel(), getTimeCanvasVport(), 
-				getReader(),  getYModel(), getTopologyManager());
+				getReader(),  getYModel(), getTopologyManager(), this);
 	}
 	
 	@Override

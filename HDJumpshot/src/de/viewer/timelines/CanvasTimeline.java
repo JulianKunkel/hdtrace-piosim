@@ -95,6 +95,8 @@ import de.viewer.zoomable.ViewportTime;
 
 public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 {
+	private final TimelineFrame parentFrame;
+	
 	private static final long serialVersionUID = 1424310776190717432L;
 
 	final private TraceFormatBufferedFileReader reader;
@@ -136,10 +138,13 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			ViewportTime viewport,
 			TraceFormatBufferedFileReader reader,
 			BoundedRangeModel   yaxis_model,
-			TopologyManager topologyManager)
+			TopologyManager topologyManager,
+			TimelineFrame parentFrame)
 	{
 		super( scrollbarTimeModel, viewport, yaxis_model, topologyManager);
 
+		this.parentFrame = parentFrame;
+		
 		this.reader = reader;
 
 		reader.getLegendTraceModel().addCategoryUpdateListener(categoryVisibleListener);
@@ -593,7 +598,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntries(true, 
+		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntries(parentFrame.isProcessNested(), 
 				startTime.add(getModelTime().getGlobalMinimum()), 
 				endTime.add(getModelTime().getGlobalMinimum())) ;
 
@@ -617,6 +622,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 			}else if(entry.getType() == TracableObjectType.STATE){
 				final IStateTraceEntry state = (IStateTraceEntry) entry;
+				
 				final Category category = reader.getCategory(state);
 
 				if(category.isVisible())
@@ -727,7 +733,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		 */
 		final int maxDepth = (int) DrawObjects.getNestingDepth((double) yDelta / getTopologyManager().getRowHeight());
 				
-		if (state.hasNestedTraceChildren()){					
+		if (state.hasNestedTraceChildren() && parentFrame.isProcessNested()){					
 			ITraceEntry best = state;
 			double dist = 0;
 			
@@ -739,7 +745,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				if (best.getType() == TracableObjectType.STATE ){
 					state = (IStateTraceEntry) best;
 					
-					if (state.hasNestedTraceChildren() && maxDepth > curDepth){
+					if (state.hasNestedTraceChildren() && maxDepth > curDepth && parentFrame.isProcessNested()){
 						curDepth += 1;
 						
 						for(ITraceEntry child: state.getNestedTraceChildren()){
@@ -935,7 +941,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									// the state is the one we are looking for.
 									break;
 								}
-								if(state.hasNestedTraceChildren()){
+								if(state.hasNestedTraceChildren() && parentFrame.isProcessNested()){
 									final Enumeration<ITraceEntry> children = state.childForwardEnumeration();
 									while(children.hasMoreElements()){
 										final ITraceEntry nestedChild = children.nextElement();
@@ -1013,7 +1019,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 									// the state is the one we are looking for.
 									break;
 								}
-								if(state.hasNestedTraceChildren()){
+								if(state.hasNestedTraceChildren() && parentFrame.isProcessNested()){
 									final Enumeration<ITraceEntry> children = state.childBackwardEnumeration();
 									while(children.hasMoreElements()){
 										final ITraceEntry nestedChild = children.nextElement();
