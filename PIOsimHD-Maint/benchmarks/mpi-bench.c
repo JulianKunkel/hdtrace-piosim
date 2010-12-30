@@ -19,12 +19,14 @@ static int rank, nproc;
 /* returns the test time */
 typedef double (*testFunc)(long param1);
 
+
 typedef struct{
    const testFunc func;
    char const * name;
    long param1;
 }Test;
 
+static Test * currentTest = NULL;
 
 #define getTime MPI_Wtime
 
@@ -34,6 +36,7 @@ void * mallocWithCheck(long size){
   void * ret = malloc(size);
   if (ret == NULL){
     printf("Error could not malloc %lld of bytes\n", (long long int) size);
+    printf("Current test %s with param %ld\n", currentTest->name, currentTest->param1);
     MPI_Abort(1, MPI_COMM_WORLD);
   }
   return ret;
@@ -218,9 +221,7 @@ const Test tests[] = {
 
 const int  testCount = 4+4+4+1+3+3+4+4;
 
-int main (argc, argv)
-     int argc;
-     char *argv[];
+int main (int argc, char *argv[])
 {
   MPI_Init (&argc, &argv);	/* starts MPI */
   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
@@ -231,12 +232,20 @@ int main (argc, argv)
   
   double t =  getTime();
   
-  printf("Running testsuite of %d tests with %d process(es) \n", testCount, nproc);
+  if(rank == 0){
+    printf("Running testsuite of %d tests with %d process(es) \n", testCount, nproc);
+  }
   
   /* perform tests */
   for(int r = 0 ; r < options.repeats; r++){
     for(int t = 0; t < testCount; t++){
+      currentTest = & tests[t];
+      
+      if(rank == 0){
+	printf("Running %s\n", currentTest->name);
+      }
       MPI_Barrier(MPI_COMM_WORLD);
+      
       resultsTime[t][r] = tests[t].func(tests[t].param1);   
     }
   }
