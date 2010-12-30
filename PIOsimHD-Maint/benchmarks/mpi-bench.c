@@ -30,9 +30,18 @@ typedef struct{
 
 #define CHECKRET if(ret != 0) printf("Error in function %s in line %d\n", __FUNCTION__, __LINE__);
 
+void * mallocWithCheck(long size){
+  void * ret = malloc(size);
+  if (ret == NULL){
+    printf("Error could not malloc %lld of bytes\n", (long long int) size);
+    MPI_Abort(1, MPI_COMM_WORLD);
+  }
+  return ret;
+}
+
 double reduceTo0(long size){
-  double * sendbuf = malloc(size*8);
-  double * recvbuf = malloc(size*8);
+  double * sendbuf = mallocWithCheck(size*8);
+  double * recvbuf = mallocWithCheck(size*8);
   
   memset(sendbuf, 0, size*8);
   
@@ -47,8 +56,8 @@ double reduceTo0(long size){
 }
 
 double allreduce(long size){
-  double * sendbuf = malloc(size*8);
-  double * recvbuf = malloc(size*8);
+  double * sendbuf = mallocWithCheck(size*8);
+  double * recvbuf = mallocWithCheck(size*8);
   
   memset(sendbuf, 0, size*8);
   
@@ -64,7 +73,7 @@ double allreduce(long size){
 
 
 double bcast(long size){
-  double * buffer = malloc(size*8);
+  double * buffer = mallocWithCheck(size*8);
   
   memset(buffer, 0, size*8);
   
@@ -89,8 +98,8 @@ double barrier(long unused){
 
 
 double gather(long size){
-  double * sendbuf = malloc(size*8);
-  double * recvbuf = malloc(size*8 * nproc);
+  double * sendbuf = mallocWithCheck(size*8);
+  double * recvbuf = mallocWithCheck(size*8 * nproc);
   
   memset(sendbuf, 0, size*8);
   
@@ -106,8 +115,8 @@ double gather(long size){
 
 
 double scatter(long size){
-  double * sendbuf = malloc(size*8 * nproc);
-  double * recvbuf = malloc(size*8);
+  double * sendbuf = mallocWithCheck(size*8 * nproc);
+  double * recvbuf = mallocWithCheck(size*8);
   
   memset(sendbuf, 0, size*8);
   
@@ -123,8 +132,8 @@ double scatter(long size){
 
 
 double sendRecvRightNeighbour(long size){
-  double * sendbuf = malloc(size*8);
-  double * recvbuf = malloc(size*8);
+  double * sendbuf = mallocWithCheck(size*8);
+  double * recvbuf = mallocWithCheck(size*8);
   
   memset(sendbuf, 0, size*8);
   
@@ -150,8 +159,8 @@ double sendRecvPaired(long size){
     return 0;
   }
   
-  double * sendbuf = malloc(size*8);
-  double * recvbuf = malloc(size*8);
+  double * sendbuf = mallocWithCheck(size*8);
+  double * recvbuf = mallocWithCheck(size*8);
   
   memset(sendbuf, 0, size*8);
   
@@ -228,7 +237,7 @@ int main (argc, argv)
   for(int r = 0 ; r < options.repeats; r++){
     for(int t = 0; t < testCount; t++){
       MPI_Barrier(MPI_COMM_WORLD);
-      resultsTime[t][r] = tests->func(tests->param1);   
+      resultsTime[t][r] = tests[t].func(tests[t].param1);   
     }
   }
   
