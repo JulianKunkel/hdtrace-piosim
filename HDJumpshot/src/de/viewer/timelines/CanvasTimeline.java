@@ -598,7 +598,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
 	{
-		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntries(parentFrame.isProcessNested(), 
+		final ReaderTraceElementEnumerator elements = tr.enumerateTraceEntries(false, 
 				startTime.add(getModelTime().getGlobalMinimum()), 
 				endTime.add(getModelTime().getGlobalMinimum())) ;
 
@@ -606,28 +606,57 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 		while(elements.hasMoreElements()){
 			drawedTraceObjects++;
-
-			final int depth = elements.getNestingDepthOfNextElement();
-
-			ITraceEntry entry = elements.nextElement();
+			ITraceEntry tentry = elements.nextElement();
 
 			final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
-			if(entry.getType() == TracableObjectType.EVENT){          
-				final IEventTraceEntry event = (IEventTraceEntry) entry;
+			if(tentry.getType() == TracableObjectType.EVENT){          
+				final IEventTraceEntry event = (IEventTraceEntry) tentry;
 
-				final Category category = reader.getCategory(event);
-				if(category.isVisible())
-					DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, category.getColor(), globalMinTime);
+				final Category tcategory = reader.getCategory(event);
+				if(tcategory.isVisible())
+					DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, tcategory.getColor(), globalMinTime);
 
-			}else if(entry.getType() == TracableObjectType.STATE){
-				final IStateTraceEntry state = (IStateTraceEntry) entry;
+			}else if(tentry.getType() == TracableObjectType.STATE){
+				final IStateTraceEntry rstate = (IStateTraceEntry) tentry;
 				
-				final Category category = reader.getCategory(state);
+				final Category tcategory = reader.getCategory(rstate);
 
-				if(category.isVisible())
-					DrawObjects.drawState(offGraphics, category.getName(),  coord_xform, state , category.getColor(), 
-							depth, timeline, globalMinTime);
+				if(! tcategory.isVisible()){
+					continue;
+				}
+				DrawObjects.drawState(offGraphics, tcategory.getName(),  coord_xform, rstate , tcategory.getColor(), 
+							0, timeline, globalMinTime);
+			    
+				if(! parentFrame.isProcessNested()) continue;
+			    
+			    final ForwardStateEnumeration stateEnum = rstate.childForwardEnumeration();
+
+				while(stateEnum.hasMoreElements()){
+					drawedTraceObjects++;
+
+					final int depth = stateEnum.getNestingDepthOfNextElement();
+					
+					// skip nested elements if necessary
+					
+					final ITraceEntry entry = stateEnum.nextElement();
+					
+					if(entry.getType() == TracableObjectType.EVENT){          
+						final IEventTraceEntry event = (IEventTraceEntry) entry;
+
+						final Category category = reader.getCategory(event);
+						if(category.isVisible())
+							DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, category.getColor(), globalMinTime);
+
+					}else if(entry.getType() == TracableObjectType.STATE){
+						final IStateTraceEntry state = (IStateTraceEntry) entry;
+						final Category category = reader.getCategory(state);
+
+						if(category.isVisible())
+							DrawObjects.drawState(offGraphics,category.getName(),  coord_xform, state , category.getColor(), 
+									depth, timeline, globalMinTime);
+					}
+				}
 			}
 
 		}
@@ -666,10 +695,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			for(IStateTraceEntry rstate: relationEntry.getStates()){
 				
 				final Category stateCategory = reader.getCategory(rstate);
-				if(stateCategory.isVisible())
-					DrawObjects.drawState(offGraphics, stateCategory.getName(), coord_xform, rstate , stateCategory.getColor(), 
-							0, timeline, globalMinTime);
-				
+				if(! stateCategory.isVisible()){
+					continue;
+				}
+			    DrawObjects.drawState(offGraphics, stateCategory.getName(), coord_xform, rstate , stateCategory.getColor(), 
+					0, timeline, globalMinTime);									
+
+			    if(! parentFrame.isProcessNested()) continue;
+					
 				final ForwardStateEnumeration stateEnum = rstate.childForwardEnumeration();
 
 				while(stateEnum.hasMoreElements()){
@@ -680,8 +713,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					// skip nested elements if necessary
 					
 					final ITraceEntry entry = stateEnum.nextElement();
-					
-					if(depth > 0 && ! parentFrame.isProcessNested()) continue;
 					
 					if(entry.getType() == TracableObjectType.EVENT){          
 						final IEventTraceEntry event = (IEventTraceEntry) entry;
