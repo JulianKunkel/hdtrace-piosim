@@ -542,10 +542,8 @@ public class GClientProcess
 				 * subsequent operations. Also this prevents buffer overflows in commands which finish immediately.
 				 */
 				long instr = nodeRessources.getMinimumNumberInstructions();
-
-				Object arglist[] = {cmd, nextStep};
-
 				long cinstr = cme.getInstructionCount(cmd, nextStep);
+
 				if(cinstr >= instr) instr = cinstr;
 
 				/* wait if the command requires to wait for a while */

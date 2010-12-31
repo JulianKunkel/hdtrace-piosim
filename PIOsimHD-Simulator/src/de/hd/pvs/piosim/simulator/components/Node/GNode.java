@@ -239,9 +239,7 @@ implements INodeRessources
 			Epoch currentTime = getSimulator().getVirtualTime();
 			computeStartEpoch = currentTime;
 
-			computeNextActiveEpoch = currentTime.add(
-					(double) earliestJob.remainingCycles      /      getInstructionsPerJobAndSecond(getNumberOfActiveComputeJobs())
-			);
+			computeNextActiveEpoch = currentTime.add( (double) earliestJob.remainingCycles      /      getInstructionsPerJobAndSecond(getNumberOfActiveComputeJobs() ) + Epoch.getTimeResolution()  );
 
 			debug(" " + earliestJob.getRemainingCycles() + " next active: " + computeNextActiveEpoch);
 
@@ -333,9 +331,7 @@ implements INodeRessources
 	 * @return
 	 */
 	public long getMinimumNumberInstructions() {
-		final long minInstructions = (long) (getModelComponent().getInstructionsPerSecond() * Epoch.getTimeResolution());
-		if(minInstructions == 0) return 1;
-		return minInstructions;
+		return (long) (getModelComponent().getInstructionsPerSecond() * Epoch.getTimeResolution()) + 1;
 	}
 
 	@Override
