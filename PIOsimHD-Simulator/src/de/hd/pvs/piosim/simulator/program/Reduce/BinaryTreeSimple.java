@@ -41,10 +41,19 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class BinaryTreeSimple
 extends CommandImplementation<Reduce>
 {
+	final int RECEIVED = 2;
+
+	@Override
+	public long getInstructionCount(Reduce cmd, int step) {
+		if(step == RECEIVED){
+			return cmd.getSize() + 1;
+		}else{
+			return 1;
+		}
+	}
 
 	@Override
 	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
-		final int RECEIVED = 2;
 
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
