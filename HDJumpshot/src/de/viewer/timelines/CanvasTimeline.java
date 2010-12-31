@@ -155,7 +155,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 	@Override
 	final protected void drawOneImageInBackground(Image offImage, final TimeBoundingBox  timebounds )
-	{
+	{		
 		final int num_rows   = getRowCount();
 		final int row_height = getRowHeight();
 		final TopologyManager topologyManager = getTopologyManager();
@@ -645,7 +645,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			Graphics2D offGraphics,
 			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
 	)
-	{
+	{		
 		final Enumeration<RelationEntry> elements = node.enumerateEntries(
 				startTime.add(getModelTime().getGlobalMinimum()), 
 				endTime.add(getModelTime().getGlobalMinimum()));
@@ -677,7 +677,11 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 					final int depth = stateEnum.getNestingDepthOfNextElement();
 					
+					// skip nested elements if necessary
+					
 					final ITraceEntry entry = stateEnum.nextElement();
+					
+					if(depth > 0 && ! parentFrame.isProcessNested()) continue;
 					
 					if(entry.getType() == TracableObjectType.EVENT){          
 						final IEventTraceEntry event = (IEventTraceEntry) entry;
