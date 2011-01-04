@@ -92,7 +92,48 @@ enum Type
   MpiInit,
   MpiRecv,
   MpiSend,
-  MpiSendrecv
+  MpiSendrecv,
+  DataVector,
+  DataNamed,
+  DataStruct
+};
+
+struct DataType
+{
+  enum Type type,
+  union
+  {
+    struct Vector,
+    struct Named,
+    struct Struct
+  }u;
+};
+
+struct Vektor
+{
+  char* name[COMM_NAME_LEN],
+  int count,
+  int blocklength,
+  int stride,
+  int oldType,
+};
+
+struct Named
+{
+  char* name[COMM_NAME_LEN]
+};
+
+struct Struct
+{
+  char* name[COMM_NAME_LEN],
+  int count
+};
+
+struct Type
+{
+  int id,
+  int displacement,
+  int blocklen,
 };
 
 struct Element

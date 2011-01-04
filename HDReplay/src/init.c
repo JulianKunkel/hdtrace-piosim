@@ -29,6 +29,8 @@ int argc, char** argv)
   
   readproject(programName ,hostname, comms, fileList, rank ,projectFile);
   
+  g_slist_foreach(comms, (GFunc)genCommunicatorHash, NULL);
+  
   genTraceFileName(traceFilePath ,traceFileFolderPath, programName,hostname,rank);
   
   printf("trc: %s\n", traceFilePath);
@@ -95,3 +97,5 @@ char* hostname, int rank)
   strncat(traceFilePath,"_0.trc", 6);
   
 }
+
+void genCommunicatorHash()
