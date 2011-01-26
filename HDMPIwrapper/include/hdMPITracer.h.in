@@ -32,9 +32,20 @@ int hdMPI_threadEnableTracing();
  */
 int hdMPI_threadDisableTracing();
 
+/**
+ * Startup creation of the traceing, can be used multiple times
+ * to create multiple trace results from one file.
+ */
+int hdMPI_PrepareTracing(const char * prefix);
 
 /**
- * Initalize tracing, to allow thread to use tracing.
+ * Stop tracing, it can be restarted by using hdMPI_PrepareTracing
+ */
+int hdMPI_FinalizeTracing();
+
+
+/**
+ * Initalize tracing, to allow one thread to use tracing.
  */
 void hdMPI_threadInitTracing();
 

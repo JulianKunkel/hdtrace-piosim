@@ -146,7 +146,9 @@ void hdMPI_threadInitTracing(){
  * dynamically allocated variables.
  */
 void hdMPI_threadFinalizeTracing(){
-	hdT_finalize(tracefile);
-	tracefile = NULL;
+	if(tracefile != NULL){
+	  hdT_finalize(tracefile);
+	  tracefile = NULL;
+	}
 	destroyHashTables();
 }

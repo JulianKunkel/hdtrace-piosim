@@ -95,6 +95,11 @@ static PowerTrace *ptStatistics = NULL;
 
 #endif
 
+/**
+ * Defines if the MPI tracing is enabled.
+ */
+static int mpiTracingEnabled = 0;
+
 static int mpiTraceNesting = 1;
 
 /**
@@ -184,7 +189,7 @@ static int * controlled_vars[] = { &trace_all_functions,
  *
  * It consists of the program name
  */
-static char * trace_file_prefix;
+static char * trace_file_prefix = NULL;
 
 
 /*
@@ -391,41 +396,17 @@ static void before_Init()
 #endif
 }
 
+
 /**
- * This function is called after a call to \a MPI_Init(...) or \a MPI_Init_thread(...).
- * It initializes the global variable \a tracefile by calling
- * \a hdT_createTrace(...). It also calls \a readEnvVars(...).
- * After this call the global variable \a tracefile and the configuration variables
- * \a trace_* (that are listed in \a controlled_vars) by may be used.
- *
- * \param argc the argument count parameter that was passed to MPI_Init
- * \param argv the arguments that were passed to MPI_Init
+ * Startup creation of the traceing, can be used multiple times
+ * to create multiple trace results from one file.
  */
-static void after_Init(int *argc, char ***argv)
-{
+int hdMPI_PrepareTracing(const char * filePrefix){
+   if( mpiTracingEnabled ) return 1;
 
-	if(argc == NULL || *argc < 1)
-	{
-		//we don't know what the program's name is, so call this "trace"
-		trace_file_prefix = malloc(6);
-		strcpy(trace_file_prefix, "trace");
-	}
-	else
-	{
-		char * lastSlash = strrchr(**argv , '/');
-		if( lastSlash != NULL)
-		{
-			trace_file_prefix = malloc(strlen(lastSlash+1) + 1 );
-			sprintf(trace_file_prefix,  "%s", lastSlash+1 );
-		}
-		else
-		{
-			trace_file_prefix = malloc(strlen( (*argv)[0]) + 1 );
-			sprintf(trace_file_prefix, "%s", (*argv)[0] );
-		}
-	}
+   trace_file_prefix = strdup(filePrefix);
 
-	const char *toponames[3] = {"Host", "Rank", "Thread"};
+   const char *toponames[3] = {"Host", "Rank", "Thread"};
 	topology = hdT_createTopology(trace_file_prefix, toponames, 3);
 
 #ifdef ENABLE_FUNCTION_WRAPPER
@@ -630,16 +611,19 @@ static void after_Init(int *argc, char ***argv)
   #endif
 
   hdT_enableTrace(hdMPI_getThreadTracefile());
+
+  mpiTracingEnabled = 1;
+
+  return 0;
 }
 
 /**
- * This function is called after \a PMPI_Finalize(...)
- * It finalizes the global \a tracefile and destroys all
- * dynamically allocated variables.
+ * Stop tracing, it can be restarted by using hdMPI_PrepareTracing
  */
-static void after_Finalize(void)
-{
-  // ensure that we will not trace anything from MPI any more.
+int hdMPI_FinalizeTracing(){
+  if(! mpiTracingEnabled) return 1;
+
+    // ensure that we will not trace anything from MPI any more.
   hdT_disableTrace(hdMPI_getThreadTracefile());
 
 #ifdef ENABLE_SOTRACER
@@ -677,6 +661,55 @@ static void after_Finalize(void)
 		pt_finalizeTrace(ptStatistics);
 	}
 #endif
+
+  free(trace_file_prefix);
+  trace_file_prefix = NULL;
+
+  mpiTracingEnabled = 0;
+
+  return 0;
+}
+
+/**
+ * This function is called after a call to \a MPI_Init(...) or \a MPI_Init_thread(...).
+ * It initializes the global variable \a tracefile by calling
+ * \a hdT_createTrace(...). It also calls \a readEnvVars(...).
+ * After this call the global variable \a tracefile and the configuration variables
+ * \a trace_* (that are listed in \a controlled_vars) by may be used.
+ *
+ * \param argc the argument count parameter that was passed to MPI_Init
+ * \param argv the arguments that were passed to MPI_Init
+ */
+static void after_Init(int *argc, char ***argv)
+{
+
+	if(argc == NULL || *argc < 1)
+	{
+		//we don't know what the program's name is, so call this "trace"
+		hdMPI_PrepareTracing("trace");
+	}
+	else
+	{
+		char * lastSlash = strrchr(**argv , '/');
+		if( lastSlash != NULL)
+		{
+			hdMPI_PrepareTracing( lastSlash+1 );
+		}
+		else
+		{
+			hdMPI_PrepareTracing( (*argv)[0] );
+		}
+	}
+}
+
+/**
+ * This function is called after \a PMPI_Finalize(...)
+ * It finalizes the global \a tracefile and destroys all
+ * dynamically allocated variables.
+ */
+static void after_Finalize(void)
+{
+  hdMPI_FinalizeTracing();
 }
 
 /**
@@ -689,7 +722,7 @@ static void after_Finalize(void)
  */
 static void before_Abort()
 {
-	hdMPI_threadFinalizeTracing();
+    hdMPI_FinalizeTracing();
 }
 
 /**
