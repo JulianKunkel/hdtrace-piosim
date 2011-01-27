@@ -501,8 +501,6 @@ int hdMPI_PrepareTracing(const char * filePrefix){
       }
     }
 
-    mpiTracingEnabledManually = 1;
-
 #ifdef ENABLE_FUNCTION_WRAPPER
     /* initalize MPI main thread */
     hdMPI_threadInitTracing();
@@ -704,7 +702,7 @@ int hdMPI_PrepareTracing(const char * filePrefix){
   sotracer_enable();
   #endif
 
-  hdT_enableTrace(hdMPI_getThreadTracefile());
+  hdMPI_threadEnableTracing();
 
   mpiTracingStarted = 1;
 
