@@ -1,0 +1,10 @@
+# http://www.duke.edu/~hpgavin/gnuplot.html
+set xlabel "(nodes,processes)"
+set ylabel "time in s"
+
+set output "barrier.png"
+set terminal png
+
+set key top right
+
+plot "plot-results.dat" with linespoints title "barrier-simulated"
