@@ -17,7 +17,7 @@ public class NetworkNodesC implements HardwareComponents{
 	static 	public StoreForwardNode GIGSwitch(){
 		StoreForwardNode sw = new StoreForwardNode();
 		sw.setName("GIG-Switch");
-		sw.setTotalBandwidth(1000 * MBYTE);
+		sw.setTotalBandwidth(48000 * MBYTE);
 		return sw;
 	}
 

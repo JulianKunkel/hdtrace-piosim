@@ -130,7 +130,9 @@ abstract public class ModelTest extends TestSuite {
 
 	protected SimulationResults runSimulationAllExpectedToFinish() throws Exception {
 
-		mb.setApplication("Jacobi", app);
+		if(mb.getModel().getApplicationNameMap().get("Jacobi") == null){
+			mb.setApplication("Jacobi", app);
+		}
 
 		//ModelSortIDbySubcomponents sorter = new ModelSortIDbySubcomponents();
 		//sorter.sort(model);

@@ -341,12 +341,10 @@ public class NormalCommandsClusterTest extends ModelTest{
 		printTiming("Broadcast", times);
 	}
 
-
-
 	@Test public void allreduceTest() throws Exception{
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i,1);
-			pb.addAllreduce(world, 10 * MBYTE);
+			pb.addAllreduce(world, 1 * MBYTE);
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();
 		}

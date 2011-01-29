@@ -25,8 +25,8 @@ public class SMTNodeT  extends HardwareConfiguration {
 
 	final IOServerCreator ioServerAddon; // null if none
 
-	public SMTNodeT(int smpPerNode, NIC nic, Node node, NetworkNode smpInterconnect, NetworkEdge smpInterconnectEdge) {
-		this(smpPerNode, nic, node, smpInterconnect, smpInterconnectEdge, null);
+	public SMTNodeT(int clientsPerNode, NIC nic, Node node, NetworkNode smpInterconnect, NetworkEdge smpInterconnectEdge) {
+		this(clientsPerNode, nic, node, smpInterconnect, smpInterconnectEdge, null);
 	}
 
 	public SMTNodeT(int smpPerNode, NIC nic, Node node, NetworkNode smpInterconnect, NetworkEdge smpInterconnectEdge, IOServerCreator ioServerAddon) {

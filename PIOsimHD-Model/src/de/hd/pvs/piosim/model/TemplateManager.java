@@ -76,7 +76,7 @@ public class TemplateManager {
 	 */
 	public void addTemplate(IDynamicModelComponent template, String name){
 		if(name == null || name.length() < 2){
-			throw new IllegalArgumentException("Template name must be longer than 1 character");
+			throw new IllegalArgumentException("Template name must be longer than 1 character type was: " + template.getClass().getCanonicalName());
 		}
 
 		if (templates.get(name) != null){

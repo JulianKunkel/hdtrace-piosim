@@ -24,6 +24,7 @@ public class IOC implements HardwareComponents{
 		return iosub;
 	}
 
+
 	static public IOSubsystem PVSDisk(){
 		final RefinedDiskModel iosub = new RefinedDiskModel();
 		iosub.setAverageSeekTime(new Epoch(0.01));
@@ -32,6 +33,19 @@ public class IOC implements HardwareComponents{
 		iosub.setPositionDifferenceConsideredToBeClose(5 * MBYTE);
 		iosub.setSequentialTransferRate((int) 50 * MBYTE);
 		iosub.setName("IBM");
+
+		return iosub;
+	}
+
+
+	static public IOSubsystem WestDisk(){
+		final RefinedDiskModel iosub = new RefinedDiskModel();
+		iosub.setAverageSeekTime(new Epoch(0.01));
+		iosub.setTrackToTrackSeekTime(new Epoch(0.001));
+		iosub.setRPM(7200);
+		iosub.setPositionDifferenceConsideredToBeClose(5 * MBYTE);
+		iosub.setSequentialTransferRate((int) 100 * MBYTE);
+		iosub.setName("WestDisk");
 
 		return iosub;
 	}
