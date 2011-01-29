@@ -83,14 +83,6 @@ hdTopoNode * hdMPI_getThreadTopologyNode(){
 	return topoNode;
 }
 
-int hdMPI_threadEnableTracing(){
-	return hdT_enableTrace(tracefile);
-}
-
-int hdMPI_threadDisableTracing(){
-	return hdT_disableTrace(tracefile);
-}
-
 
 /**
  * Initalize tracing, to allow thread to use tracing.
@@ -146,7 +138,9 @@ void hdMPI_threadInitTracing(){
  * dynamically allocated variables.
  */
 void hdMPI_threadFinalizeTracing(){
-	hdT_finalize(tracefile);
-	tracefile = NULL;
+	if(tracefile != NULL){
+	  hdT_finalize(tracefile);
+	  tracefile = NULL;
+	}
 	destroyHashTables();
 }
