@@ -1,11 +1,4 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
-
-
 //	Copyright (C) 2008, 2009 Julian M. Kunkel
 //
 //	This file is part of PIOsimHD.
@@ -33,6 +26,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 
 public class Reduce extends CommunicatorCommand{
 
+	// amount of data to reduce from every process
 	@NotNegativeOrZero
 	@Attribute
 	protected long size = -1;
@@ -43,7 +37,7 @@ public class Reduce extends CommunicatorCommand{
 
 	@Override
 	public String toString() {
-		return "Reduce";
+		return "Reduce <" + rootRank + "," + size + ">" ;
 	}
 
 	/**

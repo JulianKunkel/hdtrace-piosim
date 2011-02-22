@@ -59,7 +59,7 @@ abstract public class CommandImplementation<CommandType extends Command>
 	 * @param step
 	 * @return
 	 */
-	public long getInstructionCount(CommandType cmd, int step) {
+	public long getInstructionCount(CommandType cmd, GClientProcess client, int step) {
 		return 0;
 	}
 

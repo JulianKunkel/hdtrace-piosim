@@ -47,6 +47,8 @@ import de.hd.pvs.piosim.model.program.commands.Filewriteall;
 import de.hd.pvs.piosim.model.program.commands.Gather;
 import de.hd.pvs.piosim.model.program.commands.Recv;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
+import de.hd.pvs.piosim.model.program.commands.ReduceScatter;
+import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.model.program.commands.Sendrecv;
 import de.hd.pvs.piosim.model.program.commands.Wait;
@@ -221,6 +223,39 @@ public class ProgramBuilder {
 		reduce.setSize(size);
 		reduce.setRootRank(root);
 		appBuilder.addCommand(comm, reduce);
+	}
+
+	/**
+	 *
+	 * @param comm
+	 * @param commSize for each process rank, how much data should it recv.
+	 */
+	public void addReduceScatter(Communicator comm, HashMap<Integer, Long> commSize){
+		ReduceScatter cmd = new ReduceScatter();
+		cmd.setRecvcounts(commSize);
+
+		// check that all clients are part of the commSize and vice versa
+		for(int rank: commSize.keySet()){
+			if ( ! comm.getParticipatingRanks().contains(rank)){
+				throw new IllegalArgumentException("Warning in ReduceScatter rank " + rank + " is not part of the communicator " + comm);
+			}
+		}
+
+		for(int rank: comm.getParticipatingRanks()){
+			if ( ! commSize.keySet().contains(rank)){
+				throw new IllegalArgumentException("Warning in ReduceScatter rank " + rank + " is not defined in commSizeMap " + comm);
+			}
+		}
+
+		appBuilder.addCommand(comm, cmd);
+	}
+
+
+	public void addScatter(Communicator comm, int root, long size){
+		Scatter scatter = new Scatter();
+		scatter.setSize(size);
+		scatter.setRootRank(root);
+		appBuilder.addCommand(comm, scatter);
 	}
 
 	public void addGather(Communicator comm, int root, long size){

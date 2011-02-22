@@ -44,7 +44,7 @@ extends CommandImplementation<Reduce>
 	final int RECEIVED = 2;
 
 	@Override
-	public long getInstructionCount(Reduce cmd, int step) {
+	public long getInstructionCount(Reduce cmd, GClientProcess client, int step) {
 		if(step == RECEIVED){
 			return cmd.getSize() + 1;
 		}else{

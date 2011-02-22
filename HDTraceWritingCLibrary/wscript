@@ -21,7 +21,7 @@ def _getconf (key):
 	return Utils.to_list(v)
 
 def configure (conf):
-	conf.env.CCFLAGS += ['-std=gnu99']
+	conf.env.CCFLAGS += ['-std=gnu99', '-ggdb']
 
 	conf.env.CCFLAGS += _getconf('LFS_CFLAGS')
 	conf.env.LDFLAGS += _getconf('LFS_LDFLAGS')

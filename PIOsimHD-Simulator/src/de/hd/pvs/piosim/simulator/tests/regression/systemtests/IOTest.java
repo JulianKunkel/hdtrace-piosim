@@ -117,6 +117,21 @@ public class IOTest extends ModelTest {
 		super.setup( new IODisjointConfiguration(NetworkEdgesC.TenGIGE(), NetworkNodesC.QPI(), clientCluster, serverCluster ) );
 	}
 
+	@Test public void ModelWriting() throws Exception{
+		setup(10, 6, 2, IOC.SimpleNoCache());
+
+		writeModelToTMP();
+	}
+
+	@Test public void OpenCloseTestDisjoint() throws Exception{
+		setup(10, 6, 2, IOC.SimpleNoCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 	@Test public void OpenCloseTest() throws Exception{
 		setupOneNodeOneServer(1, IOC.SimpleNoCache());
 
@@ -128,6 +143,16 @@ public class IOTest extends ModelTest {
 
 	@Test public void Writebehind1Test() throws Exception{
 		setupOneNodeOneServer(1, IOC.SimpleWriteBehindCache());
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addWriteSequential(0, fd, 0, MiB);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void Aggregation1Test() throws Exception{
+		setupOneNodeOneServer(1, IOC.AggregationCache());
 
 		FileDescriptor fd = pb.addFileOpen(f, world , false);
 		pb.addWriteSequential(0, fd, 0, MiB);

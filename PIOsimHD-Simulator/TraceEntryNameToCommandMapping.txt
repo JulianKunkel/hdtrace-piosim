@@ -13,6 +13,8 @@ Init,Finalize:GlobalSync
 :Reduce
 :Gather
 :Bcast
+:ReduceScatter
+:Scatter
 File_set_view:Filesetview
 File_open:Fileopen
 File_close:Fileclose

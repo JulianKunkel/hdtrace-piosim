@@ -1,12 +1,5 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
-
-
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	Copyright (C) 2011 Julian M. Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -26,19 +19,43 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 
 
-public class Allreduce  extends CommunicatorCommand{
+public class Scatter extends CommunicatorCommand{
 
-	// Amount of data to reduce from every process
+	// The size to send to each client
 	@NotNegativeOrZero
 	@Attribute
 	protected long size = -1;
 
+	@NotNegative
+	@Attribute
+	protected int rootRank = -1;
+
+	@Override
+	public String toString() {
+		return "Scatter <" + rootRank + "," + size + ">" ;
+	}
+
+	/**
+	 * @return the rootRank
+	 */
+	public int getRootRank() {
+		return rootRank;
+	}
+
+	/**
+	 * @return the size
+	 */
 	public long getSize() {
 		return size;
+	}
+
+	public void setRootRank(int rootRank) {
+		this.rootRank = rootRank;
 	}
 
 	public void setSize(long size) {

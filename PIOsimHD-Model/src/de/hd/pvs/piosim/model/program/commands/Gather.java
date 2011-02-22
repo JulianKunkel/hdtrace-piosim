@@ -1,11 +1,4 @@
 
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
-
-
 //	Copyright (C) 2009 Michael Kuhn
 //
 //	This file is part of PIOsimHD.
@@ -33,6 +26,7 @@ import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 
 public class Gather extends CommunicatorCommand{
 
+	// Amount of data to gather from every process
 	@NotNegativeOrZero
 	@Attribute
 	protected long size = -1;

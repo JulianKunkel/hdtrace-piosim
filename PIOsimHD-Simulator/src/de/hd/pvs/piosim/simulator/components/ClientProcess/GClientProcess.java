@@ -542,7 +542,7 @@ public class GClientProcess
 				 * subsequent operations. Also this prevents buffer overflows in commands which finish immediately.
 				 */
 				long instr = nodeRessources.getMinimumNumberInstructions();
-				long cinstr = cme.getInstructionCount(cmd, nextStep);
+				long cinstr = cme.getInstructionCount(cmd, this, nextStep);
 
 				if(cinstr >= instr) instr = cinstr;
 

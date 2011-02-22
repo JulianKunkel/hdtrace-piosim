@@ -1,4 +1,4 @@
-//	Copyright (C) 2009 Michael Kuhn
+//	Copyright (C) 2011 Julian Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -15,10 +15,10 @@
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
-package de.hd.pvs.piosim.simulator.program.Gather;
+package de.hd.pvs.piosim.simulator.program.Scatter;
 
 import de.hd.pvs.piosim.model.program.Communicator;
-import de.hd.pvs.piosim.model.program.commands.Gather;
+import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
@@ -26,10 +26,10 @@ import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class Direct
-extends CommandImplementation<Gather>
+extends CommandImplementation<Scatter>
 {
 	@Override
-	public void process(Gather cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1) {
 			return;
 		}
@@ -40,11 +40,11 @@ extends CommandImplementation<Gather>
 		switch (step) {
 		case (CommandProcessing.STEP_START): {
 			if (myRank != rootRank) {
-				OUTresults.addNetSend(rootRank, new NetworkSimpleData(cmd.getSize() + 20), 40000, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive(rootRank, 40001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
 			} else {
 				for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 					if (rank != myRank) {
-						OUTresults.addNetReceive(rank, 40000, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+						OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20), 40001, Communicator.INTERNAL_MPI);
 					}
 				}
 			}

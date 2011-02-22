@@ -6,7 +6,7 @@
   */
 
 
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	Copyright (C) 2008, 2009, 2011 Julian M. Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -27,6 +27,7 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.junit.Test;
 
@@ -327,6 +328,46 @@ public class NormalCommandsClusterTest extends ModelTest{
 
 		printTiming("Gather", times);
 	}
+
+
+	@Test public void reduceScatterSingle() throws Exception{
+			setup(4,1);
+
+			parameters.setTraceFile("/tmp/scatter");
+			parameters.setTraceEnabled(true);
+
+			final HashMap<Integer, Long> map = new HashMap<Integer, Long>();
+			map.put(0, 100l);
+			map.put(1, 200l);
+			map.put(2, 300l);
+			map.put(3, 400l);
+
+			pb.addReduceScatter(world, map);
+			runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void scatterSingle() throws Exception{
+			setup(4,1);
+
+			parameters.setTraceFile("/tmp/scatter");
+			parameters.setTraceEnabled(true);
+
+			pb.addScatter(world, 0, 10 * MBYTE);
+			runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void scatterTest() throws Exception{
+		for(int i=minClient; i <= maxClient; i++){
+			setup(i,1);
+
+			pb.addScatter(world, ( i - 2 >= 0 ? i -2 : 0 ), 10 * MBYTE);
+			runSimulationAllExpectedToFinish();
+			times[i] = sim.getVirtualTime().getDouble();
+		}
+
+		printTiming("Scatter", times);
+	}
+
 
 
 	@Test public void bcastTest() throws Exception{
