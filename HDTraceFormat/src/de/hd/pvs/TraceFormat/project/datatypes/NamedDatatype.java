@@ -34,6 +34,7 @@ public class NamedDatatype extends Datatype{
 		FLOAT (4),
 		DOUBLE (8),
 		CHAR(1),
+		UNSIGNED_CHAR(1),
 		INT (4),
 		INTEGER (4),
 		LONG (4),
@@ -60,6 +61,7 @@ public class NamedDatatype extends Datatype{
 	final static public NamedDatatype FLOAT = new NamedDatatype(NamedDatatypeType.FLOAT);
 	final static public NamedDatatype DOUBLE = new NamedDatatype(NamedDatatypeType.DOUBLE);
 	final static public NamedDatatype CHAR = new NamedDatatype(NamedDatatypeType.CHAR);
+	final static public NamedDatatype UNSIGNED_CHAR = new NamedDatatype(NamedDatatypeType.UNSIGNED_CHAR);
 	final static public NamedDatatype INTEGER = new NamedDatatype(NamedDatatypeType.INTEGER);
 	final static public NamedDatatype LONG_LONG = new NamedDatatype(NamedDatatypeType.LONG_LONG);
 	final static public NamedDatatype DOUBLE_PRECISION = new NamedDatatype(NamedDatatypeType.DOUBLE_PRECISION);
@@ -112,6 +114,8 @@ public class NamedDatatype extends Datatype{
 			return BYTE;
 		case CHAR:
 			return CHAR;
+		case UNSIGNED_CHAR:
+			return UNSIGNED_CHAR;
 		case DOUBLE:
 			return DOUBLE;
 		case FLOAT:
