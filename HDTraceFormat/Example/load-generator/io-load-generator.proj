@@ -40,16 +40,17 @@
   <NAMED id="1275068432" name="MPI_LB"  />
   <NAMED id="1275068685" name="MPI_BYTE"  />
   <NAMED id="1275068433" name="MPI_UB"  />
+
   <STRUCT id="-1946157051" name="" count="3" >
    <Type id="1275068432" displacement="0" blocklen="1"/>
    <Type id="1275068685" displacement="5" blocklen="50"/>
-   <Type id="1275068433" displacement="65" blocklen="1"/>
+   <Type id="1275068433" displacement="56000" blocklen="1"/>
   </STRUCT>
-  
+
   <CONTIGUOUS id="-2" count="2" oldType="-1946157051"/>
-  
-  <VECTOR id="-1" name="" count="10" blocklength="1" stride="200" oldType="-2"/>
-  
+
+  <VECTOR id="-1" name="" count="10" blocklength="1" stride="5500" oldType="-2"/>
+
   <NAMED id="1275070475" name="MPI_DOUBLE"  />
   <NAMED id="1275070473" name="MPI_LONG_LONG"  />
   <NAMED id="1275069467" name="MPI_INTEGER"  />
