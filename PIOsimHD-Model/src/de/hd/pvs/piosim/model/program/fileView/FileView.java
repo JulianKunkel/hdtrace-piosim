@@ -3,8 +3,8 @@ package de.hd.pvs.piosim.model.program.fileView;
 import de.hd.pvs.TraceFormat.project.datatypes.ContiguousDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
-import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype.StructType;
+import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 
 /**
@@ -179,7 +179,7 @@ public class FileView {
 	 * @param accessSize
 	 */
 	private void addDatatypeIOOperation(CurrentPosition cur, Datatype datatype, long offsetInDatatype, long accessSize){
-		System.out.println("addDatatypeIOOperation " + datatype.getType() + " " + datatype.getTid() + " " + accessSize);
+		System.out.println("addDatatypeIOOperation " + datatype.getType() + " " + datatype.getTid() + " " + accessSize +  " pos " + cur);
 
 		assert(offsetInDatatype >= 0);
 		assert(accessSize > 0);

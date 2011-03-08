@@ -141,7 +141,7 @@ class UnrolledJDatatype extends JPanel{
 		this.setToolTipText("<size, extend> =  <" + datatype.getSize() + ", " + datatype.getExtend() + ">");
 		//label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 		//this.add(label);
-
+		
 		System.out.println("DT: " + " toUntroll: " + unrollSize + " off: " + offset + " REALSZ: " + datatype.getSize()+ " " +datatype);
 
 		assert(unrollSize <= datatype.getSize());
@@ -300,12 +300,21 @@ class UnrolledJDatatype extends JPanel{
 			final VectorDatatype type = (VectorDatatype) datatype;
 			final long typeSize = type.getPrevious().getSize();
 
+			// first skip a number of iterations. 			
 
 			// first half repeat:
-			if( offset > 0){					
-				long mySizeToUnroll = typeSize - offset % type.getPrevious().getExtend();
+			if( offset > 0 ){
+				
+				// first skip a number of iterations, according to the offset.
+				long fullItertoSkip =  offset / typeSize;
+				offset -= fullItertoSkip * typeSize;
+					
 
+			    long mySizeToUnroll = typeSize - offset % type.getPrevious().getExtend();
+				
 				mySizeToUnroll = mySizeToUnroll < unrollSize ? mySizeToUnroll : unrollSize;
+				
+				assert(mySizeToUnroll >= 0);
 
 				unrollSize -= mySizeToUnroll;
 				

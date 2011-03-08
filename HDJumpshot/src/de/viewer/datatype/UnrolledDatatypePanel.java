@@ -82,8 +82,11 @@ public class UnrolledDatatypePanel extends JPanel{
 		// add first datatype, this one might be used only half.
 		
 		final long datatypeSize = datatype.getSize();
+		final long extend = datatype.getExtend();
 		
 		System.out.println("Unroll: " + unrollSize + " offset: " + offset);
+		
+		add(new UnrolledJDatatypeHole(offset));
 		
 		if(offset % datatypeSize != 0){			
 			// draw half datatype
