@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
+#include <cpufreq.h>
 
 #include "config.h"
 #include "common.h"
@@ -134,6 +135,17 @@ int initTracing(
 			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
+		}
+		
+	if (sources.CPU_FREQ_X)
+		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+		{
+			//seyda
+			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_%d", i);
+			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
+			g_assert(ret > 0);
+			ADD_VALUE(group, strbuf, INT64, "B", "CPU");
+			//seyda
 		}
 
 #define MEM_UNIT "B"
@@ -467,9 +479,10 @@ static void doTracingStep(tracingDataStruct *tracingData)
  * @param tracingData  Tracing Data Object
  */
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
-
+//seyda
 	if (! (tracingData->sources.CPU_UTIL
-			|| tracingData->sources.CPU_UTIL_X))
+			|| tracingData->sources.CPU_UTIL_X
+			|| tracingData->sources.CPU_FREQ_X))
 		return;
 
 #define CPUDIFF(val) \
@@ -478,6 +491,8 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 	 * so overflow handling would be disproportional costly.  */
 
 	gfloat valuef;
+	gint64 valuei64;
+
 	glibtop_cpu cpu;
 
 	glibtop_get_cpu(&cpu);
@@ -505,6 +520,17 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
+		//seyda
+		if (tracingData->sources.CPU_FREQ_X)
+		{
+			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+			{
+				valuei64 = (gint64) (cpufreq_get_freq_kernel(i));// cpufreq aufruf
+				WRITE_I64_VALUE(tracingData, valuei64);
+				DEBUGMSG("CPU_FREQ_%d = %d%%", i, valuei64);
+			}
+		}
+		//seyda
 	}
 	/* save current CPU statistics for next step */
 	tracingData->oldValues.cpu = cpu;

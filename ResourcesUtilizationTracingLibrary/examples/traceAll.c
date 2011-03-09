@@ -77,6 +77,7 @@ int main(void)
 		for (int j = 2; j <= i; ++j)
 			fac *= j;
 		sum += fac;
+		fac/sum;
 	}
 
 
@@ -98,6 +99,7 @@ int main(void)
 		for (int j = 2; j <= i; ++j)
 			fac *= j;
 		sum += fac;
+		fac/sum;
 	}
 
 
