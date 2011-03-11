@@ -7,6 +7,7 @@
  */
 
 #include "tracing.h"
+#include "processorstates.h"
 
 #include <unistd.h>
 #include <glib.h>
@@ -136,7 +137,15 @@ int initTracing(
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
 		}
-		
+	
+	/*if cpuidle registers could not be found, disable it*/
+	if(!cpufreq_available())
+	{
+		tracingData->sources.CPU_FREQ_X = 0;
+		sources.CPU_FREQ_X = 0;
+		INFOMSG("Could not find cpufreq!");
+	}
+	
 	if (sources.CPU_FREQ_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
@@ -144,8 +153,29 @@ int initTracing(
 			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_%d", i);
 			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
-			ADD_VALUE(group, strbuf, INT64, "B", "CPU");
+			ADD_VALUE(group, strbuf, INT64, "B", "CPU_FREQ");
 			//seyda
+		}
+	
+	/*if cpuidle registers could not be found, disable it*/
+	if(!cpuidle_available())
+	{
+		tracingData->sources.CPU_IDLE_X = 0;
+		sources.CPU_IDLE_X = 0;
+		INFOMSG("Could not find cpuidle!");
+	}
+	
+	if (sources.CPU_IDLE_X)
+		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+		{
+			for (int j = 1; j <=3; ++j){
+			//seyda
+				ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_C%d_%d", j, i);
+				g_assert(ret < RUT_STRING_BUFFER_LENGTH);
+				g_assert(ret > 0);
+				ADD_VALUE(group, strbuf, FLOAT, "%", "CPU_IDLE");
+			//seyda
+			}
 		}
 
 #define MEM_UNIT "B"
@@ -528,6 +558,19 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				valuei64 = (gint64) (cpufreq_get_freq_kernel(i));// cpufreq aufruf
 				WRITE_I64_VALUE(tracingData, valuei64);
 				DEBUGMSG("CPU_FREQ_%d = %d%%", i, valuei64);
+			}
+		}
+		
+		if (tracingData->sources.CPU_IDLE_X)
+		{
+			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+			{
+				for (int j = 1; j <= 3; ++j)
+				{
+					valuef = (gfloat) get_c_state_time(i, j);// cpuidle aufruf
+					WRITE_FLOAT_VALUE(tracingData, valuef);
+					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef);
+				}
 			}
 		}
 		//seyda
