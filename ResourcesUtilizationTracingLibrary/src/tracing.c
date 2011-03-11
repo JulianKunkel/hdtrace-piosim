@@ -509,6 +509,7 @@ static void doTracingStep(tracingDataStruct *tracingData)
  * @param tracingData  Tracing Data Object
  */
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
+
 //seyda
 	if (! (tracingData->sources.CPU_UTIL
 			|| tracingData->sources.CPU_UTIL_X
@@ -557,7 +558,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 			{
 				valuei64 = (gint64) (cpufreq_get_freq_kernel(i));// cpufreq aufruf
 				WRITE_I64_VALUE(tracingData, valuei64);
-				DEBUGMSG("CPU_FREQ_%d = %d%%", i, valuei64);
+				DEBUGMSG("CPU_FREQ_%d = %d kHz", i, valuei64);
 			}
 		}
 		
