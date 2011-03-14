@@ -600,15 +600,18 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 
 	const char * mrutConfig = getenv("HDTRACE_MRUT_CONFIG");
 
+	if(mrutConfig == NULL){
+	    printf("[HDMPIWRAPPER] mrut environment variable HDTRACE_MRUT_CONFIG not set => disabling mrut\n");
+	}else{
+	  if (! mrut_init(& mrutTraceVar, topoNode , mrutConfig , & error) ){
+	      printf("[HDMPIWrapper] mrut init error %s\n", error->message );
+	      g_error_free(error);
+	  }
 
-	if (! mrut_init(& mrutTraceVar, topoNode , mrutConfig , & error) ){
-	    printf("[HDMPIWrapper] mrut init error %s\n", error->message );
-	    g_error_free(error);
-	}
-
-	if (! mrut_enable(& mrut_enableTracing, & error) ){
-	    printf("[HDMPIWrapper] mrut init error %s\n", error->message );
-	     g_error_free(error);
+	  if (! mrut_enable(& mrut_enableTracing, & error) ){
+	      printf("[HDMPIWrapper] mrut init error %s\n", error->message );
+	      g_error_free(error);
+	  }
 	}
 	}
 # endif
