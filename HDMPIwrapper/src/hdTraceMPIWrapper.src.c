@@ -608,7 +608,7 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 	      g_error_free(error);
 	  }
 
-	  if (! mrut_enable(& mrut_enableTracing, & error) ){
+	  if (! mrut_enableTracing(& mrut_enableTracing, & error) ){
 	      printf("[HDMPIWrapper] mrut init error %s\n", error->message );
 	      g_error_free(error);
 	  }
