@@ -90,6 +90,21 @@ int initTracing(
 	/* get number of CPUs */
 	tracingData->staticData.cpu_num = (gint) sysconf(_SC_NPROCESSORS_CONF);
 
+	//seyda
+	/* get number of c-states and init memory */
+	tracingData->staticData.c_states_num = (gint) get_available_c_states();
+	if (tracingData->staticData.c_states_num > 0){
+		rut_malloc(tracingData->oldValues.c_states, 
+				tracingData->staticData.c_states_num * tracingData->staticData.cpu_num, 
+				-1);
+		
+		//for (int k=0; k < tracingData->staticData.c_states_num * tracingData->staticData.cpu_num; ++k){
+		//	tracingData->oldValues.c_states[k]=0;
+		//}
+	} else {
+		tracingData->oldValues.c_states = NULL;
+	}
+	
 	/* get available network interfaces */
     tracingData->staticData.netifs =
     	glibtop_get_netlist(&(tracingData->staticData.netlist));
@@ -168,7 +183,7 @@ int initTracing(
 	if (sources.CPU_IDLE_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
-			for (int j = 1; j <=3; ++j){
+			for (int j = 0; j < tracingData->staticData.c_states_num; ++j){
 			//seyda
 				ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_C%d_%d", j, i);
 				g_assert(ret < RUT_STRING_BUFFER_LENGTH);
@@ -416,6 +431,7 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 		rut_free(tracingData->staticData.netifs[i]);
 	rut_free(tracingData->staticData.netifs);
 	rut_free(tracingData->staticData.hdd_mountpoint);
+	rut_free(tracingData->oldValues.c_states);
 	rut_free(tracingData);
 
 	g_free(NULL);
@@ -562,19 +578,75 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 			}
 		}
 		
+		//same as utilization, but with C0, because of different times
 		if (tracingData->sources.CPU_IDLE_X)
 		{
+			guint64 c_states[tracingData->staticData.c_states_num * tracingData->staticData.cpu_num];
+			
+			for (int d=0; d < (tracingData->staticData.cpu_num * tracingData->staticData.c_states_num); ++d){
+				c_states[d] = tracingData->oldValues.c_states[d];
+			}
+		
+			get_c_state_times(
+				tracingData->oldValues.c_states, 
+				tracingData->staticData.cpu_num,
+				tracingData->staticData.c_states_num);
+			
+			guint64 total[tracingData->staticData.cpu_num];
+			
+			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+			{	
+				total[i] = 0;
+				
+				for (int j = 0; j < tracingData->staticData.c_states_num; ++j)
+				{	
+					int index = i * tracingData->staticData.c_states_num + j;
+					c_states[index] = tracingData->oldValues.c_states[index]
+								- c_states[index];
+					total[i] += c_states[index];
+				}
+			}
+			
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{
-				for (int j = 1; j <= 3; ++j)
+				guint64 FREQ = 1000;
+				guint64 c0 = tracingData->interval * FREQ - total[i];
+				if (c0 < 0){
+					c0 = 0;	/* rounding errors in measurement might make c0 go slightly negative.. this is confusing */
+					valuef = 0.0;
+				} else {	
+					valuef = c0 * 100.0 / (tracingData->interval * FREQ);
+				}
+				
+				printf("cpu %d, c-state %d: %u %f%%\n:", i, 0, c_states[i * tracingData->staticData.c_states_num + 0], valuef/100.0);
+				WRITE_FLOAT_VALUE(tracingData, valuef/100.0);
+				DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", 0, i, valuef/100.0);
+				
+				for (int j = 1; j < tracingData->staticData.c_states_num; ++j)
 				{
-					valuef = (gfloat) get_c_state_time(i, j);// cpuidle aufruf
-					WRITE_FLOAT_VALUE(tracingData, valuef);
-					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef);
+					
+					if (c_states[i * tracingData->staticData.c_states_num + j] == 0){
+						valuef = 0.0;
+					} else {
+						//valuef = (gfloat) c_states[i * tracingData->staticData.c_states_num + j] / total[i];
+					
+						valuef = c_states[i * tracingData->staticData.c_states_num + j] * 100 /
+								( tracingData->interval * FREQ);
+					}
+					
+					printf("cpu %d, c-state %d: %u: %f%%\n", i, j, c_states[i * tracingData->staticData.c_states_num + j], valuef/100.0);
+					WRITE_FLOAT_VALUE(tracingData, valuef/100.0);
+					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef/100.0);
+					
 				}
 			}
 		}
 		//seyda
+	} else {
+		get_c_state_times(
+			tracingData->oldValues.c_states, 
+			tracingData->staticData.cpu_num,
+			tracingData->staticData.c_states_num);
 	}
 	/* save current CPU statistics for next step */
 	tracingData->oldValues.cpu = cpu;

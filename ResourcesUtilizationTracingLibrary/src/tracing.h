@@ -41,6 +41,7 @@ typedef struct {
 typedef struct {
 	gboolean valid;
 	glibtop_cpu cpu;
+	guint64 *c_states;
 	glibtop_mem mem;
 	glibtop_netload *netload;
 	glibtop_fsusage fs;
@@ -52,6 +53,7 @@ typedef struct {
  */
 typedef struct {
 	gint cpu_num;
+	gint c_states_num;
 	glibtop_netlist netlist;
 	char **netifs;
 	char *hdd_mountpoint;
