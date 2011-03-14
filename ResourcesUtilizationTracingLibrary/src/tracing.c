@@ -618,7 +618,6 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 					valuef = c0 * 100.0 / (tracingData->interval * FREQ);
 				}
 				
-				printf("cpu %d, c-state %d: %u %f%%\n:", i, 0, c_states[i * tracingData->staticData.c_states_num + 0], valuef/100.0);
 				WRITE_FLOAT_VALUE(tracingData, valuef/100.0);
 				DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", 0, i, valuef/100.0);
 				
@@ -634,7 +633,6 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 								( tracingData->interval * FREQ);
 					}
 					
-					printf("cpu %d, c-state %d: %u: %f%%\n", i, j, c_states[i * tracingData->staticData.c_states_num + j], valuef/100.0);
 					WRITE_FLOAT_VALUE(tracingData, valuef/100.0);
 					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef/100.0);
 					
