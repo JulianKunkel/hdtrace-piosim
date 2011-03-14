@@ -66,6 +66,12 @@
 static UtilTrace *rutStatistics = NULL;
 #endif
 
+#ifdef ENABLE_HDMRUT
+#include "mrut.h"
+
+static mrutTracer mrutTraceVar = NULL;
+#endif
+
 #ifdef ENABLE_POWER_TRACE
 #include "pt.h"
 
@@ -506,6 +512,10 @@ int hdMPI_PrepareTracing(const char * filePrefix){
     hdMPI_threadInitTracing();
 #endif
 
+#ifdef ENABLE_HDMRUT
+# define ENABLE_UTILIZATION_OR_POWER_TRACE
+#endif
+
 #ifdef ENABLE_UTILIZATION_TRACE
 # define ENABLE_UTILIZATION_OR_POWER_TRACE
 #else
@@ -581,6 +591,27 @@ int hdMPI_PrepareTracing(const char * filePrefix){
         rut_startTracing(rutStatistics);
 
 # endif /* ENABLE_UTILIZATION_TRACE */
+
+# ifdef ENABLE_HDMRUT
+	{
+	GError * error = NULL;
+        const char *levels[1] = {hostname};
+        hdTopoNode *topoNode = hdT_createTopoNode(topology, levels, 1);
+
+	const char * mrutConfig = getenv("HDTRACE_MRUT_CONFIG");
+
+
+	if (! mrut_init(& mrutTraceVar, topoNode , mrutConfig , & error) ){
+	    printf("[HDMPIWrapper] mrut init error %s\n", error->message );
+	    g_error_free(error);
+	}
+
+	if (! mrut_enable(& mrut_enableTracing, & error) ){
+	    printf("[HDMPIWrapper] mrut init error %s\n", error->message );
+	     g_error_free(error);
+	}
+	}
+# endif
 
 # ifdef ENABLE_POWER_TRACE
 
@@ -744,6 +775,14 @@ int hdMPI_FinalizeTracing(){
 	if(rutStatistics != NULL){
 		rut_stopTracing(rutStatistics);
 		rut_finalizeTrace(rutStatistics);
+	}
+#endif
+
+# ifdef ENABLE_HDMRUT
+	GError * error = NULL;
+	if (! mrut_finalize(& mrutTraceVar, & error) ){
+	    printf("[HDMPIWrapper] error %s\n", error->message );
+	     g_error_free(error);
 	}
 #endif
 

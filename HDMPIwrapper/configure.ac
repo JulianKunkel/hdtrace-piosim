@@ -154,6 +154,22 @@ AC_ARG_WITH(hdtrace,
     fi
 )
 
+
+dnl set the hdtrace library path
+AC_ARG_WITH(hdMrut,
+[  --with-hdMrut=path         Use HDMRUT library installed in "path"],
+    if test "x$withval" = "xyes" ; then
+           AC_MSG_ERROR(--with-hdMrut must be given a pathname)
+    else
+       CFLAGS="$CFLAGS -I$withval/include"
+       CPPFLAGS="$CPPFLAGS -I$withval/include"
+       LDFLAGS="$LDFLAGS -L$withval/lib"
+    fi
+    AC_DEFINE(ENABLE_HDMRUT, 1, [Defined if HDMRUT is enabled])
+
+)
+
+
 dnl set the hdtrace library path
 AC_ARG_WITH(mpi,
 [  --with-mpi=path         Use MPI library installed in "path"],
