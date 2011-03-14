@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 def configure (conf):
 	conf.check_tool('gcc')
 
 def build (bld):
 	bld.new_task_gen(
-		features = 'cc cstaticlib',
+		features = 'cc cstaticlib cshlib',
 		source = ['hdTrace.c', 'hdTopo.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdTrace',
@@ -13,7 +14,7 @@ def build (bld):
 	)
 
 	bld.new_task_gen(
-		features = 'cc cstaticlib',
+		features = 'cc cstaticlib cshlib',
 		source = ['hdStats.c', 'hdTopo.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdStats',
@@ -21,7 +22,7 @@ def build (bld):
 	)
 
 	bld.new_task_gen(
-		features = 'cc cstaticlib',
+		features = 'cc cstaticlib cshlib',
 		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdRelation',
@@ -29,9 +30,10 @@ def build (bld):
 	)
 
 	bld.new_task_gen(
-		features = 'cc cstaticlib',
+		features = 'cc cstaticlib cshlib',
 		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdTracing',
 		install_path = '${PREFIX}/lib'
 	)
+
