@@ -90,17 +90,12 @@ int initTracing(
 	/* get number of CPUs */
 	tracingData->staticData.cpu_num = (gint) sysconf(_SC_NPROCESSORS_CONF);
 
-	//seyda
 	/* get number of c-states and init memory */
 	tracingData->staticData.c_states_num = (gint) get_available_c_states();
 	if (tracingData->staticData.c_states_num > 0){
 		rut_malloc(tracingData->oldValues.c_states, 
 				tracingData->staticData.c_states_num * tracingData->staticData.cpu_num, 
 				-1);
-		
-		//for (int k=0; k < tracingData->staticData.c_states_num * tracingData->staticData.cpu_num; ++k){
-		//	tracingData->oldValues.c_states[k]=0;
-		//}
 	} else {
 		tracingData->oldValues.c_states = NULL;
 	}
@@ -165,7 +160,7 @@ int initTracing(
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
 			//seyda
-			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_%d", i);
+			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_CPU%d", i);
 			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, INT64, "B", "CPU_FREQ");
@@ -183,13 +178,12 @@ int initTracing(
 	if (sources.CPU_IDLE_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
-			for (int j = 0; j < tracingData->staticData.c_states_num; ++j){
-			//seyda
-				ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_C%d_%d", j, i);
+			for (int j = 0; j < tracingData->staticData.c_states_num; ++j)
+			{
+				ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_CPU%d_C%d", i, j);
 				g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 				g_assert(ret > 0);
 				ADD_VALUE(group, strbuf, FLOAT, "%", "CPU_IDLE");
-			//seyda
 			}
 		}
 
@@ -567,81 +561,84 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
-		//seyda
+		
 		if (tracingData->sources.CPU_FREQ_X)
 		{
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{
-				valuei64 = (gint64) (cpufreq_get_freq_kernel(i));// cpufreq aufruf
+				valuei64 = (gint64) (cpufreq_get_freq_kernel(i));
 				WRITE_I64_VALUE(tracingData, valuei64);
 				DEBUGMSG("CPU_FREQ_%d = %d kHz", i, valuei64);
 			}
 		}
 		
-		//same as utilization, but with C0, because of different times
 		if (tracingData->sources.CPU_IDLE_X)
 		{
+			/* temp for old values */
 			guint64 c_states[tracingData->staticData.c_states_num * tracingData->staticData.cpu_num];
-			
-			for (int d=0; d < (tracingData->staticData.cpu_num * tracingData->staticData.c_states_num); ++d){
+
+			/* save old values */
+			for (int d=0; 
+				d < (tracingData->staticData.c_states_num * tracingData->staticData.cpu_num); 
+				++d)
+			{
 				c_states[d] = tracingData->oldValues.c_states[d];
 			}
-		
+			
+			/* get new values */
 			get_c_state_times(
 				tracingData->oldValues.c_states, 
 				tracingData->staticData.cpu_num,
 				tracingData->staticData.c_states_num);
 			
-			guint64 total[tracingData->staticData.cpu_num];
-			
-			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
-			{	
-				total[i] = 0;
-				
-				for (int j = 0; j < tracingData->staticData.c_states_num; ++j)
-				{	
-					int index = i * tracingData->staticData.c_states_num + j;
-					c_states[index] = tracingData->oldValues.c_states[index]
-								- c_states[index];
-					total[i] += c_states[index];
-				}
+			/* difference */
+			for (int d=0; 
+				d < (tracingData->staticData.c_states_num * tracingData->staticData.cpu_num); 
+				++d)
+			{
+				c_states[d] = tracingData->oldValues.c_states[d] - c_states[d];
 			}
 			
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{
-				guint64 FREQ = 1000;
-				guint64 c0 = tracingData->interval * FREQ - total[i];
-				if (c0 < 0){
-					c0 = 0;	/* rounding errors in measurement might make c0 go slightly negative.. this is confusing */
-					valuef = 0.0;
-				} else {	
-					valuef = c0 * 100.0 / (tracingData->interval * FREQ);
+				guint64 total = 0;
+
+				/* total time in idle */
+				for (int j = 0; j < tracingData->staticData.c_states_num; ++j){
+					total += c_states[i * tracingData->staticData.c_states_num + j];
 				}
 				
-				printf("cpu %d, c-state %d: %u %f%%\n:", i, 0, c_states[i * tracingData->staticData.c_states_num + 0], valuef/100.0);
-				WRITE_FLOAT_VALUE(tracingData, valuef/100.0);
-				DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", 0, i, valuef/100.0);
+				/* time not in idle: easy, interval - time in idle, 
+				 * careful as time in idle is given in microsecs */
+				guint64 c0 = (tracingData->interval) * 1000 - total;
+				
+				if (c0 < 0){
+					/* rounding errors in measurement might make c0 go slightly negative.. this is confusing */
+					valuef = 0.0;
+				} else {
+					/* percentage: time in c0(microsecs) / total time(millisecs) */
+					valuef = c0 * 100.0 / (tracingData->interval * 1000);
+				}
+				
+				WRITE_FLOAT_VALUE(tracingData, valuef);
+				DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", 0, i, valuef);
 				
 				for (int j = 1; j < tracingData->staticData.c_states_num; ++j)
 				{
 					
 					if (c_states[i * tracingData->staticData.c_states_num + j] == 0){
 						valuef = 0.0;
-					} else {
-						//valuef = (gfloat) c_states[i * tracingData->staticData.c_states_num + j] / total[i];
-					
+					} else {					
 						valuef = c_states[i * tracingData->staticData.c_states_num + j] * 100 /
-								( tracingData->interval * FREQ);
+								(tracingData->interval * 1000);
 					}
 					
-					printf("cpu %d, c-state %d: %u: %f%%\n", i, j, c_states[i * tracingData->staticData.c_states_num + j], valuef/100.0);
-					WRITE_FLOAT_VALUE(tracingData, valuef/100.0);
-					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef/100.0);
+					WRITE_FLOAT_VALUE(tracingData, valuef);
+					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef);
 					
 				}
 			}
 		}
-		//seyda
 	} else {
 		get_c_state_times(
 			tracingData->oldValues.c_states, 

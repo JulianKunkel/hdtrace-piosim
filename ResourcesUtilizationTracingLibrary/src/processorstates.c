@@ -77,6 +77,7 @@ int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num
 	for (int i=0; i<cpu_num; ++i){
 		len = sprintf(filename, "/sys/devices/system/cpu/cpu%d/cpuidle", i);
 		clevel = 0;
+		
 		dir = opendir(filename);
 		if (!dir)
 			continue;
@@ -98,6 +99,7 @@ int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num
 				return -1;
 
 			c_states[i * c_states_num + clevel] = 1+strtoull(line, NULL, 10);
+			
 			clevel++;
 		}
 	}
