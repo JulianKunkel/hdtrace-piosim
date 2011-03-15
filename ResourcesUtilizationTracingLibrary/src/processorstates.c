@@ -16,7 +16,7 @@
  * checks if the sysfs interface for cpuidle is active
  */
 unsigned int cpuidle_available() {
-	DIR *cpudir = opendir("/sys/devices/system/cpu/cpuidle");
+	DIR *cpudir = opendir("/sys/devices/system/cpu/cpu0/cpuidle");
 	if (!cpudir) {
 		return 0;
 	} else {
@@ -51,6 +51,10 @@ int get_available_c_states(){
 	
 	int c_states = 0;
 	DIR *cpuidle = opendir("/sys/devices/system/cpu/cpu0/cpuidle");
+
+	if(cpuidle == NULL)
+		return c_states;
+
 	struct dirent *entry;
 	
 	while ((entry = readdir(cpuidle))) {
@@ -95,8 +99,10 @@ int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num
 			f = fgets(line, 4096, file);
 			fclose(file);
 			
-			if (f == NULL)
+			if (f == NULL) {
+				closedir(dir);
 				return -1;
+			}
 
 			c_states[i * c_states_num + clevel] = 1+strtoull(line, NULL, 10);
 			

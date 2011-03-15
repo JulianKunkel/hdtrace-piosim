@@ -635,7 +635,6 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 					
 					WRITE_FLOAT_VALUE(tracingData, valuef);
 					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef);
-					
 				}
 			}
 		}
