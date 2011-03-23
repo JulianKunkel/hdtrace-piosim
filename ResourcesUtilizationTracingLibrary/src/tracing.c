@@ -610,15 +610,15 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				
 				/* time not in idle: easy, interval - time in idle, 
 				 * careful as time in idle is given in microsecs */
-				guint64 c0 = (tracingData->interval) * 1000 - total;
+				guint64 interval = (tracingData->interval) * 1000;
 				
-				if (c0 < 0){
+				if (total > interval){
 					/* rounding errors in measurement might make c0 go slightly negative.. this is confusing */
-					valuef = 0.0;
-				} else {
-					/* percentage: time in c0(microsecs) / total time(millisecs) */
-					valuef = c0 * 100.0 / (tracingData->interval * 1000);
+					interval = total;
 				}
+				/* percentage: time in c0(microsecs) / total time(millisecs) */
+				
+				valuef = (interval - total) * 100.0 / interval;
 				
 				WRITE_FLOAT_VALUE(tracingData, valuef);
 				DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", 0, i, valuef);
@@ -629,8 +629,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 					if (c_states[i * tracingData->staticData.c_states_num + j] == 0){
 						valuef = 0.0;
 					} else {					
-						valuef = c_states[i * tracingData->staticData.c_states_num + j] * 100 /
-								(tracingData->interval * 1000);
+						valuef = c_states[i * tracingData->staticData.c_states_num + j] * 100 / interval;
 					}
 					
 					WRITE_FLOAT_VALUE(tracingData, valuef);
