@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# http://code.google.com/p/waf/wiki/UsingWaf
+# http://www.freehackers.org/~tnagy/wafbook/index.html
+
+import subprocess
+
+import os
+import Options
+import Utils
+
+APPNAME = 'hdmpi-wrapper'
+VERSION = '2011-03-16'
+
+srcdir = '.'
+blddir = 'build'
+
+
+def set_options (opt):
+        opt.add_option('--with-hdtrace', action='store', default=None, help='Specify the hdtrace library folder')
+        opt.add_option('--with-mpi', action='store', default=None, help='Specify the mpi library folder')
+        opt.add_option('--with-mrut', action='store', default=None, help='Use mrut to store node-local values')
+        opt.add_option('--with-hdPVFS', action='store', default=None, help='Use HDPVFS to trace PVFS client activity')
+
+
+def _getconf (key):
+	# FIXME Maybe use os.confstr().
+	p = subprocess.Popen(['getconf', key], stdout=subprocess.PIPE, close_fds=True)
+	v = p.communicate()[0].strip()
+	if not v:
+		return []
+	return Utils.to_list(v)
+
+def configure (conf):
+	conf.env.CCFLAGS += ['-std=gnu99', '-ggdb', '-O3']
+
+	conf.env.CCFLAGS += _getconf('LFS_CFLAGS')
+	conf.env.LDFLAGS += _getconf('LFS_LDFLAGS')
+	conf.env.LDFLAGS += _getconf('LFS_LIBS')
+
+        conf.check_tool('gcc')
+
+	conf.check_cc(lib='pthread')
+
+        conf.check_cfg(
+                package = 'glib-2.0',
+                args = '--cflags --libs',
+                atleast_version = '2.16',
+                mandatory = True
+        )
+
+        if Options.options.with_hdtrace:
+                hdtwlib = os.path.abspath(Options.options.with_hdtrace)
+                conf.check_cc(lib='hdTracing', ccflags='-I%s/include' % (hdtwlib), ldflags='-L%s/lib' % (hdtwlib), uselib_store='HDTRACING',  mandatory=True)
+                conf.env.LIBPATH_HDTRACING = '%s/lib' % (hdtwlib)
+        else:
+                conf.check_cc(lib='hdTracing',
+		  uselib_store='HDTRACING',
+		  mandatory=True, errmsg="libhdTracing not found use --with-hdTrace")
+
+
+
+        if Options.options.with_mpi:
+                lib = os.path.abspath(Options.options.with_mpi)
+                conf.check_cc(function_name='MPI_Init', header_name="mpi.h", ccflags='-I%s/include' % (lib), ldflags='-L%s/lib' % (lib), uselib_store='MPI',  mandatory=True)
+        else:
+                conf.check_cc(function_name='MPI_Init', header_name="mpi.h",
+		  uselib_store='MPI',
+		  mandatory=True, errmsg="mpi.h not found use --with-mpi")
+
+	if Options.options.with_mrut:
+                lib = os.path.abspath(Options.options.with_mrut)
+                conf.check_cc(lib='hdMrut', header_name="mrut.h", ccflags='-I%s/include' % (lib), ldflags='-L%s/lib' % (lib), uselib_store='MRUT', uselib=['HDTRACING','PTHREAD','GLIB-2.0'],  mandatory=True)
+        else:
+                conf.check_cc(lib='hdMrut', header_name="mrut.h",
+		  uselib_store='MRUT', uselib=['HDTRACING','PTHREAD','GLIB-2.0'])
+
+	if Options.options.with_hdPVFS:
+                lib = os.path.abspath(Options.options.with_hdPVFS)
+                conf.check_cc(lib='pvfs2', header_name="pvfs2.h", ccflags='-I%s/include' % (lib), ldflags='-L%s/lib' % (lib), uselib_store='PVFS2', uselib=['HDTRACING','PTHREAD','GLIB-2.0'],  mandatory=True)
+        else:
+                conf.check_cc(lib='pvfs2', header_name="pvfs2.h",
+		  uselib_store='PVFS2', uselib=['HDTRACING','PTHREAD','GLIB-2.0'])
+
+
+	conf.sub_config('include')
+	conf.sub_config('src')
+#	conf.sub_config('tests')
+	conf.sub_config('scripts')
+        conf.write_config_header('hdmpi-wrapper-pkg.h')
+
+
+def build (bld):
+	bld.add_subdirs('include')
+	bld.add_subdirs('src')
+#	bld.add_subdirs('tests')
+
