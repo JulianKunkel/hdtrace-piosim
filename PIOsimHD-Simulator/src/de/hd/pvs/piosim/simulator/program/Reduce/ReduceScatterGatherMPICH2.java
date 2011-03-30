@@ -25,12 +25,14 @@
 
 package de.hd.pvs.piosim.simulator.program.Reduce;
 
-import de.hd.pvs.piosim.model.program.Communicator;
+import java.util.HashMap;
+
+import de.hd.pvs.piosim.model.program.commands.Gather;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
+import de.hd.pvs.piosim.model.program.commands.ReduceScatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 /**
  * MPICH2 Implementation, Scatter-Gather.
@@ -40,85 +42,51 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class ReduceScatterGatherMPICH2
 extends CommandImplementation<Reduce>
 {
-	final int RECEIVED = 2; //?
+	final int SCATTER_COMPLETED = 2;
 
 	//@Override //?
 	public long getInstructionCount(Reduce cmd, int step)
 	{
-		if(step == RECEIVED)
-		{
-			return cmd.getSize() + 1;
-		}
-		else
-		{
-			return 1;
-		}
+		return 1;
 	}
 
 	@Override
 	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs)
 	{
+		if(step == CommandProcessing.STEP_START){
 
-		if (cmd.getCommunicator().getSize() == 1)
-		{
-			// finished ...
-			return;
-		}
+			ReduceScatter scmd = new ReduceScatter();
+			HashMap<Integer, Long> map = new HashMap<Integer, Long>();
 
-		final int commSize = cmd.getCommunicator().getSize(); //Wie viele Prozesse gibt es?
-		//final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		final int myRank = client.getModelComponent().getRank(); //Der aktuelle Prozess?
-		//final int rootRank = cmd.getRootRank(); //Wurzelknoten bei der Baum-Implementation?
+			// default: split data equally.
+			long sizePerRank = cmd.getSize() / cmd.getCommunicator().getSize();
+			int restClients = (int) (cmd.getSize() % cmd.getCommunicator().getSize());
 
-		int clientRankInComm = myRank;  //Der aktuelle Knoten?
-
-		if(clientRankInComm != 0)
-		{
-			// recv first, then send.
-			if (step == CommandProcessing.STEP_START) //Wenns der erste Schritt des Reduce-Prozesses ist?
-			{
-				// receive
-				OUTresults.setNextStep(RECEIVED);
-
-				for (int i = commSize; i >= 0 ; i--)
-				{
-					if(i%2 != myRank%2) //Empfängt von allen geraden Prozesse, wenns ungerade ist, sonst von allen ungeraden
-					{
-					final int targetRank = i;
-					OUTresults.addNetReceive(targetRank, 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
-					}
-				}
-
-				if(OUTresults.getNetworkJobs().getSize() != 0 )
-					return; //Beendet die Ausführung dieser Klasse, um den nächsten Iterationsschritt zu starten
-			}
-
-			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
-
-			for (int i = commSize; i >= 0 ; i--)
-			{
-				if (i%2 != myRank%2)//Sendet an alle ungeraden Prozesse, wenns gerade ist, sonst an alle ungeraden
-				{
-					int sendTo = i;
-					OUTresults.addNetSend(sendTo, new NetworkSimpleData(cmd
-							.getSize() + 20), 30001, Communicator.INTERNAL_MPI);
+			for (int i=0; i < cmd.getCommunicator().getSize(); i++){
+				if( i < restClients){
+					map.put(i, sizePerRank + 1);
+				}else{
+					map.put(i, sizePerRank);
 				}
 			}
 
-		}
-		else //Letzter Schritt, Iterationsschritte fertig
-		{
-			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+			scmd.setRecvcounts(map);
 
-			// send to all receivers that we accept data.
-			for (int i = commSize; i >= 0 ; i--)
-			{
-				if((i%2 == myRank%2)&(i!=myRank)) //Empfängt von allen ungeraden Prozesse, wenns ungerade ist, sonst von allen geraden
-				{
-				final int targetRank = i;
-				OUTresults.addNetReceive(targetRank, 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
-				}
-			}
+			scmd.setCommunicator(cmd.getCommunicator());
+
+			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
+				de.hd.pvs.piosim.simulator.program.ReduceScatter.Direct.class);
+
+		}else if(step == SCATTER_COMPLETED){
+			Gather gcmd = new Gather();
+
+			gcmd.setRootRank(cmd.getRootRank());
+			gcmd.setSize(cmd.getSize());
+
+			gcmd.setCommunicator(cmd.getCommunicator());
+
+			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED,
+				de.hd.pvs.piosim.simulator.program.Gather.Direct.class);
 		}
 	}
 
