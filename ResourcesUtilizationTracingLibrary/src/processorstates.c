@@ -14,6 +14,11 @@
 
 /**
  * checks if the sysfs interface for cpuidle is active
+ *
+ * @return availability of cpuidle
+ *
+ * @retval 1 Success
+ * @retval 0 Failure
  */
 unsigned int cpuidle_available() {
 	DIR *cpudir = opendir("/sys/devices/system/cpu/cpu0/cpuidle");
@@ -27,6 +32,11 @@ unsigned int cpuidle_available() {
 
 /**
  * checks if the sysfs interface for cpufreq is active
+ * 
+ * @return availability of cpuifreq
+ *
+ * @retval 1 Success
+ * @retval 0 Failure
  */
 unsigned int cpufreq_available() {
 	DIR *cpudir = opendir("/sys/devices/system/cpu/cpufreq");
@@ -46,6 +56,8 @@ unsigned int cpufreq_available() {
 
 /**
  * returns the number of readable c-states
+ *
+ * @return number of c-states provided by sysfs
  */
 int get_available_c_states(){
 	
@@ -69,6 +81,12 @@ int get_available_c_states(){
 
 /**
  * saves the actual values of the time-files in the cpuidle sysfs interface
+ *
+ * @param c_states pointer to array in order to save new values
+ * @param cpu_num number of CPUs
+ * @param c_states_num number of c-states
+ *
+ * @retval 0 success
  */
 int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num){
 	char filename[128], *f;

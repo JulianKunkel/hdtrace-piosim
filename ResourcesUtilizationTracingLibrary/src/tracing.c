@@ -159,12 +159,10 @@ int initTracing(
 	if (sources.CPU_FREQ_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
-			//seyda
 			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_CPU%d", i);
 			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, INT64, "B", "CPU_FREQ");
-			//seyda
 		}
 	
 	/*if cpuidle registers could not be found, disable it*/
@@ -520,7 +518,6 @@ static void doTracingStep(tracingDataStruct *tracingData)
  */
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
-//seyda
 	if (! (tracingData->sources.CPU_UTIL
 			|| tracingData->sources.CPU_UTIL_X
 			|| tracingData->sources.CPU_FREQ_X))
@@ -543,7 +540,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 		if (tracingData->sources.CPU_UTIL)
 		{
 
-			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
+			valuef = (gfloat) (1.0 - ((CPUDIFF(idle) + CPUDIFF(iowait)) / CPUDIFF(total)));
 			WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
@@ -555,7 +552,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				/* assert(CPUDIFF(xcpu_total[i]) != 0); */
 
 				/* TODO: Check CPU enable state (flags) */
-				valuef = (gfloat)(1.0 - (CPUDIFF(xcpu_idle[i])
+				valuef = (gfloat)(1.0 - ((CPUDIFF(xcpu_idle[i]) + CPUDIFF(xcpu_iowait[i]))
 						/ CPUDIFF(xcpu_total[i])));
 				WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
@@ -578,12 +575,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 			guint64 c_states[tracingData->staticData.c_states_num * tracingData->staticData.cpu_num];
 
 			/* save old values */
-			for (int d=0; 
-				d < (tracingData->staticData.c_states_num * tracingData->staticData.cpu_num); 
-				++d)
-			{
-				c_states[d] = tracingData->oldValues.c_states[d];
-			}
+			memcpy(c_states, tracingData->oldValues.c_states, sizeof(guint64) * tracingData->staticData.c_states_num * tracingData->staticData.cpu_num);
 			
 			/* get new values */
 			get_c_state_times(
@@ -609,11 +601,13 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				}
 				
 				/* time not in idle: easy, interval - time in idle, 
-				 * careful as time in idle is given in microsecs */
+				 * careful as time in idle is given in microsecs 
+				**/
+//TODO: use real elapsed time
 				guint64 interval = (tracingData->interval) * 1000;
 				
 				if (total > interval){
-					/* rounding errors in measurement might make c0 go slightly negative.. this is confusing */
+					/* rounding errors in measurement might make c0 go slightly negative*/
 					interval = total;
 				}
 				/* percentage: time in c0(microsecs) / total time(millisecs) */
