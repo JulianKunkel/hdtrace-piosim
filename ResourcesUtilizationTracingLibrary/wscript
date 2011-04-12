@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+
+import Options
+import Utils
+
+APPNAME = 'RUT'
+VERSION = '0.1'
+
+srcdir = '.'
+blddir = 'build'
+	
+
+def set_options(opt):
+	opt.add_option('--with-dbconnector-static', action='store', default=None, help='path to dblib')
+	opt.add_option('--with-dbconnector', action='store', default=None, help='path to dblib')
+	opt.add_option('--with-hdtrace-static', action='store', default=None, help='path to hdtracelib')
+	opt.add_option('--with-hdtrace', action='store', default=None, help='path to hdtracelib')
+	
+def _getconf (key):
+	# FIXME Maybe use os.confstr().
+	p = subprocess.Popen(['getconf', key], stdout=subprocess.PIPE, close_fds=True)
+	v = p.communicate()[0].strip()
+
+	if not v:
+		return []
+
+	return Utils.to_list(v)
+
+def configure (conf):
+	conf.check_tool('gcc')
+
+	conf.env.CCFLAGS += ['-std=gnu99']
+
+	conf.env.CCFLAGS += _getconf('LFS_CFLAGS')
+	conf.env.LDFLAGS += _getconf('LFS_LDFLAGS')
+	conf.env.LDFLAGS += _getconf('LFS_LIBS')
+
+        conf.env.CCFLAGS += ['-Wshadow', '-pedantic']
+
+        conf.check_cfg(
+                package = 'glib-2.0',
+                args = '--cflags --libs',
+                atleast_version = '2.16',
+                mandatory = True
+        )
+
+        conf.check_cfg(
+                package = 'libgtop-2.0',
+                args = '--cflags --libs',
+                mandatory = True
+        )
+
+        conf.check_cfg(
+                package = 'gthread-2.0',
+                args = '--cflags --libs',
+                atleast_version = '2.16',
+                mandatory = True
+        )
+
+	if Options.options.with_hdtrace_static:
+	        hdtracelib = os.path.abspath(Options.options.with_hdtrace_static)
+        	conf.check_cc(staticlib='hdTracing', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDTRACE', mandatory=True)
+	        conf.env.LIBPATH_HDTRACE = '%s/lib' % (hdtracelib)
+        	conf.check_cc(staticlib='hdStats', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDSTATS', mandatory=True)
+	        conf.env.LIBPATH_HDSTATS = '%s/lib' % (hdtracelib)
+
+	if Options.options.with_hdtrace:
+	        hdtracelib = os.path.abspath(Options.options.with_hdtrace)
+        	conf.check_cc(lib='hdTracing', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDTRACE', mandatory=True)
+	        conf.env.LIBPATH_HDTRACE = '%s/lib' % (hdtracelib)
+        	conf.check_cc(lib='hdStats', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDSTATS', mandatory=True)
+	        conf.env.LIBPATH_HDSTATS = '%s/lib' % (hdtracelib)
+	
+
+        if Options.options.with_dbconnector_static:
+                dblib = os.path.abspath(Options.options.with_dbconnector_static)
+                conf.check_cc(staticlib='dbconnector', ccflags='-I%s/include' % (dblib), ldflags='-L%s/lib' % (dblib), uselib_store='DBCONNECTOR', mandatory=True)
+                conf.env.LIBPATH_DBCONNECTOR = '%s/lib' % (dblib)
+                includedir=Utils.cmd_output("pg_config --includedir").strip()
+                libdir=Utils.cmd_output("pg_config --libdir").strip()
+                conf.check_cc(lib='pq', ccflags='-I%s' % (includedir), ldflags='-L%s' % (libdir), uselib_store='PG', mandatory=True)
+                conf.env.LIBPATH_PG = '%s' % (libdir)
+                conf.env.CCFLAGS += ['-DHAVE_DBC']
+
+        if Options.options.with_dbconnector:
+                dblib = os.path.abspath(Options.options.with_dbconnector)
+                conf.check_cc(lib='dbconnector', ccflags='-I%s/include' % (dblib), ldflags='-L%s/lib' % (dblib), uselib_store='DBCONNECTOR', mandatory=True)
+                conf.env.LIBPATH_DBCONNECTOR = '%s/lib' % (dblib)
+                includedir=Utils.cmd_output("pg_config --includedir").strip()
+                libdir=Utils.cmd_output("pg_config --libdir").strip()
+                conf.check_cc(lib='pq', ccflags='-I%s' % (includedir), ldflags='-L%s' % (libdir), uselib_store='PG', mandatory=True)
+                conf.env.LIBPATH_PG = '%s' % (libdir)
+                conf.env.CCFLAGS += ['-DHAVE_DBC']
+
+def build (bld):
+	bld.add_subdirs('include')
+	bld.add_subdirs('src')
+	bld.add_subdirs('examples')
