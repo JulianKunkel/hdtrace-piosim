@@ -13,6 +13,14 @@ def build (bld):
 		uselib = ['GLIB-2.0','GTHREAD-2.0','LIBGTOP-2.0','DBCONNECTOR','PG','HDTRACE'],
 		target = 'RUT',
 		install_path = '${PREFIX}/lib',
-		linkflags = ['-fPIG']
+	)
+
+	bld.new_task_gen(
+		features = 'cc cstaticlib',
+		source = ['RUT.c','tracing.c'],
+		includes = ['.', '../include'],
+		uselib = ['GLIB-2.0','GTHREAD-2.0','LIBGTOP-2.0','DBCONNECTOR','PG','HDTRACE'],
+		target = 'RUT',
+		install_path = '${PREFIX}/lib',
 	)
 
