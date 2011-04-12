@@ -54,7 +54,7 @@ de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Reduce.BinaryTreeSimple
 de.hd.pvs.piosim.simulator.program.Reduce.BinaryTree
-de.hd.pvs.piosim.simulator.program.Reduce.MPICH2Tree
+de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2
 
 +de.hd.pvs.piosim.model.program.commands.Gather
 de.hd.pvs.piosim.simulator.program.Global.NoOperation

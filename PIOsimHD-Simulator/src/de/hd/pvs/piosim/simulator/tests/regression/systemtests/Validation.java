@@ -74,6 +74,26 @@ public class Validation  extends ModelTest {
 	}
 
 
+
+	@Test public void MPICH2Reduce() throws Exception{
+		setup(2, 1);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");  //andere Implementation
+		//CommandToSimulationMapper Eintrag, Standard letzter
+
+		parameters.setTraceFile("/tmp/mpich2reduce");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addReduce(world, 0, 10 * KBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
 	public void runJacobi_1C1S() throws Exception{
 		final String which =
 			"/home/julian/Dokumente/Geschäft/Dissertation/Simulation-Results/paper/trace/partdiff-par.proj";

@@ -834,6 +834,11 @@ static void after_Init(int *argc, char ***argv)
 			hdMPI_PrepareTracing( (*argv)[0] );
 		}
 	}
+
+#ifdef ENABLE_LIKWID_HDTRACE
+      // start first ECOMPUTE (although it is the init).
+       hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
+#endif
 }
 
 /**

@@ -25,117 +25,239 @@
 
 package de.hd.pvs.piosim.simulator.program.Reduce;
 
-import de.hd.pvs.piosim.model.program.Communicator;
+import java.util.HashMap;
+
+import de.hd.pvs.piosim.model.program.commands.Gather;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
+import de.hd.pvs.piosim.model.program.commands.ReduceScatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
-import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
-
 /**
- * Binary Tree Algorithm, Root collects.
+ * MPICH2 Implementation, Scatter-Gather.
  *
- * @author Julian M. Kunkel
+ * @author Steffen Göttsch
  */
 public class ReduceScatterGatherMPICH2
 extends CommandImplementation<Reduce>
 {
-	final int RECEIVED = 2;
+	final int SCATTER_COMPLETED = 2;
+
+	//@Override //?
+	public long getInstructionCount(Reduce cmd, int step)
+	{
+		return 1;
+	}
 
 	@Override
-	public long getInstructionCount(Reduce cmd, int step) {
-		if(step == RECEIVED){
+	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs)
+	{
+		if(step == CommandProcessing.STEP_START){
+
+			ReduceScatter scmd = new ReduceScatter();
+			HashMap<Integer, Long> map = new HashMap<Integer, Long>();
+
+			// default: split data equally.
+			long sizePerRank = cmd.getSize() / cmd.getCommunicator().getSize();
+			int restClients = (int) (cmd.getSize() % cmd.getCommunicator().getSize());
+
+			for (int i=0; i < cmd.getCommunicator().getSize(); i++){
+				if( i < restClients){
+					map.put(i, sizePerRank + 1);
+				}else{
+					map.put(i, sizePerRank);
+				}
+			}
+
+			scmd.setRecvcounts(map);
+
+			scmd.setCommunicator(cmd.getCommunicator());
+
+			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
+				de.hd.pvs.piosim.simulator.program.ReduceScatter.Direct.class);
+
+		}else if(step == SCATTER_COMPLETED){
+			Gather gcmd = new Gather();
+
+			gcmd.setRootRank(cmd.getRootRank());
+			gcmd.setSize(cmd.getSize());
+
+			gcmd.setCommunicator(cmd.getCommunicator());
+
+			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED,
+				de.hd.pvs.piosim.simulator.program.Gather.Direct.class);
+		}
+	}
+
+}
+
+
+
+
+
+/**
+ * Binary Tree Algorithm, Root collects.
+ * -> MPICH2 Implementation, Scatter-Gather.
+ *
+ * @author Julian M. Kunkel
+ */
+/*
+
+public class ReduceScatterGatherMPICH2
+
+extends CommandImplementation<Reduce>
+{
+	final int RECEIVED = 2;
+
+	//@Override
+	public long getInstructionCount(Reduce cmd, int step)
+	{
+		if(step == RECEIVED)
+		{
 			return cmd.getSize() + 1;
-		}else{
+		}
+		else
+		{
 			return 1;
 		}
 	}
 
 	@Override
-	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs)
+	{
 
-		if (cmd.getCommunicator().getSize() == 1){
+		if (cmd.getCommunicator().getSize() == 1)
+		{
 			// finished ...
 			return;
 		}
 
-		final int commSize = cmd.getCommunicator().getSize();
+		final int commSize = cmd.getCommunicator().getSize(); //Wie viele Knoten gibt es?
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		final int myRank = client.getModelComponent().getRank();
-		final int rootRank = cmd.getRootRank();
+		final int myRank = client.getModelComponent().getRank(); //Der aktuelle Knoten?
+		final int rootRank = cmd.getRootRank(); //Wurzelknoten bei der Baum-Implementation?
 
-		int clientRankInComm = myRank;
+		int clientRankInComm = myRank;  //Der aktuelle Knoten?
 
 		//exchange rank 0 with cmd.root to receive data on the correct node
-		if(clientRankInComm == cmd.getRootRank()) {
+		//Spezialfälle?
+		/*if(clientRankInComm == cmd.getRootRank())
+		{
 			clientRankInComm = 0;
-		}else if(clientRankInComm == 0) {
-			clientRankInComm = rootRank;
 		}
+		else if(clientRankInComm == 0)
+		{
+			clientRankInComm = rootRank;
+		}*/
 
-		final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
-		final int phaseStart = iterations - trailingZeros;
+/*		//final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm); //0en hinter der letzten 1 in Binär
+		//final int phaseStart = iterations - trailingZeros;
 
-		if(clientRankInComm != 0){
+		//Normale Fälle?
+		if(clientRankInComm != 0)
+		{
 			// recv first, then send.
-			if (step == CommandProcessing.STEP_START){
+			if (step == CommandProcessing.STEP_START) //Wenns der erste Schritt des Reduce-Prozesses ist?
+			{
 				// receive
 				OUTresults.setNextStep(RECEIVED);
 
-				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
-					final int targetRank = (1<<iter | clientRankInComm);
-					if (targetRank >= commSize)
-						continue;
-					//System.out.println(clientRankInComm +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				for (int i = commSize; i >= 0 ; i--)
+				{
+					if((i%2 == myRank%2)&(i!=myRank)) //Empfängt von allen ungeraden Prozesse, wenns ungerade ist, sonst von allen geraden
+					{
+					final int targetRank = i;
+					OUTresults.addNetReceive(targetRank, 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					}
 				}
 
 				if(OUTresults.getNetworkJobs().getSize() != 0 )
-					return;
+					return; //Beendet die Ausführung dieser Klasse, um den nächsten Iterationsschritt zu starten
 			}
 
 			// step == RECEIVE or we don't have to receive anything
 
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
-			int sendTo = (clientRankInComm ^ 1<<trailingZeros);
-
-			if(sendTo == 0){
-				sendTo = rootRank;
-			}else if(sendTo == rootRank){
-				sendTo = 0;
+			for (int i = commSize; i >= 0 ; i--)
+			{
+				if ((i%2 == myRank%2)&(i!=myRank))
+				{
+					int sendTo = i;
+					OUTresults.addNetSend(sendTo, new NetworkSimpleData(cmd
+							.getSize() + 20), 30001, Communicator.INTERNAL_MPI);
+				}
 			}
 
-
-			//System.out.println(myRank + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " +  sendTo);
-
-			OUTresults.addNetSend(sendTo,
-					new NetworkSimpleData(cmd.getSize() + 20),
-					30001, Communicator.INTERNAL_MPI);
-
-		}else{
+		}
+		else //Letzter Schritt, Iterationsschritte fertig
+		{
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
 			// send to all receivers that we accept data.
-			for (int iter = iterations-1 ; iter >= 0 ; iter--){
+			for (int iter = iterations-1 ; iter >= 0 ; iter--)
+			{
 				final int targetRank =  1<<iter;
 				//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
 			}
 		}
 	}
 
 }
-
+*/
 /*
- *  //Pseudocode, so in etwa wäre die Implementierung von MPICH2Tree Reduce
- * 
- * 0 schickt Hälfte an 1, und umgekehrt
- * 2 schickt Hälfte an 3, und umgekehrt
- * 1 schickt Hälfte an 3, und umgekehrt
- * 0 schickt Hälfte an 2, und umgekehrt
- * 3 hat 0a
- * 
- */
+ * 1.
+ * if (myrank == equal) send to all odd
+ * else send to all equal
+ * also: send to myrank-1, myrank-3, ..., myrank+1, myrank+3, ...
+ *
+ * 2.
+ * if(myrank == equal) send to all equal except one
+ * else send to all odd except one
+ *
+ * 3.
+ * send to remaining one
+*/
 
+/*public class Direct
+extends CommandImplementation<Scatter>
+*/
+/*{
+	@Override
+	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs)
+	{
+		if (cmd.getCommunicator().getSize() == 1) {
+			return;
+		}
+
+		final int myRank = client.getModelComponent().getRank();
+		final int rootRank = cmd.getRootRank();
+
+		switch (step)
+		{
+		case (CommandProcessing.STEP_START):
+		{
+			if (myRank != rootRank)
+			{
+				OUTresults.addNetReceive(rootRank, 40001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+			}
+			else
+			{
+				for (int rank : cmd.getCommunicator().getParticipatingRanks())
+				{
+					if (rank != myRank)
+					{
+						OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20), 40001, Communicator.INTERNAL_MPI);
+					}
+				}
+			}
+
+			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+
+			return;
+		}
+		}
+	}
+}*/
