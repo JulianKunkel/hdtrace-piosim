@@ -5,8 +5,9 @@ def configure (conf):
 	conf.check_tool('gcc')
 
 def build (bld):
+
 	bld.new_task_gen(
-		features = 'cc cstaticlib cshlib',
+		features = 'cc cstaticlib',
 		source = ['hdTrace.c', 'hdTopo.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdTrace',
@@ -14,7 +15,15 @@ def build (bld):
 	)
 
 	bld.new_task_gen(
-		features = 'cc cstaticlib cshlib',
+		features = 'cc cshlib',
+		source = ['hdTrace.c', 'hdTopo.c', 'common.c', 'util.c'],
+		includes = ['.', '../include'],
+		target = 'hdTrace',
+		install_path = '${PREFIX}/lib'
+	)
+
+	bld.new_task_gen(
+		features = 'cc cstaticlib',
 		source = ['hdStats.c', 'hdTopo.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdStats',
@@ -22,7 +31,16 @@ def build (bld):
 	)
 
 	bld.new_task_gen(
-		features = 'cc cstaticlib cshlib',
+		features = 'cc cshlib',
+		source = ['hdStats.c', 'hdTopo.c', 'common.c', 'util.c'],
+		includes = ['.', '../include'],
+		target = 'hdStats',
+		install_path = '${PREFIX}/lib'
+	)
+
+
+	bld.new_task_gen(
+		features = 'cc cshlib',
 		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdRelation',
@@ -30,10 +48,26 @@ def build (bld):
 	)
 
 	bld.new_task_gen(
-		features = 'cc cstaticlib cshlib',
+		features = 'cc cstaticlib',
+		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c'],
+		includes = ['.', '../include'],
+		target = 'hdRelation',
+		install_path = '${PREFIX}/lib'
+	)
+
+	bld.new_task_gen(
+		features = 'cc cshlib',
 		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c'],
 		includes = ['.', '../include'],
 		target = 'hdTracing',
-		install_path = '${PREFIX}/lib'
+		install_path = '${PREFIX}/lib',
+	)
+
+	bld.new_task_gen(
+		features = 'cc cstaticlib',
+		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c'],
+		includes = ['.', '../include'],
+		target = 'hdTracing',
+		install_path = '${PREFIX}/lib',
 	)
 

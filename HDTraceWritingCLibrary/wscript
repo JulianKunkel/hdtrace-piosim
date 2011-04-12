@@ -24,6 +24,7 @@ def configure (conf):
 	conf.env.CCFLAGS += ['-std=gnu99', '-ggdb']
 
 	conf.env.CCFLAGS += _getconf('LFS_CFLAGS')
+	conf.env.CCFLAGS += ['-fPIC']
 	conf.env.LDFLAGS += _getconf('LFS_LDFLAGS')
 	conf.env.LDFLAGS += _getconf('LFS_LIBS')
 
