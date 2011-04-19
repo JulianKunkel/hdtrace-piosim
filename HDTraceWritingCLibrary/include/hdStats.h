@@ -77,7 +77,7 @@ static inline uint64_t  bswap_64 (unsigned int buf)
 
 #else
 #include <byteswap.h>
-#endif 
+#endif
 
 #include "hdError.h" /* error definitions */
 #include "hdTopo.h" /* topology stuff */
@@ -179,6 +179,15 @@ int hdS_commitGroup (
         );
 
 /**
+ * Commit statistics group and initialize it at the given timestamp, 
+ * closes initialization step.
+ */
+int hdS_commitGroupAtTimestamp (
+        hdStatsGroup *group,      /* Statistics Group */
+        uint64_t timestamp        /* Passed timestamp */
+        );
+
+/**
  * Enable statistics group.
  */
 int hdS_enableGroup(hdStatsGroup *group);
@@ -271,6 +280,15 @@ int hdS_writeFloatValue (
 int hdS_writeDoubleValue (
         hdStatsGroup *group,      /* Statistics Group */
         double value             /* DOUBLE value to write */
+        );
+
+/**
+ * Writes 8 byte double as next value at given timestamp to a statistics group.
+ */
+int hdS_writeDoubleValueAtTimestamp (
+        hdStatsGroup *group,      /* Statistics Group */
+        double value,             /* DOUBLE value to write */
+        uint64_t timestamp        /* Timestamp corresponding to the value */
         );
 
 /**

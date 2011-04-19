@@ -101,10 +101,33 @@ __errordecl(ptl_cte_no_glib_thread_implementation,
 /*                                                                           */
 /* ************************************************************************* */
 
+#ifdef HAVE_DBC
+
+typedef struct NodePowerTrace_s
+{
+	/** name of the node (must NOT be different to name in database!) */
+	const char *node;
+	/** hdStatsGroup energy trace belongs to */
+	hdStatsGroup *group;
+	/** start of energy trace (19 digits -- nanoseconds)  */
+	uint64_t from_timestamp;
+	/** end of energy trace (19 digits -- nanoseconds)  */
+	uint64_t to_timestamp;
+} NodePowerTraceStruct;
+
+#endif
+
 typedef struct UtilTrace_s
 {
 	GThread *tracingThread;
 	tracingControlStruct *tracingControl;
+
+#ifdef HAVE_DBC
+
+	NodePowerTrace *node_pt;
+
+#endif
+
 } UtilTraceStruct;
 
 
@@ -233,12 +256,64 @@ int rut_createTrace(
 		g_error_free (tracingThreadError);
 	}
 
+
+#ifdef HAVE_DBC
+
+	/*
+	 * Initialize power tracing
+	 */
+
+	/* get current system time and convert it to nanoseconds */
+	uint64_t timestamp = getSystemTimestamp();
+
+	DEBUGMSG("timestamp: %lu (started power tracing)\n",timestamp);
+
+	/* create a new group (power is not synced with other resources */
+	hdStatsGroup *power_group = hdS_createGroup("Energy", topoNode, 1);
+	/* TODO Error handling */
+	if(power_group == NULL) {
+		assert(errno != HD_ERR_INVALID_ARGUMENT);
+		assert(errno != HD_ERR_MALLOC);
+		assert(errno != HD_ERR_BUFFER_OVERFLOW);
+		assert(errno != HD_ERR_CREATE_FILE);
+	}
+
+	ret = hdS_addValue(power_group, "POWER_CONSUMPTION", DOUBLE, "Watt", "Power");
+	if(ret < 0) { 
+		g_assert(errno != HD_ERR_INVALID_ARGUMENT);
+		g_assert(errno != HD_ERR_BUFFER_OVERFLOW);
+		g_assert(errno != HDS_ERR_GROUP_COMMIT_STATE);
+	} 
+
+	/* 
+	 * the group won't be committed yet because the actual start time is
+	 * different (afterwards) to the previously taken time -- that timestamp
+	 * is only used to obtain the relevant timestamps out of the database
+	 */
+
+	NodePowerTrace *node_pt;
+	rut_malloc(node_pt, 1, RUT_EMEMORY);
+	
+	/* get node name depending on the topology path */
+	node_pt->node = hdT_getTopoPathLabel(topoNode, 1);
+	node_pt->group = power_group;
+	node_pt->from_timestamp = timestamp;
+	node_pt->to_timestamp = 0;
+
+#endif
+
 	/* !!! We must not access tracingData after this point. !!! */
 
 	rut_malloc(*trace, 1, RUT_EMEMORY);
 
 	(*trace)->tracingThread = tracingThread;
 	(*trace)->tracingControl = tracingControl;
+
+#ifdef HAVE_DBC
+
+	(*trace)->node_pt = node_pt;
+	
+#endif
 
 	return RUT_SUCCESS;
 }
@@ -300,6 +375,7 @@ int rut_stopTracing(UtilTrace *trace)
  *
  * @retval RUT_SUCCESS  Success
  * @retval RUT_EMEMORY  Out of memory
+ * @retval RUT_EDBCONNECTOR Error while connecting to database / getting data from database
  */
 int rut_finalizeTrace(UtilTrace *trace)
 {
@@ -319,6 +395,54 @@ int rut_finalizeTrace(UtilTrace *trace)
 	g_cond_free(myTrace->tracingControl->stateChanged);
 	g_mutex_free(myTrace->tracingControl->mutex);
 	rut_free(myTrace->tracingControl);
+
+#ifdef HAVE_DBC
+
+	/* get current system time and convert it to nanoseconds */
+	uint64_t timestamp = getSystemTimestamp();
+
+	DEBUGMSG("timestamp: %lu (stopped power tracing)\n",timestamp);
+
+	myTrace->node_pt->to_timestamp = timestamp;
+
+	row_struct *rows = NULL;
+	int crows = getNodeData(myTrace->node_pt->node,
+				myTrace->node_pt->from_timestamp,
+				myTrace->node_pt->to_timestamp,
+				&rows);
+
+	if (crows > 0) {
+		DEBUGMSG("timestamp: %lu (first db timestamp)\n",
+						rows[0].timestamp);
+		DEBUGMSG("timestamp: %lu (last db timestamp)\n",
+						rows[crows - 1].timestamp);
+	} else {
+		return RUT_EDBCONNECTOR;
+	}
+
+	/* 
+	 * the group will be commited at the first timestamp of the database 
+	 * which is most likely somewhat later than the actual start whereas
+	 * the last entry is a bit earlier than the actual end...
+	 */
+
+	hdS_commitGroupAtTimestamp(myTrace->node_pt->group, rows[0].timestamp);
+	hdS_enableGroup(myTrace->node_pt->group);
+
+	for (int i = 0; i < crows; i++) {
+		hdS_writeDoubleValueAtTimestamp(myTrace->node_pt->group,
+						rows[i].value,
+						rows[i].timestamp * MULTIPLIER);
+	}
+	
+	free(rows);
+	hdS_disableGroup(myTrace->node_pt->group);
+	hdS_finalize(myTrace->node_pt->group);
+
+	/* free memory used for node_pt object */
+	rut_free(myTrace->node_pt);
+
+#endif
 
 	/* free all memory used for UtilTrace object */
 	rut_free(myTrace);

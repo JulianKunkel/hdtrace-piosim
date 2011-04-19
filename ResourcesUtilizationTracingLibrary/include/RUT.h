@@ -47,6 +47,13 @@
 #define RUT_MAX_NUM_NETIFS 8
 /* TODO: Check this somewhere */
 
+#ifdef HAVE_DBC
+
+#define MULTIPLIER 1000
+
+#include "DBConnector.h"
+
+#endif
 
 /* ************************************************************************* *
  *                            TYPE DEFINITIONS                               *
@@ -54,6 +61,14 @@
 
 /** Type definition of utilization trace object */
 typedef struct UtilTrace_s UtilTrace;
+
+
+#ifdef HAVE_DBC
+
+/** Type definition of power trace object */
+typedef struct NodePowerTrace_s NodePowerTrace;
+
+#endif
 
 /** Bit field for sources to trace */
 struct rutSources_s {
@@ -173,6 +188,12 @@ typedef struct rutSources_s rutSources;
 /** Cannot create tracing thread */
 #define RUT_ETHREAD       -9
 
+#ifdef HAVE_DBC
+
+/** Error in DBConnector */
+#define RUT_EDBCONNECTOR  -10
+
+#endif
 
 /* ************************************************************************* *
  *                      PUBLIC FUNCTION DECLARATIONS                         *
