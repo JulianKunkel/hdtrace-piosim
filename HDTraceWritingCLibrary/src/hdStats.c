@@ -250,11 +250,11 @@ hdStatsGroup * hdS_createGroupWithFilenamePrefixAndAbortIfExists (
 
 
 	/* open file if it already exists return an error */
-	int flags = O_CREAT | O_WRONLY | O_NONBLOCK;
+	int flags = O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK;
 
 	if(!abort) {
 		/* dont return an error if file alread exists */
-		flags = O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK;
+		flags = O_CREAT | O_WRONLY | O_NONBLOCK;
 	}
 
 	int fd = open(filename, flags, 0666);
