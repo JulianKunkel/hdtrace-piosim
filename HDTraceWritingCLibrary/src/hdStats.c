@@ -243,7 +243,7 @@ hdStatsGroup * hdS_createGroupWithFilenamePrefixAndAbortIfExists (
 		 return NULL;
 	 }
 
-	 char * filename = malloc(strlen(tmp_filename) + strlen(path_prefix));
+	 char * filename = malloc(strlen(tmp_filename) + strlen(path_prefix) + 1);
 	 strcpy (filename,path_prefix);
 	 strcat (filename,tmp_filename);
 	 free(tmp_filename);
@@ -254,7 +254,7 @@ hdStatsGroup * hdS_createGroupWithFilenamePrefixAndAbortIfExists (
 
 	if(!abort) {
 		/* dont return an error if file alread exists */
-		flags = O_CREAT | O_WRONLY | O_NONBLOCK;
+		flags = O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK;
 	}
 
 	int fd = open(filename, flags, 0666);
