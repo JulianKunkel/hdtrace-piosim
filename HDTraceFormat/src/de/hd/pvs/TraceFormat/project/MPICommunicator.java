@@ -40,6 +40,11 @@ public class MPICommunicator {
 	private HashMap<Integer, CommunicatorInformation> worldRankMap = new HashMap<Integer, CommunicatorInformation>();	
 	
 	/**
+	 * Map the communicator specific rank to the world rank
+	 */
+	private HashMap<Integer, CommunicatorInformation> commRankMap = new HashMap<Integer, CommunicatorInformation>();
+	
+	/**
 	 * Return the name of the communicator
 	 * @return
 	 */
@@ -57,7 +62,11 @@ public class MPICommunicator {
 	 * @param internal cid
 	 */
 	public void addRank(int worldRank, int localRank, int cid){
-		worldRankMap.put(worldRank, new CommunicatorInformation(this, worldRank, localRank, cid));
+		CommunicatorInformation commInfo = new CommunicatorInformation(this, worldRank, localRank, cid);
+		
+		worldRankMap.put(worldRank, commInfo);
+		
+		commRankMap.put(localRank, commInfo);
 	}		
 	
 	/**
@@ -86,6 +95,14 @@ public class MPICommunicator {
 	
 	public Collection<Integer> getParticipatingRanks() {
 		return worldRankMap.keySet();
+	}
+	
+	public int getWorldRank(int commRank){
+		return commRankMap.get(commRank).getGlobalId();
+	}
+	
+	public int getLocalRank(int worldRank){
+		return worldRankMap.get(worldRank).getLocalId();
 	}
 	
 	/**
