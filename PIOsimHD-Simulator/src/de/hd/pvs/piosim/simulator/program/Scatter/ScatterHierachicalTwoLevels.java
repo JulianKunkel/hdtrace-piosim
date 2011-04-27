@@ -61,7 +61,7 @@ extends CommandImplementation<Scatter>
 
 				// send data to every other host in one step.
 
-				IMessageUserData data = new NetworkSimpleData(30 + cmd.getSize() );
+				IMessageUserData data = new NetworkSimpleData(30 + cmd.getSize() * 2 ); // TODO FIX if there is no further neighbour...
 
 				// send data to all even hosts (except me)
 				for( int rank: comm.getParticipatingRanks() ){
