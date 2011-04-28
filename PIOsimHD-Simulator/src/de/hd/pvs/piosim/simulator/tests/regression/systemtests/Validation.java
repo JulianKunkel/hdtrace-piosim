@@ -94,6 +94,28 @@ public class Validation  extends ModelTest {
 
 
 
+	@Test public void TestScatterHierachicalTwoLevels() throws Exception{
+		setup(5, 1);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterHierachicalTwoLevels");  //andere Implementation
+		//CommandToSimulationMapper Eintrag, Standard letzter
+
+		parameters.setTraceFile("/tmp/scatter");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addScatter(world, 0, 10 * KBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
+
+
+
 	public void runJacobi_1C1S() throws Exception{
 		final String which =
 			"/home/julian/Dokumente/Geschäft/Dissertation/Simulation-Results/paper/trace/partdiff-par.proj";

@@ -65,6 +65,7 @@ de.hd.pvs.piosim.simulator.program.Gather.Direct
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Scatter.Direct
+de.hd.pvs.piosim.simulator.program.Scatter.ScatterHierachicalTwoLevels
 
 +de.hd.pvs.piosim.model.program.commands.ReduceScatter
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
