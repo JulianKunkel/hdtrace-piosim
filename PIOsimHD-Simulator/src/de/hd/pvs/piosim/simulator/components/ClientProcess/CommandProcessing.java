@@ -295,6 +295,17 @@ public class CommandProcessing{
 		addNetReceive(getTargetfromRank(rankFrom), tag, comm, matchMessageType);
 	}
 
+
+	final public void addNetReceiveAnySource(int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
+		addNetReceive(null, tag, comm, matchMessageType);
+	}
+
+	/**
+	 * @param from if you want to receive from any source, then use addNetReceiveAnySource
+	 * @param tag
+	 * @param comm
+	 * @param matchMessageType
+	 */
 	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createReceiveOperation( new MessageMatchingCriterion(

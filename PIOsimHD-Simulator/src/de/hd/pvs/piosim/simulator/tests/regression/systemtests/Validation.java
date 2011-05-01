@@ -113,6 +113,17 @@ public class Validation  extends ModelTest {
 
 
 
+	@Test public void TestScatterFCFS() throws Exception{
+		setup(3, 1);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
+		parameters.setTraceFile("/tmp/scatterFCFS");
+		parameters.setTraceEnabled(true);
+		pb.addScatter(world, 0, 10 * MBYTE);
+		runSimulationAllExpectedToFinish();
+	}
 
 
 
