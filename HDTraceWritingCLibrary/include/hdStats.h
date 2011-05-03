@@ -104,6 +104,8 @@ enum _hdStatsValueType {
     INT32,
     /** 64 bit integer */
     INT64,
+    /** 64 bit unsigned integer */
+    UINT64,
     /** single precision floating point */
     FLOAT,
     /** double precision floating point */
@@ -116,6 +118,8 @@ enum _hdStatsValueType {
 #define INT32_STRING "INT32"
 /** Definition of string representation of type INT64 */
 #define INT64_STRING "INT64"
+/** Definition of string representation of type UINT64 */
+#define UINT64_STRING "UINT64"
 /** Definition of string representation of type FLOAT */
 #define FLOAT_STRING "FLOAT"
 /** Definition of string representation of type DOUBLE */

@@ -23,8 +23,10 @@
  */
 #if __WORDSIZE == 64
 # define INT64_FORMAT "ld"
+# define UINT64_FORMAT "lu"
 #else
 # define INT64_FORMAT "lld"
+# define UINT64_FORMAT "llu"
 #endif
 
 
@@ -88,6 +90,8 @@ int main(int argc, char **argv)
 			types[i] = INT32;
 		else if (strcmp(type, INT64_STRING) == 0)
 			types[i] = INT64;
+		else if (strcmp(type, UINT64_STRING) == 0)
+			types[i] = UINT64;
 		else if (strcmp(type, FLOAT_STRING) == 0)
 			types[i] = FLOAT;
 		else if (strcmp(type, DOUBLE_STRING) == 0)
@@ -176,6 +180,7 @@ int main(int argc, char **argv)
 				read32bitValue(file, value);
 				break;
 			case INT64:
+			case UINT64:
 			case DOUBLE:
 				/* read 64 bit */
 				read64bitValue(file, value);
@@ -194,6 +199,9 @@ int main(int argc, char **argv)
 				break;
 			case INT64:
 				order_bytes64ip((int64_t *) value);
+				break;
+			case UINT64:
+				order_bytes64ip((uint64_t *) value);
 				break;
 			case FLOAT:
 				order_bytes32fp((float *) value);
@@ -216,6 +224,9 @@ int main(int argc, char **argv)
 				break;
 			case INT64:
 				printf("%" INT64_FORMAT, *((int64_t *) value));
+				break;
+			case UINT64:
+				printf("%" UINT64_FORMAT, *((uint64_t *) value));
 				break;
 			case FLOAT:
 				printf("%f", *((float *) value));

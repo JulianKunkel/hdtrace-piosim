@@ -52,6 +52,10 @@
  * @ingroup hdStats
  */
 /**
+ * @var _hdStatsValueType UINT64
+ * @ingroup hdStats
+ */
+/**
  * @var _hdStatsValueType FLOAT
  * @ingroup hdStats
  */
@@ -1055,6 +1059,58 @@ int hdS_writeInt64Value (
 }
 
 /**
+ * Writes 8 byte unsigned integer as next value to a statistics group.
+ *
+ * Checks if the next value in current entry is of type \ref UINT64 and
+ * append it to the group buffer if so.
+ * @ifnot api_only
+ * This is a wrapper that cares about the byte order and then calls
+ *  \ref appendValueToGroupBuffer.
+ * @endif
+ *
+ * @if api_only
+ *  @ingroup hdStats
+ * @endif
+ *
+ * @param group Statistics Group
+ * @param value UINT64 value to write
+ *
+ * @return Error state
+ *
+ * @retval  0 Success
+ * @retval -1 Error, setting errno
+ *
+ * @errno
+ * @if api_only
+ * - \ref HD_ERR_INVALID_ARGUMENT
+ * - \ref HD_ERR_TRACE_DISABLED
+ * - \ref HDS_ERR_GROUP_COMMIT_STATE
+ * - \ref HDS_ERR_ENTRY_STATE
+ * @else
+ * - all from \ref appendValueToGroupBuffer
+ * @endif
+ */
+int hdS_writeUInt64Value (
+        hdStatsGroup *group,      /* Statistics Group */
+        uint64_t value            /* UINT64 value to write */
+        )
+{
+	assert(sizeof(value) == getValueLength(UINT64));
+
+	uint64_t v = value; /* for debugging output */
+
+	order_bytes64ip(&value);
+
+	int ret = appendValueToGroupBuffer(group, &value, UINT64);
+
+	/* print debug output */
+	hd_debug_msg("Group '%s': type=%s value=%" UINT64_FORMAT,
+			group->name, getTypeString(UINT64), v);
+
+	return ret;
+}
+
+/**
  * Writes 4 byte float as next value to a statistics group.
  *
  * Checks if the next value in current entry is of type \ref FLOAT and
@@ -1346,6 +1402,8 @@ static size_t getValueLength(hdStatsValueType type)
 		return sizeof(int32_t);
 	case INT64:
 		return sizeof(int64_t);
+	case UINT64:
+		return sizeof(uint64_t);
 	case FLOAT:
 		return sizeof(float);
 	case DOUBLE:
@@ -1373,6 +1431,8 @@ static const char * getTypeString(hdStatsValueType type)
 		return INT32_STRING;
 	case INT64:
 		return INT64_STRING;
+	case UINT64:
+		return UINT64_STRING;
 	case FLOAT:
 		return FLOAT_STRING;
 	case DOUBLE:

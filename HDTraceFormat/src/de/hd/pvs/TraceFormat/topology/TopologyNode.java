@@ -2,23 +2,23 @@
 /** Version Control Information $Id$
  * @lastmodified    $Date$
  * @modifiedby      $LastChangedBy$
- * @version         $Revision$ 
+ * @version         $Revision$
  */
 
 //	Copyright (C) 2009 Julian M. Kunkel
-//	
+//
 //	This file is part of PIOsimHD.
-//	
+//
 //	PIOsimHD is free software: you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation, either version 3 of the License, or
 //	(at your option) any later version.
-//	
+//
 //	PIOsimHD is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //	GNU General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU General Public License
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -33,7 +33,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.trace.RelationSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
 
-public class TopologyNode {	
+public class TopologyNode {
 
 	private String name;
 
@@ -50,7 +50,7 @@ public class TopologyNode {
 
 	private TraceSource traceSource = null;
 
-	private RelationSource relationSource = null; 
+	private RelationSource relationSource = null;
 
 	/**
 	 * Create a node as child of a parent. Also add this node to the parent if necessary.
@@ -107,15 +107,15 @@ public class TopologyNode {
 
 	/**
 	 * Return the label but remove invalid characters in the label
-	 * @return 
+	 * @return
 	 */
 	private String createValidFilename(String what){
-		return what.replaceAll("[^a-zA-Z0-9-.]", "");
+		return what.replaceAll("[^a-zA-Z0-9-. ]", "");
 	}
 
 	/**
 	 * Construct the file prefix of this topology entry.
-	 * This does not include the directory the files are located. 
+	 * This does not include the directory the files are located.
 	 * @return
 	 */
 	public String getFilePrefix(){
@@ -128,7 +128,7 @@ public class TopologyNode {
 
 	/**
 	 * Construct the trace file name of this topology entry.
-	 * This does not include the directory the files are located. 
+	 * This does not include the directory the files are located.
 	 * @return
 	 */
 	public String getTraceFileName(){
@@ -138,7 +138,7 @@ public class TopologyNode {
 
 	/**
 	 * Construct the "relation" file name of this topology entry.
-	 * This does not include the directory the files are located. 
+	 * This does not include the directory the files are located.
 	 * @return
 	 */
 	public String getRelationFileName(){
@@ -147,9 +147,9 @@ public class TopologyNode {
 
 
 	/**
-	 * Construct the static group file name of a particular group 
+	 * Construct the static group file name of a particular group
 	 * located under this topology entry.
-	 * This does not include the directory the files are located. 
+	 * This does not include the directory the files are located.
 	 * @return
 	 */
 	public String getStatisticFileName(String group){
@@ -173,9 +173,9 @@ public class TopologyNode {
 
 	final public String toRecursiveString() {
 		if (parent != null){
-			return parent.toRecursiveString() + "-" + name; 
+			return parent.toRecursiveString() + "-" + name;
 		}
-		return name; 
+		return name;
 	}
 
 
@@ -196,7 +196,7 @@ public class TopologyNode {
 
 	/**
 	 * Return the parent topologies up to root, the first element is a child of root.
-	 *  
+	 *
 	 * @return
 	 */
 	public LinkedList<TopologyNode> getParentTopologies(){
@@ -228,7 +228,7 @@ public class TopologyNode {
 	}
 
 	/**
-	 * Check if this topology entry has a parent entry. 
+	 * Check if this topology entry has a parent entry.
 	 * @return true if yes.
 	 */
 	public boolean hasParent(){
@@ -263,7 +263,7 @@ public class TopologyNode {
 			TopologyNode curNode = checkTopos.poll();
 
 			checkTopos.addAll(curNode.childElements.values());
-			
+
 			allTopos.add(curNode);
 		}
 
@@ -275,10 +275,10 @@ public class TopologyNode {
 	 * @param text
 	 * @return
 	 */
-	public TopologyNode getParentNodeWithTopologyType(String searchType){		
+	public TopologyNode getParentNodeWithTopologyType(String searchType){
 		TopologyNode cur = this;
 
-		// lookup parents until label is found		
+		// lookup parents until label is found
 		while(cur != null){
 			if(cur.type.equalsIgnoreCase(searchType)){
 				// found correct node:
@@ -297,12 +297,12 @@ public class TopologyNode {
 
 	@Override
 	public boolean equals(Object obj) {
-		TopologyNode topNode = (TopologyNode) obj; 
+		TopologyNode topNode = (TopologyNode) obj;
 		return this.name.equals(topNode.name) && topNode.parent.equals(this.parent) ;
 	}
 
 	@Override
-	public int hashCode() {	
+	public int hashCode() {
 		return this.name.hashCode();
 	}
 }
