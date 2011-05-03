@@ -78,7 +78,7 @@ public class ProgramBuilder {
 
 	//////////// INDIVIDUAL COMMANDS //////////////////////////
 
-	public void addComputate(int rank, long cycles){
+	public void addCompute(int rank, long cycles){
 		Compute com = new Compute();
 		com.setCycles(cycles);
 		appBuilder.addCommand(rank, com);

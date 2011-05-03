@@ -378,6 +378,8 @@ public class NormalCommandsClusterTest extends ModelTest{
 			runSimulationAllExpectedToFinish();
 	}
 
+
+
 	@Test public void scatterTest() throws Exception{
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i,1);

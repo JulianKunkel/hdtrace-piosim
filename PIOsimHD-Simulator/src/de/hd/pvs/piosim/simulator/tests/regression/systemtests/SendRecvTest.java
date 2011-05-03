@@ -47,13 +47,13 @@ public class SendRecvTest extends NormalCommandsClusterTest{
 	@Test public void lateSenderTest() throws Exception{
 		pb.addRecv(world, 3, 0, 0);
 
-		pb.addComputate(3, 1000000);
+		pb.addCompute(3, 1000000);
 		pb.addSend(world, 3, 0, KBYTE, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void lateReceiverTest() throws Exception{
-		pb.addComputate(0, 1000000);
+		pb.addCompute(0, 1000000);
 		pb.addRecv(world, 3, 0, 0);
 
 		pb.addSend(world, 3, 0, KBYTE, 0);
@@ -61,7 +61,7 @@ public class SendRecvTest extends NormalCommandsClusterTest{
 	}
 
 	@Test public void doubleReceiveTest() throws Exception{
-		pb.addComputate(0, 1000000);
+		pb.addCompute(0, 1000000);
 
 		// this works only for non-blocking !
 		pb.addRecv(world, 3, 0, 0);

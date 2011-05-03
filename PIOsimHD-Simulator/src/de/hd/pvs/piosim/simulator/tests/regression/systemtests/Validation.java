@@ -126,6 +126,56 @@ public class Validation  extends ModelTest {
 	}
 
 
+	@Test public void TestScatterFCFSOrdered123() throws Exception{
+			setup(4,1);
+
+			parameters.setTraceFile("/tmp/scatter");
+			parameters.setTraceEnabled(true);
+
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+			mb.getGlobalSettings().setClientFunctionImplementation(
+					new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
+
+			pb.addCompute(1, 10000000);
+			pb.addCompute(2, 20000000);
+			pb.addCompute(3, 30000000);
+
+			pb.addScatter(world, 0, 10 * MBYTE);
+			runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void TestScatterFCFSLate() throws Exception{
+		setup(4,1);
+
+		parameters.setTraceFile("/tmp/scatter");
+		parameters.setTraceEnabled(true);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
+
+		pb.addCompute(0, 10000000);
+
+		pb.addScatter(world, 0, 10 * MBYTE);
+		runSimulationAllExpectedToFinish();
+}
+
+	@Test public void TestScatterFCFSEqual() throws Exception{
+		setup(4,1);
+
+		parameters.setTraceFile("/tmp/scatter");
+		parameters.setTraceEnabled(true);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
+
+		pb.addScatter(world, 0, 10 * MBYTE);
+		runSimulationAllExpectedToFinish();
+}
+
+
+
 
 	public void runJacobi_1C1S() throws Exception{
 		final String which =
