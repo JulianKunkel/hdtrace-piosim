@@ -1097,6 +1097,9 @@ int hdS_writeUInt64Value (
 {
 	assert(sizeof(value) == getValueLength(UINT64));
 
+	/* FIXME temporary */
+	return hdS_writeInt64Value(group, (int64_t)value);
+
 	uint64_t v = value; /* for debugging output */
 
 	order_bytes64ip(&value);
