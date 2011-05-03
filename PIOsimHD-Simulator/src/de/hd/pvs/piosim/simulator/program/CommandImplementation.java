@@ -25,9 +25,11 @@
 
 package de.hd.pvs.piosim.simulator.program;
 
+import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 
 /**
@@ -40,6 +42,9 @@ import de.hd.pvs.piosim.simulator.network.NetworkJobs;
  */
 abstract public class CommandImplementation<CommandType extends Command>
 {
+	static final public int ANY_TAG = MessageMatchingCriterion.ANY_TAG;
+	static final public INodeHostedComponent ANY_SOURCE = MessageMatchingCriterion.ANY_SOURCE;
+
 	/**
 	 * Called if a particular client will process this command.
 	 *

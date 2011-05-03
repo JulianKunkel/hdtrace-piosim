@@ -319,14 +319,6 @@ public class CommandProcessing{
 	}
 
 
-	final public void addNetReceiveAnySource(int tag, Communicator comm){
-		addNetReceive(null, tag, comm);
-	}
-
-	final public void addNetReceiveAnySource(int tag, Communicator comm, Class<? extends CommandImplementation> expectedRootOperation, Class<? extends CommandImplementation> expectedProcessingMethod){
-		addNetReceive(null, tag, comm,  expectedRootOperation, expectedProcessingMethod);
-	}
-
 	/**
 	 * @param from if you want to receive from any source, then use addNetReceiveAnySource
 	 * @param tag

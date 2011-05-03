@@ -40,11 +40,9 @@ public class Sendrecv  extends CommunicatorCommand{
 	@Attribute
 	protected int toRank = -1;
 
-	@NotNegative
 	@Attribute
 	protected int fromTag = -1;
 
-	@NotNegative
 	@Attribute
 	protected int fromRank = -1;
 

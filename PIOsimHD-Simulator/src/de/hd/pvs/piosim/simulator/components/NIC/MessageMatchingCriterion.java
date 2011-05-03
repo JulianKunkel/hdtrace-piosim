@@ -17,6 +17,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  */
 public class MessageMatchingCriterion{
 	static final public int ANY_TAG = -1;
+	static final public INodeHostedComponent ANY_SOURCE = null;
 
 	/**
 	 * Analog to MPI: tag, comm:

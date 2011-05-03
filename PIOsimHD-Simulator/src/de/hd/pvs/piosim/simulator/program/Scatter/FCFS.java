@@ -76,7 +76,7 @@ extends CommandImplementation<Scatter>
 
 		}else{  // root rank, the step encodes how many operations have been done
 			if (step == CommandProcessing.STEP_START){
-				OUTresults.addNetReceiveAnySource(tagNumber, cmd.getCommunicator());
+				OUTresults.addNetReceive(ANY_SOURCE, tagNumber, cmd.getCommunicator());
 				OUTresults.setNextStep(1);
 			}else{
 
@@ -94,7 +94,7 @@ extends CommandImplementation<Scatter>
 
 				// transfer data to the next process and wait for an ACK of another one.
 				OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, cmd.getCommunicator());
-				OUTresults.addNetReceiveAnySource(tagNumber, cmd.getCommunicator());
+				OUTresults.addNetReceive(ANY_SOURCE, tagNumber, cmd.getCommunicator());
 				OUTresults.setNextStep(step + 1);
 			}
 		}

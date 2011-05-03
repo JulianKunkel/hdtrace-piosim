@@ -54,7 +54,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 			if (cmd.getFromRank() >= 0){
 				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class );
 			}else{
-				OUTresults.addNetReceiveAnySource(cmd.getFromTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
+				OUTresults.addNetReceive(ANY_SOURCE, cmd.getFromTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
 			}
 
 			return;

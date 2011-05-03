@@ -26,14 +26,12 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
-import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 
 
 public class Recv  extends CommunicatorCommand{
 	@Attribute
-	@NotNegative
-	protected int fromTag=-1; // TODO support any tag needed?
+	protected int fromTag=-1;
 
 	@Attribute // negative means any source
 	int fromRank=-1;
