@@ -1,6 +1,7 @@
 package de.hd.pvs.piosim.simulator.components.NIC;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
@@ -23,17 +24,25 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	private HashMap<MessageMatchingCriterion, LinkedList<Message>> earlyRecvsMap = new HashMap<MessageMatchingCriterion, LinkedList<Message>>();
 
 	/**
+	 * Early receives of messages which are later received via wildcards are handled by iterating through the earlyRecvsMap, thus the messages could be reordered when they are
+	 * received, an advantage is the faster handling of normal matching.
+	 */
+
+	/**
 	 * Store all announced recvs. Empty lists are not contained in the map to conserve space.
 	 */
 	private HashMap<MessageMatchingCriterion, LinkedList<InterProcessNetworkJob>> announcedRecvMap = new HashMap<MessageMatchingCriterion, LinkedList<InterProcessNetworkJob>>();
 
-	/**
-	 * TODO: work with any number of any source recvs
-	 */
-	private InterProcessNetworkJob  anySourceRecv = null;
 
 	/**
-	 * Once a new recv is started which pairs to another announced recv, then it get put into this map:
+	 * All announced recvs which contain ANY_SOURCE or ANY_TAG wildcards.
+	 */
+	final private LinkedList<InterProcessNetworkJob>  announcedAnySourceOrTagRecv = new LinkedList<InterProcessNetworkJob>();
+
+
+
+	/**
+	 * Once a new receive is started which pairs to another announced receive, then it get put into this map:
 	 */
 	private HashMap<Message, InterProcessNetworkJob> startedRecvMap = new HashMap<Message, InterProcessNetworkJob>();
 
@@ -81,11 +90,53 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 		}else{
 			// first packet received => try to match messages
 			final MessageMatchingCriterion crit = remoteJob.getMatchingCriterion();
+
+			// the matching job if applicable
+			InterProcessNetworkJob announcedJob = null;
+
+
+			// check first, if this is an expected message with exact tag / source matching
 			final LinkedList<InterProcessNetworkJob> announcedRecvsForCriterion = announcedRecvMap.get(crit);
+			if( announcedRecvsForCriterion != null ){
+				// we found a matching job
+				announcedJob = announcedRecvsForCriterion.poll();
 
-			// check if any source is enabled
-			if(announcedRecvsForCriterion == null && anySourceRecv == null){
+				// remove empty lists.
+				if(announcedRecvsForCriterion.size() == 0){
+					announcedRecvMap.remove(remoteJob.getMatchingCriterion());
+				}
+			}
 
+			// is this message an expected message which matches by using wildcards?
+			if (announcedJob == null && announcedAnySourceOrTagRecv.size() > 0){
+				// there are pending wildcard operations
+
+				final Iterator<InterProcessNetworkJob> iter = announcedAnySourceOrTagRecv.iterator();
+
+				while(iter.hasNext()){
+					InterProcessNetworkJob job = iter.next();
+					if(job.getMatchingCriterion().matchesAnySourceOrTagWith(crit)){
+						// it matches the pending wildcard operation!
+						announcedJob = job;
+						iter.remove();
+						break;
+					}
+					iter.next();
+				}
+			}
+
+
+
+			if ( announcedJob != null ){
+				// we found a matching message => assign it.
+
+				if(! msg.isReceivedCompletely()){
+					// optimization, ignore completed msgs.
+					startedRecvMap.put(msg, announcedJob);
+				}
+
+				callRecvCallbacksIfNececssary(part, remoteJob, announcedJob, endTime);
+			}else{
 				// uh oh, unexpected recv.
 				if(! msg.isReceivedCompletely()){
 					// optimization, ignore completed msgs.
@@ -103,29 +154,6 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 				return;
 			}
-
-			// we found a matching message => assign it.
-			final InterProcessNetworkJob announcedJob;
-
-			if(announcedRecvsForCriterion == null){
-				// any recv.
-				announcedJob = anySourceRecv;
-				anySourceRecv = null;
-			}else{
-				announcedJob = announcedRecvsForCriterion.poll();
-
-				// remove empty lists.
-				if(announcedRecvsForCriterion.size() == 0){
-					announcedRecvMap.remove(remoteJob.getMatchingCriterion());
-				}
-			}
-
-			if(! msg.isReceivedCompletely()){
-				// optimization, ignore completed msgs.
-				startedRecvMap.put(msg, announcedJob);
-			}
-
-			callRecvCallbacksIfNececssary(part, remoteJob, announcedJob, endTime);
 		}
 	}
 
@@ -168,22 +196,43 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	public void initiateInterProcessReceive(InterProcessNetworkJob job, Epoch time) {
 		assert(job.getJobOperation() == InterProcessNetworkJobType.RECEIVE);
 
-		assert(job.getMatchingCriterion() != null);
+		final MessageMatchingCriterion crit = job.getMatchingCriterion();
+
+
+		assert(crit != null);
 
 		//System.out.println(this.getIdentifier() + " RECV initiate" + job);
 
 		// any source any tag match:
-		if(job.getMatchingCriterion().getSourceComponent() == null){
-			assert(earlyRecvsMap.size() == 0);
-			assert(anySourceRecv == null); // only one any source/tag supported, yet
+		if(crit.getSourceComponent() == MessageMatchingCriterion.ANY_SOURCE || crit.getTag() == MessageMatchingCriterion.ANY_TAG){
 
-			anySourceRecv = job;
+			// check if some data has been received already.
+			// This is rather inefficient.
+			for(MessageMatchingCriterion cur: earlyRecvsMap.keySet()){
+				if( crit.matchesAnySourceOrTagWith(cur) ){
+					// matched either any source or any tag
+					final LinkedList<Message> earlyRcvs = earlyRecvsMap.get(crit);
 
+					final Message<InterProcessNetworkJob> msg = earlyRcvs.poll();
+
+					if(earlyRcvs.size() == 0){
+						earlyRecvsMap.remove(crit);
+					}
+
+					startedRecvMap.put(msg, job);
+					callRecvCallback(msg, msg.getContainedUserData(), job, time);
+
+					// terminated.
+					return;
+				}
+			}
+
+			// early receive
+			announcedAnySourceOrTagRecv.add(job);
 			return;
 		}
 
 		// check if the message is already pending.
-		final MessageMatchingCriterion crit = job.getMatchingCriterion();
 		final LinkedList<Message> earlyRcvs = earlyRecvsMap.get(crit);
 
 		if(earlyRcvs == null){
@@ -205,7 +254,6 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			}
 
 			startedRecvMap.put(msg, job);
-
 			callRecvCallback(msg, msg.getContainedUserData(), job, time);
 		}
 	}
@@ -218,7 +266,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 				this.getModelComponent(),
 				job.getMatchingCriterion().getTargetComponent().getNetworkInterface(),
 				job.getRelationToken()
-			);
+		);
 		initiateInterProcessSend(msg, startTime);
 	}
 

@@ -76,6 +76,29 @@ public class MessageMatchingCriterion{
 		return ret;
 	}
 
+	/**
+	 * This function compares this messageCriterion with another Criterion,
+	 * both are considered to be equal if ANY_TAG is specified (in this Criterion) and the tags differ,
+	 * also if ANY_SOURCE is specified and the source differs.
+	 *
+	 * @param c
+	 * @return
+	 */
+	public boolean matchesAnySourceOrTagWith(MessageMatchingCriterion c){
+		boolean ret = (c.comm == this.comm);
+
+		ret &= (this.tag == ANY_TAG || (this.tag == c.tag) );
+		ret &= (this.sourceComponent == ANY_SOURCE || (this.sourceComponent == c.sourceComponent) );
+
+		ret &= getTargetComponent() == c.getTargetComponent();
+
+		ret &= this.rootCommand == c.rootCommand;
+
+		ret &= this.currentCommand == c.currentCommand;
+
+		return ret;
+	}
+
 	@Override
 	public String toString() {
 		return getSourceComponent() + " - " + getTargetComponent().getIdentifier() + " " + getTag() + " " + getCommunicator() + " " + currentCommand + "<-" + rootCommand;
