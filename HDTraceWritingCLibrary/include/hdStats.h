@@ -38,6 +38,7 @@
 #ifndef HDSTATS_H_
 #define HDSTATS_H_
 
+#include <endian.h>
 #include <stdio.h>   /* standard input/output stuff */
 #include <stdint.h>  /* standard integer type */
 
