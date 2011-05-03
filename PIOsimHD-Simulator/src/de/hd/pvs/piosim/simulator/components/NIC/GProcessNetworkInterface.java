@@ -211,12 +211,12 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			for(MessageMatchingCriterion cur: earlyRecvsMap.keySet()){
 				if( crit.matchesAnySourceOrTagWith(cur) ){
 					// matched either any source or any tag
-					final LinkedList<Message> earlyRcvs = earlyRecvsMap.get(crit);
+					final LinkedList<Message> earlyRcvs = earlyRecvsMap.get(cur);
 
 					final Message<InterProcessNetworkJob> msg = earlyRcvs.poll();
 
 					if(earlyRcvs.size() == 0){
-						earlyRecvsMap.remove(crit);
+						earlyRecvsMap.remove(cur);
 					}
 
 					startedRecvMap.put(msg, job);
