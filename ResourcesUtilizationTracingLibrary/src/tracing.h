@@ -41,6 +41,9 @@ typedef struct {
 typedef struct {
 	gboolean valid;
 	glibtop_cpu cpu;
+#ifdef HAVE_PROCESSORSTATES
+	guint64 *c_states;
+#endif
 	glibtop_mem mem;
 	glibtop_netload *netload;
 	glibtop_fsusage fs;
@@ -52,6 +55,9 @@ typedef struct {
  */
 typedef struct {
 	gint cpu_num;
+#ifdef HAVE_PROCESSORSTATES
+	gint c_states_num;
+#endif
 	glibtop_netlist netlist;
 	char **netifs;
 	char *hdd_mountpoint;

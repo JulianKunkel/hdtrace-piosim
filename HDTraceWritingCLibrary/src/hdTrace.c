@@ -170,6 +170,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 	{
 		hdt_debugf(trace, "Could not open file %s: %s",
 				trace->logfile, strerror(errno));
+		free(trace->logfile);
 		free(trace);
 		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}

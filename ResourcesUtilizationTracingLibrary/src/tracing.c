@@ -20,6 +20,13 @@
 #include "hdStats.h"
 #include "hdError.h"
 
+#ifdef HAVE_PROCESSORSTATES
+
+#include "processorstates.h"
+#include <cpufreq.h>
+
+#endif
+
 /* ************************************************************************* */
 /*               COMPILE TIME ERROR AND WARNING DEFINITIONS                  */
 /* ************************************************************************* */
@@ -88,6 +95,18 @@ int initTracing(
 	/* get number of CPUs */
 	tracingData->staticData.cpu_num = (gint) sysconf(_SC_NPROCESSORS_CONF);
 
+#ifdef HAVE_PROCESSORSTATES
+	/* get number of c-states and init memory */
+	tracingData->staticData.c_states_num = (gint) get_available_c_states();
+	if (tracingData->staticData.c_states_num > 0){
+		rut_malloc(tracingData->oldValues.c_states, 
+				tracingData->staticData.c_states_num * tracingData->staticData.cpu_num, 
+				-1);
+	} else {
+		tracingData->oldValues.c_states = NULL;
+	}
+#endif
+
 	/* get available network interfaces */
     tracingData->staticData.netifs =
     	glibtop_get_netlist(&(tracingData->staticData.netlist));
@@ -135,6 +154,45 @@ int initTracing(
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
 		}
+
+#ifdef HAVE_PROCESSORSTATES
+	/*if cpuidle registers could not be found, disable it*/
+	if(!cpufreq_available())
+	{
+		tracingData->sources.CPU_FREQ_X = 0;
+		sources.CPU_FREQ_X = 0;
+		INFOMSG("Could not find cpufreq!");
+	}
+	
+	if (sources.CPU_FREQ_X)
+		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+		{
+			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_CPU%d", i);
+			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
+			g_assert(ret > 0);
+			ADD_VALUE(group, strbuf, INT64, "B", "CPU_FREQ");
+		}
+	
+	/*if cpuidle registers could not be found, disable it*/
+	if(!cpuidle_available())
+	{
+		tracingData->sources.CPU_IDLE_X = 0;
+		sources.CPU_IDLE_X = 0;
+		INFOMSG("Could not find cpuidle!");
+	}
+	
+	if (sources.CPU_IDLE_X)
+		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+		{
+			for (int j = 0; j < tracingData->staticData.c_states_num; ++j)
+			{
+				ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_CPU%d_C%d", i, j);
+				g_assert(ret < RUT_STRING_BUFFER_LENGTH);
+				g_assert(ret > 0);
+				ADD_VALUE(group, strbuf, FLOAT, "%", "CPU_IDLE");
+			}
+		}
+#endif
 
 #define MEM_UNIT "B"
 
@@ -374,6 +432,11 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 		rut_free(tracingData->staticData.netifs[i]);
 	rut_free(tracingData->staticData.netifs);
 	rut_free(tracingData->staticData.hdd_mountpoint);
+
+#ifdef HAVE_PROCESSORSTATES
+	rut_free(tracingData->oldValues.c_states);
+#endif
+
 	rut_free(tracingData);
 
 	g_free(NULL);
@@ -469,7 +532,11 @@ static void doTracingStep(tracingDataStruct *tracingData)
 static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 	if (! (tracingData->sources.CPU_UTIL
-			|| tracingData->sources.CPU_UTIL_X))
+			|| tracingData->sources.CPU_UTIL_X
+#ifdef HAVE_PROCESSORSTATES
+			|| tracingData->sources.CPU_FREQ_X
+#endif
+			))
 		return;
 
 #define CPUDIFF(val) \
@@ -478,6 +545,9 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 	 * so overflow handling would be disproportional costly.  */
 
 	gfloat valuef;
+#ifdef HAVE_PROCESSORSTATES
+	gint64 valuei64;
+#endif
 	glibtop_cpu cpu;
 
 	glibtop_get_cpu(&cpu);
@@ -487,7 +557,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 		if (tracingData->sources.CPU_UTIL)
 		{
 
-			valuef = (gfloat) (1.0 - (CPUDIFF(idle) / CPUDIFF(total)));
+			valuef = (gfloat) (1.0 - ((CPUDIFF(idle) + CPUDIFF(iowait)) / CPUDIFF(total)));
 			WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
 		}
@@ -499,12 +569,91 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				/* assert(CPUDIFF(xcpu_total[i]) != 0); */
 
 				/* TODO: Check CPU enable state (flags) */
-				valuef = (gfloat)(1.0 - (CPUDIFF(xcpu_idle[i])
+				valuef = (gfloat)(1.0 - ((CPUDIFF(xcpu_idle[i]) + CPUDIFF(xcpu_iowait[i]))
 						/ CPUDIFF(xcpu_total[i])));
 				WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
+#ifdef HAVE_PROCESSORSTATES
+		if (tracingData->sources.CPU_FREQ_X)
+		{
+			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+			{
+				valuei64 = (gint64) (cpufreq_get_freq_kernel(i));
+				WRITE_I64_VALUE(tracingData, valuei64);
+				DEBUGMSG("CPU_FREQ_%d = %d kHz", i, valuei64);
+			}
+		}
+		
+		if (tracingData->sources.CPU_IDLE_X)
+		{
+			/* temp for old values */
+			guint64 c_states[tracingData->staticData.c_states_num * tracingData->staticData.cpu_num];
+
+			/* save old values */
+			memcpy(c_states, tracingData->oldValues.c_states, sizeof(guint64) * tracingData->staticData.c_states_num * tracingData->staticData.cpu_num);
+			
+			/* get new values */
+			get_c_state_times(
+				tracingData->oldValues.c_states, 
+				tracingData->staticData.cpu_num,
+				tracingData->staticData.c_states_num);
+			
+			/* difference */
+			for (int d=0; 
+				d < (tracingData->staticData.c_states_num * tracingData->staticData.cpu_num); 
+				++d)
+			{
+				c_states[d] = tracingData->oldValues.c_states[d] - c_states[d];
+			}
+			
+			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
+			{
+				guint64 total = 0;
+
+				/* total time in idle */
+				for (int j = 0; j < tracingData->staticData.c_states_num; ++j){
+					total += c_states[i * tracingData->staticData.c_states_num + j];
+				}
+				
+				/* time not in idle: easy, interval - time in idle, 
+				 * careful as time in idle is given in microsecs 
+				**/
+//TODO: use real elapsed time
+				guint64 interval = (tracingData->interval) * 1000;
+				
+				if (total > interval){
+					/* rounding errors in measurement might make c0 go slightly negative*/
+					interval = total;
+				}
+				/* percentage: time in c0(microsecs) / total time(millisecs) */
+				
+				valuef = (interval - total) * 100.0 / interval;
+				
+				WRITE_FLOAT_VALUE(tracingData, valuef);
+				DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", 0, i, valuef);
+				
+				for (int j = 1; j < tracingData->staticData.c_states_num; ++j)
+				{
+					
+					if (c_states[i * tracingData->staticData.c_states_num + j] == 0){
+						valuef = 0.0;
+					} else {					
+						valuef = c_states[i * tracingData->staticData.c_states_num + j] * 100 / interval;
+					}
+					
+					WRITE_FLOAT_VALUE(tracingData, valuef);
+					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef);
+				}
+			}
+		}
+	} else {
+		get_c_state_times(
+			tracingData->oldValues.c_states, 
+			tracingData->staticData.cpu_num,
+			tracingData->staticData.c_states_num);
+#endif
 	}
 	/* save current CPU statistics for next step */
 	tracingData->oldValues.cpu = cpu;

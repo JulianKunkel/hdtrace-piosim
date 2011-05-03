@@ -74,8 +74,14 @@ typedef struct NodePowerTrace_s NodePowerTrace;
 struct rutSources_s {
     /** aggregated utilization of all CPUs */
     unsigned int CPU_UTIL : 1;
-	/** CPU utilization for each single CPU */
+    /** CPU utilization for each single CPU */
     unsigned int CPU_UTIL_X : 1;
+#ifdef HAVE_PROCESSORSTATES
+    /** CPU frequency for each single CPU */
+    unsigned int CPU_FREQ_X : 1;
+    /** CPU c-states 1,2 and 3 for each single CPU */
+    unsigned int CPU_IDLE_X : 1;
+#endif
     /** amount of main memory used */
     unsigned int MEM_USED : 1;
     /** amount of free main memory */
@@ -128,11 +134,21 @@ typedef struct rutSources_s rutSources;
 	} while (0)
 
 /** Macro for setting/cleaning all CPU statistics at once */
+#ifdef HAVE_PROCESSORSTATES
+#define RUTSRC_SET_CPU__(sources, bool) \
+	do { \
+		(sources).CPU_UTIL = bool; \
+		(sources).CPU_UTIL_X = bool; \
+		(sources).CPU_FREQ_X = bool; \
+		(sources).CPU_IDLE_X = bool; \
+	} while (0)
+#else
 #define RUTSRC_SET_CPU__(sources, bool) \
 	do { \
 		(sources).CPU_UTIL = bool; \
 		(sources).CPU_UTIL_X = bool; \
 	} while (0)
+#endif
 
 /** Macro for setting/cleaning all memory statistics at once */
 #define RUTSRC_SET_MEM__(sources, bool) \

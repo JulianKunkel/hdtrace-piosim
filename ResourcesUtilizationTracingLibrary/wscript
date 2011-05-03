@@ -18,6 +18,7 @@ def set_options(opt):
 	opt.add_option('--with-dbconnector', action='store', default=None, help='path to dblib')
 	opt.add_option('--with-hdtrace-static', action='store', default=None, help='path to hdtracelib')
 	opt.add_option('--with-hdtrace', action='store', default=None, help='path to hdtracelib')
+	opt.add_option('--with-processorstates', action='store_true', default=False, help='compile with processorstate support')
 	
 def _getconf (key):
 	# FIXME Maybe use os.confstr().
@@ -94,6 +95,10 @@ def configure (conf):
                 conf.check_cc(lib='pq', ccflags='-I%s' % (includedir), ldflags='-L%s' % (libdir), uselib_store='PG', mandatory=True)
                 conf.env.LIBPATH_PG = '%s' % (libdir)
                 conf.env.CCFLAGS += ['-DHAVE_DBC']
+
+        if Options.options.with_processorstates:
+                conf.check_cc(lib='cpufreq', uselib_store='CPUFREQ', mandatory=True)
+                conf.env.CCFLAGS += ['-DHAVE_PROCESSORSTATES']
 
 def build (bld):
 	bld.add_subdirs('include')

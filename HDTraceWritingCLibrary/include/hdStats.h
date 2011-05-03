@@ -38,6 +38,7 @@
 #ifndef HDSTATS_H_
 #define HDSTATS_H_
 
+#include <endian.h>
 #include <stdio.h>   /* standard input/output stuff */
 #include <stdint.h>  /* standard integer type */
 
@@ -104,6 +105,8 @@ enum _hdStatsValueType {
     INT32,
     /** 64 bit integer */
     INT64,
+    /** 64 bit unsigned integer */
+    UINT64,
     /** single precision floating point */
     FLOAT,
     /** double precision floating point */
@@ -116,6 +119,8 @@ enum _hdStatsValueType {
 #define INT32_STRING "INT32"
 /** Definition of string representation of type INT64 */
 #define INT64_STRING "INT64"
+/** Definition of string representation of type UINT64 */
+#define UINT64_STRING "UINT64"
 /** Definition of string representation of type FLOAT */
 #define FLOAT_STRING "FLOAT"
 /** Definition of string representation of type DOUBLE */
@@ -191,7 +196,7 @@ int hdS_commitGroup (
         );
 
 /**
- * Commit statistics group and initialize it at the given timestamp, 
+ * Commit statistics group and initialize it at the given timestamp,
  * closes initialization step.
  */
 int hdS_commitGroupAtTimestamp (
@@ -276,6 +281,14 @@ int hdS_writeInt32Value (
 int hdS_writeInt64Value (
         hdStatsGroup *group,      /* Statistics Group */
         int64_t value            /* INT64 value to write */
+        );
+
+/**
+ * Writes 8 byte unsigned integer as next value to a statistics group.
+ */
+int hdS_writeUInt64Value (
+        hdStatsGroup *group,      /* Statistics Group */
+        uint64_t value            /* UINT64 value to write */
         );
 
 /**
