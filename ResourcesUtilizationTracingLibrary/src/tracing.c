@@ -7,7 +7,6 @@
  */
 
 #include "tracing.h"
-#include "processorstates.h"
 
 #include <unistd.h>
 #include <glib.h>
@@ -15,12 +14,18 @@
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
-#include <cpufreq.h>
 
 #include "config.h"
 #include "common.h"
 #include "hdStats.h"
 #include "hdError.h"
+
+#ifdef HAVE_PROCESSORSTATES
+
+#include "processorstates.h"
+#include <cpufreq.h>
+
+#endif
 
 /* ************************************************************************* */
 /*               COMPILE TIME ERROR AND WARNING DEFINITIONS                  */
@@ -90,6 +95,7 @@ int initTracing(
 	/* get number of CPUs */
 	tracingData->staticData.cpu_num = (gint) sysconf(_SC_NPROCESSORS_CONF);
 
+#ifdef HAVE_PROCESSORSTATES
 	/* get number of c-states and init memory */
 	tracingData->staticData.c_states_num = (gint) get_available_c_states();
 	if (tracingData->staticData.c_states_num > 0){
@@ -99,7 +105,8 @@ int initTracing(
 	} else {
 		tracingData->oldValues.c_states = NULL;
 	}
-	
+#endif
+
 	/* get available network interfaces */
     tracingData->staticData.netifs =
     	glibtop_get_netlist(&(tracingData->staticData.netlist));
@@ -147,7 +154,8 @@ int initTracing(
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, FLOAT, "%", "CPU");
 		}
-	
+
+#ifdef HAVE_PROCESSORSTATES
 	/*if cpuidle registers could not be found, disable it*/
 	if(!cpufreq_available())
 	{
@@ -184,6 +192,7 @@ int initTracing(
 				ADD_VALUE(group, strbuf, FLOAT, "%", "CPU_IDLE");
 			}
 		}
+#endif
 
 #define MEM_UNIT "B"
 
@@ -423,7 +432,11 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 		rut_free(tracingData->staticData.netifs[i]);
 	rut_free(tracingData->staticData.netifs);
 	rut_free(tracingData->staticData.hdd_mountpoint);
+
+#ifdef HAVE_PROCESSORSTATES
 	rut_free(tracingData->oldValues.c_states);
+#endif
+
 	rut_free(tracingData);
 
 	g_free(NULL);
@@ -520,7 +533,10 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 	if (! (tracingData->sources.CPU_UTIL
 			|| tracingData->sources.CPU_UTIL_X
-			|| tracingData->sources.CPU_FREQ_X))
+#ifdef HAVE_PROCESSORSTATES
+			|| tracingData->sources.CPU_FREQ_X
+#endif
+			))
 		return;
 
 #define CPUDIFF(val) \
@@ -529,8 +545,9 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 	 * so overflow handling would be disproportional costly.  */
 
 	gfloat valuef;
+#ifdef HAVE_PROCESSORSTATES
 	gint64 valuei64;
-
+#endif
 	glibtop_cpu cpu;
 
 	glibtop_get_cpu(&cpu);
@@ -558,7 +575,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				DEBUGMSG("CPU_TOTAL_%d = %f%%", i, valuef * 100);
 			}
 		}
-		
+#ifdef HAVE_PROCESSORSTATES
 		if (tracingData->sources.CPU_FREQ_X)
 		{
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
@@ -636,6 +653,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 			tracingData->oldValues.c_states, 
 			tracingData->staticData.cpu_num,
 			tracingData->staticData.c_states_num);
+#endif
 	}
 	/* save current CPU statistics for next step */
 	tracingData->oldValues.cpu = cpu;
