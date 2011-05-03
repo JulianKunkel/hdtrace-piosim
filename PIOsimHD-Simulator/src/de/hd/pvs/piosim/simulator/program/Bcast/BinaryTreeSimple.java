@@ -44,7 +44,7 @@ extends CommandImplementation<Bcast>
 
 	@Override
 	public void process(Bcast cmd, CommandProcessing OUTresults,
-			GClientProcess client, int step, NetworkJobs compNetJobs)
+			GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		final int RECEIVED = 2;
 
@@ -88,7 +88,7 @@ extends CommandImplementation<Bcast>
 				}
 
 
-				OUTresults.addNetReceive(recvFrom, 30000, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				OUTresults.addNetReceive(recvFrom, 30000, Communicator.INTERNAL_MPI);
 
 			}else if(step == RECEIVED){
 				// send

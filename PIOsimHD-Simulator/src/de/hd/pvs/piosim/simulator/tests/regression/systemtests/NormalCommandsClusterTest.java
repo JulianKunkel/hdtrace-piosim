@@ -394,6 +394,16 @@ public class NormalCommandsClusterTest extends ModelTest{
 	}
 
 
+	@Test public void allgatherTest1() throws Exception{
+
+			parameters.setTraceFile("/tmp/allgather1");
+			parameters.setTraceEnabled(true);
+
+			setup(5,1);
+			pb.addAllgather(world, 10 * MBYTE);
+			runSimulationAllExpectedToFinish();
+	}
+
 	@Test public void allgatherTest() throws Exception{
 		for(int i=minClient; i <= maxClient; i++){
 			setup(i,1);

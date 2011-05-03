@@ -42,25 +42,23 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousRcv extends CommandImplementation<Recv>
 {
-	public void process(Recv cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Recv cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		final int ACK_RECVD = 1;
-		final int LAST = 2;
 
 		/* second step ?, receive whole data */
-		switch(step){
-		case(CommandProcessing.STEP_START):{
+		if(step == CommandProcessing.STEP_START){
 			/* determine application */
 			OUTresults.setNextStep(ACK_RECVD);
 
 			if (cmd.getFromRank() >= 0){
-				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator(), NetworkMessageRendezvousMsg.class);
+				OUTresults.addNetReceive(cmd.getFromRank(), cmd.getFromTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class );
 			}else{
-				OUTresults.addNetReceiveAnySource(cmd.getFromTag(), cmd.getCommunicator(), NetworkMessageRendezvousMsg.class);
+				OUTresults.addNetReceiveAnySource(cmd.getFromTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
 			}
 
 			return;
-		}case(ACK_RECVD):{
+		}else if(step == ACK_RECVD){
 			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
 
 			//System.out.println("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
@@ -72,9 +70,10 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 				/* identify the sender from the source */
 
 				/* Acknowledge sender to startup transfer */
-				OUTresults.addNetSend(response.getMatchingCriterion().getSourceComponent(), new Acknowledge(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator());
+				OUTresults.addNetSend(response.getMatchingCriterion().getSourceComponent(), new Acknowledge(100), response.getMatchingCriterion().getTag() , cmd.getCommunicator(), RendezvousRcv.class, RendezvousRcv.class);
 
-				OUTresults.addNetReceive(response.getMatchingCriterion().getSourceComponent(), response.getMatchingCriterion().getTag() , cmd.getCommunicator(), NetworkMessageRendezvousMsg.class);
+				// use a different signature here to avoid wrong message matching
+				OUTresults.addNetReceive(response.getMatchingCriterion().getSourceComponent(), response.getMatchingCriterion().getTag() , cmd.getCommunicator(), RendezvousSend.class, RendezvousRcv.class);
 
 				return;
 			}else{
@@ -82,8 +81,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 				// eager protocol
 				return;
 			}
-		}
-		default:
+		}else{
 			throw new IllegalArgumentException("Unknown step");
 		}
 	}

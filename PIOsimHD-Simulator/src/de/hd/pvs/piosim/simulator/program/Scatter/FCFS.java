@@ -57,7 +57,7 @@ extends CommandImplementation<Scatter>
 	}
 
 	@Override
-	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1) {
 			return;
 		}
@@ -69,7 +69,7 @@ extends CommandImplementation<Scatter>
 			if (step == CommandProcessing.STEP_START){
 				// wait until root is ready to send data.
 				OUTresults.addNetSend(rootRank, new MyAcknowledge(), tagNumber, Communicator.INTERNAL_MPI);
-				OUTresults.addNetReceive(rootRank, tagNumber, Communicator.INTERNAL_MPI, MyData.class);
+				OUTresults.addNetReceive(rootRank, tagNumber, Communicator.INTERNAL_MPI);
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
 				return;
@@ -77,7 +77,7 @@ extends CommandImplementation<Scatter>
 
 		}else{  // root rank, the step encodes how many operations have been done
 			if (step == CommandProcessing.STEP_START){
-				OUTresults.addNetReceiveAnySource(tagNumber, Communicator.INTERNAL_MPI, MyAcknowledge.class);
+				OUTresults.addNetReceiveAnySource(tagNumber, Communicator.INTERNAL_MPI);
 				OUTresults.setNextStep(1);
 			}else{
 
@@ -87,15 +87,15 @@ extends CommandImplementation<Scatter>
 				if( step == cmd.getCommunicator().getSize() - 1 ){
 					// we almost finished, we have to send data to the last process.
 					// then complete.
-					OUTresults.addNetSend(target, new MyData(cmd.getSize()), 40001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, Communicator.INTERNAL_MPI);
 
 					OUTresults.setNextStep(OUTresults.STEP_COMPLETED);
 					return;
 				}
 
 				// transfer data to the next process and wait for an ACK of another one.
-				OUTresults.addNetSend(target, new MyData(cmd.getSize()), 40001, Communicator.INTERNAL_MPI);
-				OUTresults.addNetReceiveAnySource(tagNumber, Communicator.INTERNAL_MPI, MyAcknowledge.class);
+				OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceiveAnySource(tagNumber, Communicator.INTERNAL_MPI);
 				OUTresults.setNextStep(step + 1);
 			}
 		}

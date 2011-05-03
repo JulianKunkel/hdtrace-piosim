@@ -52,7 +52,7 @@ import de.hd.pvs.piosim.simulator.program.Global.MultiPhase;
 public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 	@Override
-	public void process(FileIOCommand cmd, CommandProcessing outCommand, GClientProcess client, int step,
+	public void process(FileIOCommand cmd, CommandProcessing outCommand, GClientProcess client, long step,
 			NetworkJobs compNetJobs)
 	{
 		final int CHECK_TWO_PHASE = 2;

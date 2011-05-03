@@ -35,12 +35,12 @@ public class Time
 extends CommandImplementation<Compute>
 {
 	@Override
-	public long getInstructionCount(Compute cmd, GClientProcess client, int step) {
+	public long getInstructionCount(Compute cmd, GClientProcess client, long step) {
 		return cmd.getCycles();
 	}
 
 	@Override
-	public void process(Compute cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Compute cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		return;
 	}
 }

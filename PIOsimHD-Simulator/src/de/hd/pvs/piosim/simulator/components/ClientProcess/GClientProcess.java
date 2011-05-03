@@ -36,8 +36,6 @@ import java.util.List;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
@@ -140,6 +138,9 @@ public class GClientProcess
 		}
 	}
 
+
+
+
 	/**
 	 * Distribute the IO operation to eventual I/O forwarders
 	 *
@@ -188,20 +189,6 @@ public class GClientProcess
 	}
 
 	private final ClientRuntimeInformation runtimeInformation = new ClientRuntimeInformation();
-
-	/**
-	 * Maps the commands to the command's implementation. For all clients the
-	 * same implementation must be picked.
-	 */
-	private final static HashMap<Class<? extends Command>, CommandImplementation> commandMap =
-		new HashMap<Class<? extends Command>, CommandImplementation>();
-
-	/**
-	 * if a command implementation is enforced then a instance get added to this set here, to allow
-	 * a consistent view.
-	 */
-	private final static HashMap<Class<? extends CommandImplementation>, CommandImplementation> enforcedCommandImplementations =
-		new HashMap<Class<? extends CommandImplementation>, CommandImplementation>();
 
 	/**
 	 * Commands which are blocked.
@@ -412,7 +399,7 @@ public class GClientProcess
 			if(blockedCommand == null){
 				checkSetFinishState();
 			}else if(blockedCommand.getInvokingCommand().getClass() == Wait.class){ // check if we are blocked with a WAIT command right now
-				CommandImplementation<Wait> wcme = commandMap.get(Wait.class);
+				CommandImplementation<Wait> wcme = DynamicImplementationLoader.getInstance().getCommandInstanceForCommand(Wait.class);
 				assert(wcme != null);
 				((IWaitCommand) wcme).pendingAIOfinished((Wait) blockedCommand.getInvokingCommand(),
 						blockedCommand, this, cmd.getAsynchronousID());
@@ -439,43 +426,6 @@ public class GClientProcess
 	}
 
 	/**
-	 * Pick a <code>CommandImplementation</code> for a command of a particular type..
-	 * @param what
-	 * @return
-	 */
-	private CommandImplementation instanciateCommandImplemtation(Command what){
-		CommandImplementation imp = null;
-		Class<? extends Command>    commandClass = what.getClass();
-
-		//determine global setting value
-		final CommandType cMethodMapping = DynamicCommandClassMapper.getCommandImplementationGroup(what.getClass());
-		assert(cMethodMapping != null);
-
-		String implChoosen = getSimulator().getModel().getGlobalSettings().getClientFunctionImplementation(cMethodMapping);
-
-		assert(implChoosen != null);
-
-		// instantiate an object for the command implementation.
-		try{
-			Class<?> implClass = Class.forName(implChoosen);
-			assert(implClass != null);
-			Object obj = implClass.newInstance();
-			//singular implementation.
-			imp = (CommandImplementation) obj;
-		}catch(Exception e){
-			System.err.println("Problem in class: " + implChoosen + " does not implement the command: " +
-					commandClass.getCanonicalName());
-			e.printStackTrace();
-			System.exit(1);
-		}
-		info("Methods for command: " + commandClass.getSimpleName() + " in class: " +
-				imp.getClass().getCanonicalName());
-
-		commandMap.put(commandClass, imp);
-		return imp;
-	}
-
-	/**
 	 * Continue the processing of the given command. Invoke the required computation or implementation
 	 * to continue with the given step.
 	 *
@@ -490,34 +440,10 @@ public class GClientProcess
 			boolean shallCompute)
 	{
 		Command cmd = cmdStep.getInvokingCommand();
-		final int nextStep = cmdStep.nextStep;
+		final long nextStep = cmdStep.nextStep;
 
 
-		CommandImplementation cme;
-
-		if (cmdStep.getEnforcedProcessingMethod() == null){
-			cme = commandMap.get(cmd.getClass());
-
-			if(cme == null){
-				cme = instanciateCommandImplemtation(cmd);
-			}
-		}else{
-			Class<? extends CommandImplementation> forcedImpl = cmdStep.getEnforcedProcessingMethod();
-			// check if a instance exists
-			cme = enforcedCommandImplementations.get(forcedImpl);
-			if(cme == null){
-				// instantiate now:
-				try{
-					cme = forcedImpl.newInstance();
-				}catch(Exception e){
-					System.err.println("Problem in enforced class: " + forcedImpl.getCanonicalName());
-					e.printStackTrace();
-					System.exit(1);
-				}
-
-				enforcedCommandImplementations.put(forcedImpl, cme);
-			}
-		}
+		CommandImplementation cme = cmdStep.getProcessingMethod();
 
 		if(nextStep == CommandProcessing.STEP_COMPLETED){
 			commandCompleted(cmdStep, cme, curTime);
@@ -573,7 +499,7 @@ public class GClientProcess
 
 			// now iterate until a state can be found which does some work.
 			while(! newJob.isCommandWaitingForResponse() && newJob.getNextStep() != CommandProcessing.STEP_COMPLETED){
-				int nextPStep = newJob.getNextStep();
+				long nextPStep = newJob.getNextStep();
 
 				//System.out.println(getIdentifier() +  " -processing step: " + nextStep + " cmd: " + cmd + " " +  newJob.isCommandWaitingForResponse());
 
@@ -649,7 +575,9 @@ public class GClientProcess
 			if (cmd == null)
 				return;
 
-			newJob = new CommandProcessing(cmd, this, time, getSimulator().getTraceWriter().relCreateTopLevelRelation(TraceType.CLIENT, this));
+			newJob = new CommandProcessing(cmd, DynamicImplementationLoader.getInstance().getCommandInstanceForCommand(cmd.getClass()) , this,
+					time, getSimulator().getTraceWriter().relCreateTopLevelRelation(TraceType.CLIENT, this));
+
 			newJob.setNextStep(CommandProcessing.STEP_START);
 			processCommandStep(newJob, time, true);
 

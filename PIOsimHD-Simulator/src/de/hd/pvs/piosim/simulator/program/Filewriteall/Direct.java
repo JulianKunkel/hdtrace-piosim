@@ -33,19 +33,17 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class Direct extends CommandImplementation<Filewriteall> {
 
 	@Override
-	public void process(Filewriteall cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Filewriteall cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int SYNCRONIZED = 2;
 
-		switch (step) {
-		case (CommandProcessing.STEP_START): {
+		if(step == CommandProcessing.STEP_START){
 			Barrier barrier = new Barrier();
 			barrier.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(barrier, SYNCRONIZED, null);
 
 			return;
-		}
-		case (SYNCRONIZED): {
+		}else if (step == SYNCRONIZED) {
 			Filewrite rd = new Filewrite();
 			rd.setFileDescriptor(cmd.getFileDescriptor());
 			rd.setListIO(cmd.getListIO());
@@ -53,7 +51,6 @@ public class Direct extends CommandImplementation<Filewriteall> {
 			OUTresults.invokeChildOperation(rd, CommandProcessing.STEP_COMPLETED, null);
 
 			return;
-		}
 		}
 
 		return;

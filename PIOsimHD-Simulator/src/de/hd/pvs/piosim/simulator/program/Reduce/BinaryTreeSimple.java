@@ -44,7 +44,7 @@ extends CommandImplementation<Reduce>
 	final int RECEIVED = 2;
 
 	@Override
-	public long getInstructionCount(Reduce cmd, GClientProcess client, int step) {
+	public long getInstructionCount(Reduce cmd, GClientProcess client, long step) {
 		if(step == RECEIVED){
 			return cmd.getSize() + 1;
 		}else{
@@ -53,7 +53,7 @@ extends CommandImplementation<Reduce>
 	}
 
 	@Override
-	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
@@ -88,7 +88,7 @@ extends CommandImplementation<Reduce>
 					if (targetRank >= commSize)
 						continue;
 					//System.out.println(clientRankInComm +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI);
 				}
 
 				if(OUTresults.getNetworkJobs().getSize() != 0 )
@@ -121,7 +121,7 @@ extends CommandImplementation<Reduce>
 			for (int iter = iterations-1 ; iter >= 0 ; iter--){
 				final int targetRank =  1<<iter;
 				//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, Communicator.INTERNAL_MPI);
 			}
 		}
 	}

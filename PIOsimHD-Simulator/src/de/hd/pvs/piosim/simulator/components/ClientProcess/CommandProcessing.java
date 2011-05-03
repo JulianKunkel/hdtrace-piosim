@@ -47,25 +47,28 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  * @author Julian M. Kunkel
  */
 public class CommandProcessing{
-
 	// global values for processing:
 
 	/** first step of all computations, set upon starting the command */
-	public static final int STEP_START = 0; // MUST BE ZERO !
+	public static final long STEP_START = 0; // MUST BE ZERO !
 
 	/** signals completion of the command */
-	public static final int STEP_COMPLETED = 9999999;
+	public static final long STEP_COMPLETED = -1;
 
 	/**
 	 * By default no parent operation is set, i.e. the operations are not stacked.
 	 */
 	private CommandProcessing parentOperation = null;
 
+
 	/**
 	 * By default no nested operation is set, i.e. the operations are not stacked and independent.
 	 */
 	private CommandProcessing [] nestedOperation = null;
 
+	/**
+	 * Number of currently uncompleted child operations of this state machine
+	 */
 	private int unfinishedChildOperations = 0;
 
 	/**
@@ -89,14 +92,23 @@ public class CommandProcessing{
 	final Command invokingCommand;
 
 	/**
-	 * if this field is set the invoking client must obey to use the implementation.
+	 * If this is a nested operation, then the root of the command stack is stored here.
 	 */
-	private Class<? extends CommandImplementation> enforcedProcessingMethod = null;
+	final CommandImplementation rootOperation;
+
+	/**
+	 * the specified implementation is used.
+	 */
+	final CommandImplementation processingMethod ;
+
+	public CommandImplementation getProcessingMethod() {
+		return processingMethod;
+	}
 
 	/**
 	 * The next step of the command which shall be invoked.
 	 */
-	int         nextStep ;
+	long         nextStep ;
 
 	/**
 	 * True if the job must be blocked. Must be controlled within the Command.
@@ -106,6 +118,7 @@ public class CommandProcessing{
 
 	final RelationToken 	relationToken;
 
+
 	/**
 	 * Create a new result of a command
 	 * @param networkJobs
@@ -113,10 +126,25 @@ public class CommandProcessing{
 	 */
 	public CommandProcessing(
 			Command invokingCommand,
+			CommandImplementation  processingMethod,
 			GClientProcess invokingComponent,
 			Epoch startTime,
 			RelationToken relationToken)
 	{
+		this(invokingCommand, processingMethod, processingMethod, invokingComponent, startTime, relationToken);
+	}
+
+	private CommandProcessing(
+			Command invokingCommand,
+			CommandImplementation  processingMethod,
+			CommandImplementation  rootMethod,
+			GClientProcess invokingComponent,
+			Epoch startTime,
+			RelationToken relationToken)
+	{
+		this.processingMethod = processingMethod;
+		this.rootOperation = rootMethod;
+
 		this.invokingCommand = invokingCommand;
 		this.invokingComponent = invokingComponent;
 		this.startTime = startTime;
@@ -131,7 +159,7 @@ public class CommandProcessing{
 	/**
 	 * Remove all the processing from the old states.
 	 */
-	public void resetState(){
+	void resetState(){
 		this.networkJobs = new NetworkJobs(this);
 		this.blockingForced = false;
 		nextStep = STEP_COMPLETED;
@@ -142,7 +170,7 @@ public class CommandProcessing{
 	 * This method allows the command to create a set of nested operations, which are run concurrently .
 	 * The commands shall not be modified afterwards.
 	 */
-	public void invokeChildOperation(final Command nestedCmd, int nextStep, Class<? extends CommandImplementation> enforceProcessingMethod){
+	public void invokeChildOperation(final Command nestedCmd, long nextStep, Class<? extends CommandImplementation> enforceProcessingMethod){
 		Class<? extends CommandImplementation> [] enforceProcessingMethods = null;
 		if(enforceProcessingMethod != null){
 			enforceProcessingMethods = new Class[1];
@@ -164,7 +192,7 @@ public class CommandProcessing{
 	 * 	When one child operation is issued it is mapped as a nested operation, otherwise as an asynchronous operation.
 	 *
 	 */
-	public void invokeChildOperations(final Command [] nestedCmd, int nextStep, Class<? extends CommandImplementation> [] enforceProcessingMethod){
+	public void invokeChildOperations(final Command [] nestedCmd, long nextStep, Class<? extends CommandImplementation> [] enforceProcessingMethod){
 		setNextStep(nextStep);
 
 		assert(nestedCmd != null);
@@ -189,28 +217,23 @@ public class CommandProcessing{
 			}
 
 
+			CommandImplementation<?> childProcessingMethod;
+			if( enforceProcessingMethod == null ){
+				childProcessingMethod = DynamicImplementationLoader.getInstance().getCommandInstanceForCommand(cmd.getClass());
+			}else{
+				childProcessingMethod = DynamicImplementationLoader.getInstance().getCommandInstanceIfNotForced(enforceProcessingMethod[i], cmd.getClass());
+			}
+
 			CommandProcessing childOp = new CommandProcessing(
-					cmd, getInvokingComponent(),
+					cmd, childProcessingMethod, rootOperation, getInvokingComponent(),
 					getInvokingComponent().getSimulator().getVirtualTime(),
 					relation);
-
-			if(enforceProcessingMethod != null){
-				childOp.enforcedProcessingMethod = enforceProcessingMethod[i];
-			}
 
 			childOp.setNextStep(STEP_START);
 			childOp.parentOperation = this;
 
 			nestedOperation[i] = childOp;
 		}
-	}
-
-	/**
-	 * Return the class or null if not set
-	 * @return
-	 */
-	public Class<? extends CommandImplementation> getEnforcedProcessingMethod() {
-		return enforcedProcessingMethod;
 	}
 
 	/**
@@ -243,7 +266,7 @@ public class CommandProcessing{
 	 * Set the next step of this command which should be invoked.
 	 * @param nextStep
 	 */
-	public void setNextStep(int nextStep) {
+	public void setNextStep(long nextStep) {
 		this.nextStep = nextStep;
 	}
 
@@ -259,7 +282,7 @@ public class CommandProcessing{
 	 * Return the next step to run in the particular command.
 	 * @return
 	 */
-	public int getNextStep() {
+	public long getNextStep() {
 		return nextStep;
 	}
 
@@ -291,13 +314,17 @@ public class CommandProcessing{
 	 * @param tag
 	 * @param comm
 	 */
-	final public void addNetReceive(int rankFrom, int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
-		addNetReceive(getTargetfromRank(rankFrom), tag, comm, matchMessageType);
+	final public void addNetReceive(int rankFrom, int tag, Communicator comm){
+		addNetReceive(getTargetfromRank(rankFrom), tag, comm);
 	}
 
 
-	final public void addNetReceiveAnySource(int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
-		addNetReceive(null, tag, comm, matchMessageType);
+	final public void addNetReceiveAnySource(int tag, Communicator comm){
+		addNetReceive(null, tag, comm);
+	}
+
+	final public void addNetReceiveAnySource(int tag, Communicator comm, Class<? extends CommandImplementation> expectedRootOperation, Class<? extends CommandImplementation> expectedProcessingMethod){
+		addNetReceive(null, tag, comm,  expectedRootOperation, expectedProcessingMethod);
 	}
 
 	/**
@@ -306,12 +333,41 @@ public class CommandProcessing{
 	 * @param comm
 	 * @param matchMessageType
 	 */
-	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm, Class<? extends IMessageUserData> matchMessageType){
+	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm){
 		getNetworkJobs().addNetworkJob(
-				InterProcessNetworkJob.createReceiveOperation( new MessageMatchingCriterion(
-						from, getInvokingComponent().getModelComponent(), tag, comm, matchMessageType), getInvokingComponent().getCallback()
-						,relationToken ) );
+				InterProcessNetworkJob.createReceiveOperation(
+						new MessageMatchingCriterion(	from, getInvokingComponent().getModelComponent(), tag, comm, rootOperation, processingMethod	),
+						getInvokingComponent().getCallback(),relationToken ) );
 	}
+
+	final public void addNetReceive(int from, int tag, Communicator comm,  Class<? extends CommandImplementation> expectedRootOperation,  Class<? extends CommandImplementation> expectedProcessingMethod){
+		addNetReceive(getTargetfromRank(from), tag, comm, expectedRootOperation, expectedProcessingMethod);
+	}
+
+
+	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm,  Class<? extends CommandImplementation> expectedRootOperation,  Class<? extends CommandImplementation> expectedProcessingMethod){
+		addNetReceive(from, tag, comm,
+				DynamicImplementationLoader.getInstance().getInstanceForClass(expectedRootOperation),
+				DynamicImplementationLoader.getInstance().getInstanceForClass(expectedProcessingMethod));
+	}
+
+	/**
+	 * Allow to override the rootOperation and processingMethod to enable communication between collective calls (or client/server matching).
+	 * This is also used by Receive / Send command and SendReceive.
+	 *
+	 * @param from
+	 * @param tag
+	 * @param comm
+	 * @param expectedRootOperation
+	 * @param expectedProcessingMethod
+	 */
+	final private void addNetReceive(INodeHostedComponent from, int tag, Communicator comm, CommandImplementation expectedRootOperation, CommandImplementation expectedProcessingMethod){
+		getNetworkJobs().addNetworkJob(
+				InterProcessNetworkJob.createReceiveOperation(
+						new MessageMatchingCriterion(	from, getInvokingComponent().getModelComponent(), tag, comm, expectedRootOperation, expectedProcessingMethod	),
+						getInvokingComponent().getCallback(),relationToken ) );
+	}
+
 
 	/**
 	 * Add a network send to be performed by the command.
@@ -334,9 +390,44 @@ public class CommandProcessing{
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createSendOperation(
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
-								to, tag, comm, jobData.getClass()),
-						jobData, getInvokingComponent().getCallback() ,relationToken ));
+								to, tag, comm, rootOperation, processingMethod),
+								jobData, getInvokingComponent().getCallback() ,relationToken ));
 	}
+
+	final public void addNetSend(int rankTo,
+			IMessageUserData jobData, int tag, Communicator comm,  Class<? extends CommandImplementation> definedRootOperation,  Class<? extends CommandImplementation> definedProcessingMethod)
+	{
+		addNetSend(getTargetfromRank(rankTo), jobData, tag, comm, definedRootOperation, definedProcessingMethod);
+	}
+
+	final public void addNetSend(INodeHostedComponent to,
+			IMessageUserData jobData, int tag, Communicator comm,  Class<? extends CommandImplementation> definedRootOperation,  Class<? extends CommandImplementation> definedProcessingMethod)
+	{
+		addNetSend(to, jobData, tag, comm,
+				DynamicImplementationLoader.getInstance().getInstanceForClass(definedRootOperation),
+				DynamicImplementationLoader.getInstance().getInstanceForClass(definedProcessingMethod));
+	}
+
+
+	/**
+	 * Allow to override the rootOperation and processingMethod to enable communication between collective calls (or client/server matching).
+	 *
+	 * @param from
+	 * @param tag
+	 * @param comm
+	 * @param expectedRootOperation
+	 * @param expectedProcessingMethod
+	 */
+	final public void addNetSend(INodeHostedComponent to,
+			IMessageUserData jobData, int tag, Communicator comm, CommandImplementation definedRootOperation, CommandImplementation definedProcessingMethod)
+	{
+		getNetworkJobs().addNetworkJob(
+				InterProcessNetworkJob.createSendOperation(
+						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
+								to, tag, comm, definedRootOperation, definedProcessingMethod),
+								jobData, getInvokingComponent().getCallback() ,relationToken ));
+	}
+
 
 	final public void addNetSendRoutable(ClientProcess client, INodeHostedComponent finalTarget,
 			INodeHostedComponent nextHop, IMessageUserData jobData, int tag, Communicator comm)
@@ -344,9 +435,9 @@ public class CommandProcessing{
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJobRoutable.createRoutableSendOperation(
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
-								nextHop, tag, comm, jobData.getClass()),
-						jobData, getInvokingComponent().getCallback(),
-						client, finalTarget ,relationToken )	);
+								nextHop, tag, comm, rootOperation, processingMethod),
+								jobData, getInvokingComponent().getCallback(),
+								client, finalTarget ,relationToken )	);
 	}
 
 	final public void addNetJob(InterProcessNetworkJob job){
@@ -382,7 +473,7 @@ public class CommandProcessing{
 	 */
 	final private INodeHostedComponent getTargetfromRank(int rank){
 		return getInvokingComponent().getSimulator().getApplicationMap().
-			getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
+		getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
 	}
 
 

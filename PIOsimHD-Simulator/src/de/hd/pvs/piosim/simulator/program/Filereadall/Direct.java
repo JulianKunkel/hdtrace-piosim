@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class Direct extends CommandImplementation<Filereadall> {
 
 	@Override
-	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int SEND_REQUEST = 2;
 
 		switch (step) {

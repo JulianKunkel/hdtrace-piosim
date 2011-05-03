@@ -51,7 +51,7 @@ extends CommandImplementation<Reduce>
 	}
 
 	@Override
-	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs)
+	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		if(step == CommandProcessing.STEP_START){
 

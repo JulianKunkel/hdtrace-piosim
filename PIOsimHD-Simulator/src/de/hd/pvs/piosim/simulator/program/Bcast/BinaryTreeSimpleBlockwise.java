@@ -48,7 +48,7 @@ extends CommandImplementation<Bcast>
 
 	@Override
 	public void process(Bcast cmd, CommandProcessing OUTresults,
-			GClientProcess client, int step, NetworkJobs compNetJobs)
+			GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
@@ -91,7 +91,7 @@ extends CommandImplementation<Bcast>
 					recvFrom = 0;
 				}
 
-				OUTresults.addNetReceive(recvFrom, 30000, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				OUTresults.addNetReceive(recvFrom, 30000, Communicator.INTERNAL_MPI);
 
 			}else{
 				// send same amount of data.

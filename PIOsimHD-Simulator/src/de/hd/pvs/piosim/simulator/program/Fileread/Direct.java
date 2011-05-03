@@ -43,7 +43,7 @@ public class Direct
 extends CommandImplementation<Fileread>
 {
 	@Override
-	public void process(Fileread cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Fileread cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		switch(step){
 		case(CommandProcessing.STEP_START):{
 			/* determine I/O targets */

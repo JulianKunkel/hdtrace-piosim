@@ -37,7 +37,7 @@ public class RootComputes
 	extends CommandImplementation<Allreduce>
 {
 	@Override
-	public void process(Allreduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Allreduce cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		final int RECV_DATA = 2;
 		//trivial implementation, all send to "rank 0" in this communicator which then sends result back.
@@ -50,7 +50,7 @@ public class RootComputes
 			OUTresults.addNetSend(rankZero, new NetworkSimpleData(cmd.getSize() + 20),
 					30000, Communicator.INTERNAL_MPI);
 			/* wait for incoming data (read data) */
-			OUTresults.addNetReceive(rankZero, 30001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+			OUTresults.addNetReceive(rankZero, 30001, Communicator.INTERNAL_MPI);
 
 			return;
 		}else{// rank 0
@@ -61,7 +61,7 @@ public class RootComputes
 				for(int i=1; i < commParts.length; i++){
 					int rank = commParts[i];
 
-					OUTresults.addNetReceive(rank, 30000, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					OUTresults.addNetReceive(rank, 30000, Communicator.INTERNAL_MPI);
 				}
 
 			}else{ // send data back:

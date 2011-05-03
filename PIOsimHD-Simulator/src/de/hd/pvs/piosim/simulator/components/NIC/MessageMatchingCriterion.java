@@ -2,12 +2,15 @@ package de.hd.pvs.piosim.simulator.components.NIC;
 
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.Communicator;
-import de.hd.pvs.piosim.simulator.network.IMessageUserData;
+import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
  * This class encapsulates the matching of receive network jobs with send jobs.
  * It compares jobs, jobs are considered to be equal if they can be matched.
- * A send and recv is considered to match if the source, tag and communicator matches.
+ *
+ * A send and receive is considered to match if the source, tag, communicator matches AND
+ * the CommandImplementation.class of the root and the current command match i.e.
+ * as a command can spawn nested commands, the root and the current command class must match.
  *
  * @author Julian M. Kunkel
  *
@@ -31,23 +34,28 @@ public class MessageMatchingCriterion{
 	 */
 	final private INodeHostedComponent sourceComponent;
 
-	final private Class<? extends IMessageUserData> matchMessageType;
+	final private CommandImplementation rootCommand;
+
+	final private CommandImplementation currentCommand;
 
 
 	public MessageMatchingCriterion(INodeHostedComponent sourceComponent,
 			INodeHostedComponent targetComponent, int tag, Communicator comm,
-			Class<? extends IMessageUserData> matchMessageType)
+			CommandImplementation rootCommand, CommandImplementation currentCommand)
 	{
 		assert(targetComponent != null);
+		assert(rootCommand != null);
+		assert(currentCommand != null);
 		assert(comm != null);
-		assert(matchMessageType != null || (tag == MessageMatchingCriterion.ANY_TAG  && sourceComponent == null) );
+		//assert((tag == MessageMatchingCriterion.ANY_TAG  && sourceComponent == null) || (tag != MessageMatchingCriterion.ANY_TAG && sourceComponent != null) );
 
 		this.sourceComponent = sourceComponent;
 		this.targetComponent = targetComponent;
 		this.tag = tag;
 		this.comm = comm;
 
-		this.matchMessageType = matchMessageType;
+		this.rootCommand = rootCommand;
+		this.currentCommand = currentCommand;
 	}
 
 	@Override
@@ -60,23 +68,25 @@ public class MessageMatchingCriterion{
 
 		ret &= getTargetComponent() == c.getTargetComponent();
 
-		ret &= this.matchMessageType == c.matchMessageType;
+		ret &= this.rootCommand == c.rootCommand;
+
+		ret &= this.currentCommand == c.currentCommand;
 
 		return ret;
 	}
 
 	@Override
 	public String toString() {
-		return getSourceComponent() + " - " + getTargetComponent().getIdentifier() + " " + getTag() + " " + getCommunicator() + " " + matchMessageType;
+		return getSourceComponent() + " - " + getTargetComponent().getIdentifier() + " " + getTag() + " " + getCommunicator() + " " + currentCommand + "<-" + rootCommand;
 	}
 
 	@Override
 	public int hashCode() {
 		// sender wildcard
 		if(sourceComponent == null){
-			return getTargetComponent().hashCode() + getCommunicator().hashCode();
+			return getTargetComponent().hashCode() + getCommunicator().hashCode() + rootCommand.hashCode();
 		}else{
-			return getTargetComponent().hashCode() + getSourceComponent().hashCode() + getCommunicator().hashCode();
+			return getTargetComponent().hashCode() + getSourceComponent().hashCode() + getCommunicator().hashCode() + rootCommand.hashCode();
 		}
 	}
 
@@ -94,9 +104,5 @@ public class MessageMatchingCriterion{
 
 	public Communicator getCommunicator() {
 		return comm;
-	}
-
-	public Class<? extends IMessageUserData> getMatchMessageType() {
-		return matchMessageType;
 	}
 }

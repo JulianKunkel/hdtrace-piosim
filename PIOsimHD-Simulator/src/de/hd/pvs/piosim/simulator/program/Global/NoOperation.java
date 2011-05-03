@@ -35,7 +35,7 @@ public class NoOperation
 extends CommandImplementation<Command>
 {
 	@Override
-	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		return;
 	}
 }

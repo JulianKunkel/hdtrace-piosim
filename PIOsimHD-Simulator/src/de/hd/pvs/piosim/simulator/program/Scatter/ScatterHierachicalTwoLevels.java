@@ -48,7 +48,7 @@ extends CommandImplementation<Scatter>
 
 
 	@Override
-	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		final int myRank = client.getModelComponent().getRank();
 		final int rootRank = cmd.getRootRank();
@@ -95,12 +95,12 @@ extends CommandImplementation<Scatter>
 
 				if( myCommRank % 2 == 0){
 					// even
-					OUTresults.addNetReceive(rootRank, 30002, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					OUTresults.addNetReceive(rootRank, 30002, Communicator.INTERNAL_MPI);
 					OUTresults.setNextStep(SEND_TO_NEIGHBOOR_STATE);
 
 				}else{
 					// odd.
-					OUTresults.addNetReceive(comm.getWorldRank( myCommRank - 1 ), 30002, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					OUTresults.addNetReceive(comm.getWorldRank( myCommRank - 1 ), 30002, Communicator.INTERNAL_MPI);
 
 					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				}

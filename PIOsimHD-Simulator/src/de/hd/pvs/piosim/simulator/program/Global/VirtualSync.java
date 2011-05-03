@@ -119,7 +119,7 @@ extends CommandImplementation<CommunicatorCommand>
 	}
 	
 	@Override
-	public void process(CommunicatorCommand cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(CommunicatorCommand cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		boolean ret = synchronizeClientsWithoutCommunication(OUTresults);
 
 		if (ret == true){

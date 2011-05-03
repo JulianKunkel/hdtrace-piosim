@@ -37,15 +37,14 @@ public class Direct
 extends CommandImplementation<Allgather>
 {
 	@Override
-	public void process(Allgather cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Allgather cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1) {
 			return;
 		}
 
 		final int myRank = client.getModelComponent().getRank();
 
-		switch (step) {
-		case (CommandProcessing.STEP_START): {
+		if (step == CommandProcessing.STEP_START){
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 				if (rank != myRank) {
 					OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20), 40001, Communicator.INTERNAL_MPI);
@@ -54,14 +53,13 @@ extends CommandImplementation<Allgather>
 
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 				if (rank != myRank) {
-					OUTresults.addNetReceive(rank, 40001, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					OUTresults.addNetReceive(rank, 40001, Communicator.INTERNAL_MPI);
 				}
 			}
 
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
 			return;
-		}
 		}
 	}
 }

@@ -45,7 +45,7 @@ extends CommandImplementation<Reduce>
 {
 
 	@Override
-	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Reduce cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
@@ -111,8 +111,7 @@ extends CommandImplementation<Reduce>
 
 				// block until we get a confirmation from the target that we can send.
 
-				OUTresults.addNetReceive(sendTo,
-						30002, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				OUTresults.addNetReceive(sendTo, 30002, Communicator.INTERNAL_MPI);
 			}else{
 				// send to all receivers that we accept data.
 				for (int iter = iterations-1 ; iter >= 0 ; iter--){

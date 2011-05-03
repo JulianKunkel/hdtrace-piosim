@@ -11,7 +11,7 @@ extends CommandImplementation<Filesetview>
 {
 	@Override
 	public void process(Filesetview cmd, CommandProcessing outCommand,
-			GClientProcess client, int step, NetworkJobs compNetJobs) {
+			GClientProcess client, long step, NetworkJobs compNetJobs) {
 		// TODO Auto-generated method stub
 
 	}

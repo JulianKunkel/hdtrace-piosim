@@ -47,7 +47,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousSendrecv extends CommandImplementation<Sendrecv>
 {
-	public void process(Sendrecv cmd,  CommandProcessing OUTresults, GClientProcess client, int step,  NetworkJobs compNetJobs) {
+	public void process(Sendrecv cmd,  CommandProcessing OUTresults, GClientProcess client, long step,  NetworkJobs compNetJobs) {
 		// start concurrent send and receive operations.
 
 		final Send send = new Send();

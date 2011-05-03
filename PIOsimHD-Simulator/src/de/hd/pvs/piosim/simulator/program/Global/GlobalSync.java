@@ -36,7 +36,7 @@ public class GlobalSync
 extends CommandImplementation<Command>
 {
 	@Override
-	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		Barrier b = new Barrier();
 		b.setCommunicator(cmd.getProgram().getCommunicatorWorld());
 		b.setProgram(cmd.getProgram());

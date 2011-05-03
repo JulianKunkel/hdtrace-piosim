@@ -45,7 +45,7 @@ extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileclose>
 
 	@Override
 	public void process(Fileclose cmd, CommandProcessing OUTresults,
-			GClientProcess client, int step, NetworkJobs compNetJobs) {
+			GClientProcess client, long step, NetworkJobs compNetJobs) {
 		switch (step){
 		case CommandProcessing.STEP_START:{
 			Barrier barrier = new Barrier();

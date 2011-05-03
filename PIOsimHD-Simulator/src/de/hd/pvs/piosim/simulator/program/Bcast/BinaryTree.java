@@ -44,7 +44,7 @@ extends CommandImplementation<Bcast>
 
 	@Override
 	public void process(Bcast cmd, CommandProcessing OUTresults,
-			GClientProcess client, int step, NetworkJobs compNetJobs)
+			GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 
 		if (cmd.getCommunicator().getSize() == 1){
@@ -103,8 +103,7 @@ extends CommandImplementation<Bcast>
 					final int targetRank = (1<<iter | clientRankInComm);
 					if (targetRank >= commSize)
 						continue;
-					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0),
-							30002, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30002, Communicator.INTERNAL_MPI);
 				}
 
 
@@ -118,7 +117,7 @@ extends CommandImplementation<Bcast>
 				for (int iter = iterations-1 ; iter >= 0 ; iter--){
 					final int targetRank =  1<<iter;
 					//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0, 30002, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0, 30002, Communicator.INTERNAL_MPI);
 				}
 			}
 

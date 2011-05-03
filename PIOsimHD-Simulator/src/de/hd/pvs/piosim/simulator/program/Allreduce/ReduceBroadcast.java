@@ -45,7 +45,7 @@ extends CommandImplementation<Allreduce>
 {
 	@Override
 	public void process(Allreduce cmd, CommandProcessing OUTresults,
-			GClientProcess client, int step, NetworkJobs compNetJobs) 
+			GClientProcess client, long step, NetworkJobs compNetJobs) 
 	{
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...

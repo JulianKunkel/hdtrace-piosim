@@ -38,7 +38,7 @@ extends CommandImplementation<ReduceScatter>
 	final int RECEIVED = 2;
 
 	@Override
-	public long getInstructionCount(ReduceScatter cmd, GClientProcess client, int step) {
+	public long getInstructionCount(ReduceScatter cmd, GClientProcess client, long step) {
 		final int myRank = client.getModelComponent().getRank();
 
 		if(step == RECEIVED){
@@ -50,14 +50,13 @@ extends CommandImplementation<ReduceScatter>
 	}
 
 	@Override
-	public void process(ReduceScatter cmd, CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(ReduceScatter cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1) {
 			return;
 		}
 
 
-		switch (step) {
-		case (CommandProcessing.STEP_START): {
+		if(step == CommandProcessing.STEP_START){
 			final int myRank = client.getModelComponent().getRank();
 
 			// send local data to all other clients and wait for their data to the local part.
@@ -67,13 +66,12 @@ extends CommandImplementation<ReduceScatter>
 				final long sendCnt = cmd.getRecvcounts().get(rank);
 				OUTresults.addNetSend(rank, new NetworkSimpleData(sendCnt + 20), 40002, Communicator.INTERNAL_MPI);
 				// receive a part....
-				OUTresults.addNetReceive(rank, 40002, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				OUTresults.addNetReceive(rank, 40002, Communicator.INTERNAL_MPI);
 			}
 
 			OUTresults.setNextStep(RECEIVED);
 
 			return;
-		}
 		}
 	}
 }

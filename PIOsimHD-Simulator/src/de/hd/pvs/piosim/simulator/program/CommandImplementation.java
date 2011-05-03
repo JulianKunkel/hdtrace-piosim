@@ -50,7 +50,7 @@ abstract public class CommandImplementation<CommandType extends Command>
 	 *
 	 * @return A description what to do next. This description is null if the command finished.
 	 */
-	abstract public void process(CommandType cmd, CommandProcessing outCommand, GClientProcess client, int step, NetworkJobs compNetJobs);
+	abstract public void process(CommandType cmd, CommandProcessing outCommand, GClientProcess client, long step, NetworkJobs compNetJobs);
 
 	/**
 	 * How many instructions are needed to compute the particular step of the command.
@@ -59,7 +59,7 @@ abstract public class CommandImplementation<CommandType extends Command>
 	 * @param step
 	 * @return
 	 */
-	public long getInstructionCount(CommandType cmd, GClientProcess client, int step) {
+	public long getInstructionCount(CommandType cmd, GClientProcess client, long step) {
 		return 0;
 	}
 

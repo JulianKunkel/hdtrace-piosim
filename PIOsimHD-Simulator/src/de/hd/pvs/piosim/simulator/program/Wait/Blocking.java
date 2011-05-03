@@ -51,7 +51,7 @@ public class Blocking
 	final HashMap<GClientProcess, HashSet<Integer>> clientPendingAIOs = new HashMap<GClientProcess, HashSet<Integer>>();
 
 	@Override
-	public void process(Wait cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Wait cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		// two possibilities, either all pending AIO ops are already finished or not
 		HashMap<Integer, Command> stillPendingOps = client.getPendingNonBlockingOps();
 

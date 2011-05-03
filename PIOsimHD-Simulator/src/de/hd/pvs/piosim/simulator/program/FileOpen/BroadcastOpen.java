@@ -44,7 +44,7 @@ extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileopen>
 {
 	@Override
 	public void process(de.hd.pvs.piosim.model.program.commands.Fileopen cmd,
-			CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs)
+			CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		if (step == CommandProcessing.STEP_START){
 			Barrier barrier = new Barrier();

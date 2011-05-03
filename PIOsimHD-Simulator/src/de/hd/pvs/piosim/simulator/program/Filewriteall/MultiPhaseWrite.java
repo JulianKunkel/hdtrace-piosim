@@ -52,7 +52,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 	abstract public boolean avoidUnnecessaryReads();
 
 	@Override
-	public void process(FileIOCommand cmd, CommandProcessing outCommand, GClientProcess client, int step,
+	public void process(FileIOCommand cmd, CommandProcessing outCommand, GClientProcess client, long step,
 			NetworkJobs compNetJobs)
 	{
 		final int CHECK_TWO_PHASE = 2;
@@ -63,8 +63,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 		final int PHASE_WRITE                             = 6;
 		final int CHECK_STATE                             = 7;
 
-		switch (step) {
-		case (CommandProcessing.STEP_START): {
+		if(step == CommandProcessing.STEP_START){
 			boolean ret = synchronizeClientsWithoutCommunication(outCommand);
 
 			outCommand.setNextStep(CHECK_TWO_PHASE);
@@ -77,7 +76,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 				return;
 			}
 			return;
-		}case (CHECK_TWO_PHASE): {
+		}else if (step == CHECK_TWO_PHASE){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 
 			if( mp == null){
@@ -102,7 +101,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 
 			return;
 
-		}case (CHECK_STATE):{
+		}else if (step == CHECK_STATE){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 			// we only enter this state, if we are an aggregator
 			final ClientPhaseOperations cpo = mp.phaseRun.clientOps.get(client);
@@ -128,7 +127,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 
 			return;
 
-		}case (COMMUNICATION_PHASE_SENDRECV_AGGREGATOR):{
+		}else if (step == COMMUNICATION_PHASE_SENDRECV_AGGREGATOR){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 			// we only enter this state, if we are an aggregator
 			final ClientPhaseOperations cpo = mp.phaseRun.clientOps.get(client);
@@ -144,13 +143,13 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 
 			// perform recvs from clients:
 			for(GClientProcess sendTo: spops.aggregatorComm.keySet()){
-				outCommand.addNetReceive(sendTo.getModelComponent(), 30003, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				outCommand.addNetReceive(sendTo.getModelComponent(), 30003, Communicator.INTERNAL_MPI);
 			}
 
 			outCommand.setNextStep(PHASE_READ);
 
 			return;
-		}case (PHASE_READ):{
+		}else if (step == PHASE_READ){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 			// issue reads for each client:
 			final ClientSinglePhaseOperations ops = mp.phaseRun.clientOps.get(client).getCurPhase();
@@ -170,7 +169,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 			}
 
 			return;
-		}case (PHASE_WRITE):{
+		}else if (step == PHASE_WRITE){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 			// issue reads for each client:
 			final ClientSinglePhaseOperations ops = mp.phaseRun.clientOps.get(client).getCurPhase();
@@ -183,7 +182,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 			outCommand.invokeChildOperation(write, CHECK_STATE, null);
 			return;
 
-		}case (COMMUNICATION_PHASE_SEND):{
+		}else if (step == COMMUNICATION_PHASE_SEND){
 			// only a non-aggregator client can reach this step.
 			final MultiPhaseContainer mp = globalState.get(cmd);
 			// we only enter this state, if we are an aggregator
@@ -212,7 +211,6 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 				outCommand.addNetSend(sendToAgg.getModelComponent(), new NetworkSimpleData(spops.clientOps.get(sendToAgg)), 30003, Communicator.INTERNAL_MPI);
 			}
 			return;
-		}
 		}
 
 		assert(false);

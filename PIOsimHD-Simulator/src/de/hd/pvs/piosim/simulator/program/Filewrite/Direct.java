@@ -47,7 +47,7 @@ public class Direct
 extends CommandImplementation<Filewrite>
 {
 	@Override
-	public void process(Filewrite cmd,  CommandProcessing OUTresults, GClientProcess client, int step, NetworkJobs compNetJobs) {
+	public void process(Filewrite cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int RECV_ACK = 2;
 		final int UPDATE_SIZE = 3;
 

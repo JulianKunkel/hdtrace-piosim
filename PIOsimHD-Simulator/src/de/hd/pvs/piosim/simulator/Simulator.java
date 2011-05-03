@@ -61,6 +61,7 @@ import de.hd.pvs.piosim.simulator.base.IGDynamicImplementationObject;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.ApplicationMap;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.DynamicImplementationLoader;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.NetworkEdge.IGNetworkEdge;
 import de.hd.pvs.piosim.simulator.components.NetworkNode.IGNetworkEntry;
@@ -157,6 +158,8 @@ public final class Simulator implements IModelToSimulatorMapper {
 		}
 		this.runParameters = parameters;
 		this.model = model;
+
+		DynamicImplementationLoader.initalize(model.getGlobalSettings());
 
 		// load the logger definition:
 		ConsoleLogger.init(parameters.getLoggerDefinitionFile(), parameters
