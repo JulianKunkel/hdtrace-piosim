@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Allreduce;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -48,9 +47,9 @@ public class RootComputes
 
 		if ( client.getModelComponent().getRank() != rankZero){
 			OUTresults.addNetSend(rankZero, new NetworkSimpleData(cmd.getSize() + 20),
-					30000, Communicator.INTERNAL_MPI);
+					30000, cmd.getCommunicator());
 			/* wait for incoming data (read data) */
-			OUTresults.addNetReceive(rankZero, 30001, Communicator.INTERNAL_MPI);
+			OUTresults.addNetReceive(rankZero, 30001, cmd.getCommunicator());
 
 			return;
 		}else{// rank 0
@@ -61,14 +60,14 @@ public class RootComputes
 				for(int i=1; i < commParts.length; i++){
 					int rank = commParts[i];
 
-					OUTresults.addNetReceive(rank, 30000, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(rank, 30000, cmd.getCommunicator());
 				}
 
 			}else{ // send data back:
 				for(int i=1; i < commParts.length; i++){
 					int rank = commParts[i];
 					OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20),
-							30001, Communicator.INTERNAL_MPI);
+							30001, cmd.getCommunicator());
 				}
 			}
 

@@ -18,7 +18,6 @@
 package de.hd.pvs.piosim.simulator.program.Scatter;
 
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -68,8 +67,8 @@ extends CommandImplementation<Scatter>
 		if (myRank != rootRank) {
 			if (step == CommandProcessing.STEP_START){
 				// wait until root is ready to send data.
-				OUTresults.addNetSend(rootRank, new MyAcknowledge(), tagNumber, Communicator.INTERNAL_MPI);
-				OUTresults.addNetReceive(rootRank, tagNumber, Communicator.INTERNAL_MPI);
+				OUTresults.addNetSend(rootRank, new MyAcknowledge(), tagNumber, cmd.getCommunicator());
+				OUTresults.addNetReceive(rootRank, tagNumber, cmd.getCommunicator());
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
 				return;
@@ -77,7 +76,7 @@ extends CommandImplementation<Scatter>
 
 		}else{  // root rank, the step encodes how many operations have been done
 			if (step == CommandProcessing.STEP_START){
-				OUTresults.addNetReceiveAnySource(tagNumber, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceiveAnySource(tagNumber, cmd.getCommunicator());
 				OUTresults.setNextStep(1);
 			}else{
 
@@ -87,15 +86,15 @@ extends CommandImplementation<Scatter>
 				if( step == cmd.getCommunicator().getSize() - 1 ){
 					// we almost finished, we have to send data to the last process.
 					// then complete.
-					OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, cmd.getCommunicator());
 
 					OUTresults.setNextStep(OUTresults.STEP_COMPLETED);
 					return;
 				}
 
 				// transfer data to the next process and wait for an ACK of another one.
-				OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, Communicator.INTERNAL_MPI);
-				OUTresults.addNetReceiveAnySource(tagNumber, Communicator.INTERNAL_MPI);
+				OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, cmd.getCommunicator());
+				OUTresults.addNetReceiveAnySource(tagNumber, cmd.getCommunicator());
 				OUTresults.setNextStep(step + 1);
 			}
 		}

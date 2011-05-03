@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Reduce;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -88,7 +87,7 @@ extends CommandImplementation<Reduce>
 					if (targetRank >= commSize)
 						continue;
 					//System.out.println(clientRankInComm +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30001, cmd.getCommunicator());
 				}
 
 				if(OUTresults.getNetworkJobs().getSize() != 0 )
@@ -112,7 +111,7 @@ extends CommandImplementation<Reduce>
 
 			OUTresults.addNetSend(sendTo,
 					new NetworkSimpleData(cmd.getSize() + 20),
-					30001, Communicator.INTERNAL_MPI);
+					30001, cmd.getCommunicator());
 
 		}else{
 			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
@@ -121,7 +120,7 @@ extends CommandImplementation<Reduce>
 			for (int iter = iterations-1 ; iter >= 0 ; iter--){
 				final int targetRank =  1<<iter;
 				//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0 , 30001, cmd.getCommunicator());
 			}
 		}
 	}

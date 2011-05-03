@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Reduce;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -105,19 +104,19 @@ extends CommandImplementation<Reduce>
 						continue;
 					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0),
 							new NetworkSimpleData(20), // just 20 Bytes or something.
-							30002, Communicator.INTERNAL_MPI);
+							30002, cmd.getCommunicator());
 				}
 
 
 				// block until we get a confirmation from the target that we can send.
 
-				OUTresults.addNetReceive(sendTo, 30002, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive(sendTo, 30002, cmd.getCommunicator());
 			}else{
 				// send to all receivers that we accept data.
 				for (int iter = iterations-1 ; iter >= 0 ; iter--){
 					final int targetRank =  1<<iter;
 					//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0, new NetworkSimpleData(20), 30002, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0, new NetworkSimpleData(20), 30002, cmd.getCommunicator());
 				}
 			}
 

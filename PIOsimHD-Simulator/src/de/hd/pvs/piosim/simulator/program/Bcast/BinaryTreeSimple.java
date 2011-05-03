@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Bcast;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -88,7 +87,7 @@ extends CommandImplementation<Bcast>
 				}
 
 
-				OUTresults.addNetReceive(recvFrom, 30000, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive(recvFrom, 30000, cmd.getCommunicator());
 
 			}else if(step == RECEIVED){
 				// send
@@ -99,7 +98,7 @@ extends CommandImplementation<Bcast>
 					if (targetRank >= commSize) continue;
 					//System.out.println(clientRankInComm +" to " + (1<<iter | clientRankInComm) );
 					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0),
-							new NetworkSimpleData(cmd.getSize() + 20), 30000, Communicator.INTERNAL_MPI);
+							new NetworkSimpleData(cmd.getSize() + 20), 30000, cmd.getCommunicator());
 				}
 			}
 		}else{
@@ -110,7 +109,7 @@ extends CommandImplementation<Bcast>
 				final int targetRank =  1<<iter;
 				//System.out.println(clientRankInComm +" to " + ((targetRank != rootRank) ? targetRank : 0) );
 				OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0,
-						new NetworkSimpleData(cmd.getSize() + 20), 30000, Communicator.INTERNAL_MPI);
+						new NetworkSimpleData(cmd.getSize() + 20), 30000, cmd.getCommunicator());
 			}
 		}
 	}

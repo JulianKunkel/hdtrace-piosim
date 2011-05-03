@@ -46,10 +46,6 @@ public class Communicator extends MPICommunicator{
 	 * Predefined Communicator for communication with the I/O servers.
 	 */
 	public static final Communicator IOSERVERS = new Communicator("IO_COMM");
-	/**
-	 * Predefined Communicator for communication within the simulated "MPI library".
-	 */
-	public static final Communicator INTERNAL_MPI = new Communicator("InternalMPI");
 
 	/**
 	 * Each communicator has a unique ID to identify it.

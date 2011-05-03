@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Bcast;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -91,7 +90,7 @@ extends CommandImplementation<Bcast>
 					recvFrom = 0;
 				}
 
-				OUTresults.addNetReceive(recvFrom, 30000, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive(recvFrom, 30000, cmd.getCommunicator());
 
 			}else{
 				// send same amount of data.
@@ -108,7 +107,7 @@ extends CommandImplementation<Bcast>
 					if (targetRank >= commSize) continue;
 					//System.out.println(clientRankInComm +" to " + targetRank );
 					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0),
-							data, 30000, Communicator.INTERNAL_MPI);
+							data, 30000, cmd.getCommunicator());
 				}
 
 				//System.out.println(" next " + OUTresults.getNextStep() + " nw " +  OUTresults.getNetworkJobs().getSize() + " " + iterationsOfBlocks + " " + step / 2);
@@ -132,7 +131,7 @@ extends CommandImplementation<Bcast>
 				final int targetRank =  1<<iter;
 				//System.out.println(clientRankInComm +" to " + ((targetRank != rootRank) ? targetRank : 0) );
 				OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0,
-						data, 30000, Communicator.INTERNAL_MPI);
+						data, 30000, cmd.getCommunicator());
 			}
 		}
 	}

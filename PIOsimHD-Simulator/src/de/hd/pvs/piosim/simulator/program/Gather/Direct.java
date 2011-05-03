@@ -17,7 +17,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Gather;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Gather;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -39,11 +38,11 @@ extends CommandImplementation<Gather>
 
 		if( step == CommandProcessing.STEP_START){
 			if (myRank != rootRank) {
-				OUTresults.addNetSend(rootRank, new NetworkSimpleData(cmd.getSize() + 20), 40000, Communicator.INTERNAL_MPI);
+				OUTresults.addNetSend(rootRank, new NetworkSimpleData(cmd.getSize() + 20), 40000, cmd.getCommunicator());
 			} else {
 				for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 					if (rank != myRank) {
-						OUTresults.addNetReceive(rank, 40000, Communicator.INTERNAL_MPI);
+						OUTresults.addNetReceive(rank, 40000, cmd.getCommunicator());
 					}
 				}
 			}

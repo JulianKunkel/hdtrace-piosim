@@ -17,7 +17,6 @@
 
 package de.hd.pvs.piosim.simulator.program.ReduceScatter;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.ReduceScatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -64,9 +63,9 @@ extends CommandImplementation<ReduceScatter>
 
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 				final long sendCnt = cmd.getRecvcounts().get(rank);
-				OUTresults.addNetSend(rank, new NetworkSimpleData(sendCnt + 20), 40002, Communicator.INTERNAL_MPI);
+				OUTresults.addNetSend(rank, new NetworkSimpleData(sendCnt + 20), 40002, cmd.getCommunicator());
 				// receive a part....
-				OUTresults.addNetReceive(rank, 40002, Communicator.INTERNAL_MPI);
+				OUTresults.addNetReceive(rank, 40002, cmd.getCommunicator());
 			}
 
 			OUTresults.setNextStep(RECEIVED);

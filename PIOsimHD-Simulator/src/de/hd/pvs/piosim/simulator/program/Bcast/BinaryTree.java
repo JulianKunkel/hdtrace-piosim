@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Bcast;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -103,7 +102,7 @@ extends CommandImplementation<Bcast>
 					final int targetRank = (1<<iter | clientRankInComm);
 					if (targetRank >= commSize)
 						continue;
-					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30002, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(((targetRank != rootRank) ? targetRank : 0), 30002, cmd.getCommunicator());
 				}
 
 
@@ -111,13 +110,13 @@ extends CommandImplementation<Bcast>
 
 				OUTresults.addNetSend(sendTo,
 						new NetworkSimpleData(20), // just 20 Bytes or something.
-						30002, Communicator.INTERNAL_MPI);
+						30002, cmd.getCommunicator());
 			}else{
 				// receive from all descending nodes that they accept data.
 				for (int iter = iterations-1 ; iter >= 0 ; iter--){
 					final int targetRank =  1<<iter;
 					//System.out.println(myRank +" from " + ((targetRank != rootRank) ? targetRank : 0) );
-					OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0, 30002, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive( (targetRank != rootRank) ? targetRank : 0, 30002, cmd.getCommunicator());
 				}
 			}
 

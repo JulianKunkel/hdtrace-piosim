@@ -18,7 +18,6 @@
 package de.hd.pvs.piosim.simulator.program.Scatter;
 
 import de.hd.pvs.TraceFormat.project.MPICommunicator;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -72,7 +71,7 @@ extends CommandImplementation<Scatter>
 						final int commRank =  comm.getLocalRank(rank);
 
 						if ( commRank % 2 == 0)
-							OUTresults.addNetSend(commRank,  data  , 30002 , Communicator.INTERNAL_MPI);
+							OUTresults.addNetSend(commRank,  data  , 30002 , cmd.getCommunicator());
 					}
 				}
 
@@ -95,12 +94,12 @@ extends CommandImplementation<Scatter>
 
 				if( myCommRank % 2 == 0){
 					// even
-					OUTresults.addNetReceive(rootRank, 30002, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(rootRank, 30002, cmd.getCommunicator());
 					OUTresults.setNextStep(SEND_TO_NEIGHBOOR_STATE);
 
 				}else{
 					// odd.
-					OUTresults.addNetReceive(comm.getWorldRank( myCommRank - 1 ), 30002, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(comm.getWorldRank( myCommRank - 1 ), 30002, cmd.getCommunicator());
 
 					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				}
@@ -120,7 +119,7 @@ extends CommandImplementation<Scatter>
 				// do not send to root rank!!!
 				int target = comm.getWorldRank( myCommRank + 1 );
 				if (target != rootRank)
-					OUTresults.addNetSend(target,  data  , 30002 , Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(target,  data  , 30002 , cmd.getCommunicator());
 			}else{
 				// you are the last process do not send!
 			}

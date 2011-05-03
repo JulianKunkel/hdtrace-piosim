@@ -25,7 +25,6 @@
 
 package de.hd.pvs.piosim.simulator.program.Allgather;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Allgather;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -47,13 +46,13 @@ extends CommandImplementation<Allgather>
 		if (step == CommandProcessing.STEP_START){
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 				if (rank != myRank) {
-					OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20), 40001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetSend(rank, new NetworkSimpleData(cmd.getSize() + 20), 40001, cmd.getCommunicator());
 				}
 			}
 
 			for (int rank : cmd.getCommunicator().getParticipatingRanks()) {
 				if (rank != myRank) {
-					OUTresults.addNetReceive(rank, 40001, Communicator.INTERNAL_MPI);
+					OUTresults.addNetReceive(rank, 40001, cmd.getCommunicator());
 				}
 			}
 
