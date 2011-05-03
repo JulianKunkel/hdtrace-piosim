@@ -195,7 +195,7 @@ int hdS_commitGroup (
         );
 
 /**
- * Commit statistics group and initialize it at the given timestamp, 
+ * Commit statistics group and initialize it at the given timestamp,
  * closes initialization step.
  */
 int hdS_commitGroupAtTimestamp (
@@ -280,6 +280,14 @@ int hdS_writeInt32Value (
 int hdS_writeInt64Value (
         hdStatsGroup *group,      /* Statistics Group */
         int64_t value            /* INT64 value to write */
+        );
+
+/**
+ * Writes 8 byte unsigned integer as next value to a statistics group.
+ */
+int hdS_writeUInt64Value (
+        hdStatsGroup *group,      /* Statistics Group */
+        uint64_t value            /* UINT64 value to write */
         );
 
 /**
