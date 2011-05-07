@@ -129,4 +129,12 @@ public class MessageMatchingCriterion{
 	public Communicator getCommunicator() {
 		return comm;
 	}
+
+	public CommandImplementation getCurrentCommand() {
+		return currentCommand;
+	}
+
+	public CommandImplementation getRootCommand() {
+		return rootCommand;
+	}
 }

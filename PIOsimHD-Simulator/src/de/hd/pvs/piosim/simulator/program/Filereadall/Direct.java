@@ -36,16 +36,14 @@ public class Direct extends CommandImplementation<Filereadall> {
 	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int SEND_REQUEST = 2;
 
-		switch (step) {
-		case (CommandProcessing.STEP_START): {
+		if (step == CommandProcessing.STEP_START){
 			Barrier barrier = new Barrier();
 			barrier.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(barrier, SEND_REQUEST, null);
 
 			return;
-		}
-		case (SEND_REQUEST): {
+		}else if (step == SEND_REQUEST){
 			Fileread rd = new Fileread();
 			rd.setFileDescriptor(cmd.getFileDescriptor());
 			rd.setListIO(cmd.getListIO());
@@ -54,9 +52,7 @@ public class Direct extends CommandImplementation<Filereadall> {
 
 			return;
 		}
-		}
-
-		return;
+		assert(false);
 	}
 
 }

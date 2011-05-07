@@ -38,16 +38,6 @@ import de.hd.pvs.TraceFormat.project.MPICommunicator;
 public class Communicator extends MPICommunicator{
 
 	/**
-	 * Matches all communicators.
-	 */
-	public static final Communicator ANY_COMMUNICATOR = new Communicator("Any Communicator");
-
-	/**
-	 * Predefined Communicator for communication with the I/O servers.
-	 */
-	public static final Communicator IOSERVERS = new Communicator("IO_COMM");
-
-	/**
 	 * Each communicator has a unique ID to identify it.
 	 */
 	private final int comm_unique_ID;

@@ -23,7 +23,6 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.program.Filereadall;
 
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
@@ -60,8 +59,7 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 		final int COMMUNICATION_PHASE_SEND_RECV = 4;
 		final int COMMUNICATION_PHASE_RECV      = 5;
 
-		switch (step) {
-		case (CommandProcessing.STEP_START): {
+		if(step == CommandProcessing.STEP_START){
 			boolean ret = synchronizeClientsWithoutCommunication(outCommand);
 
 			outCommand.setNextStep(CHECK_TWO_PHASE);
@@ -74,7 +72,7 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 				return;
 			}
 			return;
-		}case (CHECK_TWO_PHASE): {
+		}else if (step == CHECK_TWO_PHASE){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 
 			if( mp == null){
@@ -101,7 +99,7 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 			return;
 
-		}case (READ_PHASE):{
+		}else if (step == READ_PHASE){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 			final ClientPhaseOperations cpo = mp.phaseRun.clientOps.get(client);
 
@@ -135,7 +133,7 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 			return;
 
-		}case (COMMUNICATION_PHASE_RECV):{
+		}else if (step == COMMUNICATION_PHASE_RECV){
 			// if we enter this stage, then we are only a client, and no I/O aggregator
 
 			final MultiPhaseContainer mp = globalState.get(cmd);
@@ -160,11 +158,11 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 			//we might not have receive operations for some states.
 			// initalize receive operations
 			for(GClientProcess recvFromAggregator: spops.clientOps.keySet()){
-				outCommand.addNetReceive(recvFromAggregator.getModelComponent(), 30004, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+				outCommand.addNetReceive(recvFromAggregator.getModelComponent(), 30004, cmd.getCommunicator());
 			}
 
 			return;
-		}case (COMMUNICATION_PHASE_SEND_RECV):{
+		}else if (step == COMMUNICATION_PHASE_SEND_RECV){
 			final MultiPhaseContainer mp = globalState.get(cmd);
 			final ClientPhaseOperations cpo = mp.phaseRun.clientOps.get(client);
 
@@ -178,13 +176,13 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 			// perform communication, receive my data from aggregators.
 			if (spops.clientOps != null){
 				for(GClientProcess recvFromAggregator: spops.clientOps.keySet()){
-					outCommand.addNetReceive(recvFromAggregator.getModelComponent(), 30004, Communicator.INTERNAL_MPI, NetworkSimpleData.class);
+					outCommand.addNetReceive(recvFromAggregator.getModelComponent(), 30004, cmd.getCommunicator());
 				}
 			}
 			// perform sends:
 			for(GClientProcess sendTo: spops.aggregatorComm.keySet()){
 				outCommand.addNetSend(sendTo.getModelComponent(),
-						new NetworkSimpleData(spops.aggregatorComm.get(sendTo)), 30004, Communicator.INTERNAL_MPI);
+						new NetworkSimpleData(spops.aggregatorComm.get(sendTo)), 30004, cmd.getCommunicator());
 			}
 
 			if(! cpo.phasesCompleted()){
@@ -198,7 +196,6 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 
 			return;
-		}
 		}
 
 		assert(false);

@@ -29,7 +29,6 @@ import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.IInterProcessNetworkJobCallback;
@@ -43,7 +42,6 @@ import de.hd.pvs.piosim.simulator.components.Node.INodeRessources;
 import de.hd.pvs.piosim.simulator.components.Server.requests.ServerAcknowledge;
 import de.hd.pvs.piosim.simulator.components.ServerCacheLayer.IGServerCacheLayer;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
-import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 
 /**
  * Simulates a server process together with an I/O subsystem.
@@ -124,7 +122,9 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 				new MessageMatchingCriterion(getModelComponent(),
 						reqCrit.getSourceComponent(),
 						reqCrit.getTag(),
-						reqCrit.getCommunicator(), ServerAcknowledge.class),
+						reqCrit.getCommunicator(),
+						reqCrit.getRootCommand(),
+						reqCrit.getCurrentCommand()),
 						new ServerAcknowledge(15), dummyCallback,
 						getModelComponent(), request.getOriginalSource(), request.getRelationToken());
 
@@ -136,8 +136,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 
 	private void submitRecv(){
 		networkInterface.initiateInterProcessReceive(InterProcessNetworkJob.createReceiveOperation(
-				new MessageMatchingCriterion(null, this.getModelComponent(), MessageMatchingCriterion.ANY_TAG , Communicator.IOSERVERS,  RequestIO.class),
-						unexpectedCallback, null),
+				null, unexpectedCallback, null),
 						getSimulator().getVirtualTime());
 	}
 

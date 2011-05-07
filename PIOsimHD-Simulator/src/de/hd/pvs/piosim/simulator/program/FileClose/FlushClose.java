@@ -27,12 +27,10 @@
 package de.hd.pvs.piosim.simulator.program.FileClose;
 
 import de.hd.pvs.piosim.model.components.Server.Server;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Barrier;
 import de.hd.pvs.piosim.model.program.commands.Fileclose;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
-import de.hd.pvs.piosim.simulator.components.Server.requests.ServerAcknowledge;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestFlush;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -46,8 +44,7 @@ extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileclose>
 	@Override
 	public void process(Fileclose cmd, CommandProcessing OUTresults,
 			GClientProcess client, long step, NetworkJobs compNetJobs) {
-		switch (step){
-		case CommandProcessing.STEP_START:{
+		if(step == CommandProcessing.STEP_START){
 			Barrier barrier = new Barrier();
 			barrier.setCommunicator(cmd.getCommunicator());
 
@@ -57,9 +54,7 @@ extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileclose>
 			OUTresults.invokeChildOperation(barrier, nextStep,
 					de.hd.pvs.piosim.simulator.program.Global.VirtualSync.class);
 
-			break;
-		}
-		case (STEP_START_FLUSH):{
+		}else if(step == STEP_START_FLUSH){
 
 			final int tag = client.getNextUnusedTag();
 
@@ -69,20 +64,16 @@ extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileclose>
 				OUTresults.addNetSendRoutable(client.getModelComponent(),
 						s,
 						s,
-						new RequestFlush(cmd.getFile()), tag, Communicator.IOSERVERS);
-				OUTresults.addNetReceive(s, tag , Communicator.IOSERVERS, ServerAcknowledge.class);
+						new RequestFlush(cmd.getFile()), tag, cmd.getCommunicator());
+				OUTresults.addNetReceive(s, tag , cmd.getCommunicator(), FlushClose.class, FlushClose.class);
 			}
 
 			OUTresults.setNextStep(STEP_SYNC);
-			break;
-		}case STEP_SYNC:{
+		}else if(step == STEP_SYNC){
 			Barrier barrier = new Barrier();
 			barrier.setCommunicator(cmd.getCommunicator());
 			OUTresults.invokeChildOperation(barrier, CommandProcessing.STEP_COMPLETED,
 					de.hd.pvs.piosim.simulator.program.Global.VirtualSync.class);
-
-			break;
-		}
 		}
 	}
 }

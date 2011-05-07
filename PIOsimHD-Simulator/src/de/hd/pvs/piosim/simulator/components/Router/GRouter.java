@@ -6,7 +6,6 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.Router.Router;
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.inputOutput.IORedirection;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
 import de.hd.pvs.piosim.simulator.components.NIC.IProcessNetworkInterface;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
@@ -49,7 +48,7 @@ public class GRouter extends SPassiveComponent<Router>
 				final INodeHostedComponent nextHop = IORedirectionHelper.getNextHopFor(request.getFinalTarget(), ioRedirection, getSimulator().getModel());
 
 				final InterProcessNetworkJobRoutable newJob = InterProcessNetworkJobRoutable.createRoutableSendOperation(
-						new MessageMatchingCriterion(getModelComponent(), nextHop,	crit.getTag() , crit.getCommunicator(), crit.getMatchMessageType()),
+						new MessageMatchingCriterion(getModelComponent(), nextHop,	crit.getTag() , crit.getCommunicator(), crit.getRootCommand(), crit.getCurrentCommand()),
 								remoteJob.getJobData(), callback,
 								request.getOriginalSource(), request.getFinalTarget(),
 								remoteJob.getRelationToken()
@@ -82,9 +81,7 @@ public class GRouter extends SPassiveComponent<Router>
 
 	private void submitRecv(){
 		networkInterface.initiateInterProcessReceive(
-				InterProcessNetworkJob.createReceiveOperation(
-				new MessageMatchingCriterion(null, this.getModelComponent(),	MessageMatchingCriterion.ANY_TAG,  Communicator.ANY_COMMUNICATOR, null)
-				,callback, null),
+				InterProcessNetworkJob.createReceiveOperation(null, callback, null),
 				getSimulator().getVirtualTime());
 	}
 
