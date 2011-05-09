@@ -92,6 +92,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 
 					requestProcessors.put(dataType, processor);
 				}catch(Exception e){
+					System.out.println("Received " + job);
 					throw new IllegalArgumentException(e);
 				}
 			}

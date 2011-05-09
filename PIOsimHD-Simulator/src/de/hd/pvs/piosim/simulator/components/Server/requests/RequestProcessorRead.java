@@ -55,7 +55,7 @@ public class RequestProcessorRead
 						reqCrit.getSourceComponent(),
 						reqCrit.getTag(),
 						reqCrit.getCommunicator(),
-						impl, impl
+						null, impl
 						),
 						new NetworkIOData(req),
 						dataCallback, server.getModelComponent(), request.getOriginalSource(), request.getRelationToken());

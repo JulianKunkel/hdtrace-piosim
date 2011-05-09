@@ -5,6 +5,7 @@ import java.util.HashMap;
 import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.simulator.base.ISPassiveComponent;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.DynamicImplementationLoader;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
 import de.hd.pvs.piosim.simulator.components.Server.IGRequestProcessingServerInterface;
 import de.hd.pvs.piosim.simulator.components.Server.IServerRequestProcessor;
@@ -34,7 +35,7 @@ public abstract class RequestProcessor<Type extends IMessageUserData>
 	}
 
 	protected CommandImplementation getCommandImplementation(Class<? extends CommandImplementation> cmdImpl){
-		return DynamicImplementationLoader.getInstance().getCommandInstanceForCommand(cmdImpl);
+		return DynamicImplementationLoader.getInstance().getInstanceForClass(cmdImpl);
 	}
 
 	/**

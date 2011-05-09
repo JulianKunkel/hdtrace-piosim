@@ -339,7 +339,9 @@ public class CommandProcessing{
 
 	final public void addNetReceive(INodeHostedComponent from, int tag, Communicator comm,  Class<? extends CommandImplementation> expectedRootOperation,  Class<? extends CommandImplementation> expectedProcessingMethod){
 		addNetReceive(from, tag, comm,
-				DynamicImplementationLoader.getInstance().getInstanceForClass(expectedRootOperation),
+				// root operation could be null:
+				expectedRootOperation == null ? null :
+						DynamicImplementationLoader.getInstance().getInstanceForClass(expectedRootOperation),
 				DynamicImplementationLoader.getInstance().getInstanceForClass(expectedProcessingMethod));
 	}
 

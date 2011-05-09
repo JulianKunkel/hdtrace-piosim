@@ -100,12 +100,6 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			InterProcessNetworkJob announcedJob = null;
 
 
-			// check if catch-all is enabled, then this message matches.
-			if( catchAllJob != null){
-				announcedJob = catchAllJob;
-				catchAllJob = null;
-			}
-
 			// check first, if this is an expected message with exact tag / source matching
 			if(announcedJob == null ){
 				final LinkedList<InterProcessNetworkJob> announcedRecvsForCriterion = announcedRecvMap.get(crit);
@@ -137,6 +131,13 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 					iter.next();
 				}
 			}
+
+			// check if catch-all is enabled, then this message matches.
+			if( announcedJob == null && catchAllJob != null ){
+				announcedJob = catchAllJob;
+				catchAllJob = null;
+			}
+
 
 			if ( announcedJob != null ){
 				// we found a matching message => assign it.

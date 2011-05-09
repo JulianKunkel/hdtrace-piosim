@@ -80,7 +80,7 @@ extends CommandImplementation<Fileread>
 						new RequestRead(io.getListIO(), cmd.getFile()),
 						tag, cmd.getCommunicator());
 
-				OUTresults.addNetReceive(io.getNextHop(), tag , cmd.getCommunicator(), FileReadDirect.class, FileReadDirect.class);
+				OUTresults.addNetReceive(io.getNextHop(), tag , cmd.getCommunicator(), null, FileReadDirect.class);
 			}
 			return;
 		}

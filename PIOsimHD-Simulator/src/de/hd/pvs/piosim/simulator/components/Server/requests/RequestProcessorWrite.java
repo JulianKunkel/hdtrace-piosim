@@ -106,7 +106,7 @@ extends RequestProcessor<RequestWrite>
 						reqCrit.getSourceComponent(), server.getModelComponent(),
 						reqCrit.getTag(),
 						reqCrit.getCommunicator(),
-						impl, impl),
+						null, impl),
 						dataCallback, request.getRelationToken());
 
 		server.getNetworkInterface().initiateInterProcessReceive(resp, time);

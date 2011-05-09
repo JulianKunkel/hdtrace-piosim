@@ -45,7 +45,8 @@ public class MessageMatchingCriterion{
 			CommandImplementation rootCommand, CommandImplementation currentCommand)
 	{
 		assert(targetComponent != null);
-		assert(rootCommand != null);
+		// root command can be null to match ANY root command
+		//assert(rootCommand != null);
 		assert(currentCommand != null);
 		assert(comm != null);
 		//assert((tag == MessageMatchingCriterion.ANY_TAG  && sourceComponent == null) || (tag != MessageMatchingCriterion.ANY_TAG && sourceComponent != null) );
@@ -69,7 +70,7 @@ public class MessageMatchingCriterion{
 
 		ret &= getTargetComponent() == c.getTargetComponent();
 
-		ret &= this.rootCommand == c.rootCommand;
+		ret &= ( this.rootCommand == c.rootCommand ) || c.rootCommand == null || this.rootCommand == null;
 
 		ret &= this.currentCommand == c.currentCommand;
 
@@ -80,6 +81,8 @@ public class MessageMatchingCriterion{
 	 * This function compares this messageCriterion with another Criterion,
 	 * both are considered to be equal if ANY_TAG is specified (in this Criterion) and the tags differ,
 	 * also if ANY_SOURCE is specified and the source differs.
+	 *
+	 * The root command of this implementation can be null
 	 *
 	 * @param c
 	 * @return
@@ -92,7 +95,9 @@ public class MessageMatchingCriterion{
 
 		ret &= getTargetComponent() == c.getTargetComponent();
 
-		ret &= this.rootCommand == c.rootCommand;
+		assert(c.rootCommand != null);
+
+		ret &= this.rootCommand == c.rootCommand || this.rootCommand == null;
 
 		ret &= this.currentCommand == c.currentCommand;
 
@@ -106,12 +111,7 @@ public class MessageMatchingCriterion{
 
 	@Override
 	public int hashCode() {
-		// sender wildcard
-		if(sourceComponent == null){
-			return getTargetComponent().hashCode() + getCommunicator().hashCode() + rootCommand.hashCode();
-		}else{
-			return getTargetComponent().hashCode() + getSourceComponent().hashCode() + getCommunicator().hashCode() + rootCommand.hashCode();
-		}
+		return getTargetComponent().hashCode() + getSourceComponent().hashCode() + getCommunicator().hashCode() + currentCommand.hashCode();
 	}
 
 	public INodeHostedComponent getSourceComponent() {

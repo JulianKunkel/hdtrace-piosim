@@ -96,7 +96,7 @@ extends CommandImplementation<Filewrite>
 
 				/* wait for incoming msg (write completion notification) */
 				OUTresults.addNetReceive(job.getMatchingCriterion().getTargetComponent(),
-						job.getMatchingCriterion().getTag(), cmd.getCommunicator(), FileWriteDirect.class, FileWriteDirect.class);
+						job.getMatchingCriterion().getTag(), cmd.getCommunicator(), null, FileWriteDirect.class);
 			}
 
 			return;

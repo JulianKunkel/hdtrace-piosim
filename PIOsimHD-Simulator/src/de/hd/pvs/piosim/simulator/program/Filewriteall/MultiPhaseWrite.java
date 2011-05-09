@@ -207,7 +207,8 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 				return;
 			}
 			for(GClientProcess sendToAgg: spops.clientOps.keySet()){
-				outCommand.addNetSend(sendToAgg.getModelComponent(), new NetworkSimpleData(spops.clientOps.get(sendToAgg)), 30003, cmd.getCommunicator());
+				outCommand.addNetSend(sendToAgg.getModelComponent(), new NetworkSimpleData(spops.clientOps.get(sendToAgg)), 30003,
+						cmd.getCommunicator());
 			}
 			return;
 		}
