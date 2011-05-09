@@ -81,8 +81,7 @@ public class InterProcessNetworkJob implements IMessageUserData{
 			IInterProcessNetworkJobCallback callbacks,
 			RelationToken relationToken)
 	{
-
-		assert(matchingCriterion != null);
+		//assert(matchingCriterion != null);
 
 		this.operation = operation;
 		this.matchingCriterion = matchingCriterion;

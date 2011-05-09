@@ -40,6 +40,11 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	final private LinkedList<InterProcessNetworkJob>  announcedAnySourceOrTagRecv = new LinkedList<InterProcessNetworkJob>();
 
 
+	/**
+	 * A catch-all job receives ANY message.
+	 * However, it is invalid to post a catch-all job after a message is received
+	 */
+	private InterProcessNetworkJob              catchAllJob = null;
 
 	/**
 	 * Once a new receive is started which pairs to another announced receive, then it get put into this map:
@@ -95,15 +100,23 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			InterProcessNetworkJob announcedJob = null;
 
 
-			// check first, if this is an expected message with exact tag / source matching
-			final LinkedList<InterProcessNetworkJob> announcedRecvsForCriterion = announcedRecvMap.get(crit);
-			if( announcedRecvsForCriterion != null ){
-				// we found a matching job
-				announcedJob = announcedRecvsForCriterion.poll();
+			// check if catch-all is enabled, then this message matches.
+			if( catchAllJob != null){
+				announcedJob = catchAllJob;
+				catchAllJob = null;
+			}
 
-				// remove empty lists.
-				if(announcedRecvsForCriterion.size() == 0){
-					announcedRecvMap.remove(remoteJob.getMatchingCriterion());
+			// check first, if this is an expected message with exact tag / source matching
+			if(announcedJob == null ){
+				final LinkedList<InterProcessNetworkJob> announcedRecvsForCriterion = announcedRecvMap.get(crit);
+				if( announcedRecvsForCriterion != null ){
+					// we found a matching job
+					announcedJob = announcedRecvsForCriterion.poll();
+
+					// remove empty lists.
+					if(announcedRecvsForCriterion.size() == 0){
+						announcedRecvMap.remove(remoteJob.getMatchingCriterion());
+					}
 				}
 			}
 
@@ -124,8 +137,6 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 					iter.next();
 				}
 			}
-
-
 
 			if ( announcedJob != null ){
 				// we found a matching message => assign it.
@@ -198,8 +209,16 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 		final MessageMatchingCriterion crit = job.getMatchingCriterion();
 
+		if( crit == null ){
+			// it is a catch all job
+			// allow only one catch all job per device
+			assert(catchAllJob == null);
+			// it is invalid to post a catch-all after a message is already posted.
+			assert( earlyRecvsMap.size() == 0);
 
-		assert(crit != null);
+			this.catchAllJob = job;
+			return;
+		}
 
 		//System.out.println(this.getIdentifier() + " RECV initiate" + job);
 

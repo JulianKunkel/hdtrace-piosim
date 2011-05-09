@@ -16,7 +16,6 @@
 package de.hd.pvs.piosim.simulator.program.Filewriteall;
 
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
-import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
@@ -137,13 +136,13 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 			// perform communication, send data to all aggregators from this client.
 			if (spops.clientOps != null){
 				for(GClientProcess sendToAgg: spops.clientOps.keySet()){
-					outCommand.addNetSend(sendToAgg.getModelComponent(), new NetworkSimpleData(spops.clientOps.get(sendToAgg)), 30003, Communicator.INTERNAL_MPI);
+					outCommand.addNetSend(sendToAgg.getModelComponent(), new NetworkSimpleData(spops.clientOps.get(sendToAgg)), 30003, cmd.getCommunicator());
 				}
 			}
 
 			// perform recvs from clients:
 			for(GClientProcess sendTo: spops.aggregatorComm.keySet()){
-				outCommand.addNetReceive(sendTo.getModelComponent(), 30003, Communicator.INTERNAL_MPI);
+				outCommand.addNetReceive(sendTo.getModelComponent(), 30003, cmd.getCommunicator());
 			}
 
 			outCommand.setNextStep(PHASE_READ);
@@ -208,7 +207,7 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 				return;
 			}
 			for(GClientProcess sendToAgg: spops.clientOps.keySet()){
-				outCommand.addNetSend(sendToAgg.getModelComponent(), new NetworkSimpleData(spops.clientOps.get(sendToAgg)), 30003, Communicator.INTERNAL_MPI);
+				outCommand.addNetSend(sendToAgg.getModelComponent(), new NetworkSimpleData(spops.clientOps.get(sendToAgg)), 30003, cmd.getCommunicator());
 			}
 			return;
 		}

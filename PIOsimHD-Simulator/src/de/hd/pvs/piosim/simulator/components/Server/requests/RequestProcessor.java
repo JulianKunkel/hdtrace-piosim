@@ -15,6 +15,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
 import de.hd.pvs.piosim.simulator.output.STraceWriter;
 import de.hd.pvs.piosim.simulator.output.STraceWriter.TraceType;
+import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public abstract class RequestProcessor<Type extends IMessageUserData>
 	implements IServerRequestProcessor<Type>
@@ -30,6 +31,10 @@ public abstract class RequestProcessor<Type extends IMessageUserData>
 	final @Override
 	public void setServerInterface(IGRequestProcessingServerInterface server) {
 		this.server = server;
+	}
+
+	protected CommandImplementation getCommandImplementation(Class<? extends CommandImplementation> cmdImpl){
+		return DynamicImplementationLoader.getInstance().getCommandInstanceForCommand(cmdImpl);
 	}
 
 	/**

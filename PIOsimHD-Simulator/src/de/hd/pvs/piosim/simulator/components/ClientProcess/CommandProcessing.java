@@ -469,5 +469,7 @@ public class CommandProcessing{
 	}
 
 
-
+	final public CommandImplementation getRootOperation() {
+		return rootOperation;
+	}
 }

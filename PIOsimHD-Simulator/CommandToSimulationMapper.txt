@@ -82,11 +82,11 @@ de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimpleBlockwise
 
 +de.hd.pvs.piosim.model.program.commands.Fileread
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
-de.hd.pvs.piosim.simulator.program.Fileread.Direct
+de.hd.pvs.piosim.simulator.program.Fileread.FileReadDirect
 
 +de.hd.pvs.piosim.model.program.commands.Filewrite
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
-de.hd.pvs.piosim.simulator.program.Filewrite.Direct
+de.hd.pvs.piosim.simulator.program.Filewrite.FileWriteDirect
 
 +de.hd.pvs.piosim.model.program.commands.Filereadall
 de.hd.pvs.piosim.simulator.program.Global.NoOperation

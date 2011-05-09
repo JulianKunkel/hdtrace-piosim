@@ -13,10 +13,13 @@ import de.hd.pvs.piosim.simulator.network.MessagePart;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
+import de.hd.pvs.piosim.simulator.program.CommandImplementation;
+import de.hd.pvs.piosim.simulator.program.Fileread.FileReadDirect;
 
 public class RequestProcessorRead
 	extends RequestProcessor<RequestRead>
 {
+
 	private final IServerCacheLayerJobCallback<Message> ioCallback = new ServerCacheLayerJobCallbackAdaptor<Message>() {
 		@Override
 		public void ReadPartialData(Epoch time, FileRequest req, Message userdata, long size) {
@@ -45,11 +48,15 @@ public class RequestProcessorRead
 
 		startRequest(req, request);
 
+		final CommandImplementation impl = getCommandImplementation(FileReadDirect.class);
+
 		final InterProcessNetworkJobRoutable resp =  InterProcessNetworkJobRoutable.createRoutableSendOperation(
 				new MessageMatchingCriterion(server.getModelComponent(),
 						reqCrit.getSourceComponent(),
 						reqCrit.getTag(),
-						reqCrit.getCommunicator(), NetworkIOData.class),
+						reqCrit.getCommunicator(),
+						impl, impl
+						),
 						new NetworkIOData(req),
 						dataCallback, server.getModelComponent(), request.getOriginalSource(), request.getRelationToken());
 

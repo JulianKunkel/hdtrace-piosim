@@ -15,6 +15,8 @@ import de.hd.pvs.piosim.simulator.network.jobs.NetworkIOData;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.FileRequest;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestIO;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestWrite;
+import de.hd.pvs.piosim.simulator.program.CommandImplementation;
+import de.hd.pvs.piosim.simulator.program.Filewrite.FileWriteDirect;
 
 /**
  * Process write requests
@@ -95,13 +97,16 @@ extends RequestProcessor<RequestWrite>
 
 		startRequest(req, request);
 
+		final CommandImplementation impl = getCommandImplementation(FileWriteDirect.class);
+
 		final MessageMatchingCriterion reqCrit = request.getMatchingCriterion();
 		/* post receive of further message parts as fragmented flow parts */
 		final InterProcessNetworkJob resp =  InterProcessNetworkJob.createReceiveOperation(
 				new MessageMatchingCriterion(
 						reqCrit.getSourceComponent(), server.getModelComponent(),
 						reqCrit.getTag(),
-						reqCrit.getCommunicator(), NetworkIOData.class),
+						reqCrit.getCommunicator(),
+						impl, impl),
 						dataCallback, request.getRelationToken());
 
 		server.getNetworkInterface().initiateInterProcessReceive(resp, time);
