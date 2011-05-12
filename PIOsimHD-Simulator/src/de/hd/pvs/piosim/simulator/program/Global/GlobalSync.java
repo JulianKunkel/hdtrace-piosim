@@ -1,12 +1,5 @@
 
- /** Version Control Information $Id: VirtualSync.java 149 2009-03-27 13:55:56Z kunkel $
-  * @lastmodified    $Date: 2009-03-27 14:55:56 +0100 (Fr, 27. Mär 2009) $
-  * @modifiedby      $LastChangedBy: kunkel $
-  * @version         $Revision: 149 $
-  */
-
-
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	Copyright (C) 2008, 2009, 2010, 2011 Julian M. Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -32,6 +25,11 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
+
+/**
+ * Synchronize all processes of this application.
+ * @author julian
+ */
 public class GlobalSync
 extends CommandImplementation<Command>
 {

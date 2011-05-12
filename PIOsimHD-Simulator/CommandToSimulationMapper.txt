@@ -79,6 +79,9 @@ de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimple
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree
+de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeMultiplex
+de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall
+de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterBarrierGatherall
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimpleBlockwise
 
 +de.hd.pvs.piosim.model.program.commands.Fileread

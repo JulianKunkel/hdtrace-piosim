@@ -1,5 +1,8 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import org.junit.Test;
 
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
@@ -55,6 +58,80 @@ public class Validation  extends ModelTest {
 		pb.addReduce(world, 0, 1* MBYTE);  	// (-,-,Größe)
 
 		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void broadcastMultiplex() throws Exception{
+		setup(8, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeMultiplex");
+		parameters.setTraceFile("/tmp/bcast");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addBroadcast(world, 0,100 * MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void broadcastBroadcastScatterGatherall() throws Exception{
+		setup(8, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
+
+		parameters.setTraceFile("/tmp/bcast");
+		parameters.setTraceEnabled(true);
+
+		pb.addBroadcast(world, 0,100 * MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
+
+	@Test public void broadcastBroadcastScatterBarrierGatherall() throws Exception{
+		setup(8, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterBarrierGatherall");
+
+		parameters.setTraceFile("/tmp/bcast");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+
+		pb.addBroadcast(world, 0,100 * MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	private void printTiming(String header, double[] times) throws IOException{
+		final FileWriter fo = new FileWriter("/tmp/timing-" + this.getClass().getSimpleName() + ".txt", true);
+
+		fo.write(header + " timing:\n");
+		System.out.println(header + " timing");
+
+		for(int i=1; i < times.length; i++){
+			if(times[i] != 0){
+				fo.write(i + " " + times[i] + "\n");
+				System.out.println(i + " " + times[i]);
+			}
+		}
+		fo.write("\n");
+		fo.close();
+	}
+
+	@Test public void bcastTest() throws Exception{
+		double [] times = new double[11];
+
+		for(int i=1; i <= 10; i++){
+			setup(i,1);
+
+			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 100 * MBYTE);
+			runSimulationAllExpectedToFinish();
+			times[i] = sim.getVirtualTime().getDouble();
+		}
+
+		printTiming("Broadcast", times);
 	}
 
 	@Test public void sendAndRecvEagerTestSMP() throws Exception{

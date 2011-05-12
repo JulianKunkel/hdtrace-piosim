@@ -80,7 +80,7 @@ extends CommandImplementation<Scatter>
 			if (step == CommandProcessing.STEP_START){
 				OUTresults.addNetReceive(ANY_SOURCE, tagNumber, cmd.getCommunicator());
 				OUTresults.setNextStep(STEP_RECEIVE);
-			}else{
+			}else{ // STEP_RECEIVE
 
 				final INodeHostedComponent target = compNetJobs.getResponses().get(0).getMatchingCriterion().getSourceComponent();
 

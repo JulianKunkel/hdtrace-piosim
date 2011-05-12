@@ -169,6 +169,7 @@ public class CommandProcessing{
 	/**
 	 * This method allows the command to create a set of nested operations, which are run concurrently .
 	 * The commands shall not be modified afterwards.
+	 * @param enforceProcessingMethod optional parameter, if null the default implementation is used
 	 */
 	public void invokeChildOperation(final Command nestedCmd, long nextStep, Class<? extends CommandImplementation> enforceProcessingMethod){
 		Class<? extends CommandImplementation> [] enforceProcessingMethods = null;
