@@ -37,3 +37,4 @@ de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoundRobinRoute = d
 
 +NIC
 de.hd.pvs.piosim.model.components.NIC.NIC = de.hd.pvs.piosim.simulator.components.NIC.GProcessNetworkInterface
+de.hd.pvs.piosim.model.components.NIC.NICAnalytical = de.hd.pvs.piosim.simulator.components.NIC.GProcessNetworkInterfaceAnalytical
