@@ -88,10 +88,22 @@ public class Validation  extends ModelTest {
 	}
 
 
+	@Test public void broadcastBroadcastPipedBlockwise() throws Exception{
+		setup(8, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise");
 
+		parameters.setTraceFile("/tmp/bcast");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+
+		pb.addBroadcast(world, 0,100 * MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
 
 	@Test public void broadcastBroadcastScatterBarrierGatherall() throws Exception{
-		setup(8, 1);
+		setup(10, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterBarrierGatherall");
 

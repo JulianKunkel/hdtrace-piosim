@@ -83,6 +83,7 @@ de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeMultiplex
 de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall
 de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterBarrierGatherall
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimpleBlockwise
+de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise
 
 +de.hd.pvs.piosim.model.program.commands.Fileread
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
