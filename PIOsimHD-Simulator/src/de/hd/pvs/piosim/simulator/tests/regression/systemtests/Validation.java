@@ -60,6 +60,21 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+
+	@Test public void barrierTree() throws Exception{
+		setup(8, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BinaryTree");
+		parameters.setTraceFile("/tmp/barrier");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addBarrier(world);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
 	@Test public void broadcastMultiplex() throws Exception{
 		setup(8, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);

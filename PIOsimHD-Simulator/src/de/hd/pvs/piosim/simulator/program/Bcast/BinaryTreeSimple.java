@@ -55,10 +55,9 @@ extends CommandImplementation<Bcast>
 
 		final int commSize = cmd.getCommunicator().getSize();
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		final int myRank = client.getModelComponent().getRank();
-		final int rootRank = cmd.getRootRank();
 
-		int clientRankInComm = myRank;
+		final int rootRank = cmd.getCommunicator().getLocalRank( cmd.getRootRank() );
+		int clientRankInComm = cmd.getCommunicator().getLocalRank( client.getModelComponent().getRank() );
 
 		//exchange rank 0 with cmd.root to receive data on the correct node
 		if(clientRankInComm == cmd.getRootRank()) {

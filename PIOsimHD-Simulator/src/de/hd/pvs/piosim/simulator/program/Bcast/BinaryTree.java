@@ -66,10 +66,9 @@ extends CommandImplementation<Bcast>
 			OUTresults.setNextStep(RENDEVOUZ);
 
 			//wait for receives from all "to receive data"
-			final int myRank = client.getModelComponent().getRank();
-			final int rootRank = cmd.getRootRank();
+			final int rootRank = cmd.getCommunicator().getLocalRank( cmd.getRootRank() );
 
-			int clientRankInComm = myRank;
+			int clientRankInComm = cmd.getCommunicator().getLocalRank( client.getModelComponent().getRank() );
 
 			//exchange rank 0 with cmd.root to receive data on the correct node
 			if(clientRankInComm == cmd.getRootRank()) {
@@ -92,7 +91,6 @@ extends CommandImplementation<Bcast>
 				}else if(sendTo == rootRank){
 					sendTo = 0;
 				}
-
 
 				//System.out.println(myRank + " phaseStart: " + phaseStart +" tz:" + trailingZeros + " send to: " +  sendTo);
 

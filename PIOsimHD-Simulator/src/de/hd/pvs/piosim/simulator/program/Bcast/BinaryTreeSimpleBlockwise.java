@@ -56,10 +56,9 @@ extends CommandImplementation<Bcast>
 
 		final int commSize = cmd.getCommunicator().getSize();
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		final int myRank = client.getModelComponent().getRank();
-		final int rootRank = cmd.getRootRank();
+		final int rootRank = cmd.getCommunicator().getLocalRank( cmd.getRootRank() );
 
-		int clientRankInComm = myRank;
+		int clientRankInComm = cmd.getCommunicator().getLocalRank( client.getModelComponent().getRank() );
 
 		final int iterationsOfBlocks = (int)((cmd.getSize() - 1)/splitSize);	 // minus 1 Byte
 
