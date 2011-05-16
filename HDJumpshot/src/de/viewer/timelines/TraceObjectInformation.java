@@ -58,4 +58,9 @@ public class TraceObjectInformation {
 	public Epoch getTime() {
 		return time;
 	}
+	
+	@Override
+	public String toString() {	
+		return object.toString();
+	}
 }

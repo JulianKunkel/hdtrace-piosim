@@ -434,9 +434,14 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 
 		if( dobj != lastMouseMoveObject ){
 			info_model.showInfo(dobj);
+			
+			if(dobj != null){
+				// 	set the tooltip based on the object
+				this.setToolTipText(dobj.toString());
+			}
 		}
 
-		lastMouseMoveObject = dobj;
+		lastMouseMoveObject = dobj;		
 	}    
 
 	@Override
