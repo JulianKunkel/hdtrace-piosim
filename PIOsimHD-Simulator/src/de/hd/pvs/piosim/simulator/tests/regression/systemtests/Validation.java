@@ -215,6 +215,23 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void TestGatherBinaryTreeMPICH2() throws Exception{
+		setup(20, 1);
+
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Scatter.GatherBinaryTreeMPICH2");  //andere Implementation
+		//CommandToSimulationMapper Eintrag, Standard letzter
+
+		parameters.setTraceFile("D:/simulator/GatherBinaryTreeMPICH2");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addScatter(world, 0, 10 * KBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 
 
 	@Test public void TestScatterFCFS() throws Exception{
