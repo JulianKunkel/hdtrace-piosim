@@ -61,6 +61,7 @@ de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Gather.Direct
 de.hd.pvs.piosim.simulator.program.Gather.FCFS
+de.hd.pvs.piosim.simulator.program.Gather.GatherBinaryTreeMPICH2
 
 +de.hd.pvs.piosim.model.program.commands.Scatter
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
