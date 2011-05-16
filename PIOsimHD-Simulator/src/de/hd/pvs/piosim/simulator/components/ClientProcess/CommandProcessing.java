@@ -467,6 +467,7 @@ public class CommandProcessing{
 	 * @return The target rank of the application.
 	 */
 	final private INodeHostedComponent getTargetfromRank(int rank){
+		assert(rank >= 0);
 		return getInvokingComponent().getSimulator().getApplicationMap().
 		getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
 	}
