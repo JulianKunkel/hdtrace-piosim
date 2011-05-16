@@ -108,11 +108,23 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	private   JRadioButton          hand_btn;
 	
 	private JCheckBox processNestedChkbox;	
+	private JCheckBox processZeroTimeChckbox;	
+
 
 	/**
 	 * This function gets called, when the user changes the nested state in the toolbar
 	 */
 	abstract protected void fireNestedStateChanged();
+	
+	public class ZeroCallback{		
+		/**
+		 * Should the timeline start with 0 although a zoom is/has been performed.
+		 * @return
+		 */
+		public boolean isStartWithZero(){
+			return processZeroTimeChckbox.isSelected();
+		}		
+	}
 	
 	public void setProcessNested(boolean value){
 		processNestedChkbox.setSelected(value);
@@ -204,7 +216,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		timeCanvasVport = new ViewportTimeYaxis( modelTime, y_model, topologyManager );
 
 		/* The Time Ruler */
-		timeRuler        = new RulerTime( scrollbarTimeModel, timeCanvasVport );
+		timeRuler        = new RulerTime( scrollbarTimeModel, timeCanvasVport, new ZeroCallback() );
 		time_ruler_vport  = new ViewportTime( modelTime );
 		time_ruler_vport.setView( timeRuler );
 
@@ -381,6 +393,13 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 			}
 		});
 		toolbar.add(processNestedChkbox);
+		
+
+		processZeroTimeChckbox = new JCheckBox("ZeroTime");	
+		processZeroTimeChckbox.setSelected(false);
+
+		processZeroTimeChckbox.setToolTipText("The timeline always starts at 0 after a zoom operation, scrolling changes the position though");
+		toolbar.add(processZeroTimeChckbox);
 		
 		toolbar.addRightButtons(iconManager, getFrame());
 		toolbar.init();

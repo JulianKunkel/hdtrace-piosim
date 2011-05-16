@@ -45,6 +45,7 @@ import java.text.NumberFormat;
 
 import de.drawable.TimeBoundingBox;
 import de.hd.pvs.TraceFormat.ITracableObject;
+import de.viewer.common.AbstractTimelineFrame.ZeroCallback;
 import de.viewer.common.Const;
 import de.viewer.common.Debug;
 import de.viewer.common.Routines;
@@ -59,9 +60,13 @@ public class RulerTime extends ScrollableObject
 
 	private DecimalFormat  fmt;
 
-	public RulerTime( ScrollbarTimeModel   model, ViewportTime viewport )
+	private ZeroCallback zeroCallback;
+	
+	public RulerTime( ScrollbarTimeModel   model, ViewportTime viewport, ZeroCallback zeroCallback )
 	{
 		super( model, viewport );
+		
+		this.zeroCallback = zeroCallback;
 		fmt         = (DecimalFormat) NumberFormat.getInstance();
 		fmt.applyPattern( Const.RULER_TIME_FORMAT );
 		
@@ -112,8 +117,7 @@ public class RulerTime extends ScrollableObject
 			offGraphics.fillRect( 0, 0, offImage_width, offImage_height );
 			offGraphics.setFont( Const.FONT );
 			offGraphics.setColor( Color.black );
-
-
+			
 			final double   tRange = timebounds.getDuration();
 			double         tIncrement;
 			tIncrement = tRange / ( NumViewsPerImage * 10.0 );
@@ -126,7 +130,13 @@ public class RulerTime extends ScrollableObject
 			if ( Debug.isActive() )
 				Debug.print( "RulerTime.drawOffImage at : " );
 			double t_init = timebounds.getEarliestTime();
+
+			if(zeroCallback.isStartWithZero()){
+				t_init = 0;
+			}
+			
 			i_X_0 = super.time2pixel( t_init );
+			
 			tInitMark  = Routines.getTimeRulerFirstMark( t_init, tIncrement );
 			tFinalMark = timebounds.getLatestTime() + tIncrement;
 			for ( time = tInitMark; time < tFinalMark; time += tIncrement ) {
@@ -137,6 +147,9 @@ public class RulerTime extends ScrollableObject
 				if ( Debug.isActive() )
 					Debug.print( time + ":" + i_X + ", " ); 
 			}
+			
+			// draw rightmost timestamp
+			
 			if ( Debug.isActive() )
 				Debug.println( "|" );
 
