@@ -7,6 +7,7 @@ import de.hd.pvs.piosim.model.components.NIC.NIC;
  */
 public class NICC implements HardwareComponents{
 	static public NIC PVSNIC(){
+		//NICAnalytical nic = new NICAnalytical();
 		NIC nic = new NIC();
 		nic.setName("NIC");
 		// determined on west1 by using memory-bandwidth.c 1000 iter, 104857600
