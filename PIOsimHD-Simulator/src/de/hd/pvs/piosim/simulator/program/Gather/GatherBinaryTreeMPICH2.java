@@ -52,6 +52,7 @@ public class GatherBinaryTreeMPICH2 extends CommandImplementation<Gather>{
 		}else{
 			// who will be next receiver? => (myrank - 2^step)
 			int sendTo = (int) (clientRankInComm - Math.pow(2, step));
+			int receiveFrom = (int) (clientRankInComm + Math.pow(2, step/-1));
 
 			// am i leaf node?
 			if(step == CommandProcessing.STEP_START && Integer.numberOfTrailingZeros(clientRankInComm) == 0){
@@ -60,6 +61,9 @@ public class GatherBinaryTreeMPICH2 extends CommandImplementation<Gather>{
 				OUTResults.setNextStep(step++);
 			}else{
 				// i am not a leaf node
+
+				// receive data
+				OUTResults.addNetReceive(receiveFrom, 30303, cmd.getCommunicator());
 				// thus I send my data + the data i received to the next node (myrank - 2^step)
 				// unless this receiver is out of range (< 0)
 				if(sendTo >= 0){
