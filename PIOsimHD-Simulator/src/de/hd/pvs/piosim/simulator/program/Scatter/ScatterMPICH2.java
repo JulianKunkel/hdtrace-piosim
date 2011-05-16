@@ -13,9 +13,9 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  * The sender transfers data to all recipients in one step, that means the senders NIC is multiplexed among all receivers.
  *
  * Difference to BinaryTreeBCast is the amount of data sent. Since each node needs to get his own unique data it cannot be sent once and just copied.
- * In this simulator we use example data and to simplify the problem, this class will simply faktorize the amount of data sent by the amount of nodes needing it.
+ * In this simulator we use example data and to simplify the problem, this class will simply factorize the amount of data sent by the amount of nodes needing it.
  *
- * @author artur
+ * @author artur, julian
  *
  */
 public class ScatterMPICH2 extends CommandImplementation<Scatter>{
@@ -23,7 +23,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 	@Override
 	public void process(Scatter cmd, CommandProcessing OUTresults,
 			GClientProcess client, long step, NetworkJobs compNetJobs) {
-		final int RECEIVED = 2;
+		final int RECEIVED = 1;
 
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
@@ -32,10 +32,9 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 
 		final int commSize = cmd.getCommunicator().getSize();
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-		final int myRank = client.getModelComponent().getRank();
-		final int rootRank = cmd.getRootRank();
 
-		int clientRankInComm = myRank;
+		final int rootRank = cmd.getCommunicator().getLocalRank( cmd.getRootRank() );
+		int clientRankInComm = cmd.getCommunicator().getLocalRank( client.getModelComponent().getRank() );
 
 		//exchange rank 0 with cmd.root to receive data on the correct node
 		if(clientRankInComm == cmd.getRootRank()) {
@@ -48,49 +47,69 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 		final int phaseStart = iterations - trailingZeros;
 
 
-
 		if(clientRankInComm != 0){
-			// recv first, then send.
+			// receive first, then send.
+
+			final int maxPhase = iterations - 1  - phaseStart;
 
 			if (step == CommandProcessing.STEP_START){
-				OUTresults.setNextStep(RECEIVED);
 
 
 				int recvFrom = (clientRankInComm ^ 1<<trailingZeros);
 
-				if(recvFrom == 0){
-					recvFrom = rootRank;
-				}else if(recvFrom == rootRank){
-					recvFrom = 0;
+				OUTresults.addNetReceive(((recvFrom != rootRank) ? recvFrom : 0), 30000, cmd.getCommunicator());
+
+				if(maxPhase == -1){
+					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+				}else{
+					// there is some work to do
+					OUTresults.setNextStep(RECEIVED);
 				}
 
-
-				OUTresults.addNetReceive(recvFrom, 30000, cmd.getCommunicator());
-
-			}else if(step == RECEIVED){
+			}else{ // if(step >= RECEIVED)
 				// send
-				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+				int iter = (int) step - RECEIVED;
 
-				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
-					int targetRank = (1<<iter | clientRankInComm);
-					if (targetRank >= commSize) continue;
-					//System.out.println(clientRankInComm +" to " + (1<<iter | clientRankInComm) );
+				if(iter < maxPhase){
+					// stop after all clients got the data
+					OUTresults.setNextStep(step + 1);
+				}else{
+					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+				}
+
+				int targetRank = (1<< (maxPhase - iter) | clientRankInComm);
+
+				if (targetRank < commSize){
+
+					// the number of packets depends on the processes which forward the data in the binary tree
+					final int countPow =  1<<(maxPhase - iter);
+					int count = targetRank + countPow > commSize ? commSize - targetRank : countPow;
+
+					//System.out.println(client.getModelComponent().getRank() + " check to target: " + targetRank + " " + count );
+
+
 					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0),
-							new NetworkSimpleData(cmd.getSize()*iter + 20), 30000, cmd.getCommunicator());
+						new NetworkSimpleData(cmd.getSize() * count + 20), 30000, cmd.getCommunicator());
 				}
 			}
-		}else{
-			OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 
-			// send to all receivers
-			for (int iter = iterations-1 ; iter >= 0 ; iter--){
-				final int targetRank =  1<<iter;
-				//System.out.println(clientRankInComm +" to " + ((targetRank != rootRank) ? targetRank : 0) );
-				OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0,
-						new NetworkSimpleData(cmd.getSize()*iter + 20), 30000, cmd.getCommunicator());
+		}else{ // rank 0, we know data must be transmitted to at least one target
+
+			if(step < iterations - 1){
+				// stop after all clients got the data
+				OUTresults.setNextStep(step + 1);
+			}else{
+				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 			}
-		}
 
+			final int targetRank =  1<< (iterations - 1 - step);
+			int count = 2 * targetRank  > commSize ? commSize - targetRank : targetRank;
+
+			//System.out.println("Check to target: " + targetRank + " " + count );
+
+			OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0,
+					new NetworkSimpleData(cmd.getSize() * count + 20), 30000, cmd.getCommunicator());
+		}
 	}
 
 }
