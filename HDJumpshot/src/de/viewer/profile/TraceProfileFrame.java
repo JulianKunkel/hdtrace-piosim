@@ -380,11 +380,13 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 			}			
 			case RELATION_EXPANDED:
 			{
-				// does not work right now, reason, topoNode is the same!				
-				/* final TopologyRelationExpandedTreeNode topoNode = (TopologyRelationExpandedTreeNode) topologyManager.getTreeNodeForTimeline(timeline); 				
-				ITraceElementEnumerator enumerator = topoNode.enumerateTraceEntries(profileNested, starttime, endtime);				
-				addToExistingProfile(enumerator, starttime, endtime, catMap);
-				*/
+				// TODO does not work for multiple timelines right now, reason, topoNode is the same!
+				final TopologyRelationTreeNode topoNode = (TopologyRelationTreeNode) topologyManager.getTreeNodeForTimeline(timeline);
+				// sum up all children to the profile, note, this can be avoided by adding the already computed statistics from the child nodes.
+				if(topoNode.getRelationSource().getMaximumConcurrentRelationEntries() == 1){			
+					ITraceElementEnumerator enumerator = topoNode.getRelationSource().enumerateTraceEntries(profileNested, starttime, endtime, 0);				
+					addToExistingProfile(enumerator, starttime, endtime, catMap);
+				}
 				break;
 			}
 			default:
