@@ -41,7 +41,10 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.regex.Pattern;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
@@ -66,6 +69,8 @@ import de.hd.pvs.TraceFormat.trace.ForwardStateEnumeration;
 import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
+import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hdTraceInput.BufferedStatisticsFileReader;
 import de.hdTraceInput.BufferedTraceFileReader;
@@ -87,6 +92,7 @@ import de.viewer.dialog.InfoDialog;
 import de.viewer.dialog.InfoDialogForStatisticEntries;
 import de.viewer.dialog.traceEntries.InfoDialogForTraceEntries;
 import de.viewer.legends.CategoryUpdatedListener;
+import de.viewer.timelines.FilterTokenInterface.FilterExpression;
 import de.viewer.zoomable.CoordPixelImage;
 import de.viewer.zoomable.ScrollbarTimeModel;
 import de.viewer.zoomable.SearchResults;
@@ -110,6 +116,75 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 	private MyTopologyChangeListener topologyChangeListener = new MyTopologyChangeListener();
 
+	/**
+	 * A Filter for the entries, also changes the visualization modes.
+	 * 
+	 * @author julian
+	 */
+	static private class EntryFilter{
+		final boolean heatMap;		
+		final FilterExpression expression;
+		
+		/**
+		 * Parse the filter string and recursively generate the filter
+		 * @param filter
+		 * @throws IllegalArgumentException
+		 */
+		public EntryFilter(String filter) throws IllegalArgumentException {		
+			heatMap = filter.contains("heatmap:");
+			
+			expression = new FilterExpression(filter);			
+		}
+		
+		public FilterExpression getExpression() {
+			return expression;
+		}
+		
+		public boolean isHeatMap() {
+			return heatMap;
+		}
+	}
+	
+	/**
+	 * Filter the events etc. based on a user provided string.
+	 * @return
+	 */
+	public class FilterListener{
+
+		/**
+		 * @param text
+		 * @return True if valid
+		 */
+		public boolean applyFilter(String text){
+			// null strings reset the filter
+			if(text.length() == 0){
+				currentFilter = null;
+				redrawIfAutoRedraw();
+				
+				return true;
+			}
+			
+			try{
+				// replace whitespace
+				currentFilter = new EntryFilter(text.replace(" ", "") + " ");				
+				redrawIfAutoRedraw();
+				return true;				
+			}catch (IllegalArgumentException e){
+				System.err.println("Error, invalid filter: " + text + " " + e.getMessage());
+				return false;
+			}
+		}
+	}
+	
+	private EntryFilter    currentFilter = null;
+	private FilterListener filterListener = new FilterListener();
+	
+	public FilterListener getFilterListener() {
+		return filterListener;
+	}
+	
+	
+	
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
 		@Override
@@ -450,6 +525,13 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		// walk through all entries and compute values.
 		while(entries.hasMoreElements()){
 			final StatisticsGroupEntry entry = entries.nextElement();
+			
+			if(currentFilter != null){
+				if(! currentFilter.getExpression().matches(entry)){
+					continue;
+				}
+			}
+			
 			double value;
 			final double input = entry.getNumeric(statNumber);
 			switch(scale){
@@ -608,6 +690,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			drawedTraceObjects++;
 			ITraceEntry tentry = elements.nextElement();
 
+			if(currentFilter != null){
+				if(! currentFilter.getExpression().matches(tentry)){
+					continue;
+				}
+			}
+			
 			final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
 			if(tentry.getType() == TracableObjectType.EVENT){          
@@ -640,6 +728,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					// skip nested elements if necessary
 					
 					final ITraceEntry entry = stateEnum.nextElement();
+
+					if(currentFilter != null){
+						if(! currentFilter.getExpression().matches(entry)){
+							continue;
+						}
+					}
 					
 					if(entry.getType() == TracableObjectType.EVENT){          
 						final IEventTraceEntry event = (IEventTraceEntry) entry;
@@ -694,6 +788,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			
 			for(IStateTraceEntry rstate: relationEntry.getStates()){
 				
+				if(currentFilter != null){
+					if(! currentFilter.getExpression().matches(rstate)){
+						continue;
+					}
+				}
+				
 				final Category stateCategory = reader.getCategory(rstate);
 				if(! stateCategory.isVisible()){
 					continue;
@@ -713,6 +813,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					// skip nested elements if necessary
 					
 					final ITraceEntry entry = stateEnum.nextElement();
+					
+					if(currentFilter != null){
+						if(! currentFilter.getExpression().matches(entry)){
+							continue;
+						}
+					}
 					
 					if(entry.getType() == TracableObjectType.EVENT){          
 						final IEventTraceEntry event = (IEventTraceEntry) entry;
