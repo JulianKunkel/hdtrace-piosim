@@ -105,6 +105,18 @@ int initTracing(
 	} else {
 		tracingData->oldValues.c_states = NULL;
 	}
+
+	/* get number of p-states and init memory */
+	tracingData->staticData.p_states_num = (gint) get_available_p_states();
+	if (tracingData->staticData.p_states_num > 0) {
+		rut_malloc(tracingData->oldValues.p_states, 
+				tracingData->staticData.p_states_num * tracingData->staticData.cpu_num * 2, 
+				-1);
+
+	} else {
+		tracingData->oldValues.p_states = NULL;
+	}
+
 #endif
 
 	/* get available network interfaces */
@@ -170,7 +182,7 @@ int initTracing(
 			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_CPU%d", i);
 			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
-			ADD_VALUE(group, strbuf, INT64, "B", "CPU_FREQ");
+			ADD_VALUE(group, strbuf, INT64, "kHz", "CPU_FREQ");
 		}
 	
 	/*if cpuidle registers could not be found, disable it*/
@@ -435,6 +447,7 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer)
 
 #ifdef HAVE_PROCESSORSTATES
 	rut_free(tracingData->oldValues.c_states);
+	rut_free(tracingData->oldValues.p_states);
 #endif
 
 	rut_free(tracingData);
@@ -578,14 +591,48 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 #ifdef HAVE_PROCESSORSTATES
 		if (tracingData->sources.CPU_FREQ_X)
 		{
-			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
-			{
-				valuei64 = (gint64) (cpufreq_get_freq_kernel(i));
-				WRITE_I64_VALUE(tracingData, valuei64);
-				DEBUGMSG("CPU_FREQ_%d = %d kHz", i, valuei64);
+			gint cpu_num = tracingData->staticData.cpu_num;
+			gint p_states_num = tracingData->staticData.p_states_num;
+			
+			/* temp for old values */
+			guint64 p_states[p_states_num * cpu_num * 2];
+
+			/* save old values */
+			memcpy(p_states, tracingData->oldValues.p_states, sizeof(guint64) * p_states_num * cpu_num * 2);
+
+			/* get new values */
+			get_p_state_times( tracingData->oldValues.p_states, cpu_num, p_states_num);
+
+			/* difference */
+			for (int d = (p_states_num * cpu_num); d < (p_states_num * cpu_num * 2); d++) {
+				p_states[d] = tracingData->oldValues.p_states[d] - p_states[d];
+			}
+
+			/* calculate avg. cpu freq */
+			/* interval ms / time_in_state file 10ms */
+
+			DEBUGMSG("INTERVAL: %d",tracingData->interval);
+
+			for (int c = 0; c < cpu_num; c++) {
+				double freq = 0;
+				for (int p = 0; p < p_states_num; p++) {
+					if (p_states[(cpu_num * p_states_num) + (c * p_states_num) + p] > (tracingData->interval / 10)) {
+						p_states[(cpu_num * p_states_num) + (c * p_states_num) + p] = tracingData->interval / 10;
+					}
+					DEBUGMSG("CPU_FREQ_%d TIME_IN_STATE_%ld %ld", c, p_states[(c * p_states_num) + p], p_states[(cpu_num * p_states_num) + (c * p_states_num) + p]);
+					freq += (double) 
+						/* frequency MHz */
+						((double) (p_states[(c * p_states_num) + p]) * 
+						/* time in state 10ms */
+						(double) (p_states[(cpu_num * p_states_num) + (c * p_states_num) + p] / (double) (tracingData->interval / 10)));
+				}
+				WRITE_I64_VALUE(tracingData, (gint64) freq);
+				DEBUGMSG("CPU_FREQ_%d = %d kHz", c,  (gint64) freq);
 			}
 		}
-		
+
+
+
 		if (tracingData->sources.CPU_IDLE_X)
 		{
 			/* temp for old values */
@@ -653,6 +700,10 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 			tracingData->oldValues.c_states, 
 			tracingData->staticData.cpu_num,
 			tracingData->staticData.c_states_num);
+		get_p_state_times( 
+			tracingData->oldValues.p_states, 
+			tracingData->staticData.cpu_num, 
+			tracingData->staticData.p_states_num);
 #endif
 	}
 	/* save current CPU statistics for next step */

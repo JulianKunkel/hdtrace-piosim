@@ -54,13 +54,30 @@ unsigned int cpufreq_available() {
 	}
 }
 
+ /**
+ * checks if the sysfs interface for cpufreq stats is active
+ * 
+ * @return availability of cpuifreq stats
+ *
+ * @retval 1 Success
+ * @retval 0 Failure
+ */
+unsigned int cpufreq_stats_available() {
+	DIR *cpudir = opendir("/sys/devices/system/cpu/cpu0/cpufreq/stats");
+	if (!cpudir) {
+		return 0;
+	} else {
+		closedir(cpudir);
+		return 1;
+	}
+}
+
 /**
  * returns the number of readable c-states
  *
  * @return number of c-states provided by sysfs
  */
 int get_available_c_states(){
-	
 	int c_states = 0;
 	DIR *cpuidle = opendir("/sys/devices/system/cpu/cpu0/cpuidle");
 
@@ -77,6 +94,34 @@ int get_available_c_states(){
 	
 	closedir(cpuidle);
 	return c_states;
+}
+
+/**
+ * returns the number of readable p-states
+ *
+ * @return number of p-states provided by sysfs
+ */
+int get_available_p_states(){
+	FILE *fp;
+	int status;
+	int p_states = 0;
+	char path[1035];
+
+	/* Open the command for reading. */
+	fp = popen("/bin/cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state | /usr/bin/wc -l", "r");
+	if (fp == NULL) {
+		return p_states;
+	}
+
+	/* Read the output a line at a time - output it. */
+	while (fgets(path, sizeof(path), fp) != NULL) {
+		p_states = atoi(path);
+	}
+
+	/* close */
+	pclose(fp);
+
+	return p_states;
 }
 
 /**
@@ -130,5 +175,53 @@ int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num
 	
 	closedir(dir);
 	
+	return 0;
+}
+
+/**
+ * saves the actual values of the time-file in the cpufreq sysfs interface
+ *
+ * @param p_states pointer to array in order to save new values
+ * @param cpu_num number of CPUs
+ * @param p_states_num number of p-states
+ *
+ * @retval 0 success
+ */
+int get_p_state_times(unsigned long int *p_states, int cpu_num, int p_states_num) 
+{
+	char filename[128], *f;
+	char line[4096];
+	char *token = NULL;
+	char *delim = " ";
+	FILE *file = NULL;
+	int len = 0;
+	int plevel = 0;
+
+	unsigned long int freq = 0;
+	unsigned long int count = 0;
+
+	for (int i = 0; i < cpu_num; i += 1) {
+		len = sprintf(filename, "/sys/devices/system/cpu/cpu%d/cpufreq/stats/time_in_state", i);
+		file = fopen(filename, "r");
+		plevel = 0;
+
+		if (!file) {
+			continue;
+		}
+
+		while (fgets(line, sizeof(line), file) != NULL) {
+			token = strtok(line, delim);
+			freq = strtoul(token, NULL, 10);
+			token = strtok(NULL, delim);
+			count = strtoul(token, NULL, 10);
+
+			p_states[(i * p_states_num) + plevel] = freq;
+			p_states[(cpu_num * p_states_num) + (i * p_states_num) + plevel] = count;
+			memset(line, 0, 4096);
+			plevel++;
+
+		}
+		fclose(file);
+	}
 	return 0;
 }
