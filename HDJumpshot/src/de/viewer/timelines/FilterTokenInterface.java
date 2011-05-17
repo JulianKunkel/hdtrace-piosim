@@ -34,7 +34,6 @@ public interface FilterTokenInterface {
 		EQUALS,
 		AND,
 		OR,
-		HEATMAP,
 		COMPOUND;
 	}
 
@@ -46,7 +45,6 @@ public interface FilterTokenInterface {
 	static public class SimpleFilterToken implements FilterTokenInterface{
 		final private FilterTokenType typ;
 
-		static public FilterTokenInterface HEATMAP = new SimpleFilterToken(FilterTokenType.HEATMAP);
 		static public FilterTokenInterface OR = new SimpleFilterToken(FilterTokenType.OR);
 		static public FilterTokenInterface AND = new SimpleFilterToken(FilterTokenType.AND);
 		static public FilterTokenInterface EQUALS = new SimpleFilterToken(FilterTokenType.EQUALS);
@@ -143,7 +141,6 @@ public interface FilterTokenInterface {
 				}
 
 				return matchValue(attributeName, lookahead.getType(), lookahead2, object);
-
 			}case CATEGORY_NAME:{
 					Pattern p = ((RegexFilterToken) token).pattern;
 					
@@ -336,9 +333,7 @@ public interface FilterTokenInterface {
 					if( ! Character.isLetter( n ) &&  n != '_' && n != '-' ) {
 						// finalize this string
 						
-						if(nestedData.equals("heatmap:")){
-							nestedTokens.add(SimpleFilterToken.HEATMAP);
-						}else if(startSpecial){							
+						if(startSpecial){							
 							// localize = in the string			
 							// the next char should be "="
 							if (n != '='){

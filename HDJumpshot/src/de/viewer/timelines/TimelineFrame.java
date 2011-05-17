@@ -76,6 +76,11 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 	 * Text filter, allows to filter events with a specific attribute or allows to render them as a heat map 
 	 */
 	private JTextField              txtFilter;
+	
+	/**
+	 * Text filter for the heat maps
+	 */
+	private JTextField              heatMapFilter;
 
 
 	public TimelineFrame( final TraceFormatBufferedFileReader reader, final ModelTime modelTime )
@@ -141,6 +146,24 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 			}
 		});
 		toolbar.add(txtFilter);
+		
+		
+
+		heatMapFilter = new JTextField(5);
+		heatMapFilter.setMargin( insets );
+		heatMapFilter.setToolTipText("If you want to apply a heatmap based on attributes, specify them in a mathematical expression in poland prefix e.g. + size tag means size*tag");
+		heatMapFilter.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {				
+				// color the text filter if it is invalid!
+				if( ((CanvasTimeline) getCanvasArea()).getHeatMapListener().applyFilter(heatMapFilter.getText()) ){
+					heatMapFilter.setBackground(Color.WHITE);
+				}else{
+					heatMapFilter.setBackground(Color.RED);
+				}
+			}
+		});
+		toolbar.add(heatMapFilter);
 	}
 
 	@Override

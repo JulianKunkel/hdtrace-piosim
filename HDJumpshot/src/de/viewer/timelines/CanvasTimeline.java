@@ -86,6 +86,7 @@ import de.topology.TopologyRelationTreeNode;
 import de.topology.TopologyStatisticTreeNode;
 import de.topology.TopologyTreeNode;
 import de.viewer.common.Debug;
+import de.viewer.common.HeatMap;
 import de.viewer.common.Parameters;
 import de.viewer.common.Profile;
 import de.viewer.dialog.InfoDialog;
@@ -122,7 +123,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	 * @author julian
 	 */
 	static private class EntryFilter{
-		final boolean heatMap;		
 		final FilterExpression expression;
 		
 		/**
@@ -130,18 +130,12 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		 * @param filter
 		 * @throws IllegalArgumentException
 		 */
-		public EntryFilter(String filter) throws IllegalArgumentException {		
-			heatMap = filter.contains("heatmap:");
-			
+		public EntryFilter(String filter) throws IllegalArgumentException {	
 			expression = new FilterExpression(filter);			
 		}
 		
 		public FilterExpression getExpression() {
 			return expression;
-		}
-		
-		public boolean isHeatMap() {
-			return heatMap;
 		}
 	}
 	
@@ -178,11 +172,49 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	
 	private EntryFilter    currentFilter = null;
 	private FilterListener filterListener = new FilterListener();
-	
+
 	public FilterListener getFilterListener() {
 		return filterListener;
 	}
 	
+	public class HeatMapListener{
+		public boolean applyFilter(String text){
+			if(text.length() == 0){
+				currentHeatMap = null;
+				redrawIfAutoRedraw();
+				
+				return true;
+			}
+			
+			currentHeatMap = HeatMap.createHeatMap(text);
+			if(currentHeatMap == null){
+				return false;
+			}
+			redrawIfAutoRedraw();
+			return true;
+		}
+	}
+	
+	private HeatMapListener heatMapListener = new HeatMapListener();
+	
+	private HeatMap        currentHeatMap = null;
+	
+	public HeatMapListener getHeatMapListener() {
+		return heatMapListener;
+	}
+	
+	
+	/**
+	 * Use the heatmap to calculate the color
+	 * @return
+	 */
+	public Color determineColor(Color color, ITraceEntry obj){
+		if(currentHeatMap == null){
+			return color;			
+		}
+		// otherwise check if the obj matches and compute the heat value!
+		return currentHeatMap.determineColor(color, obj);
+	}
 	
 	
 	// gets triggered if the visibility of an category is changed
@@ -298,8 +330,38 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 		// Draw all drawables
 		final Epoch vStartTime = new Epoch(timebounds.getEarliestTime() );
-		final Epoch vEndTime = new Epoch(timebounds.getLatestTime() );
+		final Epoch vEndTime = new Epoch(timebounds.getLatestTime() );		
 
+		// a heat map must been drawn two times to determine the proper maximum.
+		if(currentHeatMap != null){
+			currentHeatMap.resetHeatMapColors();
+			
+			// run two times, determine maximum, statistics timeline must not be drawn.
+
+			for(int i=0; i < num_rows ; i++){			
+				switch (topologyManager.getType(i)){
+				case INNER_NODE:
+					break;
+				case TRACE:
+					drawedTraceElements += drawTraceTimeline(i, topologyManager.getTraceReaderForTimeline(i), offGraphics, vStartTime, vEndTime, coord_xform);
+					break;
+				case RELATION:{
+					if(! topologyManager.getTree().isExpanded(i)){
+						// problem, end time sorting of relations => no drawing is possible.
+						final TopologyRelationTreeNode node = ((TopologyRelationTreeNode) topologyManager.getTreeNodeForTimeline(i));
+						drawedTraceElements += drawRelationTimeline(i, 
+								node, offGraphics, vStartTime, vEndTime, coord_xform);
+					}
+					break;
+				}case RELATION_EXPANDED:
+					final TopologyRelationExpandedTreeNode node = ((TopologyRelationExpandedTreeNode) topologyManager.getTreeNodeForTimeline(i));
+					drawedTraceElements += drawRelationTimeline(i, 
+							node, offGraphics, vStartTime, vEndTime, coord_xform);
+				}
+			}
+
+		}
+		
 		for(int i=0; i < num_rows ; i++){			
 			switch (topologyManager.getType(i)){
 			case INNER_NODE:
@@ -488,9 +550,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 		final int statNumber = desc.getNumberInGroup();
 
-		final Enumeration<StatisticsGroupEntry> entries = sReader.enumerateStatistics(
-				vStartTime.add(getModelTime().getGlobalMinimum()),
-				vEndTime.add(getModelTime().getGlobalMinimum()));
+		final Enumeration<StatisticsGroupEntry> entries = sReader.enumerateStatistics( vStartTime.add(getModelTime().getGlobalMinimum()),	vEndTime.add(getModelTime().getGlobalMinimum()));
 
 		// aggregate overlapping stuff to form a median.
 		BigDecimal aggregatedValue = null;
@@ -518,9 +578,19 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		final int y1   = coord_xform.convertTimelineToPixel( timeline + 1 );
 		
 		
+		final boolean drawHeatMap;
+		
+		// check for the heatmap.
+		if(currentHeatMap != null && currentHeatMap.isSingleAttributeWithName(desc.getName())){
+			// draw a heatmap for this line!
+			drawHeatMap = true;
+		}else{
+			drawHeatMap = false;
+		}
+		
 		// the colors used to print min/max
 		final Color minColor = new  Color(backGroundColor.getBlue(), backGroundColor.getGreen(), backGroundColor.getRed() );
-		final Color maxColor = new  Color(backGroundColor.getGreen(), backGroundColor.getRed(), backGroundColor.getBlue());
+		//final Color maxColor = new  Color(backGroundColor.getGreen(), backGroundColor.getRed(), backGroundColor.getBlue());
 
 		// walk through all entries and compute values.
 		while(entries.hasMoreElements()){
@@ -563,13 +633,20 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			// where does the current value end.
 			int x2 =  coord_xform.convertTimeToPixel( endTime.getDouble() );
 			
-			final double currentValue = (float) value;			
+			final double currentValue = value;			
 
 			if(lastIsOnePixel && lastStartX == x1){
 				
 				if(lastStartX < x2){
 					// draw the new value, this part could be right of the overlapping area
-					offGraphics.fillRect( lastStartX, y1 - (int) (maxHeight * currentValue), x2-lastStartX +1, (int) (maxHeight * currentValue) );
+					
+					if(!drawHeatMap){
+						offGraphics.fillRect( lastStartX, y1 - (int) (maxHeight * currentValue), x2-lastStartX +1, (int) (maxHeight * currentValue) );
+					}else{
+						// for a heatmap change the behavior
+						offGraphics.setColor(currentHeatMap.determineColor((float) currentValue));
+						offGraphics.fillRect( lastStartX, y1 - maxHeight, x2-lastStartX +1, maxHeight );
+					}
 					
 				    // we are multiple pixel width => account duration properly, the next pixel will start with a different time.
 					endTime = new Epoch(coord_xform.convertPixelToTime(x1 + 1));
@@ -605,29 +682,37 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 				
 				final int curHeight = (int) (maxHeight * aggregateVal);
+				
+				if(! drawHeatMap){ // now heatmap draw minima and maxima
+					// draw the line:				
+					offGraphics.fillRect( x1, y1 - curHeight, 1, curHeight );			
 
-				// draw the line:				
-				offGraphics.fillRect( x1, y1 - curHeight, 1, curHeight );			
-				
-				// draw min / max if necessary
-				
-				if (minAggregateY < valueHeight){
-					offGraphics.setColor(minColor);
-					offGraphics.fillRect(x1, y1 - minAggregateY - 1, 1, 3);
+					// draw min / max if necessary
+
+					if (minAggregateY < valueHeight){
+						offGraphics.setColor(minColor);
+						offGraphics.fillRect(x1, y1 - minAggregateY - 1, 1, 3);
+					}
+					if(maxAggregateY > valueHeight){
+						offGraphics.setColor(minColor);
+						offGraphics.fillRect(x1, y1 - maxAggregateY - 1, 1, 3);
+					}
+
+					offGraphics.setColor(color);
 				}
-				if(maxAggregateY > valueHeight){
-					offGraphics.setColor(minColor);
-					offGraphics.fillRect(x1, y1 - maxAggregateY - 1, 1, 3);
-				}
-				
-				offGraphics.setColor(color);
 				
 			}else{
 				// it does not overlap (at least completely)
 				// draw the rectangle
 				final int curHeight = (int) (maxHeight * currentValue);
 				
-				offGraphics.fillRect( x1, y1 - curHeight, x2-x1 +1, curHeight);
+				if(! drawHeatMap){
+					offGraphics.fillRect( x1, y1 - curHeight, x2-x1 +1, curHeight);
+				}else{
+					// for a heatmap change the behavior, draw full height
+					offGraphics.setColor(currentHeatMap.determineColor((float) currentValue));
+					offGraphics.fillRect( x1, y1 - maxHeight, x2-x1 +1, maxHeight);
+				}
 				aggregatedTimes = durationE;
 				minAggregateY = curHeight;
 				maxAggregateY = curHeight;
@@ -643,7 +728,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		}
 				
 		
-		if( cat.isShowAverageLine() ){ // draw average line... TODO cleanup the whole code here...
+		if( cat.isShowAverageLine() && ! drawHeatMap){ // draw average line... TODO cleanup the whole code here...
 			Color avgLineColor = backGroundColor.brighter();
 
 			int x1   = coord_xform.convertTimeToPixel( vStartTime.getDouble() );
@@ -741,15 +826,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 						final Category category = reader.getCategory(event);
 						if(category.isVisible())
-							DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, category.getColor(), globalMinTime);
+							DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, determineColor(category.getColor(), entry), globalMinTime);
 
 					}else if(entry.getType() == TracableObjectType.STATE){
 						final IStateTraceEntry state = (IStateTraceEntry) entry;
 						final Category category = reader.getCategory(state);
 
 						if(category.isVisible())
-							DrawObjects.drawState(offGraphics,category.getName(),  coord_xform, state , category.getColor(), 
-									depth, timeline, globalMinTime);
+							DrawObjects.drawState(offGraphics,category.getName(),  coord_xform, state , determineColor(category.getColor(), entry), depth, timeline, globalMinTime);
 					}
 				}
 			}
@@ -799,8 +883,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				if(! stateCategory.isVisible()){
 					continue;
 				}
-			    DrawObjects.drawState(offGraphics, stateCategory.getName(), coord_xform, rstate , stateCategory.getColor(), 
-					0, timeline, globalMinTime);									
+				
+			    DrawObjects.drawState(offGraphics, stateCategory.getName(), coord_xform, rstate , determineColor(stateCategory.getColor(), rstate), 0, timeline, globalMinTime);									
 
 			    if(! parentFrame.isProcessNested()) continue;
 					
@@ -826,15 +910,14 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 						final Category category = reader.getCategory(event);
 						if(category.isVisible())
-							DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, category.getColor(), globalMinTime);
+							DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, determineColor(category.getColor(), entry), globalMinTime);
 
 					}else if(entry.getType() == TracableObjectType.STATE){
 						final IStateTraceEntry state = (IStateTraceEntry) entry;
 						final Category category = reader.getCategory(state);
 
 						if(category.isVisible())
-							DrawObjects.drawState(offGraphics,category.getName(),  coord_xform, state , category.getColor(), 
-									depth, timeline, globalMinTime);
+							DrawObjects.drawState(offGraphics,category.getName(),  coord_xform, state , determineColor(category.getColor(), entry), depth, timeline, globalMinTime);
 					}
 				}
 			}
