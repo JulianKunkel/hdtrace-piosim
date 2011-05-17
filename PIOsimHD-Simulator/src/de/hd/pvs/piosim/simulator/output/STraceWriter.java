@@ -155,13 +155,13 @@ abstract public class STraceWriter {
 
 
 	abstract protected RelationToken relCreateTopLevelRelationInternal(ISPassiveComponent comp, Epoch time);
-	abstract protected RelationToken relRelateProcessLocalTokenInternal(ISPassiveComponent comp,RelationToken parent, Epoch time);
-	abstract protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp,RelationToken[] parents, Epoch time);
-	abstract protected void relDestroyInternal(ISPassiveComponent comp,RelationToken relation, Epoch time);
-	abstract protected void relStartStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time, String name);
-	abstract protected void relStartStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time, String name, String childTags, String[] attrNameValues);
-	abstract protected void relEndStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time);
-	abstract protected void relEndStateInternal(ISPassiveComponent comp,RelationToken relation, Epoch time, String childTags, String[] attrNameValues);
+	abstract protected RelationToken relRelateProcessLocalTokenInternal(ISPassiveComponent comp, RelationToken parent, Epoch time);
+	abstract protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp, RelationToken[] parents, Epoch time);
+	abstract protected void relDestroyInternal(RelationToken relation, Epoch time);
+	abstract protected void relStartStateInternal(RelationToken relation, Epoch time, String name);
+	abstract protected void relStartStateInternal(RelationToken relation, Epoch time, String name, String childTags, String[] attrNameValues);
+	abstract protected void relEndStateInternal(RelationToken relation, Epoch time);
+	abstract protected void relEndStateInternal(RelationToken relation, Epoch time, String childTags, String[] attrNameValues);
 
 	public RelationToken relCreateTopLevelRelation(TraceType type, ISPassiveComponent comp){
 		if(! isTracableComponent(type))
@@ -170,7 +170,7 @@ abstract public class STraceWriter {
 		return relCreateTopLevelRelationInternal(comp, getTimeEpoch());
 	}
 
-	public RelationToken relRelateProcessLocalToken(RelationToken parent, TraceType type, ISPassiveComponent comp){
+	public RelationToken relRelateProcessLocalToken(TraceType type, ISPassiveComponent comp, RelationToken parent){
 		if(! isTracableComponent(type))
 			return parent;
 
@@ -184,38 +184,38 @@ abstract public class STraceWriter {
 		return relRelateMultipleProcessLocalTokensInternal(comp, parents, getTimeEpoch());
 	}
 
-	public void relDestroy(TraceType type, ISPassiveComponent comp, RelationToken relation){
+	public void relDestroy(TraceType type, RelationToken relation){
 		if(! isTracableComponent(type))
 			return;
 
 		assert(relation != null);
 
-		relDestroyInternal(comp, relation, getTimeEpoch());
+		relDestroyInternal(relation, getTimeEpoch());
 	}
 
-	public void relStartState(TraceType type, ISPassiveComponent comp, RelationToken relation, String name){
+	public void relStartState(TraceType type, RelationToken relation, String name){
 		if(! isTracableComponent(type))
 			return;
-		relStartStateInternal(comp, relation, getTimeEpoch(), name);
+		relStartStateInternal(relation, getTimeEpoch(), name);
 	}
 
-	public void relStartState(TraceType type, ISPassiveComponent comp, RelationToken relation, String name, String childTags, String[] attrNameValues){
+	public void relStartState(TraceType type, RelationToken relation, String name, String childTags, String[] attrNameValues){
 		if(! isTracableComponent(type))
 			return;
 
-		relStartStateInternal(comp, relation, getTimeEpoch(), name, childTags, attrNameValues);
+		relStartStateInternal( relation, getTimeEpoch(), name, childTags, attrNameValues);
 	}
 
-	public void relEndState(TraceType type, ISPassiveComponent comp, RelationToken relation){
+	public void relEndState(TraceType type, RelationToken relation){
 		if(! isTracableComponent(type))
 			return;
-		relEndStateInternal(comp, relation, getTimeEpoch());
+		relEndStateInternal(relation, getTimeEpoch());
 	}
 
-	public void relEndState(TraceType type, ISPassiveComponent comp, RelationToken relation, String childTags, String[] attrNameValues){
+	public void relEndState(TraceType type, RelationToken relation, String childTags, String[] attrNameValues){
 		if(! isTracableComponent(type))
 			return;
-		relEndStateInternal(comp, relation, getTimeEpoch(), childTags, attrNameValues);
+		relEndStateInternal(relation, getTimeEpoch(), childTags, attrNameValues);
 	}
 
 

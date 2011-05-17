@@ -212,8 +212,7 @@ public class TraceFormatWriter {
 
 		try {
 			// because we know all the topologies, we do not need any local or remote tokens.
-			files.relationWriter =  new RelationXMLWriter(file, "", 
-					"", lastTopologyNumber, Epoch.ZERO);
+			files.relationWriter =  new RelationXMLWriter(file, "",  "", lastTopologyNumber, topology, Epoch.ZERO);
 			lastTopologyNumber++;
 			return files.relationWriter;
 		} catch (Exception e) {

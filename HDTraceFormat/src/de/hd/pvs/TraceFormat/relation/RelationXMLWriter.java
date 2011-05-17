@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class RelationXMLWriter {
@@ -22,6 +23,8 @@ public class RelationXMLWriter {
 	private final String hostID;
 	private final int topologyNumber;
 	private final String filename;
+	
+	private final TopologyNode topologyNode; 
 
 	private long curToken = 0;
 	
@@ -35,15 +38,20 @@ public class RelationXMLWriter {
 	 * @param timeAdjustment
 	 * @throws IOException
 	 */
-	public RelationXMLWriter(String filename, String hostID, String localToken, int topologyNumber, Epoch timeAdjustment) throws IOException {		
+	public RelationXMLWriter(String filename, String hostID, String localToken, int topologyNumber,  TopologyNode topologyNode, Epoch timeAdjustment) throws IOException {		
 		file = new FileWriter(filename);
 		file.write("<relation version=\"" + version + "\" hostID=\"" + hostID + "\" localToken=\"" + localToken + "\" topologyNumber=\"" + topologyNumber + "\" timeAdjustment=\"" + timeAdjustment + "\">\n");			
 
+		this.topologyNode = topologyNode;
 		this.timeAdjustment = timeAdjustment;
 		this.topologyNumber = topologyNumber;
 		this.hostID = hostID;
 		this.localToken = localToken;
 		this.filename = filename;
+	}
+	
+	public TopologyNode getTopologyNode() {
+		return topologyNode;
 	}
 
 	public RelationToken createTopLevelRelation(Epoch time){
@@ -178,7 +186,7 @@ public class RelationXMLWriter {
 		final StringBuffer buff = new StringBuffer();
 		
 		for(int i=0; i < attrNameValues.length; i+=2){
-			buff.append(attrNameValues[i] + "=\"" + attrNameValues[i+1] + "\"");
+			buff.append(attrNameValues[i] + "=\"" + attrNameValues[i+1] + "\" ");
 		}
 		
 		endState(relation, time, childTags, buff.toString(), true);	

@@ -214,7 +214,7 @@ public class CommandProcessing{
 				relation = this.relationToken;
 			}else{ // > 0
 				// create a new relation token.
-				relation = this.getInvokingComponent().getSimulator().getTraceWriter().relRelateProcessLocalToken(getRelationToken(), TraceType.CLIENT, this.getInvokingComponent());
+				relation = createNestedToken();
 			}
 
 
@@ -320,6 +320,10 @@ public class CommandProcessing{
 	}
 
 
+	private final RelationToken createNestedToken(){
+		return this.getInvokingComponent().getSimulator().getTraceWriter().relRelateProcessLocalToken(TraceType.INTERNAL, this.getInvokingComponent(), relationToken);
+	}
+
 	/**
 	 * @param from if you want to receive from any source, then use addNetReceiveAnySource
 	 * @param tag
@@ -330,7 +334,7 @@ public class CommandProcessing{
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createReceiveOperation(
 						new MessageMatchingCriterion(	from, getInvokingComponent().getModelComponent(), tag, comm, rootOperation, processingMethod	),
-						getInvokingComponent().getCallback(),relationToken ) );
+						getInvokingComponent().getCallback(), createNestedToken() ) );
 	}
 
 	final public void addNetReceive(int from, int tag, Communicator comm,  Class<? extends CommandImplementation> expectedRootOperation,  Class<? extends CommandImplementation> expectedProcessingMethod){
@@ -360,7 +364,7 @@ public class CommandProcessing{
 		getNetworkJobs().addNetworkJob(
 				InterProcessNetworkJob.createReceiveOperation(
 						new MessageMatchingCriterion(	from, getInvokingComponent().getModelComponent(), tag, comm, expectedRootOperation, expectedProcessingMethod	),
-						getInvokingComponent().getCallback(),relationToken ) );
+						getInvokingComponent().getCallback(), createNestedToken() ) );
 	}
 
 
@@ -386,7 +390,7 @@ public class CommandProcessing{
 				InterProcessNetworkJob.createSendOperation(
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
 								to, tag, comm, rootOperation, processingMethod),
-								jobData, getInvokingComponent().getCallback() ,relationToken ));
+								jobData, getInvokingComponent().getCallback() , createNestedToken() ));
 	}
 
 	final public void addNetSend(int rankTo,
@@ -420,7 +424,7 @@ public class CommandProcessing{
 				InterProcessNetworkJob.createSendOperation(
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
 								to, tag, comm, definedRootOperation, definedProcessingMethod),
-								jobData, getInvokingComponent().getCallback() ,relationToken ));
+								jobData, getInvokingComponent().getCallback() , createNestedToken() ));
 	}
 
 
@@ -432,7 +436,7 @@ public class CommandProcessing{
 						new MessageMatchingCriterion(getInvokingComponent().getModelComponent(),
 								nextHop, tag, comm, rootOperation, processingMethod),
 								jobData, getInvokingComponent().getCallback(),
-								client, finalTarget ,relationToken )	);
+								client, finalTarget , createNestedToken() )	);
 	}
 
 	final public void addNetJob(InterProcessNetworkJob job){

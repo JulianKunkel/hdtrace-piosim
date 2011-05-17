@@ -66,6 +66,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 	private void callRecvCallback(Message msg, InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch time){
 		if(msg.isReceivedCompletely()){
 			startedRecvMap.remove(msg);
+
 			announcedJob.getCallbacks().recvCompletedCB(remoteJob, announcedJob, time);
 		}
 	}
@@ -292,6 +293,11 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public void initiateInterProcessSend(Message<? extends InterProcessNetworkJob> msg, Epoch startTime) {
+
+		assert(msg != null);
+
+		// trace the transfer of the new message
+
 		InterProcessNetworkJob job = msg.getContainedUserData();
 		assert(job.getJobOperation() == InterProcessNetworkJobType.SEND);
 
@@ -346,6 +352,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			if(msg.getRemainingBytesToSend() == 0){
 				// all data is send => call callback.
 				job.getCallbacks().sendCompletedCB(job, time);
+
 			}else{
 				final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
 				if(newMsgPart != null){

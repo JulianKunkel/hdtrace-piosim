@@ -120,8 +120,7 @@ public class SHDTraceWriter extends STraceWriter {
 	}
 
 	@Override
-	protected void startStateInternal(Epoch time, ISPassiveComponent comp,
-			String eventDesc) {
+	protected void startStateInternal(Epoch time, ISPassiveComponent comp, String eventDesc) {
 		final ComponentTraceInfo info = topMap.get(comp);
 		final String validText = XMLHelper.validTag(eventDesc);
 
@@ -133,8 +132,7 @@ public class SHDTraceWriter extends STraceWriter {
 	}
 
 	@Override
-	protected void endStateInternal(Epoch time, ISPassiveComponent comp,
-			String eventDesc, String[] attrNameValues) {
+	protected void endStateInternal(Epoch time, ISPassiveComponent comp, String eventDesc, String[] attrNameValues) {
 		final ComponentTraceInfo info = topMap.get(comp);
 
 		final String validText = XMLHelper.validTag(eventDesc);
@@ -156,8 +154,7 @@ public class SHDTraceWriter extends STraceWriter {
 	}
 
 	@Override
-	protected void eventInternal(Epoch time, ISPassiveComponent comp,
-			String eventDesc, long userEventValue) {
+	protected void eventInternal(Epoch time, ISPassiveComponent comp,	String eventDesc, long userEventValue) {
 		final ComponentTraceInfo info = topMap.get(comp);
 		try{
 			writer.writeEvent(info.topology, eventDesc, time );
@@ -168,8 +165,7 @@ public class SHDTraceWriter extends STraceWriter {
 
 
 	@Override
-	protected void finalizeInternal(Epoch endTime,
-			Collection<ISPassiveComponent> existingComponents) {
+	protected void finalizeInternal(Epoch endTime,	Collection<ISPassiveComponent> existingComponents) {
 		try{
 			writer.finalizeTrace();
 		}catch(IOException e){
@@ -183,24 +179,7 @@ public class SHDTraceWriter extends STraceWriter {
 	}
 
 	@Override
-	protected void relDestroyInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
-		writer.getRelationForTopology(topMap.get(comp).topology).destroyRelation(relation, time);
-	}
-
-	@Override
-	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
-		writer.getRelationForTopology(topMap.get(comp).topology).endState(relation, time);
-	}
-
-	@Override
-	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String childTags,
-			String[] attrNameValues) {
-		writer.getRelationForTopology(topMap.get(comp).topology).endState(relation, time, childTags, attrNameValues);
-	}
-
-	@Override
-	protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp,
-			RelationToken[] parents, Epoch time) {
+	protected RelationToken relRelateMultipleProcessLocalTokensInternal( ISPassiveComponent comp, RelationToken[] parents,  Epoch time) {
 		return writer.getRelationForTopology(topMap.get(comp).topology).relateMultipleProcessLocalTokens(parents, time);
 	}
 
@@ -210,16 +189,30 @@ public class SHDTraceWriter extends STraceWriter {
 	}
 
 	@Override
-	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name) {
-		writer.getRelationForTopology(topMap.get(comp).topology).startState(relation, time,
-				XMLHelper.validTag(name));
+	protected void relDestroyInternal(RelationToken relation, Epoch time) {
+		relation.getRelationXMLWriter().destroyRelation(relation, time);
 	}
 
 	@Override
-	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name,
+	protected void relEndStateInternal( RelationToken relation, Epoch time) {
+		relation.getRelationXMLWriter().endState(relation, time);
+	}
+
+	@Override
+	protected void relEndStateInternal(RelationToken relation, Epoch time, String childTags, String[] attrNameValues)
+	{
+		relation.getRelationXMLWriter().endState(relation, time, childTags, attrNameValues);
+	}
+
+	@Override
+	protected void relStartStateInternal(RelationToken relation, Epoch time, String name) {
+		relation.getRelationXMLWriter().startState(relation, time, XMLHelper.validTag(name));
+	}
+
+	@Override
+	protected void relStartStateInternal(RelationToken relation, Epoch time, String name,
 			String childTags, String[] attrNameValues) {
-		writer.getRelationForTopology(topMap.get(comp).topology).startState(relation, time,
-				XMLHelper.validTag(name), childTags, attrNameValues);
+		relation.getRelationXMLWriter().startState(relation, time, XMLHelper.validTag(name), childTags, attrNameValues);
 	}
 
 }

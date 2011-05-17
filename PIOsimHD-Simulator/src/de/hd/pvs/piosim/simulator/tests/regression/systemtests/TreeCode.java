@@ -32,6 +32,11 @@ public class TreeCode {
 				continue;
 
 			System.out.println(" to leaf:" + targetRank );
+
+			final int pow = (1<<(iter));
+			int count = ( pow + targetRank ) > commSize ? commSize - targetRank : pow;
+
+			System.out.println(targetRank + " " + count);
 		}
 
 		if(clientRankInComm != 0){
@@ -42,8 +47,8 @@ public class TreeCode {
 	}
 
 	public static void main(String[] args) {
-		for(int i=0; i < 8; i++)
-			printTree(i, 8);
+		for(int i=0; i < 7; i++)
+			printTree(i, 7);
 
 	}
 }
