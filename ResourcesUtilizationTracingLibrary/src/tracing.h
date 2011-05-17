@@ -43,6 +43,7 @@ typedef struct {
 	glibtop_cpu cpu;
 #ifdef HAVE_PROCESSORSTATES
 	guint64 *c_states;
+	guint64 *p_states;
 #endif
 	glibtop_mem mem;
 	glibtop_netload *netload;
@@ -57,6 +58,7 @@ typedef struct {
 	gint cpu_num;
 #ifdef HAVE_PROCESSORSTATES
 	gint c_states_num;
+	gint p_states_num;
 #endif
 	glibtop_netlist netlist;
 	char **netifs;

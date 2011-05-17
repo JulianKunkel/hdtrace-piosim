@@ -3,6 +3,9 @@
 
 unsigned int cpuidle_available();
 unsigned int cpufreq_available();
-int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num);
+unsigned int cpufreq_stats_available();
 int get_available_c_states();
+int get_available_p_states();
+int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num);
+int get_p_state_times(unsigned long int *p_states, int cpu_num, int p_states_num);
 #endif /*PROCESSORSTATES_H_*/
