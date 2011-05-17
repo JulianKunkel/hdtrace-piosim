@@ -329,11 +329,11 @@ public interface FilterTokenInterface {
 						throw new IllegalArgumentException("Error two . are not allowed in one expression to parse " + text.substring(c));
 					}
 					startSpecial = true;
-				}else if( Character.isLetter(c) ){
+				}else if( Character.isLetter(c) || c == '_' || c == '-' ){
 					// character					
 					// look ahead next char, if char continue otherwise finish
 					nestedData = nestedData + c;
-					if( ! Character.isLetter( n )) {
+					if( ! Character.isLetter( n ) &&  n != '_' && n != '-' ) {
 						// finalize this string
 						
 						if(nestedData.equals("heatmap:")){
