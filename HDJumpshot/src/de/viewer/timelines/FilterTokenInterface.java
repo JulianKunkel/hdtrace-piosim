@@ -115,24 +115,46 @@ public interface FilterTokenInterface {
 			return FilterTokenType.COMPOUND;
 		}
 		
-		private boolean nextMatches(FilterTokenInterface token, ITracableObject object){			
+		/**
+		 * Match the next nested token with the given object.
+		 * @param curPos
+		 * @param object
+		 * @return
+		 */
+		private boolean nextMatches(final int curPos,  ITracableObject object){
+			final FilterTokenInterface token = nestedTokens.get(curPos);
+			final FilterTokenInterface lookahead = ( curPos >= nestedTokens.size() -1 ) ? null : nestedTokens.get(curPos+1);
+			final FilterTokenInterface lookahead2 = ( curPos >= nestedTokens.size() - 2 ) ? null : nestedTokens.get(curPos+2);
+			
 			switch(token.getType()){
-				case CATEGORY_NAME:{
+			case ATTRIBUTE_NAME:{
+				if (lookahead == null || lookahead2 == null)
+					throw new IllegalArgumentException("ATTRIBUTE_NAME should be terminated!");
+
+				// first is the attribute to compare with.
+				// next token must be a comparator						
+				// token after the comparater must be the value to compare e.g. either DOUBLE_VAL or ATTRIBUTE_NAME
+
+				final String attributeName = ((StringFilterToken) token).value;
+
+				// token after the comparater must be the value to compare e.g. either DOUBLE_VAL or ATTRIBUTE_NAME
+				if( lookahead2.getType() != FilterTokenType.DOUBLE_VAL && lookahead2.getType() != FilterTokenType.ATTRIBUTE_NAME ){
+					throw new IllegalArgumentException("comparator missing!");
+				}
+
+				return matchValue(attributeName, lookahead.getType(), lookahead2, object);
+
+			}case CATEGORY_NAME:{
 					Pattern p = ((RegexFilterToken) token).pattern;
 					
-					if(object.getType() == TracableObjectType.EVENT){
+					if(object.getType() == TracableObjectType.EVENT || object.getType() == TracableObjectType.STATE){
 						TraceEntry e = (TraceEntry) object;
 						if (p.matcher(e.getName()).matches()){
 							  return true;
 						}
-					}else if(object.getType() == TracableObjectType.STATE){
-							StateTraceEntry e = (StateTraceEntry) object;
-							if (p.matcher(e.getName()).matches()){
-								return true;
-							}
 					}else if(object.getType() == TracableObjectType.STATISTICENTRY){
 						StatisticsEntry e = (StatisticsEntry) object;
-						if (p.matcher(e.getParentGroupEntry().getGroup().getName()).matches()){
+						if (p.matcher(e.getDescription().getName()).matches()){
 							return true;
 						}
 					}
@@ -146,6 +168,62 @@ public interface FilterTokenInterface {
 			return false;
 		}
 		
+		private boolean matchValue(String attribute,  FilterTokenType comparator, FilterTokenInterface compareWith, ITracableObject object){
+			
+			if(object.getType() == TracableObjectType.EVENT || object.getType() == TracableObjectType.STATE){
+				final TraceEntry e = (TraceEntry) object;
+				final String strAttrib = e.getAttribute(attribute); 
+				
+				if(strAttrib == null)
+					return false;
+				
+				// check if compareWith is a double.
+				if(compareWith.getType() == FilterTokenType.DOUBLE_VAL){
+					final double val = Double.parseDouble(strAttrib);
+					final double cmpWith = ((DoubleFilterToken) compareWith).value;
+					
+					switch(comparator){
+					case EQUALS:
+						return val == cmpWith; // does not make much sense... TODO fix int handling
+					case LARGER_THAN:
+						return val > cmpWith;
+					case LESS_THAN:
+						return val < cmpWith;
+					}					
+				}else{ // string val
+					final String cmpWith = ((StringFilterToken) compareWith).value;
+					
+					switch(comparator){
+					case EQUALS:
+						return strAttrib.equals(cmpWith);
+					case LARGER_THAN:
+						return strAttrib.compareTo(cmpWith) > 0;
+					case LESS_THAN:
+						return strAttrib.compareTo(cmpWith) < 0;
+					}
+				}				
+			}else if(object.getType() == TracableObjectType.STATISTICENTRY){
+				StatisticsEntry e = (StatisticsEntry) object;
+				if (e.getDescription().getName().equals(attribute) && compareWith.getType() == FilterTokenType.DOUBLE_VAL){ // without double value it does not make sense
+					final double cmpWith = ((DoubleFilterToken) compareWith).value;
+					
+					final double val = e.getNumericValue().doubleValue();
+					
+					switch(comparator){
+					case EQUALS:
+						return val == cmpWith;
+					case LARGER_THAN:
+						return val > cmpWith;
+					case LESS_THAN:
+						return val < cmpWith;
+					}							
+				}
+				return false;
+			}
+
+			throw new IllegalArgumentException("FATAL during filter application " + object.getType());			
+		}
+		
 		public boolean matches(ITracableObject object) {
 			boolean evalResult = true;
 			
@@ -155,14 +233,20 @@ public interface FilterTokenInterface {
 				final FilterTokenInterface lookahead = ( i == nestedTokens.size() -1 ) ? null : nestedTokens.get(i+1);
 
 				switch(token.getType()){
-					case CATEGORY_NAME:{
-						evalResult = nextMatches(token, object);
+					case ATTRIBUTE_NAME:{
+						evalResult = nextMatches(i, object);
+						// increment by lookaheads which are consumed
+						i += 2;
+						break;
+					}case CATEGORY_NAME:{
+						evalResult = nextMatches(i, object);
+												
 						break;
 					}case AND:{
 						if (lookahead == null)
 							throw new IllegalArgumentException("AND should be terminated!");
 						
-						evalResult = evalResult && nextMatches(lookahead, object);
+						evalResult = evalResult && nextMatches(i+1, object);
 						
 						i++;
 						break;
@@ -170,13 +254,13 @@ public interface FilterTokenInterface {
 						if (lookahead == null)
 							throw new IllegalArgumentException("OR should be terminated!");
 						
-						evalResult = evalResult || nextMatches(lookahead, object);
+						evalResult = evalResult || nextMatches(i+1, object);
 						
 						i++;
 						break;
 					}case COMPOUND:{
 						// only a single object tolerated!
-						evalResult = nextMatches(token, object);
+						evalResult = nextMatches(i+1, object);
 						break;
 					}
 					default:
@@ -292,9 +376,9 @@ public interface FilterTokenInterface {
 						nestedData = "";
 					}
 				}else if(Character.isDigit(c) || c == '.'){
-					if( ! Character.isDigit( n ) && n != '.' ) {
+					if( (! Character.isDigit( n )) && n != '.' ) {
 						// parse double
-						nestedTokens.add(new DoubleFilterToken( Double.parseDouble(nestedData)));						
+						nestedTokens.add(new DoubleFilterToken( Double.parseDouble(nestedData + c)));						
 						nestedData = "";
 					}else{
 						nestedData = nestedData + c;

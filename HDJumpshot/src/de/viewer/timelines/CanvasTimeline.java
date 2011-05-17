@@ -527,7 +527,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			final StatisticsGroupEntry entry = entries.nextElement();
 			
 			if(currentFilter != null){
-				if(! currentFilter.getExpression().matches(entry)){
+				// todo this workaround is not fast, but works
+				if(! currentFilter.getExpression().matches(entry.createStatisticEntry(statNumber))){
 					continue;
 				}
 			}
