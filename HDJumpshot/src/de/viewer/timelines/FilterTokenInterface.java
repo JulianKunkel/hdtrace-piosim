@@ -177,7 +177,7 @@ public interface FilterTokenInterface {
 				// check if compareWith is a double.
 				if(compareWith.getType() == FilterTokenType.DOUBLE_VAL){
 					final double val = Double.parseDouble(strAttrib);
-					final double cmpWith = ((DoubleFilterToken) compareWith).value;
+					final double cmpWith = ((DoubleFilterToken) compareWith).value;					
 					
 					switch(comparator){
 					case EQUALS:
@@ -257,11 +257,11 @@ public interface FilterTokenInterface {
 						break;
 					}case COMPOUND:{
 						// only a single object tolerated!
-						evalResult = nextMatches(i+1, object);
+						evalResult = nextMatches(i, object);
 						break;
 					}
 					default:
-						return false;
+						//return false;
 				}
 			}
 			
@@ -292,7 +292,6 @@ public interface FilterTokenInterface {
 					// unstack
 					nestingDepth--;
 					if(nestingDepth == 0){
-						System.out.println(nestedData);
 						nestedTokens.add(new FilterExpression(nestedData + " "));
 						nestedData = "";
 					}else{
@@ -337,7 +336,7 @@ public interface FilterTokenInterface {
 							// localize = in the string			
 							// the next char should be "="
 							if (n != '='){
-								throw new IllegalArgumentException("Special token should be followed by an \"=\" " + nestedData + text.substring(c));
+								throw new IllegalArgumentException("Special token should be followed by an \"=\" " + nestedData + " " + text.substring(i));
 							}
 							
 							i++;
