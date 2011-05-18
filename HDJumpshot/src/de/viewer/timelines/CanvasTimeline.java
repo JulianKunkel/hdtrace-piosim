@@ -360,6 +360,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				}
 			}
 
+			currentHeatMap.firstIterationDone();
 		}
 		
 		for(int i=0; i < num_rows ; i++){			
@@ -789,7 +790,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 
 				final Category tcategory = reader.getCategory(event);
 				if(tcategory.isVisible())
-					DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline, tcategory.getColor(), globalMinTime);
+					DrawObjects.drawEvent(offGraphics, coord_xform,  event, timeline,  determineColor(tcategory.getColor(), tentry), globalMinTime);
 
 			}else if(tentry.getType() == TracableObjectType.STATE){
 				final IStateTraceEntry rstate = (IStateTraceEntry) tentry;
@@ -799,7 +800,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				if(! tcategory.isVisible()){
 					continue;
 				}
-				DrawObjects.drawState(offGraphics, tcategory.getName(),  coord_xform, rstate , tcategory.getColor(), 
+				DrawObjects.drawState(offGraphics, tcategory.getName(),  coord_xform, rstate , determineColor(tcategory.getColor(), rstate), 
 							0, timeline, globalMinTime);
 			    
 				if(! parentFrame.isProcessNested()) continue;
@@ -851,9 +852,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			int timeline,
 			TopologyRelationTreeNode node,
 			Graphics2D offGraphics,
-			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform
-	)
-	{		
+			Epoch startTime, Epoch endTime, CoordPixelImage coord_xform)	
+	{
+		
 		final Enumeration<RelationEntry> elements = node.enumerateEntries(
 				startTime.add(getModelTime().getGlobalMinimum()), 
 				endTime.add(getModelTime().getGlobalMinimum()));

@@ -2,7 +2,12 @@ package de.viewer.common;
 
 import java.awt.Color;
 
+import de.hd.pvs.TraceFormat.TracableObjectType;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
+import de.hd.pvs.TraceFormat.trace.TraceEntry;
+import de.viewer.timelines.FilterTokenInterface.DoubleFilterToken;
+import de.viewer.timelines.FilterTokenInterface.FilterTokenType;
+import de.viewer.timelines.FilterTokenInterface.StringFilterToken;
 
 
 public class HeatMap {
@@ -12,15 +17,16 @@ public class HeatMap {
 	 */
 	private final String [] attributeNames;
 
-	private final String [] operations;
+	private final char [] operations;
 	
 	/**
 	 * Store the min and max value
 	 */
 	private double maxValue;
 	private double minValue;
+	private double diff;
 	
-	private HeatMap(String [] attributeNames, String [] operations) {
+	private HeatMap(String [] attributeNames, char [] operations) {
 		this.attributeNames = attributeNames;
 		this.operations = operations;
 	}
@@ -29,15 +35,15 @@ public class HeatMap {
 		// sort of tolerate multiple spaces 
 		heatMap = heatMap.trim().replaceAll(" +", " ");
 		
-		String names = heatMap.replaceAll("[+*]", " ").trim().replaceAll(" +", " ");
+		String names = heatMap.replaceAll("[+*^_]", " ").trim().replaceAll(" +", " ");
 			 
 		String [] attributeNames = names.split(" ");
 					
 		String data = heatMap.replaceAll("[A-Za-z0-9]+", "p").trim().replace(" ", "");
-		System.out.println("heatmap attributes: " + names  + " instructions: "  + data);
 		
-		String [] operations = data.split(" ");
+		char [] operations = data.toCharArray();		
 		
+		// System.out.println(operations.length + " " + attributeNames.length + " " + data + " - " + names);
 		if( operations.length + 1 != attributeNames.length * 2 ){
 			System.err.println("The number of operations does not match the number of attributes");
 			return null;
@@ -52,10 +58,6 @@ public class HeatMap {
 	
 	public String[] getAttributeNames() {
 		return attributeNames;
-	}
-	
-	public String[] getOperations() {
-		return operations;
 	}
 	
 
@@ -86,6 +88,15 @@ public class HeatMap {
 		minValue = minValue < val ? minValue : val;
 	}
 	
+	private Double getAttributeValue(TraceEntry e, String attribute){
+		final String strAttrib = e.getAttribute(attribute); 
+
+		if(strAttrib == null)
+			return null;
+		
+		return Double.parseDouble(strAttrib);
+	}
+	
 	/**
 	 * Determine the color for the given object,
 	 * if it contains no attributes as required, then use the given color.
@@ -94,14 +105,67 @@ public class HeatMap {
 	 * @param obj
 	 * @return
 	 */
-	public Color determineColor(Color color, ITraceEntry obj){
+	public Color determineColor(Color color, ITraceEntry object){
 		// check if obj has the required attributes we need
 		
-		// compute the values with the attributes
+		if(object.getType() != TracableObjectType.EVENT &&  object.getType() != TracableObjectType.STATE){
+			return color;			
+		}
 		
-		// use determineColor method to compute color based on attributes and mathematical expression		 
+		final TraceEntry entry = (TraceEntry) object;
 		
-		return color;
+		// fetch all attributes and store them in values
+		double [] values = new double[attributeNames.length];		
+				
+		for(int i=0; i < attributeNames.length; i++){
+			final Double val = getAttributeValue(entry, attributeNames[i]);
+			
+			// if val is not found, then this entry does not have the required attribute => the original color must be returned
+			if (val == null)
+				return color;
+			
+			values[i] = val;
+		}		
+		
+		// compute the mathematical result from the Polnish expression
+		
+		// the index at which we currently are in the value array.
+		int posInVal = values.length - 1;
+		
+		// process from right to left
+		for(int i = operations.length - 1; i >= 0 ; i--){
+			
+			final char op = operations[i];
+			
+			if(op == 'p'){
+				posInVal--;
+				continue;
+			}
+
+			// if it is a real op take the right two values
+			
+			if (op == '+'){
+				values[posInVal + 1] = values[posInVal+1] + values[posInVal+2];
+			}else if (op == '*'){
+				values[posInVal + 1] = values[posInVal+1] * values[posInVal+2]; 
+			}else if (op == '^'){
+				values[posInVal + 1] = values[posInVal+1] > values[posInVal+2] ? values[posInVal+1] : values[posInVal+2]; 
+			}else if (op == '_'){
+				values[posInVal + 1] = values[posInVal+1] < values[posInVal+2] ? values[posInVal+1] : values[posInVal+2]; 
+			}
+		}
+		
+		// use determineColor method to compute color based on attributes and mathematical expression
+		// value is now stored on the first entry of the array
+		double result = values[0];
+		
+		// first round, update maximum values
+		if(diff == 0){
+			updateMinMaxValues(result);
+			return color;
+		}else{
+			return determineColor( (float) ((result - minValue) / diff) );	
+		}		
 	}
 
 	
@@ -111,6 +175,15 @@ public class HeatMap {
 	public void resetHeatMapColors(){
 		minValue = Double.MAX_VALUE;
 		maxValue = Double.MIN_VALUE;
+		diff = 0;
+	}
+	
+	public void firstIterationDone(){
+		diff = (maxValue - minValue);
+		
+		if(diff == 0.0){
+			System.out.println("Difference between min and max is 0 => heatmap is disabled");
+		}
 	}
 
 }

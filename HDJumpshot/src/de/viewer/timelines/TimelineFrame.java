@@ -151,7 +151,7 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 
 		heatMapFilter = new JTextField(5);
 		heatMapFilter.setMargin( insets );
-		heatMapFilter.setToolTipText("If you want to apply a heatmap based on attributes, specify them in a mathematical expression in poland prefix e.g. + size tag means size*tag");
+		heatMapFilter.setToolTipText("If you want to apply a heatmap based on attributes, specify them in a mathematical expression in poland prefix e.g. + size tag means size*tag, ^ means maximum of the following two expressioons and _ the minimum.");
 		heatMapFilter.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {				
