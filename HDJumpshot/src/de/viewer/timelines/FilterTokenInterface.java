@@ -27,6 +27,7 @@ public interface FilterTokenInterface {
 	 */
 	public enum FilterTokenType{
 		ATTRIBUTE_NAME, // usual case, just attributes
+		DURATION_NAME,
 		CATEGORY_NAME,  // special, could be a category or sth.
 		LESS_THAN,
 		LARGER_THAN,
@@ -105,6 +106,13 @@ public interface FilterTokenInterface {
 		}
 	}
 	
+	static public class DurationFilterToken implements FilterTokenInterface{
+		@Override
+		public FilterTokenType getType() {
+			return FilterTokenType.DURATION_NAME;
+		}
+	}
+	
 	static public class FilterExpression implements FilterTokenInterface{
 		final ArrayList<FilterTokenInterface> nestedTokens = new ArrayList<FilterTokenInterface>();
 		
@@ -125,7 +133,25 @@ public interface FilterTokenInterface {
 			final FilterTokenInterface lookahead2 = ( curPos >= nestedTokens.size() - 2 ) ? null : nestedTokens.get(curPos+2);
 			
 			switch(token.getType()){
-			case ATTRIBUTE_NAME:{
+			case DURATION_NAME:{
+				if(object.getType() == TracableObjectType.EVENT || object.getType() == TracableObjectType.STATE){
+					final double cmpWith = ((DoubleFilterToken) lookahead2).value;					
+					
+					double val = object.getDurationTime().getDouble();
+					
+					switch( lookahead.getType()){
+					case EQUALS:
+						return val == cmpWith; // does not make much sense... TODO fix int handling
+					case LARGER_THAN:
+						return val > cmpWith;
+					case LESS_THAN:
+						return val < cmpWith;
+					}		
+				
+				}
+				// TODO handle statistics with a duration ?
+				return true;
+			}case ATTRIBUTE_NAME:{
 				if (lookahead == null || lookahead2 == null)
 					throw new IllegalArgumentException("ATTRIBUTE_NAME should be terminated!");
 
@@ -230,12 +256,14 @@ public interface FilterTokenInterface {
 				final FilterTokenInterface lookahead = ( i == nestedTokens.size() -1 ) ? null : nestedTokens.get(i+1);
 
 				switch(token.getType()){
+					case DURATION_NAME: // three arguments <NAME> <COMPARATOR> <VALUE>
 					case ATTRIBUTE_NAME:{
 						evalResult = nextMatches(i, object);
 						// increment by lookaheads which are consumed
 						i += 2;
 						break;
-					}case CATEGORY_NAME:{
+					}
+					case CATEGORY_NAME:{
 						evalResult = nextMatches(i, object);
 												
 						break;
@@ -335,30 +363,36 @@ public interface FilterTokenInterface {
 						if(startSpecial){							
 							// localize = in the string			
 							// the next char should be "="
-							if (n != '='){
-								throw new IllegalArgumentException("Special token should be followed by an \"=\" " + nestedData + " " + text.substring(i));
-							}
-							
-							i++;
-							
-							final int startPos = i;							
-							
-							// skip all chars until | or & or ) is detected
-							for( ; i < array.length ; i++){
-								final char m = array[i];
-								if(m == '|' || m == ')' || m == '&' || m == ' '){
-									i--;
-									break;
-								}
-							}
-							final String data = text.substring(startPos + 1, i + 1);
-							
-							if(nestedData.equals("category")){ 
-								nestedTokens.add(new RegexFilterToken(FilterTokenType.CATEGORY_NAME, data));
-							//}else if(nestedData == "type"){
-							//	nestedTokens.add(new RegexFilterToken(FilterTokenType.TYPE_NAME, data));
+							if(nestedData.equals("duration")){ 
+								nestedTokens.add(new DurationFilterToken() );
+								
 							}else{
-								throw new IllegalArgumentException("Do not understand special token " + nestedData);
+
+								if (n != '=' ){
+									throw new IllegalArgumentException("Special token should be followed by an \"=\" " + nestedData + " " + text.substring(i));
+								}
+
+								i++;
+
+								final int startPos = i;							
+
+								// skip all chars until | or & or ) is detected
+								for( ; i < array.length ; i++){
+									final char m = array[i];
+									if(m == '|' || m == ')' || m == '&' || m == ' '){
+										i--;
+										break;
+									}
+								}
+								final String data = text.substring(startPos + 1, i + 1);
+
+								if(nestedData.equals("category")){ 
+									nestedTokens.add(new RegexFilterToken(FilterTokenType.CATEGORY_NAME, data));
+									//}else if(nestedData == "type"){
+									//	nestedTokens.add(new RegexFilterToken(FilterTokenType.TYPE_NAME, data));
+								}else{
+									throw new IllegalArgumentException("Do not understand special token " + nestedData);
+								}
 							}
 							
 						}else{
