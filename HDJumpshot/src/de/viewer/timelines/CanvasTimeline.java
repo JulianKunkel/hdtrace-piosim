@@ -116,66 +116,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	}
 
 	private MyTopologyChangeListener topologyChangeListener = new MyTopologyChangeListener();
-
-	/**
-	 * A Filter for the entries, also changes the visualization modes.
-	 * 
-	 * @author julian
-	 */
-	static private class EntryFilter{
-		final FilterExpression expression;
-		
-		/**
-		 * Parse the filter string and recursively generate the filter
-		 * @param filter
-		 * @throws IllegalArgumentException
-		 */
-		public EntryFilter(String filter) throws IllegalArgumentException {	
-			expression = new FilterExpression(filter);			
-		}
-		
-		public FilterExpression getExpression() {
-			return expression;
-		}
-	}
-	
-	/**
-	 * Filter the events etc. based on a user provided string.
-	 * @return
-	 */
-	public class FilterListener{
-
-		/**
-		 * @param text
-		 * @return True if valid
-		 */
-		public boolean applyFilter(String text){
-			// null strings reset the filter
-			if(text.length() == 0){
-				currentFilter = null;
-				redrawIfAutoRedraw();
-				
-				return true;
-			}
-			
-			try{
-				// replace whitespace
-				currentFilter = new EntryFilter(text.replace(" ", "") + " ");				
-				redrawIfAutoRedraw();
-				return true;				
-			}catch (IllegalArgumentException e){
-				System.err.println("Error, invalid filter: " + text + " " + e.getMessage());
-				return false;
-			}
-		}
-	}
-	
-	private EntryFilter    currentFilter = null;
-	private FilterListener filterListener = new FilterListener();
-
-	public FilterListener getFilterListener() {
-		return filterListener;
-	}
 	
 	public class HeatMapListener{
 		public boolean applyFilter(String text){
@@ -203,6 +143,37 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		return heatMapListener;
 	}
 	
+
+	/**
+	 * Filter the events etc. based on a user provided string.
+	 * @return true if the filter is valid, otherwise return false
+	 */
+
+	private FilterExpression    currentFilter = null;
+	
+	public FilterExpression getCurrentFilter() {
+		return currentFilter;
+	}
+	
+	public boolean applyFilter(String text){
+		// null strings reset the filter
+		if(text.length() == 0){
+			currentFilter = null;
+			redrawIfAutoRedraw();
+
+			return true;
+		}
+
+		try{
+			// replace whitespace
+			currentFilter = new FilterExpression(text.replace(" ", "") + " ");				
+			redrawIfAutoRedraw();
+			return true;				
+		}catch (IllegalArgumentException e){
+			System.err.println("Error, invalid filter: " + text + " " + e.getMessage());
+			return false;
+		}
+	}
 	
 	/**
 	 * Use the heatmap to calculate the color
@@ -597,9 +568,9 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		while(entries.hasMoreElements()){
 			final StatisticsGroupEntry entry = entries.nextElement();
 			
-			if(currentFilter != null){
+			if(getCurrentFilter() != null){
 				// todo this workaround is not fast, but works
-				if(! currentFilter.getExpression().matches(entry.createStatisticEntry(statNumber))){
+				if(! getCurrentFilter().matches(entry.createStatisticEntry(statNumber))){
 					continue;
 				}
 			}
@@ -777,8 +748,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			drawedTraceObjects++;
 			ITraceEntry tentry = elements.nextElement();
 
-			if(currentFilter != null){
-				if(! currentFilter.getExpression().matches(tentry)){
+			if(getCurrentFilter() != null){
+				if(! getCurrentFilter().matches(tentry)){
 					continue;
 				}
 			}
@@ -816,8 +787,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					
 					final ITraceEntry entry = stateEnum.nextElement();
 
-					if(currentFilter != null){
-						if(! currentFilter.getExpression().matches(entry)){
+					if(getCurrentFilter() != null){
+						if(! getCurrentFilter().matches(entry)){
 							continue;
 						}
 					}
@@ -874,8 +845,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			
 			for(IStateTraceEntry rstate: relationEntry.getStates()){
 				
-				if(currentFilter != null){
-					if(! currentFilter.getExpression().matches(rstate)){
+				if(getCurrentFilter() != null){
+					if(! getCurrentFilter().matches(rstate)){
 						continue;
 					}
 				}
@@ -900,8 +871,8 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 					
 					final ITraceEntry entry = stateEnum.nextElement();
 					
-					if(currentFilter != null){
-						if(! currentFilter.getExpression().matches(entry)){
+					if(getCurrentFilter() != null){
+						if(! getCurrentFilter().matches(entry)){
 							continue;
 						}
 					}

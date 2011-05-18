@@ -62,6 +62,11 @@ public class RulerTime extends ScrollableObject
 
 	private ZeroCallback zeroCallback;
 	
+	@Override
+	public boolean applyFilter(String text) {
+		return false;
+	}
+	
 	public RulerTime( ScrollbarTimeModel   model, ViewportTime viewport, ZeroCallback zeroCallback )
 	{
 		super( model, viewport );

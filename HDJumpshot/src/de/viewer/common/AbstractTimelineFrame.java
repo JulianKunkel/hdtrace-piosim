@@ -19,6 +19,7 @@ package de.viewer.common;
 
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -41,6 +42,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 
@@ -53,6 +55,7 @@ import de.topology.TopologyManagerContents;
 import de.viewer.common.IconManager.IconType;
 import de.viewer.first.MainManager;
 import de.viewer.first.TopWindow;
+import de.viewer.timelines.CanvasTimeline;
 import de.viewer.zoomable.ModelTimePanel;
 import de.viewer.zoomable.RowAdjustments;
 import de.viewer.zoomable.RowNumberChangedListener;
@@ -96,6 +99,11 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 	private ViewportTime            time_ruler_vport;
 	private JLabel                  yColarea   = new JLabel(); //below the topology manager 
 
+	/**
+	 * Text filter, allows to filter events with a specific attribute or allows to render them as a heat map 
+	 */
+	private JTextField              txtFilter;
+	
 	/**
 	 * Drawing area:
 	 */
@@ -379,8 +387,24 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		toolbar = new TimelineToolBar( canvasArea, timeRuler , timeCanvasVport,
 				y_scrollbar, topologyManager, scrollbarTime, modelTime, row_adjs, iconManager );
 
-		addToToolbarMenu(toolbar, iconManager, toolbar.getInsets());
+
 		
+		addToToolbarMenu(toolbar, iconManager, toolbar.getInsets());
+
+		txtFilter = new JTextField(30);
+		txtFilter.setToolTipText("Enter the attributes you want to filter with, e.g. use size > 100 & tag == 3 to filter events which match both entries AND: & and OR: | and () are supported.\nA HeatMap can be created based on an attribute by specifying heatmap: size");
+		txtFilter.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {				
+				// color the text filter if it is invalid!
+				if( getCanvasArea().applyFilter(txtFilter.getText()) ){
+					txtFilter.setBackground(Color.WHITE);
+				}else{
+					txtFilter.setBackground(Color.RED);
+				}
+			}
+		});
+		toolbar.add(txtFilter);
 
 		processNestedChkbox = new JCheckBox("Nested");	
 		processNestedChkbox.setSelected(false);

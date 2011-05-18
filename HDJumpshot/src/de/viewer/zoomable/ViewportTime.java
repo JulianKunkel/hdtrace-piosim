@@ -649,9 +649,15 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 						scrollable );
 				info_popup = scrollable.getPropertyAt( view_click );
 			}
+			
+			if (info_popup == null){
+				// shall be an error, FIXME for TraceProfileFrame!
+				return;
+			}
+			
 			global_click = new Point( vport_click );
 
-			SwingUtilities.convertPointToScreen( global_click, this );
+			SwingUtilities.convertPointToScreen( global_click, this );			
 
 			info_popup.getCloseButton().addActionListener( info_action_listener );
 			info_popup.addWindowListener( info_window_listener );
