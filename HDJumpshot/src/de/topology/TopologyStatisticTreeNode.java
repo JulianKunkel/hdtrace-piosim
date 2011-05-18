@@ -30,7 +30,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
-import de.hdTraceInput.BufferedStatisticsFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.viewer.timelines.TimelineType;
 
 public class TopologyStatisticTreeNode extends TopologyTreeNode {
@@ -39,23 +39,23 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	final StatisticsSource statisticSource;
 	final StatisticsDescription statisticDescription;
 	
-	public TopologyStatisticTreeNode(StatisticsDescription statDesc, String group, TopologyNode topNode, TraceFormatFileOpener file) {
+	public TopologyStatisticTreeNode(StatisticsDescription statDesc, TopologyNode topNode, StatisticsSource source, TraceFormatFileOpener file) {
 		super(topNode, file);
 		
-		this.statisticSource = topNode.getStatisticsSource(group);
+		this.statisticSource = source;
 		this.statisticDescription = statDesc;		
 	}
 	
 	public StatisticsGroupDescription getStatisticGroup(){
-		return ((BufferedStatisticsFileReader) statisticSource).getGroup();
+		return ((IBufferedStatisticsReader) statisticSource).getGroup();
 	}
 		
 	public StatisticsDescription getStatisticDescription() {
 		return statisticDescription;
 	}
 	
-	public BufferedStatisticsFileReader getStatisticSource() {
-		return (BufferedStatisticsFileReader) statisticSource;
+	public IBufferedStatisticsReader getStatisticSource() {
+		return (IBufferedStatisticsReader) statisticSource;
 	}
 	
 	@Override

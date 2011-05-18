@@ -122,7 +122,7 @@ public class TraceFormatBufferedFileReader {
 	 */
 	private void setGlobalValuesOnStatistics(Collection<StatisticsSource> stats){
 		for(StatisticsSource statReader: stats){			
-			final BufferedStatisticsFileReader reader = ((BufferedStatisticsFileReader) statReader);
+			final IBufferedStatisticsReader reader = ((IBufferedStatisticsReader) statReader);
 			updateMinMaxTime(reader);
 
 			final StatisticsGroupDescription group = reader.getGroup();
@@ -228,7 +228,7 @@ public class TraceFormatBufferedFileReader {
 		// walk through the complete topology and check each statistic
 		for(TopologyNode topo: fileOpener.getTopology().getSubTopologies()){
 			for(StatisticsSource statSource: topo.getStatisticsSources().values()) {
-				StatisticsGroupDescription group = ((BufferedStatisticsFileReader) statSource).getGroup();
+				StatisticsGroupDescription group = ((IBufferedStatisticsReader) statSource).getGroup();
 
 				for(StatisticsDescription desc: group.getStatisticsOrdered()){										 
 					if(!categoriesStatistics.containsKey(desc)){

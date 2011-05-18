@@ -54,8 +54,8 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hdTraceInput.BufferedRelationReader;
-import de.hdTraceInput.BufferedStatisticsFileReader;
 import de.hdTraceInput.BufferedTraceFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
 import de.topology.mappings.ExistingTopologyMappings;
 import de.topology.mappings.TopologyTreeMapping;
@@ -211,6 +211,32 @@ public class TopologyManager
 					return;
 				}
 
+				// allow to insert new TreeNodes on folder nodes
+
+				if( TopologyTreeNode.class.isInstance(clickedNode) ){
+					
+					final TopologyTreeNode statNode = ((TopologyTreeNode) clickedNode);
+					
+					if(! clickedNode.isLeaf()){
+						popupMenu.add(new AbstractAction(){
+							private static final long serialVersionUID = 1L;
+
+							{
+								putValue(Action.NAME, "Generate a user defined statistic timeline with aggregates");							
+							}
+
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								UserDefinedStatisticTreeNode n = new UserDefinedStatisticTreeNode(statNode);
+								final SortedJTreeModel model = getTreeModel();
+								model.insertNodeInto(n, clickedNode);
+							}
+						});
+					}
+				}
+				
+				
+				
 				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){
 					final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) clickedNode);
 
@@ -225,7 +251,7 @@ public class TopologyManager
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							StatisticHistogramFrame frame = new StatisticHistogramFrame(
-									(BufferedStatisticsFileReader) statNode.getStatisticSource(), 
+									statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
 									reader.getCategory(statNode.getStatisticDescription()));
 							frame.show();
@@ -243,7 +269,7 @@ public class TopologyManager
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							StatisticTimeHistogramFrame frame = new StatisticTimeHistogramFrame(
-									(BufferedStatisticsFileReader) statNode.getStatisticSource(), 
+									statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
 									reader.getCategory(statNode.getStatisticDescription()));
 							frame.show();
@@ -404,8 +430,8 @@ public class TopologyManager
 	 * @param timeline
 	 * @return
 	 */
-	public BufferedStatisticsFileReader getStatisticReaderForTimeline(int timeline){
-		return (BufferedStatisticsFileReader) ((TopologyStatisticTreeNode) timelines.get(timeline)).getStatisticSource();
+	public IBufferedStatisticsReader getStatisticReaderForTimeline(int timeline){
+		return (IBufferedStatisticsReader) ((TopologyStatisticTreeNode) timelines.get(timeline)).getStatisticSource();
 	}
 
 	public TopologyStatisticTreeNode getStatisticNodeForTimeline(int timeline){

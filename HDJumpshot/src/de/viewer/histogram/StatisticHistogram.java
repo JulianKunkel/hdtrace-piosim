@@ -36,7 +36,7 @@ import de.drawable.CategoryStatistic;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hdTraceInput.BufferedStatisticsFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.StatisticStatistics;
 import de.viewer.common.ButtonAutoRefresh;
 import de.viewer.common.Const;
@@ -61,7 +61,7 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 	final ModelTime modelTime;
 	final JFrame frame;
 
-	final BufferedStatisticsFileReader reader;
+	final IBufferedStatisticsReader reader;
 	final StatisticsDescription description;
 
 	final HistogramGraph histogramGraph;
@@ -147,7 +147,7 @@ abstract public class StatisticHistogram<DATATYPE extends HistogramData> {
 		}		
 	}
 	
-	public StatisticHistogram(BufferedStatisticsFileReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
+	public StatisticHistogram(IBufferedStatisticsReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
 		this.modelTime = modelTime;
 		this.reader = reader;
 		this.description = description;

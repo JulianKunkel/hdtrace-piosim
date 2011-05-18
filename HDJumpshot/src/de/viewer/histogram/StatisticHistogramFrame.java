@@ -30,7 +30,7 @@ import de.drawable.CategoryStatistic;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hdTraceInput.BufferedStatisticsFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.viewer.common.Const;
 import de.viewer.common.LabeledTextField;
 import de.viewer.common.ModelTime;
@@ -46,7 +46,7 @@ public class StatisticHistogramFrame extends StatisticHistogram<HistogramIntData
 
 	final LabeledTextField labelNumberOfElements = new LabeledTextField( "# Elements", Const.INTEGER_FORMAT );
 
-	public StatisticHistogramFrame(BufferedStatisticsFileReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
+	public StatisticHistogramFrame(IBufferedStatisticsReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
 		super(reader, description, modelTime, category);
 
 		getHistogramGraph().getYAxis().setIntegerType(true);	

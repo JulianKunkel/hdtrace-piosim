@@ -28,7 +28,7 @@ import de.drawable.CategoryStatistic;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hdTraceInput.BufferedStatisticsFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.viewer.common.Const;
 import de.viewer.common.LabeledTextField;
 import de.viewer.common.ModelTime;
@@ -45,7 +45,7 @@ public class StatisticTimeHistogramFrame  extends StatisticHistogram<HistogramDo
 	final LabeledTextField percentTime = new LabeledTextField( "% [t]", Const.FLOAT_FORMAT );
 
 	
-	public StatisticTimeHistogramFrame(BufferedStatisticsFileReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
+	public StatisticTimeHistogramFrame(IBufferedStatisticsReader reader, StatisticsDescription description, ModelTime modelTime, CategoryStatistic category ) {
 		super(reader, description, modelTime, category);
 	}
 

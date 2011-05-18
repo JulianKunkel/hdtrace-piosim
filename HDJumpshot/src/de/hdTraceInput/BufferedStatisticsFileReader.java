@@ -1,11 +1,4 @@
-
-/** Version Control Information $Id: BufferedStatisticsFileReader.java 325 2009-06-01 15:42:47Z kunkel $
- * @lastmodified    $Date: 2009-06-01 17:42:47 +0200 (Mo, 01. Jun 2009) $
- * @modifiedby      $LastChangedBy: kunkel $
- * @version         $Revision: 325 $ 
- */
-
-//	Copyright (C) 2009 Julian M. Kunkel
+//	Copyright (C) 2009, 2011 Julian M. Kunkel
 //	
 //	This file is part of HDJumpshot.
 //	
@@ -41,7 +34,7 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author julian
  *
  */
-public class BufferedStatisticsFileReader implements IBufferedReader, StatisticsSource {
+public class BufferedStatisticsFileReader implements IBufferedStatisticsReader {
 
 	/**
 	 * Earliest statistics start time
@@ -88,7 +81,6 @@ public class BufferedStatisticsFileReader implements IBufferedReader, Statistics
 		
 		this.entries = statEntries.toArray(new StatisticsGroupEntry[]{});
 
-		
 		this.statistics = new StatisticStatistics [getGroup().getSize()];
 		for(StatisticsDescription desc: getGroup().getStatisticsOrdered()){
 			if(! desc.isNumeric())

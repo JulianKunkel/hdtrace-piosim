@@ -72,8 +72,8 @@ import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.trace.StateTraceEntry;
 import de.hd.pvs.TraceFormat.trace.TraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hdTraceInput.BufferedStatisticsFileReader;
 import de.hdTraceInput.BufferedTraceFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.ReaderTraceElementEnumerator;
 import de.hdTraceInput.StatisticStatistics;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
@@ -414,7 +414,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 	{
 		final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
-		final BufferedStatisticsFileReader sReader = (BufferedStatisticsFileReader) node.getStatisticSource();
+		final IBufferedStatisticsReader sReader = (IBufferedStatisticsReader) node.getStatisticSource();
 
 		final StatisticsGroupDescription groupDescr = sReader.getGroup();
 		final StatisticsDescription desc = node.getStatisticDescription();
@@ -1018,7 +1018,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 						
 			break;
 		case STATISTIC:{
-			final BufferedStatisticsFileReader sreader = topologyManager.getStatisticReaderForTimeline(timeline);
+			final IBufferedStatisticsReader sreader = topologyManager.getStatisticReaderForTimeline(timeline);
 			StatisticsGroupEntry entry = sreader.getTraceEntryClosestToTime(realTime);
 			int which = topologyManager.getStatisticNumberForTimeline(timeline);			
 			selectedObject = entry.createStatisticEntry(which);

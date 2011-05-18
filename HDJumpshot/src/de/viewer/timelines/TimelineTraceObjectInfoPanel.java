@@ -51,7 +51,7 @@ import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.IEventTraceEntry;
 import de.hd.pvs.TraceFormat.trace.IStateTraceEntry;
 import de.hd.pvs.TraceFormat.util.Epoch;
-import de.hdTraceInput.BufferedStatisticsFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.StatisticStatistics;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
 import de.topology.TopologyStatisticTreeNode;
@@ -148,7 +148,7 @@ public class TimelineTraceObjectInfoPanel extends ModelInfoPanel<TraceObjectInfo
 	
 	public void showInfo( StatisticsEntry statistic, 
 			TopologyNode topology, 
-			BufferedStatisticsFileReader sReader) {
+			IBufferedStatisticsReader sReader) {
 
 		setVisibleControls(TracableObjectType.STATISTICENTRY);		
 
