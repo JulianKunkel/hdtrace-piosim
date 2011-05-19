@@ -27,6 +27,7 @@ import de.topology.TopologyManagerContents;
 import de.topology.TopologyRelationExpandedTreeNode;
 import de.topology.TopologyRelationTreeNode;
 import de.topology.TopologyStatisticTreeNode;
+import de.topology.TopologyStatisticsGroupFolder;
 import de.topology.TopologyTreeNode;
 import de.viewer.common.SortedJTreeNode;
 
@@ -72,6 +73,14 @@ abstract public class TopologyTreeMapping {
 
 		return node;
 	}
+	
+
+	protected SortedJTreeNode addStatisticsTreeFolderNode(String name, SortedJTreeNode parent){
+		SortedJTreeNode node = new TopologyStatisticsGroupFolder(name);
+		parent.add(node);
+		return node;
+	}
+
 
 
 	protected void addStatisticsInTopology(int level, SortedJTreeNode node, TopologyNode topology, TraceFormatFileOpener file){	
@@ -83,7 +92,7 @@ abstract public class TopologyTreeMapping {
 			if(statSource.getGroup().getStatisticsOrdered().size() == 1){
 				statGroupNode = node;
 			}else{			
-				statGroupNode = addDummyTreeNode(group, node);
+				statGroupNode = addStatisticsTreeFolderNode(group, node);
 			}
 
 
