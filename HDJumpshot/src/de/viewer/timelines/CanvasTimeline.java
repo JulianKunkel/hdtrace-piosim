@@ -422,7 +422,7 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 		final CategoryStatistic cat = reader.getCategory(desc);
 
 		final int statNumberInGroup = node.getNumberInGroup();
-
+		
 		if(! cat.isVisible()){
 			return 0;
 		}

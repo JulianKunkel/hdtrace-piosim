@@ -79,7 +79,7 @@ abstract public class TopologyTreeMapping {
 		for(String group: topology.getStatisticsSources().keySet()){
 			IBufferedStatisticsReader statSource = (IBufferedStatisticsReader) topology.getStatisticsSource(group);
 			final SortedJTreeNode statGroupNode;
-
+			
 			if(statSource.getGroup().getStatisticsOrdered().size() == 1){
 				statGroupNode = node;
 			}else{			
