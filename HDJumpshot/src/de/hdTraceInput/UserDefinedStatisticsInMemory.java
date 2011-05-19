@@ -1,5 +1,6 @@
 package de.hdTraceInput;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 
@@ -15,6 +16,7 @@ import de.topology.TopologyManager;
 import de.topology.TopologyStatisticTreeNode;
 import de.topology.TopologyStatisticsGroupFolder;
 import de.topology.TopologyTreeNode;
+import de.viewer.common.ModelTime;
 import de.viewer.common.SortedJTreeModel;
 
 /**
@@ -26,6 +28,7 @@ import de.viewer.common.SortedJTreeModel;
 public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 	final TopologyManager  topologyManager;
 	final TopologyNode parentNode;
+	final ModelTime modelTime;
 
 	/**
 	 * The user supplied function to compute, initialized to 1
@@ -53,7 +56,11 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 		
 		int childCount = pNode.getChildCount();
 		
-		TopologyStatisticTreeNode [] statisticsFound = new TopologyStatisticTreeNode[requiredMetrics.length];
+		final TopologyStatisticTreeNode [] statisticsFound = new TopologyStatisticTreeNode[requiredMetrics.length];
+		/**
+		 * Contains the offset to the metric we are looking for in the group
+		 */
+		final int [] groupPosition = new int[requiredMetrics.length];
 		/**
 		 * Describe the position in the statisticsFoundArray we have
 		 */
@@ -75,7 +82,8 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 						for(String s : requiredMetrics){
 							if(s.equals(statN.toString())){
 								// got one!
-								statisticsFound[curStatFound++] = statN;
+								groupPosition[curStatFound] = statN.getStatisticDescription().getNumberInGroup();
+								statisticsFound[curStatFound++] = statN;								
 								break;
 							}
 						}
@@ -84,7 +92,7 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 				continue;
 			}
 			
-			// must be a statNode
+			// must be a statNode which means there is no other number
 			final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) node);
 		
 			if(statNode.getStatisticSource() == this) // we are child of the parent.
@@ -93,6 +101,7 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 			for(String s : requiredMetrics){
 				if(s.equals(statNode.toString())){
 					// got one!
+					groupPosition[curStatFound] = statNode.getStatisticDescription().getNumberInGroup();
 					statisticsFound[curStatFound++] = statNode;
 					break;
 				}
@@ -104,21 +113,94 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 			return;
 		}
 		
-		// compute the new values
+		// compute the new values based on the equation and the statisticsFound
+		// track the current positions of all statistics we need		
+		// enumerate the statistics of the reader with the model time.
+		Enumeration<StatisticsGroupEntry> [] currentpositions = new Enumeration[statisticsFound.length];
+		// the last element retrieved by the enumeration
+		StatisticsGroupEntry [] lastElement = new StatisticsGroupEntry[statisticsFound.length];
 
-		StatisticsGroupEntry[] entries = new StatisticsGroupEntry[2];
-
-		final StatisticsGroupDescription group = getGroup();
-
-		for (int i=0; i < entries.length; i++){
-			final Object [] values = new Object[1];
-			values[0] = i;
-			entries[i] = new StatisticsGroupEntry(values, new Epoch(i), new Epoch(i+1), group);
+		// track the time for the last element
+		final Epoch biggestTime = new Epoch(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		Epoch lastTime = biggestTime;
+		
+		for(int i = 0; i < currentpositions.length; i++){
+			
+			currentpositions[i] = statisticsFound[i].getStatisticSource().enumerateStatistics(modelTime.getViewPositionAdjusted(), modelTime.getViewEndAdjusted());
+			lastElement[i] = currentpositions[i].nextElement();
+			
+			Epoch elemTime =statisticsFound[i].getStatisticSource().getMinTime();
+			
+			if (  elemTime.compareTo(lastTime) < 0 ){
+				lastTime = elemTime;
+			}
 		}
 
-		setEntries(entries);
+		// the group we will create entries for is this group
+		final StatisticsGroupDescription group = getGroup();
 
 		
+		
+		// create the new elements
+		ArrayList<StatisticsGroupEntry> entries = new ArrayList<StatisticsGroupEntry>();
+		
+		while(true){
+			int minIndex = -1;
+
+			/**
+			 * The earliest element to handle
+			 */
+			Epoch curMinTime = biggestTime;
+			
+			// now we have to seek the minimum index of all current positions
+			for(int i=0; i < currentpositions.length; i++){
+				
+				if ( lastElement[i] != null && lastElement[i].getEarliestTime().compareTo(curMinTime) < 0 ){
+					curMinTime = lastElement[i].getEarliestTime();
+					minIndex = i;
+				}
+			}
+			
+			if(minIndex == -1){
+				// we have scanned all elements.
+				break;
+			}
+			
+			// we have the minimum element.
+			final StatisticsGroupEntry lastElem = lastElement[minIndex];
+
+			final Object [] values = new Object[1];
+			values[0] = lastElem.getValues()[groupPosition[minIndex]];
+						
+			entries.add( new StatisticsGroupEntry(values, lastTime, curMinTime, group) );
+			
+			lastTime = curMinTime;
+			
+			
+			// update the enumeration
+			if( currentpositions[minIndex].hasMoreElements() ){
+				lastElement[minIndex] = currentpositions[minIndex].nextElement();
+			}else{
+				lastElement[minIndex] = null;
+			}
+		}
+		
+
+		if (entries.size() == 0){
+			System.err.println("WARNING did not find interesting values for user computed value, adding dummy values!");
+			
+			final Object [] values = new Object[1];
+			values[0] = 0.0;
+			entries.add( new StatisticsGroupEntry(values, lastTime, lastTime, group));
+		}
+
+
+		// set the new entries
+		setEntries(entries.toArray(new StatisticsGroupEntry[0]));
+		
+		
+		// update the global statistics
+		topologyManager.getTraceFormatFileReader().setGlobalValuesOnStatistics(parentNode.getStatisticsSources().values());
 		
 		
 		// trigger computation of user-defined statistics on parent nodes
@@ -144,9 +226,10 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 	}
 
 
-	public UserDefinedStatisticsInMemory(TopologyManager topologyManager, TopologyNode parentNode, StatisticsGroupDescription group) {
+	public UserDefinedStatisticsInMemory(TopologyManager topologyManager, TopologyNode parentNode, StatisticsGroupDescription group, ModelTime modelTime) {
 		this.topologyManager = topologyManager;
 		this.parentNode = parentNode;
+		this.modelTime = modelTime;
 		setGroup(group);
 		
 		recomputeStatistics();

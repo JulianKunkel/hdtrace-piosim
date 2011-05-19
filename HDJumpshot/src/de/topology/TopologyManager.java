@@ -249,7 +249,7 @@ public class TopologyManager
 								StatisticsGroupDescription group = new StatisticsGroupDescription("userdefined");
 								group.addStatistic( new StatisticsDescription(group, "test", StatisticsEntryType.DOUBLE, 0, "", "grouping"));				
 								
-								statNode.getTopology().setStatisticsReader(group.getName(), new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group));
+								statNode.getTopology().setStatisticsReader(group.getName(), new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group, modelTime));
 								
 								// reload topology.
 								
@@ -905,5 +905,9 @@ public class TopologyManager
 		if(handlerStruct == null)
 			return null;
 		return (Type) handlerStruct.objsPerTopo.get(topology);
+	}
+	
+	public TraceFormatBufferedFileReader getTraceFormatFileReader() {
+		return reader;
 	}
 }

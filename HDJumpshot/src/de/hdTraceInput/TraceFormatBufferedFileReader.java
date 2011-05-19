@@ -120,7 +120,7 @@ public class TraceFormatBufferedFileReader {
 	 * Also set/create global statistics about statistics *g*
 	 * @param stats
 	 */
-	private void setGlobalValuesOnStatistics(Collection<StatisticsSource> stats){
+	public void setGlobalValuesOnStatistics(Collection<StatisticsSource> stats){
 		for(StatisticsSource statReader: stats){			
 			final IBufferedStatisticsReader reader = ((IBufferedStatisticsReader) statReader);
 			updateMinMaxTime(reader);
