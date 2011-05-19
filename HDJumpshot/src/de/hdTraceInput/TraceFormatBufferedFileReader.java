@@ -224,17 +224,22 @@ public class TraceFormatBufferedFileReader {
 	 * Add statistic categories in the file if not already part of the category.
 	 * @param fileOpener
 	 */
-	private void updateStatisticCategories(TraceFormatFileOpener fileOpener){
+	private void updateStatisticCategories(TopologyNode rootNode){
 		// walk through the complete topology and check each statistic
-		for(TopologyNode topo: fileOpener.getTopology().getSubTopologies()){
+		for(TopologyNode topo: rootNode.getSubTopologies()){
 			for(StatisticsSource statSource: topo.getStatisticsSources().values()) {
-				StatisticsGroupDescription group = ((IBufferedStatisticsReader) statSource).getGroup();
-
-				for(StatisticsDescription desc: group.getStatisticsOrdered()){										 
-					if(!categoriesStatistics.containsKey(desc)){
-						categoriesStatistics.put(desc, new CategoryStatistic(desc, null));
-					}
-				}
+				
+				final StatisticsGroupDescription group = ((IBufferedStatisticsReader) statSource).getGroup();
+				addCategories(group);
+			}
+		}
+	}
+	
+	public void addCategories(StatisticsGroupDescription group){
+		
+		for(StatisticsDescription desc: group.getStatisticsOrdered()){										 
+			if(!categoriesStatistics.containsKey(desc)){
+				categoriesStatistics.put(desc, new CategoryStatistic(desc, null));
 			}
 		}
 	}
@@ -265,7 +270,7 @@ public class TraceFormatBufferedFileReader {
 			throw new IllegalArgumentException("Error while reading file: " + projectFileName );
 		}
 
-		updateStatisticCategories(fileOpener);
+		updateStatisticCategories(fileOpener.getTopology());
 
 		// determine global min/maxtime
 		TopologyNode rootTopology = fileOpener.getTopology();
@@ -292,6 +297,10 @@ public class TraceFormatBufferedFileReader {
 
 		loadedFiles.add(fileOpener);
 
+		releadTopologyAndCategories();
+	}
+	
+	public void releadTopologyAndCategories(){
 
 		// update legends:
 		legendTraceModel.clearCategories();
@@ -312,7 +321,7 @@ public class TraceFormatBufferedFileReader {
 		}
 
 		for(FileLoadedListener listener: fileLoadListener){
-			listener.additionalFileLoaded(fileOpener);
+			listener.additionalFileLoaded();
 		}
 	}
 

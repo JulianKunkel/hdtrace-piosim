@@ -8,7 +8,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.util.Epoch;
 
-public class BufferedMemoryReader implements StatisticsSource{
+public class BufferedMemoryReader implements IBufferedStatisticsReader{
 
 	/**
 	 * Earliest statistics start time

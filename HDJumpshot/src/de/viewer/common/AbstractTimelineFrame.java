@@ -196,7 +196,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 
 	private class MyFileLoadedListener implements FileLoadedListener{
 		@Override
-		public void additionalFileLoaded(TraceFormatFileOpener file) {
+		public void additionalFileLoaded() {
 			topologyManager.restoreTopology();
 		}
 	}  

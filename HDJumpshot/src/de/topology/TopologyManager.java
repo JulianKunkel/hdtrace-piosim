@@ -52,11 +52,14 @@ import javax.swing.tree.TreePath;
 import de.drawable.CategoryStatistic;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hdTraceInput.BufferedRelationReader;
 import de.hdTraceInput.BufferedTraceFileReader;
 import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
+import de.hdTraceInput.UserDefinedStatisticsInMemory;
 import de.topology.mappings.ExistingTopologyMappings;
 import de.topology.mappings.TopologyTreeMapping;
 import de.viewer.common.Const;
@@ -227,31 +230,37 @@ public class TopologyManager
 
 							@Override
 							public void actionPerformed(ActionEvent e) {
-								UserDefinedStatisticTreeNode n = new UserDefinedStatisticTreeNode(statNode);
-								final SortedJTreeModel model = getTreeModel();
-								model.insertNodeInto(n, clickedNode);
+								
+								StatisticsGroupDescription group = new StatisticsGroupDescription("testgroup");
+								group.addStatistic( new StatisticsDescription(group, "test", StatisticsEntryType.DOUBLE, 0, "user", "grouping"));							
+								statNode.getTopology().setStatisticsReader(group.getName(), new UserDefinedStatisticsInMemory(statNode, group));
+								
+								// reload topology.
+								
+								reader.addCategories(group);								
+								reader.releadTopologyAndCategories();
 							}
 						});
 					}
 				}
 				
-				if( UserDefinedStatisticTreeNode.class.isInstance(clickedNode) ){
-					// allow to refresh the node...
-					// TODO re-factor this code into the node
-					popupMenu.add(new AbstractAction(){
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							UserDefinedStatisticTreeNode eNode = ((UserDefinedStatisticTreeNode) clickedNode);
-							eNode.recomputeStatistics();							
-						}
-					});					
-				}
-				
 				
 				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){
 					final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) clickedNode);
+					
+					if(UserDefinedStatisticsInMemory.class.isInstance(statNode.getStatisticSource() )){
+						// allow to refresh the node...
+						// TODO re-factor this code into the node
+						popupMenu.add(new AbstractAction(){
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								UserDefinedStatisticsInMemory eNode = ((UserDefinedStatisticsInMemory) statNode.getStatisticSource());
+								eNode.recomputeStatistics();							
+							}
+						});			
+					}
 
 					// Show statistic histogram:			
 					popupMenu.add(new AbstractAction(){

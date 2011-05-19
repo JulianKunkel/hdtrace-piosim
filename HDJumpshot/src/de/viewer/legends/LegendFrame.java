@@ -109,7 +109,7 @@ public class LegendFrame extends TopWindow
 	
 	private class MyFileLoadedListener implements FileLoadedListener{
 		@Override
-		public void additionalFileLoaded(TraceFormatFileOpener file) {	
+		public void additionalFileLoaded() {	
 			reader.getLegendStatisticModel().commitModel();
 			reader.getLegendTraceModel().commitModel();
 			
@@ -155,6 +155,6 @@ public class LegendFrame extends TopWindow
 		super.initWindow();
 		reader.addFileLoadListener(fileloadListener);
 		// init!
-		fileloadListener.additionalFileLoaded(null);
+		fileloadListener.additionalFileLoaded();
 	}
 }

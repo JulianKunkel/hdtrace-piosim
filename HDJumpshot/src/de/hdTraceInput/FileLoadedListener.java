@@ -8,5 +8,5 @@ public interface FileLoadedListener extends EventListener{
 	/**
 	 * This method is invoked if another file gets loaded.
 	 */
-	public void additionalFileLoaded(TraceFormatFileOpener file);
+	public void additionalFileLoaded();
 }
