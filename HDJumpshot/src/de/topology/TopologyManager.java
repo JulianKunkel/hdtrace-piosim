@@ -235,6 +235,19 @@ public class TopologyManager
 					}
 				}
 				
+				if( UserDefinedStatisticTreeNode.class.isInstance(clickedNode) ){
+					// allow to refresh the node...
+					// TODO re-factor this code into the node
+					popupMenu.add(new AbstractAction(){
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							UserDefinedStatisticTreeNode eNode = ((UserDefinedStatisticTreeNode) clickedNode);
+							eNode.recomputeStatistics();							
+						}
+					});					
+				}
 				
 				
 				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){
