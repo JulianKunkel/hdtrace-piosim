@@ -35,7 +35,7 @@ public class HeatMap {
 		// sort of tolerate multiple spaces 
 		heatMap = heatMap.trim().replaceAll(" +", " ");
 		
-		String names = heatMap.replaceAll("[+*^_]", " ").trim().replaceAll(" +", " ");
+		String names = heatMap.replaceAll("[+*^,]", " ").trim().replaceAll(" +", " ");
 			 
 		String [] attributeNames = names.split(" ");
 					
@@ -150,7 +150,7 @@ public class HeatMap {
 				values[posInVal + 1] = values[posInVal+1] * values[posInVal+2]; 
 			}else if (op == '^'){
 				values[posInVal + 1] = values[posInVal+1] > values[posInVal+2] ? values[posInVal+1] : values[posInVal+2]; 
-			}else if (op == '_'){
+			}else if (op == ','){
 				values[posInVal + 1] = values[posInVal+1] < values[posInVal+2] ? values[posInVal+1] : values[posInVal+2]; 
 			}
 		}
@@ -174,7 +174,8 @@ public class HeatMap {
 	 */
 	public void resetHeatMapColors(){
 		minValue = Double.MAX_VALUE;
-		maxValue = Double.MIN_VALUE;
+		maxValue = 0
+		;
 		diff = 0;
 	}
 	

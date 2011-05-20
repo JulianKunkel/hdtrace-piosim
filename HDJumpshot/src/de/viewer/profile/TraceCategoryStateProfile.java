@@ -41,9 +41,9 @@ public class TraceCategoryStateProfile {
 	//of one call
 	double minDurationExclusive = Double.MAX_VALUE; 
 	double minDurationInclusive = Double.MAX_VALUE;
-	double maxDurationExclusive = Double.MIN_VALUE; 
-	double maxDurationInclusive = Double.MIN_VALUE;	
-	
+	double maxDurationExclusive = 0; 
+	double maxDurationInclusive = 0;	
+		
 	final TraceProfileFrame profileFrame;
 	
 	public TraceCategoryStateProfile(CategoryState category, TraceProfileFrame profileFrame) 
