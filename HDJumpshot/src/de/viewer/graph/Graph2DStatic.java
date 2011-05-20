@@ -94,10 +94,15 @@ public abstract class Graph2DStatic {
 
 		int posX = xAxis.getDrawOffset() + 10;
 		final int posY = yAxis.getDrawSize() + 2* yAxis.getDrawOffset();
-		int lastValue = Integer.MIN_VALUE;
-		while(true){			
-			int val = (int) Math.round(xAxis.convertPixelToValue(posX));
-			String str = String.format("%d ", val);
+		double lastValue = Double.MAX_VALUE;
+		// break after 1000 chars have been drawn.
+		int count = 1000;
+		
+		while(count > 0){
+			count --;
+			double val = xAxis.convertPixelToValue(posX);
+			
+			String str = String.format("%f ", val);
 			final int plotLabelSize = metric.stringWidth(str);
 
 			if(posX > xAxis.getDrawSize() )
