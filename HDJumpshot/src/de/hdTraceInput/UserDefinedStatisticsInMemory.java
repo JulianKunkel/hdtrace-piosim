@@ -38,7 +38,7 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 	/**
 	 * The metrics which are required to compute the function
 	 */
-	private String [] requiredMetrics = {"BMI", "TROVE"};
+	private String [] requiredMetrics = {"NET_IN", "NET_OUT"};
 	
 	public void setComputeFunction(String computeFunction) {
 		this.computeFunction = computeFunction;
@@ -47,78 +47,117 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 	public String getComputeFunction() {
 		return computeFunction;
 	}
+	
+	private void checkStatisticsOfNode(Object node, ArrayList<TopologyStatisticTreeNode> statisticsFound, ArrayList<Integer> groupPosition ){
+		System.out.println("Checking node " + node);
+		
+		if( TopologyStatisticsGroupFolder.class.isInstance(node) ){
+			// this is a folder for a statistics group!
+			final TopologyStatisticsGroupFolder folderNode =  ((TopologyStatisticsGroupFolder) node);					
+			
+			for(int sc = 0; sc < folderNode.getChildCount(); sc++){
+				TopologyStatisticTreeNode statN = (TopologyStatisticTreeNode) folderNode.getChildAt(sc);
+				
+				final String statName = statN.getStatisticDescription().getName();
+				
+				System.out.println("stat found: " + statName );
+				
+				for(String s : requiredMetrics){
+					if(s.equals(statName)){
+						// got one!
+						groupPosition.add( statN.getStatisticDescription().getNumberInGroup() );
+						statisticsFound.add( statN );								
+						break;
+					}
+				}
+			}
+		}
+		
+		if(! TopologyStatisticTreeNode.class.isInstance(node)  ){				
+			return;
+		}
+		
+		// must be a statNode which means there is no other number
+		final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) node);
+	
+		if(statNode.getStatisticSource() == this) // we are child of the parent.
+			return;
+		
+		for(String s : requiredMetrics){
+			if(s.equals(statNode.toString())){
+				// got one!
+				groupPosition.add( statNode.getStatisticDescription().getNumberInGroup() );
+				statisticsFound.add( statNode );	
+				break;
+			}
+		}
+		
+		return;
+	}
 
+	private void  findStatistics(TopologyTreeNode pNode, ArrayList<TopologyStatisticTreeNode> statisticsFound, ArrayList<Integer> groupPositions){
+		int childCount = pNode.getChildCount();
+		
+		for(int c = 0; c < childCount; c++){
+			final Object node = (Object) pNode.getChildAt(c);
+
+			if(TopologyInnerNode.class.isInstance(node)){
+				// check if children have the metrics
+				int cchildCount = ((TopologyInnerNode)node).getChildCount();
+
+				final int oldSize = statisticsFound.size();
+				
+				for(int d = 0; d < cchildCount; d++){
+					final Object childChild = (Object) ((TopologyInnerNode)node).getChildAt(d);
+					
+					checkStatisticsOfNode(childChild, statisticsFound, groupPositions);
+				}
+				
+				if ( oldSize != statisticsFound.size()) {
+					// we found sth.
+					// check that we found all required metrics!
+					if(oldSize  + requiredMetrics.length != statisticsFound.size() ){
+						System.err.println("Did not find all required metrics for the user defined statistics for the node topology:" + ((TopologyInnerNode)node).getTopology().toRecursiveString() );
+						// remove the values.
+						while(statisticsFound.size() != oldSize){
+							statisticsFound.remove( oldSize );
+							groupPositions.remove( oldSize );
+						}
+					}
+				}
+				
+			}else{
+				// normal node:
+				checkStatisticsOfNode(node, statisticsFound, groupPositions);
+			}
+			
+			
+		}
+		
+
+	}
+	
 	/**
 	 * Start to recompute the statistics based on the direct (!) children
 	 */
 	public void recomputeStatistics(){		
 		final TopologyTreeNode pNode =  topologyManager.getTopologyTreeNode(parentNode);
 		
-		int childCount = pNode.getChildCount();
-		
-		final TopologyStatisticTreeNode [] statisticsFound = new TopologyStatisticTreeNode[requiredMetrics.length];
 		/**
 		 * Contains the offset to the metric we are looking for in the group
 		 */
-		final int [] groupPosition = new int[requiredMetrics.length];
-		/**
-		 * Describe the position in the statisticsFoundArray we have
-		 */
-		int curStatFound = 0;
+		final ArrayList<Integer> groupPosition = new ArrayList<Integer>();
 		
-		
-		for(int c = 0; c < childCount; c++){
-			final Object node = (Object) pNode.getChildAt(c);
-			
-			if(! TopologyStatisticTreeNode.class.isInstance(node)  ){
+		final ArrayList<TopologyStatisticTreeNode> statisticsFound = new ArrayList<TopologyStatisticTreeNode>();
+
+		findStatistics(pNode, statisticsFound, groupPosition);
 				
-				if( TopologyStatisticsGroupFolder.class.isInstance(node) ){
-					// this is a folder for a statistics group!
-					final TopologyStatisticsGroupFolder folderNode =  ((TopologyStatisticsGroupFolder) node);					
-					
-					for(int sc = 0; sc < folderNode.getChildCount(); sc++){
-						TopologyStatisticTreeNode statN = (TopologyStatisticTreeNode) folderNode.getChildAt(sc);
-						
-						for(String s : requiredMetrics){
-							if(s.equals(statN.toString())){
-								// got one!
-								groupPosition[curStatFound] = statN.getStatisticDescription().getNumberInGroup();
-								statisticsFound[curStatFound++] = statN;								
-								break;
-							}
-						}
-					}
-				}
-				continue;
-			}
-			
-			// must be a statNode which means there is no other number
-			final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) node);
-		
-			if(statNode.getStatisticSource() == this) // we are child of the parent.
-				continue;
-			
-			for(String s : requiredMetrics){
-				if(s.equals(statNode.toString())){
-					// got one!
-					groupPosition[curStatFound] = statNode.getStatisticDescription().getNumberInGroup();
-					statisticsFound[curStatFound++] = statNode;
-					break;
-				}
-			}
-		}
-		
-		if(curStatFound != requiredMetrics.length){
-			System.err.println("Did not find all required metrics for the user defined statistics, keeping the old values " + this);
-			return;
-		}
-		
 		// compute the new values based on the equation and the statisticsFound
 		// track the current positions of all statistics we need		
 		// enumerate the statistics of the reader with the model time.
-		Enumeration<StatisticsGroupEntry> [] currentpositions = new Enumeration[statisticsFound.length];
+		Enumeration<StatisticsGroupEntry> [] currentpositions = new Enumeration[statisticsFound.size()];
 		// the last element retrieved by the enumeration
-		StatisticsGroupEntry [] lastElement = new StatisticsGroupEntry[statisticsFound.length];
+		StatisticsGroupEntry [] lastElement = new StatisticsGroupEntry[statisticsFound.size()];
 
 		// track the time for the last element
 		final Epoch biggestTime = new Epoch(Integer.MAX_VALUE, Integer.MAX_VALUE);
@@ -126,10 +165,10 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 		
 		for(int i = 0; i < currentpositions.length; i++){
 			
-			currentpositions[i] = statisticsFound[i].getStatisticSource().enumerateStatistics(modelTime.getViewPositionAdjusted(), modelTime.getViewEndAdjusted());
+			currentpositions[i] = statisticsFound.get(i).getStatisticSource().enumerateStatistics(modelTime.getViewPositionAdjusted(), modelTime.getViewEndAdjusted());
 			lastElement[i] = currentpositions[i].nextElement();
 			
-			Epoch elemTime =statisticsFound[i].getStatisticSource().getMinTime();
+			Epoch elemTime = statisticsFound.get(i).getStatisticSource().getMinTime();
 			
 			if (  elemTime.compareTo(lastTime) < 0 ){
 				lastTime = elemTime;
@@ -143,7 +182,10 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 		
 		// create the new elements
 		ArrayList<StatisticsGroupEntry> entries = new ArrayList<StatisticsGroupEntry>();
-		
+
+		/** The last element we processed  */
+		StatisticsGroupEntry lastElem = null;
+		double lastValue = 0;
 		while(true){
 			int minIndex = -1;
 
@@ -167,12 +209,16 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 			}
 			
 			// we have the minimum element.
-			final StatisticsGroupEntry lastElem = lastElement[minIndex];
+			lastElem = lastElement[minIndex];
 
 			final Object [] values = new Object[1];
-			values[0] = lastElem.getValues()[groupPosition[minIndex]];
-						
+			
+			values[0] = lastValue;			
+			// last element:						
 			entries.add( new StatisticsGroupEntry(values, lastTime, curMinTime, group) );
+			
+			// compute the new value:
+			lastValue = lastElem.getNumeric(groupPosition.get(minIndex));			
 			
 			lastTime = curMinTime;
 			
@@ -184,14 +230,18 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 				lastElement[minIndex] = null;
 			}
 		}
-		
+
 
 		if (entries.size() == 0){
 			System.err.println("WARNING did not find interesting values for user computed value, adding dummy values!");
 			
 			final Object [] values = new Object[1];
 			values[0] = 0.0;
-			entries.add( new StatisticsGroupEntry(values, lastTime, lastTime, group));
+			entries.add( new StatisticsGroupEntry(values, modelTime.getViewPositionAdjusted(), modelTime.getViewEndAdjusted(), group));
+		}else{
+			final Object [] values = new Object[1];		
+			values[0] = lastValue;				
+			entries.add( new StatisticsGroupEntry(values, lastTime, lastElem.getLatestTime(), group) );			
 		}
 
 
@@ -231,8 +281,6 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 		this.parentNode = parentNode;
 		this.modelTime = modelTime;
 		setGroup(group);
-		
-		recomputeStatistics();
 	}
 
 }

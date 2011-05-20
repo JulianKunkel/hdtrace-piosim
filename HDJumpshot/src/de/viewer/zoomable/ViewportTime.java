@@ -61,6 +61,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputListener;
 
 import de.drawable.TimeBoundingBox;
+import de.hd.pvs.TraceFormat.TracableObjectType;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntry;
 import de.viewer.common.CustomCursor;
 import de.viewer.common.Debug;
 import de.viewer.common.ModelInfoPanel;
@@ -71,6 +73,8 @@ import de.viewer.common.TimeEvent;
 import de.viewer.common.TimeListener;
 import de.viewer.dialog.InfoDialog;
 import de.viewer.dialog.InfoDialogForDuration;
+import de.viewer.dialog.InfoDialogForStatisticEntries;
+import de.viewer.timelines.TraceObjectInformation;
 
 
 public class ViewportTime extends JViewport implements TimeListener, MouseInputListener, KeyListener
@@ -435,7 +439,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 		if( dobj != lastMouseMoveObject ){
 			info_model.showInfo(dobj);
 			
-			if(dobj != null){
+			if(dobj != null &&  ((TraceObjectInformation) dobj).getObject().getType() != TracableObjectType.STATISTICENTRY ){
+				System.out.println(dobj.getClass().toString());
 				// 	set the tooltip based on the object
 				this.setToolTipText(dobj.toString());
 			}

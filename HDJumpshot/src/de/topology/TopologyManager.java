@@ -249,12 +249,16 @@ public class TopologyManager
 								StatisticsGroupDescription group = new StatisticsGroupDescription("userdefined");
 								group.addStatistic( new StatisticsDescription(group, "test", StatisticsEntryType.DOUBLE, 0, "", "grouping"));				
 								
-								statNode.getTopology().setStatisticsReader(group.getName(), new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group, modelTime));
+								UserDefinedStatisticsInMemory userStats = new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group, modelTime);
+								
+								statNode.getTopology().setStatisticsReader(group.getName(), userStats );
+								userStats.recomputeStatistics();
 								
 								// reload topology.
 								
 								reader.addCategories(group);								
 								reader.releadTopologyAndCategories();
+								
 							}
 						});
 					}
