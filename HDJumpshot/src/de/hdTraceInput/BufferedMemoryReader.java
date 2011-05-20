@@ -53,9 +53,7 @@ public class BufferedMemoryReader implements IBufferedStatisticsReader{
 			if(! desc.isNumeric())
 				continue;
 			
-			statistics[desc.getNumberInGroup()] = StatisticsComputer.computeStatistics(
-					this, desc, minTime, maxTime
-					);
+			statistics[desc.getNumberInGroup()] = StatisticsComputer.computeStatistics(	this, desc, minTime, maxTime );
 		}
 	}
 	

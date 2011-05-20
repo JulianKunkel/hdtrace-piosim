@@ -32,24 +32,24 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 
 	/**
 	 * The user supplied function to compute, initialized to 1
-	 */
-	private String computeFunction = "1";
+	 */	
+	private MathematicalExpression expression = new MathematicalExpression("1");
 
-	/**
-	 * The metrics which are required to compute the function
-	 */
-	private String [] requiredMetrics = {"NET_IN", "NET_OUT"};
 	
-	public void setComputeFunction(String computeFunction) {
-		this.computeFunction = computeFunction;
+	public void setComputeFunction(String computeFunction) throws IllegalArgumentException{
+		this.expression = new MathematicalExpression(computeFunction);		
 	}
 
 	public String getComputeFunction() {
-		return computeFunction;
+		return expression.textualRepresentation();
 	}
+	
+
 	
 	private void checkStatisticsOfNode(Object node, ArrayList<TopologyStatisticTreeNode> statisticsFound, ArrayList<Integer> groupPosition ){
 		System.out.println("Checking node " + node);
+		
+		final String [] requiredMetrics = expression.getRequiredMetrics();
 		
 		if( TopologyStatisticsGroupFolder.class.isInstance(node) ){
 			// this is a folder for a statistics group!
@@ -116,7 +116,7 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 				if ( oldSize != statisticsFound.size()) {
 					// we found sth.
 					// check that we found all required metrics!
-					if(oldSize  + requiredMetrics.length != statisticsFound.size() ){
+					if(oldSize  + expression.getRequiredMetrics().length != statisticsFound.size() ){
 						System.err.println("Did not find all required metrics for the user defined statistics for the node topology:" + ((TopologyInnerNode)node).getTopology().toRecursiveString() );
 						// remove the values.
 						while(statisticsFound.size() != oldSize){
@@ -185,7 +185,23 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 
 		/** The last element we processed  */
 		StatisticsGroupEntry lastElem = null;
-		double lastValue = 0;
+		
+		double lastComputedResult = 0;
+		
+		final double [] lastValues = new double[statisticsFound.size()];
+		final String [] variableNames = new String[statisticsFound.size()];
+		
+		// initialize the array
+		for(int i=0; i < lastValues.length; i++){
+			lastValues[i] = Double.NEGATIVE_INFINITY;
+			variableNames[i] = statisticsFound.get(i).getStatisticDescription().getName();
+		}
+		
+		/*
+		 * Flag signaling if we can start the computation
+		 */
+		boolean startedComputation = false;
+		
 		while(true){
 			int minIndex = -1;
 
@@ -210,24 +226,48 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 			
 			// we have the minimum element.
 			lastElem = lastElement[minIndex];
+			
+			lastValues[minIndex] = lastElem.getNumeric(groupPosition.get(minIndex));
+			
+			assert(lastValues[minIndex] != Double.NaN);
+			
+			if(! startedComputation){
+				// check if all variables are available.
+				int i;
+				for(i=0; i < lastValues.length; i++){
+					if (lastValues[i] == Double.NEGATIVE_INFINITY){
+						break;
+					}
+				}
+				
+				if( i == lastValues.length){
+					startedComputation = true;
+				}
+			}
+			
+			// start to compute when all values are available
+			if (startedComputation){
+				lastComputedResult = expression.computeFunction(lastValues, variableNames);
+				
+				final Object [] values = new Object[1];
+				// apply the function onto the variables.
 
-			final Object [] values = new Object[1];
-			
-			values[0] = lastValue;			
-			// last element:						
-			entries.add( new StatisticsGroupEntry(values, lastTime, curMinTime, group) );
-			
-			// compute the new value:
-			lastValue = lastElem.getNumeric(groupPosition.get(minIndex));			
-			
-			lastTime = curMinTime;
-			
+
+				values[0] = lastComputedResult;			
+				// last element:						
+				entries.add( new StatisticsGroupEntry(values, lastTime, curMinTime, group) );
+
+				// compute the new value:
+			}
+
+			lastTime = curMinTime;			
 			
 			// update the enumeration
 			if( currentpositions[minIndex].hasMoreElements() ){
 				lastElement[minIndex] = currentpositions[minIndex].nextElement();
 			}else{
 				lastElement[minIndex] = null;
+				// shall we break now as not all statistics are available any more
 			}
 		}
 
@@ -240,7 +280,7 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 			entries.add( new StatisticsGroupEntry(values, modelTime.getViewPositionAdjusted(), modelTime.getViewEndAdjusted(), group));
 		}else{
 			final Object [] values = new Object[1];		
-			values[0] = lastValue;				
+			values[0] = lastComputedResult;				
 			entries.add( new StatisticsGroupEntry(values, lastTime, lastElem.getLatestTime(), group) );			
 		}
 
