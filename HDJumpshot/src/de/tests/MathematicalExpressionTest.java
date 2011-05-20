@@ -116,7 +116,7 @@ public class MathematicalExpressionTest extends TestSuite{
 	
 	@Test
 	public void timelineAddMultiplier(){
-		MathematicalExpression e = new MathematicalExpression("+A*B");
+		MathematicalExpression e = new MathematicalExpression("+(A*B)");
 		String [] variableNames = {"A", "B", "A", "B"};
 		double [] values =        {1, 2, 2, 2};
 		

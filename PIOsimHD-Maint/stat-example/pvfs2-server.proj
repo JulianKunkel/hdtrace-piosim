@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>                                                                   
+<Application name="result" processCount="3">                                                             
+<Description>normal description </Description>                                                           
+
+<FileList>                                                                   
+</FileList>                                                                          
+                                                                                     
+<Topology>                                                                           
+        <Level type="Hostname">                                                     
+        <Level type="Layer">                                                         
+        </Level>                                                                     
+        </Level>                                                                     
+
+        <Node name="bsrv0">
+                <Node name="SERVER" />
+                <Node name="TROVE" />
+                <Node name="CLIENT" />
+        </Node>
+
+        <Node name="bcomp00">
+                <Node name="SERVER" />
+                <Node name="TROVE" />
+        </Node>
+
+        <Node name="bcomp01">
+                <Node name="SERVER" />
+                <Node name="TROVE" />
+        </Node>
+
+        <Node name="bcomp02">
+                <Node name="SERVER" />
+                <Node name="TROVE" />
+        </Node>
+
+        <Node name="bcomp03">
+                <Node name="SERVER" />
+                <Node name="TROVE" />
+        </Node>
+
+</Topology>
+
+<CommunicatorList>
+<Communicator name="WORLD">
+<Rank global="0" local="0" cid="1"/>
+</Communicator>
+</CommunicatorList>
+
+<ExternalStatistics>
+        <BMI/>
+        <FLOW/>
+        <TROVE/>
+        <REQ/>
+        <BREQ/>
+        <Utilization/>
+</ExternalStatistics>
+
+</Application>

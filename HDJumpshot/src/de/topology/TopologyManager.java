@@ -298,9 +298,10 @@ public class TopologyManager
 							public void actionPerformed(ActionEvent e) {
 								UserDefinedStatisticsInMemory eNode = ((UserDefinedStatisticsInMemory) statNode.getStatisticSource());
 								
-								String str = JOptionPane.showInputDialog(null, "Enter the new compute function: ", eNode.getComputeFunction(), 1);
+								String str = JOptionPane.showInputDialog(null, "Enter the new compute function: ", eNode.getComputeFunction());
 								if(str != null){								
 									eNode.setComputeFunction(str);
+									eNode.recomputeStatistics();
 
 									// just fire the topology change listener right now, TODO a redraw of this line would suffice, though.
 									fireTopologyChanged();

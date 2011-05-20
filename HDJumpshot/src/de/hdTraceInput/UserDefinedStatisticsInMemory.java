@@ -37,7 +37,9 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 
 	
 	public void setComputeFunction(String computeFunction) throws IllegalArgumentException{
-		this.expression = new MathematicalExpression(computeFunction);		
+		this.expression = new MathematicalExpression(computeFunction);	
+		
+		System.out.println(this.expression.textualRepresentation());
 	}
 
 	public String getComputeFunction() {
