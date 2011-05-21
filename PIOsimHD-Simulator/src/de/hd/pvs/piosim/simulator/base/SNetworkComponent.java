@@ -329,11 +329,11 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		final STraceWriter tw = getSimulator().getTraceWriter();
 		if(tw.isTracableComponent(TraceType.INTERNAL)){
 			if(event.getRelationToken() != null){
-				jobToken = tw.relRelateProcessLocalToken(event.getRelationToken(), TraceType.INTERNAL, this);
+				jobToken = tw.relRelateProcessLocalToken(TraceType.INTERNAL, this, event.getRelationToken());
 			}else{
 				jobToken = tw.relCreateTopLevelRelation(TraceType.INTERNAL, this);
 			}
-			tw.relStartState(TraceType.INTERNAL, this, jobToken, buildTraceEntry(event.getEventData()));
+			tw.relStartState(TraceType.INTERNAL, jobToken, buildTraceEntry(event.getEventData()));
 		}else{
 			jobToken = event.getRelationToken();
 		}
@@ -374,8 +374,14 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		debug( " event " + event);
 
 		final STraceWriter tw = getSimulator().getTraceWriter();
-		tw.relEndState(TraceType.INTERNAL, this, jobToken);
-		tw.relDestroy(TraceType.INTERNAL, this, jobToken);
+		final String [] attr = new String[4];
+		attr[0] = "size";
+		attr[1] = "" + event.getEventData().getSize();
+		attr[2] = "offset";
+		attr[3] = "" + event.getEventData().getPosition();
+
+		tw.relEndState(TraceType.INTERNAL, jobToken, "", attr);
+		tw.relDestroy(TraceType.INTERNAL, jobToken);
 
 		//System.out.println( this.getIdentifier() +  " jobCompleted " + " " + event.getEventData() );
 

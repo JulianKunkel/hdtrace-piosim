@@ -1,11 +1,4 @@
-
-/** Version Control Information $Id: BufferedStatisticsFileReader.java 325 2009-06-01 15:42:47Z kunkel $
- * @lastmodified    $Date: 2009-06-01 17:42:47 +0200 (Mo, 01. Jun 2009) $
- * @modifiedby      $LastChangedBy: kunkel $
- * @version         $Revision: 325 $ 
- */
-
-//	Copyright (C) 2009 Julian M. Kunkel
+//	Copyright (C) 2009, 2011 Julian M. Kunkel
 //	
 //	This file is part of HDJumpshot.
 //	
@@ -41,41 +34,15 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  * @author julian
  *
  */
-public class BufferedStatisticsFileReader implements IBufferedReader, StatisticsSource {
-
-	/**
-	 * Earliest statistics start time
-	 */
-	private final Epoch minTime;
+public class BufferedStatisticsFileReader extends BufferedMemoryReader {
 	
-	/**
-	 * Latest statistics end time
-	 */
-	private final Epoch maxTime;
-	
-	/**
-	 * The group we are reading.
-	 */
-	private final StatisticsGroupDescription group;
-
-	/**
-	 * Statistics about the contained values
-	 */
-	private final StatisticStatistics [] statistics;
-
-	/**
-	 * The actual contained entries.
-	 */
-	private final StatisticsGroupEntry [] entries;
-
 	public BufferedStatisticsFileReader(String filename, String expectedGroupName) throws Exception{
 		final StatisticsReader reader = new StatisticsReader(filename, expectedGroupName);
 
-		this.group = reader.getGroup();
+		setGroup(reader.getGroup());
 		
+		// read the data from the file
 		StatisticsGroupEntry current = reader.getNextInputEntry();
-		
-		this.minTime = current.getEarliestTime();	
 		
 		final ArrayList<StatisticsGroupEntry> statEntries = new ArrayList<StatisticsGroupEntry>();
 		
@@ -84,79 +51,6 @@ public class BufferedStatisticsFileReader implements IBufferedReader, Statistics
 			current = reader.getNextInputEntry();
 		}
 
-		this.maxTime = statEntries.get(statEntries.size()-1).getLatestTime();
-		
-		this.entries = statEntries.toArray(new StatisticsGroupEntry[]{});
-
-		
-		this.statistics = new StatisticStatistics [getGroup().getSize()];
-		for(StatisticsDescription desc: getGroup().getStatisticsOrdered()){
-			if(! desc.isNumeric())
-				continue;
-			
-			statistics[desc.getNumberInGroup()] = StatisticsComputer.computeStatistics(
-					this, desc, minTime, maxTime
-					);
-		}
-	}
-
-	public Enumeration<StatisticsGroupEntry> enumerateStatistics(Epoch startTime, Epoch endTime){
-		return new ReaderStatisticGroupEnumerator(this, getGroup(), startTime, endTime);
-	}
-
-	public int getStatisticPositionAfter(Epoch minEndTime){
-		int min = 0; 
-		int max = entries.length - 1;
-		
-		while(true){						
-			int cur = (min + max) / 2;
-			StatisticsGroupEntry entry = entries[cur];
-			
-			if(min == max){ // found entry or stopped.
-				
-				if(entry.getLatestTime().compareTo(minEndTime) < 0 && cur == 0){
-					// there was no entry before!
-					return -1;
-				}
-
-				return cur;
-			} 
-			// not found => continue bin search:
-
-			if ( entry.getLatestTime().compareTo(minEndTime) >= 0 ){
-				max = cur;
-			}else{
-				min = cur + 1;
-			}
-		}
-	}
-
-	public StatisticsGroupEntry getTraceEntryClosestToTime(Epoch dTime){
-		int pos = getStatisticPositionAfter(dTime);
-		if (pos == -1)
-			pos = entries.length -1;
-
-		return entries[pos];
-	}
-
-
-	public StatisticsGroupEntry [] getStatEntries() {
-		return entries;
-	}
-
-	public Epoch getMinTime() {
-		return minTime;
-	}
-
-	public Epoch getMaxTime() {
-		return maxTime;
-	}
-
-	public StatisticStatistics getStatisticsFor(int which) {
-		return statistics[which];
-	}
-	
-	public StatisticsGroupDescription getGroup() {
-		return group;
+		setEntries(statEntries.toArray(new StatisticsGroupEntry[]{}));		
 	}
 }

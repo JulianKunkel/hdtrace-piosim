@@ -76,7 +76,7 @@ public class Validation  extends ModelTest {
 
 
 	@Test public void broadcastMultiplex() throws Exception{
-		setup(8, 1);
+		setup(5, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeMultiplex");
 		parameters.setTraceFile("/tmp/bcast");
@@ -88,6 +88,31 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void broadcastMPICH2() throws Exception{
+		setup(8, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherallMPICH2");
+		parameters.setTraceFile("/tmp/bcast");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addBroadcast(world, 0,10 * MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
+	@Test public void test() throws Exception{
+		setupSMP(2);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendAndRecv(world, 0, 1, 100 * KBYTE, 1);
+
+		parameters.setTraceFile("/tmp/out");
+		parameters.setTraceEnabled(true);
+
+		runSimulationAllExpectedToFinish();
+	}
 
 	@Test public void broadcastBroadcastScatterGatherall() throws Exception{
 		setup(8, 1);
@@ -215,19 +240,17 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-	@Test public void TestGatherBinaryTreeMPICH2() throws Exception{
-		setup(20, 1);
+	@Test public void TestScatterMPICH2() throws Exception{
+		setup(5, 1);
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
-		mb.getGlobalSettings().setClientFunctionImplementation(
-				new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Scatter.GatherBinaryTreeMPICH2");  //andere Implementation
-		//CommandToSimulationMapper Eintrag, Standard letzter
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
 
-		parameters.setTraceFile("D:/simulator/GatherBinaryTreeMPICH2");
+		parameters.setTraceFile("/tmp/scatter");
 
 		parameters.setTraceEnabled(true);
 
-		pb.addScatter(world, 0, 10 * KBYTE);
+		pb.addScatter(world, 0, 100* MBYTE);
 
 		runSimulationAllExpectedToFinish();
 	}

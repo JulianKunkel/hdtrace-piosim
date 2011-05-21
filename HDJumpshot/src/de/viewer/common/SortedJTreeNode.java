@@ -51,24 +51,44 @@ public class SortedJTreeNode extends DefaultMutableTreeNode{
 		while(true){
 			int cur = (min + max) / 2;
 			TreeNode entry = getChildAt(cur);
-
+			
+			// length lexicographical order, i.e. shorter string first.
+			
+			String newChildStr = newChild.toString();
+			String entryStr = entry.toString();
 			
 			if(min == max){ // found entry or stopped.
-				if ( entry.toString().compareTo(newChild.toString()) >= 0){
+				// check length first
+				if ( entryStr.length() > newChildStr.length()){
 					super.insert(newChild, cur);
-				}else{
+				}else if(entryStr.length() < newChildStr.length()){
 					super.insert(newChild, cur +1);
+				}else{
+					// same length
+					if(entryStr.compareTo(newChildStr) >= 0){
+						super.insert(newChild, cur);
+					}else{
+						super.insert(newChild, cur +1);	
+					}
 				}
 				
 				return;
 			} 
 			
-			// not found => continue bin search:			
-			if ( entry.toString().compareTo(newChild.toString()) >= 0){
+			// not found => continue bin search:								
+			if ( entryStr.length() > newChildStr.length()){
 				max = cur;
-			}else{
+			}else if(entryStr.length() < newChildStr.length()){
 				min = cur + 1;
+			}else{
+				if ( entryStr.compareTo(newChildStr) >= 0 ){
+					max = cur;
+				}else{
+					min = cur + 1;
+				}
 			}
+			
+			
 		}
 	}
 }

@@ -42,7 +42,7 @@ public class ReaderStatisticGroupEnumerator implements Enumeration<StatisticsGro
 	// read one more as required, i.e. to cover length of statistic
 	boolean isFinalOne = false;
 
-	public ReaderStatisticGroupEnumerator(BufferedStatisticsFileReader reader, StatisticsGroupDescription group, Epoch startTime, Epoch endTime) {		
+	public ReaderStatisticGroupEnumerator(IBufferedStatisticsReader reader, StatisticsGroupDescription group, Epoch startTime, Epoch endTime) {		
 		entries = reader.getStatEntries();
 		currentPos = reader.getStatisticPositionAfter(startTime) ;
 

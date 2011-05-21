@@ -31,7 +31,7 @@ import javax.swing.WindowConstants;
 import de.drawable.CategoryStatistic;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
-import de.hdTraceInput.BufferedStatisticsFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.StatisticStatistics;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
 import de.topology.TopologyStatisticTreeNode;
@@ -50,11 +50,11 @@ public class StatisticLineGraphFrame {
 	private final ModelTime modelTime;
 
 	private static class StatisticData extends GraphData{
-		final BufferedStatisticsFileReader source;
+		final IBufferedStatisticsReader source;
 		final StatisticsDescription desc;
 		final StatisticStatistics  stats;
 		
-		public StatisticData(BufferedStatisticsFileReader statSource, CategoryStatistic category) {
+		public StatisticData(IBufferedStatisticsReader statSource, CategoryStatistic category) {
 			super(category.getName(), category.getColor());
 			source = statSource;
 			desc = category.getStatisticDescription();

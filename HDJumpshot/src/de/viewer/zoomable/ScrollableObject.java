@@ -56,6 +56,7 @@ import de.viewer.common.ModelTime;
 import de.viewer.common.Parameters;
 import de.viewer.dialog.InfoDialog;
 import de.viewer.dialog.InfoDialogForTime;
+import de.viewer.timelines.FilterTokenInterface.FilterExpression;
 
 /**
  * Realizes a object which can be zoomed and scrolled.
@@ -110,6 +111,7 @@ implements ScrollableView, IAutoRefreshable
 	// screen properties
 	private int iViewWidth;// No. of View pixel per unit time
 	
+	
 
 	// decides whether a call of redrawIfAutoRedraw refreshes
 	boolean autoRefresh = Parameters.ACTIVE_REFRESH;
@@ -135,7 +137,9 @@ implements ScrollableView, IAutoRefreshable
 	 * @return
 	 */
 	public abstract Object getObjectAt( final Point view_click );
-
+	
+	public abstract boolean applyFilter(String text);
+	
 	public InfoDialog getPropertyAt( final Point  view_click){
 		final CoordPixelImage coord_xform;  // Local Coordinate Transform
 		coord_xform = new CoordPixelImage( this );

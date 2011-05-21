@@ -62,47 +62,44 @@ public class SDummyTraceWriter extends STraceWriter {
 	}
 
 	@Override
-	protected void relDestroyInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+	protected void relDestroyInternal(RelationToken relation, Epoch time) {
 
 
 	}
 
 	@Override
-	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time) {
+	protected void relEndStateInternal(RelationToken relation, Epoch time) {
 
 
 	}
 
 	@Override
-	protected void relEndStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String childTags,
+	protected void relEndStateInternal(RelationToken relation, Epoch time, String childTags,
 			String[] attrNameValues) {
 
 
 	}
 
-	@Override
-	protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp,
-			RelationToken[] parents, Epoch time) {
 
-		return null;
+	@Override
+	protected void relStartStateInternal(RelationToken relation, Epoch time, String name) {
+
+
+	}
+
+	@Override
+	protected void relStartStateInternal(RelationToken relation, Epoch time, String name, String childTags, String[] attrNameValues) {
+
 	}
 
 	@Override
 	protected RelationToken relRelateProcessLocalTokenInternal(ISPassiveComponent comp, RelationToken parent, Epoch time) {
-
 		return null;
 	}
 
 	@Override
-	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name) {
-
-
-	}
-
-	@Override
-	protected void relStartStateInternal(ISPassiveComponent comp, RelationToken relation, Epoch time, String name,
-			String childTags, String[] attrNameValues) {
-
+	protected RelationToken relRelateMultipleProcessLocalTokensInternal(ISPassiveComponent comp, RelationToken[] parents, Epoch time) {
+		return null;
 	}
 
 }

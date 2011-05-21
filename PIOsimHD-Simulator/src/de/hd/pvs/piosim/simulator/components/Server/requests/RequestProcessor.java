@@ -46,7 +46,7 @@ public abstract class RequestProcessor<Type extends IMessageUserData>
 	protected void startRequest(IMessageUserData req, InterProcessNetworkJobRoutable job){
 		final STraceWriter tw = server.getSimulator().getTraceWriter();
 		if(tw.isTracableComponent(TraceType.IOSERVER)){
-			final RelationToken tk = tw.relRelateProcessLocalToken(job.getRelationToken(), TraceType.IOSERVER, (ISPassiveComponent) server);
+			final RelationToken tk = tw.relRelateProcessLocalToken(TraceType.IOSERVER, (ISPassiveComponent) server, job.getRelationToken());
 			assert(tk != null);
 			processedJobs.put(req, tk);
 
@@ -67,7 +67,7 @@ public abstract class RequestProcessor<Type extends IMessageUserData>
 				attributeArray = new String[]{ "File", freq.getFile().getName()};
 			}
 
-			tw.relStartState(TraceType.IOSERVER, (ISPassiveComponent) server, tk, req.getClass().getSimpleName(), xmlTag, attributeArray);
+			tw.relStartState(TraceType.IOSERVER, tk, req.getClass().getSimpleName(), xmlTag, attributeArray);
 		}
 	}
 
@@ -80,8 +80,8 @@ public abstract class RequestProcessor<Type extends IMessageUserData>
 		if(tw.isTracableComponent(TraceType.IOSERVER)){
 			final RelationToken tk = processedJobs.remove(req);
 			assert(tk != null);
-			tw.relEndState(TraceType.IOSERVER, (ISPassiveComponent) server, tk);
-			tw.relDestroy(TraceType.IOSERVER, (ISPassiveComponent) server, tk);
+			tw.relEndState(TraceType.IOSERVER,  tk);
+			tw.relDestroy(TraceType.IOSERVER,  tk);
 		}
 	}
 }

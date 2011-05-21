@@ -35,14 +35,18 @@
 package de.viewer.timelines;
 
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import de.hdTraceInput.TraceFormatBufferedFileReader;
 import de.topology.TopologyInputPlugin;
@@ -67,6 +71,11 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 	private JButton                 searchBack_btn;
 	private JButton                 searchInit_btn;
 	private JButton                 searchFore_btn;
+	
+	/**
+	 * Text filter for the heat maps
+	 */
+	private JTextField              heatMapFilter;
 
 
 	public TimelineFrame( final TraceFormatBufferedFileReader reader, final ModelTime modelTime )
@@ -86,9 +95,10 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 	protected void fireNestedStateChanged() {
 		getCanvasArea().redrawIfAutoRedraw();
 	}
-
+	
 	@Override
 	protected void addToToolbarMenu(TimelineToolBar toolbar, IconManager iconManager, Insets insets) {
+				
 		searchBack_btn = new JButton( iconManager.getActiveToolbarIcon(IconType.SearchLeft) );
 		searchBack_btn.setMargin( insets );
 		searchBack_btn.setToolTipText( "Search Backward in time" );
@@ -115,6 +125,24 @@ public class TimelineFrame extends AbstractTimelineFrame<TraceObjectInformation>
 		toolbar.add( searchFore_btn );
 
 		toolbar.addSeparator();
+			
+		
+
+		heatMapFilter = new JTextField(5);
+		heatMapFilter.setMargin( insets );
+		heatMapFilter.setToolTipText("If you want to apply a heatmap based on attributes, specify them in a mathematical expression in poland prefix e.g. + size tag means size*tag, ^ means maximum of the following two expressioons and _ the minimum.");
+		heatMapFilter.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {				
+				// color the text filter if it is invalid!
+				if( ((CanvasTimeline) getCanvasArea()).getHeatMapListener().applyFilter(heatMapFilter.getText()) ){
+					heatMapFilter.setBackground(Color.WHITE);
+				}else{
+					heatMapFilter.setBackground(Color.RED);
+				}
+			}
+		});
+		toolbar.add(heatMapFilter);
 	}
 
 	@Override

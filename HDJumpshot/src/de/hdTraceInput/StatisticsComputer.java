@@ -40,7 +40,7 @@ public class StatisticsComputer {
 	 * @param endTime
 	 * @return
 	 */
-	static public StatisticStatistics computeStatistics(BufferedStatisticsFileReader reader, 
+	static public StatisticStatistics computeStatistics(IBufferedStatisticsReader reader, 
 			StatisticsDescription description, Epoch startTime, Epoch endTime){
 
 		double min = Double.POSITIVE_INFINITY;

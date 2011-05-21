@@ -36,6 +36,7 @@ import java.util.List;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.Server.Server;
+import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
@@ -97,8 +98,7 @@ public class GClientProcess
 
 	private final IInterProcessNetworkJobCallback callback = new InterProcessNetworkJobCallbackAdaptor(){
 		@Override
-		public void recvCompletedCB(InterProcessNetworkJob remoteJob,
-				InterProcessNetworkJob announcedJob, Epoch endTime)
+		public void recvCompletedCB(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime)
 		{
 			//System.out.println(endTime + " " + getIdentifier() +  " RECV completed " + announcedJob + "\n\tREMOTE: " + remoteJob);
 
@@ -106,6 +106,19 @@ public class GClientProcess
 			assert(status != null);
 			status.jobCompletedRecv(remoteJob);
 			checkJobCompleted(status);
+
+			// trace output
+			if(getSimulator().getTraceWriter().isTracableComponent(TraceType.INTERNAL)){
+				// trace values
+				final String [] attr = new String[4];
+				attr[0] = "size";
+				attr[1] = "" + remoteJob.getSize();
+				attr[2] = "tag";
+				attr[3] = "" + remoteJob.getMatchingCriterion().getTag();
+
+				getSimulator().getTraceWriter().relEndState(TraceType.INTERNAL, announcedJob.getRelationToken(), "", attr);
+				getSimulator().getTraceWriter().relDestroy(TraceType.INTERNAL, announcedJob.getRelationToken());
+			}
 		}
 
 		@Override
@@ -115,6 +128,20 @@ public class GClientProcess
 
 			final NetworkJobs status = pendingJobs.remove(myJob);
 			assert(status != null);
+
+			// trace output
+			if(getSimulator().getTraceWriter().isTracableComponent(TraceType.INTERNAL)){
+				// trace values
+				final String [] attr = new String[4];
+				attr[0] = "size";
+				attr[1] = "" + myJob.getSize();
+				attr[2] = "tag";
+				attr[3] = "" + myJob.getMatchingCriterion().getTag();
+
+				getSimulator().getTraceWriter().relEndState(TraceType.INTERNAL, myJob.getRelationToken(), "", attr);
+				getSimulator().getTraceWriter().relDestroy(TraceType.INTERNAL, myJob.getRelationToken());
+			}
+
 			status.jobCompletedSend();
 			checkJobCompleted(status);
 		}
@@ -349,16 +376,16 @@ public class GClientProcess
 
 		if(start == false) {
 			if(cmd.isAsynchronous()){
-				tw.relEndState(TraceType.CLIENT, this, step.getRelationToken(), null, new String[] {"aid", "" + cmd.getAsynchronousID()});
+				tw.relEndState(TraceType.CLIENT, step.getRelationToken(), null, new String[] {"aid", "" + cmd.getAsynchronousID()});
 			}else{
-				tw.relEndState(TraceType.CLIENT, this, step.getRelationToken());
+				tw.relEndState(TraceType.CLIENT, step.getRelationToken());
 			}
 
 			if(step.getParentOperation() == null || step.getParentOperation().getNestedOperations().length > 1){
-				tw.relDestroy(TraceType.CLIENT, this, step.getRelationToken());
+				tw.relDestroy(TraceType.CLIENT, step.getRelationToken());
 			}
 		}else {
-			tw.relStartState(TraceType.CLIENT, this, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
+			tw.relStartState(TraceType.CLIENT, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
 					cme.getAdditionalTraceTag(cmd), cme.getAdditionalTraceAttributes(cmd));
 		}
 	}
@@ -461,7 +488,7 @@ public class GClientProcess
 				//	getSimulator().getTraceWriter().startState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);
 				//}
 
-				getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, this, cmdStep.getRelationToken(), cmd.getClass().getSimpleName() + " s" + nextStep);
+				getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, cmdStep.getRelationToken(), cmd.getClass().getSimpleName() + " s" + nextStep);
 
 				/*
 				 * in order to make a single call visible we have to make sure that the simulator time increases between two
@@ -484,7 +511,7 @@ public class GClientProcess
 			//else if(! cmd.isAsynchronous() && cmd.getClass() != Compute.class ) {
 			//	getSimulator().getTraceWriter().endState(TraceType.CLIENT_STEP, this, cmd.getClass().getSimpleName() + " s " + nextStep);
 			//}
-			getSimulator().getTraceWriter().relEndState(TraceType.CLIENT_STEP, this, cmdStep.getRelationToken());
+			getSimulator().getTraceWriter().relEndState(TraceType.CLIENT_STEP, cmdStep.getRelationToken());
 
 			/* now run the appropriate command to generate new events */
 			debug("processing step: " + nextStep + " cmd: " + cmd);
@@ -535,6 +562,7 @@ public class GClientProcess
 					blockedCommands.add(newJob);
 				}
 
+				// start new network jobs:
 				assert(newJob.getNetworkJobs() != null);
 				assert(newJob.getNetworkJobs().getNetworkJobs() != null);
 
@@ -549,8 +577,23 @@ public class GClientProcess
 						//System.out.println( "PENDING " + getIdentifier() );
 
 						if(j.getJobOperation() == InterProcessNetworkJobType.RECEIVE){
+							// trace
+							final String txt;
+
+							if( j.getMatchingCriterion().getSourceComponent() != null ){
+								// handle any-source
+								txt = "" + j.getMatchingCriterion().getSourceComponent().getIdentifier();
+							}else{
+								txt = " AnySource";
+							}
+
+							getSimulator().getTraceWriter().relStartState(TraceType.INTERNAL, j.getRelationToken(), "Receive_" + txt);
+
 							getNetworkInterface().initiateInterProcessReceive(j, curTime);
 						}else{
+							// trace
+							getSimulator().getTraceWriter().relStartState(TraceType.INTERNAL, j.getRelationToken(), "Send_" + ((NodeHostedComponent) j.getMatchingCriterion().getTargetComponent()).getIdentifier() );
+
 							getNetworkInterface().initiateInterProcessSend(j, curTime);
 						}
 					}

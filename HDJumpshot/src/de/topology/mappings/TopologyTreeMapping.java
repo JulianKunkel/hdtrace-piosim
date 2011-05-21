@@ -21,12 +21,13 @@ import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hdTraceInput.BufferedRelationReader;
-import de.hdTraceInput.BufferedStatisticsFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
 import de.topology.TopologyManagerContents;
 import de.topology.TopologyRelationExpandedTreeNode;
 import de.topology.TopologyRelationTreeNode;
 import de.topology.TopologyStatisticTreeNode;
+import de.topology.TopologyStatisticsGroupFolder;
 import de.topology.TopologyTreeNode;
 import de.viewer.common.SortedJTreeNode;
 
@@ -72,23 +73,31 @@ abstract public class TopologyTreeMapping {
 
 		return node;
 	}
+	
+
+	protected SortedJTreeNode addStatisticsTreeFolderNode(String name, SortedJTreeNode parent){
+		SortedJTreeNode node = new TopologyStatisticsGroupFolder(name);
+		parent.add(node);
+		return node;
+	}
+
 
 
 	protected void addStatisticsInTopology(int level, SortedJTreeNode node, TopologyNode topology, TraceFormatFileOpener file){	
 		// add statistic nodes:
 		for(String group: topology.getStatisticsSources().keySet()){
-			BufferedStatisticsFileReader statSource = (BufferedStatisticsFileReader) topology.getStatisticsSource(group);
+			IBufferedStatisticsReader statSource = (IBufferedStatisticsReader) topology.getStatisticsSource(group);
 			final SortedJTreeNode statGroupNode;
-
+			
 			if(statSource.getGroup().getStatisticsOrdered().size() == 1){
 				statGroupNode = node;
 			}else{			
-				statGroupNode = addDummyTreeNode(group, node);
+				statGroupNode = addStatisticsTreeFolderNode(group, node);
 			}
 
 
 			for(StatisticsDescription statDesc: statSource.getGroup().getStatisticsOrdered()){
-				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, group, topology, file );
+				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, topology, topology.getStatisticsSource(statDesc.getGroup().getName()), file );
 
 				addTopologyTreeNode(statNode, statGroupNode);
 			}

@@ -72,6 +72,7 @@ import de.viewer.dialog.InfoDialog;
 import de.viewer.legends.CategoryUpdatedListener;
 import de.viewer.timelines.ScrollableTimeline;
 import de.viewer.timelines.TimelineType;
+import de.viewer.timelines.FilterTokenInterface.FilterExpression;
 import de.viewer.zoomable.CoordPixelImage;
 import de.viewer.zoomable.ScrollableObject;
 import de.viewer.zoomable.ScrollbarTimeModel;
@@ -120,6 +121,17 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	JComboBox visualizedMetricBox ;
 
+	/**
+	 * Filter the events etc. based on a user provided string.
+	 * @return true if the filter is valid, otherwise return false
+	 */
+
+	private FilterExpression    currentFilter = null;
+	
+	public FilterExpression getCurrentFilter() {
+		return currentFilter;
+	}
+	
 	// gets triggered if the visibility of an category is changed
 	private CategoryUpdatedListener categoryVisibleListener = new CategoryUpdatedListener(){
 		@Override
@@ -259,7 +271,10 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	private void addToExistingProfile(ITraceElementEnumerator enumerator, Epoch starttime, Epoch endtime, HashMap<CategoryState, TraceCategoryStateProfile> catMap){
 		final TraceFormatBufferedFileReader reader = getReader();
-
+		
+		// object filter if set
+		final FilterExpression filter = getCurrentFilter();
+		
 		while(enumerator.hasMoreElements()){
 			final ITraceEntry entry = enumerator.nextElement();							
 			
@@ -270,6 +285,13 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 			if(entry.getType() == TracableObjectType.STATE){
 				final IStateTraceEntry state = (IStateTraceEntry) entry;
+				
+				// try to match the object with the filter.
+				if(filter != null && ! filter.matches(entry)){
+					// does not match!
+					continue;
+				}
+				
 				final CategoryState category = reader.getCategory(state);
 
 				TraceCategoryStateProfile stateProfil = catMap.get(category);
@@ -306,6 +328,13 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 						childDuration = 0;
 						for(ITraceEntry child: state.getNestedTraceChildren()){
 							if(child.getType() == TracableObjectType.STATE){
+								
+								// try to match the object with the filter.
+								if(filter != null && ! filter.matches(child)){
+									// does not match!
+									continue;
+								}
+								
 								final IStateTraceEntry childState = (IStateTraceEntry) child;
 								if(child.getLatestTime().compareTo(starttime) > 0){ 
 									childDuration += childState.getLatestTime().subtract(starttime).getDouble();
@@ -325,6 +354,12 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 						for(ITraceEntry child: state.getNestedTraceChildren()){
 							if(child.getType() == TracableObjectType.STATE){
 								final IStateTraceEntry childState = (IStateTraceEntry) child;
+								// try to match the object with the filter.
+								if(filter != null && ! filter.matches(child)){
+									// does not match!
+									continue;
+								}
+								
 								if(child.getEarliestTime().compareTo(endtime) < 0){ 
 									childDuration += endtime.subtract(childState.getEarliestTime()).getDouble();
 								}
@@ -507,13 +542,38 @@ public class TraceProfileFrame extends AbstractTimelineFrame<TraceCategoryStateP
 
 	public class ProfileImagePanel extends ScrollableTimeline{
 		private static final long serialVersionUID = 1L;
-
+		
+		
 		public ProfileImagePanel(	ScrollbarTimeModel scrollbarTimeModel,
 				ViewportTime viewport,
 				BoundedRangeModel   yaxis_model,
 				TopologyManager topologyManager) {
 			super(scrollbarTimeModel, viewport, yaxis_model, topologyManager);			
 		}
+		
+		@Override
+		public boolean applyFilter(String text){
+			// null strings reset the filter
+			if(text.length() == 0){
+				currentFilter = null;
+				
+				triggerRecomputeTraceProfile();
+				
+				return true;
+			}
+
+			try{
+				// replace whitespace
+				currentFilter = new FilterExpression(text.replace(" ", "") + " ");				
+				triggerRecomputeTraceProfile();
+				
+				return true;				
+			}catch (IllegalArgumentException e){
+				System.err.println("Error, invalid filter: " + text + " " + e.getMessage());
+				return false;
+			}
+		}
+		
 
 		@Override
 		protected void drawOneImageInBackground(Image image, TimeBoundingBox timebounds) {			

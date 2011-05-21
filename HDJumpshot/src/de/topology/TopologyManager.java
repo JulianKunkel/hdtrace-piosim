@@ -48,15 +48,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.JOptionPane;
 
 import de.drawable.CategoryStatistic;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hdTraceInput.BufferedRelationReader;
-import de.hdTraceInput.BufferedStatisticsFileReader;
 import de.hdTraceInput.BufferedTraceFileReader;
+import de.hdTraceInput.IBufferedStatisticsReader;
 import de.hdTraceInput.TraceFormatBufferedFileReader;
+import de.hdTraceInput.UserDefinedStatisticsInMemory;
 import de.topology.mappings.ExistingTopologyMappings;
 import de.topology.mappings.TopologyTreeMapping;
 import de.viewer.common.Const;
@@ -109,6 +113,11 @@ public class TopologyManager
 	 * Stores for each TreeNode entry the corresponding timeline
 	 */
 	private HashMap<TopologyTreeNodeWrapper, Integer>  treeNodeToTimelineMapping = new HashMap<TopologyTreeNodeWrapper, Integer>();
+	
+	/**
+	 * Map the topology node to the representing topology tree node
+	 */
+	private HashMap<TopologyNode, TopologyTreeNode>  topologyNodeToTreeNodeMapping = new HashMap<TopologyNode, TopologyTreeNode>();
 
 
 	/**
@@ -161,6 +170,10 @@ public class TopologyManager
 
 
 	private SortedJTreeNode clickedNode;
+	
+	private TopologyManager getThis(){
+		return this;
+	}
 
 	private void addTopologyMenu(JPopupMenu popupMenu){
 		// show available topologies:
@@ -211,8 +224,91 @@ public class TopologyManager
 					return;
 				}
 
+				// allow to insert new TreeNodes on folder nodes
+
+				if( TopologyTreeNode.class.isInstance(clickedNode) ){
+					
+					final TopologyTreeNode statNode = ((TopologyTreeNode) clickedNode);
+					
+					if(! clickedNode.isLeaf()){
+						popupMenu.add(new AbstractAction(){
+							private static final long serialVersionUID = 1L;
+
+							{
+								putValue(Action.NAME, "Generate a user defined statistic timeline with aggregates");							
+							}
+
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								
+								// TODO permit arbitrary names...
+								//String str = JOptionPane.showInputDialog(null, "Enter the name of the user category: ", eNode.getComputeFunction(), 1);
+								//if(str != null){
+								//}
+								
+								StatisticsGroupDescription group = new StatisticsGroupDescription("userdefined");
+								group.addStatistic( new StatisticsDescription(group, "test", StatisticsEntryType.DOUBLE, 0, "", "grouping"));				
+								
+								UserDefinedStatisticsInMemory userStats = new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group, modelTime);
+								
+								statNode.getTopology().setStatisticsReader(group.getName(), userStats );
+								userStats.recomputeStatistics();
+								
+								// reload topology.
+								
+								reader.addCategories(group);								
+								reader.releadTopologyAndCategories();
+								
+							}
+						});
+					}
+				}
+				
+				
 				if( TopologyStatisticTreeNode.class.isInstance(clickedNode) ){
 					final TopologyStatisticTreeNode statNode = ((TopologyStatisticTreeNode) clickedNode);
+					
+					if(UserDefinedStatisticsInMemory.class.isInstance(statNode.getStatisticSource() )){
+						// allow to refresh the node...
+						// TODO re-factor this code into the node
+						popupMenu.add(new AbstractAction(){
+							private static final long serialVersionUID = 1L;
+
+							{
+								putValue(Action.NAME, "Recompute statistics based on the visible subtopologies");							
+							}
+							
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								UserDefinedStatisticsInMemory eNode = ((UserDefinedStatisticsInMemory) statNode.getStatisticSource());
+								eNode.recomputeStatistics();
+								// just fire the topology change listener right now, TODO a redraw of this line would suffice, though.
+								fireTopologyChanged();
+							}
+						});
+						
+						popupMenu.add(new AbstractAction(){
+							private static final long serialVersionUID = 1L;
+
+							{
+								putValue(Action.NAME, "Change compute function");							
+							}
+							
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								UserDefinedStatisticsInMemory eNode = ((UserDefinedStatisticsInMemory) statNode.getStatisticSource());
+								
+								String str = JOptionPane.showInputDialog(null, "Enter the new compute function: ", eNode.getComputeFunction());
+								if(str != null){								
+									eNode.setComputeFunction(str);
+									eNode.recomputeStatistics();
+
+									// just fire the topology change listener right now, TODO a redraw of this line would suffice, though.
+									fireTopologyChanged();
+								}
+							}
+						});
+					}
 
 					// Show statistic histogram:			
 					popupMenu.add(new AbstractAction(){
@@ -225,7 +321,7 @@ public class TopologyManager
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							StatisticHistogramFrame frame = new StatisticHistogramFrame(
-									(BufferedStatisticsFileReader) statNode.getStatisticSource(), 
+									statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
 									reader.getCategory(statNode.getStatisticDescription()));
 							frame.show();
@@ -243,7 +339,7 @@ public class TopologyManager
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							StatisticTimeHistogramFrame frame = new StatisticTimeHistogramFrame(
-									(BufferedStatisticsFileReader) statNode.getStatisticSource(), 
+									statNode.getStatisticSource(), 
 									statNode.getStatisticDescription(), modelTime, 
 									reader.getCategory(statNode.getStatisticDescription()));
 							frame.show();
@@ -364,6 +460,8 @@ public class TopologyManager
 	private void reloadTopologyMappingFromTree(){
 		timelines.clear();
 		treeNodeToTimelineMapping.clear();
+		topologyNodeToTreeNodeMapping.clear();
+		
 		for(int timeline = 0; timeline < tree.getRowCount(); timeline++){
 			final TreePath path = tree.getPathForRow(timeline);
 			final TreeNode node = (TreeNode) path.getLastPathComponent();
@@ -372,10 +470,21 @@ public class TopologyManager
 				timelines.add((TopologyTreeNode) node);
 
 				treeNodeToTimelineMapping.put((new TopologyTreeNodeWrapper((TopologyTreeNode) node)), timeline);
+				
+				final TopologyNode tnode = ((TopologyTreeNode) node).getTopology();
+				
+				if(! topologyNodeToTreeNodeMapping.containsKey(tnode)){
+					// only add the topology node containing statistics etc. and not the statistic nodes etc. 
+					topologyNodeToTreeNodeMapping.put(tnode, (TopologyTreeNode) node);
+				}				
 			}else{
 				timelines.add(null);
 			}
 		}
+	}
+	
+	public TopologyTreeNode getTopologyTreeNode(TopologyNode node){
+		return topologyNodeToTreeNodeMapping.get(node);
 	}
 
 	/**
@@ -404,8 +513,8 @@ public class TopologyManager
 	 * @param timeline
 	 * @return
 	 */
-	public BufferedStatisticsFileReader getStatisticReaderForTimeline(int timeline){
-		return (BufferedStatisticsFileReader) ((TopologyStatisticTreeNode) timelines.get(timeline)).getStatisticSource();
+	public IBufferedStatisticsReader getStatisticReaderForTimeline(int timeline){
+		return (IBufferedStatisticsReader) ((TopologyStatisticTreeNode) timelines.get(timeline)).getStatisticSource();
 	}
 
 	public TopologyStatisticTreeNode getStatisticNodeForTimeline(int timeline){
@@ -683,7 +792,7 @@ public class TopologyManager
 		return tree;
 	}
 
-	private SortedJTreeModel getTreeModel(){
+	public SortedJTreeModel getTreeModel(){
 		return (SortedJTreeModel) tree.getModel();
 	}
 
@@ -801,5 +910,9 @@ public class TopologyManager
 		if(handlerStruct == null)
 			return null;
 		return (Type) handlerStruct.objsPerTopo.get(topology);
+	}
+	
+	public TraceFormatBufferedFileReader getTraceFormatFileReader() {
+		return reader;
 	}
 }
