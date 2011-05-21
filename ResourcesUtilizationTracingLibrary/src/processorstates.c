@@ -11,6 +11,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
+#include <glib.h>
+
+#include "common.h"
 
 /**
  * checks if the sysfs interface for cpuidle is active
@@ -102,24 +105,30 @@ int get_available_c_states(){
  * @return number of p-states provided by sysfs
  */
 int get_available_p_states(){
-	FILE *fp;
-	int status;
-	int p_states = 0;
-	char path[1035];
+	gchar *buffer;
+	gsize length;
+	GError *error = NULL;
+	gint len = 0;
+	gint p_states = 0;
 
-	/* Open the command for reading. */
-	fp = popen("/bin/cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state | /usr/bin/wc -l", "r");
-	if (fp == NULL) {
+	len = strlen("/sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state");
+	gchar stats_file[len + 1];
+	snprintf(stats_file, len + 1, "/sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state");
+
+	if (g_file_get_contents(stats_file, &buffer, &length, &error)) {
+		for (int i = 0; i < length; i++) {
+			if (buffer[i] == '\n') {
+				p_states++;
+			}
+		}
+		DEBUGMSG("Found %d pstates!", p_states);
+	} else {
+		DEBUGMSG("Error reading frequencies from file: %s", error->message);
+		g_error_free(error);
 		return p_states;
 	}
 
-	/* Read the output a line at a time - output it. */
-	while (fgets(path, sizeof(path), fp) != NULL) {
-		p_states = atoi(path);
-	}
-
-	/* close */
-	pclose(fp);
+	g_free(buffer);
 
 	return p_states;
 }

@@ -176,15 +176,19 @@ int initTracing(
 		INFOMSG("Could not find cpufreq!");
 	}
 	
-	if (sources.CPU_FREQ_X)
+	if (sources.CPU_FREQ_X) {
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
-			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_CPU%d", i);
+			ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_AVG_%d", i);
 			g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 			g_assert(ret > 0);
 			ADD_VALUE(group, strbuf, INT64, "kHz", "CPU_FREQ");
 		}
-	
+		ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_FREQ_AVG");
+		g_assert(ret < RUT_STRING_BUFFER_LENGTH);
+		g_assert(ret > 0);
+		ADD_VALUE(group, strbuf, INT64, "kHz", "CPU_FREQ");
+	}
 	/*if cpuidle registers could not be found, disable it*/
 	if(!cpuidle_available())
 	{
@@ -193,17 +197,22 @@ int initTracing(
 		INFOMSG("Could not find cpuidle!");
 	}
 	
-	if (sources.CPU_IDLE_X)
+	if (sources.CPU_IDLE_X) {
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 		{
 			for (int j = 0; j < tracingData->staticData.c_states_num; ++j)
 			{
-				ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_CPU%d_C%d", i, j);
+				ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_%d_C%d", i, j);
 				g_assert(ret < RUT_STRING_BUFFER_LENGTH);
 				g_assert(ret > 0);
 				ADD_VALUE(group, strbuf, FLOAT, "%", "CPU_IDLE");
 			}
 		}
+		ret = snprintf(strbuf, RUT_STRING_BUFFER_LENGTH, "CPU_IDLE_CPU_C0");
+		g_assert(ret < RUT_STRING_BUFFER_LENGTH);
+		g_assert(ret > 0);
+		ADD_VALUE(group, strbuf, FLOAT, "%", "CPU_IDLE");
+	}
 #endif
 
 #define MEM_UNIT "B"
@@ -589,11 +598,11 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 			}
 		}
 #ifdef HAVE_PROCESSORSTATES
+		gint cpu_num = tracingData->staticData.cpu_num;
+		gint p_states_num = tracingData->staticData.p_states_num;
+
 		if (tracingData->sources.CPU_FREQ_X)
 		{
-			gint cpu_num = tracingData->staticData.cpu_num;
-			gint p_states_num = tracingData->staticData.p_states_num;
-			
 			/* temp for old values */
 			guint64 p_states[p_states_num * cpu_num * 2];
 
@@ -613,22 +622,26 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 			DEBUGMSG("INTERVAL: %d",tracingData->interval);
 
+			gfloat freq_sum = 0;
 			for (int c = 0; c < cpu_num; c++) {
-				double freq = 0;
+				gfloat freq = 0;
 				for (int p = 0; p < p_states_num; p++) {
 					if (p_states[(cpu_num * p_states_num) + (c * p_states_num) + p] > (tracingData->interval / 10)) {
 						p_states[(cpu_num * p_states_num) + (c * p_states_num) + p] = tracingData->interval / 10;
 					}
-					DEBUGMSG("CPU_FREQ_%d TIME_IN_STATE_%ld %ld", c, p_states[(c * p_states_num) + p], p_states[(cpu_num * p_states_num) + (c * p_states_num) + p]);
-					freq += (double) 
+					DEBUGMSG("CPU_FREQ_AVG_%d TIME_IN_STATE_%ld %ld", c, p_states[(c * p_states_num) + p], p_states[(cpu_num * p_states_num) + (c * p_states_num) + p]);
+					freq += (gfloat) 
 						/* frequency MHz */
-						((double) (p_states[(c * p_states_num) + p]) * 
+						((gfloat) (p_states[(c * p_states_num) + p]) * 
 						/* time in state 10ms */
-						(double) (p_states[(cpu_num * p_states_num) + (c * p_states_num) + p] / (double) (tracingData->interval / 10)));
+						(gfloat) (p_states[(cpu_num * p_states_num) + (c * p_states_num) + p] / (gfloat) (tracingData->interval / 10)));
 				}
+				freq_sum += freq;
 				WRITE_I64_VALUE(tracingData, (gint64) freq);
-				DEBUGMSG("CPU_FREQ_%d = %d kHz", c,  (gint64) freq);
+				DEBUGMSG("CPU_FREQ_AVG_%d = %d kHz", c,  (gint64) freq);
 			}
+			WRITE_I64_VALUE(tracingData, (gint64) (freq_sum / cpu_num));
+			DEBUGMSG("CPU_FREQ_AVG = %d kHz", (gint64) (freq_sum / cpu_num));
 		}
 
 
@@ -655,6 +668,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				c_states[d] = tracingData->oldValues.c_states[d] - c_states[d];
 			}
 			
+			gfloat valuef_sum = 0;
 			for (int i = 0; i < tracingData->staticData.cpu_num; ++i)
 			{
 				guint64 total = 0;
@@ -677,7 +691,8 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 				/* percentage: time in c0(microsecs) / total time(millisecs) */
 				
 				valuef = (interval - total) * 100.0 / interval;
-				
+				valuef_sum += valuef;
+
 				WRITE_FLOAT_VALUE(tracingData, valuef);
 				DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", 0, i, valuef);
 				
@@ -689,11 +704,13 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 					} else {					
 						valuef = c_states[i * tracingData->staticData.c_states_num + j] * 100 / interval;
 					}
-					
+
 					WRITE_FLOAT_VALUE(tracingData, valuef);
 					DEBUGMSG("CPU_IDLE_C%d_%d = %f%%", j, i, valuef);
 				}
 			}
+			WRITE_FLOAT_VALUE(tracingData, (gfloat) (valuef_sum / cpu_num));
+			DEBUGMSG("CPU_IDLE_C0 = %f%%", (gfloat) (valuef_sum / cpu_num));
 		}
 	} else {
 		get_c_state_times(
