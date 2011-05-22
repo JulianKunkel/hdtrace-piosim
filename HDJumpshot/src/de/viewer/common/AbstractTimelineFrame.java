@@ -425,7 +425,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		processZeroTimeChckbox.setToolTipText("The timeline always starts at 0 after a zoom operation, scrolling changes the position though");
 		toolbar.add(processZeroTimeChckbox);
 		
-		toolbar.addRightButtons(iconManager, getFrame());
+		toolbar.addRightButtons(iconManager, getFrame());		
 		toolbar.init();
 		
 		final JPanel top_panel = new JPanel();
@@ -444,7 +444,7 @@ public abstract class AbstractTimelineFrame<InfoModelType> extends TopWindow{
 		JPanel contentPanel = new JPanel(new BorderLayout());
 		contentPanel.add( top_panel, BorderLayout.NORTH );
 		contentPanel.add( right_splitter, BorderLayout.CENTER );
-
+		
 		return contentPanel;
 	}
 

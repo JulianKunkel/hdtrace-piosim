@@ -241,24 +241,44 @@ public class TopologyManager
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								
-								// TODO permit arbitrary names...
-								//String str = JOptionPane.showInputDialog(null, "Enter the name of the user category: ", eNode.getComputeFunction(), 1);
-								//if(str != null){
-								//}
-								
-								StatisticsGroupDescription group = new StatisticsGroupDescription("userdefined");
-								group.addStatistic( new StatisticsDescription(group, "test", StatisticsEntryType.DOUBLE, 0, "", "grouping"));				
-								
-								UserDefinedStatisticsInMemory userStats = new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group, modelTime);
-								
-								statNode.getTopology().setStatisticsReader(group.getName(), userStats );
-								userStats.recomputeStatistics();
-								
-								// reload topology.
-								
-								reader.addCategories(group);								
-								reader.releadTopologyAndCategories();
-								
+								String str = JOptionPane.showInputDialog(null, "Enter the name of the user category", "test");
+								if(str != null && str.length() > 0){
+									
+									// only one statistics group with a given name is permitted on a node
+									if(statNode.getTopology().getStatisticsSource(str) != null){
+										System.err.println("Error, the statistics group with the name " + str + " already exists for this topology node.");
+										return;
+									}
+									
+
+									String compFunc = JOptionPane.showInputDialog(null, "Enter the new compute function for a statistics timeline A...Z use <OP>(<EXPRESSION>) to aggregate across multiple" +
+											"timelines\n or just <Expression> to compute the expression based on one child.\n" +
+											"Examples: \"+(A*B*2.0)\" explaination: for each child node multiply the value of statistics A with B times 2.0, \n " +
+											"then summarize across multiple timelines.\n"+
+											"Operators are +,*,/,- (+,* are permitted to reduce across timelines\n" +
+											", and ^ Minimum and maximum operators (can be used to determine min, max across multiple timelines)", "");
+									if(compFunc == null){
+										System.err.println("No compute function specified, I will use 0.0 as a compute function");
+										compFunc = "0.0";
+									}
+
+									
+									// create a new statistics node
+									StatisticsGroupDescription group = new StatisticsGroupDescription(str);
+									group.addStatistic( new StatisticsDescription(group, str, StatisticsEntryType.DOUBLE, 0, "", str));				
+
+									UserDefinedStatisticsInMemory userStats = new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group, modelTime);
+
+									statNode.getTopology().setStatisticsReader(group.getName(), userStats );
+									
+									userStats.setComputeFunction(compFunc);
+									userStats.recomputeStatistics();
+
+									// reload topology.
+
+									reader.addCategories(group);								
+									reader.releadTopologyAndCategories();
+								}
 							}
 						});
 					}

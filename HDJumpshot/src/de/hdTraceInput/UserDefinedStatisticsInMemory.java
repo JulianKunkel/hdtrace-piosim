@@ -157,9 +157,9 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 		// compute the new values based on the equation and the statisticsFound
 		// track the current positions of all statistics we need		
 		// enumerate the statistics of the reader with the model time.
-		Enumeration<StatisticsGroupEntry> [] currentpositions = new Enumeration[statisticsFound.size()];
+		final Enumeration<StatisticsGroupEntry> [] currentpositions = new Enumeration[statisticsFound.size()];
 		// the last element retrieved by the enumeration
-		StatisticsGroupEntry [] lastElement = new StatisticsGroupEntry[statisticsFound.size()];
+		final StatisticsGroupEntry [] lastElement = new StatisticsGroupEntry[statisticsFound.size()];
 
 		// track the time for the last element
 		final Epoch biggestTime = new Epoch(Integer.MAX_VALUE, Integer.MAX_VALUE);
@@ -179,8 +179,6 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 
 		// the group we will create entries for is this group
 		final StatisticsGroupDescription group = getGroup();
-
-		
 		
 		// create the new elements
 		ArrayList<StatisticsGroupEntry> entries = new ArrayList<StatisticsGroupEntry>();
@@ -229,6 +227,20 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 			// we have the minimum element.
 			lastElem = lastElement[minIndex];
 			
+			if(startedComputation){			
+				// start to compute when all values are available				
+				// compute the result
+				lastComputedResult = expression.computeFunction(lastValues, variableNames);
+				
+				final Object [] values = new Object[1];
+				// apply the function onto the variables.
+
+				values[0] = lastComputedResult;			
+				// last element:						
+				entries.add( new StatisticsGroupEntry(values, lastTime, curMinTime, group) );
+			}
+
+
 			lastValues[minIndex] = lastElem.getNumeric(groupPosition.get(minIndex));
 			
 			assert(lastValues[minIndex] != Double.NaN);
@@ -247,21 +259,6 @@ public class UserDefinedStatisticsInMemory extends BufferedMemoryReader {
 				}
 			}
 			
-			// start to compute when all values are available
-			if (startedComputation){
-				lastComputedResult = expression.computeFunction(lastValues, variableNames);
-				
-				final Object [] values = new Object[1];
-				// apply the function onto the variables.
-
-
-				values[0] = lastComputedResult;			
-				// last element:						
-				entries.add( new StatisticsGroupEntry(values, lastTime, curMinTime, group) );
-
-				// compute the new value:
-			}
-
 			lastTime = curMinTime;			
 			
 			// update the enumeration
