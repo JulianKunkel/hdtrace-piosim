@@ -205,6 +205,13 @@ public class TopologyManager
 			popupMenu.add(item);						
 		}
 	}
+	
+	final static String userDefinedStatInput = "Enter the new compute function for a statistics timeline A...Z use <OP>(<EXPRESSION>) to aggregate across multiple" +
+			"timelines\n or just <Expression> to compute the expression based on one child.\n" +
+			"Examples: \"+(A*B*2.0)\" explaination: for each child node multiply the value of statistics A with B times 2.0, \n " +
+			"then summarize across multiple timelines.\n"+
+			"Operators are +,*,/,- (+,* are permitted to reduce across timelines\n" +
+			", and ^ Minimum and maximum operators (can be used to determine min, max across multiple timelines)";
 
 	/**
 	 * used to detect clicks on the tree i.e. for expanding the menus
@@ -251,12 +258,7 @@ public class TopologyManager
 									}
 									
 
-									String compFunc = JOptionPane.showInputDialog(null, "Enter the new compute function for a statistics timeline A...Z use <OP>(<EXPRESSION>) to aggregate across multiple" +
-											"timelines\n or just <Expression> to compute the expression based on one child.\n" +
-											"Examples: \"+(A*B*2.0)\" explaination: for each child node multiply the value of statistics A with B times 2.0, \n " +
-											"then summarize across multiple timelines.\n"+
-											"Operators are +,*,/,- (+,* are permitted to reduce across timelines\n" +
-											", and ^ Minimum and maximum operators (can be used to determine min, max across multiple timelines)", "");
+									String compFunc = JOptionPane.showInputDialog(null, userDefinedStatInput, "");
 									if(compFunc == null){
 										System.err.println("No compute function specified, I will use 0.0 as a compute function");
 										compFunc = "0.0";
@@ -318,7 +320,7 @@ public class TopologyManager
 							public void actionPerformed(ActionEvent e) {
 								UserDefinedStatisticsInMemory eNode = ((UserDefinedStatisticsInMemory) statNode.getStatisticSource());
 								
-								String str = JOptionPane.showInputDialog(null, "Enter the new compute function: ", eNode.getComputeFunction());
+								String str = JOptionPane.showInputDialog(null, userDefinedStatInput, eNode.getComputeFunction());
 								if(str != null){								
 									eNode.setComputeFunction(str);
 									eNode.recomputeStatistics();

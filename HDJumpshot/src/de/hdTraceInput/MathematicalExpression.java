@@ -32,6 +32,44 @@ public class MathematicalExpression {
 
 	private Object [] operants = null;
 
+	/**
+	 * check if the expression starts with ( and ends with ), then we can remove those brackets e.g.:
+	 * ((A+B)) => remove those brackets
+	 * ((A+B)*C) => remove only the outer bracket
+	 * @param textualExpression
+	 * @return
+	 */
+	private String removeOuterBrackets(String textualExpression){
+
+		int startBrackets = 0;
+		for( int i = 0 ; i < textualExpression.length() / 2 - 1 ; i++ ){
+			if (textualExpression.charAt(i) == '('){
+				startBrackets++;
+				continue;
+			}
+			// otherwise stop
+			break;
+		}
+		
+		if(startBrackets > 0){							
+			// scan through the expression to detect whether the actual nesting is less than expected
+			int minBracketNesting = startBrackets;
+			int currentBracketDepth = startBrackets;
+			for( int i = minBracketNesting ; i < textualExpression.length() - 1 - startBrackets; i++ ){
+				if (textualExpression.charAt(i) == '('){
+					currentBracketDepth++;
+				}else if (textualExpression.charAt(i) == ')'){
+					currentBracketDepth--;
+					
+					minBracketNesting = minBracketNesting < currentBracketDepth ? minBracketNesting : currentBracketDepth;
+				}
+			}
+			
+			textualExpression = textualExpression.substring(minBracketNesting, textualExpression.length() - minBracketNesting);
+		}
+		
+		return textualExpression;
+	}
 
 	/**
 	 * Construct a mathematical expression from the textual representation.
@@ -55,6 +93,8 @@ public class MathematicalExpression {
 		String nestedData = "";
 		int nestingDepth = 0;
 
+		textualExpression = removeOuterBrackets(textualExpression.trim());
+						
 		// replace whitespace
 		char [] array = (textualExpression + " ").toCharArray();
 

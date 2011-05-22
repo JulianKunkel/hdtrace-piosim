@@ -37,6 +37,20 @@ public class MathematicalExpressionTest extends TestSuite{
 		Assert.assertEquals(result, 28.6, 0.001);
 	}
 	
+	@Test
+	public void nestingTest(){
+		MathematicalExpression e = new MathematicalExpression("((((A*5.0)+4.3*2.0)))");
+		String [] variableNames = {"A"};
+		double [] values =        {4};
+		
+		System.out.println( e.textualRepresentation());		
+		double result = e.computeFunction(values, variableNames);
+		System.out.println("Result for 4*5.0 + 4.3 *2.0 " + result);
+		
+		Assert.assertEquals(result, 28.6, 0.001);
+	}
+	
+	
 	
 	@Test
 	public void minMaxTest(){
