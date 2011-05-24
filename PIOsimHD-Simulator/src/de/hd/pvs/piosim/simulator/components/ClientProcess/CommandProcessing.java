@@ -321,7 +321,7 @@ public class CommandProcessing{
 
 
 	private final RelationToken createNestedToken(){
-		return this.getInvokingComponent().getSimulator().getTraceWriter().relRelateProcessLocalToken(TraceType.INTERNAL, this.getInvokingComponent(), relationToken);
+		return this.getInvokingComponent().getSimulator().getTraceWriter().relRelateProcessLocalToken(TraceType.CLIENT_STEP, this.getInvokingComponent(), relationToken);
 	}
 
 	/**
