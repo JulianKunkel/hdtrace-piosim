@@ -8,18 +8,18 @@ def build (bld):
 
 	bld.new_task_gen(
 		features = 'cc cshlib',
-		source = ['RUT.c','tracing.c','processorstates.c'],
+		source = ['RUT.c','tracing.c','processorstates.c','devicestates.c','internal_disk.c'],
 		includes = ['.', '../include'],
-		uselib = ['GLIB-2.0','GTHREAD-2.0','LIBGTOP-2.0','DBCONNECTOR','PG','HDTRACE','CPUFREQ'],
+		uselib = ['GLIB-2.0','GTHREAD-2.0','LIBGTOP-2.0','DBCONNECTOR','PG','HDTRACE','CPUFREQ','GIO'],
 		target = 'RUT',
 		install_path = '${PREFIX}/lib',
 	)
 
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
-		source = ['RUT.c','tracing.c','processorstates.c'],
+		source = ['RUT.c','tracing.c','processorstates.c','devicestates.c','internal_disk.c'],
 		includes = ['.', '../include'],
-		uselib = ['GLIB-2.0','GTHREAD-2.0','LIBGTOP-2.0','DBCONNECTOR','PG','HDTRACE','CPUFREQ'],
+		uselib = ['GLIB-2.0','GTHREAD-2.0','LIBGTOP-2.0','DBCONNECTOR','PG','HDTRACE','CPUFREQ','GIO'],
 		target = 'RUT',
 		install_path = '${PREFIX}/lib',
 	)

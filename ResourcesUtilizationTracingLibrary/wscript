@@ -19,6 +19,7 @@ def set_options(opt):
 	opt.add_option('--with-hdtrace-static', action='store', default=None, help='path to hdtracelib')
 	opt.add_option('--with-hdtrace', action='store', default=None, help='path to hdtracelib')
 	opt.add_option('--with-processorstates', action='store_true', default=False, help='compile with processorstate support')
+	opt.add_option('--with-devicestates', action='store_true', default=False, help='compile with device state tracing')
 	
 def _getconf (key):
 	# FIXME Maybe use os.confstr().
@@ -62,43 +63,52 @@ def configure (conf):
         )
 
 	if Options.options.with_hdtrace_static:
-	        hdtracelib = os.path.abspath(Options.options.with_hdtrace_static)
-        	conf.check_cc(staticlib='hdTracing', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDTRACE', mandatory=True)
-	        conf.env.LIBPATH_HDTRACE = '%s/lib' % (hdtracelib)
-        	conf.check_cc(staticlib='hdStats', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDSTATS', mandatory=True)
-	        conf.env.LIBPATH_HDSTATS = '%s/lib' % (hdtracelib)
+		hdtracelib = os.path.abspath(Options.options.with_hdtrace_static)
+		conf.check_cc(staticlib='hdTracing', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDTRACE', mandatory=True)
+		conf.env.LIBPATH_HDTRACE = '%s/lib' % (hdtracelib)
+		conf.check_cc(staticlib='hdStats', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDSTATS', mandatory=True)
+		conf.env.LIBPATH_HDSTATS = '%s/lib' % (hdtracelib)
 
 	if Options.options.with_hdtrace:
-	        hdtracelib = os.path.abspath(Options.options.with_hdtrace)
-        	conf.check_cc(lib='hdTracing', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDTRACE', mandatory=True)
-	        conf.env.LIBPATH_HDTRACE = '%s/lib' % (hdtracelib)
-        	conf.check_cc(lib='hdStats', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDSTATS', mandatory=True)
-	        conf.env.LIBPATH_HDSTATS = '%s/lib' % (hdtracelib)
+		hdtracelib = os.path.abspath(Options.options.with_hdtrace)
+		conf.check_cc(lib='hdTracing', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDTRACE', mandatory=True)
+		conf.env.LIBPATH_HDTRACE = '%s/lib' % (hdtracelib)
+		conf.check_cc(lib='hdStats', ccflags='-I%s/include' % (hdtracelib), ldflags='-L%s/lib' % (hdtracelib), uselib_store='HDSTATS', mandatory=True)
+		conf.env.LIBPATH_HDSTATS = '%s/lib' % (hdtracelib)
 	
 
-        if Options.options.with_dbconnector_static:
-                dblib = os.path.abspath(Options.options.with_dbconnector_static)
-                conf.check_cc(staticlib='dbconnector', ccflags='-I%s/include' % (dblib), ldflags='-L%s/lib' % (dblib), uselib_store='DBCONNECTOR', mandatory=True)
-                conf.env.LIBPATH_DBCONNECTOR = '%s/lib' % (dblib)
-                includedir=Utils.cmd_output("pg_config --includedir").strip()
-                libdir=Utils.cmd_output("pg_config --libdir").strip()
-                conf.check_cc(lib='pq', ccflags='-I%s' % (includedir), ldflags='-L%s' % (libdir), uselib_store='PG', mandatory=True)
-                conf.env.LIBPATH_PG = '%s' % (libdir)
-                conf.env.CCFLAGS += ['-DHAVE_DBC']
+	if Options.options.with_dbconnector_static:
+		dblib = os.path.abspath(Options.options.with_dbconnector_static)
+		conf.check_cc(staticlib='dbconnector', ccflags='-I%s/include' % (dblib), ldflags='-L%s/lib' % (dblib), uselib_store='DBCONNECTOR', mandatory=True)
+		conf.env.LIBPATH_DBCONNECTOR = '%s/lib' % (dblib)
+		includedir=Utils.cmd_output("pg_config --includedir").strip()
+		libdir=Utils.cmd_output("pg_config --libdir").strip()
+		conf.check_cc(lib='pq', ccflags='-I%s' % (includedir), ldflags='-L%s' % (libdir), uselib_store='PG', mandatory=True)
+		conf.env.LIBPATH_PG = '%s' % (libdir)
+		conf.env.CCFLAGS += ['-DHAVE_DBC']
 
-        if Options.options.with_dbconnector:
-                dblib = os.path.abspath(Options.options.with_dbconnector)
-                conf.check_cc(lib='dbconnector', ccflags='-I%s/include' % (dblib), ldflags='-L%s/lib' % (dblib), uselib_store='DBCONNECTOR', mandatory=True)
-                conf.env.LIBPATH_DBCONNECTOR = '%s/lib' % (dblib)
-                includedir=Utils.cmd_output("pg_config --includedir").strip()
-                libdir=Utils.cmd_output("pg_config --libdir").strip()
-                conf.check_cc(lib='pq', ccflags='-I%s' % (includedir), ldflags='-L%s' % (libdir), uselib_store='PG', mandatory=True)
-                conf.env.LIBPATH_PG = '%s' % (libdir)
-                conf.env.CCFLAGS += ['-DHAVE_DBC']
+	if Options.options.with_dbconnector:
+		dblib = os.path.abspath(Options.options.with_dbconnector)
+		conf.check_cc(lib='dbconnector', ccflags='-I%s/include' % (dblib), ldflags='-L%s/lib' % (dblib), uselib_store='DBCONNECTOR', mandatory=True)
+		conf.env.LIBPATH_DBCONNECTOR = '%s/lib' % (dblib)
+		includedir=Utils.cmd_output("pg_config --includedir").strip()
+		libdir=Utils.cmd_output("pg_config --libdir").strip()
+		conf.check_cc(lib='pq', ccflags='-I%s' % (includedir), ldflags='-L%s' % (libdir), uselib_store='PG', mandatory=True)
+		conf.env.LIBPATH_PG = '%s' % (libdir)
+		conf.env.CCFLAGS += ['-DHAVE_DBC']
 
-        if Options.options.with_processorstates:
-                conf.check_cc(lib='cpufreq', uselib_store='CPUFREQ', mandatory=True)
-                conf.env.CCFLAGS += ['-DHAVE_PROCESSORSTATES']
+	if Options.options.with_processorstates:
+		conf.check_cc(lib='cpufreq', uselib_store='CPUFREQ', mandatory=True)
+		conf.env.CCFLAGS += ['-DHAVE_PROCESSORSTATES']
+                
+	if Options.options.with_devicestates:
+		conf.env.CCFLAGS += ['-DHAVE_DEVICESTATES']
+		conf.check_cfg(
+                package = 'gio-2.0',
+                args = '--cflags --libs',
+                uselib_store = 'GIO',
+                mandatory = True
+        )
 
 def build (bld):
 	bld.add_subdirs('include')

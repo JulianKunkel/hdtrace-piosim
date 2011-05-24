@@ -62,7 +62,6 @@
 /** Type definition of utilization trace object */
 typedef struct UtilTrace_s UtilTrace;
 
-
 #ifdef HAVE_DBC
 
 /** Type definition of power trace object */
@@ -72,42 +71,50 @@ typedef struct NodePowerTrace_s NodePowerTrace;
 
 /** Bit field for sources to trace */
 struct rutSources_s {
-    /** aggregated utilization of all CPUs */
-    unsigned int CPU_UTIL : 1;
-    /** CPU utilization for each single CPU */
-    unsigned int CPU_UTIL_X : 1;
+	/** aggregated utilization of all CPUs */
+	unsigned int CPU_UTIL :1;
+	/** CPU utilization for each single CPU */
+	unsigned int CPU_UTIL_X :1;
 #ifdef HAVE_PROCESSORSTATES
-    /** CPU frequency for each single CPU */
-    unsigned int CPU_FREQ_X : 1;
-    /** CPU c-states 1,2 and 3 for each single CPU */
-    unsigned int CPU_IDLE_X : 1;
+	/** CPU frequency for each single CPU */
+	unsigned int CPU_FREQ_X : 1;
+	/** CPU c-states 1,2 and 3 for each single CPU */
+	unsigned int CPU_IDLE_X : 1;
 #endif
-    /** amount of main memory used */
-    unsigned int MEM_USED : 1;
-    /** amount of free main memory */
-    unsigned int MEM_FREE  : 1;
-    /** amount of shared main memory */
-    unsigned int MEM_SHARED  : 1;
-    /** amount of main memory used as buffer */
-    unsigned int MEM_BUFFER : 1;
-    /** amount of main memory cached */
-    unsigned int MEM_CACHED : 1;
-    /** incoming traffic of each single network interface */
-    unsigned int NET_IN_X : 1;
-    /** outgoing traffic of each single network interface */
-    unsigned int NET_OUT_X : 1;
-    /** aggregated incoming traffic of external network interfaces */
-    unsigned int NET_IN_EXT : 1;
-    /** aggregated outgoing traffic of external network interfaces */
-    unsigned int NET_OUT_EXT : 1;
-    /** aggregated incoming traffic of all network interfaces */
-    unsigned int NET_IN : 1;
-    /** aggregated outgoing traffic of all network interfaces */
-    unsigned int NET_OUT : 1;
-    /** amount of data read from hard disk drives */
-    unsigned int HDD_READ : 1;
-    /** amount of data written to hard disk drives */
-    unsigned int HDD_WRITE : 1;
+	/** amount of main memory used */
+	unsigned int MEM_USED :1;
+	/** amount of free main memory */
+	unsigned int MEM_FREE :1;
+	/** amount of shared main memory */
+	unsigned int MEM_SHARED :1;
+	/** amount of main memory used as buffer */
+	unsigned int MEM_BUFFER :1;
+	/** amount of main memory cached */
+	unsigned int MEM_CACHED :1;
+	/** incoming traffic of each single network interface */
+	unsigned int NET_IN_X :1;
+	/** outgoing traffic of each single network interface */
+	unsigned int NET_OUT_X :1;
+#ifdef HAVE_DEVICESTATES
+	/** state (speed mode) of each single network interface */
+	unsigned int NET_STATE_X :1;
+#endif
+	/** aggregated incoming traffic of external network interfaces */
+	unsigned int NET_IN_EXT :1;
+	/** aggregated outgoing traffic of external network interfaces */
+	unsigned int NET_OUT_EXT :1;
+	/** aggregated incoming traffic of all network interfaces */
+	unsigned int NET_IN :1;
+	/** aggregated outgoing traffic of all network interfaces */
+	unsigned int NET_OUT :1;
+#ifdef HAVE_DEVICESTATES
+	/** state (idle mode) of the hard drive */
+	unsigned int HDD_STATE :1;
+#endif
+	/** amount of data read from hard disk drives */
+	unsigned int HDD_READ :1;
+	/** amount of data written to hard disk drives */
+	unsigned int HDD_WRITE :1;
 };
 
 /** Type definition of tracing sources bit field */
@@ -161,6 +168,18 @@ typedef struct rutSources_s rutSources;
 	} while (0)
 
 /** Macro for setting/cleaning all NET statistics at once */
+#ifdef HAVE_DEVICESTATES
+#define RUTSRC_SET_NET__(sources, bool) \
+		do { \
+			(sources).NET_IN_X = bool; \
+			(sources).NET_OUT_X = bool; \
+			(sources).NET_STATE_X = bool; \
+			(sources).NET_IN_EXT = bool; \
+			(sources).NET_OUT_EXT = bool; \
+			(sources).NET_IN = bool; \
+			(sources).NET_OUT = bool; \
+		} while (0)
+#else
 #define RUTSRC_SET_NET__(sources, bool) \
 	do { \
 		(sources).NET_IN_X = bool; \
@@ -170,13 +189,22 @@ typedef struct rutSources_s rutSources;
 		(sources).NET_IN = bool; \
 		(sources).NET_OUT = bool; \
 	} while (0)
-
+#endif
 /** Macro for setting/cleaning all HDD statistics at once */
+#ifdef HAVE_DEVICESTATES
+#define RUTSRC_SET_HDD__(sources, bool) \
+	do { \
+		(sources).HDD_READ = bool; \
+		(sources).HDD_WRITE = bool; \
+		(sources).HDD_STATE = bool; \
+	} while (0)
+#else
 #define RUTSRC_SET_HDD__(sources, bool) \
 	do { \
 		(sources).HDD_READ = bool; \
 		(sources).HDD_WRITE = bool; \
 	} while (0)
+#endif
 
 /** Macro for enabling tracing of all CPU statistics at once */
 #define RUTSRC_SET_CPU(sources) RUTSRC_SET_CPU__(sources, 1)
@@ -189,7 +217,6 @@ typedef struct rutSources_s rutSources;
 
 /** Macro for enabling tracing of all hard disk statistics at once */
 #define RUTSRC_SET_HDD(sources) RUTSRC_SET_HDD__(sources, 1)
-
 
 /* ************************************************************************* *
  *                       PUBLIC ERROR VALUE DEFINITIONS                      *
@@ -302,13 +329,12 @@ typedef struct rutSources_s rutSources;
 /**
  * Create performance trace
  */
-int rut_createTrace(
-		hdTopoNode *topoNode, /* topoNode the trace belongs to */
-		int topoLevel,       /* level of topology the trace take place */
-		rutSources sources,  /* bit field of the sources to trace */
-		int interval,         /* interval of one tracing step in ms */
-		UtilTrace **trace     /* OUTPUT: the trace created */
-		);
+int rut_createTrace(hdTopoNode *topoNode, /* topoNode the trace belongs to */
+int topoLevel, /* level of topology the trace take place */
+rutSources sources, /* bit field of the sources to trace */
+int interval, /* interval of one tracing step in ms */
+UtilTrace **trace /* OUTPUT: the trace created */
+);
 
 /**
  * Start performance tracing
