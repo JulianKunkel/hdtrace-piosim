@@ -12,6 +12,7 @@
 #include <glib.h>
 #include <errno.h>
 #include <assert.h>
+#include <unistd.h> /* for sleep */
 
 #include "common.h"
 #include "tracing.h"
@@ -266,8 +267,6 @@ int rut_createTrace(
 	/* get current system time and convert it to nanoseconds */
 	uint64_t timestamp = getSystemTimestamp();
 
-	DEBUGMSG("timestamp: %lu (started power tracing)\n",timestamp);
-
 	/* create a new group (power is not synced with other resources */
 	hdStatsGroup *power_group = hdS_createGroup("Energy", topoNode, 1);
 	/* TODO Error handling */
@@ -299,6 +298,8 @@ int rut_createTrace(
 	node_pt->group = power_group;
 	node_pt->from_timestamp = timestamp;
 	node_pt->to_timestamp = 0;
+
+	DEBUGMSG("timestamp: %lu (started power tracing on node %s)\n",timestamp, node_pt->node);
 
 #endif
 
@@ -401,9 +402,12 @@ int rut_finalizeTrace(UtilTrace *trace)
 	/* get current system time and convert it to nanoseconds */
 	uint64_t timestamp = getSystemTimestamp();
 
-	DEBUGMSG("timestamp: %lu (stopped power tracing)\n",timestamp);
+	DEBUGMSG("timestamp: %lu (stopped power tracing on node %s)\n",timestamp, myTrace->node_pt->node);
 
 	myTrace->node_pt->to_timestamp = timestamp;
+
+	// sleep one second, because only every 200ms power values are written into the database
+	sleep(1);
 
 	row_struct *rows = NULL;
 	int crows = getNodeData(myTrace->node_pt->node,
@@ -412,10 +416,10 @@ int rut_finalizeTrace(UtilTrace *trace)
 				&rows);
 
 	if (crows > 0) {
-		DEBUGMSG("timestamp: %lu (first db timestamp)\n",
-						rows[0].timestamp);
-		DEBUGMSG("timestamp: %lu (last db timestamp)\n",
-						rows[crows - 1].timestamp);
+		DEBUGMSG("timestamp: %lu (first db timestamp for node %s)\n",
+						rows[0].timestamp, myTrace->node_pt->node);
+		DEBUGMSG("timestamp: %lu (last db timestamp for node %s)\n",
+						rows[crows - 1].timestamp, myTrace->node_pt->node);
 	} else {
 		return RUT_EDBCONNECTOR;
 	}
