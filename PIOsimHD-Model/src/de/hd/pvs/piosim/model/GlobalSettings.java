@@ -35,8 +35,8 @@ import de.hd.pvs.piosim.model.annotations.AttributeGetters;
 import de.hd.pvs.piosim.model.annotations.AttributeList;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper;
-import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 import de.hd.pvs.piosim.model.dynamicMapper.DynamicCommandClassMapper.CommandImplemenationMapping;
+import de.hd.pvs.piosim.model.dynamicMapper.DynamicTraceEntryToCommandMapper;
 import de.hd.pvs.piosim.model.interfaces.IExtendedXMLHandling;
 
 /**
@@ -47,10 +47,10 @@ import de.hd.pvs.piosim.model.interfaces.IExtendedXMLHandling;
 public class GlobalSettings implements IExtendedXMLHandling{
 
 	/**
-	 * The maximum amount of data which can be shipped per network paket.
+	 * The maximum amount of data which can be shipped per network packet.
 	 */
 	@Attribute
-	private long transferGranularity = 1024 * 10;
+	private long transferGranularity = 1024 * 100;
 
 	/**
 	 * The maximum amount of data which should be read or written at once from the I/O subsystem.
