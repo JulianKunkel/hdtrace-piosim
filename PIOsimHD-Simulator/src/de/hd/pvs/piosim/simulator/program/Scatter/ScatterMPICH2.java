@@ -83,7 +83,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 
 					return;
 				}else{
-					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
+					OUTresults.setNextStep(RECEIVED_ACK);
 					return;
 				}
 			}else{// if(step >= RECEIVED_ACK)
