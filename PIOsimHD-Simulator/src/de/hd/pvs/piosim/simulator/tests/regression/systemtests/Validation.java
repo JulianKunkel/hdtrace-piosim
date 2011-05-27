@@ -41,7 +41,7 @@ public class Validation  extends ModelTest {
 		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(smtPerNode),
-				NetworkNodesC.QPI(),
+				NetworkNodesC.LocalNodeQPI(),
 				NetworkEdgesC.QPI()
 				);
 		super.setup( smtNodeT );
