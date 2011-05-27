@@ -6,8 +6,7 @@ import de.hd.pvs.piosim.simulator.base.ISNetworkComponent;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
- * Simulates a unidirectional bus-system i.e. a single upstream channel to use one of
- * several possible channels == lanes at a time.
+ * Simulates a unidirectional bus-system i.e. a single upstream channel which is shared among all outgoing routes.
  *
  * @author julian
  */
@@ -21,7 +20,8 @@ public class GStoreForwardNode<ModelType extends StoreForwardNode>
 
 	@Override
 	public Epoch getMaximumProcessingTime() {
-		return new Epoch(((double) getSimulator().getModel().getGlobalSettings().getTransferGranularity()) / getModelComponent().getTotalBandwidth());	}
+		return new Epoch(((double) getSimulator().getModel().getGlobalSettings().getTransferGranularity()) / getModelComponent().getTotalBandwidth());
+	}
 
 	@Override
 	public Epoch getProcessingLatency() {

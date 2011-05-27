@@ -4,7 +4,7 @@ import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 /**
- * Has a link to one or multiple neighbour NetworkComponents.
+ * Has a link to one or multiple neighbor NetworkComponents.
  *
  * @author Julian M. Kunkel
  */
