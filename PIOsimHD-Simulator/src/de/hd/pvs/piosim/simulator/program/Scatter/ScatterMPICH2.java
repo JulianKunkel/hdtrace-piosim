@@ -1,5 +1,6 @@
 package de.hd.pvs.piosim.simulator.program.Scatter;
 
+import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -38,15 +39,18 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 		final int commSize = cmd.getCommunicator().getSize();
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
 
-		final int rootRank = cmd.getCommunicator().getLocalRank( cmd.getRootRank() );
-		int clientRankInComm = cmd.getCommunicator().getLocalRank( client.getModelComponent().getRank() );
+		final Communicator comm = cmd.getCommunicator();
+
+		final int rootRank = comm.getLocalRank( cmd.getRootRank() );
+		int clientRankInComm = comm.getLocalRank( client.getModelComponent().getRank() );
 
 		//exchange rank 0 with cmd.root to receive data on the correct node
-		if(clientRankInComm == cmd.getRootRank()) {
+		if(clientRankInComm == rootRank) {
 			clientRankInComm = 0;
 		}else if(clientRankInComm == 0) {
 			clientRankInComm = rootRank;
 		}
+
 
 		final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
 		final int phaseStart = iterations - trailingZeros;
