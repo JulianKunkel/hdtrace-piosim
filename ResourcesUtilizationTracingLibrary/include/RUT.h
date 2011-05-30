@@ -31,6 +31,7 @@
 #define HDRUT_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "hdTopo.h"
 
@@ -41,7 +42,7 @@
 /** Maximum number of CPUs supported */
 /* not using GLIBTOP_NCPU here to avoid *
  * dependency from libgtop/cpu.h header */
-#define RUT_MAX_NUM_CPUS 32
+#define RUT_MAX_NUM_CPUS 50
 
 /** Maximum number of network interfaces supported */
 #define RUT_MAX_NUM_NETIFS 8
@@ -95,10 +96,6 @@ struct rutSources_s {
 	unsigned int NET_IN_X :1;
 	/** outgoing traffic of each single network interface */
 	unsigned int NET_OUT_X :1;
-#ifdef HAVE_DEVICESTATES
-	/** state (speed mode) of each single network interface */
-	unsigned int NET_STATE_X :1;
-#endif
 	/** aggregated incoming traffic of external network interfaces */
 	unsigned int NET_IN_EXT :1;
 	/** aggregated outgoing traffic of external network interfaces */
@@ -107,10 +104,6 @@ struct rutSources_s {
 	unsigned int NET_IN :1;
 	/** aggregated outgoing traffic of all network interfaces */
 	unsigned int NET_OUT :1;
-#ifdef HAVE_DEVICESTATES
-	/** state (idle mode) of the hard drive */
-	unsigned int HDD_STATE :1;
-#endif
 	/** amount of data read from hard disk drives */
 	unsigned int HDD_READ :1;
 	/** amount of data written to hard disk drives */
@@ -125,11 +118,20 @@ typedef struct rutSources_s rutSources;
  * ************************************************************************* */
 
 /** Maximum number of statistics values traceable */
+#ifdef HAVE_PROCESSORSTATES
+#define RUT_MAX_STATS_VALUES (12 + (3 * RUT_MAX_NUM_CPUS) + 2 * RUT_MAX_NUM_NETIFS)
+#else
 #define RUT_MAX_STATS_VALUES (12 + RUT_MAX_NUM_CPUS + 2 * RUT_MAX_NUM_NETIFS)
+#endif
 
 /** Macro for cleaning all available sources */
 #define RUTSRC_UNSET_ALL(sources) \
-	bzero(&(sources), sizeof(sources))
+		do { \
+		RUTSRC_UNSET_CPU(sources); \
+		RUTSRC_UNSET_MEM(sources); \
+		RUTSRC_UNSET_NET(sources); \
+		RUTSRC_UNSET_HDD(sources); \
+	} while (0)
 
 /** Macro for setting all available sources */
 #define RUTSRC_SET_ALL(sources) \
@@ -142,81 +144,71 @@ typedef struct rutSources_s rutSources;
 
 /** Macro for setting/cleaning all CPU statistics at once */
 #ifdef HAVE_PROCESSORSTATES
-#define RUTSRC_SET_CPU__(sources, bool) \
+#define RUTSRC_SET_CPU__(sources, enabled) \
 	do { \
-		(sources).CPU_UTIL = bool; \
-		(sources).CPU_UTIL_X = bool; \
-		(sources).CPU_FREQ_X = bool; \
-		(sources).CPU_IDLE_X = bool; \
+		(sources).CPU_UTIL = enabled; \
+		(sources).CPU_UTIL_X = enabled; \
+		(sources).CPU_FREQ_X = enabled; \
+		(sources).CPU_IDLE_X = enabled; \
 	} while (0)
 #else
-#define RUTSRC_SET_CPU__(sources, bool) \
+#define RUTSRC_SET_CPU__(sources, enabled) \
 	do { \
-		(sources).CPU_UTIL = bool; \
-		(sources).CPU_UTIL_X = bool; \
+		(sources).CPU_UTIL = enabled; \
+		(sources).CPU_UTIL_X = enabled; \
 	} while (0)
 #endif
 
 /** Macro for setting/cleaning all memory statistics at once */
-#define RUTSRC_SET_MEM__(sources, bool) \
+#define RUTSRC_SET_MEM__(sources, enabled) \
 	do { \
-		(sources).MEM_USED = bool; \
-		(sources).MEM_FREE = bool; \
-		(sources).MEM_SHARED = bool; \
-		(sources).MEM_BUFFER = bool; \
-		(sources).MEM_CACHED = bool; \
+		(sources).MEM_USED = enabled; \
+		(sources).MEM_FREE = enabled; \
+		(sources).MEM_SHARED = enabled; \
+		(sources).MEM_BUFFER = enabled; \
+		(sources).MEM_CACHED = enabled; \
 	} while (0)
 
 /** Macro for setting/cleaning all NET statistics at once */
-#ifdef HAVE_DEVICESTATES
 #define RUTSRC_SET_NET__(sources, bool) \
 		do { \
 			(sources).NET_IN_X = bool; \
 			(sources).NET_OUT_X = bool; \
-			(sources).NET_STATE_X = bool; \
 			(sources).NET_IN_EXT = bool; \
 			(sources).NET_OUT_EXT = bool; \
 			(sources).NET_IN = bool; \
 			(sources).NET_OUT = bool; \
 		} while (0)
-#else
-#define RUTSRC_SET_NET__(sources, bool) \
-	do { \
-		(sources).NET_IN_X = bool; \
-		(sources).NET_OUT_X = bool; \
-		(sources).NET_IN_EXT = bool; \
-		(sources).NET_OUT_EXT = bool; \
-		(sources).NET_IN = bool; \
-		(sources).NET_OUT = bool; \
-	} while (0)
-#endif
-/** Macro for setting/cleaning all HDD statistics at once */
-#ifdef HAVE_DEVICESTATES
-#define RUTSRC_SET_HDD__(sources, bool) \
-	do { \
-		(sources).HDD_READ = bool; \
-		(sources).HDD_WRITE = bool; \
-		(sources).HDD_STATE = bool; \
-	} while (0)
-#else
+
 #define RUTSRC_SET_HDD__(sources, bool) \
 	do { \
 		(sources).HDD_READ = bool; \
 		(sources).HDD_WRITE = bool; \
 	} while (0)
-#endif
 
 /** Macro for enabling tracing of all CPU statistics at once */
-#define RUTSRC_SET_CPU(sources) RUTSRC_SET_CPU__(sources, 1)
+#define RUTSRC_SET_CPU(sources) RUTSRC_SET_CPU__(sources, true)
 
 /** Macro for enabling tracing of all memory statistics at once */
-#define RUTSRC_SET_MEM(sources) RUTSRC_SET_MEM__(sources, 1)
+#define RUTSRC_SET_MEM(sources) RUTSRC_SET_MEM__(sources, true)
 
 /** Macro for enabling tracing of all NET statistics at once */
-#define RUTSRC_SET_NET(sources) RUTSRC_SET_NET__(sources, 1)
+#define RUTSRC_SET_NET(sources) RUTSRC_SET_NET__(sources, true)
 
 /** Macro for enabling tracing of all hard disk statistics at once */
-#define RUTSRC_SET_HDD(sources) RUTSRC_SET_HDD__(sources, 1)
+#define RUTSRC_SET_HDD(sources) RUTSRC_SET_HDD__(sources, true)
+
+/** Macro for disabling tracing of all CPU statistics at once */
+#define RUTSRC_UNSET_CPU(sources) RUTSRC_SET_CPU__(sources, false)
+
+/** Macro for disabling tracing of all memory statistics at once */
+#define RUTSRC_UNSET_MEM(sources) RUTSRC_SET_MEM__(sources, false)
+
+/** Macro for disabling tracing of all NET statistics at once */
+#define RUTSRC_UNSET_NET(sources) RUTSRC_SET_NET__(sources, false)
+
+/** Macro for disabling tracing of all hard disk statistics at once */
+#define RUTSRC_UNSET_HDD(sources) RUTSRC_SET_HDD__(sources, false)
 
 /* ************************************************************************* *
  *                       PUBLIC ERROR VALUE DEFINITIONS                      *

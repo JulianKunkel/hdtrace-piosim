@@ -19,7 +19,7 @@ def set_options(opt):
 	opt.add_option('--with-hdtrace-static', action='store', default=None, help='path to hdtracelib')
 	opt.add_option('--with-hdtrace', action='store', default=None, help='path to hdtracelib')
 	opt.add_option('--with-processorstates', action='store_true', default=False, help='compile with processorstate support')
-	opt.add_option('--with-devicestates', action='store_true', default=False, help='compile with device state tracing')
+	opt.add_option('--enable-debugging', action='store_true', default=False, help='compile with debug info')
 	
 def _getconf (key):
 	# FIXME Maybe use os.confstr().
@@ -100,15 +100,9 @@ def configure (conf):
 	if Options.options.with_processorstates:
 		conf.check_cc(lib='cpufreq', uselib_store='CPUFREQ', mandatory=True)
 		conf.env.CCFLAGS += ['-DHAVE_PROCESSORSTATES']
-                
-	if Options.options.with_devicestates:
-		conf.env.CCFLAGS += ['-DHAVE_DEVICESTATES']
-		conf.check_cfg(
-                package = 'gio-2.0',
-                args = '--cflags --libs',
-                uselib_store = 'GIO',
-                mandatory = True
-        )
+
+	if Options.options.enable_debugging:
+		conf.env.CCFLAGS += ['-ggdb']
 
 def build (bld):
 	bld.add_subdirs('include')

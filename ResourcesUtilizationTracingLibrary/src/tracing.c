@@ -24,10 +24,6 @@
 #include "processorstates.h"
 #include <cpufreq.h>
 #endif
-#ifdef HAVE_DEVICESTATES
-#include "devicestates.h"
-#include <gio-unix-2.0/gio/gunixmounts.h>
-#endif
 
 /* ************************************************************************* */
 /*               COMPILE TIME ERROR AND WARNING DEFINITIONS                  */
@@ -167,7 +163,7 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 	{
 		tracingData->sources.CPU_FREQ_X = 0;
 		sources.CPU_FREQ_X = 0;
-		INFOMSG("Could not find cpufreq!");
+		INFOMSG("Could not find cpufreq. Tracing of P-States disabled.");
 	}
 
 	if (sources.CPU_FREQ_X) {
@@ -183,12 +179,13 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 		g_assert(ret > 0);
 		ADD_VALUE(group, strbuf, INT64, "kHz", "CPU_FREQ");
 	}
+
 	/*if cpuidle registers could not be found, disable it*/
 	if(!cpuidle_available())
 	{
 		tracingData->sources.CPU_IDLE_X = 0;
 		sources.CPU_IDLE_X = 0;
-		INFOMSG("Could not find cpuidle!");
+		INFOMSG("Could not find cpuidle. Tracing of C-States disabled.");
 	}
 
 	if (sources.CPU_IDLE_X) {
@@ -245,13 +242,6 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 			ADD_VALUE(group, name, INT64, NET_UNIT, "NET");
 		}
 
-#ifdef HAVE_DEVICESTATES
-		if (sources.NET_STATE_X) {
-			ret = snprintf(name, 255, "NET_STATE_%s",
-					tracingData->staticData.netifs[i]);
-			ADD_VALUE(group, name, INT32, "STATE", "NET");
-		}
-#endif
 	}
 
 	if (sources.NET_IN_EXT)
@@ -283,12 +273,6 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 
 	if (sources.HDD_WRITE)
 		ADD_VALUE(group, "HDD_WRITE", INT64, HDD_UNIT, "HDD");
-
-#ifdef HAVE_DEVICESTATES
-	if(sources.HDD_STATE) {
-		ADD_VALUE(group, "HDD_STATE", INT32, "STATE", "HDD");
-	}
-#endif
 
 	/*
 	 * Commit statistics group
@@ -362,7 +346,6 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer) {
 		if (!tracingData->control->started && enabled) {
 			disable_trace = 1;
 		}
-
 		/* else wait until the thread is started or started again */
 		else {
 			while (!(tracingData->control->started
@@ -381,7 +364,6 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer) {
 			if (tracingData->control->started && !enabled) {
 				enable_trace = 1;
 			}
-
 			/* if termination requested, disable traces and terminate */
 			if (tracingData->control->terminate) {
 				if (enabled)
@@ -778,9 +760,6 @@ static void doTracingStepMEM(tracingDataStruct *tracingData) {
 static void doTracingStepNET(tracingDataStruct *tracingData) {
 
 	if (!(tracingData->sources.NET_IN_X || tracingData->sources.NET_OUT_X
-#ifdef HAVE_DEVICESTATES
-			|| tracingData->sources.NET_STATE_X
-#endif
 			|| tracingData->sources.NET_IN_EXT
 			|| tracingData->sources.NET_OUT_EXT || tracingData->sources.NET_IN
 			|| tracingData->sources.NET_OUT))
@@ -852,15 +831,6 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
 				DEBUGMSG("NET_OUT_%s = %" G_GINT64_FORMAT " " NET_UNIT,
 						tracingData->staticData.netifs[i], valuei64);
 			}
-
-#ifdef HAVE_DEVICESTATES
-			if(tracingData->sources.NET_STATE_X) {
-				const char * device = tracingData->staticData.netifs[i];
-				int state = net_get_state(device);
-				WRITE_I32_VALUE(tracingData, state);
-				DEBUGMSG("NET_STATE_%s = %d", device, state);
-			}
-#endif
 		}
 
 		/* save current network interface statistics for next step */
@@ -907,11 +877,7 @@ static void doTracingStepNET(tracingDataStruct *tracingData) {
  */
 static void doTracingStepHDD(tracingDataStruct *tracingData) {
 
-	if (!(tracingData->sources.HDD_READ
-#ifdef HAVE_DEVICESTATES
-			|| tracingData->sources.HDD_STATE
-#endif
-			|| tracingData->sources.HDD_WRITE))
+	if (!(tracingData->sources.HDD_READ || tracingData->sources.HDD_WRITE))
 		return;
 
 	gint64 valuei64;
@@ -937,14 +903,6 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 			DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
 		}
 
-#ifdef HAVE_DEVICESTATES
-		if(tracingData->sources.HDD_STATE) {
-			const char * device = g_unix_mount_get_device_path(g_unix_mount_at(tracingData->staticData.hdd_mountpoint, NULL));
-			int state = hdd_get_state(device);
-			WRITE_I32_VALUE(tracingData, state);
-			DEBUGMSG("HDD_STATE = %d", device, state);
-		}
-#endif
 	}
 	tracingData->oldValues.fs = fs;
 }
