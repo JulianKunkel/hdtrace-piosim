@@ -19,6 +19,7 @@ package de.topology.mappings;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
+import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hdTraceInput.BufferedRelationReader;
 import de.hdTraceInput.IBufferedStatisticsReader;
@@ -92,12 +93,12 @@ abstract public class TopologyTreeMapping {
 			if(statSource.getGroup().getStatisticsOrdered().size() == 1){
 				statGroupNode = node;
 			}else{			
-				statGroupNode = addStatisticsTreeFolderNode(group, node);
+				statGroupNode = addStatisticsTreeFolderNode(group,  node);
 			}
 
 
 			for(StatisticsDescription statDesc: statSource.getGroup().getStatisticsOrdered()){
-				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, topology, topology.getStatisticsSource(statDesc.getGroup().getName()), file );
+				TopologyStatisticTreeNode statNode = new TopologyStatisticTreeNode(statDesc, topology, file );
 
 				addTopologyTreeNode(statNode, statGroupNode);
 			}

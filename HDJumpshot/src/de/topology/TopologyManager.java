@@ -56,6 +56,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsEntryType;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hdTraceInput.BufferedRelationReader;
 import de.hdTraceInput.BufferedTraceFileReader;
 import de.hdTraceInput.IBufferedStatisticsReader;
@@ -235,7 +236,7 @@ public class TopologyManager
 
 				if( TopologyTreeNode.class.isInstance(clickedNode) ){
 					
-					final TopologyTreeNode statNode = ((TopologyTreeNode) clickedNode);
+					final TopologyTreeNode treeNode = ((TopologyTreeNode) clickedNode);
 					
 					if(! clickedNode.isLeaf()){
 						popupMenu.add(new AbstractAction(){
@@ -252,7 +253,7 @@ public class TopologyManager
 								if(str != null && str.length() > 0){
 									
 									// only one statistics group with a given name is permitted on a node
-									if(statNode.getTopology().getStatisticsSource(str) != null){
+									if(treeNode.getTopology().getStatisticsSource(str) != null){
 										System.err.println("Error, the statistics group with the name " + str + " already exists for this topology node.");
 										return;
 									}
@@ -269,9 +270,9 @@ public class TopologyManager
 									StatisticsGroupDescription group = new StatisticsGroupDescription(str);
 									group.addStatistic( new StatisticsDescription(group, str, StatisticsEntryType.DOUBLE, 0, "", str));				
 
-									UserDefinedStatisticsInMemory userStats = new UserDefinedStatisticsInMemory(getThis(), statNode.getTopology(), group, modelTime);
+									UserDefinedStatisticsInMemory userStats = new UserDefinedStatisticsInMemory(getThis(), treeNode.getTopology(), group, modelTime);
 
-									statNode.getTopology().setStatisticsReader(group.getName(), userStats );
+									treeNode.getTopology().setStatisticsReader(group.getName(), userStats );
 									
 									userStats.setComputeFunction(compFunc);
 									userStats.recomputeStatistics();
@@ -301,6 +302,7 @@ public class TopologyManager
 								double value = Double.parseDouble(str);
 								
 								treeNode.adjustTimeOffset(value);
+								// TODO adjust global min/max time
 								
 								fireTopologyChanged();
 							}
@@ -443,7 +445,7 @@ public class TopologyManager
 	 */
 	public void setTopologyMapping(ExistingTopologyMappings mapping){
 		this.usedTopologyMapping = mapping;
-
+		
 		restoreTopology();
 	}
 

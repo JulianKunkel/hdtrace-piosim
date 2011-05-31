@@ -132,5 +132,18 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 		for(TopologyTreeNode node: getTopologyTreeNodeChildren()){
 			node.adjustTimeOffset(delta);
 		}
+		
+		// adjust grouped statistics.
+		for(int i= 0; i < getChildCount(); i++){
+			TreeNode n = getChildAt(i);
+			if( TopologyStatisticsGroupFolder.class.isInstance(n) ){
+				// adjust one children
+				TreeNode c = n.getChildAt(0);
+				// this should be always true:
+				if(TopologyStatisticTreeNode.class.isInstance(c)){
+					((TopologyStatisticTreeNode) c).adjustTimeOffset(delta);
+				}
+			}
+		}
 	}
 }

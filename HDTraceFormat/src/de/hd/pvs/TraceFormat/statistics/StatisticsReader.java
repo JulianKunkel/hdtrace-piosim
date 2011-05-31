@@ -58,6 +58,7 @@ public class StatisticsReader implements StatisticsSource{
 	
 	final String filename;
 	
+	
 	/**
 	 * Create a new statistics reader.
 	 * 
@@ -65,7 +66,7 @@ public class StatisticsReader implements StatisticsSource{
 	 * @throws Exception
 	 */
 	public StatisticsReader(String filename) throws Exception {
-		this(filename, null);
+		this(filename, null, Epoch.ZERO);
 	}
 	
 	/**
@@ -74,7 +75,7 @@ public class StatisticsReader implements StatisticsSource{
 	 * @param expectedGroup
 	 * @throws Exception
 	 */
-	public StatisticsReader(String filename, String expectedGroup) throws Exception {
+	public StatisticsReader(String filename, String expectedGroup, Epoch additionalTimeAdjustment) throws Exception {
 		this.file = new RandomAccessFile(filename, "r");
 		
 		// parse XML header of file:
@@ -110,7 +111,7 @@ public class StatisticsReader implements StatisticsSource{
 			throw new IllegalArgumentException("Did not find group definition in XML " + str);
 		}
 		
-		this.group = parseStatisticGroupInXML(groupDefinition);	
+		this.group = parseStatisticGroupInXML(groupDefinition, additionalTimeAdjustment);	
 
 		if(expectedGroup != null && ! group.getName().equals(expectedGroup)){
 			throw new IllegalArgumentException("Expected group: " + expectedGroup + " however found group: " + group.getName());
@@ -248,7 +249,7 @@ public class StatisticsReader implements StatisticsSource{
 	 * @param root
 	 * @return
 	 */
-	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root){
+	private StatisticsGroupDescription parseStatisticGroupInXML(XMLTag root, Epoch additionalTimeOffset){
 		StatisticsGroupDescription stat = new StatisticsGroupDescription(root.getAttribute("name"));
 		//System.out.println("Statistics: " + root.getNodeName());
 
@@ -265,7 +266,9 @@ public class StatisticsReader implements StatisticsSource{
 
 		final String timeAdjustment = root.getAttribute("timeAdjustment");
 		if (timeAdjustment != null && ! timeAdjustment.isEmpty()){
-			stat.setTimeAdjustment(Epoch.parseTime(timeAdjustment));
+			stat.setTimeAdjustment(Epoch.parseTime(timeAdjustment).add(additionalTimeOffset));
+		}else{
+			stat.setTimeAdjustment(additionalTimeOffset);
 		}
 
 		final ArrayList<XMLTag> children = root.getNestedXMLTags();
