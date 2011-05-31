@@ -18,6 +18,7 @@
 
 package de.hd.pvs.piosim.simulator.program.Bcast;
 
+import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -39,35 +40,43 @@ extends CommandImplementation<Bcast>
 	final int msgHeader = 20;
 
 	@Override
-	public void process(Bcast cmd, CommandProcessing OUTresults,
-			GClientProcess client, long step, NetworkJobs compNetJobs)
+	public void process(Bcast cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
 			return;
 		}
 
-		final int myRank = client.getModelComponent().getRank();
-		final int rootRank = cmd.getRootRank();
 
-		int clientRankInComm = myRank;
+		final Communicator comm = cmd.getCommunicator();
 
-		final int iterationsOfBlocks = (int)((cmd.getSize() - 1)/splitSize);	 // minus 1 Byte
+		final int rootRank = comm.getLocalRank( cmd.getRootRank() );
+		int clientRankInComm = comm.getLocalRank( client.getModelComponent().getRank() );
 
 		//exchange rank 0 with cmd.root to receive data on the correct node
-		if(clientRankInComm == cmd.getRootRank()) {
+		if(clientRankInComm == rootRank) {
 			clientRankInComm = 0;
 		}else if(clientRankInComm == 0) {
 			clientRankInComm = rootRank;
 		}
 
+		final int iterationsOfBlocks = (int)((cmd.getSize() - 1)/splitSize);	 // minus 1 Byte
+
 		if(clientRankInComm != 0){
 			// receive first, then start to send data
 
-
 			if (step % 2 == 0){ //  receive step, receive data from the previous rank
 				OUTresults.setNextStep(step + 1); // always also send received data.
-				OUTresults.addNetReceive(clientRankInComm - 1, 30000, cmd.getCommunicator());
+
+				int targetRank = clientRankInComm - 1 ;
+
+				if(targetRank == 0){
+					targetRank = rootRank;
+				}else if(targetRank == rootRank){
+					targetRank = 0;
+				}
+
+				OUTresults.addNetReceive( targetRank, 30000, cmd.getCommunicator());
 
 			}else{
 				// send same amount of data to the next rank (if necessary)
@@ -87,7 +96,14 @@ extends CommandImplementation<Bcast>
 				final IMessageUserData data = compNetJobs.getResponses().get(0).getJobData();
 
 				int targetRank = clientRankInComm + 1 ;
-				OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0, data, 30000, cmd.getCommunicator());
+
+				if(targetRank == 0){
+					targetRank = rootRank;
+				}else if(targetRank == rootRank){
+					targetRank = 0;
+				}
+
+				OUTresults.addNetSend( targetRank, data, 30000, cmd.getCommunicator());
 			}
 		}else{ // RANK == 0
 

@@ -25,8 +25,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 
 	@Override
-	public void process(Scatter cmd, CommandProcessing OUTresults,
-			GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int WAITING_FOR_ACK = 1;
 		final int RECEIVED_ACK = 2;
 
@@ -63,10 +62,9 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 
 			if (step == CommandProcessing.STEP_START){
 
-
 				int recvFrom = (clientRankInComm ^ 1<<trailingZeros);
 
-				int target = ((recvFrom != rootRank) ? recvFrom : 0);
+				int target = ((recvFrom == 0) ? rootRank : recvFrom);
 				OUTresults.addNetSend(target, new NetworkSimpleData(20), 30001, cmd.getCommunicator());
 				OUTresults.addNetReceive(target, 30000, cmd.getCommunicator());
 
@@ -81,7 +79,9 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 				// wait for an ack from the first process we want to sent data to.
 				final int waitforAckFrom =  (1<< (maxPhase) | clientRankInComm);
 				if (waitforAckFrom < commSize){
-					OUTresults.addNetReceive((waitforAckFrom != rootRank) ? waitforAckFrom : 0, 30001, cmd.getCommunicator());
+					int target = (waitforAckFrom == 0) ? rootRank : waitforAckFrom;
+
+					OUTresults.addNetReceive(target, 30001, cmd.getCommunicator());
 
 					OUTresults.setNextStep(RECEIVED_ACK);
 

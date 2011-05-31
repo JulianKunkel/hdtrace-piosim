@@ -316,7 +316,7 @@ public class CommandProcessing{
 	 * @param comm
 	 */
 	final public void addNetReceive(int rankFrom, int tag, Communicator comm){
-		addNetReceive(getTargetfromRank(rankFrom), tag, comm);
+		addNetReceive( getTargetfromRank(rankFrom, comm), tag, comm);
 	}
 
 
@@ -338,7 +338,7 @@ public class CommandProcessing{
 	}
 
 	final public void addNetReceive(int from, int tag, Communicator comm,  Class<? extends CommandImplementation> expectedRootOperation,  Class<? extends CommandImplementation> expectedProcessingMethod){
-		addNetReceive(getTargetfromRank(from), tag, comm, expectedRootOperation, expectedProcessingMethod);
+		addNetReceive(getTargetfromRank(from, comm), tag, comm, expectedRootOperation, expectedProcessingMethod);
 	}
 
 
@@ -380,7 +380,7 @@ public class CommandProcessing{
 	final public void addNetSend(int rankTo,
 			IMessageUserData jobData, int tag, Communicator comm)
 	{
-		addNetSend(getTargetfromRank(rankTo), jobData, tag, comm);
+		addNetSend(getTargetfromRank(rankTo, comm), jobData, tag, comm);
 	}
 
 	final public void addNetSend(INodeHostedComponent to,
@@ -396,7 +396,7 @@ public class CommandProcessing{
 	final public void addNetSend(int rankTo,
 			IMessageUserData jobData, int tag, Communicator comm,  Class<? extends CommandImplementation> definedRootOperation,  Class<? extends CommandImplementation> definedProcessingMethod)
 	{
-		addNetSend(getTargetfromRank(rankTo), jobData, tag, comm, definedRootOperation, definedProcessingMethod);
+		addNetSend(getTargetfromRank(rankTo, comm), jobData, tag, comm, definedRootOperation, definedProcessingMethod);
 	}
 
 	final public void addNetSend(INodeHostedComponent to,
@@ -470,8 +470,10 @@ public class CommandProcessing{
 	 * @param rank
 	 * @return The target rank of the application.
 	 */
-	final private INodeHostedComponent getTargetfromRank(int rank){
+	final private INodeHostedComponent getTargetfromRank(int rank, Communicator comm){
 		assert(rank >= 0);
+		rank = comm.getWorldRank(rank);
+
 		return getInvokingComponent().getSimulator().getApplicationMap().
 		getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
 	}
