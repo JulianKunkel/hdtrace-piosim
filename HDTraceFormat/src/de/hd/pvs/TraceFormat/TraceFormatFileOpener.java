@@ -35,6 +35,7 @@ import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.topology.TopologyTypes;
 import de.hd.pvs.TraceFormat.trace.RelationSource;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
  * This class opens all files belonging to a particular project and sets the provided reader class to the contained topology nodes.
@@ -84,7 +85,7 @@ public class TraceFormatFileOpener {
 					// read it
 					SimpleConsoleLogger.Debug("Stat file exists: " + filename);				
 
-					final StatisticsSource statReader = statCls.getConstructor(new Class<?>[]{String.class, String.class}).newInstance(new Object[]{filename, group});
+					final StatisticsSource statReader = statCls.getConstructor(new Class<?>[]{String.class, String.class, Epoch.class}).newInstance(new Object[]{filename, group, Epoch.ZERO});
 					currentTopo.setStatisticsReader(group, statReader);
 				}
 			}
@@ -98,13 +99,13 @@ public class TraceFormatFileOpener {
 			final String relationFile = filePath + currentTopo.getRelationFileName();			
 
 			if( fileExists(traceFile) && traceCls != null){
-				TraceSource staxReader = traceCls.getConstructor(new Class<?>[]{String.class, boolean.class}).newInstance(new Object[]{traceFile, readNested});			
+				TraceSource staxReader = traceCls.getConstructor(new Class<?>[]{String.class, boolean.class, Epoch.class}).newInstance(new Object[]{traceFile, readNested, Epoch.ZERO});			
 				currentTopo.setTraceSource(staxReader);
 			}		
 			
 			SimpleConsoleLogger.Debug("Checking relation: " + relationFile);			
 			if( fileExists(relationFile) && relationCls != null){
-				currentTopo.setRelationSource(relationCls.getConstructor(new Class<?>[]{String.class}).newInstance(new Object[]{relationFile}));
+				currentTopo.setRelationSource(relationCls.getConstructor(new Class<?>[]{String.class, Epoch.class}).newInstance(new Object[]{relationFile, Epoch.ZERO}));
 			}
 			
 			if( currentTopo.isLeaf() &&  currentTopo.getRelationSource() == null && currentTopo.getTraceSource() == null){ // leafs should contain a trace file

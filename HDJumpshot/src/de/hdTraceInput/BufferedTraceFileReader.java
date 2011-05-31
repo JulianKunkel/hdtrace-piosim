@@ -33,8 +33,11 @@ import de.hd.pvs.TraceFormat.util.Epoch;
 
 public class BufferedTraceFileReader extends StAXTraceFileReader implements IBufferedReader {
 
-	private Epoch minTime;
-	private Epoch maxTime;
+	final private Epoch minTime;
+	final private Epoch maxTime;
+	
+	final private String filename;
+	final private Epoch additionalTimeOffset;
 
 	final ArrayList<ITraceEntry> traceEntries = new ArrayList<ITraceEntry>();
 	
@@ -53,8 +56,15 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 		return new ReaderTraceElementEnumerator(this);
 	}
 	
-	public BufferedTraceFileReader(String filename, boolean nested) throws Exception {
-		super(filename, nested);
+	public String getFilename() {
+		return filename;
+	}
+	
+	public BufferedTraceFileReader(String filename, boolean nested, Epoch timeOffset) throws Exception {
+		super(filename, nested, timeOffset);
+		
+		this.additionalTimeOffset = timeOffset;
+		this.filename = filename;
 
 		ITraceEntry current = getNextInputEntry();
 
@@ -106,5 +116,9 @@ public class BufferedTraceFileReader extends StAXTraceFileReader implements IBuf
 	public ITraceEntry getTraceEntryClosestToTime(Epoch dTime){
 		int best = getTraceEntryClosestToTimePosition(dTime);
 		return traceEntries.get(best);
+	}
+	
+	public Epoch getAdditionalTimeOffset() {
+		return additionalTimeOffset;
 	}
 }

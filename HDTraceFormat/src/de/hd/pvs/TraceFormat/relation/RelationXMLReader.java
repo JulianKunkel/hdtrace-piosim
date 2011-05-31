@@ -34,8 +34,8 @@ public class RelationXMLReader implements RelationSource{
 	 */
 	final HashMap<Long, ArrayList<RelationFileEntry>> readEntries = new HashMap<Long, ArrayList<RelationFileEntry>>();
 	
-	public RelationXMLReader(String file) throws Exception{
-		reader = new RawRelationXMLReader(file);
+	public RelationXMLReader(String file, Epoch additionalTimeOffset) throws Exception{
+		reader = new RawRelationXMLReader(file, additionalTimeOffset);
 	}
 
 	/**

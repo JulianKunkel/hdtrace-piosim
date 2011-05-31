@@ -123,4 +123,14 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 		addTopologyTreeNodeChildren(list);
 		return list;
 	}
+	
+	/**
+	 * Adjust the time of all nested nodes by the value
+	 * @param delta
+	 */
+	public void adjustTimeOffset(double delta){
+		for(TopologyTreeNode node: getTopologyTreeNodeChildren()){
+			node.adjustTimeOffset(delta);
+		}
+	}
 }

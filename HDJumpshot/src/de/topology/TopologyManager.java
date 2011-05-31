@@ -284,6 +284,28 @@ public class TopologyManager
 							}
 						});
 					}
+					
+					
+					popupMenu.add(new AbstractAction(){
+						private static final long serialVersionUID = 1L;
+
+						{
+							putValue(Action.NAME, "Adjust time offset of nested timelines ");							
+						}
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							
+							String str = JOptionPane.showInputDialog(null, "Adjust the time offset of all nested timelines by ", "0.0");
+							if(str != null && str.length() > 0){
+								double value = Double.parseDouble(str);
+								
+								treeNode.adjustTimeOffset(value);
+								
+								fireTopologyChanged();
+							}
+						}
+					});
 				}
 				
 				
@@ -516,7 +538,7 @@ public class TopologyManager
 	 * @return
 	 */
 	public BufferedTraceFileReader getTraceReaderForTimeline(int timeline){
-		return (BufferedTraceFileReader) ((TopologyTraceTreeNode) timelines.get(timeline)).getTraceSource();
+		return ((TopologyTraceTreeNode) timelines.get(timeline)).getTraceSource();
 	}
 
 	/**
