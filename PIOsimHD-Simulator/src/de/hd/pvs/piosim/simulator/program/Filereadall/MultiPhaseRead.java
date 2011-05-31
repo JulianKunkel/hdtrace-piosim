@@ -27,6 +27,7 @@ import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.Global.MultiPhase;
@@ -51,7 +52,7 @@ import de.hd.pvs.piosim.simulator.program.Global.MultiPhase;
 public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 	@Override
-	public void process(FileIOCommand cmd, CommandProcessing outCommand, GClientProcess client, long step,
+	public void process(FileIOCommand cmd, ICommandProcessing outCommand, GClientProcess client, long step,
 			NetworkJobs compNetJobs)
 	{
 		final int CHECK_TWO_PHASE = 2;

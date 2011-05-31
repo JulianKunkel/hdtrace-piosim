@@ -266,7 +266,9 @@ public class GClientProcess
 	 * use this method to enforce the completion of the currently blocked job
 	 * @param cmd
 	 */
-	public void activateBlockedCommand(CommandProcessing cmdStep){
+	public void activateBlockedCommand(ICommandProcessingMapped cmdStep_){
+		CommandProcessing cmdStep = (CommandProcessing) cmdStep_;
+
 		if (! blockedCommands.remove(cmdStep)){
 			throw new IllegalArgumentException("Error removing " + cmdStep + " from queue on client: " + this.getIdentifier());
 		}

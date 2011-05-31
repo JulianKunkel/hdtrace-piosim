@@ -130,7 +130,7 @@ public class Validation  extends ModelTest {
 
 
 	@Test public void broadcastBroadcastPipedBlockwise() throws Exception{
-		setup(8, 1);
+		setup(2, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise");
 
@@ -138,7 +138,7 @@ public class Validation  extends ModelTest {
 		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 
-		pb.addBroadcast(world, 0,100 * MBYTE);
+		pb.addBroadcast(world, 1, 100 * MBYTE);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -257,6 +257,20 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void TestScatter3World() throws Exception{
+		setupSMP(3);
+
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+
+		parameters.setTraceFile("/tmp/scatter");
+		parameters.setTraceEnabled(true);
+
+		pb.addScatter(world, 2, 100* MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 	@Test public void TestScatter2() throws Exception{
 		setupSMP(2);
 
@@ -270,7 +284,7 @@ public class Validation  extends ModelTest {
 		comm.addRank(0, 1, 0);
 		comm.addRank(1, 0, 0);
 
-		pb.addScatter(comm, 0, 100* MBYTE);
+		pb.addScatter(comm, 1, 100* MBYTE);
 
 		runSimulationAllExpectedToFinish();
 	}

@@ -4,9 +4,10 @@ import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessingMapped;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
-import de.hd.pvs.piosim.simulator.program.CommandImplementation;
+import de.hd.pvs.piosim.simulator.program.CommandImplementationWithCommunicatorLocalRanksRemapRoot;
 
 /**
  *
@@ -22,10 +23,16 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  * @author artur, julian
  *
  */
-public class ScatterMPICH2 extends CommandImplementation<Scatter>{
+public class ScatterMPICH2 extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Scatter>{
 
 	@Override
-	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public int getSingleTargetWorldRank(Scatter cmd) {
+		return cmd.getRootRank();
+	}
+
+	@Override
+	public void processWithLocalRanks(Scatter cmd, ICommandProcessingMapped OUTresults, Communicator comm, int clientRankInComm, int singleRankInComm, GClientProcess client, long step, NetworkJobs compNetJobs)
+	{
 		final int WAITING_FOR_ACK = 1;
 		final int RECEIVED_ACK = 2;
 
@@ -35,21 +42,8 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 			return;
 		}
 
-		final int commSize = cmd.getCommunicator().getSize();
+		final int commSize = comm.getSize();
 		final int iterations = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize-1);
-
-		final Communicator comm = cmd.getCommunicator();
-
-		final int rootRank = comm.getLocalRank( cmd.getRootRank() );
-		int clientRankInComm = comm.getLocalRank( client.getModelComponent().getRank() );
-
-		//exchange rank 0 with cmd.root to receive data on the correct node
-		if(clientRankInComm == rootRank) {
-			clientRankInComm = 0;
-		}else if(clientRankInComm == 0) {
-			clientRankInComm = rootRank;
-		}
-
 
 		final int trailingZeros = Integer.numberOfTrailingZeros(clientRankInComm);
 		final int phaseStart = iterations - trailingZeros;
@@ -64,7 +58,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 
 				int recvFrom = (clientRankInComm ^ 1<<trailingZeros);
 
-				int target = ((recvFrom == 0) ? rootRank : recvFrom);
+				int target = getLocalRankExchangeRoot(singleRankInComm, recvFrom);
 				OUTresults.addNetSend(target, new NetworkSimpleData(20), 30001, cmd.getCommunicator());
 				OUTresults.addNetReceive(target, 30000, cmd.getCommunicator());
 
@@ -79,7 +73,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 				// wait for an ack from the first process we want to sent data to.
 				final int waitforAckFrom =  (1<< (maxPhase) | clientRankInComm);
 				if (waitforAckFrom < commSize){
-					int target = (waitforAckFrom == 0) ? rootRank : waitforAckFrom;
+					int target =  getLocalRankExchangeRoot(singleRankInComm, waitforAckFrom);
 
 					OUTresults.addNetReceive(target, 30001, cmd.getCommunicator());
 
@@ -102,7 +96,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 
 					final int waitforAckFrom =  (1<< (maxPhase - iter - 1) | clientRankInComm);
 					if (waitforAckFrom < commSize){
-						OUTresults.addNetReceive((waitforAckFrom != rootRank) ? waitforAckFrom : 0, 30001, cmd.getCommunicator());
+						OUTresults.addNetReceive( getLocalRankExchangeRoot(singleRankInComm, waitforAckFrom), 30001, cmd.getCommunicator());
 					}
 				}else{
 					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
@@ -118,8 +112,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 					//System.out.println(client.getModelComponent().getRank() + " check to target: " + targetRank + " " + count );
 
 
-					OUTresults.addNetSend(((targetRank != rootRank) ? targetRank : 0),
-						new NetworkSimpleData(cmd.getSize() * count + 20), 30000, cmd.getCommunicator());
+					OUTresults.addNetSend( getLocalRankExchangeRoot(singleRankInComm, targetRank), new NetworkSimpleData(cmd.getSize() * count + 20), 30000, cmd.getCommunicator());
 				}
 			}
 
@@ -128,7 +121,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 			// step 0 is to wait for the receiver to be ready!
 			if(step == CommandProcessing.STEP_START){
 				final int targetRank =  1<< (iterations - 1);
-				OUTresults.addNetReceive((targetRank != rootRank) ? targetRank : 0, 30001, cmd.getCommunicator());
+				OUTresults.addNetReceive((targetRank != singleRankInComm) ? targetRank : 0, 30001, cmd.getCommunicator());
 				OUTresults.setNextStep(1);
 
 				return;
@@ -141,7 +134,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 				// stop after all clients got the data
 				OUTresults.setNextStep(step + 1);
 				final int waitforAckFrom =  1<< (iterations - step - 1);
-				OUTresults.addNetReceive((waitforAckFrom != rootRank) ? waitforAckFrom : 0, 30001, cmd.getCommunicator());
+				OUTresults.addNetReceive((waitforAckFrom != singleRankInComm) ? waitforAckFrom : 0, 30001, cmd.getCommunicator());
 			}else{
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 			}
@@ -151,7 +144,7 @@ public class ScatterMPICH2 extends CommandImplementation<Scatter>{
 
 			//System.out.println("Check to target: " + targetRank + " " + count );
 
-			OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0,
+			OUTresults.addNetSend( (targetRank != singleRankInComm) ? targetRank : 0,
 					new NetworkSimpleData(cmd.getSize() * count + 20), 30000, cmd.getCommunicator());
 		}
 	}

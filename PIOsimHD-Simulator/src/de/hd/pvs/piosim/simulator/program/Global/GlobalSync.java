@@ -22,6 +22,7 @@ import de.hd.pvs.piosim.model.program.commands.Barrier;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -34,7 +35,7 @@ public class GlobalSync
 extends CommandImplementation<Command>
 {
 	@Override
-	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Command cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		Barrier b = new Barrier();
 		b.setCommunicator(cmd.getProgram().getCommunicatorWorld());
 		b.setProgram(cmd.getProgram());

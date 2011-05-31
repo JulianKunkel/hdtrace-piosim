@@ -31,8 +31,8 @@ import java.util.LinkedList;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 import de.hd.pvs.piosim.simulator.program.Filereadall.Splitter.IOSplitter;
 
@@ -282,7 +282,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 	static protected class FileIOCommandWrapper{
 		final private FileIOCommand command;
 		protected MultiPhaseContainer globalPhaseContainer;
-		HashMap<GClientProcess, CommandProcessing> clientsStarted = null;
+		HashMap<GClientProcess, ICommandProcessing> clientsStarted = null;
 
 
 		public void initMultiPhaseContainer(){
@@ -417,17 +417,17 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 	 * @param cmd
 	 * @return true if blocked (i.e. sync with further)
 	 */
-	protected boolean synchronizeClientsWithoutCommunication(CommandProcessing cmdResults){
+	protected boolean synchronizeClientsWithoutCommunication(ICommandProcessing cmdResults){
 		final GClientProcess client = cmdResults.getInvokingComponent();
 		final FileIOCommand cmd = (FileIOCommand) cmdResults.getInvokingCommand();
 		final FileIOCommandWrapper dummyWrapper = new FileIOCommandWrapper(cmd);
 
 		FileIOCommandWrapper wrapper = sync_blocked_clients.get(dummyWrapper);
 
-		HashMap<GClientProcess, CommandProcessing> waitingClients;
+		HashMap<GClientProcess, ICommandProcessing> waitingClients;
 		if (wrapper == null){
 			/* first client waiting */
-			waitingClients = new HashMap<GClientProcess, CommandProcessing>();
+			waitingClients = new HashMap<GClientProcess, ICommandProcessing>();
 			dummyWrapper.clientsStarted = waitingClients;
 			sync_blocked_clients.put(dummyWrapper, dummyWrapper);
 			dummyWrapper.initMultiPhaseContainer();

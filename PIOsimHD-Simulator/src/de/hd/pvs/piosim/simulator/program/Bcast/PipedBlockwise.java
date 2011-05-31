@@ -22,10 +22,11 @@ import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessingMapped;
 import de.hd.pvs.piosim.simulator.network.IMessageUserData;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
-import de.hd.pvs.piosim.simulator.program.CommandImplementation;
+import de.hd.pvs.piosim.simulator.program.CommandImplementationWithCommunicatorLocalRanksRemapRoot;
 
 /**
  * Create a pipe between the processors, one processor sends data to the next and so forth until all data has been transmitted.
@@ -33,51 +34,44 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  *
  * @author Julian M. Kunkel
  */
-public class PipedBlockwise
-extends CommandImplementation<Bcast>
+public class PipedBlockwise extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Bcast>
 {
 	final long splitSize = 1 * 1024*1024;
 	final int msgHeader = 20;
 
 	@Override
-	public void process(Bcast cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
+	public int getSingleTargetWorldRank(Bcast cmd) {
+		return cmd.getRootRank();
+	}
+
+	@Override
+	public void processWithLocalRanks(Bcast cmd, ICommandProcessingMapped OUTresults, Communicator comm, 	int clientRankInComm, int rootRank, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...
 			return;
 		}
 
-
-		final Communicator comm = cmd.getCommunicator();
-
-		final int rootRank = comm.getLocalRank( cmd.getRootRank() );
-		int clientRankInComm = comm.getLocalRank( client.getModelComponent().getRank() );
-
-		//exchange rank 0 with cmd.root to receive data on the correct node
-		if(clientRankInComm == rootRank) {
-			clientRankInComm = 0;
-		}else if(clientRankInComm == 0) {
-			clientRankInComm = rootRank;
-		}
-
 		final int iterationsOfBlocks = (int)((cmd.getSize() - 1)/splitSize);	 // minus 1 Byte
 
 		if(clientRankInComm != 0){
 			// receive first, then start to send data
+			final long commSize = cmd.getCommunicator().getSize();
+
+			if(step == 0){
+				// announce to be ready in the first step
+				OUTresults.addNetSend( getLocalRankExchangeRoot(rootRank, clientRankInComm - 1), new NetworkSimpleData(msgHeader), 30001 , cmd.getCommunicator());
+
+				// wait for the next process to be ready to receive data
+				if (clientRankInComm < commSize - 1){
+					OUTresults.addNetReceive( getLocalRankExchangeRoot(rootRank, clientRankInComm + 1) , 30001, cmd.getCommunicator());
+				}
+			}
 
 			if (step % 2 == 0){ //  receive step, receive data from the previous rank
 				OUTresults.setNextStep(step + 1); // always also send received data.
 
-				int targetRank = clientRankInComm - 1 ;
-
-				if(targetRank == 0){
-					targetRank = rootRank;
-				}else if(targetRank == rootRank){
-					targetRank = 0;
-				}
-
-				OUTresults.addNetReceive( targetRank, 30000, cmd.getCommunicator());
-
+				OUTresults.addNetReceive( getLocalRankExchangeRoot(rootRank, clientRankInComm - 1) , 30000, cmd.getCommunicator());
 			}else{
 				// send same amount of data to the next rank (if necessary)
 				if( step / 2 < iterationsOfBlocks){
@@ -86,7 +80,6 @@ extends CommandImplementation<Bcast>
 					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				}
 
-				final long commSize = cmd.getCommunicator().getSize();
 				// the last process must not send data to the next
 				if (clientRankInComm == commSize - 1){
 					return;
@@ -96,14 +89,7 @@ extends CommandImplementation<Bcast>
 				final IMessageUserData data = compNetJobs.getResponses().get(0).getJobData();
 
 				int targetRank = clientRankInComm + 1 ;
-
-				if(targetRank == 0){
-					targetRank = rootRank;
-				}else if(targetRank == rootRank){
-					targetRank = 0;
-				}
-
-				OUTresults.addNetSend( targetRank, data, 30000, cmd.getCommunicator());
+				OUTresults.addNetSend(  getLocalRankExchangeRoot(rootRank, targetRank), data, 30000, cmd.getCommunicator());
 			}
 		}else{ // RANK == 0
 
@@ -120,8 +106,14 @@ extends CommandImplementation<Bcast>
 
 			IMessageUserData data= new NetworkSimpleData(amountToTransfer + msgHeader);
 
-			int targetRank = 1;
-			OUTresults.addNetSend( (targetRank != rootRank) ? targetRank : 0 , data, 30000, cmd.getCommunicator());
+			int targetRank = getLocalRankExchangeRoot(rootRank, 1);
+
+			OUTresults.addNetSend( targetRank , data, 30000, cmd.getCommunicator());
+
+			if(step == 0){
+				// wait for an acceptance notification from the other rank
+				OUTresults.addNetReceive(targetRank, 30001, comm);
+			}
 		}
 	}
 

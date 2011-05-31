@@ -31,6 +31,7 @@ package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 import de.hd.pvs.piosim.model.program.commands.Send;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -41,7 +42,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousSend extends CommandImplementation<Send>
 {
-	public void process(Send cmd,  CommandProcessing OUTresults, GClientProcess client, long step,  NetworkJobs compNetJobs) {
+	public void process(Send cmd,  ICommandProcessing OUTresults, GClientProcess client, long step,  NetworkJobs compNetJobs) {
 		final int RECV_ACK = 2;
 		/* second step ?, receive whole data */
 

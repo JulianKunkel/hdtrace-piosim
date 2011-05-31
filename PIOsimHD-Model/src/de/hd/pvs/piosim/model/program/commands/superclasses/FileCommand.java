@@ -38,7 +38,7 @@ import de.hd.pvs.piosim.model.program.Communicator;
  * @author Julian M. Kunkel
  */
 abstract public class FileCommand
-	extends Command
+	extends Command implements ICommunicatorCommand
 {
 
 	/**
@@ -61,5 +61,9 @@ abstract public class FileCommand
 
 	public Communicator getCommunicator(){
 		return fd.getCommunicator();
+	}
+
+	public void setCommunicator(Communicator communicator) {
+		throw new IllegalArgumentException("Invalid to change the communicator!");
 	}
 }

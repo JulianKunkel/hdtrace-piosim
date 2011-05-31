@@ -23,6 +23,7 @@ import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 /**
@@ -34,7 +35,7 @@ extends CommandImplementation<Bcast>
 	final int SCATTER_COMPLETED = 2;
 
 	@Override
-	public void process(Bcast cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
+	public void process(Bcast cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		// default: split data equally. Remaining bytes are just send to all processes
 		// the amount of data to gather from each node is the assigned data from the scatter, this can be approximated by the equation:

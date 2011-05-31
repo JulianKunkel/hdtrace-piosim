@@ -46,7 +46,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  *
  * @author Julian M. Kunkel
  */
-public class CommandProcessing{
+public class CommandProcessing implements ICommandProcessing{
 	// global values for processing:
 
 	/** first step of all computations, set upon starting the command */
@@ -474,8 +474,7 @@ public class CommandProcessing{
 		assert(rank >= 0);
 		rank = comm.getWorldRank(rank);
 
-		return getInvokingComponent().getSimulator().getApplicationMap().
-		getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
+		return getInvokingComponent().getSimulator().getApplicationMap().getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
 	}
 
 

@@ -186,7 +186,7 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 	 * @throws Exception
 	 */
 	public Program readProgramXMLDOM(int rank, int thread, String filename, Application app) throws Exception {
-		final StAXTraceFileReader traceFileReader = new StAXTraceFileReader(filename, false);
+		final StAXTraceFileReader traceFileReader = new StAXTraceFileReader(filename, false, Epoch.ZERO);
 
 		final ProgramInMemory program = new ProgramInMemory();
 		program.setApplication(app, rank, thread);

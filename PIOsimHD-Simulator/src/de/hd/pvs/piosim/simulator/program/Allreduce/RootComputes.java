@@ -28,6 +28,7 @@ package de.hd.pvs.piosim.simulator.program.Allreduce;
 import de.hd.pvs.piosim.model.program.commands.Allreduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -36,7 +37,7 @@ public class RootComputes
 	extends CommandImplementation<Allreduce>
 {
 	@Override
-	public void process(Allreduce cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Allreduce cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		final int RECV_DATA = 2;
 		//trivial implementation, all send to "rank 0" in this communicator which then sends result back.
