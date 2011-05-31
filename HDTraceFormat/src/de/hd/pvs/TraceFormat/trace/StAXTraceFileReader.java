@@ -63,7 +63,7 @@ public class StAXTraceFileReader implements TraceSource{
 	/**
 	 * The time adjustment is added to all read timestamps.
 	 */
-	private Epoch timeAdjustment = Epoch.ZERO;
+	private Epoch timeAdjustment;
 
 	/**
 	 * Current depths of the tag nesting.
@@ -74,8 +74,9 @@ public class StAXTraceFileReader implements TraceSource{
 	 * Constructor, start processing of the file.
 	 * @param filename
 	 */
-	public StAXTraceFileReader(String filename, boolean readNested) throws Exception {
+	public StAXTraceFileReader(String filename, boolean readNested, Epoch timeOffset) throws Exception {
 		reader = XMLInputFactoryImpl.newInstance().createXMLStreamReader(new BufferedInputStream(new FileInputStream(filename)));
+		timeAdjustment = timeOffset;
 		this.readNested = readNested;
 	}
 
@@ -130,7 +131,7 @@ public class StAXTraceFileReader implements TraceSource{
 					if (name.equals("Program") && nesting_depth == 1){
 						String tAdj = currentData.getAttribute("timeAdjustment");
 						if(tAdj != null){
-							timeAdjustment = Epoch.parseTime(tAdj);
+							timeAdjustment = timeAdjustment.add(Epoch.parseTime(tAdj));
 						}
 						continue;
 					}

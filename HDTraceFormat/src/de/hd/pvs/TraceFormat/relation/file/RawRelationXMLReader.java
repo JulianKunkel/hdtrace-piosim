@@ -22,7 +22,7 @@ public class RawRelationXMLReader {
 	private final XMLStreamReader reader;
 	final RelationHeader header;
 
-	private RelationHeader readRelationHeader() throws XMLStreamException{	
+	private RelationHeader readRelationHeader(Epoch timeOffset) throws XMLStreamException{	
 		reader.next();		
 
 		final HashMap<String, String> attributes = new HashMap<String, String>();
@@ -34,12 +34,12 @@ public class RawRelationXMLReader {
 		return new RelationHeader(attributes.get("localToken"), 
 				attributes.get("hostID"), 
 				Integer.parseInt(attributes.get("topologyNumber")),
-				Epoch.parseTime(attributes.get("timeAdjustment")));
+				Epoch.parseTime(attributes.get("timeAdjustment")).add(timeOffset));
 	}
 
-	public RawRelationXMLReader(String filename) throws IOException, XMLStreamException{
+	public RawRelationXMLReader(String filename, Epoch timeOffset) throws IOException, XMLStreamException{
 		reader = XMLInputFactoryImpl.newInstance().createXMLStreamReader(new BufferedInputStream(new FileInputStream(filename)));
-		header = readRelationHeader();
+		header = readRelationHeader(timeOffset);
 	}
 
 	public RelationFileEntry getNextEntry() throws XMLStreamException{

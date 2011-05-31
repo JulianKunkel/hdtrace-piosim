@@ -28,6 +28,7 @@ package de.topology;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
+import de.hdTraceInput.BufferedTraceFileReader;
 import de.viewer.timelines.TimelineType;
 
 public class TopologyTraceTreeNode extends TopologyTreeNode
@@ -36,14 +37,13 @@ public class TopologyTraceTreeNode extends TopologyTreeNode
 	
 	private final String label;
 	
-	public TopologyTraceTreeNode(String label, TopologyNode topNode,
-			TraceFormatFileOpener file) {
+	public TopologyTraceTreeNode(String label, TopologyNode topNode, TraceFormatFileOpener file) {
 		super(topNode, file);
 		this.label = label;
 	}
 
-	public TraceSource getTraceSource(){
-		return getTopology().getTraceSource();
+	public BufferedTraceFileReader getTraceSource(){
+		return (BufferedTraceFileReader) getTopology().getTraceSource();
 	}
 	
 	@Override
@@ -54,5 +54,15 @@ public class TopologyTraceTreeNode extends TopologyTreeNode
 	@Override
 	public String toString() {
 		return label;
+	}
+	
+	@Override
+	public void adjustTimeOffset(double delta) {
+		try{
+			BufferedTraceFileReader rNew = new BufferedTraceFileReader(getTraceSource().getFilename(), true, getTraceSource().getAdditionalTimeOffset().add(delta) );
+			getTopology().setTraceSource( rNew );
+		}catch(Exception e){
+			throw new IllegalArgumentException(e);
+		}		
 	}
 }

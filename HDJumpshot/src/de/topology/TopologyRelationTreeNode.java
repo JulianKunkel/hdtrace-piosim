@@ -34,6 +34,7 @@ import de.hd.pvs.TraceFormat.relation.RelationEntry;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hdTraceInput.BufferedRelationReader;
+import de.hdTraceInput.BufferedTraceFileReader;
 import de.viewer.timelines.TimelineType;
 
 public class TopologyRelationTreeNode extends TopologyTreeNode
@@ -80,4 +81,14 @@ public class TopologyRelationTreeNode extends TopologyTreeNode
 	public Enumeration<RelationEntry> enumerateEntries(Epoch start, Epoch end) {
 		return getRelationSource().enumerateRelations(start, end);
 	}	
+	
+	@Override
+	public void adjustTimeOffset(double delta) {
+		try{
+			BufferedRelationReader rNew = new BufferedRelationReader(getRelationSource().getFilename(), getRelationSource().getAdditionalTimeOffset().add(delta) );
+			getTopology().setRelationSource(rNew );
+		}catch(Exception e){
+			throw new IllegalArgumentException(e);
+		}
+	}
 }

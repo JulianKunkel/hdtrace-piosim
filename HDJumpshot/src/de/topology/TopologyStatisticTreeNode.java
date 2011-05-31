@@ -30,24 +30,25 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsGroupDescription;
 import de.hd.pvs.TraceFormat.statistics.StatisticsSource;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.util.Epoch;
+import de.hdTraceInput.BufferedStatisticsFileReader;
 import de.hdTraceInput.IBufferedStatisticsReader;
 import de.viewer.timelines.TimelineType;
 
 public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	private static final long serialVersionUID = 7893694713193686328L;
+
+	Epoch additionalTimeAdjustment;
 	
-	final StatisticsSource statisticSource;
 	final StatisticsDescription statisticDescription;
 	
-	public TopologyStatisticTreeNode(StatisticsDescription statDesc, TopologyNode topNode, StatisticsSource source, TraceFormatFileOpener file) {
+	public TopologyStatisticTreeNode(StatisticsDescription statDesc, TopologyNode topNode, TraceFormatFileOpener file) {
 		super(topNode, file);
-		
-		this.statisticSource = source;
 		this.statisticDescription = statDesc;		
 	}
 	
 	public StatisticsGroupDescription getStatisticGroup(){
-		return ((IBufferedStatisticsReader) statisticSource).getGroup();
+		return ((IBufferedStatisticsReader) getStatisticSource()).getGroup();
 	}
 		
 	public StatisticsDescription getStatisticDescription() {
@@ -55,7 +56,7 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	}
 	
 	public IBufferedStatisticsReader getStatisticSource() {
-		return (IBufferedStatisticsReader) statisticSource;
+		return (IBufferedStatisticsReader) topology.getStatisticsSource(statisticDescription.getGroup().getName());
 	}
 	
 	@Override
@@ -70,5 +71,22 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	
 	public int getNumberInGroup() {
 		return statisticDescription.getNumberInGroup();
+	}
+	
+	@Override
+	public void adjustTimeOffset(double delta) {
+		
+		// warning, this function is applied to all nodes
+		String name = statisticDescription.getGroup().getName();
+		
+		if(topology.getStatisticsSource(name).getClass() == BufferedStatisticsFileReader.class){		
+			BufferedStatisticsFileReader source = (BufferedStatisticsFileReader) topology.getStatisticsSource(name);
+
+			try {
+				topology.setStatisticsReader(statisticDescription.getGroup().getName(), new BufferedStatisticsFileReader( source.getFilename() , name,  source.getAdditionalTimeAdjustment().add(delta)));
+			} catch (Exception e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
 	}
 }

@@ -35,9 +35,11 @@ import de.hd.pvs.TraceFormat.util.Epoch;
  *
  */
 public class BufferedStatisticsFileReader extends BufferedMemoryReader {
+	final Epoch additionalTimeAdjustment;
+	final String filename;
 	
-	public BufferedStatisticsFileReader(String filename, String expectedGroupName) throws Exception{
-		final StatisticsReader reader = new StatisticsReader(filename, expectedGroupName);
+	public BufferedStatisticsFileReader(String filename, String expectedGroupName, Epoch additionalTimeOffset) throws Exception{
+		final StatisticsReader reader = new StatisticsReader(filename, expectedGroupName, additionalTimeOffset);
 
 		setGroup(reader.getGroup());
 		
@@ -51,6 +53,17 @@ public class BufferedStatisticsFileReader extends BufferedMemoryReader {
 			current = reader.getNextInputEntry();
 		}
 
-		setEntries(statEntries.toArray(new StatisticsGroupEntry[]{}));		
+		setEntries(statEntries.toArray(new StatisticsGroupEntry[]{}));
+		
+		this.additionalTimeAdjustment = additionalTimeOffset;
+		this.filename = filename;
+	}
+	
+	public Epoch getAdditionalTimeAdjustment() {
+		return additionalTimeAdjustment;
+	}
+	
+	public String getFilename() {
+		return filename;
 	}
 }

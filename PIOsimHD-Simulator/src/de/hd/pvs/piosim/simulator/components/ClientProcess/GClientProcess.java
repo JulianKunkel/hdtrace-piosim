@@ -108,7 +108,7 @@ public class GClientProcess
 			checkJobCompleted(status);
 
 			// trace output
-			if(getSimulator().getTraceWriter().isTracableComponent(TraceType.INTERNAL)){
+			if(getSimulator().getTraceWriter().isTracableComponent(TraceType.CLIENT_STEP)){
 				// trace values
 				final String [] attr = new String[4];
 				attr[0] = "size";
@@ -116,8 +116,8 @@ public class GClientProcess
 				attr[2] = "tag";
 				attr[3] = "" + remoteJob.getMatchingCriterion().getTag();
 
-				getSimulator().getTraceWriter().relEndState(TraceType.INTERNAL, announcedJob.getRelationToken(), "", attr);
-				getSimulator().getTraceWriter().relDestroy(TraceType.INTERNAL, announcedJob.getRelationToken());
+				getSimulator().getTraceWriter().relEndState(TraceType.CLIENT_STEP, announcedJob.getRelationToken(), "", attr);
+				getSimulator().getTraceWriter().relDestroy(TraceType.CLIENT_STEP, announcedJob.getRelationToken());
 			}
 		}
 
@@ -130,7 +130,7 @@ public class GClientProcess
 			assert(status != null);
 
 			// trace output
-			if(getSimulator().getTraceWriter().isTracableComponent(TraceType.INTERNAL)){
+			if(getSimulator().getTraceWriter().isTracableComponent(TraceType.CLIENT_STEP)){
 				// trace values
 				final String [] attr = new String[4];
 				attr[0] = "size";
@@ -138,8 +138,8 @@ public class GClientProcess
 				attr[2] = "tag";
 				attr[3] = "" + myJob.getMatchingCriterion().getTag();
 
-				getSimulator().getTraceWriter().relEndState(TraceType.INTERNAL, myJob.getRelationToken(), "", attr);
-				getSimulator().getTraceWriter().relDestroy(TraceType.INTERNAL, myJob.getRelationToken());
+				getSimulator().getTraceWriter().relEndState(TraceType.CLIENT_STEP, myJob.getRelationToken(), "", attr);
+				getSimulator().getTraceWriter().relDestroy(TraceType.CLIENT_STEP, myJob.getRelationToken());
 			}
 
 			status.jobCompletedSend();
@@ -587,12 +587,12 @@ public class GClientProcess
 								txt = " AnySource";
 							}
 
-							getSimulator().getTraceWriter().relStartState(TraceType.INTERNAL, j.getRelationToken(), "Receive_" + txt);
+							getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, j.getRelationToken(), "Receive_" + txt);
 
 							getNetworkInterface().initiateInterProcessReceive(j, curTime);
 						}else{
 							// trace
-							getSimulator().getTraceWriter().relStartState(TraceType.INTERNAL, j.getRelationToken(), "Send_" + ((NodeHostedComponent) j.getMatchingCriterion().getTargetComponent()).getIdentifier() );
+							getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, j.getRelationToken(), "Send_" + ((NodeHostedComponent) j.getMatchingCriterion().getTargetComponent()).getIdentifier() );
 
 							getNetworkInterface().initiateInterProcessSend(j, curTime);
 						}

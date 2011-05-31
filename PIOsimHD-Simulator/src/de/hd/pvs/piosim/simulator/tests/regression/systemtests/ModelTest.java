@@ -86,7 +86,7 @@ abstract public class ModelTest extends TestSuite {
 
 		parameters.setTraceFile("/tmp/output");
 		parameters.setTraceEnabled(true);
-		parameters.setTraceInternals(true);
+		parameters.setTraceInternals(false);
 		parameters.setTraceClientSteps(true);
 		parameters.setTraceServers(true);
 //		parameters.setDebugEverything(true);

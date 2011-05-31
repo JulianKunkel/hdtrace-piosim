@@ -31,9 +31,15 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 	final ArrayList<ArrayList<RelationEntry>> layoutedEntriesSorted = new ArrayList<ArrayList<RelationEntry>>();
 
 	final RelationHeader header;
-
-	public BufferedRelationReader(String filename) throws Exception {
-		final RelationXMLReader reader = new RelationXMLReader(filename);
+	
+	final String filename;
+	final private Epoch additionalTimeOffset;
+	
+	public BufferedRelationReader(String filename, Epoch additionalTimeOffset) throws Exception {
+		this.filename = filename;
+		final RelationXMLReader reader = new RelationXMLReader(filename, additionalTimeOffset);
+		this.additionalTimeOffset = additionalTimeOffset;
+		
 		header = reader.getHeader();
 
 		// now add all entries
@@ -89,7 +95,7 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 			}			
 		});
 	}
-
+	
 	@Override
 	public Epoch getMaxTime() {
 		return entriesEndTimeSorted.get(entriesEndTimeSorted.size() -1 ).getLatestTime();
@@ -167,4 +173,12 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 		else
 			return new ReaderRelationTraceElementNestedEnumerator(relEnum, startTime, endTime);
 	}	
+	
+	public String getFilename() {
+		return filename;
+	}
+	
+	public Epoch getAdditionalTimeOffset() {
+		return additionalTimeOffset;
+	}
 }

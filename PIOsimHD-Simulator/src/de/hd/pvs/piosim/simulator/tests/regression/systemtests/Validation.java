@@ -10,6 +10,7 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
+import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
@@ -41,7 +42,7 @@ public class Validation  extends ModelTest {
 		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(smtPerNode),
-				NetworkNodesC.QPI(),
+				NetworkNodesC.LocalNodeQPI(),
 				NetworkEdgesC.QPI()
 				);
 		super.setup( smtNodeT );
@@ -241,16 +242,58 @@ public class Validation  extends ModelTest {
 	}
 
 	@Test public void TestScatterMPICH2() throws Exception{
-		setup(5, 1);
+		setup(2, 3);
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
 
 		parameters.setTraceFile("/tmp/scatter");
 
+	//	parameters.setTraceInternals(true);
 		parameters.setTraceEnabled(true);
 
 		pb.addScatter(world, 0, 100* MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void TestScatter2() throws Exception{
+		setupSMP(2);
+
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+
+		parameters.setTraceFile("/tmp/scatter");
+		parameters.setTraceEnabled(true);
+
+		Communicator comm = new Communicator("world");
+		comm.addRank(0, 1, 0);
+		comm.addRank(1, 0, 0);
+
+		pb.addScatter(comm, 0, 100* MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
+	@Test public void TestScatterMPICH5ProcessesOnThreeNodes() throws Exception{
+		setup(2, 3);
+
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+
+		parameters.setTraceFile("/tmp/scatter");
+		parameters.setTraceEnabled(true);
+
+		Communicator comm = new Communicator("world");
+		comm.addRank(0, 0, 0);
+		comm.addRank(1, 2, 0);
+		comm.addRank(2, 4, 0);
+		comm.addRank(3, 1, 0);
+		comm.addRank(4, 3, 0);
+
+		pb.addScatter(comm, 0, 100* MBYTE);
 
 		runSimulationAllExpectedToFinish();
 	}
