@@ -33,7 +33,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementationWithCommunicatorL
  *
  * @author Julian M. Kunkel
  */
-public class BinaryTreeMultiplex
+public class BinaryTreeNotMultiplexed
 extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Bcast>
 {
 
