@@ -108,14 +108,9 @@ int get_available_p_states(){
 	gchar *buffer;
 	gsize length;
 	GError *error = NULL;
-	gint len = 0;
 	gint p_states = 0;
 
-	len = strlen("/sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state");
-	gchar stats_file[len + 1];
-	snprintf(stats_file, len + 1, "/sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state");
-
-	if (g_file_get_contents(stats_file, &buffer, &length, &error)) {
+	if (g_file_get_contents("/sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state", &buffer, &length, &error)) {
 		for (int i = 0; i < length; i++) {
 			if (buffer[i] == '\n') {
 				p_states++;
@@ -180,9 +175,9 @@ int get_c_state_times(unsigned long int *c_states, int cpu_num, int c_states_num
 			
 			clevel++;
 		}
+
+		closedir(dir);
 	}
-	
-	closedir(dir);
 	
 	return 0;
 }

@@ -31,6 +31,7 @@
 #define HDRUT_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "hdTopo.h"
 
@@ -41,7 +42,7 @@
 /** Maximum number of CPUs supported */
 /* not using GLIBTOP_NCPU here to avoid *
  * dependency from libgtop/cpu.h header */
-#define RUT_MAX_NUM_CPUS 32
+#define RUT_MAX_NUM_CPUS 50
 
 /** Maximum number of network interfaces supported */
 #define RUT_MAX_NUM_NETIFS 8
@@ -62,7 +63,6 @@
 /** Type definition of utilization trace object */
 typedef struct UtilTrace_s UtilTrace;
 
-
 #ifdef HAVE_DBC
 
 /** Type definition of power trace object */
@@ -72,42 +72,42 @@ typedef struct NodePowerTrace_s NodePowerTrace;
 
 /** Bit field for sources to trace */
 struct rutSources_s {
-    /** aggregated utilization of all CPUs */
-    unsigned int CPU_UTIL : 1;
-    /** CPU utilization for each single CPU */
-    unsigned int CPU_UTIL_X : 1;
+	/** aggregated utilization of all CPUs */
+	unsigned int CPU_UTIL :1;
+	/** CPU utilization for each single CPU */
+	unsigned int CPU_UTIL_X :1;
 #ifdef HAVE_PROCESSORSTATES
-    /** CPU frequency for each single CPU */
-    unsigned int CPU_FREQ_X : 1;
-    /** CPU c-states 1,2 and 3 for each single CPU */
-    unsigned int CPU_IDLE_X : 1;
+	/** CPU frequency for each single CPU */
+	unsigned int CPU_FREQ_X : 1;
+	/** CPU c-states 1,2 and 3 for each single CPU */
+	unsigned int CPU_IDLE_X : 1;
 #endif
-    /** amount of main memory used */
-    unsigned int MEM_USED : 1;
-    /** amount of free main memory */
-    unsigned int MEM_FREE  : 1;
-    /** amount of shared main memory */
-    unsigned int MEM_SHARED  : 1;
-    /** amount of main memory used as buffer */
-    unsigned int MEM_BUFFER : 1;
-    /** amount of main memory cached */
-    unsigned int MEM_CACHED : 1;
-    /** incoming traffic of each single network interface */
-    unsigned int NET_IN_X : 1;
-    /** outgoing traffic of each single network interface */
-    unsigned int NET_OUT_X : 1;
-    /** aggregated incoming traffic of external network interfaces */
-    unsigned int NET_IN_EXT : 1;
-    /** aggregated outgoing traffic of external network interfaces */
-    unsigned int NET_OUT_EXT : 1;
-    /** aggregated incoming traffic of all network interfaces */
-    unsigned int NET_IN : 1;
-    /** aggregated outgoing traffic of all network interfaces */
-    unsigned int NET_OUT : 1;
-    /** amount of data read from hard disk drives */
-    unsigned int HDD_READ : 1;
-    /** amount of data written to hard disk drives */
-    unsigned int HDD_WRITE : 1;
+	/** amount of main memory used */
+	unsigned int MEM_USED :1;
+	/** amount of free main memory */
+	unsigned int MEM_FREE :1;
+	/** amount of shared main memory */
+	unsigned int MEM_SHARED :1;
+	/** amount of main memory used as buffer */
+	unsigned int MEM_BUFFER :1;
+	/** amount of main memory cached */
+	unsigned int MEM_CACHED :1;
+	/** incoming traffic of each single network interface */
+	unsigned int NET_IN_X :1;
+	/** outgoing traffic of each single network interface */
+	unsigned int NET_OUT_X :1;
+	/** aggregated incoming traffic of external network interfaces */
+	unsigned int NET_IN_EXT :1;
+	/** aggregated outgoing traffic of external network interfaces */
+	unsigned int NET_OUT_EXT :1;
+	/** aggregated incoming traffic of all network interfaces */
+	unsigned int NET_IN :1;
+	/** aggregated outgoing traffic of all network interfaces */
+	unsigned int NET_OUT :1;
+	/** amount of data read from hard disk drives */
+	unsigned int HDD_READ :1;
+	/** amount of data written to hard disk drives */
+	unsigned int HDD_WRITE :1;
 };
 
 /** Type definition of tracing sources bit field */
@@ -118,11 +118,20 @@ typedef struct rutSources_s rutSources;
  * ************************************************************************* */
 
 /** Maximum number of statistics values traceable */
+#ifdef HAVE_PROCESSORSTATES
+#define RUT_MAX_STATS_VALUES (12 + (3 * RUT_MAX_NUM_CPUS) + 2 * RUT_MAX_NUM_NETIFS)
+#else
 #define RUT_MAX_STATS_VALUES (12 + RUT_MAX_NUM_CPUS + 2 * RUT_MAX_NUM_NETIFS)
+#endif
 
 /** Macro for cleaning all available sources */
 #define RUTSRC_UNSET_ALL(sources) \
-	bzero(&(sources), sizeof(sources))
+		do { \
+		RUTSRC_UNSET_CPU(sources); \
+		RUTSRC_UNSET_MEM(sources); \
+		RUTSRC_UNSET_NET(sources); \
+		RUTSRC_UNSET_HDD(sources); \
+	} while (0)
 
 /** Macro for setting all available sources */
 #define RUTSRC_SET_ALL(sources) \
@@ -135,43 +144,42 @@ typedef struct rutSources_s rutSources;
 
 /** Macro for setting/cleaning all CPU statistics at once */
 #ifdef HAVE_PROCESSORSTATES
-#define RUTSRC_SET_CPU__(sources, bool) \
+#define RUTSRC_SET_CPU__(sources, enabled) \
 	do { \
-		(sources).CPU_UTIL = bool; \
-		(sources).CPU_UTIL_X = bool; \
-		(sources).CPU_FREQ_X = bool; \
-		(sources).CPU_IDLE_X = bool; \
+		(sources).CPU_UTIL = enabled; \
+		(sources).CPU_UTIL_X = enabled; \
+		(sources).CPU_FREQ_X = enabled; \
+		(sources).CPU_IDLE_X = enabled; \
 	} while (0)
 #else
-#define RUTSRC_SET_CPU__(sources, bool) \
+#define RUTSRC_SET_CPU__(sources, enabled) \
 	do { \
-		(sources).CPU_UTIL = bool; \
-		(sources).CPU_UTIL_X = bool; \
+		(sources).CPU_UTIL = enabled; \
+		(sources).CPU_UTIL_X = enabled; \
 	} while (0)
 #endif
 
 /** Macro for setting/cleaning all memory statistics at once */
-#define RUTSRC_SET_MEM__(sources, bool) \
+#define RUTSRC_SET_MEM__(sources, enabled) \
 	do { \
-		(sources).MEM_USED = bool; \
-		(sources).MEM_FREE = bool; \
-		(sources).MEM_SHARED = bool; \
-		(sources).MEM_BUFFER = bool; \
-		(sources).MEM_CACHED = bool; \
+		(sources).MEM_USED = enabled; \
+		(sources).MEM_FREE = enabled; \
+		(sources).MEM_SHARED = enabled; \
+		(sources).MEM_BUFFER = enabled; \
+		(sources).MEM_CACHED = enabled; \
 	} while (0)
 
 /** Macro for setting/cleaning all NET statistics at once */
 #define RUTSRC_SET_NET__(sources, bool) \
-	do { \
-		(sources).NET_IN_X = bool; \
-		(sources).NET_OUT_X = bool; \
-		(sources).NET_IN_EXT = bool; \
-		(sources).NET_OUT_EXT = bool; \
-		(sources).NET_IN = bool; \
-		(sources).NET_OUT = bool; \
-	} while (0)
+		do { \
+			(sources).NET_IN_X = bool; \
+			(sources).NET_OUT_X = bool; \
+			(sources).NET_IN_EXT = bool; \
+			(sources).NET_OUT_EXT = bool; \
+			(sources).NET_IN = bool; \
+			(sources).NET_OUT = bool; \
+		} while (0)
 
-/** Macro for setting/cleaning all HDD statistics at once */
 #define RUTSRC_SET_HDD__(sources, bool) \
 	do { \
 		(sources).HDD_READ = bool; \
@@ -179,17 +187,28 @@ typedef struct rutSources_s rutSources;
 	} while (0)
 
 /** Macro for enabling tracing of all CPU statistics at once */
-#define RUTSRC_SET_CPU(sources) RUTSRC_SET_CPU__(sources, 1)
+#define RUTSRC_SET_CPU(sources) RUTSRC_SET_CPU__(sources, true)
 
 /** Macro for enabling tracing of all memory statistics at once */
-#define RUTSRC_SET_MEM(sources) RUTSRC_SET_MEM__(sources, 1)
+#define RUTSRC_SET_MEM(sources) RUTSRC_SET_MEM__(sources, true)
 
 /** Macro for enabling tracing of all NET statistics at once */
-#define RUTSRC_SET_NET(sources) RUTSRC_SET_NET__(sources, 1)
+#define RUTSRC_SET_NET(sources) RUTSRC_SET_NET__(sources, true)
 
 /** Macro for enabling tracing of all hard disk statistics at once */
-#define RUTSRC_SET_HDD(sources) RUTSRC_SET_HDD__(sources, 1)
+#define RUTSRC_SET_HDD(sources) RUTSRC_SET_HDD__(sources, true)
 
+/** Macro for disabling tracing of all CPU statistics at once */
+#define RUTSRC_UNSET_CPU(sources) RUTSRC_SET_CPU__(sources, false)
+
+/** Macro for disabling tracing of all memory statistics at once */
+#define RUTSRC_UNSET_MEM(sources) RUTSRC_SET_MEM__(sources, false)
+
+/** Macro for disabling tracing of all NET statistics at once */
+#define RUTSRC_UNSET_NET(sources) RUTSRC_SET_NET__(sources, false)
+
+/** Macro for disabling tracing of all hard disk statistics at once */
+#define RUTSRC_UNSET_HDD(sources) RUTSRC_SET_HDD__(sources, false)
 
 /* ************************************************************************* *
  *                       PUBLIC ERROR VALUE DEFINITIONS                      *
@@ -302,13 +321,12 @@ typedef struct rutSources_s rutSources;
 /**
  * Create performance trace
  */
-int rut_createTrace(
-		hdTopoNode *topoNode, /* topoNode the trace belongs to */
-		int topoLevel,       /* level of topology the trace take place */
-		rutSources sources,  /* bit field of the sources to trace */
-		int interval,         /* interval of one tracing step in ms */
-		UtilTrace **trace     /* OUTPUT: the trace created */
-		);
+int rut_createTrace(hdTopoNode *topoNode, /* topoNode the trace belongs to */
+int topoLevel, /* level of topology the trace take place */
+rutSources sources, /* bit field of the sources to trace */
+int interval, /* interval of one tracing step in ms */
+UtilTrace **trace /* OUTPUT: the trace created */
+);
 
 /**
  * Start performance tracing
