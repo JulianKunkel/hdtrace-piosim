@@ -117,31 +117,36 @@ public class FlowTest extends ModelTest{
 	@Test public void three() throws Exception{
 		setup(myConfig);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(1000 * MiB);
+		//mb.getGlobalSettings().setMaxEagerSendSize(1100 * KiB);
+		//mb.getGlobalSettings().setTransferGranularity(101 * KiB);
 
 		parameters.setTraceFile("/tmp/three");
 		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 
 		// setup the commands
+//
+//		for(int i=0; i < 3; i++){
+//			for(int t=3; t < 5; t++){
+//				pb.addSend(world, i, t, 100*MiB, 0);
+//				pb.setLastCommandAsynchronous(i);
+//
+//				pb.addRecv(world, i, t, 0);
+//				pb.setLastCommandAsynchronous(t);
+//			}
+//		}
+//
+//
+//		for(int t=0; t < 5; t++){
+//			pb.addWaitAll(t);
+//		}
+//
+//		pb.addBarrier(world);
 
-		for(int i=0; i < 3; i++){
-			for(int t=3; t < 5; t++){
-				pb.addSend(world, i, t, 100*MiB, 0);
-				pb.setLastCommandAsynchronous(i);
+		pb.addSend(world, 0, 3, 1010*KiB, 0);
+		pb.addRecv(world, 0, 3, 0);
 
-				pb.addRecv(world, i, t, 0);
-				pb.setLastCommandAsynchronous(t);
-			}
-		}
-
-		//pb.addSend(world, 0, 3, 100*MiB, 0);
-		//pb.addRecv(world, 0, 3, 0);
-
-
-		for(int t=0; t < 5; t++){
-			pb.addWaitAll(t);
-		}
 
 		runSimulationAllExpectedToFinish();
 	}
