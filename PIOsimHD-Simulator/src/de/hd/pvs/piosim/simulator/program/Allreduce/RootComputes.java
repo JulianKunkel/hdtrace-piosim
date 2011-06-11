@@ -43,7 +43,7 @@ public class RootComputes
 	@Override
 	public long getInstructionCount(Allreduce cmd, GClientProcess client, long step) {
 		if(step == ROOT_RECVD_ALLDATA){
-			return cmd.getSize() * cmd.getSize() + 1;
+			return cmd.getCommunicator().getSize() * cmd.getSize() + 1;
 		}else{
 			return 1;
 		}
