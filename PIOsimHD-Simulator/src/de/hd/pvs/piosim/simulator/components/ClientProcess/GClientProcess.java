@@ -104,7 +104,7 @@ public class GClientProcess
 
 			final NetworkJobs status = pendingJobs.remove(announcedJob);
 			assert(status != null);
-			status.jobCompletedRecv(remoteJob);
+			status.jobCompletedRecv(remoteJob, announcedJob);
 			checkJobCompleted(status);
 
 			// trace output
@@ -643,7 +643,7 @@ public class GClientProcess
 	private void checkJobCompleted(NetworkJobs jobs){
 		if(jobs.isCompleted()){
 			Epoch endTime = getSimulator().getVirtualTime();
-			debug(" resp: " + jobs.getResponses().size() + " " + endTime);
+			debug(" resp: " + jobs.getResponses() + " " + endTime);
 
 			/* reactivate this client, we have to process the next command */
 			CommandProcessing pendingOp = pendingNetworkOperations.remove(jobs);

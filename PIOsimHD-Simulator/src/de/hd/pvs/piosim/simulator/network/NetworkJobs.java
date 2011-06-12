@@ -60,10 +60,9 @@ public class NetworkJobs {
 	final private ArrayList<InterProcessNetworkJob> jobs = new ArrayList<InterProcessNetworkJob>();
 
 	/**
-	 * List of responses. Not ordered. The user must match the Receive operation with the Response
-	 * by him/her self.
+	 * List of responses. It has the same order as the posted receive operation.
 	 */
-	final private ArrayList<InterProcessNetworkJob> responses = new ArrayList<InterProcessNetworkJob>();
+	private InterProcessNetworkJob [] responses = null;
 
 	/** number of currenly pending jobs */
 	private int pendingJobs = 0;
@@ -109,7 +108,7 @@ public class NetworkJobs {
 	 * Return the responses in the order they got received.
 	 * @return the responses
 	 */
-	public ArrayList<InterProcessNetworkJob> getResponses() {
+	public InterProcessNetworkJob [] getResponses() {
 		return responses;
 	}
 
@@ -133,10 +132,20 @@ public class NetworkJobs {
 	 * Called if a receive job is completed.
 	 * @param receivedMessage The received job message.
 	 */
-	public void jobCompletedRecv(InterProcessNetworkJob receivedMessage){
-		responses.add(receivedMessage);
+	public void jobCompletedRecv(InterProcessNetworkJob receivedJob, InterProcessNetworkJob postedJob){
+		if(responses == null ){
+			 responses = new InterProcessNetworkJob[jobs.size()];
+		}
 
-		pendingJobs--;
+		for(int i=0; i < jobs.size(); i++){
+			if(postedJob == jobs.get(i)){
+				responses[i] = receivedJob;
+				pendingJobs--;
+				break;
+			}
+		}
+		// should never happen as received jobs should match
+		assert(false);
 	}
 
 	public int getSize(){

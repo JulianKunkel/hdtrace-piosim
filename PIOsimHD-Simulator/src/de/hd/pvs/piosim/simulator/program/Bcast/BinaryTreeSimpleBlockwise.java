@@ -87,7 +87,7 @@ extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Bcast>
 					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				}
 
-				final IMessageUserData data = compNetJobs.getResponses().get(0).getJobData();
+				final IMessageUserData data = compNetJobs.getResponses()[0].getJobData();
 
 				for (int iter = iterations - 1 - phaseStart ; iter >= 0 ; iter--){
 					int targetRank = (1<<iter | clientRankInComm);
