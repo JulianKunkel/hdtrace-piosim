@@ -23,28 +23,35 @@ public class FlowTest extends ModelTest{
 	HardwareConfiguration myConfig = new HardwareConfiguration(){
 		@Override
 		public NetworkNode createModel(String prefix, ModelBuilder mb, INetworkTopology topology) throws Exception {
-			final NIC nic = new NIC();
-			nic.setTotalBandwidth(100*GBYTE);
-			nic.setName("nic");
 
+			// instantiate the templates:
 			final Node node = new Node();
+
+			final NIC nic = new NIC();
 			final StoreForwardNode fastNode = new StoreForwardNode();
 			final SimpleNetworkEdge fastEdge = new SimpleNetworkEdge();
 			final SimpleNetworkEdge slowEdge = new SimpleNetworkEdge();
+
+			// set the model properties
+			nic.setTotalBandwidth(100*GBYTE);
+			nic.setName("nic");
 
 			node.setName("node");
 			node.setInstructionsPerSecond(1000000000);
 			node.setCPUs(1);
 			node.setMemorySize(GBYTE);
 
-			fastNode.setName("fn");
+			fastNode.setName("fastNode");
 			fastNode.setTotalBandwidth(100*GBYTE);
-			fastEdge.setName("fe");
-			slowEdge.setName("se");
+			fastEdge.setName("fastEdge");
 			fastEdge.setLatency(new Epoch(0.001));
-			slowEdge.setLatency(new Epoch(0.1));
 			fastEdge.setBandwidth(100*MiB);
+
+			slowEdge.setName("slowEdge");
+			slowEdge.setLatency(new Epoch(0.1));
 			slowEdge.setBandwidth(10*MiB);
+
+			// add those instances as templates
 
 			mb.addTemplateIf(node);
 			mb.addTemplateIf(nic);
@@ -53,41 +60,45 @@ public class FlowTest extends ModelTest{
 			mb.addTemplateIf(slowEdge);
 
 
+			// create the central node by cloning the template
 			final NetworkNode nodeA = mb.cloneFromTemplate(fastNode);
-			// create crossbar switch
 			nodeA.setName("node");
 			mb.addNetworkNode(nodeA);
 
-			final NetworkNode nodeB = mb.cloneFromTemplate(fastNode);
-			// create crossbar switch
-			nodeB.setName("nodeY");
-			mb.addNetworkNode(nodeB);
+			// create the node to Y from the same template
+			final NetworkNode nodetoY = mb.cloneFromTemplate(fastNode);
+			nodetoY.setName("nodeToY");
+			mb.addNetworkNode(nodetoY);
 
+			// create the interconnect between those two nodes
 			{
 				NetworkEdge e1 = mb.cloneFromTemplate(fastEdge);
 				NetworkEdge e2 = mb.cloneFromTemplate(fastEdge);
-				mb.connect(topology, nodeB, e1, nodeA);
-				mb.connect(topology, nodeA, e2, nodeB);
+
+				mb.connect(topology, nodeA, e1, nodetoY);
+				mb.connect(topology, nodetoY, e2, nodeA);
 			}
 
 
-			// add all the clients:
+			// add all the clients and interconnect them.
+			// an array of the processes' names
 			final String [] names = {"A", "B", "C", "Y", "Z"};
 
 			for(int i=0; i < 5; i++){
+				// create the NIC
 				NIC nm = mb.cloneFromTemplate(nic);
+				nm.setName(names[i]);
 
+				// create the client
 				final ClientProcess c = new ClientProcess();
 				c.setNetworkInterface(nm);
-				c.setName(names[i] + "C");
-				nm.setName(names[i]);
+				c.setName(names[i]);
 				c.setRank(i);
-
-
 				c.setNetworkInterface(nm);
 
+				// create the node
 				final Node n = mb.cloneFromTemplate(node);
-				n.setName(names[i] + "N");
+				n.setName(names[i]);
 				mb.addNode(n);
 				mb.addClient(n, c);
 
@@ -95,17 +106,14 @@ public class FlowTest extends ModelTest{
 				// interconnect via crossbar switch
 					NetworkEdge e1 = mb.cloneFromTemplate(fastEdge);
 					NetworkEdge e2 = mb.cloneFromTemplate(fastEdge);
-					e1.setName(i + "_TX " + e1.getName());
-					e2.setName(i + "_RX " + e2.getName());
 					mb.connect(topology, nm, e1, nodeA);
 					mb.connect(topology, nodeA, e2, nm);
 				}else if(i == 3){
+					// node Y
 					NetworkEdge e1 = mb.cloneFromTemplate(slowEdge);
 					NetworkEdge e2 = mb.cloneFromTemplate(slowEdge);
-					e1.setName(i + "_TX " + e1.getName());
-					e2.setName(i + "_RX " + e2.getName());
-					mb.connect(topology, nm, e1, nodeB);
-					mb.connect(topology, nodeB, e2, nm);
+					mb.connect(topology, nm, e1, nodetoY);
+					mb.connect(topology, nodetoY, e2, nm);
 				}
 			}
 
