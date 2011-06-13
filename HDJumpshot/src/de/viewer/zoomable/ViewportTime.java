@@ -442,6 +442,8 @@ public class ViewportTime extends JViewport implements TimeListener, MouseInputL
 			if(dobj != null && TraceObjectInformation.class.isInstance(dobj) && ((TraceObjectInformation) dobj).getObject().getType() != TracableObjectType.STATISTICENTRY ){
 				// 	set the tooltip based on the object
 				this.setToolTipText(dobj.toString());
+			}else{
+				this.setToolTipText(null);
 			}
 		}
 
