@@ -584,7 +584,7 @@ public class GClientProcess
 
 							if( j.getMatchingCriterion().getSourceComponent() != null ){
 								// handle any-source
-								txt = "" + j.getMatchingCriterion().getSourceComponent().getIdentifier();
+								txt = j.getMatchingCriterion().getSourceComponent().getIdentifier().toString().replace(" ", "_");
 							}else{
 								txt = " AnySource";
 							}
@@ -594,7 +594,7 @@ public class GClientProcess
 							getNetworkInterface().initiateInterProcessReceive(j, curTime);
 						}else{
 							// trace
-							getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, j.getRelationToken(), "Send_" + ((NodeHostedComponent) j.getMatchingCriterion().getTargetComponent()).getIdentifier() );
+							getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, j.getRelationToken(), "Send_" + ((NodeHostedComponent) j.getMatchingCriterion().getTargetComponent()).getIdentifier().toString().replace(" ", "_") );
 
 							getNetworkInterface().initiateInterProcessSend(j, curTime);
 						}

@@ -14,9 +14,19 @@ public class NetworkGraph implements INetworkGraph{
 	// maps an edge directly to its target node
 	protected HashMap<INetworkEdge, INetworkNode> edgeMap = new HashMap<INetworkEdge, INetworkNode>();
 
+	// maps an edge directly to its source node
+	protected HashMap<INetworkEdge, INetworkNode> edgeSourceMap = new HashMap<INetworkEdge, INetworkNode>();
+
+
 	public INetworkNode getEdgeTarget(INetworkEdge edge) {
 		return edgeMap.get(edge);
 	}
+
+
+	public INetworkNode getEdgeSource(INetworkEdge edge) {
+		return edgeSourceMap.get(edge);
+	}
+
 
 	public HashMap<INetworkNode, LinkedList<INetworkEdge>> getSourceGraph() {
 		return graph;
@@ -81,6 +91,8 @@ public class NetworkGraph implements INetworkGraph{
 		tgts.add(via);
 
 		edgeMap.put(via, tgt);
+
+		edgeSourceMap.put(via, src);
 	}
 
 
