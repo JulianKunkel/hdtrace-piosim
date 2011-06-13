@@ -99,7 +99,7 @@ public class SHDTraceWriter extends STraceWriter {
 				NetworkEdge edge = (NetworkEdge) component.getModelComponent();
 				INetworkNode node = edge.getSourceNode();
 
-				strPath[pos] = "RX " + strPath[pos] + " from " +  node.getIdentifier().getID();
+				strPath[pos] = "RX " + strPath[pos] + " from " +  node.getIdentifier().toString();
 			}else{
 				// add the type
 				strPath[pos] = comp.getObjectType() + " " + strPath[pos];
