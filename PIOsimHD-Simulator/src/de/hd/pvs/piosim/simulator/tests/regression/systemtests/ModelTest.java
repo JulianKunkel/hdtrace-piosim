@@ -110,7 +110,10 @@ abstract public class ModelTest extends TestSuite {
 		for(int rank = 0; rank < mb.getModel().getClientProcesses().size(); rank++){
 			ClientProcess c = mb.getModel().getClientProcesses().get(rank);
 			c.setApplication("Jacobi");
-			c.setRank(rank);
+
+			if(c.getRank() < 0){
+				c.setRank(rank);
+			}
 		}
 
 		world = aB.getWorldCommunicator();

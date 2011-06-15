@@ -16,6 +16,8 @@ public interface INetworkGraph {
 
 	public INetworkNode getEdgeTarget(INetworkEdge edge);
 
+	public INetworkNode getEdgeSource(INetworkEdge edge);
+
 	/**
 	 * Contains a target node and all incoming edges.
 	 * Note the graph edges are now inverted, i.e. incoming edges are outgoing

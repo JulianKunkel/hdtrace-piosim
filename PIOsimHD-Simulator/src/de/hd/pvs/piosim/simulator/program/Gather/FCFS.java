@@ -92,7 +92,7 @@ extends CommandImplementation<Gather>
 				OUTresults.setNextStep(STEP_SEND);
 			}else{
 
-				final INodeHostedComponent target = compNetJobs.getResponses().get(0).getMatchingCriterion().getSourceComponent();
+				final INodeHostedComponent target = compNetJobs.getResponses()[0].getMatchingCriterion().getSourceComponent();
 
 				// receive data from the next process and wait for an ACK of another one.
 				OUTresults.addNetReceive(target, tagNumber, cmd.getCommunicator());

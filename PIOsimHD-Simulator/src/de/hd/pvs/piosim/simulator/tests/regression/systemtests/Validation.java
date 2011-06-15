@@ -62,6 +62,20 @@ public class Validation  extends ModelTest {
 	}
 
 
+	@Test public void allreduceRootComputes() throws Exception{
+		setup(3, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.RootComputes");
+		parameters.setTraceFile("/tmp/allreduce");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addAllreduce(world, 10 * MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
 	@Test public void barrierTree() throws Exception{
 		setup(8, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);

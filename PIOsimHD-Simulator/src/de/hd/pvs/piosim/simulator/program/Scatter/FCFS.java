@@ -83,7 +83,7 @@ extends CommandImplementation<Scatter>
 				OUTresults.setNextStep(STEP_RECEIVE);
 			}else{ // STEP_RECEIVE
 
-				final INodeHostedComponent target = compNetJobs.getResponses().get(0).getMatchingCriterion().getSourceComponent();
+				final INodeHostedComponent target = compNetJobs.getResponses()[0].getMatchingCriterion().getSourceComponent();
 
 
 				if( step == cmd.getCommunicator().getSize() - 1 ){

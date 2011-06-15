@@ -60,7 +60,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 
 			return;
 		}else if(step == ACK_RECVD){
-			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
+			InterProcessNetworkJob response = compNetJobs.getResponses()[0];
 
 			//System.out.println("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
