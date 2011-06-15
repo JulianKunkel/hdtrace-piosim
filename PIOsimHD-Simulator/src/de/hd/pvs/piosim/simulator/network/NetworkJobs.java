@@ -141,7 +141,7 @@ public class NetworkJobs {
 			if(postedJob == jobs.get(i)){
 				responses[i] = receivedJob;
 				pendingJobs--;
-				break;
+				return;
 			}
 		}
 		// should never happen as received jobs should match
