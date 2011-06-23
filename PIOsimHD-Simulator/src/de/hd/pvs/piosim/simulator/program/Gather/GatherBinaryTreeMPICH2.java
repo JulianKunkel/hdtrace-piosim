@@ -29,86 +29,84 @@ public class GatherBinaryTreeMPICH2 extends CommandImplementationWithCommunicato
 			return;
 		}
 
-		final int commSize = cmd.getCommunicator().getSize();
-		final int pof2Offset = commSize - pof2(commSize);
-		final int iterations = Integer.numberOfTrailingZeros(commSize);
+		final int commSize = cmd.getCommunicator().getSize() -1;
+		int receiveFrom = -1, sendTo = -1;
+		int dataMultiplicator;
 
 		if(clientRankInComm == 0){
 			// calculate from whom to receive
-			int receiveFrom = (int) Math.pow(2, step);
+			receiveFrom = (int) Math.pow(2, step);
 
 			// check if receiveFrom is greater than the number of nodes
 			// if not => receive data
-			if(receiveFrom < commSize){
+			if(receiveFrom <= commSize){
+				System.out.println("Rank: " + clientRankInComm + " sendTo: " + sendTo + " receiveFrom: " + receiveFrom + " Step: " +  step);
 				OUTResults.addNetReceive(getLocalRankExchangeRoot(rootRank, receiveFrom) , 30303, cmd.getCommunicator());
 				OUTResults.setNextStep(++step);
 			}else{
 				// no one to receive from
 				OUTResults.setNextStep(CommandProcessing.STEP_COMPLETED);
 			}
-			// finalize
 		}else{
-			if(isValuePofTwo(clientRankInComm)){
+			if(Integer.bitCount(clientRankInComm) == 1){
 				// I am the one who has to send data to root when the time is right (2^step == myRank)
 				if (Math.pow(2, step) == clientRankInComm){
 					// My turn to send data to root
-					OUTResults.addNetSend(getLocalRankExchangeRoot(rootRank, 0), new NetworkSimpleData(cmd.getSize() + 20), 30303, cmd.getCommunicator());
+
+					// correct the amount of data
+					dataMultiplicator = (clientRankInComm*2 <= commSize) ? clientRankInComm : commSize - clientRankInComm;
+
+
+					System.out.println("Rank: " + clientRankInComm + " sendTo: " + sendTo + " receiveFrom: " + receiveFrom + " Step: " +  step);
+					OUTResults.addNetSend(getLocalRankExchangeRoot(rootRank, 0), new NetworkSimpleData(cmd.getSize() * dataMultiplicator + 20), 30303, cmd.getCommunicator());
 					// finalize
 					OUTResults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				}else{
 					// Not my turn to send to root
-					if(clientRankInComm < cmd.getCommunicator().getSize()-1){
-						// Receive some data first
-						if(clientRankInComm/2 >= step && cmd.getCommunicator().getSize()-1 >= (clientRankInComm + Math.pow(2, step))){
-							int receiveFrom = (int) (clientRankInComm + Math.pow(2, step));
+					// so receive data from higher ranks instead
+
+					// receive from direct neighbour first and then from even ranks only
+					receiveFrom = (int) (clientRankInComm + ((step == 0) ? 1 : 2*step));
+
+					if(receiveFrom <= commSize){
+						System.out.println("Rank: " + clientRankInComm + " sendTo: " + sendTo + " receiveFrom: " + receiveFrom + " Step: " +  step);
+						OUTResults.addNetReceive(getLocalRankExchangeRoot(rootRank, receiveFrom), 30303, cmd.getCommunicator());
+					}
+					OUTResults.setNextStep(++step);
+				}
+			}else{
+				if(clientRankInComm%2 == 0){
+					if(step == CommandProcessing.STEP_START){
+						receiveFrom = (int)(clientRankInComm + Math.pow(2, step));
+						if(receiveFrom <= commSize){
+							System.out.println("Rank: " + clientRankInComm + " sendTo: " + sendTo + " receiveFrom: " + receiveFrom + " Step: " +  step);
 							OUTResults.addNetReceive(getLocalRankExchangeRoot(rootRank, receiveFrom), 30303, cmd.getCommunicator());
+						}
+						OUTResults.setNextStep(++step);
+					}else{
+						sendTo = (int)(clientRankInComm - 2*step);
+						if(Integer.bitCount(sendTo) == 1){
+							System.out.println("Rank: " + clientRankInComm + " sendTo: " + sendTo + " receiveFrom: " + receiveFrom + " Step: " +  step);
+
+							// correct amount of data
+							if (clientRankInComm + 2 == commSize)
+								dataMultiplicator = 3;
+							else
+								dataMultiplicator = 2;
+
+							OUTResults.addNetSend(getLocalRankExchangeRoot(rootRank, sendTo), new NetworkSimpleData(cmd.getSize() * dataMultiplicator + 20), 30303, cmd.getCommunicator());
+							OUTResults.setNextStep(CommandProcessing.STEP_COMPLETED);
+						}else{
 							OUTResults.setNextStep(++step);
 						}
 					}
-				}
-			}else{
-				if(step == CommandProcessing.STEP_START && (clientRankInComm%2 == 0)){
-					// Receive from neighbour
-					OUTResults.addNetReceive(getLocalRankExchangeRoot(rootRank, clientRankInComm + 1), 30303, cmd.getCommunicator());
-					OUTResults.setNextStep(++step);
-				}else if(step <= Math.sqrt(clientRankInComm)){
-					int sendTo = (int)(clientRankInComm - Math.pow(2, step));
+				}else if(clientRankInComm % 2 != 0 && step == CommandProcessing.STEP_START){
+					sendTo = (int)(clientRankInComm - 1);
+					System.out.println("Rank: " + clientRankInComm + " sendTo: " + sendTo + " receiveFrom: " + receiveFrom + " Step: " +  step);
 					OUTResults.addNetSend(getLocalRankExchangeRoot(rootRank, sendTo), new NetworkSimpleData(cmd.getSize() + 20), 30303, cmd.getCommunicator());
 					OUTResults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				}
 			}
 		}
 	}
-
-	/**
-	 * Power of 2
-	 *
-	 * Determines what number is a power of 2 and is closest to the value given
-	 *
-	 * @param value 	Number to check
-	 * @return			Closest number to pof2 of value
-	 */
-	private int pof2(int value){
-		int temp = 1;
-
-		while (temp <= value){
-			temp *= 2;
-		}
-
-		return temp/2;
-	}
-
-	private boolean isValuePofTwo(int value){
-		int temp = 1;
-
-		while (temp < value){
-			temp *= 2;
-		}
-
-		if(temp == value)
-			return true;
-		else
-			return false;
-	}
-
 }
