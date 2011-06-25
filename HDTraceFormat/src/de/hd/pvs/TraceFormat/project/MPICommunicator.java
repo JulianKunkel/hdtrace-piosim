@@ -97,7 +97,14 @@ public class MPICommunicator {
 		return worldRankMap.keySet();
 	}
 	
+	public Collection<Integer> getLocalRanks() {
+		return commRankMap.keySet();
+	}
+	
+	
 	public int getWorldRank(int commRank){
+		assert(commRank >= 0);
+		assert(commRank < getSize());
 		return commRankMap.get(commRank).getGlobalId();
 	}
 	
