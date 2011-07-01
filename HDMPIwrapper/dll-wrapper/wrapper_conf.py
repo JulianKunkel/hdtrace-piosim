@@ -6,10 +6,14 @@ Options = {
 }
 
 
+  # write can actually invoke a nested write from the tracing library, this must be prevented
 before = {
-  # make write reentrant !
-  "write" :  "static int write_entered = 0;\n if (write_entered){ return (* static_write) (fd,buf,count);}\n write_entered = 1;"
+  "write" :  "static int write_entered = 0;\n if (write_entered){ return (* static_write) (fd,buf,count);\n}"
 	 }
+beforeTracing = {               
+      "write" :  "write_entered = 1;"
+	 }
+
 after = { "write" : "write_entered = 0;"}
 
 attributes = {

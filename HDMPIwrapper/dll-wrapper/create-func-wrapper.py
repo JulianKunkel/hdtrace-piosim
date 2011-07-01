@@ -34,7 +34,7 @@
 import re
 import sys
 
-from wrapper_conf import before, after, attributes, conditions, Options
+from wrapper_conf import before, beforeTracing, after, attributes, conditions, Options
 
 TRACE = Options["Trace"]
 
@@ -157,6 +157,8 @@ def add_functions(groupFiles, output, varDef):
 	output.append("printf(\"Entering " + groupFunction + " " + tName + "\\n\");\n")
 
       if TRACE:
+        if tName in beforeTracing:
+	    output.append(beforeTracing[tName] + "\n")
 	output.append("hdMPI_threadLogStateStart(\"" + groupFunction + "_" + tName + "\");\n");
       output.append("}\n");
 

@@ -83,6 +83,51 @@ AC_ARG_ENABLE(asserts,
 
 
 
+dnl ----------------------------------------------------------------------
+dnl Check for a suitable glib
+dnl ----------------------------------------------------------------------
+
+GLIB_PRESENT=NO
+GLIB_LDADD=
+
+AM_PATH_GLIB_2_0([2.16.6],[GLIB_PRESENT=YES],[GLIB_PRESENT=NO],[gthread])
+
+AC_ARG_WITH(glib-static,
+	    AC_HELP_STRING([--with-glib-static=prefix],[use static glib tree (prefix is REQUIRED)]),
+	    [
+	     if ! echo "${withval}" | grep '^/'
+	     then
+	         withval="$(pwd)/${withval}"
+	     fi
+	     GLIB_STATIC_LIBGLIB2_A="${withval}/lib/libglib-2.0.a"
+	     GLIB_STATIC_LIBGTHREAD2_A="${withval}/lib/libgthread-2.0.a"
+	     GLIB_STATIC_INCLUDE="${withval}/include/glib-2.0"
+	     GLIB_STATIC_LIBINCLUDE="${withval}/lib/glib-2.0/include"
+	     if test -f ${GLIB_STATIC_LIBGLIB2_A} -a -f ${GLIB_STATIC_LIBGTHREAD2_A}
+    	     then
+		     if test -f "${GLIB_STATIC_INCLUDE}/glib.h"
+		     then
+			     GLIB_LDADD="${GLIB_STATIC_LIBGTHREAD2_A} ${GLIB_STATIC_LIBGLIB2_A}"
+			     GLIB_CFLAGS="-I${GLIB_STATIC_INCLUDE} -I${GLIB_STATIC_LIBINCLUDE}"
+			     # TODO: Do we need to do some pthreads stuff here?
+			     AC_SUBST(GLIB_LIBS)   # override the one by AM_PATH_GLIB_2_0
+			     AC_SUBST(GLIB_CFLAGS)
+			     GLIB_PRESENT=YES
+			     AC_MSG_NOTICE([assuming static glib in ${withval} is good...])
+		     fi
+	     fi
+	    ]
+	   )
+
+if test "$GLIB_PRESENT" != "YES"
+then
+	AC_MSG_ERROR([Cannot find a suitable glib2 (>= 2.16.6)])
+fi
+
+AC_SUBST(GLIB_LDADD)
+
+
+
 # PVFS2 path:
 dnl set the pvfs2 library path
 AC_ARG_WITH(hdPVFS2,
@@ -249,49 +294,6 @@ if test "${ENABLE_FUNCTION_WRAPPER}" == "1"
 then
   AC_DEFINE(ENABLE_FUNCTION_WRAPPER, 1, [Enable the common MPI function call wrapper and tracing])
 fi
-
-dnl ----------------------------------------------------------------------
-dnl Check for a suitable glib
-dnl ----------------------------------------------------------------------
-
-GLIB_PRESENT=NO
-GLIB_LDADD=
-
-AM_PATH_GLIB_2_0([2.16.6],[GLIB_PRESENT=YES],[GLIB_PRESENT=NO],[gthread])
-
-AC_ARG_WITH(glib-static,
-	    AC_HELP_STRING([--with-glib-static=prefix],[use static glib tree (prefix is REQUIRED)]),
-	    [
-	     if ! echo "${withval}" | grep '^/'
-	     then
-	         withval="$(pwd)/${withval}"
-	     fi
-	     GLIB_STATIC_LIBGLIB2_A="${withval}/lib/libglib-2.0.a"
-	     GLIB_STATIC_LIBGTHREAD2_A="${withval}/lib/libgthread-2.0.a"
-	     GLIB_STATIC_INCLUDE="${withval}/include/glib-2.0"
-	     GLIB_STATIC_LIBINCLUDE="${withval}/lib/glib-2.0/include"
-	     if test -f ${GLIB_STATIC_LIBGLIB2_A} -a -f ${GLIB_STATIC_LIBGTHREAD2_A}
-    	     then
-		     if test -f "${GLIB_STATIC_INCLUDE}/glib.h"
-		     then
-			     GLIB_LDADD="${GLIB_STATIC_LIBGTHREAD2_A} ${GLIB_STATIC_LIBGLIB2_A}"
-			     GLIB_CFLAGS="-I${GLIB_STATIC_INCLUDE} -I${GLIB_STATIC_LIBINCLUDE}"
-			     # TODO: Do we need to do some pthreads stuff here?
-			     AC_SUBST(GLIB_LIBS)   # override the one by AM_PATH_GLIB_2_0
-			     AC_SUBST(GLIB_CFLAGS)
-			     GLIB_PRESENT=YES
-			     AC_MSG_NOTICE([assuming static glib in ${withval} is good...])
-		     fi
-	     fi
-	    ]
-	   )
-
-if test "$GLIB_PRESENT" != "YES"
-then
-	AC_MSG_ERROR([Cannot find a suitable glib2 (>= 2.16.6)])
-fi
-
-AC_SUBST(GLIB_LDADD)
 
 
 CFLAGS+=" $(getconf LFS_CFLAGS)"

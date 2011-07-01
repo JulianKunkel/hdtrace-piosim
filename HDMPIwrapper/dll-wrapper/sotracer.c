@@ -31,11 +31,11 @@
 
 // maps memory positions of the functions i.e. & write to the corresponding dlsym openend.
 
-static int started_tracing = 0;
+static __thread int started_tracing = 0;
 static int initalized_tracing = 0;
 
 // ensures that we will never nest calls.
-static int isNested = 0;
+static __thread int isNested = 0;
 
 PYTHON_ADD_FUNCTIONS
 
