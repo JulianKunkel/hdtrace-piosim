@@ -22,6 +22,7 @@
 
 #ifdef NETCDFLIB
 #warning Will use NETCDFLIB
+#include <netcdf.h>
 #endif
 
 #ifdef HDF5LIB

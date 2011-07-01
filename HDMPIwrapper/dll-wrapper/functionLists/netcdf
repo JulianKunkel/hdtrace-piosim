@@ -100,7 +100,7 @@ int nc_get_vara_float(int ncid, int varid, const size_t *startp, const size_t *c
 int nc_put_vara_double(int ncid, int varid, const size_t *startp, const size_t *countp, const double *op);
 int nc_get_vara_double(int ncid, int varid, const size_t *startp, const size_t *countp, double *ip);
 int nc_put_vars(int ncid, int varid, const size_t *start, const size_t *count, const ptrdiff_t *stride, const void * value);
-int nc_get_vars(int ncid, int varid, const size_t *start, const size_t *count, const ptrdiff_t *stride, const void * value);
+int nc_get_vars(int ncid, int varid, const size_t *start, const size_t *count, const ptrdiff_t *stride, void * value);
 int nc_put_vars_text(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, const char *op);
 int nc_get_vars_text(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, char *ip);
 int nc_put_vars_uchar(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, const unsigned char *op);
@@ -134,7 +134,7 @@ int nc_get_varm_long(int ncid, int varid, const size_t *startp, const size_t *co
 int nc_put_varm_float(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, const ptrdiff_t *imapp, const float *op);
 int nc_get_varm_float(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, const ptrdiff_t *imapp, float *ip);
 int nc_put_varm_double(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, const ptrdiff_t *imapp, const double *op);
-int nc_get_varm_double(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, const ptrdiff_t imapp, double *ip);
+int nc_get_varm_double(int ncid, int varid, const size_t *startp, const size_t *countp, const ptrdiff_t *stridep, const ptrdiff_t * imapp, double *ip);
 int nc_put_var_text(int ncid, int varid, const char *op);
 int nc_get_var_text(int ncid, int varid, char *ip);
 int nc_put_var_uchar(int ncid, int varid, const unsigned char *op);
@@ -153,7 +153,7 @@ int nc_put_var_double(int ncid, int varid, const double *op);
 int nc_get_var_double(int ncid, int varid, double *ip);
 int nc__open_mp(const char *path, int mode, int basepe, size_t *chunksizehintp, int *ncidp);
 int nc_delete(const char *path );
-int nc_delete_mp(const char *path);
+int nc_delete_mp(const char *path, int basepe);
 int nc_set_base_pe(int ncid, int pe);
 int nc_inq_base_pe(int ncid, int *pe);
 int nctypelen(nc_type datatype);
