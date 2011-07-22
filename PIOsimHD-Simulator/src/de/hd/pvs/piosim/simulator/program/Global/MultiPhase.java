@@ -96,7 +96,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 		/**
 		 * Contains the communication operations per phase, for each client with which aggregator it must transfer data in the given phase.
 		 */
-		public HashMap<GClientProcess, Long> clientOps = null;
+		final public HashMap<GClientProcess, Long> clientOps = new HashMap<GClientProcess, Long>();
 
 		public ClientSinglePhaseOperations(ListIO phaseAggregatorIOOperation) {
 			this.phaseAggregatorIOOperation = phaseAggregatorIOOperation;
@@ -147,7 +147,6 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 		public ClientSinglePhaseOperations getClientPhase(int phase){
 			if (phases[phase] == null){
 				phases[phase] = new ClientSinglePhaseOperations(null);
-				phases[phase].clientOps = new HashMap<GClientProcess, Long>();
 			}
 
 			return phases[phase];
