@@ -23,16 +23,14 @@ public class FlowTest extends ModelTest{
 	HardwareConfiguration myConfig = new HardwareConfiguration(){
 		@Override
 		public NetworkNode createModel(String prefix, ModelBuilder mb, INetworkTopology topology) throws Exception {
-
-			// instantiate the templates:
+			// Instantiate objects representing the templates.
 			final Node node = new Node();
-
 			final NIC nic = new NIC();
 			final StoreForwardNode fastNode = new StoreForwardNode();
 			final SimpleNetworkEdge fastEdge = new SimpleNetworkEdge();
 			final SimpleNetworkEdge slowEdge = new SimpleNetworkEdge();
 
-			// set the model properties
+			// Set the model properties.
 			nic.setTotalBandwidth(100*GBYTE);
 			nic.setName("nic");
 
@@ -51,8 +49,7 @@ public class FlowTest extends ModelTest{
 			slowEdge.setLatency(new Epoch(0.1));
 			slowEdge.setBandwidth(10*MiB);
 
-			// add those instances as templates
-
+			// Add those instances to the template library.
 			mb.addTemplateIf(node);
 			mb.addTemplateIf(nic);
 			mb.addTemplateIf(fastNode);
@@ -60,62 +57,63 @@ public class FlowTest extends ModelTest{
 			mb.addTemplateIf(slowEdge);
 
 
-			// create the central node by cloning the template
+			// Create the central node by cloning the template.
 			final NetworkNode nodeA = mb.cloneFromTemplate(fastNode);
 			nodeA.setName("node");
 			mb.addNetworkNode(nodeA);
 
-			// create the node to Y from the same template
-			final NetworkNode nodetoY = mb.cloneFromTemplate(fastNode);
-			nodetoY.setName("nodeToY");
-			mb.addNetworkNode(nodetoY);
+			// Create the node to Y from the same template.
+			final NetworkNode nodeToY = mb.cloneFromTemplate(fastNode);
+			nodeToY.setName("nodeToY");
+			mb.addNetworkNode(nodeToY);
 
-			// create the interconnect between those two nodes
+			// Create the interconnect between those two nodes.
 			{
-				NetworkEdge e1 = mb.cloneFromTemplate(fastEdge);
-				NetworkEdge e2 = mb.cloneFromTemplate(fastEdge);
+			NetworkEdge e1 = mb.cloneFromTemplate(fastEdge);
+			NetworkEdge e2 = mb.cloneFromTemplate(fastEdge);
 
-				mb.connect(topology, nodeA, e1, nodetoY);
-				mb.connect(topology, nodetoY, e2, nodeA);
+			mb.connect(topology, nodeA, e1, nodeToY);
+			mb.connect(topology, nodeToY, e2, nodeA);
 			}
 
 
-			// add all the clients and interconnect them.
-			// an array of the processes' names
+			// Add all the clients and interconnect them.
+			// An array encodes the processes' names.
 			final String [] names = {"A", "B", "C", "Y", "Z"};
 
 			for(int i=0; i < 5; i++){
-				// create the NIC
-				NIC nm = mb.cloneFromTemplate(nic);
-				nm.setName(names[i]);
+			  // Instantiate the NIC for the client.
+			  NIC nm = mb.cloneFromTemplate(nic);
+			  nm.setName(names[i]);
 
-				// create the client
-				final ClientProcess c = new ClientProcess();
-				c.setNetworkInterface(nm);
-				c.setName(names[i]);
-				c.setRank(i);
-				c.setNetworkInterface(nm);
+			  // Create the client.
+			  final ClientProcess c = new ClientProcess();
+			  c.setNetworkInterface(nm);
+			  c.setName(names[i]);
+			  c.setRank(i);
+			  c.setNetworkInterface(nm);
 
-				// create the node
-				final Node n = mb.cloneFromTemplate(node);
-				n.setName(names[i]);
-				mb.addNode(n);
-				mb.addClient(n, c);
+			  // Instantiate the node.
+			  final Node n = mb.cloneFromTemplate(node);
+			  n.setName("N" + names[i]);
+			  mb.addNode(n);
+			  mb.addClient(n, c);
 
-				if(i < 3 || i == 4){
-				// interconnect via crossbar switch
-					NetworkEdge e1 = mb.cloneFromTemplate(fastEdge);
-					NetworkEdge e2 = mb.cloneFromTemplate(fastEdge);
-					mb.connect(topology, nm, e1, nodeA);
-					mb.connect(topology, nodeA, e2, nm);
-				}else if(i == 3){
-					// node Y
-					NetworkEdge e1 = mb.cloneFromTemplate(slowEdge);
-					NetworkEdge e2 = mb.cloneFromTemplate(slowEdge);
-					mb.connect(topology, nm, e1, nodetoY);
-					mb.connect(topology, nodetoY, e2, nm);
-				}
+			  if(i < 3 || i == 4){
+			  // Interconnect nodes via the central network node.
+				  NetworkEdge e1 = mb.cloneFromTemplate(fastEdge);
+				  NetworkEdge e2 = mb.cloneFromTemplate(fastEdge);
+				  mb.connect(topology, nm, e1, nodeA);
+				  mb.connect(topology, nodeA, e2, nm);
+			  }else if(i == 3){
+			  // Interconnect node Y.
+				  NetworkEdge e1 = mb.cloneFromTemplate(slowEdge);
+				  NetworkEdge e2 = mb.cloneFromTemplate(slowEdge);
+				  mb.connect(topology, nm, e1, nodeToY);
+				  mb.connect(topology, nodeToY, e2, nm);
+			  }
 			}
+
 
 			return null;
 		}

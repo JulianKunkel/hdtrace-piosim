@@ -4,6 +4,9 @@ import de.hd.pvs.TraceFormat.project.datatypes.ContiguousDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype.StructType;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype.DimensionSpec;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype.Order;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 
@@ -53,7 +56,7 @@ public class FileView {
 
 		final long typeSize = datatype.getSize();
 
-		// determine start position in datatype
+		// determine start position in data type
 		final long offsetInDatatype = offset % typeSize;
 
 		unrollContiguous(datatype, new CurrentPosition(offset - offsetInDatatype, listIO), offsetInDatatype, accessSize);
@@ -71,6 +74,9 @@ public class FileView {
 		public void createIOJob(long size){
 			assert(size > 0);
 			listIO.addIOOperation(currentPhysicalPosition + displacement, size);
+
+			System.out.println("Adding size:" + size + " @ offset: " + (currentPhysicalPosition + displacement)  );
+
 			currentPhysicalPosition += size;
 		}
 
@@ -173,13 +179,12 @@ public class FileView {
 	/**
 	 * Internal function, recursively unrolls the datatype.
 	 *
-	 * @param listIO
 	 * @param physicalOffset The offset at which the datatype starts (does not include displacement)
 	 * @param offsetInDatatype
 	 * @param accessSize
 	 */
 	private void addDatatypeIOOperation(CurrentPosition cur, Datatype datatype, long offsetInDatatype, long accessSize){
-		System.out.println("addDatatypeIOOperation " + datatype.getType() + " " + datatype.getTid() + " " + accessSize +  " pos " + cur);
+		System.out.println("addDatatypeIOOperation " + datatype.getType() + " " + datatype.getTid() + " " + accessSize +  " offset: " + offsetInDatatype + " cur: " + cur.getCurrentPhysicalPosition());
 
 		assert(offsetInDatatype >= 0);
 		assert(accessSize > 0);
@@ -187,7 +192,7 @@ public class FileView {
 		assert(typeSize >= accessSize + offsetInDatatype);
 
 		if(typeSize== datatype.getExtend()){
-			// no holes! Just go ahead. TODO tread partial write of Native Datatypes which is not allowed!
+			// no holes! Just go ahead. TODO treat partial write of native data types which is not allowed here!
 			cur.skipHole(offsetInDatatype);
 
 			cur.createIOJob(accessSize);
@@ -292,7 +297,128 @@ public class FileView {
 			}
 
 			break;
-		}
+
+		}case SUBARRAY:{
+			// see http://www.cs.vu.nl/~kielmann/mpi/standard-2/node79.html
+			final SubarrayDatatype type = (SubarrayDatatype) datatype;
+
+			// support only C order right now.
+			assert(type.getOrder() == Order.MPI_ORDER_C);
+
+			// how often is the full data type accessed
+			final long fullIterations = accessSize / type.getSize();
+
+			final Datatype prev = type.getPrevious();
+			final long prevExtend = type.getPrevious().getExtend();
+			final long prevSize = type.getPrevious().getSize();
+
+			final long startPos = cur.getCurrentPhysicalPosition();
+
+			final DimensionSpec[] dimSpec = type.getDimensionSpec();
+
+			// TODO generalize this method, works for 2D only
+			assert(dimSpec.length == 2);
+
+			// number of times the data type is repeated inside the subarray.
+			long arrayDimension = dimSpec[0].getSize();
+			for(int d=1;  d < dimSpec.length ; d++){
+				arrayDimension = arrayDimension * dimSpec[d].getSize();
+			}
+
+			// determine start of the array which shall be skipped
+			long skipStart =  prevExtend * dimSpec[0].getStart();
+			{
+				long previSize = prevExtend;
+				previSize = dimSpec[0].getSize() * previSize;
+				for (int d=1; d < dimSpec.length ; d++){
+					skipStart = skipStart + dimSpec[d].getStart() * previSize;
+					previSize = dimSpec[d].getSize() * previSize;
+				}
+			}
+
+			long skipEnd =  prevExtend * (dimSpec[0].getSize() - dimSpec[0].getSubsize() - dimSpec[0].getStart()) ;
+			{
+				long previSize = prevExtend;
+				previSize = dimSpec[0].getSize() * previSize;
+				for (int d=1; d < dimSpec.length ; d++){
+					skipEnd = skipEnd + (dimSpec[d].getSize() - dimSpec[d].getSubsize() - dimSpec[d].getStart()) * previSize;
+					previSize = dimSpec[d].getSize() * previSize;
+				}
+			}
+
+			if(offsetInDatatype > 0){
+
+				// determine start of the array which shall be skipped
+				cur.skipHole(skipStart);
+
+				// TODO 2D loop:
+
+				for(int d2= 0 ; d2 < dimSpec[1].getSubsize(); d2++){
+					// now process the first block of data
+					for(int c=0; c < dimSpec[0].getSubsize(); c++){
+						if (offsetInDatatype < prevSize){
+							if(accessSize <= prevSize){
+								addDatatypeIOOperation(cur, prev, offsetInDatatype, accessSize);
+
+								// skip to the end of the current datatype.
+								cur.skipHole( type.getExtend() - ( cur.getCurrentPhysicalPosition() - startPos ) );
+								return;
+							}
+							addDatatypeIOOperation(cur, prev, offsetInDatatype, prevSize);
+							accessSize -= prevSize;
+						}else{ // do not access the data type at this position
+							cur.skipHole(prevSize);
+							offsetInDatatype -= prevSize;
+						}
+					}
+					// skip to the next element, but not in the last iteration
+					if( d2 < dimSpec[1].getSubsize() - 1 )
+						cur.skipHole( ( dimSpec[0].getSize() - dimSpec[0].getSubsize() ) * prevExtend);
+				}
+
+
+				// skip to the end of the data type:
+				// determine start of the array which shall be skipped
+				cur.skipHole(skipEnd);
+			}
+
+			// write the remainder
+			for(int i=0; i < fullIterations + 1 ; i++){
+
+				// walk through one sub-array
+
+				// determine start of the array which shall be skipped
+				cur.skipHole(skipStart);
+
+				// TODO 2D loop:
+
+				for(int d2= 0 ; d2 < dimSpec[1].getSubsize(); d2++){
+					// now process the first block of data
+					for(int c=0; c < dimSpec[0].getSubsize(); c++){
+						if(accessSize <= prevSize){
+							addDatatypeIOOperation(cur, prev, offsetInDatatype, accessSize);
+
+							// skip to the end of the current datatype.
+							cur.skipHole( type.getExtend() - ( cur.getCurrentPhysicalPosition() - startPos ) );
+							return;
+						}
+						addDatatypeIOOperation(cur, prev, 0, prevSize);
+						accessSize -= prevSize;
+					}
+					// skip to the next element, but not in the last iteration
+					if( d2 < dimSpec[1].getSubsize() - 1 )
+						cur.skipHole( ( dimSpec[0].getSize() - dimSpec[0].getSubsize() ) * prevExtend);
+				}
+
+
+				// skip to the end of the data type:
+				// determine start of the array which shall be skipped
+				cur.skipHole(skipEnd);
+			}
+
+			break;
+		}default:
+			throw new IllegalArgumentException("Data type " + datatype.getType() + " not supported, yet!");
 		}
 	}
 }

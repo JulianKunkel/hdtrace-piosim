@@ -154,6 +154,11 @@ public class IOTest extends ModelTest {
 	@Test public void Aggregation1Test() throws Exception{
 		setupOneNodeOneServer(1, IOC.AggregationCache());
 
+		parameters.setTraceFile("/tmp/three");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceServers(true);
+		parameters.setTraceInternals(true);
+
 		FileDescriptor fd = pb.addFileOpen(f, world , false);
 		pb.addWriteSequential(0, fd, 0, MiB);
 		pb.addFileClose(fd);

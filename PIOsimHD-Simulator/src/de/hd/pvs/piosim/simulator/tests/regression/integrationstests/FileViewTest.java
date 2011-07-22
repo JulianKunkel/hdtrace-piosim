@@ -3,6 +3,9 @@ package de.hd.pvs.piosim.simulator.tests.regression.integrationstests;
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.project.datatypes.NamedDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype.DimensionSpec;
+import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype.Order;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
@@ -96,10 +99,28 @@ public class FileViewTest {
 
 	}
 
+	public void testSubarrayDatatype(){
+
+		// 10 x 5 Grid in which the inner 6x3 elements are interesting
+		DimensionSpec [] dimSpec = new DimensionSpec[2];
+		dimSpec[0] = new DimensionSpec(10, 6, 2);
+		dimSpec[1] = new DimensionSpec(5, 3, 1);
+		SubarrayDatatype subarray = new SubarrayDatatype(dimSpec, Order.MPI_ORDER_C, NamedDatatype.BYTE);
+
+		runTest(subarray, 0, 0, 4, new long[]{12} , new long[]{4});
+		runTest(subarray, 0, 0, 7, new long[]{12,22} , new long[]{6,1});
+		runTest(subarray, 0, 0, 18, new long[]{12,22,32} , new long[]{6,6,6});
+		runTest(subarray, 0, 0, 36, new long[]{12,22,32,62,72,82} , new long[]{6,6,6,6,6,6});
+		runTest(subarray, 0, 4, 32, new long[]{16,22,32,62,72,82} , new long[]{2,6,6,6,6,6});
+
+		runTest(subarray, 0, 4, 2, new long[]{16} , new long[]{2});
+
+	}
 
 	public static void main(String[] args) {
 		FileViewTest t = new FileViewTest();
-		t.testVectorDatatype();
-		t.testStructDatatype();
+		//t.testVectorDatatype();
+		//t.testStructDatatype();
+		t.testSubarrayDatatype();
 	}
 }

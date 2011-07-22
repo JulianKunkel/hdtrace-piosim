@@ -408,12 +408,41 @@ public class PaperResults extends ModelTest{
 	}
 
 
+
+
+	public void runParabenchIO_2C2S() throws Exception{
+		final String which =
+			"/home/kunkel/Dokumente/Dissertation/results-git/pvfs2-ram-limited/4-levels-of-access/100/N4-P1-C2-P2-S2-RAM1000/parabench-instrumented.proj";
+
+		NoCache cache = new NoCache();
+		cache.setName("PVS-CACHE");
+		cache.setMaxNumberOfConcurrentIOOps(1);
+
+		setupDisjointIO(4, 2, 2, 1000, cache);
+
+		parameters.setTraceFile("/tmp/parabench-2C2S");
+		parameters.setTraceEnabled(true);
+
+		final ApplicationXMLReader axml = new ApplicationXMLReader();
+		final Application app = axml.parseApplication(which, true);
+
+		mb.setApplication("Jacobi", app);
+
+		final ClientProcess p = mb.getModel().getClientProcesses().get(0);
+		p.setApplication("Jacobi");
+		p.setRank(0);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
 	public static void main(String[] args) throws Exception {
 		PaperResults t = new PaperResults();
 		final long MByte = t.MBYTE;
 		final long KByte = t.KBYTE;
 
-		t.runJacobiIONC_1C1S();
+		t.runParabenchIO_2C2S();
 		//t.reduceDJVisualization(8, 100*MByte);
 		//t.bcastDJVisualization(8, 100*MByte);
 		//t.reduceDJTest(100*MByte);
