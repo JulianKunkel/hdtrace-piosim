@@ -61,6 +61,11 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 		final int COMMUNICATION_PHASE_RECV      = 5;
 
 		if(step == CommandProcessing.STEP_START){
+
+			if(cmd.getListIO().getTotalSize() == 0){
+				return;
+			}
+
 			boolean ret = synchronizeClientsWithoutCommunication(outCommand);
 
 			outCommand.setNextStep(CHECK_TWO_PHASE);

@@ -51,6 +51,11 @@ extends CommandImplementation<Filewrite>
 		final int UPDATE_SIZE = 3;
 
 		if(step == CommandProcessing.STEP_START){
+
+			if(cmd.getListIO().getTotalSize() == 0){
+				return;
+			}
+
 			/* determine I/O targets */
 			assert(client.getSimulator() != null);
 

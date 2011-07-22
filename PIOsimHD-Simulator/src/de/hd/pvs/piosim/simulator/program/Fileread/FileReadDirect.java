@@ -43,7 +43,13 @@ extends CommandImplementation<Fileread>
 {
 	@Override
 	public void process(Fileread cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+
 		if(step == CommandProcessing.STEP_START){
+
+			if(cmd.getListIO().getTotalSize() == 0){
+				return;
+			}
+
 			/* determine I/O targets */
 			final long actualFileSize = cmd.getFile().getSize();
 			final long amountOfDataToReadOriginal = cmd.getListIO().getTotalSize();
