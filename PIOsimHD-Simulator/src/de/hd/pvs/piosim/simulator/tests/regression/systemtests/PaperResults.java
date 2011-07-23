@@ -28,11 +28,15 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.junit.Test;
+
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationReorderCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.model.program.Application;
@@ -438,11 +442,11 @@ public class PaperResults extends ModelTest{
 		final String which =
 			"/home/kunkel/Dokumente/Dissertation/Trace/results-git/pvfs2-ram-limited/4-levels-of-access/100/N4-P1-C2-P2-S2-RAM1000/parabench-instrumented.proj";
 
-		AggregationCache cache = new AggregationCache();
+		AggregationReorderCache cache = new AggregationReorderCache();
 		cache.setName("PVS-CACHE");
 		cache.setMaxNumberOfConcurrentIOOps(1);
 
-		setupDisjointIO(4, 2, 2, 1000, cache);
+		setupDisjointIO(4, 1, 2, 1000, cache);
 
 		parameters.setTraceFile("/tmp/parabench-2C2S");
 		parameters.setTraceEnabled(true);
@@ -452,9 +456,30 @@ public class PaperResults extends ModelTest{
 
 		mb.setApplication("Jacobi", app);
 
-		final ClientProcess p = mb.getModel().getClientProcesses().get(0);
-		p.setApplication("Jacobi");
-		p.setRank(0);
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test
+	public void runIOTest2S2C() throws Exception{
+		AggregationReorderCache cache = new AggregationReorderCache();
+		cache.setName("PVS-CACHE");
+		cache.setMaxNumberOfConcurrentIOOps(1);
+
+		setupDisjointIO(4, 1, 2, 1000, cache);
+
+		parameters.setTraceFile("/tmp/parabench-2C2S");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(100 * KiB);
+
+		FileMetadata f =  aB.createFile("test", 0, dist);
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addWriteSequential(0, fd, 0,       100*MiB);
+		pb.addWriteSequential(1, fd, 100*MiB, 100*MiB);
+		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
 	}
