@@ -165,9 +165,9 @@ public class RelationXMLWriter {
 			}
 			
 			if(childTags != null){
-				file.write(">" + childTags + "</s>");
+				file.write(">" + childTags + "</s>\n");
 			}else{
-				file.write("/>");
+				file.write("/>\n");
 			}			
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
@@ -202,9 +202,9 @@ public class RelationXMLWriter {
 			}
 			
 			if(childTags != null){
-				file.write(">" + childTags + "</e>");
+				file.write(">" + childTags + "</e>\n");
 			}else{
-				file.write("/>");
+				file.write("/>\n");
 			}
 		}catch(IOException e){
 			throw new IllegalArgumentException(e);
