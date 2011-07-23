@@ -133,8 +133,8 @@ public class FileViewTest {
 
 	public static void main(String[] args) {
 		FileViewTest t = new FileViewTest();
-		//t.testVectorDatatype();
-		//t.testStructDatatype();
+		t.testVectorDatatype();
+		t.testStructDatatype();
 		t.testSubarrayDatatype();
 	}
 }

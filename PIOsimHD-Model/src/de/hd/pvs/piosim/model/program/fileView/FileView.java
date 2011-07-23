@@ -158,11 +158,11 @@ public class FileView {
 			}
 			if( physicalOffsetToSkip > 0){
 				if (physicalOffsetToSkip >= size){
-					currentPhysicalPosition += size;
+					//currentPhysicalPosition += size;
 					physicalOffsetToSkip -= size;
 					return;
 				}else{
-					currentPhysicalPosition += physicalOffsetToSkip;
+					//currentPhysicalPosition += physicalOffsetToSkip;
 					size = size - physicalOffsetToSkip;
 					physicalOffsetToSkip = 0;
 				}
@@ -188,10 +188,9 @@ public class FileView {
 		public void datatypeHole(long size){
 			assert(size >= 0);
 
-			currentPhysicalPosition += size;
-
-			// skip the physical bytes if necessary
-			if( physicalOffsetToSkip > 0){
+			if( physicalOffsetToSkip <= 0){
+				currentPhysicalPosition += size;
+			}else{ // skip the physical bytes if necessary
 				physicalOffsetToSkip = size > physicalOffsetToSkip ? 0 : physicalOffsetToSkip - size;
 			}
 		}
@@ -292,9 +291,6 @@ public class FileView {
 
 			final Datatype prev = type.getPrevious();
 			final long prevExtend = type.getPrevious().getExtend();
-			final long prevSize = type.getPrevious().getSize();
-
-			final long startPos = cur.getCurrentPhysicalPosition();
 
 			final DimensionSpec[] dimSpec = type.getDimensionSpec();
 
