@@ -95,13 +95,4 @@ extends CommandImplementation<Fileread>
 		return;
 	}
 
-
-	@Override
-	public String getAdditionalTraceTag(Fileread cmd) {
-		StringBuffer buff = new StringBuffer();
-		for(SingleIOOperation op: cmd.getListIO().getIOOperations()){
-			buff.append("<op size=\"" + op.getAccessSize() + "\" offset=\"" + op.getOffset() + "\"/>");
-		}
-		return buff.toString();
-	}
 }

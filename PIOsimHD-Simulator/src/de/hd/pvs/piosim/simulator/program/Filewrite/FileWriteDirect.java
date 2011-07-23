@@ -124,13 +124,4 @@ extends CommandImplementation<Filewrite>
 
 		return;
 	}
-
-	@Override
-	public String getAdditionalTraceTag(Filewrite cmd) {
-		StringBuffer buff = new StringBuffer();
-		for(SingleIOOperation op: cmd.getListIO().getIOOperations()){
-			buff.append("<op size=\"" + op.getAccessSize() + "\" offset=\"" + op.getOffset() + "\"/>");
-		}
-		return buff.toString();
-	}
 }

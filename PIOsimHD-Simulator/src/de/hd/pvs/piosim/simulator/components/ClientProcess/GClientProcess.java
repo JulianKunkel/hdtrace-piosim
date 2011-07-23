@@ -396,7 +396,7 @@ public class GClientProcess
 
 				StringBuffer strBuff = new StringBuffer();
 				for(SingleIOOperation op : list.getIOOperations()){
-					strBuff.append("<op size=\"" + op.getAccessSize() +  "\" offset=\"" + op.getOffset()  + "\"></op>\n");
+					strBuff.append("<op size=\"" + op.getAccessSize() +  "\" offset=\"" + op.getOffset()  + "\"/>");
 				}
 
 				if(tag == null){
