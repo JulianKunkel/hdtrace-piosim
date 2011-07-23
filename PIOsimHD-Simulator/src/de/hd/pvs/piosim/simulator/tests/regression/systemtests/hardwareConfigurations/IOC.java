@@ -38,12 +38,21 @@ public class IOC implements HardwareComponents{
 	}
 
 
+	// Barracuda 7200.12 SATA 3Gb/s 250GB Hard Drive (ST3250318AS).
+	// http://www.seagate.com/staticfiles/support/disc/manuals/desktop/Barracuda%207200.12/100529369h.pdf
 	static public IOSubsystem WestDisk(){
 		final RefinedDiskModel iosub = new RefinedDiskModel();
-		iosub.setAverageSeekTime(new Epoch(0.01));
+		iosub.setAverageSeekTime(new Epoch(0.009));
 		iosub.setTrackToTrackSeekTime(new Epoch(0.001));
 		iosub.setRPM(7200);
-		iosub.setPositionDifferenceConsideredToBeClose(5 * MBYTE);
+
+		// look at the P.hD. thesis to understand why this value has been used.
+		iosub.setPositionDifferenceConsideredToBeClose(MBYTE);
+
+		// The value is measured with  dd if=/dev/zero of=test bs=1024k count=8000 and an active mem-eater limiting memory to 1\,GiB.
+		// measured on two nodes: west6: 98.5 MiB/s, west4: 114 MiB/s.
+		// With a block size of 256K (PVFS size)
+		// west6: 96.7 MiB/s
 		iosub.setSequentialTransferRate((int) 100 * MBYTE);
 		iosub.setName("WestDisk");
 
