@@ -20,6 +20,10 @@ public class FileView {
 	final private Datatype datatype;
 	final private long displacement;
 
+	class DatatypeCompletelyUnrolledException extends Exception{
+
+	}
+
 	public FileView(Datatype etype, Datatype datatype, long displacement) {
 		this.datatype = datatype;
 		this.displacement = displacement;
@@ -67,10 +71,14 @@ public class FileView {
 		final long skippedDatatypeCount = offsetInTermsOfTheEType / etypesPerDatatype;
 
 		// determine start position in the data type
-		final long offsetInDatatype = (skippedDatatypeCount / etypesPerDatatype + offsetInTermsOfTheEType % etypesPerDatatype ) * eTypeSize;
+		final long offsetInDatatype = (offsetInTermsOfTheEType % etypesPerDatatype ) * eTypeSize;
 
-		unrollContiguous(datatype, new CurrentPosition(	skippedDatatypeCount * datatype.getExtend() , listIO , false),
-				offsetInDatatype, accessSize);
+		try{
+		unrollContiguous(datatype, new CurrentPosition(	skippedDatatypeCount * datatype.getExtend() + displacement,
+				offsetInDatatype , 0, accessSize, listIO), accessSize / datatype.getSize() + 2);
+		}catch(DatatypeCompletelyUnrolledException e){
+
+		}
 	}
 
 	/**
@@ -88,47 +96,104 @@ public class FileView {
 		assert(physicalOffset >= 0);
 
 		final long extent = datatype.getExtend();
-		// determine start position in the data type
-		final long offsetInDatatype = physicalOffset % extent;
 
-		unrollContiguous(datatype, new CurrentPosition(physicalOffset, listIO, true), offsetInDatatype, accessSize);
+		// determine start position in the data type
+		final long offsetInDatatype = (physicalOffset % extent);
+
+		try{
+		unrollContiguous(datatype, new CurrentPosition(physicalOffset, 0 , offsetInDatatype , accessSize, listIO),
+				accessSize / datatype.getSize() + 2);
+		}catch(DatatypeCompletelyUnrolledException e){
+
+		}
 	}
 
 	private class CurrentPosition{
 		private long currentPhysicalPosition;
+
+		// amount of bytes to skip inside the accessible parts of the data type
+		private long logicalOffsetToSkip;
+
+		// amount of physical bytes to skip until data from the accessible parts should be accessed
+		private long physicalOffsetToSkip;
+
+		// amount of physical bytes which shall be accessed from the accessible parts of the data type
+		private long amountOfDataToAccess;
+
+		// resulting listIO
 		private ListIO listIO;
 
-		final private boolean parsePhysicalAddress;
-		// indicate if the first holes are ignored and do not modify the currentPhysicalPosition
-		private boolean ignoreFirstHoles;
+		public CurrentPosition(long physicalOffset, long logicalOffsetToSkip, long physicalOffsetToSkip, long amountOfDataToAccess, ListIO listIO) {
+			assert(physicalOffset >= 0);
+			assert(logicalOffsetToSkip >= 0);
+			assert(physicalOffsetToSkip >= 0);
 
-		public CurrentPosition(long offset, ListIO listIO, boolean parsePhysicalAddress) {
-			this.currentPhysicalPosition = offset + displacement;
+			// both skip values shall not be bigger than zero.
+			assert(! (logicalOffsetToSkip > 0 && physicalOffsetToSkip > 0) );
+
+			assert(amountOfDataToAccess > 0);
+
+			this.currentPhysicalPosition = physicalOffset;
 			this.listIO = listIO;
-			this.parsePhysicalAddress = parsePhysicalAddress;
-			this.ignoreFirstHoles = parsePhysicalAddress;
+
+			this.amountOfDataToAccess = amountOfDataToAccess;
+			this.logicalOffsetToSkip = logicalOffsetToSkip;
+			this.physicalOffsetToSkip = physicalOffsetToSkip;
 		}
 
-		public void createIOJob(long size){
-			assert(size > 0);
-			listIO.addIOOperation(currentPhysicalPosition, size);
+		// Indicates that the data type has actually some data at the current position.
+		public void datatypeData(long size) throws DatatypeCompletelyUnrolledException{
 
+			// behave as a hole, when physical or logical offsets must be skipped
+			if(logicalOffsetToSkip > 0){
+				if (logicalOffsetToSkip >= size){
+					currentPhysicalPosition += size;
+					logicalOffsetToSkip -= size;
+					return;
+				}else{
+					currentPhysicalPosition += logicalOffsetToSkip;
+					size = size - logicalOffsetToSkip;
+					logicalOffsetToSkip = 0;
+				}
+			}
+			if( physicalOffsetToSkip > 0){
+				if (physicalOffsetToSkip >= size){
+					currentPhysicalPosition += size;
+					physicalOffsetToSkip -= size;
+					return;
+				}else{
+					currentPhysicalPosition += physicalOffsetToSkip;
+					size = size - physicalOffsetToSkip;
+					physicalOffsetToSkip = 0;
+				}
+			}
+
+			assert(size > 0);
 			System.out.println("Adding size:" + size + " @ offset: " + currentPhysicalPosition );
 
-			currentPhysicalPosition += size;
-
-			// first I/O done, start do modify the physicalPosition
-			ignoreFirstHoles = false;
-		}
-
-		public void skipHole(long size){
-			assert(size >= 0);
-
-			if(ignoreFirstHoles){
-				return;
+			if (size < amountOfDataToAccess ){
+				listIO.addIOOperation(currentPhysicalPosition, size);
+			}else{
+				assert(amountOfDataToAccess > 0);
+				listIO.addIOOperation(currentPhysicalPosition, amountOfDataToAccess);
+				throw new DatatypeCompletelyUnrolledException();
 			}
 
 			currentPhysicalPosition += size;
+			amountOfDataToAccess -= size;
+			assert(amountOfDataToAccess >= 0);
+		}
+
+		// Indicates the data type has a hole of a given size at the current position.
+		public void datatypeHole(long size){
+			assert(size >= 0);
+
+			currentPhysicalPosition += size;
+
+			// skip the physical bytes if necessary
+			if( physicalOffsetToSkip > 0){
+				physicalOffsetToSkip = size > physicalOffsetToSkip ? 0 : physicalOffsetToSkip - size;
+			}
 		}
 
 		public long getCurrentPhysicalPosition() {
@@ -136,89 +201,22 @@ public class FileView {
 		}
 	}
 
-	private void unrollContiguous(Datatype prevdatatype, CurrentPosition cur , long offsetInDatatype, long accessSize){
+	private void unrollContiguous(Datatype prevdatatype, CurrentPosition cur, long repeats) throws DatatypeCompletelyUnrolledException{
 		final long typeSize = prevdatatype.getSize();
 
 		if(typeSize == 0){
 			return;
 		}
 
-		assert(accessSize > 0);
-
 		if(typeSize == prevdatatype.getExtend()){
-			// no holes! Just go ahead.
-			cur.skipHole(offsetInDatatype);
-			cur.createIOJob(accessSize);
+			// data type contains no holes! Just go ahead.
+			cur.datatypeData(typeSize * repeats);
 			return;
 		}
 
-		// first one might be partial:
-		if(offsetInDatatype != 0){
-			final long remainder = typeSize - offsetInDatatype;
-			assert(remainder >= 0);
-			final long preReadSize = (accessSize > remainder) ? remainder : accessSize;
-
-			assert(preReadSize >= 0);
-
-			addDatatypeIOOperation(cur, prevdatatype, offsetInDatatype, preReadSize);
-			accessSize -= preReadSize;
-		}
-
-		// treat view as a contiguous datatype with holes:
-		final long repeats = accessSize / typeSize;
+		// treat view as a contiguous data type with holes, handle the first (half datatype) and the last (half datatype)
 		for(int i= 0 ; i < repeats; i++){
-			addDatatypeIOOperation(cur, prevdatatype, 0, typeSize);
-		}
-
-		accessSize -= repeats * typeSize;
-
-		// last one is partial:
-		if(accessSize > 0){
-			addDatatypeIOOperation(cur, prevdatatype, 0, accessSize);
-		}
-
-	}
-
-	/**
-	 * Helper function to write a structure partially.
-	 * @param cur
-	 * @param type
-	 * @param typeCount
-	 * @param offsetInDatatype
-	 * @param accessSize
-	 */
-	private void unrollPartialStruct(CurrentPosition cur, StructDatatype type, int typeCount, long offsetInDatatype, long accessSize){
-		long lastPos = 0;
-
-		for(int t= 0 ; t < typeCount; t++){
-			final StructType childType = type.getType(t);
-			long childAccessSize = childType.getBlocklen()* childType.getType().getSize();
-			long blockChildExtend = childType.getBlocklen()* childType.getType().getExtend();
-
-			if(offsetInDatatype > childAccessSize){
-				// skip complete data type:
-				offsetInDatatype -= childAccessSize;
-				continue;
-			}
-
-			childAccessSize = (accessSize < childAccessSize - offsetInDatatype) ? accessSize : (childAccessSize - offsetInDatatype);
-
-			cur.skipHole(childType.getDisplacement() - lastPos);
-
-			if(offsetInDatatype > 0){
-				unrollContiguous(childType.getType(), cur, offsetInDatatype, childAccessSize);
-				offsetInDatatype = 0;
-			}else{
-				unrollContiguous(childType.getType(), cur, 0, childAccessSize);
-			}
-
-			accessSize -= childAccessSize;
-
-			if(accessSize == 0){
-				break;
-			}
-
-			lastPos = childType.getDisplacement() + blockChildExtend;
+			addDatatypeIOOperation(cur, prevdatatype);
 		}
 	}
 
@@ -229,19 +227,15 @@ public class FileView {
 	 * @param offsetInDatatype
 	 * @param accessSize
 	 */
-	private void addDatatypeIOOperation(CurrentPosition cur, Datatype datatype, long offsetInDatatype, long accessSize){
-		System.out.println("addDatatypeIOOperation " + datatype.getType() + " " + datatype.getTid() + " " + accessSize +  " offset: " + offsetInDatatype + " cur: " + cur.getCurrentPhysicalPosition());
+	private void addDatatypeIOOperation(CurrentPosition cur, Datatype datatype)  throws DatatypeCompletelyUnrolledException{
+		System.out.println("addDatatypeIOOperation " + datatype.getType() + " " + datatype.getTid() + " cur: " + cur.getCurrentPhysicalPosition());
 
-		assert(offsetInDatatype >= 0);
-		assert(accessSize > 0);
 		final long typeSize = datatype.getSize();
-		assert(typeSize >= accessSize + offsetInDatatype);
 
-		if(typeSize== datatype.getExtend()){
-			// no holes! Just go ahead. TODO treat partial write of native data types which is not allowed here!
-			cur.skipHole(offsetInDatatype);
+		if(typeSize == datatype.getExtend()){
+			// no holes! Just go ahead.
+			cur.datatypeData(typeSize);
 
-			cur.createIOJob(accessSize);
 			return;
 		}
 
@@ -252,21 +246,12 @@ public class FileView {
 				return;
 			}
 
-			if(offsetInDatatype != 0){
-				throw new IllegalArgumentException("Offset in native datatype is not ZERO.");
-			}
-
-			// no partial write of integral datatypes is allowed!
-			if( accessSize % typeSize != 0){
-				throw new IllegalArgumentException("No partial write of datatypes is allowed (nor does it make sense)");
-			}
-
-			cur.createIOJob(accessSize);
+			cur.datatypeData(typeSize);
 			break;
 		case CONTIGUOUS:{
 			ContiguousDatatype type = (ContiguousDatatype) datatype;
 
-			unrollContiguous(type.getPrevious(), cur, offsetInDatatype, accessSize);
+			unrollContiguous(type.getPrevious(), cur, type.getCount());
 			break;
 		}case VECTOR:{
 			final VectorDatatype type = (VectorDatatype) datatype;
@@ -277,34 +262,10 @@ public class FileView {
 
 			assert(holeSize >= 0);
 
-			final long blockLength = (prevTypeSize * type.getBlocklen());
+			for(int i=0; i < type.getBlockCount(); i++){
+				unrollContiguous(prev, cur, type.getBlocklen());
 
-			// gets unrolled at most once
-			if(offsetInDatatype != 0){
-				//final long strideLength = type.getStride() * prevTypeExtend;
-
-				// determine which iteration got hit:
-				final long remainder = blockLength - offsetInDatatype % blockLength;
-				final long preReadSize = (accessSize > remainder) ? remainder : accessSize;
-
-				unrollContiguous(prev, cur, offsetInDatatype, preReadSize);
-
-				accessSize -= preReadSize;
-				cur.skipHole(holeSize);
-			}
-
-			final long fullRepeats = accessSize / blockLength;
-			accessSize -= fullRepeats * blockLength;
-
-			for(int i=0; i < fullRepeats; i++){
-				unrollContiguous(prev, cur, 0, blockLength);
-
-				cur.skipHole(holeSize);
-			}
-
-			// remainder ?
-			if(accessSize > 0){
-				unrollContiguous(prev, cur, 0, accessSize);
+				cur.datatypeHole(holeSize);
 			}
 
 			break;
@@ -312,44 +273,22 @@ public class FileView {
 			final StructDatatype type = (StructDatatype) datatype;
 			final int typeCount = type.getCount();
 
-			if(offsetInDatatype != 0){
-				final long remainingBytes = typeSize - offsetInDatatype;
+			long lastPos = 0;
 
-				final long maxAccessSize = accessSize < remainingBytes ? accessSize : remainingBytes;
-				unrollPartialStruct(cur, type, typeCount, offsetInDatatype, maxAccessSize);
+			for(int t= 0 ; t < typeCount; t++){
+				final StructType childType = type.getType(t);
+				cur.datatypeHole(childType.getDisplacement() - lastPos);
+				unrollContiguous(childType.getType(), cur, childType.getBlocklen());
 
-				accessSize -= maxAccessSize;
+				lastPos = childType.getDisplacement() + childType.getBlocklen()* childType.getType().getExtend();
 			}
 
-			long fullRepeats = accessSize / typeSize;
-			accessSize -= fullRepeats * typeSize;
-
-			for(int i=0 ; i < fullRepeats; i++){
-				long lastPos = 0;
-
-				for(int t= 0 ; t < typeCount; t++){
-					final StructType childType = type.getType(t);
-					cur.skipHole(childType.getDisplacement() - lastPos);
-					final long childBlockSize = childType.getBlocklen()* childType.getType().getSize();
-					unrollContiguous(childType.getType(), cur, 0, childBlockSize);
-
-					lastPos = childType.getDisplacement() + childType.getBlocklen()* childType.getType().getExtend();
-				}
-			}
-
-			// remainder
-			if(accessSize > 0){
-				unrollPartialStruct(cur, type, typeCount, 0, accessSize);
-			}
 
 			break;
 
 		}case SUBARRAY:{
 			// see http://www.cs.vu.nl/~kielmann/mpi/standard-2/node79.html
 			final SubarrayDatatype type = (SubarrayDatatype) datatype;
-
-			// how often is the full data type accessed
-			final long fullIterations = accessSize / type.getSize();
 
 			final Datatype prev = type.getPrevious();
 			final long prevExtend = type.getPrevious().getExtend();
@@ -361,12 +300,6 @@ public class FileView {
 
 			// TODO generalize this method, works for 2D only
 			assert(dimSpec.length == 2);
-
-			// number of times the data type is repeated inside the subarray.
-			long arrayDimension = dimSpec[0].getSize();
-			for(int d=1;  d < dimSpec.length ; d++){
-				arrayDimension = arrayDimension * dimSpec[d].getSize();
-			}
 
 			// determine start of the array which shall be skipped
 			long skipStart =  prevExtend * dimSpec[0].getStart();
@@ -389,75 +322,25 @@ public class FileView {
 				}
 			}
 
-			if(offsetInDatatype > 0){
+			// walk through one sub-array
 
-				// determine start of the array which shall be skipped
-				cur.skipHole(skipStart);
+			// determine start of the array which shall be skipped
+			cur.datatypeHole(skipStart);
 
-				// TODO 2D loop:
+			// TODO extend 2D loop:
 
-				for(int d2= 0 ; d2 < dimSpec[1].getSubsize(); d2++){
-					// now process the first block of data
-					for(int c=0; c < dimSpec[0].getSubsize(); c++){
-						if (offsetInDatatype < prevSize){
-							if(accessSize <= prevSize){
-								addDatatypeIOOperation(cur, prev, offsetInDatatype, accessSize);
-
-								// skip to the end of the current datatype.
-								cur.skipHole( type.getExtend() - ( cur.getCurrentPhysicalPosition() - startPos ) );
-								return;
-							}
-							addDatatypeIOOperation(cur, prev, offsetInDatatype, prevSize);
-							accessSize -= prevSize;
-						}else{ // do not access the data type at this position
-							cur.skipHole(prevSize);
-							offsetInDatatype -= prevSize;
-						}
-					}
-					// skip to the next element, but not in the last iteration
-					if( d2 < dimSpec[1].getSubsize() - 1 )
-						cur.skipHole( ( dimSpec[0].getSize() - dimSpec[0].getSubsize() ) * prevExtend);
-				}
-
-
-				// skip to the end of the data type:
-				// determine start of the array which shall be skipped
-				cur.skipHole(skipEnd);
+			for(int d2= 0 ; d2 < dimSpec[1].getSubsize(); d2++){
+				// now process the first block of data
+				unrollContiguous(prev , cur, dimSpec[0].getSubsize());
+				// skip to the next element, but not in the last iteration
+				if( d2 < dimSpec[1].getSubsize() - 1 )
+					cur.datatypeHole( ( dimSpec[0].getSize() - dimSpec[0].getSubsize() ) * prevExtend);
 			}
 
-			// write the remainder
-			for(int i=0; i < fullIterations + 1 ; i++){
 
-				// walk through one sub-array
-
-				// determine start of the array which shall be skipped
-				cur.skipHole(skipStart);
-
-				// TODO 2D loop:
-
-				for(int d2= 0 ; d2 < dimSpec[1].getSubsize(); d2++){
-					// now process the first block of data
-					for(int c=0; c < dimSpec[0].getSubsize(); c++){
-						if(accessSize <= prevSize){
-							addDatatypeIOOperation(cur, prev, offsetInDatatype, accessSize);
-
-							// skip to the end of the current datatype.
-							cur.skipHole( type.getExtend() - ( cur.getCurrentPhysicalPosition() - startPos ) );
-							return;
-						}
-						addDatatypeIOOperation(cur, prev, 0, prevSize);
-						accessSize -= prevSize;
-					}
-					// skip to the next element, but not in the last iteration
-					if( d2 < dimSpec[1].getSubsize() - 1 )
-						cur.skipHole( ( dimSpec[0].getSize() - dimSpec[0].getSubsize() ) * prevExtend);
-				}
-
-
-				// skip to the end of the data type:
-				// determine start of the array which shall be skipped
-				cur.skipHole(skipEnd);
-			}
+			// skip to the end of the data type:
+			// determine start of the array which shall be skipped
+			cur.datatypeHole(skipEnd);
 
 			break;
 		}default:
