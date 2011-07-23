@@ -91,7 +91,7 @@ public class FileView {
 		// determine start position in the data type
 		final long offsetInDatatype = physicalOffset % extent;
 
-		unrollContiguous(datatype, new CurrentPosition(physicalOffset - offsetInDatatype, listIO, true), offsetInDatatype, accessSize);
+		unrollContiguous(datatype, new CurrentPosition(physicalOffset, listIO, true), offsetInDatatype, accessSize);
 	}
 
 	private class CurrentPosition{
