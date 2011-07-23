@@ -213,8 +213,7 @@ public class ProjectDescriptionXMLReader {
 				
 				cur ++;
 			}
-			
-			
+								
 			datatype = new SubarrayDatatype(dimSpec, order, old);
 			break;
 		}case HINDEXED:{

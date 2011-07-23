@@ -154,13 +154,15 @@ public class CommandXMLReader {
 			}else if(cmd.getClass() == Filesetview.class){
 				//final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
 				final long filetid = Long.parseLong(commandXMLElement.getAttribute("filetid"));
+				final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
 				final int displacement = Integer.parseInt(commandXMLElement.getAttribute("offset"));
 				Datatype datatype = program.getApplication().getDatatypeMap(program.getRank()).get(filetid);
+				Datatype etype = program.getApplication().getDatatypeMap(program.getRank()).get(etid);
 				assert(datatype != null);
 
 				final LocalFileStructure openend = fidToFileMap.get(fid);
 				if(openend != null){
-					FileView view = new FileView(datatype, displacement);
+					FileView view = new FileView(etype, datatype, displacement);
 					openend.currentView = view;
 				}else{
 					System.err.println("Warning: " + fid + " not open but setView !");
@@ -170,16 +172,16 @@ public class CommandXMLReader {
 			// parse File I/O command type id:
 			if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
 				final FileIOCommand fcmd = (FileIOCommand) cmd;
-				final long offset = Long.parseLong(commandXMLElement.getAttribute("offset"));
+				final long physicalOffset = Long.parseLong(commandXMLElement.getAttribute("offset"));
 				final long size = Long.parseLong(commandXMLElement.getAttribute("size"));
 
 				if(openendFilestructure != null){
 					final ListIO list =  new ListIO();
 
 					if(openendFilestructure.currentView == null){
-						list.addIOOperation(offset, size);
+						list.addIOOperation(physicalOffset, size);
 					}else{
-						openendFilestructure.currentView.createIOOperation(list, offset, size);
+						openendFilestructure.currentView.createIOOperationWithPhysicalOffset(list, physicalOffset, size);
 						fcmd.setFileView(openendFilestructure.currentView);
 					}
 

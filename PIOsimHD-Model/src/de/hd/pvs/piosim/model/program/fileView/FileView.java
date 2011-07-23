@@ -6,7 +6,6 @@ import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.StructDatatype.StructType;
 import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype;
 import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype.DimensionSpec;
-import de.hd.pvs.TraceFormat.project.datatypes.SubarrayDatatype.Order;
 import de.hd.pvs.TraceFormat.project.datatypes.VectorDatatype;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 
@@ -16,10 +15,12 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO;
  * @author julian
  */
 public class FileView {
+
+	final private Datatype etype;
 	final private Datatype datatype;
 	final private long displacement;
 
-	public FileView(Datatype datatype, long displacement) {
+	public FileView(Datatype etype, Datatype datatype, long displacement) {
 		this.datatype = datatype;
 		this.displacement = displacement;
 
@@ -30,6 +31,8 @@ public class FileView {
 		if(datatype.getSize() <= 0){
 			throw new IllegalArgumentException("Datatype size <= 0!");
 		}
+
+		this.etype = etype;
 	}
 
 	public Datatype getDatatype() {
@@ -44,22 +47,51 @@ public class FileView {
 	 * Create and add an I/O operation to the given ListIO by applying the view.
 	 *
 	 * @param listIO
-	 * @param offset
+	 * @param offsetInTermsOfTheEType
 	 * @param sizes
 	 */
-	public void createIOOperation(ListIO listIO, long offset, long accessSize){
+	public void createIOOperationWithDatatypeOffset(ListIO listIO, long offsetInTermsOfTheEType, long accessSize){
 		if(accessSize == 0){
 			return;
 		}
 
-		assert(offset >= 0);
+		assert(offsetInTermsOfTheEType >= 0);
 
 		final long typeSize = datatype.getSize();
+		final long eTypeSize = etype.getSize();
 
-		// determine start position in data type
-		final long offsetInDatatype = offset % typeSize;
+		// calculate the number of etypes per data type
+		final long etypesPerDatatype = typeSize / eTypeSize;
 
-		unrollContiguous(datatype, new CurrentPosition(offset - offsetInDatatype, listIO), offsetInDatatype, accessSize);
+		// calculate the number of data types which are skipped
+		final long skippedDatatypeCount = offsetInTermsOfTheEType / etypesPerDatatype;
+
+		// determine start position in the data type
+		final long offsetInDatatype = (skippedDatatypeCount / etypesPerDatatype + offsetInTermsOfTheEType % etypesPerDatatype ) * eTypeSize;
+
+		unrollContiguous(datatype, new CurrentPosition(	skippedDatatypeCount * datatype.getExtend() , listIO ),
+				offsetInDatatype, accessSize);
+	}
+
+	/**
+	 * Create and add an I/O operation to the given ListIO by applying the view.
+	 *
+	 * @param listIO
+	 * @param physicalOffset
+	 * @param sizes
+	 */
+	public void createIOOperationWithPhysicalOffset(ListIO listIO, long physicalOffset, long accessSize){
+		if(accessSize == 0){
+			return;
+		}
+
+		assert(physicalOffset >= 0);
+
+		final long extent = datatype.getExtend();
+		// determine start position in the data type
+		final long offsetInDatatype = physicalOffset % extent;
+
+		unrollContiguous(datatype, new CurrentPosition(physicalOffset - offsetInDatatype, listIO), offsetInDatatype, accessSize);
 	}
 
 	private class CurrentPosition{
@@ -67,15 +99,15 @@ public class FileView {
 		private ListIO listIO;
 
 		public CurrentPosition(long offset, ListIO listIO) {
-			this.currentPhysicalPosition = offset;
+			this.currentPhysicalPosition = offset + displacement;
 			this.listIO = listIO;
 		}
 
 		public void createIOJob(long size){
 			assert(size > 0);
-			listIO.addIOOperation(currentPhysicalPosition + displacement, size);
+			listIO.addIOOperation(currentPhysicalPosition, size);
 
-			System.out.println("Adding size:" + size + " @ offset: " + (currentPhysicalPosition + displacement)  );
+			System.out.println("Adding size:" + size + " @ offset: " + currentPhysicalPosition );
 
 			currentPhysicalPosition += size;
 		}
@@ -301,9 +333,6 @@ public class FileView {
 		}case SUBARRAY:{
 			// see http://www.cs.vu.nl/~kielmann/mpi/standard-2/node79.html
 			final SubarrayDatatype type = (SubarrayDatatype) datatype;
-
-			// support only C order right now.
-			assert(type.getOrder() == Order.MPI_ORDER_C);
 
 			// how often is the full data type accessed
 			final long fullIterations = accessSize / type.getSize();

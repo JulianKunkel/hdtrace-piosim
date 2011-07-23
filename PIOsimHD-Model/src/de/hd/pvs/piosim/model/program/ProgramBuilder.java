@@ -109,14 +109,14 @@ public class ProgramBuilder {
 		addReadFileView(rank, fd, null, offset, seqSize);
 	}
 
-	public void addReadFileView(int rank, FileDescriptor fd, FileView view, long offset, long accessSize){
+	public void addReadFileView(int rank, FileDescriptor fd, FileView view, long physicalOffset, long accessSize){
 		Fileread com = new Fileread();
 		ListIO lio = new ListIO();
 
 		if(view != null){
-			view.createIOOperation(lio, offset, accessSize);
+			view.createIOOperationWithPhysicalOffset(lio, physicalOffset, accessSize);
 		}else{
-			lio.addIOOperation(offset, accessSize);
+			lio.addIOOperation(physicalOffset, accessSize);
 		}
 		com.setListIO(lio);
 		appBuilder.addCommand(rank, com, fd);

@@ -142,4 +142,10 @@ public class ListIO{
 		final SingleIOOperation last = ioOperations.get(ioOperations.size()-1);
 		return last.getAccessSize() + last.getOffset();
 	}
+
+	public void printAll(){
+		for(SingleIOOperation op: ioOperations){
+			System.out.println(op);
+		}
+	}
 }

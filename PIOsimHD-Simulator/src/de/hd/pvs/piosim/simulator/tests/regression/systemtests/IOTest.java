@@ -383,7 +383,7 @@ public class IOTest extends ModelTest {
 		listIO.add(ios);
 
 		ios = new ListIO();
-		ios.addIOOperation(0, MiB);
+		ios.addIOOperation(1*MiB, MiB);
 		listIO.add(ios);
 
 		FileDescriptor fd = pb.addFileOpen(f, world , false);

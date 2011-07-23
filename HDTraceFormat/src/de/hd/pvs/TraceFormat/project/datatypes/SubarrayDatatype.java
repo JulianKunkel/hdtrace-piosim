@@ -41,6 +41,16 @@ public class SubarrayDatatype extends Datatype{
 		this.order = order;
 		this.previous = previous;
 		this.dimensionSpec = dimSpec;
+		
+		// if Fortran order, then nothing to do, otherwise re-order the dimSpec.
+		if(order == Order.MPI_ORDER_C){
+			for(int i=0; i < dimSpec.length / 2; i++){
+				final DimensionSpec old = dimSpec[i];
+				final int target = dimSpec.length - i - 1;
+				dimSpec[i] = dimSpec[target];
+				dimSpec[target] = old;
+			}
+		}
 	}
 	
 	public Datatype getPrevious() {
