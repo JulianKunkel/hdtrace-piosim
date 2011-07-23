@@ -69,9 +69,6 @@ public abstract class MultiPhaseWrite extends MultiPhase<FileIOCommand> {
 				return;
 			}
 
-			System.out.println("SCHUH " + client.getIdentifier() );
-			cmd.getListIO().printAll();
-
 			boolean ret = synchronizeClientsWithoutCommunication(outCommand);
 
 			outCommand.setNextStep(CHECK_TWO_PHASE);

@@ -69,7 +69,7 @@ public class FileView {
 		// determine start position in the data type
 		final long offsetInDatatype = (skippedDatatypeCount / etypesPerDatatype + offsetInTermsOfTheEType % etypesPerDatatype ) * eTypeSize;
 
-		unrollContiguous(datatype, new CurrentPosition(	skippedDatatypeCount * datatype.getExtend() , listIO ),
+		unrollContiguous(datatype, new CurrentPosition(	skippedDatatypeCount * datatype.getExtend() , listIO , false),
 				offsetInDatatype, accessSize);
 	}
 
@@ -91,16 +91,22 @@ public class FileView {
 		// determine start position in the data type
 		final long offsetInDatatype = physicalOffset % extent;
 
-		unrollContiguous(datatype, new CurrentPosition(physicalOffset - offsetInDatatype, listIO), offsetInDatatype, accessSize);
+		unrollContiguous(datatype, new CurrentPosition(physicalOffset - offsetInDatatype, listIO, true), offsetInDatatype, accessSize);
 	}
 
 	private class CurrentPosition{
 		private long currentPhysicalPosition;
 		private ListIO listIO;
 
-		public CurrentPosition(long offset, ListIO listIO) {
+		final private boolean parsePhysicalAddress;
+		// indicate if the first holes are ignored and do not modify the currentPhysicalPosition
+		private boolean ignoreFirstHoles;
+
+		public CurrentPosition(long offset, ListIO listIO, boolean parsePhysicalAddress) {
 			this.currentPhysicalPosition = offset + displacement;
 			this.listIO = listIO;
+			this.parsePhysicalAddress = parsePhysicalAddress;
+			this.ignoreFirstHoles = parsePhysicalAddress;
 		}
 
 		public void createIOJob(long size){
@@ -110,10 +116,18 @@ public class FileView {
 			System.out.println("Adding size:" + size + " @ offset: " + currentPhysicalPosition );
 
 			currentPhysicalPosition += size;
+
+			// first I/O done, start do modify the physicalPosition
+			ignoreFirstHoles = false;
 		}
 
 		public void skipHole(long size){
 			assert(size >= 0);
+
+			if(ignoreFirstHoles){
+				return;
+			}
+
 			currentPhysicalPosition += size;
 		}
 
