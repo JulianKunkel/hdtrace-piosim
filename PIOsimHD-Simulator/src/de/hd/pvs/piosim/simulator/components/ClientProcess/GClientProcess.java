@@ -40,10 +40,12 @@ import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
+import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
@@ -387,8 +389,25 @@ public class GClientProcess
 				tw.relDestroy(TraceType.CLIENT, step.getRelationToken());
 			}
 		}else {
+			// tracing of I/O commands adds size and offset pairs.
+			String tag = cme.getAdditionalTraceTag(cmd);
+			if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
+				final ListIO list = ((FileIOCommand) cmd).getListIO();
+
+				StringBuffer strBuff = new StringBuffer();
+				for(SingleIOOperation op : list.getIOOperations()){
+					strBuff.append("<op size=\"" + op.getAccessSize() +  "\" offset=\"" + op.getOffset()  + "\"></op>\n");
+				}
+
+				if(tag == null){
+					tag = strBuff.toString();
+				}else{
+					tag = tag + "\n" + strBuff;
+				}
+			}
+
 			tw.relStartState(TraceType.CLIENT, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
-					cme.getAdditionalTraceTag(cmd), cme.getAdditionalTraceAttributes(cmd));
+					tag, cme.getAdditionalTraceAttributes(cmd));
 		}
 	}
 
