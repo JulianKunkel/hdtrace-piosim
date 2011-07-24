@@ -461,9 +461,16 @@ public class PaperResults extends ModelTest{
 
 	@Test
 	public void runIOTest2S2C() throws Exception{
-		AggregationReorderCache cache = new AggregationReorderCache();
+		AggregationCache cache = new AggregationCache();
 		cache.setName("PVS-CACHE");
 		cache.setMaxNumberOfConcurrentIOOps(1);
+
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Filewriteall"), "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+
 
 		setupDisjointIO(4, 1, 2, 1000, cache);
 
