@@ -23,6 +23,8 @@
 #include "hdTopoInternal.h"
 #include "hdRelation.h"
 #include "hdError.h"
+#include "hostInformation.h"
+#include "util.h"
 
 /**
 remote_id = \<hostname\>\<pid\>
@@ -334,9 +336,20 @@ int hdR_initTopology(hdTopoNode *topNode, hdR_topoToken * outTopoToken){
 	char hostname[HOST_NAME_MAX];
 	gethostname(hostname, HOST_NAME_MAX);
 
+    
+	char * processorModelNameVar =  processorModelName();
+	int tlen = strlen(processorModelNameVar)*3;
+	
+	char processorModelNameVarbuff[tlen];
+	escapeXMLString(processorModelNameVarbuff, tlen, processorModelNameVar);		
+	free(processorModelNameVar);
+	
 	// print header to new file:
-	writeToBuffer(topoToken, "<relation version=\"1\" hostID=\"%s\" localToken=\"%s\" topologyNumber=\"%d\" timeAdjustment=\"%" UINT64_FORMAT "\">\n",
-			uniqueHostID, localTokenPrefix, topoToken->topologyNumber, llu(topoToken->timeAdjustment.tv_sec));
+	writeToBuffer(topoToken, "<relation version=\"1\" hostID=\"%s\" localToken=\"%s\" topologyNumber=\"%d\" timeAdjustment=\"%" UINT64_FORMAT "\" processorSpeedinMHZ='%u' processorModelName='%s'>\n",
+			uniqueHostID, localTokenPrefix, topoToken->topologyNumber, llu(topoToken->timeAdjustment.tv_sec),
+			processorCPUspeedinMHZ(), processorModelNameVarbuff
+ 		    );
+	
 
 	/*
 	 * Alternative way to write local part.

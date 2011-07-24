@@ -29,6 +29,7 @@
 #include "hdError.h"
 #include "common.h"
 #include "util.h"
+#include "hostInformation.h"
 
 
 /**
@@ -220,11 +221,20 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 		return trace;
 	}
 
+	char * processorModelNameVar =  processorModelName();
+	int tlen = strlen(processorModelNameVar)*3;
+	
+	char processorModelNameVarbuff[tlen];
+	escapeXMLString(processorModelNameVarbuff, tlen, processorModelNameVar);		
+	free(processorModelNameVar);
+	
 	writeLogf(trace,
-			"<Program timeAdjustment='%u'>\n",
-			(unsigned) trace->init_time.tv_sec
+			"<Program timeAdjustment='%u' processorSpeedinMHZ='%u' processorModelName='%s'>\n",
+			(unsigned) trace->init_time.tv_sec, processorCPUspeedinMHZ(),
+			processorModelNameVarbuff
 			);
 
+	
 	trace->isEnabled = 0;
 	return trace;
 }
