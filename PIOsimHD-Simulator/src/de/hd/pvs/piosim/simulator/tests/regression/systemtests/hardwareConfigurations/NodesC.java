@@ -14,7 +14,7 @@ public class NodesC implements HardwareComponents{
 		Node node = new Node();
 		node.setName("PVS-Node");
 		node.setCPUs(cpuCount);
-		node.setInstructionsPerSecond(266*1000000);
+		node.setInstructionsPerSecond(2660l*1000000);
 
 		assert(memoryInMB > 10);
 		node.setMemorySize(memoryInMB * MBYTE);

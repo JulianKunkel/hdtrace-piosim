@@ -68,7 +68,7 @@ public class StAXTraceFileReader implements TraceSource{
 	/**
 	 * The speed of the processor in MHz
 	 */
-	private long speedInMHz = 1*266; // default value 266 MHz
+	private long speedInMHz = 2660; // default value: 2660 MHz
 
 	/**
 	 * Current depths of the tag nesting.
