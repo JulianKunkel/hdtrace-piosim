@@ -64,6 +64,11 @@ public class StAXTraceFileReader implements TraceSource{
 	 * The time adjustment is added to all read timestamps.
 	 */
 	private Epoch timeAdjustment;
+	
+	/**
+	 * The speed of the processor in MHz
+	 */
+	private long speedInMHz = 1*266; // default value 266 MHz
 
 	/**
 	 * Current depths of the tag nesting.
@@ -78,6 +83,10 @@ public class StAXTraceFileReader implements TraceSource{
 		reader = XMLInputFactoryImpl.newInstance().createXMLStreamReader(new BufferedInputStream(new FileInputStream(filename)));
 		timeAdjustment = timeOffset;
 		this.readNested = readNested;
+	}
+	
+	public long getProcssorSpeedInMHz() {
+		return speedInMHz;
 	}
 
 	private String getPosition(){
@@ -133,6 +142,12 @@ public class StAXTraceFileReader implements TraceSource{
 						if(tAdj != null){
 							timeAdjustment = timeAdjustment.add(Epoch.parseTime(tAdj));
 						}
+						
+						tAdj = currentData.getAttribute("processorSpeedinMHZ");
+						if(tAdj != null){
+							speedInMHz = Integer.parseInt(tAdj);
+						}						
+						 
 						continue;
 					}
 
