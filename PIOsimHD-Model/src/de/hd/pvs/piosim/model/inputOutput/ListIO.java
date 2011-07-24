@@ -143,6 +143,14 @@ public class ListIO{
 		return last.getAccessSize() + last.getOffset();
 	}
 
+	/**
+	 * Return the number of ListIO elements
+	 * @return
+	 */
+	public int getCount(){
+		return ioOperations.size();
+	}
+
 	public void printAll(){
 		for(SingleIOOperation op: ioOperations){
 			System.out.println(op);
