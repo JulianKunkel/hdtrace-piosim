@@ -188,6 +188,10 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 	public Program readProgramXMLDOM(int rank, int thread, String filename, Application app) throws Exception {
 		final StAXTraceFileReader traceFileReader = new StAXTraceFileReader(filename, false, Epoch.ZERO);
 
+		// TODO move efficiency to another location...
+		final double processingSpeedOfTheSystem = traceFileReader.getProcssorSpeedInMHz() * 1000 * 1000; // => ops/s
+		assert(processingSpeedOfTheSystem > 0);
+
 		final ProgramInMemory program = new ProgramInMemory();
 		program.setApplication(app, rank, thread);
 
@@ -204,8 +208,11 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 			if (DynamicTraceEntryToCommandMapper.isCommandAvailable(entry.getName())){
 				Command cmd = cmdReader.parseCommandXML(entry);
 				if(cmd.getClass() != NoOperation.class){
-					// add an appropriate compute job
-					long cycles = entry.getEarliestTime().subtract(lastTimeForComputeJob).getLongInNS() / 1000;
+					// add an appropriate compute job, depending on the speed of the system.
+					long cycles = (long) (entry.getEarliestTime().subtract(lastTimeForComputeJob).getDouble() * processingSpeedOfTheSystem);
+
+					assert(cycles >= 0);
+
 					if(cycles > 0){
 						Compute compute = new Compute();
 						compute.setCycles( cycles );
