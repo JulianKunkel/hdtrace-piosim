@@ -714,7 +714,7 @@ int hdT_logStateEnd(hdTrace *trace)
 		return -1;
 	}
 
-	if (trace->function_depth > trace->max_nesting_depth )
+	if (trace->function_depth > trace->max_nesting_depth || ! hdT_isEnabled(trace) )
 	{
 		trace->function_depth--;
 		return 0;
@@ -954,6 +954,7 @@ static int writeLog(hdTrace *trace, const char * message)
 	if (!hdT_isEnabled(trace))
 		return 0;
 	size_t len = strlen(message);
+        // synchronzie buffer if necessary!
 	if (trace->buffer_pos + len >= hdt_options.buffer_size)
 	{
 		if (flushLog(trace) != 0)

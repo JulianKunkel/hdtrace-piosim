@@ -110,6 +110,8 @@ static int mpiTracingEnabledManually = 0;
 
 static int mpiTraceNesting = 1;
 
+static int enabledTracing = 0;
+
 /**
  * This is a global variable that regulates whether all functions listed in
  * \a interesting_funcs.h are traced, or only those that have custom arguments
@@ -121,15 +123,6 @@ static int mpiTraceNesting = 1;
  * \a HDTRACE_ALL_FUNCTIONS.
  */
 static int trace_all_functions = 1;
-
-/**
- * This global variable determines, whether nested calls to MPI functions from within
- * MPI functions should be traced.
- *
- * The value of this variable can be changed by setting the environment variable
- * \a HDTRACE_NESTED.
- */
-static int trace_nested_operations = 1;
 
 /**
  * This variable determines, if the MPI_Info structure that is given
@@ -153,42 +146,6 @@ static int trace_force_flush = 0;
  * The topology (host, rank, thread)
  */
 static hdTopology *topology;
-
-/**
- * This array defines the name of the environment variables which
- * are read by the program. The values of the environment variables
- * are then stored in those variables to which elements of the
- * array \a controlled_vars are pointing.
- *
- * Example
- * \code
- * HDTRACE_NESTED=1
- * \endcode
- * will lead to setting
- * \code
- * *controlled_vars[1] = 1;
- * \endcode
- * which is equivalent to
- * \code
- * trace_nested_operations = 1;
- * \endcode
- */
-static const char * control_vars[] = { "HDTRACE_ALL_FUNCTIONS",
-								"HDTRACE_NESTED",
-								"HDTRACE_FILE_INFO",
-								"HDTRACE_FORCE_FLUSH",
-								NULL };
-
-/**
- * This array stores the addresses of the global control
- * variables. The environment variable, that controls a certain global
- * variable is listed in \a control_vars and has the same index.
- */
-static int * controlled_vars[] = { &trace_all_functions,
-								   &trace_nested_operations,
-								   &trace_file_info,
-								   &trace_force_flush,
-								   NULL };
 
 /**
  * This string is prepended to the name of every trace file.
@@ -249,15 +206,12 @@ int hdMPI_threadDisableTracing(){
 
 #include "../src/common.c"
 
-
 #ifdef ENABLE_LIKWID_HDTRACE
 void hdMPI_threadLogStateStart(const char * stateName){
-  if( ! mpiTracingEnabledManually ) return;
+  mpiTraceNesting++;
+  
+  if(! enabledTracing) return;
 
-    mpiTraceNesting++;
-#ifdef ENABLE_SOTRACER
-    sotracer_disable();
-#endif
     if(mpiTraceNesting == 1){
       hdLikwidResults results;
 
@@ -268,96 +222,40 @@ void hdMPI_threadLogStateStart(const char * stateName){
       }
 
       hdT_logStateEnd(hdMPI_getThreadTracefile());
-      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
-
-      number_of_states_recorded++;
-    }else{
-      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
     }
-
-#ifdef ENABLE_SOTRACER
-    sotracer_enable();
-#endif
+    hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
 }
 
-void hdMPI_threadLogStateEnd(void){
-    if(! mpiTracingEnabledManually) return;
-
-    mpiTraceNesting--;
-#ifdef ENABLE_SOTRACER
-    sotracer_disable();
-#endif
+void hdMPI_threadLogStateEnd(void){  
+  mpiTraceNesting--;
+    
+  if(! enabledTracing) return;
+  
+    hdT_logStateEnd(hdMPI_getThreadTracefile());
     if(mpiTraceNesting == 0){
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
       hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
       hdLikwid_start();
-    } else {
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
-    }
-
-#ifdef ENABLE_SOTRACER
-    sotracer_enable();
-#endif
+    } 
 }
 
-#else  /* NO ENABLE_LIKWID_HDTRACE */
+#else // ENABLE LIKWID
+
 
 void hdMPI_threadLogStateStart(const char * stateName){
-
   mpiTraceNesting++;
+  if(! enabledTracing) return;
 
-  if(! mpiTracingEnabledManually) return;
-
-    if(mpiTraceNesting == 1){
-
-      if(throttle_cycle_length > 0){
-	const int throttle_rest = ( number_of_states_recorded % throttle_cycle_length );
-
-	if(throttle_rest == 0){
-	  throttle_disable_trace = 0;
-	  hdT_enableTrace(tracefile);
-
-	}else if(throttle_rest == throttle_states_to_record){
-
-	  hdT_disableTrace(tracefile);
-	  /* disable tracing */
-	  throttle_disable_trace = 1;
-#ifdef ENABLE_SOTRACER
-	  sotracer_disable();
-#endif
-	}
-      }
-
-      number_of_states_recorded++;
-    }
-
-    if(throttle_disable_trace) return;
-
-#ifdef ENABLE_SOTRACER
-    sotracer_disable();
-#endif
+    if ( mpiTraceNesting == 1){
       hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
-#ifdef ENABLE_SOTRACER
-    sotracer_enable();
-#endif
+    }
 }
 
 void hdMPI_threadLogStateEnd(void){
-  mpiTraceNesting--;
+  mpiTraceNesting--;  
+  if(! enabledTracing) return;
 
-  if(! mpiTracingEnabledManually) return;
-
-  if(throttle_disable_trace) return;
-
-#ifdef ENABLE_SOTRACER
-    sotracer_disable();
-#endif
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
-#ifdef ENABLE_SOTRACER
-    sotracer_enable();
-#endif
+    hdT_logStateEnd(hdMPI_getThreadTracefile());
 }
-
 #endif
 
 /**
@@ -479,6 +377,8 @@ static void before_Init()
  */
 int hdMPI_PrepareTracing(const char * filePrefix){
    if( mpiTracingStarted ) return 1;
+   
+   hdTrace_init();
 
    trace_file_prefix = strdup(filePrefix);
 
@@ -807,7 +707,7 @@ int hdMPI_FinalizeTracing(){
 /**
  * This function is called after a call to \a MPI_Init(...) or \a MPI_Init_thread(...).
  * It initializes the global variable \a tracefile by calling
- * \a hdT_createTrace(...). It also calls \a readEnvVars(...).
+ * \a hdT_createTrace(...).
  * After this call the global variable \a tracefile and the configuration variables
  * \a trace_* (that are listed in \a controlled_vars) by may be used.
  *
