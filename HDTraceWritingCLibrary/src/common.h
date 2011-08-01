@@ -54,6 +54,15 @@ struct hdtrace_options{
   int    overwrite_existing_files;
 
   char * path_prefix;
+
+/**
+ * Maximum depth of nesting which should be recorded
+ */
+  int   max_nesting_depth;
+/**
+ * Flush write buffer after every iteration
+ */
+  int   force_flush;
 };
 
 extern struct hdtrace_options hdt_options;

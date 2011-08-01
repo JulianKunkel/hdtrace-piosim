@@ -137,9 +137,9 @@ struct _hdTrace {
 	int always_flush;
 
 	/**
-	 * TODO: Description
+	 * 
 	 */
-	int trace_nested_operations;
+	int max_nesting_depth;
 
     /**
      * \a has_nested[i] = 1 if functions with depth i+1 have been logged.

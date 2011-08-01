@@ -25,7 +25,7 @@ int main(void){
 	hdTrace *trace = hdT_createTrace(myTopoNode);
 
 	hdT_enableTrace(trace);
-	hdT_setNestedDepth(trace,3);
+	//hdT_setNestedDepth(trace,3);
 
 	hdT_logStateStart(trace, "a0");
 

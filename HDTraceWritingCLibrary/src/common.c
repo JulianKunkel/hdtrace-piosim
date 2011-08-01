@@ -31,6 +31,8 @@ struct hdtrace_options hdt_options = {
     .buffer_size = 1*1024*1024, // 1 MiB of trace size
     .overwrite_existing_files = 1,
     .path_prefix = "",
+    .max_nesting_depth = 4,
+    .force_flush = 0,
 };
 
 
@@ -56,10 +58,17 @@ static void initEnvironmentVariables() {
 	vlvl = getenv("HDTRACE_OVERWRITE_EXISTING_FILES");
 	if (isValidString(vlvl))
 		sscanf(vlvl, "%d", & hdt_options.overwrite_existing_files);	
+	vlvl = getenv("HDTRACE_MAX_NESTING_DEPTH");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", & hdt_options.max_nesting_depth);	
 	vlvl = getenv("HDTRACE_PREFIX");
 	if (isValidString(vlvl)){
 		hdt_options.path_prefix = strdup(vlvl);	
 	}
+
+	vlvl = getenv("HDTRACE_FORCE_FLUSH");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", & hdt_options.force_flush);	
 }
 
 

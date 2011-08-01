@@ -203,8 +203,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 	trace->isEnabled = 1;
 
 	trace->always_flush = 0;
-	trace->trace_nested_operations = 0;
-
+	trace->max_nesting_depth = hdt_options.max_nesting_depth;
 
 	int i;
 	for (i = 0; i < HD_LOG_MAX_DEPTH; ++i)
@@ -277,7 +276,7 @@ int hdT_setNestedDepth(hdTrace *trace, int depth)
 	if(depth >= HD_LOG_MAX_DEPTH)
 		depth = HD_LOG_MAX_DEPTH - 1;
 
-	trace->trace_nested_operations = depth;
+	trace->max_nesting_depth = depth;
 	return 0;
 }
 
@@ -484,10 +483,8 @@ int hdT_logElement(hdTrace *trace, const char * name,
 	if (!hdT_isEnabled(trace))
 		return 0;
 
-	if (trace->function_depth > trace->trace_nested_operations ||
-		trace->function_depth > HD_LOG_MAX_DEPTH)
+	if (trace->function_depth > trace->max_nesting_depth )
 	{
-		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d", trace->function_depth );
 		return 0;
 	}
 
@@ -574,10 +571,8 @@ int hdT_logAttributes(hdTrace *trace, const char * valueFormat, ...)
 	if (!hdT_isEnabled(trace))
 		return 0;
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
+	if (trace->function_depth > trace->max_nesting_depth)
 	{
-		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d",
-				trace->function_depth );
 		return 0;
 	}
 
@@ -648,7 +643,7 @@ int hdT_logStateStart(hdTrace *trace, const char * stateName)
 		return 0;
 
 	trace->function_depth++;
-	if (trace->trace_nested_operations < trace->function_depth)
+	if ( trace->function_depth > trace->max_nesting_depth)
 	{
 		return 0;
 	}
@@ -719,17 +714,12 @@ int hdT_logStateEnd(hdTrace *trace)
 		return -1;
 	}
 
-	if (trace->function_depth > trace->trace_nested_operations)
+	if (trace->function_depth > trace->max_nesting_depth )
 	{
 		trace->function_depth--;
 		return 0;
 	}
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
-	{
-		trace->function_depth--;
-		return 0;
-	}
 	if (gettimeofday(&trace->end_time[trace->function_depth], NULL) != 0)
 	{
 		hdt_debugf(trace, "Problems getting time, stop logging: %s", strerror(errno));
@@ -1079,7 +1069,7 @@ static int writeState(hdTrace *trace)
 {
 	assert(trace);
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
+	if (trace->function_depth > trace->max_nesting_depth )
 		return 0;
 
 
