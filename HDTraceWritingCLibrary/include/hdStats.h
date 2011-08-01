@@ -164,18 +164,6 @@ hdStatsGroup * hdS_createGroup (
         hdTopoNode *topoNode,   /* Topology node to use */
         int topoLevel          /* Topology level the group shell belong to */
         );
-/**
- * Create a new statistics group.
- * @param path_prefix Additional prefix added to the filename of the statistics file, e.g. /tmp/
- * @param abort Abort if statistics file already exists. 0=Don't abort, all other values abort.
- */
-hdStatsGroup * hdS_createGroupWithFilenamePrefixAndAbortIfExists (
-        const char *groupName, /* Name of the new statistics group */
-        hdTopoNode *topoNode,   /* Topology node to use */
-        int topoLevel,          /* Topology level the group shell belong to */
-        const char *path_prefix, /* Prefix for the statistics file path */
-        int abort /* Abort if file already exists */
-        );
 
 /**
  * Add a new value to the entry structure of a statistics group.

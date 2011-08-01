@@ -37,10 +37,26 @@
  */
 #define HD_TMP_BUF_SIZE 1024 * 16
 
+struct hdtrace_options{
 /**
  * External verbosity variable (defined in common.c)
  */
-extern int hdt_verbosity;
+  int verbosity;
+
+/**
+ * This constant determines the size of the trace writing buffer.
+ * If flushing is not forced via hdT_setForceFlush(), the buffer
+ * is flushed only after \a HD_LOG_BUF_SIZE characters have been
+ * written
+ */
+  size_t buffer_size; 
+  
+  int    overwrite_existing_files;
+
+  char * path_prefix;
+};
+
+extern struct hdtrace_options hdt_options;
 
 /**
  * Print X followed by the code position followed by formated message
@@ -66,21 +82,21 @@ extern int hdt_verbosity;
  * Print a formated error message prefixed by "HDS Error:" and code position
  */
 #define hd_error_msg(format, ...) \
-	if (hdt_verbosity >= 0) \
+	if (hdt_options.verbosity >= 0) \
 		hd_X_msg("HDT Error", format, __VA_ARGS__)
 
 /**
  * Print a formated info message prefixed by "HDS Info:" and the code position
  */
 #define hd_info_msg(format, ...) \
-	if (hdt_verbosity >= 2) \
+	if (hdt_options.verbosity >= 2) \
 		hd_X_msg("HDT Info", format, __VA_ARGS__)
 
 /**
  * Print a formated debug message prefixed by "HDS Debug:" and the code position
  */
 #define hd_debug_msg(format, ...) \
-	if (hdt_verbosity >= 3) \
+	if (hdt_options.verbosity >= 3) \
 		hd_X_msg("HDT Debug", format, __VA_ARGS__)
 
 /**
@@ -110,13 +126,6 @@ extern int hdt_verbosity;
 		free(var); \
 		var = NULL; \
 	} while (0)
-
-
-/**
- * Initializes global verbosity by reading environment variable
- *  HDT_VERBOSITY.
- */
-void initVerbosity();
 
 
 /**

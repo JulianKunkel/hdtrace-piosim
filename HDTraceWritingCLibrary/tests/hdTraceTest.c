@@ -13,7 +13,8 @@
 #include "hdTrace.h"
 
 int main(void){
-
+	hdTrace_init();
+	
 	const char *levels[] = {"Hostname", "Client", "Thread"};
 	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 3);
 

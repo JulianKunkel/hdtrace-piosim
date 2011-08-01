@@ -166,7 +166,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 
 	// create and open file
 	trace->log_fd = open(trace->logfile,
-			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY |  O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK, 0662);
 	if (trace->log_fd == -1)
 	{
 		hdt_debugf(trace, "Could not open file %s: %s",
@@ -186,7 +186,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 
 	// create and open file
 	trace->info_fd = open(trace->infofile,
-			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY |  O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK, 0662);
 	if (trace->info_fd == -1)
 	{
 		hdt_debugf(trace, "Could not open file %s: %s",
@@ -195,6 +195,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
 
+	trace->buffer = malloc(hdt_options.buffer_size);
 	/* initialize remaining trace file structure */
 	trace->function_depth = -1;
 	trace->buffer_pos = 0;
@@ -869,6 +870,7 @@ int hdT_finalize(hdTrace *trace)
 	/* free memory allocated by generateFilename() */
 	free(trace->logfile);
 	free(trace->infofile);
+	free(trace->buffer);
 
 	/* free memory allocated by hdT_createTrace() */
 	free(trace);
@@ -962,7 +964,7 @@ static int writeLog(hdTrace *trace, const char * message)
 	if (!hdT_isEnabled(trace))
 		return 0;
 	size_t len = strlen(message);
-	if (trace->buffer_pos + len >= HD_LOG_BUF_SIZE)
+	if (trace->buffer_pos + len >= hdt_options.buffer_size)
 	{
 		if (flushLog(trace) != 0)
 			return -1;

@@ -26,26 +26,45 @@
 
 #include "config.h"
 
+struct hdtrace_options hdt_options = {
+    .verbosity = VLEVEL, 
+    .buffer_size = 1*1024*1024, // 1 MiB of trace size
+    .overwrite_existing_files = 1,
+    .path_prefix = "",
+};
 
-int hdt_verbosity = VLEVEL;
 
 /**
- * Initializes global verbosity by reading environment variable
- *  HDT_VERBOSITY.
- *
- * Should be called by each module as very first action.
- * Can be called more than once without doing anything after the first time.
+ * Initializes global options by reading environment variable 
  */
-void initVerbosity() {
-	static int block = 0;
-	if (block)
-		return;
-	block = 1;
-
+static void initEnvironmentVariables() {	
 	/* get debug level */
-	char *vlvl = getenv("HDT_VERBOSITY");
+	char *vlvl = getenv("HDTRACE_VERBOSITY");
 	if (isValidString(vlvl))
-		sscanf(vlvl, "%d", &hdt_verbosity);
+		sscanf(vlvl, "%d", & hdt_options.verbosity);
+	
+	vlvl = getenv("HDTRACE_BUFFER_SIZE_KB");
+	if (isValidString(vlvl)){
+		sscanf(vlvl, "%lld", (long long int *) &  hdt_options.buffer_size);
+		if ( hdt_options.buffer_size < 1024) {
+			hd_error_msg("Invalid buffer size set in environment: %lld", (long long int)  hdt_options.buffer_size );
+			hdt_options.buffer_size = 1024;
+		}
+		hdt_options.buffer_size *= 1024;
+	}
+	
+	vlvl = getenv("HDTRACE_OVERWRITE_EXISTING_FILES");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", & hdt_options.overwrite_existing_files);	
+	vlvl = getenv("HDTRACE_PREFIX");
+	if (isValidString(vlvl)){
+		hdt_options.path_prefix = strdup(vlvl);	
+	}
+}
+
+
+void hdTrace_init(){
+    initEnvironmentVariables();
 }
 
 
@@ -97,7 +116,7 @@ char * generateFilename( const hdTopoNode *toponode,
 
 	/* generate filename */
 	assert(HD_MAX_FILENAME_LENGTH != 0);
-	char *filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(char));
+	char * filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(char));
 	if(filename == NULL)
 	{
 		hd_info_msg("malloc() error during %s filename generation for %s: %s",
@@ -105,24 +124,25 @@ char * generateFilename( const hdTopoNode *toponode,
 		hd_error_return(HD_ERR_MALLOC, NULL);
 	}
 
-	size_t pos;
 	int ret;
+
+        strcpy (filename, hdt_options.path_prefix);
+	
 
 #define ERROR_MSG \
 	hd_error_msg("Overflow of HD_MAX_FILENAME_LENGTH buffer during" \
 			" %s filename generation for %s", affix, toponode->string)
 
-	strncpy(filename, toponode->topology->project, HD_MAX_FILENAME_LENGTH);
+	strncpy(filename + strlen(filename), toponode->topology->project, HD_MAX_FILENAME_LENGTH);
 	if (filename[HD_MAX_FILENAME_LENGTH - 1] != '\0')
 	{
 		ERROR_MSG;
 		free(filename);
 		hd_error_return(HD_ERR_BUFFER_OVERFLOW, NULL);
 	}
-	pos = strlen(filename);
 
 #define ERROR_CHECK do { \
-	if (ret >= HD_MAX_FILENAME_LENGTH - (int) pos) \
+	if (ret >= HD_MAX_FILENAME_LENGTH ) \
 	{ \
 		ERROR_MSG; \
 		free(filename); \
@@ -133,22 +153,21 @@ char * generateFilename( const hdTopoNode *toponode,
 	/* append "_level" for each topology level */
 	for (int i = 1; i <= level; ++i)
 	{
-		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+		ret = snprintf(filename + strlen(filename), HD_MAX_FILENAME_LENGTH,
 				"_%s", hdT_getTopoPathLabel(toponode, i));
 		ERROR_CHECK;
-		pos = strlen(filename);
 	}
 
 	if (group == NULL)
 	{
-		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+		ret = snprintf(filename + strlen(filename), HD_MAX_FILENAME_LENGTH,
 				"%s", affix);
 		ERROR_CHECK;
 	}
 	else
 	{
 		/* TODO: Convert all non-alphanum chars to '_' */
-		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+		ret = snprintf(filename + strlen(filename), HD_MAX_FILENAME_LENGTH,
 				"_%s%s", group, affix);
 		ERROR_CHECK;
 	}

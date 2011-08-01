@@ -109,7 +109,7 @@ struct _hdRelationTopo {
 	 * directly to the output file but to this buffer, unless
 	 * flushing is forced (\a hdT_setForceFlush(...))
 	 */
-	char buffer[HD_LOG_BUF_SIZE];
+	char * buffer;
 
 	/**
 	 * This variable keeps track of the position at which writing
@@ -185,10 +185,6 @@ static gboolean structRelationEqual(gconstpointer a, gconstpointer b){
 #define HOST_NAME_MAX 255
 
 static int hdR_init(void){
-
-	/* get verbosity */
-	initVerbosity();
-
 	char hostname[HOST_NAME_MAX];
 	char pidstr[10];
 	int ret;
@@ -281,7 +277,7 @@ static int writeToBuffer(hdR_topoToken topoToken, const char* format, ...)
 	}
 
 
-	if(topoToken->buffer_pos + count > HD_LOG_BUF_SIZE){
+	if(topoToken->buffer_pos + count > hdt_options.buffer_size){
 		// write to file.
 		if(flushBuffer(topoToken) != 0){
 			return -1;
@@ -312,7 +308,7 @@ int hdR_initTopology(hdTopoNode *topNode, hdR_topoToken * outTopoToken){
 
 	topoToken->logfile = generateFilename( topNode, topNode->length, NULL, ".rel" );
 
-	topoToken->log_fd = open(topoToken->logfile, O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
+	topoToken->log_fd = open(topoToken->logfile, O_CREAT | O_WRONLY | O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK, 0662);
 
 	if( topoToken->log_fd == -1){
 		free(topoToken->logfile);
@@ -322,6 +318,7 @@ int hdR_initTopology(hdTopoNode *topNode, hdR_topoToken * outTopoToken){
 	}
 
 
+	topoToken->buffer = malloc(hdt_options.buffer_size);
 	topoToken->buffer_pos = 0;
 	topoToken->isEnabled = 1;
 	topoToken->topoNode = topNode;
@@ -381,6 +378,7 @@ int hdR_finalize(hdR_topoToken * token_p){
 
 	// cleanup phase:
 	free(token->logfile);
+	free(token->buffer);
 	free(token);
 
 	return 0;

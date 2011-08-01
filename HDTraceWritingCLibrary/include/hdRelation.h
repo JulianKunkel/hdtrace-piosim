@@ -28,8 +28,6 @@
 
 #include "hdTopo.h"
 
-#define HD_LOG_BUF_SIZE (1024 * 1024)
-
 typedef struct _hdR_token *      hdR_token;
 typedef struct _hdRelationTopo * hdR_topoToken;
 

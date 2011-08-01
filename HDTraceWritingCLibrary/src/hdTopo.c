@@ -85,9 +85,6 @@ hdTopology * hdT_createTopology(
 		int nlevels
         )
 {
-	/* get verbosity */
-	initVerbosity();
-
 	/* check input */
 	if (project == NULL || nlevels <= 0)
 	{
@@ -116,6 +113,8 @@ hdTopology * hdT_createTopology(
 	/* return new topology */
 	return topology;
 }
+
+
 
 /**
  * Get the depth of a topology.
@@ -255,9 +254,6 @@ hdTopoNode * hdT_createTopoNode(
 		int length
 		)
 {
-	/* get verbosity */
-	initVerbosity();
-
 	/* check input */
 	if (path == NULL || length <= 0 || topology == NULL)
 	{

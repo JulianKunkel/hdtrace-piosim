@@ -90,7 +90,7 @@ struct _hdTrace {
 	 * directly to the output file but to this buffer, unless
 	 * flushing is forced (\a hdT_setForceFlush(...))
 	 */
-	char buffer[HD_LOG_BUF_SIZE];
+	char * buffer;
 
 	/**
 	 * This variable keeps track of the position at which writing
