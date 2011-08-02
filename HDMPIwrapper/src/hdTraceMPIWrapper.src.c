@@ -589,7 +589,7 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 	mpiTraceNesting = 0;
 
 #ifdef ENABLE_LIKWID_HDTRACE
-	{
+	if(enable_likwid){
 	  /**
 	   * Determine the core number on which the process should be pinned.
 	   * Algorithm: enumerate processes located on each node by their rank => local rank.
@@ -667,7 +667,7 @@ int hdMPI_FinalizeTracing(){
 #endif
 
 #ifdef ENABLE_LIKWID_HDTRACE
-	{
+	if(enable_likwid){
 	  // end ecompute:
 	  hdLikwidResults results;
 
