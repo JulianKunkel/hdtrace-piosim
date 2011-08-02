@@ -108,7 +108,7 @@ static int mpiTracingStarted = 0;
 
 static int mpiTracingEnabledManually = 0;
 
-static int mpiTraceNesting = 1;
+static int mpiTraceNesting = 0;
 
 /**
  * This is a global variable that regulates whether all functions listed in
@@ -231,10 +231,10 @@ void hdMPI_threadLogStateStart(const char * stateName){
     hdLikwidResults results;
   
 #ifdef ENABLE_SOTRACER
-  // disable SOTRACE to avoid logging of likwid activity
-  if(enable_sotracer){
-    sotracer_disable();
-  }
+    // disable SOTRACE to avoid logging of likwid activity
+    if(enable_sotracer){
+      sotracer_disable();
+    }
 #endif
 
     hdLikwid_end(& results);
@@ -245,11 +245,10 @@ void hdMPI_threadLogStateStart(const char * stateName){
     hdT_logStateEnd(hdMPI_getThreadTracefile());
     
 #ifdef ENABLE_SOTRACER
-  if(enable_sotracer){
-    sotracer_enable();
-  }
+    if(enable_sotracer){
+      sotracer_enable();
+    }
 #endif
-
     }
 #endif // ENABLE LIKWID          
     }
@@ -257,11 +256,11 @@ void hdMPI_threadLogStateStart(const char * stateName){
 }
 
 void hdMPI_threadLogStateEnd(void){  
+
+  mpiTraceNesting--;
+  
   if( ! mpiTracingStarted) // during hdMPI_PrepareTracing no trace information shall be recorded
     return;
-  
-  
-  mpiTraceNesting--;
   
   hdT_logStateEnd(hdMPI_getThreadTracefile());
 #ifdef ENABLE_LIKWID_HDTRACE        
