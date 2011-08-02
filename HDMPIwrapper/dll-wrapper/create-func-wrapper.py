@@ -145,7 +145,7 @@ def add_functions(groupFiles, output, varDef):
       # output.write("#undef %s\n" % (tName) );
       output.append(f.rstrip(";") + "{\n");
 
-      output.append("if(! initalized_tracing){ printf(\"[SOTRACE] Warning early initalization\n\"); sotracer_initalize(); }\n");
+      output.append("if(! initalized_tracing){ printf(\"[SOTRACE] Warning early initalization\\n\"); sotracer_initalize(); }\n");
 
       if tName in before:
 	output.append(before[tName] + "\n")
