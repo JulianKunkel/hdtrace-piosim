@@ -486,6 +486,8 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 
         /* send hostname to each process */
         char * recvBuff = malloc(size * (HOST_NAME_MAX+1));
+	// keep valgrind quiet.
+	memset(recvBuff, 0, size * (HOST_NAME_MAX+1));
         if (recvBuff == 0){
                 printf("Error while reserving memory for recv buffer: %d\n", rank);
                 PMPI_Abort(MPI_COMM_WORLD, 2);
