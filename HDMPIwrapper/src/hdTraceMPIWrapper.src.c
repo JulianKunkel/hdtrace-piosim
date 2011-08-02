@@ -227,6 +227,7 @@ void hdMPI_threadLogStateStart(const char * stateName){
     }
 
 #ifdef ENABLE_LIKWID_HDTRACE      
+    if(enable_likwid){
     hdLikwidResults results;
   
     hdLikwid_end(& results);
@@ -235,7 +236,8 @@ void hdMPI_threadLogStateStart(const char * stateName){
       hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
     }
     hdT_logStateEnd(hdMPI_getThreadTracefile());
-#endif // ENABLE LIKWID      
+    }
+#endif // ENABLE LIKWID          
     }
     hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
 }
@@ -247,7 +249,7 @@ void hdMPI_threadLogStateEnd(void){
   
   hdT_logStateEnd(hdMPI_getThreadTracefile());
 #ifdef ENABLE_LIKWID_HDTRACE        
-  if(mpiTraceNesting == 0){
+  if(mpiTraceNesting == 0 && enable_likwid){
       hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
       hdLikwid_start();
   } 
@@ -639,7 +641,9 @@ int hdMPI_PrepareTracing(const char * filePrefix){
   #endif
 
   #ifdef ENABLE_SOTRACER
-  sotracer_enable();
+  if(enable_sotracer){
+    sotracer_enable();
+  }
   #endif
 
   hdMPI_threadEnableTracing();
