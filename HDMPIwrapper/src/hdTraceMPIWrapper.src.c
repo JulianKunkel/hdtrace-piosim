@@ -227,12 +227,26 @@ void hdMPI_threadLogStateStart(const char * stateName){
     if(enable_likwid){
     hdLikwidResults results;
   
+#ifdef ENABLE_SOTRACER
+  // disable SOTRACE to avoid logging of likwid activity
+  if(enable_sotracer){
+    sotracer_disable();
+  }
+#endif
+
     hdLikwid_end(& results);
 
     if (results.runtime != 0.0){
       hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
     }
     hdT_logStateEnd(hdMPI_getThreadTracefile());
+    
+#ifdef ENABLE_SOTRACER
+  if(enable_sotracer){
+    sotracer_enable();
+  }
+#endif
+
     }
 #endif // ENABLE LIKWID          
     }
@@ -246,7 +260,19 @@ void hdMPI_threadLogStateEnd(void){
 #ifdef ENABLE_LIKWID_HDTRACE        
   if(mpiTraceNesting == 0 && enable_likwid){
       hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
+#ifdef ENABLE_SOTRACER
+  // disable SOTRACE to avoid logging of likwid activity
+  if(enable_sotracer){
+    sotracer_disable();
+  }
+#endif      
       hdLikwid_start();
+#ifdef ENABLE_SOTRACER
+  if(enable_sotracer){
+    sotracer_enable();
+  }
+#endif
+      
   } 
 #endif // ENABLE LIKWID        
 }
