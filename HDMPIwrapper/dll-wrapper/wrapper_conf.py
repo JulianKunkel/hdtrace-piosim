@@ -27,6 +27,6 @@ attributes = {
 }
 
 conditions = {
-#  "write" : "fd > 2",
+  "write" : "(! hdTrace_isWritingToFile())",
 #  "read" : "fd != 1",
 }

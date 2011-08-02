@@ -164,7 +164,8 @@ static int throttle_states_to_record = 0;
 static int throttle_cycle_length = 0;
 static int throttle_disable_trace = 0;
 static int number_of_states_recorded = 0;
-
+static int enable_likwid = 1;
+static int enable_sotracer = 1;
 
 
 int hdMPI_threadEnableTracing(){
@@ -206,22 +207,35 @@ int hdMPI_threadDisableTracing(){
 
 #include "../src/common.c"
 
-#ifdef ENABLE_LIKWID_HDTRACE
 void hdMPI_threadLogStateStart(const char * stateName){
   mpiTraceNesting++;
   
   if(! enabledTracing) return;
 
-    if(mpiTraceNesting == 1){
-      hdLikwidResults results;
+  if(mpiTraceNesting == 1){
+    if(throttle_cycle_length > 0){
+      const int throttle_rest = ( number_of_states_recorded % throttle_cycle_length );
 
-      hdLikwid_end(& results);
-
-      if (results.runtime != 0.0){
-	hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
+      if(throttle_rest == 0){
+	throttle_disable_trace = 0;
+	hdT_enableTrace(tracefile);
+      }else if(throttle_rest == throttle_states_to_record){
+	hdT_disableTrace(tracefile);
+	/* disable tracing */
+	throttle_disable_trace = 1;
       }
+    }
 
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
+#ifdef ENABLE_LIKWID_HDTRACE      
+    hdLikwidResults results;
+  
+    hdLikwid_end(& results);
+
+    if (results.runtime != 0.0){
+      hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
+    }
+    hdT_logStateEnd(hdMPI_getThreadTracefile());
+#endif // ENABLE LIKWID      
     }
     hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
 }
@@ -231,32 +245,14 @@ void hdMPI_threadLogStateEnd(void){
     
   if(! enabledTracing) return;
   
-    hdT_logStateEnd(hdMPI_getThreadTracefile());
-    if(mpiTraceNesting == 0){
+  hdT_logStateEnd(hdMPI_getThreadTracefile());
+#ifdef ENABLE_LIKWID_HDTRACE        
+  if(mpiTraceNesting == 0){
       hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
       hdLikwid_start();
-    } 
+  } 
+#endif // ENABLE LIKWID        
 }
-
-#else // ENABLE LIKWID
-
-
-void hdMPI_threadLogStateStart(const char * stateName){
-  mpiTraceNesting++;
-  if(! enabledTracing) return;
-
-    if ( mpiTraceNesting == 1){
-      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
-    }
-}
-
-void hdMPI_threadLogStateEnd(void){
-  mpiTraceNesting--;  
-  if(! enabledTracing) return;
-
-    hdT_logStateEnd(hdMPI_getThreadTracefile());
-}
-#endif
 
 /**
  * This function translates \a rank from the MPI communicator
@@ -395,7 +391,17 @@ int hdMPI_PrepareTracing(const char * filePrefix){
       if (tmp != NULL){
 	throttle_states_to_record = atoi(tmp);
       }
+      
+      tmp = getenv("HDTRACE_ENABLE_LIKWID");
+      if (tmp != NULL){
+	enable_likwid = atoi(tmp);
+      }
 
+      tmp = getenv("HDTRACE_ENABLE_SOTRACER");
+      if (tmp != NULL){
+	enable_sotracer = atoi(tmp);
+      }
+      
       /* Check parameters */
       if(throttle_cycle_length > 0){
 	if (throttle_states_to_record > throttle_cycle_length){
