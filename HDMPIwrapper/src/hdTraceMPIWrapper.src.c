@@ -110,8 +110,6 @@ static int mpiTracingEnabledManually = 0;
 
 static int mpiTraceNesting = 1;
 
-static int enabledTracing = 0;
-
 /**
  * This is a global variable that regulates whether all functions listed in
  * \a interesting_funcs.h are traced, or only those that have custom arguments
@@ -210,7 +208,6 @@ int hdMPI_threadDisableTracing(){
 void hdMPI_threadLogStateStart(const char * stateName){
   mpiTraceNesting++;
   
-  if(! enabledTracing) return;
 
   if(mpiTraceNesting == 1){
     if(throttle_cycle_length > 0){
@@ -244,8 +241,6 @@ void hdMPI_threadLogStateStart(const char * stateName){
 
 void hdMPI_threadLogStateEnd(void){  
   mpiTraceNesting--;
-    
-  if(! enabledTracing) return;
   
   hdT_logStateEnd(hdMPI_getThreadTracefile());
 #ifdef ENABLE_LIKWID_HDTRACE        
