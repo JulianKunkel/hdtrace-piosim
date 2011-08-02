@@ -50,7 +50,7 @@ static char * getValueFromProc(char const * const what){
 	
         close(fd);
 
-        return line;
+        return strdup(line);
 }
 
 
@@ -78,5 +78,5 @@ char * processorModelName(){
     if(val == NULL || strlen(val) < 2){
       return strdup("Unknown Model");
     }
-    return strdup(val);
+    return val;
 }
