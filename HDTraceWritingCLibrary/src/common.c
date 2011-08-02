@@ -35,6 +35,11 @@ struct hdtrace_options hdt_options = {
     .force_flush = 0,
 };
 
+/**
+ * Flag indicating if HDTrace writes currently to a file.
+ */
+static int isWritingToFile = 0;
+
 
 /**
  * Initializes global options by reading environment variable 
@@ -187,6 +192,10 @@ char * generateFilename( const hdTopoNode *toponode,
 	return filename;
 }
 
+int hdTrace_isWritingToFile(){
+  return isWritingToFile;
+}
+
 /**
  * Writes data to a file at the current offset.
  *
@@ -208,11 +217,11 @@ char * generateFilename( const hdTopoNode *toponode,
  */
 ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 {
+        isWritingToFile = 1;
 	/* check input */
 	assert(fd > 0);
 	assert(buf != NULL);
 	assert(isValidString(filename));
-
 
 	ssize_t written = 0;
 
@@ -243,6 +252,7 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		if (sret == 0)
 		{
 			hd_info_msg("Timeout during writing to %s", filename);
+			isWritingToFile = 0;			
 			hd_error_return(HD_ERR_TIMEOUT, -1);
 		}
 		else if (sret < 0)
@@ -252,17 +262,20 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 			switch (errno)
 			{
 			case EBADF: /* fd is an invalid file descriptor */
+				isWritingToFile = 0;			  
 				hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 				break;
 			case EINTR: /* signal was caught */
 				continue;
 			case ENOMEM: /* unable to allocate memory for internal tables */
+				isWritingToFile = 0;			  
 				hd_error_return(HD_ERR_MALLOC, -1);
 				break;
 			case EINVAL:
 				assert(0);
 				/* fall through if NDEBUG defined */
 			default:
+				isWritingToFile = 0;			  
 				hd_error_return(HD_ERR_UNKNOWN, -1);
 			}
 		}
@@ -291,8 +304,10 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 			case EFBIG:  /* tried to write beyond allowed file size */
 			case ENOSPC: /* no space left on device */
 			case EIO:    /* low-level I/O error */
+				isWritingToFile = 0;
 				hd_error_return(HD_ERR_WRITE_FILE, -1);
 			default:
+				isWritingToFile = 0;
 				hd_error_return(HD_ERR_UNKNOWN, -1);
 			}
 		}
@@ -304,8 +319,9 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		/* update number of bytes written */
 		written += wret;
 
-	}
-
+	}	
+	
+	isWritingToFile = 0;
 	return written;
 }
 
