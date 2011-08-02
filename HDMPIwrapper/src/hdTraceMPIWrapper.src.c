@@ -417,20 +417,25 @@ int hdMPI_PrepareTracing(const char * filePrefix){
       if (tmp != NULL){
 	throttle_cycle_length = atoi(tmp);
       }
+      printf("HDTRACE_THROTTLE_CYCLE_LENGTH: %d\n", throttle_cycle_length);
+      
       tmp = getenv("HDTRACE_THROTTLE_STATES_TO_RECORD");
       if (tmp != NULL){
 	throttle_states_to_record = atoi(tmp);
       }
+      printf("HDTRACE_THROTTLE_STATES_TO_RECORD: %d\n", throttle_states_to_record);
       
       tmp = getenv("HDTRACE_ENABLE_LIKWID");
       if (tmp != NULL){
 	enable_likwid = atoi(tmp);
       }
-
+      printf("HDTRACE_ENABLE_LIKWID: %d\n", enable_likwid);
+	
       tmp = getenv("HDTRACE_ENABLE_SOTRACER");
       if (tmp != NULL){
 	enable_sotracer = atoi(tmp);
       }
+      printf("HDTRACE_ENABLE_SOTRACER: %d\n", enable_sotracer);
       
       /* Check parameters */
       if(throttle_cycle_length > 0){
