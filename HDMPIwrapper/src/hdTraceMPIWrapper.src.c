@@ -208,6 +208,9 @@ int hdMPI_threadDisableTracing(){
 void hdMPI_threadLogStateStart(const char * stateName){
   mpiTraceNesting++;
   
+  if( ! mpiTracingStarted) // during hdMPI_PrepareTracing no trace information shall be recorded
+    return;
+  
 
   if(mpiTraceNesting == 1){
     if(throttle_cycle_length > 0){
@@ -254,6 +257,10 @@ void hdMPI_threadLogStateStart(const char * stateName){
 }
 
 void hdMPI_threadLogStateEnd(void){  
+  if( ! mpiTracingStarted) // during hdMPI_PrepareTracing no trace information shall be recorded
+    return;
+  
+  
   mpiTraceNesting--;
   
   hdT_logStateEnd(hdMPI_getThreadTracefile());
