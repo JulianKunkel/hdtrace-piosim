@@ -110,14 +110,14 @@ public class PaperResults extends ModelTest{
 		SMTNodeT smtNodeT = new SMTNodeT(clientsPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(clientsPerNode),
-				NetworkNodesC.QPI(),
+				NetworkNodesC.LocalNodeQPI(),
 				NetworkEdgesC.QPI()
 				);
 
 		SMTNodeT serverNodeT = new SMTNodeT(clientsPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(clientsPerNode, memoryInMB),
-				NetworkNodesC.QPI(),
+				NetworkNodesC.LocalNodeQPI(),
 				NetworkEdgesC.QPI(), ios
 				);
 

@@ -10,7 +10,7 @@ public class NICC implements HardwareComponents{
 		//NICAnalytical nic = new NICAnalytical();
 		NIC nic = new NIC();
 		nic.setName("NIC");
-		nic.setTotalBandwidth(10000 * MBYTE);
+		nic.setTotalBandwidth(40000 * MBYTE);
 		return nic;
 	}
 

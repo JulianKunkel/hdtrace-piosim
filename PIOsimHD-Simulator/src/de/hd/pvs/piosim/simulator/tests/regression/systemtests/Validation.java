@@ -17,6 +17,7 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigura
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTSocketNodeT;
 
 public class Validation  extends ModelTest {
 
@@ -28,7 +29,7 @@ public class Validation  extends ModelTest {
 		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(smtPerNode),
-				NetworkNodesC.QPI(),
+				NetworkNodesC.LocalNodeQPI(),
 				NetworkEdgesC.QPI()
 				);
 		super.setup( new ClusterT(nodeCount,
@@ -37,15 +38,45 @@ public class Validation  extends ModelTest {
 				smtNodeT) );
 	}
 
+	protected void setupSMP(int smtPerSocket) throws Exception {
+		setupSMP(smtPerSocket, 1);
+	}
 
-	protected void setupSMP(int smtPerNode) throws Exception {
-		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
+
+	protected void setupSMP(int smtPerSocket, int sockets) throws Exception {
+		SMTSocketNodeT smtNodeT = new SMTSocketNodeT(smtPerSocket,
+				sockets,
 				NICC.PVSNIC(),
-				NodesC.PVSSMPNode(smtPerNode),
-				NetworkNodesC.LocalNodeQPI(),
+				NodesC.PVSSMPNode(smtPerSocket*sockets),
+				NetworkNodesC.SocketLocalNode(),
+				NetworkEdgesC.SocketLocalEdge(),
+				NetworkNodesC.QPI(),
 				NetworkEdgesC.QPI()
 				);
 		super.setup( smtNodeT );
+	}
+
+	@Test public void sendRecvData() throws Exception{
+		final int pairs = 2;
+		setupSMP(pairs * 2, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		for(int i=0; i < pairs ; i++){
+			pb.addSendAndRecv(world, i, i+pairs, 1000* MBYTE, 4711);
+		}
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void sendRecvIntersocketData() throws Exception{
+		final int pairs = 2;
+		setupSMP(pairs, 2);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		for(int i=0; i < pairs ; i++){
+			pb.addSendAndRecv(world, i, i+pairs, 1000* MBYTE, 4711);
+		}
+
+		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void recv1MB() throws Exception{
