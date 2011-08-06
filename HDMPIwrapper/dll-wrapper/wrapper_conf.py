@@ -20,6 +20,8 @@ attributes = {
   "read" : ["fd='%d' size='%lld' ret='%lld'", "fd, (long long int) count, (long long int) ret" ],
   "write" : ["fd='%d' size='%lld' ret='%lld'", "fd, (long long int) count, (long long int) ret" ],
   "open" : ["fd='%d' name='%s'", "ret, pathname" ],
+  "open64" : ["fd='%d' name='%s'", "ret, pathname" ],
+  "unlink" : ["name='%s'", "name" ],
   "close" : ["fd='%d' ret='%d'", "fd, ret"],
   "fopen" : ["ret='%d' name='%s'", "ret != NULL, filename" ],
   "freopen" : ["ret='%d' name='%s'", "ret != NULL, filename" ],
@@ -27,6 +29,6 @@ attributes = {
 }
 
 conditions = {
-#  "write" : "fd > 2",
+  "write" : "(! hdTrace_isWritingToFile())",
 #  "read" : "fd != 1",
 }

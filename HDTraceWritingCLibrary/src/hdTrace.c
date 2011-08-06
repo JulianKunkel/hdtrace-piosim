@@ -166,7 +166,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 
 	// create and open file
 	trace->log_fd = open(trace->logfile,
-			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY |  O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK, 0662);
 	if (trace->log_fd == -1)
 	{
 		hdt_debugf(trace, "Could not open file %s: %s",
@@ -186,7 +186,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 
 	// create and open file
 	trace->info_fd = open(trace->infofile,
-			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY |  O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK, 0662);
 	if (trace->info_fd == -1)
 	{
 		hdt_debugf(trace, "Could not open file %s: %s",
@@ -195,6 +195,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
 
+	trace->buffer = malloc(hdt_options.buffer_size);
 	/* initialize remaining trace file structure */
 	trace->function_depth = -1;
 	trace->buffer_pos = 0;
@@ -202,8 +203,7 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 	trace->isEnabled = 1;
 
 	trace->always_flush = 0;
-	trace->trace_nested_operations = 0;
-
+	trace->max_nesting_depth = hdt_options.max_nesting_depth;
 
 	int i;
 	for (i = 0; i < HD_LOG_MAX_DEPTH; ++i)
@@ -276,7 +276,7 @@ int hdT_setNestedDepth(hdTrace *trace, int depth)
 	if(depth >= HD_LOG_MAX_DEPTH)
 		depth = HD_LOG_MAX_DEPTH - 1;
 
-	trace->trace_nested_operations = depth;
+	trace->max_nesting_depth = depth;
 	return 0;
 }
 
@@ -483,10 +483,8 @@ int hdT_logElement(hdTrace *trace, const char * name,
 	if (!hdT_isEnabled(trace))
 		return 0;
 
-	if (trace->function_depth > trace->trace_nested_operations ||
-		trace->function_depth > HD_LOG_MAX_DEPTH)
+	if (trace->function_depth > trace->max_nesting_depth )
 	{
-		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d", trace->function_depth );
 		return 0;
 	}
 
@@ -573,10 +571,8 @@ int hdT_logAttributes(hdTrace *trace, const char * valueFormat, ...)
 	if (!hdT_isEnabled(trace))
 		return 0;
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
+	if (trace->function_depth > trace->max_nesting_depth)
 	{
-		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d",
-				trace->function_depth );
 		return 0;
 	}
 
@@ -647,7 +643,7 @@ int hdT_logStateStart(hdTrace *trace, const char * stateName)
 		return 0;
 
 	trace->function_depth++;
-	if (trace->trace_nested_operations < trace->function_depth)
+	if ( trace->function_depth > trace->max_nesting_depth)
 	{
 		return 0;
 	}
@@ -718,17 +714,12 @@ int hdT_logStateEnd(hdTrace *trace)
 		return -1;
 	}
 
-	if (trace->function_depth > trace->trace_nested_operations)
+	if (trace->function_depth > trace->max_nesting_depth || ! hdT_isEnabled(trace) )
 	{
 		trace->function_depth--;
 		return 0;
 	}
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
-	{
-		trace->function_depth--;
-		return 0;
-	}
 	if (gettimeofday(&trace->end_time[trace->function_depth], NULL) != 0)
 	{
 		hdt_debugf(trace, "Problems getting time, stop logging: %s", strerror(errno));
@@ -869,6 +860,7 @@ int hdT_finalize(hdTrace *trace)
 	/* free memory allocated by generateFilename() */
 	free(trace->logfile);
 	free(trace->infofile);
+	free(trace->buffer);
 
 	/* free memory allocated by hdT_createTrace() */
 	free(trace);
@@ -962,7 +954,8 @@ static int writeLog(hdTrace *trace, const char * message)
 	if (!hdT_isEnabled(trace))
 		return 0;
 	size_t len = strlen(message);
-	if (trace->buffer_pos + len >= HD_LOG_BUF_SIZE)
+        // synchronzie buffer if necessary!
+	if (trace->buffer_pos + len >= hdt_options.buffer_size)
 	{
 		if (flushLog(trace) != 0)
 			return -1;
@@ -1077,7 +1070,7 @@ static int writeState(hdTrace *trace)
 {
 	assert(trace);
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
+	if (trace->function_depth > trace->max_nesting_depth )
 		return 0;
 
 

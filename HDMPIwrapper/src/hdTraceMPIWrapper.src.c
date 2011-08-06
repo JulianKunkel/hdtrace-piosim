@@ -108,7 +108,7 @@ static int mpiTracingStarted = 0;
 
 static int mpiTracingEnabledManually = 0;
 
-static int mpiTraceNesting = 1;
+static int mpiTraceNesting = 0;
 
 /**
  * This is a global variable that regulates whether all functions listed in
@@ -121,15 +121,6 @@ static int mpiTraceNesting = 1;
  * \a HDTRACE_ALL_FUNCTIONS.
  */
 static int trace_all_functions = 1;
-
-/**
- * This global variable determines, whether nested calls to MPI functions from within
- * MPI functions should be traced.
- *
- * The value of this variable can be changed by setting the environment variable
- * \a HDTRACE_NESTED.
- */
-static int trace_nested_operations = 1;
 
 /**
  * This variable determines, if the MPI_Info structure that is given
@@ -155,42 +146,6 @@ static int trace_force_flush = 0;
 static hdTopology *topology;
 
 /**
- * This array defines the name of the environment variables which
- * are read by the program. The values of the environment variables
- * are then stored in those variables to which elements of the
- * array \a controlled_vars are pointing.
- *
- * Example
- * \code
- * HDTRACE_NESTED=1
- * \endcode
- * will lead to setting
- * \code
- * *controlled_vars[1] = 1;
- * \endcode
- * which is equivalent to
- * \code
- * trace_nested_operations = 1;
- * \endcode
- */
-static const char * control_vars[] = { "HDTRACE_ALL_FUNCTIONS",
-								"HDTRACE_NESTED",
-								"HDTRACE_FILE_INFO",
-								"HDTRACE_FORCE_FLUSH",
-								NULL };
-
-/**
- * This array stores the addresses of the global control
- * variables. The environment variable, that controls a certain global
- * variable is listed in \a control_vars and has the same index.
- */
-static int * controlled_vars[] = { &trace_all_functions,
-								   &trace_nested_operations,
-								   &trace_file_info,
-								   &trace_force_flush,
-								   NULL };
-
-/**
  * This string is prepended to the name of every trace file.
  * Please note that it should not contain any underscores, because
  * this character is separating different topology levels.
@@ -207,7 +162,8 @@ static int throttle_states_to_record = 0;
 static int throttle_cycle_length = 0;
 static int throttle_disable_trace = 0;
 static int number_of_states_recorded = 0;
-
+static int enable_likwid = 1;
+static int enable_sotracer = 1;
 
 
 int hdMPI_threadEnableTracing(){
@@ -249,116 +205,83 @@ int hdMPI_threadDisableTracing(){
 
 #include "../src/common.c"
 
-
-#ifdef ENABLE_LIKWID_HDTRACE
 void hdMPI_threadLogStateStart(const char * stateName){
-  if( ! mpiTracingEnabledManually ) return;
-
-    mpiTraceNesting++;
-#ifdef ENABLE_SOTRACER
-    sotracer_disable();
-#endif
-    if(mpiTraceNesting == 1){
-      hdLikwidResults results;
-
-      hdLikwid_end(& results);
-
-      if (results.runtime != 0.0){
-	hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
-      }
-
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
-      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
-
-      number_of_states_recorded++;
-    }else{
-      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
-    }
-
-#ifdef ENABLE_SOTRACER
-    sotracer_enable();
-#endif
-}
-
-void hdMPI_threadLogStateEnd(void){
-    if(! mpiTracingEnabledManually) return;
-
-    mpiTraceNesting--;
-#ifdef ENABLE_SOTRACER
-    sotracer_disable();
-#endif
-    if(mpiTraceNesting == 0){
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
-      hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
-      hdLikwid_start();
-    } else {
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
-    }
-
-#ifdef ENABLE_SOTRACER
-    sotracer_enable();
-#endif
-}
-
-#else  /* NO ENABLE_LIKWID_HDTRACE */
-
-void hdMPI_threadLogStateStart(const char * stateName){
-
   mpiTraceNesting++;
+  
+  if( ! mpiTracingStarted) // during hdMPI_PrepareTracing no trace information shall be recorded
+    return;
+  
 
-  if(! mpiTracingEnabledManually) return;
+  if(mpiTraceNesting == 1){
+    if(throttle_cycle_length > 0){
+      const int throttle_rest = ( number_of_states_recorded % throttle_cycle_length );
 
-    if(mpiTraceNesting == 1){
-
-      if(throttle_cycle_length > 0){
-	const int throttle_rest = ( number_of_states_recorded % throttle_cycle_length );
-
-	if(throttle_rest == 0){
-	  throttle_disable_trace = 0;
-	  hdT_enableTrace(tracefile);
-
-	}else if(throttle_rest == throttle_states_to_record){
-
-	  hdT_disableTrace(tracefile);
-	  /* disable tracing */
-	  throttle_disable_trace = 1;
-#ifdef ENABLE_SOTRACER
-	  sotracer_disable();
-#endif
-	}
+      if(throttle_rest == 0){
+	throttle_disable_trace = 0;
+	hdT_enableTrace(tracefile);
+      }else if(throttle_rest == throttle_states_to_record){
+	hdT_disableTrace(tracefile);
+	/* disable tracing */
+	throttle_disable_trace = 1;
       }
-
-      number_of_states_recorded++;
     }
 
-    if(throttle_disable_trace) return;
+#ifdef ENABLE_LIKWID_HDTRACE      
+    if(enable_likwid){
+    hdLikwidResults results;
+  
+#ifdef ENABLE_SOTRACER
+    // disable SOTRACE to avoid logging of likwid activity
+    if(enable_sotracer){
+      sotracer_disable();
+    }
+#endif
 
+    hdLikwid_end(& results);
+
+    if (results.runtime != 0.0){
+      hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
+    }
+    hdT_logStateEnd(hdMPI_getThreadTracefile());
+    
 #ifdef ENABLE_SOTRACER
-    sotracer_disable();
+    if(enable_sotracer){
+      sotracer_enable();
+    }
 #endif
-      hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
-#ifdef ENABLE_SOTRACER
-    sotracer_enable();
-#endif
+    }
+#endif // ENABLE LIKWID          
+    }
+    hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
 }
 
-void hdMPI_threadLogStateEnd(void){
+void hdMPI_threadLogStateEnd(void){  
+
   mpiTraceNesting--;
-
-  if(! mpiTracingEnabledManually) return;
-
-  if(throttle_disable_trace) return;
-
+  
+  if( ! mpiTracingStarted) // during hdMPI_PrepareTracing no trace information shall be recorded
+    return;
+  
+  hdT_logStateEnd(hdMPI_getThreadTracefile());
+#ifdef ENABLE_LIKWID_HDTRACE        
+  if(mpiTraceNesting == 0 && enable_likwid){
+      hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
 #ifdef ENABLE_SOTRACER
+  // disable SOTRACE to avoid logging of likwid activity
+  if(enable_sotracer){
     sotracer_disable();
-#endif
-      hdT_logStateEnd(hdMPI_getThreadTracefile());
+  }
+#endif      
+      hdLikwid_start();
 #ifdef ENABLE_SOTRACER
+  if(enable_sotracer){
     sotracer_enable();
+  }
 #endif
+      
+  } 
+#endif // ENABLE LIKWID        
 }
-
-#endif
 
 /**
  * This function translates \a rank from the MPI communicator
@@ -479,6 +402,8 @@ static void before_Init()
  */
 int hdMPI_PrepareTracing(const char * filePrefix){
    if( mpiTracingStarted ) return 1;
+   
+   hdTrace_init();
 
    trace_file_prefix = strdup(filePrefix);
 
@@ -491,11 +416,26 @@ int hdMPI_PrepareTracing(const char * filePrefix){
       if (tmp != NULL){
 	throttle_cycle_length = atoi(tmp);
       }
+      printf("HDTRACE_THROTTLE_CYCLE_LENGTH: %d\n", throttle_cycle_length);
+      
       tmp = getenv("HDTRACE_THROTTLE_STATES_TO_RECORD");
       if (tmp != NULL){
 	throttle_states_to_record = atoi(tmp);
       }
-
+      printf("HDTRACE_THROTTLE_STATES_TO_RECORD: %d\n", throttle_states_to_record);
+      
+      tmp = getenv("HDTRACE_ENABLE_LIKWID");
+      if (tmp != NULL){
+	enable_likwid = atoi(tmp);
+      }
+      printf("HDTRACE_ENABLE_LIKWID: %d\n", enable_likwid);
+	
+      tmp = getenv("HDTRACE_ENABLE_SOTRACER");
+      if (tmp != NULL){
+	enable_sotracer = atoi(tmp);
+      }
+      printf("HDTRACE_ENABLE_SOTRACER: %d\n", enable_sotracer);
+      
       /* Check parameters */
       if(throttle_cycle_length > 0){
 	if (throttle_states_to_record > throttle_cycle_length){
@@ -546,6 +486,8 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 
         /* send hostname to each process */
         char * recvBuff = malloc(size * (HOST_NAME_MAX+1));
+	// keep valgrind quiet.
+	memset(recvBuff, 0, size * (HOST_NAME_MAX+1));
         if (recvBuff == 0){
                 printf("Error while reserving memory for recv buffer: %d\n", rank);
                 PMPI_Abort(MPI_COMM_WORLD, 2);
@@ -681,7 +623,7 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 	mpiTraceNesting = 0;
 
 #ifdef ENABLE_LIKWID_HDTRACE
-	{
+	if(enable_likwid){
 	  /**
 	   * Determine the core number on which the process should be pinned.
 	   * Algorithm: enumerate processes located on each node by their rank => local rank.
@@ -733,7 +675,9 @@ int hdMPI_PrepareTracing(const char * filePrefix){
   #endif
 
   #ifdef ENABLE_SOTRACER
-  sotracer_enable();
+  if(enable_sotracer){
+    sotracer_enable();
+  }
   #endif
 
   hdMPI_threadEnableTracing();
@@ -757,7 +701,7 @@ int hdMPI_FinalizeTracing(){
 #endif
 
 #ifdef ENABLE_LIKWID_HDTRACE
-	{
+	if(enable_likwid){
 	  // end ecompute:
 	  hdLikwidResults results;
 
@@ -807,7 +751,7 @@ int hdMPI_FinalizeTracing(){
 /**
  * This function is called after a call to \a MPI_Init(...) or \a MPI_Init_thread(...).
  * It initializes the global variable \a tracefile by calling
- * \a hdT_createTrace(...). It also calls \a readEnvVars(...).
+ * \a hdT_createTrace(...).
  * After this call the global variable \a tracefile and the configuration variables
  * \a trace_* (that are listed in \a controlled_vars) by may be used.
  *
@@ -837,7 +781,9 @@ static void after_Init(int *argc, char ***argv)
 
 #ifdef ENABLE_LIKWID_HDTRACE
       // start first ECOMPUTE (although it is the init).
-       hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
+      if(enable_likwid){
+	  hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
+      }
 #endif
 }
 

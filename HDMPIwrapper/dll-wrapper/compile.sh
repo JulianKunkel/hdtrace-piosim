@@ -7,7 +7,8 @@ gcc test.c -ggdb -Wall wrapper.o -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_L
 
 
 # COMPILE WITH NETCDF
-mpicc -c -ggdb -I/opt/netcdf/4.1.1/include/ -DNETCDFLIB='"/opt/netcdf/4.1.1/lib/libnetcdf.so.4.0.0"' -I /opt/hdtrace/1.0/wrapper/include/  -I /opt/hdtrace/1.0/HDTraceWritingCLibrary/include/ -Wall ./wrapper.c -o wrapper-hdtracempi.o -D HDTRACE  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  -ldl `pkg-config --libs glib-2.0 --cflags glib-2.0` || exit 1
+echo "Compiling with mpicc"
+mpicc -c -ggdb -I/opt/netcdf/4.1.1/include/ -DNETCDFLIB='"/opt/netcdf/4.1.1/lib/libnetcdf.so.4.0.0"' -I /opt/hdtrace/1.0/wrapper-plain/include/  -I /opt/hdtrace/1.0/HDTraceWritingCLibrary/include/ -Wall ./wrapper.c -o wrapper-hdtracempi.o -D HDTRACE  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  -ldl `pkg-config --libs glib-2.0 --cflags glib-2.0` || exit 1
 #mpicc -c -ggdb -DNETCDFLIB=/opt/netcdf/4.1.1/lib/libnetcdf.so.4.0.0 -I /opt/hdtrace/1.0/wrapper/include/  -I /opt/hdtrace/1.0/HDTraceWritingCLibrary/include/ -Wall ./wrapper.c -o wrapper-hdtracempi.o -D HDTRACE  -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  -ldl `pkg-config --libs glib-2.0 --cflags glib-2.0`
 
 

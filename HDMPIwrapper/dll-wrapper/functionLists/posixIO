@@ -63,6 +63,7 @@ int posix_fallocate (int fd,off_t offset,off_t len);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 int open(const char *pathname, int flags, mode_t mode);
+int open64(const char *pathname, int flags, mode_t mode);
 int close(int fd);
 int creat(const char *pathname, mode_t mode);
 int remove (const char *filename);

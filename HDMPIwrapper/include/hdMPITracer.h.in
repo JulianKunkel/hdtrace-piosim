@@ -64,7 +64,6 @@ void hdMPI_threadLogStateStart(const char * name);
  */
 void hdMPI_threadLogStateEnd(void);
 
-
 /**
  * Log Attributes
  */

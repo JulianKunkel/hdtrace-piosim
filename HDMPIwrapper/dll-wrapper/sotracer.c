@@ -8,12 +8,16 @@
 
 #ifdef HDTRACE
 #include <mpi.h>
+#include <hdTrace.h>
 #include <hdMPITracer.h>
+
 #else
+
 #warning Not using hdTrace
 #define hdMPI_threadLogAttributes(...)
 #define hdMPI_threadLogStateStart(...)
 #define hdMPI_threadLogStateEnd(...)
+#define hdTrace_isWritingToFile(...) 0
 #endif
 
 #ifndef GLIBCLIB

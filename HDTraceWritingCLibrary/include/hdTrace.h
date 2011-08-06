@@ -32,14 +32,6 @@
  * Defines of sizes
  */
 /**
- * This constant determines the size of the trace writing buffer.
- * If flushing is not forced via hdT_setForceFlush(), the buffer
- * is flushed only after \a HD_LOG_BUF_SIZE characters have been
- * written
- */
-#define HD_LOG_BUF_SIZE (1024 * 1024)
-
-/**
  * The xml trace file is formatted for better readability.
  * This string is used to indent different lines.
  * "\t" or "  " are the most obvious choices
@@ -63,6 +55,17 @@
  * Maximum depth of nested tracing calls that is logged.
  */
 #define HD_LOG_MAX_DEPTH 4
+
+
+/**
+ * Initalize HDTrace common facilities.
+ */
+void hdTrace_init(void);
+
+/**
+ * This function indicates if hdtrace is currently flushing data to disk
+ */
+int hdTrace_isWritingToFile();
 
 
 /**

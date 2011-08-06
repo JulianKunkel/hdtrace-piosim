@@ -13,7 +13,8 @@
 #include "hdTrace.h"
 
 int main(void){
-
+	hdTrace_init();
+	
 	const char *levels[] = {"Hostname", "Client", "Thread"};
 	hdTopology *myTopology = hdT_createTopology("MyProject", levels, 3);
 
@@ -24,7 +25,7 @@ int main(void){
 	hdTrace *trace = hdT_createTrace(myTopoNode);
 
 	hdT_enableTrace(trace);
-	hdT_setNestedDepth(trace,3);
+	//hdT_setNestedDepth(trace,3);
 
 	hdT_logStateStart(trace, "a0");
 
