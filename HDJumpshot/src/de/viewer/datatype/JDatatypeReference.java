@@ -65,7 +65,7 @@ class JDatatypeReference extends JPanel implements MouseListener{
 		}
 
 		label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-		label.setToolTipText("Datatype <size, extend> = <" + datatype.getSize() + ", " + datatype.getExtend() + ">");
+		label.setToolTipText("Datatype <size, extent> = <" + datatype.getSize() + ", " + datatype.getExtend() + ">");
 
 		this.add(label);
 
