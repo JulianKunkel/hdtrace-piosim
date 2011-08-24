@@ -11,26 +11,15 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 /**
  * MPICH2 Algorithm:
  *
- *
- *
- * Basic rules detected on analyzing benchmarks from DKRZ Cluster tracefiles:
- *	RULE 1:
- *		STEP 1:
- *			Odd rank sends to myRank - 1
- *			Even rank receives from myRank + 1
- *			Then odd ranks terminate
- *
- * RULE 2:
- *
- * [5]
- * 		Recursiive Halving Algorithm for rank <= highest po2
- *
- * [7]
- * 		step 1:	1,3 and 5 send to 0, 2 and 4
- * 		step 2: 6 sends to 4 and 4 sends to 6
- *
- *
- *
+ * A recursive-halving algorithm (beginning with processes that are
+ * distance 1 apart) is used for the reduce-scatter.
+ * The non-power-of-two case is
+ * handled by dropping to the nearest lower power-of-two: the first
+ * few odd-numbered processes send their data to their left neighbors
+ * (rank-1), and the reduce-scatter happens among the remaining
+ * power-of-two processes. If the root is one of the excluded
+ * processes, then after the reduce-scatter, rank 0 sends its result to
+ * the root and exits;
  *
  * @author artur
  *
