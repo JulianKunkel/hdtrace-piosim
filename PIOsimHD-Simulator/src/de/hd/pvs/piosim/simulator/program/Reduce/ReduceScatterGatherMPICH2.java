@@ -30,6 +30,21 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
  * MPICH2 Implementation, Scatter-Gather.
+ *
+ * This algorithm implements the reduce in two steps: first a
+   reduce-scatter, followed by a gather to the root. A
+   recursive-halving algorithm (beginning with processes that are
+   distance 1 apart) is used for the reduce-scatter, and a binomial tree
+   algorithm is used for the gather. The non-power-of-two case is
+   handled by dropping to the nearest lower power-of-two: the first
+   few odd-numbered processes send their data to their left neighbors
+   (rank-1), and the reduce-scatter happens among the remaining
+   power-of-two processes. If the root is one of the excluded
+   processes, then after the reduce-scatter, rank 0 sends its result to
+   the root and exits; the root now acts as rank 0 in the binomial tree
+   algorithm for gather.
+ *
+ * @author artur
  */
 public class ReduceScatterGatherMPICH2
 extends CommandImplementation<Reduce>
@@ -61,7 +76,7 @@ extends CommandImplementation<Reduce>
 			scmd.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
-				de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2.class);
+				de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterMPICH2.class);
 
 		}else if(step == SCATTER_COMPLETED){
 			Gather gcmd = new Gather();
