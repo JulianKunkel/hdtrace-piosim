@@ -220,7 +220,7 @@ public class Validation  extends ModelTest {
 
 			runSimulationWithoutOutput();
 
-			outputFile.write((count + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime + "\t" + setupProgramTime + "\n").getBytes());
+			outputFile.write((count + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n").getBytes());
 			outputFile.flush();
 		}
 		outputFile.close();
