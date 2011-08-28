@@ -15,11 +15,11 @@ public class ClusterT extends HardwareConfiguration {
 
 	final NetworkEdge nodeEdge;
 	final NetworkNode Switch;
-	final SMTNodeT smtNodeT;
+	final HardwareConfiguration smtNodeT;
 
 	public ClusterT(int nodeCount,
 			NetworkEdge nodeEdge, NetworkNode Switch,
-			SMTNodeT smtNodeT)
+			HardwareConfiguration smtNodeT)
 	{
 		this.nodeCount = nodeCount;
 		this.nodeEdge = nodeEdge;

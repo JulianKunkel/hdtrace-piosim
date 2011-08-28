@@ -20,6 +20,7 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigura
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.NodeT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTSocketNodeT;
 
@@ -54,6 +55,16 @@ public class Validation  extends ModelTest {
 				NetworkNodesC.GIGSwitch(),
 				smtNodeT) );
 	}
+
+	protected void setupAnalyticalNonSMP(int nodeCount) throws Exception {
+		NodeT smtNodeT = new NodeT(	NICC.NICAnalytical(),
+				NodesC.PVSSMPNode(1));
+		super.setup( new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT) );
+	}
+
 
 
 	protected void setupSMP(int smtPerSocket) throws Exception {
@@ -570,5 +581,10 @@ public class Validation  extends ModelTest {
 		p.setRank(0);
 
 		runSimulationAllExpectedToFinish();
+	}
+
+	public static void main(String[] args) throws Exception{
+		Validation v = new Validation();
+		v.broadcastTreeAnalyticalIterative();
 	}
 }
