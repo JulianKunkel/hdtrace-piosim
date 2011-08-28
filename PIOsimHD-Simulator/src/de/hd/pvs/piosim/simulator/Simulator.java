@@ -460,8 +460,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 						+ " sim-time: " + getVirtualTime());
 			}
 
-			ConsoleLogger.getInstance().debug(this,
-			"\n\nSimulator Main Iteration");
+			ConsoleLogger.getInstance().debug(this,	"\n\nSimulator Main Iteration");
 
 			printQueue();
 
@@ -471,12 +470,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 
 			final Epoch newTime = serviceEvent.getEarliestStartTime();
 
-			ConsoleLogger.getInstance()
-			.debug(
-					this,
-					"SCHEDULING component: "
-					+ serviceEvent.getTargetComponent()
-					.getIdentifier());
+			ConsoleLogger.getInstance().debug(	this, "SCHEDULING component: "	+ serviceEvent.getTargetComponent()	.getIdentifier());
 
 			// safety check, wrong component implementations can lead to this:
 			if (currentEpoch.compareTo(newTime) > 0) {
