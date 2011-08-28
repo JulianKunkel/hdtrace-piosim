@@ -1,7 +1,11 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 
 import org.junit.Test;
 
@@ -173,15 +177,53 @@ public class Validation  extends ModelTest {
 	}
 
 	@Test public void broadcastTreeAnalytical() throws Exception{
-		setupAnalytical(1000, 1);
+		setupAnalytical(8, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
 
 		parameters.setTraceEnabled(false);
+		parameters.setTraceFile("/tmp/bcast");
+
 
 		pb.addBroadcast(world, 3, 100 * MBYTE);
 
-		runSimulationAllExpectedToFinish();
+		runSimulationWithoutOutput();
+	}
+
+
+	@Test public void broadcastTreeAnalyticalIterative() throws Exception{
+		int count = 1;
+
+		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/treeAnalyticalIterative.txt")));
+		outputFile.write(("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n").getBytes());
+
+		for(int i=0; i < 24;i++){
+			count = count*2;
+			long sTime, setupSystemTime, setupProgramTime;
+
+			sTime = new Date().getTime();
+			setupAnalytical(count, 1);
+			setupSystemTime = (new Date().getTime() - sTime);
+
+
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+
+			parameters.setTraceEnabled(false);
+			parameters.setTraceFile("/tmp/bcast");
+
+
+			sTime = new Date().getTime();
+			pb.addBroadcast(world, 0, 100 * MBYTE);
+			setupProgramTime = (new Date().getTime() - sTime);
+
+
+			runSimulationWithoutOutput();
+
+			outputFile.write((count + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime + "\t" + setupProgramTime + "\n").getBytes());
+			outputFile.flush();
+		}
+		outputFile.close();
 	}
 
 
