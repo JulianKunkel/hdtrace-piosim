@@ -11,7 +11,7 @@ public class NetworkEdgesC implements HardwareComponents{
 	static public SimpleNetworkEdge SocketLocalEdge(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("SLE");
-		conn.setLatency(new Epoch(2.23 / 1000000));
+		conn.setLatency(new Epoch(2.23 / 1000000)); // sendRecvPaired10K
 		conn.setBandwidth(10864 * MBYTE);
 		return conn;
 	}
