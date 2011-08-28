@@ -38,6 +38,20 @@ public class Validation  extends ModelTest {
 				smtNodeT) );
 	}
 
+	protected void setupAnalytical(int nodeCount, int smtPerNode) throws Exception {
+		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
+				NICC.NICAnalytical(),
+				NodesC.PVSSMPNode(smtPerNode),
+				NetworkNodesC.LocalNodeQPI(),
+				NetworkEdgesC.QPI()
+				);
+		super.setup( new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT) );
+	}
+
+
 	protected void setupSMP(int smtPerSocket) throws Exception {
 		setupSMP(smtPerSocket, 1);
 	}
@@ -55,6 +69,7 @@ public class Validation  extends ModelTest {
 				);
 		super.setup( smtNodeT );
 	}
+
 
 	@Test public void sendRecvData() throws Exception{
 		final int pairs = 2;
@@ -134,7 +149,6 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-
 	@Test public void broadcastSimple() throws Exception{
 		setup(5, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
@@ -142,6 +156,28 @@ public class Validation  extends ModelTest {
 		parameters.setTraceFile("/tmp/bcast");
 
 		parameters.setTraceEnabled(true);
+
+		pb.addBroadcast(world, 3, 100 * MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void timingLargeData() throws Exception{
+		setupSMP(2, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendAndRecv(world, 0, 1, 100000* MBYTE, 4711);
+		parameters.setTraceEnabled(false);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void broadcastTreeAnalytical() throws Exception{
+		setupAnalytical(1000, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+
+		parameters.setTraceEnabled(false);
 
 		pb.addBroadcast(world, 3, 100 * MBYTE);
 
