@@ -15,6 +15,7 @@ import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
@@ -179,12 +180,29 @@ public class Validation  extends ModelTest {
 
 
 	@Test public void timingLargeData() throws Exception{
-		setupSMP(2, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
-		pb.addSendAndRecv(world, 0, 1, 100000* MBYTE, 4711);
-		parameters.setTraceEnabled(false);
+		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/timing")));
 
-		runSimulationAllExpectedToFinish();
+		boolean asserts = false;
+
+		// set the value:
+		assert( asserts = true );
+
+		outputFile.write(("Assertions enabled: " + asserts).getBytes());
+
+		for(int i=0; i < 3 ; i++){
+			setupSMP(2, 1);
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+			pb.addSendAndRecv(world, 0, 1, 100000* MBYTE, 4711);
+			parameters.setTraceEnabled(false);
+
+			runSimulationAllExpectedToFinish();
+
+			final SimulationResultSerializer serializer = new SimulationResultSerializer();
+			outputFile.write(serializer.serializeResults(simRes).toString().getBytes());
+			outputFile.flush();
+		}
+
+		outputFile.close();
 	}
 
 	@Test public void broadcastTreeAnalytical() throws Exception{
