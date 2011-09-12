@@ -76,7 +76,7 @@ extends CommandImplementation<Reduce>
 			scmd.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
-				de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterMPICH2.class);
+				de.hd.pvs.piosim.simulator.program.ReduceScatter.Direct.class);
 
 		}else if(step == SCATTER_COMPLETED){
 			Gather gcmd = new Gather();
@@ -89,7 +89,7 @@ extends CommandImplementation<Reduce>
 			gcmd.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED,
-					de.hd.pvs.piosim.simulator.program.Gather.GatherBinaryTreeMPICH2.class);
+					de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2.class);
 		}
 	}
 

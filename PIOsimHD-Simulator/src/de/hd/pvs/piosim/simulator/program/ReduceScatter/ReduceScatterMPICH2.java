@@ -46,8 +46,9 @@ public class ReduceScatterMPICH2 extends CommandImplementation<ReduceScatter>{
 			return;
 		}
 
-		final int highestPowerOfTwo = Integer.bitCount(cmd.getCommunicator().getSize() - 1);
-		final int numberOfOneWayCommunications = cmd.getCommunicator().getSize() - (1 << highestPowerOfTwo);
+		final int commSize = cmd.getCommunicator().getSize() - 1;
+		final int highestPowerOfTwo = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
+		final int numberOfOneWayCommunications = commSize - (1 << highestPowerOfTwo);
 		final int myRank = client.getModelComponent().getRank();
 		int targetRank;
 
@@ -56,15 +57,20 @@ public class ReduceScatterMPICH2 extends CommandImplementation<ReduceScatter>{
 
 			// odd sends, even receives
 			// does not apply when commSize is a power of two
-			if(myRank <= numberOfOneWayCommunications * 2 && numberOfOneWayCommunications != 0){
+			if(myRank <= (numberOfOneWayCommunications * 2) && (numberOfOneWayCommunications != 0)){
 				if(myRank % 2 != 0){
 					targetRank = myRank - 1;
 					final long sendCnt = cmd.getRecvcounts().get(targetRank);
+					System.out.println(step + " # " + myRank + " -> " + targetRank);
 					OUTresults.addNetSend(targetRank, new NetworkSimpleData(sendCnt + 20), TAG, cmd.getCommunicator());
 					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				}else{
 					targetRank = myRank + 1;
-					OUTresults.addNetReceive(targetRank, TAG, cmd.getCommunicator());
+
+					if(myRank < commSize){
+						System.out.println(step + " # " + myRank + " <- " + targetRank);
+						OUTresults.addNetReceive(targetRank, TAG, cmd.getCommunicator());
+					}
 					OUTresults.setNextStep(++step);
 				}
 			}else{
@@ -75,12 +81,13 @@ public class ReduceScatterMPICH2 extends CommandImplementation<ReduceScatter>{
 					targetRank = myRank - 1;
 				}
 
-				// catch edge case
-				if(targetRank > cmd.getCommunicator().getSize()){
+				// catch edge case ?? + 1?
+				if(targetRank > commSize){
 					OUTresults.setNextStep(++step);
 				}
 
 				final long sendCnt = cmd.getRecvcounts().get(targetRank);
+				System.out.println(step + " # " + myRank + " <-> " + targetRank);
 				OUTresults.addNetSend(targetRank, new NetworkSimpleData(sendCnt + 20), TAG, cmd.getCommunicator());
 				OUTresults.addNetReceive(targetRank, TAG, cmd.getCommunicator());
 				OUTresults.setNextStep(++step);
@@ -98,12 +105,13 @@ public class ReduceScatterMPICH2 extends CommandImplementation<ReduceScatter>{
 				targetRank = myRank - devider;
 			}
 
-			if(targetRank > cmd.getCommunicator().getSize()){
+			if(targetRank > commSize){
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 				return;
 			}
 
 			final long sendCnt = cmd.getRecvcounts().get(targetRank);
+			System.out.println(step + " # " + myRank + " <-> " + targetRank);
 			OUTresults.addNetSend(targetRank, new NetworkSimpleData(sendCnt + 20), TAG, cmd.getCommunicator());
 			OUTresults.addNetReceive(targetRank, TAG, cmd.getCommunicator());
 			OUTresults.setNextStep(++step);
