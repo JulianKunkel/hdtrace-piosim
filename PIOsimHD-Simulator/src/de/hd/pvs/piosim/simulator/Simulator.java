@@ -445,6 +445,9 @@ public final class Simulator implements IModelToSimulatorMapper {
 
 		long eventCount = 0;
 
+		// last time we have written out the system information
+		long everySecondInformation = new Date().getTime();
+
 		while (!futureEvents.isEmpty()) {
 
 			if (eventCount == getRunParameters()
@@ -454,10 +457,17 @@ public final class Simulator implements IModelToSimulatorMapper {
 
 			eventCount++;
 
-			if (eventCount % 100000 == 0) {
-				// show some activity for the user.
-				System.out.println(" processing " + eventCount + " "
-						+ " sim-time: " + getVirtualTime());
+			if (eventCount % 5000 == 0) {
+				// test for update
+				long curTime = new Date().getTime();
+
+				if (curTime - everySecondInformation >= 1000){
+
+					everySecondInformation = curTime;
+
+					// show some activity for the user.
+					System.out.println( (curTime - sTime) / 1000.0 + "s sim-time: " + getVirtualTime() + " #events: " + eventCount);
+				}
 			}
 
 			ConsoleLogger.getInstance().debug(this,	"\n\nSimulator Main Iteration");
