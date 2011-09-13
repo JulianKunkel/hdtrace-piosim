@@ -19,6 +19,8 @@ package de.hd.pvs.piosim.simulator.program.Reduce;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.project.CommunicatorInformation;
+import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Gather;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.model.program.commands.ReduceScatter;
@@ -51,9 +53,34 @@ extends CommandImplementation<Reduce>
 {
 	final int SCATTER_COMPLETED = 2;
 
+	// Re-map communicator for non-power of two processes
+	static HashMap<Integer,Communicator> communicators = new HashMap<Integer,Communicator>();
+
+
 	@Override
 	public void process(Reduce cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
+		if (cmd.getCommunicator().getSize() == 1) {
+			return;
+		}
+
+		// if the # of processes is not power of two, then the first odd processes send data to the even processes
+		// then the process starts
+
+		Communicator comm = communicators.get(cmd.getCommunicator().getIdentity());
+		if(comm == null){
+			comm = new Communicator("");
+
+			communicators.put(cmd.getCommunicator().getIdentity(), comm);
+
+			HashMap<Integer, CommunicatorInformation> m = cmd.getCommunicator().getParticipiants();
+
+			for(Integer key : m.keySet()){
+				comm.addRank(key, key, 0);
+			}
+		}
+
+
 		if(step == CommandProcessing.STEP_START){
 
 			ReduceScatter scmd = new ReduceScatter();
