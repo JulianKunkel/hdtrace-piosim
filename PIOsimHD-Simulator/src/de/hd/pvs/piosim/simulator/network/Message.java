@@ -38,11 +38,6 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 	/**
-	 * Amount of bytes used for the addressing.
-	 */
-	final static int MESSAGE_OVERHEAD_BYTES = 32;
-
-	/**
 	 * Receiver of the network message
 	 */
 	final private INetworkExit targetComponent;
@@ -96,7 +91,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param part
 	 */
 	public void receivePart(MessagePart part){
-		receivedSize += part.getSize();
+		receivedSize += part.getPayloadSize();
 	}
 
 	/**
@@ -109,8 +104,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 		assert(targetComponent != null);
 		assert(sourceComponent != null);
 
-		this.totalSize = size + MESSAGE_OVERHEAD_BYTES;
-		this.availableDataPosition = this.totalSize;
+		this.totalSize = size;
+		this.availableDataPosition = size;
 		this.containedData = containedData;
 		this.targetComponent = targetComponent;
 		this.sourceComponent = sourceComponent;

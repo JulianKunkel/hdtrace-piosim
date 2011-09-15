@@ -376,7 +376,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		final STraceWriter tw = getSimulator().getTraceWriter();
 		final String [] attr = new String[4];
 		attr[0] = "size";
-		attr[1] = "" + event.getEventData().getSize();
+		attr[1] = "" + event.getEventData().getPayloadSize();
 		attr[2] = "offset";
 		attr[3] = "" + event.getEventData().getPosition();
 

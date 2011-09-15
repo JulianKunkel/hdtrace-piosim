@@ -36,7 +36,7 @@ public class RequestProcessorRead
 		public void messagePartSendCB(MessagePart part, InterProcessNetworkJob myJob, Epoch endTime) {
 			server.getCacheLayer().readDataFragmentSendByNIC( (RequestRead) (
 					(NetworkIOData) myJob.getJobData()).getIORequest(),
-					part.getSize());
+					part.getPayloadSize());
 		}
 	};
 
