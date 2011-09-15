@@ -36,6 +36,12 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
  *
  */
 public class Message<Data extends IMessageUserData> implements INetworkMessage {
+
+	/**
+	 * Amount of bytes used for the addressing.
+	 */
+	final static int MESSAGE_OVERHEAD_BYTES = 32;
+
 	/**
 	 * Receiver of the network message
 	 */
@@ -67,13 +73,6 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	private long availableDataPosition = 0;
 
 	final private Data containedData;
-
-	/**
-	 * Return the size of this message
-	 */
-	public long getTotalSize() {
-		return totalSize;
-	}
 
 	/**
 	 * Splits the message into a new smaller part.
@@ -110,8 +109,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 		assert(targetComponent != null);
 		assert(sourceComponent != null);
 
-		this.totalSize = size;
-		this.availableDataPosition = size;
+		this.totalSize = size + MESSAGE_OVERHEAD_BYTES;
+		this.availableDataPosition = this.totalSize;
 		this.containedData = containedData;
 		this.targetComponent = targetComponent;
 		this.sourceComponent = sourceComponent;
@@ -179,7 +178,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 	@Override
 	public String toString() {
-		return "Message from: " + sourceComponent.getIdentifier() + " to: " + targetComponent.getIdentifier() + " size " + getTotalSize() + " data " + containedData ;
+		return "Message from: " + sourceComponent.getIdentifier() + " to: " + targetComponent.getIdentifier() + " size " + getSize() + " data " + containedData ;
 	}
 
 	/**

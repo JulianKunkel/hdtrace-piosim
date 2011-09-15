@@ -305,8 +305,8 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 		assert(job.getSize() > 0);
 
-		if(job.getJobData().getSize() == 0){
-			throw new IllegalArgumentException("Data size is 0.");
+		if(job.getJobData().getSize() < 0){
+			throw new IllegalArgumentException("Data size is < 0");
 		}
 
 		submitNewMessage(msg, startTime);
