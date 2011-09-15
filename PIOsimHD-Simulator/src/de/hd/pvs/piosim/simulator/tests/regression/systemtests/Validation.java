@@ -86,6 +86,22 @@ public class Validation  extends ModelTest {
 		super.setup( smtNodeT );
 	}
 
+	protected void setupSocketCluster(int nodeCount, int smtPerSocket, int sockets) throws Exception {
+		SMTSocketNodeT smtNodeT = new SMTSocketNodeT(smtPerSocket,
+				sockets,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtPerSocket*sockets),
+				NetworkNodesC.SocketLocalNode(),
+				NetworkEdgesC.SocketLocalEdge(),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI()
+				);
+		super.setup( new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT) );
+	}
+
 
 	@Test public void sendRecvData() throws Exception{
 		final int pairs = 2;
@@ -109,6 +125,33 @@ public class Validation  extends ModelTest {
 
 		runSimulationAllExpectedToFinish();
 	}
+
+	@Test public void sendRecvIntersocketValidate() throws Exception{
+		System.out.println("Single socket");
+
+		setupSMP(2, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
+		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
+		runSimulationAllExpectedToFinish();
+
+
+		System.out.println("Across two sockets");
+		setupSMP(1, 2);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
+		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
+		runSimulationAllExpectedToFinish();
+
+
+		System.out.println("Inter-node");
+		setupSocketCluster(2, 1, 1);
+		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
+		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
+		runSimulationAllExpectedToFinish();
+	}
+
+
 
 	@Test public void recv1MB() throws Exception{
 		setupSMP(2); 		//2 = Anzahl Prozessoren
@@ -185,7 +228,7 @@ public class Validation  extends ModelTest {
 		boolean asserts = false;
 
 		// set the value:
-		assert( asserts = true );
+//		assert( asserts = true );
 
 		outputFile.write(("Assertions enabled: " + asserts).getBytes());
 
@@ -226,7 +269,7 @@ public class Validation  extends ModelTest {
 		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/treeAnalyticalIterative.txt")));
 		outputFile.write(("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n").getBytes());
 
-		for(int i=0; i < 24;i++){
+		for(int i=0; i < 11;i++){
 			count = count*2;
 			long sTime, setupSystemTime, setupProgramTime;
 
