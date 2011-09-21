@@ -303,10 +303,10 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 		//System.out.println(this.getIdentifier() + " Send initiate" + job);
 
-		assert(job.getSize() > 0);
+		assert(job.getSize() >= 0);
 
-		if(job.getJobData().getSize() == 0){
-			throw new IllegalArgumentException("Data size is 0.");
+		if(job.getJobData().getSize() < 0){
+			throw new IllegalArgumentException("Data size is < 0");
 		}
 
 		submitNewMessage(msg, startTime);
@@ -327,11 +327,17 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public void submitNewMessage(Message msg, Epoch startTime) {
-		assert(msg.getSize() > 0);
-		final MessagePart part = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
-		if(part == null){
-			/* does not make any sense to send an empty message, it will be appended later */
-			return;
+		assert(msg.getSize() >= 0);
+		final MessagePart part;
+		if(msg.getSize() != 0){
+			part = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+			if(part == null){
+				/* does not make any sense to send an empty message, it will be appended later */
+				return;
+			}
+		}else{
+			// create an empty message
+			part = new MessagePart(msg, 0, 0);
 		}
 
 		final Event<MessagePart> event = new Event(this, this, startTime,  part, msg.getRelationToken());

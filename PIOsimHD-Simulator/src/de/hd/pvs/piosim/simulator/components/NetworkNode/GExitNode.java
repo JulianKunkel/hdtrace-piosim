@@ -17,7 +17,7 @@ public class GExitNode	extends AGNetworkNode<NetworkNode>
 	@Override
 	public void messagePartDestroyed(MessagePart part, Epoch endTime) {
 		//System.out.println("+ " + this.getIdentifier() + " recveived data: " + part.getSize() + " at " + getSimulator().getVirtualTime());
-		rcvdData += part.getSize();
+		rcvdData += part.getPayloadSize();
 	}
 
 	@Override

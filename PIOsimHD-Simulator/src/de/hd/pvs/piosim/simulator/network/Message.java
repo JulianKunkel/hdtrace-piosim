@@ -36,6 +36,7 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
  *
  */
 public class Message<Data extends IMessageUserData> implements INetworkMessage {
+
 	/**
 	 * Receiver of the network message
 	 */
@@ -69,13 +70,6 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	final private Data containedData;
 
 	/**
-	 * Return the size of this message
-	 */
-	public long getTotalSize() {
-		return totalSize;
-	}
-
-	/**
 	 * Splits the message into a new smaller part.
 	 * @param splitSize How much data can be contained at most in the MessagePart
 	 */
@@ -97,7 +91,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param part
 	 */
 	public void receivePart(MessagePart part){
-		receivedSize += part.getSize();
+		receivedSize += part.getPayloadSize();
 	}
 
 	/**
@@ -179,7 +173,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 	@Override
 	public String toString() {
-		return "Message from: " + sourceComponent.getIdentifier() + " to: " + targetComponent.getIdentifier() + " size " + getTotalSize() + " data " + containedData ;
+		return "Message from: " + sourceComponent.getIdentifier() + " to: " + targetComponent.getIdentifier() + " size " + getSize() + " data " + containedData ;
 	}
 
 	/**
