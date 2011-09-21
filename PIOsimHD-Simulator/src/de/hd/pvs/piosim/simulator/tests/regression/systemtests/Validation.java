@@ -469,6 +469,19 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void TestGatherDirect() throws Exception{
+		setupSMP(5);
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.Direct");
+
+		parameters.setTraceFile("/tmp/gather");
+		parameters.setTraceEnabled(true);
+
+		pb.addGather(world, 0, 100* MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 
 	@Test public void TestGatherWorld() throws Exception{
 		setupSMP(15);

@@ -52,14 +52,19 @@ public class ReduceScatter extends CommunicatorCommand{
 	@NotNull
 	protected HashMap<Integer, Long> recvcounts = null;
 
+	private long totalSize;
+
 	public void readCommandXML(XMLTag xml) throws Exception {
 		final LinkedList<XMLTag> elems = xml.getNestedXMLTagsWithName("count");
 		recvcounts = new HashMap<Integer, Long>();
+
+		totalSize = 0;
 
 		for (XMLTag e : elems) {
 			final long value = Long.parseLong(  e.getAttribute("size"));
 			final int key = Integer.parseInt(  e.getAttribute("rank"));
 			recvcounts.put(key, value);
+			totalSize += value;
 		}
 	}
 
@@ -69,11 +74,19 @@ public class ReduceScatter extends CommunicatorCommand{
 	}
 
 	public void setRecvcounts( HashMap<Integer, Long> commSize) {
+		totalSize = 0;
+		for (long val : commSize.values()){
+			totalSize += val;
+		}
 		this.recvcounts = commSize;
 	}
 
 	public HashMap<Integer, Long> getRecvcounts() {
 		return recvcounts;
+	}
+
+	public long getTotalSize(){
+		return totalSize;
 	}
 
 }
