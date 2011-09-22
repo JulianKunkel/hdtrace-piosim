@@ -42,6 +42,11 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousSend extends CommandImplementation<Send>
 {
+	/**
+	 * Overhead for every communication:
+	 */
+	final static int MESSAGE_HEADER_OVERHEAD = 4+4;
+
 	public void process(Send cmd,  ICommandProcessing OUTresults, GClientProcess client, long step,  NetworkJobs compNetJobs) {
 		final int RECV_ACK = 2;
 		/* second step ?, receive whole data */
@@ -55,7 +60,7 @@ public class RendezvousSend extends CommandImplementation<Send>
 				client.debug("eager send to " +  cmd.getToRank() );
 
 				OUTresults.addNetSend(cmd.getToRank(),
-						new NetworkMessageRendezvousMsg( cmd.getSize(), false ), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
+						new NetworkMessageRendezvousMsg( cmd.getSize() + MESSAGE_HEADER_OVERHEAD, false ), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
 
 				return;
 			}else{
@@ -63,7 +68,7 @@ public class RendezvousSend extends CommandImplementation<Send>
 				/* determine application */
 				OUTresults.setNextStep(RECV_ACK);
 
-				OUTresults.addNetSend(cmd.getToRank(), new NetworkMessageRendezvousMsg(100, true), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
+				OUTresults.addNetSend(cmd.getToRank(), new NetworkMessageRendezvousMsg(MESSAGE_HEADER_OVERHEAD, true), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
 
 				/* wait for incoming msg (send ready) */
 				OUTresults.addNetReceive(cmd.getToRank(),  cmd.getToTag(), cmd.getCommunicator(), RendezvousRcv.class, RendezvousRcv.class);
@@ -73,7 +78,7 @@ public class RendezvousSend extends CommandImplementation<Send>
 			/* data to transfer depends on actual command size, but is defined in send */
 			client.debug("SEND got ACK from " +  cmd.getToRank() );
 			OUTresults.addNetSend(cmd.getToRank(),
-					new NetworkMessageRendezvousMsg( cmd.getSize() , false ), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousRcv.class);
+					new NetworkMessageRendezvousMsg( cmd.getSize() + MESSAGE_HEADER_OVERHEAD , false ), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousRcv.class);
 
 			return;
 		}

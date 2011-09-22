@@ -161,6 +161,25 @@ abstract public class ModelTest extends TestSuite {
 	}
 
 
+	protected SimulationResults runSimulationWithoutOutput() throws Exception {
+
+		if(mb.getModel().getApplicationNameMap().get("Jacobi") == null){
+			mb.setApplication("Jacobi", app);
+		}
+
+		sim = new Simulator();
+		sim.initModel(model, parameters);
+		simRes = sim.simulate();
+
+		System.out.println("events: " + simRes.getEventCount() + " time: " + simRes.getWallClockTime());
+
+		if(simRes.isErrorDuringProcessing()){
+			throw new IllegalArgumentException("Errors occured during processing");
+		}
+
+		return simRes;
+	}
+
 	/**
 	 * One might change the method to invoke...
 	 *

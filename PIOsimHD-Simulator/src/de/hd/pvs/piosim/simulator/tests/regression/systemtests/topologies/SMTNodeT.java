@@ -10,7 +10,7 @@ import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 
 /**
- * Construct a SMP node with internal crossbar switch (if more than 1 CPU).
+ * Construct a SMP node with an internal crossbar switch.
  *
  * @author julian
  *

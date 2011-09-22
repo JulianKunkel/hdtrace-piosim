@@ -1,7 +1,11 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 
 import org.junit.Test;
 
@@ -11,12 +15,15 @@ import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.NodeT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTSocketNodeT;
 
 public class Validation  extends ModelTest {
 
@@ -28,6 +35,64 @@ public class Validation  extends ModelTest {
 		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(smtPerNode),
+				NetworkNodesC.LocalNodeQPI(),
+				NetworkEdgesC.QPI()
+				);
+		super.setup( new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT) );
+	}
+
+	protected void setupAnalytical(int nodeCount, int smtPerNode) throws Exception {
+		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
+				NICC.NICAnalytical(),
+				NodesC.PVSSMPNode(smtPerNode),
+				NetworkNodesC.LocalNodeQPI(),
+				NetworkEdgesC.QPI()
+				);
+		super.setup( new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT) );
+	}
+
+	protected void setupAnalyticalNonSMP(int nodeCount) throws Exception {
+		NodeT smtNodeT = new NodeT(	NICC.NICAnalytical(),
+				NodesC.PVSSMPNode(1));
+		super.setup( new ClusterT(nodeCount,
+				NetworkEdgesC.GIGE(),
+				NetworkNodesC.GIGSwitch(),
+				smtNodeT) );
+	}
+
+
+
+	protected void setupSMP(int smtPerSocket) throws Exception {
+		setupSMP(smtPerSocket, 1);
+	}
+
+
+	protected void setupSMP(int smtPerSocket, int sockets) throws Exception {
+		SMTSocketNodeT smtNodeT = new SMTSocketNodeT(smtPerSocket,
+				sockets,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtPerSocket*sockets),
+				NetworkNodesC.SocketLocalNode(),
+				NetworkEdgesC.SocketLocalEdge(),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI()
+				);
+		super.setup( smtNodeT );
+	}
+
+	protected void setupSocketCluster(int nodeCount, int smtPerSocket, int sockets) throws Exception {
+		SMTSocketNodeT smtNodeT = new SMTSocketNodeT(smtPerSocket,
+				sockets,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(smtPerSocket*sockets),
+				NetworkNodesC.SocketLocalNode(),
+				NetworkEdgesC.SocketLocalEdge(),
 				NetworkNodesC.QPI(),
 				NetworkEdgesC.QPI()
 				);
@@ -38,15 +103,55 @@ public class Validation  extends ModelTest {
 	}
 
 
-	protected void setupSMP(int smtPerNode) throws Exception {
-		SMTNodeT smtNodeT = new SMTNodeT(smtPerNode,
-				NICC.PVSNIC(),
-				NodesC.PVSSMPNode(smtPerNode),
-				NetworkNodesC.LocalNodeQPI(),
-				NetworkEdgesC.QPI()
-				);
-		super.setup( smtNodeT );
+	@Test public void sendRecvData() throws Exception{
+		final int pairs = 2;
+		setupSMP(pairs * 2, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		for(int i=0; i < pairs ; i++){
+			pb.addSendAndRecv(world, i, i+pairs, 1000* MBYTE, 4711);
+		}
+
+		runSimulationAllExpectedToFinish();
 	}
+
+
+	@Test public void sendRecvIntersocketData() throws Exception{
+		final int pairs = 2;
+		setupSMP(pairs, 2);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		for(int i=0; i < pairs ; i++){
+			pb.addSendAndRecv(world, i, i+pairs, 1000* MBYTE, 4711);
+		}
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void sendRecvIntersocketValidate() throws Exception{
+		System.out.println("Single socket");
+
+		setupSMP(2, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
+		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
+		runSimulationAllExpectedToFinish();
+
+
+		System.out.println("Across two sockets");
+		setupSMP(1, 2);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
+		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
+		runSimulationAllExpectedToFinish();
+
+
+		System.out.println("Inter-node");
+		setupSocketCluster(2, 1, 1);
+		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
+		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
+		runSimulationAllExpectedToFinish();
+	}
+
+
 
 	@Test public void recv1MB() throws Exception{
 		setupSMP(2); 		//2 = Anzahl Prozessoren
@@ -103,7 +208,6 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-
 	@Test public void broadcastSimple() throws Exception{
 		setup(5, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
@@ -115,6 +219,83 @@ public class Validation  extends ModelTest {
 		pb.addBroadcast(world, 3, 100 * MBYTE);
 
 		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void timingLargeData() throws Exception{
+		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/timing")));
+
+		boolean asserts = false;
+
+		// set the value:
+//		assert( asserts = true );
+
+		outputFile.write(("Assertions enabled: " + asserts).getBytes());
+
+		for(int i=0; i < 3 ; i++){
+			setupSMP(2, 1);
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+			pb.addSendAndRecv(world, 0, 1, 100000* MBYTE, 4711);
+			parameters.setTraceEnabled(false);
+
+			runSimulationAllExpectedToFinish();
+
+			final SimulationResultSerializer serializer = new SimulationResultSerializer();
+			outputFile.write(serializer.serializeResults(simRes).toString().getBytes());
+			outputFile.flush();
+		}
+
+		outputFile.close();
+	}
+
+	@Test public void broadcastTreeAnalytical() throws Exception{
+		setupAnalytical(8, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+
+		parameters.setTraceEnabled(false);
+		parameters.setTraceFile("/tmp/bcast");
+
+
+		pb.addBroadcast(world, 3, 100 * MBYTE);
+
+		runSimulationWithoutOutput();
+	}
+
+
+	@Test public void broadcastTreeAnalyticalIterative() throws Exception{
+		int count = 1;
+
+		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/treeAnalyticalIterative.txt")));
+		outputFile.write(("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n").getBytes());
+
+		for(int i=0; i < 11;i++){
+			count = count*2;
+			long sTime, setupSystemTime, setupProgramTime;
+
+			sTime = new Date().getTime();
+			setupAnalytical(count, 1);
+			setupSystemTime = (new Date().getTime() - sTime);
+
+
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+
+			parameters.setTraceEnabled(false);
+			parameters.setTraceFile("/tmp/bcast");
+
+
+			sTime = new Date().getTime();
+			pb.addBroadcast(world, 0, 100 * MBYTE);
+			setupProgramTime = (new Date().getTime() - sTime);
+
+
+			runSimulationWithoutOutput();
+
+			outputFile.write((count + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n").getBytes());
+			outputFile.flush();
+		}
+		outputFile.close();
 	}
 
 
@@ -284,6 +465,19 @@ public class Validation  extends ModelTest {
 		parameters.setTraceEnabled(true);
 
 		pb.addScatter(world, 0, 100* MBYTE);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void TestGatherDirect() throws Exception{
+		setupSMP(5);
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.Direct");
+
+		parameters.setTraceFile("/tmp/gather");
+		parameters.setTraceEnabled(true);
+
+		pb.addGather(world, 0, 100* MBYTE);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -461,5 +655,10 @@ public class Validation  extends ModelTest {
 		p.setRank(0);
 
 		runSimulationAllExpectedToFinish();
+	}
+
+	public static void main(String[] args) throws Exception{
+		Validation v = new Validation();
+		v.broadcastTreeAnalyticalIterative();
 	}
 }

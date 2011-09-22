@@ -325,9 +325,11 @@ public class GClientProcess
 			for(InterProcessNetworkJob job: jobs.getNetworkJobs()){
 				System.err.println("\t\t " + job);
 			}
-			System.err.println("\tpending Responses");
-			for(InterProcessNetworkJob job: jobs.getResponses()){
-				System.err.println("\t\t" + job);
+			if(jobs.getResponses() != null){
+				System.err.println("\tpending Responses");
+				for(InterProcessNetworkJob job: jobs.getResponses()){
+					System.err.println("\t\t" + job);
+				}
 			}
 		}
 

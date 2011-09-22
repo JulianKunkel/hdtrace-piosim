@@ -17,7 +17,7 @@
 
 package de.hd.pvs.piosim.simulator.program.Scatter;
 
-import de.hd.pvs.TraceFormat.project.MPICommunicator;
+import de.hd.pvs.TraceFormat.project.MPICommunicatorTrace;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
@@ -53,7 +53,7 @@ extends CommandImplementation<Scatter>
 		final int myRank = client.getModelComponent().getRank();
 		final int rootRank = cmd.getRootRank();
 
-		final MPICommunicator comm =  cmd.getCommunicator();
+		final MPICommunicatorTrace comm =  cmd.getCommunicator();
 
 		if(step == CommandProcessing.STEP_START){
 

@@ -19,6 +19,8 @@ package de.hd.pvs.piosim.simulator.program.Reduce;
 
 import java.util.HashMap;
 
+import de.hd.pvs.TraceFormat.project.CommunicatorInformation;
+import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.Gather;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.model.program.commands.ReduceScatter;
@@ -30,15 +32,55 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
  * MPICH2 Implementation, Scatter-Gather.
+ *
+ * This algorithm implements the reduce in two steps: first a
+   reduce-scatter, followed by a gather to the root. A
+   recursive-halving algorithm (beginning with processes that are
+   distance 1 apart) is used for the reduce-scatter, and a binomial tree
+   algorithm is used for the gather. The non-power-of-two case is
+   handled by dropping to the nearest lower power-of-two: the first
+   few odd-numbered processes send their data to their left neighbors
+   (rank-1), and the reduce-scatter happens among the remaining
+   power-of-two processes. If the root is one of the excluded
+   processes, then after the reduce-scatter, rank 0 sends its result to
+   the root and exits; the root now acts as rank 0 in the binomial tree
+   algorithm for gather.
+ *
+ * @author artur
  */
 public class ReduceScatterGatherMPICH2
 extends CommandImplementation<Reduce>
 {
 	final int SCATTER_COMPLETED = 2;
 
+	// Re-map communicator for non-power of two processes
+	static HashMap<Integer,Communicator> communicators = new HashMap<Integer,Communicator>();
+
+
 	@Override
 	public void process(Reduce cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
+		if (cmd.getCommunicator().getSize() == 1) {
+			return;
+		}
+
+		// if the # of processes is not power of two, then the first odd processes send data to the even processes
+		// then the process starts
+
+		Communicator comm = communicators.get(cmd.getCommunicator().getIdentity());
+		if(comm == null){
+			comm = new Communicator("");
+
+			communicators.put(cmd.getCommunicator().getIdentity(), comm);
+
+			HashMap<Integer, CommunicatorInformation> m = cmd.getCommunicator().getParticipiants();
+
+			for(Integer key : m.keySet()){
+				comm.addRank(key, key, 0);
+			}
+		}
+
+
 		if(step == CommandProcessing.STEP_START){
 
 			ReduceScatter scmd = new ReduceScatter();
@@ -61,7 +103,7 @@ extends CommandImplementation<Reduce>
 			scmd.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
-				de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2.class);
+				de.hd.pvs.piosim.simulator.program.ReduceScatter.Direct.class);
 
 		}else if(step == SCATTER_COMPLETED){
 			Gather gcmd = new Gather();
@@ -74,7 +116,7 @@ extends CommandImplementation<Reduce>
 			gcmd.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED,
-					de.hd.pvs.piosim.simulator.program.Gather.GatherBinaryTreeMPICH2.class);
+					de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2.class);
 		}
 	}
 

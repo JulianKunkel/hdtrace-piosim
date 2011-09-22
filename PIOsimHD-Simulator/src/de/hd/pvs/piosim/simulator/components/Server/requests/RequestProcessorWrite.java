@@ -33,7 +33,7 @@ extends RequestProcessor<RequestWrite>
 				InterProcessNetworkJob announcedJob, Epoch endTime)
 		{
 			//this function is called right now only for writes
-			boolean doesFit = server.getCacheLayer().canIPutDataIntoCache( (RequestWrite) ((NetworkIOData) remoteJob.getJobData()).getIORequest(), part.getSize());
+			boolean doesFit = server.getCacheLayer().canIPutDataIntoCache( (RequestWrite) ((NetworkIOData) remoteJob.getJobData()).getIORequest(), part.getPayloadSize());
 
 			//System.out.println("messagePartReceivedCB  does fit " + doesFit + " " + part);
 
@@ -60,7 +60,7 @@ extends RequestProcessor<RequestWrite>
 					NetworkIOData data = (NetworkIOData) ((InterProcessNetworkJob) p.getMessage().getContainedUserData()).getJobData();
 					RequestWrite writeReq = (RequestWrite) data.getIORequest();
 
-					if (! server.getCacheLayer().canIPutDataIntoCache(writeReq, p.getSize())){
+					if (! server.getCacheLayer().canIPutDataIntoCache(writeReq, p.getPayloadSize())){
 						break;
 					}
 
@@ -79,7 +79,7 @@ extends RequestProcessor<RequestWrite>
 	private void processWritePart(MessagePart part, Epoch endTime,  RequestIO remoteJob){
 		InterProcessNetworkJobRoutable job = (InterProcessNetworkJobRoutable) part.getMessage().getContainedUserData();
 
-		server.getCacheLayer().writeDataToCache((NetworkIOData) job.getJobData(),  job, part.getSize(), part.getMessage(), ioCallback);
+		server.getCacheLayer().writeDataToCache((NetworkIOData) job.getJobData(),  job, part.getPayloadSize(), part.getMessage(), ioCallback);
 
 		if(part.getMessage().isReceivedCompletely()){
 			/*

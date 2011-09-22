@@ -1,6 +1,6 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations;
 
-import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardLocalNode;
+import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardMemoryNode;
 import de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardNode;
 
 /**
@@ -19,14 +19,23 @@ public class NetworkNodesC implements HardwareComponents{
 
 
 	static 	public StoreForwardNode LocalNodeQPI(){
-		StoreForwardLocalNode sw = new StoreForwardLocalNode();
+		StoreForwardMemoryNode sw = new StoreForwardMemoryNode();
 		sw.setName("QPIL");
-		sw.setTotalBandwidth(7629  * MBYTE);
+		sw.setTotalBandwidth(2815  *  MBYTE ); // no zero-copy support
+		sw.setLocalBandwidth(4212 * MBYTE );
 
 		return sw;
 	}
 
 
+	static 	public StoreForwardNode SocketLocalNode(){
+		StoreForwardMemoryNode sw = new StoreForwardMemoryNode();
+		sw.setName("SLN");
+		sw.setTotalBandwidth(2815  *  MBYTE ); // no zero-copy support
+		sw.setLocalBandwidth(4212 * MBYTE );
+
+		return sw;
+	}
 
 
 	static 	public StoreForwardNode GIGSwitch(){
