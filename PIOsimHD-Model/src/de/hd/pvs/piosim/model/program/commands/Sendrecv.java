@@ -26,6 +26,7 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.Rank;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 
@@ -37,12 +38,14 @@ public class Sendrecv  extends CommunicatorCommand{
 
 	@NotNegative
 	@Attribute
+	@Rank
 	protected int toRank = -1;
 
 	@Attribute
 	protected int fromTag = -1;
 
 	@Attribute
+	@Rank
 	protected int fromRank = -1;
 
 	@NotNegative

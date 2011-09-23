@@ -25,13 +25,16 @@
 
 package de.hd.pvs.piosim.model.program;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
+import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
+import de.hd.pvs.piosim.model.annotations.Rank;
 import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
@@ -109,8 +112,6 @@ public class CommandXMLReader {
 			final Communicator comm = getCommunicator(commandXMLElement.getAttribute("cid"));
 			fidToFileMap.put(fid, new LocalFileStructure(new FileDescriptor(file, comm)));
 		}
-
-		cmd.setXMLTag(commandXMLElement);
 
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
@@ -191,6 +192,42 @@ public class CommandXMLReader {
 				}
 			}
 		}
+
+		// translate all attributes which are annotated with @Rank to comm relative ranks.
+
+		Class<?> classIterate = cmd.getClass();
+		while(classIterate != Object.class) {
+			Field [] fields = classIterate.getDeclaredFields();
+
+			for (Field field : fields) {
+				if( ! field.isAnnotationPresent(Attribute.class))
+					continue;
+				if( ! field.isAnnotationPresent(Rank.class))
+					continue;
+
+				final Communicator comm = getCommunicator(commandXMLElement.getAttribute("cid"));
+
+				// the name of the attribute or tag can be set explicitly in Attribute.
+
+				Class<?> type = field.getType();
+				Object value = null;
+
+				if (type == int.class || type == Integer.class) {
+
+				}else{
+					throw new IllegalArgumentException("Annotation on object " + cmd + " invalid!");
+				}
+				field.setAccessible(true);
+				int oldRank = (Integer) field.get(cmd);
+				Integer newInt = comm.getLocalRank(oldRank);
+				field.set(cmd, newInt);
+				field.setAccessible(false);
+			}
+
+			classIterate = classIterate.getSuperclass();
+		}
+
+
 
 		return cmd;
 	}

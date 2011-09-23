@@ -26,6 +26,7 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.Rank;
 import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
 
 
@@ -34,6 +35,7 @@ public class Recv  extends CommunicatorCommand{
 	protected int fromTag=-1;
 
 	@Attribute // negative means any source
+	@Rank
 	int fromRank=-1;
 
 	@Override
