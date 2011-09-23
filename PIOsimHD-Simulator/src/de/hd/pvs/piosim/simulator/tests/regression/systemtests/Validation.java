@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Date;
 
@@ -189,6 +190,7 @@ public class Validation  extends ModelTest {
 
 		world = aB.getWorldCommunicator();
 		model = mb.getModel();
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 	}
 
 
@@ -337,6 +339,7 @@ public class Validation  extends ModelTest {
 
 					@Override
 					void addOperation(ProgramBuilder p) {
+						mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
 						pb.addBroadcast(world, 0, 100 * MBYTE);
 					}
 				}
@@ -348,10 +351,8 @@ public class Validation  extends ModelTest {
 				"2-2","2-3","2-4","2-5","2-7","2-9", "2-11",
 				"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
 
-		configs = new String[]{"2-7"};
-
 		for(ValidationExperiment e: experiments){
-			modelTime.write(e.getName() + ",");
+			modelTime.write(e.getName() + " ");
 			for(String config : configs){
 				final String name = e.getName();
 				final int nodes = Integer.parseInt(config.split("-")[0]);
@@ -366,7 +367,6 @@ public class Validation  extends ModelTest {
 				setupSystemTime = (new Date().getTime() - sTime);
 
 				mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
-				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
 
 				parameters.setTraceEnabled(e.createTrace());
 				parameters.setTraceFile("/tmp/" + name + "_" +  config);
@@ -378,16 +378,105 @@ public class Validation  extends ModelTest {
 				setupProgramTime = (new Date().getTime() - sTime);
 				runSimulationWithoutOutput();
 
-				outputFile.write(name + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
+				outputFile.write(name + "\t" + config + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
 				outputFile.flush();
 
-				modelTime.write(simRes.getVirtualTime().toString() + " ");
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
 				modelTime.flush();
 			}
 			modelTime.write("\n");
 		}
 		outputFile.close();
 	}
+
+
+
+
+	@Test public void validationRunCollectiveWithSendRecv() throws Exception{
+		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
+		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
+
+		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
+
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/collectives-modelTime.txt"));
+		modelTime.write("# Experiment configuration & times \n");
+
+		// test cases run on the WR cluster
+
+		int [] sizes = {10240, 1048576, 10485760, 104857600};
+
+		String [] experiments = new String[]{"Allgather", "Allreduce", "Barrier", "Bcast", "Gather", "Reduce", "Scatter"};
+
+		String [] configs = new String[]{"1-2","1-3","1-4","1-5","1-6","1-7","1-8","1-9","1-10","1-11","1-12",
+				"2-2","2-3","2-4","2-5","2-7","2-9", "2-11",
+				"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
+
+		FilenameFilter projFilter = new FilenameFilter() {
+	           public boolean accept(File dir, String name) {
+	                return name.endsWith(".proj");
+	            }
+	    };
+
+		final ApplicationXMLReader axml = new ApplicationXMLReader();
+
+		for(String experiment: experiments){
+			for(int size: sizes){
+
+				modelTime.write(experiment + size + " 0.0 "); // we know the time is 0.0 for the configuration 1-1
+
+				for(String config: configs){
+
+					final int nodes = Integer.parseInt(config.split("-")[0]);
+					final int processes = Integer.parseInt(config.split("-")[1]);
+
+					long sTime, setupSystemTime, setupProgramTime;
+					// dual socket configuration.
+					sTime = new Date().getTime();
+
+					setupWrCluster(nodes, processes);
+
+					setupSystemTime = (new Date().getTime() - sTime);
+
+					sTime = new Date().getTime();
+
+					// load traces
+					final String folder = prefix + config + "/" + experiment + "/" + size;
+					File f = new File(folder);
+					String files[] = f.list(projFilter);
+					if (files == null || files.length != 1){
+						System.err.println("Invalid configuration: " + folder);
+						outputFile.write("Invalid configuration: " + folder);
+						continue;
+					}
+					String proj=folder + "/" + files[0];
+
+					System.out.println(proj);
+
+					// don't do any computation ...
+					mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Compute"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
+
+
+					// load program:
+					final Application app = axml.parseApplication(proj, true);
+					mb.setApplication("Validate", app);
+
+
+					setupProgramTime = (new Date().getTime() - sTime);
+					runSimulationWithoutOutput();
+
+					outputFile.write(experiment + config + size + "\t" + config + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
+					outputFile.flush();
+
+					modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+					modelTime.flush();
+				}
+				modelTime.write("\n");
+			}
+		}
+		outputFile.close();
+	}
+
+
 
 	@Test public void timingLargeData() throws Exception{
 		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/timing")));
