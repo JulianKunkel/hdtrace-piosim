@@ -199,7 +199,12 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		ITraceEntry entry = traceFileReader.getNextInputEntry();
 
-		Epoch lastTimeForComputeJob = entry.getLatestTime();
+		if(entry == null){
+			// no entry!
+			return program;
+		}
+
+		Epoch lastTimeForComputeJob = entry.getEarliestTime();
 
 		while(entry != null) {
 			//System.out.println(entry);
@@ -209,7 +214,10 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 				Command cmd = cmdReader.parseCommandXML(entry);
 				if(cmd.getClass() != NoOperation.class){
 					// add an appropriate compute job, depending on the speed of the system.
-					long cycles = (long) (entry.getEarliestTime().subtract(lastTimeForComputeJob).getDouble() * processingSpeedOfTheSystem);
+					Epoch diff = entry.getEarliestTime().subtract(lastTimeForComputeJob);
+
+					assert(diff.getDouble() >= 0);
+					long cycles = (long) (diff.getDouble() * processingSpeedOfTheSystem);
 
 					assert(cycles >= 0);
 
