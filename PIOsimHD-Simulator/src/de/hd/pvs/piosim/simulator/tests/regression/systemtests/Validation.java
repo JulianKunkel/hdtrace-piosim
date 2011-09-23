@@ -35,6 +35,12 @@ import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTSoc
 
 public class Validation  extends ModelTest {
 
+	String [] configs = new String[]{"1-1","1-2","1-3","1-4","1-5","1-6","1-7","1-8","1-9","1-10","1-11","1-12",
+			"2-2","2-3","2-4","2-5","2-7","2-9", "2-11",
+			"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
+
+	int [] sizes = {10240, 1048576, 10485760, 104857600};
+
 	@Override
 	protected void postSetup() {
 	}
@@ -208,14 +214,76 @@ public class Validation  extends ModelTest {
 
 
 	@Test public void sendRecvIntersocketData() throws Exception{
-		final int pairs = 2;
-		setupSMP(pairs, 2);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
-		for(int i=0; i < pairs ; i++){
-			pb.addSendAndRecv(world, i, i+pairs, 1000* MBYTE, 4711);
-		}
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecv.txt"));
+		modelTime.write("# Experiment configuration & times \n");
+		// test cases run on the WR cluster
 
-		runSimulationAllExpectedToFinish();
+		for(int size: sizes){
+			modelTime.write("SendRecvPaired" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+
+				if (processes % 2 != 0){ // invalid test
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				setupWrCluster(nodes, processes);
+
+				final int pairs = processes / 2;
+				for(int rank=0; rank < processes ; rank++){
+				    int dest = rank % 2 == 0 ? rank + 1 : rank -1;
+
+					pb.addSendRecv(world, rank, dest, dest, size, 4711, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
+	}
+
+
+
+	@Test public void sendRecvRightNeighborIntersocketData() throws Exception{
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecvRN.txt"));
+		modelTime.write("# Experiment configuration & times \n");
+		// test cases run on the WR cluster
+
+		for(int size: sizes){
+			modelTime.write("SendRecvRightNeighbor" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				setupWrCluster(nodes, processes);
+
+				if(processes == 1){
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				for(int rank=0; rank < processes ; rank++){
+				    int dest = (rank == processes - 1) ? 0 : rank + 1;
+				    int src = (rank == 0) ? processes - 1 : rank - 1;
+
+					pb.addSendRecv(world, rank, src, dest, size, 4711, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
 	}
 
 	@Test public void sendRecvIntersocketValidate() throws Exception{
@@ -257,6 +325,23 @@ public class Validation  extends ModelTest {
 
 		runSimulationAllExpectedToFinish();
 	}
+
+
+	@Test public void sendRecvPaired() throws Exception{
+
+		setupWrCluster(1, 2);
+
+		parameters.setTraceFile("/tmp/sendRecv");
+		parameters.setTraceEnabled(true);
+
+		pb.addSendRecv(world, 0, 1, 1, 100*MiB, 2020, 2020);
+		pb.addSendRecv(world, 1, 0, 0, 100*MiB, 2020, 2020);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
 
 
 	@Test public void allreduceRootComputes() throws Exception{
@@ -345,11 +430,8 @@ public class Validation  extends ModelTest {
 				}
 		};
 
-		// test cases run on the WR cluster
 
-		String [] configs = new String[]{"1-1","1-2","1-3","1-4","1-5","1-6","1-7","1-8","1-9","1-10","1-11","1-12",
-				"2-2","2-3","2-4","2-5","2-7","2-9", "2-11",
-				"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
+		// test cases run on the WR cluster
 
 		for(ValidationExperiment e: experiments){
 			modelTime.write(e.getName() + " ");
@@ -365,8 +447,6 @@ public class Validation  extends ModelTest {
 				setupWrCluster(nodes, processes);
 
 				setupSystemTime = (new Date().getTime() - sTime);
-
-				mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 
 				parameters.setTraceEnabled(e.createTrace());
 				parameters.setTraceFile("/tmp/" + name + "_" +  config);
@@ -399,17 +479,17 @@ public class Validation  extends ModelTest {
 		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
 
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/collectives-modelTime.txt"));
-		modelTime.write("# Experiment configuration & times \n");
+		modelTime.write("# Experiment ");
+		for(String config: configs){
+			modelTime.write(config + " ");
+		}
+		modelTime.write("\n");
+
 
 		// test cases run on the WR cluster
 
-		int [] sizes = {10240, 1048576, 10485760, 104857600};
 
-		String [] experiments = new String[]{"Allgather", "Allreduce", "Barrier", "Bcast", "Gather", "Reduce", "Scatter"};
-
-		String [] configs = new String[]{"1-2","1-3","1-4","1-5","1-6","1-7","1-8","1-9","1-10","1-11","1-12",
-				"2-2","2-3","2-4","2-5","2-7","2-9", "2-11",
-				"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
+		String [] experiments = new String[]{ "Barrier", "Allreduce", "Bcast", "Gather", "Allgather", "Scatter",  "Reduce"};
 
 		FilenameFilter projFilter = new FilenameFilter() {
 	           public boolean accept(File dir, String name) {
@@ -422,7 +502,7 @@ public class Validation  extends ModelTest {
 		for(String experiment: experiments){
 			for(int size: sizes){
 
-				modelTime.write(experiment + size + " 0.0 "); // we know the time is 0.0 for the configuration 1-1
+				modelTime.write(experiment + size + " ");
 
 				for(String config: configs){
 
@@ -432,6 +512,8 @@ public class Validation  extends ModelTest {
 					long sTime, setupSystemTime, setupProgramTime;
 					// dual socket configuration.
 					sTime = new Date().getTime();
+
+					System.out.println(config);
 
 					setupWrCluster(nodes, processes);
 
@@ -446,11 +528,16 @@ public class Validation  extends ModelTest {
 					if (files == null || files.length != 1){
 						System.err.println("Invalid configuration: " + folder);
 						outputFile.write("Invalid configuration: " + folder);
+						// we know the time is 0.0 for the configuration 1-1
+						modelTime.write("0.0 ");
+
 						continue;
 					}
 					String proj=folder + "/" + files[0];
 
 					System.out.println(proj);
+					outputFile.write(proj);
+					outputFile.flush();
 
 					// don't do any computation ...
 					mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Compute"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
@@ -464,7 +551,7 @@ public class Validation  extends ModelTest {
 					setupProgramTime = (new Date().getTime() - sTime);
 					runSimulationWithoutOutput();
 
-					outputFile.write(experiment + config + size + "\t" + config + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
+					outputFile.write("\t" + config + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
 					outputFile.flush();
 
 					modelTime.write(simRes.getVirtualTime().getDouble() + " ");
@@ -474,9 +561,9 @@ public class Validation  extends ModelTest {
 			}
 		}
 		outputFile.close();
+
+		System.out.println("Completed!");
 	}
-
-
 
 	@Test public void timingLargeData() throws Exception{
 		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/timing")));
