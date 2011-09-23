@@ -1,6 +1,7 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -9,18 +10,24 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 import de.hd.pvs.piosim.model.program.Application;
+import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 import de.hd.pvs.piosim.model.program.Communicator;
+import de.hd.pvs.piosim.model.program.ProgramBuilder;
 import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.HardwareConfiguration;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.NodeT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTSocketNodeT;
@@ -101,6 +108,89 @@ public class Validation  extends ModelTest {
 				NetworkNodesC.GIGSwitch(),
 				smtNodeT) );
 	}
+
+	/**
+	 * Setup a configuration equal to the WR cluster configuration.
+	 * @param nodeCount
+	 * @param processes
+	 * @throws Exception
+	 */
+	protected void setupWrCluster(int nodeCount, int processes) throws Exception {
+		final int socketCount = 2;
+		final int procsPerSocket = 6;
+
+		SMTSocketNodeT smtNodeT = new SMTSocketNodeT(procsPerSocket,
+				socketCount,
+				NICC.PVSNIC(),
+				NodesC.PVSSMPNode(procsPerSocket * socketCount),
+				NetworkNodesC.SocketLocalNode(),
+				NetworkEdgesC.SocketLocalEdge(),
+				NetworkNodesC.QPI(),
+				NetworkEdgesC.QPI()
+		);
+		HardwareConfiguration config = new ClusterT(nodeCount, NetworkEdgesC.GIGE(),NetworkNodesC.GIGSwitch(), smtNodeT);
+
+		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
+		parameters.setTraceEnabled(false);
+		parameters.setTraceInternals(false);
+		parameters.setTraceClientSteps(true);
+		parameters.setTraceServers(true);
+
+		PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
+		mb = new ModelBuilder();
+		topology = mb.createTopology("LAN");
+		topology.setRoutingAlgorithm(routingAlgorithm);
+		config.createModel("", mb, topology);
+
+		aB = new ApplicationBuilder("Validate", "Validation runs", processes, 1);
+		app = aB.getApplication();
+
+		// build a dummy app for all nodes
+		ApplicationBuilder dummy = new ApplicationBuilder("Test", "Test", procsPerSocket * socketCount * nodeCount, 1);
+		int cur = 0;
+		for(ClientProcess c : mb.getModel().getClientProcesses()){
+			c.setRank(cur++);
+			c.setApplication("Test");
+		}
+		mb.setApplication("Test", dummy.getApplication());
+
+		pb = new ProgramBuilder(aB);
+
+		// number => clients
+		final ClientProcess [] clients = mb.getModel().getClientProcesses().toArray(new ClientProcess[0]);
+
+		int curNode = 0;
+		int curSocket = 0;
+		int curProc = 0;
+
+		// placement of the processes => nodes, sockets, PEs
+		for(int rank = 0; rank < processes; rank++){
+			int physicalCPU = curNode * (procsPerSocket * socketCount) + curSocket * procsPerSocket + curProc;
+			//System.out.println("rank: " + rank + " node: " + curNode + " socket: " + curSocket + " proc: " + curProc + " physicalCPU: " + physicalCPU);
+
+			ClientProcess c = clients[physicalCPU];
+			c.setApplication("Validate");
+			c.setRank(rank);
+			c.setName("" + rank);
+
+			curNode++;
+			if (curNode >= nodeCount){
+				curNode = 0;
+				curSocket++;
+				if(curSocket == socketCount){
+					curSocket = 0;
+					curProc++;
+				}
+			}
+		}
+
+		mb.setApplication("Validate", app);
+
+
+		world = aB.getWorldCommunicator();
+		model = mb.getModel();
+	}
+
 
 
 	@Test public void sendRecvData() throws Exception{
@@ -221,6 +311,83 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	abstract class ValidationExperiment{
+		abstract String getName();
+		abstract void addOperation(ProgramBuilder p);
+		boolean createTrace(){
+			return true;
+		}
+	}
+
+	@Test public void validationRuns() throws Exception{
+		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/validationRuns.txt"));
+		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
+
+
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime.txt"));
+		modelTime.write("# Experiment configuration & times \n");
+
+		ValidationExperiment [] experiments = new ValidationExperiment[]{
+				new ValidationExperiment() {
+
+					@Override
+					String getName() {
+						return "Broadcast100M";
+					}
+
+					@Override
+					void addOperation(ProgramBuilder p) {
+						pb.addBroadcast(world, 0, 100 * MBYTE);
+					}
+				}
+		};
+
+		// test cases run on the WR cluster
+
+		String [] configs = new String[]{"1-1","1-2","1-3","1-4","1-5","1-6","1-7","1-8","1-9","1-10","1-11","1-12",
+				"2-2","2-3","2-4","2-5","2-7","2-9", "2-11",
+				"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
+
+		configs = new String[]{"2-7"};
+
+		for(ValidationExperiment e: experiments){
+			modelTime.write(e.getName() + ",");
+			for(String config : configs){
+				final String name = e.getName();
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				long sTime, setupSystemTime, setupProgramTime;
+				// dual socket configuration.
+				sTime = new Date().getTime();
+
+				setupWrCluster(nodes, processes);
+
+				setupSystemTime = (new Date().getTime() - sTime);
+
+				mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+
+				parameters.setTraceEnabled(e.createTrace());
+				parameters.setTraceFile("/tmp/" + name + "_" +  config);
+
+				sTime = new Date().getTime();
+
+				e.addOperation(pb);
+
+				setupProgramTime = (new Date().getTime() - sTime);
+				runSimulationWithoutOutput();
+
+				outputFile.write(name + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
+				outputFile.flush();
+
+				modelTime.write(simRes.getVirtualTime().toString() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		outputFile.close();
+	}
 
 	@Test public void timingLargeData() throws Exception{
 		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/timing")));
