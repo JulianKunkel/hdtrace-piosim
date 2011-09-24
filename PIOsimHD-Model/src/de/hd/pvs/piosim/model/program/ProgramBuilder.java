@@ -130,6 +130,18 @@ public class ProgramBuilder {
 		appBuilder.addCommand(rank, com, fd);
 	}
 
+	public void addWriteIndependentNoncontiguous(int rank, FileDescriptor fd,  ListIO lio) {
+		Filewrite com = new Filewrite();
+		com.setListIO(lio);
+		appBuilder.addCommand(rank, com, fd);
+	}
+
+	public void addReadIndependentNoncontiguous(int rank, FileDescriptor fd,  ListIO lio) {
+		Fileread com = new Fileread();
+		com.setListIO(lio);
+		appBuilder.addCommand(rank, com, fd);
+	}
+
 	public void addReadCollective(FileDescriptor fd, LinkedList<ListIO> io) {
 		assert(io.size() ==  fd.getCommunicator().getParticipiants().size());
 
