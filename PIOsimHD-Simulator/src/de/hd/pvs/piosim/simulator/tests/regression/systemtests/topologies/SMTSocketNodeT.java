@@ -69,12 +69,11 @@ public class SMTSocketNodeT  extends HardwareConfiguration {
 		switchInterconnect.setName(prefix + socketInterconnect.getName());
 		mb.addNetworkNode(switchInterconnect);
 
-		// create at most one I/O server per node
-		boolean createdIO = false;
+		NetworkNode socketCrossbar = null;
 
 		for(int s=0; s < sockets;s++){
 
-			final NetworkNode socketCrossbar = mb.cloneFromTemplate(socketInterconnect);
+			socketCrossbar = mb.cloneFromTemplate(socketInterconnect);
 
 			// create socket switch
 			socketCrossbar.setName(prefix + "" + socketInterconnect.getName());
@@ -113,28 +112,27 @@ public class SMTSocketNodeT  extends HardwareConfiguration {
 				mb.connect(topology, nm, e1, socketCrossbar);
 				mb.connect(topology, socketCrossbar, e2, nm);
 			}
+		}
 
-			if(ioServerAddon != null && ! createdIO){
-				createdIO = true;
+		assert(sockets > 0);
 
-				// add the I/O-server to the node:
-				Server serv = ioServerAddon.createServer(prefix + "io", mb);
-				NIC nm = mb.cloneFromTemplate(nic);
-				nm.setName(prefix + "ioN");
-				serv.setNetworkInterface(nm);
+		if(ioServerAddon != null){
 
-				mb.addServer(n, serv);
+			// add the I/O-server to the node:
+			Server serv = ioServerAddon.createServer(prefix + "io", mb);
+			NIC nm = mb.cloneFromTemplate(nic);
+			nm.setName(prefix + "ioN");
+			serv.setNetworkInterface(nm);
 
-				// interconnect via crossbar switch
-				NetworkEdge e1 = mb.cloneFromTemplate(socketInterconnectEdge);
-				NetworkEdge e2 = mb.cloneFromTemplate(socketInterconnectEdge);
-				e1.setName(prefix + "io_TX" + e1.getName());
-				e2.setName(prefix + "io_RX" + e2.getName());
-				mb.connect(topology, nm, e1, socketCrossbar);
-				mb.connect(topology, socketCrossbar, e2, nm);
+			mb.addServer(n, serv);
 
-			}
-
+			// interconnect via crossbar switch
+			NetworkEdge e1 = mb.cloneFromTemplate(socketInterconnectEdge);
+			NetworkEdge e2 = mb.cloneFromTemplate(socketInterconnectEdge);
+			e1.setName(prefix + "io_TX" + e1.getName());
+			e2.setName(prefix + "io_RX" + e2.getName());
+			mb.connect(topology, nm, e1, socketCrossbar);
+			mb.connect(topology, socketCrossbar, e2, nm);
 		}
 
 		return switchInterconnect;
