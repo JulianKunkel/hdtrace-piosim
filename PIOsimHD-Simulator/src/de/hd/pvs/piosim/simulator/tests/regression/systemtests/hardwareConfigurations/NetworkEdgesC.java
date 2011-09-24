@@ -17,6 +17,14 @@ public class NetworkEdgesC implements HardwareComponents{
 	}
 
 
+	static public SimpleNetworkEdge SocketLocalNoLatencyEdge(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("SLE");
+		conn.setLatency(Epoch.ZERO); // sendRecvPaired10K
+		conn.setBandwidth(10864 * MBYTE);
+		return conn;
+	}
+
 	static public SimpleNetworkEdge QPI(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("QPI");
@@ -25,10 +33,36 @@ public class NetworkEdgesC implements HardwareComponents{
 		return conn;
 	}
 
+
+	static public SimpleNetworkEdge QPINoLatency(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("QPI");
+		conn.setLatency(Epoch.ZERO); // 5.4 - 2.8
+		conn.setBandwidth(10864 * MBYTE);
+		return conn;
+	}
+
+	static public SimpleNetworkEdge GIGEPVS(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("1GBitEPVS");
+		conn.setLatency(new Epoch(0.0002753));
+		conn.setBandwidth(67 * MBYTE);
+		return conn;
+	}
+
 	static public SimpleNetworkEdge GIGE(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
-		conn.setName("1GBit Ethernet");
+		conn.setName("1GBitE");
 		conn.setLatency(new Epoch(0.0002753));
+		conn.setBandwidth(117 * MBYTE);
+		return conn;
+	}
+
+
+	static public SimpleNetworkEdge GIGEPVSNoLatency(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("1GBitE");
+		conn.setLatency(Epoch.ZERO);
 		conn.setBandwidth(67 * MBYTE);
 		return conn;
 	}

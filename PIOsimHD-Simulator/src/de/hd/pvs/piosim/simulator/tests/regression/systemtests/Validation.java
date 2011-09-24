@@ -122,20 +122,74 @@ public class Validation  extends ModelTest {
 	 * @param processes
 	 * @throws Exception
 	 */
-	protected void setupWrCluster(int nodeCount, int processes) throws Exception {
-		final int socketCount = 2;
-		final int procsPerSocket = 6;
 
-		SMTSocketNodeT smtNodeT = new SMTSocketNodeT(procsPerSocket,
+	protected void setupWrCluster(int nodeCount, int processes, int servers) throws Exception {
+
+	}
+
+
+	/**
+	 * Setup a configuration equal to the WR cluster configuration.
+	 * @param nodeCount
+	 * @param processes
+	 * @throws Exception
+	 */
+	protected void setupWrCluster(int nodeCount, int processes) throws Exception {
+		final int socketCount ;
+		final int procsPerSocket ;
+
+		if(true){ // true is always the real setting
+			socketCount = 2;
+			procsPerSocket = 6;
+		}else{
+			socketCount = 1;
+			procsPerSocket = 12;
+		}
+
+		final int procsPerNode = procsPerSocket * socketCount;
+
+		SMTSocketNodeT smtNodeT;
+
+		if (true){ // real vs. analytical NIC?
+			smtNodeT = new SMTSocketNodeT(procsPerSocket,
 				socketCount,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(procsPerSocket * socketCount),
 				NetworkNodesC.SocketLocalNode(),
 				NetworkEdgesC.SocketLocalEdge(),
 				NetworkNodesC.QPI(),
-				NetworkEdgesC.QPI()
-		);
-		HardwareConfiguration config = new ClusterT(nodeCount, NetworkEdgesC.GIGE(),NetworkNodesC.GIGSwitch(), smtNodeT);
+				NetworkEdgesC.QPI() );
+		}else if(true){
+			smtNodeT = new SMTSocketNodeT(procsPerSocket,
+					socketCount,
+					NICC.NICAnalytical(),
+					NodesC.PVSSMPNode(procsPerSocket * socketCount),
+					NetworkNodesC.SocketLocalNode(),
+					NetworkEdgesC.SocketLocalEdge(),
+					NetworkNodesC.QPI(),
+					NetworkEdgesC.QPI() );
+		}
+
+		HardwareConfiguration config;
+
+		if(true){ // real cluster value vs. GiGE throughput
+			config = new ClusterT(nodeCount, NetworkEdgesC.GIGEPVS(),NetworkNodesC.GIGSwitch(), smtNodeT);
+		}else{ // faster network
+			config = new ClusterT(nodeCount, NetworkEdgesC.GIGE(),NetworkNodesC.GIGSwitch(), smtNodeT);
+		}
+
+		if(true){ // real vs. latency bound.
+		}else{
+			smtNodeT = new SMTSocketNodeT(procsPerSocket,
+					socketCount,
+					NICC.PVSNIC(),
+					NodesC.PVSSMPNode(procsPerSocket * socketCount),
+					NetworkNodesC.SocketLocalNode(),
+					NetworkEdgesC.SocketLocalNoLatencyEdge(),
+					NetworkNodesC.QPI(),
+					NetworkEdgesC.QPINoLatency() );
+			config = new ClusterT(nodeCount, NetworkEdgesC.GIGEPVSNoLatency(),NetworkNodesC.GIGSwitch(), smtNodeT);
+		}
 
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
 		parameters.setTraceEnabled(false);
@@ -170,24 +224,51 @@ public class Validation  extends ModelTest {
 		int curSocket = 0;
 		int curProc = 0;
 
-		// placement of the processes => nodes, sockets, PEs
-		for(int rank = 0; rank < processes; rank++){
-			int physicalCPU = curNode * (procsPerSocket * socketCount) + curSocket * procsPerSocket + curProc;
-			//System.out.println("rank: " + rank + " node: " + curNode + " socket: " + curSocket + " proc: " + curProc + " physicalCPU: " + physicalCPU);
+		// placement of the processes
+		if(false){ //  => nodes, sockets, PEs
 
-			ClientProcess c = clients[physicalCPU];
-			c.setApplication("Validate");
-			c.setRank(rank);
-			c.setName("" + rank);
+			for(int rank = 0; rank < processes; rank++){
 
-			curNode++;
-			if (curNode >= nodeCount){
-				curNode = 0;
-				curSocket++;
-				if(curSocket == socketCount){
-					curSocket = 0;
-					curProc++;
+				int physicalCPU = curNode * procsPerNode + curSocket * procsPerSocket + curProc;
+				//System.out.println("rank: " + rank + " node: " + curNode + " socket: " + curSocket + " proc: " + curProc + " physicalCPU: " + physicalCPU);
+
+				curNode++;
+				if (curNode >= nodeCount){
+					curNode = 0;
+					curSocket++;
+					if(curSocket == socketCount){
+						curSocket = 0;
+						curProc++;
+					}
 				}
+
+				ClientProcess c = clients[physicalCPU]; // 6 * 2 * nodes
+				c.setApplication("Validate");
+				c.setRank(rank);
+				c.setName("" + rank);
+			}
+		}else{ // => PEs on one node, one socket
+			int numberOfProcsPerNode = processes / nodeCount;
+			int restProcs = processes % nodeCount;
+			int rank = 0;
+			for(int node = 0; node < nodeCount; node++){
+				for(int pCPU = 0; pCPU < numberOfProcsPerNode ; pCPU++){
+					ClientProcess c = clients[procsPerNode * node + pCPU]; // 6 * 2 * nodes
+					c.setApplication("Validate");
+					c.setRank(rank);
+					c.setName("" + rank);
+
+					rank++;
+				}
+			}
+			// last node gets the remainder
+			for(int rest = 0; rest < restProcs; rest++){
+				ClientProcess c = clients[procsPerNode * (nodeCount-1) + numberOfProcsPerNode + rest];
+				c.setApplication("Validate");
+				c.setRank(rank);
+				c.setName("" + rank);
+
+				rank++;
 			}
 		}
 
@@ -250,6 +331,72 @@ public class Validation  extends ModelTest {
 	}
 
 
+
+	@Test public void sendRootIntersocketData() throws Exception{
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRoot.txt"));
+		modelTime.write("# Experiment configuration & times \n");
+		// test cases run on the WR cluster
+
+		for(int size: sizes){
+			modelTime.write("SendRoot" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				setupWrCluster(nodes, processes);
+
+				if(processes == 1){
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				for(int rank=1; rank < processes ; rank++){
+					pb.addSendAndRecv(world, rank, 0, size, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
+	}
+
+
+	@Test public void sendRecvRootIntersocketData() throws Exception{
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecvRoot.txt"));
+		modelTime.write("# Experiment configuration & times \n");
+		// test cases run on the WR cluster
+
+		for(int size: sizes){
+			modelTime.write("SendRecvRoot" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				setupWrCluster(nodes, processes);
+
+				if(processes == 1){
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				for(int rank=1; rank < processes ; rank++){
+					pb.addSendRecv(world, rank, 0, 0, size, 4711, 4711);
+					pb.addSendRecv(world, 0, rank, rank, size, 4711, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
+	}
 
 	@Test public void sendRecvRightNeighborIntersocketData() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecvRN.txt"));
@@ -406,6 +553,10 @@ public class Validation  extends ModelTest {
 		}
 	}
 
+	@Test public void MPIIORuns() throws Exception{
+
+	}
+
 	@Test public void validationRuns() throws Exception{
 		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/validationRuns.txt"));
 		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
@@ -489,7 +640,7 @@ public class Validation  extends ModelTest {
 		// test cases run on the WR cluster
 
 
-		String [] experiments = new String[]{ "Barrier", "Allreduce", "Bcast", "Gather", "Allgather", "Scatter",  "Reduce"};
+		String [] experiments = new String[]{ "Reduce", "Allreduce", "Bcast", "Barrier",  "Allgather", "Gather", "Scatter"};
 
 		FilenameFilter projFilter = new FilenameFilter() {
 	           public boolean accept(File dir, String name) {
@@ -540,7 +691,8 @@ public class Validation  extends ModelTest {
 					outputFile.flush();
 
 					// don't do any computation ...
-					mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Compute"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
+					// TODO run both tests at the same time
+					//mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Compute"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
 
 
 					// load program:
