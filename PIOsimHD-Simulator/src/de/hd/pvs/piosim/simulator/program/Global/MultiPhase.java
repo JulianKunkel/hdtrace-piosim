@@ -238,7 +238,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			Collections.sort( tmpList, new Comparator<IOData>(){
 				@Override
 				public int compare(IOData o1, IOData o2) {
-					return (int) (o1.offset - o2.offset);
+					return (o1.offset < o2.offset) ? -1 : ((o1.offset > o2.offset) ? + 1 : 0);
 				}
 			});
 
@@ -252,14 +252,20 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			for(IOData op : tmpList){
 				if( last != null){
 					// check if we can combine them:
+					assert(last.offset <= op.offset);
+
 					long overlap = last.offset + last.size - op.offset;
 					if ( overlap >= 0 ){
 						// combination possible:
 						last.size += op.size - overlap;
+						assert(op.size >= overlap);
+						assert(last.size >= 0);
+
 					}else{
 						// no combination possible: add operation:
 						dataCollectivlyToAccess.add(last);
 						totalAccessSize += last.size;
+
 						last = op;
 					}
 				}else{
@@ -270,6 +276,8 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			assert(last != null); // should never happen
 			dataCollectivlyToAccess.add(last);
 			totalAccessSize += last.size;
+
+			assert(totalAccessSize >= 0);
 
 			return totalAccessSize;
 		}
@@ -466,6 +474,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			if(wrapper.globalPhaseContainer.useMultiPhase){
 				// initalize structures
 				long totalSize = wrapper.globalPhaseContainer.groupCollectiveData();
+				assert(totalSize >= 0);
 				final MultiPhaseRun mpr = getIOSplitter().initMultiphasesOnce(totalSize, wrapper.globalPhaseContainer, wrapper.globalPhaseContainer.dataCollectivlyToAccess);
 				wrapper.globalPhaseContainer.phaseRun = mpr;
 

@@ -7,14 +7,21 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.junit.Test;
 
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
+import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
+import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
+import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
 import de.hd.pvs.piosim.model.program.Application;
@@ -23,12 +30,14 @@ import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.ProgramBuilder;
 import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkNodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NodesC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.ClusterT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.HardwareConfiguration;
+import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.IOServerCreator;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.NodeT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTNodeT;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.SMTSocketNodeT;
@@ -118,23 +127,11 @@ public class Validation  extends ModelTest {
 
 	/**
 	 * Setup a configuration equal to the WR cluster configuration.
-	 * @param nodeCount
+	 * @param processNodes
 	 * @param processes
 	 * @throws Exception
 	 */
-
-	protected void setupWrCluster(int nodeCount, int processes, int servers) throws Exception {
-
-	}
-
-
-	/**
-	 * Setup a configuration equal to the WR cluster configuration.
-	 * @param nodeCount
-	 * @param processes
-	 * @throws Exception
-	 */
-	protected void setupWrCluster(int nodeCount, int processes) throws Exception {
+	protected void setupWrCluster(int processNodes, int processes, int overlappingServerCount, int additionalServerNodes, ServerCacheLayer cacheLayer, long RAM) throws Exception {
 		final int socketCount ;
 		final int procsPerSocket ;
 
@@ -154,16 +151,16 @@ public class Validation  extends ModelTest {
 			smtNodeT = new SMTSocketNodeT(procsPerSocket,
 				socketCount,
 				NICC.PVSNIC(),
-				NodesC.PVSSMPNode(procsPerSocket * socketCount),
+				NodesC.PVSSMPNode(procsPerSocket * socketCount, RAM),
 				NetworkNodesC.SocketLocalNode(),
 				NetworkEdgesC.SocketLocalEdge(),
 				NetworkNodesC.QPI(),
 				NetworkEdgesC.QPI() );
-		}else if(true){
+		}else{
 			smtNodeT = new SMTSocketNodeT(procsPerSocket,
 					socketCount,
 					NICC.NICAnalytical(),
-					NodesC.PVSSMPNode(procsPerSocket * socketCount),
+					NodesC.PVSSMPNode(procsPerSocket * socketCount, RAM),
 					NetworkNodesC.SocketLocalNode(),
 					NetworkEdgesC.SocketLocalEdge(),
 					NetworkNodesC.QPI(),
@@ -173,9 +170,9 @@ public class Validation  extends ModelTest {
 		HardwareConfiguration config;
 
 		if(true){ // real cluster value vs. GiGE throughput
-			config = new ClusterT(nodeCount, NetworkEdgesC.GIGEPVS(),NetworkNodesC.GIGSwitch(), smtNodeT);
+			config = new ClusterT(processNodes, NetworkEdgesC.GIGEPVS(),NetworkNodesC.GIGSwitch(), smtNodeT);
 		}else{ // faster network
-			config = new ClusterT(nodeCount, NetworkEdgesC.GIGE(),NetworkNodesC.GIGSwitch(), smtNodeT);
+			config = new ClusterT(processNodes, NetworkEdgesC.GIGE(),NetworkNodesC.GIGSwitch(), smtNodeT);
 		}
 
 		if(true){ // real vs. latency bound.
@@ -183,12 +180,86 @@ public class Validation  extends ModelTest {
 			smtNodeT = new SMTSocketNodeT(procsPerSocket,
 					socketCount,
 					NICC.PVSNIC(),
-					NodesC.PVSSMPNode(procsPerSocket * socketCount),
+					NodesC.PVSSMPNode(procsPerNode, RAM),
 					NetworkNodesC.SocketLocalNode(),
 					NetworkEdgesC.SocketLocalNoLatencyEdge(),
 					NetworkNodesC.QPI(),
 					NetworkEdgesC.QPINoLatency() );
-			config = new ClusterT(nodeCount, NetworkEdgesC.GIGEPVSNoLatency(),NetworkNodesC.GIGSwitch(), smtNodeT);
+			config = new ClusterT(processNodes, NetworkEdgesC.GIGEPVSNoLatency(),NetworkNodesC.GIGSwitch(), smtNodeT);
+		}
+
+
+		PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
+		mb = new ModelBuilder();
+		topology = mb.createTopology("LAN");
+		topology.setRoutingAlgorithm(routingAlgorithm);
+
+		// create servers & overhaul existing configuration if necessary
+		if(additionalServerNodes > 0){
+			final NetworkEdge nodeEdge = NetworkEdgesC.GIGEPVS();
+			final NetworkNode Switch = NetworkNodesC.GIGSwitch();
+			mb.addTemplateIf(nodeEdge);
+			mb.addTemplateIf(Switch);
+
+			NetworkNode testSW = mb.cloneFromTemplate(Switch);
+
+			testSW.setName("Switch" + testSW.getName());
+
+			mb.addNetworkNode(testSW);
+
+			// the cluster nodes
+			ArrayList<NetworkNode> nodes = new ArrayList<NetworkNode>();
+
+			// server configuration
+			final IOServerCreator ios = new IOServerCreator(IOC.PVSServer(), IOC.PVSDisk(), cacheLayer);
+
+			// create client only nodes:
+			for(int i = 0; i < processNodes - overlappingServerCount ; i++){
+				nodes.add(smtNodeT.createModel("" + nodes.size(), mb, topology));
+			}
+
+
+			// overlapping of clients and servers
+			SMTSocketNodeT myIOServerGen = new SMTSocketNodeT(procsPerSocket,
+					socketCount,
+					NICC.PVSNIC(),
+					NodesC.PVSSMPNode(procsPerNode, RAM),
+					NetworkNodesC.SocketLocalNode(),
+					NetworkEdgesC.SocketLocalEdge(),
+					NetworkNodesC.QPI(),
+					NetworkEdgesC.QPI(), ios );
+			if(overlappingServerCount > 0){
+				for (int i=0; i < overlappingServerCount; i++){
+					nodes.add(myIOServerGen.createModel("" + nodes.size(), mb, topology));
+				}
+			}
+
+			// servers only
+			myIOServerGen = new SMTSocketNodeT(0,
+					1,
+					NICC.PVSNIC(),
+					NodesC.PVSSMPNode(1, RAM),
+					NetworkNodesC.SocketLocalNode(),
+					NetworkEdgesC.SocketLocalEdge(),
+					NetworkNodesC.QPI(),
+					NetworkEdgesC.QPI(), ios );
+			for (int i=0; i < additionalServerNodes; i++){
+				nodes.add(myIOServerGen.createModel("" + nodes.size(), mb, topology));
+			}
+
+
+			for (int i = 0; i < nodes.size(); i++) {
+				NetworkNode n = nodes.get(i);
+
+				NetworkEdge edge1 = mb.cloneFromTemplate(nodeEdge);
+				NetworkEdge edge2 = mb.cloneFromTemplate(nodeEdge);
+				edge1.setName(i + "_TX " + edge1.getName());
+				edge2.setName(i + "_RX "+ edge2.getName());
+				mb.connect(topology, n, edge1 , testSW);
+				mb.connect(topology, testSW, edge2 , n);
+			}
+		}else{
+			config.createModel("", mb, topology);
 		}
 
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
@@ -197,17 +268,12 @@ public class Validation  extends ModelTest {
 		parameters.setTraceClientSteps(true);
 		parameters.setTraceServers(true);
 
-		PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
-		mb = new ModelBuilder();
-		topology = mb.createTopology("LAN");
-		topology.setRoutingAlgorithm(routingAlgorithm);
-		config.createModel("", mb, topology);
 
 		aB = new ApplicationBuilder("Validate", "Validation runs", processes, 1);
 		app = aB.getApplication();
 
 		// build a dummy app for all nodes
-		ApplicationBuilder dummy = new ApplicationBuilder("Test", "Test", procsPerSocket * socketCount * nodeCount, 1);
+		ApplicationBuilder dummy = new ApplicationBuilder("Test", "Test", procsPerSocket * socketCount * processNodes, 1);
 		int cur = 0;
 		for(ClientProcess c : mb.getModel().getClientProcesses()){
 			c.setRank(cur++);
@@ -225,7 +291,7 @@ public class Validation  extends ModelTest {
 		int curProc = 0;
 
 		// placement of the processes
-		if(false){ //  => nodes, sockets, PEs
+		if(true){ //  => nodes, sockets, PEs
 
 			for(int rank = 0; rank < processes; rank++){
 
@@ -233,7 +299,7 @@ public class Validation  extends ModelTest {
 				//System.out.println("rank: " + rank + " node: " + curNode + " socket: " + curSocket + " proc: " + curProc + " physicalCPU: " + physicalCPU);
 
 				curNode++;
-				if (curNode >= nodeCount){
+				if (curNode >= processNodes){
 					curNode = 0;
 					curSocket++;
 					if(curSocket == socketCount){
@@ -247,11 +313,11 @@ public class Validation  extends ModelTest {
 				c.setRank(rank);
 				c.setName("" + rank);
 			}
-		}else{ // => PEs on one node, one socket
-			int numberOfProcsPerNode = processes / nodeCount;
-			int restProcs = processes % nodeCount;
+		}else{ // => PEs on one node, one socket, i.e. 2 nodes 5 procs => procs 0,1 and 2,3,4 are together
+			int numberOfProcsPerNode = processes / processNodes;
+			int restProcs = processes % processNodes;
 			int rank = 0;
-			for(int node = 0; node < nodeCount; node++){
+			for(int node = 0; node < processNodes; node++){
 				for(int pCPU = 0; pCPU < numberOfProcsPerNode ; pCPU++){
 					ClientProcess c = clients[procsPerNode * node + pCPU]; // 6 * 2 * nodes
 					c.setApplication("Validate");
@@ -263,7 +329,7 @@ public class Validation  extends ModelTest {
 			}
 			// last node gets the remainder
 			for(int rest = 0; rest < restProcs; rest++){
-				ClientProcess c = clients[procsPerNode * (nodeCount-1) + numberOfProcsPerNode + rest];
+				ClientProcess c = clients[procsPerNode * (processNodes-1) + numberOfProcsPerNode + rest];
 				c.setApplication("Validate");
 				c.setRank(rank);
 				c.setName("" + rank);
@@ -278,6 +344,17 @@ public class Validation  extends ModelTest {
 		world = aB.getWorldCommunicator();
 		model = mb.getModel();
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+	}
+
+
+	/**
+	 * Setup a configuration equal to the WR cluster configuration.
+	 * @param nodeCount
+	 * @param processes
+	 * @throws Exception
+	 */
+	protected void setupWrCluster(int nodeCount, int processes) throws Exception {
+		setupWrCluster(nodeCount, processes, 0, 0, null, 12000);
 	}
 
 
@@ -553,8 +630,64 @@ public class Validation  extends ModelTest {
 		}
 	}
 
-	@Test public void MPIIORuns() throws Exception{
+	@Test public void MPIIOLevelValidation() throws Exception{
+		setupWrCluster(1, 1, 1, 1, IOC.AggregationCache(), 1000);
 
+		parameters.setTraceFile("/tmp/ios");
+		parameters.setTraceEnabled(false);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(64 * KBYTE);
+		FileMetadata file =  aB.createFile("test", GBYTE, dist );
+
+		FileDescriptor fd = pb.addFileOpen(file, world, false);
+		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void MPIIORunTest() throws Exception{
+		setupWrCluster(1, 1, 1, 1, IOC.AggregationCache(), 1000);
+
+		parameters.setTraceFile("/tmp/ios");
+		parameters.setTraceEnabled(false);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(64 * KBYTE);
+		FileMetadata file =  aB.createFile("test", GBYTE, dist );
+
+		FileDescriptor fd = pb.addFileOpen(file, world, false);
+		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+
+
+		setupWrCluster(1, 1, 1, 2, IOC.AggregationCache(), 1000);
+
+		parameters.setTraceFile("/tmp/ios");
+		parameters.setTraceEnabled(true);
+		file =  aB.createFile("test", GBYTE, dist );
+		fd = pb.addFileOpen(file, world, false);
+		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+
+
+
+		setupWrCluster(1, 1, 0, 1, IOC.AggregationCache(), 1000);
+
+		parameters.setTraceFile("/tmp/ios");
+		parameters.setTraceEnabled(false);
+		file =  aB.createFile("test", GBYTE, dist );
+		fd = pb.addFileOpen(file, world, false);
+		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void validationRuns() throws Exception{
@@ -851,7 +984,7 @@ public class Validation  extends ModelTest {
 	}
 
 	@Test public void broadcastBroadcastScatterBarrierGatherall() throws Exception{
-		setup(10, 1);
+		setupWrCluster(2, 7);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterBarrierGatherall");
 
