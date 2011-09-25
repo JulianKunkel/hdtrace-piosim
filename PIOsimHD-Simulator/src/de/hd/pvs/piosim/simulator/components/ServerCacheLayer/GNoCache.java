@@ -276,6 +276,9 @@ public class GNoCache
 	public void readDataFragmentSendByNIC(RequestRead req, long bytesSendByNIC) {
 		// free memory
 		nodeRessources.freeMemory(bytesSendByNIC);
+
+		// try to schedule another operation, this is necessary if our RAM has been full
+		scheduleNextIOJobIfPossible();
 	}
 
 

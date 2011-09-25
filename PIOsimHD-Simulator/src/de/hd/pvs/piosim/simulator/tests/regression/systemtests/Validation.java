@@ -9,6 +9,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 
 import org.junit.Test;
 
@@ -21,6 +22,7 @@ import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
+import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
@@ -631,17 +633,83 @@ public class Validation  extends ModelTest {
 	}
 
 	@Test public void MPIIOLevelValidation() throws Exception{
-		setupWrCluster(1, 1, 1, 1, IOC.AggregationCache(), 1000);
+		int clients = 5;
+		int servers = 5;
 
+		setupWrCluster(servers, clients, 0, servers, IOC.AggregationCache(), 10000);
 		parameters.setTraceFile("/tmp/ios");
-		parameters.setTraceEnabled(false);
+		parameters.setTraceEnabled(true);
 
 		SimpleStripe dist = new SimpleStripe();
 		dist.setChunkSize(64 * KBYTE);
 		FileMetadata file =  aB.createFile("test", GBYTE, dist );
 
 		FileDescriptor fd = pb.addFileOpen(file, world, false);
-		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
+
+		int pos = 0;
+
+		// level 0
+		for(int c=0; c < 10; c++){
+
+			for(int i=0 ; i < clients ; i++){
+				pb.addWriteSequential(i, fd, 100 * MBYTE * pos, 100 * MBYTE);
+				pos++;
+			}
+		}
+
+		if(false){
+		//level1:
+		pos = 0;
+		for(int c=0; c < 10; c++){
+
+			LinkedList<ListIO> ios = new LinkedList<ListIO>();
+
+			for(int i=0 ; i < clients ; i++){
+				ListIO listio = new ListIO();
+				listio.addIOOperation(100 * MBYTE * pos, 100 * MBYTE);
+
+				ios.add(listio);
+				pos++;
+			}
+			pb.addWriteCollective(fd, ios);
+		}
+
+		//level2:
+		for(int i=0 ; i < clients ; i++){
+			ListIO listio = new ListIO();
+			for(int c=0; c < 10; c++){
+				listio.addIOOperation(100 * MBYTE * (c*clients + i), 100 * MBYTE);
+			}
+			pb.addWriteIndependentNoncontiguous(i, fd, listio);
+		}
+
+		// level3:
+		LinkedList<ListIO> ios = new LinkedList<ListIO>();
+		for(int i=0 ; i < clients ; i++){
+			ListIO listio = new ListIO();
+			for(int c=0; c < 10; c++){
+				listio.addIOOperation(100 * MBYTE * (c*clients + i), 100 * MBYTE);
+			}
+			ios.add(listio);
+		}
+		pb.addWriteCollective(fd, ios);
+
+		}
+
+		pb.addBarrier(world);
+
+		LinkedList<ListIO> ios = new LinkedList<ListIO>();
+		for(int i=0 ; i < clients ; i++){
+			ListIO listio = new ListIO();
+			for(int c=0; c < 10; c++){
+				listio.addIOOperation(100 * MBYTE * (c*clients + i), 100 * MBYTE);
+			}
+			ios.add(listio);
+		}
+		pb.addReadCollective(fd, ios);
+
+
+
 		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
