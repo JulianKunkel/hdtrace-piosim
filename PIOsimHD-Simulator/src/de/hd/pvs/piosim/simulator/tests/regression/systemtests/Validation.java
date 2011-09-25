@@ -345,7 +345,7 @@ public class Validation  extends ModelTest {
 
 		world = aB.getWorldCommunicator();
 		model = mb.getModel();
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 	}
 
 
@@ -364,9 +364,9 @@ public class Validation  extends ModelTest {
 	@Test public void sendRecvData() throws Exception{
 		final int pairs = 2;
 		setupSMP(pairs * 2, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		for(int i=0; i < pairs ; i++){
-			pb.addSendAndRecv(world, i, i+pairs, 1000* MBYTE, 4711);
+			pb.addSendAndRecv(world, i, i+pairs, 1000* MiB, 4711);
 		}
 
 		runSimulationAllExpectedToFinish();
@@ -516,7 +516,7 @@ public class Validation  extends ModelTest {
 		System.out.println("Single socket");
 
 		setupSMP(2, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
 		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
 		runSimulationAllExpectedToFinish();
@@ -524,7 +524,7 @@ public class Validation  extends ModelTest {
 
 		System.out.println("Across two sockets");
 		setupSMP(1, 2);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
 		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
 		runSimulationAllExpectedToFinish();
@@ -541,13 +541,13 @@ public class Validation  extends ModelTest {
 
 	@Test public void recv1MB() throws Exception{
 		setupSMP(2); 		//2 = Anzahl Prozessoren
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 
 		parameters.setTraceFile("/tmp/recv1MB");   //Ausgabedatei
 
 		parameters.setTraceEnabled(true); 	//Trace An
 
-		pb.addReduce(world, 0, 1* MBYTE);  	// (-,-,Größe)
+		pb.addReduce(world, 0, 1* MiB);  	// (-,-,Größe)
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -572,13 +572,13 @@ public class Validation  extends ModelTest {
 
 	@Test public void allreduceRootComputes() throws Exception{
 		setup(3, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.RootComputes");
 		parameters.setTraceFile("/tmp/allreduce");
 
 		parameters.setTraceEnabled(true);
 
-		pb.addAllreduce(world, 10 * MBYTE);
+		pb.addAllreduce(world, 10 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -586,7 +586,7 @@ public class Validation  extends ModelTest {
 
 	@Test public void barrierTree() throws Exception{
 		setup(8, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BinaryTree");
 		parameters.setTraceFile("/tmp/barrier");
 
@@ -600,26 +600,26 @@ public class Validation  extends ModelTest {
 
 	@Test public void broadcastMultiplex() throws Exception{
 		setup(5, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeMultiplex");
 		parameters.setTraceFile("/tmp/bcast");
 
 		parameters.setTraceEnabled(true);
 
-		pb.addBroadcast(world, 3, 100 * MBYTE);
+		pb.addBroadcast(world, 3, 100 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void broadcastSimple() throws Exception{
 		setup(5, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimple");
 		parameters.setTraceFile("/tmp/bcast");
 
 		parameters.setTraceEnabled(true);
 
-		pb.addBroadcast(world, 3, 100 * MBYTE);
+		pb.addBroadcast(world, 3, 100 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -632,87 +632,202 @@ public class Validation  extends ModelTest {
 		}
 	}
 
-	@Test public void MPIIOLevelValidation() throws Exception{
-		int clients = 5;
-		int servers = 5;
+	private void levelXOperation(boolean isWrite, int level, FileDescriptor fd, int clientProcesses, int repeats, long size){
+		switch(level){
+		case 0: {
+			int pos = 0;
 
-		setupWrCluster(servers, clients, 0, servers, IOC.AggregationCache(), 10000);
-		parameters.setTraceFile("/tmp/ios");
-		parameters.setTraceEnabled(true);
+			// level 0
+			for(int c=0; c < repeats; c++){
+
+				for(int i=0 ; i < clientProcesses ; i++){
+					if (isWrite){
+						pb.addWriteSequential(i, fd, size * pos, size);
+					}else{
+						pb.addReadSequential(i, fd,  size * pos, size);
+					}
+					pos++;
+				}
+			}
+			break;
+		}
+		case 1: {
+			int pos = 0;
+			for(int c=0; c < repeats; c++){
+
+				LinkedList<ListIO> ios = new LinkedList<ListIO>();
+
+				for(int i=0 ; i < clientProcesses ; i++){
+					ListIO listio = new ListIO();
+					listio.addIOOperation(size * pos, size);
+
+					ios.add(listio);
+					pos++;
+				}
+				if (isWrite){
+					pb.addWriteCollective(fd, ios);
+				}else{
+					pb.addReadCollective(fd, ios);
+				}
+			}
+
+			break;
+		}
+
+		case 2: {
+			//level2:
+			for(int i=0 ; i < clientProcesses ; i++){
+				ListIO listio = new ListIO();
+				for(int c=0; c < repeats; c++){
+					listio.addIOOperation(size * (c*clientProcesses + i), size);
+				}
+				if (isWrite){
+					pb.addWriteIndependentNoncontiguous(i, fd, listio);
+				}else{
+					pb.addReadIndependentNoncontiguous(i, fd, listio);
+				}
+			}
+			break;
+		}
+		case 3:{
+			// level3:
+			LinkedList<ListIO> ios = new LinkedList<ListIO>();
+			for(int i=0 ; i < clientProcesses ; i++){
+				ListIO listio = new ListIO();
+				for(int c=0; c < repeats; c++){
+					listio.addIOOperation(size * (c*clientProcesses + i), size);
+				}
+				ios.add(listio);
+			}
+			if (isWrite){
+				pb.addWriteCollective(fd, ios);
+			}else{
+				pb.addReadCollective(fd, ios);
+			}
+
+			break;
+		}
+		}
+	}
+
+	void runMPIIOLevelValidationSingle(int level, boolean write, String prefix, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
+		if (modelTime == null)
+			modelTime = new BufferedWriter(new FileWriter("/tmp/mpi-iolevelUnnamed-modelTime.txt"));
+
+		String configStr = prefix + " N" + (clients + servers - overlapping) + "-P1-C" + clients + "-P" + processes + "-S" + servers + "-RAM" + ramSize + "-Size" + size + "-rep" + repeats + " " + (write ? "WRITE" : "READ") + "-lvl" + level;
+
+		setupWrCluster(clients, processes, overlapping, servers, cacheLayer, ramSize);
+		parameters.setTraceFile("/tmp/io-level" + prefix + level + (write ? "WRITE" : "READ"));
+		parameters.setTraceEnabled(tracing);
 
 		SimpleStripe dist = new SimpleStripe();
-		dist.setChunkSize(64 * KBYTE);
-		FileMetadata file =  aB.createFile("test", GBYTE, dist );
+		dist.setChunkSize(64 * KiB);
+		FileMetadata file =  aB.createFile("test", 100 * GiB, dist );
 
 		FileDescriptor fd = pb.addFileOpen(file, world, false);
 
-		int pos = 0;
-
-		// level 0
-		for(int c=0; c < 10; c++){
-
-			for(int i=0 ; i < clients ; i++){
-				pb.addWriteSequential(i, fd, 100 * MBYTE * pos, 100 * MBYTE);
-				pos++;
-			}
+		if( write ){
+			levelXOperation(true, level, fd, processes, repeats, size);
+		}else{
+			levelXOperation(false, level, fd, processes, repeats, size);
 		}
-
-		if(false){
-		//level1:
-		pos = 0;
-		for(int c=0; c < 10; c++){
-
-			LinkedList<ListIO> ios = new LinkedList<ListIO>();
-
-			for(int i=0 ; i < clients ; i++){
-				ListIO listio = new ListIO();
-				listio.addIOOperation(100 * MBYTE * pos, 100 * MBYTE);
-
-				ios.add(listio);
-				pos++;
-			}
-			pb.addWriteCollective(fd, ios);
-		}
-
-		//level2:
-		for(int i=0 ; i < clients ; i++){
-			ListIO listio = new ListIO();
-			for(int c=0; c < 10; c++){
-				listio.addIOOperation(100 * MBYTE * (c*clients + i), 100 * MBYTE);
-			}
-			pb.addWriteIndependentNoncontiguous(i, fd, listio);
-		}
-
-		// level3:
-		LinkedList<ListIO> ios = new LinkedList<ListIO>();
-		for(int i=0 ; i < clients ; i++){
-			ListIO listio = new ListIO();
-			for(int c=0; c < 10; c++){
-				listio.addIOOperation(100 * MBYTE * (c*clients + i), 100 * MBYTE);
-			}
-			ios.add(listio);
-		}
-		pb.addWriteCollective(fd, ios);
-
-		}
-
-		pb.addBarrier(world);
-
-		LinkedList<ListIO> ios = new LinkedList<ListIO>();
-		for(int i=0 ; i < clients ; i++){
-			ListIO listio = new ListIO();
-			for(int c=0; c < 10; c++){
-				listio.addIOOperation(100 * MBYTE * (c*clients + i), 100 * MBYTE);
-			}
-			ios.add(listio);
-		}
-		pb.addReadCollective(fd, ios);
-
-
-
 		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
+		modelTime.write(configStr + " " + simRes.getVirtualTime().getDouble() + "\n");
+		modelTime.flush();
+	}
+
+	void runMPIIOLevelValidation(String prefix, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
+
+		// iterate through read and write
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean write = i == 0 ? true : false;
+				runMPIIOLevelValidationSingle(level, write, prefix, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, modelTime);
+			}
+		}
+	}
+
+	@Test public void MPIIOLevelValidation() throws Exception{
+		ServerCacheLayer cacheLayer = IOC.AggregationCache();
+
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
+
+		modelTime.write("Cache settings: " + cacheLayer.toString() + "\n");
+		// test with 10000 MiB main memory
+		for(int i=1; i <= 5 ; i++){
+			runMPIIOLevelValidation("10000MB ", i,i,cacheLayer,i,0,10, 104857600, 10000,false, modelTime);
+		}
+		runMPIIOLevelValidation("10000MB ",3 , 2,cacheLayer,3, 0,10, 104857600, 10000,false, modelTime);
+
+		// test with 1000 MiB main memory
+		for(int i=1; i <= 5 ; i++){
+				runMPIIOLevelValidation("1GiG ", i,i,cacheLayer,i,0,10, 100 * MiB, 1000, false, modelTime);
+		}
+		runMPIIOLevelValidation("1GiG ",3 , 2,cacheLayer,3, 0,10, 104857600, 1000, false, modelTime);
+
+		// test to run multiple processes on the client nodes
+		for(int i=2; i <= 6 ; i++){
+			runMPIIOLevelValidation("multiple ", 5, 5, cacheLayer,i*5,0,10, 100 * MiB, 1000, false, modelTime);
+		}
+
+		// overlapping test
+		runMPIIOLevelValidation("overlapping ", 8,8,cacheLayer, 8, 8, 10, 100 * MiB, 2000, false, modelTime);
+
+		modelTime.close();
+
+		System.out.println("Completed");
+	}
+
+	@Test public void MPIIOLevelValidation500KByteBlocks() throws Exception{
+		long size = 50*KiB;
+		int repeats = 20480; // 100 MiB of data
+
+		ServerCacheLayer cacheLayers [] = new ServerCacheLayer[]{IOC.SimpleWriteBehindCache(), IOC.AggregationCache(), IOC.AggregationReorderCache()};
+
+		for (ServerCacheLayer cacheLayer : cacheLayers){
+			BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime" + cacheLayer.toString() + ".txt"));
+			// test with 10000 MiB main memory
+			for(int i=1; i <= 5 ; i++){
+				runMPIIOLevelValidation("10000MB ", i,i,cacheLayer,i,0,repeats, size, 10000,false, modelTime);
+			}
+			runMPIIOLevelValidation("10000MB ",3 , 2,cacheLayer,3, 0,repeats, size, 10000,false, modelTime);
+
+			// test with 1000 MiB main memory
+			for(int i=1; i <= 5 ; i++){
+				runMPIIOLevelValidation("1GiG ", i,i,cacheLayer,i,0,repeats, size, 1000, false, modelTime);
+			}
+			runMPIIOLevelValidation("1GiG ",3 , 2,cacheLayer,3, 0,repeats, size, 1000, false, modelTime);
+
+			// test to run multiple processes on the client nodes
+			for(int i=2; i <= 6 ; i++){
+				runMPIIOLevelValidation("multiple ", 5, 5, cacheLayer,i*5,0,repeats, size, 1000, false, modelTime);
+			}
+
+			// overlapping test
+			runMPIIOLevelValidation("overlapping ", 8,8,cacheLayer, 8, 8, repeats, size, 2000, false, modelTime);
+
+			// 100 MiB main memory
+			for(int i=1; i <= 5 ; i++){
+				runMPIIOLevelValidation("100M ", i,i,cacheLayer,i,0,repeats, size, 100, false, modelTime);
+			}
+			runMPIIOLevelValidation("100M ",3 , 2,cacheLayer,3, 0,repeats, size, 100, false, modelTime);
+
+			modelTime.close();
+		}
+
+		System.out.println("Completed");
+	}
+
+	@Test public void myTestTrace() throws Exception{
+		ServerCacheLayer cacheLayer = IOC.AggregationCache();
+		//runMPIIOLevelValidation("1000 ", 3 , 2,cacheLayer,3, 0,10, 104857600, 1000, true, null);
+
+		//runMPIIOLevelValidation("1000 ", 2 ,2, cacheLayer, 2, 0, 10, 104857600, 1000, true, null);
+		//runMPIIOLevelValidation("overlapping ", 8,8,cacheLayer, 8, 8, 10, 100 * MiB, 2000, true, null);
+
+		runMPIIOLevelValidationSingle(2, true, "10000MB ", 2, 1, IOC.SimpleWriteBehindCache(), 2, 0, 13000, 50*KiB, 10000,false, null);
 	}
 
 
@@ -723,11 +838,11 @@ public class Validation  extends ModelTest {
 		parameters.setTraceEnabled(false);
 
 		SimpleStripe dist = new SimpleStripe();
-		dist.setChunkSize(64 * KBYTE);
-		FileMetadata file =  aB.createFile("test", GBYTE, dist );
+		dist.setChunkSize(64 * KiB);
+		FileMetadata file =  aB.createFile("test", GiB, dist );
 
 		FileDescriptor fd = pb.addFileOpen(file, world, false);
-		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
+		pb.addWriteSequential(0, fd, 0, 100 * MiB);
 		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
@@ -737,22 +852,9 @@ public class Validation  extends ModelTest {
 
 		parameters.setTraceFile("/tmp/ios");
 		parameters.setTraceEnabled(true);
-		file =  aB.createFile("test", GBYTE, dist );
+		file =  aB.createFile("test", GiB, dist );
 		fd = pb.addFileOpen(file, world, false);
-		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
-		pb.addFileClose(fd);
-
-		runSimulationAllExpectedToFinish();
-
-
-
-		setupWrCluster(1, 1, 0, 1, IOC.AggregationCache(), 1000);
-
-		parameters.setTraceFile("/tmp/ios");
-		parameters.setTraceEnabled(false);
-		file =  aB.createFile("test", GBYTE, dist );
-		fd = pb.addFileOpen(file, world, false);
-		pb.addWriteSequential(0, fd, 0, 100 * MBYTE);
+		pb.addWriteSequential(0, fd, 0, 100 * MiB);
 		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
@@ -777,7 +879,7 @@ public class Validation  extends ModelTest {
 					@Override
 					void addOperation(ProgramBuilder p) {
 						mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
-						pb.addBroadcast(world, 0, 100 * MBYTE);
+						pb.addBroadcast(world, 0, 100 * MiB);
 					}
 				}
 		};
@@ -930,8 +1032,8 @@ public class Validation  extends ModelTest {
 
 		for(int i=0; i < 3 ; i++){
 			setupSMP(2, 1);
-			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
-			pb.addSendAndRecv(world, 0, 1, 100000* MBYTE, 4711);
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+			pb.addSendAndRecv(world, 0, 1, 100000* MiB, 4711);
 			parameters.setTraceEnabled(false);
 
 			runSimulationAllExpectedToFinish();
@@ -946,14 +1048,14 @@ public class Validation  extends ModelTest {
 
 	@Test public void broadcastTreeAnalytical() throws Exception{
 		setupAnalytical(8, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
 
 		parameters.setTraceEnabled(false);
 		parameters.setTraceFile("/tmp/bcast");
 
 
-		pb.addBroadcast(world, 3, 100 * MBYTE);
+		pb.addBroadcast(world, 3, 100 * MiB);
 
 		runSimulationWithoutOutput();
 	}
@@ -974,7 +1076,7 @@ public class Validation  extends ModelTest {
 			setupSystemTime = (new Date().getTime() - sTime);
 
 
-			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
 
 			parameters.setTraceEnabled(false);
@@ -982,7 +1084,7 @@ public class Validation  extends ModelTest {
 
 
 			sTime = new Date().getTime();
-			pb.addBroadcast(world, 0, 100 * MBYTE);
+			pb.addBroadcast(world, 0, 100 * MiB);
 			setupProgramTime = (new Date().getTime() - sTime);
 
 
@@ -997,13 +1099,13 @@ public class Validation  extends ModelTest {
 
 	@Test public void broadcastSimpleBlockwise() throws Exception{
 		setup(5, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimpleBlockwise");
 		parameters.setTraceFile("/tmp/bcast");
 
 		parameters.setTraceEnabled(true);
 
-		pb.addBroadcast(world, 3, 100 * MBYTE);
+		pb.addBroadcast(world, 3, 100 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1013,8 +1115,8 @@ public class Validation  extends ModelTest {
 
 	@Test public void test() throws Exception{
 		setupSMP(2);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
-		pb.addSendAndRecv(world, 0, 1, 100 * KBYTE, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		pb.addSendAndRecv(world, 0, 1, 100 * KiB, 1);
 
 		parameters.setTraceFile("/tmp/out");
 		parameters.setTraceEnabled(true);
@@ -1024,13 +1126,13 @@ public class Validation  extends ModelTest {
 
 	@Test public void broadcastBroadcastScatterGatherall() throws Exception{
 		setup(8, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
 
 		parameters.setTraceFile("/tmp/bcast");
 		parameters.setTraceEnabled(true);
 
-		pb.addBroadcast(world, 0,100 * MBYTE);
+		pb.addBroadcast(world, 0,100 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1039,28 +1141,28 @@ public class Validation  extends ModelTest {
 	@Test public void broadcastBroadcastPipedBlockwise() throws Exception{
 		//setup(3, 1);
 		setupSMP(3);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise");
 
 		parameters.setTraceFile("/tmp/bcast");
 		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 
-		pb.addBroadcast(world, 0, 10 * MBYTE);
+		pb.addBroadcast(world, 0, 10 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void broadcastBroadcastScatterBarrierGatherall() throws Exception{
 		setupWrCluster(2, 7);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterBarrierGatherall");
 
 		parameters.setTraceFile("/tmp/bcast");
 		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
 
-		pb.addBroadcast(world, 0,100 * MBYTE);
+		pb.addBroadcast(world, 0,100 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1087,7 +1189,7 @@ public class Validation  extends ModelTest {
 		for(int i=1; i <= 10; i++){
 			setup(i,1);
 
-			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 100 * MBYTE);
+			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 100 * MiB);
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();
 		}
@@ -1097,7 +1199,7 @@ public class Validation  extends ModelTest {
 
 	@Test public void sendAndRecvEagerTestSMP() throws Exception{
 		setupSMP(2);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
 				new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree");  //andere Implementation
 		//CommandToSimulationMapper Eintrag, Standard letzter
@@ -1106,7 +1208,7 @@ public class Validation  extends ModelTest {
 
 		parameters.setTraceEnabled(true);
 
-		pb.addSendAndRecv(world, 0, 1, 10 * MBYTE, 1);
+		pb.addSendAndRecv(world, 0, 1, 10 * MiB, 1);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1116,7 +1218,7 @@ public class Validation  extends ModelTest {
 	@Test public void MPICH2Reduce() throws Exception{
 		setup(2, 1);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
 				new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");  //andere Implementation
 		//CommandToSimulationMapper Eintrag, Standard letzter
@@ -1125,7 +1227,7 @@ public class Validation  extends ModelTest {
 
 		parameters.setTraceEnabled(true);
 
-		pb.addReduce(world, 0, 10 * KBYTE);
+		pb.addReduce(world, 0, 10 * KiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1135,7 +1237,7 @@ public class Validation  extends ModelTest {
 	@Test public void TestScatterHierachicalTwoLevels() throws Exception{
 		setup(5, 1);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
 				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterHierachicalTwoLevels");  //andere Implementation
 		//CommandToSimulationMapper Eintrag, Standard letzter
@@ -1144,7 +1246,7 @@ public class Validation  extends ModelTest {
 
 		parameters.setTraceEnabled(true);
 
-		pb.addScatter(world, 0, 10 * KBYTE);
+		pb.addScatter(world, 0, 10 * KiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1152,7 +1254,7 @@ public class Validation  extends ModelTest {
 	@Test public void TestScatterMPICH2() throws Exception{
 		setup(2, 3);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
 
 		parameters.setTraceFile("/tmp/scatter");
@@ -1160,7 +1262,7 @@ public class Validation  extends ModelTest {
 	//	parameters.setTraceInternals(true);
 		parameters.setTraceEnabled(true);
 
-		pb.addScatter(world, 0, 100* MBYTE);
+		pb.addScatter(world, 0, 100* MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1173,7 +1275,7 @@ public class Validation  extends ModelTest {
 		parameters.setTraceFile("/tmp/gather");
 		parameters.setTraceEnabled(true);
 
-		pb.addGather(world, 0, 100* MBYTE);
+		pb.addGather(world, 0, 100* MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1188,7 +1290,7 @@ public class Validation  extends ModelTest {
 		parameters.setTraceFile("/tmp/gather");
 		parameters.setTraceEnabled(true);
 
-		pb.addGather(world, 0, 100* MBYTE);
+		pb.addGather(world, 0, 100* MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1203,7 +1305,7 @@ public class Validation  extends ModelTest {
 		parameters.setTraceFile("/tmp/scatter");
 		parameters.setTraceEnabled(true);
 
-		pb.addScatter(world, 4, 100* MBYTE);
+		pb.addScatter(world, 4, 100* MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1221,7 +1323,7 @@ public class Validation  extends ModelTest {
 		comm.addRank(0, 1, 0);
 		comm.addRank(1, 0, 0);
 
-		pb.addScatter(comm, 1, 100* MBYTE);
+		pb.addScatter(comm, 1, 100* MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1244,7 +1346,7 @@ public class Validation  extends ModelTest {
 		comm.addRank(3, 1, 0);
 		comm.addRank(4, 3, 0);
 
-		pb.addScatter(comm, 0, 100* MBYTE);
+		pb.addScatter(comm, 0, 100* MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1254,24 +1356,24 @@ public class Validation  extends ModelTest {
 	@Test public void TestScatterFCFS() throws Exception{
 		setup(3, 1);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
 				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
 		parameters.setTraceFile("/tmp/scatterFCFS");
 		parameters.setTraceEnabled(true);
-		pb.addScatter(world, 0, 10 * MBYTE);
+		pb.addScatter(world, 0, 10 * MiB);
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void TestGatherFCFS() throws Exception{
 		setup(3, 1);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
 				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Gather.FCFS");
 		parameters.setTraceFile("/tmp/gatherFCFS");
 		parameters.setTraceEnabled(true);
-		pb.addGather(world, 0, 10 * MBYTE);
+		pb.addGather(world, 0, 10 * MiB);
 		runSimulationAllExpectedToFinish();
 	}
 
@@ -1283,7 +1385,7 @@ public class Validation  extends ModelTest {
 			parameters.setTraceFile("/tmp/scatter");
 			parameters.setTraceEnabled(true);
 
-			mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+			mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 			mb.getGlobalSettings().setClientFunctionImplementation(
 					new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
 
@@ -1291,7 +1393,7 @@ public class Validation  extends ModelTest {
 			pb.addCompute(2, 20000000);
 			pb.addCompute(3, 30000000);
 
-			pb.addScatter(world, 0, 10 * MBYTE);
+			pb.addScatter(world, 0, 10 * MiB);
 			runSimulationAllExpectedToFinish();
 	}
 
@@ -1301,13 +1403,13 @@ public class Validation  extends ModelTest {
 		parameters.setTraceFile("/tmp/scatter");
 		parameters.setTraceEnabled(true);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
 				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
 
 		pb.addCompute(0, 10000000);
 
-		pb.addScatter(world, 0, 10 * MBYTE);
+		pb.addScatter(world, 0, 10 * MiB);
 		runSimulationAllExpectedToFinish();
 }
 
@@ -1317,11 +1419,11 @@ public class Validation  extends ModelTest {
 		parameters.setTraceFile("/tmp/scatter");
 		parameters.setTraceEnabled(true);
 
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KBYTE);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
 				new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.FCFS");
 
-		pb.addScatter(world, 0, 10 * MBYTE);
+		pb.addScatter(world, 0, 10 * MiB);
 		runSimulationAllExpectedToFinish();
 }
 
