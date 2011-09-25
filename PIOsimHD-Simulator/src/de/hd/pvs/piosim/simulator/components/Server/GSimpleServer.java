@@ -102,10 +102,12 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 			assert( ((InterProcessNetworkJobRoutable) job).getOriginalSource() != getServer().getModelComponent());
 
 			processor.process(job.getJobData(), (InterProcessNetworkJobRoutable) job, endTime);
+		}
 
+		public void messagePartMatchesAnnounced(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime) {
 			// start a new recv for unexpected msgs.
 			submitRecv();
-		}
+		};
 	};
 
 	private GSimpleServer getMe(){

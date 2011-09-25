@@ -17,4 +17,11 @@ public interface IInterProcessNetworkJobCallback {
 
 	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime);
 
+	/**
+	 * This callback is invoked, when the first packet is received which matches an expected message.
+	 * @param remoteJob
+	 * @param announcedJob
+	 * @param endTime
+	 */
+	public void messagePartMatchesAnnounced(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime);
 }
