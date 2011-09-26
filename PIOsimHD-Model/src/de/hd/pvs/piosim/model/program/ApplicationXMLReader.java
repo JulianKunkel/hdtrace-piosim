@@ -204,7 +204,8 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 			return program;
 		}
 
-		Epoch lastTimeForComputeJob = entry.getEarliestTime();
+		Epoch lastTimeAComputeJobStarted = entry.getEarliestTime();
+		Epoch lastEventEndTime = entry.getLatestTime();
 
 		while(entry != null) {
 			//System.out.println(entry);
@@ -214,27 +215,34 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 				Command cmd = cmdReader.parseCommandXML(entry);
 				if(cmd.getClass() != NoOperation.class){
 					// add an appropriate compute job, depending on the speed of the system.
-					Epoch diff = entry.getEarliestTime().subtract(lastTimeForComputeJob);
+					addComputeJob(entry.getEarliestTime().subtract(lastTimeAComputeJobStarted), processingSpeedOfTheSystem, program);
 
-					assert(diff.getDouble() >= 0);
-					long cycles = (long) (diff.getDouble() * processingSpeedOfTheSystem);
-
-					assert(cycles >= 0);
-
-					if(cycles > 0){
-						Compute compute = new Compute();
-						compute.setCycles( cycles );
-						program.addCommand(compute);
-					}
-
-					lastTimeForComputeJob = entry.getLatestTime();
+					lastTimeAComputeJobStarted = entry.getLatestTime();
 					program.addCommand(cmd);
 				}
 			}
+			lastEventEndTime = entry.getLatestTime();
 			entry = traceFileReader.getNextInputEntry();
+		}
+		if(! lastEventEndTime.equals(lastTimeAComputeJobStarted)){
+			// always add at least one compute node if time elapsed.
+			addComputeJob(lastEventEndTime.subtract(lastTimeAComputeJobStarted), processingSpeedOfTheSystem, program);
 		}
 
 		return program;
+	}
+
+	private void addComputeJob(Epoch timeDiff, double processingSpeedOfTheSystem, ProgramInMemory program){
+		assert(timeDiff.getDouble() >= 0);
+		long cycles = (long) (timeDiff.getDouble() * processingSpeedOfTheSystem);
+
+		assert(cycles >= 0);
+
+		if(cycles > 0){
+			Compute compute = new Compute();
+			compute.setCycles( cycles );
+			program.addCommand(compute);
+		}
 	}
 
 }
