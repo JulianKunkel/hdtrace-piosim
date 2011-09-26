@@ -21,8 +21,8 @@ public class NetworkNodesC implements HardwareComponents{
 	static 	public StoreForwardNode LocalNodeQPI(){
 		StoreForwardMemoryNode sw = new StoreForwardMemoryNode();
 		sw.setName("QPIL");
-		sw.setTotalBandwidth(2815  *  MBYTE ); // no zero-copy support
-		sw.setLocalBandwidth(4212 * MBYTE );
+		sw.setTotalBandwidth(4212  *  MBYTE ); // no zero-copy support
+		sw.setLocalBandwidth(2815 * MBYTE );
 
 		return sw;
 	}
@@ -31,8 +31,8 @@ public class NetworkNodesC implements HardwareComponents{
 	static 	public StoreForwardNode SocketLocalNode(){
 		StoreForwardMemoryNode sw = new StoreForwardMemoryNode();
 		sw.setName("SLN");
-		sw.setTotalBandwidth(2815  *  MBYTE ); // no zero-copy support
-		sw.setLocalBandwidth(4212 * MBYTE );
+		sw.setTotalBandwidth(4212  *  MBYTE ); // no zero-copy support
+		sw.setLocalBandwidth(2815 * MBYTE );
 
 		return sw;
 	}
