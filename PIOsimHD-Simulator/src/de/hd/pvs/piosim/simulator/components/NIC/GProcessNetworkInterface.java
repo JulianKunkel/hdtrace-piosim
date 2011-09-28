@@ -148,6 +148,9 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 					startedRecvMap.put(msg, announcedJob);
 				}
 
+				// announce that the job matches.
+				announcedJob.getCallbacks().messagePartMatchesAnnounced(remoteJob, announcedJob, endTime);
+
 				callRecvCallbacksIfNececssary(part, remoteJob, announcedJob, endTime);
 			}else{
 				// uh oh, unexpected recv.

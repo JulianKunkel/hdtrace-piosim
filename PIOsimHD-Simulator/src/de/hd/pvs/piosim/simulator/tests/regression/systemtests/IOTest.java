@@ -58,7 +58,7 @@ public class IOTest extends ModelTest {
 		dist.setChunkSize(100 * KiB);
 
 
-		f = aB.createFile("test", GBYTE, dist);
+		f = aB.createFile("test", GiB, dist);
 	}
 
 	/**
@@ -188,8 +188,8 @@ public class IOTest extends ModelTest {
 
 			FileDescriptor fd = pb.addFileOpen(f, world , false);
 
-			pb.addReadSequential(1, fd, 0, 100 * KBYTE);
-			pb.addWriteSequential(0, fd, 0, 100 * KBYTE);
+			pb.addReadSequential(1, fd, 0, 100 * KiB);
+			pb.addWriteSequential(0, fd, 0, 100 * KiB);
 			pb.addFileClose(fd);
 
 			runSimulationAllExpectedToFinish();
