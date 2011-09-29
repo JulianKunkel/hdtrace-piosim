@@ -28,14 +28,18 @@ int main (int argc, char *argv[])
 {
   long size = 10*1024*1024;
   long iterations = 10;
+  long numberOfTimingsPerIteration = 10;
   if (argc > 1){
     size = atol(argv[1]);
   }
   if (argc > 2){
     iterations = atol(argv[2]);
   }
+  if (argc > 3){
+    numberOfTimingsPerIteration = atol(argv[3]);
+  }
 
-  printf("size: %ld iterations:%ld\n", size, iterations);
+  printf("size: %ld iterations:%ld numberOfTimingsPerIteration:%ld \n", size, iterations, numberOfTimingsPerIteration);
   
   long * buffer = malloc(size);
 
@@ -48,48 +52,64 @@ int main (int argc, char *argv[])
   printf("Aggregated time: size: %ld iterations:%ld time:%fs MB/s:%f\n", size, iterations, e, iterations * size / 1024 / 1024 / e);
 
 
-  long max = size / sizeof(long);
+  double * time = malloc(iterations * sizeof(double) * numberOfTimingsPerIteration);
 
-  double * time = malloc(iterations * sizeof(double));
 
+  long bytesPerTimeing = (long) size / numberOfTimingsPerIteration;
+  long maxIterCountPerTiming = bytesPerTimeing / sizeof(long);
 
   // per iteration time: 
   for(long i=0 ; i < iterations; i++){
-	double c = getTime();
-	register long value = 0;
-	for(long c = 0; c < max ; c++){
-		buffer[c] = value;
+	volatile register long value = 0;
+
+	for(int t = 0; t < numberOfTimingsPerIteration; t++){
+		long * tmp = & buffer[maxIterCountPerTiming * t];
+
+		double c = getTime();
+		for(long c = 0; c < maxIterCountPerTiming ; c++){
+			tmp[c] = value;
+		}
+		time[i*numberOfTimingsPerIteration + t] = getTime() - c;
 	}
-	time[i] = getTime() - c;
   }
 
-  printResults(iterations, time, size, "Write 64 byte");
+  printResults(iterations*numberOfTimingsPerIteration, time, bytesPerTimeing, "Write 64 byte");
 
   for(long i=0 ; i < iterations; i++){
-	double c = getTime();
 	volatile register long value = 0;
-	for(long c = 0; c < max ; c++){
-		value = buffer[c];
+
+	for(int t = 0; t < numberOfTimingsPerIteration; t++){
+		long * tmp = & buffer[maxIterCountPerTiming * t];
+
+		double c = getTime();
+		for(long c = 0; c < maxIterCountPerTiming ; c++){
+			value = tmp[c];
+		}
+		time[i*numberOfTimingsPerIteration + t] = getTime() - c;
 	}
-	time[i] = getTime() - c;
   }
-  printResults(iterations, time, size, "Read 64 byte");
+  printResults(iterations*numberOfTimingsPerIteration, time, bytesPerTimeing, "Read 64 byte");
 
   for(long i=0 ; i < iterations; i++){
-	double c = getTime();
 	volatile register long value = 0;
-	for(long c = 0; c < max ; c++){
-		buffer[c] = value;
+
+	for(int t = 0; t < numberOfTimingsPerIteration; t++){
+		long * tmp = & buffer[maxIterCountPerTiming * t];
+
+		double c = getTime();
+		for(long c = 0; c < maxIterCountPerTiming ; c++){
+			value = tmp[c];
+		}
+		for(long c = 0; c < maxIterCountPerTiming ; c++){
+			tmp[c] = value;
+		}
+		for(long c = 0; c < maxIterCountPerTiming ; c++){
+			tmp[c] = value;
+		}
+		time[i*numberOfTimingsPerIteration + t] = getTime() - c;
 	}
-	for(long c = 0; c < max ; c++){
-		value = buffer[c];
-	}
-	for(long c = 0; c < max ; c++){
-		value = buffer[c];
-	}
-	time[i] = getTime() - c;
   }
-  printResults(iterations, time, size, "Read Write Write 64 byte");
+  printResults(iterations*numberOfTimingsPerIteration, time, bytesPerTimeing, "Read Write Write 64 byte");
 
   
   return 0;
