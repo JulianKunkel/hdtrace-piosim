@@ -197,7 +197,13 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 
 		final CommandXMLReader cmdReader = new CommandXMLReader(program);
 
-		ITraceEntry entry = traceFileReader.getNextInputEntry();
+		ITraceEntry entry;
+		try{
+			entry = traceFileReader.getNextInputEntry();
+		}catch(IllegalStateException e){
+			System.err.println("Error in file " + filename);
+			throw e;
+		}
 
 		if(entry == null){
 			// no entry!
