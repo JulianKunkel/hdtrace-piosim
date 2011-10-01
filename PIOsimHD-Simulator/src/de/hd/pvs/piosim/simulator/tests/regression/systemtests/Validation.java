@@ -31,6 +31,7 @@ import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.ProgramBuilder;
+import de.hd.pvs.piosim.simulator.RunParameters;
 import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
@@ -820,6 +821,17 @@ public class Validation  extends ModelTest {
 		System.out.println("Completed");
 	}
 
+	@Test public void schuh() throws Exception{
+		RunParameters p = new RunParameters();
+		p.setTraceEnabled(true);
+		p.setTraceFile("/tmp/bcast");
+		p.setTraceInternals(true);
+
+		runCollectiveTest(4,4, "Barrier", "", null, null, true, p);
+	}
+
+
+
 	@Test public void myTestTrace() throws Exception{
 		ServerCacheLayer cacheLayer = IOC.AggregationCache();
 		//runMPIIOLevelValidation("1000 ", 3 , 2,cacheLayer,3, 0,10, 104857600, 1000, true, null);
@@ -923,14 +935,86 @@ public class Validation  extends ModelTest {
 		outputFile.close();
 	}
 
+	public void runCollectiveTest(int nodes, int processes, String experiment, String strSize, BufferedWriter outputFile, BufferedWriter modelTime, boolean doCompute, RunParameters parameters) throws Exception{
+
+		if(outputFile == null){
+			outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
+			outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
+		}
+		if(modelTime == null){
+			modelTime = new BufferedWriter(new FileWriter("/tmp/collectives-modelTime.txt"));
+		}
+
+		final ApplicationXMLReader axml = new ApplicationXMLReader();
+		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
+
+		FilenameFilter projFilter = new FilenameFilter() {
+	           public boolean accept(File dir, String name) {
+	                return name.endsWith(".proj");
+	            }
+	    };
+
+		long sTime, setupSystemTime, setupProgramTime;
+		// dual socket configuration.
+		sTime = new Date().getTime();
+
+		final String config = nodes + "-" + processes;
+		System.out.println(config);
+
+		setupWrCluster(nodes, processes);
+
+		if(parameters != null)
+			this.parameters = parameters;
+
+		setupSystemTime = (new Date().getTime() - sTime);
+
+		sTime = new Date().getTime();
+
+		// load traces
+		final String folder = prefix + config + "/" + experiment + "/" + strSize;
+		File f = new File(folder);
+		String files[] = f.list(projFilter);
+		if (files == null || files.length != 1){
+			System.err.println("Invalid configuration: " + folder);
+			outputFile.write("Invalid configuration: " + folder);
+			// we know the time is 0.0 for the configuration 1-1
+			modelTime.write("0.0 ");
+
+			return;
+		}
+		String proj=folder + "/" + files[0];
+
+		System.out.println(proj);
+		outputFile.write(proj);
+		outputFile.flush();
+
+		// don't do any computation ...
+		// TODO run both tests at the same time
+		if (! doCompute){
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Compute"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
+		}
+
+
+		// load program:
+		final Application app = axml.parseApplication(proj, true);
+		mb.setApplication("Validate", app);
+
+		setupProgramTime = (new Date().getTime() - sTime);
+		runSimulationWithoutOutput();
+
+		outputFile.write("\t" + config + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
+		outputFile.flush();
+
+		modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+		System.out.println("Modeltime: " + simRes.getVirtualTime().getDouble());
+		modelTime.flush();
+	}
 
 
 
 	@Test public void validationRunCollectiveWithSendRecv() throws Exception{
 		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
 		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
-
-		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
 
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/collectives-modelTime.txt"));
 		modelTime.write("# Experiment ");
@@ -945,72 +1029,27 @@ public class Validation  extends ModelTest {
 
 		String [] experiments = new String[]{ "Reduce", "Allreduce", "Bcast", "Barrier",  "Allgather", "Gather", "Scatter"};
 
-		FilenameFilter projFilter = new FilenameFilter() {
-	           public boolean accept(File dir, String name) {
-	                return name.endsWith(".proj");
-	            }
-	    };
 
-		final ApplicationXMLReader axml = new ApplicationXMLReader();
 
 		for(String experiment: experiments){
 			for(int size: sizes){
 
-				modelTime.write(experiment + size + " ");
+				String strSize = "" + size;
+
+				if(experiment.equals("Barrier")){
+					if(size != sizes[0]){
+						continue;
+					}
+					strSize = "";
+				}
+
+				modelTime.write(experiment + strSize + " ");
 
 				for(String config: configs){
 
 					final int nodes = Integer.parseInt(config.split("-")[0]);
 					final int processes = Integer.parseInt(config.split("-")[1]);
-
-					long sTime, setupSystemTime, setupProgramTime;
-					// dual socket configuration.
-					sTime = new Date().getTime();
-
-					System.out.println(config);
-
-					setupWrCluster(nodes, processes);
-
-					setupSystemTime = (new Date().getTime() - sTime);
-
-					sTime = new Date().getTime();
-
-					// load traces
-					final String folder = prefix + config + "/" + experiment + "/" + size;
-					File f = new File(folder);
-					String files[] = f.list(projFilter);
-					if (files == null || files.length != 1){
-						System.err.println("Invalid configuration: " + folder);
-						outputFile.write("Invalid configuration: " + folder);
-						// we know the time is 0.0 for the configuration 1-1
-						modelTime.write("0.0 ");
-
-						continue;
-					}
-					String proj=folder + "/" + files[0];
-
-					System.out.println(proj);
-					outputFile.write(proj);
-					outputFile.flush();
-
-					// don't do any computation ...
-					// TODO run both tests at the same time
-					//mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Compute"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
-
-
-					// load program:
-					final Application app = axml.parseApplication(proj, true);
-					mb.setApplication("Validate", app);
-
-
-					setupProgramTime = (new Date().getTime() - sTime);
-					runSimulationWithoutOutput();
-
-					outputFile.write("\t" + config + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
-					outputFile.flush();
-
-					modelTime.write(simRes.getVirtualTime().getDouble() + " ");
-					modelTime.flush();
+					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, null);
 				}
 				modelTime.write("\n");
 			}
