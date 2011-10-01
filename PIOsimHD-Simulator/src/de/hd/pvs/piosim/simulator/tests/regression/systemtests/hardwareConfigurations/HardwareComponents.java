@@ -12,15 +12,13 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigur
  */
 public interface HardwareComponents {
 
-	public final long KBYTE = 1024;
-	public final long MBYTE = 1024 * KBYTE;
-	public final long GBYTE = 1024 * MBYTE;
-	public final long TBYTE = 1024 * GBYTE;
+	public final long KBYTE = 1000;
+	public final long MBYTE = 1000 * KBYTE;
+	public final long GBYTE = 1000 * MBYTE;
+	public final long TBYTE = 1000 * GBYTE;
 
-	public final long K = 1000;
-	public final long M = 1000 * K;
-	public final long G = 1000 * M;
-	public final long T = 1000 * G;
-	public final long P = 1000 * T;
-
+	public final long KIB = 1024;
+	public final long MIB = 1024 * KIB;
+	public final long GIB = 1024 * MIB;
+	public final long TIB = 1024 * GIB;
 }
