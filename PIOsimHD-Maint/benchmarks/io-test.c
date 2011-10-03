@@ -81,8 +81,8 @@ int main (int argc, char *argv[])
 	if(doRandom){
 		size_t byte;	
 		byte = ((rand() % fileSize) / recordSize) * recordSize;
-		if (lseek(fd, 0, SEEK_CUR) != byte){	
-			printf("Error in seeking to position: %lld\n", (long long int) lseek(fd, 0,SEEK_CUR) );
+		if (lseek(fd, byte, SEEK_SET) != byte){	
+			printf("Error in seeking to position: %lld\n", (long long int) lseek(fd, 0, SEEK_CUR) );
 			exit(1);
 		}
 	}
