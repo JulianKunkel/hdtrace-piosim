@@ -66,7 +66,7 @@ int main (int argc, char *argv[])
 
   double * time = malloc(operations*sizeof(double));
 
-  int fd = open(filename, O_RDWR|O_CREAT|O_TRUNC);
+  int fd = open(filename, O_RDWR|O_CREAT| (doWrite ? O_TRUNC : 0), S_IWUSR|S_IRUSR);
   if(fd <= 2){
 	printf("Error in opening file: %s\n", filename );
 	exit(1);
