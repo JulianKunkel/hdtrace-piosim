@@ -1,5 +1,5 @@
 /*
- Author Julian M. Kunkel
+ @author Julian M. Kunkel
  2010
  */
 
