@@ -10,13 +10,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Random;
 
 import org.junit.Test;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
+import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
+import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
 import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
+import de.hd.pvs.piosim.model.components.Node.Node;
+import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
@@ -33,6 +40,7 @@ import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.ProgramBuilder;
 import de.hd.pvs.piosim.simulator.RunParameters;
 import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
+import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NICC;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.NetworkEdgesC;
@@ -361,17 +369,28 @@ public class Validation  extends ModelTest {
 	}
 
 
+	@Test public void sendRecvTest() throws Exception{
+		// test cases run on the WR cluster
+		long size = 10000l*1024*1024;
+		final int nodes = 1;
+		final int processes = 2;
 
-	@Test public void sendRecvData() throws Exception{
-		final int pairs = 2;
-		setupSMP(pairs * 2, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
-		for(int i=0; i < pairs ; i++){
-			pb.addSendAndRecv(world, i, i+pairs, 1000* MiB, 4711);
-		}
+		setupWrCluster(nodes, processes);
+		pb.addSendRecv(world, 0, 1, 1, size, 4711, 4711);
+		pb.addSendRecv(world, 1, 0, 0, size, 4711, 4711);
+		runSimulationWithoutOutput();
+		System.out.println(simRes.getVirtualTime().getDouble() + " ");
 
-		runSimulationAllExpectedToFinish();
+		System.out.println("Same socket");
+
+		setupWrCluster(nodes, 12);
+		pb.addSendRecv(world, 0, 2, 2, size, 4711, 4711);
+		pb.addSendRecv(world, 2, 0, 0, size, 4711, 4711);
+		runSimulationWithoutOutput();
+		System.out.println(simRes.getVirtualTime().getDouble() + " ");
 	}
+
+
 
 
 	@Test public void sendRecvIntersocketData() throws Exception{
@@ -393,7 +412,6 @@ public class Validation  extends ModelTest {
 
 				setupWrCluster(nodes, processes);
 
-				final int pairs = processes / 2;
 				for(int rank=0; rank < processes ; rank++){
 				    int dest = rank % 2 == 0 ? rank + 1 : rank -1;
 
@@ -412,7 +430,7 @@ public class Validation  extends ModelTest {
 
 
 
-	@Test public void sendRootIntersocketData() throws Exception{
+	@Test public void sendDataRoot() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRoot.txt"));
 		modelTime.write("# Experiment configuration & times \n");
 		// test cases run on the WR cluster
@@ -445,7 +463,7 @@ public class Validation  extends ModelTest {
 	}
 
 
-	@Test public void sendRecvRootIntersocketData() throws Exception{
+	@Test public void sendRecvWithRoot() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecvRoot.txt"));
 		modelTime.write("# Experiment configuration & times \n");
 		// test cases run on the WR cluster
@@ -478,7 +496,7 @@ public class Validation  extends ModelTest {
 		System.out.println("Completed!");
 	}
 
-	@Test public void sendRecvRightNeighborIntersocketData() throws Exception{
+	@Test public void sendRecvRightNeighbour() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecvRN.txt"));
 		modelTime.write("# Experiment configuration & times \n");
 		// test cases run on the WR cluster
@@ -512,61 +530,6 @@ public class Validation  extends ModelTest {
 		}
 		System.out.println("Completed!");
 	}
-
-	@Test public void sendRecvIntersocketValidate() throws Exception{
-		System.out.println("Single socket");
-
-		setupSMP(2, 1);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
-		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
-		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
-		runSimulationAllExpectedToFinish();
-
-
-		System.out.println("Across two sockets");
-		setupSMP(1, 2);
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
-		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
-		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
-		runSimulationAllExpectedToFinish();
-
-
-		System.out.println("Inter-node");
-		setupSocketCluster(2, 1, 1);
-		pb.addSendRecv(world, 0, 1, 1, 0, 100, 101);
-		pb.addSendRecv(world, 1, 0, 0, 0, 101, 100);
-		runSimulationAllExpectedToFinish();
-	}
-
-
-
-	@Test public void recv1MB() throws Exception{
-		setupSMP(2); 		//2 = Anzahl Prozessoren
-		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
-
-		parameters.setTraceFile("/tmp/recv1MB");   //Ausgabedatei
-
-		parameters.setTraceEnabled(true); 	//Trace An
-
-		pb.addReduce(world, 0, 1* MiB);  	// (-,-,Größe)
-
-		runSimulationAllExpectedToFinish();
-	}
-
-
-	@Test public void sendRecvPaired() throws Exception{
-
-		setupWrCluster(1, 2);
-
-		parameters.setTraceFile("/tmp/sendRecv");
-		parameters.setTraceEnabled(true);
-
-		pb.addSendRecv(world, 0, 1, 1, 100*MiB, 2020, 2020);
-		pb.addSendRecv(world, 1, 0, 0, 100*MiB, 2020, 2020);
-
-		runSimulationAllExpectedToFinish();
-	}
-
 
 
 
@@ -821,15 +784,158 @@ public class Validation  extends ModelTest {
 		System.out.println("Completed");
 	}
 
-	@Test public void schuh() throws Exception{
+	@Test public void runAsingleCollective() throws Exception{
 		RunParameters p = new RunParameters();
 		p.setTraceEnabled(true);
 		p.setTraceFile("/tmp/bcast");
 		p.setTraceInternals(true);
 
-		runCollectiveTest(4,4, "Barrier", "", null, null, true, p);
+		runCollectiveTest(2,2, "Barrier", "", null, null, true, p);
 	}
 
+	@Test public void runAllTests() throws Exception{
+		sendRecvRightNeighbour();
+		sendRecvWithRoot();
+		sendDataRoot();
+		sendRecvIntersocketData();
+		validationRunCollectiveWithSendRecv();
+	}
+
+
+	/**
+	 * Benchmark the I/O subsystem by using a ultra fast interconnect between client and server
+	 * @throws Exception
+	 */
+	@Test public void validateDisk() throws Exception{
+
+		ServerCacheLayer cacheLayer = IOC.AggregationReorderCache(); //IOC.SimpleWriteBehindCache // IOC.AggregationCache AggregationReorderCache
+		long RAM = 12* GiB;
+
+		long blockSize = 16*KiB;
+
+		StringBuffer output = new StringBuffer();
+		for(int a = 0 ; a < 10; a++){
+
+			PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
+			mb = new ModelBuilder();
+
+			topology = mb.createTopology("LAN");
+			topology.setRoutingAlgorithm(routingAlgorithm);
+
+			NIC nicT = NICC.PVSNIC();
+			mb.addTemplate(nicT);
+
+			Node n = new Node();
+			n.setName("IOTest");
+			n.setMemorySize(RAM);
+			n.setCPUs(12);
+			n.setInstructionsPerSecond(100000000l);
+
+			Server s = IOC.PVSServer();
+			s.setParentComponent(n);
+			RefinedDiskModel disk = (RefinedDiskModel) IOC.PVSDisk();
+			//disk.setAverageSeekTime(new Epoch(0.00305));
+			//disk.setAverageSeekTime(Epoch.ZERO);
+			//disk.setTrackToTrackSeekTime(Epoch.ZERO);
+			//disk.setRPM(1000 * 1000 * 1000);
+
+			s.setIOsubsystem(disk);
+			s.setNetworkInterface(mb.cloneFromTemplate(nicT));
+
+			cacheLayer.setParentComponent(s);
+			s.setCacheImplementation(cacheLayer);
+
+			ClientProcess c = new ClientProcess();
+			c.setName("Client");
+			NIC cnic = mb.cloneFromTemplate(nicT);
+			cnic.setName("ClientNIC");
+			c.setNetworkInterface(cnic);
+
+			mb.addServer(n, s);
+			mb.addClient(n, c);
+			mb.addNode(n);
+
+			SimpleNetworkEdge conn = new SimpleNetworkEdge();
+			conn.setName("UF");
+			conn.setLatency(Epoch.ZERO);
+			conn.setBandwidth(40000 * MiB);
+			mb.addTemplate(conn);
+
+
+			SimpleNetworkEdge connt = mb.cloneFromTemplate(conn);
+			SimpleNetworkEdge connr = mb.cloneFromTemplate(conn);
+
+			connt.setName("tx");
+			connr.setName("rx");
+
+			mb.connect(topology, c.getNetworkInterface(), connt, s.getNetworkInterface());
+			mb.connect(topology, s.getNetworkInterface(), connr, c.getNetworkInterface());
+
+			parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
+			parameters.setTraceEnabled(false);
+			parameters.setTraceInternals(false);
+			parameters.setTraceClientSteps(false);
+			parameters.setTraceServers(true);
+
+
+			aB = new ApplicationBuilder("Validate", "Validation runs", 1, 1);
+			world = aB.getWorldCommunicator();
+
+			app = aB.getApplication();
+
+			pb = new ProgramBuilder(aB);
+			c.setRank(0);
+			c.setApplication("Validate");
+
+			SimpleStripe stripe = new SimpleStripe();
+			stripe.setChunkSize(GiB * 100);
+			mb.setApplication("Validate", app);
+
+			FileMetadata file = aB.createFile("testFile", 2*GiB, stripe);
+
+			FileDescriptor fd = pb.addFileOpen(file, world, false);
+
+			long size = 1280 * MiB * 4;
+			long count = size / blockSize;
+
+			Random r = new Random(1);
+
+			for(long i=0; i < count; i++){
+				long offset = -1;
+				if(true){
+					// random case:
+					while(offset < 0){
+						offset = (r.nextLong() % size)  / blockSize;
+					}
+				}else{
+					offset = i;
+				}
+				if(true){
+					pb.addWriteSequential(0, fd, offset  * blockSize , blockSize);
+				}else{
+					pb.addReadSequential(0, fd, offset  * blockSize , blockSize);
+				}
+			}
+
+			pb.addFileClose(fd);
+
+			sim = new Simulator();
+			model = mb.getModel();
+			sim.initModel(model, parameters);
+			simRes = sim.simulate();
+
+			if (a == 9){
+				final SimulationResultSerializer serializer = new SimulationResultSerializer();
+				System.out.println(serializer.serializeResults(simRes));
+			}
+
+			output.append(blockSize + " " +  (size / sim.getVirtualTime().getDouble() / 1024.0 / 1024.0) + " MiB/s\n");
+
+			blockSize = blockSize * 2;
+		}
+
+		System.out.println(output);
+	}
 
 
 	@Test public void myTestTrace() throws Exception{
