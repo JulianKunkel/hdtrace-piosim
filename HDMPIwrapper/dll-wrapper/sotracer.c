@@ -34,6 +34,12 @@
 #include <hdf5.h>
 #endif
 
+#ifdef CDILIB
+#warning Will use CDILIB
+#include <cdi.h>
+#endif
+
+
 // maps memory positions of the functions i.e. & write to the corresponding dlsym openend.
 
 static __thread int started_tracing = 0;

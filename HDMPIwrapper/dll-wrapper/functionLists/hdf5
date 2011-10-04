@@ -102,7 +102,8 @@ herr_t H5Lmove(hid_t src_loc, const char *src_name, hid_t dst_loc,   const char 
 herr_t H5Lcopy(hid_t src_loc, const char *src_name, hid_t dst_loc,    const char *dst_name, hid_t lcpl_id, hid_t lapl_id);
 herr_t H5Lcreate_hard(hid_t cur_loc, const char *cur_name,    hid_t dst_loc, const char *dst_name, hid_t lcpl_id, hid_t lapl_id);
 herr_t H5Lcreate_soft(const char *link_target, hid_t link_loc_id,    const char *link_name, hid_t lcpl_id, hid_t lapl_id);
-herr_t H5Ldelete(hid_t loc_id, const char *name, hid_t lapl_id);herr_t H5Ldelete_by_idx(hid_t loc_id, const char *group_name,    H5_index_t idx_type, H5_iter_order_t order, hsize_t n, hid_t lapl_id);
+herr_t H5Ldelete(hid_t loc_id, const char *name, hid_t lapl_id);
+herr_t H5Ldelete_by_idx(hid_t loc_id, const char *group_name,    H5_index_t idx_type, H5_iter_order_t order, hsize_t n, hid_t lapl_id);
 herr_t H5Lget_val(hid_t loc_id, const char *name, void *buf ,    size_t size, hid_t lapl_id);
 herr_t H5Lget_val_by_idx(hid_t loc_id, const char *group_name,    H5_index_t idx_type, H5_iter_order_t order, hsize_t n,    void *buf , size_t size, hid_t lapl_id);
 htri_t H5Lexists(hid_t loc_id, const char *name, hid_t lapl_id);
@@ -199,7 +200,8 @@ hid_t H5Ecreate_msg(hid_t cls, H5E_type_t msg_type, const char *msg);
 hid_t H5Ecreate_stack(void);
 hid_t H5Eget_current_stack(void);
 herr_t H5Eclose_stack(hid_t stack_id);
-ssize_t H5Eget_class_name(hid_t class_id, char *name, size_t size);herr_t H5Eset_current_stack(hid_t err_stack_id);
+ssize_t H5Eget_class_name(hid_t class_id, char *name, size_t size);
+herr_t H5Eset_current_stack(hid_t err_stack_id);
 //herr_t H5Epush2(hid_t err_stack, const char *file, const char *func, unsigned line,    hid_t cls_id, hid_t maj_id, hid_t min_id, const char *msg, ...);
 herr_t H5Epop(hid_t err_stack, size_t count);
 herr_t H5Eprint2(hid_t err_stack, FILE *stream);
@@ -486,7 +488,7 @@ herr_t H5Pset_fapl_family(hid_t fapl_id, hsize_t memb_size, hid_t memb_fapl_id);
 herr_t H5Pget_fapl_family(hid_t fapl_id, hsize_t *memb_size ,    hid_t *memb_fapl_id );
 hid_t H5FD_log_init(void);
 void H5FD_log_term(void);
-herr_t H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned flags, size_t buf_size);
+herr_t H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned long long flags, size_t buf_size);
 
 hid_t H5FD_mpio_init(void);
 void H5FD_mpio_term(void);
