@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -51,6 +52,12 @@ public class Validation  extends ModelTest {
 			"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
 
 	int [] sizes = {10240, 1048576, 10485760, 104857600};
+	int [] sizes100KiB = {10240, 102400, 1048576, 10485760, 104857600};
+
+
+	long procSpeed =  2660l*1000000;
+	long randomComputeCyclesMax = procSpeed / 100000; // speed of the proc max 10 ns.
+	Random random = new Random(1);
 
 	@Override
 	protected void postSetup() {
@@ -372,146 +379,6 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-
-	@Test public void sendRecvIntersocketData() throws Exception{
-		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecv.txt"));
-		modelTime.write("# Experiment configuration & times \n");
-		// test cases run on the WR cluster
-
-		for(int size: sizes){
-			modelTime.write("SendRecvPaired" + size + " ");
-			for(String config : configs){
-				final int nodes = Integer.parseInt(config.split("-")[0]);
-				final int processes = Integer.parseInt(config.split("-")[1]);
-
-
-				if (processes % 2 != 0){ // invalid test
-					modelTime.write("0.0 ");
-					continue;
-				}
-
-				setupWrCluster(nodes, processes);
-
-				final int pairs = processes / 2;
-				for(int rank=0; rank < processes ; rank++){
-				    int dest = rank % 2 == 0 ? rank + 1 : rank -1;
-
-					pb.addSendRecv(world, rank, dest, dest, size, 4711, 4711);
-				}
-
-				runSimulationWithoutOutput();
-
-				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
-				modelTime.flush();
-			}
-			modelTime.write("\n");
-		}
-		System.out.println("Completed!");
-	}
-
-
-
-	@Test public void sendRootIntersocketData() throws Exception{
-		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRoot.txt"));
-		modelTime.write("# Experiment configuration & times \n");
-		// test cases run on the WR cluster
-
-		for(int size: sizes){
-			modelTime.write("SendRoot" + size + " ");
-			for(String config : configs){
-				final int nodes = Integer.parseInt(config.split("-")[0]);
-				final int processes = Integer.parseInt(config.split("-")[1]);
-
-				setupWrCluster(nodes, processes);
-
-				if(processes == 1){
-					modelTime.write("0.0 ");
-					continue;
-				}
-
-				for(int rank=1; rank < processes ; rank++){
-					pb.addSendAndRecv(world, rank, 0, size, 4711);
-				}
-
-				runSimulationWithoutOutput();
-
-				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
-				modelTime.flush();
-			}
-			modelTime.write("\n");
-		}
-		System.out.println("Completed!");
-	}
-
-
-	@Test public void sendRecvRootIntersocketData() throws Exception{
-		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecvRoot.txt"));
-		modelTime.write("# Experiment configuration & times \n");
-		// test cases run on the WR cluster
-
-		for(int size: sizes){
-			modelTime.write("SendRecvRoot" + size + " ");
-			for(String config : configs){
-				final int nodes = Integer.parseInt(config.split("-")[0]);
-				final int processes = Integer.parseInt(config.split("-")[1]);
-
-				setupWrCluster(nodes, processes);
-
-				if(processes == 1){
-					modelTime.write("0.0 ");
-					continue;
-				}
-
-				for(int rank=1; rank < processes ; rank++){
-					pb.addSendRecv(world, rank, 0, 0, size, 4711, 4711);
-					pb.addSendRecv(world, 0, rank, rank, size, 4711, 4711);
-				}
-
-				runSimulationWithoutOutput();
-
-				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
-				modelTime.flush();
-			}
-			modelTime.write("\n");
-		}
-		System.out.println("Completed!");
-	}
-
-	@Test public void sendRecvRightNeighborIntersocketData() throws Exception{
-		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime-sendRecvRN.txt"));
-		modelTime.write("# Experiment configuration & times \n");
-		// test cases run on the WR cluster
-
-		for(int size: sizes){
-			modelTime.write("SendRecvRightNeighbor" + size + " ");
-			for(String config : configs){
-				final int nodes = Integer.parseInt(config.split("-")[0]);
-				final int processes = Integer.parseInt(config.split("-")[1]);
-
-				setupWrCluster(nodes, processes);
-
-				if(processes == 1){
-					modelTime.write("0.0 ");
-					continue;
-				}
-
-				for(int rank=0; rank < processes ; rank++){
-				    int dest = (rank == processes - 1) ? 0 : rank + 1;
-				    int src = (rank == 0) ? processes - 1 : rank - 1;
-
-					pb.addSendRecv(world, rank, src, dest, size, 4711, 4711);
-				}
-
-				runSimulationWithoutOutput();
-
-				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
-				modelTime.flush();
-			}
-			modelTime.write("\n");
-		}
-		System.out.println("Completed!");
-	}
-
 	@Test public void sendRecvIntersocketValidate() throws Exception{
 		System.out.println("Single socket");
 
@@ -632,7 +499,22 @@ public class Validation  extends ModelTest {
 		}
 	}
 
+	private void addComputeOp(int rank){
+
+		if (randomComputeCyclesMax > 0){
+			long cycles = random.nextLong() % randomComputeCyclesMax ;
+			if(cycles < 0 ) cycles = - cycles;
+
+			cycles += (long) ((double) procSpeed * 0.000150); // time between two subsequent calls in the parabench trace files.
+
+			if(cycles > 0){
+				pb.addCompute(rank,  cycles );
+			}
+		}
+	}
+
 	private void levelXOperation(boolean isWrite, int level, FileDescriptor fd, int clientProcesses, int repeats, long size){
+
 		switch(level){
 		case 0: {
 			int pos = 0;
@@ -646,6 +528,7 @@ public class Validation  extends ModelTest {
 					}else{
 						pb.addReadSequential(i, fd,  size * pos, size);
 					}
+					addComputeOp(i);
 					pos++;
 				}
 			}
@@ -668,6 +551,10 @@ public class Validation  extends ModelTest {
 					pb.addWriteCollective(fd, ios);
 				}else{
 					pb.addReadCollective(fd, ios);
+				}
+
+				for(int i=0 ; i < clientProcesses ; i++){
+					addComputeOp(i);
 				}
 			}
 
@@ -780,14 +667,26 @@ public class Validation  extends ModelTest {
 		System.out.println("Completed");
 	}
 
-	@Test public void MPIIOLevelValidation500KByteBlocks() throws Exception{
-		long size = 50*KiB;
-		int repeats = 20480; // 100 MiB of data
-
+	@Test public void MPIIOLevelValidation100KByteBlocks() throws Exception{
 		ServerCacheLayer cacheLayers [] = new ServerCacheLayer[]{IOC.SimpleWriteBehindCache(), IOC.AggregationCache(), IOC.AggregationReorderCache()};
 
 		for (ServerCacheLayer cacheLayer : cacheLayers){
-			BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime" + cacheLayer.toString() + ".txt"));
+			BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime" + cacheLayer.getNiceName() + ".txt"));
+			//MPIIOLevelValidationBlocks(100 * KiB, 10240, cacheLayer, modelTime);
+			runMPIIOLevelValidation("10000MB ", 5,5, cacheLayer, 5 , 0, 10240, 100*KiB, 10000, true, modelTime);
+
+			modelTime.close();
+		}
+
+		System.out.println("Completed");
+	}
+
+	@Test public void MPIIOTraceExample() throws Exception{
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
+		runMPIIOLevelValidationSingle(0, true, "tst ",  1, 1, IOC.SimpleWriteBehindCache(), 1, 0, 10240, 100*KiB, 10000, true, modelTime);
+	}
+
+	public void MPIIOLevelValidationBlocks(long size, int repeats, ServerCacheLayer cacheLayer, BufferedWriter modelTime) throws Exception{
 			// test with 10000 MiB main memory
 			for(int i=1; i <= 5 ; i++){
 				runMPIIOLevelValidation("10000MB ", i,i,cacheLayer,i,0,repeats, size, 10000,false, modelTime);
@@ -813,10 +712,6 @@ public class Validation  extends ModelTest {
 				runMPIIOLevelValidation("100M ", i,i,cacheLayer,i,0,repeats, size, 100, false, modelTime);
 			}
 			runMPIIOLevelValidation("100M ",3 , 2,cacheLayer,3, 0,repeats, size, 100, false, modelTime);
-
-			modelTime.close();
-		}
-
 		System.out.println("Completed");
 	}
 
@@ -924,20 +819,163 @@ public class Validation  extends ModelTest {
 	}
 
 
-
-
-	@Test public void validationRunCollectiveWithSendRecv() throws Exception{
-		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
-		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
-
-		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
-
+	@Test public void allComputeMPIValidationTests() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/collectives-modelTime.txt"));
+
 		modelTime.write("# Experiment ");
 		for(String config: configs){
 			modelTime.write(config + " ");
 		}
 		modelTime.write("\n");
+
+		validationRunCollectiveWithSendRecv(modelTime);
+		sendRecvRingRightLeftNeighbor(modelTime);
+		sendRecvPaired(modelTime);
+		sendRootWhichReceives(modelTime);
+		sendRecvRoot(modelTime);
+
+		System.out.println("All Completed!");
+		modelTime.write("\nCompleted!\n");
+		modelTime.close();
+	}
+
+
+
+	public void sendRecvPaired(BufferedWriter modelTime ) throws Exception{
+		// test cases run on the WR cluster
+		for(int size: sizes){
+			modelTime.write("SendRecvPaired" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+
+				if (processes % 2 != 0){ // invalid test
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				setupWrCluster(nodes, processes);
+
+				for(int rank=0; rank < processes ; rank++){
+				    int dest = rank % 2 == 0 ? rank + 1 : rank -1;
+
+					pb.addSendRecv(world, rank, dest, dest, size, 4711, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
+	}
+
+
+
+	public void sendRootWhichReceives(BufferedWriter modelTime) throws Exception{
+		// test cases run on the WR cluster
+
+		for(int size: sizes100KiB){
+			modelTime.write("SendRoot" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				setupWrCluster(nodes, processes);
+
+				if(processes == 1){
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				for(int rank=1; rank < processes ; rank++){
+					pb.addSendAndRecv(world, rank, 0, size, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
+	}
+
+
+	public void sendRecvRoot(BufferedWriter modelTime) throws Exception{
+		// test cases run on the WR cluster
+
+		for(int size: sizes100KiB){
+			modelTime.write("SendRecvRoot" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				setupWrCluster(nodes, processes);
+
+				if(processes == 1){
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				for(int rank=1; rank < processes ; rank++){
+					pb.addSendRecv(world, rank, 0, 0, size, 4711, 4711);
+					pb.addSendRecv(world, 0, rank, rank, size, 4711, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
+	}
+
+	public void sendRecvRingRightLeftNeighbor(BufferedWriter modelTime) throws Exception{
+		// test cases run on the WR cluster
+
+		for(int size: sizes){
+			modelTime.write("SendRecvRightNeighbor" + size + " ");
+			for(String config : configs){
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				setupWrCluster(nodes, processes);
+
+				if(processes == 1){
+					modelTime.write("0.0 ");
+					continue;
+				}
+
+				for(int rank=0; rank < processes ; rank++){
+				    int dest = (rank == processes - 1) ? 0 : rank + 1;
+				    int src = (rank == 0) ? processes - 1 : rank - 1;
+
+					pb.addSendRecv(world, rank, src, dest, size, 4711, 4711);
+				}
+
+				runSimulationWithoutOutput();
+
+				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
+				modelTime.flush();
+			}
+			modelTime.write("\n");
+		}
+		System.out.println("Completed!");
+	}
+
+
+	 public void validationRunCollectiveWithSendRecv(BufferedWriter modelTime) throws Exception{
+		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
+		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
+
+		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
 
 
 		// test cases run on the WR cluster
@@ -956,7 +994,15 @@ public class Validation  extends ModelTest {
 		for(String experiment: experiments){
 			for(int size: sizes){
 
-				modelTime.write(experiment + size + " ");
+				String sizeStr = "" + size;
+				if(experiments.equals("Barrier")){
+					if( size > sizes[0]){
+						continue;
+					}
+					sizeStr = "";
+				}
+
+				modelTime.write(experiment + sizeStr + " ");
 
 				for(String config: configs){
 
@@ -976,7 +1022,7 @@ public class Validation  extends ModelTest {
 					sTime = new Date().getTime();
 
 					// load traces
-					final String folder = prefix + config + "/" + experiment + "/" + size;
+					final String folder = prefix + config + "/" + experiment + "/" + sizeStr;
 					File f = new File(folder);
 					String files[] = f.list(projFilter);
 					if (files == null || files.length != 1){
@@ -1013,11 +1059,14 @@ public class Validation  extends ModelTest {
 					modelTime.flush();
 				}
 				modelTime.write("\n");
+
+				if(experiments.equals("Reduce") || experiments.equals("Allreduce") || experiments.equals("Broadcast")){
+					// add a dummy
+					modelTime.write(experiment + "1000M\n");
+				}
 			}
 		}
 		outputFile.close();
-
-		System.out.println("Completed!");
 	}
 
 	@Test public void timingLargeData() throws Exception{
