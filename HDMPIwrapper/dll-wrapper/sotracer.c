@@ -17,7 +17,6 @@
 #define hdMPI_threadLogAttributes(...)
 #define hdMPI_threadLogStateStart(...)
 #define hdMPI_threadLogStateEnd(...)
-#define hdTrace_isWritingToFile(...) 0
 #endif
 
 #ifndef GLIBCLIB
@@ -33,6 +32,12 @@
 #warning Will use HDF5LIB
 #include <hdf5.h>
 #endif
+
+#ifdef CDILIB
+#warning Will use CDILIB
+#include <cdi.h>
+#endif
+
 
 // maps memory positions of the functions i.e. & write to the corresponding dlsym openend.
 
