@@ -227,6 +227,9 @@ public final class Simulator implements IModelToSimulatorMapper {
 			}
 		}
 
+		// at least one topology must exist
+		assert(model.getTopologies().size() != 0);
+
 		/* load topology */
 		for (INetworkTopology topo : model.getTopologies()) {
 

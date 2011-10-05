@@ -86,4 +86,9 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 			throw new IllegalArgumentException("Unknown step");
 		}
 	}
+
+	@Override
+	public String[] getAdditionalTraceAttributes(Recv cmd) {
+		return new String[] { "fromTag", "" + cmd.getFromTag(), "fromRank", "" + cmd.getFromRank() };
+	}
 }
