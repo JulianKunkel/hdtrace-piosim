@@ -717,8 +717,10 @@ int hdT_logStateEnd(hdTrace *trace)
 	if (trace->function_depth > trace->max_nesting_depth || ! hdT_isEnabled(trace) )
 	{
 		trace->function_depth--;
+		assert(trace->function_depth >= 0);		
 		return 0;
 	}
+	assert(trace->function_depth >= 0);
 
 	if (gettimeofday(&trace->end_time[trace->function_depth], NULL) != 0)
 	{

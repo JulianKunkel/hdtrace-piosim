@@ -14,3 +14,6 @@ void hdMPI_logInternalsMPI_Irecv(){
 void hdMPI_logInternalsMPI_Sendrecv(){
 }
 
+void * hdMPI_getThreadTracefile(){
+	return (void*) 0;
+}

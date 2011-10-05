@@ -26,6 +26,9 @@ int main(void){
 
 	hdT_enableTrace(trace);
 	//hdT_setNestedDepth(trace,3);
+        int i;
+
+	for(i=0; i < 100000;i++){
 
 	hdT_logStateStart(trace, "a0");
 
@@ -48,6 +51,8 @@ int main(void){
 	hdT_logAttributes(trace,"c1='C1'");
 
 	hdT_logStateEnd(trace);
+	}
+
 
 	hdT_finalize(trace);
 

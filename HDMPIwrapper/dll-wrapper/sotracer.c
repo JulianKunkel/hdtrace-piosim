@@ -17,7 +17,6 @@
 #define hdMPI_threadLogAttributes(...)
 #define hdMPI_threadLogStateStart(...)
 #define hdMPI_threadLogStateEnd(...)
-#define hdTrace_isWritingToFile(...) 0
 #endif
 
 #ifndef GLIBCLIB

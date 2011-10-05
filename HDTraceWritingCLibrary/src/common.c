@@ -26,19 +26,21 @@
 
 #include "config.h"
 
+#define SOTRACE
+
+#ifdef SOTRACE
+#include <dlfcn.h>
+#define GLIBC "/lib/libc.so.6"
+#endif 
+
 struct hdtrace_options hdt_options = {
     .verbosity = VLEVEL, 
     .buffer_size = 1*1024*1024, // 1 MiB of trace size
     .overwrite_existing_files = 1,
     .path_prefix = "",
-    .max_nesting_depth = 4,
+    .max_nesting_depth = 8,
     .force_flush = 0,
 };
-
-/**
- * Flag indicating if HDTrace writes currently to a file.
- */
-static int isWritingToFile = 0;
 
 
 /**
@@ -192,10 +194,6 @@ char * generateFilename( const hdTopoNode *toponode,
 	return filename;
 }
 
-int hdTrace_isWritingToFile(){
-  return isWritingToFile;
-}
-
 /**
  * Writes data to a file at the current offset.
  *
@@ -217,7 +215,20 @@ int hdTrace_isWritingToFile(){
  */
 ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 {
-        isWritingToFile = 1;
+       static ssize_t (* my_write) ( int ,const void *,size_t  ) = & write;
+
+
+#ifdef SOTRACE
+#warning "Using DLOPEN to provide my_write"
+        // directly map write to real write...
+       void * dllFile = dlopen(GLIBC, RTLD_LAZY);
+       if (dllFile == NULL){
+           printf("[Error] trace wrapper - dll not found %s\n", GLIBC); 
+           exit(1); 
+       }
+        my_write = dlsym(dllFile, "write");
+#endif
+
 	/* check input */
 	assert(fd > 0);
 	assert(buf != NULL);
@@ -251,31 +262,29 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		int sret = select(fd+1, NULL, &writefds, NULL, &timeout);
 		if (sret == 0)
 		{
+			printf("E3\n");
 			hd_info_msg("Timeout during writing to %s", filename);
-			isWritingToFile = 0;			
 			hd_error_return(HD_ERR_TIMEOUT, -1);
 		}
 		else if (sret < 0)
 		{
+			printf("E2\n");		
 			hd_info_msg("select() error during writing to %s: %s",
 					filename, strerror(errno));
 			switch (errno)
 			{
 			case EBADF: /* fd is an invalid file descriptor */
-				isWritingToFile = 0;			  
 				hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 				break;
 			case EINTR: /* signal was caught */
 				continue;
 			case ENOMEM: /* unable to allocate memory for internal tables */
-				isWritingToFile = 0;			  
 				hd_error_return(HD_ERR_MALLOC, -1);
 				break;
 			case EINVAL:
 				assert(0);
 				/* fall through if NDEBUG defined */
 			default:
-				isWritingToFile = 0;			  
 				hd_error_return(HD_ERR_UNKNOWN, -1);
 			}
 		}
@@ -284,9 +293,10 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		assert(FD_ISSET(fd, &writefds));
 
 		/* coming here means fd is ready for writing */
-		ssize_t wret = write(fd, buffer, count);
+		ssize_t wret =  (* my_write)(fd, buffer, count);
 		if (wret == -1)
 		{
+			printf("E\n");
 			hd_info_msg("write() error during writing to %s: %s",
 					filename, strerror(errno));
 			switch (errno)
@@ -304,10 +314,8 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 			case EFBIG:  /* tried to write beyond allowed file size */
 			case ENOSPC: /* no space left on device */
 			case EIO:    /* low-level I/O error */
-				isWritingToFile = 0;
 				hd_error_return(HD_ERR_WRITE_FILE, -1);
 			default:
-				isWritingToFile = 0;
 				hd_error_return(HD_ERR_UNKNOWN, -1);
 			}
 		}
@@ -321,7 +329,6 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 
 	}	
 	
-	isWritingToFile = 0;
 	return written;
 }
 

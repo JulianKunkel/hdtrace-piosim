@@ -63,12 +63,6 @@
 void hdTrace_init(void);
 
 /**
- * This function indicates if hdtrace is currently flushing data to disk
- */
-int hdTrace_isWritingToFile();
-
-
-/**
  * Type to use for traces
  */
 typedef struct _hdTrace hdTrace;
