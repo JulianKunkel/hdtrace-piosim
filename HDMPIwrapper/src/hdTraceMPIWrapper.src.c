@@ -229,6 +229,7 @@ void hdMPI_threadLogStateStart(const char * stateName){
 #ifdef ENABLE_LIKWID_HDTRACE      
     if(enable_likwid){
     hdLikwidResults results;
+    memset(& results, 0, sizeof(results));
   
 #ifdef ENABLE_SOTRACER
     // disable SOTRACE to avoid logging of likwid activity
@@ -698,22 +699,6 @@ int hdMPI_FinalizeTracing(){
 
 #ifdef ENABLE_SOTRACER
   sotracer_finalize();
-#endif
-
-#ifdef ENABLE_LIKWID_HDTRACE
-	if(enable_likwid){
-	  // end ecompute:
-	  hdLikwidResults results;
-
-	  hdLikwid_end(& results);
-
-	  if (results.runtime != 0.0){
-	    hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
-	  }
-
-	  hdT_logStateEnd(hdMPI_getThreadTracefile());
-	  hdLikwid_finalize();
-	}
 #endif
 
 	hdMPI_threadFinalizeTracing();

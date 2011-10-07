@@ -132,7 +132,8 @@ char * generateFilename( const hdTopoNode *toponode,
 
 	/* generate filename */
 	assert(HD_MAX_FILENAME_LENGTH != 0);
-	char * filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(char));
+	char * filename = malloc(HD_MAX_FILENAME_LENGTH);
+	memset(filename, 0, HD_MAX_FILENAME_LENGTH);
 	if(filename == NULL)
 	{
 		hd_info_msg("malloc() error during %s filename generation for %s: %s",
@@ -144,12 +145,12 @@ char * generateFilename( const hdTopoNode *toponode,
 
         strcpy (filename, hdt_options.path_prefix);
 	
-
 #define ERROR_MSG \
 	hd_error_msg("Overflow of HD_MAX_FILENAME_LENGTH buffer during" \
 			" %s filename generation for %s", affix, toponode->string)
+	int maxLength = strlen(filename);
+	strncpy(filename + maxLength, toponode->topology->project, HD_MAX_FILENAME_LENGTH - maxLength);	
 
-	strncpy(filename + strlen(filename), toponode->topology->project, HD_MAX_FILENAME_LENGTH);
 	if (filename[HD_MAX_FILENAME_LENGTH - 1] != '\0')
 	{
 		ERROR_MSG;
