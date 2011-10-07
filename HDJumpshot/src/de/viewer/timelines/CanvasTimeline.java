@@ -750,11 +750,6 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 			drawedTraceObjects++;
 			ITraceEntry tentry = elements.nextElement();
 
-			if(getCurrentFilter() != null){
-				if(! getCurrentFilter().matches(tentry)){
-					continue;
-				}
-			}
 			
 			final Epoch globalMinTime = getModelTime().getGlobalMinimum();
 
@@ -770,11 +765,16 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				
 				final Category tcategory = reader.getCategory(rstate);
 
-				if(! tcategory.isVisible()){
-					continue;
-				}
-				DrawObjects.drawState(offGraphics, tcategory.getName(),  coord_xform, rstate , determineColor(tcategory.getColor(), rstate), 
+				if(tcategory.isVisible()){
+					boolean draw = true;
+					if(getCurrentFilter() != null){
+						draw = getCurrentFilter().matches(tentry);
+					}
+					if(draw){
+						DrawObjects.drawState(offGraphics, tcategory.getName(),  coord_xform, rstate , determineColor(tcategory.getColor(), rstate), 
 							0, timeline, globalMinTime);
+					}
+				}
 			    
 				if(! parentFrame.isProcessNested()) continue;
 			    
