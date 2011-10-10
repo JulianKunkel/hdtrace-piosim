@@ -69,7 +69,7 @@ void sotracer_initalize(void){
    char * file = getenv(libname); \
   if (file == NULL)\
 	file = defaultfile;\
-  printf("[SOTRACE] use %s for %s (env variable)", file, libname); \
+  printf("[SOTRACE] use %s for %s (env variable)\n", file, libname); \
   dllFile = dlopen(file, RTLD_LAZY); \
   if (dllFile == NULL){ \
     printf("[Error] trace wrapper - dll not found %s\n", file); \
