@@ -24,17 +24,17 @@
 #endif
 
 #ifdef NETCDFLIB
-#warning Will use NETCDFLIB
+#warning Will use NETCDFLIB as a default
 #include <netcdf.h>
 #endif
 
 #ifdef HDF5LIB
-#warning Will use HDF5LIB
+#warning Will use HDF5LIB as a default
 #include <hdf5.h>
 #endif
 
 #ifdef CDILIB
-#warning Will use CDILIB
+#warning Will use CDILIB as a default
 #include <cdi.h>
 #endif
 
@@ -64,10 +64,17 @@ void sotracer_initalize(void){
   printf("Initalizing!\n");
 #endif
 
-#define OPEN_DLL(file)  dllFile = dlopen(file, RTLD_LAZY); \
+#define OPEN_DLL(defaultfile, libname) \
+  { \
+   char * file = getenv(libname); \
+  if (file == NULL)\
+	file = defaultfile;\
+  printf("[SOTRACE] use %s for %s (env variable)\n", file, libname); \
+  dllFile = dlopen(file, RTLD_LAZY); \
   if (dllFile == NULL){ \
     printf("[Error] trace wrapper - dll not found %s\n", file); \
     exit(1); \
+  } \
   }
 
 #define ADD_SYMBOL(name) \

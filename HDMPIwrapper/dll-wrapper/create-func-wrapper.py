@@ -47,7 +47,7 @@ def add_dll_opens(groupFiles, output):
       groupName = funcs[0].strip()
 
       output.write("#ifdef " + groupName + "\n")
-      output.write("OPEN_DLL(%s);\n" % (groupName))
+      output.write("OPEN_DLL(%s,\"%s\");\n" % (groupName, groupName))
 
       for i in xrange(2, len(funcs)):
 	f = funcs[i].strip()

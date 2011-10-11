@@ -1,4 +1,7 @@
 touch MYFILE.txt
+module load mpich2/1.3
+
+
 ./create-func-wrapper.py sotracer.c wrapper.c functionLists/posixIO:functionLists/netcdf:functionLists/hdf5:functionLists/cdi  2>&1
 
 # -DDEBUG
