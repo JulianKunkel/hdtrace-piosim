@@ -46,11 +46,6 @@ public class ReduceScatterPowerOfTwo extends CommandImplementation<ReduceScatter
             return;
         }
 
-        /*if(Integer.bitCount(cmd.getCommunicator().getSize())!= 1){
-            // ensure power of two processes
-            return;
-        }*/
-
         final int commSize = cmd.getCommunicator().getSize() - 1;
         final int iterations = Integer.numberOfTrailingZeros(cmd.getCommunicator().getSize());
         final int range = cmd.getCommunicator().getSize() / (1<<(iterations-step));
@@ -85,7 +80,8 @@ public class ReduceScatterPowerOfTwo extends CommandImplementation<ReduceScatter
             return;
         }else{
             System.out.println(step + ": " + myRank + " <-> " + targetRank);
-            final long sendCnt = cmd.getRecvcounts().get(targetRank);
+            // data to be sent is halved each step
+            final long sendCnt = cmd.getTotalSize() / (2<<step);
             OUTresults.addNetSend(targetRank, new NetworkSimpleData(sendCnt + 20), TAG, cmd.getCommunicator());
             OUTresults.addNetReceive(targetRank, TAG, cmd.getCommunicator());
             OUTresults.setNextStep(++step);
