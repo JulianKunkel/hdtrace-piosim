@@ -38,6 +38,8 @@ import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.ProgramBuilder;
+import de.hd.pvs.piosim.model.program.ProgramInMemory;
+import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.RunParameters;
 import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.Simulator;
@@ -809,7 +811,8 @@ public class Validation  extends ModelTest {
 		p.setTraceFile("/tmp/bcast");
 		p.setTraceInternals(true);
 
-		runCollectiveTest(2,2, "Barrier", "", null, null, true, p);
+		runCollectiveTest(4,4, "Barrier", "", null, null, true, p, 99); //100 barriers: 0.012588828 vs. 1.27389
+		//runCollectiveTest(4,4, "Reduce", "10240", null, null, true, p, 99);
 	}
 
 
@@ -1052,7 +1055,7 @@ public class Validation  extends ModelTest {
 		outputFile.close();
 	}
 
-	public void runCollectiveTest(int nodes, int processes, String experiment, String strSize, BufferedWriter outputFile, BufferedWriter modelTime, boolean doCompute, RunParameters parameters) throws Exception{
+	public void runCollectiveTest(int nodes, int processes, String experiment, String strSize, BufferedWriter outputFile, BufferedWriter modelTime, boolean doCompute, RunParameters parameters, int repeatReading) throws Exception{
 
 		if(outputFile == null){
 			outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
@@ -1115,6 +1118,21 @@ public class Validation  extends ModelTest {
 		// load program:
 		final Application app = axml.parseApplication(proj, true);
 		mb.setApplication("Validate", app);
+
+		if(repeatReading > 0){
+			for(int r = 0 ; r < app.getProcessCount(); r++){
+				ProgramInMemory p = (ProgramInMemory) app.getClientProgram(r, 0);
+				ArrayList<Command> prevCommands = p.getCommands();
+				int commandCount = prevCommands.size();
+
+				for(int c=0; c < repeatReading; c++){
+					for(int i=0; i < commandCount; i++){
+						p.addCommand(prevCommands.get(i));
+					}
+				}
+			}
+		}
+
 
 		setupProgramTime = (new Date().getTime() - sTime);
 		runSimulationWithoutOutput();
@@ -1313,7 +1331,7 @@ public class Validation  extends ModelTest {
 
 					final int nodes = Integer.parseInt(config.split("-")[0]);
 					final int processes = Integer.parseInt(config.split("-")[1]);
-					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, null);
+					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, null, 0);
 				}
 				modelTime.write("\n");
 
