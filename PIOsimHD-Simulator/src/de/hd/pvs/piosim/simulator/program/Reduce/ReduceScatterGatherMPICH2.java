@@ -28,6 +28,7 @@ import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
+import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 /**
@@ -52,6 +53,7 @@ public class ReduceScatterGatherMPICH2
 extends CommandImplementation<Reduce>
 {
 	final int SCATTER_COMPLETED = 2;
+	final int TAG = 41234;
 
 	// Re-map communicator for non-power of two processes
 	static HashMap<Integer,Communicator> communicators = new HashMap<Integer,Communicator>();
@@ -66,6 +68,21 @@ extends CommandImplementation<Reduce>
 
 		// if the # of processes is not power of two, then the first odd processes send data to the even processes
 		// then the process starts
+		final int commSize = cmd.getCommunicator().getSize();
+
+		if(Integer.bitCount(commSize) != 1){
+			final int myRank = client.getModelComponent().getRank();
+			final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
+			if(myRank <= (1+2*rest)){
+				// odd sends to even
+				if(myRank % 2 == 0){
+					OUTresults.addNetReceive(myRank + 1, TAG, cmd.getCommunicator());
+				}else{
+					OUTresults.addNetSend(myRank - 1, new NetworkSimpleData(cmd.getSize() / cmd.getCommunicator().getSize()), TAG, cmd.getCommunicator());
+				}
+			}
+		}
+
 
 		Communicator comm = communicators.get(cmd.getCommunicator().getIdentity());
 		if(comm == null){
@@ -75,8 +92,16 @@ extends CommandImplementation<Reduce>
 
 			HashMap<Integer, CommunicatorInformation> m = cmd.getCommunicator().getParticipiants();
 
-			for(Integer key : m.keySet()){
-				comm.addRank(key, key, 0);
+			if(Integer.bitCount(commSize) != 1){
+				final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
+				int localRankCounter = 0;
+				for(Integer key : m.keySet()){
+					if(key <= (1+2*rest) && key % 2 != 0){
+						continue;
+					}
+					comm.addRank(key, localRankCounter, 0);
+					localRankCounter++;
+				}
 			}
 		}
 
