@@ -50,6 +50,7 @@ public class ScatterMPICH2 extends CommandImplementationWithCommunicatorLocalRan
 
 
 		if(clientRankInComm != 0){
+			// rank is not root rank
 			// receive first, then send.
 
 			final int maxPhase = iterations - 1  - phaseStart;
@@ -76,15 +77,13 @@ public class ScatterMPICH2 extends CommandImplementationWithCommunicatorLocalRan
 					int target =  getLocalRankExchangeRoot(singleRankInComm, waitforAckFrom);
 
 					OUTresults.addNetReceive(target, 30001, cmd.getCommunicator());
-
 					OUTresults.setNextStep(RECEIVED_ACK);
-
 					return;
 				}else{
 					OUTresults.setNextStep(RECEIVED_ACK);
 					return;
 				}
-			}else{// if(step >= RECEIVED_ACK)
+			}else{
 				// send
 				int iter = (int) step - RECEIVED_ACK;
 				int targetRank = (1<< (maxPhase - iter) | clientRankInComm);
@@ -108,9 +107,6 @@ public class ScatterMPICH2 extends CommandImplementationWithCommunicatorLocalRan
 					// the number of packets depends on the processes which forward the data in the binary tree
 					final int countPow =  1<<(maxPhase - iter);
 					int count = targetRank + countPow > commSize ? commSize - targetRank : countPow;
-
-					//System.out.println(client.getModelComponent().getRank() + " check to target: " + targetRank + " " + count );
-
 
 					OUTresults.addNetSend( getLocalRankExchangeRoot(singleRankInComm, targetRank), new NetworkSimpleData(cmd.getSize() * count + 20), 30000, cmd.getCommunicator());
 				}
@@ -141,8 +137,6 @@ public class ScatterMPICH2 extends CommandImplementationWithCommunicatorLocalRan
 
 			final int targetRank =  1<< (iterations - step);
 			int count = 2 * targetRank  > commSize ? commSize - targetRank : targetRank;
-
-			//System.out.println("Check to target: " + targetRank + " " + count );
 
 			OUTresults.addNetSend( (targetRank != singleRankInComm) ? targetRank : 0,
 					new NetworkSimpleData(cmd.getSize() * count + 20), 30000, cmd.getCommunicator());
