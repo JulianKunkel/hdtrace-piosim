@@ -128,7 +128,7 @@ extends CommandImplementation<Reduce>
 			scmd.setCommunicator(cmd.getCommunicator());
 
 			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
-				de.hd.pvs.piosim.simulator.program.ReduceScatter.Direct.class);
+				de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo.class);
 
 		}else if(step == SCATTER_COMPLETED){
 			Gather gcmd = new Gather();

@@ -1575,18 +1575,18 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-	@Test public void TestScatterMPICH2() throws Exception{
-		setup(2, 3);
+	@Test public void TestReduceScatterGatherMPICH2() throws Exception{
+		setup(2, 1);
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");
 
-		parameters.setTraceFile("/tmp/scatter");
+		parameters.setTraceFile("/home/scan/scatter");
 
 	//	parameters.setTraceInternals(true);
 		parameters.setTraceEnabled(true);
 
-		pb.addScatter(world, 0, 100* MiB);
+		pb.addReduce(world, 0, 100* MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
