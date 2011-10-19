@@ -6,6 +6,7 @@
     
     <path id="classpath">
 	<fileset dir="../HDTraceFormat/bin" includes="**/*.jar" />
+	<fileset dir="../HDTraceFormat/lib" includes="**/*.jar" />
     </path>
     
 </project>
