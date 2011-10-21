@@ -54,8 +54,6 @@ public class ReduceScatterPowerOfTwo extends CommandImplementation<ReduceScatter
         int offset = 0;
         int targetRank;
 
-        System.out.println("Iterations: " + iterations + " range: " + range);
-
         for(int i = 0; i*range < commSize+1; i++){
             // check what group the current rank belongs to
             if(myRank >= i*range && myRank < (i+1)*range){
@@ -75,11 +73,8 @@ public class ReduceScatterPowerOfTwo extends CommandImplementation<ReduceScatter
             targetRank = myRank - range;
         }
 
-        if(targetRank < 0 || targetRank > commSize){
-            System.err.println("Range exceeded! Probably Non-PowerOfTwo number of processes used!");
-            return;
-        }else{
-            System.out.println(step + ": " + myRank + " <-> " + targetRank);
+        if(targetRank >= 0 || targetRank <= commSize){
+        {
             // data to be sent is halved each step
             final long sendCnt = cmd.getTotalSize() / (2<<step);
             OUTresults.addNetSend(targetRank, new NetworkSimpleData(sendCnt + 20), TAG, cmd.getCommunicator());
@@ -92,5 +87,3 @@ public class ReduceScatterPowerOfTwo extends CommandImplementation<ReduceScatter
         }
     }
 }
-
-
