@@ -1305,7 +1305,7 @@ public class Validation  extends ModelTest {
 		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
 		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
 
-		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
+		final String prefix = "/home/kunkel/Dokumente/Dissertation/Latex/results/mpi-bench-current/extracted-communication-patterns/";
 
 
 		// test cases run on the WR cluster
