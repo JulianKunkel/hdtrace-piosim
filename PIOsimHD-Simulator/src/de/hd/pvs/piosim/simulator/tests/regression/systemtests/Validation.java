@@ -811,7 +811,7 @@ public class Validation  extends ModelTest {
 		p.setTraceFile("/tmp/bcast");
 		p.setTraceInternals(true);
 
-		runCollectiveTest(4,4, "Barrier", "", null, null, true, p, 99); //100 barriers: 0.012588828 vs. 1.27389
+		runCollectiveTest(4,4, "Barrier", "", null, null, true, true, p, 99); //100 barriers: 0.012588828 vs. 1.27389
 		//runCollectiveTest(4,4, "Reduce", "10240", null, null, true, p, 99);
 	}
 
@@ -1055,7 +1055,23 @@ public class Validation  extends ModelTest {
 		outputFile.close();
 	}
 
-	public void runCollectiveTest(int nodes, int processes, String experiment, String strSize, BufferedWriter outputFile, BufferedWriter modelTime, boolean doCompute, RunParameters parameters, int repeatReading) throws Exception{
+	FilenameFilter projFilter = new FilenameFilter() {
+           public boolean accept(File dir, String name) {
+                return name.endsWith(".proj");
+            }
+    };
+
+	String getProjectFile(String folder){
+		File f = new File(folder);
+		String files[] = f.list(projFilter);
+		if (files == null || files.length != 1){
+			System.err.println("Invalid configuration: " + folder);
+			return "";
+		}
+		return folder + "/" + files[0];
+	}
+
+	public void runCollectiveTest(int nodes, int processes, String experiment, String strSize, BufferedWriter outputFile, BufferedWriter modelTime, boolean doCompute, boolean addBarrier, RunParameters parameters, int repeatReading) throws Exception{
 
 		if(outputFile == null){
 			outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
@@ -1065,14 +1081,13 @@ public class Validation  extends ModelTest {
 			modelTime = new BufferedWriter(new FileWriter("/tmp/collectives-modelTime.txt"));
 		}
 
+		if(addBarrier){
+			System.out.println("Added barrier");
+		}
+
 		final ApplicationXMLReader axml = new ApplicationXMLReader();
 		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
 
-		FilenameFilter projFilter = new FilenameFilter() {
-	           public boolean accept(File dir, String name) {
-	                return name.endsWith(".proj");
-	            }
-	    };
 
 		long sTime, setupSystemTime, setupProgramTime;
 		// dual socket configuration.
@@ -1092,17 +1107,13 @@ public class Validation  extends ModelTest {
 
 		// load traces
 		final String folder = prefix + config + "/" + experiment + "/" + strSize;
-		File f = new File(folder);
-		String files[] = f.list(projFilter);
-		if (files == null || files.length != 1){
-			System.err.println("Invalid configuration: " + folder);
+		String proj= getProjectFile(folder);
+		if(proj == null){
 			outputFile.write("Invalid configuration: " + folder);
 			// we know the time is 0.0 for the configuration 1-1
 			modelTime.write("0.0 ");
-
 			return;
 		}
-		String proj=folder + "/" + files[0];
 
 		System.out.println(proj);
 		outputFile.write(proj);
@@ -1131,6 +1142,24 @@ public class Validation  extends ModelTest {
 					}
 				}
 			}
+		}
+
+		if(addBarrier){
+			String barrierProj= getProjectFile(prefix + config + "/Barrier");
+			final Application barrierApp = axml.parseApplication(barrierProj, true);
+
+			for(int r = 0 ; r < barrierApp.getProcessCount(); r++){
+				ProgramInMemory bp = (ProgramInMemory) barrierApp.getClientProgram(r, 0);
+				ProgramInMemory p = (ProgramInMemory) app.getClientProgram(r, 0);
+
+				ArrayList<Command> prevCommands = bp.getCommands();
+				int commandCount = prevCommands.size();
+
+				for(int i=0; i < commandCount; i++){
+					p.addCommand(prevCommands.get(i));
+				}
+			}
+
 		}
 
 
@@ -1331,7 +1360,7 @@ public class Validation  extends ModelTest {
 
 					final int nodes = Integer.parseInt(config.split("-")[0]);
 					final int processes = Integer.parseInt(config.split("-")[1]);
-					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, null, 0);
+					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, true, null, 0);
 				}
 				modelTime.write("\n");
 
