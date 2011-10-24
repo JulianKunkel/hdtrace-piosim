@@ -8,6 +8,14 @@ import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
+/**
+ * MPICH2 Gather Algorithm:
+ * 	simple binary tree algorithm
+ *
+ *
+ * @author artur
+ *
+ */
 public class GatherMPICH2
 extends CommandImplementation<Gather>
 {
@@ -25,34 +33,35 @@ extends CommandImplementation<Gather>
 		final int commSize = cmd.getCommunicator().getSize() -1;
 		int receiveFrom = -1, sendTo = -1;
 
+		// specifies the amount of data to be sent
 		int dataMultiplicator = 1;
 
-
-
 		if(clientRankInComm == rootRank){
+			// root rank operations
+			//		receive from (1 << step)
 			receiveFrom = 1 << step;
 
 			if (receiveFrom <= commSize){
-				System.out.println(step + " # " + clientRankInComm + " <- " + receiveFrom);
 				OUTresults.addNetReceive(receiveFrom, TAG, cmd.getCommunicator());
 				OUTresults.setNextStep(++step);
 			}else{
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 			}
 		}else if(Integer.bitCount(clientRankInComm) == 1){
+			// rank is power-of-two
 			if(clientRankInComm == (1 << step)){
+				// rank's turn to send data to root
 				sendTo = rootRank;
-				System.out.println(step + " # " + clientRankInComm + " -> " + sendTo);
 				dataMultiplicator = ((clientRankInComm << 1) <= commSize) ? ((clientRankInComm << 1) - clientRankInComm) : (commSize - clientRankInComm);
 				if(dataMultiplicator == 0)
 					dataMultiplicator = 1;
 				OUTresults.addNetSend(sendTo, new NetworkSimpleData(dataMultiplicator * cmd.getSize() + 20), TAG, cmd.getCommunicator());
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 			}else{
+				// receive data and send own data plus the newly received to root later
 				receiveFrom = clientRankInComm + (1 << step);
 
 				if (receiveFrom <= commSize){
-					System.out.println(step + " # " + clientRankInComm + " <- " + receiveFrom);
 					OUTresults.addNetReceive(receiveFrom, TAG, cmd.getCommunicator());
 				}
 				OUTresults.setNextStep(++step);
@@ -62,7 +71,6 @@ extends CommandImplementation<Gather>
 				// odd
 				sendTo = clientRankInComm - 1;
 				dataMultiplicator = 1;
-				System.out.println(step + " # " + clientRankInComm + " -> " + sendTo);
 				OUTresults.addNetSend(sendTo, new NetworkSimpleData(dataMultiplicator * cmd.getSize() + 20), TAG, cmd.getCommunicator());
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 			}else{
@@ -71,7 +79,6 @@ extends CommandImplementation<Gather>
 					receiveFrom = clientRankInComm + 1;
 
 					if (receiveFrom <= commSize){
-						System.out.println(step + " # " + clientRankInComm + " <- " + receiveFrom);
 						OUTresults.addNetReceive(receiveFrom, TAG, cmd.getCommunicator());
 					}
 
@@ -81,7 +88,6 @@ extends CommandImplementation<Gather>
 					dataMultiplicator = (clientRankInComm == commSize) ? 1 : 2;
 
 					if(Integer.bitCount(sendTo) == 1){
-						System.out.println(step + " # " + clientRankInComm + " -> " + sendTo);
 						OUTresults.addNetSend(sendTo, new NetworkSimpleData(dataMultiplicator * cmd.getSize() + 20), TAG, cmd.getCommunicator());
 						OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 					}else{

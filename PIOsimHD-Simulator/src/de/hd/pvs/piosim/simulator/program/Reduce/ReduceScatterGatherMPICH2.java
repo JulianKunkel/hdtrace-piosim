@@ -1,19 +1,19 @@
-//	Copyright (C) 2008, 2009, 2010, 2011 Julian M. Kunkel
+//    Copyright (C) 2008, 2009, 2010, 2011 Julian M. Kunkel
 //
-//	This file is part of PIOsimHD.
+//    This file is part of PIOsimHD.
 //
-//	PIOsimHD is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU General Public License as published by
-//	the Free Software Foundation, either version 3 of the License, or
-//	(at your option) any later version.
+//    PIOsimHD is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
 //
-//	PIOsimHD is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU General Public License for more details.
+//    PIOsimHD is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
 //
-//	You should have received a copy of the GNU General Public License
-//	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
+//    You should have received a copy of the GNU General Public License
+//    along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 
 package de.hd.pvs.piosim.simulator.program.Reduce;
 
@@ -52,97 +52,107 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 public class ReduceScatterGatherMPICH2
 extends CommandImplementation<Reduce>
 {
-	final int SCATTER_COMPLETED = 2;
-	final int TAG = 41234;
+    final int SCATTER_COMPLETED = 2;
+    final int TAG = 41234;
 
-	// Re-map communicator for non-power of two processes
-	static HashMap<Integer,Communicator> communicators = new HashMap<Integer,Communicator>();
-
-
-	@Override
-	public void process(Reduce cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
-	{
-		if (cmd.getCommunicator().getSize() == 1) {
-			return;
-		}
-
-		// if the # of processes is not power of two, then the first odd processes send data to the even processes
-		// then the process starts
-		final int commSize = cmd.getCommunicator().getSize();
-
-		if(Integer.bitCount(commSize) != 1){
-			final int myRank = client.getModelComponent().getRank();
-			final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
-			if(myRank <= (1+2*rest)){
-				// odd sends to even
-				if(myRank % 2 == 0){
-					OUTresults.addNetReceive(myRank + 1, TAG, cmd.getCommunicator());
-				}else{
-					OUTresults.addNetSend(myRank - 1, new NetworkSimpleData(cmd.getSize() / cmd.getCommunicator().getSize()), TAG, cmd.getCommunicator());
-				}
-			}
-		}
+    // Re-map communicator for non-power of two processes
+    static HashMap<Integer,Communicator> communicators = new HashMap<Integer,Communicator>();
 
 
-		Communicator comm = communicators.get(cmd.getCommunicator().getIdentity());
-		if(comm == null){
-			comm = new Communicator("");
+    @Override
+    public void process(Reduce cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
+    {
+        if (cmd.getCommunicator().getSize() == 1) {
+            return;
+        }
 
-			communicators.put(cmd.getCommunicator().getIdentity(), comm);
+        final int commSize = cmd.getCommunicator().getSize();
 
-			HashMap<Integer, CommunicatorInformation> m = cmd.getCommunicator().getParticipiants();
+        if(Integer.bitCount(commSize) != 1){
+            // number of processes is not power of two
+            // The non-power-of-two case is
+            // handled by dropping to the nearest lower power-of-two: the first
+            // few odd-numbered processes send their data to their left neighbors
+            // (rank-1)
+            final int myRank = client.getModelComponent().getRank();
+            final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
+            // rest = nearest lower power-of-two
+            if(myRank < 2*(commSize - rest)){
+                // odd sends to even
+                if(myRank % 2 == 0){
+                    OUTresults.addNetReceive(myRank + 1, TAG, cmd.getCommunicator());
+                }else{
+                    OUTresults.addNetSend(myRank - 1, new NetworkSimpleData(cmd.getSize() / cmd.getCommunicator().getSize()), TAG, cmd.getCommunicator());
+                }
+            }
+        }
 
-			if(Integer.bitCount(commSize) != 1){
-				final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
-				int localRankCounter = 0;
-				for(Integer key : m.keySet()){
-					if(key <= (1+2*rest) && key % 2 != 0){
-						continue;
-					}
-					comm.addRank(key, localRankCounter, 0);
-					localRankCounter++;
-				}
-			}
-		}
+        // spawn a communicator for the remaining power-of-two processes
+        Communicator comm = communicators.get(cmd.getCommunicator().getIdentity());
+        if(comm == null){
+            comm = new Communicator("");
 
+            communicators.put(cmd.getCommunicator().getIdentity(), comm);
 
-		if(step == CommandProcessing.STEP_START){
+            HashMap<Integer, CommunicatorInformation> m = cmd.getCommunicator().getParticipiants();
 
-			ReduceScatter scmd = new ReduceScatter();
-			HashMap<Integer, Long> map = new HashMap<Integer, Long>();
+            if(Integer.bitCount(commSize) != 1){
+                // skip processes handled above
+                final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
+                int localRankCounter = 0;
+                for(Integer key : m.keySet()){
+                    if(key < 2*(commSize - rest) && key % 2 != 0){
+                        continue;
+                    }
+                    comm.addRank(key, localRankCounter, 0);
+                    localRankCounter++;
+                }
+            }else{
+                // nothing to skip
+                for(Integer key : m.keySet()){
+                    comm.addRank(key, key, 0);
+                }
+            }
+        }
 
-			// default: split data equally.
-			long sizePerRank = cmd.getSize() / cmd.getCommunicator().getSize();
-			int restClients = (int) (cmd.getSize() % cmd.getCommunicator().getSize());
+        if(step == CommandProcessing.STEP_START){
+            // perform reduce scatter
+            ReduceScatter scmd = new ReduceScatter();
+            HashMap<Integer, Long> map = new HashMap<Integer, Long>();
 
-			for (int i=0; i < cmd.getCommunicator().getSize(); i++){
-				if( i < restClients){
-					map.put(i, sizePerRank + 1);
-				}else{
-					map.put(i, sizePerRank);
-				}
-			}
+            // default: split data equally.
+            long sizePerRank = cmd.getSize() / cmd.getCommunicator().getSize();
+            int restClients = (int) (cmd.getSize() % cmd.getCommunicator().getSize());
 
-			scmd.setRecvcounts(map);
+            for (int i=0; i < cmd.getCommunicator().getSize(); i++){
+                if( i < restClients){
+                    map.put(i, sizePerRank + 1);
+                }else{
+                    map.put(i, sizePerRank);
+                }
+            }
 
-			scmd.setCommunicator(cmd.getCommunicator());
+            scmd.setRecvcounts(map);
 
-			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
-				de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo.class);
+            scmd.setCommunicator(cmd.getCommunicator());
 
-		}else if(step == SCATTER_COMPLETED){
-			Gather gcmd = new Gather();
+            OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED,
+                de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo.class);
 
-			gcmd.setRootRank(cmd.getRootRank());
-			// the amount of data to gather from each node is the assigned data from the scatter, this can be approximated by the equation:
-			long size = cmd.getSize() / cmd.getCommunicator().getSize() + cmd.getSize() % cmd.getCommunicator().getSize();
-			gcmd.setSize(size);
+        }else if(step == SCATTER_COMPLETED){
+            // perform gather
+            Gather gcmd = new Gather();
 
-			gcmd.setCommunicator(cmd.getCommunicator());
+            gcmd.setRootRank(cmd.getRootRank());
+            // the amount of data to gather from each node is the assigned data from the scatter, this can be approximated by the equation:
+            long size = cmd.getSize() / cmd.getCommunicator().getSize() + cmd.getSize() % cmd.getCommunicator().getSize();
+            gcmd.setSize(size);
 
-			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED,
-					de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2.class);
-		}
-	}
+            gcmd.setCommunicator(cmd.getCommunicator());
+
+            OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED,
+                    de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2.class);
+        }
+    }
 
 }

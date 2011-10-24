@@ -1,4 +1,3 @@
-
  /** Version Control Information $Id$
   * @lastmodified    $Date$
   * @modifiedby      $LastChangedBy$
@@ -32,6 +31,7 @@ import de.hd.pvs.TraceFormat.statistics.StatisticsReader;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.StAXTraceFileReader;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
+import de.hd.pvs.TraceFormat.util.Epoch;
 
 /**
  * Create an index file for a statistic group or trace file.
@@ -48,7 +48,7 @@ public class IndexCreator {
 	 * @throws Exception
 	 */
 	public void createIndexForTraceFile(String inputFile) throws Exception{
-		final StAXTraceFileReader reader = new StAXTraceFileReader(inputFile, false);
+		final StAXTraceFileReader reader = new StAXTraceFileReader(inputFile, false, Epoch.ZERO);
 		
 		final int dotPos = inputFile.lastIndexOf('.');		
 		final String outFileName = inputFile.substring(0, dotPos) + ".idx";
