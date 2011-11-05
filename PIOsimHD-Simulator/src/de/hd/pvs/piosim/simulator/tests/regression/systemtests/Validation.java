@@ -808,10 +808,10 @@ public class Validation  extends ModelTest {
 	@Test public void runAsingleCollective() throws Exception{
 		RunParameters p = new RunParameters();
 		p.setTraceEnabled(true);
-		p.setTraceFile("/tmp/bcast");
+		p.setTraceFile("/tmp/barrier");
 		p.setTraceInternals(true);
 
-		runCollectiveTest(4,4, "Barrier", "", null, null, true, true, p, 99); //100 barriers: 0.012588828 vs. 1.27389
+		runCollectiveTest(2,2, "Barrier", "", null, null, true, true, p, 0);
 		//runCollectiveTest(4,4, "Reduce", "10240", null, null, true, p, 99);
 	}
 
@@ -1198,6 +1198,43 @@ public class Validation  extends ModelTest {
 		modelTime.close();
 	}
 
+	/**
+	 * Verification with the mpi-network-behavior results.
+	 * @throws Exception
+	 */
+	@Test
+	public void PingPongKernelValidation() throws Exception{
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/pingPong.txt"));
+
+		for(long transferGranularity: new long [] {512, 5120, 100*KiB, 10*MiB} ){
+
+			for(int c = 0; c <= 1; c++) {
+
+				for(int size = 0 ; size < 128 * MiB ; size *=2){
+					modelTime.write("TransferGranularity " + transferGranularity + " inter-node:" + c + " PingPong Kernel " + size + " ");
+
+					setupWrCluster( c == 1 ? 2 : 1, 2);
+
+					getGlobalSettings().setTransferGranularity(transferGranularity);
+
+					// PingPong Kernel
+					pb.addSendAndRecv(world, 1, 0, size, 4711);
+					pb.addSendAndRecv(world, 0, 1, size, 4711);
+
+					runSimulationWithoutOutput();
+
+					modelTime.write(simRes.getVirtualTime().getDouble() + " " + " throughput: " +  (2*(size + 40) / simRes.getVirtualTime().getDouble() / 1024 / 1024) + " MiB/s" );
+					modelTime.flush();
+					modelTime.write("\n");
+
+					if(size == 0){
+						size = 128;
+					}
+				}
+			}
+		}
+		System.out.println("Completed!");
+	}
 
 
 	public void sendRecvPaired(BufferedWriter modelTime ) throws Exception{
