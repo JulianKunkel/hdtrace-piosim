@@ -40,17 +40,11 @@ import de.hd.pvs.piosim.simulator.event.EventData;
 public class MessagePart implements INetworkMessage, EventData{
 
 	/**
-	 * Amount of bytes used for the addressing.
-	 * Currently, the minimum TCP header size (20) and IP header size (20) are used.
-	 * Every packet created will add this overhead.
-	 */
-	final static int MESSAGE_OVERHEAD_BYTES = 20+20;
-
-
-	/**
 	 * Size of this MessagePart
 	 */
 	final private long partSize;
+
+	final private long payloadSize;
 
 	/**
 	 * Position of this MessagePart inside the Message.
@@ -63,7 +57,13 @@ public class MessagePart implements INetworkMessage, EventData{
 	final private Message msg;
 
 	public MessagePart(Message msg, long payload, long position) {
-		this.partSize = payload + MESSAGE_OVERHEAD_BYTES;
+		if(Message.overheadPerMessagePart == true){
+			this.partSize = payload + Message.MESSAGE_OVERHEAD_BYTES;
+		}else{
+			this.partSize = payload;
+		}
+		this.payloadSize = payload;
+
 		this.msg = msg;
 		this.position = position;
 	}
@@ -81,7 +81,7 @@ public class MessagePart implements INetworkMessage, EventData{
 	}
 
 	public long getPayloadSize(){
-		return partSize - MESSAGE_OVERHEAD_BYTES;
+		return payloadSize;
 	}
 
 	@Override

@@ -38,6 +38,18 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 	/**
+	 * Flag if the MESSAGE_OVERHEAD is applied per message or per message part.
+	 */
+	final public static boolean overheadPerMessagePart = false;
+
+	/**
+	 * Amount of bytes used for the addressing.
+	 * Currently, the minimum TCP header size (20) and IP header size (20) are used.
+	 * Every packet created will add this overhead.
+	 */
+	final public static int MESSAGE_OVERHEAD_BYTES = 20+20;
+
+	/**
 	 * Receiver of the network message
 	 */
 	final private INetworkExit targetComponent;
@@ -50,6 +62,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * The total size of this message.
 	 */
 	final private long totalSize;
+
+	final private long payloadSize;
 
 	/**
 	 * How much data has been already packed into smaller packets.
@@ -104,16 +118,27 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 		assert(targetComponent != null);
 		assert(sourceComponent != null);
 
+		this.payloadSize = size;
+
+		if(! overheadPerMessagePart){
+			size = size + MESSAGE_OVERHEAD_BYTES;
+		}
 		this.totalSize = size;
 		this.availableDataPosition = size;
+
+
 		this.containedData = containedData;
 		this.targetComponent = targetComponent;
 		this.sourceComponent = sourceComponent;
 		this.relationToken = parentToken;
 	}
 
-	public void setAvailableDataPosition(long size){
-		this.availableDataPosition = size;
+	public void resetMessage(){
+		if(! overheadPerMessagePart){
+			this.availableDataPosition = MESSAGE_OVERHEAD_BYTES;
+		}else{
+			this.availableDataPosition = 0;
+		}
 	}
 
 	/**
@@ -122,7 +147,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 */
 	public void appendAvailableDataToSend(long count){
 		this.availableDataPosition += count;
-		assert(this.availableDataPosition <= this.totalSize);
+		assert(this.availableDataPosition <= this.payloadSize);
 	}
 
 
