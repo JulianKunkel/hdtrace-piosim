@@ -154,7 +154,7 @@ public class Validation  extends ModelTest {
 		final int socketCount ;
 		final int procsPerSocket ;
 
-		if(true){ // true is always the real setting
+		if(false){ // true is always the real setting
 			socketCount = 2;
 			procsPerSocket = 6;
 		}else{
@@ -1208,7 +1208,7 @@ public class Validation  extends ModelTest {
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/pingPong.txt"));
 
 		modelTime.write("# Sizes:");
-		for(int size = 0 ; size < 128 * MiB ; size *=2){
+		for(int size = 0 ; size <= 128 * MiB ; size *=2){
 			modelTime.write(" " + size);
 
 			if(size == 0){

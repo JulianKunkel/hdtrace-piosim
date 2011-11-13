@@ -11,8 +11,8 @@ public class NetworkEdgesC implements HardwareComponents{
 	static public SimpleNetworkEdge SocketLocalEdge(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("SLE");
-		conn.setLatency(new Epoch(0.000000207));
-		conn.setBandwidth(10864 * MBYTE);
+		conn.setLatency(new Epoch(0, 79));
+		conn.setBandwidth(3781 * MIB);
 		return conn;
 	}
 
@@ -28,8 +28,8 @@ public class NetworkEdgesC implements HardwareComponents{
 	static public SimpleNetworkEdge QPI(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("QPI");
-		conn.setLatency(new Epoch(0.00000026679619779508)); // difference between intra-socket and inter-socket
-		conn.setBandwidth(10864 * MBYTE);
+		conn.setLatency(new Epoch(0, 38)); // difference between intra-socket and inter-socket
+		conn.setBandwidth(3427 * MIB);
 		return conn;
 	}
 
@@ -45,7 +45,7 @@ public class NetworkEdgesC implements HardwareComponents{
 	static public SimpleNetworkEdge GIGEPVS(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("1GBitEPVS");
-		conn.setLatency(new Epoch(0.00004119364785427372));
+		conn.setLatency(new Epoch(0, 19982));
 		conn.setBandwidth(75392614); // 71.9 MiB/s
 		return conn;
 	}

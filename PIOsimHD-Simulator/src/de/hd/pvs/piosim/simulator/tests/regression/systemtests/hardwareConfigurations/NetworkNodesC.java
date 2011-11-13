@@ -13,7 +13,7 @@ public class NetworkNodesC implements HardwareComponents{
 
 		// determined on west1 by using memory-bandwidth.c 1000 iter, 104857600
 		// 1000 iterations, time:13.106618s MB/s:7629.733218
-		sw.setTotalBandwidth(7629  * MBYTE);
+		sw.setTotalBandwidth(10864  * MIB);
 		return sw;
 	}
 
@@ -21,8 +21,8 @@ public class NetworkNodesC implements HardwareComponents{
 	static 	public StoreForwardNode LocalNodeQPI(){
 		StoreForwardMemoryNode sw = new StoreForwardMemoryNode();
 		sw.setName("QPIL");
-		sw.setTotalBandwidth(3427  *  MBYTE );
-		sw.setLocalBandwidth(4556 * MBYTE );
+		sw.setTotalBandwidth(3778  *  MIB );
+		sw.setLocalBandwidth(4556 * MIB );
 
 		return sw;
 	}
@@ -31,7 +31,7 @@ public class NetworkNodesC implements HardwareComponents{
 	static 	public StoreForwardNode SocketLocalNode(){
 		StoreForwardMemoryNode sw = new StoreForwardMemoryNode();
 		sw.setName("SLN");
-		sw.setTotalBandwidth(3427  *  MIB );
+		sw.setTotalBandwidth(3778  *  MIB );
 		sw.setLocalBandwidth(4556 * MIB );
 
 		return sw;
