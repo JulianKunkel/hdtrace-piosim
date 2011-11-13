@@ -299,8 +299,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 	}
 
 	public ISPassiveComponent instantiateSimObjectForModelObj(IBasicComponent modelObject) throws Exception {
-		ModelObjectMap mop = DynamicModelClassMapper
-		.getComponentImplementation(modelObject);
+		ModelObjectMap mop = DynamicModelClassMapper.getComponentImplementation(modelObject);
 
 		Constructor<ISPassiveComponent> ct = ((Class<ISPassiveComponent>) Class
 				.forName(mop.getSimulationClass())).getConstructor();

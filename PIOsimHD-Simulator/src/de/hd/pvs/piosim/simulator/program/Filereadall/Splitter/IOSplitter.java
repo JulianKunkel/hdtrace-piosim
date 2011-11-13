@@ -7,7 +7,7 @@ import de.hd.pvs.piosim.simulator.program.Global.MultiPhase.MultiPhaseContainer;
 import de.hd.pvs.piosim.simulator.program.Global.MultiPhase.MultiPhaseRun;
 
 abstract public class IOSplitter {
-	static final protected long twoPhaseBufferSize = 8 * 1024 * 1024; // 8 MiB
+	static final protected long twoPhaseBufferSize = 16777216; // 16 MiB 16777216
 	final protected int  ioaggregators = 0; // <= 0 means all !
 
 	/**

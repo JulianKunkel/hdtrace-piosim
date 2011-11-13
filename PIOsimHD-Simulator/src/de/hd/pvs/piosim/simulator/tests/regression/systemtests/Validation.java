@@ -1206,12 +1206,23 @@ public class Validation  extends ModelTest {
 	public void PingPongKernelValidation() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/pingPong.txt"));
 
+		modelTime.write("# Sizes:");
+		for(int size = 0 ; size < 128 * MiB ; size *=2){
+			modelTime.write(" " + size);
+
+			if(size == 0){
+				size = 64;
+			}
+		}
+		modelTime.write("\n");
+
+
 		for(long transferGranularity: new long [] {512, 5120, 100*KiB, 10*MiB} ){
 
 			for(int c = 0; c <= 1; c++) {
+				modelTime.write("TransferGranularity " + transferGranularity + " inter-node:" + c + " PingPong Kernel " );
 
-				for(int size = 0 ; size < 128 * MiB ; size *=2){
-					modelTime.write("TransferGranularity " + transferGranularity + " inter-node:" + c + " PingPong Kernel " + size + " ");
+				for(int size = 0 ; size <= 128 * MiB ; size *=2){
 
 					setupWrCluster( c == 1 ? 2 : 1, 2);
 
@@ -1223,14 +1234,14 @@ public class Validation  extends ModelTest {
 
 					runSimulationWithoutOutput();
 
-					modelTime.write(simRes.getVirtualTime().getDouble() + " " + " throughput: " +  (2*(size + 40) / simRes.getVirtualTime().getDouble() / 1024 / 1024) + " MiB/s" );
+					//modelTime.write(simRes.getVirtualTime().getDouble() + " " + " throughput: " +  (2*(size + 40) / simRes.getVirtualTime().getDouble() / 1024 / 1024) + " MiB/s" );
+					modelTime.write((2*(size + 40) / simRes.getVirtualTime().getDouble() / 1024 / 1024) + " " );
 					modelTime.flush();
-					modelTime.write("\n");
-
 					if(size == 0){
-						size = 128;
+						size = 64;
 					}
 				}
+				modelTime.write("\n");
 			}
 		}
 		System.out.println("Completed!");

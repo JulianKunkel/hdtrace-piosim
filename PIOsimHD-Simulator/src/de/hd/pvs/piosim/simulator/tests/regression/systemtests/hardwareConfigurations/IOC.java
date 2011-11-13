@@ -31,7 +31,7 @@ public class IOC implements HardwareComponents{
 		iosub.setTrackToTrackSeekTime(new Epoch(0.001));
 		iosub.setRPM(7200);
 		iosub.setPositionDifferenceConsideredToBeClose(1 * MBYTE);
-		iosub.setSequentialTransferRate((int) 100 * MBYTE);
+		iosub.setSequentialTransferRate((int) 96 * MIB);
 		iosub.setName("IBM");
 
 		return iosub;

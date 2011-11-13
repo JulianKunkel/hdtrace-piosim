@@ -69,11 +69,11 @@ public class GAggregationCache extends GSimpleWriteBehind {
 			private IOJob combineIOJobs(LinkedList<IOJob<?,IOOperationData>> list, final long ioGranularity){
 				final IOJob scheduledJob = list.poll();
 
-				final IOOperationType ioType = scheduledJob.getOperationType();
-
 				if(scheduledJob == null){
 					return null;
 				}
+
+				final IOOperationType ioType = scheduledJob.getOperationType();
 
 				if(ioType ==  IOOperationType.FLUSH){
 					return scheduledJob;
@@ -176,8 +176,7 @@ public class GAggregationCache extends GSimpleWriteBehind {
 
 			@Override
 			public IOJob getNextSchedulableJob(GlobalSettings settings) {
-				if(  ! queuedReadJobs.isEmpty() &&
-						nodeRessources.isEnoughFreeMemory( settings.getIOGranularity() ) )
+				if(  ! queuedReadJobs.isEmpty() && nodeRessources.isEnoughFreeMemory( settings.getIOGranularity() ) )
 				{
 					// reserve memory for READ requests
 					return combineIOJobs(queuedReadJobs, settings.getIOGranularity());

@@ -40,7 +40,7 @@ public class SendRecvTest extends NormalCommandsClusterTest{
 
 	@Test public void normalReceiveTest() throws Exception{
 		pb.addRecv(world, 3, 0, 0);
-		pb.addSend(world, 3, 0, KBYTE, 0);
+		pb.addSend(world, 3, 0, KiB, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
@@ -48,7 +48,7 @@ public class SendRecvTest extends NormalCommandsClusterTest{
 		pb.addRecv(world, 3, 0, 0);
 
 		pb.addCompute(3, 1000000);
-		pb.addSend(world, 3, 0, KBYTE, 0);
+		pb.addSend(world, 3, 0, KiB, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
@@ -56,7 +56,7 @@ public class SendRecvTest extends NormalCommandsClusterTest{
 		pb.addCompute(0, 1000000);
 		pb.addRecv(world, 3, 0, 0);
 
-		pb.addSend(world, 3, 0, KBYTE, 0);
+		pb.addSend(world, 3, 0, KiB, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
@@ -67,42 +67,42 @@ public class SendRecvTest extends NormalCommandsClusterTest{
 		pb.addRecv(world, 3, 0, 0);
 		pb.addRecv(world, 3, 0, 1);
 
-		pb.addSend(world, 3, 0, KBYTE, 1);
-		pb.addSend(world, 3, 0, KBYTE, 0);
+		pb.addSend(world, 3, 0, KiB, 1);
+		pb.addSend(world, 3, 0, KiB, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
 
 	@Test public void anyReceiveTest() throws Exception{
 		pb.addRecv(world, -1, 0, 0);
-		pb.addSend(world, 3, 0, KBYTE, 0);
+		pb.addSend(world, 3, 0, KiB, 0);
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void sendRecvTestTwoClients() throws Exception{
-		pb.addSendRecv(world, 0, 1, 1, MBYTE, 0, 1);
+		pb.addSendRecv(world, 0, 1, 1, MiB, 0, 1);
 
-		pb.addSendRecv(world, 1, 0, 0, KBYTE, 1, 0);
+		pb.addSendRecv(world, 1, 0, 0, KiB, 1, 0);
 
 		runSimulationAllExpectedToFinish();
 	}
 
 	@Test public void sendRecvTestTwoClientsEager() throws Exception{
-		mb.getGlobalSettings().setMaxEagerSendSize(200 * KBYTE);
-		pb.addSendRecv(world, 0, 1, 1, KBYTE, 0, 1);
+		mb.getGlobalSettings().setMaxEagerSendSize(200 * KiB);
+		pb.addSendRecv(world, 0, 1, 1, KiB, 0, 1);
 
-		pb.addSendRecv(world, 1, 0, 0, KBYTE, 1, 0);
+		pb.addSendRecv(world, 1, 0, 0, KiB, 1, 0);
 
 		runSimulationAllExpectedToFinish();
 	}
 
 
 	@Test public void sendRecvTestThreeClients() throws Exception{
-		pb.addSendRecv(world, 0, 1, 2, MBYTE, 0, 0);
+		pb.addSendRecv(world, 0, 1, 2, MiB, 0, 0);
 
-		pb.addSendRecv(world, 1, 2, 0, KBYTE, 0, 0);
+		pb.addSendRecv(world, 1, 2, 0, KiB, 0, 0);
 
-		pb.addSendRecv(world, 2, 0, 1, KBYTE, 0, 0);
+		pb.addSendRecv(world, 2, 0, 1, KiB, 0, 0);
 		runSimulationAllExpectedToFinish();
 	}
 

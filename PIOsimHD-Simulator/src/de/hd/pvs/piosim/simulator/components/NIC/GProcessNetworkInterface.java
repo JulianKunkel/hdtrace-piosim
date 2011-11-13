@@ -380,6 +380,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			return this;
 		}
 
+		assert(routing != null);
 		return routing.getTargetRouteForMessage(this.getModelComponent(), part);
 	}
 

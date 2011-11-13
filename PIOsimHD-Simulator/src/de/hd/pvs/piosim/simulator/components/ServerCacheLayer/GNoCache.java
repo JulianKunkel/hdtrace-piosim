@@ -416,6 +416,7 @@ public class GNoCache
 		ioSubsystem.setIOCallback(this);
 
 		assert(ioSubsystem != null);
+		assert(nodeRessources != null);
 		assert(serverProcess != null);
 	}
 }

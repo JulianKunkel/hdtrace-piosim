@@ -67,7 +67,7 @@ public class RequestProcessorRead
 				resp.getMatchingCriterion().getTargetComponent().getNetworkInterface(), request.getRelationToken() );
 
 		// wait for data to send:
-		msg.setAvailableDataPosition(0);
+		msg.resetMessage();
 
 		server.getNetworkInterface().initiateInterProcessSend(msg, time);
 		server.getCacheLayer().announceIORequest( req, msg, ioCallback, time );

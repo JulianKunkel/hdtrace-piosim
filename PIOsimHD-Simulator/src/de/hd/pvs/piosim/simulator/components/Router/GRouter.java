@@ -61,7 +61,7 @@ public class GRouter extends SPassiveComponent<Router>
 						getNetworkInterface().getModelComponent(),
 						request.getFinalTarget().getNetworkInterface(), part.getMessage().getRelationToken());
 
-				forwardingMsg.setAvailableDataPosition(0);
+				forwardingMsg.resetMessage();
 
 				getNetworkInterface().initiateInterProcessSend(forwardingMsg, endTime);
 
