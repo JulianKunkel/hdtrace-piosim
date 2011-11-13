@@ -50,7 +50,7 @@ extends CommandImplementation<Bcast>
 			scmd.setSize(sizePerRank);
 			scmd.setCommunicator(cmd.getCommunicator());
 
-			OUTresults.invokeChildOperation(scmd, BARRIER_COMPLETED, de.hd.pvs.piosim.simulator.program.Scatter.Direct.class);
+			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED, de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2.class);
 
 		}else if(step == SCATTER_COMPLETED){
 			Barrier bcmd = new Barrier();
@@ -64,7 +64,7 @@ extends CommandImplementation<Bcast>
 			gcmd.setSize(sizePerRank);
 			gcmd.setCommunicator(cmd.getCommunicator());
 
-			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED, null);
+			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED, de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2.class);
 		}
 	}
 

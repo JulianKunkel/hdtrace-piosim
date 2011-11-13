@@ -1108,7 +1108,7 @@ public class Validation  extends ModelTest {
 		// load traces
 		final String folder = prefix + config + "/" + experiment + "/" + strSize;
 		String proj= getProjectFile(folder);
-		if(proj == null){
+		if(proj == ""){
 			outputFile.write("Invalid configuration: " + folder);
 			// we know the time is 0.0 for the configuration 1-1
 			modelTime.write("0.0 ");
@@ -1146,7 +1146,8 @@ public class Validation  extends ModelTest {
 
 		if(addBarrier){
 			String barrierProj= getProjectFile(prefix + config + "/Barrier");
-			final Application barrierApp = axml.parseApplication(barrierProj, true);
+			final Application barrierApp;
+			barrierApp = axml.parseApplication(barrierProj, true);
 
 			for(int r = 0 ; r < barrierApp.getProcessCount(); r++){
 				ProgramInMemory bp = (ProgramInMemory) barrierApp.getClientProgram(r, 0);
@@ -1388,7 +1389,7 @@ public class Validation  extends ModelTest {
 		// test cases run on the WR cluster
 
 
-		String [] experiments = new String[]{ "Reduce", "Allreduce", "Bcast", "Barrier",  "Allgather", "Gather", "Scatter"};
+		String [] experiments = new String[]{"Reduce", "Allreduce", "Bcast", "Barrier",  "Allgather", "Gather", "Scatter"};
 
 
 		for(String experiment: experiments){
@@ -1408,7 +1409,15 @@ public class Validation  extends ModelTest {
 
 					final int nodes = Integer.parseInt(config.split("-")[0]);
 					final int processes = Integer.parseInt(config.split("-")[1]);
-					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, true, null, 0);
+
+					// those values are set by the real-world test...
+					int repeats = 0;
+
+					if(nodes == 1 && size <= 100*1024){
+						repeats = 99;
+					}
+
+					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, true, null, repeats);
 				}
 				modelTime.write("\n");
 
@@ -1515,11 +1524,13 @@ public class Validation  extends ModelTest {
 
 
 	@Test public void test() throws Exception{
-		setupSMP(2);
+		setupWrCluster(5, 5);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
-		pb.addSendAndRecv(world, 0, 1, 100 * KiB, 1);
+		pb.addAllgather(world, 10*MiB);
 
 		parameters.setTraceFile("/tmp/out");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2");
+
 		parameters.setTraceEnabled(true);
 
 		runSimulationAllExpectedToFinish();
@@ -1617,7 +1628,7 @@ public class Validation  extends ModelTest {
 
 
 	@Test public void MPICH2Reduce() throws Exception{
-		setup(2, 1);
+		setup(5, 1);
 
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setClientFunctionImplementation(
@@ -1628,7 +1639,7 @@ public class Validation  extends ModelTest {
 
 		parameters.setTraceEnabled(true);
 
-		pb.addReduce(world, 0, 10 * KiB);
+		pb.addReduce(world, 0, 10 * MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1827,6 +1838,26 @@ public class Validation  extends ModelTest {
 		pb.addScatter(world, 0, 10 * MiB);
 		runSimulationAllExpectedToFinish();
 }
+
+	public void runPartdiffParExperiments() throws Exception{
+		final String which =
+			"/home/julian/Dokumente/Dissertation/Latex/results/tests/Jacobi-MPI/2000-NS-NC-NProc-Disjoint-900MBTotalAnd100MBShared/N4-P1-C2-P2-S2-RAM550/23370.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+
+		AggregationCache cache = new AggregationCache();
+		cache.setName("PVS-CACHE");
+		cache.setMaxNumberOfConcurrentIOOps(1);
+
+		setupWrCluster(2, 2, 0, 2, cache, 550);
+
+		parameters.setTraceFile("/tmp/test");
+		parameters.setTraceEnabled(true);
+
+		final ApplicationXMLReader axml = new ApplicationXMLReader();
+		final Application app = axml.parseApplication(which, true);
+		mb.setApplication("Validate", app);
+
+		runSimulationAllExpectedToFinish();
+	}
 
 
 
