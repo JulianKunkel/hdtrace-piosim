@@ -61,9 +61,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	/**
 	 * The total size of this message.
 	 */
-	final private long totalSize;
-
 	final private long payloadSize;
+
 
 	/**
 	 * How much data has been already packed into smaller packets.
@@ -90,14 +89,32 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	public MessagePart createNextMessagePart(long splitSize){
 		long position = createdPosition;
 		long remainingAvailBytes = (availableDataPosition - position);
+
 		if ( remainingAvailBytes == 0){
 			/* send complete OR data is not availabe, yet */
 			return null;
 		}
+
 		long size     = (remainingAvailBytes > splitSize) ? splitSize : remainingAvailBytes;
-		MessagePart part = new MessagePart(this, size, position);
+
+		MessagePart part;
+
+		if(overheadPerMessagePart){
+			part = new MessagePart(this, size, MESSAGE_OVERHEAD_BYTES, position);
+		}else if(! overheadPerMessagePart){
+			if(createdPosition != 0){
+				part = new MessagePart(this, size, 0, position);
+			}else{ // first packet add the message part
+				part = new MessagePart(this, size, MESSAGE_OVERHEAD_BYTES, position);
+			}
+		}
+
 		createdPosition = position + size;
 		return part;
+	}
+
+	public MessagePart createEmptyMessage(){
+			return new MessagePart(this, 0, MESSAGE_OVERHEAD_BYTES, 0);
 	}
 
 	/**
@@ -120,10 +137,6 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 		this.payloadSize = size;
 
-		if(! overheadPerMessagePart){
-			size = size + MESSAGE_OVERHEAD_BYTES;
-		}
-		this.totalSize = size;
 		this.availableDataPosition = size;
 
 
@@ -134,11 +147,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	}
 
 	public void resetMessage(){
-		if(! overheadPerMessagePart){
-			this.availableDataPosition = MESSAGE_OVERHEAD_BYTES;
-		}else{
-			this.availableDataPosition = 0;
-		}
+		this.availableDataPosition = 0;
 	}
 
 	/**
@@ -152,22 +161,15 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 
 	/**
-	 * @return the availableDataPosition
-	 */
-	public long getAvailableDataPosition() {
-		return availableDataPosition;
-	}
-
-	/**
 	 * Checks if the message got received completely.
 	 * @return
 	 */
 	public boolean isReceivedCompletely(){
-		return (receivedSize == totalSize);
+		return (receivedSize == payloadSize);
 	}
 
 	public long getRemainingBytesToReceive(){
-		return totalSize - receivedSize;
+		return payloadSize - receivedSize;
 	}
 
 	/**
@@ -183,7 +185,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @return
 	 */
 	public boolean isAllMessageDataAvailable(){
-		return this.availableDataPosition == this.totalSize;
+		return this.availableDataPosition == this.payloadSize;
 	}
 
 	@Override
@@ -193,7 +195,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 	@Override
 	public long getSize() {
-		return totalSize;
+		return payloadSize;
 	}
 
 	@Override

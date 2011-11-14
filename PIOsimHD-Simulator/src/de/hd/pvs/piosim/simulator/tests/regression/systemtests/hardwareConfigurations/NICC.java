@@ -11,14 +11,14 @@ public class NICC implements HardwareComponents{
 		//NICAnalytical nic = new NICAnalytical();
 		NIC nic = new NIC();
 		nic.setName("NIC");
-		nic.setTotalBandwidth(40000 * MBYTE);
+		nic.setTotalBandwidth(40 * GIB);
 		return nic;
 	}
 	static public NIC NICAnalytical(){
 		//NICAnalytical nic = new NICAnalytical();
 		NIC nic = new NICAnalytical();
 		nic.setName("NIC");
-		nic.setTotalBandwidth(40000 * MBYTE);
+		nic.setTotalBandwidth(40 * GIB);
 		return nic;
 	}
 

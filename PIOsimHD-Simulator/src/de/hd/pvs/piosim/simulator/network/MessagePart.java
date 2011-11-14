@@ -56,12 +56,8 @@ public class MessagePart implements INetworkMessage, EventData{
 	 */
 	final private Message msg;
 
-	public MessagePart(Message msg, long payload, long position) {
-		if(Message.overheadPerMessagePart == true){
-			this.partSize = payload + Message.MESSAGE_OVERHEAD_BYTES;
-		}else{
-			this.partSize = payload;
-		}
+	public MessagePart(Message msg, long payload, long header, long position) {
+		this.partSize = payload + header;
 		this.payloadSize = payload;
 
 		this.msg = msg;

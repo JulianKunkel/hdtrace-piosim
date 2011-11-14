@@ -44,6 +44,7 @@ void * mallocWithCheck(long size){
     printf("Current test %s with param %ld\n", currentTest->name, currentTest->param1);
     MPI_Abort(1, MPI_COMM_WORLD);
   }
+  memset(ret, 0, size);
   return ret;
 }
 

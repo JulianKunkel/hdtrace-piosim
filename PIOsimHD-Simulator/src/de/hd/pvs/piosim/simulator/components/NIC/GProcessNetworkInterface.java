@@ -340,7 +340,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			}
 		}else{
 			// create an empty message
-			part = new MessagePart(msg, 0, 0);
+			part = msg.createEmptyMessage();
 		}
 
 		final Event<MessagePart> event = new Event(this, this, startTime,  part, msg.getRelationToken());

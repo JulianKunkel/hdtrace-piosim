@@ -105,7 +105,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 		}
 
 		public void messagePartMatchesAnnounced(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime) {
-			// start a new recv for unexpected msgs.
+			// start a new receive for unexpected msgs.
 			submitRecv();
 		};
 	};
