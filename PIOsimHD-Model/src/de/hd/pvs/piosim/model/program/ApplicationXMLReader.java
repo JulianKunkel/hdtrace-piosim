@@ -155,16 +155,22 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 					throw new IOException("File " + file + " is not readable!");
 				}
 
-				if(readCompleteProgram){
-					// use DOM reader
-					programs[rank][thread] = readProgramXMLDOM(rank, thread, file, app);
-				}else{ // use SAX Reader to read the file
-					programs[rank][thread] = new ProgramReadXMLOnDemand();
-				}
 
-				programs[rank][thread].setApplication(app, rank, thread);
-				programs[rank][thread].setFilename(file);
-				programs[rank][thread].restartWithFirstCommand();
+				try{
+					if(readCompleteProgram){
+						// use DOM reader
+						programs[rank][thread] = readProgramXMLDOM(rank, thread, file, app);
+					}else{ // use SAX Reader to read the file
+						programs[rank][thread] = new ProgramReadXMLOnDemand();
+					}
+
+					programs[rank][thread].setApplication(app, rank, thread);
+					programs[rank][thread].setFilename(file);
+					programs[rank][thread].restartWithFirstCommand();
+
+				}catch(Exception e){
+					throw new IllegalArgumentException("File: " + file, e);
+				}
 			}
 		}
 

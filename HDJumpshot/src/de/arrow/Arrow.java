@@ -45,17 +45,11 @@ public class Arrow{
 	 * @param category
 	 */
 	public Arrow(TopologyTreeNode firstTopology, Epoch firstTime,  TopologyTreeNode scndTopology, Epoch scndTime, ArrowCategory category) {
-		if(firstTime.compareTo(scndTime) <= 0){
-			this.endTime = scndTime;
-			this.startTime = firstTime;		
-			this.endTreeNode = scndTopology;
-			this.startTreeNode = firstTopology;
-		}else{
-			this.endTime = firstTime;
-			this.startTime = scndTime;		
-			this.endTreeNode = firstTopology;
-			this.startTreeNode = scndTopology;
-		}
+		this.endTime = scndTime;
+		this.startTime = firstTime;		
+		this.endTreeNode = scndTopology;
+		this.startTreeNode = firstTopology;
+
 		this.targetObj = null;
 		this.sourceObj = null;
 		this.category = category;		

@@ -95,9 +95,9 @@ public class ArrowManager extends CategoryUpdatedListener{
 	
 	private void computeGroupIfNotComputed(ArrowCategory category){
 		final ManagedArrowGroup group = groups.get(category);
-		if(group.isComputed()){
-			return;
-		}
+		//if(group.isComputed()){
+		//	return;
+		//}
 		recomputeGroup(category);
 	}
 	
