@@ -206,9 +206,12 @@ public class GClientProcess
 			return commandStats;
 		}
 
+		Epoch endTime;
+
 		@Override
 		public String toString() {
 			StringBuffer buff = new StringBuffer();
+			buff.append(" end time: " + endTime.getDouble());
 			for(Class<?> cmdClass: commandStats.keySet()){
 				CommandUsageStatistics stat = commandStats.get(cmdClass);
 				buff.append("\n\t" + cmdClass.getSimpleName() + " " + stat.calls + " calls");
@@ -282,7 +285,7 @@ public class GClientProcess
 
 	@Override
 	public void computeJobCompletedCV(ComputeJob job) {
-		debug("reactivating client " + job);
+////		debug("reactivating client " + job);
 
 		CommandProcessing cmd = pendingComputeJobs.remove(job);
 
@@ -370,6 +373,8 @@ public class GClientProcess
 				clientProgram.isFinished()){
 			finished = true;
 
+			runtimeInformation.endTime = getSimulator().getVirtualTime();
+
 			info("finished");
 		}
 	}
@@ -419,7 +424,7 @@ public class GClientProcess
 		//if(cmd.getClass() != Compute.class)
 		//	getSimulator().getTraceWriter().end(this, cmd.getClass().getSimpleName() + " s " + nextStep);
 
-		debug("command completed: " + cmd);
+////		debug("command completed: " + cmd);
 
 		CommandUsageStatistics statistic = runtimeInformation.commandStats.get(cmd.getClass());
 		if(statistic == null){
@@ -537,7 +542,7 @@ public class GClientProcess
 			getSimulator().getTraceWriter().relEndState(TraceType.CLIENT_STEP, cmdStep.getRelationToken());
 
 			/* now run the appropriate command to generate new events */
-			debug("processing step: " + nextStep + " cmd: " + cmd);
+////			debug("processing step: " + nextStep + " cmd: " + cmd);
 
 			NetworkJobs oldJobs = cmdStep.getNetworkJobs();
 
@@ -664,7 +669,7 @@ public class GClientProcess
 	private void checkJobCompleted(NetworkJobs jobs){
 		if(jobs.isCompleted()){
 			Epoch endTime = getSimulator().getVirtualTime();
-			debug(" resp: " + jobs.getResponses() + " " + endTime);
+////			debug(" resp: " + jobs.getResponses() + " " + endTime);
 
 			/* reactivate this client, we have to process the next command */
 			CommandProcessing pendingOp = pendingNetworkOperations.remove(jobs);
@@ -717,4 +722,5 @@ public class GClientProcess
 	public IInterProcessNetworkJobCallback getCallback() {
 		return callback;
 	}
+
 }
