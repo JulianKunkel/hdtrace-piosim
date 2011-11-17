@@ -70,7 +70,10 @@ extends CommandImplementation<Fileread>
 			}
 
 			if (amountOfDataToReadOriginal != cmd.getListIO().getTotalSize() ){
-				client.warn("Short read: " +  cmd.getListIO().getTotalSize() + " instead of " + amountOfDataToReadOriginal  +	" should be read => file too small \"" + actualFileSize + "\"") ;
+				client.warn("Short read: " +  cmd.getListIO().getTotalSize() + " instead of " + amountOfDataToReadOriginal  +	" should be read => file too small. Current file size: " + actualFileSize + " ops: " + cmd.getListIO().getCount() ) ;
+				if (cmd.getListIO().getCount() == 1){
+					client.warn("offset: " + cmd.getListIO().getFirstAccessedByte());
+				}
 			}
 
 			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getListIO());

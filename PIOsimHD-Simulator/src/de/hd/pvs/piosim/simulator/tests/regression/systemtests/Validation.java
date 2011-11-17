@@ -1,9 +1,11 @@
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -25,6 +29,7 @@ import de.hd.pvs.piosim.model.components.NetworkNode.NetworkNode;
 import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.components.Server.Server;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationReorderCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
 import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
@@ -62,7 +67,7 @@ public class Validation  extends ModelTest {
 			"3-3","3-6","4-4","4-8","5-5","5-10","6-6","6-12","7-7","7-14","8-8","8-16","9-9","9-18","10-10","10-20"};
 
 	int [] sizes = {10240, 1048576, 10485760, 104857600};
-	int [] sizes100KiB = {10240, 102400, 1048576, 10485760, 104857600};
+	int [] sizes100KiB = {10240, 1048576};
 
 
 	long procSpeed =  2660l*1000000;
@@ -154,13 +159,13 @@ public class Validation  extends ModelTest {
 		final int socketCount ;
 		final int procsPerSocket ;
 
-		if(false){ // true is always the real setting
+		if(true){ // true is always the real setting
 			socketCount = 2;
-			procsPerSocket = 6;
 		}else{
 			socketCount = 1;
-			procsPerSocket = 12;
 		}
+
+		procsPerSocket = processes / (processNodes * socketCount) + ( processes % (processNodes * socketCount) == 0 ? 0 : 1 );
 
 		final int procsPerNode = procsPerSocket * socketCount;
 
@@ -214,7 +219,7 @@ public class Validation  extends ModelTest {
 		topology.setRoutingAlgorithm(routingAlgorithm);
 
 		// create servers & overhaul existing configuration if necessary
-		if(additionalServerNodes > 0){
+		if(additionalServerNodes > 0 || overlappingServerCount > 0){
 			final NetworkEdge nodeEdge = NetworkEdgesC.GIGEPVS();
 			final NetworkNode Switch = NetworkNodesC.GIGSwitch();
 			mb.addTemplateIf(nodeEdge);
@@ -362,7 +367,22 @@ public class Validation  extends ModelTest {
 
 		world = aB.getWorldCommunicator();
 		model = mb.getModel();
+
+		// set useful defaults:
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.BinaryTree");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BarrierMPICH2");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.GatherBinaryTreeMPICH2");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("ReduceScatter"), "de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
+
+
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		model.getGlobalSettings().setTransferGranularity(100 * KiB);
 	}
 
 
@@ -527,6 +547,8 @@ public class Validation  extends ModelTest {
 
 
 
+
+
 	@Test public void allreduceRootComputes() throws Exception{
 		setup(3, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
@@ -581,13 +603,6 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-	abstract class ValidationExperiment{
-		abstract String getName();
-		abstract void addOperation(ProgramBuilder p);
-		boolean createTrace(){
-			return true;
-		}
-	}
 
 	private void addComputeOp(int rank){
 
@@ -811,144 +826,165 @@ public class Validation  extends ModelTest {
 		p.setTraceFile("/tmp/barrier");
 		p.setTraceInternals(true);
 
-		runCollectiveTest(2,2, "Barrier", "", null, null, true, true, p, 0);
+		setupWrCluster(4,4);
+		runCollectiveTest(4,4, "Barrier", "", null, null, true, true, p, 99);
 		//runCollectiveTest(4,4, "Reduce", "10240", null, null, true, p, 99);
 	}
 
 
 	/**
-	 * Benchmark the I/O subsystem by using a ultra fast interconnect between client and server
+	 * Benchmark the I/O subsystem by using a extreme-fast interconnect between client and server
 	 * @throws Exception
 	 */
 	@Test public void validateDisk() throws Exception{
 
-		ServerCacheLayer cacheLayer = IOC.AggregationReorderCache(); //IOC.SimpleWriteBehindCache // IOC.AggregationCache AggregationReorderCache
-		long RAM = 12* GiB;
+		ServerCacheLayer cacheLayers [] = new ServerCacheLayer[]{IOC.SimpleNoCache(), IOC.SimpleWriteBehindCache(), IOC.AggregationReorderCache()}; //AggregationCache
 
-		long blockSize = 16*KiB;
+		//ServerCacheLayer cacheLayers [] = new ServerCacheLayer[]{IOC.SimpleNoCache(), IOC.AggregationReorderCache()};
+		// final long RAM = 200* MiB;
+		//final long RAM = 500* MiB;
 
-		StringBuffer output = new StringBuffer();
-		for(int a = 0 ; a < 10; a++){
+		final long RAM = 12000* MiB;
 
-			PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
-			mb = new ModelBuilder();
+		BufferedWriter output = new BufferedWriter(new FileWriter("/tmp/io.txt"));
 
-			topology = mb.createTopology("LAN");
-			topology.setRoutingAlgorithm(routingAlgorithm);
+		for(ServerCacheLayer cacheLayer: cacheLayers){
+		for(int r= 0; r <= 1 ; r++){
+		for(int w= 0; w <= 1 ; w++){
 
-			NIC nicT = NICC.PVSNIC();
-			mb.addTemplate(nicT);
+			final boolean random = r == 0 ? true : false ;
+			final boolean write = w == 0 ? true : false ;
 
-			Node n = new Node();
-			n.setName("IOTest");
-			n.setMemorySize(RAM);
-			n.setCPUs(12);
-			n.setInstructionsPerSecond(100000000l);
+			long currentBlockSize = 16*KiB;
 
-			Server s = IOC.PVSServer();
-			s.setParentComponent(n);
-			RefinedDiskModel disk = (RefinedDiskModel) IOC.PVSDisk();
-			//disk.setAverageSeekTime(new Epoch(0.00305));
-			//disk.setAverageSeekTime(Epoch.ZERO);
-			//disk.setTrackToTrackSeekTime(Epoch.ZERO);
-			//disk.setRPM(1000 * 1000 * 1000);
+			output.append(cacheLayer.getNiceName() + " " + RAM + "RAM random:" + random + " write:" + write + " ");
+			for(int a = 0 ; a < 10; a++){
+				PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
+				mb = new ModelBuilder();
 
-			s.setIOsubsystem(disk);
-			s.setNetworkInterface(mb.cloneFromTemplate(nicT));
+				topology = mb.createTopology("LAN");
+				topology.setRoutingAlgorithm(routingAlgorithm);
 
-			cacheLayer.setParentComponent(s);
-			s.setCacheImplementation(cacheLayer);
+				NIC nicT = NICC.PVSNIC();
+				mb.addTemplate(nicT);
 
-			ClientProcess c = new ClientProcess();
-			c.setName("Client");
-			NIC cnic = mb.cloneFromTemplate(nicT);
-			cnic.setName("ClientNIC");
-			c.setNetworkInterface(cnic);
+				Node n = new Node();
+				n.setName("IOTest");
+				n.setMemorySize(RAM);
+				n.setCPUs(12);
+				n.setInstructionsPerSecond(100000000l);
 
-			mb.addServer(n, s);
-			mb.addClient(n, c);
-			mb.addNode(n);
+				Server s = IOC.PVSServer();
+				s.setParentComponent(n);
+				RefinedDiskModel disk = (RefinedDiskModel) IOC.PVSDisk();
 
-			SimpleNetworkEdge conn = new SimpleNetworkEdge();
-			conn.setName("UF");
-			conn.setLatency(Epoch.ZERO);
-			conn.setBandwidth(40000 * MiB);
-			mb.addTemplate(conn);
+				disk.setMaxConcurrentRequests(1); // NCQ is not effective in this toy example, since just one stream accesses the disk.
 
+				s.setIOsubsystem(disk);
+				s.setNetworkInterface(mb.cloneFromTemplate(nicT));
 
-			SimpleNetworkEdge connt = mb.cloneFromTemplate(conn);
-			SimpleNetworkEdge connr = mb.cloneFromTemplate(conn);
+				cacheLayer.setParentComponent(s);
+				s.setCacheImplementation(cacheLayer);
 
-			connt.setName("tx");
-			connr.setName("rx");
+				ClientProcess c = new ClientProcess();
+				c.setName("Client");
+				NIC cnic = mb.cloneFromTemplate(nicT);
+				cnic.setName("ClientNIC");
+				c.setNetworkInterface(cnic);
 
-			mb.connect(topology, c.getNetworkInterface(), connt, s.getNetworkInterface());
-			mb.connect(topology, s.getNetworkInterface(), connr, c.getNetworkInterface());
+				mb.addServer(n, s);
+				mb.addClient(n, c);
+				mb.addNode(n);
 
-			parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
-			parameters.setTraceEnabled(false);
-			parameters.setTraceInternals(false);
-			parameters.setTraceClientSteps(false);
-			parameters.setTraceServers(true);
+				SimpleNetworkEdge conn = new SimpleNetworkEdge();
+				conn.setName("UF");
+				conn.setLatency(Epoch.ZERO);
+				conn.setBandwidth(40000 * MiB);
+				mb.addTemplate(conn);
 
 
-			aB = new ApplicationBuilder("Validate", "Validation runs", 1, 1);
-			world = aB.getWorldCommunicator();
+				SimpleNetworkEdge connt = mb.cloneFromTemplate(conn);
+				SimpleNetworkEdge connr = mb.cloneFromTemplate(conn);
 
-			app = aB.getApplication();
+				connt.setName("tx");
+				connr.setName("rx");
 
-			pb = new ProgramBuilder(aB);
-			c.setRank(0);
-			c.setApplication("Validate");
+				mb.connect(topology, c.getNetworkInterface(), connt, s.getNetworkInterface());
+				mb.connect(topology, s.getNetworkInterface(), connr, c.getNetworkInterface());
 
-			SimpleStripe stripe = new SimpleStripe();
-			stripe.setChunkSize(GiB * 100);
-			mb.setApplication("Validate", app);
+				parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
+				parameters.setTraceEnabled(false);
+				parameters.setTraceInternals(false);
+				parameters.setTraceClientSteps(false);
+				parameters.setTraceServers(true);
 
-			FileMetadata file = aB.createFile("testFile", 2*GiB, stripe);
 
-			FileDescriptor fd = pb.addFileOpen(file, world, false);
+				aB = new ApplicationBuilder("Validate", "Validation runs", 1, 1);
+				world = aB.getWorldCommunicator();
 
-			long size = 1280 * MiB * 4;
-			long count = size / blockSize;
+				app = aB.getApplication();
 
-			Random r = new Random(1);
+				pb = new ProgramBuilder(aB);
+				c.setRank(0);
+				c.setApplication("Validate");
 
-			for(long i=0; i < count; i++){
-				long offset = -1;
-				if(true){
-					// random case:
-					while(offset < 0){
-						offset = (r.nextLong() % size)  / blockSize;
+				SimpleStripe stripe = new SimpleStripe();
+				stripe.setChunkSize(GiB * 100);
+				mb.setApplication("Validate", app);
+
+				FileMetadata file = aB.createFile("testFile", 10 * GiB, stripe);
+
+				FileDescriptor fd = pb.addFileOpen(file, world, false);
+
+				long size = 1280 * MiB ;
+				long count = size / currentBlockSize;
+
+				Random rand = new Random(1);
+
+				for(long i=0; i < count; i++){
+					long offset = -1;
+					if(random){
+						// random case:
+						while(offset < 0){
+							offset = (rand.nextLong() % size)  / currentBlockSize;
+						}
+					}else{
+						offset = i;
 					}
-				}else{
-					offset = i;
+					if(write){
+						pb.addWriteSequential(0, fd, offset  * currentBlockSize , currentBlockSize);
+					}else{
+						pb.addReadSequential(0, fd, offset  * currentBlockSize , currentBlockSize);
+					}
 				}
-				if(true){
-					pb.addWriteSequential(0, fd, offset  * blockSize , blockSize);
-				}else{
-					pb.addReadSequential(0, fd, offset  * blockSize , blockSize);
+
+				pb.addFileClose(fd);
+
+				sim = new Simulator();
+				model = mb.getModel();
+				model.getGlobalSettings().setIOGranularity(10 * MiB);
+				model.getGlobalSettings().setTransferGranularity(100 * KiB);
+
+				sim.initModel(model, parameters);
+
+				simRes = sim.simulate();
+
+				if (a == 9){
+					final SimulationResultSerializer serializer = new SimulationResultSerializer();
+					System.out.println(serializer.serializeResults(simRes));
 				}
+
+				output.append( (size / sim.getVirtualTime().getDouble() / 1024.0 / 1024.0) + " ");
+
+				currentBlockSize = currentBlockSize * 2;
 			}
-
-			pb.addFileClose(fd);
-
-			sim = new Simulator();
-			model = mb.getModel();
-			sim.initModel(model, parameters);
-			simRes = sim.simulate();
-
-			if (a == 9){
-				final SimulationResultSerializer serializer = new SimulationResultSerializer();
-				System.out.println(serializer.serializeResults(simRes));
-			}
-
-			output.append(blockSize + " " +  (size / sim.getVirtualTime().getDouble() / 1024.0 / 1024.0) + " MiB/s\n");
-
-			blockSize = blockSize * 2;
+			output.append("\n");
+			output.flush();
+		}
+		}
 		}
 
-		System.out.println(output);
+		output.close();
 	}
 
 
@@ -980,7 +1016,7 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 
 
-		setupWrCluster(1, 1, 1, 2, IOC.AggregationCache(), 1000);
+		setupWrCluster(1, 1, 1, 0, IOC.AggregationCache(), 1000);
 
 		parameters.setTraceFile("/tmp/ios");
 		parameters.setTraceEnabled(true);
@@ -992,68 +1028,6 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-	@Test public void validationRuns() throws Exception{
-		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/validationRuns.txt"));
-		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
-
-
-		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/validationRuns-modelTime.txt"));
-		modelTime.write("# Experiment configuration & times \n");
-
-		ValidationExperiment [] experiments = new ValidationExperiment[]{
-				new ValidationExperiment() {
-
-					@Override
-					String getName() {
-						return "Broadcast100M";
-					}
-
-					@Override
-					void addOperation(ProgramBuilder p) {
-						mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
-						pb.addBroadcast(world, 0, 100 * MiB);
-					}
-				}
-		};
-
-
-		// test cases run on the WR cluster
-
-		for(ValidationExperiment e: experiments){
-			modelTime.write(e.getName() + " ");
-			for(String config : configs){
-				final String name = e.getName();
-				final int nodes = Integer.parseInt(config.split("-")[0]);
-				final int processes = Integer.parseInt(config.split("-")[1]);
-
-				long sTime, setupSystemTime, setupProgramTime;
-				// dual socket configuration.
-				sTime = new Date().getTime();
-
-				setupWrCluster(nodes, processes);
-
-				setupSystemTime = (new Date().getTime() - sTime);
-
-				parameters.setTraceEnabled(e.createTrace());
-				parameters.setTraceFile("/tmp/" + name + "_" +  config);
-
-				sTime = new Date().getTime();
-
-				e.addOperation(pb);
-
-				setupProgramTime = (new Date().getTime() - sTime);
-				runSimulationWithoutOutput();
-
-				outputFile.write(name + "\t" + config + "\t" + simRes.getEventCount() + "\t" + simRes.getWallClockTime() + "\t" + setupSystemTime  / 1000.0 + "\t" + setupProgramTime  / 1000.0 + "\n");
-				outputFile.flush();
-
-				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
-				modelTime.flush();
-			}
-			modelTime.write("\n");
-		}
-		outputFile.close();
-	}
 
 	FilenameFilter projFilter = new FilenameFilter() {
            public boolean accept(File dir, String name) {
@@ -1094,9 +1068,6 @@ public class Validation  extends ModelTest {
 		sTime = new Date().getTime();
 
 		final String config = nodes + "-" + processes;
-		System.out.println(config);
-
-		setupWrCluster(nodes, processes);
 
 		if(parameters != null)
 			this.parameters = parameters;
@@ -1218,9 +1189,8 @@ public class Validation  extends ModelTest {
 		modelTime.write("\n");
 
 
-		for(long transferGranularity: new long [] {512, 5120, 100*KiB, 10*MiB} ){
-
-			for(int c = 0; c <= 1; c++) {
+		for(int c = 0; c <= 1; c++) {
+			for(long transferGranularity: new long [] {512, 5120, 100*KiB, 10*MiB} ){
 				modelTime.write("TransferGranularity " + transferGranularity + " inter-node:" + c + " PingPong Kernel " );
 
 				for(int size = 0 ; size <= 128 * MiB ; size *=2){
@@ -1230,8 +1200,13 @@ public class Validation  extends ModelTest {
 					getGlobalSettings().setTransferGranularity(transferGranularity);
 
 					// PingPong Kernel
-					pb.addSendAndRecv(world, 1, 0, size, 4711);
-					pb.addSendAndRecv(world, 0, 1, size, 4711);
+					if(true){
+						pb.addSendAndRecv(world, 1, 0, size, 4711);
+						pb.addSendAndRecv(world, 0, 1, size, 4711);
+					}else{ //Sendrecv kernel
+						pb.addSendRecv(world, 0, 1, 1, size, 4711, 4711);
+						pb.addSendRecv(world, 1, 0, 0, size, 4711, 4711);
+					}
 
 					runSimulationWithoutOutput();
 
@@ -1264,12 +1239,21 @@ public class Validation  extends ModelTest {
 				}
 
 				setupWrCluster(nodes, processes);
+				int repeats = 1;
 
-				for(int rank=0; rank < processes ; rank++){
-				    int dest = rank % 2 == 0 ? rank + 1 : rank -1;
-
-					pb.addSendRecv(world, rank, dest, dest, size, 4711, 4711);
+				if(nodes == 1 && size <= 100*1024){
+					repeats = 100;
 				}
+
+				for(int i=0; i < repeats; i++){
+					for(int rank=0; rank < processes ; rank++){
+					    int dest = rank % 2 == 0 ? rank + 1 : rank -1;
+
+						pb.addSendRecv(world, rank, dest, dest, size, 4711, 4711);
+					}
+				}
+				pb.addBarrier(world);
+
 
 				runSimulationWithoutOutput();
 
@@ -1299,9 +1283,20 @@ public class Validation  extends ModelTest {
 					continue;
 				}
 
-				for(int rank=1; rank < processes ; rank++){
-					pb.addSendAndRecv(world, rank, 0, size, 4711);
+				int repeats = 1;
+
+				if(nodes == 1 && size <= 100*1024){
+					repeats = 100;
 				}
+
+				for(int i=0; i < repeats; i++){
+					for(int rank=1; rank < processes ; rank++){
+						pb.addSendAndRecv(world, rank, 0, size, 4711);
+					}
+				}
+				pb.addBarrier(world);
+
+
 
 				runSimulationWithoutOutput();
 
@@ -1330,10 +1325,20 @@ public class Validation  extends ModelTest {
 					continue;
 				}
 
-				for(int rank=1; rank < processes ; rank++){
-					pb.addSendRecv(world, rank, 0, 0, size, 4711, 4711);
-					pb.addSendRecv(world, 0, rank, rank, size, 4711, 4711);
+				int repeats = 1;
+
+				if(nodes == 1 && size <= 100*1024){
+					repeats = 100;
 				}
+
+				for(int i=0; i < repeats; i++){
+					for(int rank=1; rank < processes ; rank++){
+						pb.addSendRecv(world, rank, 0, 0, size, 4711, 4711);
+						pb.addSendRecv(world, 0, rank, rank, size, 4711, 4711);
+					}
+
+				}
+				pb.addBarrier(world);
 
 				runSimulationWithoutOutput();
 
@@ -1361,12 +1366,22 @@ public class Validation  extends ModelTest {
 					continue;
 				}
 
-				for(int rank=0; rank < processes ; rank++){
-				    int dest = (rank == processes - 1) ? 0 : rank + 1;
-				    int src = (rank == 0) ? processes - 1 : rank - 1;
+				int repeats = 1;
 
-					pb.addSendRecv(world, rank, src, dest, size, 4711, 4711);
+				if(nodes == 1 && size <= 100*1024){
+					repeats = 100;
 				}
+
+				for(int i=0; i < repeats; i++){
+					for(int rank=0; rank < processes ; rank++){
+						int dest = (rank == processes - 1) ? 0 : rank + 1;
+						int src = (rank == 0) ? processes - 1 : rank - 1;
+
+						pb.addSendRecv(world, rank, src, dest, size, 4711, 4711);
+					}
+				}
+				pb.addBarrier(world);
+
 
 				runSimulationWithoutOutput();
 
@@ -1413,11 +1428,21 @@ public class Validation  extends ModelTest {
 					// those values are set by the real-world test...
 					int repeats = 0;
 
-					if(nodes == 1 && size <= 100*1024){
+					if(! experiment.equals("Barrier")){
+						if(nodes == 1 && size <= 100*1024){
+							repeats = 99;
+						}
+					}else if (experiment.equals("Barrier") && nodes == 1){
 						repeats = 99;
 					}
 
-					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime, true, true, null, repeats);
+					setupWrCluster(nodes, processes);
+					if(size <= 1*MiB){
+						model.getGlobalSettings().setTransferGranularity(512);
+					}else{
+						model.getGlobalSettings().setTransferGranularity(100 * KiB);
+					}
+					runCollectiveTest(nodes, processes, experiment, strSize, outputFile, modelTime,  true,  ! experiment.equals("Barrier"), null, repeats);
 				}
 				modelTime.write("\n");
 
@@ -1430,7 +1455,7 @@ public class Validation  extends ModelTest {
 		outputFile.close();
 	}
 
-	@Test public void timingLargeData() throws Exception{
+	@Test public void benchmarkingLargeTransmissions() throws Exception{
 		BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(new File("/tmp/timing")));
 
 		boolean asserts = false;
@@ -1839,28 +1864,6 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 }
 
-	public void runPartdiffParExperiments() throws Exception{
-		final String which =
-			"/home/julian/Dokumente/Dissertation/Latex/results/tests/Jacobi-MPI/2000-NS-NC-NProc-Disjoint-900MBTotalAnd100MBShared/N4-P1-C2-P2-S2-RAM550/23370.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
-
-		AggregationCache cache = new AggregationCache();
-		cache.setName("PVS-CACHE");
-		cache.setMaxNumberOfConcurrentIOOps(1);
-
-		setupWrCluster(2, 2, 0, 2, cache, 550);
-
-		parameters.setTraceFile("/tmp/test");
-		parameters.setTraceEnabled(true);
-
-		final ApplicationXMLReader axml = new ApplicationXMLReader();
-		final Application app = axml.parseApplication(which, true);
-		mb.setApplication("Validate", app);
-
-		runSimulationAllExpectedToFinish();
-	}
-
-
-
 
 	public void runJacobi_1C1S() throws Exception{
 		final String which =
@@ -1887,8 +1890,266 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-	public static void main(String[] args) throws Exception{
-		Validation v = new Validation();
-		v.broadcastTreeAnalyticalIterative();
+
+	// Test case showing that the implemented broadcast is not 100% MPICH2 broadcast, because it does sendrecv, but MPI does just ones send/recv.
+	@Test public void broadcast100MiB() throws Exception{
+		setupWrCluster(1, 2, 0,0, null, 1000);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		parameters.setTraceFile("/tmp/bcast");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addBroadcast(world, 0, 100 * MiB);
+
+		runSimulationAllExpectedToFinish();
 	}
+
+	// Tofix
+	@Test public void gatherBug8_16() throws Exception{
+		setupWrCluster(8, 16, 0,0, null, 1000);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		parameters.setTraceFile("/tmp/gather");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addGather(world, 0, 10 * MiB);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	abstract class ValidationExperiment{
+		abstract String getName();
+		abstract void addOperation(ProgramBuilder p, long size);
+		boolean createTrace(){
+			return true;
+		}
+	}
+
+	ValidationExperiment [] collectiveExperiments = new ValidationExperiment[]{
+				new ValidationExperiment() {
+					@Override
+					String getName() {	return "Reduce";	}
+					@Override
+					void addOperation(ProgramBuilder p, long size) {
+						//pb.addReduce(world, 0, size);
+					}
+				},
+				new ValidationExperiment() {
+					@Override
+					String getName() {	return "Allreduce";	}
+					@Override
+					void addOperation(ProgramBuilder p, long size) {
+						pb.addAllreduce(world, size);
+					}
+				},
+				new ValidationExperiment() {
+					@Override
+					String getName() {	return "Broadcast";	}
+					@Override
+					void addOperation(ProgramBuilder p, long size) {
+						pb.addBroadcast(world, 0, size);
+					}
+				},
+				new ValidationExperiment() {
+					@Override
+					String getName() {	return "Barrier";	}
+					@Override
+					void addOperation(ProgramBuilder p, long size) {
+						pb.addBarrier(world);
+					}
+				},
+				new ValidationExperiment() {
+					@Override
+					String getName() {	return "Allgather";	}
+					@Override
+					void addOperation(ProgramBuilder p, long size) {
+						pb.addAllgather(world, size);
+					}
+				}
+				,
+				new ValidationExperiment() {
+					@Override
+					String getName() {	return "Gather";	}
+					@Override
+					void addOperation(ProgramBuilder p, long size) {
+						pb.addGather(world, 0, size);
+					}
+				}
+				,
+				new ValidationExperiment() {
+					@Override
+					String getName() {	return "Scatter";	}
+					@Override
+					void addOperation(ProgramBuilder p, long size) {
+						pb.addScatter(world, 0, size);
+					}
+				}
+
+		};
+
+
+
+		// test cases run on the WR cluster
+		@Test
+		public void verifyValidateSimulationCollectives() throws Exception{
+			BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/sim-collectives.txt"));
+			outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
+
+			for(ValidationExperiment experiment: collectiveExperiments) {
+				for(int size: sizes){
+					String strSize = "" + size;
+
+					if(experiment.getName().equals("Barrier")){
+						if(size != sizes[0]){
+							continue;
+						}
+						strSize = "";
+					}
+
+					outputFile.write(experiment.getName() + strSize + " ");
+					outputFile.flush();
+
+					for(String config: configs){
+
+						final int nodes = Integer.parseInt(config.split("-")[0]);
+						final int processes = Integer.parseInt(config.split("-")[1]);
+
+						// those values are set by the real-world test...
+						int repeats = 0;
+
+						if(! experiment.equals("Barrier")){
+							if(nodes == 1 && size <= 100*1024){
+								repeats = 99;
+							}
+						}
+
+						setupWrCluster(nodes, processes, 0,0, null, 1000);
+
+						for(int i=0; i <= repeats; i++){
+							experiment.addOperation(pb, size);
+						}
+
+						if(!experiment.getName().equals("Barrier")){
+							pb.addBarrier(world);
+						}
+
+
+						sim = new Simulator();
+						model = mb.getModel();
+
+						if(size <= 1*MiB){
+							model.getGlobalSettings().setTransferGranularity(512);
+						}else{
+							model.getGlobalSettings().setTransferGranularity(100 * KiB);
+						}
+
+
+						try{
+
+							sim.initModel(model, parameters);
+							simRes = sim.simulate();
+
+							outputFile.append( " " + sim.getVirtualTime().getDouble()); // + " simTime: " + simRes.getWallClockTime() + " events: " + simRes.getEventCount()  + "\n");
+						}catch(Throwable e){
+							outputFile.write(config + " error " + e.getMessage());
+						}
+						outputFile.flush();
+
+					}
+					outputFile.write("\n");
+				}
+			}
+			outputFile.close();
+	}
+
+
+	// parse inputs from configuration files...
+	@Test
+	public void runPartdiffParExperiments() throws Exception{
+		final String path = "/home/julian/Dokumente/Dissertation/Latex/results/tests/Jacobi-MPI";
+		final BufferedReader projectsToRun = new BufferedReader(new FileReader(path + "/projects.txt"));
+
+		BufferedWriter output = new BufferedWriter(new FileWriter("/tmp/partdiff.txt"));
+
+		int i=0;
+
+		while(projectsToRun.ready()){
+			final String projectLocal = projectsToRun.readLine();
+			final String project = path + "/" + projectLocal;
+
+			i++;
+
+			System.out.println(i + " " + projectLocal);
+			output.write(i + " " + project + "\n");
+			output.flush();
+
+			// parse required configuration, nodes etc...
+			{
+				String config = projectLocal.split("/")[2];
+
+
+				// N6-P1-C6-P6-S6-RAM16500
+				Pattern p = Pattern.compile("N([0-9]*)-P([0-9]+)-C([0-9]+)-P([0-9]+)-S([0-9]+)-RAM([0-9]+)");
+				Matcher m = p.matcher(config);
+				if(! m.matches()){
+					System.out.println("Config does not match: " + config);
+					output.write("Config does not match: " + config + "\n");
+					continue;
+				}
+				final int nodes = Integer.parseInt(m.group(1));
+				final int clientNodes = Integer.parseInt(m.group(3));
+				final int processes = Integer.parseInt(m.group(4));
+				final int servers = Integer.parseInt(m.group(5));
+				int ram = Integer.parseInt(m.group(6));
+
+				if (ram > 11500) ram = 11500;
+
+				AggregationReorderCache cache = new AggregationReorderCache();
+				cache.setName("PVS-CACHE");
+				cache.setMaxNumberOfConcurrentIOOps(1);
+
+				final int overlapping;
+
+				if(servers + clientNodes > nodes){
+					overlapping = clientNodes + servers - nodes;
+				}else{
+					overlapping = 0;
+				}
+
+				setupWrCluster(clientNodes, processes, overlapping,  servers - overlapping , cache, ram);
+			}
+
+			parameters.setTraceFile("/tmp/test");
+			parameters.setTraceEnabled(true);
+
+			final ApplicationXMLReader axml = new ApplicationXMLReader();
+			final Application app = axml.parseApplication(project, true);
+			mb.setApplication("Validate", app);
+
+
+
+
+			sim = new Simulator();
+			model = mb.getModel();
+			model.getGlobalSettings().setIOGranularity(10 * MiB);
+			model.getGlobalSettings().setTransferGranularity(100 * KiB);
+
+			sim.initModel(model, parameters);
+			simRes = sim.simulate();
+
+			output.append( " modeltime: " + sim.getVirtualTime().getDouble() + " simTime: " + simRes.getWallClockTime() + " events: " + simRes.getEventCount()  + "\n");
+
+			final SimulationResultSerializer serializer = new SimulationResultSerializer();
+			output.append(serializer.serializeResults(simRes)+ "\n");
+
+			output.flush();
+		}
+
+		output.close();
+
+	}
+
+
+
 }
