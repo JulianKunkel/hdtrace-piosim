@@ -75,9 +75,9 @@ extends CommandImplementation<Reduce>
             // few odd-numbered processes send their data to their left neighbors
             // (rank-1)
             final int myRank = client.getModelComponent().getRank();
-            final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize);
+            final int rest = Integer.numberOfLeadingZeros(0) - Integer.numberOfLeadingZeros(commSize) - 1;
             // rest = nearest lower power-of-two
-            if(myRank < 2*(commSize - rest)){
+            if(myRank < 2*(commSize - (1<<rest))){
                 // odd sends to even
                 if(myRank % 2 == 0){
                     OUTresults.addNetReceive(myRank + 1, TAG, cmd.getCommunicator());
