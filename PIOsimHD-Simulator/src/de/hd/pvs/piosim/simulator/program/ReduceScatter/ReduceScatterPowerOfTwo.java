@@ -73,10 +73,10 @@ public class ReduceScatterPowerOfTwo extends CommandImplementation<ReduceScatter
             targetRank = myRank - range;
         }
 
-        if(targetRank >= 0 || targetRank <= commSize){
-        {
+        if(targetRank >= 0 && targetRank <= commSize){
             // data to be sent is halved each step
             final long sendCnt = cmd.getTotalSize() / (2<<step);
+            //System.out.println("DEBUG: step="+step + "    " + myRank + " <-> " + targetRank);
             OUTresults.addNetSend(targetRank, new NetworkSimpleData(sendCnt + 20), TAG, cmd.getCommunicator());
             OUTresults.addNetReceive(targetRank, TAG, cmd.getCommunicator());
             OUTresults.setNextStep(++step);
