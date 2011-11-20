@@ -17,10 +17,12 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementationWithCommunicatorL
  * Overhauled existing method, since it did not work for larger process counts.
  *
  */
-public class GatherMPICH2
+public class GatherMPICH2Concurrent
 extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Gather>
 {
 	final int tag = 20000;
+
+	final int RECEIVED_FROM_LEAF = 1;
 
 	@Override
 	public int getSingleTargetWorldRank(Gather cmd) {
@@ -65,18 +67,21 @@ extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Gather>
 			maxIter = maxIter + 1;
 		}
 
-		if(step < maxIter){
+		if(step == CommandProcessing.STEP_START){
 			// receive messages from all leaf ranks
-			final int targetRank = (1<<step | clientRankInComm);
+			for (int iter = 0 ; iter < maxIter; iter++){
+				final int targetRank = (1<<iter | clientRankInComm);
+				if (targetRank >= commSize )
+					continue;
 
-			if (targetRank < commSize ){
+				//System.out.println(" to leaf:" + targetRank );
 				OUTresults.addNetReceive(getLocalRankExchangeRoot(singleRankInComm, targetRank), tag, cmd.getCommunicator());
 			}
 
-			OUTresults.setNextStep(step + 1);
+			OUTresults.setNextStep(RECEIVED_FROM_LEAF);
 			return;
 
-		}else{ // maxIter reached
+		}else if(step == RECEIVED_FROM_LEAF){
 
 			if(clientRankInComm == 0){ // root node
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
@@ -87,6 +92,7 @@ extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Gather>
 				int gathered = children(clientRankInComm, commSize); // my data
 
 				int sendTo = (clientRankInComm ^ 1<<trailingZeros);
+				System.out.println(" to root: " + sendTo + " " + gathered);
 				OUTresults.addNetSend(getLocalRankExchangeRoot(singleRankInComm, sendTo),
 						new NetworkSimpleData(cmd.getSize() * gathered), tag, cmd.getCommunicator());
 				OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);

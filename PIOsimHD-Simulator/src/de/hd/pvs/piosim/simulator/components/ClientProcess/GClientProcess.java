@@ -206,7 +206,7 @@ public class GClientProcess
 			return commandStats;
 		}
 
-		Epoch endTime;
+		Epoch endTime = Epoch.ZERO;
 
 		@Override
 		public String toString() {
