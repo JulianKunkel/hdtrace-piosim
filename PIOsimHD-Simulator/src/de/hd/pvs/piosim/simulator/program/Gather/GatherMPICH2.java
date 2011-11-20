@@ -34,7 +34,7 @@ extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Gather>
 		int maxIter = iterations  - phaseStart - 1;
 
 		int gathered = 1;
-		for (int iter = 0 ; iter < maxIter; iter++){
+		for (int iter = 0 ; iter <= maxIter; iter++){
 			final int targetRank = (1<<iter | rank);
 			if (targetRank >= size )
 				continue;
@@ -85,7 +85,6 @@ extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Gather>
 			}else{ // non-root process => broadcast message towards root.
 				// count the number of gathered receives
 				int gathered = children(clientRankInComm, commSize); // my data
-
 				int sendTo = (clientRankInComm ^ 1<<trailingZeros);
 				OUTresults.addNetSend(getLocalRankExchangeRoot(singleRankInComm, sendTo),
 						new NetworkSimpleData(cmd.getSize() * gathered), tag, cmd.getCommunicator());

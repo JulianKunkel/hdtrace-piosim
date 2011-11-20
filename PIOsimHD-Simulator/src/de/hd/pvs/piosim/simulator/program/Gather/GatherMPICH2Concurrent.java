@@ -36,7 +36,7 @@ extends CommandImplementationWithCommunicatorLocalRanksRemapRoot<Gather>
 		int maxIter = iterations  - phaseStart - 1;
 
 		int gathered = 1;
-		for (int iter = 0 ; iter < maxIter; iter++){
+		for (int iter = 0 ; iter <= maxIter; iter++){
 			final int targetRank = (1<<iter | rank);
 			if (targetRank >= size )
 				continue;
