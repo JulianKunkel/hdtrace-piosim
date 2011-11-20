@@ -149,21 +149,19 @@ public class Validation  extends ModelTest {
 				smtNodeT) );
 	}
 
+
+	protected void setupWrCluster(int processNodes, int processes, int overlappingServerCount, int additionalServerNodes, ServerCacheLayer cacheLayer, long RAM) throws Exception {
+		setupWrCluster(2, false, false, false, true, processNodes, processes, overlappingServerCount, additionalServerNodes, cacheLayer, RAM);
+	}
+
 	/**
 	 * Setup a configuration equal to the WR cluster configuration.
 	 * @param processNodes
 	 * @param processes
 	 * @throws Exception
 	 */
-	protected void setupWrCluster(int processNodes, int processes, int overlappingServerCount, int additionalServerNodes, ServerCacheLayer cacheLayer, long RAM) throws Exception {
-		final int socketCount ;
+	protected void setupWrCluster(int socketCount, boolean analyticalNIC, boolean fasterNIC, boolean latencyBoundNetwork, boolean nodeSocketPetPlacement, int processNodes, int processes, int overlappingServerCount, int additionalServerNodes, ServerCacheLayer cacheLayer, long RAM) throws Exception {
 		final int procsPerSocket ;
-
-		if(true){ // true is always the real setting
-			socketCount = 2;
-		}else{
-			socketCount = 1;
-		}
 
 		procsPerSocket = processes / (processNodes * socketCount) + ( processes % (processNodes * socketCount) == 0 ? 0 : 1 );
 
@@ -171,7 +169,7 @@ public class Validation  extends ModelTest {
 
 		SMTSocketNodeT smtNodeT;
 
-		if (true){ // real vs. analytical NIC?
+		if (analyticalNIC){ // real vs. analytical NIC?
 			smtNodeT = new SMTSocketNodeT(procsPerSocket,
 				socketCount,
 				NICC.PVSNIC(),
@@ -193,14 +191,13 @@ public class Validation  extends ModelTest {
 
 		HardwareConfiguration config;
 
-		if(true){ // real cluster value vs. GiGE throughput
+		if(! fasterNIC){ // real cluster value vs. GiGE throughput
 			config = new ClusterT(processNodes, NetworkEdgesC.GIGEPVS(),NetworkNodesC.GIGSwitch(), smtNodeT);
 		}else{ // faster network
 			config = new ClusterT(processNodes, NetworkEdgesC.GIGE(),NetworkNodesC.GIGSwitch(), smtNodeT);
 		}
 
-		if(true){ // real vs. latency bound.
-		}else{
+		if(latencyBoundNetwork){ // real vs. latency bound.
 			smtNodeT = new SMTSocketNodeT(procsPerSocket,
 					socketCount,
 					NICC.PVSNIC(),
@@ -315,7 +312,7 @@ public class Validation  extends ModelTest {
 		int curProc = 0;
 
 		// placement of the processes
-		if(true){ //  => nodes, sockets, PEs
+		if(nodeSocketPetPlacement){ //  => nodes, sockets, PEs
 
 			for(int rank = 0; rank < processes; rank++){
 
@@ -370,12 +367,12 @@ public class Validation  extends ModelTest {
 
 		// set useful defaults:
 
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.BinaryTree");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.ReduceBroadcast");
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2");
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BarrierMPICH2");
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");
 
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.GatherBinaryTreeMPICH2");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2");
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("ReduceScatter"), "de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo");
 		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
@@ -1904,25 +1901,128 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-	// Tofix
-	@Test public void gatherBug8_16() throws Exception{
-		setupWrCluster(8, 16, 0,0, null, 1000);
+	@Test public void gatherBug8_8() throws Exception{
+		setupWrCluster(8, 8, 0, 0, null, 1000);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		parameters.setTraceFile("/tmp/gather");
 
 		parameters.setTraceEnabled(true);
 
-		pb.addGather(world, 0, 10 * MiB);
+		pb.addGather(world, 0, 100*MiB);
+		//pb.addBarrier(world);
 
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test public void gatherDirectPerformance() throws Exception{
+		benchmarkCollective( new ValidationExperiment() {
+
+			@Override
+			String getName() {
+				return "GatherDirect";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addGather(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.Direct");
+			}
+		}, null);
+	}
+
+	@Test public void bcastPipedBlockwisePerformance() throws Exception{
+		benchmarkCollective( new ValidationExperiment() {
+
+			@Override
+			String getName() {
+				return "BcastPipedBlockwise";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise");
+			}
+		}, null);
+	}
+
+	@Test public void bcastPipedBlockwise48() throws Exception{
+		setupWrCluster(4, 8, 0, 0, null, 1000);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		parameters.setTraceFile("/tmp/bcastPiped");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addBroadcast(world, 0, 100*MiB);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void bcastPipedBlockwiseSMPAware48() throws Exception{
+		setupWrCluster(4, 8, 0, 0, null, 1000);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		parameters.setTraceFile("/tmp/bcastPiped");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwiseSMPAware");
+
+		parameters.setTraceEnabled(true);
+
+		pb.addBroadcast(world, 0, 100*MiB);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test public void bcastPipedBlockwise48ChangedMapping() throws Exception{
+		setupWrCluster(2, false, false, false, false, 4, 8, 0, 0, null, 1000);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		parameters.setTraceFile("/tmp/bcastPiped");
+
+		parameters.setTraceEnabled(true);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise");
+
+		pb.addBroadcast(world, 0, 100*MiB);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void bcastBinaryTreePerformance() throws Exception{
+		benchmarkCollective( new ValidationExperiment() {
+
+			@Override
+			String getName() {
+				return "BcastBinaryTree";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree");
+			}
+		}, null);
+	}
 
 	abstract class ValidationExperiment{
 		abstract String getName();
 		abstract void addOperation(ProgramBuilder p, long size);
 		boolean createTrace(){
 			return true;
+		}
+
+		void setup(ModelBuilder mb){
+
 		}
 	}
 
@@ -1932,7 +2032,7 @@ public class Validation  extends ModelTest {
 					String getName() {	return "Reduce";	}
 					@Override
 					void addOperation(ProgramBuilder p, long size) {
-						//pb.addReduce(world, 0, size);
+						pb.addReduce(world, 0, size);
 					}
 				},
 				new ValidationExperiment() {
@@ -1988,80 +2088,90 @@ public class Validation  extends ModelTest {
 
 		};
 
+	public void benchmarkCollective(ValidationExperiment experiment, BufferedWriter outputFile) throws Exception{
+		if(outputFile == null){
+			outputFile = new BufferedWriter(new FileWriter("/tmp/benchmarkCollective.txt"));
+		}
+
+		for(int size: sizes){
+			String strSize = "" + size;
+
+			if(experiment.getName().equals("Barrier")){
+				if(size != sizes[0]){
+					continue;
+				}
+				strSize = "";
+			}
+
+			outputFile.write(experiment.getName() + strSize + " ");
+			outputFile.flush();
+
+			for(String config: configs){
+
+				final int nodes = Integer.parseInt(config.split("-")[0]);
+				final int processes = Integer.parseInt(config.split("-")[1]);
+
+				// those values are set by the real-world test...
+				int repeats = 0;
+
+				if(! experiment.equals("Barrier")){
+					if(nodes == 1 && size <= 100*1024){
+						repeats = 99;
+					}
+				}
+
+				setupWrCluster(nodes, processes, 0,0, null, 1000);
+
+				for(int i=0; i <= repeats; i++){
+					experiment.addOperation(pb, size);
+				}
+
+				if(!experiment.getName().equals("Barrier")){
+					pb.addBarrier(world);
+				}
+
+				experiment.setup(mb);
+
+
+				sim = new Simulator();
+				model = mb.getModel();
+
+				if(size <= 1*MiB){
+					model.getGlobalSettings().setTransferGranularity(512);
+				}else{
+					model.getGlobalSettings().setTransferGranularity(100 * KiB);
+				}
+
+
+				try{
+
+					sim.initModel(model, parameters);
+					simRes = sim.simulate();
+
+					outputFile.append( " " + sim.getVirtualTime().getDouble()); // + " simTime: " + simRes.getWallClockTime() + " events: " + simRes.getEventCount()  + "\n");
+				}catch(Throwable e){
+					outputFile.write(config + " error " + e.getMessage());
+				}
+				outputFile.flush();
+
+			}
+			outputFile.write("\n");
+		}
+	}
 
 
 		// test cases run on the WR cluster
 		@Test
 		public void verifyValidateSimulationCollectives() throws Exception{
 			BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/sim-collectives.txt"));
+
 			outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
 
 			for(ValidationExperiment experiment: collectiveExperiments) {
-				for(int size: sizes){
-					String strSize = "" + size;
-
-					if(experiment.getName().equals("Barrier")){
-						if(size != sizes[0]){
-							continue;
-						}
-						strSize = "";
-					}
-
-					outputFile.write(experiment.getName() + strSize + " ");
-					outputFile.flush();
-
-					for(String config: configs){
-
-						final int nodes = Integer.parseInt(config.split("-")[0]);
-						final int processes = Integer.parseInt(config.split("-")[1]);
-
-						// those values are set by the real-world test...
-						int repeats = 0;
-
-						if(! experiment.equals("Barrier")){
-							if(nodes == 1 && size <= 100*1024){
-								repeats = 99;
-							}
-						}
-
-						setupWrCluster(nodes, processes, 0,0, null, 1000);
-
-						for(int i=0; i <= repeats; i++){
-							experiment.addOperation(pb, size);
-						}
-
-						if(!experiment.getName().equals("Barrier")){
-							pb.addBarrier(world);
-						}
-
-
-						sim = new Simulator();
-						model = mb.getModel();
-
-						if(size <= 1*MiB){
-							model.getGlobalSettings().setTransferGranularity(512);
-						}else{
-							model.getGlobalSettings().setTransferGranularity(100 * KiB);
-						}
-
-
-						try{
-
-							sim.initModel(model, parameters);
-							simRes = sim.simulate();
-
-							outputFile.append( " " + sim.getVirtualTime().getDouble()); // + " simTime: " + simRes.getWallClockTime() + " events: " + simRes.getEventCount()  + "\n");
-						}catch(Throwable e){
-							outputFile.write(config + " error " + e.getMessage());
-						}
-						outputFile.flush();
-
-					}
-					outputFile.write("\n");
-				}
+				benchmarkCollective(experiment, outputFile);
 			}
 			outputFile.close();
-	}
+		}
 
 
 	// parse inputs from configuration files...
