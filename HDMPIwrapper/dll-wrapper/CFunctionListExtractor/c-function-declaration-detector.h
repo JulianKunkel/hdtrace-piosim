@@ -46,7 +46,7 @@ typedef enum {kCfddBeforeParameterList, kCfddInParameterList, kCfddAfterParamete
 struct CFunctionDeclarationDetector {
 	FILE* curStream, *returnStream, *outputStream;	//curStream/curString accumulate the current part, return Stream accumulates the current output line until it is either copied to the outputStream or discarded.
 	char* curString, *returnString;
-	int nextChar;	//nextChar buffers the last char pushed in, so that pairs of chars can be passed on to the classifier.
+	int nextChar, inWhitespace, spaceNeeded;	//nextChar buffers the last char pushed in, so that pairs of chars can be passed on to the classifier.
 	size_t curStringSize, returnStringSize;
 	CfddState state;
 	CCharacterClassifier* classifier;

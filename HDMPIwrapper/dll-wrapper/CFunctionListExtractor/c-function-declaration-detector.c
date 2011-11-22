@@ -38,7 +38,7 @@ typedef enum {kCfddBeforeParameterList, kCfddInParameterList, kCfddAfterParamete
 typedef struct {
 	FILE* curStream, *returnStream, *outputStream;
 	char* curString, *returnString;
-	int nextChar;
+	int nextChar, inWhitespace, spaceNeeded;
 	size_t curStringSize, returnStringSize;
 	CfddState state;
 	CCharacterClassifier* classifier;
@@ -51,15 +51,41 @@ CFunctionDeclarationDetector* cfdd_make(FILE* outputStream) {
 	return result;
 }
 
-void cfdd_init(CFunctionDeclarationDetector* self, FILE* outputStream) {
+void
+cfdd_init(   CFunctionDeclarationDetector*   self, FILE* outputStream   )
+ {
 	self->outputStream = outputStream;
 	self->nextChar = EOF;
 	self->state = kCfddBeforeParameterList;
+	self->inWhitespace = 1;
+	self->spaceNeeded = 0;
 	self->curString = self->returnString = NULL;
 	self->curStringSize = self->returnStringSize = 0l;
 	self->curStream = open_memstream(&self->curString, &self->curStringSize);
 	self->returnStream = open_memstream(&self->returnString, &self->returnStringSize);
 	self->classifier = ccc_make();
+}
+
+//Private method. Appends nextChar to curStream iff it is no extra whitespace. Also all whitespace is converted to spaces.
+void cfdd_writeChar(CFunctionDeclarationDetector* self) {
+	if(self->nextChar == EOF) return;
+	if(self->nextChar == ' ' || self->nextChar == '\t' || self->nextChar == '\n' || self->nextChar == '\r') {
+		self->inWhitespace = 1;
+	} else if(self->nextChar == ')') {	//Ignore all space in front of a ')'.
+		putc(')', self->curStream);
+		self->inWhitespace = self->spaceNeeded = 0;	//Preserve whitespace after a ')'.
+	} else {
+		if(self->inWhitespace && self->spaceNeeded) {
+			putc(' ', self->curStream);
+		}
+		putc(self->nextChar, self->curStream);
+		self->inWhitespace = 0;
+		self->spaceNeeded = 1;	//Preserve whitespace following other characters,
+		if(self->nextChar == '(' || self->nextChar == '[') {	//iff they are not opening brackets.
+			self->inWhitespace = 1;
+			self->spaceNeeded = 0;
+		}
+	}
 }
 
 //Private method. Appends the contents of curStream to returnStream and resets curStream.
@@ -70,6 +96,8 @@ void cfdd_flushCurStream(CFunctionDeclarationDetector* self) {
 	self->curString = NULL;
 	self->curStringSize = 0l;
 	self->curStream = open_memstream(&self->curString, &self->curStringSize);
+	self->inWhitespace = 1;
+	self->spaceNeeded = 0;
 }
 
 //Private method. Appends the contents of returStream to outputStream, adds the string ";\n" and resets both curStream and returnStream.
@@ -82,6 +110,8 @@ void cfdd_flushReturnStream(CFunctionDeclarationDetector* self) {
 	self->curStringSize = self->returnStringSize = 0l;
 	self->curStream = open_memstream(&self->curString, &self->curStringSize);
 	self->returnStream = open_memstream(&self->returnString, &self->returnStringSize);
+	self->inWhitespace = 1;
+	self->spaceNeeded = 0;
 }
 
 //Private method. Resets both curStream and returnStream without making any output.
@@ -94,10 +124,11 @@ void cfdd_resetStreams(CFunctionDeclarationDetector* self) {
 	self->curStringSize = self->returnStringSize = 0l;
 	self->curStream = open_memstream(&self->curString, &self->curStringSize);
 	self->returnStream = open_memstream(&self->returnString, &self->returnStringSize);
+	self->inWhitespace = 1;
+	self->spaceNeeded = 0;
 }
 
 void cfdd_pushChar(CFunctionDeclarationDetector* self, int curChar) {
-	//TODO: Write something to canonicalize the whitespace.
 	int ignoreChar = 0;
 	if(self->nextChar == EOF) ignoreChar = 1;	//Ignore the first call, we need to see the second character first.
 	if(!ignoreChar) {
@@ -114,7 +145,7 @@ void cfdd_pushChar(CFunctionDeclarationDetector* self, int curChar) {
 							self->state = kCfddInParameterList;
 							cfdd_flushCurStream(self);
 						}
-						putc(self->nextChar, self->curStream);
+						cfdd_writeChar(self);
 					} break;
 
 					case kCccCharacterConstant:
@@ -132,7 +163,7 @@ void cfdd_pushChar(CFunctionDeclarationDetector* self, int curChar) {
 						if(self->nextChar == '{') {
 							self->state = kCfddBusted;
 						}
-						putc(self->nextChar, self->curStream);
+						cfdd_writeChar(self);
 						if(!ccc_getCallLevel(self->classifier)) {
 							self->state = kCfddAfterParameterList;
 							cfdd_flushCurStream(self);
