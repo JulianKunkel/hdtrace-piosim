@@ -30,17 +30,18 @@
 
 #include <stdio.h>
 
-typedef struct CCharacterClassifier CCharacterClassifier;
+#include "c-character-classifier.h"	//pre 4.6 gcc does not allow typedef redefinition (even matching ones).
+//typedef struct CCharacterClassifier CCharacterClassifier;
 
 typedef enum {kCfddBeforeParameterList, kCfddInParameterList, kCfddAfterParameterList, kCfddAtEnd, kCfddBusted} CfddState;
 
 ///A class that extracts function declarations from function definitions in C-code. It recognizes the format:
 //"return type and function name"("parameter list"){"code"}
-//"return type and function name" is filtered for "inline" and the statement is discarded, if "static" is contained.
+//The whole statement is discarded, if "return type and function name" contains the "static" keyword.
 //"parameter list" is taken exactly as it is.
 //"code" is discarded.
 //The whole statement is discarded, if there is a "(", "{", "\"", "'" or ";" at an unexpected location.
-//All whitespaces encountered are collapsed to single spaces.
+//All whitespaces encountered are collapsed to single spaces or removed.
 //So all output statements are single lines of the form:
 //"return type and function name"("parameter list");
 struct CFunctionDeclarationDetector {
