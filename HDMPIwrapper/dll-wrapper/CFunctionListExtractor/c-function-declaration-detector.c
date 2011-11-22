@@ -28,6 +28,7 @@
 #define _GNU_SOURCE
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "c-function-declaration-detector.h"
 #include "c-character-classifier.h"
@@ -67,7 +68,7 @@ cfdd_init(   CFunctionDeclarationDetector*   self, FILE* outputStream   )
 }
 
 //Private method. Appends nextChar to curStream iff it is no extra whitespace. Also all whitespace is converted to spaces.
-void cfdd_writeChar(CFunctionDeclarationDetector* self) {
+static void cfdd_writeChar(CFunctionDeclarationDetector* self) {
 	if(self->nextChar == EOF) return;
 	if(self->nextChar == ' ' || self->nextChar == '\t' || self->nextChar == '\n' || self->nextChar == '\r') {
 		self->inWhitespace = 1;
@@ -89,7 +90,7 @@ void cfdd_writeChar(CFunctionDeclarationDetector* self) {
 }
 
 //Private method. Appends the contents of curStream to returnStream and resets curStream.
-void cfdd_flushCurStream(CFunctionDeclarationDetector* self) {
+static void cfdd_flushCurStream(CFunctionDeclarationDetector* self) {
 	fclose(self->curStream);
 	fprintf(self->returnStream, "%s", self->curString);
 	free(self->curString);
@@ -101,7 +102,7 @@ void cfdd_flushCurStream(CFunctionDeclarationDetector* self) {
 }
 
 //Private method. Appends the contents of returStream to outputStream, adds the string ";\n" and resets both curStream and returnStream.
-void cfdd_flushReturnStream(CFunctionDeclarationDetector* self) {
+static void cfdd_flushReturnStream(CFunctionDeclarationDetector* self) {
 	fclose(self->returnStream);
 	fprintf(self->outputStream, "%s;\n", self->returnString);
 	free(self->curString);
@@ -115,7 +116,7 @@ void cfdd_flushReturnStream(CFunctionDeclarationDetector* self) {
 }
 
 //Private method. Resets both curStream and returnStream without making any output.
-void cfdd_resetStreams(CFunctionDeclarationDetector* self) {
+static void cfdd_resetStreams(CFunctionDeclarationDetector* self) {
 	fclose(self->curStream);
 	fclose(self->returnStream);
 	free(self->curString);
@@ -143,7 +144,12 @@ void cfdd_pushChar(CFunctionDeclarationDetector* self, int curChar) {
 						}
 						if(self->nextChar == '(') {
 							self->state = kCfddInParameterList;
-							cfdd_flushCurStream(self);
+							fflush(self->curStream);
+							if(strstr(self->curString, "static")) {
+								self->state = kCfddBusted;
+							} else {
+								cfdd_flushCurStream(self);
+							}
 						}
 						cfdd_writeChar(self);
 					} break;
