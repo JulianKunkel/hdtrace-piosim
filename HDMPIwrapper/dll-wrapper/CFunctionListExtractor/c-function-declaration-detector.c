@@ -97,8 +97,15 @@ static void cfdd_flushCurStream(CFunctionDeclarationDetector* self) {
 	self->curString = NULL;
 	self->curStringSize = 0l;
 	self->curStream = open_memstream(&self->curString, &self->curStringSize);
-	self->inWhitespace = 1;
-	self->spaceNeeded = 0;
+}
+
+//Private method. Appends the contents of curStream to returnStream and resets curStream.
+static void cfdd_resetCurStream(CFunctionDeclarationDetector* self) {
+	fclose(self->curStream);
+	free(self->curString);
+	self->curString = NULL;
+	self->curStringSize = 0l;
+	self->curStream = open_memstream(&self->curString, &self->curStringSize);
 }
 
 //Private method. Appends the contents of returStream to outputStream, adds the string ";\n" and resets both curStream and returnStream.
@@ -139,16 +146,28 @@ void cfdd_pushChar(CFunctionDeclarationDetector* self, int curChar) {
 			case kCfddBeforeParameterList: {
 				switch (cc) {
 					case kCccNormal: {
+						if(self->nextChar == ' ' || self->nextChar == '\t' || self->nextChar == '\n' || self->nextChar == '\r') {
+							//Flush after every word ...
+							fflush(self->curStream);
+							if(strstr(self->curString, "extern")) {	//... so that we can filter out the extern keyword.
+								cfdd_resetCurStream(self);
+								self->inWhitespace = 1;
+								self->spaceNeeded = 1;	//Preserve a space. Usually this is an extra space, but it may be the only one, so it is needed. And I don't think it's worthwhile to check for these conditions.
+							}
+							cfdd_flushCurStream(self);
+						}
 						if(self->nextChar == '{') {
 							self->state = kCfddBusted;
 						}
 						if(self->nextChar == '(') {
 							self->state = kCfddInParameterList;
-							fflush(self->curStream);
-							if(strstr(self->curString, "static")) {
+							//Check if this statement should be ignored altogether.
+							cfdd_flushCurStream(self);
+							fflush(self->returnStream);
+							if(strstr(self->returnString, "static")
+								|| strstr(self->returnString, "inline"))
+							{
 								self->state = kCfddBusted;
-							} else {
-								cfdd_flushCurStream(self);
 							}
 						}
 						cfdd_writeChar(self);
