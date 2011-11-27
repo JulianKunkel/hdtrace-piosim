@@ -165,46 +165,43 @@ public class Validation  extends ModelTest {
 
 		SMTSocketNodeT smtNodeT;
 
-		if (! analyticalNIC){ // real vs. analytical NIC?
-			smtNodeT = new SMTSocketNodeT(procsPerSocket,
-					socketCount,
-					NICC.PVSNIC(),
-					NodesC.PVSSMPNode(procsPerSocket * socketCount, RAM),
-					NetworkNodesC.SocketLocalNode(),
-					NetworkEdgesC.SocketLocalEdge(),
-					NetworkNodesC.QPI(),
-					NetworkEdgesC.QPI() );
+		final NIC nic;
+		final NetworkEdge socketLocalEdge;
+		final NetworkEdge interSocketEdge;
+		final NetworkEdge interNodeEdge;
+
+
+		if (analyticalNIC){ // real vs. analytical NIC?
+			nic = NICC.NICAnalytical();
 		}else{
-			smtNodeT = new SMTSocketNodeT(procsPerSocket,
-					socketCount,
-					NICC.NICAnalytical(),
-					NodesC.PVSSMPNode(procsPerSocket * socketCount, RAM),
-					NetworkNodesC.SocketLocalNode(),
-					NetworkEdgesC.SocketLocalEdge(),
-					NetworkNodesC.QPI(),
-					NetworkEdgesC.QPI() );
-		}
-
-		HardwareConfiguration config;
-
-		if(! fasterNIC){ // real cluster value vs. GiGE throughput
-			config = new ClusterT(processNodes, NetworkEdgesC.GIGEPVS(),NetworkNodesC.GIGSwitch(), smtNodeT);
-		}else{ // faster network
-			config = new ClusterT(processNodes, NetworkEdgesC.GIGE(),NetworkNodesC.GIGSwitch(), smtNodeT);
+			nic = NICC.PVSNIC();
 		}
 
 		if(latencyBoundNetwork){ // real vs. latency bound.
-			smtNodeT = new SMTSocketNodeT(procsPerSocket,
-					socketCount,
-					NICC.PVSNIC(),
-					NodesC.PVSSMPNode(procsPerNode, RAM),
-					NetworkNodesC.SocketLocalNode(),
-					NetworkEdgesC.SocketLocalNoLatencyEdge(),
-					NetworkNodesC.QPI(),
-					NetworkEdgesC.QPINoLatency() );
-			config = new ClusterT(processNodes, NetworkEdgesC.GIGEPVSNoLatency(),NetworkNodesC.GIGSwitch(), smtNodeT);
+			socketLocalEdge = NetworkEdgesC.SocketLocalNoLatencyEdge();
+			interSocketEdge = NetworkEdgesC.QPINoLatency();
+			interNodeEdge = NetworkEdgesC.GIGEPVSNoLatency();
+		}else{
+			socketLocalEdge = NetworkEdgesC.SocketLocalEdge();
+			interSocketEdge = NetworkEdgesC.QPI();
+
+			if(fasterNIC){ // real cluster value vs. GiGE throughput
+				interNodeEdge = NetworkEdgesC.GIGEPVS();
+			}else{
+				interNodeEdge = NetworkEdgesC.GIGE();
+			}
 		}
 
+		smtNodeT = new SMTSocketNodeT(procsPerSocket,
+				socketCount,
+				nic,
+				NodesC.PVSSMPNode(procsPerSocket * socketCount, RAM),
+				NetworkNodesC.SocketLocalNode(),
+				socketLocalEdge,
+				NetworkNodesC.QPI(),
+				interSocketEdge );
+
+		final HardwareConfiguration config = new ClusterT(processNodes, interNodeEdge ,NetworkNodesC.GIGSwitch(), smtNodeT);
 
 		PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
 		mb = new ModelBuilder();
@@ -239,12 +236,13 @@ public class Validation  extends ModelTest {
 			// overlapping of clients and servers
 			SMTSocketNodeT myIOServerGen = new SMTSocketNodeT(procsPerSocket,
 					socketCount,
-					NICC.PVSNIC(),
+					nic,
 					NodesC.PVSSMPNode(procsPerNode, RAM),
 					NetworkNodesC.SocketLocalNode(),
-					NetworkEdgesC.SocketLocalEdge(),
+					socketLocalEdge,
 					NetworkNodesC.QPI(),
-					NetworkEdgesC.QPI(), ios );
+					interSocketEdge,
+					ios );
 			if(overlappingServerCount > 0){
 				for (int i=0; i < overlappingServerCount; i++){
 					nodes.add(myIOServerGen.createModel("" + nodes.size(), mb, topology));
@@ -254,12 +252,13 @@ public class Validation  extends ModelTest {
 			// servers only
 			myIOServerGen = new SMTSocketNodeT(0,
 					1,
-					NICC.PVSNIC(),
+					nic,
 					NodesC.PVSSMPNode(1, RAM),
 					NetworkNodesC.SocketLocalNode(),
-					NetworkEdgesC.SocketLocalEdge(),
+					socketLocalEdge,
 					NetworkNodesC.QPI(),
-					NetworkEdgesC.QPI(), ios );
+					interSocketEdge,
+					ios );
 			for (int i=0; i < additionalServerNodes; i++){
 				nodes.add(myIOServerGen.createModel("" + nodes.size(), mb, topology));
 			}

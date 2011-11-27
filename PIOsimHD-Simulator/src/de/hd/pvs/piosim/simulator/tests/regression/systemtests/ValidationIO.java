@@ -125,7 +125,9 @@ public class ValidationIO extends Validation {
 		if (modelTime == null)
 			modelTime = new BufferedWriter(new FileWriter("/tmp/mpi-iolevelUnnamed-modelTime.txt"));
 
-		setupWrCluster(clients, processes, overlapping, servers, cacheLayer, ramSize);
+		setupWrCluster(2, false , false, false, true, clients, processes,
+				overlapping, servers, cacheLayer, ramSize);
+
 		parameters.setTraceFile("/tmp/io-level" + level + (write ? "WRITE" : "READ"));
 		parameters.setTraceEnabled(tracing);
 
@@ -154,7 +156,7 @@ public class ValidationIO extends Validation {
 	}
 
 	void startExperiment(String name, BufferedWriter modelTime) throws IOException{
-		modelTime.write("\n\n" + name);
+		modelTime.write("\n" + name);
 		modelTime.flush();
 	}
 
@@ -196,35 +198,6 @@ public class ValidationIO extends Validation {
 	@Test public void MPIIOTraceExample() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
 		runMPIIOLevelValidationSingle(0, true, "tst ",  1, 1, IOC.SimpleWriteBehindCache(), 1, 0, 10240, 100*KiB, 10000, true, modelTime);
-	}
-
-	public void MPIIOLevelValidationBlocks(long size, int repeats, ServerCacheLayer cacheLayer, BufferedWriter modelTime) throws Exception{
-		// test with 10000 MiB main memory
-		for(int i=1; i <= 5 ; i++){
-			runMPIIOLevelValidation("10000MB ", i,i,cacheLayer,i,0,repeats, size, 10000,false, modelTime);
-		}
-		runMPIIOLevelValidation("10000MB ",3 , 2,cacheLayer,3, 0,repeats, size, 10000,false, modelTime);
-
-		// test with 1000 MiB main memory
-		for(int i=1; i <= 5 ; i++){
-			runMPIIOLevelValidation("1GiG ", i,i,cacheLayer,i,0,repeats, size, 1000, false, modelTime);
-		}
-		runMPIIOLevelValidation("1GiG ",3 , 2,cacheLayer,3, 0,repeats, size, 1000, false, modelTime);
-
-		// test to run multiple processes on the client nodes
-		for(int i=2; i <= 6 ; i++){
-			runMPIIOLevelValidation("multiple ", 5, 5, cacheLayer,i*5,0,repeats, size, 1000, false, modelTime);
-		}
-
-		// overlapping test
-		runMPIIOLevelValidation("overlapping ", 8,8,cacheLayer, 8, 8, repeats, size, 2000, false, modelTime);
-
-		// 100 MiB main memory
-		for(int i=1; i <= 5 ; i++){
-			runMPIIOLevelValidation("100M ", i,i,cacheLayer,i,0,repeats, size, 100, false, modelTime);
-		}
-		runMPIIOLevelValidation("100M ",3 , 2,cacheLayer,3, 0,repeats, size, 100, false, modelTime);
-		System.out.println("Completed");
 	}
 
 
