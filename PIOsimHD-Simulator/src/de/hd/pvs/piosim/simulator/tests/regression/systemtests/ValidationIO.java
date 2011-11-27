@@ -197,7 +197,28 @@ public class ValidationIO extends Validation {
 
 	@Test public void MPIIOTraceExample() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
-		runMPIIOLevelValidationSingle(0, true, "tst ",  1, 1, IOC.SimpleWriteBehindCache(), 1, 0, 10240, 100*KiB, 10000, true, modelTime);
+		runMPIIOLevelValidationSingle(3, true, "tst ",  2, 2, IOC.AggregationReorderCache(), 2, 0, 10, 100*MiB, 1000, true, modelTime);
+	}
+
+	@Test public void test3() throws Exception{
+		setupWrCluster(2, false , false, false, true, 1, 1,	0, 1, IOC.AggregationReorderCache(), 100);
+
+		parameters.setTraceFile("/tmp/dump");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(64 * KiB);
+		FileMetadata file =  aB.createFile("test", 100 * GiB, dist );
+
+		FileDescriptor fd = pb.addFileOpen(file, world, false);
+
+		levelXOperation(true, 0, fd, 1, 1, 100*MiB, false);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+
+		System.out.println((100*MiB/ simRes.getVirtualTime().getDouble()/1024/1024.0) + " MiB/s");
 	}
 
 
@@ -262,7 +283,7 @@ public class ValidationIO extends Validation {
 				// test to run multiple processes on the client nodes
 				startExperiment("1GiGRAM/100-multiple.txt " + level, modelTime);
 				for(int p=1; p <= 6 ; p++){
-					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	i*5, 0, 10, 100 * MiB, 1000, false, modelTime);
+					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer, p*5, 0, 10, 100 * MiB, 1000, false, modelTime);
 				}
 			}
 		}
@@ -273,7 +294,7 @@ public class ValidationIO extends Validation {
 
 				startExperiment("100KByteGranularity/100-multiple.txt " + level, modelTime);
 				for(int p=1; p <= 6 ; p++){
-					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	i*5, 0, 10240, 100 * KiB, 1000, false, modelTime);
+					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	p*5, 0, 10240, 100 * KiB, 1000, false, modelTime);
 				}
 
 			}
@@ -325,7 +346,7 @@ public class ValidationIO extends Validation {
 
 				startExperiment("10GiGAccessed/100-multiple.txt " + level, modelTime);
 				for(int p=1; p <= 6 ; p++){
-					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	i*5, 0, 100, 100 * MiB, 1000, false, modelTime);
+					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	p*5, 0, 100, 100 * MiB, 1000, false, modelTime);
 				}
 			}
 		}

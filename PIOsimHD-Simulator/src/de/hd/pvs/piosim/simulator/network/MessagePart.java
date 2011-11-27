@@ -25,8 +25,10 @@
 
 package de.hd.pvs.piosim.simulator.network;
 
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
+import de.hd.pvs.piosim.simulator.base.ISNetworkComponent;
 import de.hd.pvs.piosim.simulator.event.EventData;
 
 
@@ -50,6 +52,39 @@ public class MessagePart implements INetworkMessage, EventData{
 	 * Position of this MessagePart inside the Message.
 	 */
 	final private long position;
+
+
+	/**
+	 * A message part tracks the last component it resides on.
+	 */
+	private ISNetworkComponent lastNetworkComponent;
+	private Epoch              lastProcessingTime;
+	private Epoch              lastLatency;
+	private int                hops = 0;
+
+	public ISNetworkComponent getLastNetworkComponent() {
+		return lastNetworkComponent;
+	}
+
+	public Epoch getLastProcessingTime() {
+		return lastProcessingTime;
+	}
+
+	public Epoch getLastLatency() {
+		return lastLatency;
+	}
+
+	public void updateCurrentState(ISNetworkComponent lastNetworkComponent, Epoch lastProcessingTime, Epoch lastLatency){
+		this.lastNetworkComponent = lastNetworkComponent;
+		this.lastProcessingTime = lastProcessingTime;
+		this.lastLatency = lastLatency;
+		this.hops++;
+	}
+
+	public int getCurrentHopCount() {
+		return hops;
+	}
+
 
 	/**
 	 * Parent Message

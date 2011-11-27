@@ -390,7 +390,12 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 		return new Epoch(((double) getSimulator().getModel().getGlobalSettings().getTransferGranularity()) / getModelComponent().getTotalBandwidth());	}
 
 	@Override
-	public Epoch getProcessingLatency() {
+	public Epoch getProcessingLatency(MessagePart part) {
+		return Epoch.ZERO;
+	}
+
+	@Override
+	public Epoch getMaximumProcessingLatency() {
 		return Epoch.ZERO;
 	}
 

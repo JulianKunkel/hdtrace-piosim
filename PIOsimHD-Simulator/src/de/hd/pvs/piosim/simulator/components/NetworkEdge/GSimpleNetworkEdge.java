@@ -31,7 +31,12 @@ public class GSimpleNetworkEdge extends AGNetworkEdge<SimpleNetworkEdge> {
 	}
 
 	@Override
-	public Epoch getProcessingLatency() {
+	public Epoch getProcessingLatency(MessagePart part) {
+		return getModelComponent().getLatency();
+	}
+
+	@Override
+	public Epoch getMaximumProcessingLatency() {
 		return getModelComponent().getLatency();
 	}
 }

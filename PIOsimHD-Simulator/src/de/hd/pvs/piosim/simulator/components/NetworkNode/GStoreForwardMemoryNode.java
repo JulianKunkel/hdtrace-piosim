@@ -25,13 +25,8 @@ public class GStoreForwardMemoryNode extends GStoreForwardNode<StoreForwardMemor
 	@Override
 	public Epoch getProcessingTime(MessagePart part) {
 		// use local bandwidth, if the source and targets are directly connected to this node.
-		AGNetworkNode node = (AGNetworkNode) getSimulator().getSimulatedComponent( part.getMessageSource() );
-
-		// TODO: this code is not nice, a cleanup would be good
-
-		if (((AGNetworkEdge) node.getTargetFlowComponent(part)).getTargetNode() == this &&
+		if ( part.getCurrentHopCount() == 2 &&
 				((AGNetworkEdge) getTargetFlowComponent(part)).getTargetNode() == getSimulator().getSimulatedComponent(part.getMessageTarget()) ){
-
 			return new Epoch(((double) part.getSize()) / getModelComponent().getLocalBandwidth());
 		}else{
 			return new Epoch(((double) part.getSize()) / getModelComponent().getTotalBandwidth());

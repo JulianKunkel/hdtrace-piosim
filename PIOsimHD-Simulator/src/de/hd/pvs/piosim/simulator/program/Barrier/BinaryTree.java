@@ -41,7 +41,7 @@ public class BinaryTree
 extends CommandImplementation<Barrier>
 {
 	final int tag = 20000;
-	final static IMessageUserData data = new NetworkSimpleData(30);
+	final static IMessageUserData data = new NetworkSimpleData(0);
 
 	final int RECEIVED_FROM_LEAF = 1;
 	final int RECEIVED_FROM_ROOT = 2;

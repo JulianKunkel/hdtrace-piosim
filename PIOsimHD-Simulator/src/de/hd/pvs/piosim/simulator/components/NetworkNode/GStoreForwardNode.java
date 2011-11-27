@@ -24,7 +24,12 @@ public class GStoreForwardNode<ModelType extends StoreForwardNode>
 	}
 
 	@Override
-	public Epoch getProcessingLatency() {
+	public Epoch getProcessingLatency(MessagePart part) {
+		return Epoch.ZERO;
+	}
+
+	@Override
+	public Epoch getMaximumProcessingLatency() {
 		return Epoch.ZERO;
 	}
 

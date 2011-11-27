@@ -36,7 +36,7 @@ public class GExitNode	extends AGNetworkNode<NetworkNode>
 	}
 
 	@Override
-	public Epoch getProcessingLatency() {
+	public Epoch getProcessingLatency(MessagePart part) {
 		return Epoch.ZERO;
 	}
 }
