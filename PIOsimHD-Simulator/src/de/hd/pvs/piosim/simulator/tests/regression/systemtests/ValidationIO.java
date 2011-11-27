@@ -2,6 +2,7 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -120,14 +121,12 @@ public class ValidationIO extends Validation {
 		}
 	}
 
-	void runMPIIOLevelValidationSingle(int level, boolean write, String prefix, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
+	void runMPIIOLevelValidationSingleSimple(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
 		if (modelTime == null)
 			modelTime = new BufferedWriter(new FileWriter("/tmp/mpi-iolevelUnnamed-modelTime.txt"));
 
-		String configStr = prefix + " N" + (clients + servers - overlapping) + "-P1-C" + clients + "-P" + processes + "-S" + servers + "-RAM" + ramSize + "-Size" + size + "-rep" + repeats + " " + (write ? "WRITE" : "READ") + "-lvl" + level;
-
 		setupWrCluster(clients, processes, overlapping, servers, cacheLayer, ramSize);
-		parameters.setTraceFile("/tmp/io-level" + prefix + level + (write ? "WRITE" : "READ"));
+		parameters.setTraceFile("/tmp/io-level" + level + (write ? "WRITE" : "READ"));
 		parameters.setTraceEnabled(tracing);
 
 		SimpleStripe dist = new SimpleStripe();
@@ -144,6 +143,27 @@ public class ValidationIO extends Validation {
 		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
+	}
+
+	void runMPIIOLevelValidationSingleThroughput(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
+		runMPIIOLevelValidationSingleSimple(level, write, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, modelTime);
+		double totalSizeInMiB = clients * repeats * size / 1024.0 / 1024.0;
+		double tp = totalSizeInMiB / simRes.getVirtualTime().getDouble();
+		modelTime.write(" " + tp);
+		modelTime.flush();
+	}
+
+	void startExperiment(String name, BufferedWriter modelTime) throws IOException{
+		modelTime.write("\n\n" + name);
+		modelTime.flush();
+	}
+
+
+
+	void runMPIIOLevelValidationSingle(int level, boolean write, String prefix, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
+		runMPIIOLevelValidationSingleSimple(level, write, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, modelTime);
+
+		String configStr = prefix + " N" + (clients + servers - overlapping) + "-P1-C" + clients + "-P" + processes + "-S" + servers + "-RAM" + ramSize + "-Size" + size + "-rep" + repeats + " " + (write ? "WRITE" : "READ") + "-lvl" + level;
 		modelTime.write(configStr + " " + simRes.getVirtualTime().getDouble() + "\n");
 		modelTime.flush();
 	}
@@ -157,37 +177,6 @@ public class ValidationIO extends Validation {
 				runMPIIOLevelValidationSingle(level, write, prefix, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, modelTime);
 			}
 		}
-	}
-
-	@Test public void MPIIOLevelValidation() throws Exception{
-		ServerCacheLayer cacheLayer = IOC.AggregationReorderCache();
-
-		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
-
-		modelTime.write("Cache settings: " + cacheLayer.toString() + "\n");
-		// test with 10000 MiB main memory
-		for(int i=1; i <= 5 ; i++){
-			runMPIIOLevelValidation("10000MB ", i,i,cacheLayer,i,0,10, 104857600, 10000,false, modelTime);
-		}
-		runMPIIOLevelValidation("10000MB ",3 , 2,cacheLayer,3, 0,10, 104857600, 10000,false, modelTime);
-
-		// test with 1000 MiB main memory
-		for(int i=1; i <= 5 ; i++){
-			runMPIIOLevelValidation("1GiG ", i,i,cacheLayer,i,0,10, 100 * MiB, 1000, false, modelTime);
-		}
-		runMPIIOLevelValidation("1GiG ",3 , 2,cacheLayer,3, 0,10, 104857600, 1000, false, modelTime);
-
-		// test to run multiple processes on the client nodes
-		for(int i=2; i <= 6 ; i++){
-			runMPIIOLevelValidation("multiple ", 5, 5, cacheLayer,i*5,0,10, 100 * MiB, 1000, false, modelTime);
-		}
-
-		// overlapping test
-		runMPIIOLevelValidation("overlapping ", 8,8,cacheLayer, 8, 8, 10, 100 * MiB, 2000, false, modelTime);
-
-		modelTime.close();
-
-		System.out.println("Completed");
 	}
 
 	@Test public void MPIIOLevelValidation100KByteBlocks() throws Exception{
@@ -239,6 +228,156 @@ public class ValidationIO extends Validation {
 	}
 
 
+	/**
+	 * Comparision of measured parabench results for the different levels.
+	 * @throws Exception
+	 */
+	@Test public void MPIIOLevelValidation() throws Exception{
+		ServerCacheLayer cacheLayer = IOC.AggregationReorderCache();
+
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
+
+		modelTime.write("Cache settings: " + cacheLayer.toString() + "\n");
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				// test with 1000 MiB main memory
+				startExperiment("1GiGRAM/100.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 10, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 10, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,2, cacheLayer,	3, 0, 10, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,3, cacheLayer,	3, 0, 10, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 10, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 10, 100 * MiB, 1000, false, modelTime);
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				startExperiment("100KByteGranularity/100.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 10240, 100 * KiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 10240, 100 * KiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,  3,2, cacheLayer,	3, 0, 10240, 100 * KiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,  3,3, cacheLayer,	3, 0, 10240, 100 * KiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 10240, 100 * KiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 10240, 100 * KiB, 1000, false, modelTime);
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				startExperiment("100KByteGranularity/10000RAM.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 10240, 100 * KiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 10240, 100 * KiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,  3,2, cacheLayer,	3, 0, 10240, 100 * KiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,  3,3, cacheLayer,	3, 0, 10240, 100 * KiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 10240, 100 * KiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 10240, 100 * KiB, 10000, false, modelTime);
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				// test to run multiple processes on the client nodes
+				startExperiment("1GiGRAM/100-multiple.txt " + level, modelTime);
+				for(int p=1; p <= 6 ; p++){
+					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	i*5, 0, 10, 100 * MiB, 1000, false, modelTime);
+				}
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				startExperiment("100KByteGranularity/100-multiple.txt " + level, modelTime);
+				for(int p=1; p <= 6 ; p++){
+					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	i*5, 0, 10240, 100 * KiB, 1000, false, modelTime);
+				}
+
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				// overlapping test
+				startExperiment("1GiGRAM/100-overlapping.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	8,8,cacheLayer, 8, 8, 10, 100 * MiB, 2000, false, modelTime);
+				startExperiment("100KByteGranularity/100-overlapping.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	8,8,cacheLayer, 8, 8, 10240, 100 * KiB, 2000, false, modelTime);
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				startExperiment("10GiGAccessed/100.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 100, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 100, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,2, cacheLayer,	3, 0, 100, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,3, cacheLayer,	3, 0, 100, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 100, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 100, 100 * MiB, 1000, false, modelTime);
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				startExperiment("10GiGAccessed/10000RAM.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,2, cacheLayer,	3, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,3, cacheLayer,	3, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 100, 100 * MiB, 10000, false, modelTime);
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				startExperiment("10GiGAccessed/100-multiple.txt " + level, modelTime);
+				for(int p=1; p <= 6 ; p++){
+					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	i*5, 0, 100, 100 * MiB, 1000, false, modelTime);
+				}
+			}
+		}
+
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				startExperiment("4-levels-of-access/400RAM.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 10, 100 * MiB, 400, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 10, 100 * MiB, 400, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,2, cacheLayer,	3, 0, 10, 100 * MiB, 400, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,3, cacheLayer,	3, 0, 10, 100 * MiB, 400, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 10, 100 * MiB, 400, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 10, 100 * MiB, 400, false, modelTime);
+			}
+		}
+
+
+		modelTime.write("\n\n Settings: " + mb.getGlobalSettings().toString());
+
+		modelTime.close();
+
+		System.out.println("Completed");
+	}
 
 	@Test public void myTestTrace() throws Exception{
 		ServerCacheLayer cacheLayer = IOC.AggregationCache();
