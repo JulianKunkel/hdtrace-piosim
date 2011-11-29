@@ -149,7 +149,7 @@ public class ValidationIO extends Validation {
 
 	void runMPIIOLevelValidationSingleThroughput(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
 		runMPIIOLevelValidationSingleSimple(level, write, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, modelTime);
-		double totalSizeInMiB = clients * repeats * size / 1024.0 / 1024.0;
+		double totalSizeInMiB = processes * repeats * size / 1024.0 / 1024.0;
 		double tp = totalSizeInMiB / simRes.getVirtualTime().getDouble();
 		modelTime.write(" " + tp);
 		modelTime.flush();
