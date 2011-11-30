@@ -38,12 +38,12 @@ public class ValidationIO extends Validation {
 
 		switch(level){
 		case 0: {
-			int pos = 0;
+			long pos = 0;
 
 			// level 0
-			for(int c=0; c < repeats; c++){
+			for(long c=0; c < repeats; c++){
 
-				for(int i=0 ; i < clientProcesses ; i++){
+				for(long i=0 ; i < clientProcesses ; i++){
 					if (isWrite){
 						pb.addWriteSequential(i, fd, size * pos, size);
 					}else{
@@ -57,12 +57,12 @@ public class ValidationIO extends Validation {
 			break;
 		}
 		case 1: {
-			int pos = 0;
-			for(int c=0; c < repeats; c++){
+			long pos = 0;
+			for(long c=0; c < repeats; c++){
 
 				LinkedList<ListIO> ios = new LinkedList<ListIO>();
 
-				for(int i=0 ; i < clientProcesses ; i++){
+				for(long i=0 ; i < clientProcesses ; i++){
 					ListIO listio = new ListIO();
 					listio.addIOOperation(size * pos, size);
 
@@ -87,9 +87,9 @@ public class ValidationIO extends Validation {
 
 		case 2: {
 			//level2:
-			for(int i=0 ; i < clientProcesses ; i++){
+			for(long i=0 ; i < clientProcesses ; i++){
 				ListIO listio = new ListIO();
-				for(int c=0; c < repeats; c++){
+				for(long c=0; c < repeats; c++){
 					listio.addIOOperation(size * (c*clientProcesses + i), size);
 				}
 				if (isWrite){
@@ -103,9 +103,9 @@ public class ValidationIO extends Validation {
 		case 3:{
 			// level3:
 			LinkedList<ListIO> ios = new LinkedList<ListIO>();
-			for(int i=0 ; i < clientProcesses ; i++){
+			for(long i=0 ; i < clientProcesses ; i++){
 				ListIO listio = new ListIO();
-				for(int c=0; c < repeats; c++){
+				for(long c=0; c < repeats; c++){
 					listio.addIOOperation(size * (c*clientProcesses + i), size);
 				}
 				ios.add(listio);
@@ -280,7 +280,7 @@ public class ValidationIO extends Validation {
 			for(int i = 0 ; i < 2; i++){
 				boolean isWrite = i == 0 ? true : false;
 
-				// test to run multiple processes on the client nodes
+				// test to run multiple p100rocesses on the client nodes
 				startExperiment("1GiGRAM/100-multiple.txt " + level, modelTime);
 				for(int p=1; p <= 6 ; p++){
 					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer, p*5, 0, 10, 100 * MiB, 1000, false, modelTime);
