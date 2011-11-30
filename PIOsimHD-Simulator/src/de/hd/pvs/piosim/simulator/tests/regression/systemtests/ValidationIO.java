@@ -43,7 +43,7 @@ public class ValidationIO extends Validation {
 			// level 0
 			for(long c=0; c < repeats; c++){
 
-				for(long i=0 ; i < clientProcesses ; i++){
+				for(int i=0 ; i < clientProcesses ; i++){
 					if (isWrite){
 						pb.addWriteSequential(i, fd, size * pos, size);
 					}else{
@@ -87,7 +87,7 @@ public class ValidationIO extends Validation {
 
 		case 2: {
 			//level2:
-			for(long i=0 ; i < clientProcesses ; i++){
+			for(int i=0 ; i < clientProcesses ; i++){
 				ListIO listio = new ListIO();
 				for(long c=0; c < repeats; c++){
 					listio.addIOOperation(size * (c*clientProcesses + i), size);
