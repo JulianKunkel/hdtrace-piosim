@@ -38,42 +38,7 @@ from wrapper_conf import before, beforeTracing, after, attributes, conditions, O
 
 TRACE = Options["Trace"]
 
-def add_dll_opens(groupFiles, output):
-  for group in groupFiles:
-      f = open(group)
-      funcs = f.readlines()
-      f.close();
-
-      groupName = funcs[0].strip()
-
-      output.write("#ifdef " + groupName + "\n")
-      output.write("OPEN_DLL(%s,\"%s\");\n" % (groupName, groupName))
-
-      for i in xrange(2, len(funcs)):
-	f = funcs[i].strip()
-
-	#ignore comments
-	if len(f) < 5 :
-	  continue;
-	if f[0] == "/":
-	  continue
-
-	regex = re.match("(.*)[\t *]([a-zA-Z0-9_]+)[\t ]*\(", f)
-	if not regex:
-	  sys.stderr.write("[WARNING] regex does not match in file '%s', line %d:\n" % (group, i+1))
-	  sys.stderr.write("\tContent: %s\n" % f)
-	  continue
-
-	tName = regex.group(2).strip()
-	output.write("ADD_SYMBOL(%s);\n" %( tName ))
-	output.write("static_%s = symbol;\n" %( tName ))
-
-
-      output.write("#endif\n")
-
-  return
-
-def add_functions(groupFiles, output, varDef):
+def add_functions(groupFiles, open_dll_statements, wrapper_functions, varDef):
   for group in groupFiles:
     f = open(group)
     funcs = f.readlines()
@@ -82,11 +47,14 @@ def add_functions(groupFiles, output, varDef):
     groupName = funcs[0].strip()
     groupFunction = funcs[1].strip()
 
-    output.append("#ifdef " + groupName + "\n")
+    open_dll_statements.append("#ifdef " + groupName + "\n")
+    open_dll_statements.append("OPEN_DLL(%s,\"%s\");\n" % (groupName, groupName))
+    wrapper_functions.append("#ifdef " + groupName + "\n")
     varDef.append("#ifdef " + groupName + "\n")
 
     for i in xrange(2, len(funcs)):
       f = funcs[i].strip()
+      error = False
 
       #ignore comments
       if len(f) < 5 :
@@ -115,8 +83,9 @@ def add_functions(groupFiles, output, varDef):
 
 	regex = re.match("(.*[ \t*])([a-zA-Z0-9_]+)[ \t]*(\[[ \t]*\])?$", param)
 	if not regex:
-	  sys.stderr.write("[WARNING] file '%s', line %d,  parameter %s in\n" % (group, i+1, param))
+	  sys.stderr.write("[ERROR] file '%s', line %d,  parameter %s in\n" % (group, i+1, param))
 	  sys.stderr.write("\tContent: %s\n" % f)
+	  error = True
 	  continue
 
 	paramNames.append(regex.group(2))
@@ -131,6 +100,16 @@ def add_functions(groupFiles, output, varDef):
 
       if tReturn == "void":
 	returnDatatype = False;
+      
+      # Skip this function if we can't guarantee to pass on the call correctly.
+      if error:
+	sys.stderr.write("\tSkipping this function.\n")
+	continue
+
+      # generate the dll open function:
+
+      open_dll_statements.append("ADD_SYMBOL(%s);\n" %( tName ))
+      open_dll_statements.append("static_%s = symbol;\n" %( tName ))
 
       # generate wrapper function:
 
@@ -142,57 +121,58 @@ def add_functions(groupFiles, output, varDef):
 
       varDef.append("static %s (* static_%s) ( %s ) = NULL;\n" % (tReturn, tName, ",".join(paramTypes)))
 
-      # output.write("#undef %s\n" % (tName) );
-      output.append(f.rstrip(";") + "{\n");
+      # wrapper_functions.write("#undef %s\n" % (tName) );
+      wrapper_functions.append(f.rstrip(";") + "{\n");
 
-      output.append("if(! initalized_tracing){ printf(\"[SOTRACE] Warning early initalization\\n\"); sotracer_initalize(); }\n");
+      wrapper_functions.append("if(! initalized_tracing){ printf(\"[SOTRACE] Warning early initalization\\n\"); sotracer_initalize(); }\n");
 
       if tName in before:
-	output.append(before[tName] + "\n")
+	wrapper_functions.append(before[tName] + "\n")
 
       if tName in conditions:
-	output.append("if (started_tracing && %s ){\n" % (conditions[tName]));
+	wrapper_functions.append("if (started_tracing && %s ){\n" % (conditions[tName]));
       else:
-	output.append("if (started_tracing){\n");
+	wrapper_functions.append("if (started_tracing){\n");
 
       if DEBUG:
-	output.append("printf(\"Entering " + groupFunction + " " + tName + "\\n\");\n")
+	wrapper_functions.append("printf(\"Entering " + groupFunction + " " + tName + "\\n\");\n")
 
       if TRACE:
         if tName in beforeTracing:
-	    output.append(beforeTracing[tName] + "\n")
-	output.append("hdMPI_threadLogStateStart(\"" + groupFunction + "_" + tName + "\");\n");
-      output.append("}\n");
+	    wrapper_functions.append(beforeTracing[tName] + "\n")
+	wrapper_functions.append("hdMPI_threadLogStateStart(\"" + groupFunction + "_" + tName + "\");\n");
+      wrapper_functions.append("}\n");
 
       if returnDatatype:
-	output.append(tReturn + " ret = ")
+	wrapper_functions.append(tReturn + " ret = ")
 
-      output.append("(* static_%s) (%s);\n" % (tName, ",".join(paramNames)));
+      wrapper_functions.append("(* static_%s) (%s);\n" % (tName, ",".join(paramNames)));
 
       if tName in conditions:
-	output.append("if (started_tracing && %s ){\n" % (conditions[tName]));
+	wrapper_functions.append("if (started_tracing && %s ){\n" % (conditions[tName]));
       else:
-	output.append("if (started_tracing){\n");
+	wrapper_functions.append("if (started_tracing){\n");
       if TRACE and tName in attributes:
-	output.append("hdMPI_threadLogAttributes(\"%s\", %s);\n" % ( attributes[tName][0], attributes[tName][1] ) )
+	wrapper_functions.append("hdMPI_threadLogAttributes(\"%s\", %s);\n" % ( attributes[tName][0], attributes[tName][1] ) )
 
       if TRACE:
-	output.append("hdMPI_threadLogStateEnd();\n");
+	wrapper_functions.append("hdMPI_threadLogStateEnd();\n");
 
       if tName in after:
-	output.append(after[tName] + "\n");
+	wrapper_functions.append(after[tName] + "\n");
 
-      output.append("}\n");
+      wrapper_functions.append("}\n");
 
       if returnDatatype:
-	output.append("return ret;\n");
+	wrapper_functions.append("return ret;\n");
 
-      output.append("}\n\n");
+      wrapper_functions.append("}\n\n");
 
       # end group
 
     varDef.append("#endif\n")
-    output.append("#endif\n")
+    wrapper_functions.append("#endif\n")
+    open_dll_statements.append("#endif\n")
 
   return
 
@@ -223,16 +203,17 @@ groupFilesToTrace = sys.argv[3].split(":")
 
 print "I will trace " + str(groupFilesToTrace) + " input " + sys.argv[1]
 
-for line in inputSkeleton.readlines():
+dllOpenStatements = []
+wrapperFunctions = []
+varDef = []
+add_functions(groupFilesToTrace, dllOpenStatements, wrapperFunctions, varDef)
 
+for line in inputSkeleton.readlines():
   if line.find("PYTHON_ADD_DLL_OPEN") != -1 :
-    add_dll_opens(groupFilesToTrace, output)
+    output.write("".join(dllOpenStatements))
   elif line.find("PYTHON_ADD_FUNCTIONS") != -1 :
-    outArray = []
-    varDef = []
-    add_functions(groupFilesToTrace, outArray, varDef)
     output.write("".join(varDef))
-    output.write("".join(outArray))
+    output.write("".join(wrapperFunctions))
   else:
     output.write(line)
 
