@@ -122,13 +122,23 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	 */
 	private Epoch maxTimeToTransferAJobToTheNextComponent = null;
 
+    /* (non-Javadoc)
+     * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#getProcessingTime(de.hd.pvs.piosim.simulator.network.MessagePart)
+     */
+    abstract public Epoch getProcessingTime(MessagePart part);
+
+    @Override
+    final protected Epoch getProcessingTimeOfScheduledJob(MessagePart eventData) {
+            return eventData.getLastProcessingTime();
+    };
+
 	/**
 	 * Determine the maximum latency a job can take.
 	 * @return
 	 */
 	private Epoch getMaxTimeToTransferAJobToTheNextComponent() {
 		if(maxTimeToTransferAJobToTheNextComponent == null){
-			maxTimeToTransferAJobToTheNextComponent = getProcessingLatency().add( getMaximumProcessingTime() );
+			maxTimeToTransferAJobToTheNextComponent = getMaximumProcessingLatency().add( getMaximumProcessingTime() );
 		}
 
 		return maxTimeToTransferAJobToTheNextComponent;
@@ -199,16 +209,6 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 	}
 
-	/* (non-Javadoc)
-	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#getProcessingTime(de.hd.pvs.piosim.simulator.network.MessagePart)
-	 */
-	abstract public Epoch getProcessingTime(MessagePart part);
-
-	@Override
-	final protected Epoch getProcessingTimeOfScheduledJob(MessagePart eventData) {
-		return getProcessingTime(eventData);
-	};
-
 	/**
 	 * In case an event of a request was blocked the component only continues
 	 * if it is notified to activate the Request or the target advises to continue transferring jobs.
@@ -219,6 +219,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	protected void continueProcessingOfFlow(
 			INetworkExit target,
 			MessagePart part,
+			Epoch lastProcessingTime,
 			Epoch startTime,
 			ISNetworkComponent targetFlowComponent)
 	{
@@ -230,7 +231,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 		assert(pendingEvents.jobsInTransit > 0);
 
-		pendingEvents.usedLatency = pendingEvents.usedLatency.subtract(getProcessingTime(part));
+		pendingEvents.usedLatency = pendingEvents.usedLatency.subtract(lastProcessingTime);
 		pendingEvents.jobsInTransit--;
 
 		if ( ! pendingEvents.blockedByLatency ){
@@ -301,7 +302,13 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 			 */
 			//System.out.println( getIdentifier() + " getNextPendingAndSchedulableEvent");
 
-			Epoch jobRunTime = getProcessingTime(event.getEventData());
+			final MessagePart part = event.getEventData();
+			final Epoch lastProcessingTime = part.getLastProcessingTime();
+
+			Epoch jobRunTime = getProcessingTime(part);
+			Epoch latency = getProcessingLatency(part);
+			event.getEventData().updateCurrentState(this, jobRunTime, latency);
+
 
 			// manage flow control here:
 			pendingEvents.usedLatency = pendingEvents.usedLatency.add(jobRunTime);
@@ -312,8 +319,29 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 				pendingEvents.blockedByLatency = true;
 			}
 
-			debugFollowUpLine("pending runtime: " + pendingEvents.usedLatency);
+//			debugFollowUpLine("pending runtime: " + pendingEvents.usedLatency);
 
+
+			/**
+			 * special case for NIC which generates new events.
+			 */
+			if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ))
+			{
+				final Epoch startTime = getSimulator().getVirtualTime();
+				final ISPassiveComponent source =  event.getIssuingComponent();
+
+				SNetworkComponent ssource = (SNetworkComponent) source;
+
+				//System.out.println( this.getIdentifier() + " jobStarted issued by " + source.getIdentifier() );
+
+				if(source != this){
+					// special case, we created the new message
+					// manage flow control here:
+					ssource.continueProcessingOfFlow( part.getMessageTarget() , part, lastProcessingTime, startTime, this );
+				}
+
+				ssource.messagePartReceivedAndStartedProcessing(this, part, startTime);
+			}
 			return event;
 		}
 		return null;
@@ -337,30 +365,9 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		}else{
 			jobToken = event.getRelationToken();
 		}
-
-
-		/**
-		 * special case for NIC which generates new events.
-		 */
-		if(SNetworkComponent.class.isInstance( event.getIssuingComponent() ))
-		{
-			final ISPassiveComponent source =  event.getIssuingComponent();
-			final MessagePart part = event.getEventData();
-
-			SNetworkComponent ssource = (SNetworkComponent) source;
-			INetworkExit target = part.getMessageTarget();
-
-			//System.out.println( this.getIdentifier() + " jobStarted issued by " + source.getIdentifier() );
-
-			if(source != this){
-				// special case, we created the new message
-				// manage flow control here:
-				ssource.continueProcessingOfFlow( part.getMessageTarget(), part , startTime, this );
-			}
-
-			ssource.messagePartReceivedAndStartedProcessing(this, part, startTime);
-		}
 	}
+
+
 
 	private String buildTraceEntry(MessagePart part){
 		return "msg_" + part.getMessageSource().getIdentifier().getID() + "_" + part.getMessageTarget().getIdentifier().getID();
@@ -408,7 +415,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 			// we are the target
 			// prevent endless loops in routing algorithm.
 			messagePartDestroyed(part, endTime);
-			continueProcessingOfFlow(part.getMessageTarget(), part, endTime, this);
+			continueProcessingOfFlow(part.getMessageTarget(), part, part.getLastProcessingTime(), endTime, this);
 			return;
 		}
 
@@ -418,7 +425,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 		if( targetComponent == null ){
 			messagePartDestroyed(part, endTime);
-			continueProcessingOfFlow(part.getMessageTarget(), part, endTime, this);
+			continueProcessingOfFlow(part.getMessageTarget(), part, part.getLastProcessingTime(), endTime, this);
 
 			return;
 		}
@@ -426,7 +433,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		// transmit the packet to the target after it arrives (latency).
 		final Event newEvent = new Event(this,
 				targetComponent,
-				endTime.add(getProcessingLatency()),
+				endTime.add(part.getLastLatency()),
 				event.getEventData(), jobToken);
 
 		getSimulator().submitNewEvent( newEvent);

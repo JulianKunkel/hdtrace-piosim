@@ -30,9 +30,12 @@ public interface ISNetworkComponent<Type extends IBasicComponent>
 	/**
 	 * The time a job takes to arrive on the component it gets submitted, i.e. transfer time between
 	 * cable and receiver.
+	 * @param part TODO
 	 * @return
 	 */
-	public abstract Epoch getProcessingLatency();
+	public abstract Epoch getProcessingLatency(MessagePart part);
+
+	public abstract Epoch getMaximumProcessingLatency();
 
 	/**
 	 * The maximum time a job needs to get processed.

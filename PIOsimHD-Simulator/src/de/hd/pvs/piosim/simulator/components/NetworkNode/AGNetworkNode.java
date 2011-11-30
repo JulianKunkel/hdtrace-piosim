@@ -12,6 +12,7 @@ abstract public class AGNetworkNode<ModelType extends INetworkNode>
 
 	@Override
 	public void setPaketRouting(IPaketTopologyRouting routing) {
+		assert(routing != null);
 		this.routing = routing;
 	}
 

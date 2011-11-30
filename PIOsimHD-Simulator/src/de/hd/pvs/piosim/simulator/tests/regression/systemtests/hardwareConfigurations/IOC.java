@@ -24,6 +24,15 @@ public class IOC implements HardwareComponents{
 		return iosub;
 	}
 
+	static public IOSubsystem ShmTmpfs(){
+		final SimpleDisk iosub = new SimpleDisk();
+
+		iosub.setAvgAccessTime(Epoch.ZERO);
+		iosub.setMaxThroughput(2000 * MIB);
+		iosub.setName("Tmpfs");
+
+		return iosub;
+	}
 
 	static public IOSubsystem PVSDisk(){
 		final RefinedDiskModel iosub = new RefinedDiskModel();
@@ -32,7 +41,7 @@ public class IOC implements HardwareComponents{
 		iosub.setRPM(7200);
 		iosub.setPositionDifferenceConsideredToBeClose(1 * MBYTE);
 		iosub.setSequentialTransferRate((int) 96 * MIB);
-		iosub.setName("IBM");
+		iosub.setName("PVS");
 
 		return iosub;
 	}

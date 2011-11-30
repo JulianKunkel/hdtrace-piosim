@@ -12,6 +12,8 @@ public interface IBasicComponent
 
 	public ComponentIdentifier getIdentifier();
 
+	public BasicComponent getParentComponent();
+
 	/**
 	 * Get all the parent components plus the component itself
 	 * @return
