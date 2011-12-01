@@ -13,6 +13,7 @@ import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
+import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.hardwareConfigurations.IOC;
 
 public class ValidationIO extends Validation {
@@ -145,6 +146,11 @@ public class ValidationIO extends Validation {
 		pb.addFileClose(fd);
 
 		runSimulationAllExpectedToFinish();
+
+
+		final SimulationResultSerializer serializer = new SimulationResultSerializer();
+		modelTime.write(serializer.serializeResults(simRes).toString());
+		modelTime.flush();
 	}
 
 	void runMPIIOLevelValidationSingleThroughput(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
@@ -198,6 +204,14 @@ public class ValidationIO extends Validation {
 	@Test public void MPIIOTraceExample() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
 		runMPIIOLevelValidationSingle(3, true, "tst ",  2, 2, IOC.AggregationReorderCache(), 2, 0, 10, 100*MiB, 1000, true, modelTime);
+	}
+
+
+	@Test public void TenGiGFileAccessTrace() throws Exception{
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
+		runMPIIOLevelValidationSingleThroughput(0, true, 5,5, IOC.AggregationReorderCache(),	15, 0, 100, 100 * MiB, 10000, true, modelTime);
+		//runMPIIOLevelValidationSingleThroughput(0, true, 5,5, IOC.AggregationReorderCache(),	15, 0, 100, 100 * MiB, 1000, true, modelTime);
+
 	}
 
 	@Test public void test3() throws Exception{
@@ -317,12 +331,12 @@ public class ValidationIO extends Validation {
 				boolean isWrite = i == 0 ? true : false;
 
 				startExperiment("10GiGAccessed/100.txt " + level, modelTime);
-				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 100, 100 * MiB, 1000, false, modelTime);
-				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 100, 100 * MiB, 1000, false, modelTime);
-				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,2, cacheLayer,	3, 0, 100, 100 * MiB, 1000, false, modelTime);
-				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,3, cacheLayer,	3, 0, 100, 100 * MiB, 1000, false, modelTime);
-				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 100, 100 * MiB, 1000, false, modelTime);
-				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 100, 100 * MiB, 1000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 1,1, cacheLayer,	1, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 2,2, cacheLayer,	2, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,2, cacheLayer,	3, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 3,3, cacheLayer,	3, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 4,4, cacheLayer,	4, 0, 100, 100 * MiB, 10000, false, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	 5,5, cacheLayer,	5, 0, 100, 100 * MiB, 10000, false, modelTime);
 			}
 		}
 
@@ -346,7 +360,7 @@ public class ValidationIO extends Validation {
 
 				startExperiment("10GiGAccessed/100-multiple.txt " + level, modelTime);
 				for(int p=1; p <= 6 ; p++){
-					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	p*5, 0, 100, 100 * MiB, 1000, false, modelTime);
+					runMPIIOLevelValidationSingleThroughput(level, isWrite, 5,5, cacheLayer,	p*5, 0, 100, 100 * MiB, 10000, false, modelTime);
 				}
 			}
 		}
