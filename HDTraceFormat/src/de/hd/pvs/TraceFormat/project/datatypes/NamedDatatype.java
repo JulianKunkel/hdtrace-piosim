@@ -41,6 +41,7 @@ public class NamedDatatype extends Datatype{
 		LONG_LONG (8),
 		DOUBLE_PRECISION (8),
 		UNIMPLEMENTED(0),
+		PACKED(1)
 		;
 
 		final int size;
@@ -61,6 +62,7 @@ public class NamedDatatype extends Datatype{
 	final static public NamedDatatype FLOAT = new NamedDatatype(NamedDatatypeType.FLOAT);
 	final static public NamedDatatype DOUBLE = new NamedDatatype(NamedDatatypeType.DOUBLE);
 	final static public NamedDatatype CHAR = new NamedDatatype(NamedDatatypeType.CHAR);
+	final static public NamedDatatype PACKED = new NamedDatatype(NamedDatatypeType.PACKED);
 	final static public NamedDatatype UNSIGNED_CHAR = new NamedDatatype(NamedDatatypeType.UNSIGNED_CHAR);
 	final static public NamedDatatype INTEGER = new NamedDatatype(NamedDatatypeType.INTEGER);
 	final static public NamedDatatype LONG_LONG = new NamedDatatype(NamedDatatypeType.LONG_LONG);
@@ -129,7 +131,9 @@ public class NamedDatatype extends Datatype{
 		case LONG_LONG:
 			return LONG_LONG;
 		case DOUBLE_PRECISION:
-			return DOUBLE_PRECISION;			
+			return DOUBLE_PRECISION;
+		case PACKED:
+			return PACKED;
 		default:
 			return null;
 		}		

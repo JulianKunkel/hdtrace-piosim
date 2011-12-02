@@ -24,5 +24,7 @@ public enum DatatypeEnum {
 	HINDEXED,
 	STRUCT,
 	VECTOR,
-	SUBARRAY
+	SUBARRAY,
+	INDEXED_BLOCK,
+	PACKED
 }
