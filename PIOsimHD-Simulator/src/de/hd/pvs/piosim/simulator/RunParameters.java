@@ -55,6 +55,8 @@ public class RunParameters {
 	 */
 	boolean traceServers = false;
 
+	boolean traceClientNestingOperations = false;
+
 	/**
 	 * If more than this number of events got started, then the simulation is aborted.
 	 */
@@ -131,6 +133,14 @@ public class RunParameters {
 	 */
 	public boolean isTraceInternals() {
 		return traceInternals;
+	}
+
+	public boolean isTraceClientNestingOperations(){
+		return traceClientNestingOperations;
+	}
+
+	public void setTraceClientNestingOperations(boolean traceClientNestingOperations) {
+		this.traceClientNestingOperations = traceClientNestingOperations;
 	}
 
 	/**

@@ -1665,6 +1665,15 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
+	@Test
+	public void runJacobi_x() throws Exception{
+		String which = "/7000-NS-NC-NProc-Var-Unlimited/N5-P1-C5-P5-S0-RAM17800/23220.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+		which = "/1000-2S-NC-NProc-1000M-shm/N5-P1-C3-P3-S2-RAM10000/23094.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+
+		runPartdiffParExperiment(which, null, true);
+	}
+
+
 
 	// Test case showing that the implemented broadcast is not 100% MPICH2 broadcast, because it does sendrecv, but MPI does just ones send/recv.
 	@Test public void broadcast100MiB() throws Exception{
@@ -2003,6 +2012,7 @@ public class Validation  extends ModelTest {
 		parameters.setTraceFile("/tmp/test");
 		parameters.setTraceEnabled(trace);
 		parameters.setTraceClientSteps(false);
+		parameters.setTraceClientNestingOperations(false);
 		parameters.setTraceServers(false);
 
 		final String project = projectsPath + "/" + projectLocal;

@@ -385,15 +385,27 @@ public class GClientProcess
 		}
 		final STraceWriter tw = getSimulator().getTraceWriter();
 
+		final TraceType traceType ;
+		if(step.getParentOperation() == null){
+			traceType = TraceType.CLIENT;
+		}else{
+			traceType = TraceType.CLIENT_NESTING;
+
+			if(! getSimulator().getRunParameters().isTraceClientNestingOperations()){
+				return;
+			}
+		}
+
 		if(start == false) {
+
 			if(cmd.isAsynchronous()){
-				tw.relEndState(TraceType.CLIENT, step.getRelationToken(), null, new String[] {"aid", "" + cmd.getAsynchronousID()});
+				tw.relEndState(traceType, step.getRelationToken(), null, new String[] {"aid", "" + cmd.getAsynchronousID()});
 			}else{
-				tw.relEndState(TraceType.CLIENT, step.getRelationToken());
+				tw.relEndState(traceType, step.getRelationToken());
 			}
 
 			if(step.getParentOperation() == null || step.getParentOperation().getNestedOperations().length > 1){
-				tw.relDestroy(TraceType.CLIENT, step.getRelationToken());
+				tw.relDestroy(traceType, step.getRelationToken());
 			}
 		}else {
 			// tracing of I/O commands adds size and offset pairs.
@@ -413,7 +425,7 @@ public class GClientProcess
 				}
 			}
 
-			tw.relStartState(TraceType.CLIENT, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
+			tw.relStartState(traceType, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
 					tag, cme.getAdditionalTraceAttributes(cmd));
 		}
 	}

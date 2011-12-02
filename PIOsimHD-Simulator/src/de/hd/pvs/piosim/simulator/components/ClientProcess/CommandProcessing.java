@@ -31,6 +31,7 @@ import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
@@ -321,7 +322,12 @@ public class CommandProcessing implements ICommandProcessing{
 
 
 	private final RelationToken createNestedToken(){
-		return this.getInvokingComponent().getSimulator().getTraceWriter().relRelateProcessLocalToken(TraceType.CLIENT, this.getInvokingComponent(), relationToken);
+		Simulator sim = this.getInvokingComponent().getSimulator();
+		if (! sim.getRunParameters().isTraceClientNestingOperations()){
+			return relationToken;
+		}else{
+			return sim.getTraceWriter().relRelateProcessLocalToken(TraceType.CLIENT_NESTING, this.getInvokingComponent(), relationToken);
+		}
 	}
 
 	/**
@@ -380,7 +386,12 @@ public class CommandProcessing implements ICommandProcessing{
 	final public void addNetSend(int rankTo,
 			IMessageUserData jobData, int tag, Communicator comm)
 	{
-		addNetSend(getTargetfromRank(rankTo, comm), jobData, tag, comm);
+		try{
+			addNetSend(getTargetfromRank(rankTo, comm), jobData, tag, comm);
+		}catch(RuntimeException e){
+			System.err.println( "comm size: " + comm.getSize() +  " to: " + rankTo );
+			throw e;
+		}
 	}
 
 	final public void addNetSend(INodeHostedComponent to,
@@ -473,8 +484,10 @@ public class CommandProcessing implements ICommandProcessing{
 	final private INodeHostedComponent getTargetfromRank(int rank, Communicator comm){
 		assert(rank >= 0);
 		rank = comm.getWorldRank(rank);
+		String app = getInvokingComponent().getModelComponent().getApplication();
+		GClientProcess c = getInvokingComponent().getSimulator().getApplicationMap().getClient( app,  rank);
 
-		return getInvokingComponent().getSimulator().getApplicationMap().getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
+		return c.getModelComponent();
 	}
 
 
