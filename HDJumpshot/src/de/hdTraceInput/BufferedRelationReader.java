@@ -3,7 +3,11 @@ package de.hdTraceInput;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.PriorityQueue;
+
+import com.sun.org.apache.xalan.internal.xsltc.dom.MultiValuedNodeHeapIterator.HeapNode;
 
 import de.hd.pvs.TraceFormat.ITracableObject;
 import de.hd.pvs.TraceFormat.relation.RelationEntry;
@@ -41,50 +45,16 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 		this.additionalTimeOffset = additionalTimeOffset;
 		
 		header = reader.getHeader();
-
-		// now add all entries
-		outer: while(true){
+		
+		while(true){
 			final RelationEntry entry = reader.getNextEntry();
 			if(entry == null){
 				break;
 			}
 
 			entriesEndTimeSorted.add(entry);
-			
-			// layout the current entry:
-			// try to check if it fits on a existing line.
-			for(ArrayList<RelationEntry> list: layoutedEntriesSorted){
-				// compare entry time with last entry in the list
-				final Epoch earliest = list.get(list.size() -1).getLatestTime();
-				
-				if(earliest.compareTo(entry.getEarliestTime()) <= 0){
-					// it fits into the old timeline.
-					list.add(entry);
-					continue outer;
-				}
-			}
-
-			// if we reach here it does not fit => create a new line.
-			final ArrayList<RelationEntry> list = new ArrayList<RelationEntry>();
-			list.add(entry);
-			
-			// add the line to the correct position, sort the lines based on the start-time of the events.			
-			int i=0;
-			for( ; i < layoutedEntriesSorted.size(); i++){
-				final ArrayList<RelationEntry> cur = layoutedEntriesSorted.get(i);
-				// sort the lines with the starting time, e.g. the earliest starting time comes first
-				if ( cur.get(0).getEarliestTime().compareTo(entry.getEarliestTime()) > 0){					
-					layoutedEntriesSorted.add( i, list);
-					break;
-				}
-			}
-			
-			// always add when not yet added
-			if(i == layoutedEntriesSorted.size() ){
-				layoutedEntriesSorted.add(list);
-			}
-			
 		}
+
 
 		entriesStartTimeSorted = new ArrayList<RelationEntry>(entriesEndTimeSorted);
 		// sort the list depending on start time:
@@ -94,6 +64,47 @@ public class BufferedRelationReader implements IBufferedReader, RelationSource {
 				return o1.getEarliestTime().compareTo(o2.getEarliestTime());
 			}			
 		});
+
+		PriorityQueue<ArrayList<RelationEntry>> earliestFinishedList = new PriorityQueue<ArrayList<RelationEntry>>(10, new Comparator<ArrayList<RelationEntry>>() {
+			@Override
+			public int compare(ArrayList<RelationEntry> o1,	ArrayList<RelationEntry> o2) {
+				final Epoch earliest = o1.get(o1.size() -1).getLatestTime();
+				final Epoch earliest2 = o2.get(o2.size() -1).getLatestTime();
+		
+				return earliest.compareTo(earliest2);
+			}
+		});
+		
+
+		// now add all entries
+		for(RelationEntry entry: entriesStartTimeSorted){
+			
+			// layout the current entry:
+			// try to check if it fits on a existing line.
+     		// compare entry time with last entry in the list
+			if (earliestFinishedList.size() > 0){
+				ArrayList<RelationEntry> list = earliestFinishedList.peek();				
+				final Epoch latest = list.get(list.size() -1).getLatestTime();
+				
+				if(latest.compareTo(entry.getEarliestTime()) <= 0){
+					// it fits into the old timeline.
+					list.add(entry);
+					
+					earliestFinishedList.poll();
+					
+					earliestFinishedList.add(list);
+					
+					continue;
+				}
+			}
+			// if we reach here it does not fit => create a new line.
+			final ArrayList<RelationEntry> list = new ArrayList<RelationEntry>();
+			list.add(entry);		
+						
+			layoutedEntriesSorted.add(list);
+			earliestFinishedList.add(list);	
+			
+		}
 	}
 	
 	@Override
