@@ -58,12 +58,17 @@ public class TopologyTraceTreeNode extends TopologyTreeNode
 	}
 	
 	@Override
-	public void adjustTimeOffset(double delta, Epoch globalMinTime) {
+	public void adjustTimeOffset(double delta, Epoch globalMinTime, Epoch globalMaxTime) {
 		if (delta == 0.0){
 			// determine delta with the first event.
 			Epoch minTime = ((BufferedTraceFileReader) getTopology().getTraceSource()).getMinTime();
 			delta = globalMinTime.subtract(minTime).getDouble();
+		}else if (delta >= 1e100){
+			// determine delta to the last event.
+			Epoch maxTime = ((BufferedTraceFileReader) getTopology().getTraceSource()).getMaxTime();
+			delta = globalMaxTime.subtract(maxTime).getDouble();
 		}
+		
 		try{
 			BufferedTraceFileReader rNew = new BufferedTraceFileReader(getTraceSource().getFilename(), true, getTraceSource().getAdditionalTimeOffset().add(delta) );
 			getTopology().setTraceSource( rNew );

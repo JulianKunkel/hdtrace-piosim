@@ -74,7 +74,7 @@ public class TopologyStatisticTreeNode extends TopologyTreeNode {
 	}
 	
 	@Override
-	public void adjustTimeOffset(double delta, Epoch globalMinTime) {
+	public void adjustTimeOffset(double delta, Epoch globalMinTime, Epoch globalMaxTime) {
 		
 		// warning, this function is applied to all nodes
 		String name = statisticDescription.getGroup().getName();

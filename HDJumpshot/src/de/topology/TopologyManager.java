@@ -301,7 +301,7 @@ public class TopologyManager
 							if(str != null && str.length() > 0){
 								double value = Double.parseDouble(str);
 								
-								treeNode.adjustTimeOffset(value, modelTime.getGlobalMinimum());
+								treeNode.adjustTimeOffset(value, modelTime.getGlobalMinimum(), modelTime.getGlobalMaximum());
 								// TODO adjust global min/max time
 								
 								fireTopologyChanged();

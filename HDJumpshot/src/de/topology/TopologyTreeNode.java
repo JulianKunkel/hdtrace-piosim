@@ -129,10 +129,11 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 	 * Adjust the time of all nested nodes by the value
 	 * @param delta
 	 * @param globalMinTime TODO
+	 * @param globalMaxTime TODO
 	 */
-	public void adjustTimeOffset(double delta, Epoch globalMinTime){
+	public void adjustTimeOffset(double delta, Epoch globalMinTime, Epoch globalMaxTime){
 		for(TopologyTreeNode node: getTopologyTreeNodeChildren()){
-			node.adjustTimeOffset(delta, globalMinTime);
+			node.adjustTimeOffset(delta, globalMinTime, globalMaxTime);
 		}
 		
 		// adjust grouped statistics.
@@ -143,7 +144,7 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 				TreeNode c = n.getChildAt(0);
 				// this should be always true:
 				if(TopologyStatisticTreeNode.class.isInstance(c)){
-					((TopologyStatisticTreeNode) c).adjustTimeOffset(delta, globalMinTime);
+					((TopologyStatisticTreeNode) c).adjustTimeOffset(delta, globalMinTime, globalMaxTime);
 				}
 			}
 		}
