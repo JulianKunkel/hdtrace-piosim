@@ -185,7 +185,7 @@ public class Validation  extends ModelTest {
 			socketLocalEdge = NetworkEdgesC.SocketLocalEdge();
 			interSocketEdge = NetworkEdgesC.QPI();
 
-			if(fasterNIC){ // real cluster value vs. GiGE throughput
+			if(! fasterNIC){ // real cluster value vs. GiGE throughput
 				interNodeEdge = NetworkEdgesC.GIGEPVS();
 			}else{
 				interNodeEdge = NetworkEdgesC.GIGE();
@@ -1967,9 +1967,12 @@ public class Validation  extends ModelTest {
 	@Test
 	public void runPartdiff() throws Exception{
 		//runPartdiffParExperiment("/7000-NS-NC-NProc-Var-Unlimited/N10-P1-C10-P10-S10-RAM20390/23109.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
-		runPartdiffParExperiment("/2000-NS-NC-NProc-Overlapped-Unlimited/N10-P1-C10-P10-S10-RAM20390/23163.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
+		//runPartdiffParExperiment("/2000-NS-NC-NProc-Overlapped-Unlimited/N10-P1-C10-P10-S10-RAM20390/23163.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
+		runPartdiffParExperiment("/100-0S-NC-NProc-Unlimited/N7-P1-C7-P7-S0-RAM15507/25849.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
 
 	}
+
+
 
 	public void runPartdiffParExperiment(String projectLocal, BufferedWriter output, boolean trace) throws Exception{
 		String config = projectLocal.split("/")[2];
@@ -2011,8 +2014,9 @@ public class Validation  extends ModelTest {
 
 		parameters.setTraceFile("/tmp/test");
 		parameters.setTraceEnabled(trace);
-		parameters.setTraceClientSteps(false);
-		parameters.setTraceClientNestingOperations(false);
+		parameters.setTraceClientSteps(true);
+		parameters.setTraceInternals(true);
+		parameters.setTraceClientNestingOperations(true);
 		parameters.setTraceServers(false);
 
 		final String project = projectsPath + "/" + projectLocal;
@@ -2026,23 +2030,22 @@ public class Validation  extends ModelTest {
 		sim = new Simulator();
 		model = mb.getModel();
 		model.getGlobalSettings().setIOGranularity(10 * MiB);
-		model.getGlobalSettings().setTransferGranularity(100 * KiB);
+		model.getGlobalSettings().setTransferGranularity(512);
 
 		sim.initModel(model, parameters);
 		simRes = sim.simulate();
 
 		output.append( " modeltime: " + sim.getVirtualTime().getDouble() + " simTime: " + simRes.getWallClockTime() + " events: " + simRes.getEventCount()  + "\n");
 
-		final SimulationResultSerializer serializer = new SimulationResultSerializer();
-		output.append(serializer.serializeResults(simRes)+ "\n");
-
+		//final SimulationResultSerializer serializer = new SimulationResultSerializer();
+		//output.append(serializer.serializeResults(simRes)+ "\n");
 		output.flush();
 	}
 
 	// parse inputs from configuration files...
 	@Test
 	public void runPartdiffParExperiments() throws Exception{
-		final BufferedReader projectsToRun = new BufferedReader(new FileReader(projectsPath + "/projects.txt"));
+		final BufferedReader projectsToRun = new BufferedReader(new FileReader(projectsPath + "/projects-100.txt"));
 
 		BufferedWriter output = new BufferedWriter(new FileWriter("/tmp/partdiff.txt"));
 
