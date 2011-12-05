@@ -223,7 +223,10 @@ public class ProjectDescriptionXMLReader {
 		}case HVECTOR:{
 			// TODO fixme!!!
 			datatype = NamedDatatype.UNIMPLEMENTED;
-			break;			
+			break;
+		}case INDEXED_BLOCK:{
+			datatype = NamedDatatype.UNIMPLEMENTED;
+			break;
 		}default:
 			throw new IllegalArgumentException("Datatype " + type + " not implemented, yet");
 		}		

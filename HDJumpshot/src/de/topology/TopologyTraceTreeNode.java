@@ -28,6 +28,7 @@ package de.topology;
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
 import de.hd.pvs.TraceFormat.trace.TraceSource;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hdTraceInput.BufferedTraceFileReader;
 import de.viewer.timelines.TimelineType;
 
@@ -57,7 +58,17 @@ public class TopologyTraceTreeNode extends TopologyTreeNode
 	}
 	
 	@Override
-	public void adjustTimeOffset(double delta) {
+	public void adjustTimeOffset(double delta, Epoch globalMinTime, Epoch globalMaxTime) {
+		if (delta == 0.0){
+			// determine delta with the first event.
+			Epoch minTime = ((BufferedTraceFileReader) getTopology().getTraceSource()).getMinTime();
+			delta = globalMinTime.subtract(minTime).getDouble();
+		}else if (delta >= 1e100){
+			// determine delta to the last event.
+			Epoch maxTime = ((BufferedTraceFileReader) getTopology().getTraceSource()).getMaxTime();
+			delta = globalMaxTime.subtract(maxTime).getDouble();
+		}
+		
 		try{
 			BufferedTraceFileReader rNew = new BufferedTraceFileReader(getTraceSource().getFilename(), true, getTraceSource().getAdditionalTimeOffset().add(delta) );
 			getTopology().setTraceSource( rNew );

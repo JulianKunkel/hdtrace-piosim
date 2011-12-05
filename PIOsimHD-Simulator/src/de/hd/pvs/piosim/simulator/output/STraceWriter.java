@@ -54,6 +54,7 @@ abstract public class STraceWriter {
 		ALWAYS,
 		CLIENT,
 		CLIENT_STEP,
+		CLIENT_NESTING,
 		IOSERVER,
 		INTERNAL,
 		NOT_INTERNAL
@@ -140,6 +141,8 @@ abstract public class STraceWriter {
 				return ! sim.getRunParameters().isTraceInternals();
 			case CLIENT:
 				return true;
+			case CLIENT_NESTING:
+				return sim.getRunParameters().isTraceClientNestingOperations();
 			case INTERNAL:
 				return sim.getRunParameters().isTraceInternals();
 			case CLIENT_STEP:
