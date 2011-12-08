@@ -123,11 +123,11 @@ public class ValidationIO extends Validation {
 	}
 
 	void runMPIIOLevelValidationSingleSimple(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
-		if (modelTime == null)
-			modelTime = new BufferedWriter(new FileWriter("/tmp/mpi-iolevelUnnamed-modelTime.txt"));
-
 		setupWrCluster(2, false , false, false, true, clients, processes,
 				overlapping, servers, cacheLayer, ramSize);
+
+		//model.getGlobalSettings().setTransferGranularity(10 * KiB);
+
 
 		parameters.setTraceFile("/tmp/io-level" + level + (write ? "WRITE" : "READ"));
 		parameters.setTraceEnabled(tracing);
@@ -147,14 +147,24 @@ public class ValidationIO extends Validation {
 
 		runSimulationAllExpectedToFinish();
 
+		if (modelTime == null){
+			modelTime = new BufferedWriter(new FileWriter("/tmp/mpi-iolevelUnnamed-modelTime.txt"));
 
-		final SimulationResultSerializer serializer = new SimulationResultSerializer();
-		modelTime.write(serializer.serializeResults(simRes).toString());
-		modelTime.flush();
+			final SimulationResultSerializer serializer = new SimulationResultSerializer();
+			modelTime.write(serializer.serializeResults(simRes).toString());
+			modelTime.flush();
+
+			modelTime.close();
+		}else{
+			final SimulationResultSerializer serializer = new SimulationResultSerializer();
+			modelTime.write(serializer.serializeResults(simRes).toString());
+			modelTime.flush();
+		}
 	}
 
 	void runMPIIOLevelValidationSingleThroughput(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
-		runMPIIOLevelValidationSingleSimple(level, write, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, modelTime);
+
+		runMPIIOLevelValidationSingleSimple(level, write, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, null);
 		double totalSizeInMiB = (double) (processes) * repeats * size / 1024.0 / 1024.0;
 		double tp = totalSizeInMiB / simRes.getVirtualTime().getDouble();
 		modelTime.write(" " + tp);

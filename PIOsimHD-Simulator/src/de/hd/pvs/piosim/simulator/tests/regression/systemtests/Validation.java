@@ -169,6 +169,8 @@ public class Validation  extends ModelTest {
 		final NetworkEdge socketLocalEdge;
 		final NetworkEdge interSocketEdge;
 		final NetworkEdge interNodeEdge;
+		final NetworkNode nodeLocal;
+		final NetworkNode socketNode;
 
 
 		if (analyticalNIC){ // real vs. analytical NIC?
@@ -177,28 +179,40 @@ public class Validation  extends ModelTest {
 			nic = NICC.PVSNIC();
 		}
 
-		if(latencyBoundNetwork){ // real vs. latency bound.
-			socketLocalEdge = NetworkEdgesC.SocketLocalNoLatencyEdge();
-			interSocketEdge = NetworkEdgesC.QPINoLatency();
-			interNodeEdge = NetworkEdgesC.GIGEPVSNoLatency();
-		}else{
-			socketLocalEdge = NetworkEdgesC.SocketLocalEdge();
-			interSocketEdge = NetworkEdgesC.QPI();
 
-			if(fasterNIC){ // real cluster value vs. GiGE throughput
-				interNodeEdge = NetworkEdgesC.GIGEPVS();
+		if(false){
+			socketLocalEdge = NetworkEdgesC.infiniteFast();
+			interSocketEdge = NetworkEdgesC.infiniteFast();
+			interNodeEdge = NetworkEdgesC.infiniteFast();
+			nodeLocal = NetworkNodesC.infiniteFast();
+			socketNode = NetworkNodesC.infiniteFast();
+
+		}else{
+			if(latencyBoundNetwork){ // real vs. latency bound.
+				socketLocalEdge = NetworkEdgesC.SocketLocalNoLatencyEdge();
+				interSocketEdge = NetworkEdgesC.QPINoLatency();
+				interNodeEdge = NetworkEdgesC.GIGEPVSNoLatency();
 			}else{
-				interNodeEdge = NetworkEdgesC.GIGE();
+				socketLocalEdge = NetworkEdgesC.SocketLocalEdge();
+				interSocketEdge = NetworkEdgesC.QPI();
+
+				if(fasterNIC){ // real cluster value vs. GiGE throughput
+					interNodeEdge = NetworkEdgesC.GIGE();
+				}else{
+					interNodeEdge = NetworkEdgesC.GIGEPVS();
+				}
 			}
+			nodeLocal = NetworkNodesC.QPI();
+			socketNode = NetworkNodesC.SocketLocalNode();
 		}
 
 		smtNodeT = new SMTSocketNodeT(procsPerSocket,
 				socketCount,
 				nic,
 				NodesC.PVSSMPNode(procsPerSocket * socketCount, RAM),
-				NetworkNodesC.SocketLocalNode(),
+				socketNode,
 				socketLocalEdge,
-				NetworkNodesC.QPI(),
+				nodeLocal,
 				interSocketEdge );
 
 		final HardwareConfiguration config = new ClusterT(processNodes, interNodeEdge ,NetworkNodesC.GIGSwitch(), smtNodeT);
@@ -361,23 +375,46 @@ public class Validation  extends ModelTest {
 		model = mb.getModel();
 
 		// set useful defaults:
+		if(false){
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.ReduceBroadcast");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BarrierMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");
 
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.ReduceBroadcast");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BarrierMPICH2");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");
-
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("ReduceScatter"), "de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("ReduceScatter"), "de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
 
 
-		// close without doing anything
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileopen"),  "de.hd.pvs.piosim.simulator.program.FileOpen.BroadcastOpen");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filewriteall"),  "de.hd.pvs.piosim.simulator.program.Filewriteall.TwoPhase");
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filereadall"),  "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+			// close without doing anything
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileopen"),  "de.hd.pvs.piosim.simulator.program.FileOpen.BroadcastOpen");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filewriteall"),  "de.hd.pvs.piosim.simulator.program.Filewriteall.TwoPhase");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filereadall"),  "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+		}else{
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("ReduceScatter"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.Global.VirtualSync");
+
+
+			// close without doing anything
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), "de.hd.pvs.piosim.simulator.program.Global.NoOperation");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileopen"),  "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filewriteall"),  "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filereadall"),  "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
+
+			// de.hd.pvs.piosim.model.program.commands.Send,de.hd.pvs.piosim.model.program.commands.Recv,de.hd.pvs.piosim.model.program.commands.Sendrecv
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Send"),  "de.hd.pvs.piosim.simulator.program.SendReceive.Virtual.VirtualSend");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Recv"),  "de.hd.pvs.piosim.simulator.program.SendReceive.Virtual.VirtualRcv");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Sendrecv"),  "de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSendrecv");
+		}
 
 		// do not flush on close => default behavior...
 		//mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), "de.hd.pvs.piosim.simulator.program.FileClose.SimpleClose");
@@ -1967,8 +2004,8 @@ public class Validation  extends ModelTest {
 	@Test
 	public void runPartdiff() throws Exception{
 		//runPartdiffParExperiment("/7000-NS-NC-NProc-Var-Unlimited/N10-P1-C10-P10-S10-RAM20390/23109.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
-		runPartdiffParExperiment("/2000-NS-NC-NProc-Overlapped-Unlimited/N10-P1-C10-P10-S10-RAM20390/23163.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
-
+		//runPartdiffParExperiment("/2000-NS-NC-NProc-Overlapped-Unlimited/N10-P1-C10-P10-S10-RAM20390/23163.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
+		runPartdiffParExperiment("/100-0S-NC-NProc-Unlimited/N7-P1-C7-P7-S0-RAM15507/25849.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
 	}
 
 	public void runPartdiffParExperiment(String projectLocal, BufferedWriter output, boolean trace) throws Exception{
