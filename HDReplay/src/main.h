@@ -1,11 +1,3 @@
-/**
-  \author Johann Weging
-  
-  \brief The main function.
-  
-  No serious work is done here, it only calls the important functions.
-  
-*/
 
 #ifndef _MAIN_H_
 #define _MAIN_H_
@@ -21,10 +13,13 @@
 #include "glib.h"
 
 /**
-  \brief Mian function.
-*/
-int main(int, char**);
-void cleanUp(GSList* traceFile, GSList* comms);
-void freeComms(gpointer data);
+ * @brief The main fuction
+ *
+ * @param argc the count of parameters passed the function 
+ * @param array of parameters
+ *
+ * @return 
+ */
+int main(int argc, char** argv);
 
 #endif
