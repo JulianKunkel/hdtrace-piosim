@@ -3,34 +3,55 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <glib.h>
+
 #include "structures.h"
 #include "readproject.h"
 #include "readtrace.h"
-#include "stdlib.h"
 #include "error.h"
 #include "constant.h"
 
+
 /**
-  \brief Reads the command line parameter.
-  
-  \param[in] argc Count of the parameters.
-  \param[in] argv The parameters it self.
-  \param[out] projectFile Path to the project file.
-  \param[out] traceFileFolderPath Path to the folder containing the traces files.
-  
-   The function can't be called with out a proproject file. If no path to the folder
-   of the trace files is given, the function uses the folder of the project file.
-  
-*/
-int readCliArgs(char* projectFile, char* traceFileFolderPath, int argc, char** argv);
+ * @brief 
+ *
+ * @param projectFile
+ * @param traceFileFolderPath
+ * @param argc
+ * @param argv
+ *
+ * @return 
+ */
+void read_cli_args(gchar **projectFile, gchar **traceFileFolderPath, int argc, char** argv);
 
-
+/**
+ * @brief 
+ *
+ * @param traceFile
+ * @param comms
+ * @param fileList
+ * @param rank
+ * @param size
+ * @param argc
+ * @param argv
+ */
 void init
-(GSList** traceFile, GSList** comms, GSList** fileList, int rank, int size,
-int argc, char** argv);
+(GSList** traceFile, GSList** comms, GSList** fileList, GSList **dataTypes,
+ int rank, int size, int argc, char** argv);
 
-void genTraceFileName
-(char* traceFilePath, char* traceFileFolderPath, char* programName,
-char* hostname, int rank);
+/**
+ * @brief 
+ *
+ * @param traceFilePath
+ * @param traceFileFolderPath
+ * @param programName
+ * @param hostname
+ * @param rank
+ */
+gchar *gen_trace_file_name
+(gchar *traceFileFolderPath, gchar *programName, gchar *hostname, int rank);
+
+void gen_communicator_hash(struct Communicator* communicators);
 
 #endif

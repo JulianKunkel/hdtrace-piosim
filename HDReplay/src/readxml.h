@@ -4,7 +4,6 @@
 #include "expat.h"
 
 #if defined(__amigaos__) && defined(__USE_INLINE__)
-#include <proto/expat.h>
 #endif
 #ifdef XML_LARGE_SIZE
 #if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
