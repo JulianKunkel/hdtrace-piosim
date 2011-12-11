@@ -1076,7 +1076,11 @@ public class Validation  extends ModelTest {
 					}
 				}
 				addBarrier(config);
-
+				if(size <= 1*MiB){
+					model.getGlobalSettings().setTransferGranularity(512);
+				}else{
+					model.getGlobalSettings().setTransferGranularity(100 * KiB);
+				}
 				runSimulationWithoutOutput();
 
 				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
@@ -1092,7 +1096,7 @@ public class Validation  extends ModelTest {
 	public void sendRootWhichReceives(BufferedWriter modelTime) throws Exception{
 		// test cases run on the WR cluster
 
-		for(int size: sizes100KiB){
+		for(int size: sizes){
 			modelTime.write("SendRoot" + size + " ");
 			for(String config : configs){
 				final int nodes = Integer.parseInt(config.split("-")[0]);
@@ -1117,8 +1121,11 @@ public class Validation  extends ModelTest {
 					}
 				}
 				addBarrier(config);
-
-
+				if(size <= 1*MiB){
+					model.getGlobalSettings().setTransferGranularity(512);
+				}else{
+					model.getGlobalSettings().setTransferGranularity(100 * KiB);
+				}
 
 				runSimulationWithoutOutput();
 
@@ -1161,7 +1168,11 @@ public class Validation  extends ModelTest {
 
 				}
 				addBarrier(config);
-
+				if(size <= 1*MiB){
+					model.getGlobalSettings().setTransferGranularity(512);
+				}else{
+					model.getGlobalSettings().setTransferGranularity(100 * KiB);
+				}
 				runSimulationWithoutOutput();
 
 				modelTime.write(simRes.getVirtualTime().getDouble() + " ");
@@ -1204,6 +1215,11 @@ public class Validation  extends ModelTest {
 				}
 				addBarrier(config);
 
+				if(size <= 1*MiB){
+					model.getGlobalSettings().setTransferGranularity(512);
+				}else{
+					model.getGlobalSettings().setTransferGranularity(100 * KiB);
+				}
 
 				runSimulationWithoutOutput();
 
