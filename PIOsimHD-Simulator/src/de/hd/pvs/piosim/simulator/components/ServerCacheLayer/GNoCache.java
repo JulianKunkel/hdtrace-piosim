@@ -196,7 +196,7 @@ public class GNoCache
 	@Override
 	public void writeDataToCache(NetworkIOData ioData, InterProcessNetworkJob clientJob, long amountToWrite, Object userData, IServerCacheLayerJobCallback callback) {
 		//decide which data actually is contained in the network packet
-		debug("amount " + amountToWrite);
+//		debug("amount " + amountToWrite);
 
 		nodeRessources.reserveMemory(amountToWrite);
 
@@ -253,7 +253,7 @@ public class GNoCache
 	}
 
 	public void dataWrittenCompletelyToDisk(IOJob<InternalIOData,?> job, Epoch endTime) {
-		debug("job " + job);
+//		debug("job " + job);
 
 		if(job.getNumberOfJobs() == 1){
 			final InternalIOData data = ((InternalIOData) job.getUserData());
@@ -365,7 +365,7 @@ public class GNoCache
 
 
 	public void IOComplete(Epoch endTime, IOJob job) {
-		debug("I/O done " + job);
+//		debug("I/O done " + job);
 
 		// it is mandatory to first schedule new operations internally!
 		numberOfScheduledIOOperations--;

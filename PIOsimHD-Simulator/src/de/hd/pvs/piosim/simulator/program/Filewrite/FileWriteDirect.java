@@ -116,7 +116,7 @@ extends CommandImplementation<Filewrite>
 			if(cmd.getFile().getSize() < lastWrittenByte){
 				cmd.getFile().setSize(lastWrittenByte);
 
-				client.debug("File \"" + cmd.getFile().getName() + "\" enlarged to \"" + lastWrittenByte + "\" Bytes");
+//				client.debug("File \"" + cmd.getFile().getName() + "\" enlarged to \"" + lastWrittenByte + "\" Bytes");
 			}
 
 			return;

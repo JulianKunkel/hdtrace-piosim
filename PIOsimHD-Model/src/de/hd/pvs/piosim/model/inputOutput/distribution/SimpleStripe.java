@@ -132,7 +132,7 @@ public class SimpleStripe extends Distribution {
 
 			final int unevenChunks = (numberOfFullChunksHit % serverCount);
 
-			ConsoleLogger.getInstance().debug(this, " ListIO <" + offset + "," + size + ">\n" + "\tNumberOfChunks: " + numberOfChunksHit + " FullChunks: " + numberOfFullChunksHit + " unalignedData " + firstServerRemainingUnalignedData + " sizePerServer " + sizePerServer + "  alignedStartOffset: " + alignedStartOffset);
+//			ConsoleLogger.getInstance().debug(this, " ListIO <" + offset + "," + size + ">\n" + "\tNumberOfChunks: " + numberOfChunksHit + " FullChunks: " + numberOfFullChunksHit + " unalignedData " + firstServerRemainingUnalignedData + " sizePerServer " + sizePerServer + "  alignedStartOffset: " + alignedStartOffset);
 			int unalignedBlockOnFirstServer = 0;
 
 			// accumulate the size for all servers, the result should be the same as size
@@ -159,7 +159,7 @@ public class SimpleStripe extends Distribution {
 					final long remainder =  size - (((long) numberOfFullChunksHit) * chunkSize +
 							firstServerRemainingUnalignedData);
 
-					ConsoleLogger.getInstance().debug(this, "last server: " + i + " " + remainder + " " + physicalSizeForThisServer);
+//					ConsoleLogger.getInstance().debug(this, "last server: " + i + " " + remainder + " " + physicalSizeForThisServer);
 
 					assert(remainder >= 0);
 
@@ -186,7 +186,7 @@ public class SimpleStripe extends Distribution {
 
 				aktIO.addIOOperation(physicalOffsetForThisServer, physicalSizeForThisServer);
 
-				ConsoleLogger.getInstance().debug(this, "Data is hitting Server: " + aktServer + " Physical Offset: " + physicalOffsetForThisServer + " Size: " + physicalSizeForThisServer);
+//				ConsoleLogger.getInstance().debug(this, "Data is hitting Server: " + aktServer + " Physical Offset: " + physicalOffsetForThisServer + " Size: " + physicalSizeForThisServer);
 
 				checkSize += physicalSizeForThisServer;
 			}

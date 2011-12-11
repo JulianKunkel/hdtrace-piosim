@@ -241,7 +241,7 @@ implements INodeRessources
 
 			computeNextActiveEpoch = currentTime.add( (double) earliestJob.remainingCycles      /      getInstructionsPerJobAndSecond(getNumberOfActiveComputeJobs() ) + Epoch.getTimeResolution()  );
 
-			debug(" " + earliestJob.getRemainingCycles() + " next active: " + computeNextActiveEpoch);
+//			debug(" " + earliestJob.getRemainingCycles() + " next active: " + computeNextActiveEpoch);
 
 			updateWakeupTimer(computeNextActiveEpoch);
 		}
@@ -276,12 +276,12 @@ implements INodeRessources
 		// Update the pending cycles in all pending compute jobs (expect new ones).
 		int max = activeJobsBefore; //pendingComputeJob.size(); Is this correct now ?
 
-		debug(processedCycles + " pendingComputeJob " + pendingComputeJob.size());
+//		debug(processedCycles + " pendingComputeJob " + pendingComputeJob.size());
 
 		for(int i=0; i < max; i++){
 			ComputeJob job = pendingComputeJob.get(i);
 
-			debugFollowUpLine("Job remaining cycles: " + job.remainingCycles + " " + job.getComponent().getIdentifier() + " " + job);
+//			debugFollowUpLine("Job remaining cycles: " + job.remainingCycles + " " + job.getComponent().getIdentifier() + " " + job);
 
 			job.remainingCycles -= processedCycles;
 

@@ -170,7 +170,7 @@ abstract public class SSchedulableBlockingComponent<Type extends IBasicComponent
 		// wake up the component when the job finishes
 		setNewWakeupTimerAbsolute(lastRunningEventEndTime);
 
-		debug(" earliestEventTime: " + event.getEarliestStartTime() +  " from " + curTime + " busy up to:" + lastRunningEventEndTime);
+//		debug(" earliestEventTime: " + event.getEarliestStartTime() +  " from " + curTime + " busy up to:" + lastRunningEventEndTime);
 	}
 
 	/**
@@ -178,7 +178,7 @@ abstract public class SSchedulableBlockingComponent<Type extends IBasicComponent
 	 */
 	@Override
 	final public void processInternalEvent(InternalEvent event, Epoch time) {
-		debug(state + " " +" end: " + lastRunningEventEndTime + " starting " + runningJob);
+//		debug(state + " " +" end: " + lastRunningEventEndTime + " starting " + runningJob);
 
 		if(state == State.BUSY && time.equals(lastRunningEventEndTime)){
 			// finish the pending event.

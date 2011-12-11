@@ -180,11 +180,11 @@ public class Validation  extends ModelTest {
 		}
 
 		if(false){
-			socketLocalEdge = NetworkEdgesC.infiniteFast();
-			interSocketEdge = NetworkEdgesC.infiniteFast();
-			interNodeEdge = NetworkEdgesC.infiniteFast();
-			nodeLocal = NetworkNodesC.infiniteFast();
-			socketNode = NetworkNodesC.infiniteFast();
+//			socketLocalEdge = NetworkEdgesC.infiniteFast();
+//			interSocketEdge = NetworkEdgesC.infiniteFast();
+//			interNodeEdge = NetworkEdgesC.infiniteFast();
+//			nodeLocal = NetworkNodesC.infiniteFast();
+//			socketNode = NetworkNodesC.infiniteFast();
 
 		}else{
 			if(latencyBoundNetwork){ // real vs. latency bound.
@@ -649,7 +649,9 @@ public class Validation  extends ModelTest {
 		p.setTraceInternals(true);
 
 		setupWrCluster(4,4);
-		runCollectiveTest(4,4, "Barrier", "", null, null, true, true, p, 99);
+		model.getGlobalSettings().setTransferGranularity(512);
+
+		runCollectiveTest(4,4, "Barrier", "", null, null, true, false, p, 99);
 		//runCollectiveTest(4,4, "Reduce", "10240", null, null, true, p, 99);
 	}
 
@@ -856,6 +858,28 @@ public class Validation  extends ModelTest {
 		return folder + "/" + files[0];
 	}
 
+	final String extractedCommunicationPatternPath = "/home/julian/Dokumente/Dissertation/Latex/results/mpi-bench-current/extracted-communication-patterns/";
+
+	void addBarrier(String config) throws Exception{
+		final ApplicationXMLReader axml = new ApplicationXMLReader();
+
+		String barrierProj= getProjectFile(extractedCommunicationPatternPath + config + "/Barrier");
+		final Application barrierApp;
+		barrierApp = axml.parseApplication(barrierProj, true);
+
+		for(int r = 0 ; r < barrierApp.getProcessCount(); r++){
+			ProgramInMemory bp = (ProgramInMemory) barrierApp.getClientProgram(r, 0);
+			ProgramInMemory p = (ProgramInMemory) app.getClientProgram(r, 0);
+
+			ArrayList<Command> prevCommands = bp.getCommands();
+			int commandCount = prevCommands.size();
+
+			for(int i=0; i < commandCount; i++){
+				p.addCommand(prevCommands.get(i));
+			}
+		}
+	}
+
 	public void runCollectiveTest(int nodes, int processes, String experiment, String strSize, BufferedWriter outputFile, BufferedWriter modelTime, boolean doCompute, boolean addBarrier, RunParameters parameters, int repeatReading) throws Exception{
 
 		if(outputFile == null){
@@ -871,8 +895,6 @@ public class Validation  extends ModelTest {
 		}
 
 		final ApplicationXMLReader axml = new ApplicationXMLReader();
-		final String prefix = "/home/kunkel/Dokumente/Dissertation/Trace/results-git/compute-only/extracted-communication-patterns/";
-
 
 		long sTime, setupSystemTime, setupProgramTime;
 		// dual socket configuration.
@@ -888,7 +910,7 @@ public class Validation  extends ModelTest {
 		sTime = new Date().getTime();
 
 		// load traces
-		final String folder = prefix + config + "/" + experiment + "/" + strSize;
+		final String folder = extractedCommunicationPatternPath + config + "/" + experiment + "/" + strSize;
 		String proj= getProjectFile(folder);
 		if(proj == ""){
 			outputFile.write("Invalid configuration: " + folder);
@@ -927,22 +949,7 @@ public class Validation  extends ModelTest {
 		}
 
 		if(addBarrier){
-			String barrierProj= getProjectFile(prefix + config + "/Barrier");
-			final Application barrierApp;
-			barrierApp = axml.parseApplication(barrierProj, true);
-
-			for(int r = 0 ; r < barrierApp.getProcessCount(); r++){
-				ProgramInMemory bp = (ProgramInMemory) barrierApp.getClientProgram(r, 0);
-				ProgramInMemory p = (ProgramInMemory) app.getClientProgram(r, 0);
-
-				ArrayList<Command> prevCommands = bp.getCommands();
-				int commandCount = prevCommands.size();
-
-				for(int i=0; i < commandCount; i++){
-					p.addCommand(prevCommands.get(i));
-				}
-			}
-
+			addBarrier(config);
 		}
 
 
@@ -971,6 +978,7 @@ public class Validation  extends ModelTest {
 		modelTime.write("\n");
 
 		validationRunCollectiveWithSendRecv(modelTime);
+
 		sendRecvRingRightLeftNeighbor(modelTime);
 		sendRecvPaired(modelTime);
 		sendRootWhichReceives(modelTime);
@@ -1063,8 +1071,7 @@ public class Validation  extends ModelTest {
 						pb.addSendRecv(world, rank, dest, dest, size, 4711, 4711);
 					}
 				}
-				pb.addBarrier(world);
-
+				addBarrier(config);
 
 				runSimulationWithoutOutput();
 
@@ -1105,7 +1112,7 @@ public class Validation  extends ModelTest {
 						pb.addSendAndRecv(world, rank, 0, size, 4711);
 					}
 				}
-				pb.addBarrier(world);
+				addBarrier(config);
 
 
 
@@ -1149,7 +1156,7 @@ public class Validation  extends ModelTest {
 					}
 
 				}
-				pb.addBarrier(world);
+				addBarrier(config);
 
 				runSimulationWithoutOutput();
 
@@ -1191,7 +1198,7 @@ public class Validation  extends ModelTest {
 						pb.addSendRecv(world, rank, src, dest, size, 4711, 4711);
 					}
 				}
-				pb.addBarrier(world);
+				addBarrier(config);
 
 
 				runSimulationWithoutOutput();
@@ -1208,9 +1215,6 @@ public class Validation  extends ModelTest {
 	public void validationRunCollectiveWithSendRecv(BufferedWriter modelTime) throws Exception{
 		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/collectives-runTime.txt"));
 		outputFile.write("#Proc\tEvents\tRuntime\tSysModelT\tProgramMT\n");
-
-		final String prefix = "/home/kunkel/Dokumente/Dissertation/Latex/results/mpi-bench-current/extracted-communication-patterns/";
-
 
 		// test cases run on the WR cluster
 
@@ -2007,7 +2011,7 @@ public class Validation  extends ModelTest {
 		runPartdiffParExperiment("/100-0S-NC-NProc-Unlimited/N7-P1-C7-P7-S0-RAM15507/25849.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
 		 //runPartdiffParExperiment("/1000-2S-NC-NProc-1000M-shm/N5-P1-C3-P3-S2-RAM10000/23094.cluster.wr.inform
 		//runPartdiffParExperiment("/7000-NS-NC-NProc-Var-Unlimited/N5-P1-C5-P5-S0-RAM17800/23220.cluster.wr.info
-		 
+
 
 	}
 

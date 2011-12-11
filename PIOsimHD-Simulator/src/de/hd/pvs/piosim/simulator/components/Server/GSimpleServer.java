@@ -74,7 +74,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 	final private IInterProcessNetworkJobCallback unexpectedCallback = new InterProcessNetworkJobCallbackAdaptor() {
 		@Override
 		public void recvCompletedCB(InterProcessNetworkJob job, InterProcessNetworkJob announcedJob, Epoch endTime) {
-			debug( "Unexpected job starting " + job.getMatchingCriterion().getSourceComponent().getIdentifier());
+//			debug( "Unexpected job starting " + job.getMatchingCriterion().getSourceComponent().getIdentifier());
 
 			final Class<? extends IMessageUserData> dataType = job.getJobData().getClass();
 

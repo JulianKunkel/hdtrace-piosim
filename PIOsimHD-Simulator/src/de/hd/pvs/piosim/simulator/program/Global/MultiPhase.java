@@ -453,7 +453,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 		}
 
 		if (waitingClients.size() == cmd.getCommunicator().getSize() -1){
-			client.debug("Activate other clients for two phase " + cmd + " by " + client.getIdentifier() );
+//			client.debug("Activate other clients for two phase " + cmd + " by " + client.getIdentifier() );
 
 			/* we finish, therefore reactivate all other clients! */
 			for(GClientProcess c: waitingClients.keySet()){
@@ -503,7 +503,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			waitingClients.put(client, cmdResults);
 
 			/* just block up */
-			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
+//			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
 			return true;
 		}
 

@@ -393,7 +393,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 	 */
 	private void printQueue() {
 		if (ConsoleLogger.getInstance().isDebuggable(this)) {
-			ConsoleLogger.getInstance().debug(this, "Queue");
+//			ConsoleLogger.getInstance().debug(this, "Queue");
 			for (InternalEvent c : futureEvents) {
 				ConsoleLogger.getInstance().debugFollowUpline(
 						this,
@@ -472,7 +472,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 				}
 			}
 
-			ConsoleLogger.getInstance().debug(this,	"\n\nSimulator Main Iteration");
+//			ConsoleLogger.getInstance().debug(this,	"\n\nSimulator Main Iteration");
 
 			printQueue();
 
@@ -482,7 +482,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 
 			final Epoch newTime = serviceEvent.getEarliestStartTime();
 
-			ConsoleLogger.getInstance().debug(	this, "SCHEDULING component: "	+ serviceEvent.getTargetComponent()	.getIdentifier());
+//			ConsoleLogger.getInstance().debug(	this, "SCHEDULING component: "	+ serviceEvent.getTargetComponent()	.getIdentifier());
 
 			// safety check, wrong component implementations can lead to this:
 			if (currentEpoch.compareTo(newTime) > 0) {
