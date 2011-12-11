@@ -53,7 +53,7 @@ public class NetworkEdgesC implements HardwareComponents{
 	static public SimpleNetworkEdge GIGE(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("1GBitE");
-		conn.setLatency(new Epoch(0.0002753));
+		conn.setLatency(new Epoch(0, 19982));
 		conn.setBandwidth(117 * MBYTE);
 		return conn;
 	}

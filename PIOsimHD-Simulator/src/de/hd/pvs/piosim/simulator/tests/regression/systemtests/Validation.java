@@ -861,21 +861,25 @@ public class Validation  extends ModelTest {
 	final String extractedCommunicationPatternPath = "/home/julian/Dokumente/Dissertation/Latex/results/mpi-bench-current/extracted-communication-patterns/";
 
 	void addBarrier(String config) throws Exception{
-		final ApplicationXMLReader axml = new ApplicationXMLReader();
+		if(false){
+		  pb.addBarrier(world);
+		}else{
+			final ApplicationXMLReader axml = new ApplicationXMLReader();
 
-		String barrierProj= getProjectFile(extractedCommunicationPatternPath + config + "/Barrier");
-		final Application barrierApp;
-		barrierApp = axml.parseApplication(barrierProj, true);
+			String barrierProj= getProjectFile(extractedCommunicationPatternPath + config + "/Barrier");
+			final Application barrierApp;
+			barrierApp = axml.parseApplication(barrierProj, true);
 
-		for(int r = 0 ; r < barrierApp.getProcessCount(); r++){
-			ProgramInMemory bp = (ProgramInMemory) barrierApp.getClientProgram(r, 0);
-			ProgramInMemory p = (ProgramInMemory) app.getClientProgram(r, 0);
+			for(int r = 0 ; r < barrierApp.getProcessCount(); r++){
+				ProgramInMemory bp = (ProgramInMemory) barrierApp.getClientProgram(r, 0);
+				ProgramInMemory p = (ProgramInMemory) app.getClientProgram(r, 0);
 
-			ArrayList<Command> prevCommands = bp.getCommands();
-			int commandCount = prevCommands.size();
+				ArrayList<Command> prevCommands = bp.getCommands();
+				int commandCount = prevCommands.size();
 
-			for(int i=0; i < commandCount; i++){
-				p.addCommand(prevCommands.get(i));
+				for(int i=0; i < commandCount; i++){
+					p.addCommand(prevCommands.get(i));
+				}
 			}
 		}
 	}
@@ -1130,7 +1134,7 @@ public class Validation  extends ModelTest {
 	public void sendRecvRoot(BufferedWriter modelTime) throws Exception{
 		// test cases run on the WR cluster
 
-		for(int size: sizes100KiB){
+		for(int size: sizes){
 			modelTime.write("SendRecvRoot" + size + " ");
 			for(String config : configs){
 				final int nodes = Integer.parseInt(config.split("-")[0]);
