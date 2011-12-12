@@ -17,6 +17,18 @@ public class NetworkNodesC implements HardwareComponents{
 		return sw;
 	}
 
+	static 	public StoreForwardNode infiniteFast(){
+		StoreForwardNode sw = new StoreForwardNode();
+		sw.setName("infinite");
+
+		// determined on west1 by using memory-bandwidth.c 1000 iter, 104857600
+		// 1000 iterations, time:13.106618s MB/s:7629.733218
+		sw.setTotalBandwidth(100000  * GIB);
+		return sw;
+	}
+
+
+
 
 	static 	public StoreForwardNode LocalNodeQPI(){
 		StoreForwardMemoryNode sw = new StoreForwardMemoryNode();

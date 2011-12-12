@@ -25,6 +25,14 @@ public class NetworkEdgesC implements HardwareComponents{
 		return conn;
 	}
 
+	static public SimpleNetworkEdge infiniteFast(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("infinite");
+		conn.setLatency(Epoch.ZERO); // sendRecvPaired10K
+		conn.setBandwidth(100000 * GBYTE);
+		return conn;
+	}
+
 	static public SimpleNetworkEdge QPI(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("QPI");
