@@ -1,6 +1,6 @@
 CC = mpicc
 
-CFLAGS = -ggdb -std=c99 -rdynamic 
+CFLAGS = -ggdb -Wextra -std=c99 -rdynamic 
 
 LIBS = -L /home/weging/bin/lib -l expat -l glib-2.0
 

@@ -79,7 +79,7 @@ public abstract class SBasicComponent<ModelComp extends IBasicComponent>
 	final protected void setNewWakeupTimerAbsolute(Epoch when){
 		//System.out.println("Wakeup timer SET " + this.getIdentifier() +" " + when );
 
-		debug("when: " + when);
+//		debug("when: " + when);
 
 		getSimulator().submitNewEvent(new InternalEvent(this, when));
 	}

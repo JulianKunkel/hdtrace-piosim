@@ -1,4 +1,3 @@
-
 #ifndef _STRUCTURES_H_
 #define _STRUCTURES_H_
 
@@ -6,13 +5,39 @@
 #include "glib.h"
 #include "constant.h"
 
+/*
+ * FIXME: May split this header file in multiple files, one file for each
+ * GSList containing data of a trace and project file.
+ */
+
+/*
+ *The following section contains all the MPI data structs for the XML parsing.
+ */
+
+/**
+ * @brief Data type for a MPI_Barrier. 
+ *
+ * This struct contains the specific data for a MPI_Barrier read form a trace
+ * file.
+ */
 struct MpiBarrier
 {
+	/**
+	 * The communicator id.
+	 */
   int cid;
+	/**
+	 * The source code line the Barrier appers in the orignal traced program.
+	 */
   int cLine;
 };
 
 
+/**
+ * @brief 
+ * 
+ * This struct contains the sp
+ */
 struct MpiComm_create
 {
   int cid;
@@ -88,52 +113,61 @@ enum Type
 {
   MpiBarrier,
   MpiComm_create,
+	MpiComm_free,
   MpiFinalize,
   MpiInit,
   MpiRecv,
   MpiSend,
-  MpiSendrecv,
-  DataVector,
-  DataNamed,
-  DataStruct
+  MpiSendrecv
+};
+
+enum DataName 
+{
+ DataVECTOR,
+ DataNAMED,
+ DataSTRUCT,
+ DataTYPE,
+};
+
+
+struct DataVECTOR
+{
+  int count;
+  int blocklength;
+  int stride;
+  int oldType;
+};
+
+struct DataNAMED
+{
+	int id;
+	gchar* name;
+};
+
+struct DataSTRUCT
+{
+  gchar* name;
+  int count;
+  struct DataType* data;
+};
+
+struct DataTYPE
+{
+  int displacement;
+  int blocklen;
 };
 
 struct DataType
 {
-  enum Type type,
+  enum DataName type;
+  int id;
+  gchar* name;
   union
   {
-    struct Vector,
-    struct Named,
-    struct Struct
+    struct DataVECTOR dataVECTOR;
+    struct DataNAMED dataNAMED;
+    struct DataSTRUCT dataSTRUCT;
   }u;
-};
-
-struct Vektor
-{
-  char* name[COMM_NAME_LEN],
-  int count,
-  int blocklength,
-  int stride,
-  int oldType,
-};
-
-struct Named
-{
-  char* name[COMM_NAME_LEN]
-};
-
-struct Struct
-{
-  char* name[COMM_NAME_LEN],
-  int count
-};
-
-struct Type
-{
-  int id,
-  int displacement,
-  int blocklen,
 };
 
 struct Element
@@ -142,6 +176,7 @@ struct Element
   enum Type  type;
   double start;
   double end;
+	int cLine;
   
   union 
   {
@@ -156,25 +191,48 @@ struct Element
     struct MpiSendrecv    mpiSendrecv;
   }u;
 };
-
+/**
+ * This struct represents a rank inside a communicator.  
+ */
 struct Rank
 {
+	/**
+	 * The rank of the rank inside the communicator COMM_WORLD.
+	 */
   int global;
+	/**
+	 * The rank of the rank inside the new communicator. 
+	 */
   int local;
+	/**
+	 * The communicator id.
+	 */
   int cid;
 };
 
+/**
+ * @brief Communicator struct
+ *
+ * This struct represents a MPI communicator.
+ * Ever communicator contains a list of ranks.
+ */
 struct Communicator
 {
-  char name[COMM_NAME_LEN];
+	/**
+	 * Name of the communicator or a empty string.
+	 */
+  gchar* name;
+	/**
+	 * List of ranks inside the 
+	 */
   GSList* ranks;
 };
 
 struct FileList
 {
-  char name[PATH_LEN];
+  gchar* path;
   int initialSize;
-  char implementation[PATH_LEN];
+  gchar* implementation;
 };
 
-#endif 
+#endif

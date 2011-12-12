@@ -64,7 +64,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 
 			//System.out.println("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
-			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
+//			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
 			if( ((NetworkMessageRendezvousMsg)response.getJobData()).isRequestRendezvous() ){
 				//rendezvous protocol
@@ -78,7 +78,7 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 
 				return;
 			}else{
-				client.debugFollowUpLine("Eager");
+//				client.debugFollowUpLine("Eager");
 				// eager protocol
 				return;
 			}

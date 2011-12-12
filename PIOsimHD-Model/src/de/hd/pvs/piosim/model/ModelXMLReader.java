@@ -119,10 +119,10 @@ public class ModelXMLReader {
 
 		readTemplates(model, projectNode.getFirstNestedXMLTagWithName("Templates"));
 
-		ConsoleLogger.getInstance().debug(this, "Creating Components");
+//		ConsoleLogger.getInstance().debug(this, "Creating Components");
 		createAllComponents(model, projectNode.getFirstNestedXMLTagWithName("ComponentList"));
 
-		ConsoleLogger.getInstance().debug(this, "Connecting Components");
+//		ConsoleLogger.getInstance().debug(this, "Connecting Components");
 		try {
 			loadTopology(model, projectNode);
 		} catch (Exception e) {
@@ -239,7 +239,7 @@ public class ModelXMLReader {
 				file = dirname +"/" + file;
 			}
 
-			ConsoleLogger.getInstance().debug(this, "Parsing application: " + alias + " " +  file );
+//			ConsoleLogger.getInstance().debug(this, "Parsing application: " + alias + " " +  file );
 
 			loadSingleApp(model, file, alias);
 		}

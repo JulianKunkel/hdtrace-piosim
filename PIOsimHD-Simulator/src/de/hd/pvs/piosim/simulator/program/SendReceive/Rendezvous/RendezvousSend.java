@@ -57,7 +57,7 @@ public class RendezvousSend extends CommandImplementation<Send>
 				//eager send completes immediately
 
 				/* data to transfer depends on actual command size, but is defined in send */
-				client.debug("eager send to " +  cmd.getToRank() );
+//				client.debug("eager send to " +  cmd.getToRank() );
 
 				OUTresults.addNetSend(cmd.getToRank(),
 						new NetworkMessageRendezvousMsg( cmd.getSize() + MESSAGE_HEADER_OVERHEAD, false ), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousSend.class);
@@ -76,7 +76,7 @@ public class RendezvousSend extends CommandImplementation<Send>
 			}
 		}else if(RECV_ACK == step){
 			/* data to transfer depends on actual command size, but is defined in send */
-			client.debug("SEND got ACK from " +  cmd.getToRank() );
+//			client.debug("SEND got ACK from " +  cmd.getToRank() );
 			OUTresults.addNetSend(cmd.getToRank(),
 					new NetworkMessageRendezvousMsg( cmd.getSize() + MESSAGE_HEADER_OVERHEAD , false ), cmd.getToTag(), cmd.getCommunicator(), RendezvousSend.class, RendezvousRcv.class);
 

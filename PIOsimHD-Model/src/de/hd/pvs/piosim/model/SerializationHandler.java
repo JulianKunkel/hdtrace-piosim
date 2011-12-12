@@ -46,7 +46,7 @@ public class SerializationHandler {
 			throw new IllegalArgumentException("Error implementation not found: " + implementation);
 		}
 
-		ConsoleLogger.getInstance().debug(this, "will create: " + implementation);
+//		ConsoleLogger.getInstance().debug(this, "will create: " + implementation);
 
 		return (IDynamicModelComponent) createSerializableObjectFromXML(xml, ((Class<IDynamicModelComponent>) Class.forName(implementation)));
 	}

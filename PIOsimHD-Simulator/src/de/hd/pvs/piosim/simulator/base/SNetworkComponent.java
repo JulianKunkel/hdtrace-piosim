@@ -225,7 +225,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	{
 		final ConcurrentEvents pendingEvents = eventsPerExit.get(target);
 
-		debug("criterion: " + target);
+//		debug("criterion: " + target);
 
 		//System.out.println( this.getIdentifier() + " continueProcessingOfFlow " + " target " + target.getIdentifier() +  " " + part.getMessage());
 
@@ -235,14 +235,14 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		pendingEvents.jobsInTransit--;
 
 		if ( ! pendingEvents.blockedByLatency ){
-			debugFollowUpLine(" Target is not blocked: " + target);
+//			debugFollowUpLine(" Target is not blocked: " + target);
 			return;
 		}
 
 		/* activate an object only if the pendingLatency is smaller than the ProcessingLatency */
 
 		if( pendingEvents.jobsInTransit > 0 && pendingEvents.usedLatency.compareTo( getMaxTimeToTransferAJobToTheNextComponent()) >= 0 ){
-			debugFollowUpLine("Pending latency is still too high");
+//			debugFollowUpLine("Pending latency is still too high");
 			return;
 		}
 
@@ -295,7 +295,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 			numberOfPendingJobs--;
 
-			debug(  "pending events:" + pendingEvents + " " +  event.getEventData());
+//			debug(  "pending events:" + pendingEvents + " " +  event.getEventData());
 
 			/*
 			 * Block if the pending processed jobs time is bigger than the latency of this component.
@@ -319,7 +319,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 				pendingEvents.blockedByLatency = true;
 			}
 
-//			debugFollowUpLine("pending runtime: " + pendingEvents.usedLatency);
+////			debugFollowUpLine("pending runtime: " + pendingEvents.usedLatency);
 
 
 			/**
@@ -352,7 +352,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	 */
 	@Override
 	final public void jobStarted(Event<MessagePart> event, Epoch startTime) {
-		debug( this.getIdentifier() + " issuing comp: " +  event.getIssuingComponent().getIdentifier());
+//		debug( this.getIdentifier() + " issuing comp: " +  event.getIssuingComponent().getIdentifier());
 
 		final STraceWriter tw = getSimulator().getTraceWriter();
 		if(tw.isTracableComponent(TraceType.INTERNAL)){
@@ -378,7 +378,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	 */
 	@Override
 	final public void jobCompleted(Event<MessagePart> event, Epoch endTime) {
-		debug( " event " + event);
+//		debug( " event " + event);
 
 		final STraceWriter tw = getSimulator().getTraceWriter();
 		final String [] attr = new String[4];
