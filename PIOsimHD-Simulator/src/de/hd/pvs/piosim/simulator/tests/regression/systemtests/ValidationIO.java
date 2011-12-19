@@ -219,10 +219,24 @@ public class ValidationIO extends Validation {
 
 	@Test public void TenGiGFileAccessTrace() throws Exception{
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
-		runMPIIOLevelValidationSingleThroughput(0, true, 5,5, IOC.AggregationReorderCache(),	15, 0, 100, 100 * MiB, 10000, true, modelTime);
-		//runMPIIOLevelValidationSingleThroughput(0, true, 5,5, IOC.AggregationReorderCache(),	15, 0, 100, 100 * MiB, 1000, true, modelTime);
+		//runMPIIOLevelValidationSingleThroughput(0, true, 5,5, IOC.SimpleWriteBehindCache(),	15, 0, 100, 100 * MiB, 10000, true, modelTime);
+		runMPIIOLevelValidationSingleThroughput(0, true, 5,5, IOC.AggregationReorderCache(),	15, 0, 100, 100 * MiB, 1000, true, modelTime);
 
 	}
+
+
+	@Test public void TenGiGFileAccessTrace1() throws Exception{
+		// Similar behavior to TenGiGFileAccessTrace
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
+		runMPIIOLevelValidationSingleThroughput(0, true, 1, 1, IOC.AggregationReorderCache(),	3, 0, 100, 100 * MiB, 10000, true, modelTime);
+	}
+
+	@Test public void OneGiGFileAccessTrace1() throws Exception{
+		// Similar behavior to TenGiGFileAccessTrace but with smaller amounts of data.
+		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
+		runMPIIOLevelValidationSingleThroughput(0, true, 1, 1, IOC.AggregationReorderCache(),	3, 0, 1, 100 * MiB, 10000, true, modelTime);
+	}
+
 
 	@Test public void test3() throws Exception{
 		setupWrCluster(2, false , false, false, true, 1, 1,	0, 1, IOC.AggregationReorderCache(), 100);

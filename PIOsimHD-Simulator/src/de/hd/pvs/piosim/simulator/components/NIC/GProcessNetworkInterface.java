@@ -317,13 +317,13 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public void blockFurtherDataReceives() {
-		super.blockFlowManually(this.getModelComponent());
+		super.blockFlowManually();
 	}
 
 
 	@Override
 	public void unblockFurtherDataReceives() {
-		super.unblockFlowManually(this.getModelComponent());
+		super.unblockFlowManually();
 	}
 
 	// Entry code:

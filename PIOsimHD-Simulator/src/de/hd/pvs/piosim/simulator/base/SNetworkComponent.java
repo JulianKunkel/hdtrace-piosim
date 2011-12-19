@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import de.hd.pvs.TraceFormat.relation.RelationToken;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
+import de.hd.pvs.piosim.model.networkTopology.INetworkEntry;
 import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.event.Event;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
@@ -83,11 +84,6 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		boolean           blockedByLatency = false;
 
 		/**
-		 * True if the user decided to block it
-		 */
-		boolean           blockedManually = false;
-
-		/**
 		 * True if this exit is contained in eventsPerExit.
 		 */
 		boolean           isScheduled = false;
@@ -98,16 +94,42 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		}
 	};
 
+
+	/**
+	 * True if the user decided to block it
+	 */
+	boolean           blockedManually = false;
+
+
+	static private class NetworkPair{
+		final INetworkEntry     entry;
+		final INetworkExit 		exit;
+
+		public NetworkPair(INetworkEntry     entry, INetworkExit 		exit) {
+			this.entry = entry;
+			this.exit = exit;
+		}
+
+		@Override
+		public int hashCode() {
+			return entry.hashCode() + exit.hashCode();
+		}
+		@Override
+		public boolean equals(Object arg0) {
+			NetworkPair n = (NetworkPair) arg0;
+			return n.entry == this.entry && n.exit == this.exit;
+		}
+	};
+
 	/**
 	 * for each target endpoint the state of the events is observed.
 	 */
-	private HashMap<INetworkExit, ConcurrentEvents > eventsPerExit =
-		new HashMap<INetworkExit, ConcurrentEvents >();
+	private HashMap<NetworkPair, ConcurrentEvents > eventsPerStartNExit = new HashMap<NetworkPair, ConcurrentEvents >();
 
 	/**
 	 * Contains all exits for which we have operations.
 	 */
-	private LinkedList<INetworkExit> pendingExits = new LinkedList<INetworkExit>();
+	private LinkedList<NetworkPair> pendingPairs = new LinkedList<NetworkPair>();
 
 	/**
 	 * The total number of jobs.
@@ -146,12 +168,13 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 	@Override
 	final protected void addNewEvent(Event<MessagePart> job) {
-		INetworkExit target = job.getEventData().getMessageTarget();
 
-		ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+		NetworkPair pair = new NetworkPair(job.getEventData().getMessageSource(), job.getEventData().getMessageTarget());
+
+		ConcurrentEvents pendingEvents = eventsPerStartNExit.get(pair);
 		if (pendingEvents == null){
 			pendingEvents = new ConcurrentEvents();
-			eventsPerExit.put(target, pendingEvents);
+			eventsPerStartNExit.put(pair, pendingEvents);
 		}
 
 		pendingEvents.pendingJobs.add(job);
@@ -162,12 +185,11 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 		// should we activate the particular exit?
 		if(     ! pendingEvents.isScheduled
-				&& ! pendingEvents.blockedManually
 				&& !pendingEvents.blockedByLatency )
 		{
 			// now schedule the exit:
 			pendingEvents.isScheduled = true;
-			pendingExits.add(target);
+			pendingPairs.add(pair);
 			reactivateBlockingComponentNow();
 		}
 
@@ -217,13 +239,13 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	 * processing.
 	 */
 	protected void continueProcessingOfFlow(
-			INetworkExit target,
+			NetworkPair pairs,
 			MessagePart part,
 			Epoch lastProcessingTime,
 			Epoch startTime,
 			ISNetworkComponent targetFlowComponent)
 	{
-		final ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+		final ConcurrentEvents pendingEvents = eventsPerStartNExit.get(pairs);
 
 //		debug("criterion: " + target);
 
@@ -250,9 +272,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 		pendingEvents.blockedByLatency = false;
 
-		if( pendingEvents.isScheduled
-				|| pendingEvents.pendingJobs.isEmpty()
-				|| pendingEvents.blockedManually ){
+		if( pendingEvents.isScheduled	|| pendingEvents.pendingJobs.isEmpty() ){
 			// if more operations are in transit, then the reactivation already happened in job_complete.
 			return;
 		}
@@ -260,7 +280,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		//System.out.println(" re-activating.");
 
 		// add to the exit
-		pendingExits.add(target);
+		pendingPairs.add(pairs);
 		pendingEvents.isScheduled = true;
 
 		reactivateBlockingComponentNow();
@@ -271,13 +291,19 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	 */
 	@Override
 	final public Event<MessagePart> getNextPendingAndSchedulableEvent() {
+		// remove blocked events:
+		if(blockedManually){
+			return null;
+		}
+
+
 		//System.out.println("getNextPendingAndSchedulableEvent " + this.getIdentifier());
-		while(! pendingExits.isEmpty() ){
-			final INetworkExit target = pendingExits.poll();
+		while(! pendingPairs.isEmpty() ){
+			final NetworkPair target = pendingPairs.poll();
 
 			//System.out.println(" checking " + target.getIdentifier());
 
-			final ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+			final ConcurrentEvents pendingEvents = eventsPerStartNExit.get(target);
 
 			assert(pendingEvents.pendingJobs.size() > 0);
 			assert(pendingEvents.isScheduled == true);
@@ -286,9 +312,9 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 			pendingEvents.isScheduled = false;
 
 			// remove blocked events:
-			if(pendingEvents.blockedManually){
-				continue;
-			}
+			//if(blockedManually){
+			//	continue;
+			//}
 
 			// dispatch event:
 			final Event<MessagePart> event = pendingEvents.pendingJobs.poll();
@@ -337,7 +363,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 				if(source != this){
 					// special case, we created the new message
 					// manage flow control here:
-					ssource.continueProcessingOfFlow( part.getMessageTarget() , part, lastProcessingTime, startTime, this );
+					ssource.continueProcessingOfFlow( target , part, lastProcessingTime, startTime, this );
 				}
 
 				ssource.messagePartReceivedAndStartedProcessing(this, part, startTime);
@@ -395,15 +421,14 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 		// now reactivate exit if we are not blocked.
 
 		final MessagePart part = event.getEventData();
-		final INetworkExit target = part.getMessageTarget();
-		final ConcurrentEvents pendingEvents = eventsPerExit.get(target);
+		final NetworkPair target = new NetworkPair(part.getMessageSource(), part.getMessageTarget());
+		final ConcurrentEvents pendingEvents = eventsPerStartNExit.get(target);
 
 		if(     ! pendingEvents.isScheduled
 				&& ! pendingEvents.blockedByLatency
-				&& ! pendingEvents.blockedManually
 				&& ! pendingEvents.pendingJobs.isEmpty())
 		{
-			pendingExits.add(target);
+			pendingPairs.add(target);
 			pendingEvents.isScheduled = true;
 		}
 
@@ -415,7 +440,7 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 			// we are the target
 			// prevent endless loops in routing algorithm.
 			messagePartDestroyed(part, endTime);
-			continueProcessingOfFlow(part.getMessageTarget(), part, part.getLastProcessingTime(), endTime, this);
+			continueProcessingOfFlow(target, part, part.getLastProcessingTime(), endTime, this);
 			return;
 		}
 
@@ -425,16 +450,13 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 		if( targetComponent == null ){
 			messagePartDestroyed(part, endTime);
-			continueProcessingOfFlow(part.getMessageTarget(), part, part.getLastProcessingTime(), endTime, this);
+			continueProcessingOfFlow(target, part, part.getLastProcessingTime(), endTime, this);
 
 			return;
 		}
 
 		// transmit the packet to the target after it arrives (latency).
-		final Event newEvent = new Event(this,
-				targetComponent,
-				endTime.add(part.getLastLatency()),
-				event.getEventData(), jobToken);
+		final Event newEvent = new Event(this,targetComponent,	endTime.add(part.getLastLatency()),	event.getEventData(), jobToken);
 
 		getSimulator().submitNewEvent( newEvent);
 	}
@@ -442,44 +464,27 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#blockFlow(de.hd.pvs.piosim.model.networkTopology.INetworkExit)
 	 */
-	public void blockFlowManually(INetworkExit target){
+	public void blockFlowManually(){
 		//System.out.println(this.getIdentifier() + " block flow " + target);
 
-		ConcurrentEvents pendingEvents = eventsPerExit.get(target);
-
-		if (pendingEvents == null){
-			pendingEvents = new ConcurrentEvents();
-			eventsPerExit.put(target, pendingEvents);
-		}
-
-		assert(pendingEvents.blockedManually == false);
-		pendingEvents.blockedManually = true;
+		assert(blockedManually == false);
+		blockedManually = true;
 	}
 
 	/* (non-Javadoc)
 	 * @see de.hd.pvs.piosim.simulator.base.ISNetworkComponent#unblockFlow(de.hd.pvs.piosim.model.networkTopology.INetworkExit)
 	 */
-	public void unblockFlowManually(INetworkExit target){
+	public void unblockFlowManually(){
 		//System.out.println(this.getIdentifier() + " unblock flow " + target);
 
-		ConcurrentEvents pendingEvents = eventsPerExit.get(target);
-		assert(pendingEvents.blockedManually == true);
+		assert(blockedManually == true);
 
-		pendingEvents.blockedManually = false;
+		blockedManually = false;
 
-		if(  pendingEvents.isScheduled
-				|| pendingEvents.blockedByLatency
-				|| pendingEvents.pendingJobs.size() == 0)
-		{
-			return;
+		if ( pendingPairs.size() > 0){
+			// now reactivate component if possible:
+			reactivateBlockingComponentNow();
 		}
-
-		pendingEvents.isScheduled = true;
-		// schedule the exit:
-		pendingExits.add(target);
-
-		// now reactivate component if possible:
-		reactivateBlockingComponentNow();
 	}
 
 	@Override
@@ -498,18 +503,6 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	 */
 	final public void printWaitingEvents(){
 		System.out.println("waiting exits for " + this.getIdentifier());
-		for (INetworkExit exit: eventsPerExit.keySet()) {
-			final ConcurrentEvents c = eventsPerExit.get(exit);
-			if( c.pendingJobs.isEmpty() && c.jobsInTransit == 0){
-				continue;
-			}
-
-			System.out.println("\t exit:" + exit.getIdentifier() + " jobsInTransit: " + c.jobsInTransit + " sched: " + c.isScheduled + " blockManually:" + c.blockedManually + " blockedlatency: "+ c.blockedByLatency);
-
-			for(Event event: c.pendingJobs){
-				System.out.println("\t\t" + event + " inc: " + event.getEarliestStartTime());
-			}
-		}
 	}
 
 }

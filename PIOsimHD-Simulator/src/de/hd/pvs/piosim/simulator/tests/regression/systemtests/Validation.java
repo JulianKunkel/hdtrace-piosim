@@ -180,11 +180,11 @@ public class Validation  extends ModelTest {
 		}
 
 		if(false){
-//			socketLocalEdge = NetworkEdgesC.infiniteFast();
-//			interSocketEdge = NetworkEdgesC.infiniteFast();
-//			interNodeEdge = NetworkEdgesC.infiniteFast();
-//			nodeLocal = NetworkNodesC.infiniteFast();
-//			socketNode = NetworkNodesC.infiniteFast();
+			socketLocalEdge = NetworkEdgesC.infiniteFast();
+			interSocketEdge = NetworkEdgesC.infiniteFast();
+			interNodeEdge = NetworkEdgesC.infiniteFast();
+			nodeLocal = NetworkNodesC.infiniteFast();
+			socketNode = NetworkNodesC.infiniteFast();
 
 		}else{
 			if(latencyBoundNetwork){ // real vs. latency bound.
@@ -294,7 +294,7 @@ public class Validation  extends ModelTest {
 		parameters.setLoggerDefinitionFile("loggerDefinitionFiles/example");
 		parameters.setTraceEnabled(false);
 		parameters.setTraceInternals(false);
-		parameters.setTraceClientSteps(true);
+		parameters.setTraceClientSteps(false);
 		parameters.setTraceServers(true);
 
 
@@ -433,6 +433,43 @@ public class Validation  extends ModelTest {
 	protected void setupWrCluster(int nodeCount, int processes) throws Exception {
 		setupWrCluster(nodeCount, processes, 0, 0, null, 12000);
 	}
+
+	@Test public void sendAndRecvTest() throws Exception{
+		setupWrCluster(2, 6);
+
+		parameters.setTraceFile("/tmp/sendRecv");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+
+		//mb.getGlobalSettings().setMaxEagerSendSize(10 * MiB);
+
+
+		pb.addSendAndRecv(world, 0, 1, 10 * MiB, 1);
+		pb.setLastCommandAsynchronous(1, 0);
+		pb.addSendAndRecv(world, 2, 1, 10 * MiB, 1);
+		pb.setLastCommandAsynchronous(1, 0);
+		pb.addSendAndRecv(world, 4, 1, 10 * MiB, 1);
+		pb.setLastCommandAsynchronous(1, 0);
+		pb.addWaitAll(1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	@Test public void sendAndRecvTestSimple() throws Exception{
+		setupWrCluster(1, 2);
+
+		parameters.setTraceFile("/tmp/sendRecv");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+
+
+		pb.addSendAndRecv(world, 0, 1, 200 *KiB, 1);
+		pb.addWaitAll(1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 
 
 	@Test public void sendRecvTest() throws Exception{
