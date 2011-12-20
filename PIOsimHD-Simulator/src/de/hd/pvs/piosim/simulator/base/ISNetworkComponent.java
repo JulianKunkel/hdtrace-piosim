@@ -2,7 +2,6 @@ package de.hd.pvs.piosim.simulator.base;
 
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.components.superclasses.IBasicComponent;
-import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
 import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 public interface ISNetworkComponent<Type extends IBasicComponent>
@@ -55,13 +54,13 @@ public interface ISNetworkComponent<Type extends IBasicComponent>
 	 * Block the data flow to a specific target, the <code>unblockFlow</code> is used to restart it.
 	 * @param target
 	 */
-	public abstract void blockFlowManually(INetworkExit target);
+	public abstract void blockFlowManually();
 
 	/**
 	 * Unblock a flow which was blocked with blockFlow to a specific target
 	 * @param target
 	 */
-	public abstract void unblockFlowManually(INetworkExit target);
+	public abstract void unblockFlowManually();
 
 	/**
 	 * This function is called once a packet is transfered by the next component.
