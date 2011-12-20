@@ -247,6 +247,10 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 	{
 		final ConcurrentEvents pendingEvents = eventsPerStartNExit.get(pairs);
 
+		if (pendingEvents == null){
+			return;
+		}
+
 //		debug("criterion: " + target);
 
 		//System.out.println( this.getIdentifier() + " continueProcessingOfFlow " + " target " + target.getIdentifier() +  " " + part.getMessage());
@@ -272,7 +276,13 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 		pendingEvents.blockedByLatency = false;
 
-		if( pendingEvents.isScheduled	|| pendingEvents.pendingJobs.isEmpty() ){
+
+		if(pendingEvents.pendingJobs.isEmpty() && pendingEvents.jobsInTransit == 0){
+			eventsPerStartNExit.remove(pairs);
+			return;
+		}
+
+		if( pendingEvents.isScheduled ||  pendingEvents.pendingJobs.isEmpty() ){
 			// if more operations are in transit, then the reactivation already happened in job_complete.
 			return;
 		}
@@ -422,14 +432,16 @@ extends SSchedulableBlockingComponent<Type, MessagePart> implements ISNetworkCom
 
 		final MessagePart part = event.getEventData();
 		final NetworkPair target = new NetworkPair(part.getMessageSource(), part.getMessageTarget());
-		final ConcurrentEvents pendingEvents = eventsPerStartNExit.get(target);
-
-		if(     ! pendingEvents.isScheduled
-				&& ! pendingEvents.blockedByLatency
-				&& ! pendingEvents.pendingJobs.isEmpty())
 		{
-			pendingPairs.add(target);
-			pendingEvents.isScheduled = true;
+			final ConcurrentEvents pendingEvents = eventsPerStartNExit.get(target);
+
+			if( pendingEvents != null && ! pendingEvents.isScheduled
+					&& ! pendingEvents.blockedByLatency
+					&& ! pendingEvents.pendingJobs.isEmpty())
+			{
+				pendingPairs.add(target);
+				pendingEvents.isScheduled = true;
+			}
 		}
 
 		// now reschedule
