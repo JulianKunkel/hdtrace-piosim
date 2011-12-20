@@ -66,7 +66,7 @@ public class SMTSocketNodeT  extends HardwareConfiguration {
 
 		final NetworkNode switchInterconnect = mb.cloneFromTemplate(this.switchInterconnect);
 
-		switchInterconnect.setName(prefix + socketInterconnect.getName());
+		switchInterconnect.setName(prefix + switchInterconnect.getName());
 		mb.addNetworkNode(switchInterconnect);
 
 		NetworkNode socketCrossbar = null;
