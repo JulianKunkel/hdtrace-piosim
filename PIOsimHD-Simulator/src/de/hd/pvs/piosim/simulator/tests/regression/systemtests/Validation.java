@@ -472,6 +472,15 @@ public class Validation  extends ModelTest {
 
 
 
+ // Evaluation of the simulation speed
+	@Test public void sendAndRecvPerformanceTest() throws Exception{
+		setupWrCluster(1, 2);
+
+		pb.addSendAndRecv(world, 0, 1, 100 *GiB, 1);
+
+		runSimulationAllExpectedToFinish();
+	}
+
 	@Test public void sendRecvTest() throws Exception{
 		// test cases run on the WR cluster
 		long size = 10000l*1024*1024;
@@ -1492,18 +1501,37 @@ public class Validation  extends ModelTest {
 		fo.close();
 	}
 
-	@Test public void bcastTest() throws Exception{
-		double [] times = new double[11];
+	@Test public void bcastTestScalability() throws Exception{
+		final int max = 12;
+		double [] times = new double[max];
+		double [] simTimes = new double[max];
+		double [] modelBuildTimes = new double[max];
 
-		for(int i=1; i <= 10; i++){
-			setup(i,1);
+		int count = 1;
+		for(int i=1; i < max; i++){
+			long sTime, setupSystemTime;
+			sTime = new Date().getTime();
+
+			setupWrCluster(1, false, false, false, true, count,count,0,0, null, 10000);
+			//model.getGlobalSettings().setTransferGranularity(100 * MiB);
+
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree");
 
 			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 100 * MiB);
+
+			setupSystemTime = (new Date().getTime() - sTime);
+
 			runSimulationAllExpectedToFinish();
 			times[i] = sim.getVirtualTime().getDouble();
+			simTimes[i] = simRes.getWallClockTime();
+			modelBuildTimes[i] = setupSystemTime / 1000.0;
+
+			count = count*2;
 		}
 
-		printTiming("Broadcast", times);
+		printTiming("Broadcast VirtualTime", times);
+		printTiming("Broadcast ModelBuildTime", modelBuildTimes);
+		printTiming("Broadcast SimTime", simTimes);
 	}
 
 	@Test public void sendAndRecvEagerTestSMP() throws Exception{
@@ -1769,6 +1797,7 @@ public class Validation  extends ModelTest {
 
 		runPartdiffParExperiment(which, null, true);
 	}
+
 
 
 
