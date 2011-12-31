@@ -66,7 +66,9 @@ public class Validation  extends ModelTest {
 
 	int [] sizes = {10240, 1048576, 10485760, 104857600};
 	int [] sizes100KiB = {10240, 1048576};
+	int [] sizes10KiB10MiB = {10240, 10485760};
 
+	
 
 	long procSpeed =  2660l*1000000;
 
@@ -661,6 +663,24 @@ public class Validation  extends ModelTest {
 	}
 
 
+	@Test public void bcastTest() throws Exception{
+		setupWrCluster(4, 4);
+		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
+		mb.getGlobalSettings().setTransferGranularity(512);
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+		parameters.setTraceFile("/tmp/bcast");
+
+		parameters.setTraceEnabled(true);
+		parameters.setTraceClientNestingOperations(true);
+		parameters.setTraceClientSteps(true);
+
+
+		pb.addBroadcast(world,0, 10240);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
 	@Test public void broadcastMultiplex() throws Exception{
 		setup(5, 1);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
@@ -697,9 +717,10 @@ public class Validation  extends ModelTest {
 		setupWrCluster(4,4);
 		model.getGlobalSettings().setTransferGranularity(512);
 
-		runCollectiveTest(4,4, "Barrier", "", null, null, true, false, p, 99);
-		//runCollectiveTest(4,4, "Reduce", "10240", null, null, true, p, 99);
+		//runCollectiveTest(4,4, "Barrier", "", null, null, true, false, p, 99);
+		runCollectiveTest(4,4, "Bcast", "10240", null, null, true, true, p, 99);
 	}
+
 
 
 	/**
@@ -906,7 +927,7 @@ public class Validation  extends ModelTest {
 
 	final String extractedCommunicationPatternPath = "/home/julian/Dokumente/Dissertation/Latex/results/mpi-bench-current/extracted-communication-patterns/";
 
-	void addBarrier(String config) throws Exception{
+	void addBarrier(Application app, String config) throws Exception{
 		if(false){
 		  pb.addBarrier(world);
 		}else{
@@ -999,7 +1020,7 @@ public class Validation  extends ModelTest {
 		}
 
 		if(addBarrier){
-			addBarrier(config);
+			addBarrier(app, config);
 		}
 
 
@@ -1121,7 +1142,7 @@ public class Validation  extends ModelTest {
 						pb.addSendRecv(world, rank, dest, dest, size, 4711, 4711);
 					}
 				}
-				addBarrier(config);
+				addBarrier(app, config);
 				if(size <= 1*MiB){
 					model.getGlobalSettings().setTransferGranularity(512);
 				}else{
@@ -1166,7 +1187,7 @@ public class Validation  extends ModelTest {
 						pb.addSendAndRecv(world, rank, 0, size, 4711);
 					}
 				}
-				addBarrier(config);
+				addBarrier(app, config);
 				if(size <= 1*MiB){
 					model.getGlobalSettings().setTransferGranularity(512);
 				}else{
@@ -1213,7 +1234,7 @@ public class Validation  extends ModelTest {
 					}
 
 				}
-				addBarrier(config);
+				addBarrier(app, config);
 				if(size <= 1*MiB){
 					model.getGlobalSettings().setTransferGranularity(512);
 				}else{
@@ -1259,7 +1280,7 @@ public class Validation  extends ModelTest {
 						pb.addSendRecv(world, rank, src, dest, size, 4711, 4711);
 					}
 				}
-				addBarrier(config);
+				addBarrier(app, config);
 
 				if(size <= 1*MiB){
 					model.getGlobalSettings().setTransferGranularity(512);
