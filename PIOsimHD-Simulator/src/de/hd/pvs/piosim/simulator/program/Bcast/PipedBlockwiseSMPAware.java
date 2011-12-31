@@ -84,14 +84,19 @@ public class PipedBlockwiseSMPAware extends CommandImplementation<Bcast>
 
 		LinkedList<Integer> pipeList = new LinkedList<Integer>();
 
+		final int rootWorldRank = comm.getWorldRank(rootRank);
+
 		// Add the root rank => it is the first rank of the node
-		pipeList.push(  comm.getWorldRank(rootRank) );
+		pipeList.push(  rootWorldRank );
 
 		// Add all other processes from the root node.
 		{
-			GClientProcess sclient = map.getClient(appName, comm.getWorldRank(rootRank));
+			GClientProcess sclient = map.getClient(appName, rootWorldRank);
 			Node n = sclient.getModelComponent().getParentComponent();
-			pipeList.addAll(clientsPerNode.get(n));
+			LinkedList<Integer> onRoot = clientsPerNode.get(n);
+			if (onRoot != null){
+				pipeList.addAll(onRoot);
+			}
 			clientsPerNode.remove(n);
 		}
 

@@ -2091,6 +2091,123 @@ public class Validation  extends ModelTest {
 
 
 	@Test
+	public void computePipelineBcast() throws Exception{
+		BufferedWriter outputFile = new BufferedWriter(new FileWriter("/tmp/pipelineBcast.txt"));
+
+
+		benchmarkCollective( new ValidationExperiment() {
+			@Override
+			String getName() {
+				return "PipelineBcastSMPAware";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwiseSMPAware");
+			}
+		}, outputFile);
+
+		benchmarkCollective( new ValidationExperiment() {
+			@Override
+			String getName() {
+				return "PipelineBcast";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise");
+			}
+		}, outputFile);
+
+
+		benchmarkCollective( new ValidationExperiment() {
+			@Override
+			String getName() {
+				return "BroadcastScatterGatherall";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
+			}
+		}, outputFile);
+
+
+
+		benchmarkCollective( new ValidationExperiment() {
+			@Override
+			String getName() {
+				return "BinaryTreeSimpleBlockwise";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimpleBlockwise");
+			}
+		}, outputFile);
+
+
+
+		benchmarkCollective( new ValidationExperiment() {
+			@Override
+			String getName() {
+				return "BinaryTree";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree");
+			}
+		}, outputFile);
+
+
+
+
+
+		benchmarkCollective( new ValidationExperiment() {
+			@Override
+			String getName() {
+				return "BinaryTreeNotMultiplexed";
+			}
+
+			@Override
+			void addOperation(ProgramBuilder p, long size) {
+				p.addBroadcast(world, 0, size);
+			}
+
+			@Override
+			void setup(ModelBuilder mb) {
+				mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+			}
+		}, outputFile);
+	}
+
+	@Test
 	public void runPartdiff() throws Exception{
 		//runPartdiffParExperiment("/7000-NS-NC-NProc-Var-Unlimited/N10-P1-C10-P10-S10-RAM20390/23109.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
 		//runPartdiffParExperiment("/2000-NS-NC-NProc-Overlapped-Unlimited/N10-P1-C10-P10-S10-RAM20390/23163.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj", null, true);
