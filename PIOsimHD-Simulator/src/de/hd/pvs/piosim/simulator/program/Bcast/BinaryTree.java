@@ -1,12 +1,4 @@
-
- /** Version Control Information $Id$
-  * @lastmodified    $Date$
-  * @modifiedby      $LastChangedBy$
-  * @version         $Revision$
-  */
-
-
-//	Copyright (C) 2008, 2009 Julian M. Kunkel
+//	Copyright (C) 2008, 2009, 2011 Julian M. Kunkel
 //
 //	This file is part of PIOsimHD.
 //
@@ -35,7 +27,7 @@ import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementationWithCommunicatorLocalRanksRemapRoot;
 
 /**
- * Binary Tree Algorithm, Root starts to propagate data. A node sends data to child nodes only when data transfer to the node is complete.
+ * Binary Tree Algorithm, Root starts to propagate data. A node sends data to child processes only when the process is ready.
  *
  * @author Julian M. Kunkel
  */
