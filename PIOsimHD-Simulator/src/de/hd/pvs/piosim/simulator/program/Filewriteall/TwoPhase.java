@@ -42,7 +42,7 @@ import de.hd.pvs.piosim.simulator.program.Filereadall.Splitter.TwoPhaseIOSplitte
 public class TwoPhase extends MultiPhaseWrite {
 	@Override
 	public boolean avoidUnnecessaryReads() {
-		return false;
+		return true;
 	}
 
 	@Override
