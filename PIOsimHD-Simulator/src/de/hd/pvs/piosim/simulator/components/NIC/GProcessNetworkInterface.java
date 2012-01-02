@@ -357,11 +357,13 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 			// partial send?
 			job.getCallbacks().messagePartSendCB(part, job, time);
+			msg.dataSend(part.getPayloadSize());
 
 			if(msg.getRemainingBytesToSend() == 0){
-				// all data is send => call callback.
-				job.getCallbacks().sendCompletedCB(job, time);
-
+				if (msg.isAllDataSend()){
+					// all data is send => call callback.
+					job.getCallbacks().sendCompletedCB(job, time);
+				}
 			}else{
 				final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
 				if(newMsgPart != null){

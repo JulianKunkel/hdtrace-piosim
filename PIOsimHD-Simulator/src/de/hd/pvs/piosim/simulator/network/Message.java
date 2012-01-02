@@ -80,6 +80,11 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 */
 	private long availableDataPosition = 0;
 
+	/**
+	 * Amount of data send
+	 */
+	private long bytesSend = 0;
+
 	final private Data containedData;
 
 	/**
@@ -186,6 +191,15 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 */
 	public boolean isAllMessageDataAvailable(){
 		return this.availableDataPosition == this.payloadSize;
+	}
+
+	public boolean isAllDataSend(){
+		return bytesSend == this.payloadSize;
+	}
+
+	public void dataSend(long bytes){
+		bytesSend+= bytes;
+		assert(bytesSend <= this.payloadSize);
 	}
 
 	@Override

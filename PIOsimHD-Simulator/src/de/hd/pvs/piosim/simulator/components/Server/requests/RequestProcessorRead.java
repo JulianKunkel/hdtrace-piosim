@@ -24,20 +24,21 @@ public class RequestProcessorRead
 		@Override
 		public void ReadPartialData(Epoch time, FileRequest req, Message userdata, long size) {
 			server.getNetworkInterface().appendAvailableDataToIncompleteSend(userdata, size, time);
-
-			if(userdata.isAllMessageDataAvailable()){
-				finishRequest(req);
-			}
 		}
 	};
 
 	private final IInterProcessNetworkJobCallback dataCallback = new InterProcessNetworkJobCallbackAdaptor() {
 		@Override
 		public void messagePartSendCB(MessagePart part, InterProcessNetworkJob myJob, Epoch endTime) {
-			server.getCacheLayer().readDataFragmentSendByNIC( (RequestRead) (
-					(NetworkIOData) myJob.getJobData()).getIORequest(),
-					part.getPayloadSize());
+			RequestRead req = (RequestRead) ((NetworkIOData) myJob.getJobData()).getIORequest();
+
+			server.getCacheLayer().readDataFragmentSendByNIC( req,	part.getPayloadSize());
 		}
+
+		public void sendCompletedCB(InterProcessNetworkJob myJob, Epoch endTime) {
+			RequestRead req = (RequestRead) ((NetworkIOData) myJob.getJobData()).getIORequest();
+			finishRequest(req);
+		};
 	};
 
 	@Override
