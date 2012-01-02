@@ -68,10 +68,10 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
     
 #ifdef __PVFS2_SERVER__	
 	char attr1[15]; 
+	char attr2[15]; 
 
-	const char * io_keys[] = {"size"};
-	char * io_values[] = {attr1}; // for using snprintf, no const char 
-	const char * c_io_values[1]; // passing to const char !+	
+	const char * io_keys[] = {"size", "offset"};
+	char * io_values[] = {attr1, attr2}; // for using snprintf, no const char 
 #endif
 	HD_STMT_TOKEN(
 #ifdef __PVFS2_SERVER__			
@@ -80,14 +80,15 @@ int PINT_state_machine_terminate(struct PINT_smcb *smcb, job_status_s *r)
 			{
 			case (PVFS_SERV_IO):{
 				snprintf(io_values[0], 15, "%lld", lld(s_op->u.io.io_size));
-				c_io_values[0] = io_values[0]; 
-				hdR_end(smcb->smToken, 1, io_keys, c_io_values);
+				snprintf(io_values[1], 15, "%lld", lld(s_op->u.io.io_offset));
+				hdR_end(smcb->smToken, 2, io_keys, (const char*) io_values);
 				break;
 			}
 			case (PVFS_SERV_SMALL_IO):
 				snprintf(io_values[0], 15, "%lld", lld(s_op->resp.u.small_io.result_size));
-				c_io_values[0] = io_values[0]; 
-				hdR_end(smcb->smToken, 1, io_keys, c_io_values);	
+				snprintf(io_values[1], 15, "%lld", lld(s_op->resp.u.small_io.file_req_offset));
+
+				hdR_end(smcb->smToken, 2, io_keys, (const char*)  io_values);	
 				break;
 			default:
 				hdR_endS(smcb->smToken);	
