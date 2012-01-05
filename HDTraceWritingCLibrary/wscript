@@ -20,13 +20,23 @@ def _getconf (key):
 
 	return Utils.to_list(v)
 
+def set_options (opt):
+	opt.tool_options('compiler_cc')
+
 def configure (conf):
-	conf.env.CCFLAGS += ['-std=gnu99', '-ggdb']
+	conf.check_tool('compiler_cc')
+
+	conf.env.CCFLAGS += ['-std=gnu99', '-ggdb', '-O2' ]
 
 	conf.env.CCFLAGS += _getconf('LFS_CFLAGS')
-	conf.env.CCFLAGS += ['-fPIC']
 	conf.env.LDFLAGS += _getconf('LFS_LDFLAGS')
 	conf.env.LDFLAGS += _getconf('LFS_LIBS')
+
+	conf.check_cc(
+		header_name = 'dlfcn.h',
+		lib = 'dl',
+		uselib_store = 'DL'
+	)
 
 	#conf.env.CCFLAGS += ['-Wextra', '-Wno-missing-field-initializers', '-Wno-unused-parameter', '-Wold-style-definition', '-Wdeclaration-after-statement', '-Wmissing-declarations', '-Wmissing-prototypes', '-Wredundant-decls', '-Wmissing-noreturn', '-Wshadow', '-Wpointer-arith', '-Wcast-align', '-Wwrite-strings', '-Winline', '-Wformat-nonliteral', '-Wformat-security', '-Wswitch-enum', '-Wswitch-default', '-Winit-self', '-Wmissing-include-dirs', '-Wundef', '-Waggregate-return', '-Wmissing-format-attribute', '-Wnested-externs', '-Wstrict-prototypes']
 

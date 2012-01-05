@@ -26,8 +26,8 @@
 package de.hd.pvs.piosim.simulator.program.Global;
 
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -35,7 +35,7 @@ public class NoOperation
 extends CommandImplementation<Command>
 {
 	@Override
-	public void process(Command cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Command cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		return;
 	}
 }

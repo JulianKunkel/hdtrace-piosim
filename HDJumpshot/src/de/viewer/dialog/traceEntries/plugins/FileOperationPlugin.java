@@ -74,7 +74,7 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 
 			final String sizeStr = obj.getAttribute("size");			
 			if(sizeStr != null){
-				textData.addData("size: ", sizeStr);
+				textData.addData("size", sizeStr);
 				final long size = Long.parseLong(sizeStr);
 				final String offsetStr = obj.getAttribute("offset");
 				
@@ -108,8 +108,8 @@ public class FileOperationPlugin extends DatatypeViewPlugin{
 
 						unrolledView = new UnrolledDatatypeView(ftype, size,	offset * etype.getExtend()); 
 						
-						textData.addData("offset (after view)", offset * etype.getExtend() + viewOffset);				
-						textData.addData("etype size, extend", etype.getSize() + ", " + etype.getExtend());
+						textData.addData("physical offset (after view)", offset * etype.getExtend() + viewOffset);				
+						textData.addData("etype size, extent", etype.getSize() + ", " + etype.getExtend());
 					}else{
 						// no view set, therefore use null						
 						unrolledView = new UnrolledDatatypeView(null, size, offset);

@@ -28,11 +28,15 @@ package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.junit.Test;
+
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationCache;
+import de.hd.pvs.piosim.model.components.ServerCacheLayer.AggregationReorderCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.NoCache;
 import de.hd.pvs.piosim.model.components.ServerCacheLayer.ServerCacheLayer;
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.model.program.Application;
@@ -106,14 +110,14 @@ public class PaperResults extends ModelTest{
 		SMTNodeT smtNodeT = new SMTNodeT(clientsPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(clientsPerNode),
-				NetworkNodesC.QPI(),
+				NetworkNodesC.LocalNodeQPI(),
 				NetworkEdgesC.QPI()
 				);
 
 		SMTNodeT serverNodeT = new SMTNodeT(clientsPerNode,
 				NICC.PVSNIC(),
 				NodesC.PVSSMPNode(clientsPerNode, memoryInMB),
-				NetworkNodesC.QPI(),
+				NetworkNodesC.LocalNodeQPI(),
 				NetworkEdgesC.QPI(), ios
 				);
 
@@ -408,12 +412,94 @@ public class PaperResults extends ModelTest{
 	}
 
 
+	public void runParabenchIO_1C1S() throws Exception{
+		final String which =
+			"/home/kunkel/Dokumente/Dissertation/Trace/results-git/pvfs2-ram-limited/4-levels-of-access/100/N2-P1-C1-P1-S1-RAM1000/parabench-instrumented.proj";
+
+		AggregationCache cache = new AggregationCache();
+		cache.setName("PVS-CACHE");
+		cache.setMaxNumberOfConcurrentIOOps(1);
+
+		setupDisjointIO(2, 1, 1, 1000, cache);
+
+		parameters.setTraceFile("/tmp/parabench-1C1S");
+		parameters.setTraceEnabled(true);
+
+		final ApplicationXMLReader axml = new ApplicationXMLReader();
+		final Application app = axml.parseApplication(which, true);
+
+		mb.setApplication("Jacobi", app);
+
+		final ClientProcess p = mb.getModel().getClientProcesses().get(0);
+		p.setApplication("Jacobi");
+		p.setRank(0);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+	public void runParabenchIO_2C2S() throws Exception{
+		final String which =
+			"/home/kunkel/Dokumente/Dissertation/Trace/results-git/pvfs2-ram-limited/4-levels-of-access/100/N4-P1-C2-P2-S2-RAM1000/parabench-instrumented.proj";
+
+		AggregationReorderCache cache = new AggregationReorderCache();
+		cache.setName("PVS-CACHE");
+		cache.setMaxNumberOfConcurrentIOOps(1);
+
+		setupDisjointIO(4, 1, 2, 1000, cache);
+
+		parameters.setTraceFile("/tmp/parabench-2C2S");
+		parameters.setTraceEnabled(true);
+
+		final ApplicationXMLReader axml = new ApplicationXMLReader();
+		final Application app = axml.parseApplication(which, true);
+
+		mb.setApplication("Jacobi", app);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+	@Test
+	public void runIOTest2S2C() throws Exception{
+		AggregationCache cache = new AggregationCache();
+		cache.setName("PVS-CACHE");
+		cache.setMaxNumberOfConcurrentIOOps(1);
+
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Filereadall"), "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+
+		mb.getGlobalSettings().setClientFunctionImplementation(
+				new CommandType("Filewriteall"), "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+
+
+		setupDisjointIO(4, 1, 2, 1000, cache);
+
+		parameters.setTraceFile("/tmp/parabench-2C2S");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceInternals(true);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(100 * KiB);
+
+		FileMetadata f =  aB.createFile("test", 0, dist);
+
+		FileDescriptor fd = pb.addFileOpen(f, world , false);
+		pb.addWriteSequential(0, fd, 0,       100*MiB);
+		pb.addWriteSequential(1, fd, 100*MiB, 100*MiB);
+		pb.addFileClose(fd);
+
+		runSimulationAllExpectedToFinish();
+	}
+
+
+
 	public static void main(String[] args) throws Exception {
 		PaperResults t = new PaperResults();
 		final long MByte = t.MBYTE;
 		final long KByte = t.KBYTE;
 
-		t.runJacobiIONC_1C1S();
+		//t.runParabenchIO_1C1S();
+		t.runParabenchIO_2C2S();
 		//t.reduceDJVisualization(8, 100*MByte);
 		//t.bcastDJVisualization(8, 100*MByte);
 		//t.reduceDJTest(100*MByte);

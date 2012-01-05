@@ -8,8 +8,11 @@
 
 #ifdef HDTRACE
 #include <mpi.h>
+#include <hdTrace.h>
 #include <hdMPITracer.h>
+
 #else
+
 #warning Not using hdTrace
 #define hdMPI_threadLogAttributes(...)
 #define hdMPI_threadLogStateStart(...)
@@ -21,21 +24,28 @@
 #endif
 
 #ifdef NETCDFLIB
-#warning Will use NETCDFLIB
+#warning Will use NETCDFLIB as a default
+#include <netcdf.h>
 #endif
 
 #ifdef HDF5LIB
-#warning Will use HDF5LIB
+#warning Will use HDF5LIB as a default
 #include <hdf5.h>
 #endif
 
+#ifdef CDILIB
+#warning Will use CDILIB as a default
+#include <cdi.h>
+#endif
+
+
 // maps memory positions of the functions i.e. & write to the corresponding dlsym openend.
 
-static int started_tracing = 0;
+static __thread int started_tracing = 0;
 static int initalized_tracing = 0;
 
 // ensures that we will never nest calls.
-static int isNested = 0;
+static __thread int isNested = 0;
 
 PYTHON_ADD_FUNCTIONS
 
@@ -54,10 +64,17 @@ void sotracer_initalize(void){
   printf("Initalizing!\n");
 #endif
 
-#define OPEN_DLL(file)  dllFile = dlopen(file, RTLD_LAZY); \
+#define OPEN_DLL(defaultfile, libname) \
+  { \
+   char * file = getenv(libname); \
+  if (file == NULL)\
+	file = defaultfile;\
+  printf("[SOTRACE] use %s for %s (env variable)\n", file, libname); \
+  dllFile = dlopen(file, RTLD_LAZY); \
   if (dllFile == NULL){ \
     printf("[Error] trace wrapper - dll not found %s\n", file); \
     exit(1); \
+  } \
   }
 
 #define ADD_SYMBOL(name) \

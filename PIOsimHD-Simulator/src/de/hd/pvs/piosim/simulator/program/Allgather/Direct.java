@@ -28,6 +28,7 @@ package de.hd.pvs.piosim.simulator.program.Allgather;
 import de.hd.pvs.piosim.model.program.commands.Allgather;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -36,7 +37,7 @@ public class Direct
 extends CommandImplementation<Allgather>
 {
 	@Override
-	public void process(Allgather cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Allgather cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1) {
 			return;
 		}

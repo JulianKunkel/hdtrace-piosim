@@ -35,6 +35,7 @@ import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 import de.hd.pvs.piosim.simulator.program.IWaitCommand;
@@ -51,7 +52,7 @@ public class Blocking
 	final HashMap<GClientProcess, HashSet<Integer>> clientPendingAIOs = new HashMap<GClientProcess, HashSet<Integer>>();
 
 	@Override
-	public void process(Wait cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Wait cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		// two possibilities, either all pending AIO ops are already finished or not
 		HashMap<Integer, Command> stillPendingOps = client.getPendingNonBlockingOps();
 

@@ -21,6 +21,7 @@ import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.commands.Gather;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -64,7 +65,7 @@ extends CommandImplementation<Gather>
 	}
 
 	@Override
-	public void process(Gather cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Gather cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1) {
 			return;
 		}
@@ -91,7 +92,7 @@ extends CommandImplementation<Gather>
 				OUTresults.setNextStep(STEP_SEND);
 			}else{
 
-				final INodeHostedComponent target = compNetJobs.getResponses().get(0).getMatchingCriterion().getSourceComponent();
+				final INodeHostedComponent target = compNetJobs.getResponses()[0].getMatchingCriterion().getSourceComponent();
 
 				// receive data from the next process and wait for an ACK of another one.
 				OUTresults.addNetReceive(target, tagNumber, cmd.getCommunicator());
@@ -101,7 +102,7 @@ extends CommandImplementation<Gather>
 					// we almost finished, we have to receive data from the last process.
 					// then complete.
 
-					OUTresults.setNextStep(OUTresults.STEP_COMPLETED);
+					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 					return;
 				}
 

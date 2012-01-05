@@ -27,13 +27,14 @@ import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.model.program.commands.Filewriteall;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class Direct extends CommandImplementation<Filewriteall> {
 
 	@Override
-	public void process(Filewriteall cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Filewriteall cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int SYNCRONIZED = 2;
 
 		if(step == CommandProcessing.STEP_START){

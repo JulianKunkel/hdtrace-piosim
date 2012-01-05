@@ -46,13 +46,13 @@ import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.HardwareConfiguration;
 
 abstract public class ModelTest extends TestSuite {
-	protected final long KiB = 1000;
-	protected final long MiB = 1000 * KiB;
-	protected final long GiB = 1000 * MiB;
+	protected final long KB = 1000;
+	protected final long MB = 1000 * KB;
+	protected final long GB = 1000 * MB;
 
-	protected final long KBYTE = 1024;
-	protected final long MBYTE = 1024 * KBYTE;
-	protected final long GBYTE = 1024 * MBYTE;
+	protected final long KiB = 1024;
+	protected final long MiB = 1024 * KiB;
+	protected final long GiB = 1024 * MiB;
 
 	protected ModelBuilder mb;
 	protected ApplicationBuilder aB;
@@ -110,7 +110,10 @@ abstract public class ModelTest extends TestSuite {
 		for(int rank = 0; rank < mb.getModel().getClientProcesses().size(); rank++){
 			ClientProcess c = mb.getModel().getClientProcesses().get(rank);
 			c.setApplication("Jacobi");
-			c.setRank(rank);
+
+			if(c.getRank() < 0){
+				c.setRank(rank);
+			}
 		}
 
 		world = aB.getWorldCommunicator();
@@ -157,6 +160,25 @@ abstract public class ModelTest extends TestSuite {
 		return simRes;
 	}
 
+
+	protected SimulationResults runSimulationWithoutOutput() throws Exception {
+
+		if(mb.getModel().getApplicationNameMap().get("Jacobi") == null){
+			mb.setApplication("Jacobi", app);
+		}
+
+		sim = new Simulator();
+		sim.initModel(model, parameters);
+		simRes = sim.simulate();
+
+		System.out.println("events: " + simRes.getEventCount() + " time: " + simRes.getWallClockTime());
+
+		if(simRes.isErrorDuringProcessing()){
+			throw new IllegalArgumentException("Errors occured during processing");
+		}
+
+		return simRes;
+	}
 
 	/**
 	 * One might change the method to invoke...

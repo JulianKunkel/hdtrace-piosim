@@ -8,19 +8,70 @@ import de.hd.pvs.piosim.model.components.NetworkEdge.SimpleNetworkEdge;
  */
 public class NetworkEdgesC implements HardwareComponents{
 
+	static public SimpleNetworkEdge SocketLocalEdge(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("SLE");
+		conn.setLatency(new Epoch(0, 79));
+		conn.setBandwidth(3781 * MIB);
+		return conn;
+	}
+
+
+	static public SimpleNetworkEdge SocketLocalNoLatencyEdge(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("SLE");
+		conn.setLatency(Epoch.ZERO); // sendRecvPaired10K
+		conn.setBandwidth(10864 * MBYTE);
+		return conn;
+	}
+
+	static public SimpleNetworkEdge infiniteFast(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("infinite");
+		conn.setLatency(Epoch.ZERO); // sendRecvPaired10K
+		conn.setBandwidth(100000 * GBYTE);
+		return conn;
+	}
+
 	static public SimpleNetworkEdge QPI(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
 		conn.setName("QPI");
-		conn.setLatency(new Epoch(0.4186220 / 100000 / 2));
-		conn.setBandwidth(12800 * M);
+		conn.setLatency(new Epoch(0, 38)); // difference between intra-socket and inter-socket
+		conn.setBandwidth(3427 * MIB);
+		return conn;
+	}
+
+
+	static public SimpleNetworkEdge QPINoLatency(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("QPI");
+		conn.setLatency(Epoch.ZERO); // 5.4 - 2.8
+		conn.setBandwidth(10864 * MBYTE);
+		return conn;
+	}
+
+	static public SimpleNetworkEdge GIGEPVS(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("1GBitEPVS");
+		conn.setLatency(new Epoch(0, 19982));
+		conn.setBandwidth(75392614); // 71.9 MiB/s
 		return conn;
 	}
 
 	static public SimpleNetworkEdge GIGE(){
 		SimpleNetworkEdge conn = new SimpleNetworkEdge();
-		conn.setName("1GBit Ethernet");
-		conn.setLatency(new Epoch(0.000575 / 2));
-		conn.setBandwidth(67 * MBYTE);
+		conn.setName("1GBitE");
+		conn.setLatency(new Epoch(0, 19982));
+		conn.setBandwidth(117 * MBYTE);
+		return conn;
+	}
+
+
+	static public SimpleNetworkEdge GIGEPVSNoLatency(){
+		SimpleNetworkEdge conn = new SimpleNetworkEdge();
+		conn.setName("1GBitE");
+		conn.setLatency(Epoch.ZERO);
+		conn.setBandwidth(75392614); // 71.9 MiB/s
 		return conn;
 	}
 

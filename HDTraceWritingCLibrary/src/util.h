@@ -57,4 +57,4 @@ size_t minSize(size_t a, size_t b);
  */
 size_t maxSize(size_t a, size_t b);
 
-#endif /* UTIL_H_ */
+#endif

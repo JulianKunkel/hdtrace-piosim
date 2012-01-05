@@ -58,7 +58,7 @@ public class IOTest extends ModelTest {
 		dist.setChunkSize(100 * KiB);
 
 
-		f = aB.createFile("test", GBYTE, dist);
+		f = aB.createFile("test", GiB, dist);
 	}
 
 	/**
@@ -154,6 +154,11 @@ public class IOTest extends ModelTest {
 	@Test public void Aggregation1Test() throws Exception{
 		setupOneNodeOneServer(1, IOC.AggregationCache());
 
+		parameters.setTraceFile("/tmp/three");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceServers(true);
+		parameters.setTraceInternals(true);
+
 		FileDescriptor fd = pb.addFileOpen(f, world , false);
 		pb.addWriteSequential(0, fd, 0, MiB);
 		pb.addFileClose(fd);
@@ -183,8 +188,8 @@ public class IOTest extends ModelTest {
 
 			FileDescriptor fd = pb.addFileOpen(f, world , false);
 
-			pb.addReadSequential(1, fd, 0, 100 * KBYTE);
-			pb.addWriteSequential(0, fd, 0, 100 * KBYTE);
+			pb.addReadSequential(1, fd, 0, 100 * KiB);
+			pb.addWriteSequential(0, fd, 0, 100 * KiB);
 			pb.addFileClose(fd);
 
 			runSimulationAllExpectedToFinish();
@@ -378,7 +383,7 @@ public class IOTest extends ModelTest {
 		listIO.add(ios);
 
 		ios = new ListIO();
-		ios.addIOOperation(0, MiB);
+		ios.addIOOperation(1*MiB, MiB);
 		listIO.add(ios);
 
 		FileDescriptor fd = pb.addFileOpen(f, world , false);

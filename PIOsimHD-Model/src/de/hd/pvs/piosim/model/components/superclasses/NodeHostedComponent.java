@@ -56,4 +56,8 @@ abstract public class NodeHostedComponent
 	public NIC getNetworkInterface() {
 		return networkInterface;
 	}
+
+	public Node getHostingNode() {
+		return getParentComponent();
+	}
 }

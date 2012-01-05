@@ -66,6 +66,7 @@ bridge = open(sys.argv[2], "w")
 bridge.write("#include <string.h>\n")
 bridge.write("#include <assert.h>\n")
 bridge.write("#include <stdio.h>\n")
+bridge.write("#include <mpi.h>\n")
 
 for i in xrange(0, len(funcs)):
   f = funcs[i].strip()
@@ -107,6 +108,7 @@ for i in xrange(0, len(funcs)):
   bridge.write(tReturn + " " + tName.lower() + "_" + suffix);
   bridge.write(tReturn + " " + tName.upper() + "_" + suffix );
   bridge.write(tReturn + " " + tName.upper() + suffix);
+  bridge.write(tReturn + " " + tName.upper() + "() __attribute__ ((weak, alias (\"" + tName + "_\")));\n");
   bridge.write(tReturn + " " + tName + "_" + suffix );
 
   if tName in excludeFunctionGeneration:

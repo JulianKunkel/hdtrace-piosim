@@ -31,6 +31,7 @@ import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
 import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.Communicator;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.simulator.Simulator;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
 import de.hd.pvs.piosim.simulator.components.NIC.MessageMatchingCriterion;
@@ -46,7 +47,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
  *
  * @author Julian M. Kunkel
  */
-public class CommandProcessing{
+public class CommandProcessing implements ICommandProcessing{
 	// global values for processing:
 
 	/** first step of all computations, set upon starting the command */
@@ -316,12 +317,17 @@ public class CommandProcessing{
 	 * @param comm
 	 */
 	final public void addNetReceive(int rankFrom, int tag, Communicator comm){
-		addNetReceive(getTargetfromRank(rankFrom), tag, comm);
+		addNetReceive( getTargetfromRank(rankFrom, comm), tag, comm);
 	}
 
 
 	private final RelationToken createNestedToken(){
-		return this.getInvokingComponent().getSimulator().getTraceWriter().relRelateProcessLocalToken(TraceType.CLIENT_STEP, this.getInvokingComponent(), relationToken);
+		Simulator sim = this.getInvokingComponent().getSimulator();
+		if (! sim.getRunParameters().isTraceClientNestingOperations()){
+			return relationToken;
+		}else{
+			return sim.getTraceWriter().relRelateProcessLocalToken(TraceType.CLIENT_NESTING, this.getInvokingComponent(), relationToken);
+		}
 	}
 
 	/**
@@ -338,7 +344,7 @@ public class CommandProcessing{
 	}
 
 	final public void addNetReceive(int from, int tag, Communicator comm,  Class<? extends CommandImplementation> expectedRootOperation,  Class<? extends CommandImplementation> expectedProcessingMethod){
-		addNetReceive(getTargetfromRank(from), tag, comm, expectedRootOperation, expectedProcessingMethod);
+		addNetReceive(getTargetfromRank(from, comm), tag, comm, expectedRootOperation, expectedProcessingMethod);
 	}
 
 
@@ -380,7 +386,12 @@ public class CommandProcessing{
 	final public void addNetSend(int rankTo,
 			IMessageUserData jobData, int tag, Communicator comm)
 	{
-		addNetSend(getTargetfromRank(rankTo), jobData, tag, comm);
+		try{
+			addNetSend(getTargetfromRank(rankTo, comm), jobData, tag, comm);
+		}catch(RuntimeException e){
+			System.err.println( "comm size: " + comm.getSize() +  " to: " + rankTo );
+			throw e;
+		}
 	}
 
 	final public void addNetSend(INodeHostedComponent to,
@@ -396,7 +407,7 @@ public class CommandProcessing{
 	final public void addNetSend(int rankTo,
 			IMessageUserData jobData, int tag, Communicator comm,  Class<? extends CommandImplementation> definedRootOperation,  Class<? extends CommandImplementation> definedProcessingMethod)
 	{
-		addNetSend(getTargetfromRank(rankTo), jobData, tag, comm, definedRootOperation, definedProcessingMethod);
+		addNetSend(getTargetfromRank(rankTo, comm), jobData, tag, comm, definedRootOperation, definedProcessingMethod);
 	}
 
 	final public void addNetSend(INodeHostedComponent to,
@@ -470,10 +481,13 @@ public class CommandProcessing{
 	 * @param rank
 	 * @return The target rank of the application.
 	 */
-	final private INodeHostedComponent getTargetfromRank(int rank){
+	final private INodeHostedComponent getTargetfromRank(int rank, Communicator comm){
 		assert(rank >= 0);
-		return getInvokingComponent().getSimulator().getApplicationMap().
-		getClient( getInvokingComponent().getModelComponent().getApplication(),  rank).getModelComponent();
+		rank = comm.getWorldRank(rank);
+		String app = getInvokingComponent().getModelComponent().getApplication();
+		GClientProcess c = getInvokingComponent().getSimulator().getApplicationMap().getClient( app,  rank);
+
+		return c.getModelComponent();
 	}
 
 

@@ -11,6 +11,11 @@ import de.hd.pvs.piosim.simulator.network.MessagePart;
 public class InterProcessNetworkJobCallbackAdaptor implements IInterProcessNetworkJobCallback {
 
 	@Override
+	public void messagePartMatchesAnnounced(InterProcessNetworkJob remoteJob,
+			InterProcessNetworkJob announcedJob, Epoch endTime) {
+	}
+
+	@Override
 	public void messagePartReceivedCB(MessagePart part, InterProcessNetworkJob remoteJob,
 			InterProcessNetworkJob announcedJob, Epoch endTime) {
 	}

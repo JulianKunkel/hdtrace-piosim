@@ -155,16 +155,22 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 					throw new IOException("File " + file + " is not readable!");
 				}
 
-				if(readCompleteProgram){
-					// use DOM reader
-					programs[rank][thread] = readProgramXMLDOM(rank, thread, file, app);
-				}else{ // use SAX Reader to read the file
-					programs[rank][thread] = new ProgramReadXMLOnDemand();
-				}
 
-				programs[rank][thread].setApplication(app, rank, thread);
-				programs[rank][thread].setFilename(file);
-				programs[rank][thread].restartWithFirstCommand();
+				try{
+					if(readCompleteProgram){
+						// use DOM reader
+						programs[rank][thread] = readProgramXMLDOM(rank, thread, file, app);
+					}else{ // use SAX Reader to read the file
+						programs[rank][thread] = new ProgramReadXMLOnDemand();
+					}
+
+					programs[rank][thread].setApplication(app, rank, thread);
+					programs[rank][thread].setFilename(file);
+					programs[rank][thread].restartWithFirstCommand();
+
+				}catch(Exception e){
+					throw new IllegalArgumentException("File: " + file, e);
+				}
 			}
 		}
 
@@ -186,16 +192,32 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 	 * @throws Exception
 	 */
 	public Program readProgramXMLDOM(int rank, int thread, String filename, Application app) throws Exception {
-		final StAXTraceFileReader traceFileReader = new StAXTraceFileReader(filename, false);
+		final StAXTraceFileReader traceFileReader = new StAXTraceFileReader(filename, false, Epoch.ZERO);
+
+		// TODO move efficiency to another location...
+		final double processingSpeedOfTheSystem = traceFileReader.getProcssorSpeedInMHz() * 1000 * 1000; // => ops/s
+		assert(processingSpeedOfTheSystem > 0);
 
 		final ProgramInMemory program = new ProgramInMemory();
 		program.setApplication(app, rank, thread);
 
 		final CommandXMLReader cmdReader = new CommandXMLReader(program);
 
-		ITraceEntry entry = traceFileReader.getNextInputEntry();
+		ITraceEntry entry;
+		try{
+			entry = traceFileReader.getNextInputEntry();
+		}catch(IllegalStateException e){
+			System.err.println("Error in file " + filename);
+			throw e;
+		}
 
-		Epoch lastTimeForComputeJob = entry.getLatestTime();
+		if(entry == null){
+			// no entry!
+			return program;
+		}
+
+		Epoch lastTimeAComputeJobStarted = entry.getEarliestTime();
+		Epoch lastEventEndTime = entry.getLatestTime();
 
 		while(entry != null) {
 			//System.out.println(entry);
@@ -204,22 +226,35 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 			if (DynamicTraceEntryToCommandMapper.isCommandAvailable(entry.getName())){
 				Command cmd = cmdReader.parseCommandXML(entry);
 				if(cmd.getClass() != NoOperation.class){
-					// add an appropriate compute job
-					long cycles = entry.getEarliestTime().subtract(lastTimeForComputeJob).getLongInNS() / 1000;
-					if(cycles > 0){
-						Compute compute = new Compute();
-						compute.setCycles( cycles );
-						program.addCommand(compute);
-					}
+					// add an appropriate compute job, depending on the speed of the system.
+					addComputeJob(entry.getEarliestTime().subtract(lastTimeAComputeJobStarted), processingSpeedOfTheSystem, program);
 
-					lastTimeForComputeJob = entry.getLatestTime();
+					lastTimeAComputeJobStarted = entry.getLatestTime();
 					program.addCommand(cmd);
 				}
 			}
+			lastEventEndTime = entry.getLatestTime();
 			entry = traceFileReader.getNextInputEntry();
+		}
+		if(! lastEventEndTime.equals(lastTimeAComputeJobStarted)){
+			// always add at least one compute node if time elapsed.
+			addComputeJob(lastEventEndTime.subtract(lastTimeAComputeJobStarted), processingSpeedOfTheSystem, program);
 		}
 
 		return program;
+	}
+
+	private void addComputeJob(Epoch timeDiff, double processingSpeedOfTheSystem, ProgramInMemory program){
+		assert(timeDiff.getDouble() >= 0);
+		long cycles = (long) (timeDiff.getDouble() * processingSpeedOfTheSystem);
+
+		assert(cycles >= 0);
+
+		if(cycles > 0){
+			Compute compute = new Compute();
+			compute.setCycles( cycles );
+			program.addCommand(compute);
+		}
 	}
 
 }

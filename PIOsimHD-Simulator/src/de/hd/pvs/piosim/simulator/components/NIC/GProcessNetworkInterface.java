@@ -148,6 +148,9 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 					startedRecvMap.put(msg, announcedJob);
 				}
 
+				// announce that the job matches.
+				announcedJob.getCallbacks().messagePartMatchesAnnounced(remoteJob, announcedJob, endTime);
+
 				callRecvCallbacksIfNececssary(part, remoteJob, announcedJob, endTime);
 			}else{
 				// uh oh, unexpected recv.
@@ -303,10 +306,10 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 		//System.out.println(this.getIdentifier() + " Send initiate" + job);
 
-		assert(job.getSize() > 0);
+		assert(job.getSize() >= 0);
 
-		if(job.getJobData().getSize() == 0){
-			throw new IllegalArgumentException("Data size is 0.");
+		if(job.getJobData().getSize() < 0){
+			throw new IllegalArgumentException("Data size is < 0");
 		}
 
 		submitNewMessage(msg, startTime);
@@ -314,24 +317,30 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 	@Override
 	public void blockFurtherDataReceives() {
-		super.blockFlowManually(this.getModelComponent());
+		super.blockFlowManually();
 	}
 
 
 	@Override
 	public void unblockFurtherDataReceives() {
-		super.unblockFlowManually(this.getModelComponent());
+		super.unblockFlowManually();
 	}
 
 	// Entry code:
 
 	@Override
 	public void submitNewMessage(Message msg, Epoch startTime) {
-		assert(msg.getSize() > 0);
-		final MessagePart part = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
-		if(part == null){
-			/* does not make any sense to send an empty message, it will be appended later */
-			return;
+		assert(msg.getSize() >= 0);
+		final MessagePart part;
+		if(msg.getSize() != 0){
+			part = msg.createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
+			if(part == null){
+				/* does not make any sense to send an empty message, it will be appended later */
+				return;
+			}
+		}else{
+			// create an empty message
+			part = msg.createEmptyMessage();
 		}
 
 		final Event<MessagePart> event = new Event(this, this, startTime,  part, msg.getRelationToken());
@@ -348,11 +357,13 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 
 			// partial send?
 			job.getCallbacks().messagePartSendCB(part, job, time);
+			msg.dataSend(part.getPayloadSize());
 
 			if(msg.getRemainingBytesToSend() == 0){
-				// all data is send => call callback.
-				job.getCallbacks().sendCompletedCB(job, time);
-
+				if (msg.isAllDataSend()){
+					// all data is send => call callback.
+					job.getCallbacks().sendCompletedCB(job, time);
+				}
 			}else{
 				final MessagePart newMsgPart = part.getMessage().createNextMessagePart(getSimulator().getModel().getGlobalSettings().getTransferGranularity());
 				if(newMsgPart != null){
@@ -371,6 +382,7 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 			return this;
 		}
 
+		assert(routing != null);
 		return routing.getTargetRouteForMessage(this.getModelComponent(), part);
 	}
 
@@ -380,7 +392,12 @@ implements IProcessNetworkInterface, IGNetworkEntry, IGNetworkExit
 		return new Epoch(((double) getSimulator().getModel().getGlobalSettings().getTransferGranularity()) / getModelComponent().getTotalBandwidth());	}
 
 	@Override
-	public Epoch getProcessingLatency() {
+	public Epoch getProcessingLatency(MessagePart part) {
+		return Epoch.ZERO;
+	}
+
+	@Override
+	public Epoch getMaximumProcessingLatency() {
 		return Epoch.ZERO;
 	}
 

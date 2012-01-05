@@ -32,6 +32,7 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.SClientListIO;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.requests.RequestRead;
@@ -41,8 +42,14 @@ public class FileReadDirect
 extends CommandImplementation<Fileread>
 {
 	@Override
-	public void process(Fileread cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Fileread cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+
 		if(step == CommandProcessing.STEP_START){
+
+			if(cmd.getListIO().getTotalSize() == 0){
+				return;
+			}
+
 			/* determine I/O targets */
 			final long actualFileSize = cmd.getFile().getSize();
 			final long amountOfDataToReadOriginal = cmd.getListIO().getTotalSize();
@@ -63,7 +70,10 @@ extends CommandImplementation<Fileread>
 			}
 
 			if (amountOfDataToReadOriginal != cmd.getListIO().getTotalSize() ){
-				client.warn("Short read: " +  cmd.getListIO().getTotalSize() + " instead of " + amountOfDataToReadOriginal  +	" should be read => file too small \"" + actualFileSize + "\"") ;
+				client.warn("Short read: " +  cmd.getListIO().getTotalSize() + " instead of " + amountOfDataToReadOriginal  +	" should be read => file too small. Current file size: " + actualFileSize + " ops: " + cmd.getListIO().getCount() ) ;
+				if (cmd.getListIO().getCount() == 1){
+					client.warn("offset: " + cmd.getListIO().getFirstAccessedByte());
+				}
 			}
 
 			final List<SClientListIO> ioTargets = client.distributeIOOperations(cmd.getFile(), cmd.getListIO());
@@ -88,13 +98,4 @@ extends CommandImplementation<Fileread>
 		return;
 	}
 
-
-	@Override
-	public String getAdditionalTraceTag(Fileread cmd) {
-		StringBuffer buff = new StringBuffer();
-		for(SingleIOOperation op: cmd.getListIO().getIOOperations()){
-			buff.append("<op size=\"" + op.getAccessSize() + "\" offset=\"" + op.getOffset() + "\"/>");
-		}
-		return buff.toString();
-	}
 }

@@ -33,6 +33,7 @@ import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.commands.Filewrite;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.SClientListIO;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJobRoutable;
@@ -45,11 +46,16 @@ public class FileWriteDirect
 extends CommandImplementation<Filewrite>
 {
 	@Override
-	public void process(Filewrite cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Filewrite cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int RECV_ACK = 2;
 		final int UPDATE_SIZE = 3;
 
 		if(step == CommandProcessing.STEP_START){
+
+			if(cmd.getListIO().getTotalSize() == 0){
+				return;
+			}
+
 			/* determine I/O targets */
 			assert(client.getSimulator() != null);
 
@@ -110,21 +116,12 @@ extends CommandImplementation<Filewrite>
 			if(cmd.getFile().getSize() < lastWrittenByte){
 				cmd.getFile().setSize(lastWrittenByte);
 
-				client.debug("File \"" + cmd.getFile().getName() + "\" enlarged to \"" + lastWrittenByte + "\" Bytes");
+//				client.debug("File \"" + cmd.getFile().getName() + "\" enlarged to \"" + lastWrittenByte + "\" Bytes");
 			}
 
 			return;
 		}
 
 		return;
-	}
-
-	@Override
-	public String getAdditionalTraceTag(Filewrite cmd) {
-		StringBuffer buff = new StringBuffer();
-		for(SingleIOOperation op: cmd.getListIO().getIOOperations()){
-			buff.append("<op size=\"" + op.getAccessSize() + "\" offset=\"" + op.getOffset() + "\"/>");
-		}
-		return buff.toString();
 	}
 }

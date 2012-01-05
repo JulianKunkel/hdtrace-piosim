@@ -74,8 +74,9 @@ public class XMLReaderToRAM {
 		Document DOMdocument ;
 		try{
 			DOMdocument = DOMbuilder.parse(file);
-		}catch(SAXException e){
-			throw new IOException(e);
+		}catch(SAXException e){			
+			System.err.println("Erorr in:" + file);
+			throw new IOException("Erorr in:" + file, e);
 		}
 		
 		Element applicationNode = DOMdocument.getDocumentElement();

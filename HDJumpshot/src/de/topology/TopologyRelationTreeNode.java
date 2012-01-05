@@ -83,7 +83,7 @@ public class TopologyRelationTreeNode extends TopologyTreeNode
 	}	
 	
 	@Override
-	public void adjustTimeOffset(double delta) {
+	public void adjustTimeOffset(double delta, Epoch globalMinTime, Epoch globalMaxTime) {
 		try{
 			BufferedRelationReader rNew = new BufferedRelationReader(getRelationSource().getFilename(), getRelationSource().getAdditionalTimeOffset().add(delta) );
 			getTopology().setRelationSource(rNew );

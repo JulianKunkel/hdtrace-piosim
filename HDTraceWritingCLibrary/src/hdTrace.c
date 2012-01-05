@@ -8,9 +8,12 @@
  * @endif
  *
  * @date 25.03.2009
- * @author Stephan Krempel <stephan.krempel@gmx.de>
+ * @author Stephan Krempel <stephan.krempel@gmx.de> (original version)
+ * @author 2011: Nathanael Hübbe (Rewrote large parts to phase out a number of fixed length arrays and split the implementation into two classes.)
  * @version /$Id$
  */
+
+#define _GNU_SOURCE
 
 #include "hdTrace.h"
 #include "hdTraceInternal.h"
@@ -29,76 +32,46 @@
 #include "hdError.h"
 #include "common.h"
 #include "util.h"
+#include "hostInformation.h"
 
+///////////////////////////
+// Error handling macros //
+///////////////////////////
 
-/**
- * Macro to print debugging message (printf like) (was tprintf)
- * TODO: better adjust to new topology concept
- */
-#define hdt_debugf(trace, format, ...) \
+/// Macro to set the errno global variable, disable further tracing and return -1.
+#define hdT_fatalError(errorCode) do {\
+	trace->isEnabled = 0;\
+	errno = errorCode;\
+	return -1;\
+} while (0)
+
+///////////////////////////////////////
+// Auxiliary message printing macros //
+///////////////////////////////////////
+
+/// Macro to print debugging message (printf like) (was tprintf)
+// TODO: better adjust to new topology concept
+#define hdT_debugf(trace, format, ...) \
 	printf("D: [TRACER][%s] %s (%s:%d): " format "\n", \
 			hdT_getTopoPathString(trace->topoNode), \
 			__FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
 
-/**
- * Macro to print debugging message (fix string) (was tsprintf)
- */
-#define hdt_debug(trace, string) \
+/// Macro to print debugging message (fix string) (was tsprintf)
+#define hdT_debug(trace, string) \
 	printf("D: [TRACER][%s] %s (%s:%d): %s\n", \
 			hdT_getTopoPathString(trace->topoNode), \
 			__FUNCTION__, __FILE__, __LINE__, string)
 
-/**
- * Macro to print info message (printf like)
- * TODO: better adjust to new topology concept
- */
-#define hdt_infof(trace, format, ...) \
+/// Macro to print info message (printf like)
+// TODO: better adjust to new topology concept
+#define hdT_infof(trace, format, ...) \
 	printf("I: [TRACER][%s]: " format "\n", \
 			hdT_getTopoPathString(trace->topoNode), __VA_ARGS__)
 
-/**
- * Macro to print info message (fix string)
- */
-#define hdt_info(trace, string) \
+// Macro to print info message (fix string)
+#define hdT_info(trace, string) \
 	printf("I: [TRACER][%s]: %s\n", \
 			hdT_getTopoPathString(trace->topoNode), string)
-
-
-//////////////////////////////////
-// Static function declarations //
-//////////////////////////////////
-
-/**
- * sprintf like function writing to trace log instead of string
- */
-static int writeLogf(hdTrace *trace, const char * format, ...)
-__attribute__ ((format (printf, 2, 3)));
-
-/**
- * vsprintf like function writing to trace log instead of string
- */
-static int writeLogfv(hdTrace *trace, const char * format,
-		va_list valist);
-
-/**
- * Write a message to the trace log buffer and flush to file if needed.
- */
-static int writeLog(hdTrace *trace, const char * message);
-
-/**
- * Flush the buffer of trace log
- */
-static int flushLog(hdTrace *trace);
-
-/**
- * Write given number of indentations to trace log
- */
-static int writeLogIndentation(hdTrace *trace, int count);
-
-/**
- * Write state to trace log
- */
-static int writeState(hdTrace *trace);
 
 
 /////////////////////////////////////
@@ -136,22 +109,13 @@ static int writeState(hdTrace *trace);
  *
  * @sa hdT_createTopoNode, hdT_createTopology
  */
-hdTrace * hdT_createTrace(hdTopoNode *topoNode)
-{
+hdTrace * hdT_createTrace(hdTopoNode *topoNode) {
 	/* good to know that hdTopoNode is the same as hdTopology ;) */
-	if (hdT_getTopoNodeLevel(topoNode) <= 0)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return NULL;
-	}
+	if (hdT_getTopoNodeLevel(topoNode) <= 0) hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL);
 
 	/* create trace file structure */
 	hdTrace *trace = malloc(sizeof(*trace));
-	if (!trace)
-	{
-		errno = HD_ERR_MALLOC;
-		return NULL;
-	}
+	if (!trace) hd_error_return(HD_ERR_MALLOC, NULL);
 
 	trace->topoNode = topoNode;
 
@@ -165,10 +129,10 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 
 	// create and open file
 	trace->log_fd = open(trace->logfile,
-			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY |  O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK, 0662);
 	if (trace->log_fd == -1)
 	{
-		hdt_debugf(trace, "Could not open file %s: %s",
+		hdT_debugf(trace, "Could not open file %s: %s",
 				trace->logfile, strerror(errno));
 		free(trace->logfile);
 		free(trace);
@@ -185,15 +149,16 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 
 	// create and open file
 	trace->info_fd = open(trace->infofile,
-			O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK, 0662);
+			O_CREAT | O_WRONLY |  O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK, 0662);
 	if (trace->info_fd == -1)
 	{
-		hdt_debugf(trace, "Could not open file %s: %s",
+		hdT_debugf(trace, "Could not open file %s: %s",
 				trace->infofile, strerror(errno));
 		free(trace);
 		hd_error_return(HD_ERR_CREATE_FILE, NULL);
 	}
 
+	trace->buffer = malloc(hdt_options.buffer_size);
 	/* initialize remaining trace file structure */
 	trace->function_depth = -1;
 	trace->buffer_pos = 0;
@@ -201,29 +166,44 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
 	trace->isEnabled = 1;
 
 	trace->always_flush = 0;
-	trace->trace_nested_operations = 0;
-
-
-	int i;
-	for (i = 0; i < HD_LOG_MAX_DEPTH; ++i)
-	{
-		trace->has_nested[i] = 0;
-		trace->state_name[i][0] = '\0';
+	trace->max_nesting_depth = hdt_options.max_nesting_depth;
+	trace->statesSize = 8;
+	trace->states = calloc(trace->statesSize, sizeof(hdTraceState*));
+	trace->tabString = "\t";
+	trace->tabStringLength = strlen(trace->tabString);
+	//Setup the whitespaceString.
+	trace->whitespaceString = malloc((trace->statesSize + 1)*trace->tabStringLength + 1);
+	if(!trace->whitespaceString) hd_error_return(HD_ERR_MALLOC, NULL);
+	long i, j;
+	for(i = 0; i <= trace->statesSize; i++) {
+		for(j = 0; j < trace->tabStringLength; j++) {
+			trace->whitespaceString[i*trace->tabStringLength + j] = trace->tabString[j];
+		}
 	}
+	trace->whitespaceString[(trace->statesSize + 1)*trace->tabStringLength] = 0;
 
 	if (gettimeofday(& trace->init_time, NULL) != 0)
 	{
-		hdt_debugf(trace,
+		hdT_debugf(trace,
 				"Problems getting time, stop logging: %s", strerror(errno));
 		hdT_disableTrace(trace);
 		errno = HD_ERR_GET_TIME;
 		return trace;
 	}
 
+	char * processorModelNameVar =  processorModelName();
+	int tlen = strlen(processorModelNameVar)*3;
+
+	char processorModelNameVarbuff[tlen];
+	escapeXMLString(processorModelNameVarbuff, tlen, processorModelNameVar);
+	free(processorModelNameVar);
+
 	writeLogf(trace,
-			"<Program timeAdjustment='%u'>\n",
-			(unsigned) trace->init_time.tv_sec
+			"<Program timeAdjustment='%u' processorSpeedinMHZ='%u' processorModelName='%s'>\n",
+			(unsigned) trace->init_time.tv_sec, processorCPUspeedinMHZ(),
+			processorModelNameVarbuff
 			);
+
 
 	trace->isEnabled = 0;
 	return trace;
@@ -249,24 +229,10 @@ hdTrace * hdT_createTrace(hdTopoNode *topoNode)
  * - HD_ERR_INVALID_ARGUMENT
  * - HD_ERR_INVALID_CONTEXT
  */
-int hdT_setNestedDepth(hdTrace *trace, int depth)
-{
-	if (trace == NULL)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
-	}
-
-	if (trace -> function_depth != -1)
-	{
-		errno = HD_ERR_INVALID_CONTEXT;
-		return -1;
-	}
-
-	if(depth >= HD_LOG_MAX_DEPTH)
-		depth = HD_LOG_MAX_DEPTH - 1;
-
-	trace->trace_nested_operations = depth;
+int hdT_setNestedDepth(hdTrace *trace, int depth) {
+	if (trace == NULL) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+	if (trace -> function_depth != -1) hd_error_return(HD_ERR_INVALID_CONTEXT, -1);
+	trace->max_nesting_depth = depth;
 	return 0;
 }
 
@@ -283,14 +249,10 @@ int hdT_setNestedDepth(hdTrace *trace, int depth)
  *
  * @sa hdT_disableTrace
  */
-int hdT_enableTrace(hdTrace *trace)
-{
-	if (trace == NULL)
-		return -1;
+int hdT_enableTrace(hdTrace *trace) {
+	if (trace == NULL) return -1;
 
-	if (trace->isEnabled == 1)
-		return 1;
-
+	if (trace->isEnabled) return 1;
 	trace->isEnabled = 1;
 	return 0;
 }
@@ -309,14 +271,10 @@ int hdT_enableTrace(hdTrace *trace)
  *
  * @sa hdT_enableTrace
  */
-int hdT_disableTrace(hdTrace *trace)
-{
-	if (trace == NULL)
-		return -1;
+int hdT_disableTrace(hdTrace *trace) {
+	if (trace == NULL) return -1;
 
-	if (trace->isEnabled == 0)
-		return 1;
-
+	if (!trace->isEnabled) return 1;
 	trace->isEnabled = 0;
 	return 0;
 }
@@ -333,11 +291,8 @@ int hdT_disableTrace(hdTrace *trace)
  *
  * @sa hdT_enableTrace, hdT_disableTrace
  */
-int hdT_isEnabled(hdTrace *trace)
-{
-	if (trace == NULL)
-		return 0;
-
+int hdT_isEnabled(hdTrace *trace) {
+	if (trace == NULL) return 0;
 	return trace->isEnabled;
 }
 
@@ -356,13 +311,8 @@ int hdT_isEnabled(hdTrace *trace)
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
  */
-int hdT_setForceFlush(hdTrace *trace, int flush)
-{
-	if (trace == NULL)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
-	}
+int hdT_setForceFlush(hdTrace *trace, int flush) {
+	if (trace == NULL) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 	trace->always_flush = flush;
 	return 0;
 }
@@ -381,52 +331,40 @@ int hdT_setForceFlush(hdTrace *trace, int flush)
  *
  * @errno
  * - HD_ERR_INVALID_ARGUMENT
- * - HD_ERR_BUFFER_OVERFLOW
  * - HD_ERR_TIMEOUT
  * - HD_ERR_MALLOC
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_UNKNOWN
  */
-int hdT_writeInfo(hdTrace *trace, const char *format, ...)
-{
-	if (trace == NULL || !isValidString(format))
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
-	}
+int hdT_writeInfo(hdTrace *trace, const char *format, ...) {
+	if (trace == NULL || !isValidString(format)) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 
-	char buffer[HD_TMP_BUF_SIZE];
 	va_list argptr;
 	size_t count;
-	char *buf = buffer;
+	char *buffer = NULL;
 
 	va_start(argptr, format);
-	count = (size_t) vsnprintf(buffer, HD_TMP_BUF_SIZE, format, argptr);
+	count = (size_t) vasprintf(&buffer, format, argptr);
 	va_end( argptr );
+	if (count < 0) hd_error_return(HD_ERR_MALLOC, -1);
 
-	if (count >= HD_TMP_BUF_SIZE)
-	{
-		hdt_debug(trace, "Temporary buffer too small for message.");
-		return HD_ERR_BUFFER_OVERFLOW;
-	}
-
-	ssize_t written = writeToFile(trace->info_fd, buf, count, trace->infofile);
-	if (written < 0)
-	{
+	ssize_t written = writeToFile(trace->info_fd, buffer, count, trace->infofile);
+	free(buffer);
+	if (written < 0) {
 		switch (errno)
 		{
 		case HD_ERR_TIMEOUT:
-			hdt_info(trace,	"Timeout during writing of trace info,"
+			hdT_info(trace,	"Timeout during writing of trace info,"
 					" stop logging");
 		case HD_ERR_MALLOC:
-			hdt_info(trace,
+			hdT_info(trace,
 					"Out of memory during writing of trace info,"
 					" stop logging");
 		case HD_ERR_WRITE_FILE:
-			hdt_info(trace, "Write error during writing of trace info,"
+			hdT_info(trace, "Write error during writing of trace info,"
 					" stop logging");
 		case HD_ERR_UNKNOWN:
-			hdt_info(trace, "Unknown error during writing of trace info,"
+			hdT_info(trace, "Unknown error during writing of trace info,"
 					" stop logging");
 		default:
 			assert(written >= 0);
@@ -460,83 +398,38 @@ int hdT_writeInfo(hdTrace *trace, const char *format, ...)
  * - HD_ERR_INVALID_ARGUMENT
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_logElement(hdTrace *trace, const char * name,
-		const char * valueFormat, ...)
-{
-	if (trace == NULL || !isValidString(name) || !isValidString(valueFormat)
-			|| strlen(name) >= HD_LOG_COMMAND_BUF_SIZE)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
-	}
-
-	if (!hdT_isEnabled(trace))
-		return 0;
-
-	if (trace->function_depth > trace->trace_nested_operations ||
-		trace->function_depth > HD_LOG_MAX_DEPTH)
-	{
-		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d", trace->function_depth );
-		return 0;
-	}
+int hdT_logElement(hdTrace *trace, const char * name, const char * valueFormat, ...) {
+	if (trace == NULL || !isValidString(name) || !isValidString(valueFormat) ) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+	if (trace->function_depth < 0) hd_error_return(HD_ERR_INVALID_CONTEXT, -1);
+	if (!hdT_isEnabled(trace)) return 0;
+	if (trace->function_depth >= trace->max_nesting_depth ) return 0;
 
 	va_list valist;
 	va_start(valist, valueFormat);
-	int written;
-	written = snprintf(trace->elements[trace->function_depth]
-			+ trace->elements_pos[trace->function_depth],
-			HD_LOG_COMMAND_BUF_SIZE
-					- (trace->elements_pos[trace->function_depth]),
-			"<%s ", name);
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
-	{
-		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
-				"while writing element name.");
-		errno = HD_ERR_BUFFER_OVERFLOW;
-		return -1;
+	char* elementString = NULL;
+	char* valueString = NULL;
+	int error = 0;
+	if(vasprintf(&valueString, valueFormat, valist) >= 0) {
+		if(asprintf(&elementString, "%s<%s %s/>\n", hdT_getIndentationString(trace, trace->function_depth+1), name, valueString) >= 0) {
+			if(hdTS_appendElements(trace->states[trace->function_depth], elementString)) error = HD_ERR_MALLOC;
+			free(elementString);
+		} else {
+			error = HD_ERR_MALLOC;
+		}
+		free(valueString);
+	} else {
+		error = HD_ERR_MALLOC;
 	}
-	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + (size_t) written,
-			HD_LOG_COMMAND_BUF_SIZE);
-	written = vsnprintf(trace->elements[trace->function_depth]
-			+ trace->elements_pos[trace->function_depth],
-			HD_LOG_COMMAND_BUF_SIZE
-					- trace->elements_pos[trace->function_depth],
-			valueFormat, valist);
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
-	{
-		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
-				"while writing element.");
-		errno = HD_ERR_BUFFER_OVERFLOW;
-		return -1;
-	}
-	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + (size_t) written,
-			HD_LOG_COMMAND_BUF_SIZE);
-	written = snprintf(trace->elements[trace->function_depth]
-			+ trace->elements_pos[trace->function_depth],
-			HD_LOG_COMMAND_BUF_SIZE
-					- trace->elements_pos[trace->function_depth],
-			" />\n");
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
-	{
-		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
-				"while writing element.");
-		errno = HD_ERR_BUFFER_OVERFLOW;
-		return -1;
-	}
-	trace->elements_pos[trace->function_depth] = minSize(
-			trace->elements_pos[trace->function_depth] + (size_t) written,
-			HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 
+	if(error) hd_error_return(error, -1);
 	return 0;
 }
 
 /**
  * Log Attributes
  *
- * Logs an element for the latest open state. A state is open
+ * Logs an attribute for the latest open state. A state is open
  * if \a hdT_logStateStart without a corresponding \a hdT_logStateEnd
  * has been called.
  *
@@ -552,67 +445,38 @@ int hdT_logElement(hdTrace *trace, const char * name,
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_logAttributes(hdTrace *trace, const char * valueFormat, ...)
-{
-	if (trace == NULL || !isValidString(valueFormat))
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
-	}
-
-	if (!hdT_isEnabled(trace))
-		return 0;
-
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
-	{
-		hdt_infof(trace, "maximum nesting depth exceeded. depth=%d",
-				trace->function_depth );
-		return 0;
-	}
+int hdT_logAttributes(hdTrace *trace, const char * valueFormat, ...) {
+	if (trace == NULL || !isValidString(valueFormat) ) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+	if (trace->function_depth < 0) hd_error_return(HD_ERR_INVALID_CONTEXT, -1);
+	if (!hdT_isEnabled(trace)) return 0;
+	if (trace->function_depth >= trace->max_nesting_depth ) return 0;
 
 	va_list valist;
 	va_start(valist, valueFormat);
-	int written;
-
-	written = vsnprintf(trace->attributes[trace->function_depth]
-			+ trace->attributes_pos[trace->function_depth],
-			HD_LOG_COMMAND_BUF_SIZE
-					- trace->attributes_pos[trace->function_depth],
-			valueFormat, valist);
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
-	{
-		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
-				"while writing attributes.");
-		errno = HD_ERR_BUFFER_OVERFLOW;
-		return -1;
+	char* attributeString = NULL;
+	char* valueString = NULL;
+	int error = 0;
+	if(vasprintf(&valueString, valueFormat, valist) >= 0) {
+		if(asprintf(&attributeString, "%s ", valueString) >= 0) {
+			if(hdTS_appendAttributes(trace->states[trace->function_depth], attributeString)) error = HD_ERR_MALLOC;
+			free(attributeString);
+		} else {
+			error = HD_ERR_MALLOC;
+		}
+		free(valueString);
+	} else {
+		error = HD_ERR_MALLOC;
 	}
-	trace->attributes_pos[trace->function_depth] = minSize(
-			trace->attributes_pos[trace->function_depth] + (size_t) written,
-			HD_LOG_COMMAND_BUF_SIZE);
-	written = snprintf(trace->attributes[trace->function_depth]
-			+ trace->attributes_pos[trace->function_depth],
-			HD_LOG_COMMAND_BUF_SIZE
-					- trace->attributes_pos[trace->function_depth],
-			" ");
-	if (written >= HD_LOG_COMMAND_BUF_SIZE)
-	{
-		hdt_debug(trace, "Overflow of HD_LOG_COMMAND_BUF_SIZE buffer"
-				"while writing attributes.");
-		errno = HD_ERR_BUFFER_OVERFLOW;
-		return -1;
-	}
-	trace->attributes_pos[trace->function_depth] = minSize(
-			trace->attributes_pos[trace->function_depth] + (size_t) written,
-			HD_LOG_COMMAND_BUF_SIZE);
 	va_end(valist);
 
+	if(error) hd_error_return(error, -1);
 	return 0;
 }
 
 /**
  * Mark the start of a new state
  *
- * @param trace      Trace to close
+ * @param trace      Trace to use
  * @param stateName  Name of the state
  *
  * @retval  0  Success
@@ -624,64 +488,53 @@ int hdT_logAttributes(hdTrace *trace, const char * valueFormat, ...)
  * - HD_ERR_WRITE_FILE
  * - HD_ERR_BUFFER_OVERFLOW
  */
-int hdT_logStateStart(hdTrace *trace, const char * stateName)
-{
-	if (trace == NULL || !isValidString(stateName)
-			|| strlen(stateName) >= HD_LOG_ELEMENT_NAME_BUF_SIZE)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
-	}
-
-	if (!hdT_isEnabled(trace))
-		return 0;
-
+int hdT_logStateStart(hdTrace *trace, const char * stateName) {
+	//Check errors & noop conditions.
+	if (trace == NULL || !isValidString(stateName) ) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 	trace->function_depth++;
-	if (trace->trace_nested_operations < trace->function_depth)
-	{
-		return 0;
+	if (trace->function_depth < 0) trace->function_depth = 0;
+	if ( trace->function_depth >= trace->max_nesting_depth) return 0;
+	if (!hdT_isEnabled(trace)) return 0;
+
+	//Check that we can store another state.
+	if(trace->function_depth >= trace->statesSize) {
+		long newSize = trace->statesSize*2, i, j;
+		hdTraceState** newStates = NULL;
+		if(newSize > trace->max_nesting_depth) newSize = trace->max_nesting_depth;
+		if(newSize <= trace->function_depth) newSize = trace->function_depth+1;
+		newStates = malloc(sizeof(hdTraceState*)*newSize);
+		if(!newStates) hdT_fatalError(HD_ERR_MALLOC);
+		for(i = 0; i < trace->statesSize; i++) newStates[i] = trace->states[i];
+		for(; i < newSize; i++) newStates[i] = NULL;
+		free(trace->states);
+		trace->states = newStates;
+		trace->statesSize = newSize;
+		//Setup the whitespaceString anew.
+		free(trace->whitespaceString);
+		trace->whitespaceString = malloc((trace->statesSize + 1)*trace->tabStringLength + 1);
+		if(!trace->whitespaceString) abort();	//No save continuation possible.
+		for(i = 0; i <= trace->statesSize; i++) {
+			for(j = 0; j < trace->tabStringLength; j++) {
+				trace->whitespaceString[i*trace->tabStringLength + j] = trace->tabString[j];
+			}
+		}
+		trace->whitespaceString[(trace->statesSize + 1)*trace->tabStringLength] = 0;
 	}
 
-	if (trace->function_depth > 0 && (trace->function_depth - 1
-			< HD_LOG_MAX_DEPTH))
-	{
-		if (trace->has_nested[trace->function_depth - 1] == 0)
-		{
-			if (writeLogIndentation(trace, trace->function_depth - 1) != 0)
-			{
-				errno = HD_ERR_WRITE_FILE;
-				return -1;
-			}
-			if (writeLog(trace, "<Nested>\n") != 0)
-			{
-				errno = HD_ERR_WRITE_FILE;
-				return -1;
-			}
-			trace->has_nested[trace->function_depth - 1] = 1;
-		}
+	//Check that a valid state exists for this recursion level.
+	if(!trace->states[trace->function_depth]) {
+		trace->states[trace->function_depth] = hdTS_create();
+		if(!trace->states[trace->function_depth]) hdT_fatalError(HD_ERR_MALLOC);
 	}
 
-	if (trace->function_depth < HD_LOG_MAX_DEPTH)
-	{
-		trace->elements_pos[trace->function_depth] = 0;
-		trace->attributes_pos[trace->function_depth] = 0;
+	//Init the current state for this new call.
+	if(hdTS_start(trace->states[trace->function_depth], stateName)) hdT_fatalError(HD_ERR_MALLOC);
 
-		if (gettimeofday(&trace->start_time[trace->function_depth], NULL) != 0)
-		{
-			hdt_debugf(trace,
-					"Problems getting time, stop logging: %s", strerror(errno));
-			hdT_disableTrace(trace);
-			errno = HD_ERR_GET_TIME;
-			return -1;
-		}
-		int ret = snprintf(trace->state_name[trace->function_depth],
-				HD_LOG_ELEMENT_NAME_BUF_SIZE, "%s", stateName);
-		if (ret >= HD_LOG_ELEMENT_NAME_BUF_SIZE)
-		{
-			hdt_debug(trace,"Overflow of HD_LOG_ELEMENT_NAME_BUF_SIZE buffer"
-					"while writing state name");
-			errno = HD_ERR_BUFFER_OVERFLOW;
-			return -1;
+	//Handle the nesting.
+	if(trace->function_depth > 0) {
+		if(!hdTS_getNested(trace->states[trace->function_depth-1])) {
+			if(writeLogf(trace, "%s<Nested>\n", hdT_getIndentationString(trace, trace->function_depth - 1))) hd_error_return(HD_ERR_WRITE_FILE, -1);
+			hdTS_setNested(trace->states[trace->function_depth-1]);
 		}
 	}
 	return 0;
@@ -700,54 +553,28 @@ int hdT_logStateStart(hdTrace *trace, const char * stateName)
  * - HD_ERR_GET_TIME
  * - HD_ERR_WRITE_FILE
  */
-int hdT_logStateEnd(hdTrace *trace)
-{
-	if (trace == NULL)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
+int hdT_logStateEnd(hdTrace *trace) {
+	long oldDepth;
+	char* tag;
+	//Check errors and noop conditions.
+	if(trace == NULL) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
+	oldDepth = trace->function_depth--;
+	assert(oldDepth >= 0);
+	if(oldDepth >= trace->max_nesting_depth || !trace->isEnabled) return 0;
+	if(!trace->states[oldDepth]) hd_error_return(HD_ERR_UNKNOWN, -1);
+
+	//Close the state.
+	if(hdTS_end(trace->states[oldDepth])) hd_error_return(HD_ERR_UNKNOWN, -1);
+
+	//Handle the nesting.
+	if(hdTS_getNested(trace->states[oldDepth])) {
+		if(writeLogf(trace, "%s</Nested>\n", hdT_getIndentationString(trace, oldDepth))) hd_error_return(HD_ERR_WRITE_FILE, -1);
 	}
 
-	if (trace->function_depth > trace->trace_nested_operations)
-	{
-		trace->function_depth--;
-		return 0;
-	}
-
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
-	{
-		trace->function_depth--;
-		return 0;
-	}
-	if (gettimeofday(&trace->end_time[trace->function_depth], NULL) != 0)
-	{
-		hdt_debugf(trace, "Problems getting time, stop logging: %s", strerror(errno));
-		hdT_disableTrace(trace);
-		errno = HD_ERR_GET_TIME;
-		return -1;
-	}
-	if (trace->has_nested[trace->function_depth])
-	{
-		if (writeLogIndentation(trace, trace->function_depth) != 0)
-		{
-			errno = HD_ERR_WRITE_FILE;
-			return -1;
-		}
-		if (writeLog(trace, "</Nested>\n") != 0)
-		{
-			errno = HD_ERR_WRITE_FILE;
-			return -1;
-		}
-		trace->has_nested[trace->function_depth] = 0;
-	}
-
-	if (writeState(trace) != 0)
-	{
-		errno = HD_ERR_WRITE_FILE;
-		return -1;
-	}
-
-	trace->function_depth--;
+	//Add a tag for the closed state.
+	tag = hdTS_createTag(trace->states[oldDepth], hdT_getIndentationString(trace, oldDepth), trace->init_time.tv_sec);
+	if(!tag) hd_error_return(HD_ERR_MALLOC, -1);
+	if(writeLog(trace, tag)) hd_error_return(HD_ERR_WRITE_FILE, -1);
 	return 0;
 }
 
@@ -787,80 +614,40 @@ int hdT_logEventEnd(
  * - HD_ERR_WRITE FILE
  * - HD_ERR_CLOSE_FILE
  */
-int hdT_finalize(hdTrace *trace)
-{
-	if (trace == NULL)
-	{
-		errno = HD_ERR_INVALID_ARGUMENT;
-		return -1;
-	}
-
+int hdT_finalize(hdTrace *trace) {
+	long i;
+	if (trace == NULL) hd_error_return(HD_ERR_INVALID_ARGUMENT, -1);
 	trace->isEnabled = 1;
 
-	// finalize trace log file
-	if (writeLog(trace, "</Program>\n\n") != 0)
-	{
-		errno = HD_ERR_WRITE_FILE;
-		return -1;
+	if (writeLog(trace, "</Program>\n\n") != 0) hd_error_return(HD_ERR_WRITE_FILE, -1);	// finalize trace log file
+	if (flushLog(trace) != 0) hd_error_return(HD_ERR_WRITE_FILE, -1);	// flush trace log
+	if (hdT_writeInfo(trace, "\n\n") != 0) hd_error_return(HD_ERR_WRITE_FILE, -1);	// finalize trace info file
+
+	// Close trace info file.
+	while (close(trace->info_fd) != 0) {
+		if(errno == EBADF) break;	// fd isn’t a valid open file descriptor
+		if(errno == EINTR) continue;	// close() call was interrupted by a signal
+		if(errno == EIO) hd_error_return(HD_ERR_CLOSE_FILE, -1);	// I/O error
+		hd_error_return(HD_ERR_CLOSE_FILE, -1);	// unknown error
 	}
 
-	// flush trace log
-	if (flushLog(trace) != 0)
-	{
-		errno = HD_ERR_WRITE_FILE;
-		return -1;
+	// Close trace log file.
+	while (close(trace->log_fd) != 0) {
+		if(errno == EBADF) break;	// fd isn’t a valid open file descriptor
+		if(errno == EINTR) continue;	// close() call was interrupted by a signal
+		if(errno == EIO) hd_error_return(HD_ERR_CLOSE_FILE, -1);	// I/O error
+		hd_error_return(HD_ERR_CLOSE_FILE, -1);	// unknown error
 	}
 
-	// finalize trace info file
-	if (hdT_writeInfo(trace, "\n\n") != 0)
-	{
-		errno = HD_ERR_WRITE_FILE;
-		return -1;
-	}
+	// Free the memory allocated for the states.
+	for(i = 0; i < trace->statesSize; i++) if(trace->states[i]) hdTS_delete(trace->states[i]);
 
-	// close trace info file
-	while (close(trace->info_fd) != 0)
-	{
-		if (errno == EBADF)      // fd isn’t a valid open file descriptor
-			break;
-		else if (errno == EINTR)  // close() call was interrupted by a signal
-			continue;
-		else if (errno == EIO)   // I/O error
-		{
-			errno = HD_ERR_CLOSE_FILE;
-			return -1;
-		}
-		else                     // unknown error
-		{
-			errno = HD_ERR_CLOSE_FILE;
-			return -1;
-		}
-	}
-
-	// close trace log file
-	while (close(trace->log_fd) != 0)
-	{
-		if (errno == EBADF)      // fd isn’t a valid open file descriptor
-			break;
-		else if (errno == EINTR)  // close() call was interrupted by a signal
-			continue;
-		else if (errno == EIO)   // I/O error
-		{
-			errno = HD_ERR_CLOSE_FILE;
-			return -1;
-		}
-		else                     // unknown error
-		{
-			errno = HD_ERR_CLOSE_FILE;
-			return -1;
-		}
-	}
-
-	/* free memory allocated by generateFilename() */
+	// Free memory allocated by generateFilename().
 	free(trace->logfile);
 	free(trace->infofile);
+	free(trace->buffer);
 
-	/* free memory allocated by hdT_createTrace() */
+	// Free memory allocated by hdT_createTrace().
 	free(trace);
 	return 0;
 }
@@ -908,7 +695,7 @@ static int writeLogf(hdTrace *trace, const char * format, ...)
  * @retval -1  Error, setting \a errno
  *
  * @errno
- * - HD_ERR_BUFFER_OVERFLOW
+ * - HD_ERR_MALLOC
  * - each from \sa hdT_LogWrite
  */
 static int writeLogfv(hdTrace *trace, const char * format,
@@ -918,17 +705,12 @@ static int writeLogfv(hdTrace *trace, const char * format,
 
 	if (!hdT_isEnabled(trace))
 		return 0;
-	char buffer[HD_TMP_BUF_SIZE];
+	char* buffer;
 	int written;
-	written = vsnprintf(buffer, HD_TMP_BUF_SIZE, format, valist);
-	if (written >= HD_TMP_BUF_SIZE)
-	{
-		hdt_debugf(trace, "hdT_LogWriteFormat: buffer too small for string: %s", format);
-		errno = HD_ERR_BUFFER_OVERFLOW;
-		return -1;
-	}
-	if (writeLog(trace, buffer) != 0)
-		return -1;
+	written = vasprintf(&buffer, format, valist);
+	if (written < 0) hd_error_return(HD_ERR_MALLOC, -1);
+	if (writeLog(trace, buffer) != 0) return -1;
+	free(buffer);
 
 	return 0;
 }
@@ -952,7 +734,8 @@ static int writeLog(hdTrace *trace, const char * message)
 	if (!hdT_isEnabled(trace))
 		return 0;
 	size_t len = strlen(message);
-	if (trace->buffer_pos + len >= HD_LOG_BUF_SIZE)
+        // synchronzie buffer if necessary!
+	if (trace->buffer_pos + len >= hdt_options.buffer_size)
 	{
 		if (flushLog(trace) != 0)
 			return -1;
@@ -992,7 +775,7 @@ static int flushLog(hdTrace *trace)
 	char *buf = trace->buffer;
 	size_t count = trace->buffer_pos;
 
-	hdt_debugf(trace, "flushing log length: %lld", (long long int) count);
+	hdT_debugf(trace, "flushing log length: %lld", (long long int) count);
 
 	ssize_t written = writeToFile(fd, buf, count, trace->logfile);
 	if (written < 0)
@@ -1000,18 +783,18 @@ static int flushLog(hdTrace *trace)
 		switch (errno)
 		{
 		case HD_ERR_TIMEOUT:
-			hdt_info(trace,	"Timeout during flushing of trace log,"
+			hdT_info(trace,	"Timeout during flushing of trace log,"
 					" stop logging");
 		case HD_ERR_MALLOC:
-			hdt_info(trace,
+			hdT_info(trace,
 					"Out of memory during flushing of trace log,"
 					" stop logging");
 		case HD_ERR_WRITE_FILE:
-			hdt_info(trace, "Write error during flushing of trace log,"
+			hdT_info(trace, "Write error during flushing of trace log,"
 					" stop logging");
 		case HD_ERR_UNKNOWN:
 		default:
-			hdt_info(trace, "Unknown error during flushing of trace log,"
+			hdT_info(trace, "Unknown error during flushing of trace log,"
 					" stop logging");
 		}
 		/* disable further logging */
@@ -1032,102 +815,190 @@ static int flushLog(hdTrace *trace)
  * @param trace  Trace to use
  * @param count  Number of intentations
  *
- * @retval  0 Success
- * @retval -1 Error, setting errno
+ * @retval a string Success
+ * @retval NULL Error, setting errno
  *
  * @errno
- * - each from \sa hdT_LogWrite
+ * - HD_ERR_INVALID_ARGUMENT
  */
-static int writeLogIndentation(hdTrace *trace, int count)
-{
-	assert(trace && count >= 0);
+static char* hdT_getIndentationString(hdTrace *trace, int count) {
+	if(!trace || count < 0 || count > trace->statesSize) hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL);
+	return &trace->whitespaceString[(trace->statesSize+1 - count)*trace->tabStringLength];
+}
 
-	for (int i = 0; i < count; ++i)
-	{
-		if (writeLog(trace, HD_LOG_TAB_STRING) != 0)
-			return -1;
+/////////////////////////////////////////////
+// hdTraceState
+/////////////////////////////////////////////
+
+/** Malloc and init */
+static hdTraceState* hdTS_create() {
+	hdTraceState* self = malloc(sizeof(hdTraceState));
+	if(self) hdTS_construct(self);
+	return self;
+}
+
+/** Constructor */
+static void hdTS_construct(hdTraceState* self) {
+	assert(self);
+	int result = gettimeofday(&self->start_time, NULL);
+	result |= gettimeofday(&self->end_time, NULL);
+	assert(!result);	//Error getting the time?!?
+	self->name = NULL;
+	self->attributes = NULL;
+	self->elements = NULL;
+	self->hasNested = 0;
+	self->nameLength = self->attributesLength = self->elementsLength = -1;	//There is not even a termination byte, so it must be -1.
+	self->nameSize = self->attributesSize = self->elementsSize = 0;
+}
+
+/** Set the state to trace another function call, hdTS_construct() must have been called first. */
+static int hdTS_start(hdTraceState* self, const char* name) {
+	assert(self && name);
+	long nameLength = strlen(name);
+	int result;
+
+	//Copy the name string.
+	self->nameLength = -1;	//Do not preserve anything when enlarging the buffer.
+	result = hdTS_ensureNameSpace(self, nameLength);
+	if(!result) {
+		memcpy(self->name, name, nameLength + 1);
+		self->nameLength = nameLength;
 	}
+
+	//Reset the other buffers.
+	self->attributesLength = self->elementsLength = -1;
+
+	//Set the times.
+	result |= gettimeofday(&self->start_time, NULL);
+	result |= gettimeofday(&self->end_time, NULL);
+	self->hasNested = 0;
+	return result;
+}
+
+/** Raises the hasNested flag. */
+static void hdTS_setNested(hdTraceState* self) {
+	assert(self);
+	self->hasNested = 1;
+}
+
+/** Returns the hasNested flag. */
+static int hdTS_getNested(hdTraceState* self) {
+	assert(self);
+	return self->hasNested;
+}
+
+
+/** Record the end time of the state. */
+static int hdTS_end(hdTraceState* self) {
+	assert(self);
+	return gettimeofday(&self->end_time, NULL);
+}
+
+/** Format the state into an XML tag. offsetSeconds will be subtracted from both times. */
+static char* hdTS_createTag(hdTraceState* self, const char* indentation, long offsetSeconds) {
+	assert(self);
+	char* result = NULL;
+	char* name = (self->nameLength > 0) ? self->name : "";	//In case self->name == NULL
+	char* attributes = (self->attributesLength > 0) ? self->attributes : "";	//In case self->attributes == NULL
+	if(self->elementsLength > 0) {
+		if(asprintf(&result, "%s<%s %s time='%ld.%.6ld' end='%ld.%.6ld'>\n%s</%s>\n",
+			indentation,
+			name,
+			attributes,
+			self->start_time.tv_sec - offsetSeconds,
+			self->start_time.tv_usec,
+			self->end_time.tv_sec - offsetSeconds,
+			self->end_time.tv_usec,
+			self->elements,
+			name
+		) < 0) return 0;
+	} else {
+		if(asprintf(&result, "%s<%s %s time='%ld.%.6ld' end='%ld.%.6ld'/>\n",
+			indentation,
+			name,
+			attributes,
+			self->start_time.tv_sec - offsetSeconds,
+			self->start_time.tv_usec,
+			self->end_time.tv_sec - offsetSeconds,
+			self->end_time.tv_usec
+		) < 0) return 0;
+	}
+	return result;
+}
+
+/** Ensure that a buffer has at least the given size. Returns true if an error occured. */
+static int hdTS_ensureSpace(void** buffer, long* bufferSize, long bufferContentSize, long sizeRequest) {
+	assert(buffer && bufferSize);
+	void* temp;
+	long newSize;
+
+	if(sizeRequest <= *bufferSize) return 0;
+	newSize = *bufferSize * 2;
+	if(newSize < sizeRequest) newSize = sizeRequest;
+	if(!(temp = malloc(newSize))) return -1;
+	if(*buffer) {
+		if(bufferContentSize > 0) memcpy(temp, *buffer, bufferContentSize);
+		free(*buffer);
+	}
+	*buffer = temp;
+	*bufferSize = newSize;
 	return 0;
 }
 
-/**
- * Write state to trace log
- *
- * @param trace  Trace to use
- *
- * @retval  0 Success
- * @retval -1 Error, setting errno
- *
- * @errno
- * - each from \sa hdT_LogWrite
- * - each from \sa hdT_LogWriteIndentation
- * - each from \sa hdT_LogWriteFormat
- */
-static int writeState(hdTrace *trace)
-{
-	assert(trace);
+/** Ensure that the name buffer is large enough to hold lengthRequest characters + termination. */
+static int hdTS_ensureNameSpace(hdTraceState* self, long lengthRequest) {
+	assert(self);
+	return hdTS_ensureSpace((void**)&self->name, &self->nameSize, self->nameLength + 1, lengthRequest + 1);
+}
 
-	if (trace->function_depth >= HD_LOG_MAX_DEPTH)
-		return 0;
+/** Ensure that the attributes buffer is large enough to hold lengthRequest characters + termination. */
+static int hdTS_ensureAttributesSpace(hdTraceState* self, long lengthRequest) {
+	assert(self);
+	return hdTS_ensureSpace((void**)&self->attributes, &self->attributesSize, self->attributesLength + 1, lengthRequest + 1);
+}
 
+/** Ensure that the elements buffer is large enough to hold lengthRequest characters + termination. */
+static int hdTS_ensureElementsSpace(hdTraceState* self, long lengthRequest) {
+	assert(self);
+	return hdTS_ensureSpace((void**)&self->elements, &self->elementsSize, self->elementsLength + 1, lengthRequest + 1);
+}
 
-	if (writeLogIndentation(trace, trace->function_depth) != 0)
-		return -1;
-	if (writeLog(trace, "<") != 0)
-		return -1;
-	if (writeLog(trace,
-			trace->state_name[trace->function_depth]) != 0)
-		return -1;
-	if (writeLog(trace, " ") != 0)
-		return -1;
-
-	// write pending attributes
-	if (trace->attributes_pos[trace->function_depth] != 0)
-	{
-		if (writeLog(trace,
-				trace->attributes[trace->function_depth]) != 0)
-			return -1;
-	}
-
-	// write time information
-	if (writeLogf(
-			trace,
-			" time='%d.%.6d'",
-			(unsigned) (trace->start_time[trace->function_depth].tv_sec - trace->init_time.tv_sec),
-			(unsigned) trace->start_time[trace->function_depth].tv_usec) != 0)
-		return -1;
-
-	if (writeLogf(
-			trace,
-			" end='%d.%.6d'",
-			(unsigned) (trace->end_time[trace->function_depth].tv_sec - trace->init_time.tv_sec),
-			(unsigned) trace->end_time[trace->function_depth].tv_usec) != 0)
-		return -1;
-
-	// write pending elements
-	if (trace->elements_pos[trace->function_depth] != 0)
-	{
-		if (writeLog(trace, ">\n" HD_LOG_TAB_STRING) != 0)
-			return -1;
-		if (writeLogIndentation(trace, trace->function_depth) != 0)
-			return -1;
-		if (writeLog(trace,
-				trace->elements[trace->function_depth]) != 0)
-			return -1;
-		if (writeLogIndentation(trace, trace->function_depth) != 0)
-			return -1;
-		if (writeLog(trace, "</") != 0)
-			return -1;
-		if (writeLog(trace,
-				trace->state_name[trace->function_depth]) != 0)
-			return -1;
-		if (writeLog(trace, ">\n") != 0)
-			return -1;
-	}
-	else
-	{
-		if (writeLog(trace, "/>\n") != 0)
-			return -1;
-	}
+/** Add something to a string. */
+static int hdTS_appendString(char** stringBuffer, long* length, long* bufferSize, const char* something) {
+	assert(stringBuffer && length && bufferSize);
+	long appendedLength = strlen(something);
+	int result;
+	if(*length < 0) *length = 0;	//The difference between -1 and 0 is the termination byte, and that is not retained anyway.
+	result = hdTS_ensureSpace((void**)stringBuffer, bufferSize, *length, *length + appendedLength + 1);
+	if(result) return result;
+	memcpy(&(*stringBuffer)[*length], something, appendedLength + 1);
+	*length += appendedLength;
 	return 0;
+}
+
+/** Add some attributes. Stupid function, does not add any spacing etc. */
+static int hdTS_appendAttributes(hdTraceState* self, const char* someAttributes) {
+	assert(self && someAttributes);
+	return hdTS_appendString(&self->attributes, &self->attributesLength, &self->attributesSize, someAttributes);
+}
+
+/** Add some elements. Stupid function, does not add any spacing etc. */
+static int hdTS_appendElements(hdTraceState* self, const char* someElements) {
+	assert(self && someElements);
+	return hdTS_appendString(&self->elements, &self->elementsLength, &self->elementsSize, someElements);
+}
+
+/** Destructor */
+static void hdTS_destruct(hdTraceState* self) {
+	assert(self);
+	if(self->name) free(self->name);
+	if(self->attributes) free(self->attributes);
+	if(self->elements) free(self->elements);
+}
+
+/** Destruct and free */
+static void hdTS_delete(hdTraceState* self) {
+	assert(self);
+	hdTS_destruct(self);
+	free(self);
 }

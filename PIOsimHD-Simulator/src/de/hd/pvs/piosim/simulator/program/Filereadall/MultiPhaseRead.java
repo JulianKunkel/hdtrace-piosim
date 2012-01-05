@@ -27,6 +27,7 @@ import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.Global.MultiPhase;
@@ -51,7 +52,7 @@ import de.hd.pvs.piosim.simulator.program.Global.MultiPhase;
 public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 
 	@Override
-	public void process(FileIOCommand cmd, CommandProcessing outCommand, GClientProcess client, long step,
+	public void process(FileIOCommand cmd, ICommandProcessing outCommand, GClientProcess client, long step,
 			NetworkJobs compNetJobs)
 	{
 		final int CHECK_TWO_PHASE = 2;
@@ -60,6 +61,11 @@ public abstract class MultiPhaseRead extends MultiPhase<FileIOCommand> {
 		final int COMMUNICATION_PHASE_RECV      = 5;
 
 		if(step == CommandProcessing.STEP_START){
+
+			if(cmd.getListIO().getTotalSize() == 0){
+				return;
+			}
+
 			boolean ret = synchronizeClientsWithoutCommunication(outCommand);
 
 			outCommand.setNextStep(CHECK_TWO_PHASE);

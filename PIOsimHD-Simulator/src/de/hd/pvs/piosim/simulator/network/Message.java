@@ -36,6 +36,19 @@ import de.hd.pvs.piosim.model.networkTopology.INetworkExit;
  *
  */
 public class Message<Data extends IMessageUserData> implements INetworkMessage {
+
+	/**
+	 * Flag if the MESSAGE_OVERHEAD is applied per message or per message part.
+	 */
+	final public static boolean overheadPerMessagePart = false;
+
+	/**
+	 * Amount of bytes used for the addressing.
+	 * Currently, the minimum TCP header size (20) and IP header size (20) are used.
+	 * Every packet created will add this overhead.
+	 */
+	final public static int MESSAGE_OVERHEAD_BYTES = 20+20;
+
 	/**
 	 * Receiver of the network message
 	 */
@@ -48,7 +61,8 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	/**
 	 * The total size of this message.
 	 */
-	final private long totalSize;
+	final private long payloadSize;
+
 
 	/**
 	 * How much data has been already packed into smaller packets.
@@ -66,14 +80,12 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 */
 	private long availableDataPosition = 0;
 
-	final private Data containedData;
-
 	/**
-	 * Return the size of this message
+	 * Amount of data send
 	 */
-	public long getTotalSize() {
-		return totalSize;
-	}
+	private long bytesSend = 0;
+
+	final private Data containedData;
 
 	/**
 	 * Splits the message into a new smaller part.
@@ -82,14 +94,32 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	public MessagePart createNextMessagePart(long splitSize){
 		long position = createdPosition;
 		long remainingAvailBytes = (availableDataPosition - position);
+
 		if ( remainingAvailBytes == 0){
 			/* send complete OR data is not availabe, yet */
 			return null;
 		}
+
 		long size     = (remainingAvailBytes > splitSize) ? splitSize : remainingAvailBytes;
-		MessagePart part = new MessagePart(this, size, position);
+
+		MessagePart part;
+
+		if(overheadPerMessagePart){
+			part = new MessagePart(this, size, MESSAGE_OVERHEAD_BYTES, position);
+		}else if(! overheadPerMessagePart){
+			if(createdPosition != 0){
+				part = new MessagePart(this, size, 0, position);
+			}else{ // first packet add the message part
+				part = new MessagePart(this, size, MESSAGE_OVERHEAD_BYTES, position);
+			}
+		}
+
 		createdPosition = position + size;
 		return part;
+	}
+
+	public MessagePart createEmptyMessage(){
+			return new MessagePart(this, 0, MESSAGE_OVERHEAD_BYTES, 0);
 	}
 
 	/**
@@ -97,7 +127,7 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @param part
 	 */
 	public void receivePart(MessagePart part){
-		receivedSize += part.getSize();
+		receivedSize += part.getPayloadSize();
 	}
 
 	/**
@@ -110,16 +140,19 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 		assert(targetComponent != null);
 		assert(sourceComponent != null);
 
-		this.totalSize = size;
+		this.payloadSize = size;
+
 		this.availableDataPosition = size;
+
+
 		this.containedData = containedData;
 		this.targetComponent = targetComponent;
 		this.sourceComponent = sourceComponent;
 		this.relationToken = parentToken;
 	}
 
-	public void setAvailableDataPosition(long size){
-		this.availableDataPosition = size;
+	public void resetMessage(){
+		this.availableDataPosition = 0;
 	}
 
 	/**
@@ -128,27 +161,20 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 */
 	public void appendAvailableDataToSend(long count){
 		this.availableDataPosition += count;
-		assert(this.availableDataPosition <= this.totalSize);
+		assert(this.availableDataPosition <= this.payloadSize);
 	}
 
-
-	/**
-	 * @return the availableDataPosition
-	 */
-	public long getAvailableDataPosition() {
-		return availableDataPosition;
-	}
 
 	/**
 	 * Checks if the message got received completely.
 	 * @return
 	 */
 	public boolean isReceivedCompletely(){
-		return (receivedSize == totalSize);
+		return (receivedSize == payloadSize);
 	}
 
 	public long getRemainingBytesToReceive(){
-		return totalSize - receivedSize;
+		return payloadSize - receivedSize;
 	}
 
 	/**
@@ -164,7 +190,16 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 	 * @return
 	 */
 	public boolean isAllMessageDataAvailable(){
-		return this.availableDataPosition == this.totalSize;
+		return this.availableDataPosition == this.payloadSize;
+	}
+
+	public boolean isAllDataSend(){
+		return bytesSend == this.payloadSize;
+	}
+
+	public void dataSend(long bytes){
+		bytesSend+= bytes;
+		assert(bytesSend <= this.payloadSize);
 	}
 
 	@Override
@@ -174,12 +209,12 @@ public class Message<Data extends IMessageUserData> implements INetworkMessage {
 
 	@Override
 	public long getSize() {
-		return totalSize;
+		return payloadSize;
 	}
 
 	@Override
 	public String toString() {
-		return "Message from: " + sourceComponent.getIdentifier() + " to: " + targetComponent.getIdentifier() + " size " + getTotalSize() + " data " + containedData ;
+		return "Message from: " + sourceComponent.getIdentifier() + " to: " + targetComponent.getIdentifier() + " size " + getSize() + " data " + containedData ;
 	}
 
 	/**

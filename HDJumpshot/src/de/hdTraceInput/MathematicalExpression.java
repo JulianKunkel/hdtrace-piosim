@@ -4,18 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import com.sun.corba.se.spi.orb.Operation;
-
-import de.hd.pvs.TraceFormat.statistics.StatisticsGroupEntry;
-import de.tests.MathematicalExpressionTest;
-import de.viewer.timelines.FilterTokenInterface;
-import de.viewer.timelines.FilterTokenInterface.DoubleFilterToken;
-import de.viewer.timelines.FilterTokenInterface.DurationFilterToken;
-import de.viewer.timelines.FilterTokenInterface.FilterExpression;
-import de.viewer.timelines.FilterTokenInterface.FilterTokenType;
-import de.viewer.timelines.FilterTokenInterface.RegexFilterToken;
-import de.viewer.timelines.FilterTokenInterface.SimpleFilterToken;
-import de.viewer.timelines.FilterTokenInterface.StringFilterToken;
 
 /**
  * Converts a textual expression into a mathematical expression
@@ -101,6 +89,9 @@ public class MathematicalExpression {
 		final ArrayList operants = new ArrayList();
 		// store all metrics we need in the HashSet
 		final HashSet<String> requiredMetrics = new HashSet<String>();
+		
+		// indicate if we started to read an identifier
+		boolean readIdentifier = false;
 
 		for( int i = 0 ; i < array.length - 1 ; i++ ){	
 			final char c = array[i];
@@ -139,13 +130,18 @@ public class MathematicalExpression {
 				
 				if(i == 0) // aggregates are always nested
 					nestingDepth++;				
-			}else if( Character.isLetter(c) || c == '_' || c == '-' ){
+			}else if(readIdentifier || Character.isLetter(c) || c == '_' || c == '-' ){ // if the word starts with a letter, then it stays a letter
 				// character					
 				// look ahead next char, if char continue otherwise finish
 				nestedData = nestedData + c;
-				if( ! Character.isLetter( n ) &&  n != '_' && n != '-' ) {
+				
+				readIdentifier = true;
+				
+				if( ! Character.isLetter( n ) &&  n != '_' && n != '-' && ! Character.isDigit(n) && n != '.') {
 					// finalize this string
 					// add this operant to the required set
+					
+					readIdentifier = false;
 
 					// nest multiplication correctly
 					if(operants.size() > 0  && (n == '*' || n == '^' || n == ',' || c == '/') && array[i+2] != '('){

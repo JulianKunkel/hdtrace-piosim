@@ -21,6 +21,7 @@ import de.hd.pvs.piosim.model.components.superclasses.INodeHostedComponent;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.network.jobs.NetworkSimpleData;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -58,7 +59,7 @@ extends CommandImplementation<Scatter>
 	}
 
 	@Override
-	public void process(Scatter cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Scatter cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		if (cmd.getCommunicator().getSize() == 1) {
 			return;
 		}
@@ -82,7 +83,7 @@ extends CommandImplementation<Scatter>
 				OUTresults.setNextStep(STEP_RECEIVE);
 			}else{ // STEP_RECEIVE
 
-				final INodeHostedComponent target = compNetJobs.getResponses().get(0).getMatchingCriterion().getSourceComponent();
+				final INodeHostedComponent target = compNetJobs.getResponses()[0].getMatchingCriterion().getSourceComponent();
 
 
 				if( step == cmd.getCommunicator().getSize() - 1 ){
@@ -90,7 +91,7 @@ extends CommandImplementation<Scatter>
 					// then complete.
 					OUTresults.addNetSend(target, new MyData(cmd.getSize()), tagNumber, cmd.getCommunicator());
 
-					OUTresults.setNextStep(OUTresults.STEP_COMPLETED);
+					OUTresults.setNextStep(CommandProcessing.STEP_COMPLETED);
 					return;
 				}
 

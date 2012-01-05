@@ -20,8 +20,8 @@ package de.hd.pvs.piosim.simulator.program.Global;
 import java.util.HashMap;
 
 import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -71,29 +71,29 @@ extends CommandImplementation<CommunicatorCommand>
 	/**
 	 *  virtual barrier, performed without communication
 	 */
-	private static HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandProcessing>> sync_blocked_clients =
-		new HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, CommandProcessing>>();
+	private static HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, ICommandProcessing>> sync_blocked_clients =
+		new HashMap<CommunicatorCommandWrapper, HashMap<GClientProcess, ICommandProcessing>>();
 
 	/**
 	 *
 	 * @param cmd
 	 * @return true if blocked (i.e. sync with further)
 	 */
-	private boolean synchronizeClientsWithoutCommunication(CommandProcessing cmdResults){
+	private boolean synchronizeClientsWithoutCommunication(ICommandProcessing cmdResults){
 		GClientProcess client = cmdResults.getInvokingComponent();
 
 		CommunicatorCommand cmd = (CommunicatorCommand) cmdResults.getInvokingCommand();
 		CommunicatorCommandWrapper cmdWrapper = new CommunicatorCommandWrapper(cmd);
 
-		HashMap<GClientProcess, CommandProcessing> waitingClients = sync_blocked_clients.get(cmdWrapper);
+		HashMap<GClientProcess, ICommandProcessing> waitingClients = sync_blocked_clients.get(cmdWrapper);
 		if (waitingClients == null){
 			/* first client waiting */
-			waitingClients = new HashMap<GClientProcess, CommandProcessing>();
+			waitingClients = new HashMap<GClientProcess, ICommandProcessing>();
 			sync_blocked_clients.put(cmdWrapper, waitingClients);
 		}
 
 		if (waitingClients.size() == cmd.getCommunicator().getSize() -1){
-			client.debug("Activate other clients for barrier " + cmd + " by " + client.getIdentifier() );
+//			client.debug("Activate other clients for barrier " + cmd + " by " + client.getIdentifier() );
 
 			/* we finish, therefore reactivate all other clients! */
 			for(GClientProcess c: waitingClients.keySet()){
@@ -107,7 +107,7 @@ extends CommandImplementation<CommunicatorCommand>
 			waitingClients.put(client, cmdResults);
 
 			/* just block up */
-			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
+//			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
 			return true;
 		}
 
@@ -115,12 +115,12 @@ extends CommandImplementation<CommunicatorCommand>
 	}
 
 	@Override
-	public void process(CommunicatorCommand cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(CommunicatorCommand cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		boolean ret = synchronizeClientsWithoutCommunication(OUTresults);
 
 		if (ret == true){
 			/* just block up */
-			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
+//			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
 			OUTresults.setBlocking();
 
 			return;

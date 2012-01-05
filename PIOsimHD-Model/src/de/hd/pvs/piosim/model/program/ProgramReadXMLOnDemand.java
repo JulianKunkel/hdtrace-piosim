@@ -113,7 +113,7 @@ public class ProgramReadXMLOnDemand extends Program{
 	@Override
 	public void restartWithFirstCommand() {
 		try{
-			traceFileReader = new StAXTraceFileReader(filename, false);
+			traceFileReader = new StAXTraceFileReader(filename, false, Epoch.ZERO);
 			setNextEntry();
 
 			if(curTraceEntry != null){

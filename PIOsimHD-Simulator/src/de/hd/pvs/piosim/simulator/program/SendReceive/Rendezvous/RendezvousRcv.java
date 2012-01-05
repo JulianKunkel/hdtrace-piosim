@@ -31,6 +31,7 @@ package de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous;
 import de.hd.pvs.piosim.model.program.commands.Recv;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.components.NIC.InterProcessNetworkJob;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
@@ -42,7 +43,7 @@ import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class RendezvousRcv extends CommandImplementation<Recv>
 {
-	public void process(Recv cmd,  CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Recv cmd,  ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		final int ACK_RECVD = 1;
 
@@ -59,11 +60,11 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 
 			return;
 		}else if(step == ACK_RECVD){
-			InterProcessNetworkJob response = compNetJobs.getResponses().get(0);
+			InterProcessNetworkJob response = compNetJobs.getResponses()[0];
 
 			//System.out.println("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
-			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
+//			client.debug("Receive got ACK from " +  response.getMatchingCriterion().getSourceComponent().getIdentifier() );
 
 			if( ((NetworkMessageRendezvousMsg)response.getJobData()).isRequestRendezvous() ){
 				//rendezvous protocol
@@ -77,12 +78,17 @@ public class RendezvousRcv extends CommandImplementation<Recv>
 
 				return;
 			}else{
-				client.debugFollowUpLine("Eager");
+//				client.debugFollowUpLine("Eager");
 				// eager protocol
 				return;
 			}
 		}else{
 			throw new IllegalArgumentException("Unknown step");
 		}
+	}
+
+	@Override
+	public String[] getAdditionalTraceAttributes(Recv cmd) {
+		return new String[] { "fromTag", "" + cmd.getFromTag(), "fromRank", "" + cmd.getFromRank() };
 	}
 }

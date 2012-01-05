@@ -27,13 +27,14 @@ import de.hd.pvs.piosim.model.program.commands.Fileread;
 import de.hd.pvs.piosim.model.program.commands.Filereadall;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
 public class Direct extends CommandImplementation<Filereadall> {
 
 	@Override
-	public void process(Filereadall cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process(Filereadall cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 		final int SEND_REQUEST = 2;
 
 		if (step == CommandProcessing.STEP_START){

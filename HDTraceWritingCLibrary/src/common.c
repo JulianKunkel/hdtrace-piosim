@@ -26,26 +26,61 @@
 
 #include "config.h"
 
+#define SOTRACE
 
-int hdt_verbosity = VLEVEL;
+#ifdef SOTRACE
+#include <dlfcn.h>
+#define GLIBC "/lib/libc.so.6"
+#endif 
+
+struct hdtrace_options hdt_options = {
+    .verbosity = VLEVEL, 
+    .buffer_size = 1*1024*1024, // 1 MiB of trace size
+    .overwrite_existing_files = 1,
+    .path_prefix = "",
+    .max_nesting_depth = 8,
+    .force_flush = 0,
+};
+
 
 /**
- * Initializes global verbosity by reading environment variable
- *  HDT_VERBOSITY.
- *
- * Should be called by each module as very first action.
- * Can be called more than once without doing anything after the first time.
+ * Initializes global options by reading environment variable 
  */
-void initVerbosity() {
-	static int block = 0;
-	if (block)
-		return;
-	block = 1;
-
+static void initEnvironmentVariables() {	
 	/* get debug level */
-	char *vlvl = getenv("HDT_VERBOSITY");
+	char *vlvl = getenv("HDTRACE_VERBOSITY");
 	if (isValidString(vlvl))
-		sscanf(vlvl, "%d", &hdt_verbosity);
+		sscanf(vlvl, "%d", & hdt_options.verbosity);
+	
+	vlvl = getenv("HDTRACE_BUFFER_SIZE_KB");
+	if (isValidString(vlvl)){
+		sscanf(vlvl, "%lld", (long long int *) &  hdt_options.buffer_size);
+		if ( hdt_options.buffer_size < 1024) {
+			hd_error_msg("Invalid buffer size set in environment: %lld", (long long int)  hdt_options.buffer_size );
+			hdt_options.buffer_size = 1024;
+		}
+		hdt_options.buffer_size *= 1024;
+	}
+	
+	vlvl = getenv("HDTRACE_OVERWRITE_EXISTING_FILES");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", & hdt_options.overwrite_existing_files);	
+	vlvl = getenv("HDTRACE_MAX_NESTING_DEPTH");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", & hdt_options.max_nesting_depth);	
+	vlvl = getenv("HDTRACE_PREFIX");
+	if (isValidString(vlvl)){
+		hdt_options.path_prefix = strdup(vlvl);	
+	}
+
+	vlvl = getenv("HDTRACE_FORCE_FLUSH");
+	if (isValidString(vlvl))
+		sscanf(vlvl, "%d", & hdt_options.force_flush);	
+}
+
+
+void hdTrace_init(){
+    initEnvironmentVariables();
 }
 
 
@@ -97,7 +132,8 @@ char * generateFilename( const hdTopoNode *toponode,
 
 	/* generate filename */
 	assert(HD_MAX_FILENAME_LENGTH != 0);
-	char *filename = malloc(HD_MAX_FILENAME_LENGTH * sizeof(char));
+	char * filename = malloc(HD_MAX_FILENAME_LENGTH);
+	memset(filename, 0, HD_MAX_FILENAME_LENGTH);
 	if(filename == NULL)
 	{
 		hd_info_msg("malloc() error during %s filename generation for %s: %s",
@@ -105,24 +141,25 @@ char * generateFilename( const hdTopoNode *toponode,
 		hd_error_return(HD_ERR_MALLOC, NULL);
 	}
 
-	size_t pos;
 	int ret;
 
+        strcpy (filename, hdt_options.path_prefix);
+	
 #define ERROR_MSG \
 	hd_error_msg("Overflow of HD_MAX_FILENAME_LENGTH buffer during" \
 			" %s filename generation for %s", affix, toponode->string)
+	int maxLength = strlen(filename);
+	strncpy(filename + maxLength, toponode->topology->project, HD_MAX_FILENAME_LENGTH - maxLength);	
 
-	strncpy(filename, toponode->topology->project, HD_MAX_FILENAME_LENGTH);
 	if (filename[HD_MAX_FILENAME_LENGTH - 1] != '\0')
 	{
 		ERROR_MSG;
 		free(filename);
 		hd_error_return(HD_ERR_BUFFER_OVERFLOW, NULL);
 	}
-	pos = strlen(filename);
 
 #define ERROR_CHECK do { \
-	if (ret >= HD_MAX_FILENAME_LENGTH - (int) pos) \
+	if (ret >= HD_MAX_FILENAME_LENGTH ) \
 	{ \
 		ERROR_MSG; \
 		free(filename); \
@@ -133,22 +170,21 @@ char * generateFilename( const hdTopoNode *toponode,
 	/* append "_level" for each topology level */
 	for (int i = 1; i <= level; ++i)
 	{
-		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+		ret = snprintf(filename + strlen(filename), HD_MAX_FILENAME_LENGTH,
 				"_%s", hdT_getTopoPathLabel(toponode, i));
 		ERROR_CHECK;
-		pos = strlen(filename);
 	}
 
 	if (group == NULL)
 	{
-		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+		ret = snprintf(filename + strlen(filename), HD_MAX_FILENAME_LENGTH,
 				"%s", affix);
 		ERROR_CHECK;
 	}
 	else
 	{
 		/* TODO: Convert all non-alphanum chars to '_' */
-		ret = snprintf(filename + pos, HD_MAX_FILENAME_LENGTH - pos,
+		ret = snprintf(filename + strlen(filename), HD_MAX_FILENAME_LENGTH,
 				"_%s%s", group, affix);
 		ERROR_CHECK;
 	}
@@ -180,11 +216,24 @@ char * generateFilename( const hdTopoNode *toponode,
  */
 ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 {
+       static ssize_t (* my_write) ( int ,const void *,size_t  ) = & write;
+
+
+#ifdef SOTRACE
+#warning "Using DLOPEN to provide my_write"
+        // directly map write to real write...
+       void * dllFile = dlopen(GLIBC, RTLD_LAZY);
+       if (dllFile == NULL){
+           printf("[Error] trace wrapper - dll not found %s\n", GLIBC); 
+           exit(1); 
+       }
+        my_write = dlsym(dllFile, "write");
+#endif
+
 	/* check input */
 	assert(fd > 0);
 	assert(buf != NULL);
 	assert(isValidString(filename));
-
 
 	ssize_t written = 0;
 
@@ -214,11 +263,13 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		int sret = select(fd+1, NULL, &writefds, NULL, &timeout);
 		if (sret == 0)
 		{
+			printf("E3\n");
 			hd_info_msg("Timeout during writing to %s", filename);
 			hd_error_return(HD_ERR_TIMEOUT, -1);
 		}
 		else if (sret < 0)
 		{
+			printf("E2\n");		
 			hd_info_msg("select() error during writing to %s: %s",
 					filename, strerror(errno));
 			switch (errno)
@@ -243,9 +294,10 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		assert(FD_ISSET(fd, &writefds));
 
 		/* coming here means fd is ready for writing */
-		ssize_t wret = write(fd, buffer, count);
+		ssize_t wret =  (* my_write)(fd, buffer, count);
 		if (wret == -1)
 		{
+			printf("E\n");
 			hd_info_msg("write() error during writing to %s: %s",
 					filename, strerror(errno));
 			switch (errno)
@@ -276,8 +328,8 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
 		/* update number of bytes written */
 		written += wret;
 
-	}
-
+	}	
+	
 	return written;
 }
 

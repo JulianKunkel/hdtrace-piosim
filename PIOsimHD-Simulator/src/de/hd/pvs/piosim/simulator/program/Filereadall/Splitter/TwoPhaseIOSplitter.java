@@ -126,14 +126,24 @@ public class TwoPhaseIOSplitter extends IOSplitter {
 		// check if the operations overlaps with the current op:
 		long lastByteAccessed = container.clients.getFirst().firstByteAccessed;
 
+		// in the original implementation a contiguous access does not invoke twoPhase
+		boolean contiguousAccess = true;
+
 		for(MultiPhaseClientOP client: container.clients){
 			// the real two phase would have checked lastByteAccessed < client.firstByteAccessed ...
+			if(	client.cmd.getListIO().getCount() > 1 ){
+				contiguousAccess = false;
+			}
+
 			if(lastByteAccessed > client.lastByteAccessed ){
 				twoPhase = false;
 				break;
 			}
 			lastByteAccessed = client.lastByteAccessed;
 		}
+
+		if(contiguousAccess)
+			twoPhase = false;
 
 		//System.out.println(this.getClass() + " MultiPhase: " + twoPhase);
 

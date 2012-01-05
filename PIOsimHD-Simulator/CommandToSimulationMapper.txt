@@ -20,6 +20,7 @@ de.hd.pvs.piosim.simulator.program.Compute.Time
 #define a group:
 +de.hd.pvs.piosim.model.program.commands.Send,de.hd.pvs.piosim.model.program.commands.Recv,de.hd.pvs.piosim.model.program.commands.Sendrecv # so it defines a group of commands at once which belong together.
 de.hd.pvs.piosim.simulator.program.Global.NoOperation,de.hd.pvs.piosim.simulator.program.Global.NoOperation,de.hd.pvs.piosim.simulator.program.Global.NoOperation
+de.hd.pvs.piosim.simulator.program.SendReceive.Virtual.VirtualSend,de.hd.pvs.piosim.simulator.program.SendReceive.Virtual.VirtualRcv,de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSendrecv
 de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSend,de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousRcv,de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSendrecv
 
 +de.hd.pvs.piosim.model.program.commands.Wait
@@ -44,12 +45,14 @@ de.hd.pvs.piosim.simulator.program.Allreduce.BinaryTree
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Allgather.Direct
+de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2
 
 +de.hd.pvs.piosim.model.program.commands.Barrier
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Barrier.Direct
 de.hd.pvs.piosim.simulator.program.Barrier.BinaryTree
+de.hd.pvs.piosim.simulator.program.Barrier.BarrierMPICH2
 
 +de.hd.pvs.piosim.model.program.commands.Reduce
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
@@ -71,23 +74,24 @@ de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.Scatter.Direct
 de.hd.pvs.piosim.simulator.program.Scatter.ScatterHierachicalTwoLevels
 de.hd.pvs.piosim.simulator.program.Scatter.FCFS
+de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2
 
 +de.hd.pvs.piosim.model.program.commands.ReduceScatter
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
 de.hd.pvs.piosim.simulator.program.ReduceScatter.Direct
+de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo
 
 +de.hd.pvs.piosim.model.program.commands.Bcast
 de.hd.pvs.piosim.simulator.program.Global.NoOperation
 de.hd.pvs.piosim.simulator.program.Global.VirtualSync
-de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherallMPICH2
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimple
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeMultiplex
-de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall
 de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterBarrierGatherall
 de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeSimpleBlockwise
 de.hd.pvs.piosim.simulator.program.Bcast.PipedBlockwise
+de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall
 
 +de.hd.pvs.piosim.model.program.commands.Fileread
 de.hd.pvs.piosim.simulator.program.Global.NoOperation

@@ -158,7 +158,7 @@ implements IGIOSubsystem<RefinedDiskModel>
 
 	@Override
 	public int getNumberOfBlockedJobs() {
-		debug(pendingIOs + "");
+//		debug(pendingIOs + "");
 		return pendingIOs;
 	}
 

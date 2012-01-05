@@ -216,21 +216,6 @@ hdStatsGroup * hdS_createGroup (
         int topoLevel          /* Topology level the group shell belong to */
         )
 {
-	/* don't add a prefix to statistics file and do abort if file already exists */
-	return hdS_createGroupWithFilenamePrefixAndAbortIfExists(groupName,topoNode,topoLevel,"",1);
-}
-
-hdStatsGroup * hdS_createGroupWithFilenamePrefixAndAbortIfExists (
-        const char *groupName, /* Name of the new statistics group */
-        hdTopoNode *topoNode,   /* Topology node to use */
-        int topoLevel,          /* Topology level the group shell belong to */
-        const char *path_prefix, /* Prefix for the statistics file path */
-        int abort
-        )
-{
-	/* get verbosity */
-	initVerbosity();
-
 	/* check input */
 	char groupNameString[HDS_MAX_GROUP_NAME_LENGTH];
 	if (!escapeXMLString(groupNameString, HDS_MAX_GROUP_NAME_LENGTH, groupName))
@@ -240,26 +225,16 @@ hdStatsGroup * hdS_createGroupWithFilenamePrefixAndAbortIfExists (
 		hd_error_return(HD_ERR_INVALID_ARGUMENT, NULL);
 
 	/* generate filename of the form Project_Level1_Level2..._Group.stat */
-	char *tmp_filename = generateFilename(topoNode, topoLevel, groupName, ".stat");
-	 if (tmp_filename == NULL)
+	char *filename = generateFilename(topoNode, topoLevel, groupName, ".stat");
+	 if (filename == NULL)
 	 {
 		 /* errno set by generateFilename(): MALLOC or BUFFER_OVERFLOW */
 		 return NULL;
 	 }
 
-	 char * filename = malloc(strlen(tmp_filename) + strlen(path_prefix) + 1);
-	 strcpy (filename,path_prefix);
-	 strcat (filename,tmp_filename);
-	 free(tmp_filename);
-
 
 	/* open file if it already exists return an error */
-	int flags = O_CREAT | O_WRONLY | O_EXCL | O_NONBLOCK;
-
-	if(!abort) {
-		/* dont return an error if file already exists */
-		flags = O_CREAT | O_WRONLY | O_NONBLOCK | O_TRUNC;
-	}
+	int flags = O_CREAT | O_WRONLY | O_TRUNC | (hdt_options.overwrite_existing_files == 0 ? O_EXCL : 0) | O_NONBLOCK;
 
 	int fd = open(filename, flags, 0666);
 	if (fd < 0)

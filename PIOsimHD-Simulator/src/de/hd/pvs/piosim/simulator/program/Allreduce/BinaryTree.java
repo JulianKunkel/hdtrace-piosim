@@ -30,6 +30,7 @@ import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.model.program.commands.Reduce;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -43,7 +44,7 @@ public class BinaryTree
 {
 	
 	@Override
-	public void process( Allreduce cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
+	public void process( Allreduce cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs) {
 
 		if (cmd.getCommunicator().getSize() == 1){
 			// finished ...

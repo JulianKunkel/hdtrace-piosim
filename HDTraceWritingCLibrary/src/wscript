@@ -8,32 +8,36 @@ def build (bld):
 
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
-		source = ['hdTrace.c', 'hdTopo.c', 'common.c', 'util.c'],
+		source = ['hdTrace.c', 'hdTopo.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdTrace',
 		install_path = '${PREFIX}/lib'
 	)
 
 	bld.new_task_gen(
 		features = 'cc cshlib',
-		source = ['hdTrace.c', 'hdTopo.c', 'common.c', 'util.c'],
+		source = ['hdTrace.c', 'hdTopo.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdTrace',
 		install_path = '${PREFIX}/lib'
 	)
 
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
-		source = ['hdStats.c', 'hdTopo.c', 'common.c', 'util.c'],
+		source = ['hdStats.c', 'hdTopo.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdStats',
 		install_path = '${PREFIX}/lib'
 	)
 
 	bld.new_task_gen(
 		features = 'cc cshlib',
-		source = ['hdStats.c', 'hdTopo.c', 'common.c', 'util.c'],
+		source = ['hdStats.c', 'hdTopo.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdStats',
 		install_path = '${PREFIX}/lib'
 	)
@@ -41,32 +45,36 @@ def build (bld):
 
 	bld.new_task_gen(
 		features = 'cc cshlib',
-		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c'],
+		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdRelation',
 		install_path = '${PREFIX}/lib'
 	)
 
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
-		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c'],
+		source = ['hdRelation.c', 'hdTopo.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdRelation',
 		install_path = '${PREFIX}/lib'
 	)
 
 	bld.new_task_gen(
 		features = 'cc cshlib',
-		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c'],
+		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdTracing',
 		install_path = '${PREFIX}/lib',
 	)
 
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
-		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c'],
+		source = ['hdTrace.c', 'hdTopo.c', 'hdStats.c', 'hdRelation.c', 'common.c', 'util.c', 'hostInformation.c'],
 		includes = ['.', '../include'],
+		uselib = ['DL'],
 		target = 'hdTracing',
 		install_path = '${PREFIX}/lib',
 	)

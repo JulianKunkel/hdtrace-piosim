@@ -138,7 +138,7 @@ class UnrolledJDatatype extends JPanel{
 	 */
 	public void createIt(long unrollSize, long offset){		
 		//JLabel label = new JLabel( datatype.getType().toString());
-		this.setToolTipText("<size, extend> =  <" + datatype.getSize() + ", " + datatype.getExtend() + ">");
+		this.setToolTipText("<size, extent> =  <" + datatype.getSize() + ", " + datatype.getExtend() + ">");
 		//label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 		//this.add(label);
 		

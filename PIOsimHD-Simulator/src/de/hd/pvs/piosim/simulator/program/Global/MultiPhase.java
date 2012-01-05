@@ -31,8 +31,8 @@ import java.util.LinkedList;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
 import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
-import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 import de.hd.pvs.piosim.simulator.program.Filereadall.Splitter.IOSplitter;
 
@@ -96,7 +96,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 		/**
 		 * Contains the communication operations per phase, for each client with which aggregator it must transfer data in the given phase.
 		 */
-		public HashMap<GClientProcess, Long> clientOps = null;
+		final public HashMap<GClientProcess, Long> clientOps = new HashMap<GClientProcess, Long>();
 
 		public ClientSinglePhaseOperations(ListIO phaseAggregatorIOOperation) {
 			this.phaseAggregatorIOOperation = phaseAggregatorIOOperation;
@@ -147,7 +147,6 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 		public ClientSinglePhaseOperations getClientPhase(int phase){
 			if (phases[phase] == null){
 				phases[phase] = new ClientSinglePhaseOperations(null);
-				phases[phase].clientOps = new HashMap<GClientProcess, Long>();
 			}
 
 			return phases[phase];
@@ -239,7 +238,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			Collections.sort( tmpList, new Comparator<IOData>(){
 				@Override
 				public int compare(IOData o1, IOData o2) {
-					return (int) (o1.offset - o2.offset);
+					return (o1.offset < o2.offset) ? -1 : ((o1.offset > o2.offset) ? + 1 : 0);
 				}
 			});
 
@@ -253,14 +252,20 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			for(IOData op : tmpList){
 				if( last != null){
 					// check if we can combine them:
+					assert(last.offset <= op.offset);
+
 					long overlap = last.offset + last.size - op.offset;
 					if ( overlap >= 0 ){
 						// combination possible:
 						last.size += op.size - overlap;
+						assert(op.size >= overlap);
+						assert(last.size >= 0);
+
 					}else{
 						// no combination possible: add operation:
 						dataCollectivlyToAccess.add(last);
 						totalAccessSize += last.size;
+
 						last = op;
 					}
 				}else{
@@ -272,6 +277,8 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			dataCollectivlyToAccess.add(last);
 			totalAccessSize += last.size;
 
+			assert(totalAccessSize >= 0);
+
 			return totalAccessSize;
 		}
 	}
@@ -282,7 +289,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 	static protected class FileIOCommandWrapper{
 		final private FileIOCommand command;
 		protected MultiPhaseContainer globalPhaseContainer;
-		HashMap<GClientProcess, CommandProcessing> clientsStarted = null;
+		HashMap<GClientProcess, ICommandProcessing> clientsStarted = null;
 
 
 		public void initMultiPhaseContainer(){
@@ -417,17 +424,17 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 	 * @param cmd
 	 * @return true if blocked (i.e. sync with further)
 	 */
-	protected boolean synchronizeClientsWithoutCommunication(CommandProcessing cmdResults){
+	protected boolean synchronizeClientsWithoutCommunication(ICommandProcessing cmdResults){
 		final GClientProcess client = cmdResults.getInvokingComponent();
 		final FileIOCommand cmd = (FileIOCommand) cmdResults.getInvokingCommand();
 		final FileIOCommandWrapper dummyWrapper = new FileIOCommandWrapper(cmd);
 
 		FileIOCommandWrapper wrapper = sync_blocked_clients.get(dummyWrapper);
 
-		HashMap<GClientProcess, CommandProcessing> waitingClients;
+		HashMap<GClientProcess, ICommandProcessing> waitingClients;
 		if (wrapper == null){
 			/* first client waiting */
-			waitingClients = new HashMap<GClientProcess, CommandProcessing>();
+			waitingClients = new HashMap<GClientProcess, ICommandProcessing>();
 			dummyWrapper.clientsStarted = waitingClients;
 			sync_blocked_clients.put(dummyWrapper, dummyWrapper);
 			dummyWrapper.initMultiPhaseContainer();
@@ -446,7 +453,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 		}
 
 		if (waitingClients.size() == cmd.getCommunicator().getSize() -1){
-			client.debug("Activate other clients for two phase " + cmd + " by " + client.getIdentifier() );
+//			client.debug("Activate other clients for two phase " + cmd + " by " + client.getIdentifier() );
 
 			/* we finish, therefore reactivate all other clients! */
 			for(GClientProcess c: waitingClients.keySet()){
@@ -467,6 +474,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			if(wrapper.globalPhaseContainer.useMultiPhase){
 				// initalize structures
 				long totalSize = wrapper.globalPhaseContainer.groupCollectiveData();
+				assert(totalSize >= 0);
 				final MultiPhaseRun mpr = getIOSplitter().initMultiphasesOnce(totalSize, wrapper.globalPhaseContainer, wrapper.globalPhaseContainer.dataCollectivlyToAccess);
 				wrapper.globalPhaseContainer.phaseRun = mpr;
 
@@ -495,7 +503,7 @@ abstract public class MultiPhase<FileCOMMAND extends FileIOCommand> extends Comm
 			waitingClients.put(client, cmdResults);
 
 			/* just block up */
-			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
+//			client.debug("Block for " + cmd + " by " + client.getIdentifier() );
 			return true;
 		}
 

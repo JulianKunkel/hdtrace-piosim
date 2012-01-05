@@ -28,8 +28,6 @@
  */
 package de.hd.pvs.piosim.model.program.commands.superclasses;
 
-import com.sun.istack.internal.NotNull;
-
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.interfaces.IExtendedXMLHandling;
 import de.hd.pvs.piosim.model.program.Program;
@@ -43,14 +41,6 @@ import de.hd.pvs.piosim.model.program.Program;
 abstract public class Command implements IExtendedXMLHandling{
 	private Program myProgram;
 	private Integer asynchronousID; //null if blocking
-
-	@NotNull
-	private XMLTag xmlTag;
-
-
-	public XMLTag getXMLTag() {
-		return xmlTag;
-	}
 
 	/**
 	 * Return the program this command belongs to
@@ -96,10 +86,6 @@ abstract public class Command implements IExtendedXMLHandling{
 	 */
 	public void readXML(XMLTag xmlTag) throws Exception{
 
-	}
-
-	public void setXMLTag(XMLTag xmlTag){
-		this.xmlTag = xmlTag;
 	}
 
 	/**

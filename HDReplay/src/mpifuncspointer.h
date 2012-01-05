@@ -13,6 +13,7 @@ int (*MpiBarrierPointer)
 int (*MpiComm_CreatePointer)
   (MPI_Comm, MPI_Group, &MPI_Comm);
   
-
+int (*MPISendPointer)
+  (void*, int, MPI_Datatype, int, int, MPI_Comm);
   
 #endif

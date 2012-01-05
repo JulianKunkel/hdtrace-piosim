@@ -25,13 +25,16 @@
 
 package de.hd.pvs.piosim.model.program;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import de.hd.pvs.TraceFormat.project.datatypes.Datatype;
 import de.hd.pvs.TraceFormat.trace.ITraceEntry;
 import de.hd.pvs.TraceFormat.xml.XMLTag;
 import de.hd.pvs.piosim.model.AttributeAnnotationHandler;
+import de.hd.pvs.piosim.model.annotations.Attribute;
 import de.hd.pvs.piosim.model.annotations.AttributeXMLType;
+import de.hd.pvs.piosim.model.annotations.Rank;
 import de.hd.pvs.piosim.model.inputOutput.FileDescriptor;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
@@ -110,8 +113,6 @@ public class CommandXMLReader {
 			fidToFileMap.put(fid, new LocalFileStructure(new FileDescriptor(file, comm)));
 		}
 
-		cmd.setXMLTag(commandXMLElement);
-
 		// read non-standard attributes:
 		cmd.readXML(commandXMLElement);
 
@@ -154,13 +155,15 @@ public class CommandXMLReader {
 			}else if(cmd.getClass() == Filesetview.class){
 				//final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
 				final long filetid = Long.parseLong(commandXMLElement.getAttribute("filetid"));
+				final long etid = Long.parseLong(commandXMLElement.getAttribute("etid"));
 				final int displacement = Integer.parseInt(commandXMLElement.getAttribute("offset"));
 				Datatype datatype = program.getApplication().getDatatypeMap(program.getRank()).get(filetid);
+				Datatype etype = program.getApplication().getDatatypeMap(program.getRank()).get(etid);
 				assert(datatype != null);
 
 				final LocalFileStructure openend = fidToFileMap.get(fid);
 				if(openend != null){
-					FileView view = new FileView(datatype, displacement);
+					FileView view = new FileView(etype, datatype, displacement);
 					openend.currentView = view;
 				}else{
 					System.err.println("Warning: " + fid + " not open but setView !");
@@ -170,16 +173,16 @@ public class CommandXMLReader {
 			// parse File I/O command type id:
 			if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
 				final FileIOCommand fcmd = (FileIOCommand) cmd;
-				final long offset = Long.parseLong(commandXMLElement.getAttribute("offset"));
+				final long physicalOffset = Long.parseLong(commandXMLElement.getAttribute("offset"));
 				final long size = Long.parseLong(commandXMLElement.getAttribute("size"));
 
 				if(openendFilestructure != null){
 					final ListIO list =  new ListIO();
 
 					if(openendFilestructure.currentView == null){
-						list.addIOOperation(offset, size);
+						list.addIOOperation(physicalOffset, size);
 					}else{
-						openendFilestructure.currentView.createIOOperation(list, offset, size);
+						openendFilestructure.currentView.createIOOperationWithPhysicalOffset(list, physicalOffset, size);
 						fcmd.setFileView(openendFilestructure.currentView);
 					}
 
@@ -189,6 +192,42 @@ public class CommandXMLReader {
 				}
 			}
 		}
+
+		// translate all attributes which are annotated with @Rank to comm relative ranks.
+
+		Class<?> classIterate = cmd.getClass();
+		while(classIterate != Object.class) {
+			Field [] fields = classIterate.getDeclaredFields();
+
+			for (Field field : fields) {
+				if( ! field.isAnnotationPresent(Attribute.class))
+					continue;
+				if( ! field.isAnnotationPresent(Rank.class))
+					continue;
+
+				final Communicator comm = getCommunicator(commandXMLElement.getAttribute("cid"));
+
+				// the name of the attribute or tag can be set explicitly in Attribute.
+
+				Class<?> type = field.getType();
+				Object value = null;
+
+				if (type == int.class || type == Integer.class) {
+
+				}else{
+					throw new IllegalArgumentException("Annotation on object " + cmd + " invalid!");
+				}
+				field.setAccessible(true);
+				int oldRank = (Integer) field.get(cmd);
+				Integer newInt = comm.getLocalRank(oldRank);
+				field.set(cmd, newInt);
+				field.setAccessible(false);
+			}
+
+			classIterate = classIterate.getSuperclass();
+		}
+
+
 
 		return cmd;
 	}

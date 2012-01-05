@@ -136,18 +136,22 @@ public class RulerTime extends ScrollableObject
 				Debug.print( "RulerTime.drawOffImage at : " );
 			double t_init = timebounds.getEarliestTime();
 
-			if(zeroCallback.isStartWithZero()){
-				t_init = 0;
-			}
-			
+			double t_delta = 0;
 			i_X_0 = super.time2pixel( t_init );
 			
 			tInitMark  = Routines.getTimeRulerFirstMark( t_init, tIncrement );
 			tFinalMark = timebounds.getLatestTime() + tIncrement;
+			
+
+			if(zeroCallback.isStartWithZero()){
+				t_delta = - t_init;
+				tInitMark = t_init;
+			}
+			
 			for ( time = tInitMark; time < tFinalMark; time += tIncrement ) {
 				i_X = super.time2pixel( time ) - i_X_0;
 				offGraphics.drawLine( i_X, 1, i_X, TICKMARK_HEIGHT );
-				text = fmt.format( time );
+				text = fmt.format( time + t_delta);
 				offGraphics.drawString( text, i_X - 3, I_FONT_BASELINE );
 				if ( Debug.isActive() )
 					Debug.print( time + ":" + i_X + ", " ); 

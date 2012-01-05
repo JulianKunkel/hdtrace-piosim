@@ -40,10 +40,12 @@ import de.hd.pvs.piosim.model.components.superclasses.NodeHostedComponent;
 import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.IORedirection;
 import de.hd.pvs.piosim.model.inputOutput.ListIO;
+import de.hd.pvs.piosim.model.inputOutput.ListIO.SingleIOOperation;
 import de.hd.pvs.piosim.model.program.Program;
 import de.hd.pvs.piosim.model.program.commands.Compute;
 import de.hd.pvs.piosim.model.program.commands.Wait;
 import de.hd.pvs.piosim.model.program.commands.superclasses.Command;
+import de.hd.pvs.piosim.model.program.commands.superclasses.FileIOCommand;
 import de.hd.pvs.piosim.simulator.base.ComponentRuntimeInformation;
 import de.hd.pvs.piosim.simulator.base.SBasicComponent;
 import de.hd.pvs.piosim.simulator.base.SPassiveComponent;
@@ -104,7 +106,7 @@ public class GClientProcess
 
 			final NetworkJobs status = pendingJobs.remove(announcedJob);
 			assert(status != null);
-			status.jobCompletedRecv(remoteJob);
+			status.jobCompletedRecv(remoteJob, announcedJob);
 			checkJobCompleted(status);
 
 			// trace output
@@ -204,9 +206,12 @@ public class GClientProcess
 			return commandStats;
 		}
 
+		Epoch endTime = Epoch.ZERO;
+
 		@Override
 		public String toString() {
 			StringBuffer buff = new StringBuffer();
+			buff.append(" end time: " + endTime.getDouble());
 			for(Class<?> cmdClass: commandStats.keySet()){
 				CommandUsageStatistics stat = commandStats.get(cmdClass);
 				buff.append("\n\t" + cmdClass.getSimpleName() + " " + stat.calls + " calls");
@@ -266,7 +271,9 @@ public class GClientProcess
 	 * use this method to enforce the completion of the currently blocked job
 	 * @param cmd
 	 */
-	public void activateBlockedCommand(CommandProcessing cmdStep){
+	public void activateBlockedCommand(ICommandProcessingMapped cmdStep_){
+		CommandProcessing cmdStep = (CommandProcessing) cmdStep_;
+
 		if (! blockedCommands.remove(cmdStep)){
 			throw new IllegalArgumentException("Error removing " + cmdStep + " from queue on client: " + this.getIdentifier());
 		}
@@ -278,7 +285,7 @@ public class GClientProcess
 
 	@Override
 	public void computeJobCompletedCV(ComputeJob job) {
-		debug("reactivating client " + job);
+//////		debug("reactivating client " + job);
 
 		CommandProcessing cmd = pendingComputeJobs.remove(job);
 
@@ -321,9 +328,11 @@ public class GClientProcess
 			for(InterProcessNetworkJob job: jobs.getNetworkJobs()){
 				System.err.println("\t\t " + job);
 			}
-			System.err.println("\tpending Responses");
-			for(InterProcessNetworkJob job: jobs.getResponses()){
-				System.err.println("\t\t" + job);
+			if(jobs.getResponses() != null){
+				System.err.println("\tpending Responses");
+				for(InterProcessNetworkJob job: jobs.getResponses()){
+					System.err.println("\t\t" + job);
+				}
 			}
 		}
 
@@ -364,6 +373,8 @@ public class GClientProcess
 				clientProgram.isFinished()){
 			finished = true;
 
+			runtimeInformation.endTime = getSimulator().getVirtualTime();
+
 			info("finished");
 		}
 	}
@@ -374,19 +385,48 @@ public class GClientProcess
 		}
 		final STraceWriter tw = getSimulator().getTraceWriter();
 
+		final TraceType traceType ;
+		if(step.getParentOperation() == null){
+			traceType = TraceType.CLIENT;
+		}else{
+			traceType = TraceType.CLIENT_NESTING;
+
+			if(! getSimulator().getRunParameters().isTraceClientNestingOperations()){
+				return;
+			}
+		}
+
 		if(start == false) {
+
 			if(cmd.isAsynchronous()){
-				tw.relEndState(TraceType.CLIENT, step.getRelationToken(), null, new String[] {"aid", "" + cmd.getAsynchronousID()});
+				tw.relEndState(traceType, step.getRelationToken(), null, new String[] {"aid", "" + cmd.getAsynchronousID()});
 			}else{
-				tw.relEndState(TraceType.CLIENT, step.getRelationToken());
+				tw.relEndState(traceType, step.getRelationToken());
 			}
 
 			if(step.getParentOperation() == null || step.getParentOperation().getNestedOperations().length > 1){
-				tw.relDestroy(TraceType.CLIENT, step.getRelationToken());
+				tw.relDestroy(traceType, step.getRelationToken());
 			}
 		}else {
-			tw.relStartState(TraceType.CLIENT, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
-					cme.getAdditionalTraceTag(cmd), cme.getAdditionalTraceAttributes(cmd));
+			// tracing of I/O commands adds size and offset pairs.
+			String tag = cme.getAdditionalTraceTag(cmd);
+			if(FileIOCommand.class.isAssignableFrom(cmd.getClass())){
+				final ListIO list = ((FileIOCommand) cmd).getListIO();
+
+				StringBuffer strBuff = new StringBuffer();
+				for(SingleIOOperation op : list.getIOOperations()){
+					strBuff.append("<op size=\"" + op.getAccessSize() +  "\" offset=\"" + op.getOffset()  + "\"/>");
+				}
+
+				if(tag == null){
+					tag = strBuff.toString();
+				}else{
+					tag = tag + "\n" + strBuff;
+				}
+			}
+
+			tw.relStartState(traceType, step.getRelationToken(), cmd.getClass().getSimpleName() + "/" + cme.getClass().getSimpleName(),
+					tag, cme.getAdditionalTraceAttributes(cmd));
 		}
 	}
 
@@ -396,7 +436,7 @@ public class GClientProcess
 		//if(cmd.getClass() != Compute.class)
 		//	getSimulator().getTraceWriter().end(this, cmd.getClass().getSimpleName() + " s " + nextStep);
 
-		debug("command completed: " + cmd);
+//////		debug("command completed: " + cmd);
 
 		CommandUsageStatistics statistic = runtimeInformation.commandStats.get(cmd.getClass());
 		if(statistic == null){
@@ -514,7 +554,7 @@ public class GClientProcess
 			getSimulator().getTraceWriter().relEndState(TraceType.CLIENT_STEP, cmdStep.getRelationToken());
 
 			/* now run the appropriate command to generate new events */
-			debug("processing step: " + nextStep + " cmd: " + cmd);
+//////			debug("processing step: " + nextStep + " cmd: " + cmd);
 
 			NetworkJobs oldJobs = cmdStep.getNetworkJobs();
 
@@ -582,7 +622,7 @@ public class GClientProcess
 
 							if( j.getMatchingCriterion().getSourceComponent() != null ){
 								// handle any-source
-								txt = "" + j.getMatchingCriterion().getSourceComponent().getIdentifier();
+								txt = j.getMatchingCriterion().getSourceComponent().getIdentifier().toString().replace(" ", "_");
 							}else{
 								txt = " AnySource";
 							}
@@ -592,7 +632,7 @@ public class GClientProcess
 							getNetworkInterface().initiateInterProcessReceive(j, curTime);
 						}else{
 							// trace
-							getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, j.getRelationToken(), "Send_" + ((NodeHostedComponent) j.getMatchingCriterion().getTargetComponent()).getIdentifier() );
+							getSimulator().getTraceWriter().relStartState(TraceType.CLIENT_STEP, j.getRelationToken(), "Send_" + ((NodeHostedComponent) j.getMatchingCriterion().getTargetComponent()).getIdentifier().toString().replace(" ", "_") );
 
 							getNetworkInterface().initiateInterProcessSend(j, curTime);
 						}
@@ -641,7 +681,7 @@ public class GClientProcess
 	private void checkJobCompleted(NetworkJobs jobs){
 		if(jobs.isCompleted()){
 			Epoch endTime = getSimulator().getVirtualTime();
-			debug(" resp: " + jobs.getResponses().size() + " " + endTime);
+//////			debug(" resp: " + jobs.getResponses() + " " + endTime);
 
 			/* reactivate this client, we have to process the next command */
 			CommandProcessing pendingOp = pendingNetworkOperations.remove(jobs);
@@ -694,4 +734,5 @@ public class GClientProcess
 	public IInterProcessNetworkJobCallback getCallback() {
 		return callback;
 	}
+
 }

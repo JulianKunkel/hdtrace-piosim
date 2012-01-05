@@ -145,7 +145,7 @@ public class Model{
 			return applicationNameMap.get(client.getApplication()).getClientProgram(
 				client.getRank(), client.getThread());
 		}catch(NullPointerException e){
-			throw new IllegalArgumentException("Program for client " + client.getIdentifier() + " not found!");
+			throw new IllegalArgumentException("Program " + client.getApplication() + " for client " + client.getIdentifier() + " not found!");
 		}
 	}
 

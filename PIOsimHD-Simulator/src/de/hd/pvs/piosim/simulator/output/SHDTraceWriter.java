@@ -64,9 +64,10 @@ public class SHDTraceWriter extends STraceWriter {
 
 		LinkedList<IBasicComponent> path = null;
 
+		// handle NICs specially
 		if(component.getModelComponent().getObjectType().equals("NetworkEdge")){
 			NetworkEdge edge = (NetworkEdge) component.getModelComponent();
-			INetworkNode node = edge.getTopology().getEdgeTarget(edge);
+			INetworkNode node = edge.getTargetNode();
 
 
 			if (node.getObjectType().equals( "NIC") || node.getObjectType().equals("NetworkNode")){
@@ -93,6 +94,17 @@ public class SHDTraceWriter extends STraceWriter {
 		int pos = 0;
 		for(IBasicComponent comp: path){
 			strPath[pos] = comp.getIdentifier().toString();
+
+			if(comp.getObjectType().equals("NetworkEdge")){
+				NetworkEdge edge = (NetworkEdge) component.getModelComponent();
+				INetworkNode node = edge.getSourceNode();
+
+				strPath[pos] = "RX " + strPath[pos] + " from " +  node.getIdentifier().toString();
+			}else{
+				// add the type
+				strPath[pos] = comp.getObjectType() + " " + strPath[pos];
+			}
+
 			pos++;
 		}
 

@@ -35,12 +35,23 @@
 package de.drawable;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 
 public class StateDrawer
 {
 	private static StateBorder BorderStyle  = StateBorder.WHITE_RAISED_BORDER;
+	
+	private static String fontType = Font.MONOSPACED;
+	
+	// cache potential fonts which are used to draw the category name
+	private static Font [] fontPool = { new Font(fontType, 0, 14), 
+		new Font(fontType,0, 12), 
+		new Font(fontType, 0, 10), 
+		new Font(fontType, 0, 8), 
+		new Font(fontType, 0, 6) };
+	
 
 	public static void setBorderStyle( final StateBorder state_border )
 	{
@@ -66,17 +77,32 @@ public class StateDrawer
 
 		// Fill the color of the rectangle
 		g.setColor( color );
-		int height = y2-y1+1;
+		final int height = y2-y1+1;
 		g.fillRect( x1, y1, x2-x1+1, height );
 
 		// draw name if possible.
-		if(y2 - y1 > 8){
-			int length = g.getFontMetrics().bytesWidth(name.getBytes(), 0, name.length());
-			if (length <= x2 - x1){
-				g.setColor( Color.BLACK );
-				// does it fit:
-				g.drawBytes(name.getBytes(), 0, name.length(), x1, y1-2+height);
+		if(height > 3){						
+			// reduce the font until it fits.
+			final int width = x2 - x1;
+			
+			for( Font f : fontPool){
+				if(f.getSize() >= height)
+					continue;
+
+				// with monospaced fonts this could be simplified...
+				
+				g.setFont(f);
+
+				int length = g.getFontMetrics().stringWidth(name);
+				if (length <= width){
+					g.setColor( Color.BLACK );
+					// does it fit:
+					g.drawBytes(name.getBytes(), 0, name.length(), x1, y1-2+height);
+					break;
+				}
 			}
+			
+
 		}
 		
 		

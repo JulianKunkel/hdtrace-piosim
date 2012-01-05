@@ -74,7 +74,7 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 	final private IInterProcessNetworkJobCallback unexpectedCallback = new InterProcessNetworkJobCallbackAdaptor() {
 		@Override
 		public void recvCompletedCB(InterProcessNetworkJob job, InterProcessNetworkJob announcedJob, Epoch endTime) {
-			debug( "Unexpected job starting " + job.getMatchingCriterion().getSourceComponent().getIdentifier());
+//			debug( "Unexpected job starting " + job.getMatchingCriterion().getSourceComponent().getIdentifier());
 
 			final Class<? extends IMessageUserData> dataType = job.getJobData().getClass();
 
@@ -102,10 +102,12 @@ implements IGServer<SPassiveComponent<Server>>, IGRequestProcessingServerInterfa
 			assert( ((InterProcessNetworkJobRoutable) job).getOriginalSource() != getServer().getModelComponent());
 
 			processor.process(job.getJobData(), (InterProcessNetworkJobRoutable) job, endTime);
-
-			// start a new recv for unexpected msgs.
-			submitRecv();
 		}
+
+		public void messagePartMatchesAnnounced(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime) {
+			// start a new receive for unexpected msgs.
+			submitRecv();
+		};
 	};
 
 	private GSimpleServer getMe(){

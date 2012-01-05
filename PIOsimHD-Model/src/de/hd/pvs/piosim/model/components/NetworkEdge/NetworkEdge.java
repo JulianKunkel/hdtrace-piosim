@@ -2,6 +2,7 @@ package de.hd.pvs.piosim.model.components.NetworkEdge;
 
 import de.hd.pvs.piosim.model.components.superclasses.BasicComponent;
 import de.hd.pvs.piosim.model.networkTopology.INetworkEdge;
+import de.hd.pvs.piosim.model.networkTopology.INetworkNode;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 
 public abstract class NetworkEdge extends BasicComponent implements INetworkEdge  {
@@ -18,4 +19,14 @@ public abstract class NetworkEdge extends BasicComponent implements INetworkEdge
 	public void setTopology(INetworkTopology topology) {
 		this.topology = topology;
 	}
+
+	public INetworkNode getTargetNode() {
+		return topology.getEdgeTarget(this);
+	}
+
+
+	public INetworkNode getSourceNode() {
+		return topology.getEdgeSource(this);
+	}
+
 }

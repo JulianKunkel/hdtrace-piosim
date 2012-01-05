@@ -61,7 +61,7 @@ public class GRouter extends SPassiveComponent<Router>
 						getNetworkInterface().getModelComponent(),
 						request.getFinalTarget().getNetworkInterface(), part.getMessage().getRelationToken());
 
-				forwardingMsg.setAvailableDataPosition(0);
+				forwardingMsg.resetMessage();
 
 				getNetworkInterface().initiateInterProcessSend(forwardingMsg, endTime);
 
@@ -71,7 +71,7 @@ public class GRouter extends SPassiveComponent<Router>
 				submitRecv();
 			}
 
-			getNetworkInterface().appendAvailableDataToIncompleteSend(forwardingMsg, part.getSize(), endTime);
+			getNetworkInterface().appendAvailableDataToIncompleteSend(forwardingMsg, part.getPayloadSize(), endTime);
 		}
 
 		public void recvCompletedCB(InterProcessNetworkJob remoteJob, InterProcessNetworkJob announcedJob, Epoch endTime) {

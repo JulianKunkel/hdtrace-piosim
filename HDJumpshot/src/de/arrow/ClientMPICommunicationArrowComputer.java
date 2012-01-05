@@ -91,20 +91,20 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 
 	private void addArrow(ArrayList<Arrow> arrows,
 			int rank, 
-			HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyMSGs, 
-			HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> unmatched,
+			HashMap<MSGMatcher, LinkedList<PreviousEntry>> earlyMSGsForMyRank, 
+			HashMap<Integer, HashMap<MSGMatcher, LinkedList<PreviousEntry>>> unmatched,	
 			ITraceEntry entry,
 			TopologyTreeNode topoTreeNode,
 			String targetRankStr, String tagStr, String commStr,
-			boolean useEarliestTime)
+			boolean isSend)
 	{
 		final int tag = Integer.parseInt(tagStr);
 		final int comm = Integer.parseInt(commStr);
-
+		
 		final MSGMatcher matcher = new MSGMatcher(rank, tag, comm);
-		final int targetRank = Integer.parseInt(targetRankStr);
-
-		final HashMap<MSGMatcher, LinkedList<PreviousEntry>> rankMatching = unmatched.get(targetRank);
+		final int communicationPartnerRank = Integer.parseInt(targetRankStr);
+		
+		final HashMap<MSGMatcher, LinkedList<PreviousEntry>> rankMatching = unmatched.get(communicationPartnerRank);
 		LinkedList<PreviousEntry> old = null;
 		if(rankMatching != null){
 			old = rankMatching.get(matcher);
@@ -114,18 +114,15 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 			// found a matching tag.
 			final PreviousEntry oldEntry = old.pollLast();
 			// matches already
-			final Epoch startTime;
-			final Epoch endTime;
-
-			if(useEarliestTime ){
-				startTime = oldEntry.entry.getEarliestTime();
-				endTime = entry.getLatestTime();
+			final Arrow arrow;
+			
+			if(isSend){
+				arrow = new Arrow(topoTreeNode, entry.getEarliestTime(), oldEntry.topo, oldEntry.entry.getLatestTime(), category);
 			}else{
-				startTime = oldEntry.entry.getLatestTime();
-				endTime = entry.getEarliestTime();
+				arrow = new Arrow(oldEntry.topo, oldEntry.entry.getEarliestTime(), topoTreeNode, entry.getLatestTime(),category);
 			}
-
-			arrows.add( new Arrow(oldEntry.topo, startTime, topoTreeNode, endTime, category) );
+			
+			arrows.add( arrow );
 
 			if(old.size() == 0){
 				rankMatching.remove(matcher);
@@ -134,11 +131,11 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 		}else{
 			
 			// make a new unmatched one.
-			final MSGMatcher tmatcher = new MSGMatcher(targetRank, tag, comm);
-			LinkedList<PreviousEntry> prev = earlyMSGs.get(tmatcher);
+			final MSGMatcher tmatcher = new MSGMatcher(communicationPartnerRank, tag, comm);
+			LinkedList<PreviousEntry> prev = earlyMSGsForMyRank.get(tmatcher);
 			if(prev == null){
 				prev = new LinkedList<PreviousEntry>();
-				earlyMSGs.put(tmatcher, prev);
+				earlyMSGsForMyRank.put(tmatcher, prev);
 			}
 			prev.push(new PreviousEntry(topoTreeNode, entry));
 		}
@@ -204,8 +201,8 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 				earlyRankSends = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();
 				earlyRankRcvs = new HashMap<MSGMatcher, LinkedList<PreviousEntry>>();
 
-				earlyMessages.earlyRcvs.put(rank, earlyRankSends);
-				earlyMessages.earlySends.put(rank, earlyRankRcvs);
+				earlyMessages.earlyRcvs.put(rank, earlyRankRcvs);
+				earlyMessages.earlySends.put(rank, earlyRankSends);
 			}else{
 				earlyRankSends = earlyMessages.earlySends.get(rank);
 				earlyRankRcvs = earlyMessages.earlyRcvs.get(rank);
@@ -229,6 +226,8 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 							final String tagStr = attributes.get("toTag");
 
 							if(rankStr != null && tagStr != null && comm != null){
+								//System.out.println("Send " + rank + " to " + rankStr  + " tag: " + tagStr + " comm: " + comm + " rcvs: " + earlyRankRcvs.size() + " sends: " + earlyRankSends.size());		
+
 								addArrow(arrows, rank, earlyRankSends, earlyMessages.earlyRcvs, entry, childTopoNode, rankStr, tagStr, comm, true);
 							}
 						}
@@ -238,7 +237,9 @@ public class ClientMPICommunicationArrowComputer implements ArrowComputer{
 							final String tagStr = attributes.get("fromTag");
 
 							if(rankStr != null && tagStr != null && comm != null){
-								addArrow(arrows, rank, earlyRankRcvs, earlyMessages.earlySends, entry, childTopoNode, rankStr, tagStr, comm, false);								
+								//System.out.println("Recvs " + rank + " from " + rankStr  + " tag: " + tagStr + " comm: " + comm + " rcvs: " + earlyRankRcvs.size() + " sends: " + earlyRankSends.size());
+								
+								addArrow(arrows, rank, earlyRankRcvs, earlyMessages.earlySends,  entry, childTopoNode, rankStr, tagStr, comm, false);								
 							}
 						}
 					}

@@ -11,64 +11,6 @@ static __thread hdTrace *tracefile = NULL;
  */
 static __thread hdTopoNode *topoNode = NULL;
 
-
-/**
- * This mutex is used to guarantee, that only one thread reads the
- * environment variables in the function \a readEnvVars()
- */
-static pthread_mutex_t envvar_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-/**
- * This variable is set to 0 as long as the environment variables have not been read.
- * When the first thread enters \a readEnvVars(), it sets \a envvar_read to 1 so any
- * following thread does not read the variables again.
- */
-static int envvar_read = 0;
-
-
-/**
- * This functions reads the environment variables that control the
- * MPI wrapper. Which variables are read is defined in the global
- * variable \a control_vars[]. The values are stored in global variables
- * as defined in \a controlled_vars[].
- *
- * If the value of an environment variable can not be processed,
- * a message is printed via \a printDebugMessage()
- */
-static void readEnvVars()
-{
-	pthread_mutex_lock(&envvar_mutex);
-	if(envvar_read == 0)
-	{
-		// read environment variables and set corresponding control values
-		char *env_var, *getenv();
-		int ii = 0;
-		while(control_vars[ii] && controlled_vars[ii])
-		{
-			if((env_var = getenv(control_vars[ii])) != NULL)
-			{
-				if(strcmp(env_var, "0") == 0)
-				{
-					*controlled_vars[ii] = 0;
-				}
-				else if(strcmp(env_var, "1") == 0)
-				{
-					*controlled_vars[ii] = 1;
-				}
-				else
-				{
-					printDebugMessage("environment variable %s has unrecognised value of %s. "
-									  "0 and 1 are valid values" ,
-									control_vars[ii], env_var );
-				}
-			}
-			ii++;
-		}
-		envvar_read = 1;
-	}
-	pthread_mutex_unlock(&envvar_mutex);
-}
-
 /**
  * Return the tracefile used to store the threads values in the current topology
  */
@@ -121,11 +63,6 @@ void hdMPI_threadInitTracing(){
 
 
 	tracefile = hdT_createTrace(topoNode);
-
-	readEnvVars();
-
- 	hdT_setNestedDepth(tracefile, trace_nested_operations * HD_LOG_MAX_DEPTH);
-	hdT_setForceFlush(tracefile, trace_force_flush);
 
 #undef NAME_LEN
 }

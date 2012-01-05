@@ -15,6 +15,8 @@ import de.hd.pvs.piosim.simulator.program.Global.MultiPhase.MultiPhaseRun;
  **/
 public class ContiguousIOSplitter extends TwoPhaseIOSplitter {
 	public MultiPhaseRun initMultiphasesOnce(final long totalsize, MultiPhaseContainer mp, LinkedList<IOData> iops){
+		assert(totalsize >= 0);
+
 		final MultiPhaseRun mpr = new MultiPhaseRun(totalsize);
 		mpr.ioAggregators = this.ioaggregators < 1 ? mp.clients.size() :  ( this.ioaggregators >  mp.clients.size() ?  mp.clients.size() : this.ioaggregators) ;
 
@@ -29,6 +31,7 @@ public class ContiguousIOSplitter extends TwoPhaseIOSplitter {
 		final long remainderForLastAggregator =  lastPhaseBytes - (mpr.lastAndPartialPhaseAggregators -1) *  twoPhaseBufferSize;
 
 		final int totalPhaseCount = mpr.getPhaseCount();
+		assert(totalPhaseCount >= 0);
 
 		final long startOffset = iops.get(0).offset;
 

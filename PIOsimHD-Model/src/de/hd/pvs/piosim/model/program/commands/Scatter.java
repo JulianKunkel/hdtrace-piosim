@@ -19,6 +19,7 @@
 package de.hd.pvs.piosim.model.program.commands;
 
 import de.hd.pvs.piosim.model.annotations.Attribute;
+import de.hd.pvs.piosim.model.annotations.Rank;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegative;
 import de.hd.pvs.piosim.model.annotations.restrictions.NotNegativeOrZero;
 import de.hd.pvs.piosim.model.program.commands.superclasses.CommunicatorCommand;
@@ -33,6 +34,7 @@ public class Scatter extends CommunicatorCommand{
 
 	@NotNegative
 	@Attribute
+	@Rank
 	protected int rootRank = -1;
 
 	@Override

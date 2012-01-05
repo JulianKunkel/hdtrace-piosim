@@ -28,6 +28,7 @@ package de.hd.pvs.piosim.simulator.program.FileOpen;
 import de.hd.pvs.piosim.model.program.commands.Barrier;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 
@@ -43,7 +44,7 @@ extends CommandImplementation<de.hd.pvs.piosim.model.program.commands.Fileopen>
 {
 	@Override
 	public void process(de.hd.pvs.piosim.model.program.commands.Fileopen cmd,
-			CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
+			ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		if (step == CommandProcessing.STEP_START){
 			Barrier barrier = new Barrier();

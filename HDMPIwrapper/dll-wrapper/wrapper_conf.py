@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+## -*- coding: utf-8 -*-
 
 
 Options = {
@@ -6,23 +6,32 @@ Options = {
 }
 
 
+  # write can actually invoke a nested write from the tracing library, this must be prevented
 before = {
-  # make write reentrant !
-  "write" :  "static int write_entered = 0;\n if (write_entered){ return (* static_write) (fd,buf,count);}\n write_entered = 1;"
+  "write" :  "static int write_entered = 0;\n if (write_entered){ return (* static_write) (fd,buf,count);\n}"
 	 }
+beforeTracing = {               
+      "write" :  "write_entered = 1;"
+	 }
+
 after = { "write" : "write_entered = 0;"}
 
 attributes = {
   "read" : ["fd='%d' size='%lld' ret='%lld'", "fd, (long long int) count, (long long int) ret" ],
   "write" : ["fd='%d' size='%lld' ret='%lld'", "fd, (long long int) count, (long long int) ret" ],
   "open" : ["fd='%d' name='%s'", "ret, pathname" ],
+  "open64" : ["fd='%d' name='%s'", "ret, pathname" ],
   "close" : ["fd='%d' ret='%d'", "fd, ret"],
-  "fopen" : ["ret='%d' name='%s'", "ret != NULL, filename" ],
-  "freopen" : ["ret='%d' name='%s'", "ret != NULL, filename" ],
-  "fdopen" : ["ret='%d' fd='%d'", "ret != NULL, fd" ],
+  "unlink" : ["name='%s'", "name" ],
+  "lseek" : ["fd='%d' offset='%llu' whence='%d'", "fd, (long long unsigned) offset, whence" ],
+  "fseek" : ["fp='%p' offset='%llu'", "stream, (long long unsigned) off" ],
+  "fopen" : ["fp='%p' name='%s'", "ret, filename" ],
+  "freopen" : ["fp='%p' name='%s' stream='%p'", "ret, filename,stream" ],
+  "fdopen" : ["fp='%p' fd='%d'", "ret, fd" ],
+  "fclose" :  ["fp='%p' ret='%d'", "stream,ret" ],
+  "fflush" :  ["fp='%p' ret='%d'", "stream, ret" ],
 }
 
 conditions = {
-#  "write" : "fd > 2",
 #  "read" : "fd != 1",
 }

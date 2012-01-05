@@ -24,6 +24,7 @@ import de.hd.pvs.piosim.model.program.commands.Bcast;
 import de.hd.pvs.piosim.model.program.commands.Scatter;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.CommandProcessing;
 import de.hd.pvs.piosim.simulator.components.ClientProcess.GClientProcess;
+import de.hd.pvs.piosim.simulator.components.ClientProcess.ICommandProcessing;
 import de.hd.pvs.piosim.simulator.network.NetworkJobs;
 import de.hd.pvs.piosim.simulator.program.CommandImplementation;
 /**
@@ -36,7 +37,7 @@ extends CommandImplementation<Bcast>
 	final int BARRIER_COMPLETED = 3;
 
 	@Override
-	public void process(Bcast cmd, CommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
+	public void process(Bcast cmd, ICommandProcessing OUTresults, GClientProcess client, long step, NetworkJobs compNetJobs)
 	{
 		// default: split data equally. Remaining bytes are just send to all processes
 		// the amount of data to gather from each node is the assigned data from the scatter, this can be approximated by the equation:
@@ -49,7 +50,7 @@ extends CommandImplementation<Bcast>
 			scmd.setSize(sizePerRank);
 			scmd.setCommunicator(cmd.getCommunicator());
 
-			OUTresults.invokeChildOperation(scmd, BARRIER_COMPLETED, de.hd.pvs.piosim.simulator.program.Scatter.Direct.class);
+			OUTresults.invokeChildOperation(scmd, SCATTER_COMPLETED, de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2.class);
 
 		}else if(step == SCATTER_COMPLETED){
 			Barrier bcmd = new Barrier();
@@ -63,7 +64,7 @@ extends CommandImplementation<Bcast>
 			gcmd.setSize(sizePerRank);
 			gcmd.setCommunicator(cmd.getCommunicator());
 
-			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED, null);
+			OUTresults.invokeChildOperation(gcmd, CommandProcessing.STEP_COMPLETED, de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2.class);
 		}
 	}
 

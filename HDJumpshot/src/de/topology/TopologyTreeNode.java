@@ -32,6 +32,7 @@ import javax.swing.tree.TreeNode;
 
 import de.hd.pvs.TraceFormat.TraceFormatFileOpener;
 import de.hd.pvs.TraceFormat.topology.TopologyNode;
+import de.hd.pvs.TraceFormat.util.Epoch;
 import de.viewer.common.SortedJTreeNode;
 import de.viewer.timelines.TimelineType;
 
@@ -127,21 +128,23 @@ abstract public class TopologyTreeNode extends SortedJTreeNode{
 	/**
 	 * Adjust the time of all nested nodes by the value
 	 * @param delta
+	 * @param globalMinTime TODO
+	 * @param globalMaxTime TODO
 	 */
-	public void adjustTimeOffset(double delta){
+	public void adjustTimeOffset(double delta, Epoch globalMinTime, Epoch globalMaxTime){
 		for(TopologyTreeNode node: getTopologyTreeNodeChildren()){
-			node.adjustTimeOffset(delta);
+			node.adjustTimeOffset(delta, globalMinTime, globalMaxTime);
 		}
 		
 		// adjust grouped statistics.
 		for(int i= 0; i < getChildCount(); i++){
 			TreeNode n = getChildAt(i);
-			if( TopologyStatisticsGroupFolder.class.isInstance(n) ){
+			if( TopologyStatisticsGroupFolder.class.isInstance(n) && n.getChildCount() > 0){
 				// adjust one children
 				TreeNode c = n.getChildAt(0);
 				// this should be always true:
 				if(TopologyStatisticTreeNode.class.isInstance(c)){
-					((TopologyStatisticTreeNode) c).adjustTimeOffset(delta);
+					((TopologyStatisticTreeNode) c).adjustTimeOffset(delta, globalMinTime, globalMaxTime);
 				}
 			}
 		}
