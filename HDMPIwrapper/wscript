@@ -22,6 +22,7 @@ def set_options (opt):
         opt.add_option('--with-mpi', action='store', default=None, help='Specify the mpi library folder')
         opt.add_option('--with-mrut', action='store', default=None, help='Use mrut to store node-local values')
         opt.add_option('--with-hdPVFS', action='store', default=None, help='Use HDPVFS to trace PVFS client activity')
+        opt.add_option('--with-rut', action='store', default=None, help='Use RUT to trace node-local values')
 
 
 def _getconf (key):
@@ -69,25 +70,36 @@ def configure (conf):
 		  uselib_store='MPI',
 		  mandatory=True, errmsg="mpi.h not found use --with-mpi")
 
-	if Options.options.with_mrut:
-                lib = os.path.abspath(Options.options.with_mrut)
-                conf.check_cc(lib='hdMrut', header_name="mrut.h", ccflags='-I%s/include' % (lib), ldflags='-L%s/lib' % (lib), uselib_store='MRUT', uselib=['HDTRACING','PTHREAD','GLIB-2.0'],  mandatory=True)
-        else:
-                conf.check_cc(lib='hdMrut', header_name="mrut.h",
-		  uselib_store='MRUT', uselib=['HDTRACING','PTHREAD','GLIB-2.0'])
+#	if Options.options.with_mrut:
+#                lib = os.path.abspath(Options.options.with_mrut)
+#                conf.check_cc(lib='hdMrut', header_name="mrut.h", ccflags='-I%s/include' % (lib), ldflags='-L%s/lib' % (lib), uselib_store='MRUT', uselib=['HDTRACING','PTHREAD','GLIB-2.0'],  mandatory=True)
+#        else:
+#               conf.check_cc(lib='hdMrut', header_name="mrut.h",
+#		  uselib_store='MRUT', uselib=['HDTRACING','PTHREAD','GLIB-2.0'])
+#
+#	if Options.options.with_hdPVFS:
+#                lib = os.path.abspath(Options.options.with_hdPVFS)
+#                conf.check_cc(lib='pvfs2', header_name="pvfs2.h", ccflags='-I%s/include' % (lib), ldflags='-L%s/lib' % (lib), uselib_store='PVFS2', uselib=['HDTRACING','PTHREAD','GLIB-2.0'],  mandatory=True)
+#        else:
+#                conf.check_cc(lib='pvfs2', header_name="pvfs2.h",
+#		  uselib_store='PVFS2', uselib=['HDTRACING','PTHREAD','GLIB-2.0'])
+			  
+	if Options.options.with_rut:
+		conf.check_cc(
+			lib = 'RUT',
+			header_name = 'RUT.h',
+			ccflags= ['-I%s/include' % (Options.options.with_rut) ],
+			ldflags= ['-L%s/lib' % (Options.options.with_rut) ],
+			uselib=['HDTRACING','PTHREAD','GLIB-2.0'],
+			define_name = 'ENABLE_UTILIZATION_TRACE',
+			mandatory = True
+		)
 
-	if Options.options.with_hdPVFS:
-                lib = os.path.abspath(Options.options.with_hdPVFS)
-                conf.check_cc(lib='pvfs2', header_name="pvfs2.h", ccflags='-I%s/include' % (lib), ldflags='-L%s/lib' % (lib), uselib_store='PVFS2', uselib=['HDTRACING','PTHREAD','GLIB-2.0'],  mandatory=True)
-        else:
-                conf.check_cc(lib='pvfs2', header_name="pvfs2.h",
-		  uselib_store='PVFS2', uselib=['HDTRACING','PTHREAD','GLIB-2.0'])
 
-
-	conf.sub_config('include')
+#	conf.sub_config('include')
 	conf.sub_config('src')
 #	conf.sub_config('tests')
-	conf.sub_config('scripts')
+#	conf.sub_config('scripts')
         conf.write_config_header('hdmpi-wrapper-pkg.h')
 
 

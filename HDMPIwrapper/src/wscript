@@ -7,18 +7,18 @@ def configure (conf):
 def build (bld):
 	bld.new_task_gen(
 		features = 'cc cshlib',
-		source = ['mrut.c'],
+		source = ['common.c','hash_tables.c','hdMPITracer.c','hdTraceMPIWrapper.c','mpi_names.c','write_info.c'],
 		includes = ['.', '../include'],
-		target = 'hdMrut',
+		target = 'HDMPIWrapper',
 		install_path = '${PREFIX}/lib',
-                uselib = ['HDTRACING', 'GLIB-2.0'],
+                uselib = ['HDTRACING', 'RUT', 'PTHREAD','GLIB-2.0'],
 	)
-
+	
 	bld.new_task_gen(
 		features = 'cc cstaticlib',
-		source = ['mrut.c'],
+		source = ['common.c','hash_tables.c','hdMPITracer.c','hdTraceMPIWrapper.c','mpi_names.c','write_info.c'],
 		includes = ['.', '../include'],
-		target = 'hdMrut',
+		target = 'HDMPIWrapper',
 		install_path = '${PREFIX}/lib',
-                uselib = ['HDTRACING', 'GLIB-2.0'],
+                uselib = ['HDTRACING', 'RUT', 'PTHREAD','GLIB-2.0'],
 	)
