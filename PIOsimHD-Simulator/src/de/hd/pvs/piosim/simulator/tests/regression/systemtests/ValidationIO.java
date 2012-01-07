@@ -145,6 +145,10 @@ public class ValidationIO extends Validation {
 		}
 		pb.addFileClose(fd);
 
+		// TODO
+		//model.getGlobalSettings().setTransferGranularity(10*KiB);
+
+
 		runSimulationAllExpectedToFinish();
 
 		if (modelTime == null){
@@ -163,7 +167,6 @@ public class ValidationIO extends Validation {
 	}
 
 	void runMPIIOLevelValidationSingleThroughput(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
-
 		runMPIIOLevelValidationSingleSimple(level, write, clients, servers, cacheLayer, processes, overlapping, repeats, size, ramSize, tracing, null);
 		double totalSizeInMiB = (double) (processes) * repeats * size / 1024.0 / 1024.0;
 		double tp = totalSizeInMiB / simRes.getVirtualTime().getDouble();
@@ -239,11 +242,18 @@ public class ValidationIO extends Validation {
 
 
 	@Test public void test3() throws Exception{
-		setupWrCluster(2, false , false, false, true, 1, 1,	0, 1, IOC.AggregationReorderCache(), 100);
+		int servers = 5;
+		int clients = servers;
+
+		setupWrCluster(2, false , false, false, true, clients, clients,	0, servers, IOC.AggregationReorderCache(), 1000);
+
 
 		parameters.setTraceFile("/tmp/dump");
 		parameters.setTraceEnabled(true);
-		parameters.setTraceInternals(true);
+		parameters.setTraceServers(true);
+		//parameters.setTraceClientSteps(true);
+		//parameters.setTraceClientNestingOperations(true);
+		//parameters.setTraceInternals(true);
 
 		SimpleStripe dist = new SimpleStripe();
 		dist.setChunkSize(64 * KiB);
@@ -251,12 +261,44 @@ public class ValidationIO extends Validation {
 
 		FileDescriptor fd = pb.addFileOpen(file, world, false);
 
-		levelXOperation(true, 0, fd, 1, 1, 100*MiB, false);
+		//levelXOperation(true, 3, fd, 2, 10, 100*MiB, false);
+		levelXOperation(false, 0, fd, clients, 10240, 100*KiB, false);
 		pb.addFileClose(fd);
+		//model.getGlobalSettings().setTransferGranularity(10*KiB);
 
 		runSimulationAllExpectedToFinish();
 
-		System.out.println((100*MiB/ simRes.getVirtualTime().getDouble()/1024/1024.0) + " MiB/s");
+		System.out.println((clients* 1000*MiB/ simRes.getVirtualTime().getDouble()/1024/1024.0) + " MiB/s");
+	}
+
+	@Test public void multipleTest() throws Exception{
+		int servers = 5;
+		int clients = 30;
+		int repeats = 10;
+		long dataSize = 100*MiB;
+
+		setupWrCluster(2, false , false, false, true, 5, clients,	0, servers, IOC.AggregationReorderCache(), 1000);
+
+		parameters.setTraceFile("/tmp/dump");
+		parameters.setTraceEnabled(true);
+		parameters.setTraceServers(true);
+		parameters.setTraceClientSteps(false);
+		parameters.setTraceClientNestingOperations(true);
+		//parameters.setTraceInternals(true);
+
+		SimpleStripe dist = new SimpleStripe();
+		dist.setChunkSize(64 * KiB);
+		FileMetadata file =  aB.createFile("test", clients * 100 * GiB, dist );
+
+		FileDescriptor fd = pb.addFileOpen(file, world, false);
+
+		levelXOperation(false, 3, fd, clients, repeats, dataSize, false);
+		pb.addFileClose(fd);
+		//model.getGlobalSettings().setTransferGranularity(10*KiB);
+
+		runSimulationAllExpectedToFinish();
+
+		System.out.println((clients*repeats* dataSize/ simRes.getVirtualTime().getDouble()/1024/1024.0) + " MiB/s");
 	}
 
 
@@ -270,6 +312,18 @@ public class ValidationIO extends Validation {
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
 
 		modelTime.write("Cache settings: " + cacheLayer.toString() + "\n");
+
+
+		// TODO
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
+				// overlapping test
+				startExperiment("1GiGRAM/100-overlapping.txt " + level, modelTime);
+				runMPIIOLevelValidationSingleThroughput(level, isWrite,	8,8,cacheLayer, 8, 8, 10, 100 * MiB, 2000, false, modelTime);
+			}
+		}
 
 		for(int level = 0; level < 4 ; level ++){
 			for(int i = 0 ; i < 2; i++){
@@ -345,11 +399,16 @@ public class ValidationIO extends Validation {
 				// overlapping test
 				startExperiment("1GiGRAM/100-overlapping.txt " + level, modelTime);
 				runMPIIOLevelValidationSingleThroughput(level, isWrite,	8,8,cacheLayer, 8, 8, 10, 100 * MiB, 2000, false, modelTime);
+			}
+		}
+		for(int level = 0; level < 4 ; level ++){
+			for(int i = 0 ; i < 2; i++){
+				boolean isWrite = i == 0 ? true : false;
+
 				startExperiment("100KByteGranularity/100-overlapping.txt " + level, modelTime);
 				runMPIIOLevelValidationSingleThroughput(level, isWrite,	8,8,cacheLayer, 8, 8, 10240, 100 * KiB, 2000, false, modelTime);
 			}
 		}
-
 		for(int level = 0; level < 4 ; level ++){
 			for(int i = 0 ; i < 2; i++){
 				boolean isWrite = i == 0 ? true : false;
