@@ -20,6 +20,7 @@ import org.junit.Test;
 import de.hd.pvs.TraceFormat.util.Epoch;
 import de.hd.pvs.piosim.model.ModelBuilder;
 import de.hd.pvs.piosim.model.components.ClientProcess.ClientProcess;
+import de.hd.pvs.piosim.model.components.IOSubsystem.IOSubsystem;
 import de.hd.pvs.piosim.model.components.IOSubsystem.RefinedDiskModel;
 import de.hd.pvs.piosim.model.components.NIC.NIC;
 import de.hd.pvs.piosim.model.components.NetworkEdge.NetworkEdge;
@@ -70,11 +71,15 @@ public class Validation  extends ModelTest {
 
 	enum MPIImplementations{
 		MPICH2,
+		MPICH2_FLUSH,
 		SYNC_VIRTUALLY,
+		NO_IO,
 		NO_OP
 	};
 
 	MPIImplementations useMPIImplementations = MPIImplementations.MPICH2;
+
+	IOSubsystem usedDisk = IOC.PVSDisk();
 
 
 
@@ -247,8 +252,7 @@ public class Validation  extends ModelTest {
 			// the cluster nodes
 			ArrayList<NetworkNode> nodes = new ArrayList<NetworkNode>();
 
-			// server configuration TODO
-			final IOServerCreator ios = new IOServerCreator(IOC.PVSServer(), IOC.PVSDisk(), cacheLayer); //ShmTmpfs PVSDisk
+			final IOServerCreator ios = new IOServerCreator(IOC.PVSServer(), usedDisk, cacheLayer);
 
 			// create client only nodes:
 			for(int i = 0; i < processNodes - overlappingServerCount ; i++){
@@ -408,6 +412,25 @@ public class Validation  extends ModelTest {
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filereadall"),  "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
 			break;
 
+		case MPICH2_FLUSH:
+			// default values, but flush data upon close
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.ReduceBroadcast");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BarrierMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");
+
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("ReduceScatter"), "de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
+
+
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), "de.hd.pvs.piosim.simulator.program.FileClose.FlushClose");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileopen"),  "de.hd.pvs.piosim.simulator.program.FileOpen.BroadcastOpen");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filewriteall"),  "de.hd.pvs.piosim.simulator.program.Filewriteall.TwoPhase");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filereadall"),  "de.hd.pvs.piosim.simulator.program.Filereadall.TwoPhase");
+			break;
+
 		case SYNC_VIRTUALLY:
 			// for the critical path
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Global.VirtualSync");
@@ -422,10 +445,10 @@ public class Validation  extends ModelTest {
 
 
 			// close without doing anything
-			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), nop);
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileopen"),  "de.hd.pvs.piosim.simulator.program.Global.VirtualSyncIORequest");
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filewriteall"),  "de.hd.pvs.piosim.simulator.program.Global.VirtualSyncIORequest");
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filereadall"),  "de.hd.pvs.piosim.simulator.program.Global.VirtualSyncIORequest");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), nop);
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filewrite"),  nop);
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileread"),  nop);
 
@@ -433,6 +456,26 @@ public class Validation  extends ModelTest {
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Send"),  "de.hd.pvs.piosim.simulator.program.SendReceive.Virtual.VirtualSend");
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Recv"),  "de.hd.pvs.piosim.simulator.program.SendReceive.Virtual.VirtualRcv");
 			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Sendrecv"),  "de.hd.pvs.piosim.simulator.program.SendReceive.Rendezvous.RendezvousSendrecv");
+
+			break;
+
+		case NO_IO:
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allreduce"), "de.hd.pvs.piosim.simulator.program.Allreduce.ReduceBroadcast");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Allgather"), "de.hd.pvs.piosim.simulator.program.Allgather.AllgatherMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Barrier"), "de.hd.pvs.piosim.simulator.program.Barrier.BarrierMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Reduce"), "de.hd.pvs.piosim.simulator.program.Reduce.ReduceScatterGatherMPICH2");
+
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Gather"), "de.hd.pvs.piosim.simulator.program.Gather.GatherMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Scatter"), "de.hd.pvs.piosim.simulator.program.Scatter.ScatterMPICH2");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("ReduceScatter"), "de.hd.pvs.piosim.simulator.program.ReduceScatter.ReduceScatterPowerOfTwo");
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BroadcastScatterGatherall");
+
+
+			// close without doing anything
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileclose"), nop);
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Filewrite"),  nop);
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileread"),  nop);
+			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Fileopen"),  nop);
 
 			break;
 
@@ -710,10 +753,10 @@ public class Validation  extends ModelTest {
 
 
 	@Test public void bcastTest() throws Exception{
-		setupWrCluster(4, 4);
+		setupWrCluster(8, 8);
 		mb.getGlobalSettings().setMaxEagerSendSize(100 * KiB);
 		mb.getGlobalSettings().setTransferGranularity(512);
-		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed");
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTreeNotMultiplexed"); // BinaryTreeSimpleBlockwise BinaryTreeNotMultiplexed
 		parameters.setTraceFile("/tmp/bcast");
 
 		parameters.setTraceEnabled(true);
@@ -721,7 +764,7 @@ public class Validation  extends ModelTest {
 		parameters.setTraceClientSteps(true);
 
 
-		pb.addBroadcast(world,0, 10240);
+		pb.addBroadcast(world,0, 10*MiB);
 
 		runSimulationAllExpectedToFinish();
 	}
@@ -1862,9 +1905,22 @@ public class Validation  extends ModelTest {
 		String which = "/7000-NS-NC-NProc-Var-Unlimited/N5-P1-C5-P5-S0-RAM17800/23220.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
 		which = "/1000-2S-NC-NProc-1000M-shm/N5-P1-C3-P3-S2-RAM10000/23094.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
 		which = "/1000-2S-1C-NProc-150M/N3-P1-C1-P4-S2-RAM150/22939.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+		which = "/100-0S-NC-NProc-Unlimited/N5-P1-C5-P5-S0-RAM17800/25839.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+		which = "/7000-NS-NC-NProc-Var-Unlimited/N5-P1-C5-P5-S0-RAM17800/23220.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+		which = "/1000-2S-NC-NProc-1000M-shm/N6-P1-C4-P4-S2-RAM10000/23096.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
 
-		runPartdiffParExperiment(which, null, true);
+		which = "/7000-NS-NC-NProc-Var-Unlimited/N5-P1-C5-P5-S5-RAM17800/22904.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+		//which = "/1000-2S-NC-NProc-150M/N4-P1-C2-P2-S2-RAM150/23139.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+
+		//useMPIImplementations = useMPIImplementations.MPICH2;
+		useMPIImplementations = useMPIImplementations.MPICH2_FLUSH;
+
+		BufferedWriter output = new BufferedWriter(new FileWriter("/tmp/x.txt"));
+
+		runPartdiffParExperiment(which, output, true);
 	}
+
+
 
 
 
@@ -2142,7 +2198,7 @@ public class Validation  extends ModelTest {
 
 
 
-	final String projectsPath = "/home/julian/Dokumente/Dissertation/Latex/results/tests/Jacobi-MPI";
+	final String projectsPath = "/mnt/diss/Jacobi-MPI";
 
 	// test cases run on the WR cluster
 	@Test
@@ -2308,7 +2364,8 @@ public class Validation  extends ModelTest {
 
 
 	public void runPartdiffParExperiment(String projectLocal, BufferedWriter output, boolean trace) throws Exception{
-		String config = projectLocal.split("/")[2];
+		String parts [] = projectLocal.split("/");
+		String config = parts[2];
 
 		if(output == null){
 			output = new BufferedWriter(new FileWriter("/tmp/partdiff.txt"));
@@ -2316,6 +2373,23 @@ public class Validation  extends ModelTest {
 
 
 		// N6-P1-C6-P6-S6-RAM16500
+		if ( projectLocal.contains("-shm/") ){
+			System.out.println("WARNING using TMPFS!!!");
+			usedDisk = IOC.ShmTmpfs();
+		}else{
+			usedDisk = IOC.PVSDisk();
+		}
+
+
+		Pattern p2 = Pattern.compile("([0-9]*)-.*");
+		Matcher m2 = p2.matcher(parts[1]);
+
+		if (! m2.matches()) {
+			throw new IllegalArgumentException("Matrix size could not be determined " + parts[1]);
+		}
+
+		int matrixSize = Integer.parseInt(m2.group(1));
+
 		Pattern p = Pattern.compile("N([0-9]*)-P([0-9]+)-C([0-9]+)-P([0-9]+)-S([0-9]+)-RAM([0-9]+)");
 		Matcher m = p.matcher(config);
 		if(! m.matches()){
@@ -2327,7 +2401,7 @@ public class Validation  extends ModelTest {
 		final int clientNodes = Integer.parseInt(m.group(3));
 		final int processes = Integer.parseInt(m.group(4));
 		final int servers = Integer.parseInt(m.group(5));
-		int ram = Integer.parseInt(m.group(6));
+		int ram = Integer.parseInt(m.group(6)) - 100; // 100 MiB for the Linux system are subtracted
 
 		if (ram > 11500) ram = 11500;
 
@@ -2339,6 +2413,18 @@ public class Validation  extends ModelTest {
 
 		if(servers + clientNodes > nodes){
 			overlapping = clientNodes + servers - nodes;
+
+			if (overlapping != clientNodes){
+				System.out.println("Error experiment does not make sense: " + overlapping + " " + clientNodes);
+				output.write("Error experiment does not make sense: " + overlapping + " " + clientNodes + "\n");
+				return;
+			}
+
+			// change amount of memory to account for the matrix size
+			int matrixMemory = (int) ((((long) matrixSize) * matrixSize) * 8*8*8*2  / 1024 / 1024 / processes);
+			ram = ram - matrixMemory;
+
+			System.out.println("Amount of memory needed for the matrix " + matrixMemory + " memFree: " + ram );
 		}else{
 			overlapping = 0;
 		}
@@ -2350,7 +2436,7 @@ public class Validation  extends ModelTest {
 		//parameters.setTraceClientSteps(true);
 		//parameters.setTraceInternals(true);
 		//parameters.setTraceClientNestingOperations(true);
-		parameters.setTraceServers(false);
+		parameters.setTraceServers(true);
 
 		final String project = projectsPath + "/" + projectLocal;
 
@@ -2380,7 +2466,7 @@ public class Validation  extends ModelTest {
 	public void runPartdiffParExperiments() throws Exception{
 		final BufferedReader projectsToRun = new BufferedReader(new FileReader(projectsPath + "/projects.txt"));
 
-		useMPIImplementations = MPIImplementations.SYNC_VIRTUALLY;
+		useMPIImplementations = MPIImplementations.MPICH2;
 
 		BufferedWriter output = new BufferedWriter(new FileWriter("/tmp/partdiff.txt"));
 
@@ -2396,6 +2482,11 @@ public class Validation  extends ModelTest {
 			final String project = projectsPath + "/" + projectLocal;
 
 			i++;
+
+			if(i < 398){
+				continue;
+			}
+
 
 			System.out.println(i + " " + projectLocal);
 			output.write(i + " " + project + "\n");

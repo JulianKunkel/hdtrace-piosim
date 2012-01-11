@@ -123,6 +123,7 @@ public class ValidationIO extends Validation {
 	}
 
 	void runMPIIOLevelValidationSingleSimple(int level, boolean write, int clients, int servers, ServerCacheLayer cacheLayer, int processes, int overlapping, int repeats, long size, long ramSize, boolean tracing, BufferedWriter modelTime) throws Exception{
+
 		setupWrCluster(2, false , false, false, true, clients, processes,
 				overlapping, servers, cacheLayer, ramSize);
 
@@ -131,6 +132,7 @@ public class ValidationIO extends Validation {
 
 		parameters.setTraceFile("/tmp/io-level" + level + (write ? "WRITE" : "READ"));
 		parameters.setTraceEnabled(tracing);
+		parameters.setTraceServers(true);
 
 		SimpleStripe dist = new SimpleStripe();
 		dist.setChunkSize(64 * KiB);
@@ -237,7 +239,7 @@ public class ValidationIO extends Validation {
 	@Test public void OneGiGFileAccessTrace1() throws Exception{
 		// Similar behavior to TenGiGFileAccessTrace but with smaller amounts of data.
 		BufferedWriter modelTime = new BufferedWriter(new FileWriter("/tmp/io-modelTime.txt"));
-		runMPIIOLevelValidationSingleThroughput(0, true, 1, 1, IOC.AggregationReorderCache(),	3, 0, 1, 100 * MiB, 10000, true, modelTime);
+		runMPIIOLevelValidationSingleThroughput(0, true, 2, 2, IOC.AggregationReorderCache(),	2, 0, 1, 1000 * MiB, 100, true, modelTime);
 	}
 
 
