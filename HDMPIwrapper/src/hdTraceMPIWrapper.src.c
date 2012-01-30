@@ -91,7 +91,7 @@ static PowerTrace *ptStatistics = NULL;
 #endif
 
 #ifdef ENABLE_SOTRACER
-#include "sotracer.h"
+//#include "sotracer.h"
 
 #warning "Using soTracer"
 
@@ -109,6 +109,8 @@ static int mpiTracingStarted = 0;
 static int mpiTracingEnabledManually = 0;
 
 static int mpiTraceNesting = 0;
+
+static __thread int mpiTracingInternallyDisabled = 0;
 
 /**
  * This is a global variable that regulates whether all functions listed in
@@ -207,10 +209,12 @@ int hdMPI_threadDisableTracing(){
 
 void hdMPI_threadLogStateStart(const char * stateName){
   mpiTraceNesting++;
-  
+
+  if(mpiTracingInternallyDisabled) return;
+
   if( ! mpiTracingStarted) // during hdMPI_PrepareTracing no trace information shall be recorded
     return;
-  
+
 
   if(mpiTraceNesting == 1){
     if(throttle_cycle_length > 0){
@@ -226,17 +230,13 @@ void hdMPI_threadLogStateStart(const char * stateName){
       }
     }
 
-#ifdef ENABLE_LIKWID_HDTRACE      
+#ifdef ENABLE_LIKWID_HDTRACE
     if(enable_likwid){
     hdLikwidResults results;
     memset(& results, 0, sizeof(results));
-  
-#ifdef ENABLE_SOTRACER
-    // disable SOTRACE to avoid logging of likwid activity
-    if(enable_sotracer){
-      sotracer_disable();
-    }
-#endif
+
+    //Make sure we don't trigger a recursion.
+    mpiTracingInternallyDisabled = 1;	//No need to save the old state, it must be false to be able to reach this point.
 
     hdLikwid_end(& results);
 
@@ -244,44 +244,35 @@ void hdMPI_threadLogStateStart(const char * stateName){
       hdT_logAttributes(hdMPI_getThreadTracefile(), "wallclock=\"%f\" runtime=\"%fs\" ipc=\"%f\" clock=\"%f\" memBandwidth=\"%f\" remReadBW=\"%f\" scalar=\"%f\" packed=\"%f\" sp=\"%f\" dp=\"%f\"", results.wallclocktime, results.runtime, results.IPC, results.clock, results.memBandwidth, results.remReadBW, results.sse_scalar, results.sse_packed, results.sse_sp, results.sse_dp);
     }
     hdT_logStateEnd(hdMPI_getThreadTracefile());
-    
-#ifdef ENABLE_SOTRACER
-    if(enable_sotracer){
-      sotracer_enable();
+
+    mpiTracingInternallyDisabled = 0;	//Reallow tracing.
     }
-#endif
-    }
-#endif // ENABLE LIKWID          
+#endif // ENABLE LIKWID
     }
     hdT_logStateStart(hdMPI_getThreadTracefile(), stateName);
 }
 
-void hdMPI_threadLogStateEnd(void){  
+void hdMPI_threadLogStateEnd(void){
 
   mpiTraceNesting--;
-  
+
+  if(mpiTracingInternallyDisabled) return;
+
   if( ! mpiTracingStarted) // during hdMPI_PrepareTracing no trace information shall be recorded
     return;
-  
+
   hdT_logStateEnd(hdMPI_getThreadTracefile());
-#ifdef ENABLE_LIKWID_HDTRACE        
+#ifdef ENABLE_LIKWID_HDTRACE
   if(mpiTraceNesting == 0 && enable_likwid){
-      hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
-#ifdef ENABLE_SOTRACER
-  // disable SOTRACE to avoid logging of likwid activity
-  if(enable_sotracer){
-    sotracer_disable();
+    hdT_logStateStart(hdMPI_getThreadTracefile(), "ECOMPUTE");
+    // disable SOTRACE to avoid logging of likwid activity
+	mpiTracingInternallyDisabled = 1;	//No need to save the old state, it must be false to be able to reach this point.
+
+    hdLikwid_start();
+
+    mpiTracingInternallyDisabled = 0;
   }
-#endif      
-      hdLikwid_start();
-#ifdef ENABLE_SOTRACER
-  if(enable_sotracer){
-    sotracer_enable();
-  }
-#endif
-      
-  } 
-#endif // ENABLE LIKWID        
+#endif // ENABLE LIKWID
 }
 
 /**
@@ -389,12 +380,7 @@ static long long int getByteOffset(MPI_File v1)
 	return (long long int)real_offset;
 }
 
-static void before_Init()
-{
-#ifdef ENABLE_SOTRACER
-  sotracer_initalize();
-#endif
-}
+static void before_Init() {}
 
 
 /**
@@ -403,7 +389,7 @@ static void before_Init()
  */
 int hdMPI_PrepareTracing(const char * filePrefix){
    if( mpiTracingStarted ) return 1;
-   
+
    hdTrace_init();
 
    trace_file_prefix = strdup(filePrefix);
@@ -418,25 +404,25 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 	throttle_cycle_length = atoi(tmp);
       }
       printf("HDTRACE_THROTTLE_CYCLE_LENGTH: %d\n", throttle_cycle_length);
-      
+
       tmp = getenv("HDTRACE_THROTTLE_STATES_TO_RECORD");
       if (tmp != NULL){
 	throttle_states_to_record = atoi(tmp);
       }
       printf("HDTRACE_THROTTLE_STATES_TO_RECORD: %d\n", throttle_states_to_record);
-      
+
       tmp = getenv("HDTRACE_ENABLE_LIKWID");
       if (tmp != NULL){
 	enable_likwid = atoi(tmp);
       }
       printf("HDTRACE_ENABLE_LIKWID: %d\n", enable_likwid);
-	
+
       tmp = getenv("HDTRACE_ENABLE_SOTRACER");
       if (tmp != NULL){
 	enable_sotracer = atoi(tmp);
       }
       printf("HDTRACE_ENABLE_SOTRACER: %d\n", enable_sotracer);
-      
+
       /* Check parameters */
       if(throttle_cycle_length > 0){
 	if (throttle_states_to_record > throttle_cycle_length){
@@ -675,11 +661,7 @@ int hdMPI_PrepareTracing(const char * filePrefix){
 	}
   #endif
 
-  #ifdef ENABLE_SOTRACER
-  if(enable_sotracer){
-    sotracer_enable();
-  }
-  #endif
+  mpiTracingInternallyDisabled = 0;	//Restart tracing if it was stopped by hdMPI_FinalizeTracing().
 
   hdMPI_threadEnableTracing();
 
@@ -697,9 +679,7 @@ int hdMPI_FinalizeTracing(){
     // ensure that we will not trace anything from MPI any more.
   hdT_disableTrace(hdMPI_getThreadTracefile());
 
-#ifdef ENABLE_SOTRACER
-  sotracer_finalize();
-#endif
+  mpiTracingInternallyDisabled = 1;	//Ignore all further logging attempts.
 
 	hdMPI_threadFinalizeTracing();
 
