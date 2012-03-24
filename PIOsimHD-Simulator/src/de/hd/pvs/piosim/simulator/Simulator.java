@@ -522,6 +522,10 @@ public final class Simulator implements IModelToSimulatorMapper {
 			}
 		}
 
+		// compute real time spent for simulation:
+		long diffTime = (new Date().getTime() - sTime);
+
+
 		final HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap = new HashMap<ComponentIdentifier, ComponentRuntimeInformation>();
 
 		for (ISPassiveComponent component : getSortedList(getExistingSimulationObjects()
@@ -546,9 +550,6 @@ public final class Simulator implements IModelToSimulatorMapper {
 		// for (Integer id: mapIDEventCount.keySet()){
 		// System.out.println(id + " " + mapIDEventCount.get(id));
 		// }
-
-		// compute real time spent for simulation:
-		long diffTime = (new Date().getTime() - sTime);
 
 		traceWriter.finalize(getExistingSimulationObjects().values());
 
