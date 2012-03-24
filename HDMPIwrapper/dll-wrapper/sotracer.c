@@ -47,9 +47,11 @@ static int initalized_tracing = 0;
 // ensures that we will never nest calls.
 static __thread int isNested = 0;
 
+static void sotracer_initalize(void);
+
 PYTHON_ADD_FUNCTIONS
 
-void sotracer_initalize(void){
+static void sotracer_initalize(void){
   void * dllFile;
   void * symbol;
 
@@ -90,24 +92,9 @@ void sotracer_initalize(void){
   OPEN_DLL(GLIBCLIB);
   ADD_SYMBOL(write);
   **/
+
+  started_tracing = 1;
 #undef ADD_SYMBOL
 #undef OPEN_DLL
 }
-
-void sotracer_disable(){
-  started_tracing = 0;
-}
-
-void sotracer_enable(){
-  started_tracing = 1;
-}
-
-void sotracer_finalize(){
-  sotracer_disable();
-}
-
-void sotracer_initalize_ () __attribute__ ((weak, alias ("sotracer_initalize")));
-void sotracer_initalize__ () __attribute__ ((weak, alias ("sotracer_initalize")));
-void sotracer_finalize_ () __attribute__ ((weak, alias ("sotracer_initalize")));
-void sotracer_finalize__ () __attribute__ ((weak, alias ("sotracer_finalize")));
 
