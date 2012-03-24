@@ -17,6 +17,7 @@ import de.hd.pvs.piosim.simulator.network.MessagePart;
 
 /**
  * This class uses one fixed route with the smallest number of hops.
+ * It keeps the route for every neighboring node.
  *
  * @author julian
  *

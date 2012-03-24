@@ -37,6 +37,7 @@ import de.hd.pvs.piosim.model.inputOutput.FileMetadata;
 import de.hd.pvs.piosim.model.inputOutput.distribution.SimpleStripe;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute;
 import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoutingAlgorithm;
+import de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketSymmetricHierarchicalRoute;
 import de.hd.pvs.piosim.model.program.Application;
 import de.hd.pvs.piosim.model.program.ApplicationBuilder;
 import de.hd.pvs.piosim.model.program.ApplicationXMLReader;
@@ -231,7 +232,7 @@ public class Validation  extends ModelTest {
 
 		final HardwareConfiguration config = new ClusterT(processNodes, interNodeEdge ,NetworkNodesC.GIGSwitch(), smtNodeT);
 
-		PaketRoutingAlgorithm routingAlgorithm = new PaketFirstRoute();
+		PaketRoutingAlgorithm routingAlgorithm = new PaketSymmetricHierarchicalRoute();
 		mb = new ModelBuilder();
 		topology = mb.createTopology("LAN");
 		topology.setRoutingAlgorithm(routingAlgorithm);

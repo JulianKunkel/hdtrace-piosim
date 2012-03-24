@@ -37,6 +37,8 @@ de.hd.pvs.piosim.model.components.NetworkNode.StoreForwardMemoryNode = de.hd.pvs
 +PaketRoutingAlgorithm
 de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketFirstRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketFirstRoute
 de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketRoundRobinRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketRoundRobinRoute
+de.hd.pvs.piosim.model.networkTopology.RoutingAlgorithm.PaketSymmetricHierarchicalRoute = de.hd.pvs.piosim.simulator.network.routing.GPaketSymmetricHierarchicalRoute
+
 
 +NIC
 de.hd.pvs.piosim.model.components.NIC.NIC = de.hd.pvs.piosim.simulator.components.NIC.GProcessNetworkInterface
