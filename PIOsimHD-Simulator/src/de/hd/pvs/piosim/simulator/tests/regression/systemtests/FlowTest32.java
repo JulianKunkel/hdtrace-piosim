@@ -14,7 +14,7 @@ import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.HardwareConfiguration;
 
-public class FlowTest extends ModelTest{
+public class FlowTest32 extends ModelTest{
 
 	@Override
 	protected void postSetup() {

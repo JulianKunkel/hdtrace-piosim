@@ -1,0 +1,8 @@
+Main-Class: de.hd.pvs.piosim.simulator.tests.regression.systemtests.SimulatorScalabilityTest
+Class-Path: HDTraceFormat.jar piosimhd-model.jar log4j-1.2.15.jar TAU_tf.jar junit-4.5.jar
+
+Name: de
+Implementation-Title: de
+Implementation-Version: build1
+Implementation-Vendor: Julian M .Kunkel
+Sealed: true 

@@ -1595,7 +1595,7 @@ public class Validation  extends ModelTest {
 		runSimulationAllExpectedToFinish();
 	}
 
-	private void printTiming(String header, double[] times) throws IOException{
+	protected void printTiming(String header, double[] times) throws IOException{
 		final FileWriter fo = new FileWriter("/tmp/timing-" + this.getClass().getSimpleName() + ".txt", true);
 
 		fo.write(header + " timing:\n");
@@ -1609,39 +1609,6 @@ public class Validation  extends ModelTest {
 		}
 		fo.write("\n");
 		fo.close();
-	}
-
-	@Test public void bcastTestScalability() throws Exception{
-		final int max = 12;
-		double [] times = new double[max];
-		double [] simTimes = new double[max];
-		double [] modelBuildTimes = new double[max];
-
-		int count = 1;
-		for(int i=1; i < max; i++){
-			long sTime, setupSystemTime;
-			sTime = new Date().getTime();
-
-			setupWrCluster(1, false, false, false, true, count,count,0,0, null, 10000);
-			//model.getGlobalSettings().setTransferGranularity(100 * MiB);
-
-			mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree");
-
-			pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 100 * MiB);
-
-			setupSystemTime = (new Date().getTime() - sTime);
-
-			runSimulationAllExpectedToFinish();
-			times[i] = sim.getVirtualTime().getDouble();
-			simTimes[i] = simRes.getWallClockTime();
-			modelBuildTimes[i] = setupSystemTime / 1000.0;
-
-			count = count*2;
-		}
-
-		printTiming("Broadcast VirtualTime", times);
-		printTiming("Broadcast ModelBuildTime", modelBuildTimes);
-		printTiming("Broadcast SimTime", simTimes);
 	}
 
 	@Test public void sendAndRecvEagerTestSMP() throws Exception{
@@ -1911,9 +1878,10 @@ public class Validation  extends ModelTest {
 
 		which = "/7000-NS-NC-NProc-Var-Unlimited/N5-P1-C5-P5-S5-RAM17800/22904.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
 		//which = "/1000-2S-NC-NProc-150M/N4-P1-C2-P2-S2-RAM150/23139.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
+		which = "/1000-2S-1C-NProc-150M/N3-P1-C1-P1-S2-RAM150/22947.cluster.wr.informatik.uni-hamburg.de/partdiff-par.proj";
 
 		//useMPIImplementations = useMPIImplementations.MPICH2;
-		useMPIImplementations = useMPIImplementations.MPICH2_FLUSH;
+		useMPIImplementations = useMPIImplementations.MPICH2;
 
 		BufferedWriter output = new BufferedWriter(new FileWriter("/tmp/x.txt"));
 

@@ -375,7 +375,7 @@ public class GClientProcess
 
 			runtimeInformation.endTime = getSimulator().getVirtualTime();
 
-			info("finished");
+			//info("finished");
 		}
 	}
 
@@ -711,8 +711,7 @@ public class GClientProcess
 	@Override
 	public void processInternalEvent(InternalEvent event, Epoch time) {
 		assert(time.equals(time.ZERO));
-		info("uses Program: \"" + clientProgram.getApplication().getApplicationName() + "\" alias: \"" +
-				clientProgram.getApplication().getAlias() + "\" rank " + getModelComponent().getRank());
+		//info("uses Program: \"" + clientProgram.getApplication().getApplicationName() + "\" alias: \"" +	clientProgram.getApplication().getAlias() + "\" rank " + getModelComponent().getRank());
 		processNextCommands();
 	}
 

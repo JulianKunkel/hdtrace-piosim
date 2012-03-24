@@ -247,8 +247,8 @@ public class CollectivePerformanceTest extends ModelTest{
 
 	public static void main(String[] args) throws Exception {
 		CollectivePerformanceTest t = new CollectivePerformanceTest();
-		final long MByte = t.MBYTE;
-		final long KByte = t.KBYTE;
+		final long MByte = t.MiB;
+		final long KByte = t.KiB;
 
 		//t.reduceDJVisualization(8, 100*MByte);
 		//t.bcastDJVisualization(8, 100*MByte);

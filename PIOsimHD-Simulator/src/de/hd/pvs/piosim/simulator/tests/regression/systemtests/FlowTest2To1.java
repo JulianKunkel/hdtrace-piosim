@@ -14,7 +14,7 @@ import de.hd.pvs.piosim.model.components.Node.Node;
 import de.hd.pvs.piosim.model.networkTopology.INetworkTopology;
 import de.hd.pvs.piosim.simulator.tests.regression.systemtests.topologies.HardwareConfiguration;
 
-public class FlowTest extends ModelTest{
+public class FlowTest2To1 extends ModelTest{
 
 	@Override
 	protected void postSetup() {
@@ -47,7 +47,7 @@ public class FlowTest extends ModelTest{
 
 			slowEdge.setName("slowEdge");
 			slowEdge.setLatency(new Epoch(0.1));
-			slowEdge.setBandwidth(10*MiB);
+			slowEdge.setBandwidth(70*MiB);
 
 			// Add those instances to the template library.
 			mb.addTemplateIf(node);
@@ -62,26 +62,11 @@ public class FlowTest extends ModelTest{
 			nodeA.setName("node");
 			mb.addNetworkNode(nodeA);
 
-			// Create the node to Y from the same template.
-			final NetworkNode nodeToY = mb.cloneFromTemplate(fastNode);
-			nodeToY.setName("nodeToY");
-			mb.addNetworkNode(nodeToY);
-
-			// Create the interconnect between those two nodes.
-			{
-			NetworkEdge e1 = mb.cloneFromTemplate(fastEdge);
-			NetworkEdge e2 = mb.cloneFromTemplate(fastEdge);
-
-			mb.connect(topology, nodeA, e1, nodeToY);
-			mb.connect(topology, nodeToY, e2, nodeA);
-			}
-
-
 			// Add all the clients and interconnect them.
 			// An array encodes the processes' names.
 			final String [] names = {"A", "B", "C", "Y", "Z"};
 
-			for(int i=0; i < 5; i++){
+			for(int i=0; i < 4; i++){
 			  // Instantiate the NIC for the client.
 			  NIC nm = mb.cloneFromTemplate(nic);
 			  nm.setName(names[i]);
@@ -99,13 +84,8 @@ public class FlowTest extends ModelTest{
 			  mb.addNode(n);
 			  mb.addClient(n, c);
 
-			  if(i == 3){
+			  if(i == 1){
 			  // Interconnect node Y.
-				  NetworkEdge e1 = mb.cloneFromTemplate(slowEdge);
-				  NetworkEdge e2 = mb.cloneFromTemplate(slowEdge);
-				  mb.connect(topology, nm, e1, nodeToY);
-				  mb.connect(topology, nodeToY, e2, nm);
-			  }else if (i == 1){
 				  NetworkEdge e1 = mb.cloneFromTemplate(slowEdge);
 				  NetworkEdge e2 = mb.cloneFromTemplate(slowEdge);
 				  mb.connect(topology, nm, e1, nodeA);
@@ -135,30 +115,16 @@ public class FlowTest extends ModelTest{
 		parameters.setTraceFile("/tmp/three");
 		parameters.setTraceEnabled(true);
 		parameters.setTraceInternals(true);
-
 		parameters.setTraceClientSteps(true);
 		parameters.setTraceClientNestingOperations(true);
+
 		// setup the commands
 
-		for(int i=0; i < 3; i++){
-			for(int t=3; t < 5; t++){
-				pb.addSend(world, i, t, 100*MiB, 0);
-				pb.setLastCommandAsynchronous(i);
+		pb.addSend(world, 0, 3, 100*MiB, 0);
+		pb.addRecv(world, 0, 3, 0);
 
-				pb.addRecv(world, i, t, 0);
-				pb.setLastCommandAsynchronous(t);
-			}
-		}
-
-
-		for(int t=0; t < 5; t++){
-			pb.addWaitAll(t);
-		}
-
-		pb.addBarrier(world);
-
-//		pb.addSend(world, 0, 3, 1010*KiB, 0);
-		//pb.addRecv(world, 0, 3, 0);
+		pb.addSend(world, 1, 3, 100*MiB, 0);
+		pb.addRecv(world, 1, 3, 0);
 
 
 		runSimulationAllExpectedToFinish();

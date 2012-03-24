@@ -51,6 +51,8 @@ for F in $SIMF_LIBFILES ; do
 	cp $SIMF/$F $TARGET/lib/
 done
 
+cp -r $SIMF/loggerDefinitionFiles  $TARGET/lib/
+
 for F in $ROOTFILES_LIB ; do
 	cp $MODELF/$F $TARGET/lib/
 done
@@ -67,6 +69,10 @@ JAR piosimhd-model     model.mf       $MODELF  #"-C ../ images"
 
 echo "Creating simulator package" 
 JAR piosimhd-simulator simulator.mf  $SIMF # "-C ../ lib"
+
+echo "Creating simulator package for scalabilityTest" 
+
+JAR piosimhd-scalability scalabilitytest.mf  $SIMF # "-C ../ lib"
 
 echo "Creating trace converter package"
 JAR trace-converter trace-converter.mf  $TRACECONVERTERF # "-C ../ lib"
