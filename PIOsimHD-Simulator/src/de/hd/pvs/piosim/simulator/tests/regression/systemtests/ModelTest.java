@@ -22,6 +22,8 @@
 //	along with PIOsimHD.  If not, see <http://www.gnu.org/licenses/>.
 package de.hd.pvs.piosim.simulator.tests.regression.systemtests;
 
+import java.util.Date;
+
 import junit.framework.Assert;
 import junit.framework.TestSuite;
 
@@ -145,6 +147,8 @@ abstract public class ModelTest extends TestSuite {
 		// TESTING
 
 		// parameters.setTraceInternals(false);
+
+		long sTime = new Date().getTime();
 
 		sim = new Simulator();
 		sim.initModel(model, parameters);

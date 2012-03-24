@@ -5,10 +5,13 @@ import java.util.Date;
 import org.junit.Test;
 
 import de.hd.pvs.piosim.model.dynamicMapper.CommandType;
+import de.hd.pvs.piosim.simulator.SimulationResultSerializer;
+import de.hd.pvs.piosim.simulator.Simulator;
 
 public class SimulatorScalabilityTest extends Validation{
 
 	double setupTime;
+	double simInitTime;
 
 	/**
 	 * @return model creation time
@@ -30,7 +33,22 @@ public class SimulatorScalabilityTest extends Validation{
 
 			setupSystemTime = (new Date().getTime() - sTime);
 
-			runSimulationAllExpectedToFinish();
+
+			sTime = new Date().getTime();
+			sim = new Simulator();
+			sim.initModel(model, parameters);
+			simRes = sim.simulate();
+
+			simInitTime = (new Date().getTime() - sTime) / 1024.0;
+
+			final SimulationResultSerializer serializer = new SimulationResultSerializer();
+			System.out.println(serializer.serializeResults(simRes));
+
+			if(simRes.isErrorDuringProcessing()){
+				throw new IllegalArgumentException("Errors occured during processing");
+			}
+
+
 			setupTime = setupSystemTime / 1024.0;
 	}
 
@@ -58,7 +76,7 @@ public class SimulatorScalabilityTest extends Validation{
 	}
 
 	void printTiming(){
-		System.out.println("VirtualTime: " + sim.getVirtualTime().getDouble() + " WallClockTime:" + simRes.getWallClockTime() + " ModelBuildTime:" + setupTime );
+		System.out.println("VirtualTime: " + sim.getVirtualTime().getDouble() + " WallClockTime:" + simRes.getWallClockTime() + " ModelBuildTime:" + setupTime  + " ModelSimInitTime:" + simInitTime);
 	}
 
 	public static void main(String[] args) throws Exception{
