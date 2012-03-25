@@ -6,7 +6,7 @@ source `dirname $0`/../path.rc || exit 1
 
 cd `dirname $0`
 
-VERSION=$(head -n 1 $MAINTF/dist/roottxt/VERSION)
+VERSION=$(head -n 1 $MAINTF/dist/roottxt/VERSION)-`date -I`-`git branch -v|cut -d " " -f 3`
 TARGET=/tmp/PIOsimHD-Bin-$VERSION
 
 SIMF_LIBFILES="CommandToSimulationMapper.txt  ModelToSimulationMapper.txt TraceEntryNameToCommandMapping.txt"

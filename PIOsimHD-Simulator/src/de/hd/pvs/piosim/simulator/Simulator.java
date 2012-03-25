@@ -267,8 +267,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 		}
 
 		// notify all components that the model is now build
-		for (ISPassiveComponent component : getSortedList(getExistingSimulationObjects()
-				.values())) {
+		for (ISPassiveComponent component : getExistingSimulationObjects().values()) {
 			component.simulationModelIsBuild();
 		}
 	}
@@ -528,8 +527,7 @@ public final class Simulator implements IModelToSimulatorMapper {
 
 		final HashMap<ComponentIdentifier, ComponentRuntimeInformation> idtoRuntimeInformationMap = new HashMap<ComponentIdentifier, ComponentRuntimeInformation>();
 
-		for (ISPassiveComponent component : getSortedList(getExistingSimulationObjects()
-				.values())) {
+		for (ISPassiveComponent component : getExistingSimulationObjects().values()) {
 			Integer count = mapIDEventCount.get(component.getIdentifier()
 					.getID());
 			if (count != null) {

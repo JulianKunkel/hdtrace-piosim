@@ -33,13 +33,12 @@ public class SimulatorScalabilityTest extends Validation{
 
 			setupSystemTime = (new Date().getTime() - sTime);
 
-
-			sTime = new Date().getTime();
 			sim = new Simulator();
+			sTime = new Date().getTime();
 			sim.initModel(model, parameters);
-			simRes = sim.simulate();
-
 			simInitTime = (new Date().getTime() - sTime) / 1024.0;
+
+			simRes = sim.simulate();
 
 			final SimulationResultSerializer serializer = new SimulationResultSerializer();
 			System.out.println(serializer.serializeResults(simRes));
@@ -51,6 +50,49 @@ public class SimulatorScalabilityTest extends Validation{
 
 			setupTime = setupSystemTime / 1024.0;
 	}
+
+	@Test
+	public void bcastTestScalabilityTrace() throws Exception{
+
+		int processCount = 4;
+		long sTime, setupSystemTime;
+		sTime = new Date().getTime();
+
+		setupWrCluster(1, false, false, false, true, processCount,processCount,0,0, null, 10000);
+		//model.getGlobalSettings().setTransferGranularity(100 * MiB);
+		System.out.println("Model built! " + processCount);
+
+		mb.getGlobalSettings().setClientFunctionImplementation(	new CommandType("Bcast"), "de.hd.pvs.piosim.simulator.program.Bcast.BinaryTree");
+
+		pb.addBroadcast(world, 0, 100 * MiB);
+		// 	pb.addBroadcast(world,  (i - 2 >= 0 ? i -2 : 0), 100 * MiB);
+
+		setupSystemTime = (new Date().getTime() - sTime);
+
+
+		sTime = new Date().getTime();
+		sim = new Simulator();
+		parameters.setTraceEnabled(true);
+		parameters.setTraceClientNestingOperations(true);
+		parameters.setTraceClientSteps(true);
+		parameters.setTraceInternals(true);
+		parameters.setTraceFile("/tmp/out");
+
+		sim.initModel(model, parameters);
+		simRes = sim.simulate();
+
+		simInitTime = (new Date().getTime() - sTime) / 1024.0;
+
+		final SimulationResultSerializer serializer = new SimulationResultSerializer();
+		System.out.println(serializer.serializeResults(simRes));
+
+		if(simRes.isErrorDuringProcessing()){
+			throw new IllegalArgumentException("Errors occured during processing");
+		}
+
+
+		setupTime = setupSystemTime / 1024.0;
+}
 
 
 	@Test public void bcastTestScalability() throws Exception{
