@@ -46,6 +46,7 @@ public class GPaketSymmetricHierarchicalRoute extends AGPaketRouting<PaketFirstR
 		// determine targets == exit nodes
 		final Collection<INetworkExit> exitNodes = networkTopology.getNetworkExitNodes();
 
+
 		// HashTable contains the distance from a node to an exit.
 		final HashMap<INetworkNode, Integer> distanceMap = new HashMap<INetworkNode, Integer>();
 
@@ -54,8 +55,8 @@ public class GPaketSymmetricHierarchicalRoute extends AGPaketRouting<PaketFirstR
 
 		// determine distance with a BFS.
 		{
-			HashSet<INetworkNode> toProcess;
-			HashSet<INetworkNode> toProcessNext = new HashSet<INetworkNode>();
+			LinkedList<INetworkNode> toProcess;
+			LinkedList<INetworkNode> toProcessNext = new LinkedList<INetworkNode>();
 			final HashSet<INetworkNode> processedNodes = new HashSet<INetworkNode>();
 
 			// take any iterator
@@ -64,15 +65,11 @@ public class GPaketSymmetricHierarchicalRoute extends AGPaketRouting<PaketFirstR
 			// do a BFS, count depth
 			while(! toProcessNext.isEmpty()){
 				toProcess = toProcessNext;
-				toProcessNext = new HashSet<INetworkNode>();
+				toProcessNext = new LinkedList<INetworkNode>();
 				graphDepth++;
 
-				while(! toProcess.isEmpty()){
-					final INetworkNode cur = toProcess.iterator().next();
-
+				for(INetworkNode cur: toProcess){
 					distanceMap.put(cur, graphDepth);
-
-					toProcess.remove(cur);
 
 					final LinkedList<INetworkEdge> edges = networkTopology.getEdges(cur);
 					// Check if we find a default route:
@@ -149,22 +146,17 @@ public class GPaketSymmetricHierarchicalRoute extends AGPaketRouting<PaketFirstR
 
 		// start a BFS from all exit nodes.
 		for(INetworkExit exitNode: exitNodes){
-			HashSet<INetworkNode> toProcess;
-			HashSet<INetworkNode> toProcessNext = new HashSet<INetworkNode>();
-			final HashSet<INetworkNode> processedNodes = new HashSet<INetworkNode>();
+			LinkedList<INetworkNode> toProcess;
+			LinkedList<INetworkNode> toProcessNext = new LinkedList<INetworkNode>();
 
 			toProcessNext.add(exitNode);
 
 			// do a BFS
 			while(! toProcessNext.isEmpty()){
 				toProcess = toProcessNext;
-				toProcessNext = new HashSet<INetworkNode>();
+				toProcessNext = new LinkedList<INetworkNode>();
 
-				while(! toProcess.isEmpty()){
-					final INetworkNode cur = toProcess.iterator().next();
-					toProcess.remove(cur);
-
-					processedNodes.add(cur);
+				for(INetworkNode cur : toProcess){
 					// Update routes of all adjacent nodes.
 
 					final LinkedList<INetworkEdge> edgesIn = tgtMap.get(cur);
@@ -179,9 +171,11 @@ public class GPaketSymmetricHierarchicalRoute extends AGPaketRouting<PaketFirstR
 						}
 
 						// not the default route, add this node
-						toProcessNext.add(tgt);
-
 						sourceRoutingTable.detailRouting.put(exitNode, edgeToTarget);
+
+						if (distanceMap.get(tgt) < graphDepth){ // optimization for the last element in the hierarchy
+							toProcessNext.add(tgt);
+						}
 					}
 				}
 			}

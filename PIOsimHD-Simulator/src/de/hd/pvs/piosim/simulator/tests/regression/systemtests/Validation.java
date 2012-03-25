@@ -317,13 +317,15 @@ public class Validation  extends ModelTest {
 		app = aB.getApplication();
 
 		// build a dummy app for all nodes
-		ApplicationBuilder dummy = new ApplicationBuilder("Test", "Test", procsPerSocket * socketCount * processNodes, 1);
-		int cur = 0;
-		for(ClientProcess c : mb.getModel().getClientProcesses()){
-			c.setRank(cur++);
-			c.setApplication("Test");
+		if(socketCount > 1){
+			ApplicationBuilder dummy = new ApplicationBuilder("Test", "Test", procsPerSocket * socketCount * processNodes, 1);
+			int cur = 0;
+			for(ClientProcess c : mb.getModel().getClientProcesses()){
+				c.setRank(cur++);
+				c.setApplication("Test");
+			}
+			mb.setApplication("Test", dummy.getApplication());
 		}
-		mb.setApplication("Test", dummy.getApplication());
 
 		pb = new ProgramBuilder(aB);
 
