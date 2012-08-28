@@ -12,14 +12,6 @@ public abstract class NetworkEdge extends BasicComponent implements INetworkEdge
 		return NetworkEdge.class.getSimpleName();
 	}
 
-	public INetworkTopology getTopology() {
-		return topology;
-	}
-
-	public void setTopology(INetworkTopology topology) {
-		this.topology = topology;
-	}
-
 	public INetworkNode getTargetNode() {
 		return topology.getEdgeTarget(this);
 	}

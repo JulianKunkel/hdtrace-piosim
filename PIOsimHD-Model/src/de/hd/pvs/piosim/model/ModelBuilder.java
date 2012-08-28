@@ -161,11 +161,7 @@ public class ModelBuilder {
 		if(! model.isComponentInModel(tgt)){
 			throw new IllegalArgumentException("Tgt component not part of the model, add it!");
 		}
-		if(via.getTopology() != null){
-			throw new IllegalArgumentException("Edge is already contained in topology: " + via.getTopology().getName());
-		}
 		((NetworkTopology) topology).addEdge(src, via, tgt);
-		via.setTopology(topology);
 	}
 
 	public INetworkTopology createTopology(String name){
