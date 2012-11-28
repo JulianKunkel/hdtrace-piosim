@@ -129,6 +129,11 @@ public class ApplicationXMLReader extends ProjectDescriptionXMLReader {
 			}
 
 			final int rank = Integer.parseInt(parentRank.getName());
+
+			if (rank >= threadNodesPerRank.length){
+				throw new IllegalArgumentException("Application " + filename + "\nThe rank " + rank + " is larger than the number of processes which is " + threadNodesPerRank.length);
+			}
+
 			threadNodesPerRank[rank].add(node);
 		}
 
