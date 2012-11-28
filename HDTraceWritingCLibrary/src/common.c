@@ -225,6 +225,10 @@ ssize_t writeToFile(int fd, void *buf, size_t count, const char *filename)
        void * dllFile = dlopen(GLIBC, RTLD_LAZY);
        if (dllFile == NULL){
            printf("[Error] trace wrapper - dll not found %s\n", GLIBC); 
+           char *errstr;
+           errstr = dlerror();
+           if (errstr != NULL)
+           printf ("A dynamic linking error occurred: (%s)\n", errstr);
            exit(1); 
        }
         my_write = dlsym(dllFile, "write");
