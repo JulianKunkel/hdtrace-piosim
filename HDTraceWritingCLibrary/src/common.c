@@ -30,7 +30,7 @@
 
 #ifdef SOTRACE
 #include <dlfcn.h>
-#define GLIBC "/lib/libc.so.6"
+#define GLIBC "libc.so.6"
 #endif 
 
 struct hdtrace_options hdt_options = {
