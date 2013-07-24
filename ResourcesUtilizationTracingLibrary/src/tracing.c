@@ -444,6 +444,9 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer) {
 	/* are the traces and the device enabled? */
 	int enabled = 0;
 
+	/*  do initial tracing step to determine values*/
+	doTracingStep(tracingData);
+
 	while (1) {
 		INFOMSG("Entering tracing loop");
 
@@ -519,7 +522,6 @@ gpointer tracingThreadFunc(gpointer tracingDataPointer) {
 			/* restart loop to wait for next start */
 			continue;
 		}
-
 		/* wait for next multiple of interval time */
 		currentTime = (gulong) (1000.0 * g_timer_elapsed(timer, NULL));
 
