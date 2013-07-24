@@ -39,7 +39,7 @@
 /**
  * Maximal length of value names
  */
-#define HDS_MAX_VALUE_NAME_LENGTH  20
+#define HDS_MAX_VALUE_NAME_LENGTH  50
 
 /**
  * Maximal length of units
@@ -86,7 +86,7 @@
  * HDS_HEADER_SIZE_LENGTH bytes plus the bytes for the number itself and the
  * separating newline.
  */
-#define HDS_HEADER_BUF_SIZE (10000 -1 + 5 + 1)
+#define HDS_HEADER_BUF_SIZE (100000 -1 + 5 + 1)
 
 
 #endif /* CONFIG_H_ */

@@ -48,6 +48,9 @@ typedef struct {
 	glibtop_mem mem;
 	glibtop_netload *netload;
 	glibtop_fsusage fs;
+
+	/* file system information */
+	guint64 * io_completed [DISKSTAT_COUNT];
 } tracingValuesStruct;
 
 /**
@@ -63,6 +66,10 @@ typedef struct {
 	glibtop_netlist netlist;
 	char **netifs;
 	char *hdd_mountpoint;
+
+	gint block_devices_num;
+	char ** block_devices;
+	gint * block_devices_index; /* the linenumber of the block device in /proc/diskstats */
 } tracingStaticDataStruct;
 
 /**

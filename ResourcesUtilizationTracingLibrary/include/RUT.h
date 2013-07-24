@@ -42,11 +42,13 @@
 /** Maximum number of CPUs supported */
 /* not using GLIBTOP_NCPU here to avoid *
  * dependency from libgtop/cpu.h header */
-#define RUT_MAX_NUM_CPUS 50
+#define RUT_MAX_NUM_CPUS 64
 
 /** Maximum number of network interfaces supported */
 #define RUT_MAX_NUM_NETIFS 8
 /* TODO: Check this somewhere */
+
+#define RUT_MAX_HDD_STATS 40
 
 #ifdef HAVE_DBC
 
@@ -63,8 +65,22 @@
 /** Type definition of utilization trace object */
 typedef struct UtilTrace_s UtilTrace;
 
-#ifdef HAVE_DBC
+enum PROC_DISKSTATS{
+	DISKSTAT_HDD_READ_COMPLETED = 0,
+	DISKSTAT_HDD_READS_MERGED, /* F2 */
+	DISKSTAT_HDD_SECTORS_READ, /* F3 */	
+	DISKSTAT_HDD_MS_SPEND_READING, /* F4 */	
+	DISKSTAT_HDD_WRITES_COMPLETED, /* F5 */	
+	DISKSTAT_HDD_WRITES_MERGE, /* F6 */
+	DISKSTAT_HDD_SECTORS_WRITTEN, /* F7 */	
+	DISKSTAT_HDD_MS_SPEND_WRITING, /* F8 */	
+	DISKSTAT_HDD_IOS_INPROGRESS, /* F9 */	
+	DISKSTAT_HDD_IOS_MS_SPEND, /* F10 */	
+	DISKSTAT_HDD_WEIGHTED_WAITTIME, /* F11 */
+	DISKSTAT_COUNT
+};
 
+#ifdef HAVE_DBC
 /** Type definition of power trace object */
 typedef struct NodePowerTrace_s NodePowerTrace;
 
@@ -108,6 +124,8 @@ struct rutSources_s {
 	unsigned int HDD_READ :1;
 	/** amount of data written to hard disk drives */
 	unsigned int HDD_WRITE :1;
+	/** HDD stats from /proc/diskstats **/
+	unsigned int PROC_HDD_STATS[DISKSTAT_COUNT]; 	
 };
 
 /** Type definition of tracing sources bit field */
@@ -119,9 +137,9 @@ typedef struct rutSources_s rutSources;
 
 /** Maximum number of statistics values traceable */
 #ifdef HAVE_PROCESSORSTATES
-#define RUT_MAX_STATS_VALUES (12 + (3 * RUT_MAX_NUM_CPUS) + 2 * RUT_MAX_NUM_NETIFS)
+#define RUT_MAX_STATS_VALUES (12 + (3 * RUT_MAX_NUM_CPUS) + 2 * RUT_MAX_NUM_NETIFS + RUT_MAX_HDD_STATS * DISKSTAT_COUNT)
 #else
-#define RUT_MAX_STATS_VALUES (12 + RUT_MAX_NUM_CPUS + 2 * RUT_MAX_NUM_NETIFS)
+#define RUT_MAX_STATS_VALUES (12 + RUT_MAX_NUM_CPUS + 2 * RUT_MAX_NUM_NETIFS + RUT_MAX_HDD_STATS * DISKSTAT_COUNT)
 #endif
 
 /** Macro for cleaning all available sources */
@@ -180,10 +198,15 @@ typedef struct rutSources_s rutSources;
 			(sources).NET_OUT = bool; \
 		} while (0)
 
+
 #define RUTSRC_SET_HDD__(sources, bool) \
 	do { \
+		int my_i; \
 		(sources).HDD_READ = bool; \
 		(sources).HDD_WRITE = bool; \
+		for(my_i = 0 ; my_i < DISKSTAT_COUNT ; my_i++){\
+			(sources).PROC_HDD_STATS[my_i] = bool;\
+		}\
 	} while (0)
 
 /** Macro for enabling tracing of all CPU statistics at once */

@@ -15,6 +15,10 @@
 #include <errno.h>
 #include <assert.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "config.h"
 #include "common.h"
 #include "hdStats.h"
@@ -41,6 +45,27 @@ static void doTracingStepCPU(tracingDataStruct *tracingData);
 static void doTracingStepMEM(tracingDataStruct *tracingData);
 static void doTracingStepNET(tracingDataStruct *tracingData);
 static void doTracingStepHDD(tracingDataStruct *tracingData);
+
+static GRegex * disk_regex;
+
+static gchar ** readDiskStats(){
+	char txt [4096*4];
+	int fd = open("/proc/diskstats", O_RDONLY);
+	if (fd < 0){
+		WARNMSG("Could not read from /proc/diskstats\n");
+		return NULL;
+	}	
+	int ret = read(fd, txt, 4096*4 - 1);
+	close(fd);
+
+	if (ret <= 0){
+		WARNMSG("Could not read from /proc/diskstats\n");
+		return NULL;
+	}
+	txt[ret] = 0;
+
+	return g_strsplit(txt, "\n", RUT_MAX_HDD_STATS*3);
+}
 
 /* ************************************************************************* */
 /*                    PUBLIC FUNCTION IMPLEMENTATIONS                        */
@@ -256,7 +281,7 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 	if (sources.NET_OUT)
 		ADD_VALUE(group, "NET_OUT", INT64, NET_UNIT, "NET");
 
-#define HDD_UNIT "B"
+#define HDD_UNIT "Byte"
 
 	// right now read harddisk partition to use from environment
 	char * mountpoint = getenv("RUT_HDD_MOUNTPOINT");
@@ -273,6 +298,97 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 
 	if (sources.HDD_WRITE)
 		ADD_VALUE(group, "HDD_WRITE", INT64, HDD_UNIT, "HDD");
+
+	disk_regex = g_regex_new( " +", 0, 0, NULL );
+
+	// check the available block devices and pick the ones that are interesting
+
+	gchar ** diskstats = readDiskStats();
+	if(diskstats != NULL){
+		// parse input
+		gchar ** curPos = diskstats;
+
+		const gchar * curstr = curPos[0];
+		int count_block_devices = 0;
+		char * block_devices[RUT_MAX_HDD_STATS+1];
+		gint block_devices_index[RUT_MAX_HDD_STATS + 1];
+
+		int line = 0;
+		gchar * lastname = g_strdup("DUMMY_BLOCK_NAME");
+		while(curstr != NULL){
+			//printf("%s \n", curstr);
+			gchar ** entries = g_regex_split(disk_regex, curstr, 0);
+			if(entries[0] != NULL){
+				gchar * name = entries[3];
+				//WARNMSG("%s %s", name, lastname);
+
+				if( strstr(name, lastname) != name ){
+					lastname = g_strdup(name);
+					if ( atoll(entries[4 + DISKSTAT_HDD_WRITES_COMPLETED]) != 0 || atoll(entries[4 + DISKSTAT_HDD_READ_COMPLETED]) != 0){
+						block_devices_index[count_block_devices] = line;
+						block_devices[count_block_devices] = g_strdup(entries[3]);					
+						count_block_devices++;
+					}		
+				}
+			}
+			g_strfreev(entries);
+
+			curstr = *(++curPos);
+			line++;
+		}
+
+		g_strfreev(diskstats);
+
+		tracingData->staticData.block_devices_num = count_block_devices;
+		if(count_block_devices > 0){
+			tracingData->staticData.block_devices = malloc(sizeof(char*) * count_block_devices); 
+			memcpy(tracingData->staticData.block_devices, block_devices, count_block_devices * sizeof(char*));		
+
+			tracingData->staticData.block_devices_index = malloc(sizeof(gint) * count_block_devices);
+			memcpy(tracingData->staticData.block_devices_index, block_devices_index, count_block_devices * sizeof(gint));		
+		}
+
+		//int bd;	
+		//for (bd = 0; bd < tracingData->staticData.block_devices_num ; bd++){
+			//WARNMSG("%d %d %d",  tracingData->staticData.block_devices_index[bd], block_devices_index[bd], count_block_devices);
+		//}
+	}else{
+		tracingData->staticData.block_devices_num = 0;
+	}
+
+	int bd;
+	if (tracingData->staticData.block_devices_num > 0){
+		for(bd=0; bd < DISKSTAT_COUNT ; bd++){
+			if ( tracingData->sources.PROC_HDD_STATS[bd] ){
+				rut_malloc( tracingData->oldValues.io_completed[bd], sizeof(guint) * tracingData->staticData.block_devices_num, -1 );
+			}
+		}
+	}
+
+#define REGISTER_PROC(I, NAME, UNIT, SUBGROUP) 	if ( tracingData->sources.PROC_HDD_STATS[I] ){\
+		char * localname = g_strdup_printf("%s:%s", NAME, name);\
+		ADD_VALUE(group, localname, INT64, UNIT, SUBGROUP);\
+		g_free(localname);\
+	} 
+	for (bd = 0; bd < tracingData->staticData.block_devices_num ; bd++){
+		char * name = tracingData->staticData.block_devices[bd];
+		
+		REGISTER_PROC(0, "READS" , "#" , "BLOCK_ACCESSED")
+		REGISTER_PROC(1, "READS_MERGED", "#" , "BLOCK_MERGED")
+		REGISTER_PROC(2, "READS_SECTORS", "#" , "BLOCK_SECTORS")
+		REGISTER_PROC(3, "READS_TIME_SPEND","ms" , "BLOCK_TIME")
+		REGISTER_PROC(4, "WRITES_COMPLETED", "#" , "BLOCK_ACCESSED")
+		REGISTER_PROC(5, "WRITES_MERGED", "#", "BLOCK_MERGED")
+		REGISTER_PROC(6, "WRITTEN_SECTORS", "#" , "BLOCK_SECTORS")
+		REGISTER_PROC(7, "WRITES_TIME_SPEND", "ms" , "BLOCK_TIME")
+		REGISTER_PROC(8, "IOS_INPROGRESS", "#" , "BLOCK_INPROGRESS")
+		REGISTER_PROC(9, "IOS_TIME_SPEND", "ms", "BLOCK_TIME")
+		REGISTER_PROC(10,"WEIGHTED_WAITTIME" , "ms" , "BLOCK_TIME")
+	
+	}
+
+#undef REGISTER_PROC
+
 
 	/*
 	 * Commit statistics group
@@ -883,27 +999,87 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 	gint64 valuei64;
 	glibtop_fsusage fs;
 
-	glibtop_get_fsusage(&fs, tracingData->staticData.hdd_mountpoint);
+	if (tracingData->sources.HDD_READ || tracingData->sources.HDD_WRITE) {
+		glibtop_get_fsusage(&fs, tracingData->staticData.hdd_mountpoint);
+	}
 
 	if (tracingData->oldValues.valid) {
 		/* TODO check if block size is always 512,
 		 * the reported is the correct one for the file system but not
 		 * the correct factor for the counted blocks		 */
 		if (tracingData->sources.HDD_READ) {
-			valuei64 = (gint64) (/*fs.block_size*/512 * (fs.read
-					- tracingData->oldValues.fs.read));
+			valuei64 = (gint64) (/*fs.block_size*/512 * (fs.read - tracingData->oldValues.fs.read));
 			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("DISK_READ = %" G_GINT64_FORMAT, valuei64);
 		}
 
 		if (tracingData->sources.HDD_WRITE) {
-			valuei64 = (gint64) (/*fs.block_size*/512 * (fs.write
-					- tracingData->oldValues.fs.write));
+			valuei64 = (gint64) (/*fs.block_size*/512 * (fs.write - tracingData->oldValues.fs.write));
 			WRITE_I64_VALUE(tracingData, valuei64);
 			DEBUGMSG("DISK_WRITE = %" G_GINT64_FORMAT, valuei64);
 		}
+	}
+
+
+	// PARSE DATA FROM DISKS
+	
+	// TODO make code more robust, e.g. by counting lines etc.
+	gchar ** diskstats = readDiskStats();
+
+	int bd;	
+
+	// parse input of relevant lines
+	for (bd = 0; bd < tracingData->staticData.block_devices_num ; bd++){
+		int line_in_file = tracingData->staticData.block_devices_index[bd];
+
+		// WARNMSG("%d", line_in_file);
+
+		gchar ** entries = g_regex_split(disk_regex, diskstats[line_in_file], 0);				
+		if(entries[0] == NULL){
+			WARNMSG("Parsing of /proc/diskstats failed");
+			g_strfreev(entries);
+			continue;
+		}
+		gchar * name = entries[3];				
+		if( strcmp(name, tracingData->staticData.block_devices[bd]) != 0 ){
+			WARNMSG("Block device changed line in file: %s %s", name, tracingData->staticData.block_devices[bd]);
+			g_strfreev(entries);
+			continue;
+		}
+
+		int i;
+		//WARNMSG("%s", diskstats[line_in_file]);
+		for(i=0; i < DISKSTAT_COUNT ; i++){
+			if ( tracingData->sources.PROC_HDD_STATS[i] ){
+				guint64 value =  atoll(entries[4 + i]);
+
+				if (tracingData->oldValues.valid) {
+					guint64 reportValue;
+					if( i != DISKSTAT_HDD_IOS_INPROGRESS){
+						if ( value >= tracingData->oldValues.io_completed[i][bd] ){
+							reportValue = value - tracingData->oldValues.io_completed[i][bd];
+						}else{
+							// overflow, TODO check for correct handling...
+							reportValue = 1<<63 - tracingData->oldValues.io_completed[i][bd]  + value;
+						}
+					}else{
+						// DISKSTAT_HDD_IOS_INPROGRESS
+						reportValue = value;
+					}
+
+					WRITE_I64_VALUE(tracingData, reportValue);
+					//WARNMSG("DISK_PROC_VALUE for %s = %" G_GINT64_FORMAT, name , reportValue);
+				}
+
+				tracingData->oldValues.io_completed[i][bd] = value;
+			}
+		}
+
+		g_strfreev(entries);
 
 	}
+	
+	g_strfreev(diskstats);
 	tracingData->oldValues.fs = fs;
 }
 

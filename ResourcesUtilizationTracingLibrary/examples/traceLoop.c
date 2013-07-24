@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction(SIGINT, &act, NULL);
+	unlink("MyProject_host0_Utilization.stat");
 
 	/* create topology */
 
@@ -73,7 +74,6 @@ int main(int argc, char **argv)
 	rutSources mySources;
 	RUTSRC_UNSET_ALL(mySources);
 
-
 	/* set sources */
 	for (int i = 1; i < argc; ++i) {
 		if (strcmp(argv[i], "ALL") == 0)
@@ -86,6 +86,10 @@ int main(int argc, char **argv)
 			RUTSRC_SET_NET(mySources);
 		if (strcmp(argv[i], "HDD") == 0)
 			RUTSRC_SET_HDD(mySources);
+	}
+
+	if(argc == 1){
+		RUTSRC_SET_ALL(mySources);
 	}
 
 	/* create UtilTrace object */

@@ -86,24 +86,24 @@ static void Test_C1(void)
 	TEST_BEGIN("ptl_createTrace: Correct usage");
 
 	UtilTrace *myTrace;
-	ret = rut_createTrace(myTopoNode, 1, mySources, 700, &myTrace);
+	ret = rut_createTrace(myTopoNode, 1, mySources, 100, &myTrace);
 
 	assert(ret == RUT_SUCCESS);
 	assert(myTrace != NULL);
 
-	sleep(2);
+	sleep(1);
 
 	rut_startTracing(myTrace);
 
-	sleep(5);
+	sleep(1);
 
 	rut_stopTracing(myTrace);
 
-	sleep(3);
+	sleep(1);
 
 	rut_startTracing(myTrace);
 
-	sleep(2);
+	sleep(1);
 
 	TEST_PASSED
 
@@ -112,8 +112,7 @@ static void Test_C1(void)
 	hdT_destroyTopoNode(myTopoNode);
 	hdT_destroyTopology(myTopology);
 
-	remove("MyProject_host0_Utilization.stat");
-
+	 // remove("MyProject_host0_Utilization.stat");
 }
 
 
