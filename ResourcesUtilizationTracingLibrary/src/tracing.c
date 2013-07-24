@@ -48,9 +48,9 @@ static void doTracingStepHDD(tracingDataStruct *tracingData);
 
 static GRegex * disk_regex;
 
-static gchar ** readDiskStats(){
+static gchar ** readFileLines(const char * filename){
 	char txt [4096*4];
-	int fd = open("/proc/diskstats", O_RDONLY);
+	int fd = open(filename, O_RDONLY);
 	if (fd < 0){
 		WARNMSG("Could not read from /proc/diskstats\n");
 		return NULL;
@@ -65,6 +65,40 @@ static gchar ** readDiskStats(){
 	txt[ret] = 0;
 
 	return g_strsplit(txt, "\n", RUT_MAX_HDD_STATS*3);
+}
+
+static gchar ** readDiskStats(){
+	return readFileLines("/proc/diskstats");
+}
+
+static gint64 contextSwitches(){
+	static int line = -1;
+	gchar ** lines = readFileLines("/proc/stat");
+	if (line == -1){
+		// determine line starting with "ctxt"
+		int lineNR = 0;
+		while(lines[lineNR] != NULL){
+			if ( strncmp(lines[lineNR], "ctxt ", 5) == 0){
+				line = lineNR;
+				break;
+			}
+			lineNR++; 
+		}
+		if (line == -1){
+			WARNMSG("Could not read context-switches from /proc/stat");
+		}
+	}
+
+	if (line == -1){
+		g_strfreev(lines);
+		return -1;
+	}
+
+	assert(strncmp(lines[line], "ctxt ", 5) == 0);
+	
+	gint64 value = atoll(lines[line] + 5);
+	g_strfreev(lines);
+	return value;
 }
 
 /* ************************************************************************* */
@@ -171,8 +205,14 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 	} while (0)
 
 	/* specify entry format */
-	if (sources.CPU_UTIL)
+	if (sources.CPU_UTIL){
 		ADD_VALUE(group, "CPU_TOTAL", FLOAT, "%", "CPU");
+
+		gint64 val = contextSwitches();
+		if (val != -1){
+			ADD_VALUE(group, "CONTEXT_SWITCHES", INT64, NULL , "#");
+		}
+	}
 
 	if (sources.CPU_UTIL_X)
 		for (int i = 0; i < tracingData->staticData.cpu_num; ++i) {
@@ -388,8 +428,6 @@ tracingDataStruct *tracingData /* pointer to tracing Data */
 	}
 
 #undef REGISTER_PROC
-
-
 	/*
 	 * Commit statistics group
 	 */
@@ -667,6 +705,8 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 
 	glibtop_get_cpu(&cpu);
 
+	gint64 contextSwitcheNum = contextSwitches();
+
 	if (tracingData->oldValues.valid) {
 		if (tracingData->sources.CPU_UTIL) {
 
@@ -674,6 +714,16 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 					/ CPUDIFF(total)));
 			WRITE_FLOAT_VALUE(tracingData, valuef * 100);
 			DEBUGMSG("CPU_TOTAL = %f%%", valuef * 100);
+			
+			if (contextSwitcheNum != -1){
+				gint64 delta;
+				if (contextSwitcheNum >=  tracingData->oldValues.contextSwitches) {
+					delta = contextSwitcheNum - tracingData->oldValues.contextSwitches;
+				}else{ // Overflow
+					delta = contextSwitcheNum + 1<<63 - tracingData->oldValues.contextSwitches;
+				}
+				WRITE_I64_VALUE(tracingData, delta );
+			}
 		}
 
 		if (tracingData->sources.CPU_UTIL_X) {
@@ -814,6 +864,7 @@ static void doTracingStepCPU(tracingDataStruct *tracingData) {
 	}
 	/* save current CPU statistics for next step */
 	tracingData->oldValues.cpu = cpu;
+	tracingData->oldValues.contextSwitches = contextSwitcheNum;
 
 #undef CPUDIFF
 
@@ -1062,7 +1113,7 @@ static void doTracingStepHDD(tracingDataStruct *tracingData) {
 							reportValue = value - tracingData->oldValues.io_completed[i][bd];
 						}else{
 							// overflow, TODO check for correct handling...
-							reportValue = 1<<63 - tracingData->oldValues.io_completed[i][bd]  + value;
+							reportValue = value + 1<<63 - tracingData->oldValues.io_completed[i][bd];
 						}
 					}else{
 						// DISKSTAT_HDD_IOS_INPROGRESS

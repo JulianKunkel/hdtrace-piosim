@@ -51,6 +51,8 @@ typedef struct {
 
 	/* file system information */
 	guint64 * io_completed [DISKSTAT_COUNT];
+
+	guint64 contextSwitches;
 } tracingValuesStruct;
 
 /**
