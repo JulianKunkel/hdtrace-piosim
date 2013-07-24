@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><Application name="mpi-bench1G-trace">
+<Description></Description>
+ <FileList>
+ </FileList>
+
+ <Topology>
+  <Level type="Hostname">
+   <Level type="Rank">
+    <Level type="Thread">
+    </Level>
+   </Level>
+  </Level>
+
+  <Node name="host0">
+   <Node name="0">
+    <Node name="0" />
+   </Node>
+  </Node>
+ </Topology>
+
+ <CommunicatorList>
+ </CommunicatorList>
+
+ <Datatypes>
+ </Datatypes>
+<ExternalStatistics>
+	<Utilization/>
+</ExternalStatistics
+></Application>
