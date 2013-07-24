@@ -9,7 +9,7 @@
 #ifndef TRACING_H_
 #define TRACING_H_
 
-#include <glib/gthread.h>
+#include <glib.h>
 #include <glibtop/cpu.h>
 #include <glibtop/mem.h>
 #include <glibtop/netlist.h>
