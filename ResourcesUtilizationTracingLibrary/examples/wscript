@@ -26,6 +26,17 @@ def build (bld):
 		install_path = '${PREFIX}/examples'
 	)
 
+
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['traceLoopParallel.c'],
+		includes = ['../include'],
+		uselib = ['GLIB-2.0', 'G-THREAD-2.0', 'LIBGTOP-2.0', 'HDTRACE', 'HDSTATS', 'DBCONNECTOR'],
+		uselib_local = ['RUT'],
+		target = 'traceLoop',
+		install_path = '${PREFIX}/examples'
+	)
+
 	bld.new_task_gen(
 		features = 'cc cprogram',
 		source = ['traceLoop2.c'],
