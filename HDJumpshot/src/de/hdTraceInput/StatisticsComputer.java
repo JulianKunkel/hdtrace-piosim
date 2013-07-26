@@ -62,12 +62,16 @@ public class StatisticsComputer {
 
 			if( value > max ) max = value;
 			if( value < min ) min = value;
+			
+			try{
+				sum = sum.add(new BigDecimal(value) );
 
-			sum = sum.add(new BigDecimal(value) );
-
-			integratedSum = integratedSum.add(
+				integratedSum = integratedSum.add(
 					new BigDecimal(value).multiply(
 							entry.getLatestTime().subtract(entry.getEarliestTime()).getBigDecimal())	);
+			}catch(NumberFormatException e){
+				// ignore infinite !
+			}
 			
 			cnt++;
 		}
@@ -84,10 +88,14 @@ public class StatisticsComputer {
 
 			while(entryEnum.hasMoreElements()){
 				final StatisticsGroupEntry entry = entryEnum.nextElement();
+				try{
 				double value = entry.getNumeric(groupNumber);
 
 				final BigDecimal multiplier = new BigDecimal(value).subtract(avg);
-				stddev = stddev.add(multiplier.multiply(multiplier));				
+				stddev = stddev.add(multiplier.multiply(multiplier));
+				}catch(NumberFormatException e){
+					// ignore infinite !
+				}
 			}
 			
 			if( cnt > 1){

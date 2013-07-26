@@ -9,6 +9,61 @@ import org.junit.Test;
 import de.hdTraceInput.MathematicalExpression;
 
 public class MathematicalExpressionTest extends TestSuite{
+	@Test
+	public void constantTest(){
+		MathematicalExpression e = new MathematicalExpression("2");
+		String [] variableNames = {"A"};
+		double [] values =        {4};
+		
+		System.out.println( e.textualRepresentation());		
+		double result = e.computeFunction(values, variableNames);
+		System.out.println("Result for  2" + result);
+		
+		Assert.assertEquals(result, 2.0, 0.001);
+	}
+	
+	@Test
+	public void invalidEquation(){
+		MathematicalExpression e = new MathematicalExpression("(WRITES_COMPLETED:sdd / WRITTEN_SECTORS:sdd)");
+		String [] variableNames = {"a", "b"};
+		double [] values =        {4, 2};
+		
+		System.out.println( e.textualRepresentation());
+		try{
+		double result = e.computeFunction(values, variableNames);
+		System.out.println("Result " + result);		
+		}catch(IllegalArgumentException v){
+			return;
+		}
+		assert(false);
+	}
+	
+	
+	@Test
+	public void hddTest(){
+		MathematicalExpression e = new MathematicalExpression("(WRITES_COMPLETED:sdd / WRITTEN_SECTORS:sdd)");
+		String [] variableNames = {"WRITES_COMPLETED:sdd", "WRITTEN_SECTORS:sdd"};
+		double [] values =        {4, 2};
+		
+		System.out.println( e.textualRepresentation());		
+		double result = e.computeFunction(values, variableNames);
+		System.out.println("Result " + result);
+		
+		Assert.assertEquals(result, 2.0, 0.001);
+	}
+	
+	@Test
+	public void hddTest2(){
+		MathematicalExpression e = new MathematicalExpression("(WRITES_COMPLETED:sdd / WRITTEN_SECTORS:sdd)");
+		String [] variableNames = {"WRITES_COMPLETED:sdd", "WRITTEN_SECTORS:sdd"};
+		double [] values =        {4, 0};
+		
+		System.out.println( e.textualRepresentation());		
+		double result = e.computeFunction(values, variableNames);
+		System.out.println("Result " + result);
+		
+		Assert.assertEquals(result, 0.0, 0.0);
+	}
 	
 	@Test
 	public void realValueTest2(){

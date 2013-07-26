@@ -130,14 +130,14 @@ public class MathematicalExpression {
 				
 				if(i == 0) // aggregates are always nested
 					nestingDepth++;				
-			}else if(readIdentifier || Character.isLetter(c) || c == '_' || c == '-' ){ // if the word starts with a letter, then it stays a letter
+			}else if(readIdentifier || Character.isLetter(c) || c == '_' || c == '-' || c == ':'){ // if the word starts with a letter, then it stays a letter
 				// character					
 				// look ahead next char, if char continue otherwise finish
 				nestedData = nestedData + c;
 				
 				readIdentifier = true;
 				
-				if( ! Character.isLetter( n ) &&  n != '_' && n != '-' && ! Character.isDigit(n) && n != '.') {
+				if( ! Character.isLetter( n ) &&  n != '_' && n != '-' && ! Character.isDigit(n) && n != '.' &&  n != ':') {
 					// finalize this string
 					// add this operant to the required set
 					
@@ -221,8 +221,9 @@ public class MathematicalExpression {
 	 */
 	
 	public double computeFunction(double [] lastValues, String [] variableNames){
-
-		if(operants[0].getClass() == Character.class){			
+		double returnValue;
+		
+		if(operants[0].getClass() == Character.class){
 			
 			// spawn multiple and then perform the operation
 			final MathematicalExpression expression = (MathematicalExpression) operants[1];
@@ -285,10 +286,17 @@ public class MathematicalExpression {
 				newValue = reduce(operation, newValue, val);
 			}
 			
-			return newValue;
+			returnValue = newValue;
 		}else{
-			return computeSingleValue(lastValues, variableNames);
+			returnValue = computeSingleValue(lastValues, variableNames);
 		}
+		
+		// infty is zero
+		if (Double.isInfinite(returnValue) || Double.isNaN(returnValue) ){
+			return 0;
+		}
+		
+		return returnValue;
 	}
 
 	private double reduce(char operation, double tmpVar, double newValue){
@@ -339,6 +347,7 @@ public class MathematicalExpression {
 				// variable
 				int count = 0;
 				for(int c = 0 ; c < variableNames.length ; c++){
+					//System.out.println(o);
 					if(o.equals(variableNames[c])){
 						// matches!
 						count++;

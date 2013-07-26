@@ -577,25 +577,28 @@ public class CanvasTimeline extends ScrollableTimeline implements SearchableView
 				}
 			}
 			
-			double value;
+			double value = 0;
 			final double input = entry.getNumeric(statNumber);
-			switch(scale){
-			case DECIMAL:
-				value =  ((input - minValue) / maxValue);
-				break;
-			case LOGARITHMIC:
-				value =  Math.log10((input - minValue))/ maxValue;
-				break;
-			default:
-				value = 0;
-			}
 
-			if (value < 0){
-				value = 0;
-			}else if (value > 1.0){
-				value = 1.0f;
-			}
+			if(maxValue != 0){
+				switch(scale){
+				case DECIMAL:
+					value =  ((input - minValue) / maxValue);
+					break;
+				case LOGARITHMIC:
+					value =  Math.log10((input - minValue))/ maxValue;
+					break;
+				default:
+					value = 0;
+				}
 
+				if (value < 0){
+					value = 0;
+				}else if (value > 1.0){
+					value = 1.0f;
+				}
+			}
+			
 			Epoch endTime = entry.getLatestTime().subtract(globalMinTime) ;
 			final Epoch startTime = entry.getEarliestTime().subtract(globalMinTime);	
 			final Epoch durationE = endTime.subtract(startTime);
